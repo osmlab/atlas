@@ -17,5 +17,6 @@ then
 	echo "Skip integration tests in pull request builds"
 	./gradlew clean build -x integrationTest
 else
-	./gradlew clean build
+	echo "Temporarily skip integration tests in all builds. Too heavy for Travis"
+	./gradlew clean build -x integrationTest
 fi
