@@ -25,6 +25,8 @@ targetCompatibility=1.8
 
 repositories
 {
+    // For geotools
+    maven { url "http://download.osgeo.org/webdav/geotools/" }
     mavenCentral()
 }
 
