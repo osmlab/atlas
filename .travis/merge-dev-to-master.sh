@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-GITHUB_REPO="matthieun/wkb-wkt-converter"
+GITHUB_REPO="osmlab/atlas"
 MERGE_BRANCH=master
 SOURCE_BRANCH=dev
 
