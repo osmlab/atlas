@@ -1,0 +1,63 @@
+#<Features>;<Type>;<possible key 1>-><possible value 1 for key 1>,<possible value 2 for key 1>|<possible key 2>-><possible value 1 for key 2>,<possible value 2 for key 2>|<possible key 3>->*
+turn_restrictions;relations;type->restriction&restriction->no_right_turn,no_left_turn,no_u_turn,no_straight_on,only_right_turn,only_left_turn,only_straight_on
+# split out turn restriction types prohibitory(no) and mandatory(only) 
+prohibited_restrictions;relations;type->restriction&restriction->no_right_turn,no_left_turn,no_u_turn,no_straight_on
+mandate_restrictions;relations;type->restriction&restriction->only_right_turn,only_left_turn,only_straight_on
+
+# sign posts for highway exits
+signposts;points;highway->motorway_junction
+signpost_ways;edges;destination->*
+
+# all barrier values included
+barriers;points,lines;barrier->*
+
+# Stop signs on nodes will be duplicated as a point because it has a tag. Count points only
+stop_signs;points;highway->stop
+#Stop lights on nodes will be duplicated as a point because it has a tag. Count points only
+stop_lights;points;highway->traffic_signals
+fixme;all;FIXME->*|fixme->*
+parks;areas,relations;boundary->national_park,protected_area|leisure->park,garden,common,nature_reserve|landuse->recreation_ground,village_green
+
+buildings;areas;building->*
+# named buildings
+buildings_named;areas;building->*&name->*
+
+airports;points,areas;aeroway->aerodrome
+hospitals;areas,points,relations;amenity->hospital|building->hospital
+
+# railway=[station OR halt] OR ( train=yes AND public_transport=[stop_position OR platform OR station] )
+rail_stops;all;railway->station,halt|train->yes&public_transport->stop_position,platform,station
+
+# railway=[station OR halt] OR ( (subway=* OR monorail=* OR tram=*) AND public_transport=[stop_position OR platform OR station] )
+transit_rail_stops;all;railway->station,halt|subway->*^monorail->*^tram->*&public_transport->stop_position,platform,station
+
+# amenity=bus_station OR highway=bus_stop OR ( (bus=* OR trolleybus=*) AND public_transport=[stop_position OR platform OR station] )
+bus_stops;all;amenity->bus_station|highway->bus_stop|bus->*^trolleybus->*&public_transport->stop_position,platform,station
+
+# natural=water AND water=[lake OR pond OR reflecting_pool OR reservoir] OR natural=water AND (NOT water=*) OR landuse=basin
+lakes;areas,points;natural->water&water->lake,pond,reflecting_pool,reservoir|natural->water&water->!|landuse->basin
+
+# address points only 
+address_points;areas,points;addr:street->*&addr:housenumber->*
+# address_ranges 
+address_ranges;lines;addr:interpolation->*
+housenumber;areas,points;addr:housenumber->*
+
+amenity;points,areas;amenity->*
+phone;points,areas;contact:phone->*|phone->*
+craft;points,areas;craft->*
+historic;points,areas;historic->*
+landuse;points,areas;landuse->*
+leisure;points,areas;leisure->*
+military;points,areas;military->*
+natural;points,areas;natural->*
+office;points,areas;office->*
+place;points,areas;place->*
+shop;points,areas;shop->*
+sport;points,areas;sport->*
+tourism;points,areas;tourism->*
+POI rollup;points,areas;amenity->*|craft->*|historic->*|landuse->*|leisure->*|military->*|natural->*|office->*|place->*|shop->*|sport->*|tourism->*
+
+# http://wiki.openstreetmap.org/wiki/Key:place#Values
+city_center;points,areas,relations;place->municipality,city,town,village,hamlet
+

@@ -1,0 +1,206 @@
+<!--
+# To the extent possible under law, Eric Muller has waived all
+# copyright and related or neighboring rights to the efele.net/tz maps
+# (comprising the shapefiles, the web pages describing them and the scripts
+# and data used to build them. This work is published from the United States of
+# America.
+#
+# See http://creativecommons.org/publicdomain/zero/1.0/ for more details.
+-->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>A shapefile of the TZ timezones of the world</title>
+<style type="text/css">
+<!--
+.style4 {font-size: small}
+-->
+</style>
+</head>
+
+<body>
+<h2 align='center'>tz_world, an efele.net/tz map</h2>
+<h3 align='center'>A shapefile of the TZ timezones of the world</h3>
+<p align='center'>Last data update: November 26, 2013</p>
+<p align='center'>Last page update: July 5, 2013</p>
+<p>&nbsp;</p>
+<p>The <a href="tz_world.zip">tz_world</a> shapefile captures the boundaries of the TZ timezones across the world, as of TZ 2013b. The geometries are all POLYGONs, and a TZ timezone will sometimes have multiple polygons. There are about 28,000 rows.</p>
+<p>The <a href="tz_world_mp.zip">tz_world_mp</a> shapefile  captures the same boundaries. The geometries are either POLYGONs or MULTIPOLYGONs, and there is a single geometry for each TZ timezone.</p>
+<p>There is a companion map for the TZ timezones used in <a href="../antarctica">Antarctica</a> stations.</p>
+<p>The geometries are primarily derived from the <a href="/maps/fips-10/map">fip10s</a> data (itself derived from the VMAP0 data), augmented with data presented in the pages for the maps of the <a href="../us">United States</a>, <a href='../canada'>Canada</a>, <a href="../russia">Russia</a> and <a href='../china'>China</a>.</p>
+<h3>Snapshot of the zones</h3>
+<p>This is a snaphsot of the zones (many of the smaller zones are not visible at this scale):</p>
+<p align="center"><img src="tz_world.png" /></p>
+
+<h3>&nbsp;</h3>
+<h3>Timezones at sea</h3>
+<p>The tz database says: “A ship within the territorial  waters of any nation uses that nation's time. In international  waters, time zone boundaries are meridians 15° apart, except that  UTC−12 and UTC+12 are each 7.5° wide and are separated by  the 180° meridian (not by the International Date Line, which is  for land and territorial waters only). A captain can change ship's  clocks any time after entering a new time zone; midnight changes are  common.” </p>
+<p>While the boundaries in international waters are not difficult to construct, the boundaries of territorial waters are a completely different story, and are similar to the boundaries between countries. Unfortunately, VMAP0 does not provide geometries for the territorial waters. As a consequence, the shapefiles presented here do not cover seas and oceans.</p>
+<p>&nbsp;</p>
+<h3>Logical description of the zones</h3>
+<p>The vast majority of the tz timezones are by construction matching a country, so little needs to be said about them: we equate them with the corresponding region in our fips10s data. We also discussed the situation of the  <a href="../us">United States</a>, <a href='../canada'>Canada</a>, <a href='../russia'>Russia</a> and <a href='../china'>China</a> in other pages. That leaves only a few countries with multiple time zones, and again, most of them are straightforward, with timezone matching administrative divisions of the countries: the correspondance is documented in the script we use to build the shapefile (see below). The rest of this section discusses the remaining cases, where the definition of the extent of a zone is open to interpretation.</p>
+<h4>Uzbekistan</h4>
+<p>This country is covered by two tz timezones, <em>Tashkent</em> and <em>Samarkand</em>. There is not enough information in the tz data to figure out how Uzbekistan is divided between them. We use a separation along first-level administrative divisons that matches WTE.</p>
+<h4>Ukraine</h4>
+<p>This country is covered by four tz timezones. There is not enough information in the tz data to figure out how Ukraine is divided between them. We use a separation along first-level administrative divisons that matches WTE.</p>
+<h4>Australia</h4>
+<p>The extent of the <em>Eucla</em> zone is not clear from the tz data. The only clue is that the timezone ends just east of Caiguna. We arbitrarily make that zone the intersection of a rectangle and   Western Australia: Caiguna is a 125.490E, so we use somewhat   arbitrarily 125.5E as the west boundary; the north boundary is   arbitrarily -31.3S; the south boundary is the ocean; the east   boundary is the Western Australia/South Australia border.</p>
+<p>The <em>Lindeman</em> zone is said by tz to include the three islands of  Hayman, Lindeman, Hamilton, all in Queensland. There are other islands in this area, but we don't include them, for lack of better information.</p>
+<p>The <em>Broken_Hill</em> timezone is defined by <a href="http://www.lawlink.nsw.gov.au/Lawlink/cru/ll_cru.nsf/pages/cru_daylightsaving">law</a> as the county of Yancowinna, New South Wales. The geometry was obtained by georeferencing and tracing of this <a href="http://en.wikipedia.org/wiki/Image:New_South_Wales_cadastral_divisions.png">image of the counties</a> of New South Wales</p>
+<h4>Mongolia</h4>
+<p>It is difficult to obtain reliable and verifiable information on time zones in Mongolia: see this <a href="http://statoids.com/tmn.html">summary</a>. We use the following setting:</p>
+<ul>
+  <li><em>Asia/Choibalsan</em>: Dornod (MG06), Suhbaatar (MG17)</li>
+  <li><em>Asia/Hovd</em>: Bayan-Olgiy (MG03), Dzavhan (MG09), Govi-Altay (MG10), Hovd (MG12), Uvs (MG19)</li>
+  <li><em>Asia/Ulaanbaatar</em>: rest of Mongolia<br />
+  </li>
+</ul>
+<h4>Cuba</h4>
+<p>According to <a href="http://www.timegenie.com/country.time/cu/">this report</a>, </p>
+<blockquote>
+  <p>Regardless of what Cuba does, the U.S. Naval  Base Guantanamo Bay will always be in the Eastern Time zone and will always  observe daylight saving time as this allows the naval base to remain in synch with their  headquarters in Florida. This information was confirmed with the assistance of  the Public Affairs Officer at the <a href="http://www.nsgtmo.navy.mil/" title="U.S. Naval Base Guantanamo Bay">U.S. Naval Base Guantanamo Bay</a>.</p>
+</blockquote>
+<p>Accordingly, we assign it the<em> America/New_York</em> timezone.</p>
+<h4>Marshall Islands</h4>
+<p>The <em> Kwajalein</em> zone is certainly no less than the 11 islands leased by the US on the Kwajalein atoll. It’s also very unlikely to be more than the Kwajalein atoll itself. We use the whole atoll as the extent of the zone.</p>
+
+<h4>Spain</h4>
+<p>Most of Spain is easy. The open question concerns the <a href="http://en.wikipedia.org/wiki/Plaza_de_soberanía">Plazas de  soberania</a>. Clearly, Ceuta is in Africa/Ceuta, but the timezone of Melilla, Chafarinas, Peñón de Alhucemas, and Peñón de Vélez de la Gomera is unclear. Our base map does not have areas for the last two, and we use Africa/Ceuta for Melilla and the Chafarinas.</p>
+
+<h4>Antarctica</h4>
+<p>In this map, we consider all of Antarctica to be uninhabited. The companion map <a href="../antarctica">Antarctica</a> captures the permanent bases and the TZ timezones they use.</p>
+
+<h4>Greenland</h4>
+<p>The boundaries between the four zones are somewhat arbitrary.</p>
+<h4>Mexico</h4>
+
+<p>We use a somewhat arbitrary boundary between the America/Tijuana
+and America/Santa_Isabel timezones. The former is defined as the zone
+within 20 km of the US border, the town of Ensada and "towards the
+interior of the country". Similarly, we use a somewhat arbitrary boundary between America/Bahia_Banderas and America/Mazatlan.</p>
+
+<h3>Construction of the shapefile</h3>
+
+<p>The zip of the <a href="tz_world_ingredients.zip">ingredients</a> contains a script to build the map from the source, as well as a .prj file for the source map.</p>
+
+<p>For the United States, Russia and China, we started from the tz maps for those countries and turned them manually into masks; the idea is to retain from them only the boundaries that are not present in our base map. Those mask shapefiles are in the ingredients.</p>
+
+<p>For Mexico, we use a mask that captures the 20km zone next to the US boundary, extended to include the town of Ensanada.</p>
+
+<p>For Canada, we use directly the masks that served to create the Canada map.</p>
+
+<p>For Brazil, we use a mask built from 1) the great circle from Tabatinga to Porto Acre to divide east from west Amazonas, and 2) the Xigu and Javary rivers from the VMAP0 inwatera (inland water area) layer to divide east from west Para.</p>
+
+<p>For the exact details of the tz assignments, see the script in the ingredients.</p>
+<h3>&nbsp;</h3>
+<hr/>
+<h3>Terms of use</h3>
+
+<p><a rel="license" href="http://creativecommons.org/publicdomain/zero/1.0/" style="text-decoration:none;"><img src="http://i.creativecommons.org/l/zero/1.0/80x15.png" border="0" alt="CC0" /></a> To the extent possible under law, Eric Muller has waived all copyright and related or neighboring rights to the <span property="dct:title">efele.net/tz maps</span> (comprising the shapefiles, the web pages describing them and the scripts and data used to build them).
+This work is published from <span about="http://efele.net/maps/tz" property="vcard:Country" datatype="dct:ISO3166" content="US">the United States of America</span>.</p>
+
+
+<p>Note that this does not affect the rights others may have. I am not qualified to determine whether such rights exist.</p>
+<hr/>
+<p><span class="style4"><a href="/contact.html">Contact</a> - <a href="../../thanks.html">Thanks</a></span></p>
+<p>History:</p>
+<ul>
+  <li>November 26, 2013:
+    <ul>
+      <li>fixed a problem along the boundary of America/Menominee and Lake Michigan. Thanks to James Diebel for reporting the problem.</li>
+    </ul>
+  </li>
+  <li>October 8, 2013:
+    <ul>
+      <li>fixed some self-intersections in Asia/Magadan. Thanks to Edward Judge for reporting the problem.</li>
+    </ul>
+  </li>
+  <li>July 5, 2013:
+    <ul>
+      <li>some of the Aleutian islands were incorrectly in America/Adak rather than America/Nome. Thanks to Eric Michielli for reporting the problem.</li>
+    </ul>
+    <ul>
+      <li>some islands in the Yamalo-Nenetskiy autonomous okrug of Russia were incorrectly in Europe/Moscou rather than Europe/Yekaterinburg, because of a problem the fips10 map (in turn traced to a problem with VMAP0). Thanks to Derick Rethans for reporting this error.</li>
+    </ul>
+  </li>
+  <li>April 17, 2013:
+  <ul>
+    <li>added Asia/Ust-Nera and Asia/Khandyga</li>
+  </ul>
+  </li>
+  <li>October 16, 2012:
+    <ul>
+      <li>Alderney Island (part of the Channel Islands) was incorrectly assigned to Europe/London, instead of the correct Europe/Guernsey; thanks to E. Jarecki for reporting this error.</li>
+    </ul>
+  </li>
+
+  <li>September 30, 2012:
+    <ul>
+      <li>extended America/Metlakatla to cover the whole of Annette island and a few nearby islands. Thanks to James Diebel for pointing out this problem.</li>
+      <li>removed a couple of artifacts of the VMAP0 15° grid in Honduras; thanks to Don Tong for pointing these out.</li>
+    </ul>
+  </li>
+  <li>June 24, 2012:
+    <ul>
+      <li>added Africa/Juba</li>
+      <li>added Asia/Hebron</li>
+      <li>added America/Lower_Princes and America/Kralendijk</li>
+      <li>added America/Sitka and America/Metlakatla.</li>
+      <li>added America/Creston</li>
+      <li>fixed small problems in Canada, thanks to Paul Salber</li>
+      <li>fixed a small problem in Russia, thanks to Adalbert Michelic</li>
+      <li>fixed a small problem in US, thanks to Dan O’Neill</li>
+    </ul>
+  </li>
+  <li>February 7, 2011:
+    <ul>
+      <li>added America/North_Dakota/Beulah</li>
+      <li>fixes to the polygons of America/Winnipeg, America/Belem, Asia/Urumqi, thanks to Veeder South</li>
+    </ul>
+  </li>
+  <li>November 18, 2010:
+  <ul>
+    <li>added a paragraph about the timezones at sea</li>
+  </ul>
+  </li>
+  <li>August 26, 2010:
+  <ul>
+    <li>added the new zone America/Bahia_Banderas</li>
+    <li>added the zones for Greenland</li>
+    <li>renamed Pacific/Truk to Pacific/Chuuk and Pacific/Ponape to Pacific/Pohnpei</li>
+  </ul>
+  </li>
+  <li>April 14, 2010:
+    <ul>
+      <li>added the zone introduced in TZ 2010f: Antarctica/Macquarie.</li>
+      <li>fixed a typo in America/Monterrey and America/Chihuahua; thanks to Boaz Stuller and Russel Sayers for reporting these problems.</li>
+    </ul>
+  </li>
+  <li>March 16, 2010:
+    <ul>
+      <li>fixed an overlap problem around lon -85.39, lat 29.98 and a gap around lon -69.9, lat -4.23; thanks to Gary Baker for reporting these problems.</li>
+    </ul>
+  </li>
+  <li>March 15, 2010:
+    <ul>
+      <li>added the tz_world_mp shapefile; thanks to Adam Green for noticing the change in the geometry type of the shapefile.</li>
+    </ul>
+  </li>
+  <li>March 13, 2010: 
+    <ul><li>incorporated the udpates to the Russia map.</li>
+      <li>added the zones introduced between TZ 2009r and TZ 2010e: America/Matamoros, America/Ojinaga, America/Santa_Isabel.</li>
+    </ul>
+  </li>
+  <li>November 23, 2009: fixed a typo in America/Yakutat; thanks to Rob Ellison for noticing this.</li>
+  <li>November 14, 2009: incorporated the updates to the US map</li>
+  <li>November 10, 2009: rebuilt using the updated sources; updated the script to match tz2009r; added the terms of use</li>
+  <li>October 4, 2008: added commentary on Mongolia and Cuba</li>
+  <li>September 19, 2008: fixed the description of <em>Broken_Hill</em>, thanks to Eric Ulevic</li>
+  <li>September 16, 2008: first version</li>
+</ul>
+<p>&nbsp;</p>
+
+</body>
+</html>

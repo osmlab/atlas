@@ -1,0 +1,164 @@
+{
+	"type": "FeatureCollection",
+	"crs": 
+	{
+		"type": "name",
+		"properties": 
+		{
+			"name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+		}
+	},
+
+	"features": 
+	[
+		{
+			"type": "Feature",
+			"properties": 
+			{
+				"id": 193548155000002,
+				"tags": "\"ref\"=>\"NIC-1\", \"name\"=>\"Carretera Norte\", \"lanes\"=>\"\", \"oneway\"=>\"yes\", \"highway\"=>\"trunk\", \"surface\"=>\"paved\"",
+				"countries": 
+				[
+					"NIC"
+				]
+			},
+
+			"geometry": 
+			{
+				"type": "LineString",
+				"coordinates": 
+				[
+					[
+						-86.19759590000001,
+						12.1482481
+					],
+
+					[
+						-86.1985711,
+						12.1483444
+					]
+				]
+			}
+		},
+
+		{
+			"type": "Feature",
+			"properties": 
+			{
+				"id": 195288102000002,
+				"tags": "\"source\"=>\"Bing\", \"highway\"=>\"residential\"",
+				"countries": 
+				[
+					"NIC"
+				]
+			},
+
+			"geometry": 
+			{
+				"type": "LineString",
+				"coordinates": 
+				[
+					[
+						-86.2567625,
+						12.1271112
+					],
+
+					[
+						-86.25715430000001,
+						12.12714
+					]
+				]
+			}
+		},
+
+		{
+			"type": "Feature",
+			"properties": 
+			{
+				"id": 188168828000008,
+				"tags": "\"oneway\"=>\"-1\", \"highway\"=>\"tertiary\"",
+				"countries": 
+				[
+					"NIC"
+				]
+			},
+
+			"geometry": 
+			{
+				"type": "LineString",
+				"coordinates": 
+				[
+					[
+						-86.1990763,
+						11.8500611
+					],
+
+					[
+						-86.198287,
+						11.8503743
+					]
+				]
+			}
+		},
+
+		{
+			"type": "Feature",
+			"properties": 
+			{
+				"id": 193543402000002,
+				"tags": "\"highway\"=>\"residential\"",
+				"countries": 
+				[
+					"NIC"
+				]
+			},
+
+			"geometry": 
+			{
+				"type": "LineString",
+				"coordinates": 
+				[
+					[
+						-86.29639510000001,
+						12.1598271
+					],
+
+					[
+						-86.2957164,
+						12.1598603
+					]
+				]
+			}
+		},
+
+		{
+			"type": "Feature",
+			"properties": 
+			{
+				"id": 171845220003000,
+				"tags": "\"highway\"=>\"residential\"",
+				"countries": 
+				[
+					"CRI"
+				]
+			},
+
+			"geometry": 
+			{
+				"type": "LineString",
+				"coordinates": 
+				[
+					[
+						-82.83993,
+						8.537404
+					],
+
+					[
+						-82.8396608,
+						8.5374043
+					]
+				]
+			}
+		}
+	]
+}

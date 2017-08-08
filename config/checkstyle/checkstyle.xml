@@ -1,0 +1,148 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Puppy Crawl//DTD Check Configuration 1.1//EN"
+    "http://www.puppycrawl.com/dtds/configuration_1_1.dtd">
+
+<module name="Checker">
+	<module name="NewlineAtEndOfFile" />
+	<module name="TreeWalker">
+		<!-- Checks for Javadoc comments. -->
+		<module name="JavadocMethod">
+			<property name="scope" value="protected" />
+			<property name="excludeScope" value="private" />
+			<property name="allowMissingJavadoc" value="true" />
+			<property name="allowUndeclaredRTE" value="true" />
+		</module>
+		<module name="JavadocType">
+			<property name="authorFormat" value="\S" />
+		</module>
+		<module name="JavadocStyle">
+			<property name="checkFirstSentence" value="false" />
+		</module>
+
+		<!-- Checks for Naming Conventions. -->
+		<module name="LocalFinalVariableName" >
+			<property name="format" value="^([a-z][a-zA-Z0-9]{2,}$|[e])$"/>
+			<property name="tokens" value="VARIABLE_DEF,PARAMETER_DEF"/>
+		</module>
+		<module name="LocalVariableName" >
+			<property name="format" value="^([a-z][a-zA-Z0-9]{2,}$|[e])$"/>
+			<property name="allowOneCharVarInForLoop" value="true"/>
+		</module>
+		<module name="MemberName" >
+			<property name="format" value="^([a-z][a-zA-Z0-9]{2,}$|[e])$"/>
+		</module>
+		<module name="MethodName" >
+			<property name="format" value="^([a-z][a-zA-Z0-9]{2,}$|[e])$"/>
+		</module>
+		<module name="PackageName" />
+		<module name="ParameterName" >
+			<property name="format" value="^([a-z][a-zA-Z0-9]{2,}$|[e])$"/>
+		</module>
+		<module name="TypeName" />
+
+		<!-- Checks for imports -->
+		<module name="AvoidStarImport" />
+		<module name="CustomImportOrder" />
+		<module name="IllegalImport" />
+		<module name="ImportOrder">
+			<property name="groups" value="java,javax,org,com,*"/>
+			<property name="ordered" value="true"/>
+			<property name="separated" value="true"/>
+			<property name="option" value="top"/>
+		</module>
+		<module name="RedundantImport" />
+		<module name="UnusedImports">
+			<property name="processJavadoc" value="true" />
+		</module>
+		
+		<!-- Checks for metrics -->
+
+		<!-- Checks for Size Violations. -->
+
+		<!-- Checks for whitespace -->
+
+		<!-- Modifier Checks -->
+		<module name="ModifierOrder" />
+		<module name="RedundantModifier" />
+
+
+		<!-- Checks for blocks -->
+		<module name="AvoidNestedBlocks" >
+            <property name="allowInSwitchCase" value="true" />
+		</module>
+		<module name="LeftCurly">
+			<property name="option" value="nl" />
+		</module>
+		<module name="EmptyCatchBlock" />
+		<module name="NeedBraces" />
+		<module name="RightCurly">
+			<property name="option" value="alone" />
+		</module>
+
+
+		<!-- Checks for common coding problems -->
+		<module name="CovariantEquals"/>
+		<module name="DefaultComesLast"/>
+		<module name="EmptyStatement" />
+		<module name="EqualsAvoidNull"/>
+		<module name="EqualsHashCode" />
+		<module name="FallThrough"/>
+		<module name="FinalLocalVariable" >
+			<property name="tokens" value="VARIABLE_DEF,PARAMETER_DEF"/>
+			<property name="validateEnhancedForLoopVariable" value="true"/>
+		</module>
+		<module name="IllegalInstantiation" />
+		<module name="IllegalThrows"/>
+		<module name="InnerAssignment"/>
+        <module name="MagicNumber" >
+			<property name="ignoreAnnotation" value="true"/>
+		</module>
+		<module name="MissingSwitchDefault" />
+		<module name="ModifiedControlVariable"/>
+		<module name="MultipleStringLiterals" >
+            <property name="allowedDuplicates" value="10"/>
+        </module>
+		<module name="MultipleVariableDeclarations"/>
+		<module name="NoClone"/>
+		<module name="NoFinalizer"/>
+		<module name="OneStatementPerLine" />
+		<module name="PackageDeclaration"/>
+		<module name="ParameterAssignment"/>
+		<module name="RequireThis">
+    		<property name="checkMethods" value="false"/>
+		</module>
+		<module name="SimplifyBooleanExpression" />
+		<module name="SimplifyBooleanReturn" />
+		<module name="StringLiteralEquality"/>
+		<module name="UnnecessaryParentheses" />
+
+		<!-- Checks for class design -->
+		<module name="FinalClass" />
+		<module name="HideUtilityClassConstructor" />
+		<module name="MutableException"/>
+		<module name="OneTopLevelClass"/>
+		<module name="ThrowsCount"/>
+		<module name="VisibilityModifier" />
+
+
+		<!-- Miscellaneous other checks. -->
+		<module name="ArrayTypeStyle" />
+		<module name="AvoidEscapedUnicodeCharacters"/>
+		<module name="CommentsIndentation"/>
+		<module name="FinalParameters" />
+		<!-- Skipping indentation until https://github.com/checkstyle/checkstyle/issues/3342 is resolved
+		<module name="Indentation" >
+			<property name="lineWrappingIndentation" value="8"/>
+			<property name="forceStrictCondition" value="false"/>
+		</module> -->
+		<module name="OuterTypeFilename"/>
+		<module name="TrailingComment"/>
+		<module name="TodoComment" />
+		<module name="UpperEll" />
+	</module>
+
+	<module name="SuppressionFilter">
+		<property name="file" value="config/checkstyle/suppressions.xml" />
+	</module>
+</module>

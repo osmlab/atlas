@@ -1,0 +1,15 @@
+{
+  "feature": {
+    "AIA": {
+      "enable": true,
+      "list": [
+        "nodes",
+        "edges"
+      ],
+      "range": {
+        "max": 20.0,
+        "min": 10.0
+      }
+    }
+  }
+}

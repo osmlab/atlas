@@ -1,0 +1,60 @@
+project.ext.versions = [
+    checkstyle: '7.6.1',
+    junit: '4.12',
+    slf4j: '1.7.12',
+    log4j: '1.2.17',
+    opencsv: '2.3',
+    gson: '2.2.4',
+    math: '3.3',
+    http: '4.5.1',
+    jts: '1.13',
+    geotools: '17.0',
+    osmosis: '0.44.1',
+    commons:'1.3.1',
+    commons_io: '2.5',
+    cli: '1.3.1',
+    csv: '1.2',
+    lang: '3.4',
+    reflections: '0.9.10',
+    guava: '18.0',
+    jsonassert:'1.3.0',
+    jackson_core:'2.8.8',
+    jackson_databind:'2.8.8.1',
+]
+
+project.ext.packages = [
+    junit: "junit:junit:${versions.junit}",
+    slf4j: [
+        api: "org.slf4j:slf4j-api:${versions.slf4j}",
+        simple: "org.slf4j:slf4j-simple:${versions.slf4j}",
+        log4j12: "org.slf4j:slf4j-log4j12:${versions.slf4j}",
+    ],
+    log4j: "log4j:log4j:${versions.log4j}",
+    opencsv: "net.sf.opencsv:opencsv:${versions.opencsv}",
+    gson: "com.google.code.gson:gson:${versions.gson}",
+    math: "org.apache.commons:commons-math3:${versions.math}",
+    http: "org.apache.httpcomponents:httpclient:${versions.http}",
+    jts: "com.vividsolutions:jts:${versions.jts}",
+    geotools: "org.geotools:gt-shapefile:${versions.geotools}",
+    osmosis: [
+        core: "org.openstreetmap.osmosis:osmosis-core:${versions.osmosis}",
+        pbf: "org.openstreetmap.osmosis:osmosis-pbf:${versions.osmosis}",
+        xml: "org.openstreetmap.osmosis:osmosis-xml:${versions.osmosis}",
+        hstore:"org.openstreetmap.osmosis:osmosis-hstore-jdbc:${versions.osmosis}",
+        pg:"org.openstreetmap.osmosis:osmosis-pgsnapshot:${versions.osmosis}",
+    ],
+    commons:[
+            io: "commons-io:commons-io:${versions.commons_io}",
+            cli:"commons-cli:commons-cli:${versions.cli}",
+            csv : "org.apache.commons:commons-csv:${versions.csv}",
+            lang: "org.apache.commons:commons-lang3:${versions.lang}",
+    ],
+    reflections: "org.reflections:reflections:${versions.reflections}",
+    guava: "com.google.guava:guava:${versions.guava}",
+    jsonassert: "org.skyscreamer:jsonassert:${versions.jsonassert}",
+    jackson:[
+            core: "com.fasterxml.jackson.core:jackson-core:${versions.jackson_core}",
+            databind: "com.fasterxml.jackson.core:jackson-databind:${versions.jackson_databind}"
+    ],
+]
+

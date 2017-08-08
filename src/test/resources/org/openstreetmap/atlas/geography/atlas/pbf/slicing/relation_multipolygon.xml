@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' upload='true' generator='JOSM'>
+    <node id='214602000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test' visible='true'
+          version='1' changeset='1' lat='6.89143764171' lon='-8.32869925339'/>
+    <node id='214600000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test' visible='true'
+          version='1' changeset='1' lat='6.8834659547' lon='-8.32827100636'/>
+    <node id='214598000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test' visible='true'
+          version='1' changeset='1' lat='6.88378482475' lon='-8.33892365125'/>
+    <node id='214597000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test' visible='true'
+          version='1' changeset='1' lat='6.892181659' lon='-8.33721066313'/>
+    <node id='214593000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test' visible='true'
+          version='1' changeset='1' lat='6.89154392997' lon='-8.32623683297'/>
+    <node id='214591000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test' visible='true'
+          version='1' changeset='1' lat='6.88957759339' lon='-8.31547712632'/>
+    <node id='214589000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test' visible='true'
+          version='1' changeset='1' lat='6.89946233792' lon='-8.31702952181'/>
+    <node id='214588000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test' visible='true'
+          version='1' changeset='1' lat='6.89707088638' lon='-8.32591564769'/>
+    <node id='214584000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test' visible='true'
+          version='1' changeset='1' lat='6.89845261541' lon='-8.33469471182'/>
+    <node id='214582000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test' visible='true'
+          version='1' changeset='1' lat='6.89366969006' lon='-8.34154666432'/>
+    <node id='214580000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test' visible='true'
+          version='1' changeset='1' lat='6.89733660382' lon='-8.34780977714'/>
+    <node id='214579000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test' visible='true'
+          version='1' changeset='1' lat='6.90440463282' lon='-8.34261728189'/>
+    <way id='214599000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test' visible='true'
+         version='1' changeset='1'>
+        <nd ref='214597000000'/>
+        <nd ref='214598000000'/>
+        <nd ref='214600000000'/>
+        <nd ref='214602000000'/>
+        <nd ref='214597000000'/>
+        <tag k='leisure' v='park'/>
+        <tag k='name' v='test_park'/>
+    </way>
+    <way id='214590000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test' visible='true'
+         version='1' changeset='1'>
+        <nd ref='214588000000'/>
+        <nd ref='214589000000'/>
+        <nd ref='214591000000'/>
+        <nd ref='214593000000'/>
+        <nd ref='214588000000'/>
+        <tag k='leisure' v='park'/>
+    </way>
+    <way id='214581000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test' visible='true'
+         version='1' changeset='1'>
+        <nd ref='214579000000'/>
+        <nd ref='214580000000'/>
+        <nd ref='214582000000'/>
+        <nd ref='214584000000'/>
+        <nd ref='214579000000'/>
+        <tag k='leisure' v='park'/>
+    </way>
+    <relation id='214614' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test' visible='true'
+              version='1' changeset='1'>
+        <member type='way' ref='214581000000' role='outer'/>
+        <member type='way' ref='214590000000' role='outer'/>
+        <member type='way' ref='214599000000' role='outer'/>
+        <tag k='leisure' v='park'/>
+    </relation>
+</osm>

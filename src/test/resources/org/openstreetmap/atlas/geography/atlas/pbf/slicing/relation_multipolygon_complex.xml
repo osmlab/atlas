@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' upload='true' generator='JOSM'>
+    <node id='214776000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test'
+          visible='true' version='1' changeset='1' lat='6.87133198688' lon='-8.33750935353'/>
+    <node id='214775000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test'
+          visible='true' version='1' changeset='1' lat='6.88017051964' lon='-8.33197681515'/>
+    <node id='214774000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test'
+          visible='true' version='1' changeset='1' lat='6.87441616889' lon='-8.32877230817'/>
+    <node id='214773000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test'
+          visible='true' version='1' changeset='1' lat='6.8837848' lon='-8.3389237'/>
+    <node id='214772000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test'
+          visible='true' version='1' changeset='1' lat='6.87142836787' lon='-8.33437857895'/>
+    <node id='214771000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test'
+          visible='true' version='1' changeset='1' lat='6.87193436775' lon='-8.33149050006'/>
+    <node id='214770000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test'
+          visible='true' version='1' changeset='1' lat='6.883466' lon='-8.328271'/>
+    <node id='214769000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test'
+          visible='true' version='1' changeset='1' lat='6.87407883746' lon='-8.34039743242'/>
+    <node id='214768000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test'
+          visible='true' version='1' changeset='1' lat='6.87822317845' lon='-8.33993631058'/>
+    <way id='214778000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test' visible='true'
+         version='1' changeset='1'>
+        <nd ref='214768000000'/>
+        <nd ref='214775000000'/>
+        <nd ref='214774000000'/>
+        <tag k='highway' v='residential'/>
+    </way>
+    <way id='214777000000' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test' visible='true'
+         version='1' changeset='1'>
+        <nd ref='214768000000'/>
+        <nd ref='214769000000'/>
+        <nd ref='214776000000'/>
+        <nd ref='214772000000'/>
+        <nd ref='214771000000'/>
+        <nd ref='214774000000'/>
+        <tag k='highway' v='primary'/>
+    </way>
+    <relation id='214805000000' action='modify' timestamp='2011-0328T13:01:33Z' uid='111' user='osm_test'
+              visible='true' version='1' changeset='1'>
+        <member type='way' ref='214777000000' role='outer'/>
+        <member type='way' ref='214778000000' role='outer'/>
+        <tag k='admin_level' v='5'/>
+        <tag k='leisure' v='park'/>
+        <tag k='name' v='test_park'/>
+    </relation>
+</osm>

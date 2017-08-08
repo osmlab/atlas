@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Command Line Interface for finding shard names
+
+: ${ATLAS:?"Make sure to call export ATLAS=/path/to/atlas/project"}
+
+java -Xmx10G -classpath "$ATLAS/build/libs/*" -Dlog4j.configuration=file:$ATLAS/scripts/log4j-atlas/log4j.properties org.openstreetmap.atlas.geography.sharding.LocationToShardCommand "$@"

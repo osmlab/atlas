@@ -1,0 +1,7 @@
+{
+    "filters": [
+        "barrier->*|highway->crossing,motorway_junction|railway->crossing,level_crossing",
+        "noexit->!",
+        "oneway->!reversed"
+    ]
+}

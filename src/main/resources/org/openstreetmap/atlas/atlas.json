@@ -1,0 +1,458 @@
+{
+	"type": "FeatureCollection",
+	"features": 
+	[
+		{
+			"type": "Feature",
+			"geometry": 
+			{
+				"type": "Point",
+				"coordinates": 
+				[
+					-122.033948,
+					37.32544
+				]
+			},
+
+			"properties": 
+			{
+				"highway": "turning_circle"
+			}
+		},
+
+		{
+			"type": "Feature",
+			"geometry": 
+			{
+				"type": "Point",
+				"coordinates": 
+				[
+					-122.031007,
+					37.390535
+				]
+			},
+
+			"properties": 
+			{
+				"highway": "turning_circle"
+			}
+		},
+
+		{
+			"type": "Feature",
+			"geometry": 
+			{
+				"type": "Point",
+				"coordinates": 
+				[
+					-122.028464,
+					37.321628
+				]
+			},
+
+			"properties": 
+			{
+				"highway": "turning_circle"
+			}
+		},
+
+		{
+			"type": "Feature",
+			"geometry": 
+			{
+				"type": "LineString",
+				"coordinates": 
+				[
+					[
+						-122.033948,
+						37.32544
+					],
+
+					[
+						-122.031007,
+						37.390535
+					]
+				]
+			},
+
+			"properties": 
+			{
+				"surface": "concrete",
+				"name": "edge9",
+				"lanes": "3",
+				"highway": "primary"
+			}
+		},
+
+		{
+			"type": "Feature",
+			"geometry": 
+			{
+				"type": "LineString",
+				"coordinates": 
+				[
+					[
+						-122.031007,
+						37.390535
+					],
+
+					[
+						-122.033948,
+						37.32544
+					]
+				]
+			},
+
+			"properties": 
+			{
+				"surface": "fine_gravel",
+				"name": "edge_9",
+				"highway": "primary"
+			}
+		},
+
+		{
+			"type": "Feature",
+			"geometry": 
+			{
+				"type": "LineString",
+				"coordinates": 
+				[
+					[
+						-122.031007,
+						37.390535
+					],
+
+					[
+						-122.028464,
+						37.321628
+					]
+				]
+			},
+
+			"properties": 
+			{
+				"name": "edge98",
+				"maxspeed": "100",
+				"bridge": "cantilever",
+				"highway": "secondary"
+			}
+		},
+
+		{
+			"type": "Feature",
+			"geometry": 
+			{
+				"type": "LineString",
+				"coordinates": 
+				[
+					[
+						-122.028464,
+						37.321628
+					],
+
+					[
+						-122.033948,
+						37.32544
+					]
+				]
+			},
+
+			"properties": 
+			{
+				"name": "edge987",
+				"maxspeed": "50 knots",
+				"highway": "residential",
+				"tunnel": "culvert"
+			}
+		},
+
+		{
+			"type": "Feature",
+			"geometry": 
+			{
+				"type": "Polygon",
+				"coordinates": 
+				[
+					[
+						[
+							-122.033948,
+							37.32544
+						],
+
+						[
+							-122.052138,
+							37.317585
+						],
+
+						[
+							-122.028464,
+							37.321628
+						]
+					]
+				]
+			},
+
+			"properties": 
+			{
+				"natural": "grassland",
+				"leisure": "golf_course"
+			}
+		},
+
+		{
+			"type": "Feature",
+			"geometry": 
+			{
+				"type": "Polygon",
+				"coordinates": 
+				[
+					[
+						[
+							-122.031007,
+							37.390535
+						],
+
+						[
+							-122.009566,
+							37.33531
+						],
+
+						[
+							-122.028932,
+							37.332451
+						],
+
+						[
+							-122.033948,
+							37.32544
+						]
+					]
+				]
+			},
+
+			"properties": 
+			{
+				"leisure": "swimming_pool",
+				"sport": "swimming"
+			}
+		},
+
+		{
+			"type": "Feature",
+			"geometry": 
+			{
+				"type": "LineString",
+				"coordinates": 
+				[
+					[
+						-122.031007,
+						37.390535
+					],
+
+					[
+						-122.009566,
+						37.33531
+					]
+				]
+			},
+
+			"properties": 
+			{
+				"power": "line"
+			}
+		},
+
+		{
+			"type": "Feature",
+			"geometry": 
+			{
+				"type": "LineString",
+				"coordinates": 
+				[
+					[
+						-122.052138,
+						37.317585
+					],
+
+					[
+						-122.028464,
+						37.321628
+					],
+
+					[
+						-122.028932,
+						37.332451
+					]
+				]
+			},
+
+			"properties": 
+			{
+				"aeroway": "runway"
+			}
+		},
+
+		{
+			"type": "Feature",
+			"geometry": 
+			{
+				"type": "LineString",
+				"coordinates": 
+				[
+					[
+						-122.0304871,
+						37.3314171
+					],
+
+					[
+						-122.028932,
+						37.332451
+					],
+
+					[
+						-122.033948,
+						37.32544
+					],
+
+					[
+						-122.028464,
+						37.321628
+					]
+				]
+			},
+
+			"properties": 
+			{
+				"natural": "coastline",
+				"waterway": "canal"
+			}
+		},
+
+		{
+			"type": "Feature",
+			"geometry": 
+			{
+				"type": "Point",
+				"coordinates": 
+				[
+					-122.052138,
+					37.317585
+				]
+			},
+
+			"properties": 
+			{
+				"addr:city": "Cupertino"
+			}
+		},
+
+		{
+			"type": "Feature",
+			"geometry": 
+			{
+				"type": "Point",
+				"coordinates": 
+				[
+					-122.028464,
+					37.321628
+				]
+			},
+
+			"properties": 
+			{
+				"addr:city": "Cupertino"
+			}
+		},
+
+		{
+			"type": "Feature",
+			"geometry": 
+			{
+				"type": "Point",
+				"coordinates": 
+				[
+					-122.033948,
+					37.32544
+				]
+			},
+
+			"properties": 
+			{
+				"addr:city": "Cupertino"
+			}
+		},
+
+		{
+			"type": "Feature",
+			"geometry": 
+			{
+				"type": "Point",
+				"coordinates": 
+				[
+					-122.0304871,
+					37.3314171
+				]
+			},
+
+			"properties": 
+			{
+				"addr:city": "Cupertino"
+			}
+		},
+
+		{
+			"type": "Feature",
+			"geometry": 
+			{
+				"type": "Point",
+				"coordinates": 
+				[
+					-122.028932,
+					37.332451
+				]
+			},
+
+			"properties": 
+			{
+				"addr:city": "Cupertino"
+			}
+		},
+
+		{
+			"type": "Feature",
+			"geometry": 
+			{
+				"type": "Point",
+				"coordinates": 
+				[
+					-122.009566,
+					37.33531
+				]
+			},
+
+			"properties": 
+			{
+				"addr:city": "Cupertino"
+			}
+		},
+
+		{
+			"type": "Feature",
+			"geometry": 
+			{
+				"type": "Point",
+				"coordinates": 
+				[
+					-122.031007,
+					37.390535
+				]
+			},
+
+			"properties": 
+			{
+				"addr:city": "Cupertino"
+			}
+		}
+	]
+}
