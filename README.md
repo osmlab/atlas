@@ -4,6 +4,11 @@
 
 The [`Atlas`](src/main/java/org/openstreetmap/atlas/geography/atlas/Atlas.java) is a way to efficiently represent [OpenStreetMap](http://www.openstreetmap.org/) data in memory. A subset of the data is in a "navigable network" form, meaning anything that is assumed to be navigable will be in a form of `Node`s and `Edge`s in a way a routing algorithm could traverse it. It also provides easy to use APIs to access geographical data. On top of it all, it is easy to shard and re-stitch, making it perfect for distributed processing!
 
+Projects using Atlas:
+* [atlas-generator](https://github.com/osmlab/atlas-generator): A spark job to distribute Atlas shards generation
+* [atlas-checks](https://github.com/osmlab/atlas-checks): A suite of tools to check OSM data integrity using Atlas, and Spark.
+* [josm-atlas](https://github.com/osmlab/josm-atlas): A JOSM plugin to visualize Atlas data.
+
 # Getting started
 
 To contribute to the project, please see the [contributing guidelines](CONTRIBUTING.md).
