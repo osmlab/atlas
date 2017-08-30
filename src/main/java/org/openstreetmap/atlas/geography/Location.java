@@ -9,6 +9,8 @@ import java.util.Random;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Snapper.SnappedLocation;
 import org.openstreetmap.atlas.geography.converters.WktLocationConverter;
+import org.openstreetmap.atlas.geography.coordinates.EarthCenteredEarthFixedCoordinate;
+import org.openstreetmap.atlas.geography.coordinates.GeodeticCoordinate;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
 import org.openstreetmap.atlas.utilities.collections.StringList;
@@ -531,6 +533,22 @@ public class Location implements Located, Iterable<Location>, Serializable
     public String toCompactString()
     {
         return this.getLatitude() + "," + this.getLongitude();
+    }
+
+    /**
+     * @return the {@link EarthCenteredEarthFixedCoordinate} for this {@link Location}.
+     */
+    public EarthCenteredEarthFixedCoordinate toEarthCenteredEarthFixedCoordinate()
+    {
+        return new EarthCenteredEarthFixedCoordinate(this);
+    }
+
+    /**
+     * @return the {@link GeodeticCoordinate} for this {@link Location}.
+     */
+    public GeodeticCoordinate toGeodeticCoordinate()
+    {
+        return new GeodeticCoordinate(this);
     }
 
     @Override
