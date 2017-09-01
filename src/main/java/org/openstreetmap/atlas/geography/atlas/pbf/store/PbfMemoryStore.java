@@ -507,6 +507,11 @@ public class PbfMemoryStore implements SinkRunnableSource
         {
             return true;
         }
+        // All the OSM features will have tags that are added by the Atlas generation: last edit
+        // time, last user (from PBF) as well as some synthetic boundary tags for the nodes that are
+        // created at the provided boundary. Because an OSM Node becomes a Point only when it has
+        // tags, the logic here needs to make sure not to count the synthetic tags to make that
+        // decision.
         // Tags from OSM are the tags that all the nodes will have
         if (node.getTags().size() > AtlasTag.TAGS_FROM_OSM.size())
         {
