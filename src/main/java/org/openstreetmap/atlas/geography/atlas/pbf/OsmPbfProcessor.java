@@ -700,7 +700,7 @@ public class OsmPbfProcessor implements Sink
                     if (!this.store.containsWay(way.getId()))
                     {
                         final List<WayNode> wayNodes = way.getWayNodes();
-                        for (final WayNode wayNode : way.getWayNodes())
+                        for (final WayNode wayNode : wayNodes)
                         {
                             final long identifier = wayNode.getNodeId();
                             if (this.store.containsNodeAtEndOfEdges(identifier))
