@@ -24,6 +24,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.tags.HighwayTag;
+import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +63,9 @@ public class OsmPbfLoaderTest
         this.store.addNode(
                 new AtlasPrimitiveLocationItem(17, Location.CROSSING_85_17, Maps.stringMap()));
         this.store.addNode(new AtlasPrimitiveLocationItem(2, Location.TEST_7, Maps.stringMap()));
+        this.store.addNode(new AtlasPrimitiveLocationItem(2,
+                new Segment(Location.TEST_6, Location.TEST_7).middle(),
+                Maps.stringMap("tag_key", "tag_value")));
         this.store.addEdge(new AtlasPrimitiveLineItem(3,
                 new PolyLine(Location.CROSSING_85_280, Location.forString("37.328076,-122.031869"),
                         Location.TEST_7),
@@ -123,6 +127,7 @@ public class OsmPbfLoaderTest
         final Edge edge = atlas.edgesIntersecting(Location.CROSSING_85_17.bounds()).iterator()
                 .next();
         final Node node = edge.end();
-        System.out.println(node.getTags());
+        Assert.assertNotNull(node.tag(SyntheticBoundaryNodeTag.KEY));
+        Assert.assertEquals(1, atlas.numberOfPoints());
     }
 }
