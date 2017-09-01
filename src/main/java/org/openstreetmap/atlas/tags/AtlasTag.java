@@ -17,7 +17,8 @@ public final class AtlasTag
                     LastEditUserNameTag.KEY, LastEditVersionTag.KEY, LastEditChangesetTag.KEY)));
 
     public static final Set<String> TAGS_FROM_ATLAS = Collections
-            .unmodifiableSet(new HashSet<>(Arrays.asList(ISOCountryTag.KEY)));
+            .unmodifiableSet(new HashSet<>(Arrays.asList(ISOCountryTag.KEY,
+                    SyntheticBoundaryNodeTag.KEY, SyntheticNearestNeighborCountryCodeTag.KEY)));
 
     private AtlasTag()
     {

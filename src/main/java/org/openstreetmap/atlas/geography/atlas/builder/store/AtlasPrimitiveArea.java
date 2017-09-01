@@ -33,4 +33,11 @@ public class AtlasPrimitiveArea extends AtlasPrimitiveEntity
     {
         return this.polygon;
     }
+
+    @Override
+    public String toString()
+    {
+        return "AtlasPrimitiveArea [polygon=" + this.polygon + ", getIdentifier()="
+                + getIdentifier() + ", getTags()=" + getTags() + "]";
+    }
 }

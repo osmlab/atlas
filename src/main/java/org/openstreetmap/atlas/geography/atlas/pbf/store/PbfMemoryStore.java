@@ -47,6 +47,7 @@ import org.openstreetmap.osmosis.core.domain.v0_6.Node;
 import org.openstreetmap.osmosis.core.domain.v0_6.OsmUser;
 import org.openstreetmap.osmosis.core.domain.v0_6.Relation;
 import org.openstreetmap.osmosis.core.domain.v0_6.RelationMember;
+import org.openstreetmap.osmosis.core.domain.v0_6.Tag;
 import org.openstreetmap.osmosis.core.domain.v0_6.Way;
 import org.openstreetmap.osmosis.core.domain.v0_6.WayNode;
 import org.openstreetmap.osmosis.core.task.v0_6.Sink;
@@ -502,9 +503,25 @@ public class PbfMemoryStore implements SinkRunnableSource
 
     public boolean isAtlasPoint(final Node node)
     {
-        // Each node will have a last edit time tag
-        return node.getTags().size() > AtlasTag.TAGS_FROM_OSM.size()
-                || containsNodeInRelations(node.getId());
+        if (containsNodeInRelations(node.getId()))
+        {
+            return true;
+        }
+        // Tags from OSM are the tags that all the nodes will have
+        if (node.getTags().size() > AtlasTag.TAGS_FROM_OSM.size())
+        {
+            int counter = 0;
+            for (final Tag tag : node.getTags())
+            {
+                // Tags from Atlas are the tags that only some nodes will have
+                if (AtlasTag.TAGS_FROM_ATLAS.contains(tag.getKey()))
+                {
+                    counter++;
+                }
+            }
+            return node.getTags().size() > AtlasTag.TAGS_FROM_OSM.size() + counter;
+        }
+        return false;
     }
 
     public boolean isOneNodeWay(final Way way)

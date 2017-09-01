@@ -18,7 +18,9 @@ import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveLineI
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveLocationItem;
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveObjectStore;
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveRelation;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.tags.HighwayTag;
@@ -38,7 +40,8 @@ public class OsmPbfLoaderTest
 
     private MultiPolygon countryShape1;
     private MultiPolygon countryShape2;
-    private CountryBoundaryMap countryBoundaries;
+    private CountryBoundaryMap countryBoundariesAll;
+    private CountryBoundaryMap countryBoundaries1;
     private AtlasPrimitiveObjectStore store;
 
     @Before
@@ -50,15 +53,21 @@ public class OsmPbfLoaderTest
         this.countryShape2 = MultiPolygon.forPolygon(polygon2);
         final Map<String, MultiPolygon> boundaries = new HashMap<>();
         boundaries.put(COUNTRY_1_NAME, this.countryShape1);
+        this.countryBoundaries1 = new CountryBoundaryMap(boundaries);
         boundaries.put(COUNTRY_2_NAME, this.countryShape2);
-        this.countryBoundaries = new CountryBoundaryMap(boundaries);
+        this.countryBoundariesAll = new CountryBoundaryMap(boundaries);
         this.store = new AtlasPrimitiveObjectStore();
         this.store.addNode(
                 new AtlasPrimitiveLocationItem(1, Location.CROSSING_85_280, Maps.stringMap()));
+        this.store.addNode(
+                new AtlasPrimitiveLocationItem(17, Location.CROSSING_85_17, Maps.stringMap()));
         this.store.addNode(new AtlasPrimitiveLocationItem(2, Location.TEST_7, Maps.stringMap()));
         this.store.addEdge(new AtlasPrimitiveLineItem(3,
                 new PolyLine(Location.CROSSING_85_280, Location.forString("37.328076,-122.031869"),
                         Location.TEST_7),
+                Maps.stringMap(HighwayTag.KEY, HighwayTag.MOTORWAY.name().toLowerCase())));
+        this.store.addEdge(new AtlasPrimitiveLineItem(7,
+                new PolyLine(Location.CROSSING_85_280, Location.CROSSING_85_17),
                 Maps.stringMap(HighwayTag.KEY, HighwayTag.MOTORWAY.name().toLowerCase())));
         final PolyLine line4 = new Segment(Location.TEST_6, Location.TEST_7);
         this.store.addLine(new AtlasPrimitiveLineItem(4, line4, Maps.stringMap()));
@@ -78,7 +87,7 @@ public class OsmPbfLoaderTest
     {
         final OsmosisReaderMock osmosis = new OsmosisReaderMock(this.store);
         final OsmPbfLoader osmPbfLoader = new OsmPbfLoader(() -> osmosis, MultiPolygon.MAXIMUM,
-                AtlasLoadingOption.createOptionWithAllEnabled(this.countryBoundaries)
+                AtlasLoadingOption.createOptionWithAllEnabled(this.countryBoundariesAll)
                         .setAdditionalCountryCodes(COUNTRY_1_NAME));
         final Atlas atlas = osmPbfLoader.read();
         logger.info("{}", atlas);
@@ -86,7 +95,7 @@ public class OsmPbfLoaderTest
         Assert.assertEquals(1, atlas.numberOfRelations());
         final Relation relation = atlas.relations().iterator().next();
         Assert.assertEquals(1, relation.members().size());
-        Assert.assertEquals(1, atlas.numberOfEdges());
+        Assert.assertEquals(2, atlas.numberOfEdges());
     }
 
     @Test
@@ -98,5 +107,22 @@ public class OsmPbfLoaderTest
         final Atlas atlas = osmPbfLoader.read();
         logger.info("{}", atlas);
         Assert.assertEquals(3, atlas.numberOfLines());
+    }
+
+    @Test
+    public void testOutsideWayBoundaryNodes()
+    {
+        final OsmosisReaderMock osmosis = new OsmosisReaderMock(this.store);
+        final OsmPbfLoader osmPbfLoader = new OsmPbfLoader(() -> osmosis,
+                this.countryBoundaries1.countryBoundary(COUNTRY_1_NAME).iterator().next()
+                        .getBoundary(),
+                AtlasLoadingOption.createOptionWithAllEnabled(this.countryBoundaries1)
+                        .setAdditionalCountryCodes(COUNTRY_1_NAME));
+        final Atlas atlas = osmPbfLoader.read();
+        logger.info("{}", atlas);
+        final Edge edge = atlas.edgesIntersecting(Location.CROSSING_85_17.bounds()).iterator()
+                .next();
+        final Node node = edge.end();
+        System.out.println(node.getTags());
     }
 }
