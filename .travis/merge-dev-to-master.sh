@@ -23,9 +23,7 @@ then
 fi
 
 : ${GITHUB_SECRET_TOKEN:?"GITHUB_SECRET_TOKEN needs to be set in .travis.yml!"}
-
-export GIT_COMMITTER_EMAIL="travis@travis.org"
-export GIT_COMMITTER_NAME="Travis CI"
+: ${TRAVIS_COMMIT:?"TRAVIS_COMMIT needs to be available to merge the right commit to master!"}
 
 TEMPORARY_REPOSITORY=$(mktemp -d)
 git clone "https://github.com/$GITHUB_REPO" "$TEMPORARY_REPOSITORY"
@@ -33,12 +31,13 @@ cd $TEMPORARY_REPOSITORY
 
 echo "Checking out $SOURCE_BRANCH"
 git checkout $SOURCE_BRANCH
+git checkout -b tomerge $TRAVIS_COMMIT
 
 echo "Checking out $MERGE_BRANCH"
 git checkout $MERGE_BRANCH
 
-echo "Merging $SOURCE_BRANCH into $MERGE_BRANCH"
-git merge --ff-only "$SOURCE_BRANCH"
+echo "Merging temporary branch tomerge ($TRAVIS_COMMIT) from $SOURCE_BRANCH into $MERGE_BRANCH"
+git merge --ff-only "tomerge"
 
 echo "Pushing to $GITHUB_REPO"
 # Redirect to /dev/null to avoid secret leakage
