@@ -8,6 +8,7 @@ import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.utilities.collections.StreamIterable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 
 /**
@@ -80,7 +81,7 @@ public interface Sharding extends Serializable
      *            The bounds to limit the shards.
      * @return The shards {@link Iterable}.
      */
-    Iterable<? extends Shard> shards(Polygon polygon);
+    StreamIterable<? extends Shard> shards(Polygon polygon);
 
     /**
      * Generate shards. This needs to be deterministic!
@@ -90,7 +91,7 @@ public interface Sharding extends Serializable
      * @return The shards {@link Iterable} (In case the location falls right at the boundary between
      *         shards)
      */
-    Iterable<? extends Shard> shardsCovering(Location location);
+    StreamIterable<? extends Shard> shardsCovering(Location location);
 
     /**
      * Generate shards. This needs to be deterministic!
@@ -99,5 +100,5 @@ public interface Sharding extends Serializable
      *            The line intersecting the shards
      * @return The shards {@link Iterable}.
      */
-    Iterable<? extends Shard> shardsIntersecting(PolyLine polyLine);
+    StreamIterable<? extends Shard> shardsIntersecting(PolyLine polyLine);
 }

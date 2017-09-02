@@ -7,6 +7,7 @@ import java.util.SortedSet;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * An {@link Iterable} that offers similar methods as the {@link Stream} API. To construct one, use
@@ -122,5 +123,10 @@ public class StreamIterable<T> implements Iterable<T>
     public StreamIterable<T> truncate(final int startIndex, final int indexFromEnd)
     {
         return new StreamIterable<>(Iterables.truncate(this.source, startIndex, indexFromEnd));
+    }
+
+    public boolean allMatch(final Predicate<T> predicate)
+    {
+        return StreamSupport.stream(source.spliterator(), false).allMatch(predicate);
     }
 }
