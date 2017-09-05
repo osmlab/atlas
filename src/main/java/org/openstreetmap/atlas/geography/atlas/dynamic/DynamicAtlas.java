@@ -537,15 +537,7 @@ public class DynamicAtlas extends BareAtlas
     private <V extends AtlasEntity> boolean entitiesCovered(final Iterable<V> entities,
             final Predicate<V> entityCoveredPredicate)
     {
-        boolean result = true;
-        for (final V item : entities)
-        {
-            if (!entityCoveredPredicate.test(item))
-            {
-                result = false;
-            }
-        }
-        return result;
+        return entities.stream().allMatch(entityCoveredPredicate::test);
     }
 
     /**
