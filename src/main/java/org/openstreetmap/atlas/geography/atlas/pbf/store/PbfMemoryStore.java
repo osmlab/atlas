@@ -47,6 +47,7 @@ import org.openstreetmap.osmosis.core.domain.v0_6.Node;
 import org.openstreetmap.osmosis.core.domain.v0_6.OsmUser;
 import org.openstreetmap.osmosis.core.domain.v0_6.Relation;
 import org.openstreetmap.osmosis.core.domain.v0_6.RelationMember;
+import org.openstreetmap.osmosis.core.domain.v0_6.Tag;
 import org.openstreetmap.osmosis.core.domain.v0_6.Way;
 import org.openstreetmap.osmosis.core.domain.v0_6.WayNode;
 import org.openstreetmap.osmosis.core.task.v0_6.Sink;
@@ -502,9 +503,30 @@ public class PbfMemoryStore implements SinkRunnableSource
 
     public boolean isAtlasPoint(final Node node)
     {
-        // Each node will have a last edit time tag
-        return node.getTags().size() > AtlasTag.TAGS_FROM_OSM.size()
-                || containsNodeInRelations(node.getId());
+        if (containsNodeInRelations(node.getId()))
+        {
+            return true;
+        }
+        // All the OSM features will have tags that are added by the Atlas generation: last edit
+        // time, last user (from PBF) as well as some synthetic boundary tags for the nodes that are
+        // created at the provided boundary. Because an OSM Node becomes a Point only when it has
+        // tags, the logic here needs to make sure not to count the synthetic tags to make that
+        // decision.
+        // Tags from OSM are the tags that all the nodes will have
+        if (node.getTags().size() > AtlasTag.TAGS_FROM_OSM.size())
+        {
+            int counter = 0;
+            for (final Tag tag : node.getTags())
+            {
+                // Tags from Atlas are the tags that only some nodes will have
+                if (AtlasTag.TAGS_FROM_ATLAS.contains(tag.getKey()))
+                {
+                    counter++;
+                }
+            }
+            return node.getTags().size() > AtlasTag.TAGS_FROM_OSM.size() + counter;
+        }
+        return false;
     }
 
     public boolean isOneNodeWay(final Way way)

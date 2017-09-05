@@ -41,4 +41,11 @@ public class AtlasPrimitiveLocationItem extends AtlasPrimitiveEntity
     {
         return this.location;
     }
+
+    @Override
+    public String toString()
+    {
+        return "AtlasPrimitiveLocationItem [location=" + this.location + ", getIdentifier()="
+                + getIdentifier() + ", getTags()=" + getTags() + "]";
+    }
 }

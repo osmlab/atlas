@@ -25,6 +25,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
+import org.openstreetmap.atlas.geography.atlas.pbf.converters.TagMapToTagCollectionConverter;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.CountrySlicingProcessor;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.WaySectionProcessor;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.PaddingIdentifierFactory;
@@ -39,7 +40,9 @@ import org.openstreetmap.atlas.tags.LastEditUserIdentifierTag;
 import org.openstreetmap.atlas.tags.LastEditUserNameTag;
 import org.openstreetmap.atlas.tags.LastEditVersionTag;
 import org.openstreetmap.atlas.tags.RouteTag;
+import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.Taggable;
+import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.osmosis.core.container.v0_6.EntityContainer;
 import org.openstreetmap.osmosis.core.domain.v0_6.Bound;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
@@ -72,8 +75,8 @@ public class OsmPbfProcessor implements Sink
     private static final Logger logger = LoggerFactory.getLogger(OsmPbfProcessor.class);
 
     private static final JtsMultiPolygonToMultiPolygonConverter JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
-
     private static final int MAXIMUM_NETWORK_EXTENSION = 100;
+    private static final TagMapToTagCollectionConverter TAG_MAP_TO_TAG_COLLECTION_CONVERTER = new TagMapToTagCollectionConverter();
 
     private final PackedAtlasBuilder builder;
     private final AtlasLoadingOption loadingOption;
@@ -86,6 +89,7 @@ public class OsmPbfProcessor implements Sink
     private boolean firstPass;
     private boolean secondPass;
     private final Set<Long> nodesOutsideOfCountry = new HashSet<>();
+    private final Set<Long> nodeIdentifiersAtNetworkBoundary = new HashSet<>();
 
     public OsmPbfProcessor(final PackedAtlasBuilder builder, final AtlasLoadingOption loadingOption,
             final MultiPolygon multiPolygon)
@@ -668,7 +672,8 @@ public class OsmPbfProcessor implements Sink
 
     /**
      * This function's job is to make sure that ways that are connected to the road network but
-     * outside of country boundaries (bridges, ferry routes, etc). The steps are the following:
+     * outside of country boundaries (bridges, ferry routes, etc) are still included. The steps are
+     * the following:
      * <p>
      * <ul>
      * <li>While loop: as long as there has been less than MAXIMUM_NETWORK_EXTENSION iterations, and
@@ -694,11 +699,39 @@ public class OsmPbfProcessor implements Sink
                 {
                     if (!this.store.containsWay(way.getId()))
                     {
-                        for (final WayNode wayNode : way.getWayNodes())
+                        final List<WayNode> wayNodes = way.getWayNodes();
+                        for (final WayNode wayNode : wayNodes)
                         {
                             final long identifier = wayNode.getNodeId();
                             if (this.store.containsNodeAtEndOfEdges(identifier))
                             {
+                                final Long startNodeIdentifier = wayNodes.get(0).getNodeId();
+                                final Long endNodeIdentifier = wayNodes.get(wayNodes.size() - 1)
+                                        .getNodeId();
+                                if (startNodeIdentifier != identifier)
+                                {
+                                    // The start node is a new node outside of the network
+                                    this.nodeIdentifiersAtNetworkBoundary.add(startNodeIdentifier);
+                                }
+                                else
+                                {
+                                    // The start node has been used to connect a new way outside the
+                                    // network. It is not a boundary node anymore.
+                                    this.nodeIdentifiersAtNetworkBoundary
+                                            .remove(new Long(startNodeIdentifier));
+                                }
+                                if (endNodeIdentifier != identifier)
+                                {
+                                    // The end node is a new node outside of the network
+                                    this.nodeIdentifiersAtNetworkBoundary.add(endNodeIdentifier);
+                                }
+                                else
+                                {
+                                    // The end node has been used to connect a new way outside the
+                                    // network. It is not a boundary node anymore.
+                                    this.nodeIdentifiersAtNetworkBoundary
+                                            .remove(new Long(endNodeIdentifier));
+                                }
                                 this.store.addWay(way);
                                 logger.trace("Adding connected road with identifier {}",
                                         identifier);
@@ -772,6 +805,7 @@ public class OsmPbfProcessor implements Sink
             // Record outside location for later edge and line process
             if (this.nodesOutsideOfPolygon.contains(node.getId()))
             {
+                tagOutsideBoundaryNodes(node);
                 this.store.addNode(node);
             }
         }
@@ -868,4 +902,19 @@ public class OsmPbfProcessor implements Sink
         }
     }
 
+    private void tagOutsideBoundaryNodes(final Node node)
+    {
+        if (this.nodeIdentifiersAtNetworkBoundary.contains(node.getId()))
+        {
+            final Map<String, String> boundaryNodeTags = Maps.hashMap(SyntheticBoundaryNodeTag.KEY,
+                    SyntheticBoundaryNodeTag.EXISTING.name().toLowerCase());
+            final Collection<Tag> tags = new ArrayList<>();
+            tags.addAll(node.getTags());
+
+            // Still add the boundary node tags
+            tags.addAll(TAG_MAP_TO_TAG_COLLECTION_CONVERTER.convert(boundaryNodeTags));
+            node.getTags().clear();
+            node.getTags().addAll(tags);
+        }
+    }
 }

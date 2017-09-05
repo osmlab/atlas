@@ -33,4 +33,11 @@ public class AtlasPrimitiveLineItem extends AtlasPrimitiveEntity
     {
         return this.polyLine;
     }
+
+    @Override
+    public String toString()
+    {
+        return "AtlasPrimitiveLineItem [polyLine=" + this.polyLine + ", getIdentifier()="
+                + getIdentifier() + ", getTags()=" + getTags() + "]";
+    }
 }
