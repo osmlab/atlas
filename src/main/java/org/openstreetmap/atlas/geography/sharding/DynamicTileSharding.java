@@ -28,7 +28,6 @@ import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.streaming.writers.JsonWriter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
-import org.openstreetmap.atlas.utilities.collections.StreamIterable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.runtime.Command;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
@@ -350,19 +349,19 @@ public class DynamicTileSharding extends Command implements Sharding
     }
 
     @Override
-    public StreamIterable<? extends Shard> shards(final Polygon bounds)
+    public Iterable<? extends Shard> shards(final Polygon bounds)
     {
         return Iterables.stream(this.root.leafNodes(bounds)).map(Node::getTile);
     }
 
     @Override
-    public StreamIterable<? extends Shard> shardsCovering(final Location location)
+    public Iterable<? extends Shard> shardsCovering(final Location location)
     {
         return Iterables.stream(this.root.leafNodesCovering(location)).map(Node::getTile);
     }
 
     @Override
-    public StreamIterable<? extends Shard> shardsIntersecting(final PolyLine polyLine)
+    public Iterable<? extends Shard> shardsIntersecting(final PolyLine polyLine)
     {
         return Iterables.stream(this.root.leafNodesIntersecting(polyLine)).map(Node::getTile);
     }

@@ -601,17 +601,20 @@ public class DynamicAtlas extends BareAtlas
 
     private boolean loadedShardsfullyGeometricallyEncloseLocation(final Location location)
     {
-        return this.sharding.shardsCovering(location).allMatch(this.loadedShards::containsKey);
+        return Iterables.stream(this.sharding.shardsCovering(location))
+                .allMatch(this.loadedShards::containsKey);
     }
 
     private boolean loadedShardsfullyGeometricallyEnclosePolygon(final Polygon polygon)
     {
-        return this.sharding.shards(polygon).allMatch(this.loadedShards::containsKey);
+        return Iterables.stream(this.sharding.shards(polygon))
+                .allMatch(this.loadedShards::containsKey);
     }
 
     private boolean loadedShardsfullyGeometricallyEnclosePolyLine(final PolyLine polyLine)
     {
-        return this.sharding.shardsIntersecting(polyLine).allMatch(this.loadedShards::containsKey);
+        return Iterables.stream(this.sharding.shardsIntersecting(polyLine))
+                .allMatch(this.loadedShards::containsKey);
     }
 
     private boolean locationItemCovered(final LocationItem item)

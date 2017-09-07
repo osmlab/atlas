@@ -5,7 +5,6 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
-import org.openstreetmap.atlas.utilities.collections.StreamIterable;
 
 /**
  * Atlas Sharding with {@link SlippyTile}s.
@@ -37,21 +36,21 @@ public class SlippyTileSharding implements Sharding
     }
 
     @Override
-    public StreamIterable<? extends Shard> shards(final Polygon polygon)
+    public Iterable<? extends Shard> shards(final Polygon polygon)
     {
         return Iterables.stream(SlippyTile.allTiles(this.zoom, polygon.bounds()))
                 .filter(slippyTile -> polygon.overlaps(slippyTile.bounds()));
     }
 
     @Override
-    public StreamIterable<? extends Shard> shardsCovering(final Location location)
+    public Iterable<? extends Shard> shardsCovering(final Location location)
     {
         return Iterables.stream(SlippyTile.allTiles(this.zoom, location.bounds()))
                 .filter(slippyTile -> slippyTile.bounds().fullyGeometricallyEncloses(location));
     }
 
     @Override
-    public StreamIterable<? extends Shard> shardsIntersecting(final PolyLine polyLine)
+    public Iterable<? extends Shard> shardsIntersecting(final PolyLine polyLine)
     {
         return Iterables.stream(SlippyTile.allTiles(this.zoom, polyLine.bounds()))
                 .filter(slippyTile -> polyLine.intersects(slippyTile.bounds())

@@ -125,6 +125,13 @@ public class StreamIterable<T> implements Iterable<T>
         return new StreamIterable<>(Iterables.truncate(this.source, startIndex, indexFromEnd));
     }
 
+    /**
+     * Test whether all elements from iterable matches given predicate or not
+     *
+     * @param predicate
+     *            Predicate to test
+     * @return True when given predicate is true for all entities in iterable, else false
+     */
     public boolean allMatch(final Predicate<T> predicate)
     {
         return StreamSupport.stream(source.spliterator(), false).allMatch(predicate);
