@@ -535,10 +535,10 @@ public class DynamicAtlas extends BareAtlas
      *            The function that decides if an entity is already covered or not.
      * @return False if any of the items is not fully covered by the current shards
      */
-    private <V extends AtlasEntity> boolean entitiesCovered(final StreamIterable<V> entities,
+    private <V extends AtlasEntity> boolean entitiesCovered(final Iterable<V> entities,
             final Predicate<V> entityCoveredPredicate)
     {
-        return entities.allMatch(entityCoveredPredicate);
+        return Iterables.stream(entities).allMatch(entityCoveredPredicate);
     }
 
     /**
