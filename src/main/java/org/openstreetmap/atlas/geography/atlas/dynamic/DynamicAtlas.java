@@ -38,6 +38,7 @@ import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.openstreetmap.atlas.utilities.collections.StreamIterable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -537,15 +538,7 @@ public class DynamicAtlas extends BareAtlas
     private <V extends AtlasEntity> boolean entitiesCovered(final Iterable<V> entities,
             final Predicate<V> entityCoveredPredicate)
     {
-        boolean result = true;
-        for (final V item : entities)
-        {
-            if (!entityCoveredPredicate.test(item))
-            {
-                result = false;
-            }
-        }
-        return result;
+        return Iterables.stream(entities).allMatch(entityCoveredPredicate);
     }
 
     /**
@@ -569,13 +562,13 @@ public class DynamicAtlas extends BareAtlas
             final Supplier<Iterable<V>> entitiesSupplier, final Predicate<V> entityCoveredPredicate,
             final Function<V, T> mapper)
     {
-        Iterable<V> result = Iterables.stream(entitiesSupplier.get()).filter(Objects::nonNull)
-                .collect();
+        StreamIterable<V> result = Iterables.stream(entitiesSupplier.get())
+                .filter(Objects::nonNull);
         while (!entitiesCovered(result, entityCoveredPredicate))
         {
-            result = Iterables.stream(entitiesSupplier.get()).filter(Objects::nonNull).collect();
+            result = Iterables.stream(entitiesSupplier.get()).filter(Objects::nonNull);
         }
-        return Iterables.stream(result).map(mapper).collect();
+        return result.map(mapper).collect();
     }
 
     private List<Atlas> getNonNullAtlasShards()
@@ -608,38 +601,20 @@ public class DynamicAtlas extends BareAtlas
 
     private boolean loadedShardsfullyGeometricallyEncloseLocation(final Location location)
     {
-        for (final Shard neededShard : this.sharding.shardsCovering(location))
-        {
-            if (!this.loadedShards.containsKey(neededShard))
-            {
-                return false;
-            }
-        }
-        return true;
+        return Iterables.stream(this.sharding.shardsCovering(location))
+                .allMatch(this.loadedShards::containsKey);
     }
 
     private boolean loadedShardsfullyGeometricallyEnclosePolygon(final Polygon polygon)
     {
-        for (final Shard neededShard : this.sharding.shards(polygon))
-        {
-            if (!this.loadedShards.containsKey(neededShard))
-            {
-                return false;
-            }
-        }
-        return true;
+        return Iterables.stream(this.sharding.shards(polygon))
+                .allMatch(this.loadedShards::containsKey);
     }
 
     private boolean loadedShardsfullyGeometricallyEnclosePolyLine(final PolyLine polyLine)
     {
-        for (final Shard neededShard : this.sharding.shardsIntersecting(polyLine))
-        {
-            if (!this.loadedShards.containsKey(neededShard))
-            {
-                return false;
-            }
-        }
-        return true;
+        return Iterables.stream(this.sharding.shardsIntersecting(polyLine))
+                .allMatch(this.loadedShards::containsKey);
     }
 
     private boolean locationItemCovered(final LocationItem item)
