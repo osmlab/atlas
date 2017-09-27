@@ -289,6 +289,32 @@ public class Polygon extends PolyLine
         }
     }
 
+    public boolean overlaps(final MultiPolygon multiPolygon)
+    {
+        for (final Polygon outer : multiPolygon.outers())
+        {
+            final List<Polygon> inners = multiPolygon.innersOf(outer);
+            if (this.overlaps(outer))
+            {
+                boolean result = true;
+                for (final Polygon inner : inners)
+                {
+                    if (inner.fullyGeometricallyEncloses(this))
+                    {
+                        // The feature is fully inside an inner polygon, hence not overlapped
+                        result = false;
+                        break;
+                    }
+                }
+                if (result)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /**
      * Tests if this {@link Polygon} intersects/overlaps the given {@link PolyLine} at any point.
      * This is different than the {@link #fullyGeometricallyEncloses(PolyLine)} method, in that it
