@@ -116,15 +116,12 @@ public class MultiPolygonTest
         final Rectangle rectangle = Rectangle.TEST_RECTANGLE;
         Assert.assertEquals(rectangle.surface(), MultiPolygon.forPolygon(rectangle).surface());
 
-        final MultiPolygon tilted = MultiPolygon
-                .forPolygon(new Polygon(rectangle.lowerLeft(),
-                        new Location(rectangle.upperLeft().getLatitude(),
-                                Longitude.degrees(
-                                        rectangle.upperLeft().getLongitude().asDegrees() + 0.1)),
-                        new Location(rectangle.upperRight().getLatitude(),
-                                Longitude.degrees(
-                                        rectangle.upperRight().getLongitude().asDegrees() + 0.1)),
-                        rectangle.lowerRight()));
+        final MultiPolygon tilted = MultiPolygon.forPolygon(new Polygon(rectangle.lowerLeft(),
+                new Location(rectangle.upperLeft().getLatitude(),
+                        Longitude.degrees(rectangle.upperLeft().getLongitude().asDegrees() + 0.1)),
+                new Location(rectangle.upperRight().getLatitude(),
+                        Longitude.degrees(rectangle.upperRight().getLongitude().asDegrees() + 0.1)),
+                rectangle.lowerRight()));
         Assert.assertEquals(rectangle.surface(), tilted.surface());
     }
 }
