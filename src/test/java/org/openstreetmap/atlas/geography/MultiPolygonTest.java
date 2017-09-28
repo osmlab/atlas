@@ -35,7 +35,6 @@ public class MultiPolygonTest
         logger.info("coveringPolygon: {}", coveringPolygon.toWkt());
         Assert.assertTrue(multiPolygon.overlaps(coveringPolygon));
         Assert.assertFalse(multiPolygon.intersects(coveringPolygon));
-        Assert.assertTrue(coveringPolygon.overlaps(multiPolygon));
 
         final Polygon insideInnerPolygon = new Polygon(Location.forString("20.146558, 23.310950"),
                 Location.forString("19.623812, 24.507328"),
@@ -43,7 +42,6 @@ public class MultiPolygonTest
         logger.info("insideInnerPolygon: {}", insideInnerPolygon.toWkt());
         Assert.assertFalse(multiPolygon.overlaps(insideInnerPolygon));
         Assert.assertFalse(multiPolygon.intersects(insideInnerPolygon));
-        Assert.assertFalse(insideInnerPolygon.overlaps(multiPolygon));
 
         final Polygon intersectingInnerPolygon = new Polygon(
                 Location.forString("20.146558, 23.310950"),
@@ -52,7 +50,6 @@ public class MultiPolygonTest
         logger.info("intersectingInnerPolygon: {}", intersectingInnerPolygon.toWkt());
         Assert.assertTrue(multiPolygon.overlaps(intersectingInnerPolygon));
         Assert.assertTrue(multiPolygon.intersects(intersectingInnerPolygon));
-        Assert.assertTrue(intersectingInnerPolygon.overlaps(multiPolygon));
 
         final Polygon intersectingOuterPolygon = new Polygon(
                 Location.forString("48.861903, 2.344141"),
@@ -61,7 +58,6 @@ public class MultiPolygonTest
         logger.info("intersectingOuterPolygon: {}", intersectingOuterPolygon.toWkt());
         Assert.assertTrue(multiPolygon.overlaps(intersectingInnerPolygon));
         Assert.assertTrue(multiPolygon.intersects(intersectingInnerPolygon));
-        Assert.assertTrue(intersectingOuterPolygon.overlaps(multiPolygon));
     }
 
     @Test
