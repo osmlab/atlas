@@ -6,6 +6,7 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.runtime.Command;
@@ -37,6 +38,22 @@ public class SlippyTileTest extends Command
     {
         Assert.assertEquals(1_024, Iterables.size(SlippyTile.allTiles(5, Rectangle.MAXIMUM)));
         Assert.assertEquals(1, Iterables.size(SlippyTile.allTiles(17, Rectangle.TEST_RECTANGLE_2)));
+    }
+
+    @Test
+    public void testMultiPolygonShards()
+    {
+        final MultiPolygon multiPolygon = MultiPolygon
+                .wkt("MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),"
+                        + "((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),"
+                        + "(30 20, 20 15, 20 25, 30 20)))");
+        @SuppressWarnings("unchecked")
+        final Set<Shard> coveredShards = (Set<Shard>) new SlippyTileSharding(8)
+                .shards(multiPolygon);
+        Assert.assertFalse(coveredShards.contains(SlippyTile.forName("8-145-113")));
+        Assert.assertTrue(coveredShards.contains(SlippyTile.forName("8-146-111")));
+        Assert.assertFalse(coveredShards.contains(SlippyTile.forName("8-167-108")));
+        Assert.assertTrue(coveredShards.contains(SlippyTile.forName("8-152-97")));
     }
 
     @Test
