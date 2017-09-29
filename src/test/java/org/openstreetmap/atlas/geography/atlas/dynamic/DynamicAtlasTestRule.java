@@ -13,6 +13,9 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation.Member;
 
 /**
+ * The Geojson representation of the below test atlas files is saved in the test/resources folder,
+ * same package
+ * 
  * @author matthieun
  */
 public class DynamicAtlasTestRule extends CoreTestRule

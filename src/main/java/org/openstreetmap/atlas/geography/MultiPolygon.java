@@ -252,6 +252,25 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
         return new ArrayList<>();
     }
 
+    public boolean intersects(final PolyLine polyLine)
+    {
+        for (final Polygon outer : this.outers())
+        {
+            if (outer.intersects(polyLine))
+            {
+                return true;
+            }
+        }
+        for (final Polygon inner : this.inners())
+        {
+            if (inner.intersects(polyLine))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public Iterator<Polygon> iterator()
     {
@@ -281,14 +300,7 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
 
     public boolean overlaps(final PolyLine polyLine)
     {
-        for (final Location location : polyLine)
-        {
-            if (fullyGeometricallyEncloses(location))
-            {
-                return true;
-            }
-        }
-        return false;
+        return overlapsInternal(polyLine, true);
     }
 
     public void saveAsGeoJson(final WritableResource resource)
@@ -360,5 +372,40 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
     protected MultiMap<Polygon, Polygon> getOuterToInners()
     {
         return this.outerToInners;
+    }
+
+    private boolean overlapsInternal(final PolyLine polyLine, final boolean runReverseCheck)
+    {
+        for (final Location location : polyLine)
+        {
+            if (fullyGeometricallyEncloses(location))
+            {
+                return true;
+            }
+        }
+        if (runReverseCheck && polyLine instanceof Polygon)
+        {
+            final Polygon polygon = (Polygon) polyLine;
+            for (final Polygon outer : this.outers())
+            {
+                if (polygon.overlaps(outer))
+                {
+                    boolean result = true;
+                    for (final Polygon inner : this.innersOf(outer))
+                    {
+                        if (inner.fullyGeometricallyEncloses(polygon))
+                        {
+                            result = false;
+                            break;
+                        }
+                    }
+                    if (result)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        return this.intersects(polyLine);
     }
 }

@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
@@ -75,14 +76,14 @@ public class DynamicAtlas extends BareAtlas
      */
     public DynamicAtlas(final DynamicAtlasPolicy dynamicAtlasExpansionPolicy)
     {
-        this.setName(
-                "DynamicAtlas(" + dynamicAtlasExpansionPolicy.getInitialShard().getName() + ")");
+        this.setName("DynamicAtlas(" + dynamicAtlasExpansionPolicy.getInitialShards().stream()
+                .map(Shard::getName).collect(Collectors.toSet()) + ")");
         this.sharding = dynamicAtlasExpansionPolicy.getSharding();
         this.loadedShards = new HashMap<>();
         this.atlasFetcher = dynamicAtlasExpansionPolicy.getAtlasFetcher();
         // Still keep the policy
         this.policy = dynamicAtlasExpansionPolicy;
-        this.addNewShards(Iterables.from(dynamicAtlasExpansionPolicy.getInitialShard()));
+        this.addNewShards(dynamicAtlasExpansionPolicy.getInitialShards());
         this.initialized = true;
     }
 
@@ -508,9 +509,9 @@ public class DynamicAtlas extends BareAtlas
     private boolean areaCovered(final Area area)
     {
         final Polygon polygon = area.asPolygon();
-        final Rectangle initialShardBounds = this.policy.getInitialShard().bounds();
-        if (!this.policy.isExtendIndefinitely()
-                && !(polygon.overlaps(initialShardBounds) || initialShardBounds.overlaps(polygon)))
+        final MultiPolygon initialShardsBounds = this.policy.getInitialShardsBounds();
+        if (!this.policy.isExtendIndefinitely() && !(polygon.overlaps(initialShardsBounds)
+                || initialShardsBounds.overlaps(polygon)))
         {
             // If the policy is to not extend indefinitely, then assume that the loading is not
             // necessary.
@@ -580,8 +581,8 @@ public class DynamicAtlas extends BareAtlas
     private boolean lineItemCovered(final LineItem item)
     {
         final PolyLine polyLine = item.asPolyLine();
-        final Rectangle initialShardBounds = this.policy.getInitialShard().bounds();
-        if (!this.policy.isExtendIndefinitely() && !initialShardBounds.overlaps(polyLine))
+        final MultiPolygon initialShardsBounds = this.policy.getInitialShardsBounds();
+        if (!this.policy.isExtendIndefinitely() && !initialShardsBounds.overlaps(polyLine))
         {
             // If the policy is to not extend indefinitely, then assume that the loading is not
             // necessary.
@@ -620,9 +621,9 @@ public class DynamicAtlas extends BareAtlas
     private boolean locationItemCovered(final LocationItem item)
     {
         final Location location = item.getLocation();
-        final Rectangle initialShardBounds = this.policy.getInitialShard().bounds();
+        final MultiPolygon initialShardsBounds = this.policy.getInitialShardsBounds();
         if (!this.policy.isExtendIndefinitely()
-                && !initialShardBounds.fullyGeometricallyEncloses(location))
+                && !initialShardsBounds.fullyGeometricallyEncloses(location))
         {
             // If the policy is to not extend indefinitely, then assume that the loading is not
             // necessary.
