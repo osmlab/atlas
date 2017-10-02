@@ -7,18 +7,22 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.builder.text.TextAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.items.Route;
 import org.openstreetmap.atlas.geography.atlas.items.TurnRestriction.TurnRestrictionType;
 import org.openstreetmap.atlas.geography.atlas.items.complex.Finder;
 import org.openstreetmap.atlas.geography.atlas.items.complex.bignode.BigNode;
 import org.openstreetmap.atlas.geography.atlas.items.complex.bignode.BigNodeFinder;
 import org.openstreetmap.atlas.geography.atlas.items.complex.bignode.RestrictedPath;
+import org.openstreetmap.atlas.streaming.compression.Decompressor;
+import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author matthieun
+ * @author mgostintsev
  */
 public class ComplexTurnRestrictionTest
 {
@@ -26,6 +30,23 @@ public class ComplexTurnRestrictionTest
 
     @Rule
     public ComplexTurnRestrictionTestCaseRule rule = new ComplexTurnRestrictionTestCaseRule();
+
+    @Test
+    public void testBigNodeWithNoRestrictions()
+    {
+        final Atlas atlas = new TextAtlasBuilder().read(new InputStreamResource(
+                () -> ComplexTurnRestrictionTest.class.getResourceAsStream("bigNode.txt.gz"))
+                        .withDecompressor(Decompressor.GZIP).withName("bigNode.txt.gz"));
+
+        for (final BigNode bigNode : Iterables.asList(new BigNodeFinder().find(atlas)))
+        {
+            if (bigNode.getOsmIdentifier() == 3717537957L)
+            {
+                Assert.assertTrue(!bigNode.allPaths().isEmpty());
+                Assert.assertTrue(bigNode.turnRestrictions().isEmpty());
+            }
+        }
+    }
 
     @Test
     public void testFalsePredicate()
@@ -55,7 +76,8 @@ public class ComplexTurnRestrictionTest
         }
         Assert.assertEquals(1, counter);
         int counterRestriction = 0;
-        for (final BigNode bigNode : new BigNodeFinder().find(atlasNo, Finder::ignore))
+        final Iterable<BigNode> bigNodes = new BigNodeFinder().find(atlasNo, Finder::ignore);
+        for (final BigNode bigNode : bigNodes)
         {
             final Set<RestrictedPath> paths = bigNode.turnRestrictions();
             for (final RestrictedPath path : paths)
@@ -105,5 +127,38 @@ public class ComplexTurnRestrictionTest
             paths.addAll(bigNode.turnRestrictions());
         }
         Assert.assertEquals(3, paths.size());
+    }
+
+    @Test
+    public void testPathThroughBigNodeToTurnRestrictionCriteria()
+    {
+        final Atlas atlasNo = this.rule.getAtlasNo();
+        logger.trace("AtlasNo: {}", atlasNo);
+
+        // All possible paths through this bigNode
+        final Route path1 = Route.forEdges(atlasNo.edge(102), atlasNo.edge(205));
+        final Route path2 = Route.forEdges(atlasNo.edge(102), atlasNo.edge(204));
+        final Route path3 = Route.forEdges(atlasNo.edge(102), atlasNo.edge(203));
+
+        final Iterable<BigNode> bigNodes = new BigNodeFinder().find(atlasNo, Finder::ignore);
+
+        for (final BigNode bigNode : bigNodes)
+        {
+            final Set<Route> allPaths = bigNode.allPaths();
+            if (allPaths.size() > 0)
+            {
+                final Set<RestrictedPath> restrictions = bigNode.turnRestrictions();
+                Assert.assertTrue(restrictions.size() == 1);
+
+                final Route restrictedRoute = restrictions.iterator().next().getRoute();
+                Assert.assertNotEquals(restrictedRoute, path1);
+                Assert.assertNotEquals(restrictedRoute, path2);
+
+                // Only one path should be the restricted one as it fully covers the turn
+                // restriction. The other paths all overlap the restriction, but only
+                // partially.
+                Assert.assertEquals(restrictedRoute, path3);
+            }
+        }
     }
 }

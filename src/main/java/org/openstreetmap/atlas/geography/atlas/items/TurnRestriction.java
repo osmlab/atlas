@@ -103,11 +103,19 @@ public final class TurnRestriction implements Located, Serializable
                                     continue;
                                 }
 
-                                if (candidate.isOverlapping(path))
+                                if (candidate.isOverlapping(path)
+                                        && routeContainsAllTurnRestrictionParts(turnRestriction,
+                                                candidate))
                                 {
                                     // All the edges in the turn restriction's path are included in
-                                    // the initial BigNode route, so we can flag it as a turn
-                                    // restriction.
+                                    // the initial BigNode route and all of the turn restriction's
+                                    // parts (to/via/from) are on the path, so we can flag it as a
+                                    // turn restriction. The reason for the second piece of criteria
+                                    // is to avoid false positives that may overlap or contain
+                                    // pieces of the turn restriction path, but not the entire
+                                    // thing. For example: if there is a BigNode route that overlaps
+                                    // with a turn restriction's from and via, but not the to, then
+                                    // we cannot say it's a turn restriction.
                                     return true;
                                 }
                                 break;
@@ -161,6 +169,23 @@ public final class TurnRestriction implements Located, Serializable
             }
         }
         return false;
+    }
+
+    /**
+     * @param turnRestriction
+     *            The {@link TurnRestriction} to use for comparison
+     * @param path
+     *            The target {@link Route} to examine
+     * @return {@code true} if the given {@link Route} contains all parts - via/from/to edges
+     */
+    private static boolean routeContainsAllTurnRestrictionParts(
+            final TurnRestriction turnRestriction, final Route route)
+    {
+        final Optional<Route> possibleVia = turnRestriction.getVia();
+        final boolean viaMatches = possibleVia.isPresent() ? route.isSubRoute(possibleVia.get())
+                : true;
+        return viaMatches && route.isSubRoute(turnRestriction.getTo())
+                && route.isSubRoute(turnRestriction.getFrom());
     }
 
     private TurnRestriction(final Relation relation)
