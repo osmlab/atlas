@@ -410,7 +410,7 @@ public class DynamicTileSharding extends Command implements Sharding
         }
         this.root.build(tile ->
         {
-            int count = 0;
+            long count = 0;
             for (final SlippyTile miniTile : tile.split(finalZoom))
             {
                 count += counts.getOrDefault(miniTile, 0);
