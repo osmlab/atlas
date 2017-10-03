@@ -413,7 +413,7 @@ public class DynamicTileSharding extends Command implements Sharding
             int count = 0;
             for (final SlippyTile miniTile : tile.split(finalZoom))
             {
-                count += counts.get(miniTile);
+                count += counts.getOrDefault(miniTile, 0);
             }
             if (count <= MINIMUM_TO_SPLIT)
             {
