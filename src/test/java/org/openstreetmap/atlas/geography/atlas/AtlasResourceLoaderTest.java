@@ -2,19 +2,27 @@ package org.openstreetmap.atlas.geography.atlas;
 
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.function.Predicate;
 
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader.AtlasFileSelector;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.Node;
+import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 
+import com.google.common.collect.Iterables;
+
 /**
- * Test for the AtlasResourceLoader
+ * {@link AtlasResourceLoader} tests
  *
  * @author cstaylor
+ * @author mgostintsev
  */
 public class AtlasResourceLoaderTest
 {
@@ -73,5 +81,65 @@ public class AtlasResourceLoaderTest
         {
             temporary.delete();
         }
+    }
+
+    @Test
+    public void testLoadingAtlasResourceWithFiltering()
+    {
+        // Dummy predicate, which brings in all entities
+        final Predicate<AtlasEntity> allEntities = entity -> true;
+
+        // Filter that brings in only Nodes
+        final Predicate<AtlasEntity> onlyNodes = entity -> entity instanceof Node;
+
+        // Load Atlas with all-entity filter
+        final Atlas atlasWithAllEntityFilter = new AtlasResourceLoader()
+                .withAtlasEntityFilter(allEntities)
+                .load(new InputStreamResource(() -> AtlasResourceLoaderTest.class
+                        .getResourceAsStream("NZL_9-506-316.atlas.gz"))
+                                .withDecompressor(Decompressor.GZIP)
+                                .withName("NZL_9-506-316.atlas.gz"));
+
+        // Load same Atlas without filter
+        final Atlas atlasWithoutFilter = new AtlasResourceLoader().load(new InputStreamResource(
+                () -> AtlasResourceLoaderTest.class.getResourceAsStream("NZL_9-506-316.atlas.gz"))
+                        .withDecompressor(Decompressor.GZIP).withName("NZL_9-506-316.atlas.gz"));
+
+        // Load same Atlas with only-Nodes filter
+        final Atlas onlyNodesAtlas = new AtlasResourceLoader().withAtlasEntityFilter(onlyNodes)
+                .load(new InputStreamResource(() -> AtlasResourceLoaderTest.class
+                        .getResourceAsStream("NZL_9-506-316.atlas.gz"))
+                                .withDecompressor(Decompressor.GZIP)
+                                .withName("NZL_9-506-316.atlas.gz"));
+
+        // Assert Atlas equality
+        Assert.assertEquals(Iterables.size(atlasWithAllEntityFilter.areas()),
+                Iterables.size(atlasWithoutFilter.areas()));
+        Assert.assertEquals(Iterables.size(atlasWithAllEntityFilter.edges()),
+                Iterables.size(atlasWithoutFilter.edges()));
+        Assert.assertEquals(Iterables.size(atlasWithAllEntityFilter.lines()),
+                Iterables.size(atlasWithoutFilter.lines()));
+        Assert.assertEquals(Iterables.size(atlasWithAllEntityFilter.relations()),
+                Iterables.size(atlasWithoutFilter.relations()));
+        Assert.assertEquals(Iterables.size(atlasWithAllEntityFilter.nodes()),
+                Iterables.size(atlasWithoutFilter.nodes()));
+        Assert.assertEquals(Iterables.size(atlasWithAllEntityFilter.points()),
+                Iterables.size(atlasWithoutFilter.points()));
+
+        // Assert Atlas inequality
+        Assert.assertNotEquals(Iterables.size(atlasWithoutFilter.areas()),
+                Iterables.size(onlyNodesAtlas.areas()));
+        Assert.assertNotEquals(Iterables.size(atlasWithoutFilter.edges()),
+                Iterables.size(onlyNodesAtlas.edges()));
+        Assert.assertNotEquals(Iterables.size(atlasWithoutFilter.lines()),
+                Iterables.size(onlyNodesAtlas.lines()));
+        Assert.assertNotEquals(Iterables.size(atlasWithoutFilter.relations()),
+                Iterables.size(onlyNodesAtlas.relations()));
+        Assert.assertNotEquals(Iterables.size(atlasWithoutFilter.points()),
+                Iterables.size(onlyNodesAtlas.points()));
+
+        // Only Node size should be equal
+        Assert.assertEquals(Iterables.size(atlasWithAllEntityFilter.nodes()),
+                Iterables.size(onlyNodesAtlas.nodes()));
     }
 }
