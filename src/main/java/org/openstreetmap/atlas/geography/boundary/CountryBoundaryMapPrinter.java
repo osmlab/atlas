@@ -26,13 +26,12 @@ public class CountryBoundaryMapPrinter extends Command
     public static final Switch<String> COUNTRIES = new Switch<>("countries",
             "The countries to extract as geojson (csv list)", StringConverter.IDENTITY,
             Optionality.REQUIRED);
-    public static final Switch<File> OUTPUT = new Switch<>("output", "The output folder",
-            value -> new File(value), Optionality.REQUIRED);
     public static final Switch<File> INPUT = new Switch<>("input", "The input boundaries file",
             value -> new File(value), Optionality.REQUIRED);
-    public static final Switch<Boolean> OUTPUT_WKT = new Switch<>("wkt",
-            "The optional switch to output in wkt format", value -> Boolean.valueOf(value),
-            Optionality.OPTIONAL);
+    public static final Switch<File> OUTPUT = new Switch<>("output", "The output folder",
+            value -> new File(value), Optionality.REQUIRED);
+    public static final Flag OUTPUT_WKT = new Flag("wkt",
+            "The optional flag to output in wkt format", Optionality.OPTIONAL);
 
     private static final JtsMultiPolygonToMultiPolygonConverter JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
 
