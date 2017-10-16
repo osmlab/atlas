@@ -102,7 +102,7 @@ public class RawAtlasGenerator
     }
 
     /**
-     * Save raw {@link Atlas} as GeoJson.
+     * Save raw {@link Atlas} as geoJson.
      *
      * @param resource
      *            The {@link WritableResource} to save to.
@@ -114,7 +114,7 @@ public class RawAtlasGenerator
     }
 
     /**
-     * Save raw {@link Atlas} as Text.
+     * Save raw {@link Atlas} as text.
      *
      * @param resource
      *            The {@link WritableResource} to save to.
