@@ -275,7 +275,10 @@ public class OsmPbfReader implements Sink
         }
         else
         {
-            throw new CoreException("Unable to find Point {} in Atlas.", identifier);
+            throw new CoreException(
+                    "Unable to find Point {} in Atlas. "
+                            + "It was either filtered out or the PBF file is malformed.",
+                    identifier);
         }
     }
 
@@ -342,7 +345,9 @@ public class OsmPbfReader implements Sink
             else
             {
                 logger.debug(
-                        "Empty Relation {} cannot be added to the Atlas. We're either filtering out the members that make up the Relation or none of the members are present in this PBF shard.",
+                        "Empty Relation {} cannot be added to the Atlas. We're either filtering"
+                                + " out the members that make up the Relation or none of the "
+                                + "members are present in this PBF shard.",
                         relation.getId());
             }
         }
@@ -361,7 +366,6 @@ public class OsmPbfReader implements Sink
         List<Relation> stagedRelations = this.stagedRelations;
         while (!stagedRelations.isEmpty() && relationDepth < MAXIMUM_RELATION_DEPTH)
         {
-
             final List<Relation> updatedStagedRelations = new ArrayList<>();
             for (final Relation relation : stagedRelations)
             {

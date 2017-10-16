@@ -10,9 +10,8 @@ import org.openstreetmap.atlas.streaming.resource.File;
 import com.google.common.collect.Iterables;
 
 /**
- * Tests {@link org.openstreetmap.atlas.geography.atlas.pbf.loading.RawAtlasGenerator} Raw Atlas
- * creation and does basic parity check on feature counts between the old and new PBF ingest
- * methods.
+ * Tests {@link RawAtlasGenerator} Raw Atlas creation and does basic parity check on feature counts
+ * between the old and new PBF ingest methods.
  *
  * @author mgostintsev
  */
