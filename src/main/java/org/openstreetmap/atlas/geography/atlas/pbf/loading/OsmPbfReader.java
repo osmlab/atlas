@@ -62,6 +62,7 @@ public class OsmPbfReader implements Sink
     private final PackedAtlasBuilder builder;
     private final AtlasLoadingOption loadingOption;
     private final List<Relation> stagedRelations = new ArrayList<>();
+    private final RawAtlasStatistic statistics = new RawAtlasStatistic(logger);
 
     /**
      * Determines if the given {@link Entity} should be brought into the {@link Atlas}. Ideally, all
@@ -69,7 +70,7 @@ public class OsmPbfReader implements Sink
      * use cases, this is configurable.
      * <p>
      * TODO We still temporarily suppress administrative boundaries and coastlines - see
-     * configuration files in main/resources. Once parity is achieved with current PBF ingest
+     * configuration files in src/main/resources. Once parity is achieved with current PBF ingest
      * process, these two (and potentially others) cases will be handled and ingested into the
      * Atlas.
      *
@@ -145,8 +146,8 @@ public class OsmPbfReader implements Sink
         }
         else
         {
-            // TODO - Consider adding to statistics (see below to-do note) and lower log level
-            logger.info("Excluding OSM {} {} from Raw Atlas", rawEntity.getType(),
+            logFilteredStatistics(rawEntity);
+            logger.trace("Excluding OSM {} {} from Raw Atlas", rawEntity.getType(),
                     rawEntity.getId());
         }
     }
@@ -157,6 +158,7 @@ public class OsmPbfReader implements Sink
         // We've processed all Nodes, Ways and shallow Relations to this point. Now, we need to
         // handle Relations that contain Relation members properly.
         processStagedRelations();
+        this.statistics.summary();
         logger.info("Releasing OSM PBF Reader");
     }
 
@@ -170,7 +172,6 @@ public class OsmPbfReader implements Sink
      */
     private RelationBean constructRelationBean(final Relation relation)
     {
-        // TODO - add statistics around what was dropped, skipped and processed.
         final RelationBean bean = new RelationBean();
         for (final RelationMember member : relation.getMembers())
         {
@@ -283,6 +284,32 @@ public class OsmPbfReader implements Sink
     }
 
     /**
+     * Log any {@link Entity}s that got filtered by ingest configuration.
+     *
+     * @param entity
+     *            The filtered {@link Entity}
+     */
+    private void logFilteredStatistics(final Entity entity)
+    {
+        if (entity instanceof Node)
+        {
+            this.statistics.recordFilteredNode();
+        }
+        else if (entity instanceof Way)
+        {
+            this.statistics.recordFilteredWay();
+        }
+        else if (entity instanceof Relation)
+        {
+            this.statistics.recordFilteredRelation();
+        }
+        else
+        {
+            // No-Op. We don't log bounds.
+        }
+    }
+
+    /**
      * First, creates an {@link Entity} {@link Tag} for specific OSM attributes we're interested in
      * propagating to the {@link AtlasEntity}. Secondly, converts the given {@link Entity}'s
      * collection of {@link Tag}s to a {@link Map} of key/value pairs used to build an
@@ -295,7 +322,7 @@ public class OsmPbfReader implements Sink
     private Map<String, String> populateEntityTags(final Entity entity)
     {
         // Update the entity's tags to contain specific OSM attributes we care about, so that these
-        // will get translated to Atlas Entity tags.
+        // get translated to Atlas Entity tags.
         storeOsmEntityAttributesAsTags(entity);
 
         return new TagMap(entity.getTags()).getTags();
@@ -312,6 +339,7 @@ public class OsmPbfReader implements Sink
         final Node node = (Node) entity;
         this.builder.addPoint(node.getId(), new Location(Latitude.degrees(node.getLatitude()),
                 Longitude.degrees(node.getLongitude())), populateEntityTags(node));
+        this.statistics.recordCreatedPoint();
     }
 
     /**
@@ -341,9 +369,11 @@ public class OsmPbfReader implements Sink
             {
                 this.builder.addRelation(relation.getId(), relation.getId(), bean,
                         populateEntityTags(relation));
+                this.statistics.recordCreatedRelation();
             }
             else
             {
+                this.statistics.recordDroppedRelation();
                 logger.debug(
                         "Empty Relation {} cannot be added to the Atlas. We're either filtering"
                                 + " out the members that make up the Relation or none of the "
@@ -378,6 +408,7 @@ public class OsmPbfReader implements Sink
                     final RelationBean bean = constructRelationBean(relation);
                     this.builder.addRelation(relation.getId(), relation.getId(), bean,
                             populateEntityTags(relation));
+                    this.statistics.recordCreatedRelation();
                 }
             }
             stagedRelations = updatedStagedRelations;
@@ -403,6 +434,7 @@ public class OsmPbfReader implements Sink
     {
         final Way way = (Way) entity;
         this.builder.addLine(way.getId(), constructWayPolyLine(way), populateEntityTags(way));
+        this.statistics.recordCreatedLine();
     }
 
     /**
