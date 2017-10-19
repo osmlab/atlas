@@ -48,7 +48,8 @@ import org.slf4j.LoggerFactory;
  * {@link org.openstreetmap.atlas.geography.atlas.items.Relation}. Any exclusions based on tags are
  * allowed via the passed in {@link AtlasLoadingOption} configuration. There is no support for
  * Atlas @ {@link org.openstreetmap.atlas.geography.atlas.items.Node}s, {@link Edge}s or
- * {@link Area}s,
+ * {@link Area}s. This is also assuming that the Osmosis --completeWays flag is used during PBF
+ * creation.
  *
  * @author mgostintsev
  */
