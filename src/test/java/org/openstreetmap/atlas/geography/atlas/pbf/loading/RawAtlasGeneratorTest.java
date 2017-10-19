@@ -15,13 +15,14 @@ import com.google.common.collect.Iterables;
  *
  * @author mgostintsev
  */
-public class OsmPbfReaderTest
+public class RawAtlasGeneratorTest
 {
     @Test
     public void testParityBetweenRawAtlasAndGeneratedAtlas()
     {
         // Previous PBF-to-Atlas Implementation
-        final String pbfPath = OsmPbfReaderTest.class.getResource("9-433-268.osm.pbf").getPath();
+        final String pbfPath = RawAtlasGeneratorTest.class.getResource("9-433-268.osm.pbf")
+                .getPath();
         final OsmPbfLoader loader = new OsmPbfLoader(new File(pbfPath), AtlasLoadingOption
                 .createOptionWithNoSlicing().setLoadWaysSpanningCountryBoundaries(false));
         final Atlas oldAtlas = loader.read();
@@ -45,9 +46,29 @@ public class OsmPbfReaderTest
     }
 
     @Test
+    public void testPbfWithIncompleteRelations()
+    {
+        // This PBF has several interesting use cases. 1. It will have relations of relations. 2.
+        // Some of the member relations will be outside of the PBF and will be missing.
+        final String path = RawAtlasGeneratorTest.class.getResource("7-105-51.osm.pbf").getPath();
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
+        final Atlas atlas = rawAtlasGenerator.build();
+
+        // The Raw Atlas should never contain Nodes, Edges or Areas
+        Assert.assertTrue(atlas.numberOfNodes() == 0);
+        Assert.assertTrue(atlas.numberOfEdges() == 0);
+        Assert.assertTrue(atlas.numberOfAreas() == 0);
+
+        // Only Points, Lines and Relations
+        Assert.assertTrue(atlas.numberOfPoints() == 467830);
+        Assert.assertTrue(atlas.numberOfLines() == 45839);
+        Assert.assertTrue(atlas.numberOfRelations() == 345);
+    }
+
+    @Test
     public void testRawAtlasCreation()
     {
-        final String path = OsmPbfReaderTest.class.getResource("9-433-268.osm.pbf").getPath();
+        final String path = RawAtlasGeneratorTest.class.getResource("9-433-268.osm.pbf").getPath();
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
         final Atlas atlas = rawAtlasGenerator.build();
 

@@ -112,6 +112,6 @@ public class OsmPbfCounter implements Sink
     @Override
     public void release()
     {
-        logger.info("Releasing OSM PBF Counter");
+        logger.info("Released OSM PBF Counter");
     }
 }

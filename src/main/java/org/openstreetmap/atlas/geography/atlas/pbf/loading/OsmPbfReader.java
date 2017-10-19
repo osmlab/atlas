@@ -55,9 +55,7 @@ import org.slf4j.LoggerFactory;
 public class OsmPbfReader implements Sink
 {
     private static final Logger logger = LoggerFactory.getLogger(OsmPbfReader.class);
-
     private static final String MISSING_MEMBER_MESSAGE = "Relation {} contains {} {} as a member, but this PBF shard does not contain it.";
-    private static final int MAXIMUM_RELATION_DEPTH = 500;
 
     private final PackedAtlasBuilder builder;
     private final AtlasLoadingOption loadingOption;
@@ -159,7 +157,34 @@ public class OsmPbfReader implements Sink
         // handle Relations that contain Relation members properly.
         processStagedRelations();
         this.statistics.summary();
-        logger.info("Releasing OSM PBF Reader");
+        logger.info("Released OSM PBF Reader");
+    }
+
+    /**
+     * Constructs an Atlas {@link org.openstreetmap.atlas.geography.atlas.items.Relation}. In the
+     * process, a relation can be dropped if it doesn't contain any members. The members could be
+     * empty, if they were filtered out by the PBF ingest criteria or if this PBF file doesn't
+     * contain them.
+     *
+     * @param relation
+     *            The {@link Relation} to add
+     */
+    private void addRelation(final Relation relation)
+    {
+        final RelationBean bean = constructRelationBean(relation);
+        if (!bean.isEmpty())
+        {
+            this.builder.addRelation(relation.getId(), relation.getId(), bean,
+                    populateEntityTags(relation));
+            this.statistics.recordCreatedRelation();
+        }
+        else
+        {
+            this.statistics.recordDroppedRelation();
+            logger.debug("Empty Relation {} cannot be added to the Atlas. We're either filtering"
+                    + " out the members that make up the Relation or none of the "
+                    + "members are present in this PBF shard.", relation.getId());
+        }
     }
 
     /**
@@ -345,10 +370,8 @@ public class OsmPbfReader implements Sink
     /**
      * Tries to create an Atlas {@link org.openstreetmap.atlas.geography.atlas.items.Relation}. If
      * the {@link Entity} contains a member that's also a relation and that member hasn't been
-     * processed yet, then we add the given Relation to a Collection of staged relations to process
-     * later (see {@link #release()} method). Otherwise, we do one last check to make sure the
-     * Relation isn't empty and add it. A relation could be empty if all of its members haven't been
-     * processed yet or are not contained in the given PBF file.
+     * processed yet, then we add the given {@link Relation} to a Collection of staged relations to
+     * process later (see {@link #release()} method). Otherwise, we add it.
      *
      * @param entity
      *            The {@link Entity} that will become an Atlas
@@ -364,37 +387,26 @@ public class OsmPbfReader implements Sink
         }
         else
         {
-            final RelationBean bean = constructRelationBean(relation);
-            if (!bean.isEmpty())
-            {
-                this.builder.addRelation(relation.getId(), relation.getId(), bean,
-                        populateEntityTags(relation));
-                this.statistics.recordCreatedRelation();
-            }
-            else
-            {
-                this.statistics.recordDroppedRelation();
-                logger.debug(
-                        "Empty Relation {} cannot be added to the Atlas. We're either filtering"
-                                + " out the members that make up the Relation or none of the "
-                                + "members are present in this PBF shard.",
-                        relation.getId());
-            }
+            addRelation(relation);
         }
     }
 
     /**
      * Processes all non-shallow {@link Relation}s - any {@link Relation} that has another
      * {@link Relation} as a member. This is called near the end of the processing, once we've
-     * successfully added all {@link Node}s, {@link Way}s and shallow {@link Relation}s. If we
-     * encounter a {@link Relation} that's over {@link #MAXIMUM_RELATION_DEPTH} levels deep, then we
-     * throw a {@link CoreException} and stop building the {@link Atlas}.
+     * successfully added all {@link Node}s, {@link Way}s and shallow {@link Relation}s. If the
+     * number of staged relations doesn't change from one iteration to the next, then we know that
+     * any future iteration will not un-stage any of the relations. Therefore, we can try to add the
+     * relations in the current state.
      */
     private void processStagedRelations()
     {
-        int relationDepth = 0;
+        int previousStagedRelationSize = 0;
         List<Relation> stagedRelations = this.stagedRelations;
-        while (!stagedRelations.isEmpty() && relationDepth < MAXIMUM_RELATION_DEPTH)
+        int currentStagedRelationSize = stagedRelations.size();
+
+        while (!stagedRelations.isEmpty()
+                && currentStagedRelationSize != previousStagedRelationSize)
         {
             final List<Relation> updatedStagedRelations = new ArrayList<>();
             for (final Relation relation : stagedRelations)
@@ -405,21 +417,22 @@ public class OsmPbfReader implements Sink
                 }
                 else
                 {
-                    final RelationBean bean = constructRelationBean(relation);
-                    this.builder.addRelation(relation.getId(), relation.getId(), bean,
-                            populateEntityTags(relation));
-                    this.statistics.recordCreatedRelation();
+                    addRelation(relation);
                 }
             }
             stagedRelations = updatedStagedRelations;
-            relationDepth++;
+            previousStagedRelationSize = currentStagedRelationSize;
+            currentStagedRelationSize = stagedRelations.size();
         }
 
-        if (relationDepth >= MAXIMUM_RELATION_DEPTH)
+        // If we weren't able to process any of the staged relations and there are still some left,
+        // go ahead and try to add these in their current state. We can potentially add a relation
+        // that has an incomplete member list, however we are relying on the fact that a neighboring
+        // shard will contain this relation and the missing members. When the two are combined, the
+        // relation will become whole again.
+        if (currentStagedRelationSize == previousStagedRelationSize && !stagedRelations.isEmpty())
         {
-            throw new CoreException(
-                    "There might be a loop in relations! It took more than {} loops to build all Relations from PBF.",
-                    MAXIMUM_RELATION_DEPTH);
+            stagedRelations.forEach(this::addRelation);
         }
     }
 
