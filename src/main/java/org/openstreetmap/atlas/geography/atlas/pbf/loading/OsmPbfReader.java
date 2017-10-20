@@ -207,7 +207,7 @@ public class OsmPbfReader implements Sink
 
             if (memberType == EntityType.Node)
             {
-                if (this.builder.peek().node(memberIdentifier) != null)
+                if (this.builder.peek().point(memberIdentifier) != null)
                 {
                     bean.addItem(memberIdentifier, role, ItemType.POINT);
                 }
