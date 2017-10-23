@@ -402,12 +402,11 @@ public class OsmPbfReader implements Sink
      */
     private void processStagedRelations()
     {
-        int previousStagedRelationSize = 0;
+        int previousStagedRelationSize = Integer.MAX_VALUE;
         List<Relation> stagedRelations = this.stagedRelations;
         int currentStagedRelationSize = stagedRelations.size();
 
-        while (!stagedRelations.isEmpty()
-                && currentStagedRelationSize != previousStagedRelationSize)
+        while (!stagedRelations.isEmpty() && currentStagedRelationSize < previousStagedRelationSize)
         {
             final List<Relation> updatedStagedRelations = new ArrayList<>();
             for (final Relation relation : stagedRelations)
