@@ -239,7 +239,7 @@ public class BigNodeFinder implements Finder<BigNode>
      * This is maximum number of edges in dual carriage way route and is used as safety threshold to
      * prevent bad edge cases while constructing the big node
      */
-    private static final int MAXIMUM_DUAL_CARRIAGEWAY_ROUTE_SIZE = 20;
+    private static final int MAXIMUM_DUAL_CARRIAGEWAY_ROUTE_SIZE = 10;
 
     private final EdgeDirectionComparator edgeDirectionComparator = new EdgeDirectionComparator();
 
@@ -474,7 +474,7 @@ public class BigNodeFinder implements Finder<BigNode>
                 }
                 else
                 {
-                    logger.debug(
+                    logger.trace(
                             "Maximum number of edges in dual carriageway route  ({}) reached. Skipping route : {}",
                             MAXIMUM_DUAL_CARRIAGEWAY_ROUTE_SIZE, route);
                 }
