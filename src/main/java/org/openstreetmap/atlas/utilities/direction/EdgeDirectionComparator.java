@@ -22,11 +22,11 @@ public final class EdgeDirectionComparator
      * Default {@link Angle} limits are used for {@link Heading} comparison. To keep it simple we
      * keep the limits contiguous.
      */
-    public static final Angle DEFAULT_OPPOSITE_DIRECTION_LOWER_LIMIT = Angle.degrees(173);
-    public static final Angle DEFAULT_OPPOSITE_DIRECTION_UPPER_LIMIT = Angle.degrees(-173);
+    public static final Angle DEFAULT_OPPOSITE_DIRECTION_LOWER_LIMIT = Angle.degrees(171);
+    public static final Angle DEFAULT_OPPOSITE_DIRECTION_UPPER_LIMIT = Angle.degrees(-171);
 
-    public static final Angle DEFAULT_SAME_DIRECTION_LOWER_LIMIT = Angle.degrees(-7);
-    public static final Angle DEFAULT_SAME_DIRECTION_UPPER_LIMIT = Angle.degrees(7);
+    public static final Angle DEFAULT_SAME_DIRECTION_LOWER_LIMIT = Angle.degrees(-9);
+    public static final Angle DEFAULT_SAME_DIRECTION_UPPER_LIMIT = Angle.degrees(9);
 
     /*
      * Limit for the heading difference used for detecting if edges are in opposite direction.
