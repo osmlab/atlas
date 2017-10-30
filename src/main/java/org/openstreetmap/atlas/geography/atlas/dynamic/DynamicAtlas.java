@@ -539,7 +539,9 @@ public class DynamicAtlas extends BareAtlas
     private <V extends AtlasEntity> boolean entitiesCovered(final Iterable<V> entities,
             final Predicate<V> entityCoveredPredicate)
     {
-        return Iterables.stream(entities).allMatch(entityCoveredPredicate);
+        return Iterables.stream(entities)
+                .filter(entity -> this.policy.getAtlasEntitiesToConsiderForExpansion().test(entity))
+                .allMatch(entityCoveredPredicate);
     }
 
     /**

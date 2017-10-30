@@ -6,10 +6,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
@@ -32,6 +34,7 @@ public class DynamicAtlasPolicy
     private Consumer<Set<Shard>> shardSetChecker = set ->
     {
     };
+    private Predicate<AtlasEntity> atlasEntitiesToConsiderForExpansion = entity -> true;
 
     public DynamicAtlasPolicy(final Function<Shard, Optional<Atlas>> atlasFetcher,
             final Sharding sharding, final MultiPolygon shapeCoveringInitialShards,
@@ -95,6 +98,11 @@ public class DynamicAtlasPolicy
         };
     }
 
+    public Predicate<AtlasEntity> getAtlasEntitiesToConsiderForExpansion()
+    {
+        return this.atlasEntitiesToConsiderForExpansion;
+    }
+
     public Set<Shard> getInitialShards()
     {
         return this.initialShards;
@@ -130,6 +138,13 @@ public class DynamicAtlasPolicy
     public boolean isExtendIndefinitely()
     {
         return this.extendIndefinitely;
+    }
+
+    public DynamicAtlasPolicy withAtlasEntitiesToConsiderForExpansion(
+            final Predicate<AtlasEntity> atlasEntitiesToConsiderForExpansion)
+    {
+        this.atlasEntitiesToConsiderForExpansion = atlasEntitiesToConsiderForExpansion;
+        return this;
     }
 
     /**
