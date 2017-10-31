@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
+import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.collections.StringList;
@@ -13,6 +14,25 @@ import org.openstreetmap.atlas.utilities.collections.StringList;
  */
 public class CountryToShardListingTest
 {
+	@Test
+	public void testMultiPolygonBoundary()
+	{
+		final CountryToShardListing listing = new CountryToShardListing();
+		final StringList countries = new StringList();
+		countries.add("ZAF");
+		final CountryBoundaryMap boundaries = new CountryBoundaryMap(
+				new InputStreamResource(() -> CountryToShardListingTest.class
+						.getResourceAsStream("ZAF_osm_boundary.txt.gz"))
+							.withDecompressor(Decompressor.GZIP));
+		final Sharding sharding = Sharding.forString("dynamic@" 
+				+ CountryToShardListingTest.class.getResource("tree-6-14-100000.txt.gz").getPath());
+		final StringResource output = new StringResource();
+		listing.intersectShards(countries, boundaries, sharding, output);
+		final File shardList = new File(CountryToShardListingTest.class
+				.getResource("ZAF_osm_shards_with_14.txt").getPath());
+		Assert.assertEquals(shardList.all() + "\n", output.writtenString());
+	}
+	
     @Test
     public void testSmallCountry()
     {
