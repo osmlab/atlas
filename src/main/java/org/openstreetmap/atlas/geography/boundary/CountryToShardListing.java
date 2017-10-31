@@ -1,8 +1,6 @@
 package org.openstreetmap.atlas.geography.boundary;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolygon;
