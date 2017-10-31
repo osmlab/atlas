@@ -63,32 +63,34 @@ public class CountryToShardListing extends Command
                 final List<CountryBoundary> countryBoundaries = boundaries.countryBoundary(country);
                 if (countryBoundaries != null)
                 {
-                	// for countries split by the Meridian line there will be two countryBoundaries
-                	for (final CountryBoundary countryBound : countryBoundaries)
-                	{
-                		final MultiPolygon countryBoundary = countryBound.getBoundary();
-                		final Iterable<? extends Shard> potentialShards = sharding.shards(countryBoundary.bounds());
-                		potentialShards.forEach(shard -> 
-                		{
-                			final Clip clip = new Clip(ClipType.AND, shard.bounds(), countryBoundary);
-                			if (clip.getClipMultiPolygon().surface().asKilometerSquared() > 0)
-                			{
-                				try
-                				{
-                					writer.writeLine(new CountryShard(country, shard).toString());
-                				}
-                				catch (final Exception e)
-                				{
-                					throw new CoreException("Unable to write to {}", output, e);
-                				}
-                			}
-                		});
-                	}
-                	logger.info("Processed country {} in {}", country, start.elapsedSince());
+                    // for countries split by the Meridian line there will be two countryBoundaries
+                    for (final CountryBoundary countryBound : countryBoundaries)
+                    {
+                        final MultiPolygon countryBoundary = countryBound.getBoundary();
+                        final Iterable<? extends Shard> potentialShards = sharding
+                                .shards(countryBoundary.bounds());
+                        potentialShards.forEach(shard ->
+                        {
+                            final Clip clip = new Clip(ClipType.AND, shard.bounds(),
+                                    countryBoundary);
+                            if (clip.getClipMultiPolygon().surface().asKilometerSquared() > 0)
+                            {
+                                try
+                                {
+                                    writer.writeLine(new CountryShard(country, shard).toString());
+                                }
+                                catch (final Exception e)
+                                {
+                                    throw new CoreException("Unable to write to {}", output, e);
+                                }
+                            }
+                        });
+                    }
+                    logger.info("Processed country {} in {}", country, start.elapsedSince());
                 }
                 else
                 {
-                	logger.info("Failed to process: {} is not a valid country name", country);
+                    logger.info("Failed to process: {} is not a valid country name", country);
                 }
             });
         }
