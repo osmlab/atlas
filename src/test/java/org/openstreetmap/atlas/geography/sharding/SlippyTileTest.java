@@ -1,6 +1,5 @@
 package org.openstreetmap.atlas.geography.sharding;
 
-import java.util.Iterator;
 import java.util.Set;
 
 import org.junit.Assert;
@@ -59,16 +58,7 @@ public class SlippyTileTest extends Command
     @Test
     public void testNeighbors()
     {
-        final Iterator<SlippyTile> iterator = SlippyTile.allTiles(2, Rectangle.TEST_RECTANGLE_2)
-                .iterator();
-        while (iterator.hasNext())
-        {
-            final SlippyTile next = iterator.next();
-            Assert.assertEquals(5, next.neighbors().size());
-        }
-
-        final SlippyTile tile = new SlippyTile(659, 1588, 12);
-        Assert.assertEquals(12, tile.neighbors().size());
+        Assert.assertEquals(8, new SlippyTile(659, 1588, 12).neighbors().size());
     }
 
     @Test

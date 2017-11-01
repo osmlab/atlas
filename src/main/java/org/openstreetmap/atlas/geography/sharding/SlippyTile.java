@@ -1,11 +1,8 @@
 package org.openstreetmap.atlas.geography.sharding;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -38,7 +35,7 @@ public class SlippyTile implements Shard
     private static final double FULL_ROTATION_DEGREES = 360.0;
     private static final double HALF_ROTATION_DEGREES = 180.0;
     private static final double LONGITUDE_BOUNDARY = 180;
-    private static final double NEIGHBOR_EXPANSION_SCALE = 0.25;
+    private static final double NEIGHBOR_EXPANSION_SCALE = 0.10;
 
     private Rectangle bounds;
     private final int xAxis;
@@ -240,51 +237,10 @@ public class SlippyTile implements Shard
      */
     public Set<SlippyTile> neighbors()
     {
-        SlippyTile parent = parent();
-        final Set<SlippyTile> neighbors = new HashSet<>();
-        final Queue<SlippyTile> candidates = new LinkedList<>();
-        final Set<String> visitedTiles = new HashSet<>();
-        visitedTiles.add(this.getName());
-
-        // Add the siblings and parent of the current node
-        addNextZoomLevelTilesToCandidateList(candidates, visitedTiles, this);
-
-        // Used to keep track of a change in zoom level
-        SlippyTile previousCandidate = null;
-
-        while (!candidates.isEmpty())
-        {
-            final SlippyTile candidate = candidates.poll();
-
-            // Create a slightly larger boundary by expanding 1/4 of the original boundary
-            final Rectangle expandedBoundary = candidate.bounds()
-                    .expand(calculateExpansionDistance(candidate.bounds()));
-
-            // If the expanded boundary overlaps the target node, they are neighbors
-            if (this.bounds().overlaps(expandedBoundary))
-            {
-                // Don't add the encompassing parent as a neighbor
-                if (!parent.equals(candidate))
-                {
-                    neighbors.add(candidate);
-                }
-            }
-
-            // Mark tile as visited to avoid re-processing
-            visitedTiles.add(candidate.getName());
-
-            // Reached end of this Zoom level and encountered the parent (since it's always added
-            // last). Add the parent's layer and its parent to the queue.
-            if (previousCandidate != null && candidate.getZoom() < previousCandidate.getZoom())
-            {
-                addNextZoomLevelTilesToCandidateList(candidates, visitedTiles, candidate);
-                parent = candidate.parent();
-            }
-
-            previousCandidate = candidate;
-        }
-
-        return neighbors;
+        return Iterables
+                .stream(new SlippyTileSharding(this.zoom)
+                        .shards(bounds().expand(calculateExpansionDistance(bounds()))))
+                .map(shard -> (SlippyTile) shard).filter(tile -> !this.equals(tile)).collectToSet();
     }
 
     /**
@@ -382,30 +338,6 @@ public class SlippyTile implements Shard
     {
         return "[SlippyTile: zoom = " + this.zoom + ", x = " + this.xAxis + ", y = " + this.yAxis
                 + "]";
-    }
-
-    /**
-     * Add the siblings and parent.
-     *
-     * @param candidates
-     *            The candidate tiles
-     * @param visitedTiles
-     *            The tiles already visited
-     * @param targetTile
-     *            The target tile
-     */
-    private void addNextZoomLevelTilesToCandidateList(final Queue<SlippyTile> candidates,
-            final Set<String> visitedTiles, final SlippyTile targetTile)
-    {
-        final SlippyTile parent = targetTile.parent();
-        for (final SlippyTile child : parent.split())
-        {
-            if (!visitedTiles.contains(child.getName()) && !child.equals(targetTile))
-            {
-                candidates.add(child);
-            }
-        }
-        candidates.add(parent);
     }
 
     /**

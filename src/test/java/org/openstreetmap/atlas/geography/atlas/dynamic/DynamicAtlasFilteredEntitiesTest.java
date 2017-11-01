@@ -13,6 +13,7 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.dynamic.policy.DynamicAtlasPolicy;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.geography.sharding.SlippyTileSharding;
@@ -68,6 +69,25 @@ public class DynamicAtlasFilteredEntitiesTest
         runLoadEdgesOnlyTest(dynamicAtlas);
     }
 
+    @Test
+    public void testLoadNoEdgesByTag()
+    {
+        final DynamicAtlas dynamicAtlas = new DynamicAtlas(this.policySupplier.get()
+                .withAtlasEntitiesToConsiderForExpansion(
+                        entity -> "relation".equals(entity.getTag("type").orElse("")))
+                .withAgressivelyExploreRelations(true));
+        runLoadNoEdgesTest(dynamicAtlas);
+    }
+
+    @Test
+    public void testLoadNoEdgesByType()
+    {
+        final DynamicAtlas dynamicAtlas = new DynamicAtlas(this.policySupplier.get()
+                .withAtlasEntitiesToConsiderForExpansion(entity -> entity instanceof Relation)
+                .withAgressivelyExploreRelations(true));
+        runLoadNoEdgesTest(dynamicAtlas);
+    }
+
     private void runLoadEdgesOnlyTest(final DynamicAtlas dynamicAtlas)
     {
         // Already loaded: 12-1350-1870
@@ -109,5 +129,52 @@ public class DynamicAtlasFilteredEntitiesTest
         Assert.assertEquals(9, dynamicAtlas.numberOfEdges());
         Assert.assertNotNull(dynamicAtlas.edge(8000000));
         Assert.assertEquals(9, dynamicAtlas.numberOfEdges());
+    }
+
+    private void runLoadNoEdgesTest(final DynamicAtlas dynamicAtlas)
+    {
+        // Already loaded: 12-1350-1870
+        Assert.assertEquals(4, dynamicAtlas.numberOfEdges());
+        // Test an area that does not exist
+        Assert.assertNull(dynamicAtlas.area(5));
+        Assert.assertNotNull(dynamicAtlas.area(1));
+        Assert.assertEquals(4, dynamicAtlas.numberOfEdges());
+        // Usually prompts load of 12-1350-1869, but not here
+        Assert.assertNotNull(dynamicAtlas.area(2));
+        // Still 4
+        Assert.assertEquals(4, dynamicAtlas.numberOfEdges());
+
+        // Already loaded: 12-1350-1870
+        Assert.assertEquals(4, dynamicAtlas.numberOfEdges());
+        Assert.assertNull(dynamicAtlas.edge(6000000));
+        Assert.assertEquals(4, dynamicAtlas.numberOfEdges());
+        Assert.assertNotNull(dynamicAtlas.edge(1000000));
+        Assert.assertTrue(dynamicAtlas.edge(1000000).hasReverseEdge());
+        Assert.assertEquals(4, dynamicAtlas.numberOfEdges());
+
+        // Does NOT Prompt load of 12-1350-1869
+        Assert.assertNotNull(dynamicAtlas.edge(2000000));
+        Assert.assertEquals(4, dynamicAtlas.numberOfEdges());
+        Assert.assertNull(dynamicAtlas.edge(3000000));
+        Assert.assertEquals(4, dynamicAtlas.numberOfEdges());
+
+        // Does NOT Prompt load of 12-1349-1869
+        Assert.assertNull(dynamicAtlas.edge(4000000));
+        Assert.assertEquals(4, dynamicAtlas.numberOfEdges());
+        Assert.assertNull(dynamicAtlas.edge(5000000));
+        Assert.assertEquals(4, dynamicAtlas.numberOfEdges());
+
+        // Does NOT Prompt load of 12-1349-1870
+        Assert.assertNull(dynamicAtlas.edge(6000000));
+        Assert.assertEquals(4, dynamicAtlas.numberOfEdges());
+        Assert.assertNull(dynamicAtlas.edge(7000000));
+        Assert.assertEquals(4, dynamicAtlas.numberOfEdges());
+        // Was already there from the initial shard
+        Assert.assertNotNull(dynamicAtlas.edge(8000000));
+        Assert.assertEquals(4, dynamicAtlas.numberOfEdges());
+
+        // Prompts load of 12-1350-1869
+        Assert.assertNotNull(dynamicAtlas.relation(1));
+        Assert.assertEquals(6, dynamicAtlas.numberOfEdges());
     }
 }
