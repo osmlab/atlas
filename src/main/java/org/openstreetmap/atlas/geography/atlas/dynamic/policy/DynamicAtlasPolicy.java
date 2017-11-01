@@ -197,7 +197,7 @@ public class DynamicAtlasPolicy
      * boundaries.
      *
      * @param extendIndefinitely
-     *            True to extend indefinitely
+     *            True to extend indefinitely.
      * @return The modified policy
      */
     public DynamicAtlasPolicy withExtendIndefinitely(final boolean extendIndefinitely)
