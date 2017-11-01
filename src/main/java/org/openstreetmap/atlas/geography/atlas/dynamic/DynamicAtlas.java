@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
@@ -38,6 +39,7 @@ import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.openstreetmap.atlas.utilities.collections.StreamIterable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,14 +76,14 @@ public class DynamicAtlas extends BareAtlas
      */
     public DynamicAtlas(final DynamicAtlasPolicy dynamicAtlasExpansionPolicy)
     {
-        this.setName(
-                "DynamicAtlas(" + dynamicAtlasExpansionPolicy.getInitialShard().getName() + ")");
+        this.setName("DynamicAtlas(" + dynamicAtlasExpansionPolicy.getInitialShards().stream()
+                .map(Shard::getName).collect(Collectors.toSet()) + ")");
         this.sharding = dynamicAtlasExpansionPolicy.getSharding();
         this.loadedShards = new HashMap<>();
         this.atlasFetcher = dynamicAtlasExpansionPolicy.getAtlasFetcher();
         // Still keep the policy
         this.policy = dynamicAtlasExpansionPolicy;
-        this.addNewShards(Iterables.from(dynamicAtlasExpansionPolicy.getInitialShard()));
+        this.addNewShards(dynamicAtlasExpansionPolicy.getInitialShards());
         this.initialized = true;
     }
 
@@ -507,9 +509,9 @@ public class DynamicAtlas extends BareAtlas
     private boolean areaCovered(final Area area)
     {
         final Polygon polygon = area.asPolygon();
-        final Rectangle initialShardBounds = this.policy.getInitialShard().bounds();
-        if (!this.policy.isExtendIndefinitely()
-                && !(polygon.overlaps(initialShardBounds) || initialShardBounds.overlaps(polygon)))
+        final MultiPolygon initialShardsBounds = this.policy.getInitialShardsBounds();
+        if (!this.policy.isExtendIndefinitely() && !(polygon.overlaps(initialShardsBounds)
+                || initialShardsBounds.overlaps(polygon)))
         {
             // If the policy is to not extend indefinitely, then assume that the loading is not
             // necessary.
@@ -537,15 +539,7 @@ public class DynamicAtlas extends BareAtlas
     private <V extends AtlasEntity> boolean entitiesCovered(final Iterable<V> entities,
             final Predicate<V> entityCoveredPredicate)
     {
-        boolean result = true;
-        for (final V item : entities)
-        {
-            if (!entityCoveredPredicate.test(item))
-            {
-                result = false;
-            }
-        }
-        return result;
+        return Iterables.stream(entities).allMatch(entityCoveredPredicate);
     }
 
     /**
@@ -569,13 +563,13 @@ public class DynamicAtlas extends BareAtlas
             final Supplier<Iterable<V>> entitiesSupplier, final Predicate<V> entityCoveredPredicate,
             final Function<V, T> mapper)
     {
-        Iterable<V> result = Iterables.stream(entitiesSupplier.get()).filter(Objects::nonNull)
-                .collect();
+        StreamIterable<V> result = Iterables.stream(entitiesSupplier.get())
+                .filter(Objects::nonNull);
         while (!entitiesCovered(result, entityCoveredPredicate))
         {
-            result = Iterables.stream(entitiesSupplier.get()).filter(Objects::nonNull).collect();
+            result = Iterables.stream(entitiesSupplier.get()).filter(Objects::nonNull);
         }
-        return Iterables.stream(result).map(mapper).collect();
+        return result.map(mapper).collect();
     }
 
     private List<Atlas> getNonNullAtlasShards()
@@ -587,8 +581,8 @@ public class DynamicAtlas extends BareAtlas
     private boolean lineItemCovered(final LineItem item)
     {
         final PolyLine polyLine = item.asPolyLine();
-        final Rectangle initialShardBounds = this.policy.getInitialShard().bounds();
-        if (!this.policy.isExtendIndefinitely() && !initialShardBounds.overlaps(polyLine))
+        final MultiPolygon initialShardsBounds = this.policy.getInitialShardsBounds();
+        if (!this.policy.isExtendIndefinitely() && !initialShardsBounds.overlaps(polyLine))
         {
             // If the policy is to not extend indefinitely, then assume that the loading is not
             // necessary.
@@ -608,46 +602,28 @@ public class DynamicAtlas extends BareAtlas
 
     private boolean loadedShardsfullyGeometricallyEncloseLocation(final Location location)
     {
-        for (final Shard neededShard : this.sharding.shardsCovering(location))
-        {
-            if (!this.loadedShards.containsKey(neededShard))
-            {
-                return false;
-            }
-        }
-        return true;
+        return Iterables.stream(this.sharding.shardsCovering(location))
+                .allMatch(this.loadedShards::containsKey);
     }
 
     private boolean loadedShardsfullyGeometricallyEnclosePolygon(final Polygon polygon)
     {
-        for (final Shard neededShard : this.sharding.shards(polygon))
-        {
-            if (!this.loadedShards.containsKey(neededShard))
-            {
-                return false;
-            }
-        }
-        return true;
+        return Iterables.stream(this.sharding.shards(polygon))
+                .allMatch(this.loadedShards::containsKey);
     }
 
     private boolean loadedShardsfullyGeometricallyEnclosePolyLine(final PolyLine polyLine)
     {
-        for (final Shard neededShard : this.sharding.shardsIntersecting(polyLine))
-        {
-            if (!this.loadedShards.containsKey(neededShard))
-            {
-                return false;
-            }
-        }
-        return true;
+        return Iterables.stream(this.sharding.shardsIntersecting(polyLine))
+                .allMatch(this.loadedShards::containsKey);
     }
 
     private boolean locationItemCovered(final LocationItem item)
     {
         final Location location = item.getLocation();
-        final Rectangle initialShardBounds = this.policy.getInitialShard().bounds();
+        final MultiPolygon initialShardsBounds = this.policy.getInitialShardsBounds();
         if (!this.policy.isExtendIndefinitely()
-                && !initialShardBounds.fullyGeometricallyEncloses(location))
+                && !initialShardsBounds.fullyGeometricallyEncloses(location))
         {
             // If the policy is to not extend indefinitely, then assume that the loading is not
             // necessary.

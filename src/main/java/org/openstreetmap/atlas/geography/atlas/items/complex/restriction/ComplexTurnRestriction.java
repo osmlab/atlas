@@ -57,7 +57,7 @@ public class ComplexTurnRestriction extends ComplexEntity
         }
         catch (final Exception oops)
         {
-            logger.warn("Unable to create ComplexTurnRestriction from {}", source, oops);
+            logger.trace("Unable to create ComplexTurnRestriction from {}", source, oops);
             setInvalidReason("Couldn't create ComplexTurnRestriction", oops);
         }
     }

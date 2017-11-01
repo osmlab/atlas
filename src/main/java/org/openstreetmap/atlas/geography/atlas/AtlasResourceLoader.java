@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
@@ -52,26 +53,32 @@ public class AtlasResourceLoader
 
     private static final Logger logger = LoggerFactory.getLogger(AtlasResourceLoader.class);
 
-    private Predicate<Resource> filter;
+    private Predicate<Resource> resourceFilter;
+    private Predicate<AtlasEntity> atlasEntityFilter;
     private String multiAtlasName;
 
     public AtlasResourceLoader()
     {
-        this.filter = resource -> true;
+        this.resourceFilter = resource -> true;
+        this.atlasEntityFilter = null;
     }
 
     public Atlas load(final Iterable<? extends Resource> input)
     {
         final List<Resource> resources = Iterables.stream(input).flatMap(this::resourcesIn)
-                .filter(Atlas::isAtlas).filter(this.filter).collectToList();
+                .filter(Atlas::isAtlas).filter(this.resourceFilter).collectToList();
         final long size = resources.size();
         if (size == 1)
         {
-            return PackedAtlas.load(resources.get(0));
+            final Atlas result = PackedAtlas.load(resources.get(0));
+            return this.atlasEntityFilter == null ? result
+                    : result.subAtlas(this.atlasEntityFilter).get();
         }
         else if (size > 1)
         {
-            final MultiAtlas result = MultiAtlas.loadFromPackedAtlas(resources);
+            final MultiAtlas result = this.atlasEntityFilter == null
+                    ? MultiAtlas.loadFromPackedAtlas(resources)
+                    : MultiAtlas.loadFromPackedAtlas(resources, this.atlasEntityFilter);
             if (this.multiAtlasName != null)
             {
                 result.setName(this.multiAtlasName);
@@ -90,32 +97,56 @@ public class AtlasResourceLoader
     }
 
     /**
-     * Optionally add a filter
+     * Optionally add an {@link AtlasEntity} filter
      *
      * @param filter
-     *            filter object with includes and excludes
+     *            filter which {@link AtlasEntity}s to include/exclude in the {@link Atlas}
      */
-    public void setFilter(final Predicate<Resource> filter)
+    public void setAtlasEntityFilter(final Predicate<AtlasEntity> filter)
     {
-        this.filter = filter;
+        this.atlasEntityFilter = filter;
     }
 
     /**
-     * Optionally add a filter
+     * Optionally add a {@link Resource} filter
      *
      * @param filter
-     *            filter object with includes and excludes
+     *            filter which {@link Resource} to load
+     */
+    public void setResourceFilter(final Predicate<Resource> filter)
+    {
+        this.resourceFilter = filter;
+    }
+
+    /**
+     * Optionally add an {@link AtlasEntity} filter
+     *
+     * @param filter
+     *            filter which {@link AtlasEntity}s to include/exclude in the {@link Atlas}
      * @return fluent interface requires this be returned
      */
-    public AtlasResourceLoader withFilter(final Predicate<Resource> filter)
+    public AtlasResourceLoader withAtlasEntityFilter(final Predicate<AtlasEntity> filter)
     {
-        setFilter(filter);
+        setAtlasEntityFilter(filter);
         return this;
     }
 
     public AtlasResourceLoader withMultiAtlasName(final String multiAtlasName)
     {
         this.multiAtlasName = multiAtlasName;
+        return this;
+    }
+
+    /**
+     * Optionally add a {@link Resource} filter
+     *
+     * @param filter
+     *            filter which {@link Resource} to load
+     * @return fluent interface requires this be returned
+     */
+    public AtlasResourceLoader withResourceFilter(final Predicate<Resource> filter)
+    {
+        setResourceFilter(filter);
         return this;
     }
 

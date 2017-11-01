@@ -1,14 +1,18 @@
 package org.openstreetmap.atlas.geography.atlas.dynamic.policy;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
+import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +26,7 @@ public class DynamicAtlasPolicy
     private final Polygon maximumBounds;
     private final Sharding sharding;
     private final Function<Shard, Optional<Atlas>> atlasFetcher;
-    private final Shard initialShard;
+    private final Set<Shard> initialShards;
     private boolean extendIndefinitely = true;
     private boolean deferLoading = false;
     private Consumer<Set<Shard>> shardSetChecker = set ->
@@ -30,9 +34,41 @@ public class DynamicAtlasPolicy
     };
 
     public DynamicAtlasPolicy(final Function<Shard, Optional<Atlas>> atlasFetcher,
+            final Sharding sharding, final MultiPolygon shapeCoveringInitialShards,
+            final Polygon maximumBounds)
+    {
+        this.initialShards = new HashSet<>();
+        sharding.shards(shapeCoveringInitialShards).forEach(this.initialShards::add);
+        this.atlasFetcher = atlasFetcher;
+        this.maximumBounds = maximumBounds;
+        this.sharding = sharding;
+    }
+
+    public DynamicAtlasPolicy(final Function<Shard, Optional<Atlas>> atlasFetcher,
+            final Sharding sharding, final Polygon shapeCoveringInitialShards,
+            final Polygon maximumBounds)
+    {
+        this.initialShards = new HashSet<>();
+        sharding.shards(shapeCoveringInitialShards).forEach(this.initialShards::add);
+        this.atlasFetcher = atlasFetcher;
+        this.maximumBounds = maximumBounds;
+        this.sharding = sharding;
+    }
+
+    public DynamicAtlasPolicy(final Function<Shard, Optional<Atlas>> atlasFetcher,
+            final Sharding sharding, final Set<Shard> initialShards, final Polygon maximumBounds)
+    {
+        this.initialShards = initialShards;
+        this.atlasFetcher = atlasFetcher;
+        this.maximumBounds = maximumBounds;
+        this.sharding = sharding;
+    }
+
+    public DynamicAtlasPolicy(final Function<Shard, Optional<Atlas>> atlasFetcher,
             final Sharding sharding, final Shard initialShard, final Polygon maximumBounds)
     {
-        this.initialShard = initialShard;
+        this.initialShards = new HashSet<>();
+        this.initialShards.add(initialShard);
         this.atlasFetcher = atlasFetcher;
         this.maximumBounds = maximumBounds;
         this.sharding = sharding;
@@ -59,9 +95,16 @@ public class DynamicAtlasPolicy
         };
     }
 
-    public Shard getInitialShard()
+    public Set<Shard> getInitialShards()
     {
-        return this.initialShard;
+        return this.initialShards;
+    }
+
+    public MultiPolygon getInitialShardsBounds()
+    {
+        final MultiMap<Polygon, Polygon> outerToInners = new MultiMap<>();
+        this.initialShards.forEach(shard -> outerToInners.put(shard.bounds(), new ArrayList<>()));
+        return new MultiPolygon(outerToInners);
     }
 
     public Polygon getMaximumBounds()

@@ -158,6 +158,14 @@ public class BigNodeFinderTestCaseRule extends CoreTestRule
     private static final String EIGHTY_SIX = "55.71711, 12.45687";
     private static final String EIGHTY_SEVEN = "55.71718, 12.45692";
 
+    /**
+     * 12. Exclude service roads
+     */
+    private static final String EIGHTY_EIGHT = "56.1930077, 10.2433446";
+    private static final String EIGHTY_NINE = "56.1928659, 10.2430657";
+    private static final String NINETY = "56.1930248, 10.2426652";
+    private static final String NINETY_ONE = "56.1930801, 10.243183";
+
     @TestAtlas(
 
             nodes = { @Node(id = "1", coordinates = @Loc(value = ONE)),
@@ -256,7 +264,13 @@ public class BigNodeFinderTestCaseRule extends CoreTestRule
                     @Node(id = "84", coordinates = @Loc(value = EIGHTY_FOUR)),
                     @Node(id = "85", coordinates = @Loc(value = EIGHTY_FIVE)),
                     @Node(id = "86", coordinates = @Loc(value = EIGHTY_SIX)),
-                    @Node(id = "87", coordinates = @Loc(value = EIGHTY_SEVEN)), },
+                    @Node(id = "87", coordinates = @Loc(value = EIGHTY_SEVEN)),
+
+                    // Twelfth example
+                    @Node(id = "88", coordinates = @Loc(value = EIGHTY_EIGHT)),
+                    @Node(id = "89", coordinates = @Loc(value = EIGHTY_NINE)),
+                    @Node(id = "90", coordinates = @Loc(value = NINETY)),
+                    @Node(id = "91", coordinates = @Loc(value = NINETY_ONE)) },
 
             edges = {
                     @Edge(id = "12", coordinates = { @Loc(value = ONE),
@@ -466,7 +480,17 @@ public class BigNodeFinderTestCaseRule extends CoreTestRule
                                     "oneway=yes" }),
                     @Edge(id = "8187", coordinates = { @Loc(value = EIGHTY_ONE),
                             @Loc(value = EIGHTY_SEVEN) }, tags = { "highway=cycleway", "oneway=yes",
-                                    "name=Herlev Hovedgade" }) })
+                                    "name=Herlev Hovedgade" }),
+                    // Twelfth example
+                    @Edge(id = "8889", coordinates = { @Loc(value = EIGHTY_EIGHT),
+                            @Loc(value = EIGHTY_NINE) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "8988", coordinates = { @Loc(value = EIGHTY_NINE),
+                            @Loc(value = EIGHTY_EIGHT) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "8891", coordinates = { @Loc(value = EIGHTY_EIGHT),
+                            @Loc(value = NINETY_ONE) }, tags = { "highway=service", "oneway=yes" }),
+                    @Edge(id = "9089", coordinates = { @Loc(value = NINETY),
+                            @Loc(value = EIGHTY_NINE) }, tags = { "highway=service",
+                                    "oneway=yes" }) })
     private Atlas atlas;
 
     @TestAtlas(
@@ -519,6 +543,12 @@ public class BigNodeFinderTestCaseRule extends CoreTestRule
     @TestAtlas(loadFromTextResource = "overlap.atlas.txt.gz")
     private Atlas overlapAtlas;
 
+    /*
+     * Intersections that test expansion of big nodes
+     */
+    @TestAtlas(loadFromTextResource = "expand.atlas.txt.gz")
+    private Atlas expandAtlas;
+
     public Atlas getAtlas()
     {
         return this.atlas;
@@ -527,6 +557,11 @@ public class BigNodeFinderTestCaseRule extends CoreTestRule
     public Atlas getComplexJunctionAtlas()
     {
         return this.complexJunctionAtlas;
+    }
+
+    public Atlas getExpandBigNodeAtlas()
+    {
+        return this.expandAtlas;
     }
 
     public Atlas getOverlapAtlas()

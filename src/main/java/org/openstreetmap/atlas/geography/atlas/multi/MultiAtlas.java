@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -163,6 +164,54 @@ public class MultiAtlas extends AbstractAtlas
         return new MultiAtlas(
                 Iterables.translate(resources, resource -> PackedAtlas.load(resource)),
                 lotsOfOverlap);
+    }
+
+    /**
+     * Load a {@link MultiAtlas} from an {@link Iterable} of {@link PackedAtlas} serialized
+     * resources
+     *
+     * @param resources
+     *            The {@link Resource}s to read from (which each contain a serialized
+     *            {@link PackedAtlas}).
+     * @param lotsOfOverlap
+     *            If this is true, then the builder will start with small arrays and re-size a lot,
+     *            but won't waste memory because of the overlap of the sub-{@link Atlas}es. However,
+     *            if this is false, the builder will blindly sum all the items of all the
+     *            {@link Atlas}es regardless of overlap, and will hence allocate potentially more
+     *            memory than necessary. In that case though, the arrays will never resize, and the
+     *            load time will be faster.
+     * @param filter
+     *            The {@link Predicate} to use when loading from {@link PackedAtlas}
+     * @return The deserialized {@link MultiAtlas}
+     */
+    public static MultiAtlas loadFromPackedAtlas(final Iterable<? extends Resource> resources,
+            final boolean lotsOfOverlap, final Predicate<AtlasEntity> filter)
+    {
+        if (Iterables.size(resources) == 0)
+        {
+            throw new CoreException("Can't create an atlas from zero resources");
+        }
+        return new MultiAtlas(
+                Iterables.translate(resources,
+                        resource -> PackedAtlas.load(resource).subAtlas(filter).get()),
+                lotsOfOverlap);
+    }
+
+    /**
+     * Load a {@link MultiAtlas} from an {@link Iterable} of {@link PackedAtlas} serialized
+     * resources
+     *
+     * @param resources
+     *            The {@link Resource}s to read from (which each contain a serialized
+     *            {@link PackedAtlas}).
+     * @param filter
+     *            The {@link Predicate} to use when loading from {@link PackedAtlas}
+     * @return The deserialized {@link MultiAtlas}
+     */
+    public static MultiAtlas loadFromPackedAtlas(final Iterable<? extends Resource> resources,
+            final Predicate<AtlasEntity> filter)
+    {
+        return loadFromPackedAtlas(resources, false, filter);
     }
 
     /**

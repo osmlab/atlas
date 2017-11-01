@@ -1,13 +1,18 @@
 package org.openstreetmap.atlas.geography.sharding;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 
 /**
@@ -71,6 +76,34 @@ public interface Sharding extends Serializable
     default Iterable<? extends Shard> shards()
     {
         return shards(Rectangle.MAXIMUM);
+    }
+
+    /**
+     * Generate shards. This needs to be deterministic!
+     *
+     * @param multiPolygon
+     *            The bounds to limit the shards.
+     * @return The shards {@link Iterable}.
+     */
+    default Iterable<? extends Shard> shards(final MultiPolygon multiPolygon)
+    {
+        final Set<Shard> result = new HashSet<>();
+        for (final Polygon polygon : multiPolygon.outers())
+        {
+            final List<Polygon> inners = multiPolygon.innersOf(polygon);
+            Iterables.stream(this.shards(polygon)).filter(shard ->
+            {
+                for (final Polygon inner : inners)
+                {
+                    if (inner.fullyGeometricallyEncloses(shard.bounds()))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }).forEach(result::add);
+        }
+        return result;
     }
 
     /**

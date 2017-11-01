@@ -133,7 +133,7 @@ public abstract class AtlasLoadingCommand extends Command
         {
             throw new CoreException("Switch missing: input file or input folder");
         }
-        return new AtlasResourceLoader().withFilter(filter).load(inputFolder);
+        return new AtlasResourceLoader().withResourceFilter(filter).load(inputFolder);
     }
 
     @Override

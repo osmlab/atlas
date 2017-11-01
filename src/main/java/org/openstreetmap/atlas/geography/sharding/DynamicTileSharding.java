@@ -349,25 +349,21 @@ public class DynamicTileSharding extends Command implements Sharding
     }
 
     @Override
-    public Iterable<Shard> shards(final Polygon bounds)
+    public Iterable<? extends Shard> shards(final Polygon bounds)
     {
-        return this.root.leafNodes(bounds).stream().map(Node::getTile).collect(Collectors.toSet());
+        return Iterables.stream(this.root.leafNodes(bounds)).map(Node::getTile);
     }
 
     @Override
     public Iterable<? extends Shard> shardsCovering(final Location location)
     {
-
-        return this.root.leafNodesCovering(location).stream().map(Node::getTile)
-                .collect(Collectors.toSet());
-
+        return Iterables.stream(this.root.leafNodesCovering(location)).map(Node::getTile);
     }
 
     @Override
-    public Iterable<Shard> shardsIntersecting(final PolyLine polyLine)
+    public Iterable<? extends Shard> shardsIntersecting(final PolyLine polyLine)
     {
-        return this.root.leafNodesIntersecting(polyLine).stream().map(Node::getTile)
-                .collect(Collectors.toSet());
+        return Iterables.stream(this.root.leafNodesIntersecting(polyLine)).map(Node::getTile);
     }
 
     @Override
@@ -414,10 +410,10 @@ public class DynamicTileSharding extends Command implements Sharding
         }
         this.root.build(tile ->
         {
-            int count = 0;
+            long count = 0;
             for (final SlippyTile miniTile : tile.split(finalZoom))
             {
-                count += counts.get(miniTile);
+                count += counts.getOrDefault(miniTile, 0);
             }
             if (count <= MINIMUM_TO_SPLIT)
             {

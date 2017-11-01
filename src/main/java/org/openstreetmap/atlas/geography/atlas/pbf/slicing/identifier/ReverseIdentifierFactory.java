@@ -13,15 +13,15 @@ public class ReverseIdentifierFactory
 
     public long getCountryOsmIdentifier(final long countryCodeAndWaySectionedIdentifier)
     {
-        return Math.abs(countryCodeAndWaySectionedIdentifier)
-                / AbstractIdentifierFactory.IDENTIFIER_SCALE;
+        return Math.abs(
+                countryCodeAndWaySectionedIdentifier / AbstractIdentifierFactory.IDENTIFIER_SCALE);
     }
 
     public long getOsmIdentifier(final long countryCodeAndWaySectionedIdentifier)
     {
-        return Math.abs(countryCodeAndWaySectionedIdentifier)
-                / (AbstractIdentifierFactory.IDENTIFIER_SCALE
-                        * AbstractIdentifierFactory.IDENTIFIER_SCALE);
+        return Math.abs(
+                countryCodeAndWaySectionedIdentifier / (AbstractIdentifierFactory.IDENTIFIER_SCALE
+                        * AbstractIdentifierFactory.IDENTIFIER_SCALE));
     }
 
     public long getStartIdentifier(final long countryOsmIdentifier)

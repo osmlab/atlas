@@ -58,14 +58,25 @@ public class OsmPbfLoaderTest
         boundaries.put(COUNTRY_2_NAME, this.countryShape2);
         this.countryBoundariesAll = new CountryBoundaryMap(boundaries);
         this.store = new AtlasPrimitiveObjectStore();
+
+        // Add Nodes
         this.store.addNode(
                 new AtlasPrimitiveLocationItem(1, Location.CROSSING_85_280, Maps.stringMap()));
         this.store.addNode(
-                new AtlasPrimitiveLocationItem(17, Location.CROSSING_85_17, Maps.stringMap()));
-        this.store.addNode(new AtlasPrimitiveLocationItem(2, Location.TEST_7, Maps.stringMap()));
-        this.store.addNode(new AtlasPrimitiveLocationItem(2,
+                new AtlasPrimitiveLocationItem(2, Location.CROSSING_85_17, Maps.stringMap()));
+        this.store.addNode(new AtlasPrimitiveLocationItem(3, Location.TEST_7, Maps.stringMap()));
+        this.store.addNode(
+                new AtlasPrimitiveLocationItem(4, Location.EIFFEL_TOWER, Maps.stringMap()));
+        this.store.addNode(new AtlasPrimitiveLocationItem(5, Location.COLOSSEUM, Maps.stringMap()));
+        this.store.addNode(new AtlasPrimitiveLocationItem(6, Location.TEST_6, Maps.stringMap()));
+        this.store.addNode(new AtlasPrimitiveLocationItem(7, Location.TEST_6, Maps.stringMap()));
+        this.store.addNode(new AtlasPrimitiveLocationItem(8,
+                Location.forString("37.328076,-122.031869"), Maps.stringMap()));
+        this.store.addNode(new AtlasPrimitiveLocationItem(9,
                 new Segment(Location.TEST_6, Location.TEST_7).middle(),
                 Maps.stringMap("tag_key", "tag_value")));
+
+        // Add Edges
         this.store.addEdge(new AtlasPrimitiveLineItem(3,
                 new PolyLine(Location.CROSSING_85_280, Location.forString("37.328076,-122.031869"),
                         Location.TEST_7),
@@ -73,12 +84,16 @@ public class OsmPbfLoaderTest
         this.store.addEdge(new AtlasPrimitiveLineItem(7,
                 new PolyLine(Location.CROSSING_85_280, Location.CROSSING_85_17),
                 Maps.stringMap(HighwayTag.KEY, HighwayTag.MOTORWAY.name().toLowerCase())));
+
+        // Add Lines
         final PolyLine line4 = new Segment(Location.TEST_6, Location.TEST_7);
         this.store.addLine(new AtlasPrimitiveLineItem(4, line4, Maps.stringMap()));
         final PolyLine line5 = new Segment(Location.COLOSSEUM, Location.EIFFEL_TOWER);
         this.store.addLine(new AtlasPrimitiveLineItem(5, line5, Maps.stringMap()));
         this.store.addLine(
                 new AtlasPrimitiveLineItem(6, line4, Maps.stringMap("boundary", "administrative")));
+
+        // Add Relation
         final RelationBean relationBean = new RelationBean();
         relationBean.addItem(4L, "first", ItemType.LINE);
         relationBean.addItem(5L, "second", ItemType.LINE);

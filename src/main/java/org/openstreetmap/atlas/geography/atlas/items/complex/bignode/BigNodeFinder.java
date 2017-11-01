@@ -1,6 +1,5 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex.bignode;
 
-import static org.openstreetmap.atlas.tags.HighwayTag.isCarNavigableHighway;
 import static org.openstreetmap.atlas.tags.names.NameFinder.STANDARD_TAGS;
 
 import java.io.Serializable;
@@ -9,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -184,7 +184,7 @@ public class BigNodeFinder implements Finder<BigNode>
                                 .toComparison());
                 bigNodeCandidate.nodeIdentifiers
                         .forEach(nodeIdentifier -> nodes.add(this.atlas.node(nodeIdentifier)));
-                if (nodes.size() > 0)
+                if (!nodes.isEmpty())
                 {
                     final Node sourceNode = nodes.iterator().next();
                     final BigNode bigNode = new BigNode(sourceNode, nodes, Type.DUAL_CARRIAGEWAY);
@@ -235,6 +235,11 @@ public class BigNodeFinder implements Finder<BigNode>
     private static final Distance SEARCH_RADIUS_SECONDARY = Distance.meters(40);
     private static final Distance SEARCH_RADIUS_TERTIARY = Distance.meters(35);
     private static final Distance SEARCH_RADIUS_RESIDENTIAL = Distance.meters(25);
+    /**
+     * This is maximum number of edges in dual carriage way route and is used as safety threshold to
+     * prevent bad edge cases while constructing the big node
+     */
+    private static final int MAXIMUM_DUAL_CARRIAGEWAY_ROUTE_SIZE = 10;
 
     private final EdgeDirectionComparator edgeDirectionComparator = new EdgeDirectionComparator();
 
@@ -270,7 +275,7 @@ public class BigNodeFinder implements Finder<BigNode>
                     // Expand Junction Edge to Junction Route before checking for Dual Carriage way
                     // intersection
                     final Optional<Route> junctionRoute = isDualCarriageWayJunctionRoute(
-                            candidateEdge);
+                            Route.forEdge(candidateEdge));
 
                     junctionRoute.ifPresent(route ->
                     {
@@ -355,7 +360,7 @@ public class BigNodeFinder implements Finder<BigNode>
     }
 
     /**
-     * Find the big nodes' restricted paths and save them as geojson in a resource
+     * Find restricted paths of all bignodes and save them as geojson in a resource
      *
      * @param atlas
      *            The atlas to look at
@@ -415,38 +420,67 @@ public class BigNodeFinder implements Finder<BigNode>
         return isDualCarriageWayRoute(Route.forEdge(candidateEdge));
     }
 
+    private Optional<Route> isDualCarriageWayJunctionRoute(final Route candidateJunctionRoute)
+    {
+        final Set<Route> candidateJunctionRoutes = new LinkedHashSet<>();
+        candidateJunctionRoutes.add(candidateJunctionRoute);
+        return isDualCarriageWayJunctionRoute(candidateJunctionRoutes);
+    }
+
     /**
      * Look through all the edges around this node and expand if edge is connected to another short
-     * Edge in same direction. TODO : Should we do this recursively for more than 2 edges?
+     * Edge in same direction.
      */
-    private Optional<Route> isDualCarriageWayJunctionRoute(final Edge candidateEdge)
+    private Optional<Route> isDualCarriageWayJunctionRoute(final Set<Route> candidateJunctionRoutes)
     {
-        final Set<Edge> expandableEdges = candidateEdge.outEdges().stream()
-                .filter(this::isCandidateJunctionEdge)
-                .filter(edge -> this.edgeDirectionComparator.isSameDirection(candidateEdge, edge,
-                        false))
-                .filter(edge -> edge.getIdentifier() != candidateEdge.getIdentifier())
-                .collect(Collectors.toSet());
-
-        if (expandableEdges.size() == 1)
+        if (candidateJunctionRoutes.isEmpty())
         {
-            Route route = null;
-            try
+            return Optional.empty();
+        }
+        // Maintain a set of expandable routes.
+        final Set<Route> expandableJunctionRoutes = new LinkedHashSet<>();
+        for (final Route candidateJunctionRoute : candidateJunctionRoutes)
+        {
+            final Set<Edge> expandableEdges = new LinkedHashSet<>();
+            candidateJunctionRoute.end().outEdges().stream().filter(this::isCandidateJunctionEdge)
+                    .filter(edge -> edge.getMasterEdgeIdentifier() != candidateJunctionRoute.end()
+                            .getMasterEdgeIdentifier())
+                    .filter(edge -> this.edgeDirectionComparator
+                            .isSameDirection(candidateJunctionRoute.end(), edge, false))
+                    .forEach(expandableEdges::add);
+
+            for (final Edge expandableEdge : expandableEdges)
             {
-                route = Route.forEdges(candidateEdge, expandableEdges.iterator().next());
-            }
-            catch (final CoreException e)
-            {
-                logger.warn("Could not attempt dual carriageway route with {}",
-                        candidateEdge.getIdentifier(), e);
-            }
-            if (isDualCarriageWayRoute(route))
-            {
-                logger.debug("Adding Dual Carriageway Junction Route : {}", route);
-                return Optional.of(route);
+                Route route = null;
+                try
+                {
+                    route = candidateJunctionRoute.append(expandableEdge);
+                }
+                catch (final CoreException e)
+                {
+                    logger.warn("Could not append dual carriageway route {} with with {}",
+                            candidateJunctionRoute, expandableEdge.getIdentifier(), e);
+                }
+                // If the routes are DualCarriageWayRoutes, then return
+                if (isDualCarriageWayRoute(route))
+                {
+                    logger.debug("Adding Dual Carriageway Junction Route : {}", route);
+                    return Optional.of(route);
+                }
+                // Upper safety threshold to prevent bad edge cases
+                if (route.size() <= MAXIMUM_DUAL_CARRIAGEWAY_ROUTE_SIZE)
+                {
+                    expandableJunctionRoutes.add(route);
+                }
+                else
+                {
+                    logger.trace(
+                            "Maximum number of edges in dual carriageway route  ({}) reached. Skipping route : {}",
+                            MAXIMUM_DUAL_CARRIAGEWAY_ROUTE_SIZE, route);
+                }
             }
         }
-        return Optional.empty();
+        return isDualCarriageWayJunctionRoute(expandableJunctionRoutes);
     }
 
     private boolean isDualCarriageWayRoute(final Route candidateRoute)
@@ -466,9 +500,9 @@ public class BigNodeFinder implements Finder<BigNode>
         {
             for (final Edge inEdge : candidateRoute.start().inEdges())
             {
-                // If inEdge is not car navigable or has the same name as
+                // If inEdge is less important than RESIDENTIAL or has the same name as
                 // candidateEdge or has the same Heading as candidateEdge, then skip
-                if (!isCarNavigableHighway(inEdge)
+                if (inEdge.highwayTag().isLessImportantThan(HighwayTag.RESIDENTIAL)
                         || this.edgeDirectionComparator.isSameDirection(candidateRoute.start(),
                                 inEdge, false)
                         || edgeNameFuzzyMatch(candidateRoute.start(), inEdge, true))
@@ -478,9 +512,12 @@ public class BigNodeFinder implements Finder<BigNode>
                 // If the candidateRoute has inEdge and outEdge that are in opposite direction
                 for (final Edge outEdge : candidateRoute.end().outEdges())
                 {
-                    // Usually Dual Carriage Way roads are one way. outEdge and inEdge cannot
-                    // have name mismatch
-                    if (isCarNavigableHighway(outEdge)
+                    /*
+                     * Usually Dual Carriage Way roads are one way. OutEdge and inEdge cannot have
+                     * name mismatch. Including other Car Navigable roads like Service roads
+                     * increases false positive cases.
+                     */
+                    if (outEdge.highwayTag().isMoreImportantThanOrEqualTo(HighwayTag.RESIDENTIAL)
                             && this.edgeDirectionComparator.isOppositeDirection(inEdge, outEdge,
                                     false)
                             && !outEdge.hasReverseEdge() && !inEdge.hasReverseEdge()
@@ -504,24 +541,21 @@ public class BigNodeFinder implements Finder<BigNode>
         if (isCandidateJunctionEdge(candidateEdge))
         {
             final Set<Edge> candidateRouteEdges = Sets.newHashSet(candidateRoute);
+            // Remove the first edge of a multi-edge route to ensure bigger routes have a cycle
+            if (candidateRoute.size() > 1)
+            {
+                candidateRouteEdges.remove(candidateRoute.start());
+            }
             final Set<Long> candidateRouteEdgeIds = candidateRouteEdges.stream()
                     .map(edge -> edge.getIdentifier()).collect(Collectors.toSet());
 
             final Set<Long> filteredJunctionEdgeIds = Sets.difference(junctionEdgeIds,
                     candidateRouteEdgeIds);
-
-            final Set<Edge> candidateJunctionEdges = candidateRouteEdges.stream()
-                    .filter(edge -> !junctionEdgeIds.contains(edge.getIdentifier()))
-                    .collect(Collectors.toSet());
-
             for (final Edge edge : candidateEdge.outEdges())
             {
-                // Check if the edge is parallel to any of the junction Edges in the
-                // candidateRoute and if edge is connected to a junctionEdge with same name. Unless
-                // there is a name mismatch we merge them
+                // Check if edge is connected to a junctionEdge with same name. Unless
+                // there is a name mismatch we merge them.
                 if (filteredJunctionEdgeIds.contains(edge.getIdentifier())
-                        && this.edgeDirectionComparator.isParallel(edge, candidateJunctionEdges,
-                                false)
                         && edgeNameFuzzyMatch(candidateRoute.end(), edge, false))
                 {
                     return true;
@@ -564,8 +598,13 @@ public class BigNodeFinder implements Finder<BigNode>
         final Set<Edge> mergeCandidates = new TreeSet<>((edge1, edge2) -> ComparisonChain.start()
                 .compare(edge1.getIdentifier(), edge2.getIdentifier()).result());
 
+        final Set<Long> masterEdgeIdentifiers = new HashSet<>();
+        candidateRoute.forEach(edge -> masterEdgeIdentifiers.add(edge.getMasterEdgeIdentifier()));
+
         connectedEdges.stream().filter(edge -> junctionEdgeIds.contains(edge.getIdentifier()))
-                .filter(edge -> !candidateRoute.includes(edge)).forEach(mergeCandidates::add);
+                .filter(edge -> !candidateRoute.includes(edge))
+                .filter(edge -> !masterEdgeIdentifiers.contains(edge.getMasterEdgeIdentifier()))
+                .forEach(mergeCandidates::add);
         /*
          * There are some cases where we have a couple of junction edges (instead of all four) that
          * are part of big node
@@ -573,6 +612,7 @@ public class BigNodeFinder implements Finder<BigNode>
         if (mergeCandidates.isEmpty())
         {
             connectedEdges.stream().filter(edge -> !junctionEdgeIds.contains(edge.getIdentifier()))
+                    .filter(edge -> !masterEdgeIdentifiers.contains(edge.getMasterEdgeIdentifier()))
                     .filter(edge -> isMergeCandidateEdge(edge, candidateRoute, junctionEdgeIds))
                     .filter(edge -> !candidateRoute.includes(edge)).forEach(mergeCandidates::add);
         }
