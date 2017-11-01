@@ -102,4 +102,10 @@ public class Tuple<A, B> implements Serializable
         return classA.isInstance(this.first) && classB.isInstance(this.second);
     }
 
+    @Override
+    public String toString()
+    {
+        return String.format("(%s,%s)", this.first, this.second);
+    }
+
 }
