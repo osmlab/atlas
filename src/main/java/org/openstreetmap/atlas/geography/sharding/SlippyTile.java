@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.sharding;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -338,6 +339,30 @@ public class SlippyTile implements Shard
     {
         return "[SlippyTile: zoom = " + this.zoom + ", x = " + this.xAxis + ", y = " + this.yAxis
                 + "]";
+    }
+
+    /**
+     * Add the siblings and parent.
+     *
+     * @param candidates
+     *            The candidate tiles
+     * @param visitedTiles
+     *            The tiles already visited
+     * @param targetTile
+     *            The target tile
+     */
+    protected void getNeighborsForAllZoomLevels(final Queue<SlippyTile> candidates,
+            final Set<String> visitedTiles, final SlippyTile targetTile)
+    {
+        final SlippyTile parent = targetTile.parent();
+        for (final SlippyTile child : parent.split())
+        {
+            if (!visitedTiles.contains(child.getName()) && !child.equals(targetTile))
+            {
+                candidates.add(child);
+            }
+        }
+        candidates.add(parent);
     }
 
     /**
