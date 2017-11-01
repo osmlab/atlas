@@ -36,7 +36,7 @@ public class DynamicAtlasPolicy
     {
     };
     private Predicate<AtlasEntity> atlasEntitiesToConsiderForExpansion = entity -> true;
-    private boolean agressivelyExploreRelations = false;
+    private boolean aggressivelyExploreRelations = false;
 
     public DynamicAtlasPolicy(final Function<Shard, Optional<Atlas>> atlasFetcher,
             final Sharding sharding, final MultiPolygon shapeCoveringInitialShards,
@@ -132,9 +132,9 @@ public class DynamicAtlasPolicy
         return this.shardSetChecker;
     }
 
-    public boolean isAgressivelyExploreRelations()
+    public boolean isAggressivelyExploreRelations()
     {
-        return this.agressivelyExploreRelations;
+        return this.aggressivelyExploreRelations;
     }
 
     public boolean isDeferLoading()
@@ -153,14 +153,14 @@ public class DynamicAtlasPolicy
      * list is different. In which case it expands to the neighboring shards that are including
      * those members.
      *
-     * @param agressivelyExploreRelations
-     *            True to agressively explore relations
+     * @param aggressivelyExploreRelations
+     *            True to aggressively explore relations
      * @return The modified policy
      */
-    public DynamicAtlasPolicy withAgressivelyExploreRelations(
-            final boolean agressivelyExploreRelations)
+    public DynamicAtlasPolicy withAggressivelyExploreRelations(
+            final boolean aggressivelyExploreRelations)
     {
-        this.agressivelyExploreRelations = agressivelyExploreRelations;
+        this.aggressivelyExploreRelations = aggressivelyExploreRelations;
         return this;
     }
 

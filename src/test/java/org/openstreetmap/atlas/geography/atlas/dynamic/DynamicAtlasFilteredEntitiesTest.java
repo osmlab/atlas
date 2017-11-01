@@ -75,7 +75,7 @@ public class DynamicAtlasFilteredEntitiesTest
         final DynamicAtlas dynamicAtlas = new DynamicAtlas(this.policySupplier.get()
                 .withAtlasEntitiesToConsiderForExpansion(
                         entity -> "relation".equals(entity.getTag("type").orElse("")))
-                .withAgressivelyExploreRelations(true));
+                .withAggressivelyExploreRelations(true));
         runLoadNoEdgesTest(dynamicAtlas);
     }
 
@@ -84,7 +84,7 @@ public class DynamicAtlasFilteredEntitiesTest
     {
         final DynamicAtlas dynamicAtlas = new DynamicAtlas(this.policySupplier.get()
                 .withAtlasEntitiesToConsiderForExpansion(entity -> entity instanceof Relation)
-                .withAgressivelyExploreRelations(true));
+                .withAggressivelyExploreRelations(true));
         runLoadNoEdgesTest(dynamicAtlas);
     }
 

@@ -49,10 +49,10 @@ public class DynamicAtlasAgressiveRelationsTest
     }
 
     @Test
-    public void testRelationsAgressively()
+    public void testRelationsAggressively()
     {
         final DynamicAtlas dynamicAtlas = new DynamicAtlas(
-                this.policySupplier.get().withAgressivelyExploreRelations(true));
+                this.policySupplier.get().withAggressivelyExploreRelations(true));
 
         // Prompts load of 12-1350-1869
         Assert.assertNotNull(dynamicAtlas.relation(1));

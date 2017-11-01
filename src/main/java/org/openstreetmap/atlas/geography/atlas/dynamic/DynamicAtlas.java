@@ -805,7 +805,7 @@ public class DynamicAtlas extends BareAtlas
                         entity.getClass().getName());
             }
         }
-        if (this.policy.isAgressivelyExploreRelations() && !loop)
+        if (this.policy.isAggressivelyExploreRelations() && !loop)
         {
             // Get all the neighboring shards
             final Set<Shard> onlyNeighboringShards = new HashSet<>();
