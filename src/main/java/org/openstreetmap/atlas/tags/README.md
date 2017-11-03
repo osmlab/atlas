@@ -4,7 +4,7 @@ This package helps with OSM tag parsing and validation.
 
 ## Enum or Interface
 
-Each recognized tag has a java instance named after itself. When the tag values are set in the OSM wiki, and well defined, we use enums (for example, [HighwayTag](HighwayTag.java)). When the values are more loosely defined, like using ranges, we use interfaces and validation annotations (for example, [LaneTag](LaneTag.java)).
+Each recognized tag has a java instance named after itself. When the tag values are set in the OSM wiki, and well defined, we use enums (for example, [HighwayTag](HighwayTag.java)). When the values are more loosely defined, like using ranges, we use interfaces and validation annotations (for example, [LanesTag](LanesTag.java)).
 
 ## Annotations and Validation
 
