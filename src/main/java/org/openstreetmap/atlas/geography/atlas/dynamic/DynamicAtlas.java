@@ -539,7 +539,9 @@ public class DynamicAtlas extends BareAtlas
     private <V extends AtlasEntity> boolean entitiesCovered(final Iterable<V> entities,
             final Predicate<V> entityCoveredPredicate)
     {
-        return Iterables.stream(entities).allMatch(entityCoveredPredicate);
+        return Iterables.stream(entities)
+                .filter(entity -> this.policy.getAtlasEntitiesToConsiderForExpansion().test(entity))
+                .allMatch(entityCoveredPredicate);
     }
 
     /**
@@ -749,6 +751,7 @@ public class DynamicAtlas extends BareAtlas
     {
         final RelationMemberList knownMembers = relation.members();
         boolean result = true;
+        boolean loop = false;
         for (final RelationMember member : knownMembers)
         {
             final AtlasEntity entity = member.getEntity();
@@ -781,6 +784,7 @@ public class DynamicAtlas extends BareAtlas
                     logger.error(
                             "Skipping! Unable to expand on relation which has a loop: {}. Parent tree: {}",
                             relation, parentRelationIdentifierTree);
+                    loop = true;
                     result = true;
                 }
                 else
@@ -799,6 +803,47 @@ public class DynamicAtlas extends BareAtlas
             {
                 throw new CoreException("Unknown Relation Member Type: {}",
                         entity.getClass().getName());
+            }
+        }
+        if (this.policy.isAggressivelyExploreRelations() && !loop)
+        {
+            // Get all the neighboring shards
+            final Set<Shard> onlyNeighboringShards = new HashSet<>();
+            this.loadedShards.keySet().forEach(
+                    shard -> this.sharding.neighbors(shard).forEach(onlyNeighboringShards::add));
+            onlyNeighboringShards.removeAll(this.loadedShards.keySet());
+            // For each of those shards, load the Atlas individually and find the relation and its
+            // members if it is there too.
+            final Set<Shard> neighboringShardsContainingRelation = new HashSet<>();
+            onlyNeighboringShards
+                    .forEach(shard -> this.policy.getAtlasFetcher().apply(shard).ifPresent(atlas ->
+                    {
+                        final Relation newRelation = atlas.relation(relation.getIdentifier());
+                        if (newRelation != null)
+                        {
+                            final RelationMemberList newMembers = newRelation.members();
+                            for (final RelationMember newMember : newMembers)
+                            {
+                                if (!knownMembers.contains(newMember))
+                                {
+                                    neighboringShardsContainingRelation.add(shard);
+                                    if (logger.isDebugEnabled())
+                                    {
+                                        logger.debug("{}: Triggering new shard load for {}{}",
+                                                this.getName(),
+                                                "Atlas " + relation.getType() + " containing ",
+                                                newMember);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }));
+            // Add the neighboring shards as new shards to be loaded.
+            if (!neighboringShardsContainingRelation.isEmpty())
+            {
+                result = false;
+                addNewShards(neighboringShardsContainingRelation);
             }
         }
         return result;
