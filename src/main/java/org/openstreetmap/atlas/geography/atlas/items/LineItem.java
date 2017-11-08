@@ -53,8 +53,8 @@ public abstract class LineItem extends AtlasItem
     }
 
     /**
-     * Check if this {@link LineItem} is closed. Closed is when the first location equals the last
-     * location.
+     * Check if this {@link LineItem} is closed. Closed is defined when the first {@link Location}
+     * is the same as the {@link Location}.
      *
      * @return {@code true} if it's closed.
      */

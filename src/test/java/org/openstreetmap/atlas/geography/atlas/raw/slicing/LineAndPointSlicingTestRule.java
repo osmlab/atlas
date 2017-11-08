@@ -8,7 +8,7 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas.Loc;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Point;
 
 /**
- * {@link LineAndPointSlicingTest} test data.
+ * {@link RawAtlasLineAndPointSlicingTest} test data.
  *
  * @author mgostintsev
  */

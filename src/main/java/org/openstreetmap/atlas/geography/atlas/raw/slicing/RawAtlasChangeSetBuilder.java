@@ -159,7 +159,7 @@ public class RawAtlasChangeSetBuilder
     }
 
     /**
-     * Logsstatistics for given {@link Atlas}.
+     * Logs statistics for given {@link Atlas}.
      *
      * @param atlas
      *            The {@link Atlas} whose statistics to log

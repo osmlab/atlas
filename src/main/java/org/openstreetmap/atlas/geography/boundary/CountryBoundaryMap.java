@@ -51,6 +51,7 @@ import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
+import org.openstreetmap.atlas.utilities.time.Time;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
 import org.openstreetmap.osmosis.core.domain.v0_6.Way;
 import org.slf4j.Logger;
@@ -913,6 +914,7 @@ public class CountryBoundaryMap implements Serializable
         RuntimeCounter.geometryChecked();
         boolean fullyMatched = false;
         boolean isWarned = false;
+        final Time time = Time.now();
 
         if (polygons.size() > MAXIMUM_EXPECTED_COUNTRIES_TO_SLICE_WITH)
         {
@@ -1025,7 +1027,7 @@ public class CountryBoundaryMap implements Serializable
             }
         }
 
-        // logger.info("Took {} to slice way {}", time.untilNow(), identifier);
+        logger.info("Took {} to slice way {}", time.untilNow(), identifier);
         return results;
     }
 

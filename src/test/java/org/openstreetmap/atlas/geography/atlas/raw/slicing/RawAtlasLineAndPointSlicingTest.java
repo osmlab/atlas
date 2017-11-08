@@ -28,7 +28,7 @@ import org.openstreetmap.atlas.tags.annotations.validation.Validators;
  *
  * @author mgostintsev
  */
-public class LineAndPointSlicingTest
+public class RawAtlasLineAndPointSlicingTest
 {
     private static CountryBoundaryMap COUNTRY_BOUNDARY_MAP;
     private static Set<IsoCountry> COUNTRIES;
@@ -48,7 +48,7 @@ public class LineAndPointSlicingTest
     public static void setup()
     {
         COUNTRY_BOUNDARY_MAP = new CountryBoundaryMap(
-                new InputStreamResource(LineAndPointSlicingTest.class
+                new InputStreamResource(RawAtlasLineAndPointSlicingTest.class
                         .getResourceAsStream("CIV_GIN_LBR_osm_boundaries.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
     }
@@ -425,7 +425,8 @@ public class LineAndPointSlicingTest
     public void testSlicingWaysAndPoints()
     {
         // Create our Raw Atlas first
-        final String path = LineAndPointSlicingTest.class.getResource("8-122-122.pbf").getPath();
+        final String path = RawAtlasLineAndPointSlicingTest.class.getResource("8-122-122.pbf")
+                .getPath();
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
         final Atlas rawAtlas = rawAtlasGenerator.build();
 

@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
+import org.openstreetmap.atlas.tags.ISOCountryTag;
+
 import com.vividsolutions.jts.geom.Geometry;
 
 /**
@@ -10,8 +12,6 @@ import com.vividsolutions.jts.geom.Geometry;
  */
 public class CountryCodeProperties
 {
-    public static final String COUNTRY_SEPARATOR = ",";
-
     private final String iso3CountryCode;
     private final boolean usingNearestNeighbor;
 
@@ -35,7 +35,7 @@ public class CountryCodeProperties
      */
     public boolean inMultipleCountries()
     {
-        return this.iso3CountryCode.contains(COUNTRY_SEPARATOR);
+        return this.iso3CountryCode.contains(ISOCountryTag.COUNTRY_DELIMITER);
     }
 
     /**
