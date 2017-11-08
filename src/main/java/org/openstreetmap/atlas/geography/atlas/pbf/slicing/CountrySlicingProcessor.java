@@ -22,8 +22,12 @@ import org.openstreetmap.atlas.geography.atlas.pbf.store.TagMap;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.converters.jts.JtsUtility;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
+import org.openstreetmap.atlas.tags.ManMadeTag;
+import org.openstreetmap.atlas.tags.RouteTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
+import org.openstreetmap.atlas.tags.Taggable;
+import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.osmosis.core.domain.v0_6.CommonEntityData;
@@ -339,6 +343,13 @@ public class CountrySlicingProcessor
         }
 
         return results;
+    }
+
+    private boolean canSkipSlicingIfSingleCountry(final Way way)
+    {
+        return !Validators.isOfType(Taggable.with(way.getTags()), RouteTag.class, RouteTag.FERRY)
+                && !Validators.isOfType(Taggable.with(way.getTags()), ManMadeTag.class,
+                        ManMadeTag.PIER);
     }
 
     private void generatePatchedWays(final Relation relation, final List<RelationMember> outers,
@@ -869,9 +880,10 @@ public class CountrySlicingProcessor
         }
 
         final List<Geometry> slices;
+        final boolean canSkipSlicingIfSingleCountry = canSkipSlicingIfSingleCountry(way);
         try
         {
-            slices = this.boundaryMap.slice(way.getId(), geometry);
+            slices = this.boundaryMap.slice(way.getId(), geometry, canSkipSlicingIfSingleCountry);
         }
         catch (final TopologyException e)
         {
@@ -884,7 +896,8 @@ public class CountrySlicingProcessor
             way.getTags().add(new Tag(ISOCountryTag.KEY, ISOCountryTag.COUNTRY_MISSING));
             return Optional.empty();
         }
-        else if (slices.size() == 1 || CountryBoundaryMap.isSameCountry(slices))
+        else if (slices.size() == 1
+                || CountryBoundaryMap.isSameCountry(slices) && canSkipSlicingIfSingleCountry)
         {
             // If a geometry goes slightly over the border, the tiny slice could be dropped and
             // number of slices is still 1. We should create a new geometry for this case, but

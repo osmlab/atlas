@@ -87,7 +87,7 @@ public class CountryBoundaryMapTest
                         .getResourceAsStream("AIA_MAF_osm_boundaries_with_grid_index.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
 
-        final List<Geometry> firstSlice = mapWithGridIndex.slice(1000000L, geometry);
+        final List<Geometry> firstSlice = mapWithGridIndex.slice(1000000L, geometry, true);
 
         logger.info(firstSlice.toString());
         logger.info("It took {} to slice using serialized pre-built grid index",
@@ -103,7 +103,7 @@ public class CountryBoundaryMapTest
         // Construct the grid index on the fly
         mapFromOsmTextFile.createGridIndex(mapFromOsmTextFile.getLoadedCountries());
 
-        final List<Geometry> secondSlice = mapFromOsmTextFile.slice(1000000L, geometry);
+        final List<Geometry> secondSlice = mapFromOsmTextFile.slice(1000000L, geometry, true);
 
         logger.info(secondSlice.toString());
         logger.info("It took {} to slice using constructed grid index", start2.elapsedSince());
@@ -176,7 +176,7 @@ public class CountryBoundaryMapTest
 
         final Geometry geometry = reader.read(
                 "POLYGON (( -71.7424191 18.7499411097, -71.730485136 18.749848501, -71.730081575 18.749979671, -71.730142154 18.749575218, -71.730486015 18.7498444, -71.7424191 18.7499411097 ))");
-        final List<Geometry> pieces = map.slice(1000000L, geometry);
+        final List<Geometry> pieces = map.slice(1000000L, geometry, true);
         logger.info(pieces.toString());
         Assert.assertEquals(2, pieces.size());
     }

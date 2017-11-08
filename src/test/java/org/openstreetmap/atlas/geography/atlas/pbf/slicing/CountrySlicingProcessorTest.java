@@ -15,6 +15,8 @@ import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
+import org.openstreetmap.atlas.tags.ManMadeTag;
+import org.openstreetmap.atlas.tags.RouteTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
 import org.openstreetmap.osmosis.core.domain.v0_6.CommonEntityData;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
@@ -96,13 +98,27 @@ public class CountrySlicingProcessorTest
     }
 
     @Test
+    public void testDoNotForceSlicingForNonFerryNorPier()
+    {
+        this.store = new PbfMemoryStore(AtlasLoadingOption.createOptionWithNoSlicing());
+
+        // Way starts in CIV and ends in the water
+        addWay("4.658914,-7.069965 4.039977,-6.673084");
+
+        final MultiPolygon bound = boundaryMap.countryBoundary("CIV").get(0).getBoundary();
+        final CountrySlicingProcessor processor = new CountrySlicingProcessor(this.store,
+                boundaryMap, bound, null);
+        processor.run();
+        Assert.assertEquals("should be 1 piece after slicing", 1, this.store.wayCount());
+    }
+
+    @Test
     public void testFilterBasedOnBound()
     {
         this.store = new PbfMemoryStore(AtlasLoadingOption.createOptionWithNoSlicing());
 
         // Way starts in Liberia and ends in Sierra Leone (outside of given boundary)
-        @SuppressWarnings("unused")
-        final Way way = addWay("7.5,-10.8 7.7,-11.8");
+        addWay("7.5,-10.8 7.7,-11.8");
 
         final MultiPolygon bound = boundaryMap.countryBoundary("CIV").get(0).getBoundary();
         CountrySlicingProcessor processor = new CountrySlicingProcessor(this.store, boundaryMap,
@@ -114,6 +130,38 @@ public class CountrySlicingProcessorTest
         processor = new CountrySlicingProcessor(this.store, boundaryMap, bound, countryCodeSet);
         processor.run();
         Assert.assertEquals("should be 1 piece after filtering", 1, this.store.wayCount());
+    }
+
+    @Test
+    public void testForceSlicingForFerries()
+    {
+        this.store = new PbfMemoryStore(AtlasLoadingOption.createOptionWithNoSlicing());
+
+        // Way starts in CIV and ends in the water
+        final Way way = addWay("4.658914,-7.069965 4.039977,-6.673084");
+        way.getTags().add(new Tag(RouteTag.KEY, RouteTag.FERRY.name().toLowerCase()));
+
+        final MultiPolygon bound = boundaryMap.countryBoundary("CIV").get(0).getBoundary();
+        final CountrySlicingProcessor processor = new CountrySlicingProcessor(this.store,
+                boundaryMap, bound, null);
+        processor.run();
+        Assert.assertEquals("should be 2 piece after slicing", 2, this.store.wayCount());
+    }
+
+    @Test
+    public void testForceSlicingForPiers()
+    {
+        this.store = new PbfMemoryStore(AtlasLoadingOption.createOptionWithNoSlicing());
+
+        // Way starts in CIV and ends in the water
+        final Way way = addWay("4.658914,-7.069965 4.039977,-6.673084");
+        way.getTags().add(new Tag(ManMadeTag.KEY, ManMadeTag.PIER.name().toLowerCase()));
+
+        final MultiPolygon bound = boundaryMap.countryBoundary("CIV").get(0).getBoundary();
+        final CountrySlicingProcessor processor = new CountrySlicingProcessor(this.store,
+                boundaryMap, bound, null);
+        processor.run();
+        Assert.assertEquals("should be 2 piece after slicing", 2, this.store.wayCount());
     }
 
     @Test
