@@ -180,7 +180,7 @@ public class OsmPbfProcessor implements Sink
             {
                 logger.info("Running country slicing");
                 new CountrySlicingProcessor(this.store, this.loadingOption.getCountryBoundaryMap(),
-                        this.multiPolygon, this.loadingOption.getCountryCodes()).run();
+                        this.loadingOption.getCountryCodes()).run();
                 this.store.removeOutsideWays();
                 this.store.rebuildNodesAtEndOfEdges();
                 this.store.rebuildNodesInRelations();

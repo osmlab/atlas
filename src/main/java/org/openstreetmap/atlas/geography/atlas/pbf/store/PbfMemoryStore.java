@@ -25,6 +25,7 @@ import org.openstreetmap.atlas.geography.atlas.builder.AtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.converters.TagMapToTagCollectionConverter;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.ChangeSet;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.CountryCodeProperties;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.boundary.converters.CountryListTwoWayStringConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
@@ -35,7 +36,6 @@ import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Counter;
-import org.openstreetmap.atlas.utilities.tuples.Tuple;
 import org.openstreetmap.osmosis.core.container.v0_6.EntityContainer;
 import org.openstreetmap.osmosis.core.container.v0_6.NodeContainer;
 import org.openstreetmap.osmosis.core.container.v0_6.RelationContainer;
@@ -687,19 +687,18 @@ public class PbfMemoryStore implements SinkRunnableSource
             if (this.countryBoundaryMap != null)
             {
                 // Get the country code details
-                final Tuple<String, Boolean> countryDetails = this.countryBoundaryMap
+                final CountryCodeProperties countryProperties = this.countryBoundaryMap
                         .getCountryCodeISO3(JTS_POINT_CONVERTER
                                 .convert(new Location(Latitude.degrees(node.getLatitude()),
                                         Longitude.degrees(node.getLongitude()))),
                                 true);
 
                 // Store the country code
-                tags.put(ISOCountryTag.KEY, countryDetails.getFirst());
+                tags.put(ISOCountryTag.KEY, countryProperties.getIso3CountryCode());
 
                 // If we used nearest neighbor logic to determine the country code, add a tag
                 // to indicate this
-                final boolean usedNearestNeighbor = countryDetails.getSecond();
-                if (usedNearestNeighbor)
+                if (countryProperties.usingNearestNeighbor())
                 {
                     tags.put(SyntheticNearestNeighborCountryCodeTag.KEY,
                             SyntheticNearestNeighborCountryCodeTag.YES.toString());

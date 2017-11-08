@@ -13,7 +13,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.pbf.converters.TagMapToTagCollectionConverter;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.AbstractIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.CountrySlicingIdentifierFactory;
@@ -22,6 +21,7 @@ import org.openstreetmap.atlas.geography.atlas.pbf.store.TagMap;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.converters.jts.JtsUtility;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
+import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
 import org.openstreetmap.atlas.utilities.collections.Maps;
@@ -128,11 +128,6 @@ public class CountrySlicingProcessor
         }
     }
 
-    // Common constants
-    private static final String TAG_TYPE_KEY = "type";
-    private static final String OUTER = "outer";
-    private static final String INNER = "inner";
-
     private static final Logger logger = LoggerFactory.getLogger(CountrySlicingProcessor.class);
     private static final int JTS_MINIMUM_RING_SIZE = 4;
     private static final TagMapToTagCollectionConverter TAG_MAP_TO_TAG_COLLECTION_CONVERTER = new TagMapToTagCollectionConverter();
@@ -213,7 +208,7 @@ public class CountrySlicingProcessor
     public CountrySlicingProcessor(final PbfMemoryStore store,
             final CountryBoundaryMap countryBoundaryMap)
     {
-        this(store, countryBoundaryMap, null, null);
+        this(store, countryBoundaryMap, null);
     }
 
     /**
@@ -221,16 +216,11 @@ public class CountrySlicingProcessor
      *            The {@link PbfMemoryStore} to use.
      * @param countryBoundaryMap
      *            The {@link CountryBoundaryMap} to use.
-     * @param workingArea
-     *            The {@link MultiPolygon} that defines the working area. Any data falling outside
-     *            of this area (doesn't intersect) will be thrown away.
      * @param countryCodeISO3
-     *            In addition to the workingArea, we're restricting processing to this set of
-     *            countries.
+     *            Restrict processing to this set of countries.
      */
     public CountrySlicingProcessor(final PbfMemoryStore store,
-            final CountryBoundaryMap countryBoundaryMap, final MultiPolygon workingArea,
-            final Set<String> countryCodeISO3)
+            final CountryBoundaryMap countryBoundaryMap, final Set<String> countryCodeISO3)
     {
         this.store = store;
         this.countryCodeISO3 = countryCodeISO3;
@@ -485,8 +475,10 @@ public class CountrySlicingProcessor
                 innerIncompleteList.forEach(relationMember ->
                 {
                     relation.getMembers().remove(relationMember);
-                    relation.getMembers().add(new RelationMember(relationMember.getMemberId(),
-                            relationMember.getMemberType(), OUTER));
+                    relation.getMembers()
+                            .add(new RelationMember(relationMember.getMemberId(),
+                                    relationMember.getMemberType(),
+                                    RelationTypeTag.MULTIPOLYGON_ROLE_OUTER));
                 });
             }
             for (final LineString borderLine : borderLines)
@@ -546,7 +538,8 @@ public class CountrySlicingProcessor
                 }
 
                 this.changeSet.addCreatedWay(way);
-                relation.getMembers().add(new RelationMember(way.getId(), way.getType(), OUTER));
+                relation.getMembers().add(new RelationMember(way.getId(), way.getType(),
+                        RelationTypeTag.MULTIPOLYGON_ROLE_OUTER));
                 this.changeSet.addModifiedRelation(relation);
             }
         }
@@ -746,8 +739,8 @@ public class CountrySlicingProcessor
         final Map<String, List<RelationMember>> roleMap = relation.getMembers().stream()
                 .filter(member -> member.getMemberType() == EntityType.Way)
                 .collect(Collectors.groupingBy(RelationMember::getMemberRole));
-        final List<RelationMember> outer = roleMap.get(OUTER);
-        final List<RelationMember> inner = roleMap.get(INNER);
+        final List<RelationMember> outer = roleMap.get(RelationTypeTag.MULTIPOLYGON_ROLE_OUTER);
+        final List<RelationMember> inner = roleMap.get(RelationTypeTag.MULTIPOLYGON_ROLE_INNER);
         final Map<Coordinate, Node> cachedNodes = new HashMap<>();
 
         // Generate new way to patch the wound, if necessary
@@ -788,7 +781,7 @@ public class CountrySlicingProcessor
 
         // Build a tag map - in case of duplicated keys, only pick first one.
         final Map<String, String> tagMap = new TagMap(relation.getTags()).getTags();
-        final String typeValue = tagMap.get(TAG_TYPE_KEY);
+        final String typeValue = tagMap.get(RelationTypeTag.KEY);
         final RelationType type = RelationType.forValue(typeValue);
 
         // Special cases

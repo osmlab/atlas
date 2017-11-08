@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.CountryCodeProperties;
 import org.openstreetmap.atlas.geography.converters.WktPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
@@ -18,7 +19,6 @@ import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.test.TestUtility;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.time.Time;
-import org.openstreetmap.atlas.utilities.tuples.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,7 +126,7 @@ public class CountryBoundaryMapTest
                 .createJtsGeometryFromWKT("LINESTRING ( -179 18.84927, 179 18.84927 )");
 
         // HTI is the closest to the line
-        Assert.assertEquals("HTI", map.getCountryCodeISO3(lineString).getFirst());
+        Assert.assertEquals("HTI", map.getCountryCodeISO3(lineString).getIso3CountryCode());
     }
 
     @Test
@@ -190,17 +190,17 @@ public class CountryBoundaryMapTest
 
         Point point = JTS_POINT_CONVERTER
                 .convert(Location.forString("19.068387997775737, -71.7029007844633"));
-        Tuple<String, Boolean> countryDetails = map.getCountryCodeISO3(point);
-        Assert.assertEquals("DOM", countryDetails.getFirst());
+        CountryCodeProperties countryDetails = map.getCountryCodeISO3(point);
+        Assert.assertEquals("DOM", countryDetails.getIso3CountryCode());
 
         point = JTS_POINT_CONVERTER
                 .convert(Location.forString("19.069172931560374, -71.70712929872246"));
         countryDetails = map.getCountryCodeISO3(point);
-        Assert.assertEquals("HTI", countryDetails.getFirst());
+        Assert.assertEquals("HTI", countryDetails.getIso3CountryCode());
 
         point = JTS_POINT_CONVERTER.convert(Location.forString("19.0681781, -71.7075623"));
         countryDetails = map.getCountryCodeISO3(point, false);
-        Assert.assertEquals("HTI,DOM", countryDetails.getFirst());
+        Assert.assertEquals("HTI,DOM", countryDetails.getIso3CountryCode());
     }
 
     @Test
