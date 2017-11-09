@@ -902,7 +902,7 @@ public class CountryBoundaryMap implements Serializable
         List<Polygon> polygons = query(target.getEnvelopeInternal());
 
         // Performance improvement, if only one polygon returned no need to do any further
-        // evaluation.
+        // evaluation, except if slicing is mandatory.
         if (isSameCountry(polygons) && canSkipIfSingleCountry)
         {
             final String countryCode = getGeometryProperty(polygons.get(0), ISOCountryTag.KEY);
@@ -983,7 +983,8 @@ public class CountryBoundaryMap implements Serializable
             }
         }
 
-        // Performance: short circuit, if all intersected polygons in same country, skip cutting
+        // Performance: short circuit, if all intersected polygons in same country, skip cutting,
+        // except if slicing is mandatory.
         if (isSameCountry(intersected) && canSkipIfSingleCountry)
         {
             final String countryCode = getGeometryProperty(intersected.get(0), ISOCountryTag.KEY);

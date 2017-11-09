@@ -345,6 +345,14 @@ public class CountrySlicingProcessor
         return results;
     }
 
+    /**
+     * In case of Ferries and Piers that can extend out in the water and connect to other countries,
+     * here is the option to force country slicing, even if there is no immediate country nearby.
+     *
+     * @param way
+     *            The way to test for
+     * @return True if eligible for mandatory slicing.
+     */
     private boolean canSkipSlicingIfSingleCountry(final Way way)
     {
         return !Validators.isOfType(Taggable.with(way.getTags()), RouteTag.class, RouteTag.FERRY)
