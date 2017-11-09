@@ -879,6 +879,9 @@ public class CountryBoundaryMap implements Serializable
      *            id of object being sliced.
      * @param geometry
      *            The object to be sliced.
+     * @param canSkipIfSingleCountry
+     *            When set to true, this flag tells the function that if a feature is only touching
+     *            a single country boundary, then slicing can be skipped.
      * @return a list of geometry objects. If target doesn't cross any border then it contains only
      *         one item with country code assigned. If target cross border then slice it by the
      *         border line and assign country code for each piece. If a feature is not contained by
@@ -886,8 +889,8 @@ public class CountryBoundaryMap implements Serializable
      * @throws TopologyException
      *             When the slicing could not be made.
      */
-    public List<Geometry> slice(final long identifier, final Geometry geometry)
-            throws TopologyException
+    public List<Geometry> slice(final long identifier, final Geometry geometry,
+            final boolean canSkipIfSingleCountry) throws TopologyException
     {
         if (Objects.isNull(geometry))
         {
@@ -899,8 +902,8 @@ public class CountryBoundaryMap implements Serializable
         List<Polygon> polygons = query(target.getEnvelopeInternal());
 
         // Performance improvement, if only one polygon returned no need to do any further
-        // evaluation.
-        if (isSameCountry(polygons))
+        // evaluation, except if slicing is mandatory.
+        if (isSameCountry(polygons) && canSkipIfSingleCountry)
         {
             final String countryCode = getGeometryProperty(polygons.get(0), ISOCountryTag.KEY);
             setGeometryProperty(target, ISOCountryTag.KEY, countryCode);
@@ -980,8 +983,9 @@ public class CountryBoundaryMap implements Serializable
             }
         }
 
-        // Performance: short circuit, if all intersected polygons in same country, skip cutting
-        if (isSameCountry(intersected))
+        // Performance: short circuit, if all intersected polygons in same country, skip cutting,
+        // except if slicing is mandatory.
+        if (isSameCountry(intersected) && canSkipIfSingleCountry)
         {
             final String countryCode = getGeometryProperty(intersected.get(0), ISOCountryTag.KEY);
             setGeometryProperty(target, ISOCountryTag.KEY, countryCode);
