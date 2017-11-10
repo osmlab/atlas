@@ -104,6 +104,10 @@ public class Snapper
             {
                 target = (PolyLine) shape;
             }
+            else if (shape instanceof Polygon)
+            {
+                target = (Polygon) shape;
+            }
             else
             {
                 target = new PolyLine(shape);
@@ -127,5 +131,27 @@ public class Snapper
             return new SnappedLocation(origin, target, new PolyLine(target));
         }
         return null;
+    }
+
+    public SnappedLocation snap(final Location origin, final MultiPolygon shape)
+    {
+        SnappedLocation best = null;
+        for (final Polygon outer : shape.outers())
+        {
+            final SnappedLocation candidate = snap(origin, outer);
+            if (best == null || candidate.getDistance().isLessThan(best.getDistance()))
+            {
+                best = candidate;
+            }
+        }
+        for (final Polygon inner : shape.inners())
+        {
+            final SnappedLocation candidate = snap(origin, inner);
+            if (best == null || candidate.getDistance().isLessThan(best.getDistance()))
+            {
+                best = candidate;
+            }
+        }
+        return best;
     }
 }

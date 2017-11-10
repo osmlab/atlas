@@ -519,6 +519,18 @@ public class Location implements Located, Iterable<Location>, Serializable
     }
 
     /**
+     * Snap this {@link Location} to a {@link MultiPolygon} using a {@link Snapper}
+     *
+     * @param shape
+     *            The shape to snap to
+     * @return The corresponding {@link SnappedLocation}
+     */
+    public SnappedLocation snapTo(final MultiPolygon shape)
+    {
+        return new Snapper().snap(this, shape);
+    }
+
+    /**
      * Snap this {@link Location} to a {@link PolyLine} using a {@link Snapper}
      *
      * @param shape
