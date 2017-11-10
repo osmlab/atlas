@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography;
 
+import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 
 import com.google.common.collect.Iterables;
@@ -136,17 +137,9 @@ public class Snapper
     public SnappedLocation snap(final Location origin, final MultiPolygon shape)
     {
         SnappedLocation best = null;
-        for (final Polygon outer : shape.outers())
+        for (final Polygon member : new MultiIterable<>(shape.outers(), shape.inners()))
         {
-            final SnappedLocation candidate = snap(origin, outer);
-            if (best == null || candidate.getDistance().isLessThan(best.getDistance()))
-            {
-                best = candidate;
-            }
-        }
-        for (final Polygon inner : shape.inners())
-        {
-            final SnappedLocation candidate = snap(origin, inner);
+            final SnappedLocation candidate = snap(origin, member);
             if (best == null || candidate.getDistance().isLessThan(best.getDistance()))
             {
                 best = candidate;
