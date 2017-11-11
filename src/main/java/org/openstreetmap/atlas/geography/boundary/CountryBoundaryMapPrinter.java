@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolygon;
@@ -23,16 +24,24 @@ import org.openstreetmap.atlas.utilities.runtime.CommandMap;
  */
 public class CountryBoundaryMapPrinter extends Command
 {
+    private static final StringConverter<Optional<File>> OUTPUT_GETTER = value ->
+    {
+        if (!value.isEmpty())
+        {
+            return Optional.of(new File(value));
+        }
+        return Optional.empty();
+    };
+
     public static final Switch<String> COUNTRIES = new Switch<>("countries",
             "The countries to extract as geojson (csv list)", StringConverter.IDENTITY,
             Optionality.REQUIRED);
-    public static final Switch<File> OUTPUT = new Switch<>("output", "The output folder",
-            value -> new File(value), Optionality.REQUIRED);
     public static final Switch<File> INPUT = new Switch<>("input", "The input boundaries file",
-            value -> new File(value), Optionality.REQUIRED);
-    public static final Switch<Boolean> OUTPUT_WKT = new Switch<>("wkt",
-            "The optional switch to output in wkt format", value -> Boolean.valueOf(value),
-            Optionality.OPTIONAL);
+            File::new, Optionality.REQUIRED);
+    public static final Switch<Optional<File>> OUTPUT_GEOJSON = new Switch<>("geojson",
+            "The output folder", OUTPUT_GETTER, Optionality.OPTIONAL, "");
+    public static final Switch<Optional<File>> OUTPUT_WKT = new Switch<>("wkt",
+            "The output folder for WKT", OUTPUT_GETTER, Optionality.OPTIONAL, "");
 
     private static final JtsMultiPolygonToMultiPolygonConverter JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
 
@@ -41,13 +50,19 @@ public class CountryBoundaryMapPrinter extends Command
         new CountryBoundaryMapPrinter().run(args);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected int onRun(final CommandMap command)
     {
         final File input = (File) command.get(INPUT);
-        final File output = (File) command.get(OUTPUT);
-        output.mkdirs();
-        final boolean outputWKT = (Boolean) command.get(OUTPUT_WKT);
+        final Optional<File> geojson = (Optional<File>) command.get(OUTPUT_GEOJSON);
+        geojson.ifPresent(File::mkdirs);
+        final Optional<File> wkt = (Optional<File>) command.get(OUTPUT_WKT);
+        wkt.ifPresent(File::mkdirs);
+        if (!geojson.isPresent() && !wkt.isPresent())
+        {
+            return 0;
+        }
         final String countries = (String) command.get(COUNTRIES);
         StringList countryList = new StringList();
         final CountryBoundaryMap map = new CountryBoundaryMap(input);
@@ -64,21 +79,22 @@ public class CountryBoundaryMapPrinter extends Command
             final List<CountryBoundary> boundaries = map.countryBoundary(country);
             for (int i = 0; i < boundaries.size(); i++)
             {
-                final MultiPolygon multiPolygon = boundaries.get(i).getBoundary();
-                if (outputWKT)
+                String name = country;
+                if (i > 0)
                 {
-                    save(output.child(country + FileSuffix.WKT),
+                    name += "_" + i;
+                }
+                final MultiPolygon multiPolygon = boundaries.get(i).getBoundary();
+                if (wkt.isPresent())
+                {
+                    save(wkt.get().child(country + FileSuffix.WKT),
                             JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER
                                     .backwardConvert(multiPolygon).toText());
                 }
-                else
+                if (geojson.isPresent())
                 {
-                    String name = country;
-                    if (i > 0)
-                    {
-                        name += "_" + i;
-                    }
-                    final File countryFile = output.child(name + "_boundary" + FileSuffix.GEO_JSON);
+                    final File countryFile = geojson.get()
+                            .child(name + "_boundary" + FileSuffix.GEO_JSON);
                     multiPolygon.asGeoJson().save(countryFile);
                 }
             }
@@ -89,7 +105,7 @@ public class CountryBoundaryMapPrinter extends Command
     @Override
     protected SwitchList switches()
     {
-        return new SwitchList().with(INPUT, OUTPUT, COUNTRIES, OUTPUT_WKT);
+        return new SwitchList().with(INPUT, OUTPUT_GEOJSON, COUNTRIES, OUTPUT_WKT);
     }
 
     private void save(final WritableResource output, final String string)

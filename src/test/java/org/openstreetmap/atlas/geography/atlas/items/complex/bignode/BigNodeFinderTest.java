@@ -73,7 +73,7 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
                 .asList(new BigNodeFinder().find(this.setup.getAtlas()));
         bigNodes.forEach(complexEntity -> logger.info("{}", complexEntity.toString()));
         logger.info("Total Number of big Nodes :{}", bigNodes.size());
-        Assert.assertEquals("Total Number of big Nodes (Simple + Dual Carrriage Way)", 54,
+        Assert.assertEquals("Total Number of big Nodes (Simple + Dual Carrriage Way)", 58,
                 bigNodes.size());
         final Set<BigNode> dualCarriageWayBigNodes = bigNodes.stream()
                 .filter(bigNode -> bigNode.getType().equals(Type.DUAL_CARRIAGEWAY))
@@ -95,7 +95,7 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
                 .forEach(nodeId -> Assert.assertTrue(dualCarriageWayNodes.contains(nodeId)));
 
         // Node Identifiers where bigNodes shouldn't be added
-        final Long[] expectedSimpleNodeIdentifiers = { 62L, 63L };
+        final Long[] expectedSimpleNodeIdentifiers = { 62L, 63L, 88L, 89L };
         final Set<Long> expectedSimpleNodeIdentifiersSet = new HashSet<>(
                 Arrays.asList(expectedSimpleNodeIdentifiers));
         dualCarriageWayBigNodes.forEach(bigNode -> bigNode.nodes().forEach(node -> Assert
@@ -109,6 +109,27 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
                 .assertFalse(expectedPierNodeIdentifiersSet.contains(node.getIdentifier()))));
         simpleNodes.forEach(bigNode -> bigNode.nodes().forEach(node -> Assert
                 .assertFalse(expectedPierNodeIdentifiersSet.contains(node.getIdentifier()))));
+    }
+
+    @Test
+    public void testBigNodeExpansion()
+    {
+        final Atlas atlas = this.setup.getExpandBigNodeAtlas();
+        final List<BigNode> bigNodes = Iterables.asList(new BigNodeFinder().find(atlas));
+        bigNodes.forEach(complexEntity -> logger.info("{}", complexEntity.toString()));
+        logger.info("Total Number of big Nodes :{}", bigNodes.size());
+        final Set<BigNode> dualCarriageWayBigNodes = bigNodes.stream()
+                .filter(bigNode -> bigNode.getType().equals(Type.DUAL_CARRIAGEWAY))
+                .collect(Collectors.toSet());
+        Assert.assertEquals("Number of Dual Carrriage Way Big Nodes", 1,
+                dualCarriageWayBigNodes.size());
+        final Long[] expectedDualCarriageWayNodeIdentifiers = { 97800560000000L, 268842854000000L,
+                97800351000000L, 268842855000000L };
+        final Set<Long> dualCarriageWayNodes = dualCarriageWayBigNodes.stream()
+                .flatMap(bigNode -> bigNode.nodes().stream()).map(node -> node.getIdentifier())
+                .collect(Collectors.toSet());
+        Arrays.stream(expectedDualCarriageWayNodeIdentifiers)
+                .forEach(nodeId -> Assert.assertTrue(dualCarriageWayNodes.contains(nodeId)));
     }
 
     @Test

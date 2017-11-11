@@ -19,7 +19,7 @@ public class AtlasPrimitiveRouteIdentifier
 {
     private static final long serialVersionUID = 2321636844479248974L;
 
-    private final List<AtlasPrimitiveEdgeIdentifier> primitiveRouteIdentifier;
+    private List<AtlasPrimitiveEdgeIdentifier> primitiveRouteIdentifier;
 
     public static AtlasPrimitiveRouteIdentifier from(final AtlasPrimitiveRoute atlasPrimitiveRoute)
     {
@@ -27,6 +27,10 @@ public class AtlasPrimitiveRouteIdentifier
         atlasPrimitiveRoute.forEach(
                 edge -> atlasPrimitiveEdgeIds.add(AtlasPrimitiveEdgeIdentifier.from(edge)));
         return new AtlasPrimitiveRouteIdentifier(atlasPrimitiveEdgeIds);
+    }
+
+    public AtlasPrimitiveRouteIdentifier()
+    {
     }
 
     public AtlasPrimitiveRouteIdentifier(final AtlasPrimitiveEdgeIdentifier... primitiveEdgeIds)
@@ -148,6 +152,12 @@ public class AtlasPrimitiveRouteIdentifier
                     ? subRouteIdentifierIterator.next() : null;
         }
         return overlapCount;
+    }
+
+    public void setPrimitiveRouteIdentifier(
+            final List<AtlasPrimitiveEdgeIdentifier> primitiveRouteIdentifier)
+    {
+        this.primitiveRouteIdentifier = primitiveRouteIdentifier;
     }
 
     public int size()

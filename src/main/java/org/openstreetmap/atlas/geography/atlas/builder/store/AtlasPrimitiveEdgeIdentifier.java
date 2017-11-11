@@ -9,11 +9,15 @@ public class AtlasPrimitiveEdgeIdentifier implements Serializable
 {
     private static final long serialVersionUID = 6082277761179021192L;
 
-    private final long identifier;
+    private long identifier;
 
     public static AtlasPrimitiveEdgeIdentifier from(final AtlasPrimitiveEdge atlasPrimitiveEdge)
     {
         return new AtlasPrimitiveEdgeIdentifier(atlasPrimitiveEdge.getIdentifier());
+    }
+
+    public AtlasPrimitiveEdgeIdentifier()
+    {
     }
 
     public AtlasPrimitiveEdgeIdentifier(final long identifier)
@@ -37,6 +41,11 @@ public class AtlasPrimitiveEdgeIdentifier implements Serializable
     public int hashCode()
     {
         return Long.hashCode(this.identifier);
+    }
+
+    public void setIdentifier(final long identifier)
+    {
+        this.identifier = identifier;
     }
 
     @Override

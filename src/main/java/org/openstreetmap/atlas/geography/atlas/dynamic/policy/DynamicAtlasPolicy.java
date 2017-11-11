@@ -6,10 +6,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.dynamic.DynamicAtlas;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
@@ -32,6 +35,8 @@ public class DynamicAtlasPolicy
     private Consumer<Set<Shard>> shardSetChecker = set ->
     {
     };
+    private Predicate<AtlasEntity> atlasEntitiesToConsiderForExpansion = entity -> true;
+    private boolean aggressivelyExploreRelations = false;
 
     public DynamicAtlasPolicy(final Function<Shard, Optional<Atlas>> atlasFetcher,
             final Sharding sharding, final MultiPolygon shapeCoveringInitialShards,
@@ -72,6 +77,11 @@ public class DynamicAtlasPolicy
         this.atlasFetcher = atlasFetcher;
         this.maximumBounds = maximumBounds;
         this.sharding = sharding;
+    }
+
+    public Predicate<AtlasEntity> getAtlasEntitiesToConsiderForExpansion()
+    {
+        return this.atlasEntitiesToConsiderForExpansion;
     }
 
     public Function<Shard, Optional<Atlas>> getAtlasFetcher()
@@ -122,6 +132,11 @@ public class DynamicAtlasPolicy
         return this.shardSetChecker;
     }
 
+    public boolean isAggressivelyExploreRelations()
+    {
+        return this.aggressivelyExploreRelations;
+    }
+
     public boolean isDeferLoading()
     {
         return this.deferLoading;
@@ -130,6 +145,36 @@ public class DynamicAtlasPolicy
     public boolean isExtendIndefinitely()
     {
         return this.extendIndefinitely;
+    }
+
+    /**
+     * This switch tells the {@link DynamicAtlas} to preemptively and temporarily load the
+     * neighboring shards to see if they contain the relation in the current shard and if the member
+     * list is different. In which case it expands to the neighboring shards that are including
+     * those members.
+     *
+     * @param aggressivelyExploreRelations
+     *            True to aggressively explore relations
+     * @return The modified policy
+     */
+    public DynamicAtlasPolicy withAggressivelyExploreRelations(
+            final boolean aggressivelyExploreRelations)
+    {
+        this.aggressivelyExploreRelations = aggressivelyExploreRelations;
+        return this;
+    }
+
+    /**
+     * @param atlasEntitiesToConsiderForExpansion
+     *            A predicate that defines what entities will be considered when deciding to expand
+     *            or not to a neighboring shard.
+     * @return The modified policy
+     */
+    public DynamicAtlasPolicy withAtlasEntitiesToConsiderForExpansion(
+            final Predicate<AtlasEntity> atlasEntitiesToConsiderForExpansion)
+    {
+        this.atlasEntitiesToConsiderForExpansion = atlasEntitiesToConsiderForExpansion;
+        return this;
     }
 
     /**
@@ -152,7 +197,7 @@ public class DynamicAtlasPolicy
      * boundaries.
      *
      * @param extendIndefinitely
-     *            True to extend indefinitely
+     *            True to extend indefinitely.
      * @return The modified policy
      */
     public DynamicAtlasPolicy withExtendIndefinitely(final boolean extendIndefinitely)

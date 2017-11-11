@@ -41,7 +41,7 @@ public class EdgeDirectionComparatorTestCaseRule extends CoreTestRule
     private static final String NINETEEN = "18.4220149,-70.7864727";
     private static final String TWENTY = "18.4220965,-70.7869184";
     private static final String TWENTYONE = "18.4221578,-70.7872535";
-    private static final String TWENTYTWO = "18.4223837,-70.7878361";
+    private static final String TWENTYTWO = "18.42245,-70.78779";
 
     @TestAtlas(
 
