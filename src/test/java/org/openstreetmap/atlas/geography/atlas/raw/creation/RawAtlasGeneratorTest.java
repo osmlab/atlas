@@ -141,7 +141,7 @@ public class RawAtlasGeneratorTest
         Assert.assertEquals(0, atlas.numberOfAreas());
 
         // Only Points, Lines and Relations
-        Assert.assertEquals(457594, atlas.numberOfPoints());
+        Assert.assertEquals(457884, atlas.numberOfPoints());
         Assert.assertEquals(45839, atlas.numberOfLines());
         Assert.assertEquals(347, atlas.numberOfRelations());
     }
@@ -159,7 +159,7 @@ public class RawAtlasGeneratorTest
         Assert.assertEquals(0, atlas.numberOfAreas());
 
         // Only Points, Lines and Relations
-        Assert.assertEquals(52085, atlas.numberOfPoints());
+        Assert.assertEquals(52203, atlas.numberOfPoints());
         Assert.assertEquals(6080, atlas.numberOfLines());
         Assert.assertEquals(3, atlas.numberOfRelations());
     }

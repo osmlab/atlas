@@ -48,7 +48,7 @@ public class RawAtlasLineAndPointSlicingTest
     public static void setup()
     {
         COUNTRY_BOUNDARY_MAP = new CountryBoundaryMap(
-                new InputStreamResource(RawAtlasLineAndPointSlicingTest.class
+                new InputStreamResource(() -> RawAtlasLineAndPointSlicingTest.class
                         .getResourceAsStream("CIV_GIN_LBR_osm_boundaries.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
     }

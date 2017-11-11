@@ -42,16 +42,6 @@ public class RawAtlasChangeSet
         this.deletedToCreatedLineMapping = new HashMap<>();
     }
 
-    public void clear()
-    {
-        this.createdLines.clear();
-        this.updatedPointTags.clear();
-        this.createdLines.clear();
-        this.updatedLineTags.clear();
-        this.deletedLines.clear();
-        this.deletedToCreatedLineMapping.clear();
-    }
-
     public void createDeletedToCreatedMapping(final long deletedIdentifier,
             final List<Long> createdIdentifiers)
     {

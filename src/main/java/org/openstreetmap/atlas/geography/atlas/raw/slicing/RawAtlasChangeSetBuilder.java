@@ -123,6 +123,9 @@ public class RawAtlasChangeSetBuilder
                 }
                 else
                 {
+                    // All lines should have at least a country code tag addition after
+                    // country-slicing takes place. If it doesn't, let's add it to the Atlas to
+                    // maintain integrity, but raise an issue in the logs
                     logger.error(
                             "Line {} doesn't have any tag modifications. Adding for Atlas integrity.",
                             lineIdentifier);
@@ -150,6 +153,9 @@ public class RawAtlasChangeSetBuilder
             }
             else
             {
+                // All points should have at least a country code tag addition after
+                // country-slicing takes place. If it doesn't, let's add it to the Atlas to
+                // maintain integrity, but raise an issue in the logs
                 logger.error(
                         "Point {} doesn't have any tag modifications. Adding for Atlas integrity.",
                         pointIdentifier);
@@ -247,7 +253,7 @@ public class RawAtlasChangeSetBuilder
                         }
                         else
                         {
-                            logger.error(
+                            throw new CoreException(
                                     "Corrupt Data! Trying to replace deleted Line member {} with created Line member {} "
                                             + "for Relation {} , but new Line doesn't exist in Atlas.",
                                     memberIdentifier, addedLineIdentifier,

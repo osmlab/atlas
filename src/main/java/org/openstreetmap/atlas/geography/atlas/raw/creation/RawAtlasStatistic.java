@@ -32,7 +32,7 @@ public class RawAtlasStatistic
     private final CounterWithStatistic filteredRelations;
 
     // Dropped entities
-    private final CounterWithStatistic droppedLines;
+    private final CounterWithStatistic droppedWays;
     private final CounterWithStatistic droppedRelations;
 
     public RawAtlasStatistic(final Logger logger)
@@ -55,8 +55,8 @@ public class RawAtlasStatistic
                 "Filtered Relation");
         this.filteredRelations.logUsingLevel(log);
 
-        this.droppedLines = new CounterWithStatistic(this.logger, LOG_FREQUENCY, "Dropped Line");
-        this.droppedLines.logUsingLevel(log);
+        this.droppedWays = new CounterWithStatistic(this.logger, LOG_FREQUENCY, "Dropped Way");
+        this.droppedWays.logUsingLevel(log);
         this.droppedRelations = new CounterWithStatistic(this.logger, LOG_FREQUENCY,
                 "Dropped Relation");
         this.droppedRelations.logUsingLevel(log);
@@ -77,9 +77,9 @@ public class RawAtlasStatistic
         this.relations.increment();
     }
 
-    public void recordDroppedLine()
+    public void recordDroppedWay()
     {
-        this.droppedLines.increment();
+        this.droppedWays.increment();
     }
 
     public void recordDroppedRelation()
@@ -111,7 +111,7 @@ public class RawAtlasStatistic
         this.filteredNodes.summaryWithoutTimer();
         this.filteredWays.summaryWithoutTimer();
         this.filteredRelations.summaryWithoutTimer();
-        this.droppedLines.summaryWithoutTimer();
+        this.droppedWays.summaryWithoutTimer();
         this.droppedRelations.summaryWithoutTimer();
     }
 }

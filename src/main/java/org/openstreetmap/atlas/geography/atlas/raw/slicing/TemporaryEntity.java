@@ -11,7 +11,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  *
  * @author mgostintsev
  */
-public class TemporaryEntity implements Serializable
+public abstract class TemporaryEntity implements Serializable
 {
     private static final long serialVersionUID = -7784252999177116142L;
 
@@ -27,11 +27,7 @@ public class TemporaryEntity implements Serializable
     @Override
     public boolean equals(final Object other)
     {
-        if (this == other)
-        {
-            return true;
-        }
-        if (other != null && this.getClass() == other.getClass())
+        if (other instanceof TemporaryEntity)
         {
             final TemporaryEntity that = (TemporaryEntity) other;
             return this.getIdentifier() == that.getIdentifier();
@@ -54,6 +50,9 @@ public class TemporaryEntity implements Serializable
     {
         return new HashCodeBuilder().append(getIdentifier()).append(getClass()).hashCode();
     }
+
+    @Override
+    public abstract String toString();
 
     protected String tagString()
     {

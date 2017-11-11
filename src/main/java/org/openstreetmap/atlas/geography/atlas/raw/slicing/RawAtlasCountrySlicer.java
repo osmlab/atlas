@@ -9,9 +9,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.openstreetmap.atlas.geography.Latitude;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.Longitude;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
@@ -25,7 +24,9 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
+import org.openstreetmap.atlas.tags.ManMadeTag;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
+import org.openstreetmap.atlas.tags.RouteTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
@@ -61,7 +62,7 @@ public class RawAtlasCountrySlicer
     // Contains boundary MultiPolygons
     private final CountryBoundaryMap countryBoundaryMap;
 
-    private final RawAtlasChangeSet afterSlicingLinesAndPoints = new RawAtlasChangeSet();
+    private RawAtlasChangeSet afterSlicingLinesAndPoints = new RawAtlasChangeSet();
     private final RawAtlasChangeSet afterSlicingRelations = new RawAtlasChangeSet();
 
     // Mapping between Coordinate and created Temporary Point identifiers. This is to avoid
@@ -99,7 +100,7 @@ public class RawAtlasCountrySlicer
         this.rawAtlas = withSlicedWaysAndPoints;
 
         // Clear for GC
-        this.afterSlicingLinesAndPoints.clear();
+        this.afterSlicingLinesAndPoints = null;
 
         // Slice all Relations and rebuild the Atlas
         sliceRelations();
@@ -109,6 +110,20 @@ public class RawAtlasCountrySlicer
         logger.info("Finished country slicing Atlas {}", this.rawAtlas.getName());
 
         return this.rawAtlas;
+    }
+
+    /**
+     * In case of Ferries and Piers that can extend out in the water and connect to other countries,
+     * here is the option to force country slicing, even if there is no immediate country nearby.
+     *
+     * @param way
+     *            The way to test for
+     * @return {@code true} if eligible for mandatory slicing.
+     */
+    private boolean canSkipSlicingIfSingleCountry(final Line line)
+    {
+        return !Validators.isOfType(line, RouteTag.class, RouteTag.FERRY)
+                && !Validators.isOfType(line, ManMadeTag.class, ManMadeTag.PIER);
     }
 
     /**
@@ -140,7 +155,7 @@ public class RawAtlasCountrySlicer
         }
         catch (final TopologyException e)
         {
-            logger.error("Topology Exception when slicing {}", line.getIdentifier(), e);
+            logger.error("Topology Exception when slicing Line {}", line.getIdentifier(), e);
             return Collections.emptyList();
         }
     }
@@ -180,33 +195,42 @@ public class RawAtlasCountrySlicer
      *            The {@link CountrySlicingIdentifierFactory} to calculate new point identifier
      * @param pointTags
      *            The tags for this new point
-     * @return an {@link Optional} containing the {@link TemporaryPoint}
+     * @return the {@link TemporaryPoint}
      */
-    private Optional<TemporaryPoint> createNewPoint(final Coordinate coordinate,
+    private TemporaryPoint createNewPoint(final Coordinate coordinate,
             final CountrySlicingIdentifierFactory pointIdentifierFactory,
             final Map<String, String> pointTags)
     {
         if (!pointIdentifierFactory.hasMore())
         {
-            logger.error(
-                    "Country Slicing exceeded maximum number of supported new points at Coordinate {}",
+            throw new CoreException(
+                    "Country Slicing exceeded maximum number {} of supported new points at Coordinate {}",
                     AbstractIdentifierFactory.IDENTIFIER_SCALE, coordinate);
-            return Optional.empty();
         }
         else
         {
             // Add the synthetic boundary node tags
             pointTags.put(SyntheticBoundaryNodeTag.KEY, SyntheticBoundaryNodeTag.YES.toString());
 
-            return Optional.of(new TemporaryPoint(pointIdentifierFactory.nextIdentifier(),
-                    new Location(Latitude.degrees(coordinate.y), Longitude.degrees(coordinate.x)),
-                    pointTags));
+            return new TemporaryPoint(pointIdentifierFactory.nextIdentifier(),
+                    JTS_LOCATION_CONVERTER.backwardConvert(coordinate), pointTags);
         }
     }
 
     /**
      * Assigns {@link ISOCountryTag}, {@link SyntheticNearestNeighborCountryCodeTag} and
-     * {@link SyntheticBoundaryNodeTag} values for a given {@link Location}.
+     * {@link SyntheticBoundaryNodeTag} values for a given {@link Location}. The logic behind
+     * {@link SyntheticBoundaryNodeTag} assignment is if we're creating a new {@link Point}, it's
+     * only going to happen at the boundary, since that's where slicing happens. We have two ways of
+     * retrieving Points - 1. from the original un-sliced Raw Atlas 2. from the newPointCoordinates
+     * map which maps a {@link Coordinate} to a {@link TemporaryPoint} identifier. We first check to
+     * see if there is already a {@link TemporaryPoint} for this {@link Coordinate} in the map (to
+     * avoid creating duplicate points). If there's not, we check the raw Atlas to see if there is
+     * already a {@link Point} at this {@link Location}. If the atlas has a {@link Point} there, we
+     * know to assign the {@link SyntheticBoundaryNodeTag#EXISTING} value, as this {@link Point} is
+     * already part of the raw OSM data. If the raw Atlas doesn't contain a {@link Point} at this
+     * {@link Location}, then we create a new {@link TemporaryPoint} and assign the
+     * {@link SyntheticBoundaryNodeTag#YES} value.
      *
      * @param location
      *            The {@link Location} for which to assign country code tags
@@ -264,6 +288,22 @@ public class RawAtlasCountrySlicer
     }
 
     /**
+     * Checks if there is a single slice or if all of the slices are in the same country AND the
+     * line being sliced isn't a feature that extends into the water, such as a Ferry or Pier.
+     *
+     * @param line
+     *            The {@link Line} that was sliced
+     * @param slices
+     *            The resulting sliced pieces
+     * @return {@code true} if the slices for this line are all part of the same country
+     */
+    private boolean lineBelongsToSingleCountry(final Line line, final List<Geometry> slices)
+    {
+        return slices.size() == 1
+                || CountryBoundaryMap.isSameCountry(slices) && canSkipSlicingIfSingleCountry(line);
+    }
+
+    /**
      * Processes each slice by updating corresponding tags ({@link ISOCountryTag},
      * {@link SyntheticNearestNeighborCountryCodeTag}, {@link SyntheticBoundaryNodeTag} and creating
      * {@link RawAtlasChangeSet}s to keep track of created, updated and deleted {@link Point}s and
@@ -284,7 +324,7 @@ public class RawAtlasCountrySlicer
             this.afterSlicingLinesAndPoints.updateLineTags(line.getIdentifier(), tags);
             updateLineShapePoints(line);
         }
-        else if (slices.size() == 1 || CountryBoundaryMap.isSameCountry(slices))
+        else if (lineBelongsToSingleCountry(line, slices))
         {
             // This line belongs to a single country
             this.afterSlicingLinesAndPoints.updateLineTags(line.getIdentifier(),
@@ -293,9 +333,6 @@ public class RawAtlasCountrySlicer
         }
         else if (slices.size() < AbstractIdentifierFactory.IDENTIFIER_SCALE)
         {
-            // Most complex case - we have multiple slices
-            this.statistics.recordSlicedLine();
-
             // Used to generate identifiers for new points and lines
             final CountrySlicingIdentifierFactory lineIdentifierFactory = new CountrySlicingIdentifierFactory(
                     line.getIdentifier());
@@ -304,46 +341,45 @@ public class RawAtlasCountrySlicer
 
             final List<TemporaryLine> createdLines = new ArrayList<>();
 
-            for (final Geometry slice : slices)
+            try
             {
-                // Check if the slice is within the working bound
-                if (isOutsideWorkingBound(slice))
+                for (final Geometry slice : slices)
                 {
-                    continue;
-                }
-
-                // Keep track of identifiers that form the geometry of the new line
-                final List<Long> newLineShapePoints = new ArrayList<>(slice.getNumPoints());
-
-                final Coordinate[] jtsSliceCoordinates = slice.getCoordinates();
-                for (final Coordinate coordinate : jtsSliceCoordinates)
-                {
-                    if (this.newPointCoordinates.containsKey(coordinate))
+                    // Check if the slice is within the working bound
+                    if (isOutsideWorkingBound(slice))
                     {
-                        // A new point was already created for this coordinate. Look it up and
-                        // use it for the line we're creating
-                        newLineShapePoints.add(this.newPointCoordinates.get(coordinate));
+                        continue;
                     }
-                    else
+
+                    // Keep track of identifiers that form the geometry of the new line
+                    final List<Long> newLineShapePoints = new ArrayList<>(slice.getNumPoints());
+
+                    final Coordinate[] jtsSliceCoordinates = slice.getCoordinates();
+                    for (final Coordinate coordinate : jtsSliceCoordinates)
                     {
-                        // The point in the original Raw Atlas or we need to create a new one
-                        final Location coordinateLocation = JTS_LOCATION_CONVERTER
-                                .backwardConvert(coordinate);
-                        final Iterable<Point> rawAtlasPointsAtSliceVertex = this.rawAtlas
-                                .pointsAt(coordinateLocation);
-
-                        if (Iterables.isEmpty(rawAtlasPointsAtSliceVertex))
+                        if (this.newPointCoordinates.containsKey(coordinate))
                         {
-                            // Grab the country code tags for this point
-                            final Map<String, String> pointTags = createPointTags(
-                                    coordinateLocation, false);
+                            // A new point was already created for this coordinate. Look it up and
+                            // use it for the line we're creating
+                            newLineShapePoints.add(this.newPointCoordinates.get(coordinate));
+                        }
+                        else
+                        {
+                            // The point in the original Raw Atlas or we need to create a new one
+                            final Location coordinateLocation = JTS_LOCATION_CONVERTER
+                                    .backwardConvert(coordinate);
+                            final Iterable<Point> rawAtlasPointsAtSliceVertex = this.rawAtlas
+                                    .pointsAt(coordinateLocation);
 
-                            // Need to create a new point
-                            final Optional<TemporaryPoint> possibleNewPoint = createNewPoint(
-                                    coordinate, pointIdentifierFactory, pointTags);
-                            if (possibleNewPoint.isPresent())
+                            if (Iterables.isEmpty(rawAtlasPointsAtSliceVertex))
                             {
-                                final TemporaryPoint newPoint = possibleNewPoint.get();
+                                // Grab the country code tags for this point
+                                final Map<String, String> pointTags = createPointTags(
+                                        coordinateLocation, false);
+
+                                // Need to create a new point
+                                final TemporaryPoint newPoint = createNewPoint(coordinate,
+                                        pointIdentifierFactory, pointTags);
 
                                 // Store coordinate to avoid creating duplicate Points
                                 this.newPointCoordinates.put(coordinate, newPoint.getIdentifier());
@@ -356,58 +392,63 @@ public class RawAtlasCountrySlicer
                             }
                             else
                             {
-                                // TODO - think of a more elegant way to handle this case. Consider
-                                // shifting to a 4 digit namespace for identifiers
-                                logger.error(
-                                        "Could not create a new point at {}. Skipping this shape point for slice {}",
-                                        coordinateLocation, slice);
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            // Grab the country code tags for this point
-                            final Map<String, String> pointTags = createPointTags(
-                                    coordinateLocation, true);
+                                // Grab the country code tags for this point
+                                final Map<String, String> pointTags = createPointTags(
+                                        coordinateLocation, true);
 
-                            // There is at least one point at this location in the raw Atlas. Update
-                            // all existing points to have the country code.
-                            for (final Point rawAtlasPoint : rawAtlasPointsAtSliceVertex)
-                            {
-                                // Update the country codes
-                                this.afterSlicingLinesAndPoints
-                                        .updatePointTags(rawAtlasPoint.getIdentifier(), pointTags);
+                                // There is at least one point at this location in the raw Atlas.
+                                // Update
+                                // all existing points to have the country code.
+                                for (final Point rawAtlasPoint : rawAtlasPointsAtSliceVertex)
+                                {
+                                    // Update the country codes
+                                    this.afterSlicingLinesAndPoints.updatePointTags(
+                                            rawAtlasPoint.getIdentifier(), pointTags);
 
-                                // Add all point identifiers to make up the new Line
-                                newLineShapePoints.add(rawAtlasPoint.getIdentifier());
+                                    // Add all point identifiers to make up the new Line
+                                    newLineShapePoints.add(rawAtlasPoint.getIdentifier());
+                                }
                             }
                         }
                     }
+
+                    // Extract relevant tag values for this slice
+                    final Map<String, String> lineTags = createLineTags(slice);
+
+                    // Create and store the new line
+                    final TemporaryLine createdLine = new TemporaryLine(
+                            lineIdentifierFactory.nextIdentifier(), newLineShapePoints, lineTags);
+                    createdLines.add(createdLine);
                 }
 
-                // Extract relevant tag values for this slice
-                final Map<String, String> lineTags = createLineTags(slice);
+                // Update the change with the added and removed lines
+                createdLines.forEach(
+                        createdLine -> this.afterSlicingLinesAndPoints.createLine(createdLine));
 
-                // Create and store the new line
-                final TemporaryLine createdLine = new TemporaryLine(
-                        lineIdentifierFactory.nextIdentifier(), newLineShapePoints, lineTags);
-                createdLines.add(createdLine);
+                this.afterSlicingLinesAndPoints.deleteLine(line.getIdentifier());
+                this.afterSlicingLinesAndPoints.createDeletedToCreatedMapping(line.getIdentifier(),
+                        createdLines.stream().map(TemporaryLine::getIdentifier)
+                                .collect(Collectors.toList()));
+
+                // Record a successful slice
+                this.statistics.recordSlicedLine();
             }
-
-            // Update the change with the added and removed lines
-            createdLines.forEach(
-                    createdLine -> this.afterSlicingLinesAndPoints.createLine(createdLine));
-
-            this.afterSlicingLinesAndPoints.deleteLine(line.getIdentifier());
-            this.afterSlicingLinesAndPoints.createDeletedToCreatedMapping(line.getIdentifier(),
-                    createdLines.stream().map(TemporaryLine::getIdentifier)
-                            .collect(Collectors.toList()));
+            catch (final CoreException e)
+            {
+                // TODO - Consider shifting to a 4 digit namespace for identifiers
+                logger.error(
+                        "Country slicing exceeded maximum point identifier name space of {} for Line {}",
+                        AbstractIdentifierFactory.IDENTIFIER_SCALE, line.getIdentifier(), e);
+                this.statistics.recordSkippedLine();
+            }
         }
         else
         {
             // TODO - Consider expanding to a 4 digit namespace for identifiers
-            logger.error("Country slicing exceeded maximum identifier name space of {} for Line {}",
+            logger.error(
+                    "Country slicing exceeded maximum line identifier name space of {} for Line {}",
                     AbstractIdentifierFactory.IDENTIFIER_SCALE, line.getIdentifier());
+            this.statistics.recordSkippedLine();
         }
     }
 
@@ -434,8 +475,9 @@ public class RawAtlasCountrySlicer
     }
 
     /**
-     * Updates all stand-alone {@link Point}s that haven't been assigned a country code after
-     * way-slicing.
+     * Updates all points that haven't been assigned a country code after line-slicing. This
+     * includes any stand-alone points (e.g. trees, barriers) or points that fell outside of any
+     * country boundary.
      */
     private void slicePoints()
     {
