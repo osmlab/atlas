@@ -62,7 +62,7 @@ public class RawAtlasCountrySlicer
     // Contains boundary MultiPolygons
     private final CountryBoundaryMap countryBoundaryMap;
 
-    private RawAtlasChangeSet afterSlicingLinesAndPoints = new RawAtlasChangeSet();
+    private final RawAtlasChangeSet afterSlicingLinesAndPoints = new RawAtlasChangeSet();
     private final RawAtlasChangeSet afterSlicingRelations = new RawAtlasChangeSet();
 
     // Mapping between Coordinate and created Temporary Point identifiers. This is to avoid
@@ -98,9 +98,6 @@ public class RawAtlasCountrySlicer
                 this.afterSlicingLinesAndPoints);
         final Atlas withSlicedWaysAndPoints = changeBuilder.applyChanges();
         this.rawAtlas = withSlicedWaysAndPoints;
-
-        // Clear for GC
-        this.afterSlicingLinesAndPoints = null;
 
         // Slice all Relations and rebuild the Atlas
         sliceRelations();
@@ -151,7 +148,9 @@ public class RawAtlasCountrySlicer
         // Slice the JTS Geometry
         try
         {
-            return this.countryBoundaryMap.slice(line.getIdentifier(), geometry);
+            final boolean canSkipSlicingIfSingleCountry = canSkipSlicingIfSingleCountry(line);
+            return this.countryBoundaryMap.slice(line.getIdentifier(), geometry,
+                    canSkipSlicingIfSingleCountry);
         }
         catch (final TopologyException e)
         {
@@ -428,7 +427,7 @@ public class RawAtlasCountrySlicer
                 this.afterSlicingLinesAndPoints.deleteLine(line.getIdentifier());
                 this.afterSlicingLinesAndPoints.createDeletedToCreatedMapping(line.getIdentifier(),
                         createdLines.stream().map(TemporaryLine::getIdentifier)
-                                .collect(Collectors.toList()));
+                                .collect(Collectors.toSet()));
 
                 // Record a successful slice
                 this.statistics.recordSlicedLine();

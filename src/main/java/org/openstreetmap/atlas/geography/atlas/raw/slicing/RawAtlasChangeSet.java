@@ -1,9 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -20,30 +18,34 @@ import java.util.Set;
 public class RawAtlasChangeSet
 {
     // Points
-    private final List<TemporaryPoint> createdPoints;
+    private final Set<TemporaryPoint> createdPoints;
     private final Map<Long, Map<String, String>> updatedPointTags;
 
     // Lines
-    private final List<TemporaryLine> createdLines;
+    private final Set<TemporaryLine> createdLines;
     private final Map<Long, Map<String, String>> updatedLineTags;
     private final Set<Long> deletedLines;
-    private final Map<Long, List<Long>> deletedToCreatedLineMapping;
+
+    // Lines that were sliced will be deleted and replaced by two or more new line segments. We need
+    // to maintain this mapping to maintain relation integrity by removing deleted line members and
+    // replacing them with the created sliced segments.
+    private final Map<Long, Set<Long>> deletedToCreatedLineMapping;
 
     // Relations -- created, modified, deleted
     // TODO Use TagMap instead of Map<String, String>
 
     public RawAtlasChangeSet()
     {
-        this.createdPoints = new ArrayList<>();
+        this.createdPoints = new HashSet<>();
         this.updatedPointTags = new HashMap<>();
-        this.createdLines = new ArrayList<>();
+        this.createdLines = new HashSet<>();
         this.updatedLineTags = new HashMap<>();
         this.deletedLines = new HashSet<>();
         this.deletedToCreatedLineMapping = new HashMap<>();
     }
 
     public void createDeletedToCreatedMapping(final long deletedIdentifier,
-            final List<Long> createdIdentifiers)
+            final Set<Long> createdIdentifiers)
     {
         this.deletedToCreatedLineMapping.put(deletedIdentifier, createdIdentifiers);
     }
@@ -63,12 +65,12 @@ public class RawAtlasChangeSet
         this.deletedLines.add(identifier);
     }
 
-    public List<TemporaryLine> getCreatedLines()
+    public Set<TemporaryLine> getCreatedLines()
     {
         return this.createdLines;
     }
 
-    public List<TemporaryPoint> getCreatedPoints()
+    public Set<TemporaryPoint> getCreatedPoints()
     {
         return this.createdPoints;
     }
@@ -78,7 +80,7 @@ public class RawAtlasChangeSet
         return this.deletedLines;
     }
 
-    public Map<Long, List<Long>> getDeletedToCreatedLineMapping()
+    public Map<Long, Set<Long>> getDeletedToCreatedLineMapping()
     {
         return this.deletedToCreatedLineMapping;
     }

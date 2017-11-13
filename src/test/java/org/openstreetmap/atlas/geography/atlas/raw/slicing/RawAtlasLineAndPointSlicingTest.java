@@ -88,9 +88,12 @@ public class RawAtlasLineAndPointSlicingTest
     public void testClosedLineSpanningTwoCountries()
     {
         final Atlas rawAtlas = this.setup.getClosedLineSpanningTwoCountriesAtlas();
+        System.out.println(rawAtlas);
+
         final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
                 COUNTRY_BOUNDARY_MAP);
         final Atlas slicedAtlas = slicer.slice();
+        System.out.println(slicedAtlas);
 
         // Check Line correctness
         Assert.assertEquals("A single line exists in the raw Atlas", 1, rawAtlas.numberOfLines());
@@ -114,13 +117,23 @@ public class RawAtlasLineAndPointSlicingTest
         Assert.assertEquals("Twelve points exist in the sliced Atlas", 12,
                 slicedAtlas.numberOfPoints());
 
-        final CountrySlicingIdentifierFactory pointIdentifierFactory = new CountrySlicingIdentifierFactory(
-                1);
-        long newPointIdentifier = pointIdentifierFactory.nextIdentifier();
-
         for (final Point point : slicedAtlas.points())
         {
-            if (point.getIdentifier() == newPointIdentifier)
+            if (point.getIdentifier() == 1 || point.getIdentifier() == 2)
+            {
+                Assert.assertEquals("Expect two points to be fully inside Ivory Coast border",
+                        "CIV", point.getTag(ISOCountryTag.KEY).get());
+                Assert.assertFalse("None of the points should have a synthetic boundary tag",
+                        point.getTag(SyntheticBoundaryNodeTag.KEY).isPresent());
+            }
+            else if (point.getIdentifier() == 3 || point.getIdentifier() == 4)
+            {
+                Assert.assertEquals("Expect the other two points to be fully inside Liberia border",
+                        "LBR", point.getTag(ISOCountryTag.KEY).get());
+                Assert.assertFalse("None of the points should have a synthetic boundary tag",
+                        point.getTag(SyntheticBoundaryNodeTag.KEY).isPresent());
+            }
+            else
             {
                 Assert.assertEquals(
                         "Expect all new points to be on the country boundary and have both country codes",
@@ -128,21 +141,6 @@ public class RawAtlasLineAndPointSlicingTest
                 Assert.assertEquals("All new points are non-existing synthetic boundary nodes",
                         SyntheticBoundaryNodeTag.YES.toString(),
                         point.getTag(SyntheticBoundaryNodeTag.KEY).get());
-                newPointIdentifier = pointIdentifierFactory.nextIdentifier();
-            }
-            else if (point.getIdentifier() == 1 || point.getIdentifier() == 2)
-            {
-                Assert.assertEquals("Expect two points to be fully inside Ivory Coast border",
-                        "CIV", point.getTag(ISOCountryTag.KEY).get());
-                Assert.assertFalse("None of the points should have a synthetic boundary tag",
-                        point.getTag(SyntheticBoundaryNodeTag.KEY).isPresent());
-            }
-            else
-            {
-                Assert.assertEquals("Expect the other two points to be fully inside Liberia border",
-                        "LBR", point.getTag(ISOCountryTag.KEY).get());
-                Assert.assertFalse("None of the points should have a synthetic boundary tag",
-                        point.getTag(SyntheticBoundaryNodeTag.KEY).isPresent());
             }
         }
     }

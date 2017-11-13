@@ -104,9 +104,8 @@ public class CountrySlicingProcessorTest
         // Way starts in CIV and ends in the water
         addWay("4.658914,-7.069965 4.039977,-6.673084");
 
-        final MultiPolygon bound = boundaryMap.countryBoundary("CIV").get(0).getBoundary();
         final CountrySlicingProcessor processor = new CountrySlicingProcessor(this.store,
-                boundaryMap, bound, null);
+                boundaryMap, null);
         processor.run();
         Assert.assertEquals("should be 1 piece after slicing", 1, this.store.wayCount());
     }
@@ -139,9 +138,8 @@ public class CountrySlicingProcessorTest
         final Way way = addWay("4.658914,-7.069965 4.039977,-6.673084");
         way.getTags().add(new Tag(RouteTag.KEY, RouteTag.FERRY.name().toLowerCase()));
 
-        final MultiPolygon bound = boundaryMap.countryBoundary("CIV").get(0).getBoundary();
         final CountrySlicingProcessor processor = new CountrySlicingProcessor(this.store,
-                boundaryMap, bound, null);
+                boundaryMap, null);
         processor.run();
         Assert.assertEquals("should be 2 piece after slicing", 2, this.store.wayCount());
     }
@@ -155,9 +153,8 @@ public class CountrySlicingProcessorTest
         final Way way = addWay("4.658914,-7.069965 4.039977,-6.673084");
         way.getTags().add(new Tag(ManMadeTag.KEY, ManMadeTag.PIER.name().toLowerCase()));
 
-        final MultiPolygon bound = boundaryMap.countryBoundary("CIV").get(0).getBoundary();
         final CountrySlicingProcessor processor = new CountrySlicingProcessor(this.store,
-                boundaryMap, bound, null);
+                boundaryMap, null);
         processor.run();
         Assert.assertEquals("should be 2 piece after slicing", 2, this.store.wayCount());
     }
