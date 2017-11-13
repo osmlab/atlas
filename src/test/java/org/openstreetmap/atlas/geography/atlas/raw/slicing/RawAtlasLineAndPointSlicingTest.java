@@ -88,12 +88,9 @@ public class RawAtlasLineAndPointSlicingTest
     public void testClosedLineSpanningTwoCountries()
     {
         final Atlas rawAtlas = this.setup.getClosedLineSpanningTwoCountriesAtlas();
-        System.out.println(rawAtlas);
-
         final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
                 COUNTRY_BOUNDARY_MAP);
         final Atlas slicedAtlas = slicer.slice();
-        System.out.println(slicedAtlas);
 
         // Check Line correctness
         Assert.assertEquals("A single line exists in the raw Atlas", 1, rawAtlas.numberOfLines());
