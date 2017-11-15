@@ -419,7 +419,7 @@ public class RawAtlasLineAndPointSlicingTest
     @Ignore
     public void testSlicingWaysAndPoints()
     {
-        // Create our Raw Atlas first
+        // Create the Raw Atlas
         final String path = RawAtlasLineAndPointSlicingTest.class.getResource("8-122-122.pbf")
                 .getPath();
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));

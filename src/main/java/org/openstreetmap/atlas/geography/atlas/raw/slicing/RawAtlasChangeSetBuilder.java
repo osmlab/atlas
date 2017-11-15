@@ -17,6 +17,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
+import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,12 +125,14 @@ public class RawAtlasChangeSetBuilder
                 else
                 {
                     // All lines should have at least a country code tag addition after
-                    // country-slicing takes place. If it doesn't, let's add it to the Atlas to
-                    // maintain integrity, but raise an issue in the logs
+                    // country-slicing takes place. If it doesn't, it means we couldn't slice it
+                    // properly. Add this feature into the Atlas with a missing country code.
                     logger.error(
-                            "Line {} doesn't have any tag modifications. Adding for Atlas integrity.",
+                            "Adding Line {} with missing country code to maintain Atlas integrity.",
                             lineIdentifier);
-                    this.builder.addLine(lineIdentifier, line.asPolyLine(), line.getTags());
+                    final Map<String, String> updatedTags = line.getTags();
+                    updatedTags.put(ISOCountryTag.KEY, ISOCountryTag.COUNTRY_MISSING);
+                    this.builder.addLine(lineIdentifier, line.asPolyLine(), updatedTags);
                 }
             }
         });
@@ -154,12 +157,14 @@ public class RawAtlasChangeSetBuilder
             else
             {
                 // All points should have at least a country code tag addition after
-                // country-slicing takes place. If it doesn't, let's add it to the Atlas to
-                // maintain integrity, but raise an issue in the logs
+                // country-slicing takes place. If it doesn't, it means we couldn't slice it
+                // properly. Add this feature into the Atlas with a missing country code.
                 logger.error(
-                        "Point {} doesn't have any tag modifications. Adding for Atlas integrity.",
+                        "Adding Point {} with missing country code to maintain Atlas integrity.",
                         pointIdentifier);
-                this.builder.addPoint(pointIdentifier, point.getLocation(), point.getTags());
+                final Map<String, String> updatedTags = point.getTags();
+                updatedTags.put(ISOCountryTag.KEY, ISOCountryTag.COUNTRY_MISSING);
+                this.builder.addPoint(pointIdentifier, point.getLocation(), updatedTags);
             }
         });
     }

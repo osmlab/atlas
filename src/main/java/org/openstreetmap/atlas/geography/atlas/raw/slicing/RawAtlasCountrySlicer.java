@@ -24,9 +24,7 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
-import org.openstreetmap.atlas.tags.ManMadeTag;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
-import org.openstreetmap.atlas.tags.RouteTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
@@ -110,20 +108,6 @@ public class RawAtlasCountrySlicer
     }
 
     /**
-     * In case of Ferries and Piers that can extend out in the water and connect to other countries,
-     * here is the option to force country slicing, even if there is no immediate country nearby.
-     *
-     * @param way
-     *            The way to test for
-     * @return {@code true} if eligible for mandatory slicing.
-     */
-    private boolean canSkipSlicingIfSingleCountry(final Line line)
-    {
-        return !Validators.isOfType(line, RouteTag.class, RouteTag.FERRY)
-                && !Validators.isOfType(line, ManMadeTag.class, ManMadeTag.PIER);
-    }
-
-    /**
      * Converts the given {@link Line} into a JTS {@link Geometry} and slices it.
      *
      * @param line
@@ -148,9 +132,7 @@ public class RawAtlasCountrySlicer
         // Slice the JTS Geometry
         try
         {
-            final boolean canSkipSlicingIfSingleCountry = canSkipSlicingIfSingleCountry(line);
-            return this.countryBoundaryMap.slice(line.getIdentifier(), geometry,
-                    canSkipSlicingIfSingleCountry);
+            return this.countryBoundaryMap.slice(line.getIdentifier(), geometry);
         }
         catch (final TopologyException e)
         {
@@ -165,7 +147,7 @@ public class RawAtlasCountrySlicer
      * geometries in the raw Atlas.
      *
      * @param geometry
-     *            The {@link Geoemtry} to create the tags for
+     *            The {@link Geometry} to create the tags for
      * @return the resulting tags
      */
     private Map<String, String> createLineTags(final Geometry geometry)
@@ -259,6 +241,11 @@ public class RawAtlasCountrySlicer
         // For any border nodes, add the existing tag
         if (fromRawAtlas && countryDetails.inMultipleCountries())
         {
+            // TODO - Edge case: ferries that end just short of the country boundary should have an
+            // existing synthetic boundary node tag. One approach to generate these is to snap the
+            // ferry end point to the closest MultiPolygon boundary and if it's within a configured
+            // distance, assign the tag. However, this is facing performance issues and will have to
+            // be addressed in the future.
             tags.put(SyntheticBoundaryNodeTag.KEY, SyntheticBoundaryNodeTag.EXISTING.toString());
         }
 
@@ -298,8 +285,11 @@ public class RawAtlasCountrySlicer
      */
     private boolean lineBelongsToSingleCountry(final Line line, final List<Geometry> slices)
     {
-        return slices.size() == 1
-                || CountryBoundaryMap.isSameCountry(slices) && canSkipSlicingIfSingleCountry(line);
+        // TODO - this is an optimization that hides the corner case of not slicing any pier or
+        // ferry that extends into the ocean. Because the ocean isn't viewed as another country, the
+        // pier and ferries are not sliced at the country boundary and ocean. This should be fixed
+        // for consistency issues.
+        return slices.size() == 1 || CountryBoundaryMap.isSameCountry(slices);
     }
 
     /**
