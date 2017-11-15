@@ -477,6 +477,7 @@ public class RawAtlasCountrySlicer
             // Only update points that haven't been assigned a country code after way slicing
             if (!this.afterSlicingLinesAndPoints.getUpdatedPointTags().containsKey(pointIdentifier))
             {
+                this.statistics.recordProcessedPoint();
                 this.afterSlicingLinesAndPoints.updatePointTags(pointIdentifier,
                         createPointTags(point.getLocation(), true));
             }
@@ -525,6 +526,7 @@ public class RawAtlasCountrySlicer
         {
             for (final Point point : this.rawAtlas.pointsAt(location))
             {
+                this.statistics.recordProcessedPoint();
                 this.afterSlicingLinesAndPoints.updatePointTags(point.getIdentifier(),
                         createPointTags(location, true));
             }
