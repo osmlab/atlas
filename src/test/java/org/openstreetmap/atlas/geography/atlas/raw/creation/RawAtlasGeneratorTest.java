@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.pbf.loading;
+package org.openstreetmap.atlas.geography.atlas.raw.creation;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -66,12 +66,12 @@ public class RawAtlasGeneratorTest
                 AtlasLoadingOption.createOptionWithNoSlicing());
         final Atlas atlas = rawAtlasGenerator.build();
 
-        Assert.assertEquals(atlas.numberOfLines(), 2);
-        Assert.assertEquals(atlas.numberOfPoints(), 2);
-        Assert.assertEquals(atlas.numberOfRelations(), 1);
-        Assert.assertEquals(atlas.numberOfNodes(), 0);
-        Assert.assertEquals(atlas.numberOfEdges(), 0);
-        Assert.assertEquals(atlas.numberOfAreas(), 0);
+        Assert.assertEquals(2, atlas.numberOfLines());
+        Assert.assertEquals(2, atlas.numberOfPoints());
+        Assert.assertEquals(1, atlas.numberOfRelations());
+        Assert.assertEquals(0, atlas.numberOfNodes());
+        Assert.assertEquals(0, atlas.numberOfEdges());
+        Assert.assertEquals(0, atlas.numberOfAreas());
     }
 
     @Test(expected = CoreException.class)
@@ -136,14 +136,14 @@ public class RawAtlasGeneratorTest
         final Atlas atlas = rawAtlasGenerator.build();
 
         // The Raw Atlas should never contain Nodes, Edges or Areas
-        Assert.assertTrue(atlas.numberOfNodes() == 0);
-        Assert.assertTrue(atlas.numberOfEdges() == 0);
-        Assert.assertTrue(atlas.numberOfAreas() == 0);
+        Assert.assertEquals(0, atlas.numberOfNodes());
+        Assert.assertEquals(0, atlas.numberOfEdges());
+        Assert.assertEquals(0, atlas.numberOfAreas());
 
         // Only Points, Lines and Relations
-        Assert.assertTrue(atlas.numberOfPoints() == 467830);
-        Assert.assertTrue(atlas.numberOfLines() == 45839);
-        Assert.assertTrue(atlas.numberOfRelations() == 347);
+        Assert.assertEquals(457884, atlas.numberOfPoints());
+        Assert.assertEquals(45839, atlas.numberOfLines());
+        Assert.assertEquals(347, atlas.numberOfRelations());
     }
 
     @Test
@@ -154,13 +154,13 @@ public class RawAtlasGeneratorTest
         final Atlas atlas = rawAtlasGenerator.build();
 
         // The Raw Atlas should never contain Nodes, Edges or Areas
-        Assert.assertTrue(atlas.numberOfNodes() == 0);
-        Assert.assertTrue(atlas.numberOfEdges() == 0);
-        Assert.assertTrue(atlas.numberOfAreas() == 0);
+        Assert.assertEquals(0, atlas.numberOfNodes());
+        Assert.assertEquals(0, atlas.numberOfEdges());
+        Assert.assertEquals(0, atlas.numberOfAreas());
 
         // Only Points, Lines and Relations
-        Assert.assertTrue(atlas.numberOfPoints() == 55265);
-        Assert.assertTrue(atlas.numberOfLines() == 6080);
-        Assert.assertTrue(atlas.numberOfRelations() == 3);
+        Assert.assertEquals(52203, atlas.numberOfPoints());
+        Assert.assertEquals(6080, atlas.numberOfLines());
+        Assert.assertEquals(3, atlas.numberOfRelations());
     }
 }

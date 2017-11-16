@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.pbf.loading;
+package org.openstreetmap.atlas.geography.atlas.raw.creation;
 
 import java.util.function.Consumer;
 
@@ -31,7 +31,8 @@ public class RawAtlasStatistic
     private final CounterWithStatistic filteredWays;
     private final CounterWithStatistic filteredRelations;
 
-    // Dropped relations
+    // Dropped entities
+    private final CounterWithStatistic droppedWays;
     private final CounterWithStatistic droppedRelations;
 
     public RawAtlasStatistic(final Logger logger)
@@ -54,6 +55,8 @@ public class RawAtlasStatistic
                 "Filtered Relation");
         this.filteredRelations.logUsingLevel(log);
 
+        this.droppedWays = new CounterWithStatistic(this.logger, LOG_FREQUENCY, "Dropped Way");
+        this.droppedWays.logUsingLevel(log);
         this.droppedRelations = new CounterWithStatistic(this.logger, LOG_FREQUENCY,
                 "Dropped Relation");
         this.droppedRelations.logUsingLevel(log);
@@ -72,6 +75,11 @@ public class RawAtlasStatistic
     public void recordCreatedRelation()
     {
         this.relations.increment();
+    }
+
+    public void recordDroppedWay()
+    {
+        this.droppedWays.increment();
     }
 
     public void recordDroppedRelation()
@@ -103,6 +111,7 @@ public class RawAtlasStatistic
         this.filteredNodes.summaryWithoutTimer();
         this.filteredWays.summaryWithoutTimer();
         this.filteredRelations.summaryWithoutTimer();
+        this.droppedWays.summaryWithoutTimer();
         this.droppedRelations.summaryWithoutTimer();
     }
 }

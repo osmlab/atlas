@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.pbf.loading;
+package org.openstreetmap.atlas.geography.atlas.raw.creation;
 
 import java.util.Map;
 

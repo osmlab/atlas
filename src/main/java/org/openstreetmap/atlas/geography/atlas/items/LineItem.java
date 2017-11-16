@@ -53,6 +53,18 @@ public abstract class LineItem extends AtlasItem
     }
 
     /**
+     * Check if this {@link LineItem} is closed. Closed is defined when the first {@link Location}
+     * is the same as the last {@link Location}.
+     *
+     * @return {@code true} if it's closed.
+     */
+    public boolean isClosed()
+    {
+        final PolyLine polyLine = asPolyLine();
+        return polyLine.first().equals(polyLine.last());
+    }
+
+    /**
      * @return flag to denote zero length line items
      */
     public boolean isZeroLength()

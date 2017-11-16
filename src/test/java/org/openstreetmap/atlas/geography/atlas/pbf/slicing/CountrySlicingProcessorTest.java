@@ -8,7 +8,6 @@ import java.util.HashSet;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.store.PbfMemoryStore;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
@@ -103,14 +102,13 @@ public class CountrySlicingProcessorTest
         // Way starts in Liberia and ends in Sierra Leone (outside of given boundary)
         addWay("7.5,-10.8 7.7,-11.8");
 
-        final MultiPolygon bound = boundaryMap.countryBoundary("CIV").get(0).getBoundary();
         CountrySlicingProcessor processor = new CountrySlicingProcessor(this.store, boundaryMap,
-                bound, null);
+                null);
         processor.run();
         Assert.assertEquals("should be 1 piece after filtering", 1, this.store.wayCount());
         final HashSet<String> countryCodeSet = new HashSet<>();
         countryCodeSet.add("CIV");
-        processor = new CountrySlicingProcessor(this.store, boundaryMap, bound, countryCodeSet);
+        processor = new CountrySlicingProcessor(this.store, boundaryMap, countryCodeSet);
         processor.run();
         Assert.assertEquals("should be 1 piece after filtering", 1, this.store.wayCount());
     }
@@ -232,7 +230,6 @@ public class CountrySlicingProcessorTest
         Assert.assertNull("Original way should be removed", this.store.getWay(way.getId()));
         Assert.assertNotNull("New way should be added", this.store.getWay(way.getId() + 1 * 1000));
         Assert.assertNotNull("New way should be added", this.store.getWay(way.getId() + 2 * 1000));
-
     }
 
     private Way addWay(final String value)

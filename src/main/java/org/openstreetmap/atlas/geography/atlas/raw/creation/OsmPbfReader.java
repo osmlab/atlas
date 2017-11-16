@@ -1,9 +1,11 @@
-package org.openstreetmap.atlas.geography.atlas.pbf.loading;
+package org.openstreetmap.atlas.geography.atlas.raw.creation;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Latitude;
@@ -20,6 +22,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
+import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.PaddingIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.store.TagMap;
 import org.openstreetmap.atlas.tags.LastEditChangesetTag;
 import org.openstreetmap.atlas.tags.LastEditTimeTag;
@@ -41,6 +44,8 @@ import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableList;
+
 /**
  * The {@link OsmPbfReader} is responsible for reading OSM PBF entities and converting them to Atlas
  * Entities. It will map a PBF {@link Node} to an Atlas {@link Point}, a PBF {@link Way} to an Atlas
@@ -58,8 +63,14 @@ public class OsmPbfReader implements Sink
     private static final Logger logger = LoggerFactory.getLogger(OsmPbfReader.class);
     private static final String MISSING_MEMBER_MESSAGE = "Relation {} contains {} {} as a member, but this PBF shard does not contain it.";
 
+    public static final ImmutableList<String> MANDATORY_TAG_KEYS_FOR_ALL_ENTITIES = new ImmutableList.Builder<String>()
+            .add(LastEditTimeTag.KEY, LastEditUserIdentifierTag.KEY, LastEditUserNameTag.KEY,
+                    LastEditVersionTag.KEY, LastEditChangesetTag.KEY)
+            .build();
+
     private final PackedAtlasBuilder builder;
     private final AtlasLoadingOption loadingOption;
+    private final Set<Long> pointIdentifiersFromFilteredLines = new HashSet<>();
     private final List<Relation> stagedRelations = new ArrayList<>();
     private final RawAtlasStatistic statistics = new RawAtlasStatistic(logger);
 
@@ -101,6 +112,27 @@ public class OsmPbfReader implements Sink
         }
     }
 
+    /**
+     * Pads the given OSM identifier, by appending 6 digits to it. The first 3 appended digits are
+     * the country code identifier and the last 3 digits are the way-section identifier.
+     *
+     * @param identifier
+     *            The original OSM identifier
+     * @return a padded identifier
+     */
+    private static long padIdentifier(final long identifier)
+    {
+        return PaddingIdentifierFactory.pad(identifier);
+    }
+
+    /**
+     * Default constructor
+     *
+     * @param loadingOption
+     *            The {@link AtlasLoadingOption} to use
+     * @param builder
+     *            The {@link PackedAtlasBuilder} to construct the raw Atlas
+     */
     public OsmPbfReader(final AtlasLoadingOption loadingOption, final PackedAtlasBuilder builder)
     {
         this.builder = builder;
@@ -145,6 +177,7 @@ public class OsmPbfReader implements Sink
         }
         else
         {
+            recordNodeIdentifiersFromFilteredEntity(rawEntity);
             logFilteredStatistics(rawEntity);
             logger.trace("Excluding OSM {} {} from Raw Atlas", rawEntity.getType(),
                     rawEntity.getId());
@@ -162,6 +195,18 @@ public class OsmPbfReader implements Sink
     }
 
     /**
+     * @return all the {@link Point} identifiers that make up {@link Line}s that were filtered. We
+     *         process all PBF {@link Node}s first and add them as Atlas {@link Point}s. After this,
+     *         we may filter out some PBF {@link Way}s. As a result, our Atlas file may contain
+     *         Points which aren't used by any Lines. We want to record these and see if we can
+     *         filter them out downstream.
+     */
+    protected Set<Long> getPointIdentifiersFromFilteredLines()
+    {
+        return this.pointIdentifiersFromFilteredLines;
+    }
+
+    /**
      * Constructs an Atlas {@link org.openstreetmap.atlas.geography.atlas.items.Relation}. In the
      * process, a relation can be dropped if it doesn't contain any members. The members could be
      * empty, if they were filtered out by the PBF ingest criteria or if this PBF file doesn't
@@ -175,7 +220,7 @@ public class OsmPbfReader implements Sink
         final RelationBean bean = constructRelationBean(relation);
         if (!bean.isEmpty())
         {
-            this.builder.addRelation(relation.getId(), relation.getId(), bean,
+            this.builder.addRelation(padIdentifier(relation.getId()), relation.getId(), bean,
                     populateEntityTags(relation));
             this.statistics.recordCreatedRelation();
         }
@@ -201,7 +246,7 @@ public class OsmPbfReader implements Sink
         final RelationBean bean = new RelationBean();
         for (final RelationMember member : relation.getMembers())
         {
-            final long memberIdentifier = member.getMemberId();
+            final long memberIdentifier = padIdentifier(member.getMemberId());
             final EntityType memberType = member.getMemberType();
             final String role = member.getMemberRole();
 
@@ -266,7 +311,8 @@ public class OsmPbfReader implements Sink
     {
         final List<WayNode> wayNodes = way.getWayNodes();
         final List<Location> wayLocations = new ArrayList<>();
-        wayNodes.forEach(node -> wayLocations.add(getNodeLocation(node.getNodeId())));
+        wayNodes.forEach(
+                node -> wayLocations.add(getNodeLocation(padIdentifier(node.getNodeId()))));
         return new PolyLine(wayLocations);
     }
 
@@ -281,8 +327,8 @@ public class OsmPbfReader implements Sink
     private boolean containsUnindexedSubRelation(final Relation relation)
     {
         return relation.getMembers().stream()
-                .anyMatch(member -> member.getMemberType() == EntityType.Relation
-                        && this.builder.peek().relation(member.getMemberId()) == null);
+                .anyMatch(member -> member.getMemberType() == EntityType.Relation && this.builder
+                        .peek().relation(padIdentifier(member.getMemberId())) == null);
     }
 
     /**
@@ -307,6 +353,21 @@ public class OsmPbfReader implements Sink
                             + "It was either filtered out or the PBF file is malformed.",
                     identifier);
         }
+    }
+
+    /**
+     * A {@link Way} is invalid if it's of size 0 or 1; or if it's of size 2 and has the same start
+     * and end node.
+     *
+     * @param way
+     *            The {@link Way} to validate
+     * @return {@code true} if the given {@link Way} is invalid
+     */
+    private boolean isInvalidWay(final Way way)
+    {
+        final List<WayNode> wayNodes = way.getWayNodes();
+        return wayNodes.size() < 2 || wayNodes.size() == 2
+                && wayNodes.get(0).getNodeId() == wayNodes.get(1).getNodeId();
     }
 
     /**
@@ -363,8 +424,10 @@ public class OsmPbfReader implements Sink
     private void processNode(final Entity entity)
     {
         final Node node = (Node) entity;
-        this.builder.addPoint(node.getId(), new Location(Latitude.degrees(node.getLatitude()),
-                Longitude.degrees(node.getLongitude())), populateEntityTags(node));
+        this.builder.addPoint(padIdentifier(node.getId()),
+                new Location(Latitude.degrees(node.getLatitude()),
+                        Longitude.degrees(node.getLongitude())),
+                populateEntityTags(node));
         this.statistics.recordCreatedPoint();
     }
 
@@ -446,8 +509,40 @@ public class OsmPbfReader implements Sink
     private void processWay(final Entity entity)
     {
         final Way way = (Way) entity;
-        this.builder.addLine(way.getId(), constructWayPolyLine(way), populateEntityTags(way));
-        this.statistics.recordCreatedLine();
+        if (isInvalidWay(way))
+        {
+            this.statistics.recordDroppedWay();
+        }
+        else
+        {
+            this.builder.addLine(padIdentifier(way.getId()), constructWayPolyLine(way),
+                    populateEntityTags(way));
+            this.statistics.recordCreatedLine();
+        }
+    }
+
+    /**
+     * Because of how an Atlas is constructed, we add all PBF {@link Node}s as {@link Point}s.
+     * However, if we filter out a PBF {@link Way}, we want to keep track of all {@link Node}s that
+     * make up that {@link Way}, in case we need to remove them as well. We are going to keep track
+     * of all filtered PBF {@link Node}/Atlas {@link Point} identifiers, and use subAtlas
+     * functionality to filter them out after the Atlas is built. For now, ignore Relations. TODO
+     * Come back to Relations!
+     *
+     * @param entity
+     *            The {@link Entity} whose Node (Atlas Point) identifiers we want to filter out
+     */
+    private void recordNodeIdentifiersFromFilteredEntity(final Entity entity)
+    {
+        if (entity instanceof Way)
+        {
+            final List<WayNode> wayNodes = ((Way) entity).getWayNodes();
+            wayNodes.forEach(node ->
+            {
+                this.pointIdentifiersFromFilteredLines.add(padIdentifier(node.getNodeId()));
+                this.statistics.recordFilteredNode();
+            });
+        }
     }
 
     /**
@@ -460,10 +555,34 @@ public class OsmPbfReader implements Sink
     private void storeOsmEntityAttributesAsTags(final Entity entity)
     {
         final Collection<Tag> tags = entity.getTags();
-        tags.add(new Tag(LastEditTimeTag.KEY, String.valueOf(entity.getTimestamp().getTime())));
-        tags.add(new Tag(LastEditUserIdentifierTag.KEY, String.valueOf(entity.getUser().getId())));
-        tags.add(new Tag(LastEditUserNameTag.KEY, entity.getUser().getName()));
-        tags.add(new Tag(LastEditVersionTag.KEY, String.valueOf(entity.getVersion())));
-        tags.add(new Tag(LastEditChangesetTag.KEY, String.valueOf(entity.getChangesetId())));
+        for (final String tag : MANDATORY_TAG_KEYS_FOR_ALL_ENTITIES)
+        {
+            if (tag.equals(LastEditTimeTag.KEY))
+            {
+                tags.add(new Tag(tag, String.valueOf(entity.getTimestamp().getTime())));
+            }
+            else if (tag.equals(LastEditUserIdentifierTag.KEY))
+            {
+                tags.add(new Tag(tag, String.valueOf(entity.getUser().getId())));
+            }
+            else if (tag.equals(LastEditUserNameTag.KEY))
+            {
+                tags.add(new Tag(tag, entity.getUser().getName()));
+            }
+            else if (tag.equals(LastEditVersionTag.KEY))
+            {
+                tags.add(new Tag(tag, String.valueOf(entity.getVersion())));
+            }
+            else if (tag.equals(LastEditChangesetTag.KEY))
+            {
+                tags.add(new Tag(tag, String.valueOf(entity.getChangesetId())));
+            }
+            else
+            {
+                logger.error(
+                        "Trying to add mandatory tag {}, but no behavior defined for getting the value.",
+                        tag);
+            }
+        }
     }
 }

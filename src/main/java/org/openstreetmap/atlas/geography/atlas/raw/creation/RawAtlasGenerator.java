@@ -1,6 +1,8 @@
-package org.openstreetmap.atlas.geography.atlas.pbf.loading;
+package org.openstreetmap.atlas.geography.atlas.raw.creation;
 
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
@@ -16,6 +18,8 @@ import org.openstreetmap.atlas.utilities.time.Time;
 import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Iterables;
 
 import crosby.binary.osmosis.OsmosisReader;
 
@@ -163,7 +167,15 @@ public class RawAtlasGenerator
         logger.info("Read PBF in {}, preparing to build Raw Atlas", parseTime.elapsedSince());
 
         final Time buildTime = Time.now();
-        final Atlas atlas = this.builder.get();
+        Atlas atlas = this.builder.get();
+        if (!this.pbfReader.getPointIdentifiersFromFilteredLines().isEmpty())
+        {
+            // Filter out any points that we don't need as a result of filtering lines
+            final Set<Long> pointsToRemove = preFilterPointsToRemove(atlas);
+            atlas = atlas.subAtlas(entity -> !(entity instanceof Point
+                    && pointsToRemove.contains(entity.getIdentifier()))).get();
+        }
+
         logger.info("Built Raw Atlas in {}", buildTime.elapsedSince());
 
         if (atlas != null)
@@ -202,6 +214,56 @@ public class RawAtlasGenerator
     }
 
     /**
+     * Check if the {@link Point} with the given identifier is a {@link Relation} member in the
+     * given {@link Atlas}.
+     *
+     * @param atlas
+     *            The {@link Atlas} to check
+     * @param pointIdentifier
+     *            The {@link Point} identifier to use
+     * @return {@code true} if the given {@link Point} identifier is a {@link Relation} member in
+     *         the given {@link Atlas}
+     */
+    private boolean isRelationMember(final Atlas atlas, final long pointIdentifier)
+    {
+        return !atlas.point(pointIdentifier).relations().isEmpty();
+    }
+
+    /**
+     * Check if the {@link Point} with the given identifier is a shape point for some {@link Line}
+     * in the given {@link Atlas}.
+     *
+     * @param atlas
+     *            The {@link Atlas} to check
+     * @param pointIdentifier
+     *            The {@link Point} identifier to use
+     * @return {@code true} if the given {@link Point} identifier is a shape point for some
+     *         {@link Line} in the given {@link Atlas}
+     */
+    private boolean isShapePoint(final Atlas atlas, final long pointIdentifier)
+    {
+        return Iterables
+                .size(atlas.linesContaining(atlas.point(pointIdentifier).getLocation())) > 0;
+    }
+
+    /**
+     * A simple point is one that only has the mandatory entity tags. See
+     * {@link OsmPbfReader#MANDATORY_TAG_KEYS_FOR_ALL_ENTITIES} for the 5 tags. Examples of
+     * non-simple points include stop lights, barriers, etc.
+     *
+     * @param atlas
+     *            The {@link Atlas} to check
+     * @param pointIdentifier
+     *            The {@link Point} identifier to use
+     * @return {@code true} if the given identifier represents a simple {@link Point}
+     */
+    private boolean isSimplePoint(final Atlas atlas, final long pointIdentifier)
+    {
+        return atlas.point(pointIdentifier).getTags()
+                .size() == OsmPbfReader.MANDATORY_TAG_KEYS_FOR_ALL_ENTITIES.size();
+    }
+
+    /**
      * Populates the {@link AtlasMetaData} used to build the raw {@link Atlas}. Specifically,
      * records any {@link Node}, {@link Way} and {@link Relation} filtering that may have been used.
      */
@@ -214,6 +276,28 @@ public class RawAtlasGenerator
         this.metaData.getTags().put(AtlasMetaData.OSM_PBF_RELATION_CONFIGURATION,
                 this.atlasLoadingOption.getOsmPbfRelationFilter().toString());
         this.builder.setMetaData(this.metaData);
+    }
+
+    /**
+     * Get the set of {@link Point}s that make up all the filtered PBF {@link Way}s and see if we
+     * can remove them from the generated raw Atlas. Criteria for removal are:
+     * <p>
+     * <ul>
+     * <li>The {@link Point} has to be simple. This avoids removing non-shape point features.
+     * <li>The {@link Point} cannot be a {@link Relation} member.
+     * <li>The {@link Point} cannot be a shape point for an existing {@link Line}.
+     * </ul>
+     *
+     * @param atlas
+     *            The {@link Atlas} being filtered from
+     * @return the {@link Set} of {@link Point} identifiers that are safe to filter out
+     */
+    private Set<Long> preFilterPointsToRemove(final Atlas atlas)
+    {
+        return this.pbfReader.getPointIdentifiersFromFilteredLines().stream()
+                .filter(identifier -> isSimplePoint(atlas, identifier))
+                .filter(identifier -> !isRelationMember(atlas, identifier))
+                .filter(identifier -> !isShapePoint(atlas, identifier)).collect(Collectors.toSet());
     }
 
     /**

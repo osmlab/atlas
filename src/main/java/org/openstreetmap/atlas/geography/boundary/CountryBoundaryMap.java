@@ -36,6 +36,7 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.complex.boundaries.ComplexBoundary;
 import org.openstreetmap.atlas.geography.atlas.items.complex.boundaries.ComplexBoundaryFinder;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.RuntimeCounter;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.CountryCodeProperties;
 import org.openstreetmap.atlas.geography.boundary.converters.CountryListTwoWayStringConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
@@ -51,7 +52,6 @@ import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.time.Time;
-import org.openstreetmap.atlas.utilities.tuples.Tuple;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
 import org.openstreetmap.osmosis.core.domain.v0_6.Way;
 import org.slf4j.Logger;
@@ -721,12 +721,10 @@ public class CountryBoundaryMap implements Serializable
      *
      * @param geometry
      *            A JTS {@link Geometry}
-     * @return a {@link Tuple} with a string to represent country code in iso_3 format and a boolean
-     *         to determine if nearest neighbor logic was applied in determining the country code.
-     *         In case of multiple countries, they'll be separated by comma. e.g. USA,CAN
+     * @return the resulting {@link CountryCodeProperties}
      * @see #getCountryCodeISO3(Geometry, boolean)
      */
-    public Tuple<String, Boolean> getCountryCodeISO3(final Geometry geometry)
+    public CountryCodeProperties getCountryCodeISO3(final Geometry geometry)
     {
         return getCountryCodeISO3(geometry, false, LINE_BUFFER);
     }
@@ -737,12 +735,9 @@ public class CountryBoundaryMap implements Serializable
      * @param fastMode
      *            In fast mode, we only return the first country hit, so if a node is right on the
      *            border we'll still return one country code
-     * @return a {@link Tuple} with a string to represent the country code in iso_3 format and a
-     *         boolean to determine if nearest neighbor logic was applied in determining the country
-     *         code. If multiple countries, they'll be separated by comma. e.g. USA,CAN.
+     * @return the resulting {@link CountryCodeProperties}
      */
-    public Tuple<String, Boolean> getCountryCodeISO3(final Geometry geometry,
-            final boolean fastMode)
+    public CountryCodeProperties getCountryCodeISO3(final Geometry geometry, final boolean fastMode)
     {
         return getCountryCodeISO3(geometry, fastMode, LINE_BUFFER);
     }
@@ -756,12 +751,10 @@ public class CountryBoundaryMap implements Serializable
      * @param buffer
      *            The buffer distance of geometry, please note that if the geometry is 0 dimension
      *            then a envelope expend is used instead of a rounding buffer
-     * @return a {@link Tuple} with a string to represent country code in iso_3 format and a boolean
-     *         to determine if nearest neighbor logic was applied in determining the country code.
-     *         If multiple countries, they'll be separated by comma. e.g. USA,CAN.
+     * @return the resulting {@link CountryCodeProperties}
      */
-    public Tuple<String, Boolean> getCountryCodeISO3(final Geometry geometry,
-            final boolean fastMode, final double buffer)
+    public CountryCodeProperties getCountryCodeISO3(final Geometry geometry, final boolean fastMode,
+            final double buffer)
     {
         StringList countryList = new StringList();
         final Geometry target;
@@ -830,19 +823,17 @@ public class CountryBoundaryMap implements Serializable
             }
         }
 
-        return new Tuple<>(this.countryListConverter.backwardConvert(countryList),
+        return new CountryCodeProperties(this.countryListConverter.backwardConvert(countryList),
                 usingNearestNeighbor);
     }
 
     /**
      * @param location
      *            The {@link Location} to check
-     * @return a {@link Tuple} with a string to represent country code in iso_3 format and a boolean
-     *         to determine if nearest neighbor logic was applied in determining the country code.
-     *         If multiple countries, they'll be separated by comma. e.g. USA,CAN
+     * @return the resulting {@link CountryCodeProperties}
      * @see #getCountryCodeISO3(Geometry)
      */
-    public Tuple<String, Boolean> getCountryCodeISO3(final Location location)
+    public CountryCodeProperties getCountryCodeISO3(final Location location)
     {
         return getCountryCodeISO3(JTS_POINT_CONVERTER.convert(location));
     }
