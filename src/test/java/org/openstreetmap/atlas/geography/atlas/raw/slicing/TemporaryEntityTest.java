@@ -18,20 +18,20 @@ public class TemporaryEntityTest
     @Test
     public void testEquals()
     {
-        final TemporaryPoint pointOne = new TemporaryPoint(1l, Location.EIFFEL_TOWER,
+        final TemporaryPoint pointOne = new TemporaryPoint(1L, Location.EIFFEL_TOWER,
                 new HashMap<>());
-        final TemporaryPoint pointOneCopy = new TemporaryPoint(1l, Location.EIFFEL_TOWER,
+        final TemporaryPoint pointOneCopy = new TemporaryPoint(1L, Location.EIFFEL_TOWER,
                 new HashMap<>());
-        final TemporaryPoint pointTwo = new TemporaryPoint(2l, Location.EIFFEL_TOWER,
+        final TemporaryPoint pointTwo = new TemporaryPoint(2L, Location.EIFFEL_TOWER,
                 new HashMap<>());
 
         final List<Long> lineOnePoints = new ArrayList<>();
         lineOnePoints.add(1l);
         lineOnePoints.add(2l);
 
-        final TemporaryLine lineOne = new TemporaryLine(1l, lineOnePoints, new HashMap<>());
-        final TemporaryLine lineOneCopy = new TemporaryLine(1l, lineOnePoints, new HashMap<>());
-        final TemporaryLine lineTwo = new TemporaryLine(2l, lineOnePoints, new HashMap<>());
+        final TemporaryLine lineOne = new TemporaryLine(1L, lineOnePoints, new HashMap<>());
+        final TemporaryLine lineOneCopy = new TemporaryLine(1L, lineOnePoints, new HashMap<>());
+        final TemporaryLine lineTwo = new TemporaryLine(2L, lineOnePoints, new HashMap<>());
 
         Assert.assertFalse(pointOne.equals(pointTwo));
         Assert.assertFalse(pointOne.equals(lineOne));
