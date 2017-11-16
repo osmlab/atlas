@@ -26,8 +26,8 @@ public class TemporaryEntityTest
                 new HashMap<>());
 
         final List<Long> lineOnePoints = new ArrayList<>();
-        lineOnePoints.add(1l);
-        lineOnePoints.add(2l);
+        lineOnePoints.add(1L);
+        lineOnePoints.add(2L);
 
         final TemporaryLine lineOne = new TemporaryLine(1L, lineOnePoints, new HashMap<>());
         final TemporaryLine lineOneCopy = new TemporaryLine(1L, lineOnePoints, new HashMap<>());
