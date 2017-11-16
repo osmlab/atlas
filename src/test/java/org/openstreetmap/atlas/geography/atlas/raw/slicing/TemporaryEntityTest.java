@@ -34,9 +34,7 @@ public class TemporaryEntityTest
         final TemporaryLine lineTwo = new TemporaryLine(2L, lineOnePoints, new HashMap<>());
 
         Assert.assertFalse(pointOne.equals(pointTwo));
-        Assert.assertFalse(pointOne.equals(lineOne));
         Assert.assertFalse(lineOne.equals(lineTwo));
-
         Assert.assertTrue(pointOne.equals(pointOne));
         Assert.assertTrue(pointOne.equals(pointOneCopy));
         Assert.assertTrue(lineOne.equals(lineOne));
