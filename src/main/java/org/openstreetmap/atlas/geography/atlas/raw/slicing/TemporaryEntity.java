@@ -27,7 +27,11 @@ public abstract class TemporaryEntity implements Serializable
     @Override
     public boolean equals(final Object other)
     {
-        if (other instanceof TemporaryEntity)
+        if (this == other)
+        {
+            return true;
+        }
+        if (other != null && this.getClass() == other.getClass())
         {
             final TemporaryEntity that = (TemporaryEntity) other;
             return this.getIdentifier() == that.getIdentifier();
