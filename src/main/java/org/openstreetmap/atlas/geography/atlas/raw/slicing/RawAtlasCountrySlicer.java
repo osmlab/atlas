@@ -16,6 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.AbstractIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.CountrySlicingIdentifierFactory;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
@@ -94,8 +95,8 @@ public class RawAtlasCountrySlicer
         // Apply changes and rebuild the Atlas with the changes before slicing Relations
         final RawAtlasChangeSetBuilder changeBuilder = new RawAtlasChangeSetBuilder(this.rawAtlas,
                 this.afterSlicingLinesAndPoints);
-        final Atlas withSlicedWaysAndPoints = changeBuilder.applyChanges();
-        this.rawAtlas = withSlicedWaysAndPoints;
+        final Atlas atlasWithSlicedWaysAndPoints = changeBuilder.applyChanges();
+        this.rawAtlas = atlasWithSlicedWaysAndPoints;
 
         // Slice all Relations and rebuild the Atlas
         sliceRelations();
@@ -293,6 +294,73 @@ public class RawAtlasCountrySlicer
     }
 
     /**
+     * TODO // Look at all members, group relations by country. If relation, call yourself
+     * recursively. // Assumes all ways and points were already sliced.
+     *
+     * @param relation
+     * @param parents
+     */
+    private void processSimpleRelations(final Relation relation, final List<Long> parents)
+    {
+        // Why not sets?
+        final List<Relation> createdRelations = new ArrayList<>();
+        final List<RelationMember> members = new ArrayList<>();
+        final boolean relationChanged = false;
+
+        for (final RelationMember member : relation.members())
+        {
+            switch (member.getEntity().getType())
+            {
+                case LINE:
+                case POINT:
+                    // TODO - why?
+                    members.add(member);
+                    break;
+                case RELATION:
+                    parents.add(relation.getIdentifier());
+                    final Relation subRelation = this.rawAtlas
+                            .relation(member.getEntity().getIdentifier());
+
+                    if (subRelation == null)
+                    {
+                        logger.debug("Could not find relation member {} in atlas",
+                                member.getEntity().getIdentifier());
+                        // Put the member back into the relation. Missing members will be handled
+                        // on a case by case basis
+                        members.add(member);
+                        break;
+                    }
+
+                    final List<Relation> slicedMembers;
+                    if (!parents.contains(subRelation.getIdentifier()))
+                    {
+                        slicedMembers = sliceRelation(subRelation, parents);
+                    }
+                    else
+                    {
+                        logger.error("Relation {} has a loop! Parent tree: {}",
+                                subRelation.getIdentifier(), parents);
+                        slicedMembers = null;
+                    }
+
+                    if (slicedMembers != null)
+                    {
+                        this.statistics.recordSlicedRelation();
+                        // TODO slicedMembers.forEach(slicedRelation -> members.add(null));
+                    }
+                    else
+                    {
+                        members.add(member);
+                    }
+                    break;
+                default:
+                    throw new CoreException("Unexpected {} Member for Relation {}",
+                            member.getEntity().getType(), relation.getIdentifier());
+            }
+        }
+    }
+
+    /**
      * Processes each slice by updating corresponding tags ({@link ISOCountryTag},
      * {@link SyntheticNearestNeighborCountryCodeTag}, {@link SyntheticBoundaryNodeTag} and creating
      * {@link RawAtlasChangeSet}s to keep track of created, updated and deleted {@link Point}s and
@@ -463,6 +531,8 @@ public class RawAtlasCountrySlicer
         this.rawAtlas.lines().forEach(this::sliceLine);
     }
 
+    // TODO come back and verify we're keeping track of all required statistics
+
     /**
      * Updates all points that haven't been assigned a country code after line-slicing. This
      * includes any stand-alone points (e.g. trees, barriers) or points that fell outside of any
@@ -484,14 +554,12 @@ public class RawAtlasCountrySlicer
         });
     }
 
-    // TODO come back and verify we're keeping track of all required statistics
-
     /**
      * TODO
      *
      * @param relation
      */
-    private void sliceRelation(final Relation relation)
+    private List<Relation> sliceRelation(final Relation relation, final List<Long> parents)
     {
         this.statistics.recordProcessedRelation();
 
@@ -504,6 +572,9 @@ public class RawAtlasCountrySlicer
         {
             // Process all other relations
         }
+
+        // TODO - remove
+        return null;
     }
 
     /**
@@ -511,7 +582,8 @@ public class RawAtlasCountrySlicer
      */
     private void sliceRelations()
     {
-        this.rawAtlas.relations().forEach(this::sliceRelation);
+        this.rawAtlas.relations()
+                .forEach(relation -> this.sliceRelation(relation, new ArrayList<>()));
     }
 
     /**
