@@ -50,7 +50,7 @@ public class GeoJsonObject
 
     public void makeFeatureCollection()
     {
-        if (!"FeatureCollection".equals(this.jsonObject.get("type")))
+        if (!"FeatureCollection".equals(this.jsonObject.get("type").getAsString()))
         {
             final JsonObject result = new JsonObject();
             result.addProperty("type", "FeatureCollection");
