@@ -17,6 +17,13 @@ public class ReverseIdentifierFactory
                 countryCodeAndWaySectionedIdentifier / AbstractIdentifierFactory.IDENTIFIER_SCALE);
     }
 
+    public long getFirstAtlasIdentifier(final long countryCodeAndWaySectionedIdentifier)
+    {
+        return Math.abs(getOsmIdentifier(countryCodeAndWaySectionedIdentifier)
+                * AbstractIdentifierFactory.IDENTIFIER_SCALE
+                * AbstractIdentifierFactory.IDENTIFIER_SCALE);
+    }
+
     public long getOsmIdentifier(final long countryCodeAndWaySectionedIdentifier)
     {
         return Math.abs(

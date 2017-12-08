@@ -7,6 +7,9 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryEntity;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryLine;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryPoint;
 
 /**
  * {@link TemporaryEntity} equals test.
