@@ -40,6 +40,7 @@ public class TemporaryEntityTest
         Assert.assertFalse(pointOne.equals(lineOne));
         Assert.assertFalse(lineOne.equals(lineTwo));
 
+        Assert.assertFalse(lineOne.equals(lineTwo));
         Assert.assertTrue(pointOne.equals(pointOne));
         Assert.assertTrue(pointOne.equals(pointOneCopy));
         Assert.assertTrue(lineOne.equals(lineOne));

@@ -19,6 +19,7 @@ import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.StringInputStream;
@@ -40,6 +41,21 @@ public abstract class HttpResource extends AbstractResource
     private final URI uri;
     private CloseableHttpResponse response = null;
     private Optional<UsernamePasswordCredentials> creds = Optional.empty();
+    private Optional<HttpHost> proxy = Optional.empty();
+
+    private static HttpClientContext createBasicAuthCache(final HttpHost target,
+            final HttpClientContext context)
+    {
+        // Create AuthCache instance
+        final AuthCache authCache = new BasicAuthCache();
+        // Generate BASIC scheme object and add it to the local
+        // auth cache
+        final BasicScheme basicAuth = new BasicScheme();
+        authCache.put(target, basicAuth);
+        // Add AuthCache to the execution context
+        context.setAuthCache(authCache);
+        return context;
+    }
 
     public HttpResource(final String uri)
     {
@@ -118,6 +134,11 @@ public abstract class HttpResource extends AbstractResource
         this.request.setHeader(name, value);
     }
 
+    public void setProxy(final HttpHost proxy)
+    {
+        this.proxy = Optional.ofNullable(proxy);
+    }
+
     public void setRequest(final HttpRequestBase request)
     {
         this.request = request;
@@ -132,32 +153,22 @@ public abstract class HttpResource extends AbstractResource
             {
                 final HttpHost target = new HttpHost(this.uri.getHost(), this.uri.getPort(),
                         this.uri.getScheme());
-                final HttpClientContext context = HttpClientContext.create();
-                final CloseableHttpClient client;
+                HttpClientContext context = HttpClientContext.create();
+                HttpClientBuilder clientBuilder = HttpClients.custom();
                 if (this.creds.isPresent())
                 {
                     final CredentialsProvider credsProvider = new BasicCredentialsProvider();
                     credsProvider.setCredentials(
                             new AuthScope(target.getHostName(), target.getPort()),
                             this.creds.get());
-                    client = HttpClients.custom().setDefaultCredentialsProvider(credsProvider)
-                            .build();
-                    // Create AuthCache instance
-                    final AuthCache authCache = new BasicAuthCache();
-
-                    // Generate BASIC scheme object and add it to the local
-                    // auth cache
-                    final BasicScheme basicAuth = new BasicScheme();
-                    authCache.put(target, basicAuth);
-
-                    // Add AuthCache to the execution context
-                    context.setAuthCache(authCache);
+                    clientBuilder = clientBuilder.setDefaultCredentialsProvider(credsProvider);
                 }
-                else
+                if (this.proxy.isPresent())
                 {
-                    client = HttpClients.createDefault();
+                    clientBuilder = clientBuilder.setProxy(this.proxy.get());
                 }
-
+                final CloseableHttpClient client = clientBuilder.build();
+                context = createBasicAuthCache(target, context);
                 this.response = client.execute(target, this.request, context);
             }
             if (this.response.getEntity() == null)
