@@ -49,36 +49,63 @@ public class RawAtlasRelationSlicingTest
                                 .withDecompressor(Decompressor.GZIP));
     }
 
-    @Test
-    public void testComplexRelationInsideSingleCountry()
-    {
-    }
-
-    @Test
-    public void testComplexRelationSpanningTwoCountries()
-    {
-
-    }
-
-    @Test
-    public void testComplexRelationWithHoleInsideSingleCountry()
-    {
-
-    }
-
-    // TODO - test testComplexRelationWithHoleSpanningTwoCountries with closed lines instead of open
     // TODO - test with multiple inners across boundary
     // TODO - test with relations of relations
 
     @Test
-    public void testComplexRelationWithHoleSpanningTwoCountries()
+    public void testMultiPolygonRelationSpanningTwoCountries()
     {
-        // This relation is made up of non-closed lines, tied together by a relation to create a
+        // This relation is made up of three closed lines, each serving as an outer to a
+        // multipolygon relation. Two of the outers span the border of two countries, while one is
+        // entirely within a country.
+        final Atlas rawAtlas = this.setup.getSimpleMultiPolygonAtlas();
+        Assert.assertEquals(3, rawAtlas.numberOfLines());
+        Assert.assertEquals(12, rawAtlas.numberOfPoints());
+        Assert.assertEquals(1, rawAtlas.numberOfRelations());
+
+        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
+                COUNTRY_BOUNDARY_MAP);
+        final Atlas slicedAtlas = slicer.slice();
+
+        Assert.assertEquals(27, slicedAtlas.numberOfPoints());
+        Assert.assertEquals(5, slicedAtlas.numberOfLines());
+        Assert.assertEquals(2, slicedAtlas.numberOfRelations());
+    }
+
+    @Test
+    public void testMultiPolygonWithClosedLinesSpanningTwoCountries()
+    {
+        // This relation is made up of closed lines, tied together by a relation, to create a
         // MultiPolygon with the outer spanning two countries and the inner fully inside one
         // country.
-        final Atlas rawAtlas = this.setup.getComplexMultiPolygonWithHoleAtlas();
+        final Atlas rawAtlas = this.setup.getComplexMultiPolygonWithHoleUsingClosedLinesAtlas();
 
-        System.out.println(rawAtlas);
+        Assert.assertEquals(2, rawAtlas.numberOfLines());
+        Assert.assertEquals(9, rawAtlas.numberOfPoints());
+        Assert.assertEquals(1, rawAtlas.numberOfRelations());
+
+        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
+                COUNTRY_BOUNDARY_MAP);
+        final Atlas slicedAtlas = slicer.slice();
+
+        Assert.assertEquals(3, slicedAtlas.numberOfLines());
+        Assert.assertEquals(14, slicedAtlas.numberOfPoints());
+        Assert.assertEquals(2, slicedAtlas.numberOfRelations());
+
+        // Just for fun (and to validate the sliced multi-polygon validity) - create Complex
+        // Entities and make sure they are valid.
+        final Iterable<ComplexWaterEntity> waterEntities = new ComplexWaterEntityFinder()
+                .find(slicedAtlas, Finder::ignore);
+        Assert.assertEquals(2, Iterables.size(waterEntities));
+    }
+
+    @Test
+    public void testMultiPolygonWithOpenLinesSpanningTwoCountries()
+    {
+        // This relation is made up of open lines, tied together by a relation to create a
+        // MultiPolygon with the outer spanning two countries and the inner fully inside one
+        // country.
+        final Atlas rawAtlas = this.setup.getComplexMultiPolygonWithHoleUsingOpenLinesAtlas();
 
         Assert.assertEquals(4, rawAtlas.numberOfLines());
         Assert.assertEquals(9, rawAtlas.numberOfPoints());
@@ -87,8 +114,6 @@ public class RawAtlasRelationSlicingTest
         final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
                 COUNTRY_BOUNDARY_MAP);
         final Atlas slicedAtlas = slicer.slice();
-
-        System.out.println(slicedAtlas);
 
         Assert.assertEquals(8, slicedAtlas.numberOfLines());
         Assert.assertEquals(14, slicedAtlas.numberOfPoints());
@@ -102,44 +127,7 @@ public class RawAtlasRelationSlicingTest
     }
 
     @Test
-    public void testMultiPolygonRelationSpanningTwoCountries()
-    {
-        // This relation is made up of three closed lines, each serving as an outer to a
-        // multipolygon relation. Two of the outers span the border of two countries, while one is
-        // entirely within a country.
-        final Atlas rawAtlas = this.setup.getSimpleMultiPolygonAtlas();
-        Assert.assertEquals(3, rawAtlas.numberOfLines());
-        Assert.assertEquals(12, rawAtlas.numberOfPoints());
-        Assert.assertEquals(1, rawAtlas.numberOfRelations());
-
-        System.out.println(rawAtlas);
-
-        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
-                COUNTRY_BOUNDARY_MAP);
-        final Atlas slicedAtlas = slicer.slice();
-
-        Assert.assertEquals(27, slicedAtlas.numberOfPoints());
-        Assert.assertEquals(5, slicedAtlas.numberOfLines());
-        Assert.assertEquals(2, slicedAtlas.numberOfRelations());
-
-        System.out.println(slicedAtlas);
-
-    }
-
-    @Test
-    public void testSimpleRelationInsideSingleCountry()
-    {
-
-    }
-
-    @Test
-    public void testSimpleRelationWithHoleInsideSingleCountry()
-    {
-
-    }
-
-    @Test
-    public void testSimpleRelationWithHoleSpanningTwoCountries()
+    public void testSimpleMulitPolygonWithHoleSpanningTwoCountries()
     {
         // This relation is made up of two closed lines, forming a multi-polygon with one inner and
         // one outer, both spanning the boundary of two countries.
@@ -158,6 +146,26 @@ public class RawAtlasRelationSlicingTest
         Assert.assertFalse("", slicedAtlas.numberOfPoints() == 22);
         Assert.assertEquals(29, slicedAtlas.numberOfPoints());
         Assert.assertEquals(2, slicedAtlas.numberOfLines());
+        Assert.assertEquals(2, slicedAtlas.numberOfRelations());
+    }
+
+    @Test
+    public void testSingleOuterMadeOfOpenLinesSpanningTwoCountries()
+    {
+        // This relation is made up of two open lines, both crossing the country boundary and
+        // forming a multi-polygon with one outer.
+        final Atlas rawAtlas = this.setup.getSingleOuterMadeOfOpenLinesSpanningTwoCountriesAtlas();
+        Assert.assertEquals(2, rawAtlas.numberOfLines());
+        Assert.assertEquals(9, rawAtlas.numberOfPoints());
+        Assert.assertEquals(1, rawAtlas.numberOfRelations());
+
+        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
+                COUNTRY_BOUNDARY_MAP);
+        final Atlas slicedAtlas = slicer.slice();
+
+        Assert.assertFalse("", slicedAtlas.numberOfPoints() == 22);
+        Assert.assertEquals(16, slicedAtlas.numberOfPoints());
+        Assert.assertEquals(6, slicedAtlas.numberOfLines());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());
     }
 }

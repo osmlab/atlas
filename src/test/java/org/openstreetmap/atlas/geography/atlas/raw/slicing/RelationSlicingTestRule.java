@@ -48,6 +48,45 @@ public class RelationSlicingTestRule extends CoreTestRule
     private static final String LOCATION_28 = "6.86431539572,-8.32451123267";
     private static final String LOCATION_29 = "6.86573174578,-8.32812090707";
 
+    private static final String LOCATION_30 = "6.87133198688,-8.33750935353";
+    private static final String LOCATION_31 = "6.88017051964,-8.33197681515";
+    private static final String LOCATION_32 = "6.87441616889,-8.32877230817";
+    private static final String LOCATION_33 = "6.8837848,-8.3389237";
+    private static final String LOCATION_34 = "6.87142836787,-8.33437857895";
+    private static final String LOCATION_35 = "6.87193436775,-8.33149050006";
+    private static final String LOCATION_36 = "6.883466,-8.328271";
+    private static final String LOCATION_37 = "6.87407883746,-8.34039743242";
+    private static final String LOCATION_38 = "6.87822317845,-8.33993631058";
+
+    @TestAtlas(
+
+            points = { @Point(id = "214776000000", coordinates = @Loc(value = LOCATION_30)),
+                    @Point(id = "214775000000", coordinates = @Loc(value = LOCATION_31)),
+                    @Point(id = "214774000000", coordinates = @Loc(value = LOCATION_32)),
+                    @Point(id = "214773000000", coordinates = @Loc(value = LOCATION_33)),
+                    @Point(id = "214772000000", coordinates = @Loc(value = LOCATION_34)),
+                    @Point(id = "214771000000", coordinates = @Loc(value = LOCATION_35)),
+                    @Point(id = "214770000000", coordinates = @Loc(value = LOCATION_36)),
+                    @Point(id = "214769000000", coordinates = @Loc(value = LOCATION_37)),
+                    @Point(id = "214768000000", coordinates = @Loc(value = LOCATION_38)) },
+
+            lines = {
+                    @Line(id = "214778000000", coordinates = { @Loc(value = LOCATION_38),
+                            @Loc(value = LOCATION_31),
+                            @Loc(value = LOCATION_32) }, tags = { "highway=residential" }),
+                    @Line(id = "214777000000", coordinates = { @Loc(value = LOCATION_38),
+                            @Loc(value = LOCATION_37), @Loc(value = LOCATION_30),
+                            @Loc(value = LOCATION_34), @Loc(value = LOCATION_35),
+                            @Loc(value = LOCATION_32) }, tags = { "highway=primary" }) },
+
+            relations = {
+
+                    @Relation(id = "214805000000", tags = { "type=multipolygon",
+                            "leisure=park" }, members = {
+                                    @Member(id = "214777000000", role = "outer", type = "line"),
+                                    @Member(id = "214778000000", role = "outer", type = "line") }) })
+    private Atlas singleOuterMadeOfOpenLinesSpanningTwoCountries;
+
     @TestAtlas(
 
             points = { @Point(id = "214602000000", coordinates = @Loc(value = LOCATION_1)),
@@ -121,7 +160,38 @@ public class RelationSlicingTestRule extends CoreTestRule
                                     @Member(id = "106036000000", role = "inner", type = "line") })
 
             })
-    private Atlas complexMuliPolygonWithHole;
+    private Atlas complexMuliPolygonWithHoleUsingOpenLines;
+
+    @TestAtlas(
+
+            points = { @Point(id = "106032000000", coordinates = @Loc(value = LOCATION_21)),
+                    @Point(id = "106031000000", coordinates = @Loc(value = LOCATION_22)),
+                    @Point(id = "106030000000", coordinates = @Loc(value = LOCATION_23)),
+                    @Point(id = "106029000000", coordinates = @Loc(value = LOCATION_24)),
+                    @Point(id = "106028000000", coordinates = @Loc(value = LOCATION_25)),
+                    @Point(id = "106027000000", coordinates = @Loc(value = LOCATION_26)),
+                    @Point(id = "106026000000", coordinates = @Loc(value = LOCATION_27)),
+                    @Point(id = "106025000000", coordinates = @Loc(value = LOCATION_28)),
+                    @Point(id = "106024000000", coordinates = @Loc(value = LOCATION_29)) },
+
+            lines = { @Line(id = "106036000000", coordinates = { @Loc(value = LOCATION_28),
+                    @Loc(value = LOCATION_21), @Loc(value = LOCATION_27), @Loc(value = LOCATION_26),
+                    @Loc(value = LOCATION_28) }, tags = { "highway=primary" }),
+
+                    @Line(id = "106034000000", coordinates = { @Loc(value = LOCATION_23),
+                            @Loc(value = LOCATION_29), @Loc(value = LOCATION_24),
+                            @Loc(value = LOCATION_25), @Loc(value = LOCATION_22),
+                            @Loc(value = LOCATION_23) }, tags = { "highway=secondary" }) },
+
+            relations = {
+
+                    @Relation(id = "214805000000", tags = { "type=multipolygon",
+                            "natural=water" }, members = {
+                                    @Member(id = "106034000000", role = "outer", type = "line"),
+                                    @Member(id = "106036000000", role = "inner", type = "line") })
+
+            })
+    private Atlas complexMuliPolygonWithHoleUsingClosedLines;
 
     @TestAtlas(
 
@@ -151,9 +221,14 @@ public class RelationSlicingTestRule extends CoreTestRule
             })
     private Atlas multiPolygonWithHole;
 
-    public Atlas getComplexMultiPolygonWithHoleAtlas()
+    public Atlas getComplexMultiPolygonWithHoleUsingClosedLinesAtlas()
     {
-        return this.complexMuliPolygonWithHole;
+        return this.complexMuliPolygonWithHoleUsingClosedLines;
+    }
+
+    public Atlas getComplexMultiPolygonWithHoleUsingOpenLinesAtlas()
+    {
+        return this.complexMuliPolygonWithHoleUsingOpenLines;
     }
 
     public Atlas getSimpleMultiPolygonAtlas()
@@ -164,5 +239,10 @@ public class RelationSlicingTestRule extends CoreTestRule
     public Atlas getSimpleMultiPolygonWithHoleAtlas()
     {
         return this.multiPolygonWithHole;
+    }
+
+    public Atlas getSingleOuterMadeOfOpenLinesSpanningTwoCountriesAtlas()
+    {
+        return this.singleOuterMadeOfOpenLinesSpanningTwoCountries;
     }
 }
