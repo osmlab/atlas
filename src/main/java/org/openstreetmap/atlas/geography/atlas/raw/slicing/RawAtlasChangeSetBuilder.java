@@ -230,7 +230,8 @@ public class RawAtlasChangeSetBuilder
     }
 
     /**
-     * TODO Might require updates after relation slicing
+     * Update {@link Relation} members by replacing any deleted {@link Line} members with their
+     * created substitutes.
      */
     private void updateAndAddRelations()
     {
