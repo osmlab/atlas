@@ -1,9 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -25,18 +24,17 @@ import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.AbstractIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.CountrySlicingIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.RawAtlasChangeSetBuilder;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.RawAtlasRelationChangeSet;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.RawAtlasRelationChangeSetBuilder;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.RawAtlasSimpleChangeSet;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.RawAtlasSimpleChangeSetBuilder;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.PolygonPiece;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.ChangeSetHandler;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.RelationChangeSet;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.RelationChangeSetHandler;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.SimpleChangeSet;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.SimpleChangeSetHandler;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryLine;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryPoint;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRelation;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRelationMember;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
-import org.openstreetmap.atlas.geography.converters.jts.JtsCoordinateArrayConverter;
+import org.openstreetmap.atlas.geography.converters.MultiplePolyLineToPolygonsConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsLinearRingConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
@@ -75,10 +73,9 @@ public class RawAtlasCountrySlicer
     private static final JtsPolyLineConverter JTS_POLYLINE_CONVERTER = new JtsPolyLineConverter();
     private static final JtsLocationConverter JTS_LOCATION_CONVERTER = new JtsLocationConverter();
     private static final JtsLinearRingConverter JTS_LINEAR_RING_CONVERTER = new JtsLinearRingConverter();
-    private static final JtsCoordinateArrayConverter JTS_COORDINATE_CONVERTER = new JtsCoordinateArrayConverter();
+    private static final MultiplePolyLineToPolygonsConverter MULTIPLE_POLY_LINE_TO_POLYGON_CONVERTER = new MultiplePolyLineToPolygonsConverter();
 
     // Constants
-    private static final int JTS_MINIMUM_RING_SIZE = 4;
     private static final double COORDINATE_PRECISION_SCALE = 10_000_000;
 
     // The raw Atlas to slice
@@ -91,8 +88,8 @@ public class RawAtlasCountrySlicer
     private final CountryBoundaryMap countryBoundaryMap;
 
     // Keep track of changes made during Point/Line and Relation slicing
-    private final RawAtlasSimpleChangeSet slicedPointAndLineChanges = new RawAtlasSimpleChangeSet();
-    private final RawAtlasRelationChangeSet slicedRelationChanges = new RawAtlasRelationChangeSet();
+    private final SimpleChangeSet slicedPointAndLineChanges = new SimpleChangeSet();
+    private final RelationChangeSet slicedRelationChanges = new RelationChangeSet();
 
     // Mapping between Coordinate and created Temporary Point identifiers. This is to avoid
     // duplicate points at the same locations and to allow fast lookup to construct new lines
@@ -126,98 +123,6 @@ public class RawAtlasCountrySlicer
     }
 
     /**
-     * Creates a mapping of all inner rings enclosed by the outer rings.
-     *
-     * @param outerToInnerMap
-     *            The mapping to update any time we find an outer ring that contains an inner ring
-     * @param outerRings
-     *            The list of outer {@link LinearRing}s to use
-     * @param innerRings
-     *            The list of inner {@link LinearRing}s to use
-     */
-    final void findEnclosedRings(final MultiMap<Integer, Integer> outerToInnerMap,
-            final List<LinearRing> outerRings, final List<LinearRing> innerRings)
-    {
-        for (int innerIndex = 0; innerIndex < innerRings.size(); innerIndex++)
-        {
-            final LinearRing inner = innerRings.get(innerIndex);
-            boolean foundEnclosingOuter = false;
-            for (int outerIndex = 0; outerIndex < outerRings.size(); outerIndex++)
-            {
-                final LinearRing outer = outerRings.get(outerIndex);
-                final com.vividsolutions.jts.geom.Polygon outerPolygon = new com.vividsolutions.jts.geom.Polygon(
-                        outer, null, JtsUtility.GEOMETRY_FACTORY);
-                if (outerPolygon.contains(inner))
-                {
-                    foundEnclosingOuter = true;
-                    outerToInnerMap.add(outerIndex, innerIndex);
-                }
-            }
-
-            if (!foundEnclosingOuter)
-            {
-                // Isolated inner ring, invalid multipolygon
-                logger.error("Found isolated inner member for Multipolygon Relation geometry: {}",
-                        inner);
-            }
-        }
-    }
-
-    /**
-     * @param closedOuterLines
-     *            The list of closed outer {@link Line}s to use
-     * @param closedInnerLines
-     *            The list of closed inner {@link Line}s to use
-     * @return a mapping of intersecting outer to inner relation members
-     */
-    final MultiMap<Integer, Integer> findIntersectingMembers(final List<Line> closedOuterLines,
-            final List<Line> closedInnerLines)
-    {
-        final MultiMap<Integer, Integer> outerToInnerIntersectionMap = new MultiMap<>();
-
-        if (!closedOuterLines.isEmpty() && !closedInnerLines.isEmpty())
-        {
-            for (int innerIndex = 0; innerIndex < closedInnerLines.size(); innerIndex++)
-            {
-                final Line inner = closedInnerLines.get(innerIndex);
-                for (int outerIndex = 0; outerIndex < closedOuterLines.size(); outerIndex++)
-                {
-                    final Line outer = closedOuterLines.get(outerIndex);
-
-                    // Make sure we're looking at the same country
-                    if (fromSameCountry(outer, inner))
-                    {
-                        if (outer.intersects(new Polygon(inner)))
-                        {
-                            outerToInnerIntersectionMap.add(outerIndex, innerIndex);
-                        }
-                    }
-                }
-            }
-        }
-
-        return outerToInnerIntersectionMap;
-    }
-
-    /**
-     * @param one
-     *            The first {@link Line}
-     * @param two
-     *            The second {@link Line}
-     * @return {@code true} if both lines belong to the same country
-     */
-    final boolean fromSameCountry(final Line one, final Line two)
-    {
-        final Optional<IsoCountry> countryOne = ISOCountryTag.first(one);
-        final Optional<IsoCountry> countryTwo = ISOCountryTag.first(two);
-        if (countryOne.isPresent() && countryTwo.isPresent())
-        {
-            return countryOne.get().equals(countryTwo.get());
-        }
-        return false;
-    }
-
-    /**
      * Country-slice the given Atlas. The slicing flow is:
      * <p>
      * <ul>
@@ -240,8 +145,8 @@ public class RawAtlasCountrySlicer
         slicePoints();
 
         // Apply changes and rebuild the atlas with the changes before slicing relations
-        final RawAtlasChangeSetBuilder simpleChangeBuilder = new RawAtlasSimpleChangeSetBuilder(
-                this.rawAtlas, this.slicedPointAndLineChanges);
+        final ChangeSetHandler simpleChangeBuilder = new SimpleChangeSetHandler(this.rawAtlas,
+                this.slicedPointAndLineChanges);
         final Atlas atlasWithSlicedWaysAndPoints = simpleChangeBuilder.applyChanges();
         this.rawAtlas = atlasWithSlicedWaysAndPoints;
 
@@ -249,8 +154,8 @@ public class RawAtlasCountrySlicer
         sliceRelations();
 
         // Apply changes from relation slicing and rebuild the fully-sliced atlas
-        final RawAtlasChangeSetBuilder relationChangeBuilder = new RawAtlasRelationChangeSetBuilder(
-                this.rawAtlas, this.slicedRelationChanges);
+        final ChangeSetHandler relationChangeBuilder = new RelationChangeSetHandler(this.rawAtlas,
+                this.slicedRelationChanges);
         final Atlas fullySlicedAtlas = relationChangeBuilder.applyChanges();
         logger.info("Finished country slicing Atlas {}", this.rawAtlas.getName());
 
@@ -271,83 +176,24 @@ public class RawAtlasCountrySlicer
             final long relationIdentifier)
     {
         final List<LinearRing> results = new ArrayList<>();
-        final List<PolygonPiece> pieces = new ArrayList<>(members.size());
-        final Deque<PolygonPiece> stack = new ArrayDeque<>(members.size());
+        final List<PolyLine> linePieces = new ArrayList<>(members.size());
 
         for (final RelationMember member : members)
         {
+            // We can assume all members are lines since we've already filtered out non-line members
             final Line line = this.rawAtlas.line(member.getEntity().getIdentifier());
             if (line == null)
             {
-                logger.error("Relation {} has a member {} that's not in the Atlas",
+                throw new CoreException("Relation {} has a member {} that's not in the raw atlas",
                         relationIdentifier, member.getEntity().getIdentifier());
-                return null;
             }
 
-            final PolygonPiece piece = new PolygonPiece(line);
-            pieces.add(piece);
-            stack.push(piece);
+            linePieces.add(line.asPolyLine());
         }
 
-        while (!stack.isEmpty())
-        {
-            final PolygonPiece currentPiece = stack.pop();
-            while (!currentPiece.isClosed())
-            {
-                boolean foundConnection = false;
-
-                // Try all the members first
-                for (final PolygonPiece piece : stack)
-                {
-                    if (currentPiece.getEndNode().equals(piece.getStartNode()))
-                    {
-                        foundConnection = true;
-                        currentPiece.merge(piece, false, false);
-                    }
-                    else if (currentPiece.getEndNode().equals(piece.getEndNode()))
-                    {
-                        foundConnection = true;
-                        currentPiece.merge(piece, false, true);
-                    }
-                    else if (currentPiece.getStartNode().equals(piece.getStartNode()))
-                    {
-                        foundConnection = true;
-                        currentPiece.merge(piece, true, false);
-                    }
-                    else if (currentPiece.getStartNode().equals(piece.getEndNode()))
-                    {
-                        foundConnection = true;
-                        currentPiece.merge(piece, true, true);
-                    }
-
-                    if (foundConnection)
-                    {
-                        stack.remove(piece);
-                        break;
-                    }
-                }
-
-                if (!foundConnection)
-                {
-                    logger.error("Relation {} is a multipolygon that has a detached line {}",
-                            relationIdentifier, currentPiece.getIdentifier());
-                    return null;
-                }
-            }
-
-            if (currentPiece.getLocations().size() < JTS_MINIMUM_RING_SIZE)
-            {
-                logger.warn(
-                        "Relation {} claims to be multipolygon, but doesn't have a valid closed way {}",
-                        relationIdentifier, currentPiece.getIdentifier());
-                return null;
-            }
-
-            // If we reach here, we have a closed way and can build a valid LineRing
-            results.add(JtsUtility.buildLinearRing(
-                    JTS_COORDINATE_CONVERTER.convert(currentPiece.getLocations())));
-        }
-
+        final Iterable<Polygon> polygons = MULTIPLE_POLY_LINE_TO_POLYGON_CONVERTER
+                .convert(linePieces);
+        polygons.forEach(polygon -> results.add(JTS_LINEAR_RING_CONVERTER.convert(polygon)));
         return results;
     }
 
@@ -620,6 +466,98 @@ public class RawAtlasCountrySlicer
     }
 
     /**
+     * Creates a mapping of all inner rings enclosed by the outer rings.
+     *
+     * @param outerToInnerMap
+     *            The mapping to update any time we find an outer ring that contains an inner ring
+     * @param outerRings
+     *            The list of outer {@link LinearRing}s to use
+     * @param innerRings
+     *            The list of inner {@link LinearRing}s to use
+     */
+    private void findEnclosedRings(final MultiMap<Integer, Integer> outerToInnerMap,
+            final List<LinearRing> outerRings, final List<LinearRing> innerRings)
+    {
+        for (int innerIndex = 0; innerIndex < innerRings.size(); innerIndex++)
+        {
+            final LinearRing inner = innerRings.get(innerIndex);
+            boolean foundEnclosingOuter = false;
+            for (int outerIndex = 0; outerIndex < outerRings.size(); outerIndex++)
+            {
+                final LinearRing outer = outerRings.get(outerIndex);
+                final com.vividsolutions.jts.geom.Polygon outerPolygon = new com.vividsolutions.jts.geom.Polygon(
+                        outer, null, JtsUtility.GEOMETRY_FACTORY);
+                if (outerPolygon.contains(inner))
+                {
+                    foundEnclosingOuter = true;
+                    outerToInnerMap.add(outerIndex, innerIndex);
+                }
+            }
+
+            if (!foundEnclosingOuter)
+            {
+                // Isolated inner ring, invalid multipolygon
+                logger.error("Found isolated inner member for Multipolygon Relation geometry: {}",
+                        inner);
+            }
+        }
+    }
+
+    /**
+     * @param closedOuterLines
+     *            The list of closed outer {@link Line}s to use
+     * @param closedInnerLines
+     *            The list of closed inner {@link Line}s to use
+     * @return a mapping of intersecting outer to inner relation members
+     */
+    private MultiMap<Integer, Integer> findIntersectingMembers(final List<Line> closedOuterLines,
+            final List<Line> closedInnerLines)
+    {
+        final MultiMap<Integer, Integer> outerToInnerIntersectionMap = new MultiMap<>();
+
+        if (!closedOuterLines.isEmpty() && !closedInnerLines.isEmpty())
+        {
+            for (int innerIndex = 0; innerIndex < closedInnerLines.size(); innerIndex++)
+            {
+                final Line inner = closedInnerLines.get(innerIndex);
+                for (int outerIndex = 0; outerIndex < closedOuterLines.size(); outerIndex++)
+                {
+                    final Line outer = closedOuterLines.get(outerIndex);
+
+                    // Make sure we're looking at the same country
+                    if (fromSameCountry(outer, inner))
+                    {
+                        if (outer.intersects(new Polygon(inner)))
+                        {
+                            outerToInnerIntersectionMap.add(outerIndex, innerIndex);
+                        }
+                    }
+                }
+            }
+        }
+
+        return outerToInnerIntersectionMap;
+    }
+
+    /**
+     * @param one
+     *            The first {@link Line}
+     * @param two
+     *            The second {@link Line}
+     * @return {@code true} if both lines belong to the same country
+     */
+    private boolean fromSameCountry(final Line one, final Line two)
+    {
+        final Optional<IsoCountry> countryOne = ISOCountryTag.first(one);
+        final Optional<IsoCountry> countryTwo = ISOCountryTag.first(two);
+        if (countryOne.isPresent() && countryTwo.isPresent())
+        {
+            return countryOne.get().equals(countryTwo.get());
+        }
+        return false;
+    }
+
+    /**
      * @param relationIdentifier
      *            The {@link Relation} identifier whose members we're processing
      * @param members
@@ -681,7 +619,8 @@ public class RawAtlasCountrySlicer
                     }
                     else
                     {
-                        throw new CoreException("Unsupported Relation Member of Type {}",
+                        throw new CoreException(
+                                "Unsupported Relation Member of Type {} in Raw Atlas",
                                 member.getType());
                     }
 
@@ -1061,8 +1000,8 @@ public class RawAtlasCountrySlicer
     /**
      * Processes each slice by updating corresponding tags ({@link ISOCountryTag},
      * {@link SyntheticNearestNeighborCountryCodeTag}, {@link SyntheticBoundaryNodeTag} and creating
-     * {@link RawAtlasSimpleChangeSet}s to keep track of created, updated and deleted {@link Point}s
-     * and {@link Line}s.
+     * {@link SimpleChangeSet}s to keep track of created, updated and deleted {@link Point}s and
+     * {@link Line}s.
      *
      * @param line
      *            The {@link Line} that was sliced
@@ -1369,8 +1308,8 @@ public class RawAtlasCountrySlicer
                         }
                         break;
                     default:
-                        // Raw Atlas should not have any other types than the ones here
-                        throw new CoreException("Unsupported {} Member for Relation {}", memberType,
+                        throw new CoreException(
+                                "Unsupported {} Member for Relation {} for a Raw Atlas", memberType,
                                 relation.getIdentifier());
                 }
             }

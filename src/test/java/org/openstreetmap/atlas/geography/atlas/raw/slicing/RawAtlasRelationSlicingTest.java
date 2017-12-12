@@ -49,8 +49,10 @@ public class RawAtlasRelationSlicingTest
                                 .withDecompressor(Decompressor.GZIP));
     }
 
-    // TODO - test with multiple inners across boundary
-    // TODO - test with relations of relations
+    // TODO - test with multiple inners across boundary, relations of relations, malformed relations
+    // (non-closed polylines, inner with no outer, inner partially out of outer, self-intersecting
+    // outer or inner, inner with different country code than outer). Consider moving this into a
+    // separate class to distinguish happy path vs. non-happy
 
     @Test
     public void testMultiPolygonRelationSpanningTwoCountries()

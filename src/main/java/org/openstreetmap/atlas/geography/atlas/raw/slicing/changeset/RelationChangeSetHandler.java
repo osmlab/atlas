@@ -17,17 +17,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link RawAtlasRelationChangeSetBuilder} is responsible for applying a
- * {@link RawAtlasRelationChangeSet} to a given {@link Atlas}.
+ * The {@link RelationChangeSetHandler} is responsible for applying a {@link RelationChangeSet} to a
+ * given {@link Atlas}.
  *
  * @author mgostintsev
  */
-public class RawAtlasRelationChangeSetBuilder extends RawAtlasChangeSetBuilder
+public class RelationChangeSetHandler extends ChangeSetHandler
 {
-    private static final Logger logger = LoggerFactory
-            .getLogger(RawAtlasRelationChangeSetBuilder.class);
+    private static final Logger logger = LoggerFactory.getLogger(RelationChangeSetHandler.class);
 
-    private final RawAtlasRelationChangeSet changeSet;
+    private final RelationChangeSet changeSet;
 
     /**
      * Default constructor.
@@ -35,10 +34,9 @@ public class RawAtlasRelationChangeSetBuilder extends RawAtlasChangeSetBuilder
      * @param atlas
      *            The {@link Atlas} to apply changes to
      * @param changeSet
-     *            The {@link RawAtlasRelationChangeSet} to apply
+     *            The {@link RelationChangeSet} to apply
      */
-    public RawAtlasRelationChangeSetBuilder(final Atlas atlas,
-            final RawAtlasRelationChangeSet changeSet)
+    public RelationChangeSetHandler(final Atlas atlas, final RelationChangeSet changeSet)
     {
         super(atlas);
         this.changeSet = changeSet;

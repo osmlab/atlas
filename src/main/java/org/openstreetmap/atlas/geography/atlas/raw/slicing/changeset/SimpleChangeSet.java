@@ -10,8 +10,8 @@ import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryLi
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryPoint;
 
 /**
- * Records any additions, updates and deletions that occurred during point and way slicing. We try
- * to keep this class as light-weight as possible. For additions, we rely on the
+ * Records any additions, updates and deletions that occurred during point and way raw Atlas
+ * slicing. We try to keep this class as light-weight as possible. For additions, we rely on the
  * {@link TemporaryEntity} objects to keep track of the bare minimum needed to create Atlas
  * entities. For tag updates, we store a mapping between the identifier of the object and the added
  * tags. For deletions, we store the set of identifiers to delete. We also keep a mapping between
@@ -21,7 +21,7 @@ import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryPo
  *
  * @author mgostintsev
  */
-public class RawAtlasSimpleChangeSet
+public class SimpleChangeSet
 {
     // TODO Use TagMap instead of Map<String, String>
 
@@ -39,7 +39,7 @@ public class RawAtlasSimpleChangeSet
     // replacing them with the created sliced segments.
     private final Map<Long, Set<Long>> deletedToCreatedLineMapping;
 
-    public RawAtlasSimpleChangeSet()
+    public SimpleChangeSet()
     {
         this.createdPoints = new HashSet<>();
         this.updatedPointTags = new HashMap<>();

@@ -14,11 +14,12 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryLine;
 
 /**
- * Base class that holds common functionality for updating a raw Atlas with a slicing change set.
+ * Base class that contains common functionality for applying a given slicing change set to a raw
+ * Atlas.
  *
  * @author mgostintsev
  */
-public abstract class RawAtlasChangeSetBuilder
+public abstract class ChangeSetHandler
 {
     // The scaling factor for calculating approximate atlas size
     private static final double ENTITY_SCALING_FACTOR = 1.2;
@@ -26,7 +27,7 @@ public abstract class RawAtlasChangeSetBuilder
     private final Atlas atlas;
     private final PackedAtlasBuilder builder = new PackedAtlasBuilder();
 
-    protected RawAtlasChangeSetBuilder(final Atlas atlas)
+    protected ChangeSetHandler(final Atlas atlas)
     {
         this.atlas = atlas;
     }

@@ -13,8 +13,8 @@ import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRe
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 
 /**
- * Records any additions, updates and deletions that occurred during relation slicing. We try to
- * keep this class as light-weight as possible. For additions, we rely on the
+ * Records any additions, updates and deletions that occurred during relation raw Atlas slicing. We
+ * try to keep this class as light-weight as possible. For additions, we rely on the
  * {@link TemporaryEntity} objects to keep track of the bare minimum needed to create Atlas
  * entities. This change set definition assumes that all individual ways and points have already
  * been sliced. The following cases are handled.
@@ -33,14 +33,14 @@ import org.openstreetmap.atlas.utilities.maps.MultiMap;
  * an open mulitpolygon closed again
  * <li>7. Relation member deletion - a relation member could have been deleted if two or more
  * members were merged into one
- * <li>8. Line deletion - in the rare case, we might delete a line that was added during way-slicing
- * and is no longer needed
+ * <li>8. Line deletion - in the rare case, we might delete a line that was added during country
+ * slicing of ways and is no longer needed
  * </ul>
  * <p>
  *
  * @author mgostintsev
  */
-public class RawAtlasRelationChangeSet
+public class RelationChangeSet
 {
     // Created entities
     private final Set<TemporaryPoint> createdPoints;
@@ -56,7 +56,7 @@ public class RawAtlasRelationChangeSet
     private final Set<Long> deletedLines;
     private final Set<Long> deletedRelations;
 
-    public RawAtlasRelationChangeSet()
+    public RelationChangeSet()
     {
         this.createdPoints = new HashSet<>();
         this.createdLines = new HashMap<>();

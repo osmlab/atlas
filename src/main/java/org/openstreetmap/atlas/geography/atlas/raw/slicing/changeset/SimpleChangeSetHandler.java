@@ -15,17 +15,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link RawAtlasSimpleChangeSetBuilder} is responsible for applying a
- * {@link RawAtlasSimpleChangeSet} to a given {@link Atlas}.
+ * The {@link SimpleChangeSetHandler} is responsible for applying a {@link SimpleChangeSet} to a
+ * given {@link Atlas}.
  *
  * @author mgostintsev
  */
-public class RawAtlasSimpleChangeSetBuilder extends RawAtlasChangeSetBuilder
+public class SimpleChangeSetHandler extends ChangeSetHandler
 {
-    private static final Logger logger = LoggerFactory
-            .getLogger(RawAtlasSimpleChangeSetBuilder.class);
+    private static final Logger logger = LoggerFactory.getLogger(SimpleChangeSetHandler.class);
 
-    private final RawAtlasSimpleChangeSet changeSet;
+    private final SimpleChangeSet changeSet;
 
     /**
      * Default constructor.
@@ -33,10 +32,9 @@ public class RawAtlasSimpleChangeSetBuilder extends RawAtlasChangeSetBuilder
      * @param atlas
      *            The {@link Atlas} to apply changes to
      * @param changeSet
-     *            The {@link RawAtlasSimpleChangeSet} to apply
+     *            The {@link SimpleChangeSet} to apply
      */
-    public RawAtlasSimpleChangeSetBuilder(final Atlas atlas,
-            final RawAtlasSimpleChangeSet changeSet)
+    public SimpleChangeSetHandler(final Atlas atlas, final SimpleChangeSet changeSet)
     {
         super(atlas);
         this.changeSet = changeSet;
