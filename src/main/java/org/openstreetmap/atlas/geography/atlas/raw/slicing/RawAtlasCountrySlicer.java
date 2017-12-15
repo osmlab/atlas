@@ -76,7 +76,7 @@ public class RawAtlasCountrySlicer
     private static final MultiplePolyLineToPolygonsConverter MULTIPLE_POLY_LINE_TO_POLYGON_CONVERTER = new MultiplePolyLineToPolygonsConverter();
 
     // Constants
-    private static final double COORDINATE_PRECISION_SCALE = 10_000_000;
+    private static final double SEVEN_DIGIT_PRECISION_SCALE = 10_000_000;
 
     // The raw Atlas to slice
     private Atlas rawAtlas;
@@ -108,10 +108,10 @@ public class RawAtlasCountrySlicer
      */
     private static void roundCoordinate(final Coordinate coordinate)
     {
-        coordinate.x = Math.round(coordinate.x * COORDINATE_PRECISION_SCALE)
-                / COORDINATE_PRECISION_SCALE;
-        coordinate.y = Math.round(coordinate.y * COORDINATE_PRECISION_SCALE)
-                / COORDINATE_PRECISION_SCALE;
+        coordinate.x = Math.round(coordinate.x * SEVEN_DIGIT_PRECISION_SCALE)
+                / SEVEN_DIGIT_PRECISION_SCALE;
+        coordinate.y = Math.round(coordinate.y * SEVEN_DIGIT_PRECISION_SCALE)
+                / SEVEN_DIGIT_PRECISION_SCALE;
     }
 
     public RawAtlasCountrySlicer(final Atlas rawAtlas, final Set<IsoCountry> countries,
@@ -191,9 +191,21 @@ public class RawAtlasCountrySlicer
             linePieces.add(line.asPolyLine());
         }
 
-        final Iterable<Polygon> polygons = MULTIPLE_POLY_LINE_TO_POLYGON_CONVERTER
-                .convert(linePieces);
-        polygons.forEach(polygon -> results.add(JTS_LINEAR_RING_CONVERTER.convert(polygon)));
+        try
+        {
+            final Iterable<Polygon> polygons = MULTIPLE_POLY_LINE_TO_POLYGON_CONVERTER
+                    .convert(linePieces);
+            polygons.forEach(polygon -> results.add(JTS_LINEAR_RING_CONVERTER.convert(polygon)));
+        }
+        catch (final Exception e)
+        {
+            // Could not form closed rings for some of the members. Keep them in the Atlas, but note
+            // the issue.
+            logger.error(
+                    "One of the members for relation {} is invalid and does not form a closed ring!",
+                    relationIdentifier, e);
+        }
+
         return results;
     }
 
@@ -524,13 +536,10 @@ public class RawAtlasCountrySlicer
                 {
                     final Line outer = closedOuterLines.get(outerIndex);
 
-                    // Make sure we're looking at the same country
-                    if (fromSameCountry(outer, inner))
+                    // Make sure we're looking at the same country, not just intersection
+                    if (fromSameCountry(outer, inner) && outer.intersects(new Polygon(inner)))
                     {
-                        if (outer.intersects(new Polygon(inner)))
-                        {
-                            outerToInnerIntersectionMap.add(outerIndex, innerIndex);
-                        }
+                        outerToInnerIntersectionMap.add(outerIndex, innerIndex);
                     }
                 }
             }
@@ -569,26 +578,33 @@ public class RawAtlasCountrySlicer
     private List<RelationMember> generateMemberList(final long relationIdentifier,
             final List<RelationMember> members, final boolean closed)
     {
-        // Check if all outer ways are closed. If there are any that aren't closed, we need to
-        // build LineRings and fix the gaps
-        return members.stream().filter(member ->
+        if (members != null && !members.isEmpty())
         {
-            final Line line = this.rawAtlas.line(member.getEntity().getIdentifier());
-            if (line == null)
+            // Check if all outer ways are closed. If there are any that aren't closed, we need to
+            // build LineRings and fix the gaps
+            return members.stream().filter(member ->
             {
-                logger.error("Line member {} for Relation {} is not the in raw Atlas.",
-                        member.getEntity().getIdentifier(), relationIdentifier);
-            }
+                final Line line = this.rawAtlas.line(member.getEntity().getIdentifier());
+                if (line == null)
+                {
+                    logger.error("Line member {} for Relation {} is not the in raw Atlas.",
+                            member.getEntity().getIdentifier(), relationIdentifier);
+                }
 
-            if (!closed)
-            {
-                return line == null || !line.isClosed();
-            }
-            else
-            {
-                return line == null || line.isClosed();
-            }
-        }).collect(Collectors.toList());
+                if (!closed)
+                {
+                    return line == null || !line.isClosed();
+                }
+                else
+                {
+                    return line == null || line.isClosed();
+                }
+            }).collect(Collectors.toList());
+        }
+        else
+        {
+            return Collections.emptyList();
+        }
     }
 
     /**

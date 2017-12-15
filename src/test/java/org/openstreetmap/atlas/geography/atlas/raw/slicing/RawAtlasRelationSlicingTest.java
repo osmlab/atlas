@@ -49,10 +49,7 @@ public class RawAtlasRelationSlicingTest
                                 .withDecompressor(Decompressor.GZIP));
     }
 
-    // TODO - test with multiple inners across boundary, relations of relations, malformed relations
-    // (non-closed polylines, inner with no outer, inner partially out of outer, self-intersecting
-    // outer or inner, inner with different country code than outer). Consider moving this into a
-    // separate class to distinguish happy path vs. non-happy
+    // TODO - test with multiple inners across boundary, relations of relations
 
     @Test
     public void testMultiPolygonRelationSpanningTwoCountries()
@@ -145,7 +142,6 @@ public class RawAtlasRelationSlicingTest
         new ComplexBuildingFinder().find(slicedAtlas)
                 .forEach(building -> System.out.println(building));
 
-        Assert.assertFalse("", slicedAtlas.numberOfPoints() == 22);
         Assert.assertEquals(29, slicedAtlas.numberOfPoints());
         Assert.assertEquals(2, slicedAtlas.numberOfLines());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());
@@ -165,7 +161,6 @@ public class RawAtlasRelationSlicingTest
                 COUNTRY_BOUNDARY_MAP);
         final Atlas slicedAtlas = slicer.slice();
 
-        Assert.assertFalse("", slicedAtlas.numberOfPoints() == 22);
         Assert.assertEquals(16, slicedAtlas.numberOfPoints());
         Assert.assertEquals(6, slicedAtlas.numberOfLines());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());

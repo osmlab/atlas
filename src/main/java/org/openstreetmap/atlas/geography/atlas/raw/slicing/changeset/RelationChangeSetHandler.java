@@ -1,7 +1,9 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
@@ -165,8 +167,9 @@ public class RelationChangeSetHandler extends ChangeSetHandler
         final RelationBean bean = new RelationBean();
         if (!relation.members().isEmpty())
         {
-            final List<TemporaryRelationMember> membersToRemove = this.changeSet
-                    .getDeletedRelationMembers().get(relation.getIdentifier());
+            final List<TemporaryRelationMember> membersToRemove = Optional.ofNullable(
+                    this.changeSet.getDeletedRelationMembers().get(relation.getIdentifier()))
+                    .orElse(new ArrayList<>());
             relation.members().forEach(member ->
             {
                 // Only add the member if it wasn't on the list to be removed
@@ -179,8 +182,10 @@ public class RelationChangeSetHandler extends ChangeSetHandler
         }
 
         // Add any new members for this relation
-        for (final TemporaryRelationMember memberToAdd : this.changeSet.getAddedRelationMembers()
-                .get(relation.getIdentifier()))
+        final List<TemporaryRelationMember> membersToAdd = Optional
+                .ofNullable(this.changeSet.getAddedRelationMembers().get(relation.getIdentifier()))
+                .orElse(new ArrayList<>());
+        for (final TemporaryRelationMember memberToAdd : membersToAdd)
         {
             bean.addItem(memberToAdd.getIdentifier(), memberToAdd.getRole(), memberToAdd.getType());
         }
@@ -200,24 +205,16 @@ public class RelationChangeSetHandler extends ChangeSetHandler
     private boolean shouldAddRelationMember(final List<TemporaryRelationMember> membersToRemove,
             final RelationMember member)
     {
-        if (membersToRemove != null)
+        final TemporaryRelationMember temporary = new TemporaryRelationMember(
+                member.getEntity().getIdentifier(), member.getRole(), member.getEntity().getType());
+        if (membersToRemove.contains(temporary))
         {
-            final TemporaryRelationMember temporary = new TemporaryRelationMember(
-                    member.getEntity().getIdentifier(), member.getRole(),
-                    member.getEntity().getType());
-            if (membersToRemove.contains(temporary))
-            {
-                // Optimization to shorten our removal list
-                membersToRemove.remove(temporary);
-                return false;
-            }
+            // Optimization to shorten our removal list
+            membersToRemove.remove(temporary);
+            return false;
+        }
 
-            // If we get here, this member isn't on the list of removed members
-            return true;
-        }
-        else
-        {
-            return true;
-        }
+        // If we get here, this member isn't on the list of removed members
+        return true;
     }
 }

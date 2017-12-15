@@ -24,8 +24,8 @@ import com.vividsolutions.jts.geom.PrecisionModel;
  */
 public class CoordinateToNewPointMapping
 {
-    // See JTS Coordinate Javadoc for scale writeup
-    private static final Integer SCALE = 1_000_000;
+    // See JTS Coordinate Javadoc for scale usage
+    private static final Integer SIX_DIGIT_PRECISION_SCALE = 1_000_000;
 
     private final Map<Coordinate, Long> coordinateToPointIdentifierMap;
     private final PrecisionModel precisionModel;
@@ -33,7 +33,7 @@ public class CoordinateToNewPointMapping
     public CoordinateToNewPointMapping()
     {
         this.coordinateToPointIdentifierMap = new HashMap<>();
-        this.precisionModel = new PrecisionModel(SCALE);
+        this.precisionModel = new PrecisionModel(SIX_DIGIT_PRECISION_SCALE);
     }
 
     public boolean containsCoordinate(final Coordinate coordinate)
