@@ -516,6 +516,9 @@ public class RawAtlasCountrySlicer
     }
 
     /**
+     * Loops through all the outer and inner members and creates a mapping between an outer and all
+     * the inners that happen to intersect it.
+     *
      * @param closedOuterLines
      *            The list of closed outer {@link Line}s to use
      * @param closedInnerLines
@@ -549,6 +552,8 @@ public class RawAtlasCountrySlicer
     }
 
     /**
+     * Determines if the two given {@link Line}s belong to the same country.
+     *
      * @param one
      *            The first {@link Line}
      * @param two
@@ -563,10 +568,16 @@ public class RawAtlasCountrySlicer
         {
             return countryOne.get().equals(countryTwo.get());
         }
-        return false;
+
+        throw new CoreException(
+                "All raw Atlas lines must have a country code by the time Relation slicing is done. One of the two Lines {} or {} does not!",
+                one.getIdentifier(), two.getIdentifier());
     }
 
     /**
+     * Given a list of relation members, will generate a new list containing all existing, closed or
+     * non-closed (depending on given parameter) members.
+     *
      * @param relationIdentifier
      *            The {@link Relation} identifier whose members we're processing
      * @param members
@@ -830,8 +841,20 @@ public class RawAtlasCountrySlicer
                     successfulMerge = false;
                     logger.error(
                             "Error combining intersecting outer {} and inner {} members for relation {}",
-                            outer, inner, relationIdentifier);
+                            outer, inner, relationIdentifier, e);
                 }
+            }
+
+            // Make sure the merged piece is valid
+            final com.vividsolutions.jts.geom.Polygon merged = (com.vividsolutions.jts.geom.Polygon) mergedMembers;
+            final LineString exteriorRing = merged.getExteriorRing();
+            if (exteriorRing.isEmpty() || !exteriorRing.isClosed())
+            {
+                // There is a chance that even a successful merge can result in an invalid Polygon.
+                // This can happen when we try to merge invalid members. One example is an outer
+                // contained within an inner. If that's the case, we want to abort the merge and
+                // leave the members as they are.
+                successfulMerge = false;
             }
 
             if (successfulMerge && mergedMembers != null)
@@ -855,16 +878,12 @@ public class RawAtlasCountrySlicer
                     markRemovedMemberLineForDeletion(inner, relationIdentifier);
                 }
 
-                // Create points (if necessary) and lines for the merged member
-                final com.vividsolutions.jts.geom.Polygon merged = (com.vividsolutions.jts.geom.Polygon) mergedMembers;
-                final LineString exterior = merged.getExteriorRing();
-
                 // Set the proper country code
-                CountryBoundaryMap.setGeometryProperty(exterior, ISOCountryTag.KEY,
+                CountryBoundaryMap.setGeometryProperty(exteriorRing, ISOCountryTag.KEY,
                         ISOCountryTag.first(outer).get().getIso3CountryCode());
 
                 // Create points, lines and update members
-                createNewLineMemberForRelation(exterior, relationIdentifier,
+                createNewLineMemberForRelation(exteriorRing, relationIdentifier,
                         pointIdentifierGenerator, lineIdentifierGenerator);
             }
         }
@@ -959,7 +978,7 @@ public class RawAtlasCountrySlicer
                     catch (final Exception e)
                     {
                         logger.error("Error processing relation {}, message: {}, geometry: {}",
-                                relationIdentifier, e.getMessage(), polygon.toString());
+                                relationIdentifier, e.getMessage(), polygon.toString(), e);
                         return;
                     }
 

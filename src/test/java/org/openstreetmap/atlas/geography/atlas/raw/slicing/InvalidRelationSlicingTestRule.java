@@ -26,6 +26,19 @@ public class InvalidRelationSlicingTestRule extends CoreTestRule
     private static final String LOCATION_7 = "6.94567556723,-8.33013693927";
     private static final String LOCATION_8 = "6.92331354425,-8.33013693927";
 
+    private static final String LOCATION_9 = "6.9452756,-8.3370369";
+    private static final String LOCATION_10 = "6.9452756,-8.3330369";
+    private static final String LOCATION_11 = "6.9402756,-8.3330369";
+    private static final String LOCATION_12 = "6.9402756,-8.3370369";
+
+    // old : POINT (-8.3380373 6.9233135) --> location 2
+    // POINT (-8.3390373 6.9233135)
+    // POINT (-8.3390373 6.9213135)
+    // POINT (-8.3380373 6.9213135)
+    private static final String LOCATION_13 = "6.9233135,-8.3390373";
+    private static final String LOCATION_14 = "6.9213135,-8.3390373";
+    private static final String LOCATION_15 = "6.9213135,-8.3380373";
+
     @TestAtlas(
 
             points = { @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1)),
@@ -129,6 +142,71 @@ public class InvalidRelationSlicingTestRule extends CoreTestRule
             })
     private Atlas closedAndNonClosedMembersRelation;
 
+    @TestAtlas(
+
+            points = { @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1)),
+                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_5)),
+                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_6)),
+                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_2)),
+                    @Point(id = "108751000000", coordinates = @Loc(value = LOCATION_9)),
+                    @Point(id = "108753000000", coordinates = @Loc(value = LOCATION_10)),
+                    @Point(id = "108755000000", coordinates = @Loc(value = LOCATION_11)),
+                    @Point(id = "108757000000", coordinates = @Loc(value = LOCATION_12)) },
+
+            lines = { @Line(id = "108768000000", coordinates = { @Loc(value = LOCATION_1),
+                    @Loc(value = LOCATION_5), @Loc(value = LOCATION_6), @Loc(value = LOCATION_2),
+                    @Loc(value = LOCATION_1) }, tags = { "building=yes" }),
+                    @Line(id = "108769000000", coordinates = { @Loc(value = LOCATION_9),
+                            @Loc(value = LOCATION_10), @Loc(value = LOCATION_11),
+                            @Loc(value = LOCATION_12),
+                            @Loc(value = LOCATION_9) }, tags = { "building=yes" }) },
+
+            relations = {
+
+                    @Relation(tags = { "type=multipolygon", "building=yes" }, members = {
+                            @Member(id = "108768000000", role = "inner", type = "line"),
+                            @Member(id = "108769000000", role = "outer", type = "line") })
+
+            })
+    private Atlas innerOutsideOuterInOneCountry;
+
+    @TestAtlas(
+
+            points = { @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1)),
+                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_5)),
+                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_6)),
+                    // @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_2)),
+                    @Point(id = "108751000000", coordinates = @Loc(value = LOCATION_9)),
+                    @Point(id = "108753000000", coordinates = @Loc(value = LOCATION_10)),
+                    @Point(id = "108755000000", coordinates = @Loc(value = LOCATION_11)),
+                    @Point(id = "108757000000", coordinates = @Loc(value = LOCATION_12)),
+                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_13)),
+                    @Point(id = "108759000000", coordinates = @Loc(value = LOCATION_14)),
+                    @Point(id = "108761000000", coordinates = @Loc(value = LOCATION_15)) },
+
+            lines = { @Line(id = "108768000000", coordinates = { @Loc(value = LOCATION_1),
+                    @Loc(value = LOCATION_5), @Loc(value = LOCATION_6), @Loc(value = LOCATION_13),
+                    @Loc(value = LOCATION_14), @Loc(value = LOCATION_15),
+                    @Loc(value = LOCATION_1) }, tags = { "building=yes" }),
+                    @Line(id = "108769000000", coordinates = { @Loc(value = LOCATION_9),
+                            @Loc(value = LOCATION_10), @Loc(value = LOCATION_11),
+                            @Loc(value = LOCATION_12),
+                            @Loc(value = LOCATION_9) }, tags = { "building=yes" }) },
+
+            relations = {
+
+                    @Relation(tags = { "type=multipolygon", "building=yes" }, members = {
+                            @Member(id = "108768000000", role = "outer", type = "line"),
+                            @Member(id = "108769000000", role = "inner", type = "line") })
+
+            })
+    private Atlas selfIntersectingOuterMemberRelation;
+
+    public Atlas getInnerOutsideOuterRelationAtlas()
+    {
+        return this.innerOutsideOuterInOneCountry;
+    }
+
     public Atlas getInnerWithoutOuterAcrossBoundaryAtlas()
     {
         return this.innerWithoutOuterAcrossBoundary;
@@ -152,5 +230,10 @@ public class InvalidRelationSlicingTestRule extends CoreTestRule
     public Atlas getRelationWithOneClosedAndOneOpenMemberAtlas()
     {
         return this.closedAndNonClosedMembersRelation;
+    }
+
+    public Atlas getSelfIntersectingOuterMemberRelationAtlas()
+    {
+        return this.selfIntersectingOuterMemberRelation;
     }
 }

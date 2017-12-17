@@ -1,6 +1,8 @@
 package org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier;
 
 /**
+ * Factory that contains all common identifier functionality.
+ *
  * @author matthieun
  */
 public class ReverseIdentifierFactory
