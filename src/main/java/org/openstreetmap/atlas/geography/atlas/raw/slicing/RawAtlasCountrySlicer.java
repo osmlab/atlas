@@ -604,11 +604,11 @@ public class RawAtlasCountrySlicer
 
                 if (!closed)
                 {
-                    return line == null || !line.isClosed();
+                    return line != null && !line.isClosed();
                 }
                 else
                 {
-                    return line == null || line.isClosed();
+                    return line != null && line.isClosed();
                 }
             }).collect(Collectors.toList());
         }
@@ -751,7 +751,9 @@ public class RawAtlasCountrySlicer
     {
         // Only mark this line for deletion if this line isn't part of any other relations
         final boolean isPartOfOtherRelations = line.relations().stream()
-                .filter(partOf -> partOf.getIdentifier() != relationIdentifier).count() > 0;
+                .filter(partOf -> partOf.getIdentifier() != relationIdentifier).findFirst()
+                .isPresent();
+
         if (!isPartOfOtherRelations)
         {
             this.slicedRelationChanges.deleteLine(line.getIdentifier());
