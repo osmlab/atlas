@@ -57,10 +57,10 @@ public class DynamicAtlasPreemptiveLoadTest
     public void prepare(final DynamicAtlasPolicy policy)
     {
         this.store = new HashMap<>();
-        this.store.put(new SlippyTile(240, 246, 9), this.rule.getAtlas_z9x240y246());
-        this.store.put(new SlippyTile(240, 245, 9), this.rule.getAtlas_z9x240y245());
-        this.store.put(new SlippyTile(241, 245, 9), this.rule.getAtlas_z9x241y245());
-        this.store.put(new SlippyTile(241, 246, 9), this.rule.getAtlas_z9x241y246());
+        this.store.put(new SlippyTile(240, 246, 9), this.rule.getAtlasZ9x240y246());
+        this.store.put(new SlippyTile(240, 245, 9), this.rule.getAtlasZ9x240y245());
+        this.store.put(new SlippyTile(241, 245, 9), this.rule.getAtlasZ9x241y245());
+        this.store.put(new SlippyTile(241, 246, 9), this.rule.getAtlasZ9x241y246());
         this.dynamicAtlas = new DynamicAtlas(policy);
     }
 }

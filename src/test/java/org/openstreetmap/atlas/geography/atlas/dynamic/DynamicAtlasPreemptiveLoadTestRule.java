@@ -49,7 +49,7 @@ public class DynamicAtlasPreemptiveLoadTestRule extends CoreTestRule
             }
 
     )
-    private Atlas atlas_z9x240y246;
+    private Atlas atlasZ9x240y246;
 
     @TestAtlas(
 
@@ -74,7 +74,7 @@ public class DynamicAtlasPreemptiveLoadTestRule extends CoreTestRule
             }
 
     )
-    private Atlas atlas_z9x240y245;
+    private Atlas atlasZ9x240y245;
 
     @TestAtlas(
 
@@ -94,7 +94,7 @@ public class DynamicAtlasPreemptiveLoadTestRule extends CoreTestRule
             }
 
     )
-    private Atlas atlas_z9x241y245;
+    private Atlas atlasZ9x241y245;
 
     @TestAtlas(
 
@@ -119,25 +119,25 @@ public class DynamicAtlasPreemptiveLoadTestRule extends CoreTestRule
             }
 
     )
-    private Atlas atlas_z9x241y246;
+    private Atlas atlasZ9x241y246;
 
-    public Atlas getAtlas_z9x240y245()
+    public Atlas getAtlasZ9x240y245()
     {
-        return this.atlas_z9x240y245;
+        return this.atlasZ9x240y245;
     }
 
-    public Atlas getAtlas_z9x240y246()
+    public Atlas getAtlasZ9x240y246()
     {
-        return this.atlas_z9x240y246;
+        return this.atlasZ9x240y246;
     }
 
-    public Atlas getAtlas_z9x241y245()
+    public Atlas getAtlasZ9x241y245()
     {
-        return this.atlas_z9x241y245;
+        return this.atlasZ9x241y245;
     }
 
-    public Atlas getAtlas_z9x241y246()
+    public Atlas getAtlasZ9x241y246()
     {
-        return this.atlas_z9x241y246;
+        return this.atlasZ9x241y246;
     }
 }
