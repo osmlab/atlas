@@ -382,15 +382,15 @@ public class DynamicAtlas extends BareAtlas
      * Do a preemptive load of the {@link DynamicAtlas} as far as the {@link DynamicAtlasPolicy}
      * allows.
      * <p>
-     * In some very specific case, where the {@link DynamicAtlasPolicy} allows expansion only if new
-     * shards intersect at least one feature that crosses the initial set of shards, it is possible
-     * that expanding only one time misses out some shard candidates. This happens when some feature
-     * intersects the initial shards but does not have any shape point inside any initial shard.
-     * This way, the initial shards do not contain that feature even though they intersect it. That
-     * feature is discovered as we load the neighboring shards which contain that feature. If that
-     * said feature also intersects a third neighboring shard, then that third neighboring shard
-     * becomes eligible for expansion, as that specific feature crosses it and the initial shards.
-     * To work around that case, the preemptive load will do a multi-staged loading.
+     * In some very specific cases, where the {@link DynamicAtlasPolicy} allows expansion only if
+     * new shards intersect at least one feature that crosses the initial set of shards, it is
+     * possible that expanding only one time misses out some shard candidates. This happens when
+     * some feature intersects the initial shards but does not have any shape point inside any
+     * initial shard. This way, the initial shards do not contain that feature even though they
+     * intersect it. That feature is discovered as we load the neighboring shards which contain that
+     * feature. If that said feature also intersects a third neighboring shard, then that third
+     * neighboring shard becomes eligible for expansion, as that specific feature crosses it and the
+     * initial shards. To work around that case, the preemptive load will do a multi-staged loading.
      */
     public void preemptiveLoad()
     {
