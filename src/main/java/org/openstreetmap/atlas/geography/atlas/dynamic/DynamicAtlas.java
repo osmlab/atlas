@@ -140,8 +140,11 @@ public class DynamicAtlas extends BareAtlas
 
     public void buildUnderlyingMultiAtlas()
     {
-        logger.debug("{}: Loading MultiAtlas with {}", this.getName(),
-                nonNullShards().stream().map(Shard::getName).collect(Collectors.toList()));
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("{}: Loading MultiAtlas with {}", this.getName(),
+                    nonNullShards().stream().map(Shard::getName).collect(Collectors.toList()));
+        }
         this.policy.getShardSetChecker().accept(nonNullShards());
         final List<Atlas> nonNullAtlasShards = getNonNullAtlasShards();
         if (!nonNullAtlasShards.isEmpty())
@@ -391,6 +394,13 @@ public class DynamicAtlas extends BareAtlas
      */
     public void preemptiveLoad()
     {
+        if (!this.policy.isDeferLoading())
+        {
+            logger.warn(
+                    "{}: Skipping preemptive loading as it is useful only when the DynamicAtlasPolicy is deferLoading = true.",
+                    this.getName());
+            return;
+        }
         // Loop through the entities to find potential shards to add
         this.entities();
         // Load all the shards into a multiAtlas
@@ -405,14 +415,14 @@ public class DynamicAtlas extends BareAtlas
         // Repeat the same process as long as we find some of those third party shards.
         while (!this.loadedShards.keySet().equals(currentShards))
         {
-            final Set<Shard> missingShards = new HashSet<>(this.loadedShards.keySet());
-            for (final Shard currentShard : currentShards)
+            if (logger.isInfoEnabled())
             {
-                missingShards.remove(currentShard);
+                final Set<Shard> missingShards = new HashSet<>(this.loadedShards.keySet());
+                missingShards.removeAll(currentShards);
+                logger.info("{}: Preemptive load found new unexpected 2nd degree shard(s): {}",
+                        this.getName(),
+                        missingShards.stream().map(Shard::getName).collect(Collectors.toList()));
             }
-            logger.info("{}: Preemptive load found new unexpected 2nd degree shard(s): {}",
-                    this.getName(),
-                    missingShards.stream().map(Shard::getName).collect(Collectors.toList()));
 
             // Load all the shards into a multiAtlas
             this.buildUnderlyingMultiAtlas();
