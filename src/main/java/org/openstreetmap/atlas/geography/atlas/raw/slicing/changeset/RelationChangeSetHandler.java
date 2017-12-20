@@ -1,9 +1,9 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
@@ -167,9 +167,9 @@ public class RelationChangeSetHandler extends ChangeSetHandler
         final RelationBean bean = new RelationBean();
         if (!relation.members().isEmpty())
         {
-            final List<TemporaryRelationMember> membersToRemove = Optional.ofNullable(
+            final Set<TemporaryRelationMember> membersToRemove = Optional.ofNullable(
                     this.changeSet.getDeletedRelationMembers().get(relation.getIdentifier()))
-                    .orElse(new ArrayList<>());
+                    .orElse(new HashSet<>());
             relation.members().forEach(member ->
             {
                 // Only add the member if it wasn't on the list to be removed
@@ -182,9 +182,9 @@ public class RelationChangeSetHandler extends ChangeSetHandler
         }
 
         // Add any new members for this relation
-        final List<TemporaryRelationMember> membersToAdd = Optional
+        final Set<TemporaryRelationMember> membersToAdd = Optional
                 .ofNullable(this.changeSet.getAddedRelationMembers().get(relation.getIdentifier()))
-                .orElse(new ArrayList<>());
+                .orElse(new HashSet<>());
         for (final TemporaryRelationMember memberToAdd : membersToAdd)
         {
             bean.addItem(memberToAdd.getIdentifier(), memberToAdd.getRole(), memberToAdd.getType());
@@ -202,7 +202,7 @@ public class RelationChangeSetHandler extends ChangeSetHandler
         return new ReverseIdentifierFactory().getOsmIdentifier(identifier);
     }
 
-    private boolean shouldAddRelationMember(final List<TemporaryRelationMember> membersToRemove,
+    private boolean shouldAddRelationMember(final Set<TemporaryRelationMember> membersToRemove,
             final RelationMember member)
     {
         final TemporaryRelationMember temporary = new TemporaryRelationMember(

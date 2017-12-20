@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -47,6 +48,7 @@ import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
 import org.openstreetmap.atlas.tags.SyntheticRelationMemberAdded;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
+import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -156,6 +158,7 @@ public class RawAtlasCountrySlicer
         // Apply changes from relation slicing and rebuild the fully-sliced atlas
         final ChangeSetHandler relationChangeBuilder = new RelationChangeSetHandler(this.rawAtlas,
                 this.slicedRelationChanges);
+
         final Atlas fullySlicedAtlas = relationChangeBuilder.applyChanges();
         logger.info("Finished country slicing Atlas {}", this.rawAtlas.getName());
 
@@ -210,6 +213,28 @@ public class RawAtlasCountrySlicer
     }
 
     /**
+     * Determines whether any of the given members was sliced.
+     *
+     * @param members
+     *            The members we want to look at
+     * @return {@code true} if any of the members was sliced
+     */
+    private boolean containsSlicedMember(final Iterable<RelationMember> members)
+    {
+        for (final RelationMember member : members)
+        {
+            // We know a member was sliced if the country code was incremented during the line
+            // slicing process
+            if (new ReverseIdentifierFactory()
+                    .getCountryCode(member.getEntity().getIdentifier()) != 0)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Converts the given {@link Line} into a JTS {@link Geometry} and slices it.
      *
      * @param line
@@ -218,29 +243,39 @@ public class RawAtlasCountrySlicer
      */
     private List<Geometry> convertToJtsGeometryAndSlice(final Line line)
     {
+        List<Geometry> result;
+        final long lineIdentifier = line.getIdentifier();
+
         // Create the JTS Geometry from Line
-        final Geometry geometry;
+        Geometry geometry;
+
         if (line.isClosed())
         {
-            // An Area
+            // A Polygon
             geometry = JTS_POLYGON_CONVERTER.convert(new Polygon(line));
         }
         else
         {
-            // A Line
+            // A PolyLine
             geometry = JTS_POLYLINE_CONVERTER.convert(line.asPolyLine());
         }
 
         // Slice the JTS Geometry
-        try
+        result = sliceGeometry(geometry, lineIdentifier);
+        if (result.isEmpty() && line.isClosed())
         {
-            return this.countryBoundaryMap.slice(line.getIdentifier(), geometry);
+            // If we failed to slice an invalid Polygon (self-intersecting for example), let's try
+            // to slice it as a PolyLine. Only if we cannot do that, then return an empty list.
+            geometry = JTS_POLYLINE_CONVERTER.convert(line.asPolyLine());
+            result = sliceGeometry(geometry, lineIdentifier);
         }
-        catch (final TopologyException e)
+
+        if (result.isEmpty())
         {
-            logger.error("Topology Exception when slicing Line {}", line.getIdentifier(), e);
-            return Collections.emptyList();
+            logger.error("Invalid Geometry for line {}", lineIdentifier);
         }
+
+        return result;
     }
 
     /**
@@ -600,16 +635,11 @@ public class RawAtlasCountrySlicer
                 {
                     logger.error("Line member {} for Relation {} is not the in raw Atlas.",
                             member.getEntity().getIdentifier(), relationIdentifier);
+                    return false;
                 }
 
-                if (!closed)
-                {
-                    return line != null && !line.isClosed();
-                }
-                else
-                {
-                    return line != null && line.isClosed();
-                }
+                final boolean isClosed = line.isClosed();
+                return closed ? isClosed : !isClosed;
             }).collect(Collectors.toList());
         }
         else
@@ -632,23 +662,22 @@ public class RawAtlasCountrySlicer
                 .collect(Collectors.groupingBy(member ->
                 {
                     final AtlasEntity entity;
-                    if (member.getType() == ItemType.POINT)
+                    final ItemType memberType = member.getType();
+                    switch (memberType)
                     {
-                        entity = this.rawAtlas.point(member.getIdentifier());
-                    }
-                    else if (member.getType() == ItemType.LINE)
-                    {
-                        entity = this.rawAtlas.line(member.getIdentifier());
-                    }
-                    else if (member.getType() == ItemType.RELATION)
-                    {
-                        entity = this.rawAtlas.relation(member.getIdentifier());
-                    }
-                    else
-                    {
-                        throw new CoreException(
-                                "Unsupported Relation Member of Type {} in Raw Atlas",
-                                member.getType());
+                        case POINT:
+                            entity = this.rawAtlas.point(member.getIdentifier());
+                            break;
+                        case LINE:
+                            entity = this.rawAtlas.line(member.getIdentifier());
+                            break;
+                        case RELATION:
+                            entity = this.rawAtlas.relation(member.getIdentifier());
+                            break;
+                        default:
+                            throw new CoreException(
+                                    "Unsupported Relation Member of Type {} in Raw Atlas",
+                                    member.getType());
                     }
 
                     if (entity != null)
@@ -751,8 +780,7 @@ public class RawAtlasCountrySlicer
     {
         // Only mark this line for deletion if this line isn't part of any other relations
         final boolean isPartOfOtherRelations = line.relations().stream()
-                .filter(partOf -> partOf.getIdentifier() != relationIdentifier).findFirst()
-                .isPresent();
+                .anyMatch(partOf -> partOf.getIdentifier() != relationIdentifier);
 
         if (!isPartOfOtherRelations)
         {
@@ -781,12 +809,26 @@ public class RawAtlasCountrySlicer
     private void mergeOverlappingClosedMembers(final Relation relation,
             final List<RelationMember> outers, final List<RelationMember> inners)
     {
+        final long relationIdentifier = relation.getIdentifier();
+
+        if (outers == null || outers.isEmpty())
+        {
+            return;
+        }
+
         if (inners == null || inners.isEmpty())
         {
             return;
         }
 
-        final long relationIdentifier = relation.getIdentifier();
+        // We only want to merge members for modified relations. Unless we touched the relation
+        // directly, we will leave the "mergeable" relation as is since it's a more true
+        // representation of OSM data.
+        if (!containsSlicedMember(new MultiIterable<>(outers, inners)))
+        {
+            return;
+        }
+
         final List<RelationMember> closedOuters = generateMemberList(relationIdentifier, outers,
                 true);
         final List<RelationMember> closedInners = generateMemberList(relationIdentifier, inners,
@@ -1189,6 +1231,28 @@ public class RawAtlasCountrySlicer
     }
 
     /**
+     * Slices the given {@link Geometry} into multiple geometries and returns them as a list.
+     *
+     * @param geometry
+     *            The {@link Geometry} to slice
+     * @param identifier
+     *            The {@link Line} identifier being sliced
+     * @return a list of {@link Geometry} slices
+     */
+    private List<Geometry> sliceGeometry(final Geometry geometry, final long identifier)
+    {
+        try
+        {
+            return this.countryBoundaryMap.slice(identifier, geometry);
+        }
+        catch (final TopologyException e)
+        {
+            logger.error("Topology Exception when slicing Line {}", identifier, e);
+            return Collections.emptyList();
+        }
+    }
+
+    /**
      * Converts the given {@link Line} to a JTS {@link Geometry}, slices the geometry and updates
      * all corresponding {@link Point}s and {@link Line}s in the given raw Atlas.
      *
@@ -1286,10 +1350,10 @@ public class RawAtlasCountrySlicer
         final List<TemporaryRelation> createdRelations = new ArrayList<>();
         final List<TemporaryRelationMember> members = new ArrayList<>();
 
-        final List<TemporaryRelationMember> removedMembers = Optional
+        final Set<TemporaryRelationMember> removedMembers = Optional
                 .ofNullable(this.slicedRelationChanges.getDeletedRelationMembers()
                         .get(relation.getIdentifier()))
-                .orElse(new ArrayList<>());
+                .orElse(new HashSet<>());
 
         for (final RelationMember member : relation.members())
         {
@@ -1350,17 +1414,12 @@ public class RawAtlasCountrySlicer
                                 relation.getIdentifier());
                 }
             }
-            else
-            {
-                // Found member to remove, remove it to shorten our list
-                removedMembers.remove(temporaryMember);
-            }
         }
 
         // Add in any new members as a result of multipolygon fixes
-        final List<TemporaryRelationMember> addedMembers = Optional.ofNullable(
+        final Set<TemporaryRelationMember> addedMembers = Optional.ofNullable(
                 this.slicedRelationChanges.getAddedRelationMembers().get(relation.getIdentifier()))
-                .orElse(new ArrayList<>());
+                .orElse(new HashSet<>());
         addedMembers.forEach(newMember -> members.add(newMember));
 
         // Group members by country

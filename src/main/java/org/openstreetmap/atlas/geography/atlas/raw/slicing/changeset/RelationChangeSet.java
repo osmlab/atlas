@@ -5,12 +5,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryEntity;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryLine;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryPoint;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRelation;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRelationMember;
-import org.openstreetmap.atlas.utilities.maps.MultiMap;
+import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
 
 /**
  * Records any additions, updates and deletions that occurred during relation raw Atlas slicing. We
@@ -49,8 +50,8 @@ public class RelationChangeSet
 
     // Relation updates
     private final Map<Long, Map<String, String>> updatedRelationTags;
-    private final MultiMap<Long, TemporaryRelationMember> addedRelationMembers;
-    private final MultiMap<Long, TemporaryRelationMember> deletedRelationMembers;
+    private final MultiMapWithSet<Long, TemporaryRelationMember> addedRelationMembers;
+    private final MultiMapWithSet<Long, TemporaryRelationMember> deletedRelationMembers;
 
     // Deleted entities
     private final Set<Long> deletedLines;
@@ -62,8 +63,8 @@ public class RelationChangeSet
         this.createdLines = new HashMap<>();
         this.createdRelations = new HashSet<>();
         this.updatedRelationTags = new HashMap<>();
-        this.addedRelationMembers = new MultiMap<>();
-        this.deletedRelationMembers = new MultiMap<>();
+        this.addedRelationMembers = new MultiMapWithSet<>();
+        this.deletedRelationMembers = new MultiMapWithSet<>();
         this.deletedLines = new HashSet<>();
         this.deletedRelations = new HashSet<>();
     }
@@ -105,7 +106,7 @@ public class RelationChangeSet
         this.deletedRelationMembers.add(relationIdentifier, member);
     }
 
-    public MultiMap<Long, TemporaryRelationMember> getAddedRelationMembers()
+    public MultiMapWithSet<Long, TemporaryRelationMember> getAddedRelationMembers()
     {
         return this.addedRelationMembers;
     }
@@ -130,7 +131,7 @@ public class RelationChangeSet
         return this.deletedLines;
     }
 
-    public MultiMap<Long, TemporaryRelationMember> getDeletedRelationMembers()
+    public MultiMapWithSet<Long, TemporaryRelationMember> getDeletedRelationMembers()
     {
         return this.deletedRelationMembers;
     }
@@ -143,6 +144,21 @@ public class RelationChangeSet
     public Map<Long, Map<String, String>> getUpdatedRelationTags()
     {
         return this.updatedRelationTags;
+    }
+
+    /**
+     * Track any underlying {@link Relation} changes. This can be a relation deletion or member
+     * updates.
+     *
+     * @param relationIdentifier
+     *            The {@link Relation} we're interested in
+     * @return {@code true} if this relation got deleted or had any member updates
+     */
+    public boolean relationGeometryModified(final long relationIdentifier)
+    {
+        return this.getDeletedRelations().contains(relationIdentifier)
+                || this.getAddedRelationMembers().get(relationIdentifier) != null
+                || this.getDeletedRelationMembers().get(relationIdentifier) != null;
     }
 
     public void updateRelationTags(final long relationIdentifier, final Map<String, String> newTags)

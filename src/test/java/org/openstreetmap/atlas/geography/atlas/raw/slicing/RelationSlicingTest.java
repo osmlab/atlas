@@ -24,7 +24,7 @@ import com.google.common.collect.Iterables;
  *
  * @author mgostintsev
  */
-public class RawAtlasRelationSlicingTest
+public class RelationSlicingTest
 {
     private static CountryBoundaryMap COUNTRY_BOUNDARY_MAP;
     private static Set<IsoCountry> COUNTRIES;
@@ -44,7 +44,7 @@ public class RawAtlasRelationSlicingTest
     public static void setup()
     {
         COUNTRY_BOUNDARY_MAP = new CountryBoundaryMap(
-                new InputStreamResource(() -> RawAtlasLineAndPointSlicingTest.class
+                new InputStreamResource(() -> LineAndPointSlicingTest.class
                         .getResourceAsStream("CIV_GIN_LBR_osm_boundaries.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
     }
@@ -126,7 +126,7 @@ public class RawAtlasRelationSlicingTest
     }
 
     @Test
-    public void testSimpleMulitPolygonWithHoleSpanningTwoCountries()
+    public void testSimpleMultiPolygonWithHoleSpanningTwoCountries()
     {
         // This relation is made up of two closed lines, forming a multi-polygon with one inner and
         // one outer, both spanning the boundary of two countries.

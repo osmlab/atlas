@@ -47,7 +47,21 @@ public class InvalidMultipolygonSlicingTest
     @Test
     public void testInnerIntersectingOuterRelation()
     {
+        // This relation is made up of two lines. Both are closed and on the Liberia side. The two
+        // closed lines polygons are overlapping. We expect only country code assignment, no slicing
+        // and no merging to take place.
+        final Atlas rawAtlas = this.setup.getIntersectingInnerAndOuterMembersAtlas();
+        Assert.assertEquals(2, rawAtlas.numberOfLines());
+        Assert.assertEquals(8, rawAtlas.numberOfPoints());
+        Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
+        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
+                COUNTRY_BOUNDARY_MAP);
+        final Atlas slicedAtlas = slicer.slice();
+
+        Assert.assertEquals(rawAtlas.numberOfPoints(), slicedAtlas.numberOfPoints());
+        Assert.assertEquals(rawAtlas.numberOfLines(), slicedAtlas.numberOfLines());
+        Assert.assertEquals(rawAtlas.numberOfRelations(), slicedAtlas.numberOfRelations());
     }
 
     @Test
@@ -78,7 +92,7 @@ public class InvalidMultipolygonSlicingTest
     @Test
     public void testInnerWithDifferentCountryCodeThanOuterRelation()
     {
-
+        // TODO consider using enclaves here: http://www.openstreetmap.org/#map=15/51.4394/4.9301
     }
 
     @Test
@@ -120,8 +134,6 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(1, rawAtlas.numberOfLines());
         Assert.assertEquals(4, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
-
-        System.out.println(rawAtlas);
 
         final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
                 COUNTRY_BOUNDARY_MAP);
@@ -219,7 +231,27 @@ public class InvalidMultipolygonSlicingTest
     @Test
     public void testSelfIntersectingOuterRelationAcrossBoundary()
     {
+        // This relation is made up of two lines. The first is a closed line, with an inner role,
+        // fully on the Liberia side. The second is a self-intersecting closed outer, stretching
+        // across the boundary. We expect the outer to get sliced, the inner to remain unchanged and
+        // no merges to take place.
+        final Atlas rawAtlas = this.setup
+                .getSelfIntersectingOuterMemberRelationAcrossBoundaryAtlas();
+        Assert.assertEquals(2, rawAtlas.numberOfLines());
+        Assert.assertEquals(10, rawAtlas.numberOfPoints());
+        Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
+        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
+                COUNTRY_BOUNDARY_MAP);
+        final Atlas slicedAtlas = slicer.slice();
+
+        // Assert that we CAN build a valid building with this relation
+        new ComplexBuildingFinder().find(slicedAtlas)
+                .forEach(building -> Assert.assertFalse(building.getError().isPresent()));
+
+        Assert.assertEquals(29, slicedAtlas.numberOfPoints());
+        Assert.assertEquals(8, slicedAtlas.numberOfLines());
+        Assert.assertEquals(rawAtlas.numberOfRelations() * 2, slicedAtlas.numberOfRelations());
     }
 
     @Test

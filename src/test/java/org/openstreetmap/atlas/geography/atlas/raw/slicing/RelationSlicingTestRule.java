@@ -10,7 +10,7 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation.Member;
 
 /**
- * {@link RawAtlasRelationSlicingTest} test data.
+ * {@link RelationSlicingTest} test data.
  *
  * @author mgostintsev
  */
