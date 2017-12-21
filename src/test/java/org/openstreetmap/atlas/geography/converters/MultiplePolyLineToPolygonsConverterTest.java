@@ -12,6 +12,7 @@ import org.openstreetmap.atlas.geography.converters.MultiplePolyLineToPolygonsCo
 
 /**
  * @author matthieun
+ * @author mgostintsev
  */
 public class MultiplePolyLineToPolygonsConverterTest
 {
@@ -23,7 +24,8 @@ public class MultiplePolyLineToPolygonsConverterTest
     private static final Location FOR = Location.TEST_5;
     private static final Location FVE = Location.TEST_4;
 
-    private static final Polygon LOOP = new Polygon(ONE, TWO, THR, FOR, FVE);
+    private static final Polygon POLYGON_LOOP = new Polygon(ONE, TWO, THR, FOR, FVE);
+    private static final PolyLine POLYLINE_LOOP = new PolyLine(ONE, TWO, THR, FOR, FVE, ONE);
 
     // Following polylines from http://www.openstreetmap.org/relation/409391 version #4
     private static final PolyLine EDGE1 = new PolyLineStringConverter().convert(
@@ -155,7 +157,7 @@ public class MultiplePolyLineToPolygonsConverterTest
         list.add(new PolyLine(TWO, THR, FOR));
         list.add(new PolyLine(FOR, FVE, ONE));
         final Polygon result = CONVERTER.convert(list).iterator().next();
-        Assert.assertEquals(result, LOOP);
+        Assert.assertEquals(result, POLYGON_LOOP);
     }
 
     @Test
@@ -167,6 +169,30 @@ public class MultiplePolyLineToPolygonsConverterTest
         // Reversed!
         list.add(new PolyLine(ONE, FVE, FOR));
         final Polygon result = CONVERTER.convert(list).iterator().next();
-        Assert.assertEquals(result, LOOP);
+        Assert.assertEquals(result, POLYGON_LOOP);
+    }
+
+    @Test
+    public void testSingleClosedPolygon()
+    {
+        final List<PolyLine> list = new ArrayList<>();
+        list.add(POLYGON_LOOP);
+        CONVERTER.convert(list);
+    }
+
+    @Test
+    public void testSingleClosedPolyLine()
+    {
+        final List<PolyLine> list = new ArrayList<>();
+        list.add(POLYLINE_LOOP);
+        CONVERTER.convert(list);
+    }
+
+    @Test(expected = OpenPolygonException.class)
+    public void testSingleOpenPolyLine()
+    {
+        final List<PolyLine> list = new ArrayList<>();
+        list.add(new PolyLine(ONE, TWO));
+        CONVERTER.convert(list);
     }
 }

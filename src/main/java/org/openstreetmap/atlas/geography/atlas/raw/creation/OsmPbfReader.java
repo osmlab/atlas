@@ -526,8 +526,8 @@ public class OsmPbfReader implements Sink
      * However, if we filter out a PBF {@link Way}, we want to keep track of all {@link Node}s that
      * make up that {@link Way}, in case we need to remove them as well. We are going to keep track
      * of all filtered PBF {@link Node}/Atlas {@link Point} identifiers, and use subAtlas
-     * functionality to filter them out after the Atlas is built. For now, ignore Relations. TODO
-     * Come back to Relations!
+     * functionality to filter them out after the Atlas is built. For now, ignore filtering any
+     * Nodes that come from filtered Relations. This will be handled in the way-sectioning code.
      *
      * @param entity
      *            The {@link Entity} whose Node (Atlas Point) identifiers we want to filter out

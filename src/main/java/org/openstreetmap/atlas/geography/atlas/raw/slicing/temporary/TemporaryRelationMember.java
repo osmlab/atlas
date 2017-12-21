@@ -1,15 +1,16 @@
-package org.openstreetmap.atlas.geography.atlas.multi;
+package org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
 /**
- * Class to handle relation member collection in {@link MultiAtlasBorderFixer}.
+ * The {@link TemporaryRelationMember} object, keeps track of the bare minimum information required
+ * to create a valid {@link Relation} member, namely the entity identifier, role and type of entity.
  *
- * @author matthieun
- * @author mkalender
+ * @author mgostintsev
  */
-public final class TemporaryRelationMember
+public class TemporaryRelationMember
 {
     private final long identifier;
     private final String role;
@@ -34,6 +35,21 @@ public final class TemporaryRelationMember
         return false;
     }
 
+    public long getIdentifier()
+    {
+        return this.identifier;
+    }
+
+    public String getRole()
+    {
+        return this.role;
+    }
+
+    public ItemType getType()
+    {
+        return this.type;
+    }
+
     @Override
     public int hashCode()
     {
@@ -41,18 +57,10 @@ public final class TemporaryRelationMember
                 .hashCode();
     }
 
-    protected long getIdentifier()
+    @Override
+    public String toString()
     {
-        return this.identifier;
-    }
-
-    protected String getRole()
-    {
-        return this.role;
-    }
-
-    protected ItemType getType()
-    {
-        return this.type;
+        return "[Temporary Relation Member=" + this.getIdentifier() + ", Role=" + this.getRole()
+                + ", Type=" + this.getType() + "]";
     }
 }

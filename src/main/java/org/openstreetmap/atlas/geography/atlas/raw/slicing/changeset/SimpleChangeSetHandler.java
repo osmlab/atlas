@@ -1,54 +1,42 @@
-package org.openstreetmap.atlas.geography.atlas.raw.slicing;
+package org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
-import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
-import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link RawAtlasChangeSetBuilder} is responsible for applying {@link RawAtlasChangeSet}s to a
- * given Atlas.
+ * The {@link SimpleChangeSetHandler} is responsible for applying a {@link SimpleChangeSet} to a
+ * given {@link Atlas}.
  *
  * @author mgostintsev
  */
-public class RawAtlasChangeSetBuilder
+public class SimpleChangeSetHandler extends ChangeSetHandler
 {
-    private static final Logger logger = LoggerFactory.getLogger(RawAtlasChangeSetBuilder.class);
+    private static final Logger logger = LoggerFactory.getLogger(SimpleChangeSetHandler.class);
 
-    // The scaling factor for calculating approximate atlas size
-    private static final double ENTITY_SCALING_FACTOR = 1.2;
-
-    private final Atlas original;
-    private final RawAtlasChangeSet changeSet;
-    private final PackedAtlasBuilder builder = new PackedAtlasBuilder();
+    private final SimpleChangeSet changeSet;
 
     /**
      * Default constructor.
      *
-     * @param original
+     * @param atlas
      *            The {@link Atlas} to apply changes to
      * @param changeSet
-     *            The {@link RawAtlasChangeSet} to apply
+     *            The {@link SimpleChangeSet} to apply
      */
-    public RawAtlasChangeSetBuilder(final Atlas original, final RawAtlasChangeSet changeSet)
+    public SimpleChangeSetHandler(final Atlas atlas, final SimpleChangeSet changeSet)
     {
-        this.original = original;
+        super(atlas);
         this.changeSet = changeSet;
     }
 
@@ -58,10 +46,11 @@ public class RawAtlasChangeSetBuilder
      *
      * @return the {@link Atlas} with changes
      */
+    @Override
     public Atlas applyChanges()
     {
         // Log original Atlas statistics
-        logAtlasStatistics(this.original);
+        logger.info(atlasStatistics(this.getAtlas()));
 
         // Prepare the builder
         setAtlasSizeEstimateAndMetadata();
@@ -78,8 +67,8 @@ public class RawAtlasChangeSetBuilder
         updateAndAddRelations();
 
         // Build and log
-        final Atlas atlasWithUpdates = this.builder.get();
-        logAtlasStatistics(atlasWithUpdates);
+        final Atlas atlasWithUpdates = this.getBuilder().get();
+        logger.info(atlasStatistics(atlasWithUpdates));
 
         return atlasWithUpdates;
     }
@@ -89,8 +78,8 @@ public class RawAtlasChangeSetBuilder
      */
     private void addNewLines()
     {
-        this.changeSet.getCreatedLines().forEach(line -> this.builder.addLine(line.getIdentifier(),
-                reconstructGeometryForLine(line), line.getTags()));
+        this.changeSet.getCreatedLines().forEach(line -> this.getBuilder()
+                .addLine(line.getIdentifier(), reconstructGeometryForLine(line), line.getTags()));
     }
 
     /**
@@ -98,7 +87,7 @@ public class RawAtlasChangeSetBuilder
      */
     private void addNewPoints()
     {
-        this.changeSet.getCreatedPoints().forEach(point -> this.builder
+        this.changeSet.getCreatedPoints().forEach(point -> this.getBuilder()
                 .addPoint(point.getIdentifier(), point.getLocation(), point.getTags()));
     }
 
@@ -108,7 +97,7 @@ public class RawAtlasChangeSetBuilder
      */
     private void addUpdatedLines()
     {
-        this.original.lines().forEach(line ->
+        this.getAtlas().lines().forEach(line ->
         {
             final long lineIdentifier = line.getIdentifier();
             // Only add if we've not deleted this line
@@ -117,10 +106,11 @@ public class RawAtlasChangeSetBuilder
                 // Add the Line with the updated tag value
                 if (this.changeSet.getUpdatedLineTags().containsKey(lineIdentifier))
                 {
-                    final Line originalLine = this.original.line(lineIdentifier);
+                    final Line originalLine = this.getAtlas().line(lineIdentifier);
                     final Map<String, String> updatedTags = originalLine.getTags();
                     updatedTags.putAll(this.changeSet.getUpdatedLineTags().get(lineIdentifier));
-                    this.builder.addLine(lineIdentifier, originalLine.asPolyLine(), updatedTags);
+                    this.getBuilder().addLine(lineIdentifier, originalLine.asPolyLine(),
+                            updatedTags);
                 }
                 else
                 {
@@ -132,7 +122,7 @@ public class RawAtlasChangeSetBuilder
                             lineIdentifier);
                     final Map<String, String> updatedTags = line.getTags();
                     updatedTags.put(ISOCountryTag.KEY, ISOCountryTag.COUNTRY_MISSING);
-                    this.builder.addLine(lineIdentifier, line.asPolyLine(), updatedTags);
+                    this.getBuilder().addLine(lineIdentifier, line.asPolyLine(), updatedTags);
                 }
             }
         });
@@ -144,15 +134,16 @@ public class RawAtlasChangeSetBuilder
      */
     private void addUpdatedPoints()
     {
-        this.original.points().forEach(point ->
+        this.getAtlas().points().forEach(point ->
         {
             final long pointIdentifier = point.getIdentifier();
             if (this.changeSet.getUpdatedPointTags().containsKey(pointIdentifier))
             {
-                final Point originalPoint = this.original.point(pointIdentifier);
+                final Point originalPoint = this.getAtlas().point(pointIdentifier);
                 final Map<String, String> updatedTags = originalPoint.getTags();
                 updatedTags.putAll(this.changeSet.getUpdatedPointTags().get(pointIdentifier));
-                this.builder.addPoint(pointIdentifier, originalPoint.getLocation(), updatedTags);
+                this.getBuilder().addPoint(pointIdentifier, originalPoint.getLocation(),
+                        updatedTags);
             }
             else
             {
@@ -164,77 +155,18 @@ public class RawAtlasChangeSetBuilder
                         pointIdentifier);
                 final Map<String, String> updatedTags = point.getTags();
                 updatedTags.put(ISOCountryTag.KEY, ISOCountryTag.COUNTRY_MISSING);
-                this.builder.addPoint(pointIdentifier, point.getLocation(), updatedTags);
+                this.getBuilder().addPoint(pointIdentifier, point.getLocation(), updatedTags);
             }
         });
     }
 
     /**
-     * Logs statistics for given {@link Atlas}.
-     *
-     * @param atlas
-     *            The {@link Atlas} whose statistics to log
-     */
-    private void logAtlasStatistics(final Atlas atlas)
-    {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("Points: ");
-        builder.append(atlas.numberOfPoints());
-        builder.append(" Lines: ");
-        builder.append(atlas.numberOfLines());
-        builder.append(" Relations: ");
-        builder.append(atlas.numberOfRelations());
-        logger.info(builder.toString());
-    }
-
-    /**
-     * Constructs a {@link PolyLine} for the given {@link TemporaryLine}.
-     *
-     * @param line
-     *            The {@link TemporaryLine} to use
-     * @return the constructed {@link PolyLine}
-     */
-    private PolyLine reconstructGeometryForLine(final TemporaryLine line)
-    {
-        final List<Location> locations = new ArrayList<>();
-        line.getShapePointIdentifiers().forEach(identifier ->
-        {
-            final Point point = this.builder.peek().point(identifier);
-            if (point != null)
-            {
-                locations.add(point.getLocation());
-            }
-            else
-            {
-                throw new CoreException(
-                        "Corrupt Data: Line {} is referencing a shape point {} which doesn't exist!",
-                        line.getIdentifier(), identifier);
-            }
-        });
-        return new PolyLine(locations);
-    }
-
-    /**
-     * Sets new Atlas size estimate and metadata. For size estimate, we're using the original size
-     * as an estimate, scaled by {@value #ENTITY_SCALING_FACTOR}. This is done to avoid re-sizing,
-     * instead electing to trim afterwards if the estimates were too large.
-     */
-    private void setAtlasSizeEstimateAndMetadata()
-    {
-        final AtlasSize size = new AtlasSize(0, 0, 0,
-                Math.round(this.original.numberOfLines() * ENTITY_SCALING_FACTOR),
-                Math.round(this.original.numberOfPoints() * ENTITY_SCALING_FACTOR),
-                this.original.numberOfRelations());
-        this.builder.setSizeEstimates(size);
-        this.builder.setMetaData(new AtlasMetaData());
-    }
-
-    /**
-     * TODO Might require updates after relation slicing
+     * Updates relations to replace any deleted member lines with member lines that got created
+     * during way slicing.
      */
     private void updateAndAddRelations()
     {
-        for (final Relation relation : this.original.relationsLowerOrderFirst())
+        for (final Relation relation : this.getAtlas().relationsLowerOrderFirst())
         {
             final RelationBean bean = new RelationBean();
             for (final RelationMember member : relation.members())
@@ -251,7 +183,7 @@ public class RawAtlasChangeSetBuilder
                     {
                         // Do one last sanity check to make sure the member we're adding
                         // actually exists
-                        if (this.builder.peek().line(addedLineIdentifier) != null)
+                        if (this.getBuilder().peek().line(addedLineIdentifier) != null)
                         {
                             bean.addItem(addedLineIdentifier, member.getRole(),
                                     member.getEntity().getType());
@@ -273,8 +205,8 @@ public class RawAtlasChangeSetBuilder
                             member.getEntity().getType());
                 }
             }
-            this.builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(), bean,
-                    relation.getTags());
+            this.getBuilder().addRelation(relation.getIdentifier(), relation.getOsmIdentifier(),
+                    bean, relation.getTags());
         }
     }
 

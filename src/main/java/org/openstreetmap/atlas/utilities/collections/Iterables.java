@@ -469,6 +469,22 @@ public final class Iterables
     }
 
     /**
+     * Determines if the given iterable is empty
+     *
+     * @param types
+     *            The iterable to check
+     * @return {@code true} if the iterable contains no elements
+     */
+    public static boolean isEmpty(final Iterable<?> types)
+    {
+        if (types instanceof Collection)
+        {
+            return ((Collection<?>) types).isEmpty();
+        }
+        return !types.iterator().hasNext();
+    }
+
+    /**
      * Translate a passed array of Items to an {@link Iterable} of Items
      *
      * @param types

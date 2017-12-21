@@ -70,6 +70,17 @@ public class IterablesTest
     }
 
     @Test
+    public void testIsEmpty()
+    {
+        final List<Integer> input = new ArrayList<>();
+        Assert.assertTrue("List is empty to start", Iterables.isEmpty(input));
+        input.add(1);
+        Assert.assertFalse("List is not empty", Iterables.isEmpty(input));
+        input.remove(0);
+        Assert.assertTrue("List is empty to end", Iterables.isEmpty(input));
+    }
+
+    @Test
     public void testJoin()
     {
         final List<Integer> rebuilt = Iterables.asList(

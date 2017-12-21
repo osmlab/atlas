@@ -37,10 +37,10 @@ public abstract class Area extends AtlasItem
     }
 
     /**
-     * @return The underlying {@link PolyLine}, with the end {@link Location} equal to the start
-     *         {@link Location}. i.e. the area will be closed.
+     * @return The closed {@link Polygon}, with the end {@link Location} equal to the start
+     *         {@link Location}.
      */
-    public Iterable<Location> getClosedGeometry()
+    public Polygon getClosedGeometry()
     {
         return new Polygon(asPolygon().closedLoop());
     }
