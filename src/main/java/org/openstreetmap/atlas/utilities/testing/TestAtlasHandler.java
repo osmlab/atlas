@@ -358,7 +358,7 @@ public class TestAtlasHandler implements FieldHandler
         }
         catch (IllegalArgumentException | IllegalAccessException e)
         {
-            throw new CoreException("Error loading from text resource {}", resourcePath, e);
+            throw new CoreException("Error loading from JOSM osm resource {}", resourcePath, e);
         }
     }
 

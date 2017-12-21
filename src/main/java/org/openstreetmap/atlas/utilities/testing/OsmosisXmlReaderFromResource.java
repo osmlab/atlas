@@ -31,7 +31,7 @@ import org.xml.sax.SAXParseException;
  */
 public class OsmosisXmlReaderFromResource implements RunnableSource
 {
-    private static Logger log = Logger.getLogger(XmlReader.class.getName());
+    private static Logger log = Logger.getLogger(OsmosisXmlReaderFromResource.class.getName());
 
     private Sink sink;
 

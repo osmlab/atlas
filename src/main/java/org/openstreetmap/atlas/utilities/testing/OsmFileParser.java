@@ -15,6 +15,8 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
  */
 public class OsmFileParser
 {
+    // List of regexes being replaced. The first item in the tuple is the regex, and the second is
+    // the replacement.
     private final List<Tuple<String, String>> replacements;
 
     public OsmFileParser()
