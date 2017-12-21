@@ -37,16 +37,6 @@ public abstract class ChangeSetHandler
      */
     public abstract Atlas applyChanges();
 
-    public Atlas getAtlas()
-    {
-        return this.atlas;
-    }
-
-    public PackedAtlasBuilder getBuilder()
-    {
-        return this.builder;
-    }
-
     /**
      * Logs statistics for given {@link Atlas}.
      *
@@ -64,6 +54,16 @@ public abstract class ChangeSetHandler
         builder.append(" Relations: ");
         builder.append(atlas.numberOfRelations());
         return builder.toString();
+    }
+
+    protected Atlas getAtlas()
+    {
+        return this.atlas;
+    }
+
+    protected PackedAtlasBuilder getBuilder()
+    {
+        return this.builder;
     }
 
     /**

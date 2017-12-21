@@ -20,7 +20,7 @@ import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import com.google.common.collect.Iterables;
 
 /**
- * {@link RawAtlasCountrySlicer} unit tests for slicing Relations.
+ * {@link RawAtlasRelationSlicer} unit tests for slicing Relations.
  *
  * @author mgostintsev
  */
@@ -62,9 +62,8 @@ public class RelationSlicingTest
         Assert.assertEquals(12, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
-                COUNTRY_BOUNDARY_MAP);
-        final Atlas slicedAtlas = slicer.slice();
+        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
+                .slice(rawAtlas);
 
         Assert.assertEquals(27, slicedAtlas.numberOfPoints());
         Assert.assertEquals(5, slicedAtlas.numberOfLines());
@@ -83,9 +82,8 @@ public class RelationSlicingTest
         Assert.assertEquals(9, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
-                COUNTRY_BOUNDARY_MAP);
-        final Atlas slicedAtlas = slicer.slice();
+        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
+                .slice(rawAtlas);
 
         Assert.assertEquals(3, slicedAtlas.numberOfLines());
         Assert.assertEquals(14, slicedAtlas.numberOfPoints());
@@ -110,9 +108,8 @@ public class RelationSlicingTest
         Assert.assertEquals(9, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
-                COUNTRY_BOUNDARY_MAP);
-        final Atlas slicedAtlas = slicer.slice();
+        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
+                .slice(rawAtlas);
 
         Assert.assertEquals(8, slicedAtlas.numberOfLines());
         Assert.assertEquals(14, slicedAtlas.numberOfPoints());
@@ -135,9 +132,8 @@ public class RelationSlicingTest
         Assert.assertEquals(8, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
-                COUNTRY_BOUNDARY_MAP);
-        final Atlas slicedAtlas = slicer.slice();
+        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
+                .slice(rawAtlas);
 
         new ComplexBuildingFinder().find(slicedAtlas)
                 .forEach(building -> System.out.println(building));
@@ -157,9 +153,8 @@ public class RelationSlicingTest
         Assert.assertEquals(9, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
-                COUNTRY_BOUNDARY_MAP);
-        final Atlas slicedAtlas = slicer.slice();
+        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
+                .slice(rawAtlas);
 
         Assert.assertEquals(16, slicedAtlas.numberOfPoints());
         Assert.assertEquals(6, slicedAtlas.numberOfLines());

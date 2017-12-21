@@ -15,7 +15,7 @@ import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 
 /**
- * {@link RawAtlasCountrySlicer} unit tests for slicing non-happy path multipolygon relations.
+ * {@link RawAtlasRelationSlicer} unit tests for slicing non-happy path multipolygon relations.
  *
  * @author mgostintsev
  */
@@ -55,9 +55,8 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(8, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
-                COUNTRY_BOUNDARY_MAP);
-        final Atlas slicedAtlas = slicer.slice();
+        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
+                .slice(rawAtlas);
 
         Assert.assertEquals(rawAtlas.numberOfPoints(), slicedAtlas.numberOfPoints());
         Assert.assertEquals(rawAtlas.numberOfLines(), slicedAtlas.numberOfLines());
@@ -75,9 +74,8 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(8, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
-                COUNTRY_BOUNDARY_MAP);
-        final Atlas slicedAtlas = slicer.slice();
+        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
+                .slice(rawAtlas);
 
         // Assert that we cannot build a valid building with this relation
         new ComplexBuildingFinder().find(slicedAtlas)
@@ -108,9 +106,8 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(4, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
-                COUNTRY_BOUNDARY_MAP);
-        final Atlas slicedAtlas = slicer.slice();
+        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
+                .slice(rawAtlas);
 
         // Assert that we cannot build a valid building with this relation
         new ComplexBuildingFinder().find(slicedAtlas)
@@ -135,9 +132,8 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(4, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
-                COUNTRY_BOUNDARY_MAP);
-        final Atlas slicedAtlas = slicer.slice();
+        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
+                .slice(rawAtlas);
 
         // Assert that we cannot build a valid building with this relation
         new ComplexBuildingFinder().find(slicedAtlas)
@@ -161,9 +157,8 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(4, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
-                COUNTRY_BOUNDARY_MAP);
-        final Atlas slicedAtlas = slicer.slice();
+        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
+                .slice(rawAtlas);
 
         // Assert that we cannot build a valid building with this relation
         new ComplexBuildingFinder().find(slicedAtlas)
@@ -188,9 +183,8 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(4, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
-                COUNTRY_BOUNDARY_MAP);
-        final Atlas slicedAtlas = slicer.slice();
+        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
+                .slice(rawAtlas);
 
         // Assert that we cannot build a valid building with this relation
         new ComplexBuildingFinder().find(slicedAtlas)
@@ -215,9 +209,8 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(8, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
-                COUNTRY_BOUNDARY_MAP);
-        final Atlas slicedAtlas = slicer.slice();
+        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
+                .slice(rawAtlas);
 
         // Assert that we cannot build a valid building with this relation
         new ComplexBuildingFinder().find(slicedAtlas)
@@ -241,9 +234,8 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(10, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
-                COUNTRY_BOUNDARY_MAP);
-        final Atlas slicedAtlas = slicer.slice();
+        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
+                .slice(rawAtlas);
 
         // Assert that we CAN build a valid building with this relation
         new ComplexBuildingFinder().find(slicedAtlas)
@@ -265,9 +257,8 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(10, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(rawAtlas, COUNTRIES,
-                COUNTRY_BOUNDARY_MAP);
-        final Atlas slicedAtlas = slicer.slice();
+        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
+                .slice(rawAtlas);
 
         // Assert that we CAN build a valid building with this relation
         new ComplexBuildingFinder().find(slicedAtlas)
