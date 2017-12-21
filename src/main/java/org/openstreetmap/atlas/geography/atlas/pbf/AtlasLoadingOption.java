@@ -103,6 +103,7 @@ public final class AtlasLoadingOption implements Serializable
         atlasLoadingOption.setOsmPbfWayFilter(filter);
         atlasLoadingOption.setOsmPbfNodeFilter(filter);
         atlasLoadingOption.setOsmPbfRelationFilter(filter);
+        atlasLoadingOption.setWaySectioning(true);
         return atlasLoadingOption;
     }
 
