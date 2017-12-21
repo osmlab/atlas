@@ -65,13 +65,10 @@ public class OsmosisXmlReaderFromResource implements RunnableSource
     public void run()
     {
         InputStream inputStream = null;
-
         try
         {
             final SAXParser parser;
-
             this.sink.initialize(Collections.<String, Object> emptyMap());
-
             // make "-" an alias for /dev/stdin
             if (this.resource.getName() != null && this.resource.getName().equals("-"))
             {
@@ -81,16 +78,11 @@ public class OsmosisXmlReaderFromResource implements RunnableSource
             {
                 inputStream = this.resource.read();
             }
-
             inputStream = new CompressionActivator(this.compressionMethod)
                     .createCompressionInputStream(inputStream);
-
             parser = createParser();
-
             parser.parse(inputStream, new OsmHandler(this.sink, this.enableDateParsing));
-
             this.sink.complete();
-
         }
         catch (final SAXParseException e)
         {
@@ -112,7 +104,6 @@ public class OsmosisXmlReaderFromResource implements RunnableSource
         finally
         {
             this.sink.release();
-
             if (inputStream != null)
             {
                 try
@@ -147,7 +138,6 @@ public class OsmosisXmlReaderFromResource implements RunnableSource
         try
         {
             return SAXParserFactory.newInstance().newSAXParser();
-
         }
         catch (final ParserConfigurationException e)
         {
@@ -158,5 +148,4 @@ public class OsmosisXmlReaderFromResource implements RunnableSource
             throw new OsmosisRuntimeException("Unable to create SAX Parser.", e);
         }
     }
-
 }

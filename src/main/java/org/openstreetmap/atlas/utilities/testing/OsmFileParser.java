@@ -26,6 +26,8 @@ public class OsmFileParser
         this.replacements.add(new Tuple<>("ref=\\'-", "ref=\\'"));
         this.replacements.add(new Tuple<>("action=\\'modify\\'",
                 "uid=\\'1\\' version=\\'1\\' changeset=\\'1\\' user=\\'myself\\'"
+                        // Here the timestamp is meaningless, just there so osmosis can read the XML
+                        // file.
                         + " timestamp=\\'2017-12-19T21:43:02Z\\' action=\\'modify\\'"));
         this.replacements.add(new Tuple<>("generator=\\'JOSM\\'",
                 "generator=\\'JOSM\\' timestamp=\\'2017-12-19T21:43:02Z\\'"));
