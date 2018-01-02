@@ -118,7 +118,7 @@ public class AtlasPrimitiveBigNode extends AtlasPrimitiveEntity
 
     public Set<Location> nodeLocations()
     {
-        return this.nodes.stream().map(AtlasPrimitiveLocationItem::getLocation)
+        return this.nodes().stream().map(AtlasPrimitiveLocationItem::getLocation)
                 .collect(Collectors.toSet());
     }
 
@@ -134,7 +134,7 @@ public class AtlasPrimitiveBigNode extends AtlasPrimitiveEntity
 
     public Set<AtlasPrimitiveEdge> outEdges()
     {
-        return edges().stream().filter(edge -> !nodeLocations().contains(edge.end()))
+        return edges().stream().filter(edge -> !this.nodeLocations().contains(edge.end()))
                 .collect(Collectors.toSet());
     }
 
