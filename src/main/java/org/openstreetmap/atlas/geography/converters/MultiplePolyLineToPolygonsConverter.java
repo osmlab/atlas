@@ -102,12 +102,13 @@ public class MultiplePolyLineToPolygonsConverter
      */
     private static class PossiblePolygon
     {
-        private boolean completed = false;
+        private boolean completed;
         // An ordered list of polylines, based on connectivity
         private final List<PolyLine> polyLines = new ArrayList<>();
 
         PossiblePolygon(final PolyLine first)
         {
+            this.completed = first instanceof Polygon || first.first().equals(first.last());
             this.polyLines.add(first);
         }
 
@@ -356,7 +357,7 @@ public class MultiplePolyLineToPolygonsConverter
         {
             final PolyLine candidate = remainingPolyLines.removeFirst();
             boolean added = false;
-            if (incompletes.size() > 0)
+            if (!incompletes.isEmpty())
             {
                 // There are some incompletes. Always try to fill the incompletes to the end until
                 // they are complete before creating new incomplete polygons.
@@ -383,9 +384,18 @@ public class MultiplePolyLineToPolygonsConverter
             else
             {
                 // There are no incomplete polygons, just create one.
-                incompletes.add(new PossiblePolygon(candidate));
-                added = true;
+                final PossiblePolygon incompleteCandidate = new PossiblePolygon(candidate);
+                if (incompleteCandidate.isCompleted())
+                {
+                    completes.add(incompleteCandidate);
+                }
+                else
+                {
+                    incompletes.add(incompleteCandidate);
+                    added = true;
+                }
             }
+
             if (!added)
             {
                 // Could not add the polyline to any incomplete polygon, so adding it back to the
@@ -399,7 +409,7 @@ public class MultiplePolyLineToPolygonsConverter
                 iterationsSinceLastPolyLineTaken = 0;
             }
         }
-        if (incompletes.size() > 0)
+        if (!incompletes.isEmpty())
         {
             throw new OpenPolygonException("Unable to close all the polygons!",
                     Iterables

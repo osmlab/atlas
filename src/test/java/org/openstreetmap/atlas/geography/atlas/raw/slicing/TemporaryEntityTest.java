@@ -7,6 +7,9 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryEntity;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryLine;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryPoint;
 
 /**
  * {@link TemporaryEntity} equals test.
@@ -34,6 +37,9 @@ public class TemporaryEntityTest
         final TemporaryLine lineTwo = new TemporaryLine(2L, lineOnePoints, new HashMap<>());
 
         Assert.assertFalse(pointOne.equals(pointTwo));
+        Assert.assertFalse(pointOne.equals(lineOne));
+        Assert.assertFalse(lineOne.equals(lineTwo));
+
         Assert.assertFalse(lineOne.equals(lineTwo));
         Assert.assertTrue(pointOne.equals(pointOne));
         Assert.assertTrue(pointOne.equals(pointOneCopy));

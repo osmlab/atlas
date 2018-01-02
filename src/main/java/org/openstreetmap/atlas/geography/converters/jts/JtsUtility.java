@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.converters.jts;
 import java.util.List;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.LinearRing;
@@ -18,6 +19,11 @@ public final class JtsUtility
 {
     public static final GeometryFactory GEOMETRY_FACTORY = JtsPrecisionManager.getGeometryFactory();
     private static final int MININMUM_NUMBER_OF_POLYGON_POINTS = 4;
+
+    public static LinearRing buildLinearRing(final CoordinateSequence sequence)
+    {
+        return new LinearRing(sequence, GEOMETRY_FACTORY);
+    }
 
     public static LinearRing buildLinearRing(final List<Coordinate> coordinates)
     {
