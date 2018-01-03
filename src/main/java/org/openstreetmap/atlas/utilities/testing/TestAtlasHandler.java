@@ -21,9 +21,13 @@ import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.text.TextAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
+import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
+import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
+import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
 import org.openstreetmap.atlas.streaming.resource.ClassResource;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
+import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.tags.BuildingPartTag;
 import org.openstreetmap.atlas.tags.BuildingTag;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
@@ -102,7 +106,18 @@ public class TestAtlasHandler implements FieldHandler
             }
             catch (final Throwable e)
             {
-                throw new CoreException("Error creating field", e);
+                throw new CoreException("Error creating field {}", field, e);
+            }
+        }
+        else if (StringUtils.isNotEmpty(testAtlas.loadFromJosmOsmResource()))
+        {
+            try
+            {
+                loadFromJosmOsmResource(field, rule, context, testAtlas.loadFromJosmOsmResource());
+            }
+            catch (final Throwable e)
+            {
+                throw new CoreException("Error creating field {}", field, e);
             }
         }
         else
@@ -320,6 +335,33 @@ public class TestAtlasHandler implements FieldHandler
         }
     }
 
+    private void loadFromJosmOsmResource(final Field field, final CoreTestRule rule,
+            final CreationContext context, final String resourcePath)
+    {
+        final String packageName = rule.getClass().getPackage().getName().replaceAll("\\.", "/");
+        final String completeName = String.format("%s/%s", packageName, resourcePath);
+        final ClassResource resource = new ClassResource(completeName);
+        FileSuffix.suffixFor(completeName).ifPresent(suffix ->
+        {
+            if (suffix == FileSuffix.GZIP)
+            {
+                resource.setDecompressor(Decompressor.GZIP);
+            }
+        });
+        try
+        {
+            final StringResource osmFile = new StringResource();
+            new OsmFileParser().update(resource, osmFile);
+            final ByteArrayResource pbfFile = new ByteArrayResource();
+            new OsmFileToPbf().update(osmFile, pbfFile);
+            field.set(rule, new OsmPbfLoader(pbfFile, AtlasLoadingOption.withNoFilter()).read());
+        }
+        catch (IllegalArgumentException | IllegalAccessException e)
+        {
+            throw new CoreException("Error loading from JOSM osm resource {}", resourcePath, e);
+        }
+    }
+
     private void loadFromTextResource(final Field field, final CoreTestRule rule,
             final CreationContext context, final String resourcePath)
     {
@@ -339,7 +381,7 @@ public class TestAtlasHandler implements FieldHandler
         }
         catch (IllegalArgumentException | IllegalAccessException e)
         {
-            throw new CoreException("Error locding from text resource", e);
+            throw new CoreException("Error loading from text resource {}", resourcePath, e);
         }
     }
 

@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-139008' action='modify' lat='7.13463380459' lon='-10.49970749297' />
+  <node id='-139009' action='modify' lat='7.03806608353' lon='-10.65738262866' />
+  <node id='-139013' action='modify' lat='6.90376746323' lon='-10.48617761334' />
+  <node id='-139015' action='modify' lat='6.93682915051' lon='-10.38626465608' />
+  <node id='-139024' action='modify' lat='7.1124301863' lon='-10.72451164682' />
+  <node id='-139025' action='modify' lat='7.06078971839' lon='-10.76145862581' />
+  <node id='-139027' action='modify' lat='6.97092158452' lon='-10.67871820807' />
+  <node id='-139029' action='modify' lat='6.90686709472' lon='-10.71514480708' />
+  <node id='-139038' action='modify' lat='6.88671912738' lon='-10.6230375496' />
+  <node id='-139039' action='modify' lat='6.85107062885' lon='-10.60534463008' />
+  <node id='-139041' action='modify' lat='6.88516924827' lon='-10.5241653523' />
+  <node id='-139043' action='modify' lat='6.8185196719' lon='-10.47785153357' />
+  <node id='-139045' action='modify' lat='6.84693729693' lon='-10.41696707524' />
+  <way id='-139010' action='modify'>
+    <nd ref='-139008' />
+    <nd ref='-139009' />
+    <nd ref='-139013' />
+    <nd ref='-139015' />
+    <tag k='highway' v='primary' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='-139026' action='modify'>
+    <nd ref='-139024' />
+    <nd ref='-139025' />
+    <nd ref='-139027' />
+    <nd ref='-139029' />
+    <tag k='highway' v='trunk' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='-139040' action='modify'>
+    <nd ref='-139038' />
+    <nd ref='-139039' />
+    <nd ref='-139041' />
+    <nd ref='-139043' />
+    <nd ref='-139045' />
+    <tag k='highway' v='motorway' />
+    <tag k='oneway' v='yes' />
+  </way>
+</osm>

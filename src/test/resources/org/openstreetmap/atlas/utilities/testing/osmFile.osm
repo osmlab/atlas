@@ -1,0 +1,83 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM' timestamp='2017-12-19T21:43:02Z'>
+  <node id='1409998' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01378166705' lon='-10.54718467843' />
+  <node id='1409999' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01400307686' lon='-10.54665453727' />
+  <node id='1410001' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01357328126' lon='-10.54613226949' />
+  <node id='1410003' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01317734799' lon='-10.54639734007' />
+  <node id='1410005' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01283872058' lon='-10.54584357876' />
+  <node id='1410007' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01390669848' lon='-10.54582520753' />
+  <node id='1410009' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01386502134' lon='-10.54528719299' />
+  <node id='1410011' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01352899926' lon='-10.54497750656' />
+  <node id='1410013' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01375561883' lon='-10.54479379428' />
+  <node id='1410038' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.0143390986' lon='-10.54653381206' />
+  <node id='1410039' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01445631542' lon='-10.54617426087' />
+  <node id='1410040' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.0142161719' lon='-10.5460947868' />
+  <node id='1410041' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01409895502' lon='-10.54645433798' />
+  <node id='1410044' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01328016806' lon='-10.54558045762' />
+  <node id='1410045' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01327244286' lon='-10.54497940386' />
+  <node id='1410047' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01296382279' lon='-10.54498343051' />
+  <node id='1410049' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01297154799' lon='-10.54558448427' />
+  <node id='1410053' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01316627317' lon='-10.54543612693' />
+  <node id='1410054' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01316237444' lon='-10.54513562601' />
+  <node id='1410056' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01306208877' lon='-10.54513694681' />
+  <node id='1410058' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.0130659875' lon='-10.54543744773' />
+  <node id='1410070' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01345866903' lon='-10.54661517035'>
+    <tag k='natural' v='tree' />
+  </node>
+  <node id='1410095' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.0145452395' lon='-10.54658593494' />
+  <node id='1410096' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01453752104' lon='-10.54579789937' />
+  <node id='1410098' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01414130659' lon='-10.54548164825' />
+  <node id='1410100' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='7.01401781111' lon='-10.54494505824' />
+  <way id='1410000' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify'>
+    <nd ref='1409998' />
+    <nd ref='1409999' />
+    <nd ref='1410001' />
+    <nd ref='1410003' />
+    <nd ref='1410005' />
+    <tag k='highway' v='motorway' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='1410008' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify'>
+    <nd ref='1410001' />
+    <nd ref='1410007' />
+    <nd ref='1410009' />
+    <nd ref='1410011' />
+    <nd ref='1410013' />
+    <tag k='highway' v='primary' />
+  </way>
+  <way id='1410042' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify'>
+    <nd ref='1410038' />
+    <nd ref='1410039' />
+    <nd ref='1410040' />
+    <nd ref='1410041' />
+    <nd ref='1410038' />
+    <tag k='building' v='yes' />
+  </way>
+  <way id='1410046' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify'>
+    <nd ref='1410044' />
+    <nd ref='1410045' />
+    <nd ref='1410047' />
+    <nd ref='1410049' />
+    <nd ref='1410044' />
+  </way>
+  <way id='1410055' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify'>
+    <nd ref='1410053' />
+    <nd ref='1410054' />
+    <nd ref='1410056' />
+    <nd ref='1410058' />
+    <nd ref='1410053' />
+  </way>
+  <way id='1410097' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify'>
+    <nd ref='1410095' />
+    <nd ref='1410096' />
+    <nd ref='1410098' />
+    <nd ref='1410100' />
+    <tag k='waterway' v='canal' />
+  </way>
+  <relation id='1410065' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify'>
+    <member type='way' ref='1410046' role='outer' />
+    <member type='way' ref='1410055' role='inner' />
+    <tag k='building' v='yes' />
+    <tag k='type' v='multipolygon' />
+  </relation>
+</osm>

@@ -298,7 +298,15 @@ public @interface TestAtlas
 
     /**
      * Sometimes we want to load the Atlas directly from a file. Note that this setting takes
-     * precendence over directly defining values
+     * precedence over directly defining values
+     *
+     * @return the resource path to the osm file
+     */
+    String loadFromJosmOsmResource() default "";
+
+    /**
+     * Sometimes we want to load the Atlas directly from a file. Note that this setting takes
+     * precedence over directly defining values
      *
      * @return the resource path to the text file
      */

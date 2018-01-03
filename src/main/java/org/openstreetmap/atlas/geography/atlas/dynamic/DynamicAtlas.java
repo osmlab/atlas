@@ -138,6 +138,36 @@ public class DynamicAtlas extends BareAtlas
         return this.current.bounds();
     }
 
+    public void buildUnderlyingMultiAtlas()
+    {
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("{}: Loading MultiAtlas with {}", this.getName(),
+                    nonNullShards().stream().map(Shard::getName).collect(Collectors.toList()));
+        }
+        this.policy.getShardSetChecker().accept(nonNullShards());
+        final List<Atlas> nonNullAtlasShards = getNonNullAtlasShards();
+        if (!nonNullAtlasShards.isEmpty())
+        {
+            if (nonNullAtlasShards.size() == 1)
+            {
+                this.current = nonNullAtlasShards.get(0);
+            }
+            else
+            {
+                this.current = new MultiAtlas(nonNullAtlasShards);
+            }
+            if (this.initialized)
+            {
+                this.isAlreadyLoaded = true;
+            }
+        }
+        else
+        {
+            throw new CoreException("Cannot load shards with no data!");
+        }
+    }
+
     @Override
     public Edge edge(final long identifier)
     {
@@ -228,31 +258,6 @@ public class DynamicAtlas extends BareAtlas
         newPolygon(polygon);
         return expand(() -> this.current.linesIntersecting(polygon, matcher), this::lineItemCovered,
                 this::newLine);
-    }
-
-    public void loadShards()
-    {
-        this.policy.getShardSetChecker().accept(nonNullShards());
-        final List<Atlas> nonNullAtlasShards = getNonNullAtlasShards();
-        if (!nonNullAtlasShards.isEmpty())
-        {
-            if (nonNullAtlasShards.size() == 1)
-            {
-                this.current = nonNullAtlasShards.get(0);
-            }
-            else
-            {
-                this.current = new MultiAtlas(nonNullAtlasShards);
-            }
-            if (this.initialized)
-            {
-                this.isAlreadyLoaded = true;
-            }
-        }
-        else
-        {
-            throw new CoreException("Cannot load shards with no data!");
-        }
     }
 
     @Override
@@ -374,20 +379,57 @@ public class DynamicAtlas extends BareAtlas
     }
 
     /**
-     * In case of an Atlas shard with neighbors containing data that might intersect it (example is
-     * a way from a neighboring shard intersecting the initial shard, but without any shapepoints in
-     * the initial shard) this method allows dual loading of neighboring shards. Once to load the
-     * neighboring shards if any, and to discover such features if any, then to load the other
-     * shards those features might intersect.
+     * Do a preemptive load of the {@link DynamicAtlas} as far as the {@link DynamicAtlasPolicy}
+     * allows.
+     * <p>
+     * In some very specific cases, where the {@link DynamicAtlasPolicy} allows expansion only if
+     * new shards intersect at least one feature that crosses the initial set of shards, it is
+     * possible that expanding only one time misses out some shard candidates. This happens when
+     * some feature intersects the initial shards but does not have any shape point inside any
+     * initial shard. This way, the initial shards do not contain that feature even though they
+     * intersect it. That feature is discovered as we load the neighboring shards which contain that
+     * feature. If that said feature also intersects a third neighboring shard, then that third
+     * neighboring shard becomes eligible for expansion, as that specific feature crosses it and the
+     * initial shards. To work around that case, the preemptive load will do a multi-staged loading.
      */
     public void preemptiveLoad()
     {
-        Set<Shard> currentShards = null;
+        if (!this.policy.isDeferLoading())
+        {
+            logger.warn(
+                    "{}: Skipping preemptive loading as it is useful only when the DynamicAtlasPolicy is deferLoading = true.",
+                    this.getName());
+            return;
+        }
+        // Loop through the entities to find potential shards to add
+        this.entities();
+        // Load all the shards into a multiAtlas
+        this.buildUnderlyingMultiAtlas();
+        // Record the current list of shards
+        Set<Shard> currentShards = new HashSet<>(this.loadedShards.keySet());
+        // Loop through the entities again to find potential shards to add. This can still happen if
+        // a way intersects the initial shard without shapepoints inside the initial shards, and was
+        // revealed by loading a new neighboring shard. At that point, if that way also intersects a
+        // third shard which was not loaded before, that third shard might become now eligible.
+        this.entities();
+        // Repeat the same process as long as we find some of those third party shards.
         while (!this.loadedShards.keySet().equals(currentShards))
         {
+            if (logger.isInfoEnabled())
+            {
+                final Set<Shard> missingShards = new HashSet<>(this.loadedShards.keySet());
+                missingShards.removeAll(currentShards);
+                logger.info("{}: Preemptive load found new unexpected 2nd degree shard(s): {}",
+                        this.getName(),
+                        missingShards.stream().map(Shard::getName).collect(Collectors.toList()));
+            }
+
+            // Load all the shards into a multiAtlas
+            this.buildUnderlyingMultiAtlas();
+            // Record the current list of shards
             currentShards = new HashSet<>(this.loadedShards.keySet());
+            // Loop through the entities again to find potential shards to add.
             this.entities();
-            this.loadShards();
         }
     }
 
@@ -494,7 +536,7 @@ public class DynamicAtlas extends BareAtlas
                 {
                     // Load the new current atlas only if it is the first time, or it is not the
                     // first time, and the policy is not to defer loading.
-                    loadShards();
+                    buildUnderlyingMultiAtlas();
                 }
             }
         }
