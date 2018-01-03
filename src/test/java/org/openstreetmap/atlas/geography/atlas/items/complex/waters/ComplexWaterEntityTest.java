@@ -76,14 +76,14 @@ public class ComplexWaterEntityTest extends AbstractWaterIslandTest
         });
 
         final Map<ItemType, Integer> expectedItemTypeCount = new HashMap<>();
-        itemTypeCount.put(RELATION, 2);
-        itemTypeCount.put(AREA, 3);
-        itemTypeCount.put(LINE, 3);
+        expectedItemTypeCount.put(RELATION, 2);
+        expectedItemTypeCount.put(AREA, 3);
+        expectedItemTypeCount.put(LINE, 3);
 
         Arrays.asList(RELATION, AREA, LINE).forEach(type ->
         {
             Assert.assertEquals("Mismatch in number of " + type, expectedItemTypeCount.get(type),
-                    waterTypeCount.get(type));
+                    itemTypeCount.get(type));
         });
 
     }
