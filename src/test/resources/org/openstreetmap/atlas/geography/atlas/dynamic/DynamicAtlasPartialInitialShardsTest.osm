@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-111956' action='modify' lat='6.21671550709' lon='-10.95712202083' />
+  <node id='-111957' action='modify' lat='6.17843244818' lon='-11.02789369889' />
+  <node id='-111959' action='modify' lat='6.10703233219' lon='-11.03413825872' />
+  <node id='-111961' action='modify' lat='6.01802756706' lon='-10.8998802224' />
+  <node id='-111963' action='modify' lat='6.08219527185' lon='-10.71670646741' />
+  <node id='-111965' action='modify' lat='6.18464070036' lon='-10.83014930431' />
+  <way id='-111958' action='modify'>
+    <nd ref='-111956' />
+    <nd ref='-111957' />
+    <nd ref='-111959' />
+    <nd ref='-111961' />
+    <nd ref='-111963' />
+    <nd ref='-111965' />
+    <nd ref='-111956' />
+    <tag k='natural' v='glacier' />
+  </way>
+</osm>
