@@ -3,8 +3,11 @@ package org.openstreetmap.atlas.geography.atlas.pbf.store;
 import org.openstreetmap.atlas.tags.AccessTag;
 import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.JunctionTag;
+import org.openstreetmap.atlas.tags.MotorVehicleTag;
+import org.openstreetmap.atlas.tags.MotorcarTag;
 import org.openstreetmap.atlas.tags.OneWayTag;
 import org.openstreetmap.atlas.tags.Taggable;
+import org.openstreetmap.atlas.tags.VehicleTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 
 /**
@@ -22,7 +25,7 @@ public enum PbfOneWay
 
     public static PbfOneWay forTag(final Taggable taggable)
     {
-        if (AccessTag.isNo(taggable))
+        if (isNotAccessibleToVehicles(taggable))
         {
             return CLOSED;
         }
@@ -58,5 +61,29 @@ public enum PbfOneWay
         {
             return NO;
         }
+    }
+
+    private static boolean isNotAccessibleToVehicles(final Taggable taggable)
+    {
+        // If way has "access=no" tag and does not have "motor_vehicle=yes", "motorcar=yes"
+        // or "vehicle=yes" tags combined with it, then this way is closed for motor vehicles
+        if (AccessTag.isNo(taggable)
+                && !Validators.isOfType(taggable, MotorVehicleTag.class, MotorVehicleTag.YES)
+                && !Validators.isOfType(taggable, MotorcarTag.class, MotorcarTag.YES)
+                && !Validators.isOfType(taggable, VehicleTag.class, VehicleTag.YES))
+        {
+            return true;
+        }
+
+        // If way has one of the following tags "motor_vehicle=no", "motorcar=no"
+        // or "vehicle=no", then this is closed for motor vehicles as well
+        if (Validators.isOfType(taggable, MotorVehicleTag.class, MotorVehicleTag.NO)
+                || Validators.isOfType(taggable, MotorcarTag.class, MotorcarTag.NO)
+                || Validators.isOfType(taggable, VehicleTag.class, VehicleTag.NO))
+        {
+            return true;
+        }
+
+        return false;
     }
 }
