@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,6 +32,7 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Joiner;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.TopologyException;
@@ -151,8 +153,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
     }
 
     /**
-     * Checks if there is a single slice or if all of the slices are in the same country AND the
-     * line being sliced isn't a feature that extends into the water, such as a Ferry or Pier.
+     * Checks if there is a single slice or if all of the slices are in the same country.
      *
      * @param line
      *            The {@link Line} that was sliced
@@ -306,19 +307,25 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             }
             catch (final CoreException e)
             {
-                // TODO - Consider shifting to a 4 digit name space for identifiers
                 logger.error(
-                        "Country slicing exceeded maximum point identifier name space of {} for Line {}",
+                        "Country slicing exceeded maximum point identifier name space of {} for Line {}. "
+                                + "It will be added as is, with two or more country codes.",
                         AbstractIdentifierFactory.IDENTIFIER_SCALE, line.getIdentifier(), e);
+
+                // Update to use all country codes
+                updateLineToHaveCountryCodesFromAllSlices(line, slices);
                 getStatistics().recordSkippedLine();
             }
         }
         else
         {
-            // TODO - Consider expanding to a 4 digit name space for identifiers
             logger.error(
-                    "Country slicing exceeded maximum line identifier name space of {} for Line {}",
+                    "Country slicing exceeded maximum line identifier name space of {} for Line {}. "
+                            + "It will be added as is, with two or more country codes.",
                     AbstractIdentifierFactory.IDENTIFIER_SCALE, line.getIdentifier());
+
+            // Update to use all country codes
+            updateLineToHaveCountryCodesFromAllSlices(line, slices);
             getStatistics().recordSkippedLine();
         }
     }
@@ -389,7 +396,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
     }
 
     /**
-     * Updates all of the given {@link Line}'s shape points' tags.
+     * Updates all of the given {@link Line}'s shape points' tags. Under the covers, uses
+     * {@link CountryBoundaryMap} spatial index call.
      *
      * @param line
      *            The {@link Line} whose shape points to update
@@ -405,6 +413,30 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                         createPointTags(location, true));
             }
         }
+    }
+
+    /**
+     * For {@link Line}s that could not be cut (because of too many created points or too many
+     * created line segments), we will gather the country codes for all the slices and assign the
+     * multiple-country code value to the un-sliced line. As a result, the same un-sliced line will
+     * appear in Atlas files for all spanning countries.
+     *
+     * @param line
+     *            The {@link Line} in question
+     * @param slices
+     *            The {@link Geometry} slices for the given {@link Line}
+     */
+    private void updateLineToHaveCountryCodesFromAllSlices(final Line line,
+            final List<Geometry> slices)
+    {
+        final Map<String, String> tags = new HashMap<>();
+        final Set<String> allCountries = new HashSet<>();
+        slices.forEach(geometry -> allCountries
+                .add(CountryBoundaryMap.getGeometryProperty(geometry, ISOCountryTag.KEY)));
+        final String countryString = Joiner.on(",").join(allCountries);
+        tags.put(ISOCountryTag.KEY, countryString);
+        this.slicedPointAndLineChanges.updateLineTags(line.getIdentifier(), tags);
+        updateLineShapePoints(line);
     }
 
 }

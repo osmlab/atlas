@@ -1182,7 +1182,7 @@ public class CountryBoundaryMap implements Serializable
         }
         else
         {
-            logger.error(geometry.toText());
+            logger.error("Resulting slice was a {}, ignoring it.", geometry.toText());
         }
     }
 

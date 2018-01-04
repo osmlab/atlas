@@ -13,6 +13,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRelation;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRelationMember;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.slf4j.Logger;
@@ -68,9 +69,8 @@ public class RelationChangeSetHandler extends ChangeSetHandler
         // Add any Lines created by Relation slicing
         addNewLines();
 
-        // Process the change set
+        // Process the relations
         addUpdatedRelations();
-        addNewRelations();
 
         // Build and log
         final Atlas atlasWithUpdates = this.getBuilder().get();
@@ -104,34 +104,39 @@ public class RelationChangeSetHandler extends ChangeSetHandler
      */
     private void addNewPoints()
     {
-        this.changeSet.getCreatedPoints().forEach(point -> this.getBuilder()
+        this.changeSet.getCreatedPoints().values().forEach(point -> this.getBuilder()
                 .addPoint(point.getIdentifier(), point.getLocation(), point.getTags()));
     }
 
     /**
-     * Add any new {@link Relation}s from the change set.
-     */
-    private void addNewRelations()
-    {
-        this.changeSet.getCreatedRelations()
-                .forEach(relation -> this.getBuilder().addRelation(relation.getIdentifier(),
-                        getOsmIdentifier(relation.getIdentifier()), relation.getRelationBean(),
-                        relation.getTags()));
-    }
-
-    /**
-     * Updates the tags for all existing {@link Relation}s in the original Atlas, unless the
-     * {@link Relation} was deleted by the change set, and adds it to the updated Atlas.
+     * Updates the tags for all existing {@link Relation}s in the original Atlas and adds it to the
+     * updated Atlas. If the {@link Relation} was deleted, it will add the {@link Relation}s that
+     * replaced it.
      */
     private void addUpdatedRelations()
     {
+        // The relation was either modified or deleted (and replaced)
         this.getAtlas().relationsLowerOrderFirst().forEach(relation ->
         {
             final long identifier = relation.getIdentifier();
-            // Only add if we've not deleted this relation
-            if (!this.changeSet.getDeletedRelations().contains(identifier))
+
+            if (this.changeSet.getDeletedToCreatedRelationMapping().containsKey(identifier))
             {
-                // Add the Relation with the updated tag value
+                // This relation was deleted and replaced by one or more others
+                final Set<Long> replacedIdentifiers = this.changeSet
+                        .getDeletedToCreatedRelationMapping().get(identifier);
+                replacedIdentifiers.forEach(replacedIdentifier ->
+                {
+                    final TemporaryRelation replacement = this.changeSet.getCreatedRelations()
+                            .get(replacedIdentifier);
+                    this.getBuilder().addRelation(replacement.getIdentifier(),
+                            getOsmIdentifier(replacement.getIdentifier()),
+                            replacement.getRelationBean(), replacement.getTags());
+                });
+            }
+            else
+            {
+                // This relation still exists, add it with the updated tag value
                 if (this.changeSet.getUpdatedRelationTags().containsKey(identifier))
                 {
                     final Relation originalRelation = this.getAtlas().relation(identifier);

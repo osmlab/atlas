@@ -8,6 +8,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.complex.Finder;
 import org.openstreetmap.atlas.geography.atlas.items.complex.buildings.ComplexBuildingFinder;
 import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWaterEntity;
@@ -20,7 +21,7 @@ import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import com.google.common.collect.Iterables;
 
 /**
- * {@link RawAtlasRelationSlicer} unit tests for slicing Relations.
+ * {@link RawAtlasRelationSlicer} unit tests for slicing {@link Relation}s.
  *
  * @author mgostintsev
  */
@@ -49,7 +50,7 @@ public class RelationSlicingTest
                                 .withDecompressor(Decompressor.GZIP));
     }
 
-    // TODO - test with multiple inners across boundary, relations of relations
+    // TODO - test with multiple inners across boundary
 
     @Test
     public void testMultiPolygonRelationSpanningTwoCountries()
