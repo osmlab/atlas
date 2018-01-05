@@ -5,8 +5,12 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
+import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
@@ -16,6 +20,7 @@ import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * Tests OSM PBF --> Raw Atlas --> Sliced Raw Atlas flow.
@@ -45,6 +50,7 @@ public class OsmPbfToSlicedRawAtlasTest
     }
 
     @Test
+    @Ignore("Taking too long, but still valuable to have")
     public void testPbfToSlicedRawAtlas()
     {
         // This PBF file contains really interesting data. 1. MultiPolygon with multiple inners and
@@ -86,6 +92,18 @@ public class OsmPbfToSlicedRawAtlasTest
             Assert.assertTrue(Validators.hasValuesFor(point, ISOCountryTag.class));
         });
 
-        // TODO Compare to existing Atlas country slicing and determine parity
+        // Previous PBF-to-Atlas Implementation - let's compare the two results
+        final String pbfPath = OsmPbfToSlicedRawAtlasTest.class.getResource("8-122-122.osm.pbf")
+                .getPath();
+        final OsmPbfLoader loader = new OsmPbfLoader(new File(pbfPath), AtlasLoadingOption
+                .createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP).setWaySectioning(false));
+        final Atlas oldSlicedAtlas = loader.read();
+
+        Assert.assertEquals(
+                "The original Atlas counts of (Lines + Master Edges + Areas), without way-sectioning should "
+                        + "equal the total number of all Lines in the Raw Atlas, let's verify this",
+                Iterables.size(Iterables.filter(oldSlicedAtlas.edges(), Edge::isMasterEdge))
+                        + +oldSlicedAtlas.numberOfAreas() + oldSlicedAtlas.numberOfLines(),
+                slicedRawAtlas.numberOfLines());
     }
 }
