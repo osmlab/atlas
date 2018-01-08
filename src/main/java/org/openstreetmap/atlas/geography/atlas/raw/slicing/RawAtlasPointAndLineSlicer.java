@@ -3,11 +3,11 @@ package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -430,9 +430,9 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             final List<Geometry> slices)
     {
         final Map<String, String> tags = new HashMap<>();
-        final Set<String> allCountries = new HashSet<>();
-        slices.forEach(geometry -> allCountries
-                .add(CountryBoundaryMap.getGeometryProperty(geometry, ISOCountryTag.KEY)));
+        final Set<String> allCountries = slices.stream().map(
+                geometry -> CountryBoundaryMap.getGeometryProperty(geometry, ISOCountryTag.KEY))
+                .collect(Collectors.toCollection(TreeSet::new));
         final String countryString = Joiner.on(",").join(allCountries);
         tags.put(ISOCountryTag.KEY, countryString);
         this.slicedPointAndLineChanges.updateLineTags(line.getIdentifier(), tags);
