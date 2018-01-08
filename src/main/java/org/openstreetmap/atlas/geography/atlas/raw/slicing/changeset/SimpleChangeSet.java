@@ -8,6 +8,7 @@ import java.util.Set;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryEntity;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryLine;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryPoint;
+import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
 
 /**
  * Records any additions, updates and deletions that occurred during point and way raw Atlas
@@ -37,7 +38,7 @@ public class SimpleChangeSet
     // Lines that were sliced will be deleted and replaced by two or more new line segments. We need
     // to maintain this mapping to maintain relation integrity by removing deleted line members and
     // replacing them with the created sliced segments.
-    private final Map<Long, Set<Long>> deletedToCreatedLineMapping;
+    private final MultiMapWithSet<Long, Long> deletedToCreatedLineMapping;
 
     public SimpleChangeSet()
     {
@@ -46,7 +47,7 @@ public class SimpleChangeSet
         this.createdLines = new HashSet<>();
         this.updatedLineTags = new HashMap<>();
         this.deletedLines = new HashSet<>();
-        this.deletedToCreatedLineMapping = new HashMap<>();
+        this.deletedToCreatedLineMapping = new MultiMapWithSet<>();
     }
 
     public void createDeletedToCreatedMapping(final long deletedIdentifier,
@@ -85,7 +86,7 @@ public class SimpleChangeSet
         return this.deletedLines;
     }
 
-    public Map<Long, Set<Long>> getDeletedToCreatedLineMapping()
+    public MultiMapWithSet<Long, Long> getDeletedToCreatedLineMapping()
     {
         return this.deletedToCreatedLineMapping;
     }

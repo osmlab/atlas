@@ -29,6 +29,7 @@ import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.ChangeSetHa
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.RelationChangeSet;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.RelationChangeSetHandler;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.SimpleChangeSet;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryEntity;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryLine;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryPoint;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRelation;
@@ -419,70 +420,79 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
     private Map<String, List<TemporaryRelationMember>> groupRelationMembersByCountry(
             final List<TemporaryRelationMember> members)
     {
-        final Map<String, List<TemporaryRelationMember>> countryEntityMap = members.stream()
-                .collect(Collectors.groupingBy(member ->
-                {
-                    final AtlasEntity entity;
-                    final ItemType memberType = member.getType();
-                    switch (memberType)
-                    {
-                        case POINT:
-                            entity = this.partiallySlicedRawAtlas.point(member.getIdentifier());
-                            break;
-                        case LINE:
-                            entity = this.partiallySlicedRawAtlas.line(member.getIdentifier());
-                            break;
-                        case RELATION:
-                            entity = this.partiallySlicedRawAtlas.relation(member.getIdentifier());
-                            break;
-                        default:
-                            throw new CoreException(
-                                    "Unsupported Relation Member of Type {} in Raw Atlas",
-                                    member.getType());
-                    }
+        final MultiMap<String, TemporaryRelationMember> countryEntityMap = new MultiMap<>();
+        for (final TemporaryRelationMember member : members)
+        {
+            final AtlasEntity entity;
+            final ItemType memberType = member.getType();
+            final long memberIdentifier = member.getIdentifier();
 
-                    if (entity != null)
+            switch (memberType)
+            {
+                case POINT:
+                    entity = this.partiallySlicedRawAtlas.point(memberIdentifier);
+                    break;
+                case LINE:
+                    entity = this.partiallySlicedRawAtlas.line(memberIdentifier);
+                    break;
+                case RELATION:
+                    entity = this.partiallySlicedRawAtlas.relation(memberIdentifier);
+                    break;
+                default:
+                    throw new CoreException("Unsupported Relation Member of Type {} in Raw Atlas",
+                            member.getType());
+            }
+
+            if (entity != null)
+            {
+                // Entity is in the Raw Atlas
+                final Iterable<IsoCountry> countryCodes = ISOCountryTag.all(entity);
+                for (final IsoCountry countryCode : countryCodes)
+                {
+                    // Entities that were not sliced could have more than one country code
+                    final String code = countryCode.getIso3CountryCode();
+                    countryEntityMap.add(code, member);
+                }
+            }
+            else
+            {
+                // Entity is not in the Raw Atlas
+                final TemporaryEntity temporaryEntity;
+                switch (memberType)
+                {
+                    case POINT:
+                        temporaryEntity = this.slicedRelationChanges.getCreatedPoints()
+                                .get(memberIdentifier);
+                        break;
+                    case LINE:
+                        temporaryEntity = this.slicedRelationChanges.getCreatedLines()
+                                .get(memberIdentifier);
+                        break;
+                    case RELATION:
+                        temporaryEntity = this.slicedRelationChanges.getCreatedRelations()
+                                .get(memberIdentifier);
+                        break;
+                    default:
+                        throw new CoreException(
+                                "Unsupported Relation Member of Type {} in Raw Atlas",
+                                member.getType());
+                }
+
+                if (temporaryEntity != null)
+                {
+                    final String countryCode = temporaryEntity.getTags().get(ISOCountryTag.KEY);
+                    if (countryCode != null)
                     {
-                        // Entity is in the Raw Atlas
-                        final Optional<IsoCountry> possibleCountryCode = ISOCountryTag
-                                .first(entity);
-                        if (possibleCountryCode.isPresent())
-                        {
-                            return possibleCountryCode.get().getIso3CountryCode();
-                        }
-                        else
-                        {
-                            logger.error(
-                                    "Existing Raw Atlas Relation Member {} does not have a country code!",
-                                    member.getIdentifier());
-                        }
+                        countryEntityMap.add(countryCode, member);
                     }
                     else
                     {
-                        // Entity is not in the Raw Atlas
-                        final TemporaryLine newLine = this.slicedRelationChanges.getCreatedLines()
-                                .get(member.getIdentifier());
-                        if (newLine != null)
-                        {
-                            final String countryCode = newLine.getTags().get(ISOCountryTag.KEY);
-                            if (countryCode != null)
-                            {
-                                return countryCode;
-                            }
-                            else
-                            {
-                                logger.error(
-                                        "Newly added Relation Member {} does not have a country code!",
-                                        member.getIdentifier());
-                            }
-                        }
+                        logger.error("Newly added Relation Member {} does not have a country code!",
+                                member.getIdentifier());
                     }
-
-                    // Missing Entity, log and assign missing country
-                    logger.error("Could not find Relation Member {} in Atlas or Added Lines List!",
-                            member.getIdentifier());
-                    return ISOCountryTag.COUNTRY_MISSING;
-                }));
+                }
+            }
+        }
 
         return countryEntityMap;
     }
@@ -808,7 +818,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
      * @param relation
      *            The {@link Relation} to slice
      */
-    private List<TemporaryRelation> sliceRelation(final Relation relation, final List<Long> parents)
+    private List<TemporaryRelation> sliceRelation(final Relation relation)
     {
         getStatistics().recordProcessedRelation();
 
@@ -818,7 +828,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
             preProcessMultiPolygonRelation(relation);
         }
 
-        return updateAndSplitRelation(relation, parents);
+        return updateAndSplitRelation(relation);
     }
 
     /**
@@ -827,24 +837,19 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
     private void sliceRelations()
     {
         this.partiallySlicedRawAtlas.relationsLowerOrderFirst()
-                .forEach(relation -> this.sliceRelation(relation, new ArrayList<>()));
+                .forEach(relation -> this.sliceRelation(relation));
     }
 
     /**
      * Take a {@link Relation} and create one or more {@link TemporaryRelation}s to add to the
-     * sliced Atlas. We first add all existing members if they haven't been removed during slicing.
+     * sliced Atlas. We first add all existing members, if they haven't been removed during slicing.
      * We then add any new members for this relation. Finally, we group by members by country and
-     * see if we need to split up the existing relation into two or more separate relations. If
-     * we're dealing with a member relation, then we call ourselves recursively and pass in the
-     * known parent list.
+     * see if we need to split up the existing relation into two or more separate relations.
      *
      * @param relation
      *            The {@link Relation} to update
-     * @param parents
-     *            The list of parent {@link Relation}s
      */
-    private List<TemporaryRelation> updateAndSplitRelation(final Relation relation,
-            final List<Long> parents)
+    private List<TemporaryRelation> updateAndSplitRelation(final Relation relation)
     {
         // Work with TemporaryRelationMembers instead of RelationMembers. There is less overhead
         // this way - we don't need actual atlas entities, just their identifiers
@@ -872,42 +877,26 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                         members.add(temporaryMember);
                         break;
                     case RELATION:
-                        parents.add(relation.getIdentifier());
-                        final Relation subRelation = this.partiallySlicedRawAtlas
-                                .relation(memberIdentifier);
-
-                        if (subRelation == null)
+                        final Set<Long> replacementIdentifiers = this.slicedRelationChanges
+                                .getDeletedToCreatedRelationMapping().get(memberIdentifier);
+                        if (replacementIdentifiers == null)
                         {
-                            logger.debug("Could not find relation member {} in atlas",
-                                    memberIdentifier);
-                            // Put the member back into the relation. Missing members will be
-                            // handled on a case by case basis
+                            // sub-relation was not replaced, we can safely add it
                             members.add(temporaryMember);
-                            break;
-                        }
-
-                        final List<TemporaryRelation> slicedMembers;
-                        if (!parents.contains(subRelation.getIdentifier()))
-                        {
-                            slicedMembers = sliceRelation(subRelation, parents);
                         }
                         else
                         {
-                            logger.error("Relation {} has a loop! Parent tree: {}",
-                                    subRelation.getIdentifier(), parents);
-                            slicedMembers = null;
-                        }
-
-                        if (slicedMembers != null)
-                        {
-                            getStatistics().recordSlicedRelation();
-                            slicedMembers.forEach(
-                                    slicedRelation -> members.add(new TemporaryRelationMember(
-                                            memberIdentifier, member.getRole(), memberType)));
-                        }
-                        else
-                        {
-                            members.add(temporaryMember);
+                            // sub-relation was replaced, we need to update it with the
+                            // replacement(s)
+                            replacementIdentifiers.forEach(identifier ->
+                            {
+                                final TemporaryRelation newSubRelation = this.slicedRelationChanges
+                                        .getCreatedRelations().get(identifier);
+                                final TemporaryRelationMember newMember = new TemporaryRelationMember(
+                                        newSubRelation.getIdentifier(), member.getRole(),
+                                        memberType);
+                                members.add(newMember);
+                            });
                         }
                         break;
                     default:
@@ -992,6 +981,8 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                     candidateMembers.forEach(member -> newRelation.addMember(member));
                     createdRelations.add(newRelation);
                     this.slicedRelationChanges.createRelation(newRelation);
+                    this.slicedRelationChanges.createDeletedToCreatedMapping(
+                            relation.getIdentifier(), newRelation.getIdentifier());
                 }
             });
         }

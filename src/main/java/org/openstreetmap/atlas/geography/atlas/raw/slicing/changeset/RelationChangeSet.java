@@ -31,7 +31,7 @@ import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
  * <li>5. Relation tag updates - a relation country code change or synthetic tag addition will be
  * recorded here *
  * <li>6. Relation member addition - a new line member could have been added to a relation to make
- * an open mulitpolygon closed again
+ * an open multipolygon closed again
  * <li>7. Relation member deletion - a relation member could have been deleted if two or more
  * members were merged into one
  * <li>8. Line deletion - in the rare case, we might delete a line that was added during country
@@ -44,9 +44,9 @@ import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
 public class RelationChangeSet
 {
     // Created entities
-    private final Set<TemporaryPoint> createdPoints;
+    private final Map<Long, TemporaryPoint> createdPoints;
     private final Map<Long, TemporaryLine> createdLines;
-    private final Set<TemporaryRelation> createdRelations;
+    private final Map<Long, TemporaryRelation> createdRelations;
 
     // Relation updates
     private final Map<Long, Map<String, String>> updatedRelationTags;
@@ -57,22 +57,35 @@ public class RelationChangeSet
     private final Set<Long> deletedLines;
     private final Set<Long> deletedRelations;
 
+    // Relations that were sliced will be deleted and replaced by two or more new Relations. We need
+    // to keep track of this relationship to maintain relation of relation integrity. If a relation
+    // was deleted, then any parent relation containing that relation will need to know which
+    // children to replace it with.
+    private final MultiMapWithSet<Long, Long> deletedToCreatedRelationMapping;
+
     public RelationChangeSet()
     {
-        this.createdPoints = new HashSet<>();
+        this.createdPoints = new HashMap<>();
         this.createdLines = new HashMap<>();
-        this.createdRelations = new HashSet<>();
+        this.createdRelations = new HashMap<>();
         this.updatedRelationTags = new HashMap<>();
         this.addedRelationMembers = new MultiMapWithSet<>();
         this.deletedRelationMembers = new MultiMapWithSet<>();
         this.deletedLines = new HashSet<>();
         this.deletedRelations = new HashSet<>();
+        this.deletedToCreatedRelationMapping = new MultiMapWithSet<>();
     }
 
     public void addRelationMember(final Long relationIdentifier,
             final TemporaryRelationMember member)
     {
         this.addedRelationMembers.add(relationIdentifier, member);
+    }
+
+    public void createDeletedToCreatedMapping(final long deletedIdentifier,
+            final Long createdIdentifier)
+    {
+        this.deletedToCreatedRelationMapping.add(deletedIdentifier, createdIdentifier);
     }
 
     public void createLine(final TemporaryLine line)
@@ -82,12 +95,12 @@ public class RelationChangeSet
 
     public void createPoint(final TemporaryPoint point)
     {
-        this.createdPoints.add(point);
+        this.createdPoints.put(point.getIdentifier(), point);
     }
 
     public void createRelation(final TemporaryRelation relation)
     {
-        this.createdRelations.add(relation);
+        this.createdRelations.put(relation.getIdentifier(), relation);
     }
 
     public void deleteLine(final Long identifier)
@@ -116,12 +129,12 @@ public class RelationChangeSet
         return this.createdLines;
     }
 
-    public Set<TemporaryPoint> getCreatedPoints()
+    public Map<Long, TemporaryPoint> getCreatedPoints()
     {
         return this.createdPoints;
     }
 
-    public Set<TemporaryRelation> getCreatedRelations()
+    public Map<Long, TemporaryRelation> getCreatedRelations()
     {
         return this.createdRelations;
     }
@@ -139,6 +152,11 @@ public class RelationChangeSet
     public Set<Long> getDeletedRelations()
     {
         return this.deletedRelations;
+    }
+
+    public MultiMapWithSet<Long, Long> getDeletedToCreatedRelationMapping()
+    {
+        return this.deletedToCreatedRelationMapping;
     }
 
     public Map<Long, Map<String, String>> getUpdatedRelationTags()

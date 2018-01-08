@@ -5,23 +5,19 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.CountrySlicingIdentifierFactory;
-import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
-import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
-import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 
 /**
  * {@link RawAtlasPointAndLineSlicer} unit tests for slicing Lines and Points.
@@ -404,35 +400,5 @@ public class LineAndPointSlicingTest
                     "Expect a nearest neighbor country code tag to be present for all points",
                     point.getTag(SyntheticNearestNeighborCountryCodeTag.KEY).isPresent());
         });
-    }
-
-    // TODO remove ignore --> move to integration tests
-    @Test
-    @Ignore
-    public void testSlicingWaysAndPoints()
-    {
-        // Create the Raw Atlas
-        final String path = LineAndPointSlicingTest.class.getResource("8-122-122.pbf").getPath();
-        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
-        final Atlas rawAtlas = rawAtlasGenerator.build();
-
-        // Slice it
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
-
-        // Assert all Lines have a country code
-        slicedAtlas.lines().forEach(line ->
-        {
-            Assert.assertTrue(Validators.hasValuesFor(line, ISOCountryTag.class));
-        });
-
-        // Assert all Points have a country code
-        slicedAtlas.points().forEach(point ->
-        {
-            Assert.assertTrue(Validators.hasValuesFor(point, ISOCountryTag.class));
-        });
-
-        // Make Relation assertions
-        // Compare to existing Atlas country slicing and determine parity
     }
 }
