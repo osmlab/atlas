@@ -54,6 +54,8 @@ import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 import org.openstreetmap.osmosis.core.task.v0_6.SinkRunnableSource;
 import org.openstreetmap.osmosis.xml.common.CompressionMethod;
 import org.openstreetmap.osmosis.xml.v0_6.XmlWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This {@link PbfMemoryStore} holds all the information needed by country slicing, way sectioning
@@ -67,6 +69,8 @@ public class PbfMemoryStore implements SinkRunnableSource
     private static final JtsPointConverter JTS_POINT_CONVERTER = new JtsPointConverter();
     private static final TagMapToTagCollectionConverter TAG_MAP_TO_TAG_COLLECTION_CONVERTER = new TagMapToTagCollectionConverter();
     private static final CountryListTwoWayStringConverter COUNTRY_LIST_CONVERTER = new CountryListTwoWayStringConverter();
+
+    private static final Logger logger = LoggerFactory.getLogger(PbfMemoryStore.class);
 
     private final Map<Long, Node> nodes;
     private final Map<Long, Way> ways;
@@ -503,30 +507,21 @@ public class PbfMemoryStore implements SinkRunnableSource
 
     public boolean isAtlasPoint(final Node node)
     {
-        if (containsNodeInRelations(node.getId()))
+        final boolean hasExplicitOsmTags = nodeHasExplicitOsmTags(node);
+        final long nodeIdentifier = node.getId();
+
+        if (containsNodeInRelations(nodeIdentifier) && !hasExplicitOsmTags
+                && !isAtlasNode(nodeIdentifier))
         {
+            // When the OSM Node is part of a Relation, doesn't have any explicit OSM tagging and is
+            // not at an intersection (not an Atlas Node), then we want to create an Atlas Point so
+            // we don't lose this Node as a member of our Relation.
             return true;
         }
-        // All the OSM features will have tags that are added by the Atlas generation: last edit
-        // time, last user (from PBF) as well as some synthetic boundary tags for the nodes that are
-        // created at the provided boundary. Because an OSM Node becomes a Point only when it has
-        // tags, the logic here needs to make sure not to count the synthetic tags to make that
-        // decision.
-        // Tags from OSM are the tags that all the nodes will have
-        if (node.getTags().size() > AtlasTag.TAGS_FROM_OSM.size())
-        {
-            int counter = 0;
-            for (final Tag tag : node.getTags())
-            {
-                // Tags from Atlas are the tags that only some nodes will have
-                if (AtlasTag.TAGS_FROM_ATLAS.contains(tag.getKey()))
-                {
-                    counter++;
-                }
-            }
-            return node.getTags().size() > AtlasTag.TAGS_FROM_OSM.size() + counter;
-        }
-        return false;
+
+        // All other times, we defer to the presence of explicit OSM tagging to determine whether
+        // it's a Point
+        return hasExplicitOsmTags;
     }
 
     public boolean isOneNodeWay(final Way way)
@@ -739,5 +734,51 @@ public class PbfMemoryStore implements SinkRunnableSource
                 new OsmUser(fakeIdentifier, fakeUser), 1,
                 TAG_MAP_TO_TAG_COLLECTION_CONVERTER.convert(tags));
         return data;
+    }
+
+    /**
+     * Each Atlas entity will have a base set of tags added by Atlas generation (see
+     * {@link AtlasTag#TAGS_FROM_OSM}). Each entity can also have additional synthetic tags (see
+     * {@link AtlasTag#TAGS_FROM_ATLAS}). Because an OSM {@link Node} becomes an Atlas {@link Point}
+     * only when it has tags, the logic here needs to make sure not to count the synthetic tags to
+     * make that decision. This method will calculate the total number of base + synthetic tags for
+     * a given {@link Node} and return {@code true} if the {@link Node} contains other, non-base and
+     * non-synthetic, tags.
+     *
+     * @param node
+     *            The {@link Node} to use
+     * @return {@code true} if the {@link Node} contains explicit OSM tagging
+     */
+    private boolean nodeHasExplicitOsmTags(final Node node)
+    {
+        final int nodeTagSize = node.getTags().size();
+        final int osmAndAtlasTagCount;
+
+        if (nodeTagSize > AtlasTag.TAGS_FROM_OSM.size())
+        {
+            int counter = 0;
+            for (final Tag tag : node.getTags())
+            {
+                // Tags from Atlas are the tags that only some nodes will have
+                if (AtlasTag.TAGS_FROM_ATLAS.contains(tag.getKey()))
+                {
+                    counter++;
+                }
+            }
+            osmAndAtlasTagCount = AtlasTag.TAGS_FROM_OSM.size() + counter;
+        }
+        else if (nodeTagSize < AtlasTag.TAGS_FROM_OSM.size())
+        {
+            logger.error(
+                    "Osm Node {} has {} tags, which is less than the minimum required number of tags {}",
+                    node.getId(), nodeTagSize, AtlasTag.TAGS_FROM_OSM.size());
+            osmAndAtlasTagCount = nodeTagSize;
+        }
+        else
+        {
+            osmAndAtlasTagCount = AtlasTag.TAGS_FROM_OSM.size();
+        }
+
+        return nodeTagSize > osmAndAtlasTagCount;
     }
 }

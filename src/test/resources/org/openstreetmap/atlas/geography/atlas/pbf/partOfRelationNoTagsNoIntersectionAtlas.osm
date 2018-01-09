@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-1409998' action='modify' lat='7.01378166705' lon='-10.54718467843'>\
+            <tag k='name' v='Some Road' />
+            <tag k='maxspeed' v='70' />
+  </node>
+  <node id='-1409999' action='modify' lat='7.01400307686' lon='-10.54665453727' />
+  <node id='-1410001' action='modify' lat='7.01357328126' lon='-10.54613226949' >
+  	          <tag k='highway' v='speed_camera' />
+              <tag k='maxspeed' v='70' />
+  </node>
+  <relation id='-1410065' action='modify'>
+    <member type='node' ref='-1409998' role='from' />
+    <member type='node' ref='-1409999' role='to' />
+    <member type='node' ref='-1410001' role='device' />
+    <tag k='type' v='enforcement' />
+    <tag k='enforcement' v='enforcement' />
+    <tag k='maxspeed' v='70' />
+  </relation>
+</osm>
