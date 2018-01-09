@@ -19,7 +19,6 @@ import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
  * {@link TemporaryEntity} objects to keep track of the bare minimum needed to create Atlas
  * entities. This change set definition assumes that all individual ways and points have already
  * been sliced. The following cases are handled.
- * <p>
  * <ul>
  * <li>1. Point creation - if a new Line needs to be created, we need to create new shape points
  * <li>2. Line creation - new line can be created when multipolygons are sliced by a country
@@ -37,7 +36,6 @@ import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
  * <li>8. Line deletion - in the rare case, we might delete a line that was added during country
  * slicing of ways and is no longer needed
  * </ul>
- * <p>
  *
  * @author mgostintsev
  */
