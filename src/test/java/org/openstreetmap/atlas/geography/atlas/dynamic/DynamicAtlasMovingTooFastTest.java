@@ -22,6 +22,10 @@ import org.openstreetmap.atlas.geography.sharding.SlippyTileSharding;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
+ * This test is there to make sure that querying a {@link DynamicAtlas} using the methods similar to
+ * edgesIntersecting(Polygon) does not trigger a Shard expansion only based on the geometry of the
+ * Polygon passed in.
+ *
  * @author matthieun
  */
 public class DynamicAtlasMovingTooFastTest
