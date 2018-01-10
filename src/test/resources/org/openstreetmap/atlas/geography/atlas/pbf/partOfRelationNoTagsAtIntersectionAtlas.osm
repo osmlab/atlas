@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-1409998' action='modify' lat='7.01378166705' lon='-10.54718467843' />
+  <node id='-1409999' action='modify' lat='7.01400307686' lon='-10.54665453727' />
+  <node id='-1410001' action='modify' lat='7.01357328126' lon='-10.54613226949' />
+  <way id='-1410000' action='modify'>
+    <nd ref='-1409998' />
+    <nd ref='-1409999' />
+    <tag k='highway' v='motorway' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='-1410008' action='modify'>
+    <nd ref='-1409999' />
+    <nd ref='-1410001' />
+    <tag k='highway' v='motorway' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <relation id='-1410065' action='modify'>
+    <member type='way' ref='-1410000' role='from' />
+    <member type='way' ref='-1410008' role='to' />
+    <member type='node' ref='-1409999' role='via' />
+    <tag k='restriction' v='no_u_turn' />
+  </relation>
+</osm>
