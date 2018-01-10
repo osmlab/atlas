@@ -1,0 +1,10 @@
+# Nodes
+# Edges
+# Areas
+# Lines
+# Points
+1410001000000 && 7.0135732,-10.5461322 && last_edit_user_name -> myself || last_edit_changeset -> 1 || last_edit_time -> 1513719782000 || last_edit_user_id -> 1 || iso_country_code -> N/A || maxspeed -> 70 || highway -> speed_camera || last_edit_version -> 1
+1409999000000 && 7.014003,-10.5466545 && last_edit_user_name -> myself || last_edit_changeset -> 1 || last_edit_time -> 1513719782000 || last_edit_user_id -> 1 || iso_country_code -> N/A || last_edit_version -> 1
+1409998000000 && 7.0137816,-10.5471846 && last_edit_user_name -> myself || last_edit_changeset -> 1 || last_edit_time -> 1513719782000 || last_edit_user_id -> 1 || iso_country_code -> N/A || name -> Some Road || maxspeed -> 70 || last_edit_version -> 1
+# Relations
+1410065000000 && 1409998000000 -> from -> P || 1409999000000 -> to -> P || 1410001000000 -> device -> P && last_edit_user_name -> myself || last_edit_changeset -> 1 || last_edit_time -> 1513719782000 || last_edit_user_id -> 1 || enforcement -> enforcement || maxspeed -> 70 || type -> enforcement || last_edit_version -> 1

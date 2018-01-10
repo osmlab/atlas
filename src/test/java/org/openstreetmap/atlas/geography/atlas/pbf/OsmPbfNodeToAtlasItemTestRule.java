@@ -11,28 +11,28 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas;
  */
 public class OsmPbfNodeToAtlasItemTestRule extends CoreTestRule
 {
-    @TestAtlas(loadFromJosmOsmResource = "noRelationNoTagsNoIntersectionAtlas.osm")
+    @TestAtlas(loadFromTextResource = "noRelationNoTagsNoIntersectionAtlas.atlas.txt")
     private Atlas atlasWithoutRelationNoTagsNoIntersection;
 
-    @TestAtlas(loadFromJosmOsmResource = "partOfRelationNoTagsAtIntersectionAtlas.osm")
+    @TestAtlas(loadFromTextResource = "partOfRelationNoTagsAtIntersectionAtlas.atlas.txt")
     private Atlas atlasPartOfRelationNoTagsAtIntersection;
 
-    @TestAtlas(loadFromJosmOsmResource = "partOfRelationWithTagsNoIntersectionAtlas.osm")
+    @TestAtlas(loadFromTextResource = "partOfRelationWithTagsNoIntersectionAtlas.atlas.txt")
     private Atlas atlasPartOfRelationWithTagsNoIntersection;
 
-    @TestAtlas(loadFromJosmOsmResource = "partOfRelationWithTagsAtIntersectionAtlas.osm")
+    @TestAtlas(loadFromTextResource = "partOfRelationWithTagsAtIntersectionAtlas.atlas.txt")
     private Atlas atlasPartOfRelationWithTagsAtIntersection;
 
-    @TestAtlas(loadFromJosmOsmResource = "noRelationWithTagsNoIntersectionAtlas.osm")
+    @TestAtlas(loadFromTextResource = "noRelationWithTagsNoIntersectionAtlas.atlas.txt")
     private Atlas atlasWithoutRelationWithTagsNoIntersection;
 
-    @TestAtlas(loadFromJosmOsmResource = "noRelationNoTagsAtIntersectionAtlas.osm")
+    @TestAtlas(loadFromTextResource = "noRelationNoTagsAtIntersectionAtlas.atlas.txt")
     private Atlas atlasWithoutRelationNoTagsAtIntersection;
 
-    @TestAtlas(loadFromJosmOsmResource = "noRelationWithTagsAtIntersectionAtlas.osm")
+    @TestAtlas(loadFromTextResource = "noRelationWithTagsAtIntersectionAtlas.atlas.txt")
     private Atlas atlasWithoutRelationWithTagsAtIntersection;
 
-    @TestAtlas(loadFromJosmOsmResource = "partOfRelationNoTagsNoIntersectionAtlas.osm")
+    @TestAtlas(loadFromTextResource = "partOfRelationNoTagsNoIntersectionAtlas.atlas.txt")
     private Atlas atlasPartOfRelationNoTagsNoIntersection;
 
     public Atlas getNoRelationNoTagsAtIntersectionAtlas()
