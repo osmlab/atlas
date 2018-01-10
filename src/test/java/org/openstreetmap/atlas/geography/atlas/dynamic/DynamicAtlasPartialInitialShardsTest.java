@@ -14,33 +14,19 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.dynamic.policy.DynamicAtlasPolicy;
+import org.openstreetmap.atlas.geography.atlas.dynamic.rules.DynamicAtlasPartialInitialShardsTestRule;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.geography.sharding.SlippyTileSharding;
-import org.openstreetmap.atlas.utilities.testing.CoreTestRule;
-import org.openstreetmap.atlas.utilities.testing.TestAtlas;
 
 /**
  * @author matthieun
  */
 public class DynamicAtlasPartialInitialShardsTest
 {
-    /**
-     * @author matthieun
-     */
-    public static class DynamicAtlasPartialInitialShardsTestRule extends CoreTestRule
-    {
-        @TestAtlas(loadFromJosmOsmResource = "DynamicAtlasPartialInitialShardsTest.osm")
-        private Atlas atlas;
-
-        public Atlas getAtlas()
-        {
-            return this.atlas;
-        }
-    }
-
     @Rule
     public DynamicAtlasPartialInitialShardsTestRule rule = new DynamicAtlasPartialInitialShardsTestRule();
+
     private DynamicAtlas dynamicAtlas;
     private Map<Shard, Atlas> store;
 

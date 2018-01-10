@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.dynamic;
+package org.openstreetmap.atlas.geography.atlas.dynamic.rules;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.utilities.testing.CoreTestRule;

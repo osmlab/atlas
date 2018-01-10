@@ -104,14 +104,12 @@ public class DynamicAtlas extends BareAtlas
     @Override
     public Iterable<Area> areasCovering(final Location location)
     {
-        newLocation(location);
         return expand(() -> this.current.areasCovering(location), this::areaCovered, this::newArea);
     }
 
     @Override
     public Iterable<Area> areasCovering(final Location location, final Predicate<Area> matcher)
     {
-        newLocation(location);
         return expand(() -> this.current.areasCovering(location, matcher), this::areaCovered,
                 this::newArea);
     }
@@ -119,7 +117,6 @@ public class DynamicAtlas extends BareAtlas
     @Override
     public Iterable<Area> areasIntersecting(final Polygon polygon)
     {
-        newPolygon(polygon);
         return expand(() -> this.current.areasIntersecting(polygon), this::areaCovered,
                 this::newArea);
     }
@@ -127,7 +124,6 @@ public class DynamicAtlas extends BareAtlas
     @Override
     public Iterable<Area> areasIntersecting(final Polygon polygon, final Predicate<Area> matcher)
     {
-        newPolygon(polygon);
         return expand(() -> this.current.areasIntersecting(polygon, matcher), this::areaCovered,
                 this::newArea);
     }
@@ -185,7 +181,6 @@ public class DynamicAtlas extends BareAtlas
     @Override
     public Iterable<Edge> edgesContaining(final Location location)
     {
-        newLocation(location);
         return expand(() -> this.current.edgesContaining(location), this::lineItemCovered,
                 this::newEdge);
     }
@@ -193,7 +188,6 @@ public class DynamicAtlas extends BareAtlas
     @Override
     public Iterable<Edge> edgesContaining(final Location location, final Predicate<Edge> matcher)
     {
-        newLocation(location);
         return expand(() -> this.current.edgesContaining(location, matcher), this::lineItemCovered,
                 this::newEdge);
     }
@@ -201,7 +195,6 @@ public class DynamicAtlas extends BareAtlas
     @Override
     public Iterable<Edge> edgesIntersecting(final Polygon polygon)
     {
-        newPolygon(polygon);
         return expand(() -> this.current.edgesIntersecting(polygon), this::lineItemCovered,
                 this::newEdge);
     }
@@ -209,7 +202,6 @@ public class DynamicAtlas extends BareAtlas
     @Override
     public Iterable<Edge> edgesIntersecting(final Polygon polygon, final Predicate<Edge> matcher)
     {
-        newPolygon(polygon);
         return expand(() -> this.current.edgesIntersecting(polygon, matcher), this::lineItemCovered,
                 this::newEdge);
     }
@@ -231,7 +223,6 @@ public class DynamicAtlas extends BareAtlas
     @Override
     public Iterable<Line> linesContaining(final Location location)
     {
-        newLocation(location);
         return expand(() -> this.current.linesContaining(location), this::lineItemCovered,
                 this::newLine);
     }
@@ -239,7 +230,6 @@ public class DynamicAtlas extends BareAtlas
     @Override
     public Iterable<Line> linesContaining(final Location location, final Predicate<Line> matcher)
     {
-        newLocation(location);
         return expand(() -> this.current.linesContaining(location, matcher), this::lineItemCovered,
                 this::newLine);
     }
@@ -247,7 +237,6 @@ public class DynamicAtlas extends BareAtlas
     @Override
     public Iterable<Line> linesIntersecting(final Polygon polygon)
     {
-        newPolygon(polygon);
         return expand(() -> this.current.linesIntersecting(polygon), this::lineItemCovered,
                 this::newLine);
     }
@@ -255,7 +244,6 @@ public class DynamicAtlas extends BareAtlas
     @Override
     public Iterable<Line> linesIntersecting(final Polygon polygon, final Predicate<Line> matcher)
     {
-        newPolygon(polygon);
         return expand(() -> this.current.linesIntersecting(polygon, matcher), this::lineItemCovered,
                 this::newLine);
     }
@@ -283,7 +271,6 @@ public class DynamicAtlas extends BareAtlas
     @Override
     public Iterable<Node> nodesAt(final Location location)
     {
-        newLocation(location);
         return expand(() -> this.current.nodesAt(location), this::locationItemCovered,
                 this::newNode);
     }
@@ -291,7 +278,6 @@ public class DynamicAtlas extends BareAtlas
     @Override
     public Iterable<Node> nodesWithin(final Polygon polygon)
     {
-        newPolygon(polygon);
         return expand(() -> this.current.nodesWithin(polygon), this::locationItemCovered,
                 this::newNode);
     }
@@ -299,7 +285,6 @@ public class DynamicAtlas extends BareAtlas
     @Override
     public Iterable<Node> nodesWithin(final Polygon polygon, final Predicate<Node> matcher)
     {
-        newPolygon(polygon);
         return expand(() -> this.current.nodesWithin(polygon, matcher), this::locationItemCovered,
                 this::newNode);
     }
@@ -357,7 +342,6 @@ public class DynamicAtlas extends BareAtlas
     @Override
     public Iterable<Point> pointsAt(final Location location)
     {
-        newLocation(location);
         return expand(() -> this.current.pointsAt(location), this::locationItemCovered,
                 this::newPoint);
     }
@@ -365,7 +349,6 @@ public class DynamicAtlas extends BareAtlas
     @Override
     public Iterable<Point> pointsWithin(final Polygon polygon)
     {
-        newPolygon(polygon);
         return expand(() -> this.current.pointsWithin(polygon), this::locationItemCovered,
                 this::newPoint);
     }
@@ -373,7 +356,6 @@ public class DynamicAtlas extends BareAtlas
     @Override
     public Iterable<Point> pointsWithin(final Polygon polygon, final Predicate<Point> matcher)
     {
-        newPolygon(polygon);
         return expand(() -> this.current.pointsWithin(polygon, matcher), this::locationItemCovered,
                 this::newPoint);
     }
@@ -451,7 +433,6 @@ public class DynamicAtlas extends BareAtlas
     @Override
     public Iterable<Relation> relationsWithEntitiesIntersecting(final Polygon polygon)
     {
-        newPolygon(polygon);
         return expand(() -> this.current.relationsWithEntitiesIntersecting(polygon),
                 this::relationCovered, this::newRelation);
     }
@@ -460,7 +441,6 @@ public class DynamicAtlas extends BareAtlas
     public Iterable<Relation> relationsWithEntitiesIntersecting(final Polygon polygon,
             final Predicate<Relation> matcher)
     {
-        newPolygon(polygon);
         return expand(() -> this.current.relationsWithEntitiesIntersecting(polygon, matcher),
                 this::relationCovered, this::newRelation);
     }
