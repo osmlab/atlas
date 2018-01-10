@@ -5,7 +5,9 @@ import org.openstreetmap.atlas.utilities.testing.CoreTestRule;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas;
 
 /**
- * {@link OsmPbfNodeToAtlasItemTest} test cases.
+ * {@link OsmPbfNodeToAtlasItemTest} test cases. This class relies on "loadFromJosmOsmResource"
+ * methods, instead of text atlases, because it relies on loading from PBF and testing the
+ * conversion from OSM PBF to Atlas Item. Loading in any other format, would skip this step.
  *
  * @author mgostintsev
  */
