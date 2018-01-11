@@ -15,7 +15,7 @@ project.ext.versions = [
     cli: '1.3.1',
     csv: '1.2',
     lang: '3.4',
-    reflections: '0.9.10',
+    fastclasspath: '2.8.0',
     guava: '18.0',
     jsonassert:'1.3.0',
     jackson_core:'2.8.8',
@@ -49,7 +49,7 @@ project.ext.packages = [
             csv : "org.apache.commons:commons-csv:${versions.csv}",
             lang: "org.apache.commons:commons-lang3:${versions.lang}",
     ],
-    reflections: "org.reflections:reflections:${versions.reflections}",
+    fastclasspath: "io.github.lukehutch:fast-classpath-scanner:${versions.fastclasspath}",
     guava: "com.google.guava:guava:${versions.guava}",
     jsonassert: "org.skyscreamer:jsonassert:${versions.jsonassert}",
     jackson:[
