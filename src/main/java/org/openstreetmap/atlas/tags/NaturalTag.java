@@ -30,6 +30,8 @@ public enum NaturalTag
     BEACH,
     SAND,
     SPRING,
+    HOT_SPRING,
+    GEYSER,
     LAND,
     BAY,
     SCREE,
