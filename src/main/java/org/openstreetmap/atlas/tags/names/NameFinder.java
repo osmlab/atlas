@@ -2,6 +2,9 @@ package org.openstreetmap.atlas.tags.names;
 
 import static org.openstreetmap.atlas.geography.atlas.items.Relation.RELATION_ID_COMPARATOR;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -62,7 +65,9 @@ public class NameFinder implements Serializable
         STANDARD_TAG_KEYS = STANDARD_TAGS.stream().map(Validators::findTagNameIn)
                 .collect(EnhancedCollectors.toImmutableList());
     }
-    private Optional<IsoLanguage> language;
+
+    private transient IsoLanguage language;
+
     private final LinkedHashSet<Class<?>> priorityOrderOfTagNames;
 
     private TagSearchOption searchOption = TagSearchOption.DEFAULT;
@@ -111,7 +116,7 @@ public class NameFinder implements Serializable
     public NameFinder()
     {
         this.priorityOrderOfTagNames = new LinkedHashSet<>();
-        this.language = Optional.empty();
+        this.language = null;
     }
 
     public Map<Class<?>, String> all(final Taggable taggable)
@@ -119,10 +124,11 @@ public class NameFinder implements Serializable
         final Map<Class<?>, String> returnValue = new HashMap<>();
         for (final Class<?> tagClass : this.priorityOrderOfTagNames)
         {
-            taggable.getTag(tagClass, this.language, this.searchOption).ifPresent(tagValue ->
-            {
-                returnValue.put(tagClass, tagValue);
-            });
+            taggable.getTag(tagClass, Optional.ofNullable(this.language), this.searchOption)
+                    .ifPresent(tagValue ->
+                    {
+                        returnValue.put(tagClass, tagValue);
+                    });
         }
         return returnValue;
     }
@@ -136,7 +142,8 @@ public class NameFinder implements Serializable
     public Optional<String> best(final Taggable taggable)
     {
         return this.priorityOrderOfTagNames.stream()
-                .map(tagClass -> taggable.getTag(tagClass, this.language, this.searchOption))
+                .map(tagClass -> taggable.getTag(tagClass, Optional.ofNullable(this.language),
+                        this.searchOption))
                 .filter(Optional::isPresent).map(Optional::get).findFirst();
     }
 
@@ -153,7 +160,7 @@ public class NameFinder implements Serializable
 
     public NameFinder inLanguage(final IsoLanguage language)
     {
-        this.language = Optional.ofNullable(language);
+        this.language = language;
         return this;
     }
 
@@ -179,5 +186,23 @@ public class NameFinder implements Serializable
             this.priorityOrderOfTagNames.add(tagClass);
         }
         return this;
+    }
+
+    private void readObject(final ObjectInputStream stream)
+            throws IOException, ClassNotFoundException
+    {
+        stream.defaultReadObject();
+        final String iso2 = (String) stream.readObject();
+        if (iso2 != null)
+        {
+            this.language = IsoLanguage.forLanguageCode(iso2).orElse(null);
+        }
+    }
+
+    private void writeObject(final ObjectOutputStream stream) throws IOException
+    {
+        stream.defaultWriteObject();
+        final String iso2 = this.language == null ? null : this.language.getLanguageCode();
+        stream.writeObject(iso2);
     }
 }
