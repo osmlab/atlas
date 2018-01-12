@@ -1074,6 +1074,37 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         return new WktPolyLineConverter().convert(this);
     }
 
+    /**
+     * @return This {@link PolyLine} without duplicate consecutive shape points. Non-consecutive
+     *         shape points will remain unchanged.
+     */
+    public PolyLine withoutDuplicateConsecutiveShapePoints()
+    {
+        final List<Location> shapePoints = new ArrayList<>();
+        boolean hasDuplicates = false;
+
+        final Iterator<Location> locationIterator = this.iterator();
+        // PolyLines are only valid if at least one point exists, so it is safe to call next() once.
+        Location previousLocation = locationIterator.next();
+        shapePoints.add(previousLocation);
+
+        while (locationIterator.hasNext())
+        {
+            final Location currentLocation = locationIterator.next();
+
+            if (!currentLocation.equals(previousLocation))
+            {
+                shapePoints.add(currentLocation);
+            }
+            else
+            {
+                hasDuplicates = true;
+            }
+            previousLocation = currentLocation;
+        }
+        return hasDuplicates ? new PolyLine(shapePoints) : this;
+    }
+
     protected final List<Location> getPoints()
     {
         return this.points;
