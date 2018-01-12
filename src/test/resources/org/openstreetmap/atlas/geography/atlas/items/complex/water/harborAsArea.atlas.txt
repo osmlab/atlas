@@ -1,0 +1,7 @@
+# Nodes
+# Edges
+# Areas
+247059838000000 && -32.3049143,-58.0949621:-32.3048917,-58.0948583:-32.3043921,-58.0946523:-32.3043758,-58.0945195:-32.3044653,-58.0941653:-32.3047241,-58.0936031:-32.3055767,-58.0939227:-32.3056157,-58.094019:-32.3055474,-58.0948391:-32.305523,-58.0948968:-32.3054628,-58.0948949:-32.3054481,-58.0950027:-32.3051243,-58.0949642:-32.305077,-58.0950064 && harbour -> yes || last_edit_changeset -> 20186822 || website -> http://www.ycp.org.uy || natural -> water || iso_country_code -> URY || seamark:type -> harbour || last_edit_user_name -> muralito || last_edit_time -> 1390609954000 || last_edit_user_id -> 755114 || name -> Yatch Club Paysandú || last_edit_version -> 4 || leisure -> marina || seamark:harbour:category -> marina
+# Lines
+# Points
+# Relations

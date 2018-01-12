@@ -43,7 +43,7 @@ public class ComplexWaterway extends ComplexWaterEntity
     {
         final AtlasEntity source = getSource();
         /*
-         * We currently don't process waterway relations. So if it is a way and it is part of
+         * TODO We currently don't process waterway relations. So if it is a way and it is part of
          * relation where it is a side stream, main stream or tributary, we process them.
          */
         if (source instanceof Line)

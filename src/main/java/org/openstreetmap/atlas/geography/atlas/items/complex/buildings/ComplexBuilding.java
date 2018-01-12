@@ -15,7 +15,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.complex.ComplexEntity;
 import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
-import org.openstreetmap.atlas.tags.RelationTag;
+import org.openstreetmap.atlas.tags.BuildingTag;
+import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -168,16 +169,16 @@ public class ComplexBuilding extends ComplexEntity
         else if (source instanceof Relation)
         {
             final Relation relation = (Relation) source;
-            final String type = relation.tag(RelationTag.TYPE);
+            final String type = relation.tag(RelationTypeTag.KEY);
             // Two cases here. The relation can be a multipolygon (in case there are just holes and
             // no parts) or a building relation, in case there are building parts.
-            if (RelationTag.MULTIPOLYGON.equals(type))
+            if (RelationTypeTag.MULTIPOLYGON_TYPE.equals(type))
             {
                 // 1. Multipolygon. Relatively easy, there will be no building parts.
                 this.outline = RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER.convert(relation);
                 this.outlineSource = relation;
             }
-            else if (RelationTag.BUILDING.equals(type))
+            else if (BuildingTag.KEY.equals(type))
             {
                 // 2. This relation is of an OSM 3D building. It should contain a member Area that
                 // is the outline, tagged as a building. It should also contain zero to many
@@ -186,7 +187,7 @@ public class ComplexBuilding extends ComplexEntity
                 for (final RelationMember member : relation.members())
                 {
                     this.containedOSMIDs.add(member.getEntity().getOsmIdentifier());
-                    if (RelationTag.BUILDING_ROLE_OUTLINE.equals(member.getRole()))
+                    if (RelationTypeTag.BUILDING_ROLE_OUTLINE.equals(member.getRole()))
                     {
                         this.outline = RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER
                                 .convert(member.getEntity());
@@ -201,7 +202,7 @@ public class ComplexBuilding extends ComplexEntity
                 for (final RelationMember member : relation.members())
                 {
                     this.containedOSMIDs.add(member.getEntity().getOsmIdentifier());
-                    if (RelationTag.BUILDING_ROLE_PART.equals(member.getRole()))
+                    if (RelationTypeTag.BUILDING_ROLE_PART.equals(member.getRole()))
                     {
                         this.buildingParts.add(new BuildingPart(member.getEntity()));
                     }

@@ -13,7 +13,7 @@ import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Relation.Ring;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
-import org.openstreetmap.atlas.tags.RelationTag;
+import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 
@@ -61,19 +61,20 @@ public class RelationToMultiPolygonMemberConverterTest
 
         final RelationBean bean = new RelationBean();
 
-        bean.addItem(0L, RelationTag.MULTIPOLYGON_ROLE_OUTER, ItemType.AREA);
+        bean.addItem(0L, RelationTypeTag.MULTIPOLYGON_ROLE_OUTER, ItemType.AREA);
 
-        bean.addItem(0L, RelationTag.MULTIPOLYGON_ROLE_OUTER, ItemType.LINE);
-        bean.addItem(1L, RelationTag.MULTIPOLYGON_ROLE_OUTER, ItemType.LINE);
-        bean.addItem(2L, RelationTag.MULTIPOLYGON_ROLE_OUTER, ItemType.LINE);
-        bean.addItem(3L, RelationTag.MULTIPOLYGON_ROLE_OUTER, ItemType.LINE);
-        bean.addItem(4L, RelationTag.MULTIPOLYGON_ROLE_OUTER, ItemType.LINE);
+        bean.addItem(0L, RelationTypeTag.MULTIPOLYGON_ROLE_OUTER, ItemType.LINE);
+        bean.addItem(1L, RelationTypeTag.MULTIPOLYGON_ROLE_OUTER, ItemType.LINE);
+        bean.addItem(2L, RelationTypeTag.MULTIPOLYGON_ROLE_OUTER, ItemType.LINE);
+        bean.addItem(3L, RelationTypeTag.MULTIPOLYGON_ROLE_OUTER, ItemType.LINE);
+        bean.addItem(4L, RelationTypeTag.MULTIPOLYGON_ROLE_OUTER, ItemType.LINE);
 
-        bean.addItem(5L, RelationTag.MULTIPOLYGON_ROLE_INNER, ItemType.LINE);
-        bean.addItem(6L, RelationTag.MULTIPOLYGON_ROLE_INNER, ItemType.LINE);
-        bean.addItem(7L, RelationTag.MULTIPOLYGON_ROLE_INNER, ItemType.LINE);
+        bean.addItem(5L, RelationTypeTag.MULTIPOLYGON_ROLE_INNER, ItemType.LINE);
+        bean.addItem(6L, RelationTypeTag.MULTIPOLYGON_ROLE_INNER, ItemType.LINE);
+        bean.addItem(7L, RelationTypeTag.MULTIPOLYGON_ROLE_INNER, ItemType.LINE);
 
-        builder.addRelation(0, 0, bean, Maps.hashMap(RelationTag.TYPE, RelationTag.MULTIPOLYGON));
+        builder.addRelation(0, 0, bean,
+                Maps.hashMap(RelationTypeTag.KEY, RelationTypeTag.MULTIPOLYGON_TYPE));
 
         this.atlas = builder.get();
     }
