@@ -808,6 +808,57 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
     public abstract Edge start();
 
     /**
+     * Determine if this route starts with the {@link Route} passed in.
+     *
+     * @param other
+     *            The {@link Route} to compare
+     * @return true if this route starts with the route passed in
+     */
+    public boolean startsWith(final Route other)
+    {
+        // If the other route is longer than this route, return false
+        if (other.size() > this.size())
+        {
+            return false;
+        }
+
+        final Iterator<Edge> otherIterator = other.iterator();
+        final Iterator<Edge> thisIterator = this.iterator();
+
+        // otherIterator has to be shorter than thisIterator, so loop over otherIterator
+        while (otherIterator.hasNext())
+        {
+            final Edge otherEdge = otherIterator.next();
+            final Edge thisEdge = thisIterator.next();
+
+            if (!thisEdge.equals(otherEdge))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Creates a new {@link Route} from the original route based on the start and end indexes passed
+     * in
+     *
+     * @param startIndex
+     *            The starting index to create the new route from
+     * @param endIndex
+     *            The ending index (exclusive) of the new route
+     * @return a new route based which is a subset of the original route
+     */
+    public Route subRoute(final int startIndex, final int endIndex)
+    {
+        // Create a new ArrayList for safety reasons because subList returns a list backed by the
+        // original list.
+        return Route
+                .forEdges(new ArrayList<>(Iterables.asList(this).subList(startIndex, endIndex)));
+    }
+
+    /**
      * Calculates the first occurring subRoute index from the given {@link Route}s. For details, see
      * {@link #subRouteIndex(Route)}.
      *

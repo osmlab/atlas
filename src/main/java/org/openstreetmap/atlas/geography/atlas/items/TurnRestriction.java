@@ -132,23 +132,48 @@ public final class TurnRestriction implements Located, Serializable
                                  * The path should be a turn restriction if all the following
                                  * criteria are met: 1. The path includes the from edge of the
                                  * turnRestriction 2. The path isn't identical to the
-                                 * turnRestriction path (this is the ONLY case) 3. The path include
+                                 * turnRestriction path (this is the ONLY case) 3. The path includes
                                  * an edge which is connected to the via Node 4. The edge from the
                                  * path that matches the from edge comes before the edge which is
                                  * connected to the via node (this matters for u-turn scenarios)
                                  */
 
-                                if (candidate.isSubRoute(from) && !candidate.isSubRoute(path)
-                                        && candidate.isSubRouteForAtLeastOneOf(
-                                                turnRestriction.otherToOptions())
-                                        && candidate.subRouteIndex(from) < candidate
-                                                .subRouteIndex(turnRestriction.otherToOptions()))
+                                // First make sure the from route is found within the candidate
+                                // route and make sure the specified path is not a
+                                // subRoute of the candidate route
+                                if (candidate.isSubRoute(from) && !candidate.isSubRoute(path))
                                 {
-                                    // The path does not completely overlap the route, but it
-                                    // overlaps the first edge of the "only" restricted route. That
-                                    // means it is a restriction as it goes over the beginning of
-                                    // the "only" route but does not follow it.
-                                    return true;
+                                    final int fromSubRouteIndex = candidate.subRouteIndex(from);
+                                    final int routeEndIndex = candidate.size() - 1;
+
+                                    if (fromSubRouteIndex == routeEndIndex)
+                                    {
+                                        // If the from edge is the last edge in the route, the route
+                                        // should not be restricted as the only directive isn't
+                                        // broken, so continue searching.
+                                        continue;
+                                    }
+
+                                    // Create a partial route containing everything after the from
+                                    // edge(s).
+                                    // fromSubRouteIndex + 1 because the subRouteIndex returns the
+                                    // index of the last edge in the route. To create a partial
+                                    // route of everything after the from edge, we need the next
+                                    // index after the last from edge.
+                                    // routeEndIndex + 1 because subRoute's endingIndex is
+                                    // exclusive, so we need the next index to get the desired
+                                    // partialRoute
+                                    final Route partialRoute = candidate
+                                            .subRoute(fromSubRouteIndex + 1, routeEndIndex + 1);
+
+                                    if (turnRestriction.otherToOptions().stream()
+                                            .anyMatch(partialRoute::startsWith))
+                                    {
+                                        // If the partial route starts with any other to options,
+                                        // the only directive has not been followed and this path
+                                        // should be restricted
+                                        return true;
+                                    }
                                 }
                                 // If the path fully overlaps the "only" restriction, do not return
                                 // true, as the path might belong to other restrictions

@@ -1,7 +1,11 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex.restriction;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -38,14 +42,17 @@ public class ComplexTurnRestrictionTest
                 () -> ComplexTurnRestrictionTest.class.getResourceAsStream("bigNode.txt.gz"))
                         .withDecompressor(Decompressor.GZIP).withName("bigNode.txt.gz"));
 
-        for (final BigNode bigNode : Iterables.asList(new BigNodeFinder().find(atlas)))
-        {
-            if (bigNode.getOsmIdentifier() == 3717537957L)
-            {
-                Assert.assertTrue(!bigNode.allPaths().isEmpty());
-                Assert.assertTrue(bigNode.turnRestrictions().isEmpty());
-            }
-        }
+        final List<BigNode> bigNodes = Iterables.asList(new BigNodeFinder().find(atlas));
+
+        final Optional<BigNode> possibleBigNode = bigNodes.stream()
+                .filter(bigNode -> bigNode.getOsmIdentifier() == 3717537957L).findAny();
+
+        Assert.assertTrue(possibleBigNode.isPresent());
+
+        final BigNode bigNode = possibleBigNode.get();
+
+        Assert.assertTrue(!bigNode.allPaths().isEmpty());
+        Assert.assertTrue(bigNode.turnRestrictions().isEmpty());
     }
 
     @Test
@@ -160,5 +167,31 @@ public class ComplexTurnRestrictionTest
                 Assert.assertEquals(restrictedRoute, path3);
             }
         }
+    }
+
+    @Test
+    public void testTurnRestrictionsFromComplexBigNodes()
+    {
+        final int expectedCountOfRestrictedRoutes = 302;
+
+        // There's an only turn restriction (http://www.openstreetmap.org/relation/6643212)
+        // specifying that 447301069000000 must go to 447301070000000. This route has a corner case
+        // where an otherToOption (-447301069000000) is found before the from edge. Specifically
+        // check to make sure this path is restricted.
+        final String expectedRestrictedRoute = "[Route: 447301065000000, -447301070000000, -447301069000000, 447301069000000, 447301074000000, 447301068000000, 338286211000000]";
+
+        final Atlas complexBigNodeAtlas = this.rule.getBigNodeWithOnlyTurnRestrictionsAtlas();
+
+        final List<Route> restrictedRoutes = StreamSupport
+                .stream(new BigNodeFinder().find(complexBigNodeAtlas, Finder::ignore).spliterator(),
+                        false)
+                .filter(bigNode -> bigNode.getType() == BigNode.Type.DUAL_CARRIAGEWAY)
+                .flatMap(bigNode -> bigNode.turnRestrictions().stream())
+                .map(RestrictedPath::getRoute).collect(Collectors.toList());
+
+        Assert.assertEquals("Verify that the expected number of restricted routes is returned",
+                expectedCountOfRestrictedRoutes, restrictedRoutes.size());
+        Assert.assertTrue("Verify that this explicit restricted path is returned", restrictedRoutes
+                .stream().anyMatch(route -> route.toString().equals(expectedRestrictedRoute)));
     }
 }
