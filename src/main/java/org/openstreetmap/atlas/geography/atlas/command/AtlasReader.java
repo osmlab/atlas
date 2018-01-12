@@ -1,11 +1,13 @@
 package org.openstreetmap.atlas.geography.atlas.command;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.openstreetmap.atlas.utilities.runtime.FlexibleCommand;
 import org.openstreetmap.atlas.utilities.runtime.FlexibleSubCommand;
-import org.reflections.Reflections;
-import org.reflections.util.ConfigurationBuilder;
+
+import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 
 /**
  * Shell for running atlas commands. Run this command with no arguments to learn more about it.
@@ -36,8 +38,9 @@ public class AtlasReader extends FlexibleCommand
     @Override
     protected Stream<Class<? extends FlexibleSubCommand>> getSupportedCommands()
     {
-        final Reflections reflections = new Reflections(
-                ConfigurationBuilder.build(AtlasReader.class));
-        return reflections.getSubTypesOf(FlexibleSubCommand.class).stream();
+        final List<Class<? extends FlexibleSubCommand>> returnValue = new ArrayList<>();
+        new FastClasspathScanner(AtlasReader.class.getPackage().getName())
+                .matchClassesImplementing(FlexibleSubCommand.class, returnValue::add).scan();
+        return returnValue.stream();
     }
 }
