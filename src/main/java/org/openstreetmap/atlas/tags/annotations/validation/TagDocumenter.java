@@ -9,11 +9,10 @@ import java.util.TreeSet;
 import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.tags.annotations.TagKey;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators.TagKeySearch;
-import org.reflections.Reflections;
-import org.reflections.util.ConfigurationBuilder;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Predicate;
+
+import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 
 /**
  * Class that walks across all Tags and generates metadata about them that can be converted into
@@ -156,14 +155,13 @@ public class TagDocumenter
          * command line we shouldn't get any TestCase tags anyways, but when running this in
          * development mode under Eclipse with core in the classpath they will be picked up.
          */
-        final Predicate<String> predicate = input -> !input.contains("TestCase");
-
-        final Reflections reflections = new Reflections(
-                ConfigurationBuilder.build(packageName, predicate));
-        for (final Class<?> tagClass : reflections.getTypesAnnotatedWith(Tag.class))
+        new FastClasspathScanner(packageName).matchClassesWithAnnotation(Tag.class, tagClass ->
         {
-            this.tagData.add(createCallbackDataFromClass(tagClass));
-        }
+            if (!tagClass.getName().contains("TestCase"))
+            {
+                this.tagData.add(createCallbackDataFromClass(tagClass));
+            }
+        }).scan();
     }
 
     public void walk(final Callback callback)

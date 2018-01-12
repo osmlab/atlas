@@ -2,10 +2,12 @@ package org.openstreetmap.atlas.tags.annotations.validation;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -24,11 +26,10 @@ import org.openstreetmap.atlas.tags.annotations.TagKey.KeyType;
 import org.openstreetmap.atlas.tags.annotations.TagValue;
 import org.openstreetmap.atlas.tags.annotations.TagValueAs;
 import org.openstreetmap.atlas.tags.cache.CachingValidator;
-import org.reflections.Reflections;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 
 /**
  * Builds a table of {@link TagValidator}s using Java annotations and introspection.
@@ -569,15 +570,6 @@ public class Validators
         }
     }
 
-    /**
-     * This will scan the whole classpath, and may cause warnings when used in a Spark job for
-     * example.
-     */
-    public Validators()
-    {
-        this(new Object[] { ClasspathHelper.forClassLoader() });
-    }
-
     public Validators(final Class<?> childrenOf)
     {
         this(childrenOf.getPackage().getName());
@@ -585,26 +577,13 @@ public class Validators
 
     public Validators(final String packageName)
     {
-        this(new Object[] { packageName });
-    }
-
-    /**
-     * After reading the Reflections source code more carefully, this static build method lets us
-     * filter by package name if we're using the Validators(String) constructor
-     *
-     * @param args
-     *            array of Objects arguments that ConfigurationBuilder will interpret by class name
-     */
-    private Validators(final Object... args)
-    {
         this.validatorTypes = new EnumMap<>(Validation.class);
         this.validators = new ValidatorMap();
         fillValidatorTypes(this.validatorTypes);
-        final Reflections reflections = new LoggingReflections(ConfigurationBuilder.build(args));
-        for (final Class<?> tagClass : reflections.getTypesAnnotatedWith(Tag.class))
-        {
-            processClass(tagClass);
-        }
+        final List<Class<?>> klasses = new ArrayList<>();
+        new FastClasspathScanner(packageName).matchClassesWithAnnotation(Tag.class, klasses::add)
+                .scan();
+        klasses.stream().forEach(this::processClass);
     }
 
     /**
