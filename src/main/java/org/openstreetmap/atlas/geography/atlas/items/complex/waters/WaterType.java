@@ -8,6 +8,7 @@ public enum WaterType
     CANAL,
     CREEK,
     DITCH,
+    HARBOUR,
     LAGOON,
     LAKE,
     POOL,

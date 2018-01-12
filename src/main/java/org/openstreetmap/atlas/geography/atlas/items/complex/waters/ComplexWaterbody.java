@@ -6,7 +6,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
-import org.openstreetmap.atlas.tags.RelationTag;
+import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,8 +54,8 @@ public class ComplexWaterbody extends ComplexWaterEntity
         else if (source instanceof Relation)
         {
             final Relation relation = (Relation) source;
-            final String type = relation.tag(RelationTag.TYPE);
-            if (RelationTag.MULTIPOLYGON.equals(type))
+            final String type = relation.tag(RelationTypeTag.KEY);
+            if (RelationTypeTag.MULTIPOLYGON_TYPE.equals(type))
             {
                 this.geometry = RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER.convert(relation);
                 return;
