@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.items.complex.waters;
+package org.openstreetmap.atlas.geography.atlas.items.complex.water;
 
 import static org.openstreetmap.atlas.geography.atlas.items.ItemType.AREA;
 import static org.openstreetmap.atlas.geography.atlas.items.ItemType.LINE;
@@ -20,6 +20,9 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.complex.Finder;
+import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWaterEntity;
+import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWaterEntityFinder;
+import org.openstreetmap.atlas.geography.atlas.items.complex.waters.WaterType;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
