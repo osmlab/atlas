@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler;
 
 import static org.openstreetmap.atlas.geography.atlas.items.ItemType.AREA;
 import static org.openstreetmap.atlas.geography.atlas.items.ItemType.LINE;
+import static org.openstreetmap.atlas.geography.atlas.items.ItemType.RELATION;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,17 +24,17 @@ public class CanalHandler extends AbstractWaterHandler
 {
     private static final Logger logger = LoggerFactory.getLogger(CanalHandler.class);
 
-    public static boolean isCanal(final AtlasEntity atlasEntity)
+    public static boolean isCanal(final AtlasEntity entity)
     {
         /*
          * (1) natural=water and water=canal & waterway=canal
          */
-        if (Validators.isOfType(atlasEntity, WaterwayTag.class, WaterwayTag.CANAL))
+        if (Validators.isOfType(entity, WaterwayTag.class, WaterwayTag.CANAL))
         {
             return true;
         }
-        if (Validators.isOfType(atlasEntity, NaturalTag.class, NaturalTag.WATER)
-                && Validators.isOfType(atlasEntity, WaterTag.class, WaterTag.CANAL))
+        if (Validators.isOfType(entity, NaturalTag.class, NaturalTag.WATER)
+                && Validators.isOfType(entity, WaterTag.class, WaterTag.CANAL))
         {
             return true;
         }
@@ -49,7 +50,7 @@ public class CanalHandler extends AbstractWaterHandler
     @Override
     public List<ItemType> getAllowedTypes()
     {
-        return Arrays.asList(AREA, LINE);
+        return Arrays.asList(AREA, LINE, RELATION);
     }
 
     @Override

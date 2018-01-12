@@ -11,19 +11,28 @@ import org.openstreetmap.atlas.tags.annotations.validation.Validators;
  *
  * @author Sid
  * @author cstaylor
+ * @author mgostintsev
  */
 @Tag(taginfo = "http://taginfo.openstreetmap.org/keys/water#values", osm = "http://wiki.openstreetmap.org/wiki/Key:water")
 public enum WaterTag
 {
     INTERMITTENT,
-    POND,
     LAKE,
+    LAGOON,
+    POND,
+    REFLECTING_POOL,
     RESERVOIR,
-    RIVER,
+    BASIN,
     CANAL,
+    RIVER,
+    FISH_PASS,
+    OXBOW,
+    LOCK,
+    MOAT,
+    WASTEWATER,
+    STREAM_POOL,
     TIDAL,
     SALT_POOL,
-    LAGOON,
     POOL;
 
     @TagKey
