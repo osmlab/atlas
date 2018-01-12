@@ -1,14 +1,15 @@
 package org.openstreetmap.atlas.utilities.runtime;
 
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.openstreetmap.atlas.exception.CoreException;
-import org.reflections.Reflections;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
+
+import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 
 /**
  * Shell for running subcommands. Reflections is used to find commands and their switchlists are
@@ -82,9 +83,10 @@ public class FlexibleCommand extends Command
      */
     protected Stream<Class<? extends FlexibleSubCommand>> getSupportedCommands()
     {
-        final Reflections reflections = new Reflections(
-                ConfigurationBuilder.build(ClasspathHelper.forClassLoader()));
-        return reflections.getSubTypesOf(FlexibleSubCommand.class).stream();
+        final List<Class<? extends FlexibleSubCommand>> returnValue = new ArrayList<>();
+        new FastClasspathScanner()
+                .matchClassesImplementing(FlexibleSubCommand.class, returnValue::add).scan();
+        return returnValue.stream();
     }
 
     @Override

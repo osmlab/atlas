@@ -111,7 +111,7 @@ dependencies
     compile packages.commons.cli
     compile packages.commons.csv
     compile packages.commons.lang
-    compile packages.reflections
+    compile packages.fastclasspath
     compile packages.guava
     compile packages.jsonassert
     compile packages.jackson.core

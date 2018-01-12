@@ -3,8 +3,6 @@ package org.openstreetmap.atlas.tags;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import org.openstreetmap.atlas.locale.IsoLanguage;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 
@@ -17,7 +15,6 @@ import com.google.common.base.Joiner;
  *
  * @author cstaylor
  */
-@ThreadSafe
 public class LocalizedTagNameWithOptionalDate
 {
     private final String name;
