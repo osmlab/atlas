@@ -128,6 +128,37 @@ public class RouteTest
     }
 
     @Test
+    public void testSimpleUTurn()
+    {
+        final Atlas atlas = this.rule.getUTurnAtlas();
+        final Route uTurnRoute1 = Route.forEdges(atlas.edge(159019301), atlas.edge(-159019301));
+        final Route uTurnRoute2 = Route.forEdges(atlas.edge(159019301), atlas.edge(128620751),
+                atlas.edge(128620796), atlas.edge(-128620796), atlas.edge(-128620751),
+                atlas.edge(-159019301));
+
+        final Route nonUTurnRoute1 = Route.forEdges(atlas.edge(159019301));
+        final Route nonUTurnRoute2 = Route.forEdges(atlas.edge(159019301), atlas.edge(128620751),
+                atlas.edge(128620796), atlas.edge(138620888));
+        final Route nonUTurnRoute3 = Route.forEdges(atlas.edge(159019301), atlas.edge(128620751),
+                atlas.edge(128620796), atlas.edge(-128620796), atlas.edge(-128620751),
+                atlas.edge(138620889));
+
+        Assert.assertTrue("Valid basic 2 edge UTurn is a simple UTurn",
+                uTurnRoute1.isSimpleUTurn());
+        Assert.assertTrue(
+                "Valid complex UTurn with even number of edges in route is a simple UTurn",
+                uTurnRoute2.isSimpleUTurn());
+
+        Assert.assertFalse("Route with odd number of edges cannot be a simple UTurn",
+                nonUTurnRoute1.isSimpleUTurn());
+        Assert.assertFalse("Non UTurn route cannot be a simple UTurn",
+                nonUTurnRoute2.isSimpleUTurn());
+        Assert.assertFalse(
+                "A route that is almost a UTurn (last edge is off), cannot be a simple UTurn",
+                nonUTurnRoute3.isSimpleUTurn());
+    }
+
+    @Test
     public void testStartsWith()
     {
         final Atlas atlas = this.rule.getAtlas();

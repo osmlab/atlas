@@ -12,6 +12,7 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Heading;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -675,6 +676,44 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
     public boolean isOverlappingForAtLeastOneOf(final Iterable<Route> routes)
     {
         return overlapIndex(routes) > -1;
+    }
+
+    /**
+     * Identifies whether this @{link Route} is a simple U-Turn (route follows along a path to a
+     * point and returns the exact same way it came in).
+     * <p>
+     * NOTE: A route could still be a U-Turn that doesn't follow an identical path out based on
+     * {@link Heading}, but this method won't catch that case.
+     *
+     * @return true if this route is a simple U-Turn
+     */
+    public boolean isSimpleUTurn()
+    {
+        final int numberOfEdges = this.size();
+
+        // A simple UTurn route cannot have an odd number of edges
+        if (numberOfEdges % 2 == 1)
+        {
+            return false;
+        }
+
+        int index = 0;
+
+        // Start by comparing the first and last edge, and incrementally move in from each side.
+        // Stop after we compare the middle two edges
+        while (index < numberOfEdges / 2)
+        {
+            // If any comparison doesn't match, it's not a simple U-Turn
+            if (!this.get(index).isReversedEdge(this.get(numberOfEdges - index - 1)))
+            {
+                return false;
+            }
+
+            index++;
+        }
+
+        // If the comparisons all succeeded, it's a simple U-Turn!
+        return true;
     }
 
     /**
