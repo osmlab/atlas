@@ -28,6 +28,9 @@ public abstract class AbstractAtlasSubCommand implements FlexibleSubCommand
     private static final Flag COMBINE_PARAMETER = new Flag("combine",
             "Will combine all atlases found into a MultiAtlas before reading the metadata");
 
+    private static final Flag PARALLEL_FLAG = new Flag("parallel",
+            "Will process multiple atlases in parallel");
+
     private final String name;
 
     private final String description;
@@ -44,8 +47,14 @@ public abstract class AbstractAtlasSubCommand implements FlexibleSubCommand
         start(command);
         final File path = (File) command.get(INPUT_FOLDER_PARAMETER);
 
-        final Stream<Atlas> atlases = path.listFilesRecursively().stream().filter(Atlas::isAtlas)
+        Stream<Atlas> atlases = path.listFilesRecursively().stream().filter(Atlas::isAtlas)
                 .map(atlas -> new AtlasResourceLoader().load(atlas));
+
+        if ((Boolean) command.get(PARALLEL_FLAG))
+        {
+            atlases = atlases.parallel();
+        }
+
         if ((Boolean) command.get(COMBINE_PARAMETER))
         {
             handle(new MultiAtlas(atlases.collect(Collectors.toList())), command);
@@ -75,7 +84,7 @@ public abstract class AbstractAtlasSubCommand implements FlexibleSubCommand
     @Override
     public SwitchList switches()
     {
-        return new SwitchList().with(INPUT_FOLDER_PARAMETER, COMBINE_PARAMETER);
+        return new SwitchList().with(INPUT_FOLDER_PARAMETER, COMBINE_PARAMETER, PARALLEL_FLAG);
     }
 
     /**
