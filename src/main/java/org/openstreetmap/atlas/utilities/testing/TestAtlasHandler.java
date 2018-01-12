@@ -16,6 +16,7 @@ import org.openstreetmap.atlas.geography.Longitude;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.text.TextAtlasBuilder;
@@ -32,6 +33,7 @@ import org.openstreetmap.atlas.tags.BuildingPartTag;
 import org.openstreetmap.atlas.tags.BuildingTag;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
+import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Area;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Area.Known;
@@ -204,8 +206,18 @@ public class TestAtlasHandler implements FieldHandler
     {
 
         final PackedAtlasBuilder builder = new PackedAtlasBuilder();
-        builder.setSizeEstimates(convertSizeEstimates(testAtlas.size()));
-
+        final AtlasSize size = convertSizeEstimates(testAtlas.size());
+        final String iso = testAtlas.iso();
+        if (!iso.equals(TestAtlas.UNKNOWN_ISO_COUNTRY))
+        {
+            final AtlasMetaData metaData = new AtlasMetaData(size, true, null, null, iso, null,
+                    Maps.hashMap());
+            builder.withMetaData(metaData);
+        }
+        else
+        {
+            builder.setSizeEstimates(size);
+        }
         handle(builder, testAtlas.nodes());
         handle(builder, testAtlas.edges());
         handle(builder, testAtlas.areas());

@@ -267,6 +267,10 @@ public @interface TestAtlas
     // This is for identifiers: by default they will be auto-generated
     String AUTO_GENERATED = "<auto>";
 
+    // This is for the atlas metadata: we only add the ISO country code if it is something besides
+    // unknown
+    String UNKNOWN_ISO_COUNTRY = "UNKNOWN";
+
     /**
      * Areas we want added to the atlas
      *
@@ -288,6 +292,13 @@ public @interface TestAtlas
      * @return the array of edges we want added to the atlas
      */
     Edge[] edges() default {};
+
+    /**
+     * ISO Country Code of the Atlas
+     * 
+     * @return a string containing the ISO3 character code of the country or UNKNOWN if not set
+     */
+    String iso() default UNKNOWN_ISO_COUNTRY;
 
     /**
      * Lines we want added to the atlas
