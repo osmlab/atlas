@@ -31,8 +31,12 @@ public enum RelationTypeTag
     @TagKey
     public static final String KEY = "type";
 
+    public static final String MULTIPOLYGON_TYPE = "multipolygon";
     public static final String MULTIPOLYGON_ROLE_INNER = "inner";
     public static final String MULTIPOLYGON_ROLE_OUTER = "outer";
+
+    public static final String BUILDING_ROLE_OUTLINE = "outline";
+    public static final String BUILDING_ROLE_PART = "part";
 
     public static final String RESTRICTION_ROLE_FROM = "from";
     public static final String RESTRICTION_ROLE_VIA = "via";

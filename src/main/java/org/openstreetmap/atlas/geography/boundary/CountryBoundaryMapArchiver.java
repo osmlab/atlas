@@ -34,7 +34,7 @@ public class CountryBoundaryMapArchiver extends Command
             path -> new File(path));
     private static final Switch<Rectangle> BOUNDS = new Switch<>("bounds", "The bounds",
             rectangle -> Rectangle.forString(rectangle), Optionality.OPTIONAL,
-            Rectangle.MAXIMUM.toString());
+            Rectangle.MAXIMUM.toCompactString());
     private static final Switch<Boolean> CREATE_SPATIAL_INDEX = new Switch<>("createSpatialIndex",
             "Default true, performance optimization to create and serialize a spatial index.",
             Boolean::parseBoolean, Optionality.OPTIONAL, Boolean.FALSE.toString());

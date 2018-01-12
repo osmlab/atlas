@@ -42,8 +42,8 @@ public abstract class AbstractWaterHandler implements WaterHandler
                 return Optional.of(complexWaterbody);
             }
             /*
-             * We currently don't process waterway relations. So if it is a way and it is part of
-             * relation where it is a side stream, main stream or tributary, we process them.
+             * TODO We currently don't process waterway relations. So if it is a way and it is part
+             * of relation where it is a side stream, main stream or tributary, we process them.
              */
             else if (entity instanceof Line)
             {
@@ -58,4 +58,5 @@ public abstract class AbstractWaterHandler implements WaterHandler
         }
         return Optional.empty();
     }
+
 }
