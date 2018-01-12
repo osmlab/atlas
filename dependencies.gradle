@@ -15,7 +15,7 @@ project.ext.versions = [
     cli: '1.3.1',
     csv: '1.2',
     lang: '3.4',
-    fastclasspath: '2.8.0',
+    fastclasspath: '2.9.4',
     guava: '18.0',
     jsonassert:'1.3.0',
     jackson_core:'2.8.8',
