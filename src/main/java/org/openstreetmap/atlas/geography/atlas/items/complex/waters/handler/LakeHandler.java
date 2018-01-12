@@ -24,26 +24,31 @@ public class LakeHandler extends AbstractWaterHandler
 {
     private static final Logger logger = LoggerFactory.getLogger(LakeHandler.class);
 
-    public static boolean isLake(final AtlasEntity atlasEntity)
+    public static boolean isLake(final AtlasEntity entity)
     {
         /*
          * If area (1) natural == water (2) natural == water && water == "lake"
          */
-        if (Validators.isOfType(atlasEntity, NaturalTag.class, NaturalTag.WATER))
+        if (Validators.isOfType(entity, NaturalTag.class, NaturalTag.WATER))
         {
-            if (Validators.isOfType(atlasEntity, WaterTag.class, WaterTag.LAKE))
+            if (Validators.isOfType(entity, WaterTag.class, WaterTag.LAKE, WaterTag.OXBOW))
             {
                 return true;
             }
             // We have some rivers where no water tag is specified, but waterway is present
-            if (atlasEntity.getTag(WaterwayTag.KEY).isPresent()
-                    || atlasEntity.getTag(LandUseTag.KEY).isPresent())
+            if (entity.getTag(WaterwayTag.KEY).isPresent()
+                    || entity.getTag(LandUseTag.KEY).isPresent())
             {
                 return false;
             }
-            // TBD : Should we add oxbow lake to this? natural=water water=oxbow
-            // According to OSM : this is the default when no water tag is specified
-            return !atlasEntity.getTag(WaterTag.KEY).isPresent();
+            // Other water bodies, such as harbors, may have natural=water, but no water tag. We
+            // want to exclude these to avoid creating duplicate water bodies.
+            if (HarbourHandler.isHarbour(entity))
+            {
+                return false;
+            }
+            // According to OSM : A water body is by default a lake, when no water tag is specified
+            return !entity.getTag(WaterTag.KEY).isPresent();
         }
         return false;
     }

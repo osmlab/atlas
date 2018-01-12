@@ -12,19 +12,19 @@ import org.openstreetmap.atlas.geography.atlas.items.complex.waters.WaterType;
 public interface WaterHandler
 {
     /**
-     * This function checks to see if the entity can be handled by the particular (River, lake, etc)
-     * handler
+     * This function checks to see if the {@link AtlasEntity} can be handled by the particular
+     * (River, lake, etc) handler
      *
      * @param entity
-     *            Atlas entity
-     * @return boolean whether the handler can handle this entity
+     *            {@link AtlasEntity} to handle
+     * @return {@code true} if handler can handle this entity
      */
     boolean canHandle(AtlasEntity entity);
 
     /**
-     * This returns the type of WaterBody.
+     * Returns the {@link WaterType}.
      *
-     * @return type of WaterBody(LAKE, RIVER) etc
+     * @return the {@link WaterType}
      */
     WaterType getType();
 

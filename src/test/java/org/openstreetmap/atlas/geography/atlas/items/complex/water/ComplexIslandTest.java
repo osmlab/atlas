@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.items.complex.waters;
+package org.openstreetmap.atlas.geography.atlas.items.complex.water;
 
 import org.junit.Assert;
 import org.junit.Before;

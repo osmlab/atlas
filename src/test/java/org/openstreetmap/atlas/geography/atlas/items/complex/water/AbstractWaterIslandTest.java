@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.items.complex.waters;
+package org.openstreetmap.atlas.geography.atlas.items.complex.water;
 
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -7,7 +7,7 @@ import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.tags.NaturalTag;
-import org.openstreetmap.atlas.tags.RelationTag;
+import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.WaterTag;
 import org.openstreetmap.atlas.tags.WaterwayTag;
 import org.openstreetmap.atlas.utilities.collections.Maps;
@@ -38,18 +38,18 @@ public class AbstractWaterIslandTest
         this.atlasBuilder.addArea(1L, Polygon.SILICON_VALLEY_2, Maps.hashMap());
         // Multi-polygon for outline
         final RelationBean multipolygon = new RelationBean();
-        multipolygon.addItem(0L, RelationTag.MULTIPOLYGON_ROLE_OUTER, ItemType.AREA);
-        multipolygon.addItem(1L, RelationTag.MULTIPOLYGON_ROLE_INNER, ItemType.AREA);
+        multipolygon.addItem(0L, RelationTypeTag.MULTIPOLYGON_ROLE_OUTER, ItemType.AREA);
+        multipolygon.addItem(1L, RelationTypeTag.MULTIPOLYGON_ROLE_INNER, ItemType.AREA);
 
         // Lake
         this.atlasBuilder.addRelation(0L, 0L, multipolygon,
-                Maps.hashMap(RelationTag.TYPE, RelationTag.MULTIPOLYGON, NaturalTag.KEY,
+                Maps.hashMap(RelationTypeTag.KEY, RelationTypeTag.MULTIPOLYGON_TYPE, NaturalTag.KEY,
                         NaturalTag.WATER.name().toLowerCase(), WaterTag.KEY,
                         WaterTag.LAKE.name().toLowerCase()));
 
         // Reservoir
         this.atlasBuilder.addRelation(1L, 1L, multipolygon,
-                Maps.hashMap(RelationTag.TYPE, RelationTag.MULTIPOLYGON, NaturalTag.KEY,
+                Maps.hashMap(RelationTypeTag.KEY, RelationTypeTag.MULTIPOLYGON_TYPE, NaturalTag.KEY,
                         NaturalTag.WATER.name().toLowerCase(), WaterTag.KEY,
                         WaterTag.RESERVOIR.name().toLowerCase()));
 
