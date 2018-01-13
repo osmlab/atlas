@@ -101,6 +101,13 @@ public class DynamicAtlasPolicy
 
                 }
             }
+            else
+            {
+                logger.debug(
+                        "Skipping atlasFetcher for {} because shard bounds are outside the policy's maximumBounds",
+                        shard.getName());
+            }
+
             return Optional.empty();
         };
     }
