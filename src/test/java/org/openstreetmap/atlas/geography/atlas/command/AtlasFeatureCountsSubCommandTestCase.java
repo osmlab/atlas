@@ -1,8 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.command;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -11,10 +9,12 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.openstreetmap.atlas.streaming.resource.File;
 
+import com.google.common.collect.Iterables;
+
 /**
  * Test case verifying that protecting against multiple concurrent threads in the AtlasReader report
  * the right output AtlasFeatureCountsSubCommand class
- * 
+ *
  * @author cstaylor
  */
 public class AtlasFeatureCountsSubCommandTestCase
@@ -22,53 +22,47 @@ public class AtlasFeatureCountsSubCommandTestCase
     @ClassRule
     public static AtlasFeatureCountsSubCommandTestCaseRule setup = new AtlasFeatureCountsSubCommandTestCaseRule();
 
-    private static Path temporaryPath;
+    private static File temporaryFolder;
 
     @AfterClass
     public static void cleanupAtlasesOnDisk() throws IOException
     {
-        Files.walk(temporaryPath).filter(Files::isRegularFile).forEach(path ->
-        {
-            try
-            {
-                Files.deleteIfExists(path);
-            }
-            catch (final IOException oops)
-            {
-                throw new RuntimeException("Error when cleaning up", oops);
-            }
-        });
-        Files.deleteIfExists(temporaryPath);
+        temporaryFolder.deleteRecursively();
     }
 
     @BeforeClass
     public static void prepareAtlasesOnDisk() throws IOException
     {
-        final Path path = Files.createTempDirectory("atlastest");
-        setup.getFirstAtlas().save(new File(path.resolve("first.atlas").toFile()));
-        setup.getSecondAtlas().save(new File(path.resolve("second.atlas").toFile()));
-        setup.getThirdAtlas().save(new File(path.resolve("third.atlas").toFile()));
-        setup.getFourthAtlas().save(new File(path.resolve("fourth.atlas").toFile()));
-        temporaryPath = path;
+        final File temp = File.temporaryFolder();
+        setup.getFirstAtlas().save(temp.child("first.atlas"));
+        setup.getSecondAtlas().save(temp.child("second.atlas"));
+        setup.getThirdAtlas().save(temp.child("third.atlas"));
+        setup.getFourthAtlas().save(temp.child("fourth.atlas"));
+        temporaryFolder = temp;
     }
 
     @Test
     public void testThreadSafety() throws IOException
     {
-        final Path outputPath = Files.createTempFile("atlas", ".stats");
+        final File outputPath = File.temporary();
         try
         {
-            AtlasReader.main("featureCounts", String.format("-input=%s", this.temporaryPath),
+            AtlasReader.main("featureCounts",
+                    String.format("-input=%s",
+                            AtlasFeatureCountsSubCommandTestCase.temporaryFolder),
                     "-parallel", String.format("-output=%s", outputPath));
-            Files.lines(outputPath).filter(line -> line.contains("JP-NODE")).forEach(line ->
+            final boolean[] found = { false };
+            Iterables.filter(outputPath.lines(), line -> line.contains("JPN-NODE")).forEach(line ->
             {
                 final String[] fields = line.split(":");
                 Assert.assertEquals(4, Integer.parseInt(fields[1].trim()));
+                found[0] = true;
             });
+            Assert.assertTrue(found[0]);
         }
         finally
         {
-            Files.deleteIfExists(outputPath);
+            outputPath.delete();
         }
     }
 }
