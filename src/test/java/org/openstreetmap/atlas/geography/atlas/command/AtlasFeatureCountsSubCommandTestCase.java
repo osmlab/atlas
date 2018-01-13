@@ -8,8 +8,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.openstreetmap.atlas.streaming.resource.File;
-
-import com.google.common.collect.Iterables;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * Test case verifying that protecting against multiple concurrent threads in the AtlasReader report
