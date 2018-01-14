@@ -5,7 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -15,7 +14,6 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
-import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,13 +29,6 @@ public class AtlasSplitterWithSlippyTileCommandTest
 
     @Rule
     public final AreaTestRule rule = new AreaTestRule();
-    private AtlasSplitterWithSlippyTileCommand objectUnderTest;
-
-    @Before
-    public void setup()
-    {
-        this.objectUnderTest = new AtlasSplitterWithSlippyTileCommand();
-    }
 
     @Test
     public void testRun()
@@ -45,35 +36,22 @@ public class AtlasSplitterWithSlippyTileCommandTest
         final String testAtlasFile = AtlasSplitterWithSlippyTileCommand.class.getResource("")
                 .getPath() + "test" + FileSuffix.ATLAS;
         generateTestAtlasFile(testAtlasFile);
-        final CommandMap command = new CommandMap();
-        command.put("input", new File(testAtlasFile));
-        command.put("zoom_level", 16);
-        command.put("output",
-                Paths.get(AtlasSplitterWithSlippyTileCommand.class.getResource("").getPath()));
-        command.put("combine", false);
-
-        this.objectUnderTest.execute(command);
+        AtlasReader.main("split", String.format("-input=%s", testAtlasFile),
+                String.format("-zoom_level=%d", 16),
+                String.format("-output=%s", Paths
+                        .get(AtlasSplitterWithSlippyTileCommand.class.getResource("").getPath())),
+                "-combine=false");
         combineOutputAndCleanUp();
-    }
-
-    private void generateTestAtlasFile(final String filePath)
-    {
-        final Atlas atlas = this.rule.getAtlas();
-        final PackedAtlas saveMe = new PackedAtlasCloner().cloneFrom(atlas);
-        saveMe.save(new File(filePath));
     }
 
     private void combineOutputAndCleanUp()
     {
-        final AtlasJoinerSubCommand joinerSubCommand = new AtlasJoinerSubCommand();
-        final CommandMap command = new CommandMap();
-
         logger.info("Checking if splitted Atlas can be combined into the original Atlas");
         final String inputFile = AtlasSplitterWithSlippyTileCommand.class.getResource("").getPath();
-        command.put("input", new File(inputFile));
-        command.put("output", Paths.get(inputFile + "combined_output" + FileSuffix.ATLAS));
-        command.put("combine", false);
-        joinerSubCommand.execute(command);
+        AtlasReader.main("join", String.format("-input=%s", inputFile),
+                String.format("-output=%s",
+                        Paths.get(inputFile + "combined_output" + FileSuffix.ATLAS)),
+                "-combine=false");
 
         final Atlas atlasOriginal = new AtlasResourceLoader().load(new File(
                 AtlasSplitterWithSlippyTileCommand.class.getResource("test.atlas").getPath()));
@@ -93,6 +71,13 @@ public class AtlasSplitterWithSlippyTileCommandTest
                 atlasOriginal.size().getPointNumber());
 
         removeAllAtlasFiles(inputFile);
+    }
+
+    private void generateTestAtlasFile(final String filePath)
+    {
+        final Atlas atlas = this.rule.getAtlas();
+        final PackedAtlas saveMe = new PackedAtlasCloner().cloneFrom(atlas);
+        saveMe.save(new File(filePath));
     }
 
     private void removeAllAtlasFiles(final String inputFile)
