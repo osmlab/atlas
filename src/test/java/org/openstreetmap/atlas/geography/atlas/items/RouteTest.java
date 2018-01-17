@@ -120,6 +120,39 @@ public class RouteTest
                 longerRoute.overlapIndex(divergingRoute));
     }
 
+    @Test
+    public void testReverse()
+    {
+        final Atlas biDirectionalAtlas = this.rule.getBiDirectionalEdgeAtlas();
+
+        final Route singleBiDirectionalEdgeRoute = Route
+                .forEdge(biDirectionalAtlas.edge(159019301));
+        Assert.assertEquals("There is a reverse route since it's a bi-directional edge",
+                Route.forEdge(biDirectionalAtlas.edge(-159019301)),
+                singleBiDirectionalEdgeRoute.reverse().get());
+
+        final Route multipleBirectionalEdgeRoute = Route.forEdges(
+                biDirectionalAtlas.edge(159019301), biDirectionalAtlas.edge(28620796),
+                biDirectionalAtlas.edge(138620888));
+        Assert.assertEquals("There is a reverse route since all the edges are bi-directional",
+                Route.forEdges(biDirectionalAtlas.edge(-138620888),
+                        biDirectionalAtlas.edge(-28620796), biDirectionalAtlas.edge(-159019301)),
+                multipleBirectionalEdgeRoute.reverse().get());
+
+        final Atlas uniDirectionalAtlas = this.rule.getUniDirectionalEdgeAtlas();
+        final Route singleUniDirectionalEdgeRoute = Route
+                .forEdge(uniDirectionalAtlas.edge(28620796));
+        Assert.assertFalse("There is no reverse route since this is a one-way edge",
+                singleUniDirectionalEdgeRoute.reverse().isPresent());
+
+        final Route routeWithUniDirectionalEdgeInBetween = Route.forEdges(
+                uniDirectionalAtlas.edge(159019301), uniDirectionalAtlas.edge(28620796),
+                uniDirectionalAtlas.edge(138620888));
+        Assert.assertFalse(
+                "There is no reverse route since the middle edge is a uni-directional edge",
+                routeWithUniDirectionalEdgeInBetween.reverse().isPresent());
+    }
+
     @Test(expected = CoreException.class)
     public void testRoute()
     {
