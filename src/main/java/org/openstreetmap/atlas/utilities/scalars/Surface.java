@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.utilities.scalars;
 
+import java.io.Serializable;
+
 /**
  * Product of two {@link Angle}s
  *
@@ -8,7 +10,7 @@ package org.openstreetmap.atlas.utilities.scalars;
  * @author cstaylor
  * @author rstack
  */
-public final class Surface
+public final class Surface implements Serializable
 {
     public static final Surface MINIMUM = Surface.forDm7Squared(0);
     public static final Surface MAXIMUM = Surface.forDm7Squared(Long.MAX_VALUE);
@@ -25,6 +27,7 @@ public final class Surface
      * </pre>
      */
     public static final Surface UNIT_METER_SQUARED_ON_EARTH_SURFACE = Surface.forDm7Squared(8082L);
+    private static final long serialVersionUID = 9085129200745439319L;
 
     private final long dm7Squared;
 

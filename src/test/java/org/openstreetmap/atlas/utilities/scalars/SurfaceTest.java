@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.openstreetmap.atlas.utilities.testing.FreezeDryFunction;
 
 /**
  * Unit test for {@link Surface} scale function
@@ -12,6 +13,8 @@ import org.junit.rules.ExpectedException;
  */
 public class SurfaceTest
 {
+    private static final FreezeDryFunction<Surface> FREEZE_DRY = new FreezeDryFunction<>();
+
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
@@ -25,14 +28,14 @@ public class SurfaceTest
     @Test
     public void identityTest()
     {
-        Assert.assertEquals(Surface.UNIT_METER_SQUARED_ON_EARTH_SURFACE,
-                Surface.UNIT_METER_SQUARED_ON_EARTH_SURFACE.scaleBy(1));
+        Assert.assertEquals(FREEZE_DRY.apply(Surface.UNIT_METER_SQUARED_ON_EARTH_SURFACE),
+                FREEZE_DRY.apply(Surface.UNIT_METER_SQUARED_ON_EARTH_SURFACE.scaleBy(1)));
     }
 
     @Test
     public void passZeroScale()
     {
-        Assert.assertEquals(Surface.forDm7Squared(0),
-                Surface.UNIT_METER_SQUARED_ON_EARTH_SURFACE.scaleBy(0));
+        Assert.assertEquals(FREEZE_DRY.apply(Surface.forDm7Squared(0)),
+                FREEZE_DRY.apply(Surface.UNIT_METER_SQUARED_ON_EARTH_SURFACE.scaleBy(0)));
     }
 }

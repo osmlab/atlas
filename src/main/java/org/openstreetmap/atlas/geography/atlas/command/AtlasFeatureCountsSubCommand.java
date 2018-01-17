@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.command;
 
+import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -75,7 +76,8 @@ public class AtlasFeatureCountsSubCommand extends AbstractAtlasSubCommand
     {
         final File file = (File) command.get(OUTPUT_PARAMETER);
 
-        try (PrintStream out = new PrintStream(new FileOutputStream(file.getFile(), true)))
+        try (PrintStream out = new PrintStream(
+                new BufferedOutputStream(new FileOutputStream(file.getFile(), true))))
         {
             for (final String country : this.featureCounts.rowKeySet())
             {
@@ -155,11 +157,14 @@ public class AtlasFeatureCountsSubCommand extends AbstractAtlasSubCommand
         }
 
         // check if there's already a value in the Table
-        if (this.featureCounts.contains(country, type))
+        synchronized (this)
         {
-            oldCount = this.featureCounts.get(country, type);
-        }
+            if (this.featureCounts.contains(country, type))
+            {
+                oldCount = this.featureCounts.get(country, type);
+            }
 
-        this.featureCounts.put(country, type, oldCount + additionalCount);
+            this.featureCounts.put(country, type, oldCount + additionalCount);
+        }
     }
 }

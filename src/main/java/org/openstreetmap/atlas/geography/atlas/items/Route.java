@@ -13,6 +13,7 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Heading;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -714,6 +715,44 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
     }
 
     /**
+     * Identifies whether this @{link Route} is a simple U-Turn (route follows along a path to a
+     * point and returns the exact same way it came in).
+     * <p>
+     * NOTE: A route could still be a U-Turn that doesn't follow an identical path out based on
+     * {@link Heading}, but this method won't catch that case.
+     *
+     * @return true if this route is a simple U-Turn
+     */
+    public boolean isSimpleUTurn()
+    {
+        final int numberOfEdges = this.size();
+
+        // A simple UTurn route cannot have an odd number of edges
+        if (numberOfEdges % 2 == 1)
+        {
+            return false;
+        }
+
+        int index = 0;
+
+        // Start by comparing the first and last edge, and incrementally move in from each side.
+        // Stop after we compare the middle two edges
+        while (index < numberOfEdges / 2)
+        {
+            // If any comparison doesn't match, it's not a simple U-Turn
+            if (!this.get(index).isReversedEdge(this.get(numberOfEdges - index - 1)))
+            {
+                return false;
+            }
+
+            index++;
+        }
+
+        // If the comparisons all succeeded, it's a simple U-Turn!
+        return true;
+    }
+
+    /**
      * Identifies whether the given {@link Route} is a sub-route of this one. If the given
      * {@link Route} is greater than this {@link Route}, this method will return false.
      *
@@ -847,6 +886,57 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
      * @return The first {@link Edge} in this route
      */
     public abstract Edge start();
+
+    /**
+     * Determine if this route starts with the {@link Route} passed in.
+     *
+     * @param other
+     *            The {@link Route} to compare
+     * @return true if this route starts with the route passed in
+     */
+    public boolean startsWith(final Route other)
+    {
+        // If the other route is longer than this route, return false
+        if (other.size() > this.size())
+        {
+            return false;
+        }
+
+        final Iterator<Edge> otherIterator = other.iterator();
+        final Iterator<Edge> thisIterator = this.iterator();
+
+        // otherIterator has to be shorter than thisIterator, so loop over otherIterator
+        while (otherIterator.hasNext())
+        {
+            final Edge otherEdge = otherIterator.next();
+            final Edge thisEdge = thisIterator.next();
+
+            if (!thisEdge.equals(otherEdge))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Creates a new {@link Route} from the original route based on the start and end indexes passed
+     * in
+     *
+     * @param startIndex
+     *            The starting index to create the new route from
+     * @param endIndex
+     *            The ending index (exclusive) of the new route
+     * @return a new route based which is a subset of the original route
+     */
+    public Route subRoute(final int startIndex, final int endIndex)
+    {
+        // Create a new ArrayList for safety reasons because subList returns a list backed by the
+        // original list.
+        return Route
+                .forEdges(new ArrayList<>(Iterables.asList(this).subList(startIndex, endIndex)));
+    }
 
     /**
      * Calculates the first occurring subRoute index from the given {@link Route}s. For details, see
