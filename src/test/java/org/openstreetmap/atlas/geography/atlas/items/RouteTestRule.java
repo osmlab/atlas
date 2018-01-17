@@ -22,124 +22,124 @@ public class RouteTestRule extends CoreTestRule
 
     @TestAtlas(
 
-    nodes = {
+            nodes = {
 
-            @Node(id = "1", coordinates = @Loc(value = ONE) ),
-            @Node(id = "2", coordinates = @Loc(value = TWO) ),
-            @Node(id = "3", coordinates = @Loc(value = THREE) ),
-            @Node(id = "4", coordinates = @Loc(value = FOUR) ),
-            @Node(id = "5", coordinates = @Loc(value = FIVE) ),
+                    @Node(id = "1", coordinates = @Loc(value = ONE)),
+                    @Node(id = "2", coordinates = @Loc(value = TWO)),
+                    @Node(id = "3", coordinates = @Loc(value = THREE)),
+                    @Node(id = "4", coordinates = @Loc(value = FOUR)),
+                    @Node(id = "5", coordinates = @Loc(value = FIVE)),
 
-    }, edges = {
+            }, edges = {
 
-            @Edge(id = "159019301", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }, tags = {
-                    "highway=tertiary" }),
-            @Edge(id = "128620751", coordinates = { @Loc(value = TWO),
-                    @Loc(value = THREE) }, tags = { "highway=tertiary_link" }),
-            @Edge(id = "128620796", coordinates = { @Loc(value = THREE),
-                    @Loc(value = FOUR) }, tags = { "highway=tertiary", "oneway=yes" }),
-            @Edge(id = "138620888", coordinates = { @Loc(value = THREE),
-                    @Loc(value = FIVE) }, tags = { "highway=tertiary", "oneway=yes" }) })
+                    @Edge(id = "159019301", coordinates = { @Loc(value = ONE),
+                            @Loc(value = TWO) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "128620751", coordinates = { @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "highway=tertiary_link" }),
+                    @Edge(id = "128620796", coordinates = { @Loc(value = THREE),
+                            @Loc(value = FOUR) }, tags = { "highway=tertiary", "oneway=yes" }),
+                    @Edge(id = "138620888", coordinates = { @Loc(value = THREE),
+                            @Loc(value = FIVE) }, tags = { "highway=tertiary", "oneway=yes" }) })
     private Atlas atlas;
 
     @TestAtlas(
 
-    nodes = {
+            nodes = {
 
-            @Node(id = "1", coordinates = @Loc(value = ONE) ),
-            @Node(id = "2", coordinates = @Loc(value = TWO) ),
-            @Node(id = "3", coordinates = @Loc(value = THREE) ),
-            @Node(id = "4", coordinates = @Loc(value = FOUR) )
+                    @Node(id = "1", coordinates = @Loc(value = ONE)),
+                    @Node(id = "2", coordinates = @Loc(value = TWO)),
+                    @Node(id = "3", coordinates = @Loc(value = THREE)),
+                    @Node(id = "4", coordinates = @Loc(value = FOUR))
 
-    }, edges = {
+            }, edges = {
 
-            @Edge(id = "159019301", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }, tags = {
-                    "highway=tertiary" }),
-            @Edge(id = "-159019301", coordinates = { @Loc(value = TWO),
-                    @Loc(value = ONE) }, tags = { "highway=tertiary_link" }),
-            @Edge(id = "28620796", coordinates = { @Loc(value = TWO),
-                    @Loc(value = THREE) }, tags = { "highway=tertiary", }),
-            @Edge(id = "-28620796", coordinates = { @Loc(value = THREE),
-                    @Loc(value = TWO) }, tags = { "highway=tertiary", }),
-            @Edge(id = "138620888", coordinates = { @Loc(value = THREE),
-                    @Loc(value = FOUR) }, tags = { "highway=tertiary", }),
-            @Edge(id = "-138620888", coordinates = { @Loc(value = FOUR),
-                    @Loc(value = THREE) }, tags = { "highway=tertiary", }) })
+                    @Edge(id = "159019301", coordinates = { @Loc(value = ONE),
+                            @Loc(value = TWO) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "-159019301", coordinates = { @Loc(value = TWO),
+                            @Loc(value = ONE) }, tags = { "highway=tertiary_link" }),
+                    @Edge(id = "28620796", coordinates = { @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "highway=tertiary", }),
+                    @Edge(id = "-28620796", coordinates = { @Loc(value = THREE),
+                            @Loc(value = TWO) }, tags = { "highway=tertiary", }),
+                    @Edge(id = "138620888", coordinates = { @Loc(value = THREE),
+                            @Loc(value = FOUR) }, tags = { "highway=tertiary", }),
+                    @Edge(id = "-138620888", coordinates = { @Loc(value = FOUR),
+                            @Loc(value = THREE) }, tags = { "highway=tertiary", }) })
     private Atlas biDirectionalEdgeAtlas;
 
     @TestAtlas(
 
-    nodes = {
+            nodes = {
 
-            @Node(id = "1", coordinates = @Loc(value = ONE) ),
-            @Node(id = "2", coordinates = @Loc(value = TWO) ),
-            @Node(id = "3", coordinates = @Loc(value = THREE) ),
-            @Node(id = "4", coordinates = @Loc(value = FOUR) )
+                    @Node(id = "1", coordinates = @Loc(value = ONE)),
+                    @Node(id = "2", coordinates = @Loc(value = TWO)),
+                    @Node(id = "3", coordinates = @Loc(value = THREE)),
+                    @Node(id = "4", coordinates = @Loc(value = FOUR))
 
-    }, edges = {
+            }, edges = {
 
-            @Edge(id = "159019301", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }, tags = {
-                    "highway=tertiary" }),
-            @Edge(id = "-159019301", coordinates = { @Loc(value = TWO),
-                    @Loc(value = ONE) }, tags = { "highway=tertiary_link" }),
-            @Edge(id = "28620796", coordinates = { @Loc(value = TWO),
-                    @Loc(value = THREE) }, tags = { "highway=tertiary", }),
-            @Edge(id = "138620888", coordinates = { @Loc(value = THREE),
-                    @Loc(value = FOUR) }, tags = { "highway=tertiary", }),
-            @Edge(id = "-138620888", coordinates = { @Loc(value = FOUR),
-                    @Loc(value = THREE) }, tags = { "highway=tertiary", }) })
+                    @Edge(id = "159019301", coordinates = { @Loc(value = ONE),
+                            @Loc(value = TWO) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "-159019301", coordinates = { @Loc(value = TWO),
+                            @Loc(value = ONE) }, tags = { "highway=tertiary_link" }),
+                    @Edge(id = "28620796", coordinates = { @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "highway=tertiary", }),
+                    @Edge(id = "138620888", coordinates = { @Loc(value = THREE),
+                            @Loc(value = FOUR) }, tags = { "highway=tertiary", }),
+                    @Edge(id = "-138620888", coordinates = { @Loc(value = FOUR),
+                            @Loc(value = THREE) }, tags = { "highway=tertiary", }) })
     private Atlas uniDirectionalEdgeAtlas;
 
     @TestAtlas(
 
-    nodes = {
+            nodes = {
 
-            @Node(id = "1", coordinates = @Loc(value = ONE) ),
-            @Node(id = "2", coordinates = @Loc(value = TWO) ),
-            @Node(id = "3", coordinates = @Loc(value = THREE) ),
+                    @Node(id = "1", coordinates = @Loc(value = ONE)),
+                    @Node(id = "2", coordinates = @Loc(value = TWO)),
+                    @Node(id = "3", coordinates = @Loc(value = THREE)),
 
-    }, edges = {
+            }, edges = {
 
-            @Edge(id = "206786592000008", coordinates = { @Loc(value = ONE),
-                    @Loc(value = TWO) }, tags = { "highway=tertiary" }),
-            @Edge(id = "-206786592000008", coordinates = { @Loc(value = TWO),
-                    @Loc(value = ONE) }, tags = { "highway=tertiary" }),
-            @Edge(id = "206786592000007", coordinates = { @Loc(value = THREE),
-                    @Loc(value = ONE) }, tags = { "highway=tertiary_link" }),
-            @Edge(id = "-206786592000007", coordinates = { @Loc(value = ONE),
-                    @Loc(value = THREE) }, tags = { "highway=tertiary_link" }) })
+                    @Edge(id = "206786592000008", coordinates = { @Loc(value = ONE),
+                            @Loc(value = TWO) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "-206786592000008", coordinates = { @Loc(value = TWO),
+                            @Loc(value = ONE) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "206786592000007", coordinates = { @Loc(value = THREE),
+                            @Loc(value = ONE) }, tags = { "highway=tertiary_link" }),
+                    @Edge(id = "-206786592000007", coordinates = { @Loc(value = ONE),
+                            @Loc(value = THREE) }, tags = { "highway=tertiary_link" }) })
     private Atlas routeHashCodeAtlas;
 
     @TestAtlas(
 
-    nodes = {
+            nodes = {
 
-            @Node(id = "1", coordinates = @Loc(value = ONE) ),
-            @Node(id = "2", coordinates = @Loc(value = TWO) ),
-            @Node(id = "3", coordinates = @Loc(value = THREE) ),
-            @Node(id = "4", coordinates = @Loc(value = FOUR) ),
-            @Node(id = "5", coordinates = @Loc(value = FIVE) ),
+                    @Node(id = "1", coordinates = @Loc(value = ONE)),
+                    @Node(id = "2", coordinates = @Loc(value = TWO)),
+                    @Node(id = "3", coordinates = @Loc(value = THREE)),
+                    @Node(id = "4", coordinates = @Loc(value = FOUR)),
+                    @Node(id = "5", coordinates = @Loc(value = FIVE)),
 
-    }, edges = {
+            }, edges = {
 
-            @Edge(id = "159019301", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }, tags = {
-                    "highway=tertiary" }),
-            @Edge(id = "-159019301", coordinates = { @Loc(value = TWO),
-                    @Loc(value = ONE) }, tags = { "highway=tertiary" }),
-            @Edge(id = "128620751", coordinates = { @Loc(value = TWO),
-                    @Loc(value = THREE) }, tags = { "highway=tertiary_link" }),
-            @Edge(id = "-128620751", coordinates = { @Loc(value = THREE),
-                    @Loc(value = TWO) }, tags = { "highway=tertiary_link" }),
-            @Edge(id = "128620796", coordinates = { @Loc(value = THREE),
-                    @Loc(value = FOUR) }, tags = { "highway=tertiary", "oneway=yes" }),
-            @Edge(id = "-128620796", coordinates = { @Loc(value = FOUR),
-                    @Loc(value = THREE) }, tags = { "highway=tertiary", "oneway=yes" }),
-            @Edge(id = "138620888", coordinates = { @Loc(value = FOUR),
-                    @Loc(value = FIVE) }, tags = { "highway=tertiary", "oneway=yes" }),
-            @Edge(id = "-138620888", coordinates = { @Loc(value = FIVE),
-                    @Loc(value = FOUR) }, tags = { "highway=tertiary", "oneway=yes" }),
-            @Edge(id = "138620889", coordinates = { @Loc(value = TWO),
-                    @Loc(value = FIVE) }, tags = { "highway=tertiary", "oneway=yes" }) })
+                    @Edge(id = "159019301", coordinates = { @Loc(value = ONE),
+                            @Loc(value = TWO) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "-159019301", coordinates = { @Loc(value = TWO),
+                            @Loc(value = ONE) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "128620751", coordinates = { @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "highway=tertiary_link" }),
+                    @Edge(id = "-128620751", coordinates = { @Loc(value = THREE),
+                            @Loc(value = TWO) }, tags = { "highway=tertiary_link" }),
+                    @Edge(id = "128620796", coordinates = { @Loc(value = THREE),
+                            @Loc(value = FOUR) }, tags = { "highway=tertiary", "oneway=yes" }),
+                    @Edge(id = "-128620796", coordinates = { @Loc(value = FOUR),
+                            @Loc(value = THREE) }, tags = { "highway=tertiary", "oneway=yes" }),
+                    @Edge(id = "138620888", coordinates = { @Loc(value = FOUR),
+                            @Loc(value = FIVE) }, tags = { "highway=tertiary", "oneway=yes" }),
+                    @Edge(id = "-138620888", coordinates = { @Loc(value = FIVE),
+                            @Loc(value = FOUR) }, tags = { "highway=tertiary", "oneway=yes" }),
+                    @Edge(id = "138620889", coordinates = { @Loc(value = TWO),
+                            @Loc(value = FIVE) }, tags = { "highway=tertiary", "oneway=yes" }) })
 
     private Atlas uTurnAtlas;
 
