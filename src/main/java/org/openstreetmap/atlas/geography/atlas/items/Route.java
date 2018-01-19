@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
@@ -141,6 +142,34 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
         }
 
         @Override
+        public Optional<Route> reverse()
+        {
+            Route reversed = null;
+            final Iterator<Edge> iterator = this.iterator();
+            while (iterator.hasNext())
+            {
+                final Edge edge = iterator.next();
+                if (edge.hasReverseEdge())
+                {
+                    final Edge reverse = edge.reversed().get();
+                    if (reversed == null)
+                    {
+                        reversed = Route.forEdge(reverse);
+                    }
+                    else
+                    {
+                        reversed = reversed.prepend(reverse);
+                    }
+                }
+                else
+                {
+                    return Optional.empty();
+                }
+            }
+            return Optional.ofNullable(reversed);
+        }
+
+        @Override
         public int size()
         {
             return this.upstream.size() + this.downstream.size();
@@ -242,6 +271,13 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
             result.add(this.edge.start());
             result.add(this.edge.end());
             return result;
+        }
+
+        @Override
+        public Optional<Route> reverse()
+        {
+            return this.edge.hasReverseEdge()
+                    ? Optional.of(new SingleRoute(this.edge.reversed().get())) : Optional.empty();
         }
 
         @Override
@@ -835,6 +871,11 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
         }
         return new MultiRoute(route, this);
     }
+
+    /**
+     * @return The reversed {@link Route}, if all the reversed {@link Edge}s exist.
+     */
+    public abstract Optional<Route> reverse();
 
     /**
      * @return The number of {@link Edge}s in this {@link Route}

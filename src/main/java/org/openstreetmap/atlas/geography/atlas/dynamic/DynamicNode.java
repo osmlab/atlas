@@ -49,19 +49,17 @@ public class DynamicNode extends Node
     @Override
     public SortedSet<Edge> inEdges()
     {
-        final SortedSet<Edge> result = new TreeSet<>();
-        subNode().inEdges()
-                .forEach(edge -> result.add(new DynamicEdge(dynamicAtlas(), edge.getIdentifier())));
-        return result;
+        return subNode().inEdges().stream()
+                .map(edge -> new DynamicEdge(dynamicAtlas(), edge.getIdentifier()))
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public SortedSet<Edge> outEdges()
     {
-        final SortedSet<Edge> result = new TreeSet<>();
-        subNode().outEdges()
-                .forEach(edge -> result.add(new DynamicEdge(dynamicAtlas(), edge.getIdentifier())));
-        return result;
+        return subNode().outEdges().stream()
+                .map(edge -> new DynamicEdge(dynamicAtlas(), edge.getIdentifier()))
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
