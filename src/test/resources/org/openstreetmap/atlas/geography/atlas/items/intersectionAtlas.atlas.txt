@@ -1,0 +1,14 @@
+# Nodes
+3558267680000000 && 47.618416,-122.289001 && last_edit_user_name -> dle0 || last_edit_changeset -> 31582804 || last_edit_time -> 1432987007000 || last_edit_user_id -> 37744 || last_edit_version -> 1
+3558267681000000 && 47.618671,-122.289352 && last_edit_user_name -> dle0 || last_edit_changeset -> 31582804 || last_edit_time -> 1432987007000 || last_edit_user_id -> 37744 || last_edit_version -> 1 
+3558267682000000 && 47.618946,-122.288925 && last_edit_user_name -> dle0 || last_edit_changeset -> 31582804 || last_edit_time -> 1432987007000 || last_edit_user_id -> 37744 || last_edit_version -> 1 
+# Edges
+1234567000001 && 47.618416,-122.289001:47.618286,-122.288635:47.618492,-122.288788:47.618671,-122.289352 && highway -> trunk
+1234567000002 && 47.618671,-122.289352:47.618759,-122.289635:47.618946,-122.288925 && highway -> trunk
+# Areas
+247059838000000 && 47.618416,-122.289001:47.618286,-122.288635:47.618492,-122.288788:47.618671,-122.289352 && last_edit_changeset -> 20186822 || last_edit_user_name -> muralito || last_edit_time -> 1390609954000 || last_edit_user_id -> 755114 || last_edit_version -> 4
+# Lines
+1234599000001 && 47.618416,-122.289001:47.618286,-122.288635:47.618492,-122.288788:47.618671,-122.289352 && power -> line
+# Points
+# Relations
+5218860000000 && 1234567000001 -> from -> E || 1234567000002 -> to -> E || 3558267681000000 -> via -> N && last_edit_user_name -> dle0 || last_edit_changeset -> 41287685 || last_edit_time -> 1470490850000 || last_edit_user_id -> 37744 || type -> restriction || last_edit_version -> 4
