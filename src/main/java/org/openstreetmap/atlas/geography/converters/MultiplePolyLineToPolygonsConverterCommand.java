@@ -38,7 +38,7 @@ public class MultiplePolyLineToPolygonsConverterCommand extends Command
                 .map(line -> StringList.split(line, ";").stream()
                         .map(wkt -> new WktPolyLineConverter().backwardConvert(wkt))
                         .collect(Collectors.toList()));
-        try (final SafeBufferedWriter writer = ((File) command.get(POLYGONS)).writer())
+        try (SafeBufferedWriter writer = ((File) command.get(POLYGONS)).writer())
         {
             for (final List<PolyLine> input : inputs)
             {
