@@ -159,10 +159,6 @@ public abstract class AbstractAtlas extends BareAtlas
     public Iterable<Edge> edgesIntersecting(final Polygon polygon)
     {
         final Iterable<Edge> edges = this.getEdgeSpatialIndex().get(polygon.bounds());
-        if (polygon instanceof Rectangle)
-        {
-            return edges;
-        }
         return Iterables.filter(edges, edge ->
         {
             final PolyLine polyline = edge.asPolyLine();
@@ -233,10 +229,6 @@ public abstract class AbstractAtlas extends BareAtlas
     public Iterable<Line> linesIntersecting(final Polygon polygon)
     {
         final Iterable<Line> lines = this.getLineSpatialIndex().get(polygon.bounds());
-        if (polygon instanceof Rectangle)
-        {
-            return lines;
-        }
         return Iterables.filter(lines, line ->
         {
             final PolyLine polyline = line.asPolyLine();
@@ -302,10 +294,6 @@ public abstract class AbstractAtlas extends BareAtlas
     public Iterable<Relation> relationsWithEntitiesIntersecting(final Polygon polygon)
     {
         final Iterable<Relation> relations = this.getRelationSpatialIndex().get(polygon.bounds());
-        if (polygon instanceof Rectangle)
-        {
-            return relations;
-        }
         return Iterables.filter(relations, relation ->
         {
             return relation.intersects(polygon);
