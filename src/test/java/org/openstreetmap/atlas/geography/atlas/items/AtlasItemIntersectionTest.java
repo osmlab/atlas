@@ -54,6 +54,22 @@ public class AtlasItemIntersectionTest
     }
 
     @Test
+    public void testAreasNoIntersectingPolygon()
+    {
+        final Atlas atlas = this.rule.getNoIntersectionAtlas();
+
+        final Polygon triangle = new Polygon(Location.forString("47.6263, -122.209198"),
+                Location.forString("47.628685, -122.209305"),
+                Location.forString("47.628704, -122.211761"));
+
+        Assert.assertEquals("There should be no intersecting area", 0,
+                Iterables.size(atlas.areasIntersecting(triangle)));
+
+        Assert.assertEquals("There should be no intersecting area", 0,
+                Iterables.size(atlas.areasIntersecting(triangle.bounds())));
+    }
+
+    @Test
     public void testEdgesIntersectingPolygon()
     {
         final Atlas atlas = this.rule.getIntersectionAtlas();
