@@ -23,6 +23,15 @@ public enum PbfOneWay
     REVERSED,
     CLOSED;
 
+    /**
+     * Determines the whether the given {@link Taggable} is a one-way, non-one-way, reversed or
+     * closed Edge. If any changes are made to this file, please keep it in sync with
+     * /src/main/resources/org/openstreetmap/atlas/geography/atlas/pbf/atlas-edge.json
+     *
+     * @param taggable
+     *            The {@link Taggable} to look at
+     * @return the {@link PbfOneWay} for the given {@link Taggable}
+     */
     public static PbfOneWay forTag(final Taggable taggable)
     {
         if (isNotAccessibleToVehicles(taggable))
