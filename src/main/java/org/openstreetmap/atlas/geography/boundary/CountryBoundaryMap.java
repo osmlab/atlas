@@ -1030,7 +1030,7 @@ public class CountryBoundaryMap implements Serializable
 
         if (logger.isDebugEnabled() && time.untilNow().isMoreThan(Duration.ONE_MINUTE))
         {
-            logger.info("Took {} to slice way {}", time.untilNow(), identifier);
+            logger.debug("Took {} to slice way {}", time.untilNow(), identifier);
         }
         return results;
     }

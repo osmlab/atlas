@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='3415739198' timestamp='2017-05-20T13:23:01Z' uid='1665943' user='tomlee721' version='2' changeset='48842799' lat='22.1637556' lon='113.5741442' />
+  <node id='3415739205' timestamp='2015-03-24T11:54:23Z' uid='1665943' user='tomlee721' version='1' changeset='29701609' lat='22.163799' lon='113.5750108' />
+  <node id='4874277047' timestamp='2017-05-24T13:49:11Z' uid='1665943' user='tomlee721' version='1' changeset='48948348' lat='22.163747' lon='113.575233'>
+    <tag k='highway' v='crossing' />
+  </node>
+  <node id='5171821828' timestamp='2017-10-16T19:43:52Z' uid='4351550' user='MyWayOrNoHighway' version='1' changeset='52993388' lat='22.1637368' lon='113.5752765' />
+  <node id='3415739207' timestamp='2015-03-24T11:54:23Z' uid='1665943' user='tomlee721' version='1' changeset='29701609' lat='22.1638592' lon='113.5743462' />
+  <node id='3415739210' timestamp='2017-05-24T13:49:13Z' uid='1665943' user='tomlee721' version='2' changeset='48948348' lat='22.1638968' lon='113.5744353' />
+  <node id='3415739213' timestamp='2015-03-24T11:54:23Z' uid='1665943' user='tomlee721' version='1' changeset='29701609' lat='22.1638986' lon='113.5745278' />
+  <node id='3415739211' timestamp='2017-05-24T13:49:13Z' uid='1665943' user='tomlee721' version='2' changeset='48948348' lat='22.1638783' lon='113.574658' />
+  <node id='3415739212' timestamp='2015-03-24T11:54:23Z' uid='1665943' user='tomlee721' version='1' changeset='29701609' lat='22.1638861' lon='113.5746082' />
+  <node id='3415739209' timestamp='2017-05-20T13:23:01Z' uid='1665943' user='tomlee721' version='2' changeset='48842799' lat='22.1638618' lon='113.5747311' /> 
+  <way id='498346222' timestamp='2017-10-16T19:44:04Z' uid='4351550' user='MyWayOrNoHighway' version='2' changeset='52993388'>
+    <nd ref='3415739209' />
+    <nd ref='3415739205' />
+    <nd ref='4874277047' />
+    <nd ref='5171821828' />
+    <tag k='highway' v='service' />
+    <tag k='oneway' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='vehicle' v='no' />
+  </way>
+  <way id='498346223' timestamp='2017-06-05T18:08:37Z' uid='1665943' user='tomlee721' version='1' changeset='49280138'>
+    <nd ref='3415739198' />
+    <nd ref='3415739207' />
+    <nd ref='3415739210' />
+    <nd ref='3415739213' />
+    <nd ref='3415739212' />
+    <nd ref='3415739211' />
+    <nd ref='3415739209' />
+    <tag k='highway' v='service' />
+    <tag k='oneway' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='vehicle' v='no' />
+  </way>
+  <relation id='4451979' timestamp='2017-12-22T09:53:45Z' uid='1665943' user='tomlee721' version='96' changeset='54836931'>
+    <member type='way' ref='498346223' role='' />
+    <member type='way' ref='498346222' role='' />
+    <tag k='fax' v='+853 2823 4416' />
+    <tag k='name' v='26 路線 Carreira n.º 26' />
+    <tag k='name:en' v='Line 26' />
+    <tag k='name:pt' v='Carreira n.º 26' />
+    <tag k='name:zh' v='26 路線' />
+    <tag k='network' v='Macau' />
+    <tag k='operator' v='新福利 Transmac' />
+    <tag k='phone' v='+853 2827 1122' />
+    <tag k='ref' v='26' />
+    <tag k='route' v='bus' />
+    <tag k='service_times' v='Mo-Su 06:00-00:00' />
+    <tag k='type' v='route' />
+    <tag k='website' v='http://transmac.com.mo/' />
+    <tag k='wheelchair' v='yes' />
+  </relation>
+</osm>

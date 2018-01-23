@@ -18,9 +18,9 @@ public class OsmPbfComplexRelationTest
     public final OsmPbfComplexRelationTestRule rule = new OsmPbfComplexRelationTestRule();
 
     @Test
-    public void testLoadingRelation4451979()
+    public void testLoadingPartialRelation4451979()
     {
-        final Atlas atlas = this.rule.getAtlasForRelation4451979();
+        final Atlas atlas = this.rule.getPartialRelation4451979Atlas();
         Assert.assertEquals(1, Iterables.size(atlas.relations()));
     }
 }

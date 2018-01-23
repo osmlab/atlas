@@ -11,11 +11,11 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas;
  */
 public class OsmPbfComplexRelationTestRule extends CoreTestRule
 {
-    @TestAtlas(loadFromOsmResource = "relation4451979.osm")
-    private Atlas relation4451979;
+    @TestAtlas(loadFromOsmResource = "partialRelation4451979.osm")
+    private Atlas partialRelation4451979;
 
-    public Atlas getAtlasForRelation4451979()
+    public Atlas getPartialRelation4451979Atlas()
     {
-        return this.relation4451979;
+        return this.partialRelation4451979;
     }
 }
