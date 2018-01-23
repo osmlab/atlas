@@ -18,5 +18,5 @@ public enum PublicServiceVehiclesTag
     DESIGNATED;
 
     @TagKey
-    public static final String KEY = "vehicle";
+    public static final String KEY = "psv";
 }
