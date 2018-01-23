@@ -836,8 +836,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
      */
     private void sliceRelations()
     {
-        this.partiallySlicedRawAtlas.relationsLowerOrderFirst()
-                .forEach(relation -> this.sliceRelation(relation));
+        this.partiallySlicedRawAtlas.relationsLowerOrderFirst().forEach(this::sliceRelation);
     }
 
     /**
