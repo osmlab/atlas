@@ -228,7 +228,7 @@ public class OsmPbfLoaderIntegrationTest extends AtlasIntegrationTest
         Assert.assertEquals("route", relation1.getTags().get("type"));
         Assert.assertEquals("bus", relation1.getTags().get("route"));
         Assert.assertEquals("Adult Tram", relation1.getTags().get("name"));
-        Assert.assertEquals(24, relation1.members().size());
+        Assert.assertEquals(27, relation1.members().size());
 
         final Relation relation2 = relations.get(1245746000000L);
         Assert.assertEquals("route", relation2.getTags().get("type"));

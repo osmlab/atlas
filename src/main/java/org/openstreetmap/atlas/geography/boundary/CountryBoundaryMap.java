@@ -51,6 +51,7 @@ import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
+import org.openstreetmap.atlas.utilities.scalars.Duration;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
 import org.openstreetmap.osmosis.core.domain.v0_6.Way;
@@ -1027,7 +1028,10 @@ public class CountryBoundaryMap implements Serializable
             }
         }
 
-        logger.info("Took {} to slice way {}", time.untilNow(), identifier);
+        if (logger.isDebugEnabled() && time.untilNow().isMoreThan(Duration.ONE_MINUTE))
+        {
+            logger.debug("Took {} to slice way {}", time.untilNow(), identifier);
+        }
         return results;
     }
 
