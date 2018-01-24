@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.pbf.store;
 
+import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
+import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.AccessTag;
 import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.JunctionTag;
@@ -9,6 +11,8 @@ import org.openstreetmap.atlas.tags.OneWayTag;
 import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.tags.VehicleTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
+import org.openstreetmap.atlas.tags.filters.ConfiguredTaggableFilter;
+import org.openstreetmap.atlas.utilities.configuration.StandardConfiguration;
 
 /**
  * One way attribute of an OSM Way
@@ -23,10 +27,13 @@ public enum PbfOneWay
     REVERSED,
     CLOSED;
 
+    private static final ConfiguredTaggableFilter EDGE_FILTER = new ConfiguredTaggableFilter(
+            new StandardConfiguration(new InputStreamResource(
+                    () -> AtlasLoadingOption.class.getResourceAsStream("atlas-edge.json"))));
+
     /**
      * Determines the whether the given {@link Taggable} is a one-way, non-one-way, reversed or
-     * closed Edge. If any changes are made to this file, please keep it in sync with
-     * /src/main/resources/org/openstreetmap/atlas/geography/atlas/pbf/atlas-edge.json
+     * closed Edge.
      *
      * @param taggable
      *            The {@link Taggable} to look at
@@ -34,8 +41,9 @@ public enum PbfOneWay
      */
     public static PbfOneWay forTag(final Taggable taggable)
     {
-        if (isNotAccessibleToVehicles(taggable))
+        if (!EDGE_FILTER.test(taggable))
         {
+            // Anything not an edge should be closed
             return CLOSED;
         }
         else if (OneWayTag.isExplicitlyTwoWay(taggable))

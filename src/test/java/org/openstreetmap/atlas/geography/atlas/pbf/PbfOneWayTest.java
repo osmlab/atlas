@@ -9,6 +9,7 @@ import org.openstreetmap.atlas.tags.JunctionTag;
 import org.openstreetmap.atlas.tags.MotorVehicleTag;
 import org.openstreetmap.atlas.tags.MotorcarTag;
 import org.openstreetmap.atlas.tags.OneWayTag;
+import org.openstreetmap.atlas.tags.RouteTag;
 import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.tags.VehicleTag;
 
@@ -104,6 +105,9 @@ public class PbfOneWayTest
                 OneWayTag.REVERSE.name().toLowerCase());
         final Taggable oneWayReversedUsingNegativeOne = Taggable.with(HighwayTag.KEY,
                 HighwayTag.PRIMARY.name().toLowerCase(), OneWayTag.KEY, "-1");
+        final Taggable ferryMotorVehicleNo = Taggable.with(RouteTag.KEY,
+                RouteTag.FERRY.name().toLowerCase(), MotorVehicleTag.KEY,
+                MotorVehicleTag.NO.name().toLowerCase());
 
         Assert.assertEquals(PbfOneWay.NO, PbfOneWay.forTag(primary));
         Assert.assertEquals(PbfOneWay.NO, PbfOneWay.forTag(motorwayLink));
@@ -114,6 +118,10 @@ public class PbfOneWayTest
         Assert.assertEquals(PbfOneWay.NO, PbfOneWay.forTag(primaryAccessNoMotorVehicleYes));
         Assert.assertEquals(PbfOneWay.NO, PbfOneWay.forTag(primaryAccessNoMotorCarYes));
         Assert.assertEquals(PbfOneWay.NO, PbfOneWay.forTag(primaryAccessNoVehicleYes));
+        Assert.assertEquals(PbfOneWay.NO, PbfOneWay.forTag(primaryMotorVehicleNo));
+        Assert.assertEquals(PbfOneWay.NO, PbfOneWay.forTag(primaryAccessYesVehicleNo));
+        Assert.assertEquals(PbfOneWay.NO, PbfOneWay.forTag(primaryAccessDeliveryMotorcarNo));
+        Assert.assertEquals(PbfOneWay.NO, PbfOneWay.forTag(ferryMotorVehicleNo));
 
         Assert.assertEquals(PbfOneWay.YES, PbfOneWay.forTag(motorway));
         Assert.assertEquals(PbfOneWay.YES, PbfOneWay.forTag(roundabout));
@@ -128,9 +136,6 @@ public class PbfOneWayTest
         Assert.assertEquals(PbfOneWay.CLOSED, PbfOneWay.forTag(primaryAccessNo));
         Assert.assertEquals(PbfOneWay.CLOSED, PbfOneWay.forTag(primaryAccessNoForVehicles));
         Assert.assertEquals(PbfOneWay.CLOSED, PbfOneWay.forTag(oneWayReversible));
-        Assert.assertEquals(PbfOneWay.CLOSED, PbfOneWay.forTag(primaryMotorVehicleNo));
-        Assert.assertEquals(PbfOneWay.CLOSED, PbfOneWay.forTag(primaryAccessYesVehicleNo));
-        Assert.assertEquals(PbfOneWay.CLOSED, PbfOneWay.forTag(primaryAccessDeliveryMotorcarNo));
 
         Assert.assertEquals(PbfOneWay.REVERSED, PbfOneWay.forTag(oneWayReversed));
         Assert.assertEquals(PbfOneWay.REVERSED, PbfOneWay.forTag(oneWayReversedUsingNegativeOne));

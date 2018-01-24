@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='187303326' timestamp='2009-01-27T03:07:33Z' uid='32810' user='Yoda' version='5' changeset='842736' lat='-38.3721305' lon='145.2249455' />
+  <node id='187307937' timestamp='2009-01-27T03:07:33Z' uid='32810' user='Yoda' version='3' changeset='842736' lat='-38.371794' lon='145.2256322' />
+  <node id='187307939' timestamp='2009-01-27T03:07:33Z' uid='32810' user='Yoda' version='3' changeset='842736' lat='-38.3716595' lon='145.2266621' />
+  <node id='187307940' timestamp='2013-10-14T05:23:39Z' uid='612392' user='s1kk4z' version='6' changeset='18343534' lat='-38.3831379' lon='145.2707115' />
+  <node id='1943600337' timestamp='2012-10-03T00:23:49Z' uid='143129' user='petersfreeman' version='1' changeset='13341813' lat='-38.3722478' lon='145.2248402' />
+  <way id='18133734' timestamp='2016-01-06T05:27:50Z' uid='79475' user='AlexOnTheBus' version='8' changeset='36395753'>
+    <nd ref='1943600337' />
+    <nd ref='187303326' />
+    <nd ref='187307937' />
+    <nd ref='187307939' />
+    <nd ref='187307940' />
+    <tag k='bicycle' v='yes' />
+    <tag k='motor_vehicle' v='no' />
+    <tag k='name' v='Stony Point - Tankerton' />
+    <tag k='route' v='ferry' />
+  </way>
+</osm>
