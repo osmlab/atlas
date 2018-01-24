@@ -26,10 +26,6 @@ public class RawAtlasCountrySlicer
 
     private static final JtsMultiPolygonToMultiPolygonConverter JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
 
-    // Keep track of changes made during Point/Line and Relation slicing
-    private final SimpleChangeSet slicedPointAndLineChanges = new SimpleChangeSet();
-    private final RelationChangeSet slicedRelationChanges = new RelationChangeSet();
-
     // The countries to be sliced with
     private final CountryBoundaryMap countryBoundaryMap;
 
@@ -38,11 +34,6 @@ public class RawAtlasCountrySlicer
 
     // The optional area to slice against
     private final MultiPolygon multiPolygon;
-
-    // Mapping between Coordinate and created Temporary Point identifiers. This is to avoid
-    // duplicate points at the same locations and to allow fast lookup to construct new lines
-    // requiring the temporary point as a Line shape point
-    private final CoordinateToNewPointMapping newPointCoordinates = new CoordinateToNewPointMapping();
 
     /**
      * Slices against the given country set and boundary map. Note: Will assume the entire world to
@@ -89,14 +80,22 @@ public class RawAtlasCountrySlicer
      */
     public Atlas slice(final Atlas rawAtlas)
     {
+        // Keep track of changes made during Point/Line and Relation slicing
+        final SimpleChangeSet slicedPointAndLineChanges = new SimpleChangeSet();
+        final RelationChangeSet slicedRelationChanges = new RelationChangeSet();
+
+        // Mapping between Coordinate and created Temporary Point identifiers. This is to avoid
+        // duplicate points at the same locations and to allow fast lookup to construct new lines
+        // requiring the temporary point as a Line shape point
+        final CoordinateToNewPointMapping newPointCoordinates = new CoordinateToNewPointMapping();
+
         final RawAtlasSlicer pointAndLineSlicer = new RawAtlasPointAndLineSlicer(this.countries,
-                this.countryBoundaryMap, rawAtlas, this.slicedPointAndLineChanges,
-                this.newPointCoordinates);
+                this.countryBoundaryMap, rawAtlas, slicedPointAndLineChanges, newPointCoordinates);
         final Atlas slicedPointsAndLinesAtlas = pointAndLineSlicer.slice();
 
         final RawAtlasSlicer relationSlicer = new RawAtlasRelationSlicer(slicedPointsAndLinesAtlas,
-                this.countries, this.countryBoundaryMap, this.slicedPointAndLineChanges,
-                this.slicedRelationChanges, this.newPointCoordinates);
+                this.countries, this.countryBoundaryMap, slicedPointAndLineChanges,
+                slicedRelationChanges, newPointCoordinates);
         return relationSlicer.slice();
     }
 

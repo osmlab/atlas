@@ -14,6 +14,7 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
+import org.openstreetmap.atlas.tags.AtlasTag;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 import org.slf4j.Logger;
@@ -248,8 +249,8 @@ public class RawAtlasGenerator
 
     /**
      * A simple point is one that only has the mandatory entity tags. See
-     * {@link OsmPbfReader#MANDATORY_TAG_KEYS_FOR_ALL_ENTITIES} for the 5 tags. Examples of
-     * non-simple points include stop lights, barriers, etc.
+     * {@link AtlasTag#TAGS_FROM_OSM} for the 5 tags. Examples of non-simple points include stop
+     * lights, barriers, etc.
      *
      * @param atlas
      *            The {@link Atlas} to check
@@ -259,8 +260,7 @@ public class RawAtlasGenerator
      */
     private boolean isSimplePoint(final Atlas atlas, final long pointIdentifier)
     {
-        return atlas.point(pointIdentifier).getTags()
-                .size() == OsmPbfReader.MANDATORY_TAG_KEYS_FOR_ALL_ENTITIES.size();
+        return atlas.point(pointIdentifier).getTags().size() == AtlasTag.TAGS_FROM_OSM.size();
     }
 
     /**

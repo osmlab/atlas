@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -37,11 +36,7 @@ public class OsmPbfToSlicedRawAtlasTest
         COUNTRIES.add(IsoCountry.forCountryCode("CIV").get());
         COUNTRIES.add(IsoCountry.forCountryCode("GIN").get());
         COUNTRIES.add(IsoCountry.forCountryCode("LBR").get());
-    }
 
-    @BeforeClass
-    public static void setup()
-    {
         COUNTRY_BOUNDARY_MAP = new CountryBoundaryMap(
                 new InputStreamResource(() -> OsmPbfToSlicedRawAtlasTest.class
                         .getResourceAsStream("CIV_GIN_LBR_osm_boundaries.txt.gz"))
@@ -99,10 +94,9 @@ public class OsmPbfToSlicedRawAtlasTest
 
         Assert.assertTrue(
                 "The original Atlas counts of (Lines + Master Edges + Areas), without way-sectioning, should be"
-                        + "less than or equal to the total number of all Lines in the Raw Atlas. We might have "
-                        + "more due to more comprehensive covering of relations.",
+                        + "equal to the total number of all Lines in the Raw Atlas (+1 for relation handling).",
                 Iterables.size(Iterables.filter(oldSlicedAtlas.edges(), Edge::isMasterEdge))
                         + oldSlicedAtlas.numberOfAreas()
-                        + oldSlicedAtlas.numberOfLines() <= slicedRawAtlas.numberOfLines());
+                        + oldSlicedAtlas.numberOfLines() == slicedRawAtlas.numberOfLines() - 1);
     }
 }
