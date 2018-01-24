@@ -769,9 +769,6 @@ public class PbfMemoryStore implements SinkRunnableSource
         }
         else if (nodeTagSize < AtlasTag.TAGS_FROM_OSM.size())
         {
-            logger.error(
-                    "Osm Node {} has {} tags, which is less than the minimum required number of tags {}",
-                    node.getId(), nodeTagSize, AtlasTag.TAGS_FROM_OSM.size());
             osmAndAtlasTagCount = nodeTagSize;
         }
         else
