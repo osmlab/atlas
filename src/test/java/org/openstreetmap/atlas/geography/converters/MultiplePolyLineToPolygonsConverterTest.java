@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.converters;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -9,6 +10,8 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.converters.MultiplePolyLineToPolygonsConverter.OpenPolygonException;
+import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * @author matthieun
@@ -26,6 +29,9 @@ public class MultiplePolyLineToPolygonsConverterTest
 
     private static final Polygon POLYGON_LOOP = new Polygon(ONE, TWO, THR, FOR, FVE);
     private static final PolyLine POLYLINE_LOOP = new PolyLine(ONE, TWO, THR, FOR, FVE, ONE);
+
+    private static final WktPolyLineConverter WKT_POLY_LINE_CONVERTER = new WktPolyLineConverter();
+    private static final WktPolygonConverter WKT_POLYGON_CONVERTER = new WktPolygonConverter();
 
     // Following polylines from http://www.openstreetmap.org/relation/409391 version #4
     private static final PolyLine EDGE1 = new PolyLineStringConverter().convert(
@@ -186,6 +192,22 @@ public class MultiplePolyLineToPolygonsConverterTest
         final List<PolyLine> list = new ArrayList<>();
         list.add(POLYLINE_LOOP);
         CONVERTER.convert(list);
+    }
+
+    @Test
+    public void testSingleClosedPolyLineWithinGroup()
+    {
+        final List<PolyLine> input = new InputStreamResource(
+                () -> MultiplePolyLineToPolygonsConverterTest.class
+                        .getResourceAsStream("multiplePolyLines.txt")).linesList().stream()
+                                .map(WKT_POLY_LINE_CONVERTER::backwardConvert)
+                                .collect(Collectors.toList());
+        final List<Polygon> expected = new InputStreamResource(
+                () -> MultiplePolyLineToPolygonsConverterTest.class
+                        .getResourceAsStream("expectedPolygons.txt")).linesList().stream()
+                                .map(WKT_POLYGON_CONVERTER::backwardConvert)
+                                .collect(Collectors.toList());
+        Assert.assertEquals(expected, Iterables.asList(CONVERTER.convert(input)));
     }
 
     @Test(expected = OpenPolygonException.class)
