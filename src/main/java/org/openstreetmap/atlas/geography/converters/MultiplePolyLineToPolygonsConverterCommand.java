@@ -1,8 +1,6 @@
 package org.openstreetmap.atlas.geography.converters;
 
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -78,15 +76,10 @@ public class MultiplePolyLineToPolygonsConverterCommand extends Command
     private SafeBufferedWriter writer(final CommandMap command) throws FileNotFoundException
     {
         final File output = (File) command.get(POLYGONS);
-        final OutputStream out;
         if (output != null)
         {
-            out = new FileOutputStream(output.getFile());
+            return output.writer();
         }
-        else
-        {
-            out = System.out;
-        }
-        return new SafeBufferedWriter(new OutputStreamWriter(out));
+        return new SafeBufferedWriter(new OutputStreamWriter(System.out));
     }
 }
