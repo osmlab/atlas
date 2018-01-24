@@ -1,0 +1,82 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='187295621' timestamp='2009-01-27T03:06:59Z' uid='32810' user='Yoda' version='6' changeset='842736' lat='-38.3859238' lon='145.2383351' />
+  <node id='187295622' timestamp='2009-01-27T03:06:59Z' uid='32810' user='Yoda' version='6' changeset='842736' lat='-38.390364' lon='145.2405667' />
+  <node id='187295623' timestamp='2009-01-27T03:06:59Z' uid='32810' user='Yoda' version='6' changeset='842736' lat='-38.391844' lon='145.24091' />
+  <node id='187295624' timestamp='2009-01-27T03:06:59Z' uid='32810' user='Yoda' version='6' changeset='842736' lat='-38.3935931' lon='145.2412534' />
+  <node id='187295626' timestamp='2009-01-27T03:06:59Z' uid='32810' user='Yoda' version='6' changeset='842736' lat='-38.3949385' lon='145.241425' />
+  <node id='187303326' timestamp='2009-01-27T03:07:33Z' uid='32810' user='Yoda' version='5' changeset='842736' lat='-38.3721305' lon='145.2249455' />
+  <node id='187303327' timestamp='2009-01-27T03:06:59Z' uid='32810' user='Yoda' version='4' changeset='842736' lat='-38.3721305' lon='145.225718' />
+  <node id='187303328' timestamp='2009-01-27T03:06:59Z' uid='32810' user='Yoda' version='4' changeset='842736' lat='-38.3721305' lon='145.2268338' />
+  <node id='187303329' timestamp='2009-01-27T03:06:59Z' uid='32810' user='Yoda' version='4' changeset='842736' lat='-38.3726688' lon='145.2281213' />
+  <node id='187303330' timestamp='2009-01-27T03:06:59Z' uid='32810' user='Yoda' version='4' changeset='842736' lat='-38.3737455' lon='145.2300954' />
+  <node id='187303331' timestamp='2009-01-27T03:06:59Z' uid='32810' user='Yoda' version='4' changeset='842736' lat='-38.3779846' lon='145.2335286' />
+  <node id='187307937' timestamp='2009-01-27T03:07:33Z' uid='32810' user='Yoda' version='3' changeset='842736' lat='-38.371794' lon='145.2256322' />
+  <node id='187307939' timestamp='2009-01-27T03:07:33Z' uid='32810' user='Yoda' version='3' changeset='842736' lat='-38.3716595' lon='145.2266621' />
+  <node id='187307940' timestamp='2013-10-14T05:23:39Z' uid='612392' user='s1kk4z' version='6' changeset='18343534' lat='-38.3831379' lon='145.2707115' />
+  <node id='187310328' timestamp='2009-01-27T03:06:47Z' uid='32810' user='Yoda' version='4' changeset='842736' lat='-38.3836363' lon='145.2695775' />
+  <node id='187310329' timestamp='2009-01-27T03:06:47Z' uid='32810' user='Yoda' version='4' changeset='842736' lat='-38.3843091' lon='145.2676892' />
+  <node id='187310330' timestamp='2009-01-27T03:06:47Z' uid='32810' user='Yoda' version='4' changeset='842736' lat='-38.3857893' lon='145.263741' />
+  <node id='187310331' timestamp='2009-01-27T03:06:47Z' uid='32810' user='Yoda' version='4' changeset='842736' lat='-38.3879421' lon='145.2611661' />
+  <node id='187310332' timestamp='2009-01-27T03:06:47Z' uid='32810' user='Yoda' version='4' changeset='842736' lat='-38.391575' lon='145.2587628' />
+  <node id='187310333' timestamp='2009-01-27T03:06:47Z' uid='32810' user='Yoda' version='4' changeset='842736' lat='-38.3941313' lon='145.2575612' />
+  <node id='279228578' timestamp='2009-01-27T03:06:59Z' uid='32810' user='Yoda' version='2' changeset='842736' lat='-38.3721786' lon='145.2251839' />
+  <node id='1155844974' timestamp='2013-12-02T11:07:58Z' uid='206929' user='Supt_of_Printing' version='2' changeset='19231173' lat='-38.4461533' lon='145.2397079' />
+  <node id='1943600337' timestamp='2012-10-03T00:23:49Z' uid='143129' user='petersfreeman' version='1' changeset='13341813' lat='-38.3722478' lon='145.2248402' />
+  <way id='18132589' timestamp='2016-01-06T05:27:49Z' uid='79475' user='AlexOnTheBus' version='14' changeset='36395753'>
+    <nd ref='1943600337' />
+    <nd ref='279228578' />
+    <nd ref='187303327' />
+    <nd ref='187303328' />
+    <nd ref='187303329' />
+    <nd ref='187303330' />
+    <nd ref='187303331' />
+    <nd ref='187295621' />
+    <nd ref='187295622' />
+    <nd ref='187295623' />
+    <nd ref='187295624' />
+    <nd ref='187295626' />
+    <nd ref='1155844974' />
+    <tag k='bicycle' v='yes' />
+    <tag k='motor_vehicle' v='no' />
+    <tag k='name' v='Stony Point - Cowes' />
+    <tag k='route' v='ferry' />
+  </way>
+  <way id='18133734' timestamp='2016-01-06T05:27:50Z' uid='79475' user='AlexOnTheBus' version='8' changeset='36395753'>
+    <nd ref='1943600337' />
+    <nd ref='187303326' />
+    <nd ref='187307937' />
+    <nd ref='187307939' />
+    <nd ref='187307940' />
+    <tag k='bicycle' v='yes' />
+    <tag k='motor_vehicle' v='no' />
+    <tag k='name' v='Stony Point - Tankerton' />
+    <tag k='route' v='ferry' />
+  </way>
+  <way id='18134009' timestamp='2016-01-06T05:27:50Z' uid='79475' user='AlexOnTheBus' version='9' changeset='36395753'>
+    <nd ref='187307940' />
+    <nd ref='187310328' />
+    <nd ref='187310329' />
+    <nd ref='187310330' />
+    <nd ref='187310331' />
+    <nd ref='187310332' />
+    <nd ref='187310333' />
+    <nd ref='1155844974' />
+    <tag k='bicycle' v='yes' />
+    <tag k='motor_vehicle' v='no' />
+    <tag k='name' v='Tankerton - Cowes' />
+    <tag k='route' v='ferry' />
+  </way>
+  <relation id='5831018' timestamp='2016-01-06T05:27:49Z' uid='79475' user='AlexOnTheBus' version='1' changeset='36395753'>
+    <member type='way' ref='18133734' role='' />
+    <member type='way' ref='18134009' role='' />
+    <member type='way' ref='18132589' role='' />
+    <tag k='bicycle' v='yes' />
+    <tag k='motor_vehicle' v='no' />
+    <tag k='name' v='French Island Ferry' />
+    <tag k='operator' v='Inter Island Ferries' />
+    <tag k='route' v='ferry' />
+    <tag k='type' v='route' />
+    <tag k='url' v='www.interislandferries.com.au' />
+  </relation>
+</osm>

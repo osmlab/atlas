@@ -121,10 +121,6 @@ public abstract class AbstractAtlas extends BareAtlas
     public Iterable<Area> areasIntersecting(final Polygon polygon)
     {
         final Iterable<Area> areas = this.getAreaSpatialIndex().get(polygon.bounds());
-        if (polygon instanceof Rectangle)
-        {
-            return areas;
-        }
         return Iterables.filter(areas, area ->
         {
             final Polygon areaPolygon = area.asPolygon();
