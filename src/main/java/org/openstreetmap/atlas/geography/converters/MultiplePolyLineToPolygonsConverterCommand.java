@@ -49,7 +49,7 @@ public class MultiplePolyLineToPolygonsConverterCommand extends Command
         final File inputFile = (File) command.get(POLYLINES);
         final Iterable<List<PolyLine>> inputs = Iterables.stream(inputFile.lines())
                 .map(line -> StringList.split(line, delimiter).stream()
-                        .map(wkt -> WKT_POLY_LINE_CONVERTER.backwardConvert(wkt))
+                        .map(WKT_POLY_LINE_CONVERTER::backwardConvert)
                         .collect(Collectors.toList()));
         try (SafeBufferedWriter writer = writer(command))
         {
@@ -76,10 +76,7 @@ public class MultiplePolyLineToPolygonsConverterCommand extends Command
     private SafeBufferedWriter writer(final CommandMap command) throws FileNotFoundException
     {
         final File output = (File) command.get(POLYGONS);
-        if (output != null)
-        {
-            return output.writer();
-        }
-        return new SafeBufferedWriter(new OutputStreamWriter(System.out));
+        return output != null ? output.writer()
+                : new SafeBufferedWriter(new OutputStreamWriter(System.out));
     }
 }
