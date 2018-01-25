@@ -748,8 +748,8 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                     final Set<LineString> borderLines;
                     try
                     {
-                        // The intent is to have the all the unique slices in the same order that
-                        // they were generated. Because the grid index is pre-built and used for
+                        // The intent is to have all the unique slices in the same order that
+                        // they were generated in. Because the grid index is pre-built and used for
                         // slicing, we may encounter duplicate LineString in the returned list, so
                         // we de-dupe using a Set.
                         borderLines = Sets.newLinkedHashSet(
