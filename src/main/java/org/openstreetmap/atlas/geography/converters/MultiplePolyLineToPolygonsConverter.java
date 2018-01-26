@@ -392,8 +392,8 @@ public class MultiplePolyLineToPolygonsConverter
                 else
                 {
                     incompletes.add(incompleteCandidate);
-                    added = true;
                 }
+                added = true;
             }
 
             if (!added)
