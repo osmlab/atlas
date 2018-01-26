@@ -625,7 +625,7 @@ public abstract class BareAtlas implements Atlas
     @Override
     public Optional<Atlas> subAtlas(final Predicate<AtlasEntity> matcher)
     {
-        logger.info("Filtering Atlas {} with meta-data {}", this.getName(), this.metaData());
+        logger.debug("Filtering Atlas {} with meta-data {}", this.getName(), this.metaData());
         final Time begin = Time.now();
 
         // Using a predicate here can create wild changes in entity numbers. For example a predicate
