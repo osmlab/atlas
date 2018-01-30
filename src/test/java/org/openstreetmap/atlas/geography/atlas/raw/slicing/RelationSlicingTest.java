@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -27,6 +26,7 @@ import com.google.common.collect.Iterables;
  */
 public class RelationSlicingTest
 {
+    private static RawAtlasCountrySlicer RAW_ATLAS_SLICER;
     private static CountryBoundaryMap COUNTRY_BOUNDARY_MAP;
     private static Set<IsoCountry> COUNTRIES;
 
@@ -36,19 +36,17 @@ public class RelationSlicingTest
         COUNTRIES.add(IsoCountry.forCountryCode("CIV").get());
         COUNTRIES.add(IsoCountry.forCountryCode("GIN").get());
         COUNTRIES.add(IsoCountry.forCountryCode("LBR").get());
-    }
 
-    @Rule
-    public RelationSlicingTestRule setup = new RelationSlicingTestRule();
-
-    @BeforeClass
-    public static void setup()
-    {
         COUNTRY_BOUNDARY_MAP = new CountryBoundaryMap(
                 new InputStreamResource(() -> LineAndPointSlicingTest.class
                         .getResourceAsStream("CIV_GIN_LBR_osm_boundaries.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
+
+        RAW_ATLAS_SLICER = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP);
     }
+
+    @Rule
+    public RelationSlicingTestRule setup = new RelationSlicingTestRule();
 
     // TODO - test with multiple inners across boundary
 
@@ -63,8 +61,7 @@ public class RelationSlicingTest
         Assert.assertEquals(12, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
+        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
 
         Assert.assertEquals(27, slicedAtlas.numberOfPoints());
         Assert.assertEquals(5, slicedAtlas.numberOfLines());
@@ -83,8 +80,7 @@ public class RelationSlicingTest
         Assert.assertEquals(9, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
+        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
 
         Assert.assertEquals(3, slicedAtlas.numberOfLines());
         Assert.assertEquals(14, slicedAtlas.numberOfPoints());
@@ -109,8 +105,7 @@ public class RelationSlicingTest
         Assert.assertEquals(9, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
+        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
 
         Assert.assertEquals(8, slicedAtlas.numberOfLines());
         Assert.assertEquals(14, slicedAtlas.numberOfPoints());
@@ -133,11 +128,9 @@ public class RelationSlicingTest
         Assert.assertEquals(8, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
+        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
 
-        new ComplexBuildingFinder().find(slicedAtlas)
-                .forEach(building -> System.out.println(building));
+        new ComplexBuildingFinder().find(slicedAtlas).forEach(System.out::println);
 
         Assert.assertEquals(29, slicedAtlas.numberOfPoints());
         Assert.assertEquals(2, slicedAtlas.numberOfLines());
@@ -154,8 +147,7 @@ public class RelationSlicingTest
         Assert.assertEquals(9, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
+        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
 
         Assert.assertEquals(16, slicedAtlas.numberOfPoints());
         Assert.assertEquals(6, slicedAtlas.numberOfLines());

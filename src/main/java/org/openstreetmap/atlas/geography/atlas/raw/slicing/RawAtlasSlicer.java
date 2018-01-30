@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -26,6 +27,8 @@ import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Sets;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -204,8 +207,16 @@ public abstract class RawAtlasSlicer
         final CountryCodeProperties countryDetails = getCountryBoundaryMap()
                 .getCountryCodeISO3(location);
 
-        // Store the country code
-        tags.put(ISOCountryTag.KEY, countryDetails.getIso3CountryCode());
+        // Store the country code, enforce alphabetical order if there are multiple
+        if (countryDetails.inMultipleCountries())
+        {
+            tags.put(ISOCountryTag.KEY, Joiner.on(",").join(Sets.newTreeSet(Arrays.asList(
+                    countryDetails.getIso3CountryCode().split(ISOCountryTag.COUNTRY_DELIMITER)))));
+        }
+        else
+        {
+            tags.put(ISOCountryTag.KEY, countryDetails.getIso3CountryCode());
+        }
 
         // If we used nearest neighbor logic to determine the country code, add a tag
         // to indicate this
