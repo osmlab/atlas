@@ -5,17 +5,22 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader;
+import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoaderIntegrationTest;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
+import org.openstreetmap.atlas.geography.clipping.Clip.ClipType;
+import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -98,5 +103,32 @@ public class OsmPbfToSlicedRawAtlasTest
                 Iterables.size(Iterables.filter(oldSlicedAtlas.edges(), Edge::isMasterEdge))
                         + oldSlicedAtlas.numberOfAreas()
                         + oldSlicedAtlas.numberOfLines() == slicedRawAtlas.numberOfLines() - 1);
+    }
+
+    @Test
+    public void testWaysSpanningOutsideOfCountry()
+    {
+        final Resource pbf = new InputStreamResource(
+                () -> OsmPbfLoaderIntegrationTest.class.getResourceAsStream("CUB_72-111.pbf"));
+        final CountryBoundaryMap map = new CountryBoundaryMap(
+                new InputStreamResource(() -> OsmPbfLoaderIntegrationTest.class
+                        .getResourceAsStream("CUB_osm_boundaries.txt.gz"))
+                                .withDecompressor(Decompressor.GZIP));
+        final SlippyTile tile = SlippyTile.forName("8-72-111");
+        final MultiPolygon boundary = map.countryBoundary("CUB").get(0).getBoundary();
+        final MultiPolygon loadingArea = tile.bounds().clip(boundary, ClipType.AND)
+                .getClipMultiPolygon();
+
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(pbf);
+        final Atlas rawAtlas = rawAtlasGenerator.build();
+
+        final Set<IsoCountry> countries = new HashSet<>();
+        countries.add(IsoCountry.forCountryCode("CUB").get());
+        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(countries, map, loadingArea);
+
+        final Atlas slicedAtlas = slicer.slice(rawAtlas);
+
+        // Make sure that the big bridge over water made it to the Atlas
+        Assert.assertNotNull(slicedAtlas.line(308541861000000L));
     }
 }
