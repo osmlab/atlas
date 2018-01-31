@@ -115,7 +115,7 @@ public class TestAtlasHandler implements FieldHandler
         {
             try
             {
-                loadFromJosmOsmResource(field, rule, context, testAtlas.loadFromJosmOsmResource(),
+                loadFromOsmResource(field, rule, context, testAtlas.loadFromJosmOsmResource(),
                         true);
             }
             catch (final Throwable e)
@@ -127,8 +127,7 @@ public class TestAtlasHandler implements FieldHandler
         {
             try
             {
-                loadFromJosmOsmResource(field, rule, context, testAtlas.loadFromOsmResource(),
-                        false);
+                loadFromOsmResource(field, rule, context, testAtlas.loadFromOsmResource(), false);
             }
             catch (final Throwable e)
             {
@@ -360,7 +359,7 @@ public class TestAtlasHandler implements FieldHandler
         }
     }
 
-    private void loadFromJosmOsmResource(final Field field, final CoreTestRule rule,
+    private void loadFromOsmResource(final Field field, final CoreTestRule rule,
             final CreationContext context, final String resourcePath, final boolean josmFormat)
     {
         final String packageName = rule.getClass().getPackage().getName().replaceAll("\\.", "/");
@@ -392,7 +391,7 @@ public class TestAtlasHandler implements FieldHandler
         }
         catch (IllegalArgumentException | IllegalAccessException e)
         {
-            throw new CoreException("Error loading from JOSM osm resource {}", resourcePath, e);
+            throw new CoreException("Error loading from osm resource {}", resourcePath, e);
         }
     }
 
