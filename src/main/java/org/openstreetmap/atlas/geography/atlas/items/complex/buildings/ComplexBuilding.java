@@ -19,6 +19,7 @@ import org.openstreetmap.atlas.tags.BuildingTag;
 import org.openstreetmap.atlas.tags.MinHeightTag;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
+import org.openstreetmap.atlas.utilities.scalars.Height;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,29 +63,9 @@ public class ComplexBuilding extends ComplexEntity
     /**
      * @return The building's base height
      */
-    public Optional<Distance> baseHeight()
+    public Optional<Height> baseHeight()
     {
-        Map<String, String> tags = getSource().getTags();
-        String minHeightTag = tags.get(MinHeightTag.KEY);
-        try
-        {
-            if (minHeightTag != null)
-            {
-                return Optional.of(HEIGHT_CONVERTER.convert(minHeightTag));
-            }
-            tags = this.outlineSource.getTags();
-            minHeightTag = tags.get(MinHeightTag.KEY);
-            if (minHeightTag != null)
-            {
-                return Optional.of(HEIGHT_CONVERTER.convert(minHeightTag));
-            }
-        }
-        catch (final Exception e)
-        {
-            logger.warn("Invalid base height {} for building id {}", minHeightTag,
-                    getSource().getIdentifier());
-        }
-        return Optional.empty();
+        return MinHeightTag.get(this.getSource());
     }
 
     public boolean containsOSMIdentifier(final long identifier)

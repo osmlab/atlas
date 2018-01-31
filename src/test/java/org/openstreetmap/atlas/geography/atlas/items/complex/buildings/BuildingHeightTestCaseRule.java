@@ -13,23 +13,57 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas;
  */
 public class BuildingHeightTestCaseRule extends CoreTestRule
 {
-    @TestAtlas(loadFromTextResource = "building_with_no_minheight.txt")
-    private Atlas noMinHeightatlas;
+    public static final long BUILDING_WITH_ZERO_MINHEIGHT_ID = 100000000L;
+    public static final long BUILDING_WITH_NEGATIVE_MINHEIGHT_ID = 200000000L;
+    public static final long BUILDING_WITH_BOTH_HEIGHT_ID = 300000000L;
+    public static final long BUILDING_WITH_NO_MINHEIGHTT_ID = 400000000L;
+    public static final long BUILDING_WITH_NONNUMERIC_MINHEIGHT_ID = 500000000L;
 
-    @TestAtlas(loadFromTextResource = "building_with_both_heighttags.txt")
-    private Atlas bothHeightsatlas;
+    @TestAtlas(loadFromTextResource = "building_with_minheights.txt")
+    private Atlas atlasWithBuildingMinHeights;
 
     public ComplexBuilding buildingWithBaseAndTopHeights()
     {
         return Iterables
-                .first(new ComplexBuildingFinder().find(this.bothHeightsatlas, Finder::ignore))
+                .first(Iterables.filter(
+                        new ComplexBuildingFinder().find(this.atlasWithBuildingMinHeights,
+                                Finder::ignore),
+                        building -> building.getIdentifier() == BUILDING_WITH_BOTH_HEIGHT_ID))
                 .get();
+    }
+
+    public ComplexBuilding buildingWithNegativeMinHeight()
+    {
+        return Iterables.first(Iterables.filter(
+                new ComplexBuildingFinder().find(this.atlasWithBuildingMinHeights, Finder::ignore),
+                building -> building.getIdentifier() == BUILDING_WITH_NEGATIVE_MINHEIGHT_ID)).get();
     }
 
     public ComplexBuilding buildingWithNoMinHeight()
     {
         return Iterables
-                .first(new ComplexBuildingFinder().find(this.noMinHeightatlas, Finder::ignore))
+                .first(Iterables.filter(
+                        new ComplexBuildingFinder().find(this.atlasWithBuildingMinHeights,
+                                Finder::ignore),
+                        building -> building.getIdentifier() == BUILDING_WITH_NO_MINHEIGHTT_ID))
+                .get();
+    }
+
+    public ComplexBuilding buildingWithNonNumericMinHeight()
+    {
+        return Iterables.first(Iterables.filter(
+                new ComplexBuildingFinder().find(this.atlasWithBuildingMinHeights, Finder::ignore),
+                building -> building.getIdentifier() == BUILDING_WITH_NONNUMERIC_MINHEIGHT_ID))
+                .get();
+    }
+
+    public ComplexBuilding buildingWithZeroMinHeight()
+    {
+        return Iterables
+                .first(Iterables.filter(
+                        new ComplexBuildingFinder().find(this.atlasWithBuildingMinHeights,
+                                Finder::ignore),
+                        building -> building.getIdentifier() == BUILDING_WITH_ZERO_MINHEIGHT_ID))
                 .get();
     }
 }

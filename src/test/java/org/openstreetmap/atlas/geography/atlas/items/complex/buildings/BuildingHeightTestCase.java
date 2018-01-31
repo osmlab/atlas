@@ -19,7 +19,8 @@ public class BuildingHeightTestCase
     {
         final ComplexBuilding building = this.setup.buildingWithBaseAndTopHeights();
         Assert.assertTrue(building.baseHeight().isPresent());
-        Assert.assertEquals(193, building.baseHeight().get().asMeters(), 0.01);
+        Assert.assertEquals(193.4, building.baseHeight().get().getAbsoluteHeightAsMeters(), 0.01);
+        Assert.assertTrue(building.baseHeight().get().isAboveGround());
     }
 
     @Test
@@ -35,5 +36,30 @@ public class BuildingHeightTestCase
         final ComplexBuilding building = this.setup.buildingWithNoMinHeight();
         Assert.assertFalse(building.baseHeight().isPresent());
         Assert.assertTrue(building.topHeight().isPresent());
+    }
+
+    @Test
+    public void shouldParseNegativeBaseHeight()
+    {
+        final ComplexBuilding building = this.setup.buildingWithNegativeMinHeight();
+        Assert.assertTrue(building.baseHeight().isPresent());
+        Assert.assertEquals(3, building.baseHeight().get().getAbsoluteHeightAsMeters(), 0.01);
+        Assert.assertFalse(building.baseHeight().get().isAboveGround());
+    }
+
+    @Test
+    public void shouldParseNonNumericBaseHeight()
+    {
+        final ComplexBuilding building = this.setup.buildingWithNonNumericMinHeight();
+        Assert.assertFalse(building.baseHeight().isPresent());
+    }
+
+    @Test
+    public void shouldParseZeroBaseHeight()
+    {
+        final ComplexBuilding building = this.setup.buildingWithZeroMinHeight();
+        Assert.assertTrue(building.baseHeight().isPresent());
+        Assert.assertEquals(0, building.baseHeight().get().getAbsoluteHeightAsMeters(), 0.01);
+        Assert.assertTrue(building.baseHeight().get().isAboveGround());
     }
 }
