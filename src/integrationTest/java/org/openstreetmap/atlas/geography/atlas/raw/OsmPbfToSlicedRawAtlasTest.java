@@ -4,8 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -38,11 +36,7 @@ public class OsmPbfToSlicedRawAtlasTest
         COUNTRIES.add(IsoCountry.forCountryCode("CIV").get());
         COUNTRIES.add(IsoCountry.forCountryCode("GIN").get());
         COUNTRIES.add(IsoCountry.forCountryCode("LBR").get());
-    }
 
-    @BeforeClass
-    public static void setup()
-    {
         COUNTRY_BOUNDARY_MAP = new CountryBoundaryMap(
                 new InputStreamResource(() -> OsmPbfToSlicedRawAtlasTest.class
                         .getResourceAsStream("CIV_GIN_LBR_osm_boundaries.txt.gz"))
@@ -50,7 +44,6 @@ public class OsmPbfToSlicedRawAtlasTest
     }
 
     @Test
-    @Ignore("Taking too long, but still valuable to have")
     public void testPbfToSlicedRawAtlas()
     {
         // This PBF file contains really interesting data. 1. MultiPolygon with multiple inners and
@@ -75,7 +68,7 @@ public class OsmPbfToSlicedRawAtlasTest
         Assert.assertEquals(0, slicedRawAtlas.numberOfEdges());
         Assert.assertEquals(0, slicedRawAtlas.numberOfAreas());
         Assert.assertEquals(648709, slicedRawAtlas.numberOfPoints());
-        Assert.assertEquals(57643, slicedRawAtlas.numberOfLines());
+        Assert.assertEquals(57644, slicedRawAtlas.numberOfLines());
         Assert.assertEquals(44, slicedRawAtlas.numberOfRelations());
 
         // Assert all Raw Atlas Entities have a country code
@@ -99,11 +92,11 @@ public class OsmPbfToSlicedRawAtlasTest
                 .createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP).setWaySectioning(false));
         final Atlas oldSlicedAtlas = loader.read();
 
-        Assert.assertEquals(
-                "The original Atlas counts of (Lines + Master Edges + Areas), without way-sectioning should "
-                        + "equal the total number of all Lines in the Raw Atlas, let's verify this",
+        Assert.assertTrue(
+                "The original Atlas counts of (Lines + Master Edges + Areas), without way-sectioning, should be"
+                        + "equal to the total number of all Lines in the Raw Atlas (+1 for relation handling).",
                 Iterables.size(Iterables.filter(oldSlicedAtlas.edges(), Edge::isMasterEdge))
-                        + +oldSlicedAtlas.numberOfAreas() + oldSlicedAtlas.numberOfLines(),
-                slicedRawAtlas.numberOfLines());
+                        + oldSlicedAtlas.numberOfAreas()
+                        + oldSlicedAtlas.numberOfLines() == slicedRawAtlas.numberOfLines() - 1);
     }
 }

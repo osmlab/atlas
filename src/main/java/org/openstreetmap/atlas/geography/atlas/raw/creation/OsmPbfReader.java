@@ -24,6 +24,7 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.PaddingIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.store.TagMap;
+import org.openstreetmap.atlas.tags.AtlasTag;
 import org.openstreetmap.atlas.tags.LastEditChangesetTag;
 import org.openstreetmap.atlas.tags.LastEditTimeTag;
 import org.openstreetmap.atlas.tags.LastEditUserIdentifierTag;
@@ -44,8 +45,6 @@ import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * The {@link OsmPbfReader} is responsible for reading OSM PBF entities and converting them to Atlas
  * Entities. It will map a PBF {@link Node} to an Atlas {@link Point}, a PBF {@link Way} to an Atlas
@@ -62,11 +61,6 @@ public class OsmPbfReader implements Sink
 {
     private static final Logger logger = LoggerFactory.getLogger(OsmPbfReader.class);
     private static final String MISSING_MEMBER_MESSAGE = "Relation {} contains {} {} as a member, but this PBF shard does not contain it.";
-
-    public static final ImmutableList<String> MANDATORY_TAG_KEYS_FOR_ALL_ENTITIES = new ImmutableList.Builder<String>()
-            .add(LastEditTimeTag.KEY, LastEditUserIdentifierTag.KEY, LastEditUserNameTag.KEY,
-                    LastEditVersionTag.KEY, LastEditChangesetTag.KEY)
-            .build();
 
     private final PackedAtlasBuilder builder;
     private final AtlasLoadingOption loadingOption;
@@ -555,7 +549,7 @@ public class OsmPbfReader implements Sink
     private void storeOsmEntityAttributesAsTags(final Entity entity)
     {
         final Collection<Tag> tags = entity.getTags();
-        for (final String tag : MANDATORY_TAG_KEYS_FOR_ALL_ENTITIES)
+        for (final String tag : AtlasTag.TAGS_FROM_OSM)
         {
             if (tag.equals(LastEditTimeTag.KEY))
             {

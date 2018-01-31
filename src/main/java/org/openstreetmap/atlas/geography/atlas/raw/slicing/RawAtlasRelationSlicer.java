@@ -47,6 +47,7 @@ import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
@@ -744,11 +745,15 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                         return;
                     }
 
-                    final List<LineString> borderLines;
+                    final Set<LineString> borderLines;
                     try
                     {
-                        borderLines = getCountryBoundaryMap().clipBoundary(relationIdentifier,
-                                polygon);
+                        // The intent is to have all the unique slices in the same order that
+                        // they were generated in. Because the grid index is pre-built and used for
+                        // slicing, we may encounter duplicate LineString in the returned list, so
+                        // we de-dupe using a Set.
+                        borderLines = Sets.newLinkedHashSet(
+                                getCountryBoundaryMap().clipBoundary(relationIdentifier, polygon));
                     }
                     catch (final Exception e)
                     {
@@ -836,8 +841,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
      */
     private void sliceRelations()
     {
-        this.partiallySlicedRawAtlas.relationsLowerOrderFirst()
-                .forEach(relation -> this.sliceRelation(relation));
+        this.partiallySlicedRawAtlas.relationsLowerOrderFirst().forEach(this::sliceRelation);
     }
 
     /**
