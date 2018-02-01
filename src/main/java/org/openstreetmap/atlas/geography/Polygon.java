@@ -4,6 +4,7 @@ import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 
@@ -50,6 +51,13 @@ public class Polygon extends PolyLine
 
     private static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
     private static final long serialVersionUID = 2877026648358594354L;
+
+    // Minimum number of points in a triangle
+    private static final int TRIANGLE_POLYGON_MINIMUM_SIZE = 3;
+
+    // Number of heading changes in a triangle ([a, b] -> [b, c], [b, c] -> [c, a])
+    private static final int TRIANGLE_HEADING_CHANGE_SIZE = 2;
+
     private Area awtArea;
     private java.awt.Polygon awtPolygon;
 
@@ -246,6 +254,69 @@ public class Polygon extends PolyLine
     {
         final Point point = JTS_POLYGON_CONVERTER.convert(this).getInteriorPoint();
         return new JtsLocationConverter().backwardConvert(point.getCoordinate());
+    }
+
+    /**
+     * @param threshold
+     *            {@link Angle} threshold that decides whether a {@link Heading} difference between
+     *            segments should be counted towards heading change count or not
+     * @return true if this {@link Polygon} has an approximately triangular shape while ignoring
+     *         {@link Heading} differences between inner segments that are below given threshold. A
+     *         {@link Polygon} might have more than 3 shape points with slight heading differences.
+     */
+    public boolean isApproximatelyTriangle(final Angle threshold)
+    {
+        // Ignore if polygon doesn't have enough inner shape points
+        if (this.size() < TRIANGLE_POLYGON_MINIMUM_SIZE)
+        {
+            return false;
+        }
+
+        // Fetch segments and count them
+        final List<Segment> segments = this.segments();
+        final int segmentSize = segments.size();
+
+        // Index to keep track of segment to work on
+        int segmentIndex = 0;
+
+        // Keep track of heading changes
+        int headingChangeCount = 0;
+
+        // Find initial heading
+        Optional<Heading> previousHeading = Optional.empty();
+        while (segmentIndex < segmentSize)
+        {
+            // Make sure we start with some heading. Edges with single points do not have heading.
+            previousHeading = segments.get(segmentIndex++).heading();
+            if (previousHeading.isPresent())
+            {
+                break;
+            }
+        }
+
+        // Make sure we start with some heading
+        if (!previousHeading.isPresent())
+        {
+            return false;
+        }
+
+        // Go over rest of the segments and count heading changes
+        while (segmentIndex < segmentSize && headingChangeCount <= TRIANGLE_HEADING_CHANGE_SIZE)
+        {
+            final Optional<Heading> nextHeading = segments.get(segmentIndex++).heading();
+            if (nextHeading.isPresent())
+            {
+                // If heading difference is greater than threshold, then increment heading change
+                // counter and update previous heading, which is used as reference
+                if (previousHeading.get().difference(nextHeading.get()).isGreaterThan(threshold))
+                {
+                    headingChangeCount++;
+                    previousHeading = nextHeading;
+                }
+            }
+        }
+
+        return headingChangeCount == TRIANGLE_HEADING_CHANGE_SIZE;
     }
 
     /**
