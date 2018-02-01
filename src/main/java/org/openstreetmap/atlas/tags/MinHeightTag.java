@@ -2,11 +2,11 @@ package org.openstreetmap.atlas.tags;
 
 import java.util.Optional;
 
+import org.openstreetmap.atlas.geography.Altitude;
 import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.tags.annotations.Tag.Validation;
 import org.openstreetmap.atlas.tags.annotations.TagKey;
 import org.openstreetmap.atlas.tags.annotations.validation.DoubleValidator;
-import org.openstreetmap.atlas.utilities.scalars.Height;
 
 /**
  * OSM min_height tag
@@ -21,16 +21,13 @@ public interface MinHeightTag
 
     DoubleValidator validator = new DoubleValidator();
 
-    static Optional<Height> get(final Taggable taggable)
+    static Optional<Altitude> get(final Taggable taggable)
     {
         final Optional<String> tagValue = taggable.getTag(KEY);
 
-        if (tagValue.isPresent())
+        if (tagValue.isPresent() && validator.isValid(tagValue.get()))
         {
-            if (validator.isValid(tagValue.get()))
-            {
-                return Optional.of(new Height(Double.valueOf(tagValue.get())));
-            }
+            return Optional.of(Altitude.meters(Double.valueOf(tagValue.get())));
         }
 
         return Optional.empty();

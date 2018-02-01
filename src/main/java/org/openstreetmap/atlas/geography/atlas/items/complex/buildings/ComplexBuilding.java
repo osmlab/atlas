@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Altitude;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -19,7 +20,6 @@ import org.openstreetmap.atlas.tags.BuildingTag;
 import org.openstreetmap.atlas.tags.MinHeightTag;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
-import org.openstreetmap.atlas.utilities.scalars.Height;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +63,7 @@ public class ComplexBuilding extends ComplexEntity
     /**
      * @return The building's base height
      */
-    public Optional<Height> baseHeight()
+    public Optional<Altitude> baseHeight()
     {
         return MinHeightTag.get(this.getSource());
     }
