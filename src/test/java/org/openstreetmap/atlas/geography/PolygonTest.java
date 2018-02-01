@@ -225,6 +225,196 @@ public class PolygonTest
     }
 
     @Test
+    public void testNSidedness()
+    {
+        // Test point (has no sides)
+        // POLYGON ((12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234
+        // 41.890224))
+        final Polygon point = new Polygon(Location.COLOSSEUM);
+        Assert.assertFalse(point.isApproximatelyNSided(1, Angle.MINIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(1, Angle.MAXIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(2, Angle.MINIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(2, Angle.MAXIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(3, Angle.MINIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(3, Angle.degrees(1)));
+        Assert.assertFalse(point.isApproximatelyNSided(3, Angle.degrees(90)));
+        Assert.assertFalse(point.isApproximatelyNSided(3, Angle.MAXIMUM));
+
+        // Test a line (has no sides)
+        // POLYGON ((-122.05576 37.332439, -121.955918 37.255731, -122.05576 37.332439, -122.05576
+        // 37.332439))
+        final Polygon line = new Polygon(Location.CROSSING_85_280, Location.CROSSING_85_17);
+        Assert.assertFalse(point.isApproximatelyNSided(1, Angle.MINIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(1, Angle.MAXIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(2, Angle.MINIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(2, Angle.MAXIMUM));
+        Assert.assertFalse(line.isApproximatelyNSided(3, Angle.MINIMUM));
+        Assert.assertFalse(line.isApproximatelyNSided(3, Angle.degrees(1)));
+        Assert.assertFalse(line.isApproximatelyNSided(3, Angle.degrees(90)));
+        Assert.assertFalse(line.isApproximatelyNSided(3, Angle.MAXIMUM));
+
+        // Test a perfect triangle
+        // POLYGON ((-122.05576 37.332439, -121.955918 37.255731, -122.003467 37.324233, -122.05576
+        // 37.332439))
+        final Polygon triangle = new Polygon(Location.CROSSING_85_280, Location.CROSSING_85_17,
+                Location.STEVENS_CREEK);
+        Assert.assertFalse(point.isApproximatelyNSided(1, Angle.MINIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(1, Angle.MAXIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(2, Angle.MINIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(2, Angle.MAXIMUM));
+        Assert.assertTrue(triangle.isApproximatelyNSided(3, Angle.MINIMUM));
+        Assert.assertTrue(triangle.isApproximatelyNSided(3, Angle.degrees(1)));
+        Assert.assertTrue(triangle.isApproximatelyNSided(3, Angle.degrees(30)));
+        Assert.assertTrue(triangle.isApproximatelyNSided(3, Angle.degrees(45)));
+        Assert.assertFalse(triangle.isApproximatelyNSided(3, Angle.degrees(60)));
+        Assert.assertFalse(triangle.isApproximatelyNSided(3, Angle.degrees(90)));
+        Assert.assertFalse(triangle.isApproximatelyNSided(3, Angle.MAXIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(4, Angle.MINIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(4, Angle.MAXIMUM));
+
+        // Test a square with ~90 degree heading changes
+        // POLYGON ((-122.003467 37.324233, -122.0033539 37.324233, -122.0033539 37.3241431,
+        // -122.003467 37.3241431, -122.003467 37.324233))
+        final Polygon square = new Polygon(Location.STEVENS_CREEK,
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.EAST, Distance.meters(10)),
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.EAST, Distance.meters(10))
+                        .shiftAlongGreatCircle(Heading.SOUTH, Distance.meters(10)),
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.SOUTH, Distance.meters(10)));
+        Assert.assertFalse(point.isApproximatelyNSided(1, Angle.MINIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(1, Angle.MAXIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(2, Angle.MINIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(2, Angle.MAXIMUM));
+        Assert.assertFalse(square.isApproximatelyNSided(3, Angle.MINIMUM));
+        Assert.assertFalse(square.isApproximatelyNSided(3, Angle.degrees(1)));
+        Assert.assertFalse(square.isApproximatelyNSided(3, Angle.degrees(30)));
+        Assert.assertFalse(square.isApproximatelyNSided(3, Angle.degrees(60)));
+        Assert.assertFalse(square.isApproximatelyNSided(3, Angle.degrees(89)));
+        Assert.assertFalse(square.isApproximatelyNSided(3, Angle.degrees(89.99)));
+        Assert.assertTrue(square.isApproximatelyNSided(3, Angle.degrees(90)));
+        Assert.assertTrue(square.isApproximatelyNSided(4, Angle.MINIMUM));
+        Assert.assertTrue(square.isApproximatelyNSided(4, Angle.degrees(1)));
+        Assert.assertTrue(square.isApproximatelyNSided(4, Angle.degrees(89)));
+        Assert.assertTrue(square.isApproximatelyNSided(4, Angle.degrees(89.99)));
+        Assert.assertFalse(square.isApproximatelyNSided(4, Angle.degrees(90)));
+        Assert.assertFalse(point.isApproximatelyNSided(5, Angle.MINIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(5, Angle.MAXIMUM));
+
+        // Test triangular like shape with one additional inner point
+        // POLYGON ((-122.003467 37.324233, -122.003418 37.3242555, -122.0033691 37.324278,
+        // -122.0035536 37.3242908, -122.003467 37.324233))
+        final Polygon triangularLike1 = new Polygon(Location.STEVENS_CREEK,
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(60),
+                        Distance.meters(5)),
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(60),
+                        Distance.meters(10)),
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(310),
+                        Distance.meters(10)));
+        Assert.assertFalse(point.isApproximatelyNSided(1, Angle.MINIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(1, Angle.MAXIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(2, Angle.MINIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(2, Angle.MAXIMUM));
+        Assert.assertFalse(triangularLike1.isApproximatelyNSided(3, Angle.MINIMUM));
+        Assert.assertTrue(triangularLike1.isApproximatelyNSided(3, Angle.degrees(0.1)));
+        Assert.assertTrue(triangularLike1.isApproximatelyNSided(3, Angle.degrees(1)));
+        Assert.assertTrue(triangularLike1.isApproximatelyNSided(3, Angle.degrees(30)));
+
+        // Test another triangular like shape with one additional inner point
+        // POLYGON ((-122.05576 37.332439, -122.055711 37.3324615, -122.055662 37.332484,
+        // -122.0558466 37.3324968, -122.05576 37.332439))
+        final Polygon triangularLike2 = new Polygon(Location.STEVENS_CREEK,
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(59),
+                        Distance.meters(5)),
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(60),
+                        Distance.meters(10)),
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(310),
+                        Distance.meters(10)));
+        Assert.assertFalse(point.isApproximatelyNSided(1, Angle.MINIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(1, Angle.MAXIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(2, Angle.MINIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(2, Angle.MAXIMUM));
+        Assert.assertFalse(triangularLike2.isApproximatelyNSided(3, Angle.MINIMUM));
+        Assert.assertFalse(triangularLike2.isApproximatelyNSided(3, Angle.degrees(0.1)));
+        Assert.assertFalse(triangularLike2.isApproximatelyNSided(3, Angle.degrees(0.5)));
+        Assert.assertFalse(triangularLike2.isApproximatelyNSided(3, Angle.degrees(1)));
+        Assert.assertFalse(triangularLike2.isApproximatelyNSided(3, Angle.degrees(2)));
+        Assert.assertTrue(triangularLike2.isApproximatelyNSided(3, Angle.degrees(3)));
+        Assert.assertTrue(triangularLike2.isApproximatelyNSided(3, Angle.degrees(30)));
+
+        // Test another triangular like shape with several additional inner points
+        // POLYGON ((-122.003467 37.324233, -122.0034571 37.3242374, -122.0033991 37.3242654,
+        // -122.0033691 37.324278, -122.0035536 37.3242908, -122.0034922 37.3242511, -122.003467
+        // 37.324233))
+        final Polygon triangularLike3 = new Polygon(Location.STEVENS_CREEK,
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(61),
+                        Distance.meters(1)),
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(59),
+                        Distance.meters(7)),
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(60),
+                        Distance.meters(10)),
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(310),
+                        Distance.meters(10)),
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(312),
+                        Distance.meters(3)));
+        Assert.assertFalse(point.isApproximatelyNSided(1, Angle.MINIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(1, Angle.MAXIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(2, Angle.MINIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(2, Angle.MAXIMUM));
+        Assert.assertFalse(triangularLike3.isApproximatelyNSided(3, Angle.MINIMUM));
+        Assert.assertFalse(triangularLike3.isApproximatelyNSided(3, Angle.degrees(0.1)));
+        Assert.assertFalse(triangularLike3.isApproximatelyNSided(3, Angle.degrees(0.5)));
+        Assert.assertFalse(triangularLike3.isApproximatelyNSided(3, Angle.degrees(1)));
+        Assert.assertFalse(triangularLike3.isApproximatelyNSided(3, Angle.degrees(2)));
+        Assert.assertTrue(triangularLike3.isApproximatelyNSided(3, Angle.degrees(3)));
+        Assert.assertTrue(triangularLike3.isApproximatelyNSided(3, Angle.degrees(30)));
+
+        // Test half-circle like polygon (has 10 sides)
+        // POLYGON ((-122.003467 37.324233, -122.003491 37.3242521, -122.003519 37.3242677,
+        // -122.0035504 37.3242794, -122.0035845 37.324287, -122.0036207 37.32429, -122.0036583
+        // 37.3242884, -122.0036964 37.3242819, -122.0037343 37.3242705, -122.0037712 37.3242542,
+        // -122.0038063 37.324233, -122.003467 37.324233))
+        final Polygon halfCircleLike = new Polygon(Location.STEVENS_CREEK,
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(315),
+                        Distance.meters(3)),
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(310),
+                        Distance.meters(6)),
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(305),
+                        Distance.meters(9)),
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(300),
+                        Distance.meters(12)),
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(295),
+                        Distance.meters(15)),
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(290),
+                        Distance.meters(18)),
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(285),
+                        Distance.meters(21)),
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(280),
+                        Distance.meters(24)),
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(275),
+                        Distance.meters(27)),
+                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(270),
+                        Distance.meters(30)));
+        Assert.assertFalse(point.isApproximatelyNSided(1, Angle.MINIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(1, Angle.MAXIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(2, Angle.MINIMUM));
+        Assert.assertFalse(point.isApproximatelyNSided(2, Angle.MAXIMUM));
+        Assert.assertFalse(halfCircleLike.isApproximatelyNSided(3, Angle.MINIMUM));
+        Assert.assertFalse(halfCircleLike.isApproximatelyNSided(3, Angle.degrees(1)));
+        Assert.assertFalse(halfCircleLike.isApproximatelyNSided(3, Angle.degrees(5)));
+        Assert.assertFalse(halfCircleLike.isApproximatelyNSided(3, Angle.degrees(10)));
+        Assert.assertFalse(halfCircleLike.isApproximatelyNSided(3, Angle.degrees(30)));
+        Assert.assertTrue(halfCircleLike.isApproximatelyNSided(3, Angle.degrees(45)));
+        Assert.assertFalse(halfCircleLike.isApproximatelyNSided(10, Angle.MINIMUM));
+
+        // Test triangular generated by triangles method
+        Polygon.SILICON_VALLEY_2.triangles().forEach(aTriangle ->
+        {
+            Assert.assertTrue(aTriangle.isApproximatelyNSided(3, Angle.MINIMUM));
+            Assert.assertTrue(aTriangle.isApproximatelyNSided(3, Angle.degrees(1)));
+            Assert.assertTrue(aTriangle.isApproximatelyNSided(3, Angle.degrees(30)));
+        });
+    }
+
+    @Test
     public void testOffset()
     {
         Assert.assertEquals(Location.TEST_3, this.quadrant.offsetFromStart(Ratio.MINIMUM));
@@ -280,154 +470,6 @@ public class PolygonTest
         // Try on a larger, more complex area (OSM way 23408944). Surface area from JOSM
         final Area forest = this.setup.getForestPolygon().area(23408944000000L);
         Assert.assertEquals(229960, forest.asPolygon().surfaceOnSphere().asMeterSquared(), 300);
-    }
-
-    @Test
-    public void testTriangularity()
-    {
-        // Test point
-        // POLYGON ((12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234
-        // 41.890224))
-        final Polygon point = new Polygon(Location.COLOSSEUM);
-        Assert.assertFalse(point.isApproximatelyTriangle(Angle.MINIMUM));
-        Assert.assertFalse(point.isApproximatelyTriangle(Angle.degrees(1)));
-        Assert.assertFalse(point.isApproximatelyTriangle(Angle.degrees(90)));
-        Assert.assertFalse(point.isApproximatelyTriangle(Angle.MAXIMUM));
-
-        // Test a line
-        // POLYGON ((-122.05576 37.332439, -121.955918 37.255731, -122.05576 37.332439, -122.05576
-        // 37.332439))
-        final Polygon line = new Polygon(Location.CROSSING_85_280, Location.CROSSING_85_17);
-        Assert.assertFalse(line.isApproximatelyTriangle(Angle.MINIMUM));
-        Assert.assertFalse(line.isApproximatelyTriangle(Angle.degrees(1)));
-        Assert.assertFalse(line.isApproximatelyTriangle(Angle.degrees(90)));
-        Assert.assertFalse(line.isApproximatelyTriangle(Angle.MAXIMUM));
-
-        // Test a perfect triangle
-        // POLYGON ((-122.05576 37.332439, -121.955918 37.255731, -122.003467 37.324233, -122.05576
-        // 37.332439))
-        final Polygon triangle = new Polygon(Location.CROSSING_85_280, Location.CROSSING_85_17,
-                Location.STEVENS_CREEK);
-        Assert.assertTrue(triangle.isApproximatelyTriangle(Angle.MINIMUM));
-        Assert.assertTrue(triangle.isApproximatelyTriangle(Angle.degrees(1)));
-        Assert.assertTrue(triangle.isApproximatelyTriangle(Angle.degrees(30)));
-
-        // Thresholds below are bigger than some of the heading differences
-        Assert.assertFalse(triangle.isApproximatelyTriangle(Angle.degrees(90)));
-        Assert.assertFalse(triangle.isApproximatelyTriangle(Angle.MAXIMUM));
-
-        // Test a square with ~90 degree heading changes
-        // POLYGON ((-122.003467 37.324233, -122.0033539 37.324233, -122.0033539 37.3241431,
-        // -122.003467 37.3241431, -122.003467 37.324233))
-        final Polygon square = new Polygon(Location.STEVENS_CREEK,
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.EAST, Distance.meters(10)),
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.EAST, Distance.meters(10))
-                        .shiftAlongGreatCircle(Heading.SOUTH, Distance.meters(10)),
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.SOUTH, Distance.meters(10)));
-        Assert.assertFalse(square.isApproximatelyTriangle(Angle.MINIMUM));
-        Assert.assertFalse(square.isApproximatelyTriangle(Angle.degrees(1)));
-        Assert.assertFalse(square.isApproximatelyTriangle(Angle.degrees(30)));
-        Assert.assertFalse(square.isApproximatelyTriangle(Angle.degrees(60)));
-        Assert.assertFalse(square.isApproximatelyTriangle(Angle.degrees(89)));
-        Assert.assertFalse(square.isApproximatelyTriangle(Angle.degrees(89.99)));
-        Assert.assertTrue(square.isApproximatelyTriangle(Angle.degrees(90)));
-
-        // Test triangular like shape with one additional inner point
-        // POLYGON ((-122.003467 37.324233, -122.003418 37.3242555, -122.0033691 37.324278,
-        // -122.0035536 37.3242908, -122.003467 37.324233))
-        final Polygon triangularLike1 = new Polygon(Location.STEVENS_CREEK,
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(60),
-                        Distance.meters(5)),
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(60),
-                        Distance.meters(10)),
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(310),
-                        Distance.meters(10)));
-        Assert.assertFalse(triangularLike1.isApproximatelyTriangle(Angle.MINIMUM));
-        Assert.assertTrue(triangularLike1.isApproximatelyTriangle(Angle.degrees(0.1)));
-        Assert.assertTrue(triangularLike1.isApproximatelyTriangle(Angle.degrees(1)));
-        Assert.assertTrue(triangularLike1.isApproximatelyTriangle(Angle.degrees(30)));
-
-        // Test another triangular like shape with one additional inner point
-        // POLYGON ((-122.05576 37.332439, -122.055711 37.3324615, -122.055662 37.332484,
-        // -122.0558466 37.3324968, -122.05576 37.332439))
-        final Polygon triangularLike2 = new Polygon(Location.STEVENS_CREEK,
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(59),
-                        Distance.meters(5)),
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(60),
-                        Distance.meters(10)),
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(310),
-                        Distance.meters(10)));
-        Assert.assertFalse(triangularLike2.isApproximatelyTriangle(Angle.MINIMUM));
-        Assert.assertFalse(triangularLike2.isApproximatelyTriangle(Angle.degrees(0.1)));
-        Assert.assertFalse(triangularLike2.isApproximatelyTriangle(Angle.degrees(0.5)));
-        Assert.assertFalse(triangularLike2.isApproximatelyTriangle(Angle.degrees(1)));
-        Assert.assertFalse(triangularLike2.isApproximatelyTriangle(Angle.degrees(2)));
-        Assert.assertTrue(triangularLike2.isApproximatelyTriangle(Angle.degrees(3)));
-        Assert.assertTrue(triangularLike2.isApproximatelyTriangle(Angle.degrees(30)));
-
-        // Test another triangular like shape with several additional inner points
-        // POLYGON ((-122.003467 37.324233, -122.0034571 37.3242374, -122.0033991 37.3242654,
-        // -122.0033691 37.324278, -122.0035536 37.3242908, -122.0034922 37.3242511, -122.003467
-        // 37.324233))
-        final Polygon triangularLike3 = new Polygon(Location.STEVENS_CREEK,
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(61),
-                        Distance.meters(1)),
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(59),
-                        Distance.meters(7)),
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(60),
-                        Distance.meters(10)),
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(310),
-                        Distance.meters(10)),
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(312),
-                        Distance.meters(3)));
-        Assert.assertFalse(triangularLike3.isApproximatelyTriangle(Angle.MINIMUM));
-        Assert.assertFalse(triangularLike3.isApproximatelyTriangle(Angle.degrees(0.1)));
-        Assert.assertFalse(triangularLike3.isApproximatelyTriangle(Angle.degrees(0.5)));
-        Assert.assertFalse(triangularLike3.isApproximatelyTriangle(Angle.degrees(1)));
-        Assert.assertFalse(triangularLike3.isApproximatelyTriangle(Angle.degrees(2)));
-        Assert.assertTrue(triangularLike3.isApproximatelyTriangle(Angle.degrees(3)));
-        Assert.assertTrue(triangularLike3.isApproximatelyTriangle(Angle.degrees(30)));
-
-        // Test another half-circle like polygon
-        // POLYGON ((-122.003467 37.324233, -122.003491 37.3242521, -122.003519 37.3242677,
-        // -122.0035504 37.3242794, -122.0035845 37.324287, -122.0036207 37.32429, -122.0036583
-        // 37.3242884, -122.0036964 37.3242819, -122.0037343 37.3242705, -122.0037712 37.3242542,
-        // -122.0038063 37.324233, -122.003467 37.324233))
-        final Polygon halfCircleLike = new Polygon(Location.STEVENS_CREEK,
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(315),
-                        Distance.meters(3)),
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(310),
-                        Distance.meters(6)),
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(305),
-                        Distance.meters(9)),
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(300),
-                        Distance.meters(12)),
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(295),
-                        Distance.meters(15)),
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(290),
-                        Distance.meters(18)),
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(285),
-                        Distance.meters(21)),
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(280),
-                        Distance.meters(24)),
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(275),
-                        Distance.meters(27)),
-                Location.STEVENS_CREEK.shiftAlongGreatCircle(Heading.degrees(270),
-                        Distance.meters(30)));
-        Assert.assertFalse(halfCircleLike.isApproximatelyTriangle(Angle.MINIMUM));
-        Assert.assertFalse(halfCircleLike.isApproximatelyTriangle(Angle.degrees(1)));
-        Assert.assertFalse(halfCircleLike.isApproximatelyTriangle(Angle.degrees(5)));
-        Assert.assertFalse(halfCircleLike.isApproximatelyTriangle(Angle.degrees(10)));
-        Assert.assertFalse(halfCircleLike.isApproximatelyTriangle(Angle.degrees(30)));
-        Assert.assertTrue(halfCircleLike.isApproximatelyTriangle(Angle.degrees(45)));
-
-        // Test triangular generated by triangles method
-        Polygon.SILICON_VALLEY_2.triangles().forEach(aTriangle ->
-        {
-            Assert.assertTrue(aTriangle.isApproximatelyTriangle(Angle.MINIMUM));
-            Assert.assertTrue(aTriangle.isApproximatelyTriangle(Angle.degrees(1)));
-            Assert.assertTrue(aTriangle.isApproximatelyTriangle(Angle.degrees(30)));
-        });
     }
 
     @Test

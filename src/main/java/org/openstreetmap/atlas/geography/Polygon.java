@@ -52,11 +52,8 @@ public class Polygon extends PolyLine
     private static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
     private static final long serialVersionUID = 2877026648358594354L;
 
-    // Minimum number of points in a triangle
-    private static final int TRIANGLE_POLYGON_MINIMUM_SIZE = 3;
-
-    // Number of heading changes in a triangle ([a, b] -> [b, c], [b, c] -> [c, a])
-    private static final int TRIANGLE_HEADING_CHANGE_SIZE = 2;
+    // Calculate sides starting from triangles
+    private static final int MINIMUM_N_FOR_SIDE_CALCULATION = 3;
 
     private Area awtArea;
     private java.awt.Polygon awtPolygon;
@@ -257,20 +254,24 @@ public class Polygon extends PolyLine
     }
 
     /**
+     * @param nCount
+     *            Number of sides
      * @param threshold
      *            {@link Angle} threshold that decides whether a {@link Heading} difference between
      *            segments should be counted towards heading change count or not
-     * @return true if this {@link Polygon} has an approximately triangular shape while ignoring
-     *         {@link Heading} differences between inner segments that are below given threshold. A
-     *         {@link Polygon} might have more than 3 shape points with slight heading differences.
+     * @return true if this {@link Polygon} has approximately n sides while ignoring {@link Heading}
+     *         differences between inner segments that are below given threshold.
      */
-    public boolean isApproximatelyTriangle(final Angle threshold)
+    public boolean isApproximatelyNSided(final int nCount, final Angle threshold)
     {
         // Ignore if polygon doesn't have enough inner shape points
-        if (this.size() < TRIANGLE_POLYGON_MINIMUM_SIZE)
+        if (nCount < MINIMUM_N_FOR_SIDE_CALCULATION || this.size() < nCount)
         {
             return false;
         }
+
+        // An N sided shape should have (n-1) heading changes
+        final int expectedHeadingChangeCount = nCount - 1;
 
         // Fetch segments and count them
         final List<Segment> segments = this.segments();
@@ -301,7 +302,7 @@ public class Polygon extends PolyLine
         }
 
         // Go over rest of the segments and count heading changes
-        while (segmentIndex < segmentSize && headingChangeCount <= TRIANGLE_HEADING_CHANGE_SIZE)
+        while (segmentIndex < segmentSize && headingChangeCount <= expectedHeadingChangeCount)
         {
             final Optional<Heading> nextHeading = segments.get(segmentIndex++).heading();
             if (nextHeading.isPresent())
@@ -316,7 +317,7 @@ public class Polygon extends PolyLine
             }
         }
 
-        return headingChangeCount == TRIANGLE_HEADING_CHANGE_SIZE;
+        return headingChangeCount == expectedHeadingChangeCount;
     }
 
     /**
