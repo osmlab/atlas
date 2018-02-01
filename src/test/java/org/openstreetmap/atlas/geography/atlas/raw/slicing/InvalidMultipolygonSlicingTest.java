@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -23,6 +22,7 @@ public class InvalidMultipolygonSlicingTest
 {
     private static CountryBoundaryMap COUNTRY_BOUNDARY_MAP;
     private static Set<IsoCountry> COUNTRIES;
+    private static RawAtlasCountrySlicer RAW_ATLAS_SLICER;
 
     static
     {
@@ -30,19 +30,17 @@ public class InvalidMultipolygonSlicingTest
         COUNTRIES.add(IsoCountry.forCountryCode("CIV").get());
         COUNTRIES.add(IsoCountry.forCountryCode("GIN").get());
         COUNTRIES.add(IsoCountry.forCountryCode("LBR").get());
-    }
 
-    @Rule
-    public InvalidRelationSlicingTestRule setup = new InvalidRelationSlicingTestRule();
-
-    @BeforeClass
-    public static void setup()
-    {
         COUNTRY_BOUNDARY_MAP = new CountryBoundaryMap(
                 new InputStreamResource(() -> InvalidMultipolygonSlicingTest.class
                         .getResourceAsStream("CIV_GIN_LBR_osm_boundaries.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
+
+        RAW_ATLAS_SLICER = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP);
     }
+
+    @Rule
+    public InvalidRelationSlicingTestRule setup = new InvalidRelationSlicingTestRule();
 
     @Test
     public void testInnerIntersectingOuterRelation()
@@ -55,8 +53,7 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(8, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
+        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
 
         Assert.assertEquals(rawAtlas.numberOfPoints(), slicedAtlas.numberOfPoints());
         Assert.assertEquals(rawAtlas.numberOfLines(), slicedAtlas.numberOfLines());
@@ -74,8 +71,7 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(8, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
+        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
 
         // Assert that we cannot build a valid building with this relation
         new ComplexBuildingFinder().find(slicedAtlas)
@@ -106,8 +102,7 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(4, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
+        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
 
         // Assert that we cannot build a valid building with this relation
         new ComplexBuildingFinder().find(slicedAtlas)
@@ -132,8 +127,7 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(4, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
+        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
 
         // Assert that we cannot build a valid building with this relation
         new ComplexBuildingFinder().find(slicedAtlas)
@@ -157,8 +151,7 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(4, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
+        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
 
         // Assert that we cannot build a valid building with this relation
         new ComplexBuildingFinder().find(slicedAtlas)
@@ -183,8 +176,7 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(4, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
+        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
 
         // Assert that we cannot build a valid building with this relation
         new ComplexBuildingFinder().find(slicedAtlas)
@@ -209,8 +201,7 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(8, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
+        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
 
         // Assert that we cannot build a valid building with this relation
         new ComplexBuildingFinder().find(slicedAtlas)
@@ -234,8 +225,7 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(10, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
+        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
 
         // Assert that we CAN build a valid building with this relation
         new ComplexBuildingFinder().find(slicedAtlas)
@@ -257,8 +247,7 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(10, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
+        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
 
         // Assert that we CAN build a valid building with this relation
         new ComplexBuildingFinder().find(slicedAtlas)

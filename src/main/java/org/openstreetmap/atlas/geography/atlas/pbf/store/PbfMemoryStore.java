@@ -54,8 +54,6 @@ import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 import org.openstreetmap.osmosis.core.task.v0_6.SinkRunnableSource;
 import org.openstreetmap.osmosis.xml.common.CompressionMethod;
 import org.openstreetmap.osmosis.xml.v0_6.XmlWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This {@link PbfMemoryStore} holds all the information needed by country slicing, way sectioning
@@ -69,8 +67,6 @@ public class PbfMemoryStore implements SinkRunnableSource
     private static final JtsPointConverter JTS_POINT_CONVERTER = new JtsPointConverter();
     private static final TagMapToTagCollectionConverter TAG_MAP_TO_TAG_COLLECTION_CONVERTER = new TagMapToTagCollectionConverter();
     private static final CountryListTwoWayStringConverter COUNTRY_LIST_CONVERTER = new CountryListTwoWayStringConverter();
-
-    private static final Logger logger = LoggerFactory.getLogger(PbfMemoryStore.class);
 
     private final Map<Long, Node> nodes;
     private final Map<Long, Way> ways;
@@ -769,9 +765,6 @@ public class PbfMemoryStore implements SinkRunnableSource
         }
         else if (nodeTagSize < AtlasTag.TAGS_FROM_OSM.size())
         {
-            logger.error(
-                    "Osm Node {} has {} tags, which is less than the minimum required number of tags {}",
-                    node.getId(), nodeTagSize, AtlasTag.TAGS_FROM_OSM.size());
             osmAndAtlasTagCount = nodeTagSize;
         }
         else
