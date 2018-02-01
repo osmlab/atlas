@@ -13,7 +13,7 @@ import org.openstreetmap.atlas.tags.annotations.validation.DoubleValidator;
  *
  * @author ajayaswal
  */
-@Tag(value = Validation.LENGTH, taginfo = "https://taginfo.openstreetmap.org/keys/min_height#values", osm = "https://wiki.openstreetmap.org/wiki/Key:min_height")
+@Tag(value = Validation.DOUBLE, taginfo = "https://taginfo.openstreetmap.org/keys/min_height#values", osm = "https://wiki.openstreetmap.org/wiki/Key:min_height")
 public interface MinHeightTag
 {
     @TagKey

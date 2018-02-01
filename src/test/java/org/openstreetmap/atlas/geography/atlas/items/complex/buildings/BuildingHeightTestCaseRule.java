@@ -13,11 +13,11 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas;
  */
 public class BuildingHeightTestCaseRule extends CoreTestRule
 {
-    public static final long BUILDING_WITH_ZERO_MINHEIGHT_ID = 100000000L;
-    public static final long BUILDING_WITH_NEGATIVE_MINHEIGHT_ID = 200000000L;
+    public static final long BUILDING_WITH_ZERO_MIN_HEIGHT_ID = 100000000L;
+    public static final long BUILDING_WITH_NEGATIVE_MIN_HEIGHT_ID = 200000000L;
     public static final long BUILDING_WITH_BOTH_HEIGHT_ID = 300000000L;
-    public static final long BUILDING_WITH_NO_MINHEIGHTT_ID = 400000000L;
-    public static final long BUILDING_WITH_NONNUMERIC_MINHEIGHT_ID = 500000000L;
+    public static final long BUILDING_WITH_NO_MIN_HEIGHT_ID = 400000000L;
+    public static final long BUILDING_WITH_NONNUMERIC_MIN_HEIGHT_ID = 500000000L;
 
     @TestAtlas(loadFromTextResource = "building_with_minheights.txt")
     private Atlas atlasWithBuildingMinHeights;
@@ -36,7 +36,8 @@ public class BuildingHeightTestCaseRule extends CoreTestRule
     {
         return Iterables.first(Iterables.filter(
                 new ComplexBuildingFinder().find(this.atlasWithBuildingMinHeights, Finder::ignore),
-                building -> building.getIdentifier() == BUILDING_WITH_NEGATIVE_MINHEIGHT_ID)).get();
+                building -> building.getIdentifier() == BUILDING_WITH_NEGATIVE_MIN_HEIGHT_ID))
+                .get();
     }
 
     public ComplexBuilding buildingWithNoMinHeight()
@@ -45,7 +46,7 @@ public class BuildingHeightTestCaseRule extends CoreTestRule
                 .first(Iterables.filter(
                         new ComplexBuildingFinder().find(this.atlasWithBuildingMinHeights,
                                 Finder::ignore),
-                        building -> building.getIdentifier() == BUILDING_WITH_NO_MINHEIGHTT_ID))
+                        building -> building.getIdentifier() == BUILDING_WITH_NO_MIN_HEIGHT_ID))
                 .get();
     }
 
@@ -53,7 +54,7 @@ public class BuildingHeightTestCaseRule extends CoreTestRule
     {
         return Iterables.first(Iterables.filter(
                 new ComplexBuildingFinder().find(this.atlasWithBuildingMinHeights, Finder::ignore),
-                building -> building.getIdentifier() == BUILDING_WITH_NONNUMERIC_MINHEIGHT_ID))
+                building -> building.getIdentifier() == BUILDING_WITH_NONNUMERIC_MIN_HEIGHT_ID))
                 .get();
     }
 
@@ -63,7 +64,7 @@ public class BuildingHeightTestCaseRule extends CoreTestRule
                 .first(Iterables.filter(
                         new ComplexBuildingFinder().find(this.atlasWithBuildingMinHeights,
                                 Finder::ignore),
-                        building -> building.getIdentifier() == BUILDING_WITH_ZERO_MINHEIGHT_ID))
+                        building -> building.getIdentifier() == BUILDING_WITH_ZERO_MIN_HEIGHT_ID))
                 .get();
     }
 }
