@@ -32,8 +32,11 @@ import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.PaddingIde
 import org.openstreetmap.atlas.geography.atlas.pbf.store.PbfMemoryStore;
 import org.openstreetmap.atlas.geography.atlas.pbf.store.PbfOneWay;
 import org.openstreetmap.atlas.geography.atlas.pbf.store.TagMap;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.CountryCodeProperties;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.tags.HighwayTag;
+import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.LastEditChangesetTag;
 import org.openstreetmap.atlas.tags.LastEditTimeTag;
 import org.openstreetmap.atlas.tags.LastEditUserIdentifierTag;
@@ -57,6 +60,8 @@ import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.vividsolutions.jts.geom.Geometry;
+
 /**
  * This {@link OsmPbfProcessor} loads four different OSM entities (Node, Way, Relation and Bound),
  * and build a complete atlas with a multipolygon or bounding box. 'Complete' means if part of an
@@ -75,6 +80,7 @@ public class OsmPbfProcessor implements Sink
     private static final Logger logger = LoggerFactory.getLogger(OsmPbfProcessor.class);
 
     private static final JtsMultiPolygonToMultiPolygonConverter JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
+    private static final JtsPointConverter JTS_POINT_CONVERTER = new JtsPointConverter();
     private static final int MAXIMUM_NETWORK_EXTENSION = 100;
     private static final TagMapToTagCollectionConverter TAG_MAP_TO_TAG_COLLECTION_CONVERTER = new TagMapToTagCollectionConverter();
 
@@ -626,6 +632,23 @@ public class OsmPbfProcessor implements Sink
     }
 
     /**
+     * @param node
+     *            The node to test for
+     * @return True only if the node is completely outside of any boundary. In that case, it has
+     *         either no country (COUNTRY_MISSING) or its country is assigned using the nearest
+     *         neighbor logic.
+     */
+    private boolean isOutsideBoundary(final Node node)
+    {
+        final Geometry nodeLocation = JTS_POINT_CONVERTER.convert(new Location(
+                Latitude.degrees(node.getLatitude()), Longitude.degrees(node.getLongitude())));
+        final CountryCodeProperties countryCodeProperties = this.loadingOption
+                .getCountryBoundaryMap().getCountryCodeISO3(nodeLocation, false);
+        return ISOCountryTag.COUNTRY_MISSING.equals(countryCodeProperties.getIso3CountryCode())
+                || countryCodeProperties.usingNearestNeighbor();
+    }
+
+    /**
      * Find relations that have a member tree that does not contain any member that is not a
      * relation, or that contain no members at all.
      *
@@ -904,7 +927,7 @@ public class OsmPbfProcessor implements Sink
 
     private void tagOutsideBoundaryNodes(final Node node)
     {
-        if (this.nodeIdentifiersAtNetworkBoundary.contains(node.getId()))
+        if (this.nodeIdentifiersAtNetworkBoundary.contains(node.getId()) && isOutsideBoundary(node))
         {
             final Map<String, String> boundaryNodeTags = Maps.hashMap(SyntheticBoundaryNodeTag.KEY,
                     SyntheticBoundaryNodeTag.EXISTING.name().toLowerCase());
