@@ -303,7 +303,7 @@ public class Polygon extends PolyLine
         // Make sure we start with some heading
         if (!previousHeading.isPresent())
         {
-            logger.trace("{} doesn't have a heading to calculate number of sides.");
+            logger.trace("{} doesn't have a heading to calculate number of sides.", this);
             return false;
         }
 
