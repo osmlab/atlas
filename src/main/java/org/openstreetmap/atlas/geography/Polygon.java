@@ -18,6 +18,8 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.scalars.Angle;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.GeometryCollection;
@@ -50,6 +52,8 @@ public class Polygon extends PolyLine
             Location.forString("37.390234491673446,-122.03111171722412"));
 
     private static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
+
+    private static final Logger logger = LoggerFactory.getLogger(Polygon.class);
     private static final long serialVersionUID = 2877026648358594354L;
 
     // Calculate sides starting from triangles
@@ -254,24 +258,25 @@ public class Polygon extends PolyLine
     }
 
     /**
-     * @param nCount
-     *            Number of sides
+     * @param expectedNumberOfSides
+     *            Expected number of sides
      * @param threshold
      *            {@link Angle} threshold that decides whether a {@link Heading} difference between
      *            segments should be counted towards heading change count or not
      * @return true if this {@link Polygon} has approximately n sides while ignoring {@link Heading}
      *         differences between inner segments that are below given threshold.
      */
-    public boolean isApproximatelyNSided(final int nCount, final Angle threshold)
+    public boolean isApproximatelyNSided(final int expectedNumberOfSides, final Angle threshold)
     {
         // Ignore if polygon doesn't have enough inner shape points
-        if (nCount < MINIMUM_N_FOR_SIDE_CALCULATION || this.size() < nCount)
+        if (expectedNumberOfSides < MINIMUM_N_FOR_SIDE_CALCULATION
+                || this.size() < expectedNumberOfSides)
         {
             return false;
         }
 
         // An N sided shape should have (n-1) heading changes
-        final int expectedHeadingChangeCount = nCount - 1;
+        final int expectedHeadingChangeCount = expectedNumberOfSides - 1;
 
         // Fetch segments and count them
         final List<Segment> segments = this.segments();
@@ -298,6 +303,7 @@ public class Polygon extends PolyLine
         // Make sure we start with some heading
         if (!previousHeading.isPresent())
         {
+            logger.trace("{} doesn't have a heading to calculate number of sides.");
             return false;
         }
 
