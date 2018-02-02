@@ -76,7 +76,7 @@ public class DynamicAtlasRestrainedExpansionWithPolygonTest
     }
 
     @Test
-    public void testNotMovingTooFast()
+    public void testRestrainedExpansionWithPolygon()
     {
         Assert.assertEquals(2, this.dynamicAtlas.numberOfEdges());
     }
