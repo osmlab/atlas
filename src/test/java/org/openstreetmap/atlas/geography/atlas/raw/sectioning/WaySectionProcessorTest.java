@@ -23,9 +23,9 @@ public class WaySectionProcessorTest
 
     static
     {
-        COUNTRY_BOUNDARY_MAP = new CountryBoundaryMap(
-                new InputStreamResource(() -> LineAndPointSlicingTest.class
-                        .getResourceAsStream("CIV_GIN_LBR_osm_boundaries.txt.gz"))
+        COUNTRY_BOUNDARY_MAP = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> LineAndPointSlicingTest.class
+                        .getResourceAsStream("CIV_GIN_LBR_osm_boundaries_with_grid_index.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
     }
 

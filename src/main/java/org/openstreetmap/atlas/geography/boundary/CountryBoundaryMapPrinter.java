@@ -65,7 +65,7 @@ public class CountryBoundaryMapPrinter extends Command
         }
         final String countries = (String) command.get(COUNTRIES);
         StringList countryList = new StringList();
-        final CountryBoundaryMap map = new CountryBoundaryMap(input);
+        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(input);
         if ("*".equals(countries))
         {
             countryList = map.countryCodesOverlappingWith(Rectangle.MAXIMUM);

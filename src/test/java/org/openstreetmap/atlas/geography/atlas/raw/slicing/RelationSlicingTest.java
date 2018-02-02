@@ -37,9 +37,9 @@ public class RelationSlicingTest
         COUNTRIES.add(IsoCountry.forCountryCode("GIN").get());
         COUNTRIES.add(IsoCountry.forCountryCode("LBR").get());
 
-        COUNTRY_BOUNDARY_MAP = new CountryBoundaryMap(
-                new InputStreamResource(() -> LineAndPointSlicingTest.class
-                        .getResourceAsStream("CIV_GIN_LBR_osm_boundaries.txt.gz"))
+        COUNTRY_BOUNDARY_MAP = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> LineAndPointSlicingTest.class
+                        .getResourceAsStream("CIV_GIN_LBR_osm_boundaries_with_grid_index.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
 
         RAW_ATLAS_SLICER = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP);
