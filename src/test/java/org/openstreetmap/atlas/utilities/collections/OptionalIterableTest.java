@@ -31,6 +31,8 @@ public class OptionalIterableTest
         Assert.assertTrue(iterator.hasNext());
         Assert.assertEquals(Integer.valueOf(1), iterator.next());
         Assert.assertTrue(iterator.hasNext());
+        Assert.assertTrue(iterator.hasNext());
+        Assert.assertTrue(iterator.hasNext());
         Assert.assertEquals(Integer.valueOf(2), iterator.next());
         Assert.assertTrue(iterator.hasNext());
         Assert.assertEquals(Integer.valueOf(3), iterator.next());
