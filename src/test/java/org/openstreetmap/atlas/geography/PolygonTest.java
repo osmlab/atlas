@@ -76,6 +76,30 @@ public class PolygonTest
     }
 
     @Test
+    public void testComplexPolygon()
+    {
+        final Polygon polygon = Polygon
+                .wkt("POLYGON ((0.0269943 0.0252426, 0.0441521 0.0453649, 0.0584354 0.0381783, "
+                        + "0.0706524 0.0269494, 0.0770305 0.011678, 0.0716406 -0.0064678, 0.05062 -0.007995, "
+                        + "0.0498115 -0.0120374, 0.0594235 -0.0167086, 0.0675982 -0.013295, 0.074066 -0.0169781, "
+                        + "0.0688558 -0.0273986, 0.0557404 -0.0238053, 0.0534946 -0.0191341, 0.0469369 -0.0153611,"
+                        + " 0.0464878 -0.0259613, 0.0557404 -0.029824, 0.0641846 -0.0317105, 0.060232 -0.0455445,"
+                        + " 0.0462183 -0.0389868, 0.0313062 -0.0173374, 0.0269943 0.0252426))");
+        final Location inside1 = Location.forString("-0.0209583, 0.0651123");
+        final Location onBoundary1 = Location.forString("0.0301426, 0.0669962");
+        final Location onBoundary2 = Location.forString("-0.0170728, 0.0317908");
+        final Location onBoundary3 = Location.forString("0.0269494, 0.0706524");
+        final Location outside1 = Location.forString(".0427412, .0722947");
+        final Location outside2 = Location.forString("-0.022018, 0.0499233");
+        Assert.assertTrue(polygon.fullyGeometricallyEncloses(inside1));
+        Assert.assertTrue(polygon.fullyGeometricallyEncloses(onBoundary1));
+        Assert.assertTrue(polygon.fullyGeometricallyEncloses(onBoundary2));
+        Assert.assertTrue(polygon.fullyGeometricallyEncloses(onBoundary3));
+        Assert.assertFalse(polygon.fullyGeometricallyEncloses(outside1));
+        Assert.assertFalse(polygon.fullyGeometricallyEncloses(outside2));
+    }
+
+    @Test
     public void testConcave()
     {
         final Polygon concave = new Polygon(Location.forString("1, -1"), Location.forString("1,1"),
@@ -89,7 +113,7 @@ public class PolygonTest
 
         Assert.assertTrue(concave.fullyGeometricallyEncloses(inside1));
         Assert.assertTrue(concave.fullyGeometricallyEncloses(onBoundary1));
-        Assert.assertFalse(concave.fullyGeometricallyEncloses(onBoundary2));
+        Assert.assertTrue(concave.fullyGeometricallyEncloses(onBoundary2));
         Assert.assertFalse(concave.fullyGeometricallyEncloses(outside1));
         Assert.assertFalse(concave.fullyGeometricallyEncloses(outside2));
         Assert.assertTrue(concave.intersects(new Segment(outside1, inside1)));

@@ -1,6 +1,5 @@
 package org.openstreetmap.atlas.geography;
 
-import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -11,6 +10,7 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.converters.WktPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.GeometryStreamer;
 import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -50,8 +50,6 @@ public class Polygon extends PolyLine
 
     private static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
     private static final long serialVersionUID = 2877026648358594354L;
-    private Area awtArea;
-    private java.awt.Polygon awtPolygon;
 
     /**
      * Generate a random polygon within bounds.
@@ -162,7 +160,9 @@ public class Polygon extends PolyLine
      */
     public boolean fullyGeometricallyEncloses(final Location location)
     {
-        return awtPolygon().contains(location.asAwtPoint());
+        final com.vividsolutions.jts.geom.Polygon polygon = new JtsPolygonConverter().convert(this);
+        final Point point = new JtsPointConverter().convert(location);
+        return polygon.covers(point);
     }
 
     /**
@@ -207,7 +207,8 @@ public class Polygon extends PolyLine
             return false;
         }
         // The item is within the bounds of this Polygon
-        return awtArea().contains(rectangle.asAwtRectangle());
+        final com.vividsolutions.jts.geom.Polygon polygon = new JtsPolygonConverter().convert(this);
+        return polygon.covers(new JtsPolygonConverter().convert(rectangle));
     }
 
     /**
@@ -493,34 +494,6 @@ public class Polygon extends PolyLine
             index++;
         }
         throw new CoreException("{} is not a vertex of {}", vertex, this);
-    }
-
-    protected Area awtArea()
-    {
-        if (this.awtArea == null)
-        {
-            this.awtArea = new Area(awtPolygon());
-        }
-        return this.awtArea;
-    }
-
-    private java.awt.Polygon awtPolygon()
-    {
-        if (this.awtPolygon == null)
-        {
-            final int size = size();
-            final int[] xArray = new int[size];
-            final int[] yArray = new int[size];
-            int index = 0;
-            for (final Location location : this)
-            {
-                xArray[index] = (int) location.getLongitude().asDm7();
-                yArray[index] = (int) location.getLatitude().asDm7();
-                index++;
-            }
-            this.awtPolygon = new java.awt.Polygon(xArray, yArray, size);
-        }
-        return this.awtPolygon;
     }
 
     private Iterable<Location> loopOnItself()
