@@ -46,7 +46,6 @@ public class OptionalIterable<T> implements Iterable<T>
                             this.previousElement = current;
                             return true;
                         }
-                        this.previousElement = Optional.empty();
                     }
                     return false;
                 }
