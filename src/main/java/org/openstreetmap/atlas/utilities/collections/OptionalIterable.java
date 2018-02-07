@@ -9,6 +9,7 @@ import java.util.Optional;
  * @param <T>
  *            The type of the {@link Optional} iterator
  * @author cuthbertm
+ * @author jklamer
  */
 public class OptionalIterable<T> implements Iterable<T>
 {
@@ -31,17 +32,23 @@ public class OptionalIterable<T> implements Iterable<T>
             @Override
             public boolean hasNext()
             {
-                while (this.iterator.hasNext())
+                if (previousElement.isPresent())
                 {
-                    final Optional<T> current = this.iterator.next();
-                    if (current.isPresent())
-                    {
-                        this.previousElement = current;
-                        return true;
-                    }
-                    this.previousElement = Optional.empty();
+                    return true;
                 }
-                return false;
+                else
+                {
+                    while (this.iterator.hasNext())
+                    {
+                        final Optional<T> current = this.iterator.next();
+                        if (current.isPresent())
+                        {
+                            this.previousElement = current;
+                            return true;
+                        }
+                    }
+                    return false;
+                }
             }
 
             @Override
