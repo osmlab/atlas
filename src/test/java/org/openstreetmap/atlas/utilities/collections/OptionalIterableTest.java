@@ -26,15 +26,16 @@ public class OptionalIterableTest
         list.add(Optional.of(4));
         list.add(Optional.empty());
 
-        final OptionalIterable<Integer> optIt = new OptionalIterable<>(list);
-        final Iterator<Integer> iterator = optIt.iterator();
+        final OptionalIterable<Integer> optionalIterable = new OptionalIterable<>(list);
+        final Iterator<Integer> iterator = optionalIterable.iterator();
         Assert.assertTrue(iterator.hasNext());
         Assert.assertEquals(Integer.valueOf(1), iterator.next());
+        Assert.assertTrue(iterator.hasNext());
+        Assert.assertTrue(iterator.hasNext());
         Assert.assertTrue(iterator.hasNext());
         Assert.assertEquals(Integer.valueOf(2), iterator.next());
         Assert.assertTrue(iterator.hasNext());
         Assert.assertEquals(Integer.valueOf(3), iterator.next());
-        Assert.assertTrue(iterator.hasNext());
         Assert.assertEquals(Integer.valueOf(4), iterator.next());
         Assert.assertFalse(iterator.hasNext());
         Assert.assertNull(iterator.next());
