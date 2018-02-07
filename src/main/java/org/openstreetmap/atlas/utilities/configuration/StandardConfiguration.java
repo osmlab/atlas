@@ -78,6 +78,7 @@ public class StandardConfiguration implements Configuration
         }
     }
 
+    // "override" is no longer available to use as a configuration key
     private static final String OVERRIDE_STRING = "override";
     private static final Logger logger = LoggerFactory.getLogger(StandardConfiguration.class);
     private Map<String, Object> configurationData;

@@ -76,13 +76,13 @@ public class MergedConfigurationTest
     public void testMergedOverriddenConfigurations() throws IOException
     {
         final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        try (InputStream countryOverriddenBaseConfiguration = loader
+        try (InputStream keywordOverriddenBaseConfiguration = loader
                 .getResourceAsStream(KEYWORD_OVERRIDDEN_CONFIGURATION);
                 InputStream developmentConfiguration = loader
                         .getResourceAsStream(KEYWORD_OVERRIDDEN_DEV_CONFIGURATION))
         {
             final Configuration configuration = new MergedConfiguration(
-                    new InputStreamResource(countryOverriddenBaseConfiguration),
+                    new InputStreamResource(keywordOverriddenBaseConfiguration),
                     new InputStreamResource(developmentConfiguration));
 
             final String keyword1 = "ABC";
