@@ -145,14 +145,7 @@ public class Polygon extends PolyLine
 
     /**
      * Tests if this {@link Polygon} fully encloses (geometrically contains) a {@link Location}
-     * <p>
-     * Here is the definition of contains (insideness) of awt point.
-     * <p>
-     * Definition of insideness: A point is considered to lie inside a Shape if and only if: it lies
-     * completely inside the Shape boundary or it lies exactly on the Shape boundary and the space
-     * immediately adjacent to the point in the increasing X direction is entirely inside the
-     * boundary or it lies exactly on a horizontal boundary segment and the space immediately
-     * adjacent to the point in the increasing Y direction is inside the boundary.
+     * Returns true if the location lies within the polygon or anywhere on the boundary.
      *
      * @param location
      *            The {@link Location} to test
@@ -160,7 +153,7 @@ public class Polygon extends PolyLine
      */
     public boolean fullyGeometricallyEncloses(final Location location)
     {
-        final com.vividsolutions.jts.geom.Polygon polygon = new JtsPolygonConverter().convert(this);
+        final com.vividsolutions.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
         final Point point = new JtsPointConverter().convert(location);
         return polygon.covers(point);
     }
@@ -207,8 +200,8 @@ public class Polygon extends PolyLine
             return false;
         }
         // The item is within the bounds of this Polygon
-        final com.vividsolutions.jts.geom.Polygon polygon = new JtsPolygonConverter().convert(this);
-        return polygon.covers(new JtsPolygonConverter().convert(rectangle));
+        final com.vividsolutions.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
+        return polygon.covers(JTS_POLYGON_CONVERTER.convert(rectangle));
     }
 
     /**
