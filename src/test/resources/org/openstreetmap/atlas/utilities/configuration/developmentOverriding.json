@@ -1,0 +1,6 @@
+{
+  "feature.range": {
+    "max": 35.0,
+    "override.ABC.max":70.0
+  }
+}

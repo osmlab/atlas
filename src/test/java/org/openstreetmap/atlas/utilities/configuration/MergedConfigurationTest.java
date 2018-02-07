@@ -9,14 +9,20 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.streaming.StringInputStream;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.utilities.scalars.Angle;
 
 /**
+ * Test Cases for MergedConfiguration implementations
+ * 
  * @author brian_l_davis
+ * @author jklamer
  */
 public class MergedConfigurationTest
 {
 
     private static final String BASE_CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/application.json";
+    private static final String KEYWORD_OVERRIDDEN_CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/keywordOverridingApplication.json";
+    private static final String KEYWORD_OVERRIDDEN_DEV_CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/developmentOverriding.json";
     private static final String OVERRIDE_CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/development.json";
     private static final String PARTIAL_CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/feature.json";
 
@@ -45,8 +51,8 @@ public class MergedConfigurationTest
             final Configuration configuration = new MergedConfiguration(
                     new InputStreamResource(base), new InputStreamResource(override));
 
-            final String country = "AIA";
-            final String key = String.format("feature.%s.range", country);
+            final String keyword = "ABC";
+            final String key = String.format("feature.%s.range", keyword);
 
             final Optional<Map<String, Double>> rangeOption = configuration.get(key).valueOption();
 
@@ -57,12 +63,51 @@ public class MergedConfigurationTest
                 Assert.assertEquals(30.0, range.get("max"), 0.1);
             });
 
-            final String baseCountry = "AIA";
-            final String baseKey = String.format("feature.%s.range", baseCountry);
+            final String baseKeyword = "ABC";
+            final String baseKey = String.format("feature.%s.range", baseKeyword);
             final Double max = configuration.get(baseKey + ".min", Double.NaN).value();
             Assert.assertNotEquals(Double.NaN, max);
 
             Assert.assertFalse(configuration.get("foo").valueOption().isPresent());
+        }
+    }
+
+    @Test
+    public void testMergedOverriddenConfigurations() throws IOException
+    {
+        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        try (InputStream keywordOverriddenBaseConfiguration = loader
+                .getResourceAsStream(KEYWORD_OVERRIDDEN_CONFIGURATION);
+                InputStream developmentConfiguration = loader
+                        .getResourceAsStream(KEYWORD_OVERRIDDEN_DEV_CONFIGURATION))
+        {
+            final Configuration configuration = new MergedConfiguration(
+                    new InputStreamResource(keywordOverriddenBaseConfiguration),
+                    new InputStreamResource(developmentConfiguration));
+
+            final String keyword1 = "ABC";
+            final String keyword2 = "XYZ";
+            final String keyword3 = "ZZZ";
+            final Configuration configuration1 = configuration.configurationForKeyword(keyword1);
+            final Configuration configuration2 = configuration.configurationForKeyword(keyword2);
+
+            final String minKey = "feature.range.min";
+            final String maxKey = "feature.range.max";
+
+            // Assert that configuration not changed for not overriding keywords.
+            Assert.assertEquals(configuration, configuration.configurationForKeyword(keyword3));
+            // value derived from default of higher layer development configuration instead of
+            // keyword specific view of base configuration
+            Assert.assertEquals(Angle.degrees(35.0),
+                    configuration2.get(maxKey, Angle::degrees).value());
+            // value derived from keyword specific view of development configuration
+            Assert.assertEquals(Angle.degrees(70.0),
+                    configuration1.get(maxKey, Angle::degrees).value());
+            // value derived from default of base configuration
+            Assert.assertEquals(Angle.degrees(10.0),
+                    configuration1.get(minKey, Angle::degrees).value());
+            Assert.assertEquals(Angle.degrees(10.0),
+                    configuration2.get(minKey, Angle::degrees).value());
         }
     }
 
@@ -76,8 +121,8 @@ public class MergedConfigurationTest
             final Configuration configuration = new MergedConfiguration(
                     new InputStreamResource(base), new InputStreamResource(partial));
 
-            final String country = "CYM";
-            final String key = String.format("feature.%s.range", country);
+            final String keyword = "XYZ";
+            final String key = String.format("feature.%s.range", keyword);
 
             final Optional<Map<String, Double>> rangeOption = configuration.get(key).valueOption();
 

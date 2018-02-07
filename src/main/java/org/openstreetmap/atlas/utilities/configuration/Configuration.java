@@ -10,13 +10,13 @@ import java.util.function.Function;
 public interface Configuration
 {
     /**
-     * Returns a {@link Configurable} wrapper around the configured property.
+     * Returns a returns a copy Configuration specific to a keyword with overwritten values
      *
-     * @param key
-     *            property key
-     * @return a {@link Configurable} wrapper
+     * @param keyword
+     *            keyword string
+     * @return Configuration
      */
-    Configurable get(String key);
+    Configuration configurationForKeyword(String keyword);
 
     /**
      * Returns a {@link Configurable} wrapper around the configured property.
@@ -63,4 +63,13 @@ public interface Configuration
      * @return a {@link Configurable} wrapper
      */
     <Type> Configurable get(String key, Type defaultValue);
+
+    /**
+     * Returns a {@link Configurable} wrapper around the configured property.
+     *
+     * @param key
+     *            property key
+     * @return a {@link Configurable} wrapper
+     */
+    Configurable get(String key);
 }
