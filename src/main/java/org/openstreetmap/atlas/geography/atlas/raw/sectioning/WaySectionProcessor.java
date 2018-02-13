@@ -124,15 +124,16 @@ public class WaySectionProcessor
 
     /**
      * Adds a {@link TemporaryNode} for the given {@link Location} to the given
-     * {@link NodeOccurrenceCounter} . Note: there should only be a single raw atlas {@link Point} at
-     * the given {@link Location}.
+     * {@link NodeOccurrenceCounter} . Note: there should only be a single raw atlas {@link Point}
+     * at the given {@link Location}.
      *
      * @param location
      *            The {@link Location} of the node to add
      * @param nodeCounter
      *            The {@link NodeOccurrenceCounter} to add to
      */
-    private void addPointToNodeList(final Location location, final NodeOccurrenceCounter nodeCounter)
+    private void addPointToNodeList(final Location location,
+            final NodeOccurrenceCounter nodeCounter)
     {
         this.rawAtlas.pointsAt(location).forEach(point -> nodeCounter
                 .addNode(new TemporaryNode(point.getIdentifier(), point.getLocation())));
