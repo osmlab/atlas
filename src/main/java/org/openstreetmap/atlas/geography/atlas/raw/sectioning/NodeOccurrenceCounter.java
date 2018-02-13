@@ -6,14 +6,16 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryNode;
 
 /**
- * TODO
+ * Keeps track of all {@link TemporaryNode}s created for an atlas {@link Edge} and the occurrence of
+ * it in the underlying polyline.
  *
  * @author mgostintsev
  */
-public class NodeOccurenceCounter
+public class NodeOccurrenceCounter
 {
     // Mapping of node to occurence
     private final Map<TemporaryNode, Integer> nodes = new HashMap<>();
@@ -23,6 +25,13 @@ public class NodeOccurenceCounter
         this.nodes.put(node, 1);
     }
 
+    /**
+     * Get the {@link TemporaryNode} at this {@link Location}.
+     *
+     * @param location
+     *            The target {@link Location}
+     * @return an {@link Optional} containing the {@link TemporaryNode}
+     */
     public Optional<TemporaryNode> getNode(final Location location)
     {
         for (final TemporaryNode node : this.nodes.keySet())
@@ -36,18 +45,29 @@ public class NodeOccurenceCounter
         return Optional.empty();
     }
 
-    // TODO check if these are all being used
+    /**
+     * @return all the stored {@link TemporaryNode}s
+     */
     public Set<TemporaryNode> getNodes()
     {
         return this.nodes.keySet();
     }
 
-    public int getOccurence(final TemporaryNode node)
+    /**
+     * @return the occurrence for the given {@link TemporaryNode}
+     */
+    public int getOccurrence(final TemporaryNode node)
     {
         return this.nodes.get(node);
     }
 
-    public void incrementOccurence(final TemporaryNode node)
+    /**
+     * Increments the occurrence for the given {@link TemporaryNode}
+     *
+     * @param node
+     *            The {@link TemporaryNode} to increment
+     */
+    public void incrementOccurrence(final TemporaryNode node)
     {
         if (this.nodes.containsKey(node))
         {
@@ -56,6 +76,9 @@ public class NodeOccurenceCounter
         }
     }
 
+    /**
+     * @return the total number of stored {@link TemporaryNode}s
+     */
     public int size()
     {
         return this.nodes.size();

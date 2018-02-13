@@ -124,15 +124,15 @@ public class WaySectionProcessor
 
     /**
      * Adds a {@link TemporaryNode} for the given {@link Location} to the given
-     * {@link NodeOccurenceCounter} . Note: there should only be a single raw atlas {@link Point} at
+     * {@link NodeOccurrenceCounter} . Note: there should only be a single raw atlas {@link Point} at
      * the given {@link Location}.
      *
      * @param location
      *            The {@link Location} of the node to add
      * @param nodeCounter
-     *            The {@link NodeOccurenceCounter} to add to
+     *            The {@link NodeOccurrenceCounter} to add to
      */
-    private void addPointToNodeList(final Location location, final NodeOccurenceCounter nodeCounter)
+    private void addPointToNodeList(final Location location, final NodeOccurrenceCounter nodeCounter)
     {
         this.rawAtlas.pointsAt(location).forEach(point -> nodeCounter
                 .addNode(new TemporaryNode(point.getIdentifier(), point.getLocation())));
@@ -370,7 +370,7 @@ public class WaySectionProcessor
         {
             if (isAtlasEdge(line))
             {
-                final NodeOccurenceCounter nodesForEdge = new NodeOccurenceCounter();
+                final NodeOccurrenceCounter nodesForEdge = new NodeOccurrenceCounter();
                 final PolyLine polyLine = line.asPolyLine();
 
                 // Find any intersections with other edges
@@ -661,7 +661,7 @@ public class WaySectionProcessor
         }
 
         // Prepare the nodes identifiers, identifier factory and one way information
-        final NodeOccurenceCounter nodesToSectionAt = changeSet.getNodesForEdge(line);
+        final NodeOccurrenceCounter nodesToSectionAt = changeSet.getNodesForEdge(line);
         final WaySectionIdentifierFactory identifierFactory = new WaySectionIdentifierFactory(
                 line.getIdentifier());
         final PbfOneWay oneWay = PbfOneWay.forTag(line);
@@ -698,14 +698,14 @@ public class WaySectionProcessor
                         // We found the end node, create the edge. Note: using occurrence minus one
                         // since PolyLine uses zero-based numbering
                         final PolyLine edgePolyline = polyline.between(polyline.get(startingIndex),
-                                nodesToSectionAt.getOccurence(startNode.get()) - 1,
+                                nodesToSectionAt.getOccurrence(startNode.get()) - 1,
                                 polyline.get(index),
-                                nodesToSectionAt.getOccurence(endNode.get()) - 1);
+                                nodesToSectionAt.getOccurrence(endNode.get()) - 1);
                         newEdgesForLine.add(new TemporaryEdge(identifierFactory.nextIdentifier(),
                                 edgePolyline, line.getTags(), hasReverse));
 
                         // Increment start node occurrence and starting identifiers
-                        nodesToSectionAt.incrementOccurence(startNode.get());
+                        nodesToSectionAt.incrementOccurrence(startNode.get());
                         startingIndex = index;
                         startNode = endNode;
                     }
@@ -738,15 +738,15 @@ public class WaySectionProcessor
                         // Note: using occurrence minus one since PolyLine uses zero-based numbering
                         final PolyLine edgePolyline = polyline
                                 .between(polyline.get(index),
-                                        nodesToSectionAt.getOccurence(endNode.get()) - 1,
+                                        nodesToSectionAt.getOccurrence(endNode.get()) - 1,
                                         polyline.get(startingIndex),
-                                        nodesToSectionAt.getOccurence(startNode.get()) - 1)
+                                        nodesToSectionAt.getOccurrence(startNode.get()) - 1)
                                 .reversed();
                         newEdgesForLine.add(new TemporaryEdge(identifierFactory.nextIdentifier(),
                                 edgePolyline, line.getTags(), hasReverse));
 
                         // Increment start node occurrence and starting identifiers
-                        nodesToSectionAt.incrementOccurence(startNode.get());
+                        nodesToSectionAt.incrementOccurrence(startNode.get());
                         startingIndex = index;
                         startNode = endNode;
                     }
@@ -781,7 +781,7 @@ public class WaySectionProcessor
         }
 
         // Prepare the nodes identifiers, identifier factory and one way information
-        final NodeOccurenceCounter nodesToSectionAt = changeSet.getNodesForEdge(line);
+        final NodeOccurrenceCounter nodesToSectionAt = changeSet.getNodesForEdge(line);
         final WaySectionIdentifierFactory identifierFactory = new WaySectionIdentifierFactory(
                 line.getIdentifier());
         final PbfOneWay oneWay = PbfOneWay.forTag(line);
@@ -818,15 +818,15 @@ public class WaySectionProcessor
                             // started from a shape point, we've just encountered our first node.
                             final PolyLine edgePolyline = polyline.between(
                                     polyline.get(startingIndex),
-                                    nodesToSectionAt.getOccurence(startNode.get()) - 1,
+                                    nodesToSectionAt.getOccurrence(startNode.get()) - 1,
                                     polyline.get(index),
-                                    nodesToSectionAt.getOccurence(endNode.get()) - 1);
+                                    nodesToSectionAt.getOccurrence(endNode.get()) - 1);
                             newEdgesForLine
                                     .add(new TemporaryEdge(identifierFactory.nextIdentifier(),
                                             edgePolyline, line.getTags(), hasReverse));
 
                             // Increment start node occurrence
-                            nodesToSectionAt.incrementOccurence(startNode.get());
+                            nodesToSectionAt.incrementOccurrence(startNode.get());
                         }
 
                         // Update starting points
@@ -856,7 +856,7 @@ public class WaySectionProcessor
                         }
                         final PolyLine polylineFromLastNodeToLastLocation = polyline.between(
                                 polyline.get(startingIndex),
-                                nodesToSectionAt.getOccurence(startNode.get()) - 1,
+                                nodesToSectionAt.getOccurrence(startNode.get()) - 1,
                                 polyline.get(index), 1);
                         final PolyLine edgePolyLine = polylineFromLastNodeToLastLocation
                                 .append(polyLineUpToFirstNode);

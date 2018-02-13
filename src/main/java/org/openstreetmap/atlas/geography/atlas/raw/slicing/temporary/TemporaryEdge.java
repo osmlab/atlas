@@ -46,6 +46,6 @@ public class TemporaryEdge extends TemporaryEntity
     public String toString()
     {
         return "[Temporary Edge=" + this.getIdentifier() + ", polyLine=" + this.getPolyLine() + ", "
-                + tagString() + "]";
+                + tagString() + ", hasReverse=" + hasReverse() + "]";
     }
 }

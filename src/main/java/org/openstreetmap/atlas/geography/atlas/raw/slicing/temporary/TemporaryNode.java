@@ -4,9 +4,12 @@ import java.io.Serializable;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.atlas.items.Node;
 
 /**
- * TODO
+ * The {@link TemporaryNode} object, keeps track of the bare minimum information required to create
+ * an Atlas {@link Node}. It is meant to be as light-weight as possible, keeping track of only the
+ * identifier and location.
  *
  * @author mgostintsev
  */
