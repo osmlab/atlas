@@ -278,7 +278,6 @@ public class RawAtlasGenerator
     /**
      * Get the set of {@link Point}s that make up all the filtered PBF {@link Way}s and see if we
      * can remove them from the generated raw Atlas. Criteria for removal are:
-     * <p>
      * <ul>
      * <li>The {@link Point} has to be simple. This avoids removing non-shape point features.
      * <li>The {@link Point} cannot be a {@link Relation} member.

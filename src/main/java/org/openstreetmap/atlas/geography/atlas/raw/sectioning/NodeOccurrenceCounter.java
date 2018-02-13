@@ -20,6 +20,12 @@ public class NodeOccurrenceCounter
     // Mapping of node to occurence
     private final Map<TemporaryNode, Integer> nodes = new HashMap<>();
 
+    /**
+     * Adds the given {@link TemporaryNode} to the store
+     *
+     * @param node
+     *            The {@link TemporaryNode} to add
+     */
     public void addNode(final TemporaryNode node)
     {
         this.nodes.put(node, 1);
@@ -54,6 +60,8 @@ public class NodeOccurrenceCounter
     }
 
     /**
+     * @param node
+     *            The {@link TemporaryNode} whose occurrence we want
      * @return the occurrence for the given {@link TemporaryNode}
      */
     public int getOccurrence(final TemporaryNode node)

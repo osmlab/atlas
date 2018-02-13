@@ -19,7 +19,6 @@ import org.openstreetmap.atlas.utilities.maps.MultiMap;
 /**
  * This class tracks all way-section updates that result in changes to raw atlas entities. The
  * possible changes are:
- * <p>
  * <ul>
  * <li>Raw atlas point becoming a {@link Node}.
  * <li>Raw atlas point staying a {@link Point} (vs. becoming a simple shape point).
