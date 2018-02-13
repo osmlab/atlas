@@ -271,7 +271,9 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 else
                 {
                     // There is at least one Point at this Location in the raw Atlas
-                    // Update all existing points to have the country code.
+                    // Update all existing points to have the country code. Note: raw Atlas combines
+                    // all Nodes at a single location into one, so expect only a single point to be
+                    // added here.
                     for (final Point rawAtlasPoint : rawAtlasPointsAtCoordinate)
                     {
                         // Add all point identifiers to make up the new Line

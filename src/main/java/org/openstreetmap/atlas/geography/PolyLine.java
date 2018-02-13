@@ -26,6 +26,7 @@ import org.openstreetmap.atlas.geography.matching.PolyLineMatch;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.streaming.writers.JsonWriter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Angle;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
@@ -202,6 +203,27 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         }
 
         return result;
+    }
+
+    /**
+     * Append the given {@link PolyLine} to this one, if possible.
+     *
+     * @param other
+     *            The {@link PolyLine} to append
+     * @return the new, combined {@link PolyLine}
+     */
+    public PolyLine append(final PolyLine other)
+    {
+        if (this.last().equals(other.first()))
+        {
+            return new PolyLine(new MultiIterable<>(this, other.innerLocations(), other.last()));
+        }
+        else
+        {
+            throw new CoreException(
+                    "Cannot append {} to {} - the end and start points do not match.",
+                    other.toWkt(), this.toWkt());
+        }
     }
 
     public GeoJsonObject asGeoJson()
@@ -824,6 +846,27 @@ public class PolyLine implements Collection<Location>, Located, Serializable
             }
         }
         return true;
+    }
+
+    /**
+     * Prepends the given {@link PolyLine} to this one, if possible.
+     *
+     * @param other
+     *            The {@link PolyLine} to prepend
+     * @return the new, combined {@link PolyLine}
+     */
+    public PolyLine prepend(final PolyLine other)
+    {
+        if (this.first().equals(other.last()))
+        {
+            return new PolyLine(new MultiIterable<>(other, this.innerLocations(), this.last()));
+        }
+        else
+        {
+            throw new CoreException(
+                    "Cannot prepend {} to {} - the end and start points do not match.",
+                    other.toWkt(), this.toWkt());
+        }
     }
 
     @Override

@@ -80,7 +80,7 @@ public enum PbfOneWay
         }
     }
 
-    private static boolean isNotAccessibleToVehicles(final Taggable taggable)
+    public static boolean isNotAccessibleToVehicles(final Taggable taggable)
     {
         // If way has "access=no" tag and does not have "motor_vehicle=yes", "motorcar=yes"
         // or "vehicle=yes" tags combined with it, then this way is closed for motor vehicles

@@ -89,6 +89,14 @@ public abstract class LineItem extends AtlasItem
         return this.asPolyLine().overallHeading();
     }
 
+    /**
+     * @return the number of shape-points for this item.
+     */
+    public int size()
+    {
+        return asPolyLine().size();
+    }
+
     @Override
     public LocationIterableProperties toGeoJsonBuildingBlock()
     {

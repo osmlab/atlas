@@ -4,6 +4,7 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.converters.WktPolyLineConverter;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.slf4j.Logger;
@@ -16,6 +17,16 @@ import org.slf4j.LoggerFactory;
 public class PolyLineTest
 {
     private static final Logger logger = LoggerFactory.getLogger(PolyLineTest.class);
+
+    @Test
+    public void testAppend()
+    {
+        final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
+        final PolyLine line2 = new PolyLine(Location.TEST_1, Location.TEST_7);
+        final PolyLine appended = line.append(line2);
+        Assert.assertTrue(appended.equalsShape(
+                new PolyLine(Location.CROSSING_85_280, Location.TEST_1, Location.TEST_7)));
+    }
 
     @Test
     public void testContains()
@@ -73,6 +84,15 @@ public class PolyLineTest
         Assert.assertTrue(polyLine1.equalsShape(polyLine2));
     }
 
+    @Test(expected = CoreException.class)
+    public void testInvalidAppend()
+    {
+        final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
+        final PolyLine line2 = new PolyLine(Location.CROSSING_85_280, Location.TEST_7);
+        @SuppressWarnings("unused")
+        final PolyLine appended = line.append(line2);
+    }
+
     @Test
     public void testOverlapsShape()
     {
@@ -88,6 +108,16 @@ public class PolyLineTest
 
         Assert.assertFalse(smaller.overlapsShapeOf(larger));
         Assert.assertFalse(smallerReversed.overlapsShapeOf(larger));
+    }
+
+    @Test
+    public void testPrepend()
+    {
+        final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
+        final PolyLine line2 = new PolyLine(Location.TEST_7, Location.CROSSING_85_280);
+        final PolyLine prepended = line.prepend(line2);
+        Assert.assertTrue(prepended.equalsShape(
+                new PolyLine(Location.TEST_7, Location.CROSSING_85_280, Location.TEST_1)));
     }
 
     @Test
