@@ -216,7 +216,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     {
         if (this.last().equals(other.first()))
         {
-            return new PolyLine(new MultiIterable<>(this, other.innerLocations(), other.last()));
+            return new PolyLine(new MultiIterable<>(this, other.truncate(1, 0)));
         }
         else
         {
@@ -545,7 +545,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public Iterable<Location> innerLocations()
     {
-        return Iterables.stream(this).truncate(1, 1);
+        return this.truncate(1, 1);
     }
 
     public Set<Location> intersections(final PolyLine candidate)
@@ -859,7 +859,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     {
         if (this.first().equals(other.last()))
         {
-            return new PolyLine(new MultiIterable<>(other, this.innerLocations(), this.last()));
+            return new PolyLine(new MultiIterable<>(other, this.truncate(1, 0)));
         }
         else
         {
@@ -1115,6 +1115,27 @@ public class PolyLine implements Collection<Location>, Located, Serializable
             return new WktLocationConverter().convert(this.first());
         }
         return new WktPolyLineConverter().convert(this);
+    }
+
+    /**
+     * Truncates this {@link PolyLine} at the given start and end index
+     *
+     * @param startIndex
+     *            The index before which to truncate from the start
+     * @param endIndex
+     *            The index after which to truncate from the end
+     * @return all the locations in this {@link PolyLine} after truncation.
+     */
+    public Iterable<Location> truncate(final int startIndex, final int endIndex)
+    {
+        if (startIndex < 0 || endIndex < 0 || startIndex >= this.size() || endIndex >= this.size()
+                || startIndex + endIndex >= this.size())
+        {
+            throw new CoreException("Invalid start index {} or end index {} supplied.", startIndex,
+                    endIndex);
+        }
+
+        return Iterables.stream(this).truncate(startIndex, endIndex);
     }
 
     /**

@@ -195,8 +195,12 @@ public class WaySectionProcessor
         changeSet.getLinesThatBecomeAreas().forEach(areaIdentifier ->
         {
             final Line line = this.rawAtlas.line(areaIdentifier);
-            builder.addArea(areaIdentifier, new Polygon(line.asPolyLine()), line.getTags());
-            // TODO fix the second to last point repeated issue. Remove last point!
+            // The PolyLine class stores all points. Since these are closed lines, the first and
+            // last point is identical. The Polygon class expects the last point to not be the first
+            // point, that is implicit. So when forming the Polygon, we need to remove the last
+            // point to avoid duplicating it.
+            builder.addArea(areaIdentifier, new Polygon(line.asPolyLine().truncate(0, 1)),
+                    line.getTags());
         });
 
         // Relations
