@@ -96,7 +96,8 @@ public class PolygonTest
         Assert.assertTrue(polygon.fullyGeometricallyEncloses(inside1));
         Assert.assertTrue(polygon.fullyGeometricallyEncloses(onBoundary1));
         Assert.assertTrue(polygon.fullyGeometricallyEncloses(onBoundary2));
-        Assert.assertTrue(polygon.fullyGeometricallyEncloses(onBoundary3));
+        // see awt definition of contains
+        Assert.assertFalse(polygon.fullyGeometricallyEncloses(onBoundary3));
         Assert.assertFalse(polygon.fullyGeometricallyEncloses(outside1));
         Assert.assertFalse(polygon.fullyGeometricallyEncloses(outside2));
     }
@@ -115,7 +116,8 @@ public class PolygonTest
 
         Assert.assertTrue(concave.fullyGeometricallyEncloses(inside1));
         Assert.assertTrue(concave.fullyGeometricallyEncloses(onBoundary1));
-        Assert.assertTrue(concave.fullyGeometricallyEncloses(onBoundary2));
+        // see awt definition of contains
+        Assert.assertFalse(concave.fullyGeometricallyEncloses(onBoundary2));
         Assert.assertFalse(concave.fullyGeometricallyEncloses(outside1));
         Assert.assertFalse(concave.fullyGeometricallyEncloses(outside2));
         Assert.assertTrue(concave.intersects(new Segment(outside1, inside1)));
@@ -550,6 +552,22 @@ public class PolygonTest
     }
 
     @Test
+    public void testMassivePolygonWithJTS()
+    {
+        final Polygon polygon = Polygon
+                .wkt("POLYGON ((-160 -20, 179 -20, 179 -85, -160 -85, -160 -20))");
+        final Location interior1 = Location.forString("-25,-150");
+        final Location onBoundary1 = Location.forString("-20, -160");
+        final Location onBoundary2 = Location.forString("-20, 179");
+        final Location exterior1 = Location.forString("20, 0");
+        Assert.assertTrue(polygon.fullyGeometricallyEncloses(interior1));
+        Assert.assertTrue(polygon.fullyGeometricallyEncloses(onBoundary1));
+        // this would be excluded by awt definition of contains
+        Assert.assertTrue(polygon.fullyGeometricallyEncloses(onBoundary2));
+        Assert.assertFalse(polygon.fullyGeometricallyEncloses(exterior1));
+    }
+
+    @Test
     public void testNoAnglesMatchingOurCriteria()
     {
         final PolyLine polyLine = new PolyLine(this.quadrant);
@@ -581,7 +599,8 @@ public class PolygonTest
         final Location middleThirdSegment = polygon.segmentForIndex(2).middle();
         // Locations on the zero area part are still on the boundary, and therefore contained
         Assert.assertTrue(polygon.fullyGeometricallyEncloses(middleZeroAreaPart));
-        Assert.assertTrue(polygon.fullyGeometricallyEncloses(endpointZeroAreaPart));
+        // see awt definition of contains
+        Assert.assertFalse(polygon.fullyGeometricallyEncloses(endpointZeroAreaPart));
         Assert.assertTrue(polygon.fullyGeometricallyEncloses(middleThirdSegment));
     }
 
@@ -595,7 +614,8 @@ public class PolygonTest
         final Location onZeroAreaPart = Location.forString("0.0007635, 0.0132954");
         final Location endpoint = Location.forString("0.0007635,-0.0174722");
         Assert.assertTrue(polygon.fullyGeometricallyEncloses(onZeroAreaPart));
-        Assert.assertTrue(polygon.fullyGeometricallyEncloses(endpoint));
+        // see awt definition of contains
+        Assert.assertFalse(polygon.fullyGeometricallyEncloses(endpoint));
     }
 
     @Test

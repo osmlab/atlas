@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography;
 
+import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -58,6 +59,8 @@ public class Polygon extends PolyLine
 
     // Calculate sides starting from triangles
     private static final int MINIMUM_N_FOR_SIDE_CALCULATION = 3;
+    private Area awtArea;
+    private java.awt.Polygon awtPolygon;
 
     /**
      * Generate a random polygon within bounds.
@@ -161,9 +164,18 @@ public class Polygon extends PolyLine
      */
     public boolean fullyGeometricallyEncloses(final Location location)
     {
-        final com.vividsolutions.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
-        final Point point = new JtsPointConverter().convert(location);
-        return polygon.covers(point);
+        // if this value overflows, use JTS to correctly calculate covers
+        if (this.bounds().width().asDm7() < 0)
+        {
+            final com.vividsolutions.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
+            final Point point = new JtsPointConverter().convert(location);
+            return polygon.covers(point);
+        }
+        // for most cases use the faster awt covers
+        else
+        {
+            return awtPolygon().contains(location.asAwtPoint());
+        }
     }
 
     /**
@@ -208,8 +220,17 @@ public class Polygon extends PolyLine
             return false;
         }
         // The item is within the bounds of this Polygon
-        final com.vividsolutions.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
-        return polygon.covers(JTS_POLYGON_CONVERTER.convert(rectangle));
+        // if this value overflows, use JTS to correctly calculate covers
+        if (bounds.width().asDm7() < 0)
+        {
+            final com.vividsolutions.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
+            return polygon.covers(JTS_POLYGON_CONVERTER.convert(rectangle));
+        }
+        // for most cases use the faster awt covers
+        else
+        {
+            return awtArea().contains(rectangle.asAwtRectangle());
+        }
     }
 
     /**
@@ -564,6 +585,34 @@ public class Polygon extends PolyLine
             index++;
         }
         throw new CoreException("{} is not a vertex of {}", vertex, this);
+    }
+
+    protected Area awtArea()
+    {
+        if (this.awtArea == null)
+        {
+            this.awtArea = new Area(awtPolygon());
+        }
+        return this.awtArea;
+    }
+
+    private java.awt.Polygon awtPolygon()
+    {
+        if (this.awtPolygon == null)
+        {
+            final int size = size();
+            final int[] xArray = new int[size];
+            final int[] yArray = new int[size];
+            int index = 0;
+            for (final Location location : this)
+            {
+                xArray[index] = (int) location.getLongitude().asDm7();
+                yArray[index] = (int) location.getLatitude().asDm7();
+                index++;
+            }
+            this.awtPolygon = new java.awt.Polygon(xArray, yArray, size);
+        }
+        return this.awtPolygon;
     }
 
     private Iterable<Location> loopOnItself()

@@ -5,7 +5,7 @@ import org.openstreetmap.atlas.utilities.testing.CoreTestRule;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas;
 
 /**
- * {@link PolygonTest} data
+ * {@link PolygonPerfTest} data
  *
  * @author mgostintsev
  */
@@ -18,5 +18,4 @@ public class PolygonTestRule extends CoreTestRule
     {
         return this.complexForestPolygon;
     }
-
 }
