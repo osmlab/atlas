@@ -177,7 +177,7 @@ public class Polygon extends PolyLine
     public boolean fullyGeometricallyEncloses(final Location location)
     {
         // if this value overflows, use JTS to correctly calculate covers
-        if (this.bounds().width().asDm7() < 0)
+        if (awtOverflows())
         {
             final com.vividsolutions.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
             final Point point = new JtsPointConverter().convert(location);
@@ -233,7 +233,7 @@ public class Polygon extends PolyLine
         }
         // The item is within the bounds of this Polygon
         // if this value overflows, use JTS to correctly calculate covers
-        if (bounds.width().asDm7() < 0)
+        if (awtOverflows())
         {
             final com.vividsolutions.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
             return polygon.covers(JTS_POLYGON_CONVERTER.convert(rectangle));
@@ -606,6 +606,11 @@ public class Polygon extends PolyLine
             this.awtArea = new Area(awtPolygon());
         }
         return this.awtArea;
+    }
+
+    private boolean awtOverflows()
+    {
+        return this.bounds().width().asDm7() < 0 || this.bounds().height().asDm7() < 0;
     }
 
     private java.awt.Polygon awtPolygon()
