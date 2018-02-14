@@ -5,7 +5,7 @@ import org.openstreetmap.atlas.utilities.testing.CoreTestRule;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas;
 
 /**
- * {@link PolygonPerfTest} data
+ * {@link PolygonTest} data
  *
  * @author mgostintsev
  */

@@ -156,7 +156,19 @@ public class Polygon extends PolyLine
 
     /**
      * Tests if this {@link Polygon} fully encloses (geometrically contains) a {@link Location}
-     * Returns true if the location lies within the polygon or anywhere on the boundary.
+     * <p>
+     * Here is the definition of contains (insideness) of awt point.
+     * <p>
+     * Definition of insideness: A point is considered to lie inside a Shape if and only if: it lies
+     * completely inside the Shape boundary or it lies exactly on the Shape boundary and the space
+     * immediately adjacent to the point in the increasing X direction is entirely inside the
+     * boundary or it lies exactly on a horizontal boundary segment and the space immediately
+     * adjacent to the point in the increasing Y direction is inside the boundary.
+     * <p>
+     * In the case of a massive polygon (larger than 75% of the earth's width) the JTS definition of
+     * covers is used instead, which will return true if the location lies within the polygon or
+     * anywhere on the boundary.
+     * <p>
      *
      * @param location
      *            The {@link Location} to test
