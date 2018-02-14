@@ -93,6 +93,15 @@ public class PolyLineTest
         final PolyLine appended = line.append(line2);
     }
 
+    @Test(expected = CoreException.class)
+    public void testInvalidPrepend()
+    {
+        final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
+        final PolyLine line2 = new PolyLine(Location.CROSSING_85_280, Location.TEST_7);
+        @SuppressWarnings("unused")
+        final PolyLine prepended = line.prepend(line2);
+    }
+
     @Test
     public void testOverlapsShape()
     {

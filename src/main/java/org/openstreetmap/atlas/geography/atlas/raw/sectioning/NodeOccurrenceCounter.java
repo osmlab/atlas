@@ -11,7 +11,7 @@ import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryNo
 
 /**
  * Keeps track of all {@link TemporaryNode}s created for an atlas {@link Edge} and the occurrence of
- * it in the underlying polyline.
+ * it in the underlying polyline. This is used specifically for raw atlas way-sectioning.
  *
  * @author mgostintsev
  */

@@ -11,6 +11,7 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
@@ -25,11 +26,6 @@ import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryNo
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.tags.AtlasTag;
-import org.openstreetmap.atlas.tags.HighwayTag;
-import org.openstreetmap.atlas.tags.ManMadeTag;
-import org.openstreetmap.atlas.tags.RailwayTag;
-import org.openstreetmap.atlas.tags.RouteTag;
-import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
@@ -49,8 +45,8 @@ public class WaySectionProcessor
     private static final int MINIMUM_POINTS_TO_QUALIFY_AS_A_LINE = 2;
 
     private final Atlas rawAtlas;
-    private final Sharding shardingTree;
-    private final Function<Shard, Optional<Atlas>> atlasFetcher;
+    private final Sharding sharding;
+    private final Function<Shard, Optional<Atlas>> rawAtlasFetcher;
     private final AtlasLoadingOption loadingOption;
 
     /**
@@ -68,27 +64,27 @@ public class WaySectionProcessor
 
     /**
      * Sections the given raw {@link Atlas} and guarantees consistent identifiers for all Atlas
-     * files obtained by using the given fetcher policy. If the sharding tree and atlas fetcher
+     * files obtained by using the given fetcher policy. If the sharding and raw atlas fetcher
      * function is not provided, then no expansion will be done and only the given atlas will be
-     * way-sectioned. Note: the sharding tree must the same as the one used to generate the input
-     * raw Atlas.
+     * way-sectioned. Note: the sharding must the same as the one used to generate the input raw
+     * Atlas.
      *
      * @param rawAtlas
      *            The raw {@link Atlas} to section
      * @param loadingOption
      *            The {@link AtlasLoadingOption} to use
-     * @param shardingTree
-     *            The {@link Sharding} tree to use to know which neighboring atlas files to get
-     * @param atlasFetcher
+     * @param sharding
+     *            The {@link Sharding} to use to know which neighboring atlas files to get
+     * @param rawAtlasFetcher
      *            The fetching policy to use to obtain adjacent atlas files
      */
     public WaySectionProcessor(final Atlas rawAtlas, final AtlasLoadingOption loadingOption,
-            final Sharding shardingTree, final Function<Shard, Optional<Atlas>> atlasFetcher)
+            final Sharding sharding, final Function<Shard, Optional<Atlas>> rawAtlasFetcher)
     {
         this.rawAtlas = rawAtlas;
-        this.shardingTree = shardingTree;
+        this.sharding = sharding;
         this.loadingOption = loadingOption;
-        this.atlasFetcher = atlasFetcher;
+        this.rawAtlasFetcher = rawAtlasFetcher;
     }
 
     /**
@@ -154,7 +150,7 @@ public class WaySectionProcessor
         final PackedAtlasBuilder builder = new PackedAtlasBuilder();
         final AtlasSize sizeEstimate = createAtlasSizeEstimate(changeSet);
         builder.setSizeEstimates(sizeEstimate);
-        builder.setMetaData(this.rawAtlas.metaData());
+        builder.setMetaData(createAtlasMetadata());
 
         // Points
         changeSet.getPointsThatStayPoints().forEach(pointIdentifier ->
@@ -273,20 +269,26 @@ public class WaySectionProcessor
     }
 
     /**
-     * Determines if the given {@link Line} contains more than
-     * {@link #MINIMUM_SHAPE_POINTS_TO_QUALIFY_AS_AREA} shape points. The reason to use 3 is because
-     * OSM forces closed polygons. If we have only 3 nodes (a -> b -> c), then it's not a polygon.
-     * If we have (a -> b -> a), then we have a flat line. At minimum, we are looking for (a -> b ->
-     * c -> a).
+     * Updates the {@link AtlasMetaData} with all configurations used
      *
-     * @param line
-     *            The {@link Line} to check
-     * @return {@code true} if given {@link Line} contains more than
-     *         {@link #MINIMUM_SHAPE_POINTS_TO_QUALIFY_AS_AREA} shape points
+     * @return the final {@link AtlasMetaData}
      */
-    private boolean containsMoreThanThreeShapePoints(final Line line)
+    private AtlasMetaData createAtlasMetadata()
     {
-        return line.size() > MINIMUM_SHAPE_POINTS_TO_QUALIFY_AS_AREA;
+        final AtlasMetaData metadata = this.rawAtlas.metaData();
+        metadata.getTags().put(AtlasMetaData.EDGE_CONFIGURATION,
+                this.loadingOption.getEdgeFilter().toString());
+        metadata.getTags().put(AtlasMetaData.AREA_CONFIGURATION,
+                this.loadingOption.getAreaFilter().toString());
+        metadata.getTags().put(AtlasMetaData.WAY_SECTIONING_CONFIGURATION,
+                this.loadingOption.getWaySectionFilter().toString());
+        metadata.getTags().put(AtlasMetaData.OSM_PBF_NODE_CONFIGURATION,
+                this.loadingOption.getOsmPbfNodeFilter().toString());
+        metadata.getTags().put(AtlasMetaData.OSM_PBF_WAY_CONFIGURATION,
+                this.loadingOption.getOsmPbfWayFilter().toString());
+        metadata.getTags().put(AtlasMetaData.OSM_PBF_RELATION_CONFIGURATION,
+                this.loadingOption.getOsmPbfRelationFilter().toString());
+        return metadata;
     }
 
     /**
@@ -389,8 +391,7 @@ public class WaySectionProcessor
                     // TODO - Getting non-intersecting lines from the spatial query results.
                     // So purposefully specifying "contains shapePoint". Need to resolve this!
 
-                    // If there are other edges that intersect our shape point, it becomes a
-                    // node
+                    // If there are other edges intersecting the shape point, it becomes a node
                     if (locationHasIntersectingLinesMatchingPredicate(shapePoint,
                             target -> target.getIdentifier() != line.getIdentifier()
                                     && isAtlasEdge(target)
@@ -442,7 +443,8 @@ public class WaySectionProcessor
     /**
      * Determines if the given raw atlas {@link Line} qualifies to be an {@link Area} in the final
      * atlas. An Atlas {@link Area} is defined as being closed, with more than 3 shape points and
-     * must not contain highway tags, be a ferry, pier or railway.
+     * meeting some tag requirements. Relies on the underlying {@link AtlasLoadingOption}
+     * configuration to make the decision regarding tags.
      *
      * @param line
      *            The {@link Line} to test
@@ -450,9 +452,8 @@ public class WaySectionProcessor
      */
     private boolean isAtlasArea(final Line line)
     {
-        return line.isClosed() && containsMoreThanThreeShapePoints(line)
-                && !Validators.hasValuesFor(line, HighwayTag.class) && !RouteTag.isFerry(line)
-                && !ManMadeTag.isPier(line) && !RailwayTag.isRailway(line);
+        return line.isClosed() && qualifiesAsArea(line)
+                && this.loadingOption.getAreaFilter().test(line);
     }
 
     /**
@@ -481,7 +482,7 @@ public class WaySectionProcessor
      */
     private boolean isAtlasLine(final Line line)
     {
-        return !isAtlasEdge(line) && (!line.isClosed() || line.size() == 1);
+        return !isAtlasEdge(line) && (!line.isClosed() || line.numberOfShapePoints() == 1);
     }
 
     /**
@@ -591,9 +592,27 @@ public class WaySectionProcessor
     }
 
     /**
-     * TODO
+     * Determines if the given {@link Line} contains more than
+     * {@link #MINIMUM_SHAPE_POINTS_TO_QUALIFY_AS_AREA} shape points. The reason to use 3 is because
+     * OSM forces closed polygons. If we have only 3 nodes (a -> b -> c), then it's not a polygon.
+     * If we have (a -> b -> a), then we have a flat line. At minimum, we are looking for (a -> b ->
+     * c -> a).
      *
      * @param line
+     *            The {@link Line} to check
+     * @return {@code true} if given {@link Line} contains more than
+     *         {@link #MINIMUM_SHAPE_POINTS_TO_QUALIFY_AS_AREA} shape points
+     */
+    private boolean qualifiesAsArea(final Line line)
+    {
+        return line.numberOfShapePoints() > MINIMUM_SHAPE_POINTS_TO_QUALIFY_AS_AREA;
+    }
+
+    /**
+     * Sections all lines that are set to become edges in the final atlas.
+     *
+     * @param changeSet
+     *            The {@link WaySectionChangeSet} to rely on for keeping track of updates
      */
     private void sectionEdges(final WaySectionChangeSet changeSet)
     {

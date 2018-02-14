@@ -90,7 +90,7 @@ public class EdgeTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Edge edge = atlas.edge(293669785000000L);
-        Assert.assertTrue(edge.size() == 2);
+        Assert.assertTrue(edge.numberOfShapePoints() == 2);
     }
 
 }

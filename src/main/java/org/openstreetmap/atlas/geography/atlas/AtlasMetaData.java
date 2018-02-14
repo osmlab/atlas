@@ -18,6 +18,7 @@ public final class AtlasMetaData implements Serializable, Taggable
     private static final long serialVersionUID = -285346019736489425L;
 
     public static final String EDGE_CONFIGURATION = "edgeConfiguration";
+    public static final String AREA_CONFIGURATION = "areaConfiguration";
     public static final String WAY_SECTIONING_CONFIGURATION = "waySectioningConfiguration";
     public static final String OSM_PBF_WAY_CONFIGURATION = "osmPbfWayConfiguration";
     public static final String OSM_PBF_NODE_CONFIGURATION = "osmPbfNodeConfiguration";
