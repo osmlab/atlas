@@ -17,7 +17,7 @@ import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryNo
  */
 public class NodeOccurrenceCounter
 {
-    // Mapping of node to occurence
+    // Mapping of node to occurrence
     private final Map<TemporaryNode, Integer> nodes = new HashMap<>();
 
     /**
@@ -47,7 +47,6 @@ public class NodeOccurrenceCounter
                 return Optional.of(node);
             }
         }
-
         return Optional.empty();
     }
 

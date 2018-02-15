@@ -31,11 +31,11 @@ public class StreamIterable<T> implements Iterable<T>
     }
 
     /**
-     * Test whether all elements from iterable matches given predicate or not
+     * Test whether all elements from iterable match the given predicate
      *
      * @param predicate
      *            Predicate to test
-     * @return True when given predicate is true for all entities in iterable, else false
+     * @return {@code true} when given predicate is true for all entities in iterable, else false
      */
     public boolean allMatch(final Predicate<T> predicate)
     {
@@ -43,11 +43,11 @@ public class StreamIterable<T> implements Iterable<T>
     }
 
     /**
-     * Test whether any of the elements from iterable matches given predicate
+     * Test whether any of the elements from iterable matches the given predicate
      *
      * @param predicate
      *            Predicate to test
-     * @return True when given predicate is true for any one entity in iterable, else false
+     * @return {@code true} when given predicate is true for any one entity in iterable, else false
      */
     public boolean anyMatch(final Predicate<T> predicate)
     {

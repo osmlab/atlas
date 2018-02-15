@@ -76,7 +76,7 @@ public class WaySectionProcessor
      * @param sharding
      *            The {@link Sharding} to use to know which neighboring atlas files to get
      * @param rawAtlasFetcher
-     *            The fetching policy to use to obtain adjacent atlas files
+     *            The fetching policy to use to obtain adjacent raw atlas files
      */
     public WaySectionProcessor(final Atlas rawAtlas, final AtlasLoadingOption loadingOption,
             final Sharding sharding, final Function<Shard, Optional<Atlas>> rawAtlasFetcher)
@@ -231,7 +231,7 @@ public class WaySectionProcessor
                     case LINE:
                         if (changeSet.getLineToCreatedEdgesMapping().containsKey(memberIdentifier))
                         {
-                            // Replace existing line with created Edges
+                            // Replace existing line with created edges
                             changeSet.getLineToCreatedEdgesMapping().allValues().forEach(edge ->
                             {
                                 bean.addItem(edge.getIdentifier(), member.getRole(), ItemType.EDGE);
@@ -273,7 +273,7 @@ public class WaySectionProcessor
     }
 
     /**
-     * Updates the {@link AtlasMetaData} with all configurations used
+     * Updates the {@link AtlasMetaData} with all configurations.
      *
      * @return the final {@link AtlasMetaData}
      */
@@ -353,9 +353,8 @@ public class WaySectionProcessor
             else
             {
                 // If a raw atlas point doesn't become a node or point in the way-sectioned atlas,
-                // that point is a shape point and will be tracked by the underlying polyline of the
-                // Area, Line or Edge that the shape point is a part of. We can safely ignore
-                // handling them here.
+                // it's a shape point and will be tracked by the underlying polyline of the area,
+                // line or edge that it's a part of. We can safely ignore handling them here.
             }
         });
     }
@@ -404,9 +403,9 @@ public class WaySectionProcessor
                         final Iterable<Point> pointsAtLocation = this.rawAtlas.pointsAt(shapePoint);
                         if (Iterables.size(pointsAtLocation) > 1)
                         {
-                            // This shouldn't happen, so let's log this case and section at all
-                            // points. By definition, all stacked (same location) OSM nodes will
-                            // be collapsed to a single atlas point during raw atlas creation.
+                            // This shouldn't happen, so let's log and section at all points. By
+                            // definition, all stacked (same location) OSM nodes will be collapsed
+                            // to a single atlas point during raw atlas creation.
                             logger.error("Detected more than one point at {}", shapePoint);
                         }
                         addPointToNodeList(shapePoint, nodesForEdge);
@@ -416,7 +415,7 @@ public class WaySectionProcessor
                 if (line.isClosed() && nodesForEdge.size() == 0)
                 {
                     // Handle isolated rings by creating a node at the start and the middle
-                    // shape point, effectively splitting it in half
+                    // shape point, effectively splitting it in half.
                     addPointToNodeList(polyLine.first(), nodesForEdge);
                     addPointToNodeList(polyLine.get(polyLine.size() / 2), nodesForEdge);
                 }
@@ -438,8 +437,7 @@ public class WaySectionProcessor
             }
             else if (isAtlasLine(line))
             {
-                // No-op. If a line doesn't quality to be an edge or area, it will stay a line in
-                // the resulting atlas.
+                // No-op. If a line doesn't quality to be an edge or area, it stays a line.
             }
         });
     }
@@ -523,14 +521,13 @@ public class WaySectionProcessor
 
         if (!point.relations().isEmpty() && !hasExplicitOsmTags && !isAtlasNode(changeSet, point))
         {
-            // When the OSM node is part of a relation, doesn't have any explicit OSM tagging and is
-            // not at an intersection (not an atlas node), then we want to create an atlas point so
-            // we don't lose this node as a member of our relation.
+            // When the OSM node is part of a relation, doesn't have explicit OSM tagging and is not
+            // at an intersection (not an atlas node), then we want to create an atlas point so we
+            // don't lose this node as a member of our relation.
             return true;
         }
 
-        // All other times, we defer to the presence of explicit OSM tagging to determine whether
-        // it's a point
+        // All other times, we use the presence of explicit OSM tagging to determine if it's a point
         return hasExplicitOsmTags;
     }
 
@@ -691,8 +688,8 @@ public class WaySectionProcessor
         final PbfOneWay oneWay = PbfOneWay.forTag(line);
         final boolean hasReverse = oneWay == PbfOneWay.NO;
 
-        // Keep track of the starting index, start/end nodes
-        int startingIndex;
+        // Keep track of the start index, start/end nodes
+        int startIndex;
         Optional<TemporaryNode> startNode = Optional.empty();
         Optional<TemporaryNode> endNode = Optional.empty();
 
@@ -701,7 +698,7 @@ public class WaySectionProcessor
             if (oneWay != PbfOneWay.REVERSED)
             {
                 // Find the first node
-                startingIndex = 0;
+                startIndex = 0;
                 startNode = nodesToSectionAt.getNode(polyline.first());
                 if (!startNode.isPresent())
                 {
@@ -720,17 +717,21 @@ public class WaySectionProcessor
                     if (endNode.isPresent())
                     {
                         // We found the end node, create the edge. Note: using occurrence minus one
-                        // since PolyLine uses zero-based numbering
-                        final PolyLine edgePolyline = polyline.between(polyline.get(startingIndex),
-                                nodesToSectionAt.getOccurrence(startNode.get()) - 1,
-                                polyline.get(index),
-                                nodesToSectionAt.getOccurrence(endNode.get()) - 1);
+                        // since PolyLine uses zero-based numbering. We are incrementing only the
+                        // start node occurrence, since the end node will either be used as a future
+                        // start node or be the end of the way, in which case we don't care.
+                        final int startOccurrence = nodesToSectionAt.getOccurrence(startNode.get())
+                                - 1;
+                        nodesToSectionAt.incrementOccurrence(startNode.get());
+                        final int endOccurrence = nodesToSectionAt.getOccurrence(endNode.get()) - 1;
+
+                        final PolyLine edgePolyline = polyline.between(polyline.get(startIndex),
+                                startOccurrence, polyline.get(index), endOccurrence);
                         newEdgesForLine.add(new TemporaryEdge(identifierFactory.nextIdentifier(),
                                 edgePolyline, line.getTags(), hasReverse));
 
-                        // Increment start node occurrence and starting identifiers
-                        nodesToSectionAt.incrementOccurrence(startNode.get());
-                        startingIndex = index;
+                        // Increment starting pointers
+                        startIndex = index;
                         startNode = endNode;
                     }
                 }
@@ -738,7 +739,7 @@ public class WaySectionProcessor
             else
             {
                 // Find the first node (start from the back)
-                startingIndex = polyline.size() - 1;
+                startIndex = polyline.size() - 1;
                 startNode = nodesToSectionAt.getNode(polyline.last());
                 if (!startNode.isPresent())
                 {
@@ -759,19 +760,23 @@ public class WaySectionProcessor
                     {
                         // We found the end node, create the edge. Because we're going from polyline
                         // end, we need to specify indices in occurrence order and then reverse it.
-                        // Note: using occurrence minus one since PolyLine uses zero-based numbering
-                        final PolyLine edgePolyline = polyline
-                                .between(polyline.get(index),
-                                        nodesToSectionAt.getOccurrence(endNode.get()) - 1,
-                                        polyline.get(startingIndex),
-                                        nodesToSectionAt.getOccurrence(startNode.get()) - 1)
+                        // Note: using occurrence minus one since PolyLine uses zero-based
+                        // numbering. We are incrementing only the start node occurrence, since the
+                        // end node will either be used as a future start node or be the end of the
+                        // way, in which case we don't care.
+                        final int startOccurrence = nodesToSectionAt.getOccurrence(startNode.get())
+                                - 1;
+                        nodesToSectionAt.incrementOccurrence(startNode.get());
+                        final int endOccurrence = nodesToSectionAt.getOccurrence(endNode.get()) - 1;
+
+                        final PolyLine edgePolyline = polyline.between(polyline.get(index),
+                                endOccurrence, polyline.get(startIndex), startOccurrence)
                                 .reversed();
                         newEdgesForLine.add(new TemporaryEdge(identifierFactory.nextIdentifier(),
                                 edgePolyline, line.getTags(), hasReverse));
 
-                        // Increment start node occurrence and starting identifiers
-                        nodesToSectionAt.incrementOccurrence(startNode.get());
-                        startingIndex = index;
+                        // Increment starting pointers
+                        startIndex = index;
                         startNode = endNode;
                     }
                 }
@@ -781,7 +786,6 @@ public class WaySectionProcessor
         {
             logger.error("Failed to way-section line {}", line.getIdentifier(), e);
         }
-
         return newEdgesForLine;
     }
 
@@ -812,7 +816,7 @@ public class WaySectionProcessor
         final boolean hasReverse = oneWay == PbfOneWay.NO;
 
         // Keep track of the starting index, start/end nodes and relevant flags
-        int startingIndex = 0;
+        int startIndex = 0;
         PolyLine polyLineUpToFirstNode = null;
         boolean firstLocationNotNode = true;
         Optional<TemporaryNode> startNode = Optional.empty();
@@ -840,8 +844,7 @@ public class WaySectionProcessor
                         {
                             // We only want to create an edge if we've started from a node. If we've
                             // started from a shape point, we've just encountered our first node.
-                            final PolyLine edgePolyline = polyline.between(
-                                    polyline.get(startingIndex),
+                            final PolyLine edgePolyline = polyline.between(polyline.get(startIndex),
                                     nodesToSectionAt.getOccurrence(startNode.get()) - 1,
                                     polyline.get(index),
                                     nodesToSectionAt.getOccurrence(endNode.get()) - 1);
@@ -854,7 +857,7 @@ public class WaySectionProcessor
                         }
 
                         // Update starting points
-                        startingIndex = index;
+                        startIndex = index;
                         startNode = endNode;
 
                         // We've found the first node, save the polyline from the first location to
@@ -879,7 +882,7 @@ public class WaySectionProcessor
                                     line.getIdentifier());
                         }
                         final PolyLine polylineFromLastNodeToLastLocation = polyline.between(
-                                polyline.get(startingIndex),
+                                polyline.get(startIndex),
                                 nodesToSectionAt.getOccurrence(startNode.get()) - 1,
                                 polyline.get(index), 1);
                         final PolyLine edgePolyLine = polylineFromLastNodeToLastLocation
@@ -896,7 +899,6 @@ public class WaySectionProcessor
         {
             logger.error("Failed to way-section line {}", line.getIdentifier(), e);
         }
-
         return newEdgesForLine;
     }
 }
