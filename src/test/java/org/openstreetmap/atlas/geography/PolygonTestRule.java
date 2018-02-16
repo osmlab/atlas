@@ -18,5 +18,4 @@ public class PolygonTestRule extends CoreTestRule
     {
         return this.complexForestPolygon;
     }
-
 }

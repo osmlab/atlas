@@ -1,7 +1,9 @@
 package org.openstreetmap.atlas.utilities.configuration;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -23,6 +25,7 @@ import com.google.common.base.Joiner;
  *
  * @author cstaylor
  * @author brian_l_davis
+ * @author jklamer
  */
 public class StandardConfiguration implements Configuration
 {
@@ -38,8 +41,8 @@ public class StandardConfiguration implements Configuration
      */
     private final class StandardConfigurable<Raw, Transformed> implements Configurable
     {
-        private final String key;
         private final Transformed defaultValue;
+        private final String key;
         private final Function<Raw, Transformed> transform;
 
         private StandardConfigurable(final String key, final Raw defaultValue,
@@ -75,6 +78,8 @@ public class StandardConfiguration implements Configuration
         }
     }
 
+    // "override" is no longer available to use as a configuration key
+    private static final String OVERRIDE_STRING = "override";
     private static final Logger logger = LoggerFactory.getLogger(StandardConfiguration.class);
     private Map<String, Object> configurationData;
     private final String name;
@@ -97,6 +102,24 @@ public class StandardConfiguration implements Configuration
         {
             throw new CoreException("Failure to load configuration", oops);
         }
+    }
+
+    public StandardConfiguration(final String name, final Map<String, Object> configurationData)
+    {
+        this.name = name;
+        this.configurationData = configurationData;
+    }
+
+    public Configuration configurationForKeyword(final String keyword)
+    {
+        final Optional<Map<String, Object>> overrideDataForKeyword = this
+                .getOverrideDataForKeyword(keyword, this.configurationData);
+        if (overrideDataForKeyword.isPresent())
+        {
+            return new MergedConfiguration(
+                    new StandardConfiguration(this.name, overrideDataForKeyword.get()), this);
+        }
+        return this;
     }
 
     @Override
@@ -129,6 +152,38 @@ public class StandardConfiguration implements Configuration
     public String toString()
     {
         return this.name != null ? this.name : super.toString();
+    }
+
+    @SuppressWarnings("unchecked")
+    private Optional<Map<String, Object>> getOverrideDataForKeyword(final String keyword,
+            final Map<String, Object> currentContext)
+    {
+        final List<String> overrideKeyPrefixList = Arrays.asList(OVERRIDE_STRING, keyword);
+        final String overrideKeyPrefixString = Joiner.on(".").join(overrideKeyPrefixList);
+        final Map<String, Object> overrideData = new HashMap<>();
+        for (final String key : currentContext.keySet())
+        {
+            if (!key.equals(OVERRIDE_STRING))
+            {
+                final String overrideKey = Joiner.on(".").join(overrideKeyPrefixString, key);
+                final Optional<Object> specificOverrideData = Optional
+                        .ofNullable(this.resolve(overrideKey, currentContext));
+                if (specificOverrideData.isPresent())
+                {
+                    overrideData.put(key, specificOverrideData.get());
+                }
+                else
+                {
+                    final Object nextContext = currentContext.get(key);
+                    if (nextContext instanceof Map)
+                    {
+                        this.getOverrideDataForKeyword(keyword, (Map) nextContext).ifPresent(
+                                moreOverrideData -> overrideData.put(key, moreOverrideData));
+                    }
+                }
+            }
+        }
+        return Optional.of(overrideData).filter(data -> !data.isEmpty());
     }
 
     @SuppressWarnings("unchecked")

@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 
@@ -17,10 +18,12 @@ import org.openstreetmap.atlas.utilities.scalars.Angle;
  *
  * @author cstaylor
  * @author brian_l_davis
+ * @author jklamer
  */
 public class StandardConfigurationTest
 {
     public static final String CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/application.json";
+    public static final String KEYWORD_OVERRIDDEN_CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/keywordOverridingApplication.json";
 
     @Test
     public void testDefaults() throws IOException
@@ -62,6 +65,45 @@ public class StandardConfigurationTest
     }
 
     @Test
+    public void testInFileOverride() throws IOException
+    {
+        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        try (InputStream stream = loader.getResourceAsStream(KEYWORD_OVERRIDDEN_CONFIGURATION))
+        {
+            final String keyword1 = "ABC";
+            final String keyword2 = "XYZ";
+            final String notAnOverRiddenKeyword = "ZZZ";
+            final StandardConfiguration configuration = new StandardConfiguration(
+                    new InputStreamResource(stream));
+            final Configuration overriddenConfiguration1 = configuration
+                    .configurationForKeyword(keyword1);
+            final Configuration overriddenConfiguration2 = configuration
+                    .configurationForKeyword(keyword2);
+            final Configuration sameConfiguration = configuration
+                    .configurationForKeyword(notAnOverRiddenKeyword);
+            final String overriddenKey = "feature.range.max";
+            final String notOverriddenKey = "feature.range.min";
+            final String overriddenListKey = "feature.list";
+
+            // assert configuration is same for non-overridden keyword
+            Assert.assertEquals(configuration, sameConfiguration);
+            // assert override works for objects
+            Assert.assertEquals(Arrays.asList("nodes"),
+                    overriddenConfiguration1.get(overriddenListKey).value());
+            // assert different values for same key in different configurations based on keyword
+            Assert.assertEquals(Angle.degrees(20.0),
+                    overriddenConfiguration1.get(overriddenKey, Angle::degrees).value());
+            Assert.assertEquals(Angle.degrees(30.0),
+                    overriddenConfiguration2.get(overriddenKey, Angle::degrees).value());
+            // assert same value for same key in different configurations based on keyword
+            Assert.assertEquals(Angle.degrees(10.0),
+                    overriddenConfiguration1.get(notOverriddenKey, Angle::degrees).value());
+            Assert.assertEquals(Angle.degrees(10.0),
+                    overriddenConfiguration2.get(notOverriddenKey, Angle::degrees).value());
+        }
+    }
+
+    @Test
     public void testMissing() throws IOException
     {
         try (InputStream stream = new ByteArrayInputStream("{}".getBytes(StandardCharsets.UTF_8)))
@@ -87,8 +129,8 @@ public class StandardConfigurationTest
         {
             final StandardConfiguration configuration = new StandardConfiguration(
                     new InputStreamResource(stream));
-            final String country = "AIA";
-            final String key = String.format("feature.%s.range", country);
+            final String keyword = "ABC";
+            final String key = String.format("feature.%s.range", keyword);
 
             final Optional<Map<String, Double>> range = configuration.get(key).valueOption();
 
@@ -111,9 +153,9 @@ public class StandardConfigurationTest
         {
             final StandardConfiguration configuration = new StandardConfiguration(
                     new InputStreamResource(stream));
-            final String country = "AIA";
-            final String minKey = String.format("feature.%s.range.min", country);
-            final String maxKey = String.format("feature.%s.range.max", country);
+            final String keyword = "ABC";
+            final String minKey = String.format("feature.%s.range.min", keyword);
+            final String maxKey = String.format("feature.%s.range.max", keyword);
 
             Assert.assertEquals(Angle.degrees(10.0),
                     configuration.get(minKey, Angle::degrees).value());

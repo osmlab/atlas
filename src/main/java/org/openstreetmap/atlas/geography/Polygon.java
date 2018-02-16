@@ -4,6 +4,7 @@ import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 
@@ -11,12 +12,15 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.converters.WktPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.GeometryStreamer;
 import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.scalars.Angle;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.GeometryCollection;
@@ -49,7 +53,12 @@ public class Polygon extends PolyLine
             Location.forString("37.390234491673446,-122.03111171722412"));
 
     private static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
+
+    private static final Logger logger = LoggerFactory.getLogger(Polygon.class);
     private static final long serialVersionUID = 2877026648358594354L;
+
+    // Calculate sides starting from triangles
+    private static final int MINIMUM_N_FOR_SIDE_CALCULATION = 3;
     private Area awtArea;
     private java.awt.Polygon awtPolygon;
 
@@ -155,6 +164,11 @@ public class Polygon extends PolyLine
      * immediately adjacent to the point in the increasing X direction is entirely inside the
      * boundary or it lies exactly on a horizontal boundary segment and the space immediately
      * adjacent to the point in the increasing Y direction is inside the boundary.
+     * <p>
+     * In the case of a massive polygon (larger than 75% of the earth's width) the JTS definition of
+     * covers is used instead, which will return true if the location lies within the polygon or
+     * anywhere on the boundary.
+     * <p>
      *
      * @param location
      *            The {@link Location} to test
@@ -162,7 +176,18 @@ public class Polygon extends PolyLine
      */
     public boolean fullyGeometricallyEncloses(final Location location)
     {
-        return awtPolygon().contains(location.asAwtPoint());
+        // if this value overflows, use JTS to correctly calculate covers
+        if (awtOverflows())
+        {
+            final com.vividsolutions.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
+            final Point point = new JtsPointConverter().convert(location);
+            return polygon.covers(point);
+        }
+        // for most cases use the faster awt covers
+        else
+        {
+            return awtPolygon().contains(location.asAwtPoint());
+        }
     }
 
     /**
@@ -207,7 +232,17 @@ public class Polygon extends PolyLine
             return false;
         }
         // The item is within the bounds of this Polygon
-        return awtArea().contains(rectangle.asAwtRectangle());
+        // if this value overflows, use JTS to correctly calculate covers
+        if (awtOverflows())
+        {
+            final com.vividsolutions.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
+            return polygon.covers(JTS_POLYGON_CONVERTER.convert(rectangle));
+        }
+        // for most cases use the faster awt covers
+        else
+        {
+            return awtArea().contains(rectangle.asAwtRectangle());
+        }
     }
 
     /**
@@ -246,6 +281,75 @@ public class Polygon extends PolyLine
     {
         final Point point = JTS_POLYGON_CONVERTER.convert(this).getInteriorPoint();
         return new JtsLocationConverter().backwardConvert(point.getCoordinate());
+    }
+
+    /**
+     * @param expectedNumberOfSides
+     *            Expected number of sides
+     * @param threshold
+     *            {@link Angle} threshold that decides whether a {@link Heading} difference between
+     *            segments should be counted towards heading change count or not
+     * @return true if this {@link Polygon} has approximately n sides while ignoring {@link Heading}
+     *         differences between inner segments that are below given threshold.
+     */
+    public boolean isApproximatelyNSided(final int expectedNumberOfSides, final Angle threshold)
+    {
+        // Ignore if polygon doesn't have enough inner shape points
+        if (expectedNumberOfSides < MINIMUM_N_FOR_SIDE_CALCULATION
+                || this.size() < expectedNumberOfSides)
+        {
+            return false;
+        }
+
+        // An N sided shape should have (n-1) heading changes
+        final int expectedHeadingChangeCount = expectedNumberOfSides - 1;
+
+        // Fetch segments and count them
+        final List<Segment> segments = this.segments();
+        final int segmentSize = segments.size();
+
+        // Index to keep track of segment to work on
+        int segmentIndex = 0;
+
+        // Keep track of heading changes
+        int headingChangeCount = 0;
+
+        // Find initial heading
+        Optional<Heading> previousHeading = Optional.empty();
+        while (segmentIndex < segmentSize)
+        {
+            // Make sure we start with some heading. Edges with single points do not have heading.
+            previousHeading = segments.get(segmentIndex++).heading();
+            if (previousHeading.isPresent())
+            {
+                break;
+            }
+        }
+
+        // Make sure we start with some heading
+        if (!previousHeading.isPresent())
+        {
+            logger.trace("{} doesn't have a heading to calculate number of sides.", this);
+            return false;
+        }
+
+        // Go over rest of the segments and count heading changes
+        while (segmentIndex < segmentSize && headingChangeCount <= expectedHeadingChangeCount)
+        {
+            final Optional<Heading> nextHeading = segments.get(segmentIndex++).heading();
+            if (nextHeading.isPresent())
+            {
+                // If heading difference is greater than threshold, then increment heading change
+                // counter and update previous heading, which is used as reference
+                if (previousHeading.get().difference(nextHeading.get()).isGreaterThan(threshold))
+                {
+                    headingChangeCount++;
+                    previousHeading = nextHeading;
+                }
+            }
+        }
+
+        return headingChangeCount == expectedHeadingChangeCount;
     }
 
     /**
@@ -502,6 +606,11 @@ public class Polygon extends PolyLine
             this.awtArea = new Area(awtPolygon());
         }
         return this.awtArea;
+    }
+
+    private boolean awtOverflows()
+    {
+        return this.bounds().width().asDm7() < 0 || this.bounds().height().asDm7() < 0;
     }
 
     private java.awt.Polygon awtPolygon()

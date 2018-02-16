@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.utilities.configuration;
 
 import static org.openstreetmap.atlas.utilities.collections.Iterables.join;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -22,6 +23,7 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
  *
  * @author cstaylor
  * @author brian_l_davis
+ * @author jklamer
  */
 public class MergedConfiguration implements Configuration
 {
@@ -36,8 +38,8 @@ public class MergedConfiguration implements Configuration
      */
     private class MergedConfigurable<Raw, Transformed> implements Configurable
     {
-        private final String key;
         private final Raw defaultValue;
+        private final String key;
         private final Function<Raw, Transformed> transform;
 
         MergedConfigurable(final String key, final Raw defaultValue,
@@ -87,9 +89,28 @@ public class MergedConfiguration implements Configuration
         this.configurations = Collections.unmodifiableList(mergedConfigurations);
     }
 
+    public MergedConfiguration(final List<Configuration> configurations)
+    {
+        this.configurations = Collections.unmodifiableList(configurations);
+    }
+
+    public MergedConfiguration(final Configuration... configurations)
+    {
+        this(Arrays.asList(configurations));
+    }
+
     public MergedConfiguration(final Resource first, final Resource... configurations)
     {
         this(first, Iterables.iterable(configurations));
+    }
+
+    public Configuration configurationForKeyword(final String keyword)
+    {
+        final List<Configuration> configurationsByKeyword = this.configurations.stream()
+                .map(configuration -> configuration.configurationForKeyword(keyword))
+                .collect(Collectors.toList());
+        return Iterables.equals(this.configurations, configurationsByKeyword) ? this
+                : new MergedConfiguration(configurationsByKeyword);
     }
 
     @Override
