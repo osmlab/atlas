@@ -752,7 +752,7 @@ public class WaySectionProcessor
 
                 // The line is reversed, we need to reverse the direction of the sectioning, and
                 // we've already processed the last node, so we start with next to last
-                for (int index = polyline.size() - 2; index > 0; index--)
+                for (int index = polyline.size() - 2; index >= 0; index--)
                 {
                     // Check to see if this location is a node
                     endNode = nodesToSectionAt.getNode(polyline.get(index));

@@ -1,0 +1,10 @@
+# Nodes
+# Edges
+# Areas
+# Lines
+333112568000000 && 5.3171532,-4.0144607:5.3175314,-4.0147445:5.31833,-4.0154003 && last_edit_user_name -> sommerluk || last_edit_changeset -> 33677527 || last_edit_time -> 1440921858000 || last_edit_user_id -> 1700634 || iso_country_code -> CIV || name -> Rue A 49 || highway -> residential || last_edit_version -> 2 || oneway -> -1
+# Points
+243775455000000 && 5.31833,-4.0154003 && last_edit_user_name -> ulrichm || last_edit_changeset -> 31012166 || last_edit_time -> 1431363114000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 6
+779158167000000 && 5.3175314,-4.0147445 && last_edit_user_name -> sommerluk || last_edit_changeset -> 33677527 || last_edit_time -> 1440921858000 || last_edit_user_id -> 1700634 || iso_country_code -> CIV || last_edit_version -> 4
+2991180873000000 && 5.3171532,-4.0144607 && last_edit_user_name -> sommerluk || last_edit_changeset -> 24486226 || last_edit_time -> 1406917522000 || last_edit_user_id -> 1700634 || iso_country_code -> CIV || last_edit_version -> 1
+# Relations
