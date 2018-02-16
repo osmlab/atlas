@@ -6,10 +6,8 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FilenameUtils;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.sharding.DynamicTileSharding;
-import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,34 +68,33 @@ public class ShardFileOverlapsPolygon implements Predicate<Resource>
     public boolean test(final Resource resource)
     {
         boolean result = false;
-
-        if (resource instanceof File)
+        final String resourceName = resource.getName();
+        if (resourceName != null)
         {
-            final String filename = FilenameUtils.getName(((File) resource).getFile().getName());
-            final Matcher matcher = this.shardFilePattern.matcher(filename);
+            final Matcher matcher = this.shardFilePattern.matcher(resourceName);
             if (matcher.find())
             {
                 final String shardName = matcher.group(1);
                 if (this.shardsOverlappingPolygon.contains(shardName))
                 {
-                    logger.debug("Resource {} overlaps polygon.", resource.getName());
+                    logger.debug("Resource {} overlaps polygon.", resourceName);
                     result = true;
                 }
                 else
                 {
-                    logger.debug("Resource {} does not overlap polygon.", resource.getName());
+                    logger.debug("Resource {} does not overlap polygon.", resourceName);
                 }
             }
             else
             {
-                logger.debug("Resource {} does not match shard filename pattern.",
-                        resource.getName());
+                logger.debug("Resource {} does not match shard filename pattern.", resourceName);
             }
         }
         else
         {
-            logger.debug("Resource {} is not a File.", resource.getName());
+            logger.debug("Resource {} name is null.", resource.toString());
         }
+
         return result;
     }
 }

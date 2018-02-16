@@ -8,7 +8,9 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.sharding.DynamicTileSharding;
+import org.openstreetmap.atlas.streaming.StringInputStream;
 import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
 
@@ -79,11 +81,13 @@ public class ShardFileOverlapsPolygonTest
     }
 
     @Test
-    public void testNotAFile()
+    public void testInputStreamResource()
     {
-        // resources that are not files
+        // input stream resources require name to be set explicitly
+        Assert.assertTrue(PREDICATE.test(new InputStreamResource(new StringInputStream("foo bar"))
+                .withName("/some/path/XYZ_11-1095-641.atlas.gz")));
         Assert.assertFalse(
-                PREDICATE.test(new StringResource("/some/path/XYZ_11-1095-641.atlas.gz")));
+                PREDICATE.test(new InputStreamResource(new StringInputStream("foo bar"))));
     }
 
     @Test
@@ -112,4 +116,13 @@ public class ShardFileOverlapsPolygonTest
         Assert.assertFalse(PREDICATE.test(new File("/some/path/XYZ_10-548-321.atlas.gz")));
     }
 
+    @Test
+    public void testStringResource()
+    {
+        // string resources require name to be set explicitly
+        final String path = "/some/path/XYZ_11-1095-641.atlas.gz";
+        Assert.assertTrue(PREDICATE.test(new StringResource(path).withName(path)));
+        Assert.assertFalse(PREDICATE.test(new StringResource(path)));
+        Assert.assertFalse(PREDICATE.test(new StringResource(path).withName("foo")));
+    }
 }
