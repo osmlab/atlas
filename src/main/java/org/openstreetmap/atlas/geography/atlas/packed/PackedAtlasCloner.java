@@ -1,6 +1,5 @@
 package org.openstreetmap.atlas.geography.atlas.packed;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -49,7 +48,6 @@ public class PackedAtlasCloner
 
         if (this.additionalMetaDataTags.isPresent())
         {
-            // Create a new map to avoid modifying the old atlas tags
             final Map<String, String> atlasTags = metaData.getTags();
             atlasTags.putAll(this.additionalMetaDataTags.get());
 
