@@ -81,6 +81,14 @@ public abstract class LineItem extends AtlasItem
     }
 
     /**
+     * @return the number of shape-points for this item, including start and end points.
+     */
+    public int numberOfShapePoints()
+    {
+        return asPolyLine().size();
+    }
+
+    /**
      * @return The overall heading of the {@link PolyLine}: the heading between the start point and
      *         the end point.
      */

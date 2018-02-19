@@ -1,0 +1,11 @@
+# Nodes
+# Edges
+# Areas
+# Lines
+460834514000000 && 7.4149685,-7.5700756:7.4154655,-7.570464:7.4161236,-7.5709812:7.41669,-7.5714213 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44553998 || surface -> ground || last_edit_time -> 1482277540000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || noname -> yes || highway -> residential || last_edit_version -> 1 || oneway -> no
+# Points
+4564344487000000 && 7.4161236,-7.5709812 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44553998 || last_edit_time -> 1482277532000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 1
+4564344630000000 && 7.4154655,-7.570464 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44553998 || last_edit_time -> 1482277533000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 1
+4564344631000000 && 7.41669,-7.5714213 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44553998 || last_edit_time -> 1482277533000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 1
+4564344632000000 && 7.4149685,-7.5700756 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44553998 || last_edit_time -> 1482277533000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 1
+# Relations

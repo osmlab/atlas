@@ -10,6 +10,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.locale.IsoCountry;
@@ -44,6 +45,31 @@ public class OsmPbfToSlicedRawAtlasTest
     }
 
     @Test
+    public void testPbfToCountrySlicedAndWaySectionedAtlas()
+    {
+        final String path = OsmPbfToSlicedRawAtlasTest.class.getResource("8-122-122.osm.pbf")
+                .getPath();
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
+        final Atlas rawAtlas = rawAtlasGenerator.build();
+
+        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
+                .slice(rawAtlas);
+
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
+
+        System.out.println(finalAtlas.summary());
+
+        // TODO - compare the old atlas to the new atlas to see differences
+    }
+
+    @Test
+    public void testPbfToSlicedAtlasWithExpansion()
+    {
+        // TODO
+    }
+
+    @Test
     public void testPbfToSlicedRawAtlas()
     {
         // This PBF file contains really interesting data. 1. MultiPolygon with multiple inners and
@@ -57,7 +83,7 @@ public class OsmPbfToSlicedRawAtlasTest
         Assert.assertEquals(0, rawAtlas.numberOfNodes());
         Assert.assertEquals(0, rawAtlas.numberOfEdges());
         Assert.assertEquals(0, rawAtlas.numberOfAreas());
-        Assert.assertEquals(646588, rawAtlas.numberOfPoints());
+        Assert.assertEquals(646583, rawAtlas.numberOfPoints());
         Assert.assertEquals(57133, rawAtlas.numberOfLines());
         Assert.assertEquals(36, rawAtlas.numberOfRelations());
 
@@ -67,7 +93,7 @@ public class OsmPbfToSlicedRawAtlasTest
         Assert.assertEquals(0, slicedRawAtlas.numberOfNodes());
         Assert.assertEquals(0, slicedRawAtlas.numberOfEdges());
         Assert.assertEquals(0, slicedRawAtlas.numberOfAreas());
-        Assert.assertEquals(648709, slicedRawAtlas.numberOfPoints());
+        Assert.assertEquals(648704, slicedRawAtlas.numberOfPoints());
         Assert.assertEquals(57644, slicedRawAtlas.numberOfLines());
         Assert.assertEquals(44, slicedRawAtlas.numberOfRelations());
 

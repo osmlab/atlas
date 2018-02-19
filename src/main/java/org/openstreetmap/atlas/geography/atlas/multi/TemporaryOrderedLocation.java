@@ -33,7 +33,7 @@ public class TemporaryOrderedLocation implements Comparable<TemporaryOrderedLoca
     @Override
     public boolean equals(final Object other)
     {
-        if (other instanceof TemporaryOrderedNode)
+        if (other instanceof TemporaryOrderedLocation)
         {
             final TemporaryOrderedLocation that = (TemporaryOrderedLocation) other;
             return this.getLocation().equals(that.getLocation()) && this.offset.equals(that.offset)

@@ -85,4 +85,12 @@ public class EdgeTest
         Assert.assertTrue(reverseWaySectioned.isWaySectioned());
     }
 
+    @Test
+    public void testSize()
+    {
+        final Atlas atlas = this.rule.getAtlas();
+        final Edge edge = atlas.edge(293669785000000L);
+        Assert.assertTrue(edge.numberOfShapePoints() == 2);
+    }
+
 }

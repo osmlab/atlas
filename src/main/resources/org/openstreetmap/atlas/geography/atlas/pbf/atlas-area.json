@@ -1,0 +1,8 @@
+{
+    "filters": [
+        "highway->!",
+        "railway->!",
+        "route->!ferry",
+        "man_made->!pier"
+    ]
+}

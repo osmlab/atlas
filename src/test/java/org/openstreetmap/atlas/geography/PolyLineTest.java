@@ -4,6 +4,7 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.converters.WktPolyLineConverter;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.slf4j.Logger;
@@ -16,6 +17,16 @@ import org.slf4j.LoggerFactory;
 public class PolyLineTest
 {
     private static final Logger logger = LoggerFactory.getLogger(PolyLineTest.class);
+
+    @Test
+    public void testAppend()
+    {
+        final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
+        final PolyLine line2 = new PolyLine(Location.TEST_1, Location.TEST_7);
+        final PolyLine appended = line.append(line2);
+        Assert.assertTrue(appended.equalsShape(
+                new PolyLine(Location.CROSSING_85_280, Location.TEST_1, Location.TEST_7)));
+    }
 
     @Test
     public void testContains()
@@ -73,6 +84,24 @@ public class PolyLineTest
         Assert.assertTrue(polyLine1.equalsShape(polyLine2));
     }
 
+    @Test(expected = CoreException.class)
+    public void testInvalidAppend()
+    {
+        final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
+        final PolyLine line2 = new PolyLine(Location.CROSSING_85_280, Location.TEST_7);
+        @SuppressWarnings("unused")
+        final PolyLine appended = line.append(line2);
+    }
+
+    @Test(expected = CoreException.class)
+    public void testInvalidPrepend()
+    {
+        final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
+        final PolyLine line2 = new PolyLine(Location.CROSSING_85_280, Location.TEST_7);
+        @SuppressWarnings("unused")
+        final PolyLine prepended = line.prepend(line2);
+    }
+
     @Test
     public void testOverlapsShape()
     {
@@ -88,6 +117,16 @@ public class PolyLineTest
 
         Assert.assertFalse(smaller.overlapsShapeOf(larger));
         Assert.assertFalse(smallerReversed.overlapsShapeOf(larger));
+    }
+
+    @Test
+    public void testPrepend()
+    {
+        final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
+        final PolyLine line2 = new PolyLine(Location.TEST_7, Location.CROSSING_85_280);
+        final PolyLine prepended = line.prepend(line2);
+        Assert.assertTrue(prepended.equalsShape(
+                new PolyLine(Location.TEST_7, Location.CROSSING_85_280, Location.TEST_1)));
     }
 
     @Test
@@ -165,6 +204,71 @@ public class PolyLineTest
         Assert.assertEquals("POINT (-122.05576 37.332439)", singleLocationPolyLine.toString());
         Assert.assertEquals("LINESTRING (-122.05576 37.332439, -122.009566 37.33531)",
                 multipleLocationPolyLine.toString());
+    }
+
+    @Test
+    public void testTruncatingFromBothSides()
+    {
+        final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1,
+                Location.TEST_2);
+        final Iterable<Location> truncated = line.truncate(1, 1);
+        Assert.assertTrue(new PolyLine(truncated).equals(new PolyLine(Location.TEST_1)));
+    }
+
+    @Test
+    public void testTruncatingFromEnd()
+    {
+        final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
+        final Iterable<Location> truncated = line.truncate(0, 1);
+        Assert.assertTrue(new PolyLine(truncated).equals(new PolyLine(Location.CROSSING_85_280)));
+    }
+
+    @Test
+    public void testTruncatingFromStart()
+    {
+        final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
+        final Iterable<Location> truncated = line.truncate(1, 0);
+        Assert.assertTrue(new PolyLine(truncated).equals(new PolyLine(Location.TEST_1)));
+    }
+
+    @Test(expected = CoreException.class)
+    public void testTruncatingWithEndIndexEqualToPolyLineSize()
+    {
+        final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
+        final Iterable<Location> truncated = line.truncate(0, 2);
+        Assert.assertTrue(new PolyLine(truncated).equals(new PolyLine(Location.CROSSING_85_280)));
+    }
+
+    @Test(expected = CoreException.class)
+    public void testTruncatingWithInvalidIndex()
+    {
+        final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
+        final Iterable<Location> truncated = line.truncate(-1, 1);
+        Assert.assertTrue(new PolyLine(truncated).equals(new PolyLine(Location.CROSSING_85_280)));
+    }
+
+    @Test(expected = CoreException.class)
+    public void testTruncatingWithStartAndEndCombinedEqualToPolyLineSize()
+    {
+        final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
+        final Iterable<Location> truncated = line.truncate(1, 1);
+        Assert.assertTrue(new PolyLine(truncated).equals(new PolyLine(Location.CROSSING_85_280)));
+    }
+
+    @Test(expected = CoreException.class)
+    public void testTruncatingWithStartIndexEqualToPolyLineSize()
+    {
+        final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
+        final Iterable<Location> truncated = line.truncate(2, 0);
+        Assert.assertTrue(new PolyLine(truncated).equals(new PolyLine(Location.CROSSING_85_280)));
+    }
+
+    @Test
+    public void testTruncatingWithZeroIndices()
+    {
+        final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
+        final Iterable<Location> truncated = line.truncate(0, 0);
+        Assert.assertTrue(new PolyLine(truncated).equals(line));
     }
 
     @Test
