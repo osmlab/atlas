@@ -50,7 +50,7 @@ public class PackedAtlasCloner
         if (this.additionalMetaDataTags.isPresent())
         {
             // Create a new map to avoid modifying the old atlas tags
-            final Map<String, String> atlasTags = new HashMap<>(metaData.getTags());
+            final Map<String, String> atlasTags = metaData.getTags();
             atlasTags.putAll(this.additionalMetaDataTags.get());
 
             metaData = new AtlasMetaData(metaData.getSize(), metaData.isOriginal(),
