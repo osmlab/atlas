@@ -1,5 +1,8 @@
 package org.openstreetmap.atlas.geography.atlas.packed;
 
+import java.util.Map;
+import java.util.Optional;
+
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
@@ -15,6 +18,7 @@ import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 public class PackedAtlasCloner
 {
     private String shardName = null;
+    private Optional<Map<String, String>> additionalMetaDataTags = Optional.empty();
 
     public PackedAtlasCloner()
     {
@@ -36,11 +40,23 @@ public class PackedAtlasCloner
     {
         final PackedAtlasBuilder builder = new PackedAtlasBuilder();
         builder.setSizeEstimates(atlas.metaData().getSize());
-        final AtlasMetaData metaData = atlas.metaData();
+        AtlasMetaData metaData = atlas.metaData();
         if (this.shardName != null)
         {
             metaData.copyWithNewShardName(this.shardName);
         }
+
+        if (this.additionalMetaDataTags.isPresent())
+        {
+            final Map<String, String> atlasTags = metaData.getTags();
+            atlasTags.putAll(this.additionalMetaDataTags.get());
+
+            metaData = new AtlasMetaData(metaData.getSize(), metaData.isOriginal(),
+                    metaData.getCodeVersion().orElse(null), metaData.getDataVersion().orElse(null),
+                    metaData.getCountry().orElse(null), metaData.getShardName().orElse(null),
+                    atlasTags);
+        }
+
         builder.setMetaData(metaData);
         atlas.nodes().forEach(
                 node -> builder.addNode(node.getIdentifier(), node.getLocation(), node.getTags()));
@@ -57,6 +73,23 @@ public class PackedAtlasCloner
         atlas.relationsLowerOrderFirst().forEach(relation -> addRelation(builder, relation));
 
         return (PackedAtlas) builder.get();
+    }
+
+    /**
+     * Adds the passed in extra tags to the {@link AtlasMetaData} when the atlas is cloned.
+     * <p>
+     * CAUTION: This will overwrite current tags if there is already a tag with the same key in the
+     * tag map.
+     *
+     * @param additionalMetaDataTags
+     *            Extra {@link AtlasMetaData} tags to add to the cloned atlas
+     * @return The updated {@link PackedAtlasCloner}
+     */
+    public PackedAtlasCloner withAdditionalMetaDataTags(
+            final Map<String, String> additionalMetaDataTags)
+    {
+        this.additionalMetaDataTags = Optional.ofNullable(additionalMetaDataTags);
+        return this;
     }
 
     private void addRelation(final PackedAtlasBuilder builder, final Relation relation)

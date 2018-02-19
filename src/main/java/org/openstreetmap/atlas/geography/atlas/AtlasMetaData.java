@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -101,7 +102,7 @@ public final class AtlasMetaData implements Serializable, Taggable
     @Override
     public Map<String, String> getTags()
     {
-        return this.tags;
+        return new HashMap<>(this.tags);
     }
 
     public boolean isOriginal()
