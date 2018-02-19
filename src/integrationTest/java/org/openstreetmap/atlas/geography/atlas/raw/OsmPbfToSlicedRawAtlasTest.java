@@ -60,9 +60,6 @@ public class OsmPbfToSlicedRawAtlasTest
 
         System.out.println(finalAtlas.summary());
 
-        finalAtlas.save(
-                new File("/Users/mgostintsev/Projects/PbfIngestRefactor/8-122-122-new.atlas"));
-
         // TODO - compare the old atlas to the new atlas to see differences
     }
 

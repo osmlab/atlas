@@ -33,7 +33,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * TODO
+ * Way-section processor that runs on raw atlases. It's main purpose is to split raw atlas points
+ * into nodes, points or shape points, split lines into edges, lines or areas and update all
+ * relation members to reflect these changes. This will work on both a single shard or multiple
+ * shards - provided the sharding and the raw atlas fetcher policy. In the case of sharded
+ * sectioning - we are guaranteed to have consistent identifiers across shards when running
+ * way-sectioning since we are relying on the line shape point order creation and identifying all
+ * edge intersections that span shard boundaries.
  *
  * @author mgostintsev
  */
@@ -663,11 +669,17 @@ public class WaySectionProcessor
     }
 
     /**
-     * TODO
+     * Splits a non-ring {@link Line} into a list of {@link TemporaryEdge}s. The logic consists of
+     * iterating through all the line shape points, trying to match each one to a
+     * {@link TemporaryNode} for this {@link Line}. If we find a match, then we create a
+     * corresponding {@link TemporaryEdge}, making sure to reverse the polyline if the original line
+     * was reversed and to note whether we need to create a corresponding reverse edge.
      *
+     * @param changeSet
+     *            The {@link WaySectionChangeSet} to use
      * @param line
-     * @param nodes
-     * @return
+     *            The {@link Line} to split
+     * @return a list of resulting {@link TemporaryEdge}s
      */
     private List<TemporaryEdge> splitNonRingLineIntoEdges(final WaySectionChangeSet changeSet,
             final Line line)
@@ -685,8 +697,11 @@ public class WaySectionProcessor
         final NodeOccurrenceCounter nodesToSectionAt = changeSet.getNodesForEdge(line);
         final WaySectionIdentifierFactory identifierFactory = new WaySectionIdentifierFactory(
                 line.getIdentifier());
+
+        // Determines if we need to reverse the polyline and if a reverse edge is needed
         final PbfOneWay oneWay = PbfOneWay.forTag(line);
-        final boolean hasReverse = oneWay == PbfOneWay.NO;
+        final boolean hasReverseEdge = oneWay == PbfOneWay.NO;
+        final boolean isReversed = oneWay == PbfOneWay.REVERSED;
 
         // Keep track of the start index, start/end nodes
         int startIndex;
@@ -695,90 +710,44 @@ public class WaySectionProcessor
 
         try
         {
-            if (oneWay != PbfOneWay.REVERSED)
+            // Find the first node
+            startIndex = 0;
+            startNode = nodesToSectionAt.getNode(polyline.first());
+            if (!startNode.isPresent())
             {
-                // Find the first node
-                startIndex = 0;
-                startNode = nodesToSectionAt.getNode(polyline.first());
-                if (!startNode.isPresent())
-                {
-                    // Weren't able to find the starting node, abort slicing
-                    logger.error(
-                            "Could not find starting Node for Line {} during way-sectioning. Aborting!",
-                            line.getIdentifier());
-                    return newEdgesForLine;
-                }
-
-                // We've already processed the starting node, so we start with the first index
-                for (int index = 1; index < polyline.size(); index++)
-                {
-                    // Check to see if this location is a node
-                    endNode = nodesToSectionAt.getNode(polyline.get(index));
-                    if (endNode.isPresent())
-                    {
-                        // We found the end node, create the edge. Note: using occurrence minus one
-                        // since PolyLine uses zero-based numbering. We are incrementing only the
-                        // start node occurrence, since the end node will either be used as a future
-                        // start node or be the end of the way, in which case we don't care.
-                        final int startOccurrence = nodesToSectionAt.getOccurrence(startNode.get())
-                                - 1;
-                        nodesToSectionAt.incrementOccurrence(startNode.get());
-                        final int endOccurrence = nodesToSectionAt.getOccurrence(endNode.get()) - 1;
-
-                        final PolyLine edgePolyline = polyline.between(polyline.get(startIndex),
-                                startOccurrence, polyline.get(index), endOccurrence);
-                        newEdgesForLine.add(new TemporaryEdge(identifierFactory.nextIdentifier(),
-                                edgePolyline, line.getTags(), hasReverse));
-
-                        // Increment starting pointers
-                        startIndex = index;
-                        startNode = endNode;
-                    }
-                }
+                // Weren't able to find the starting node, abort slicing
+                logger.error(
+                        "Could not find starting Node for Line {} during way-sectioning. Aborting!",
+                        line.getIdentifier());
+                return newEdgesForLine;
             }
-            else
+
+            // We've already processed the starting node, so we start with the first index
+            for (int index = 1; index < polyline.size(); index++)
             {
-                // Find the first node (start from the back)
-                startIndex = polyline.size() - 1;
-                startNode = nodesToSectionAt.getNode(polyline.last());
-                if (!startNode.isPresent())
+                // Check to see if this location is a node
+                endNode = nodesToSectionAt.getNode(polyline.get(index));
+                if (endNode.isPresent())
                 {
-                    // Weren't able to find the starting node, abort slicing
-                    logger.error(
-                            "Could not find starting Node for Line {} during way-sectioning. Aborting!",
-                            line.getIdentifier());
-                    return newEdgesForLine;
-                }
+                    // We found the end node, create the edge. Note: using occurrence minus one
+                    // since PolyLine uses zero-based numbering. We are incrementing only the
+                    // start node occurrence, since the end node will either be used as a future
+                    // start node or be the end of the way, in which case we don't care.
+                    final int startOccurrence = nodesToSectionAt.getOccurrence(startNode.get()) - 1;
+                    nodesToSectionAt.incrementOccurrence(startNode.get());
+                    final int endOccurrence = nodesToSectionAt.getOccurrence(endNode.get()) - 1;
 
-                // The line is reversed, we need to reverse the direction of the sectioning, and
-                // we've already processed the last node, so we start with next to last
-                for (int index = polyline.size() - 2; index >= 0; index--)
-                {
-                    // Check to see if this location is a node
-                    endNode = nodesToSectionAt.getNode(polyline.get(index));
-                    if (endNode.isPresent())
-                    {
-                        // We found the end node, create the edge. Because we're going from polyline
-                        // end, we need to specify indices in occurrence order and then reverse it.
-                        // Note: using occurrence minus one since PolyLine uses zero-based
-                        // numbering. We are incrementing only the start node occurrence, since the
-                        // end node will either be used as a future start node or be the end of the
-                        // way, in which case we don't care.
-                        final int startOccurrence = nodesToSectionAt.getOccurrence(startNode.get())
-                                - 1;
-                        nodesToSectionAt.incrementOccurrence(startNode.get());
-                        final int endOccurrence = nodesToSectionAt.getOccurrence(endNode.get()) - 1;
+                    // Build the underlying polyline and reverse it, if necessary
+                    final PolyLine rawPolyline = polyline.between(polyline.get(startIndex),
+                            startOccurrence, polyline.get(index), endOccurrence);
+                    final PolyLine edgePolyline = isReversed ? rawPolyline.reversed() : rawPolyline;
 
-                        final PolyLine edgePolyline = polyline.between(polyline.get(index),
-                                endOccurrence, polyline.get(startIndex), startOccurrence)
-                                .reversed();
-                        newEdgesForLine.add(new TemporaryEdge(identifierFactory.nextIdentifier(),
-                                edgePolyline, line.getTags(), hasReverse));
+                    newEdgesForLine.add(new TemporaryEdge(identifierFactory.nextIdentifier(),
+                            edgePolyline, line.getTags(), hasReverseEdge));
 
-                        // Increment starting pointers
-                        startIndex = index;
-                        startNode = endNode;
-                    }
+                    // Increment starting pointers
+                    startIndex = index;
+                    startNode = endNode;
                 }
             }
         }
@@ -790,11 +759,20 @@ public class WaySectionProcessor
     }
 
     /**
-     * TODO
+     * Splits a ring {@link Line}s into a list of {@link TemporaryEdge}s. The logic consists of
+     * iterating through all the line shape points, trying to match each one to a
+     * {@link TemporaryNode} for this {@link Line}. If we find a match, then we create a
+     * corresponding {@link TemporaryEdge}, making sure to reverse the polyline if the original line
+     * was reversed and to note whether we need to create a corresponding reverse edge. This main
+     * difference between this and the non-ring split method is that this one looks specifically for
+     * rings and avoid splitting at the first polyline location, since it is not guaranteed to be a
+     * node.
      *
      * @param changeSet
+     *            The {@link WaySectionChangeSet} to use
      * @param line
-     * @return
+     *            The {@link Line} to split
+     * @return a list of resulting {@link TemporaryEdge}s
      */
     private List<TemporaryEdge> splitRingLineIntoEdges(final WaySectionChangeSet changeSet,
             final Line line)
@@ -812,8 +790,11 @@ public class WaySectionProcessor
         final NodeOccurrenceCounter nodesToSectionAt = changeSet.getNodesForEdge(line);
         final WaySectionIdentifierFactory identifierFactory = new WaySectionIdentifierFactory(
                 line.getIdentifier());
+
+        // Determines if we need to reverse the polyline and if a reverse edge is needed
         final PbfOneWay oneWay = PbfOneWay.forTag(line);
-        final boolean hasReverse = oneWay == PbfOneWay.NO;
+        final boolean hasReverseEdge = oneWay == PbfOneWay.NO;
+        final boolean isReversed = oneWay == PbfOneWay.REVERSED;
 
         // Keep track of the starting index, start/end nodes and relevant flags
         int startIndex = 0;
@@ -828,8 +809,8 @@ public class WaySectionProcessor
 
             if (startNode.isPresent())
             {
-                // We got lucky, the first node is at the start of the polyline. Use existing logic
-                // to treat it as a flat line.
+                // We got lucky, the first node is the start of the ring. Use existing logic to
+                // treat it as a flat line.
                 return splitNonRingLineIntoEdges(changeSet, line);
             }
             else
@@ -844,13 +825,16 @@ public class WaySectionProcessor
                         {
                             // We only want to create an edge if we've started from a node. If we've
                             // started from a shape point, we've just encountered our first node.
-                            final PolyLine edgePolyline = polyline.between(polyline.get(startIndex),
+                            final PolyLine rawPolyline = polyline.between(polyline.get(startIndex),
                                     nodesToSectionAt.getOccurrence(startNode.get()) - 1,
                                     polyline.get(index),
                                     nodesToSectionAt.getOccurrence(endNode.get()) - 1);
+                            final PolyLine edgePolyline = isReversed ? rawPolyline.reversed()
+                                    : rawPolyline;
+
                             newEdgesForLine
                                     .add(new TemporaryEdge(identifierFactory.nextIdentifier(),
-                                            edgePolyline, line.getTags(), hasReverse));
+                                            edgePolyline, line.getTags(), hasReverseEdge));
 
                             // Increment start node occurrence
                             nodesToSectionAt.incrementOccurrence(startNode.get());
@@ -864,8 +848,10 @@ public class WaySectionProcessor
                         // the first node so we can append it later
                         if (firstLocationNotNode)
                         {
-                            polyLineUpToFirstNode = polyline.between(polyline.first(), 0,
+                            final PolyLine rawPolyline = polyline.between(polyline.first(), 0,
                                     polyline.get(index), 0);
+                            polyLineUpToFirstNode = isReversed ? rawPolyline.reversed()
+                                    : rawPolyline;
                             firstLocationNotNode = false;
                         }
                     }
@@ -878,18 +864,34 @@ public class WaySectionProcessor
                         if (polyLineUpToFirstNode == null)
                         {
                             throw new CoreException(
-                                    "Cannot section line {} - reached end of line without valid end node",
+                                    "Cannot section ring {} - reached end of ring without valid end node",
                                     line.getIdentifier());
                         }
-                        final PolyLine polylineFromLastNodeToLastLocation = polyline.between(
+
+                        // Get the raw polyline from the last node to the last(first) location
+                        final PolyLine rawPolylineFromLastNodeToLastLocation = polyline.between(
                                 polyline.get(startIndex),
                                 nodesToSectionAt.getOccurrence(startNode.get()) - 1,
                                 polyline.get(index), 1);
-                        final PolyLine edgePolyLine = polylineFromLastNodeToLastLocation
-                                .append(polyLineUpToFirstNode);
+
+                        final PolyLine edgePolyLine;
+                        if (isReversed)
+                        {
+                            // If the line is reversed - reverse the raw polyline we just found and
+                            // append it to the polyline we had saved
+                            edgePolyLine = polyLineUpToFirstNode
+                                    .append(rawPolylineFromLastNodeToLastLocation.reversed());
+                        }
+                        else
+                        {
+                            // Append the polyline we had saved to the polyline we just found
+                            edgePolyLine = rawPolylineFromLastNodeToLastLocation
+                                    .append(polyLineUpToFirstNode);
+                        }
+
                         final TemporaryEdge edge = new TemporaryEdge(
                                 identifierFactory.nextIdentifier(), edgePolyLine, line.getTags(),
-                                hasReverse);
+                                hasReverseEdge);
                         newEdgesForLine.add(edge);
                     }
                 }
