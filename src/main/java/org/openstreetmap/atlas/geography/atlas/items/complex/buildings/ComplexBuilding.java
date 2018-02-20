@@ -132,7 +132,7 @@ public class ComplexBuilding extends ComplexEntity
         return BuildingLevelsTag.get(this.getSource());
     }
 
-    public Optional<Double> minLevel()
+    public Optional<Double> minimumLevel()
     {
         return BuildingMinLevelTag.get(this.getSource());
     }

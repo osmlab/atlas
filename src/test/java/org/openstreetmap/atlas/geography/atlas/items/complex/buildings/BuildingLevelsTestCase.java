@@ -20,8 +20,8 @@ public class BuildingLevelsTestCase
         final ComplexBuilding building = this.setup.buildingWithValidLevels();
         Assert.assertTrue(building.levels().isPresent());
         Assert.assertEquals(20, building.levels().get(), 0.01);
-        Assert.assertTrue(building.minLevel().isPresent());
-        Assert.assertEquals(10, building.minLevel().get(), 0.01);
+        Assert.assertTrue(building.minimumLevel().isPresent());
+        Assert.assertEquals(10, building.minimumLevel().get(), 0.01);
     }
 
     @Test
@@ -29,7 +29,7 @@ public class BuildingLevelsTestCase
     {
         final ComplexBuilding building = this.setup.buildingWithNonNumericLevels();
         Assert.assertFalse(building.levels().isPresent());
-        Assert.assertFalse(building.minLevel().isPresent());
+        Assert.assertFalse(building.minimumLevel().isPresent());
     }
 
     @Test
@@ -43,7 +43,7 @@ public class BuildingLevelsTestCase
     public void shouldNotContainMinLevel()
     {
         final ComplexBuilding building = this.setup.buildingWithNoMinLevel();
-        Assert.assertFalse(building.minLevel().isPresent());
+        Assert.assertFalse(building.minimumLevel().isPresent());
     }
 
     @Test
@@ -52,8 +52,8 @@ public class BuildingLevelsTestCase
         final ComplexBuilding building = this.setup.buildingWithNegativeLevels();
         Assert.assertTrue(building.levels().isPresent());
         Assert.assertEquals(-1, building.levels().get(), 0.01);
-        Assert.assertTrue(building.minLevel().isPresent());
-        Assert.assertEquals(-3, building.minLevel().get(), 0.01);
+        Assert.assertTrue(building.minimumLevel().isPresent());
+        Assert.assertEquals(-3, building.minimumLevel().get(), 0.01);
     }
 
     @Test
@@ -62,7 +62,7 @@ public class BuildingLevelsTestCase
         final ComplexBuilding building = this.setup.buildingWithZeroLevels();
         Assert.assertTrue(building.levels().isPresent());
         Assert.assertEquals(0, building.levels().get(), 0.01);
-        Assert.assertTrue(building.minLevel().isPresent());
-        Assert.assertEquals(0, building.minLevel().get(), 0.01);
+        Assert.assertTrue(building.minimumLevel().isPresent());
+        Assert.assertEquals(0, building.minimumLevel().get(), 0.01);
     }
 }
