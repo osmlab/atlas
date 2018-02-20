@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.raw.creation;
 
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -7,6 +9,7 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -15,12 +18,12 @@ import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.AtlasTag;
+import org.openstreetmap.atlas.tags.SyntheticDuplicateOsmNodeTag;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Iterables;
 
 import crosby.binary.osmosis.OsmosisReader;
 
@@ -168,28 +171,22 @@ public class RawAtlasGenerator
         logger.info("Read PBF in {}, preparing to build Raw Atlas", parseTime.elapsedSince());
 
         final Time buildTime = Time.now();
-        Atlas atlas = this.builder.get();
-        if (!this.pbfReader.getPointIdentifiersFromFilteredLines().isEmpty())
-        {
-            // Filter out any points that we don't need as a result of filtering lines
-            final Set<Long> pointsToRemove = preFilterPointsToRemove(atlas);
-            atlas = atlas.subAtlas(entity -> !(entity instanceof Point
-                    && pointsToRemove.contains(entity.getIdentifier()))).get();
-        }
+        final Atlas atlas = this.builder.get();
+        final Atlas trimmedAtlas = removeDuplicateAndExtraneousPointsFromAtlas(atlas);
 
         logger.info("Built Raw Atlas in {}", buildTime.elapsedSince());
 
-        if (atlas != null)
+        if (trimmedAtlas != null)
         {
-            logger.info("Successfully built atlas {}", atlas.getName());
+            logger.info("Successfully built atlas {}", trimmedAtlas.getName());
         }
         else
         {
-            logger.info("No Atlas generated for given PBF Shard {}",
+            logger.info("No raw Atlas generated for given PBF Shard {}",
                     this.metaData.getShardName().orElse("unknown"));
         }
 
-        return atlas;
+        return trimmedAtlas;
     }
 
     /**
@@ -281,7 +278,6 @@ public class RawAtlasGenerator
     /**
      * Get the set of {@link Point}s that make up all the filtered PBF {@link Way}s and see if we
      * can remove them from the generated raw Atlas. Criteria for removal are:
-     * <p>
      * <ul>
      * <li>The {@link Point} has to be simple. This avoids removing non-shape point features.
      * <li>The {@link Point} cannot be a {@link Relation} member.
@@ -298,6 +294,120 @@ public class RawAtlasGenerator
                 .filter(identifier -> isSimplePoint(atlas, identifier))
                 .filter(identifier -> !isRelationMember(atlas, identifier))
                 .filter(identifier -> !isShapePoint(atlas, identifier)).collect(Collectors.toSet());
+    }
+
+    private Atlas rebuildAtlas(final Atlas atlas, final Set<Long> pointsToRemove,
+            final Set<Long> pointsNeedingSyntheticTag)
+    {
+        final PackedAtlasBuilder builder = new PackedAtlasBuilder();
+
+        // Set the metadata and size. Use existing Atlas as estimate.
+        builder.setMetaData(this.metaData);
+        final AtlasSize size = new AtlasSize(0, 0, 0, atlas.numberOfLines(), atlas.numberOfPoints(),
+                atlas.numberOfRelations());
+        builder.setSizeEstimates(size);
+
+        // Add Points
+        atlas.points().forEach(point ->
+        {
+            final long identifier = point.getIdentifier();
+            // Only add if this point isn't being removed
+            if (!pointsToRemove.contains(identifier))
+            {
+                final Map<String, String> tags = point.getTags();
+                if (pointsNeedingSyntheticTag.contains(identifier))
+                {
+                    // Add the synthetic tag
+                    tags.put(SyntheticDuplicateOsmNodeTag.KEY,
+                            SyntheticDuplicateOsmNodeTag.YES.toString());
+                }
+
+                // Add the Point
+                builder.addPoint(identifier, point.getLocation(), tags);
+            }
+        });
+
+        // Add Lines
+        atlas.lines().forEach(line ->
+        {
+            builder.addLine(line.getIdentifier(), line.asPolyLine(), line.getTags());
+        });
+
+        // Add Relations
+        atlas.relations().forEach(relation ->
+        {
+            final RelationBean bean = new RelationBean();
+            relation.members().forEach(member -> bean.addItem(member.getEntity().getIdentifier(),
+                    member.getRole(), member.getEntity().getType()));
+            builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(), bean,
+                    relation.getTags());
+        });
+
+        // Build and return the new Atlas
+        return builder.get();
+    }
+
+    /**
+     * We may need to remove {@link Point}s from the built raw Atlas. There are two scenarios for
+     * removal:
+     * <p>
+     * <ul>
+     * <li>1. A {@link Point} was a shape point for an OSM {@link Way} that was removed. This point
+     * doesn't have any tags, isn't a part of a {@link Relation} and doesn't intersect with any
+     * other features in the Atlas.
+     * <li>2. A {@link Point} has multiple points at its {@link Location}. In this case, we sort all
+     * the Points, keep the one with the smallest identifier, add a
+     * {@link SyntheticDuplicateOsmNodeTag} and remove the rest of the duplicate Points. Note: we
+     * can potentially be tossing out OSM Nodes with non-empty tags. However, this is the most
+     * deterministic and simple way to handle this. The presence of the synthetic tag will make it
+     * easy to write an Atlas Check to resolve the data error.
+     * </ul>
+     *
+     * @param atlas
+     *            The {@link Atlas} to remove the Points from
+     * @return a new {@link Atlas} without the extra points or the given Atlas if no removal is
+     *         needed
+     */
+    private Atlas removeDuplicateAndExtraneousPointsFromAtlas(final Atlas atlas)
+    {
+        final Set<Long> pointsToRemove = new HashSet<>();
+        final Set<Long> duplicatePointsToKeep = new HashSet<>();
+
+        for (final Point point : atlas.points())
+        {
+            final Set<Long> duplicatePoints = Iterables.stream(atlas.pointsAt(point.getLocation()))
+                    .map(Point::getIdentifier).collectToSet();
+            if (!duplicatePoints.isEmpty() && duplicatePoints.size() > 1)
+            {
+                // Sort the points
+                final Set<Long> sortedDuplicates = Iterables.asSortedSet(duplicatePoints);
+
+                // Grab the one with smallest identifier (deterministic)
+                final long duplicatePointToKeep = sortedDuplicates.iterator().next();
+                duplicatePointsToKeep.add(duplicatePointToKeep);
+
+                // Add the rest to the to-be-removed collection
+                sortedDuplicates.remove(duplicatePointToKeep);
+                pointsToRemove.addAll(sortedDuplicates);
+            }
+        }
+
+        // Remove any non-used shape points from filtered lines
+        if (!this.pbfReader.getPointIdentifiersFromFilteredLines().isEmpty())
+        {
+            pointsToRemove.addAll(preFilterPointsToRemove(atlas));
+        }
+
+        // If there's any points to be removed, cut a sub-atlas. Otherwise return the original atlas
+        if (pointsToRemove.isEmpty())
+        {
+            return atlas;
+        }
+        else
+        {
+            // Rebuild the Atlas to add the synthetic tags and get rid of the removed points
+            return rebuildAtlas(atlas, pointsToRemove, duplicatePointsToKeep);
+        }
     }
 
     /**

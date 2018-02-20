@@ -23,6 +23,9 @@ public final class AtlasLoadingOption implements Serializable
     private static final ConfiguredTaggableFilter DEFAULT_EDGE_FILTER = new ConfiguredTaggableFilter(
             new StandardConfiguration(new InputStreamResource(
                     () -> AtlasLoadingOption.class.getResourceAsStream("atlas-edge.json"))));
+    private static final ConfiguredTaggableFilter DEFAULT_AREA_FILTER = new ConfiguredTaggableFilter(
+            new StandardConfiguration(new InputStreamResource(
+                    () -> AtlasLoadingOption.class.getResourceAsStream("atlas-area.json"))));
     private static final ConfiguredTaggableFilter DEFAULT_WAY_SECTION_FILTER = new ConfiguredTaggableFilter(
             new StandardConfiguration(new InputStreamResource(
                     () -> AtlasLoadingOption.class.getResourceAsStream("atlas-way-section.json"))));
@@ -42,6 +45,7 @@ public final class AtlasLoadingOption implements Serializable
     private boolean loadAtlasNode;
     private boolean loadAtlasEdge;
     private ConfiguredTaggableFilter edgeFilter = DEFAULT_EDGE_FILTER;
+    private ConfiguredTaggableFilter areaFilter = DEFAULT_AREA_FILTER;
     private ConfiguredTaggableFilter waySectionFilter = DEFAULT_WAY_SECTION_FILTER;
     private ConfiguredTaggableFilter osmPbfWayFilter = DEFAULT_OSM_PBF_WAY_FILTER;
     private ConfiguredTaggableFilter osmPbfNodeFilter = DEFAULT_OSM_PBF_NODE_FILTER;
@@ -120,6 +124,11 @@ public final class AtlasLoadingOption implements Serializable
         this.waySectioning = false;
         this.loadWaysSpanningCountryBoundaries = true;
         this.countryBoundaryMap = null;
+    }
+
+    public ConfiguredTaggableFilter getAreaFilter()
+    {
+        return this.areaFilter;
     }
 
     public CountryBoundaryMap getCountryBoundaryMap()
@@ -231,6 +240,11 @@ public final class AtlasLoadingOption implements Serializable
     public AtlasLoadingOption setAdditionalCountryCodes(final String... countryCodes)
     {
         return setAdditionalCountryCodes(Iterables.asSet(countryCodes));
+    }
+
+    public void setAreaFilter(final ConfiguredTaggableFilter areaFilter)
+    {
+        this.areaFilter = areaFilter;
     }
 
     public void setCountryBoundaryMap(final CountryBoundaryMap countryBoundaryMap)

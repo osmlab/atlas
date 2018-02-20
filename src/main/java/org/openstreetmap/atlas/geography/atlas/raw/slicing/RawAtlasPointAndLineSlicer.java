@@ -237,7 +237,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                         }
                         else
                         {
-                            // The point in the original Raw Atlas or we need to create a new one
+                            // The point is in the original Raw Atlas or we need to create a new one
                             final Location coordinateLocation = JTS_LOCATION_CONVERTER
                                     .backwardConvert(coordinate);
                             final Iterable<Point> rawAtlasPointsAtSliceVertex = this.rawAtlas

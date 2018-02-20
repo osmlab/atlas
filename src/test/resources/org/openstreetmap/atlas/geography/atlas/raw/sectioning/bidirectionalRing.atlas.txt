@@ -1,0 +1,11 @@
+# Nodes
+# Edges
+# Areas
+# Lines
+317579533000000 && 7.1760807,-8.1106785:7.176148,-8.1104474:7.1763131,-8.1105182:7.1762153,-8.1107679:7.1760807,-8.1106785 && last_edit_user_name -> KGeisler || last_edit_changeset -> 27516438 || last_edit_time -> 1418764039000 || last_edit_user_id -> 2242339 || iso_country_code -> CIV || highway -> path || last_edit_version -> 1
+# Points
+3238599653000000 && 7.1760807,-8.1106785 && last_edit_user_name -> KGeisler || last_edit_changeset -> 27516438 || last_edit_time -> 1418764038000 || last_edit_user_id -> 2242339 || iso_country_code -> CIV || last_edit_version -> 1
+3238599654000000 && 7.176148,-8.1104474 && last_edit_user_name -> KGeisler || last_edit_changeset -> 27516438 || last_edit_time -> 1418764038000 || last_edit_user_id -> 2242339 || iso_country_code -> CIV || last_edit_version -> 1
+3238599655000000 && 7.1762153,-8.1107679 && last_edit_user_name -> KGeisler || last_edit_changeset -> 27516438 || last_edit_time -> 1418764038000 || last_edit_user_id -> 2242339 || iso_country_code -> CIV || last_edit_version -> 1
+3238599656000000 && 7.1763131,-8.1105182 && last_edit_user_name -> KGeisler || last_edit_changeset -> 27516438 || last_edit_time -> 1418764038000 || last_edit_user_id -> 2242339 || iso_country_code -> CIV || last_edit_version -> 1
+# Relations

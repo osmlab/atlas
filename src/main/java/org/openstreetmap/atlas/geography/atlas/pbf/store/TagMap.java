@@ -13,7 +13,8 @@ import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.osmosis.core.domain.v0_6.Tag;
 
 /**
- * A wrapper for tags for an OSM entity
+ * A wrapper for tags for an OSM entity. TODO Remove class after PBF Ingest - all of this
+ * functionality is already revealed by corresponding Tag and Entity classes.
  *
  * @author tony
  * @author matthieun
@@ -53,19 +54,6 @@ public class TagMap implements Taggable
     public boolean isEmpty()
     {
         return this.tags.size() == 0;
-    }
-
-    public boolean matchAtlasEdge()
-    {
-        return (matchEdge() || matchFerry() || matchPier()) && getOneWay() != PbfOneWay.CLOSED;
-    }
-
-    /**
-     * @return {@code true} for ways with core highway tag
-     */
-    public boolean matchEdge()
-    {
-        return HighwayTag.isCoreWay(this);
     }
 
     public boolean matchFerry()

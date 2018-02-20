@@ -31,6 +31,30 @@ public class StreamIterable<T> implements Iterable<T>
     }
 
     /**
+     * Test whether all elements from iterable match the given predicate
+     *
+     * @param predicate
+     *            Predicate to test
+     * @return {@code true} when given predicate is true for all entities in iterable, else false
+     */
+    public boolean allMatch(final Predicate<T> predicate)
+    {
+        return StreamSupport.stream(this.source.spliterator(), false).allMatch(predicate);
+    }
+
+    /**
+     * Test whether any of the elements from iterable matches the given predicate
+     *
+     * @param predicate
+     *            Predicate to test
+     * @return {@code true} when given predicate is true for any one entity in iterable, else false
+     */
+    public boolean anyMatch(final Predicate<T> predicate)
+    {
+        return StreamSupport.stream(this.source.spliterator(), false).anyMatch(predicate);
+    }
+
+    /**
      * @return The original {@link Iterable} from this {@link StreamIterable}
      */
     public Iterable<T> collect()
@@ -123,17 +147,5 @@ public class StreamIterable<T> implements Iterable<T>
     public StreamIterable<T> truncate(final int startIndex, final int indexFromEnd)
     {
         return new StreamIterable<>(Iterables.truncate(this.source, startIndex, indexFromEnd));
-    }
-
-    /**
-     * Test whether all elements from iterable matches given predicate or not
-     *
-     * @param predicate
-     *            Predicate to test
-     * @return True when given predicate is true for all entities in iterable, else false
-     */
-    public boolean allMatch(final Predicate<T> predicate)
-    {
-        return StreamSupport.stream(source.spliterator(), false).allMatch(predicate);
     }
 }
