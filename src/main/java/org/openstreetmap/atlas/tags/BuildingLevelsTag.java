@@ -29,5 +29,4 @@ public interface BuildingLevelsTag
         }
         return Optional.empty();
     }
-
 }
