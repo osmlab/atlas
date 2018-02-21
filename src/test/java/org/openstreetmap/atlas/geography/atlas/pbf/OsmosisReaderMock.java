@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.pbf;
 import java.util.HashMap;
 
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveObjectStore;
+import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader.CloseableOsmosisReader;
 import org.openstreetmap.atlas.geography.atlas.pbf.converters.AtlasPrimitiveAreaToOsmosisWayConverter;
 import org.openstreetmap.atlas.geography.atlas.pbf.converters.AtlasPrimitiveLineItemToOsmosisWayConverter;
 import org.openstreetmap.atlas.geography.atlas.pbf.converters.AtlasPrimitiveLocationItemToOsmosisNodeConverter;
@@ -13,8 +14,6 @@ import org.openstreetmap.osmosis.core.container.v0_6.RelationContainer;
 import org.openstreetmap.osmosis.core.container.v0_6.WayContainer;
 import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 
-import crosby.binary.osmosis.OsmosisReader;
-
 /**
  * Mock an Osmosis reader to be able to test without any PBF resource. Note: This assumes all PBF
  * Nodes making up the Lines/Edges have been added before-hand.
@@ -22,7 +21,7 @@ import crosby.binary.osmosis.OsmosisReader;
  * @author matthieun
  * @author mgostintsev
  */
-public class OsmosisReaderMock extends OsmosisReader
+public class OsmosisReaderMock extends CloseableOsmosisReader
 {
     private final AtlasPrimitiveObjectStore source;
     private Sink sink;
