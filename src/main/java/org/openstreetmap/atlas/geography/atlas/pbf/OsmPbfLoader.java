@@ -42,7 +42,6 @@ public class OsmPbfLoader
         {
             super(input);
             this.input = input;
-
         }
 
         @Override
