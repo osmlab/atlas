@@ -1128,11 +1128,11 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public Iterable<Location> truncate(final int indexFromStart, final int indexFromEnd)
     {
-        if (indexFromStart < 0 || indexFromEnd < 0 || indexFromStart >= this.size() || indexFromEnd >= this.size()
-                || indexFromStart + indexFromEnd >= this.size())
+        if (indexFromStart < 0 || indexFromEnd < 0 || indexFromStart >= this.size()
+                || indexFromEnd >= this.size() || indexFromStart + indexFromEnd >= this.size())
         {
-            throw new CoreException("Invalid start index {} or end index {} supplied.", indexFromStart,
-                    indexFromEnd);
+            throw new CoreException("Invalid start index {} or end index {} supplied.",
+                    indexFromStart, indexFromEnd);
         }
 
         return Iterables.stream(this).truncate(indexFromStart, indexFromEnd);

@@ -248,14 +248,15 @@ public class WaySectionProcessor
                             // Replace existing line with created edges
                             changeSet.getLineToCreatedEdgesMapping().get(memberIdentifier)
                                     .forEach(edge ->
-                            {
-                                bean.addItem(edge.getIdentifier(), memberRole, ItemType.EDGE);
-                                if (edge.hasReverse())
-                                {
-                                    bean.addItem(edge.getReverseEdgeIdentifier(), memberRole,
-                                            ItemType.EDGE);
-                                }
-                            });
+                                    {
+                                        bean.addItem(edge.getIdentifier(), memberRole,
+                                                ItemType.EDGE);
+                                        if (edge.hasReverse())
+                                        {
+                                            bean.addItem(edge.getReverseEdgeIdentifier(),
+                                                    memberRole, ItemType.EDGE);
+                                        }
+                                    });
                         }
                         else if (builder.peek().area(memberIdentifier) != null)
                         {
