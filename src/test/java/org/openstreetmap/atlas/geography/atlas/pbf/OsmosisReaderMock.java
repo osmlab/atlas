@@ -3,12 +3,10 @@ package org.openstreetmap.atlas.geography.atlas.pbf;
 import java.util.HashMap;
 
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveObjectStore;
-import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader.CloseableOsmosisReader;
 import org.openstreetmap.atlas.geography.atlas.pbf.converters.AtlasPrimitiveAreaToOsmosisWayConverter;
 import org.openstreetmap.atlas.geography.atlas.pbf.converters.AtlasPrimitiveLineItemToOsmosisWayConverter;
 import org.openstreetmap.atlas.geography.atlas.pbf.converters.AtlasPrimitiveLocationItemToOsmosisNodeConverter;
 import org.openstreetmap.atlas.geography.atlas.pbf.converters.AtlasPrimitiveRelationToOsmosisRelationConverter;
-import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator.CloseableOsmosisReader;
 import org.openstreetmap.atlas.streaming.StringInputStream;
 import org.openstreetmap.osmosis.core.container.v0_6.NodeContainer;
 import org.openstreetmap.osmosis.core.container.v0_6.RelationContainer;

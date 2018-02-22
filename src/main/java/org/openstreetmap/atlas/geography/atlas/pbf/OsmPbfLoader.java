@@ -1,8 +1,5 @@
 package org.openstreetmap.atlas.geography.atlas.pbf;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.geography.MultiPolygon;
@@ -16,8 +13,6 @@ import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import crosby.binary.osmosis.OsmosisReader;
-
 /**
  * An {@link OsmPbfLoader} loads from one OSM protobuf file with a polygon or bounding box and
  * creates an Atlas. You can choose to do country slicing and way section or not with a boolean
@@ -28,29 +23,6 @@ import crosby.binary.osmosis.OsmosisReader;
  */
 public class OsmPbfLoader
 {
-    /**
-     * {@link Closeable} version of an {@link OsmosisReader} that prevents {@link InputStream}
-     * leaks.
-     *
-     * @author matthieun
-     */
-    public static class CloseableOsmosisReader extends OsmosisReader implements Closeable
-    {
-        private final InputStream input;
-
-        public CloseableOsmosisReader(final InputStream input)
-        {
-            super(input);
-            this.input = input;
-        }
-
-        @Override
-        public void close() throws IOException
-        {
-            this.input.close();
-        }
-    }
-
     private static final Logger logger = LoggerFactory.getLogger(OsmPbfLoader.class);
     private final PackedAtlasBuilder builder = new PackedAtlasBuilder();
     private final OsmPbfProcessor processor;

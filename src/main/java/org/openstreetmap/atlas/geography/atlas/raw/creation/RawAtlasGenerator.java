@@ -1,8 +1,5 @@
 package org.openstreetmap.atlas.geography.atlas.raw.creation;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -19,6 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
+import org.openstreetmap.atlas.geography.atlas.pbf.CloseableOsmosisReader;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.AtlasTag;
@@ -29,8 +27,6 @@ import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import crosby.binary.osmosis.OsmosisReader;
-
 /**
  * The {@link RawAtlasGenerator} loads an OSM protobuf file and constructs a raw {@link Atlas} from
  * it. A raw {@link Atlas} will only contains Atlas {@link Point}s, {@link Line}s and
@@ -40,29 +36,6 @@ import crosby.binary.osmosis.OsmosisReader;
  */
 public class RawAtlasGenerator
 {
-    /**
-     * {@link Closeable} version of an {@link OsmosisReader} that prevents {@link InputStream}
-     * leaks.
-     *
-     * @author matthieun
-     */
-    public static class CloseableOsmosisReader extends OsmosisReader implements Closeable
-    {
-        private final InputStream input;
-
-        public CloseableOsmosisReader(final InputStream input)
-        {
-            super(input);
-            this.input = input;
-        }
-
-        @Override
-        public void close() throws IOException
-        {
-            this.input.close();
-        }
-    }
-
     private static final Logger logger = LoggerFactory.getLogger(RawAtlasGenerator.class);
     private final OsmPbfReader pbfReader;
     private final OsmPbfCounter pbfCounter;
