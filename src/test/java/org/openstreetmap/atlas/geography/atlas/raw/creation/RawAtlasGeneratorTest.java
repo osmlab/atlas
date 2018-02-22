@@ -63,6 +63,7 @@ public class RawAtlasGeneratorTest
         store.addRelation(new AtlasPrimitiveRelation(123, 123, relationBean, Maps.stringMap(),
                 Rectangle.forLocated(line1, line2)));
 
+        @SuppressWarnings("resource")
         final OsmosisReaderMock osmosis = new OsmosisReaderMock(store);
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(() -> osmosis,
                 AtlasLoadingOption.createOptionWithNoSlicing());
@@ -90,6 +91,7 @@ public class RawAtlasGeneratorTest
         store.addLine(new AtlasPrimitiveLineItem(4, new Segment(Location.TEST_3, Location.TEST_4),
                 EMPTY));
 
+        @SuppressWarnings("resource")
         final OsmosisReaderMock osmosis = new OsmosisReaderMock(store);
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(() -> osmosis,
                 AtlasLoadingOption.createOptionWithNoSlicing());

@@ -14,6 +14,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
@@ -101,6 +102,7 @@ public class WaySectionProcessor
     public Atlas run()
     {
         final Time time = Time.now();
+        logger.info("Started way-sectioning atlas {}", this.rawAtlas.getName());
 
         // Create a changeset to keep track of any intermediate state transitions (points becomes
         // nodes, lines becoming areas, etc.)
@@ -117,6 +119,7 @@ public class WaySectionProcessor
         sectionEdges(changeSet);
 
         final Atlas atlas = buildSectionedAtlas(changeSet);
+
         logger.info("Finished way-sectioning atlas {} in {}", atlas.getName(), time.untilNow());
 
         return atlas;
@@ -126,8 +129,8 @@ public class WaySectionProcessor
 
     /**
      * Adds a {@link TemporaryNode} for the given {@link Location} to the given
-     * {@link NodeOccurrenceCounter} . Note: there should only be a single raw atlas {@link Point}
-     * at the given {@link Location}.
+     * {@link NodeOccurrenceCounter}. Note: there should only be a single raw atlas {@link Point} at
+     * the given {@link Location}.
      *
      * @param location
      *            The {@link Location} of the node to add
@@ -166,22 +169,25 @@ public class WaySectionProcessor
         });
 
         // Nodes
-        changeSet.getPointsThatBecomeNodes().forEach(temporaryNode ->
+        changeSet.getPointsThatBecomeNodes().forEach(nodeIdentifier ->
         {
-            final Point point = this.rawAtlas.point(temporaryNode.getIdentifier());
+            final Point point = this.rawAtlas.point(nodeIdentifier);
             builder.addNode(point.getIdentifier(), point.getLocation(), point.getTags());
         });
 
         // Lines
-        this.rawAtlas
-                .lines(line -> !changeSet.getLinesThatBecomeAreas().contains(line.getIdentifier())
-                        && !changeSet.getLinesThatBecomeEdges().contains(line.getIdentifier()))
-                .forEach(lineToKeep ->
-                {
-                    // Add any line that didn't become an edge or area
-                    builder.addLine(lineToKeep.getIdentifier(), lineToKeep.asPolyLine(),
-                            lineToKeep.getTags());
-                });
+        Iterables.stream(this.rawAtlas.lines()).filter(line ->
+        {
+            final long lineIdentifier = line.getIdentifier();
+            return !changeSet.getLinesThatBecomeAreas().contains(lineIdentifier)
+                    && !changeSet.getLinesThatBecomeEdges().contains(lineIdentifier)
+                    && !changeSet.getExcludedLines().contains(lineIdentifier);
+        }).forEach(lineToKeep ->
+        {
+            // Add any line that didn't become an edge or area
+            builder.addLine(lineToKeep.getIdentifier(), lineToKeep.asPolyLine(),
+                    lineToKeep.getTags());
+        });
 
         // Edges
         changeSet.getCreatedEdges().forEach(temporaryEdge ->
@@ -192,7 +198,7 @@ public class WaySectionProcessor
             // Add the reverse edge, if needed
             if (temporaryEdge.hasReverse())
             {
-                builder.addEdge(temporaryEdge.getReversedIdentifier(),
+                builder.addEdge(temporaryEdge.getReverseEdgeIdentifier(),
                         temporaryEdge.getPolyLine().reversed(), temporaryEdge.getTags());
             }
         });
@@ -215,17 +221,19 @@ public class WaySectionProcessor
             final RelationBean bean = new RelationBean();
             relation.members().forEach(member ->
             {
-                final long memberIdentifier = member.getEntity().getIdentifier();
-                switch (member.getEntity().getType())
+                final AtlasEntity entity = member.getEntity();
+                final long memberIdentifier = entity.getIdentifier();
+                final String memberRole = member.getRole();
+                switch (entity.getType())
                 {
                     case POINT:
                         if (builder.peek().point(memberIdentifier) != null)
                         {
-                            bean.addItem(memberIdentifier, member.getRole(), ItemType.POINT);
+                            bean.addItem(memberIdentifier, memberRole, ItemType.POINT);
                         }
                         else if (builder.peek().node(memberIdentifier) != null)
                         {
-                            bean.addItem(memberIdentifier, member.getRole(), ItemType.NODE);
+                            bean.addItem(memberIdentifier, memberRole, ItemType.NODE);
                         }
                         else
                         {
@@ -238,33 +246,35 @@ public class WaySectionProcessor
                         if (changeSet.getLineToCreatedEdgesMapping().containsKey(memberIdentifier))
                         {
                             // Replace existing line with created edges
-                            changeSet.getLineToCreatedEdgesMapping().allValues().forEach(edge ->
-                            {
-                                bean.addItem(edge.getIdentifier(), member.getRole(), ItemType.EDGE);
-                                if (edge.hasReverse())
-                                {
-                                    bean.addItem(edge.getReversedIdentifier(), member.getRole(),
-                                            ItemType.EDGE);
-                                }
-                            });
+                            changeSet.getLineToCreatedEdgesMapping().get(memberIdentifier)
+                                    .forEach(edge ->
+                                    {
+                                        bean.addItem(edge.getIdentifier(), memberRole,
+                                                ItemType.EDGE);
+                                        if (edge.hasReverse())
+                                        {
+                                            bean.addItem(edge.getReverseEdgeIdentifier(),
+                                                    memberRole, ItemType.EDGE);
+                                        }
+                                    });
                         }
                         else if (builder.peek().area(memberIdentifier) != null)
                         {
-                            bean.addItem(memberIdentifier, member.getRole(), ItemType.AREA);
+                            bean.addItem(memberIdentifier, memberRole, ItemType.AREA);
                         }
                         else if (builder.peek().line(memberIdentifier) != null)
                         {
-                            bean.addItem(memberIdentifier, member.getRole(), ItemType.LINE);
+                            bean.addItem(memberIdentifier, memberRole, ItemType.LINE);
                         }
                         else
                         {
-                            throw new CoreException(
-                                    "Could not find corresponding Atlas entity for Line {} in Relation {}",
+                            logger.debug(
+                                    "Excluding Line {} from Relation {} since it's no longer in the Atlas",
                                     memberIdentifier, relation.getIdentifier());
                         }
                         break;
                     case RELATION:
-                        bean.addItem(memberIdentifier, member.getRole(), ItemType.RELATION);
+                        bean.addItem(memberIdentifier, memberRole, ItemType.RELATION);
                         break;
                     default:
                         throw new CoreException("Unsupported relation member type in Raw Atlas, {}",
@@ -310,6 +320,7 @@ public class WaySectionProcessor
      */
     private AtlasSize createAtlasSizeEstimate(final WaySectionChangeSet changeSet)
     {
+        final int numberOfAreas = changeSet.getLinesThatBecomeAreas().size();
         int numberOfEdges = 0;
         for (final TemporaryEdge edge : changeSet.getCreatedEdges())
         {
@@ -322,9 +333,11 @@ public class WaySectionProcessor
                 numberOfEdges++;
             }
         }
-        final int numberOfAreas = changeSet.getLinesThatBecomeAreas().size();
+
+        // We don't use numberOfEdges above here, since we don't want to factor in reverse edges. We
+        // only care about the absolute number of lines that become edges
         final long numberOfLines = this.rawAtlas.numberOfLines()
-                - (numberOfAreas + changeSet.getCreatedEdges().size());
+                - (numberOfAreas + changeSet.getLineToCreatedEdgesMapping().keySet().size());
 
         return new AtlasSize(numberOfEdges, changeSet.getPointsThatBecomeNodes().size(),
                 numberOfAreas, numberOfLines, changeSet.getPointsThatStayPoints().size(),
@@ -333,36 +346,17 @@ public class WaySectionProcessor
 
     /**
      * This function distinguishes between raw atlas points that will become {@link Point}s in the
-     * final {@link Atlas} or be simple shape points. We also explicitly call out the case where a
-     * raw atlas point may qualify to be an atlas {@link Node} by its tagging, but is not part of an
-     * {@link Edge}. In order to avoid creating floating {@link Node}s, we leave them as
-     * {@link Point}s in the final atlas and log the occurrence.
+     * final {@link Atlas} and those that are simple shape points. If a raw atlas point doesn't
+     * become a node or point in the final atlas, it's a shape point and will be tracked by the
+     * underlying polyline of the area, line or edge that it's a part of.
      *
      * @param changeSet
      *            The {@link WaySectionChangeSet} to track any updates
      */
     private void distinguishPointsFromShapePoints(final WaySectionChangeSet changeSet)
     {
-        this.rawAtlas.points().forEach(point ->
-        {
-            if (shouldSectionAtPoint(point)
-                    && !changeSet.getPointsThatBecomeNodes().contains(point.getIdentifier()))
-            {
-                logger.error("Point {} qualifies to be a Node, but isn't part of an Edge",
-                        point.getIdentifier());
-                changeSet.recordPoint(point);
-            }
-            else if (isAtlasPoint(changeSet, point))
-            {
-                changeSet.recordPoint(point);
-            }
-            else
-            {
-                // If a raw atlas point doesn't become a node or point in the way-sectioned atlas,
-                // it's a shape point and will be tracked by the underlying polyline of the area,
-                // line or edge that it's a part of. We can safely ignore handling them here.
-            }
-        });
+        Iterables.stream(this.rawAtlas.points()).filter(point -> isAtlasPoint(changeSet, point))
+                .forEach(changeSet::recordPoint);
     }
 
     /**
@@ -427,7 +421,7 @@ public class WaySectionProcessor
                 }
                 else if (!line.isClosed())
                 {
-                    // For non-closed loops, the first and last point of the edge are always nodes.
+                    // For non-closed lines, the first and last point of the edge are always nodes.
                     // We don't care about first/last points for rings because these can be
                     // arbitrary and we only want to section at edge intersections.
                     addPointToNodeList(polyLine.first(), nodesForEdge);
@@ -443,7 +437,16 @@ public class WaySectionProcessor
             }
             else if (isAtlasLine(line))
             {
-                // No-op. If a line doesn't quality to be an edge or area, it stays a line.
+                // No-op. Unless a line becomes an area, edge or is excluded from the Atlas, it will
+                // stay a line. It is easier to keep track of exclusions than lines that stay as
+                // lines.
+            }
+            else
+            {
+                changeSet.recordExcludedLine(line);
+                logger.debug(
+                        "Excluding line {} from Atlas, it's not defined by an Atlas edge, area or line",
+                        line.getIdentifier());
             }
         });
     }
@@ -655,20 +658,6 @@ public class WaySectionProcessor
     }
 
     /**
-     * Determines if we should section at the given {@link Point}. Relies on the underlying
-     * {@link AtlasLoadingOption} configuration to make the decision. If {@link true}, this implies
-     * the {@link Point} should be a {@link Node}.
-     *
-     * @param point
-     *            The {@link Point} to check
-     * @return {@code true} if we should section at the given {@link Point}
-     */
-    private boolean shouldSectionAtPoint(final Point point)
-    {
-        return this.loadingOption.getWaySectionFilter().test(point);
-    }
-
-    /**
      * Splits a non-ring {@link Line} into a list of {@link TemporaryEdge}s. The logic consists of
      * iterating through all the line shape points, trying to match each one to a
      * {@link TemporaryNode} for this {@link Line}. If we find a match, then we create a
@@ -753,7 +742,7 @@ public class WaySectionProcessor
         }
         catch (final Exception e)
         {
-            logger.error("Failed to way-section line {}", line.getIdentifier(), e);
+            throw new CoreException("Failed to way-section line {}", line.getIdentifier(), e);
         }
         return newEdgesForLine;
     }
@@ -799,7 +788,7 @@ public class WaySectionProcessor
         // Keep track of the starting index, start/end nodes and relevant flags
         int startIndex = 0;
         PolyLine polyLineUpToFirstNode = null;
-        boolean firstLocationNotNode = true;
+        boolean isFirstNode = true;
         Optional<TemporaryNode> startNode = Optional.empty();
         Optional<TemporaryNode> endNode = Optional.empty();
 
@@ -821,7 +810,7 @@ public class WaySectionProcessor
                     endNode = nodesToSectionAt.getNode(polyline.get(index));
                     if (endNode.isPresent())
                     {
-                        if (!firstLocationNotNode)
+                        if (!isFirstNode)
                         {
                             // We only want to create an edge if we've started from a node. If we've
                             // started from a shape point, we've just encountered our first node.
@@ -846,13 +835,13 @@ public class WaySectionProcessor
 
                         // We've found the first node, save the polyline from the first location to
                         // the first node so we can append it later
-                        if (firstLocationNotNode)
+                        if (isFirstNode)
                         {
                             final PolyLine rawPolyline = polyline.between(polyline.first(), 0,
                                     polyline.get(index), 0);
                             polyLineUpToFirstNode = isReversed ? rawPolyline.reversed()
                                     : rawPolyline;
-                            firstLocationNotNode = false;
+                            isFirstNode = false;
                         }
                     }
 
@@ -899,7 +888,7 @@ public class WaySectionProcessor
         }
         catch (final Exception e)
         {
-            logger.error("Failed to way-section line {}", line.getIdentifier(), e);
+            throw new CoreException("Failed to way-section line {}", line.getIdentifier(), e);
         }
         return newEdgesForLine;
     }
