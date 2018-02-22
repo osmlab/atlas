@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
@@ -197,8 +198,7 @@ public class RawAtlasGenerator
         }
         catch (final Exception e)
         {
-            logger.error("Error during Atlas creation from PBF", e);
-            return null;
+            throw new CoreException("Error during Atlas creation from PBF", e);
         }
         logger.info("Read PBF in {}, preparing to build Raw Atlas", parseTime.elapsedSince());
 
@@ -245,7 +245,7 @@ public class RawAtlasGenerator
         }
         catch (final Exception e)
         {
-            logger.error("Error counting PBF entities", e);
+            throw new CoreException("Error counting PBF entities", e);
         }
         logger.info("Counted PBF entities in {}", countTime.elapsedSince());
     }

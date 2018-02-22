@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
@@ -75,7 +76,7 @@ public class RawAtlasGeneratorTest
         Assert.assertEquals(1, atlas.numberOfRelations());
     }
 
-    @Test
+    @Test(expected = CoreException.class)
     public void testLoadingPbfWithWayThatReferencesMissingNode()
     {
         final AtlasPrimitiveObjectStore store = new AtlasPrimitiveObjectStore();
@@ -96,8 +97,8 @@ public class RawAtlasGeneratorTest
                 AtlasLoadingOption.createOptionWithNoSlicing());
 
         // The raw Atlas should not get built, as one of the nodes referenced by the PBF is missing.
+        @SuppressWarnings("unused")
         final Atlas atlas = rawAtlasGenerator.build();
-        Assert.assertTrue(atlas == null);
     }
 
     @Test
