@@ -28,6 +28,8 @@ public class NodeOccurrenceCounter
      */
     public void addNode(final TemporaryNode node)
     {
+        // We only care about tracking node existence when adding nodes. The occurrence counter is
+        // incremented every time a node is used as a starting point.
         this.nodes.put(node, 1);
     }
 
@@ -40,7 +42,7 @@ public class NodeOccurrenceCounter
      */
     public Optional<TemporaryNode> getNode(final Location location)
     {
-        for (final TemporaryNode node : this.nodes.keySet())
+        for (final TemporaryNode node : this.getNodes())
         {
             if (node.getLocation().equals(location))
             {
@@ -69,7 +71,8 @@ public class NodeOccurrenceCounter
     }
 
     /**
-     * Increments the occurrence for the given {@link TemporaryNode}
+     * Increments the occurrence for the given {@link TemporaryNode}. Occurrence is incremented
+     * every time a node is used as a starting node in an edge.
      *
      * @param node
      *            The {@link TemporaryNode} to increment

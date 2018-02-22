@@ -1,5 +1,8 @@
 package org.openstreetmap.atlas.geography.atlas.raw.creation;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -36,14 +39,36 @@ import crosby.binary.osmosis.OsmosisReader;
  */
 public class RawAtlasGenerator
 {
-    private static final Logger logger = LoggerFactory.getLogger(RawAtlasGenerator.class);
+    /**
+     * {@link Closeable} version of an {@link OsmosisReader} that prevents {@link InputStream}
+     * leaks.
+     *
+     * @author matthieun
+     */
+    public static class CloseableOsmosisReader extends OsmosisReader implements Closeable
+    {
+        private final InputStream input;
 
-    private OsmosisReader reader;
+        public CloseableOsmosisReader(final InputStream input)
+        {
+            super(input);
+            this.input = input;
+        }
+
+        @Override
+        public void close() throws IOException
+        {
+            this.input.close();
+        }
+    }
+
+    private static final Logger logger = LoggerFactory.getLogger(RawAtlasGenerator.class);
     private final OsmPbfReader pbfReader;
     private final OsmPbfCounter pbfCounter;
     private final PackedAtlasBuilder builder;
     private final AtlasLoadingOption atlasLoadingOption;
-    private final Supplier<OsmosisReader> osmosisReaderSupplier;
+    private final Supplier<CloseableOsmosisReader> osmosisReaderSupplier;
+
     private AtlasMetaData metaData = new AtlasMetaData();
 
     /**
@@ -69,10 +94,10 @@ public class RawAtlasGenerator
      */
     public RawAtlasGenerator(final Resource resource, final AtlasLoadingOption loadingOption)
     {
-        this(() -> new OsmosisReader(resource.read()), loadingOption);
+        this(() -> new CloseableOsmosisReader(resource.read()), loadingOption);
     }
 
-    protected RawAtlasGenerator(final Supplier<OsmosisReader> osmosisReaderSupplier,
+    protected RawAtlasGenerator(final Supplier<CloseableOsmosisReader> osmosisReaderSupplier,
             final AtlasLoadingOption atlasLoadingOption)
     {
         this.osmosisReaderSupplier = osmosisReaderSupplier;
@@ -166,8 +191,15 @@ public class RawAtlasGenerator
     private Atlas buildRawAtlas()
     {
         final Time parseTime = Time.now();
-        connectOsmPbfToPbfConsumer(this.pbfReader);
-        this.reader.run();
+        try (CloseableOsmosisReader reader = connectOsmPbfToPbfConsumer(this.pbfReader))
+        {
+            reader.run();
+        }
+        catch (final Exception e)
+        {
+            logger.error("Error during Atlas creation from PBF", e);
+            return null;
+        }
         logger.info("Read PBF in {}, preparing to build Raw Atlas", parseTime.elapsedSince());
 
         final Time buildTime = Time.now();
@@ -192,10 +224,11 @@ public class RawAtlasGenerator
     /**
      * Connects the given {@link Sink} implementation to the PBF File.
      */
-    private void connectOsmPbfToPbfConsumer(final Sink consumer)
+    private CloseableOsmosisReader connectOsmPbfToPbfConsumer(final Sink consumer)
     {
-        this.reader = this.osmosisReaderSupplier.get();
-        this.reader.setSink(consumer);
+        final CloseableOsmosisReader reader = this.osmosisReaderSupplier.get();
+        reader.setSink(consumer);
+        return reader;
     }
 
     /**
@@ -206,8 +239,14 @@ public class RawAtlasGenerator
     private void countOsmPbfEntities()
     {
         final Time countTime = Time.now();
-        connectOsmPbfToPbfConsumer(this.pbfCounter);
-        this.reader.run();
+        try (CloseableOsmosisReader reader = connectOsmPbfToPbfConsumer(this.pbfCounter))
+        {
+            reader.run();
+        }
+        catch (final Exception e)
+        {
+            logger.error("Error counting PBF entities", e);
+        }
         logger.info("Counted PBF entities in {}", countTime.elapsedSince());
     }
 
@@ -337,8 +376,15 @@ public class RawAtlasGenerator
         atlas.relations().forEach(relation ->
         {
             final RelationBean bean = new RelationBean();
-            relation.members().forEach(member -> bean.addItem(member.getEntity().getIdentifier(),
-                    member.getRole(), member.getEntity().getType()));
+            relation.members().forEach(member ->
+            {
+                final long memberIdentifier = member.getEntity().getIdentifier();
+                if (!pointsToRemove.contains(memberIdentifier))
+                {
+                    // Make sure not to add any removed points
+                    bean.addItem(memberIdentifier, member.getRole(), member.getEntity().getType());
+                }
+            });
             builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(), bean,
                     relation.getTags());
         });

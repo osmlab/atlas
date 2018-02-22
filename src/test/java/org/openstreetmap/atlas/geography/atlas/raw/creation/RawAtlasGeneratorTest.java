@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
@@ -63,6 +62,7 @@ public class RawAtlasGeneratorTest
         store.addRelation(new AtlasPrimitiveRelation(123, 123, relationBean, Maps.stringMap(),
                 Rectangle.forLocated(line1, line2)));
 
+        @SuppressWarnings("resource")
         final OsmosisReaderMock osmosis = new OsmosisReaderMock(store);
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(() -> osmosis,
                 AtlasLoadingOption.createOptionWithNoSlicing());
@@ -75,7 +75,7 @@ public class RawAtlasGeneratorTest
         Assert.assertEquals(1, atlas.numberOfRelations());
     }
 
-    @Test(expected = CoreException.class)
+    @Test
     public void testLoadingPbfWithWayThatReferencesMissingNode()
     {
         final AtlasPrimitiveObjectStore store = new AtlasPrimitiveObjectStore();
@@ -90,13 +90,14 @@ public class RawAtlasGeneratorTest
         store.addLine(new AtlasPrimitiveLineItem(4, new Segment(Location.TEST_3, Location.TEST_4),
                 EMPTY));
 
+        @SuppressWarnings("resource")
         final OsmosisReaderMock osmosis = new OsmosisReaderMock(store);
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(() -> osmosis,
                 AtlasLoadingOption.createOptionWithNoSlicing());
 
         // The raw Atlas should not get built, as one of the nodes referenced by the PBF is missing.
-        @SuppressWarnings("unused")
         final Atlas atlas = rawAtlasGenerator.build();
+        Assert.assertTrue(atlas == null);
     }
 
     @Test

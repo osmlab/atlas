@@ -8,7 +8,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Edge;
 /**
  * The {@link TemporaryEdge} object, keeps track of the bare minimum information required to create
  * an Atlas {@link Edge}. It is meant to be as light-weight as possible, keeping track of only the
- * identifier, polyLine, tags and whether there is an associated reverse Edge.
+ * positive identifier, polyLine, tags and whether there is an associated reverse Edge.
  *
  * @author mgostintsev
  */
@@ -32,11 +32,20 @@ public class TemporaryEdge extends TemporaryEntity
         return this.polyLine;
     }
 
-    public long getReversedIdentifier()
+    /**
+     * The original edge identifier will always be positive. This method is used to return the
+     * reverse edge identifier, which will always be negative.
+     *
+     * @return the reverse identifier for this {@link TemporaryEdge}
+     */
+    public long getReverseEdgeIdentifier()
     {
-        return -1 * Math.abs(getIdentifier());
+        return -1 * getIdentifier();
     }
 
+    /**
+     * @return {@code true} if this edge has a reverse edge
+     */
     public boolean hasReverse()
     {
         return this.hasReverse;

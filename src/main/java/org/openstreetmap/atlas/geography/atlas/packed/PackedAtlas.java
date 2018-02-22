@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
@@ -924,16 +925,7 @@ public final class PackedAtlas extends AbstractAtlas
                     relationIdentifier);
         }
         // Do not allow relations with some null members.
-        boolean someNull = false;
-        for (final Long identifier : identifiers)
-        {
-            if (identifier == null)
-            {
-                someNull = true;
-                break;
-            }
-        }
-        if (someNull)
+        if (identifiers.stream().anyMatch(Objects::isNull))
         {
             throw new AtlasIntegrityException("Cannot have a relation with null members.");
         }
