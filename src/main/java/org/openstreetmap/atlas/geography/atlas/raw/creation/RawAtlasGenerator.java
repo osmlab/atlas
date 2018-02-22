@@ -11,6 +11,8 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -351,11 +353,18 @@ public class RawAtlasGenerator
             final RelationBean bean = new RelationBean();
             relation.members().forEach(member ->
             {
-                final long memberIdentifier = member.getEntity().getIdentifier();
-                if (!pointsToRemove.contains(memberIdentifier))
+                final AtlasEntity entity = member.getEntity();
+                final long memberIdentifier = entity.getIdentifier();
+                if (entity.getType() == ItemType.POINT && pointsToRemove.contains(memberIdentifier))
                 {
                     // Make sure not to add any removed points
-                    bean.addItem(memberIdentifier, member.getRole(), member.getEntity().getType());
+                    logger.debug(
+                            "Excluding point {} from relation {} since point was removed from Atlas",
+                            memberIdentifier, relation.getIdentifier());
+                }
+                else
+                {
+                    bean.addItem(memberIdentifier, member.getRole(), entity.getType());
                 }
             });
             builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(), bean,
