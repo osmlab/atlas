@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
  * OSM Turn restriction, modeled from an {@link Atlas}.
  *
  * @author matthieun
+ * @author sbhalekar
  */
 public final class TurnRestriction implements Located, Serializable
 {
@@ -40,16 +41,16 @@ public final class TurnRestriction implements Located, Serializable
         OTHER;
     }
 
-    private static final long serialVersionUID = 7043701090121113526L;
-
     private static final Logger logger = LoggerFactory.getLogger(TurnRestriction.class);
 
+    private static final long serialVersionUID = 7043701090121113526L;
+
     private final Route from;
-    private final Route via;
+    private final Relation relation;
+    private Route route;
     private final Route too;
     private final TurnRestrictionType type;
-    private Route route;
-    private final Relation relation;
+    private final Route via;
 
     /**
      * Create a {@link TurnRestriction} from a {@link Relation}
@@ -238,6 +239,21 @@ public final class TurnRestriction implements Located, Serializable
             }
             // Try to re-build the route, based on the "from", "via" and "to" members of the
             // relation
+
+            // According to OSM Wiki a restriction relation member can not have more than 1 via node
+            // https://wiki.openstreetmap.org/wiki/Relation:restriction#Members
+            // If the relation has more than 1 via node then discard the restriction as it is
+            // incorrectly modeled.
+            // To bring back the turn restriction OSM data needs to be modeled correctly
+            final long viaNodeCount = relation.members().stream().filter(
+                    member -> "via".equals(member.getRole()) && member.getEntity() instanceof Node)
+                    .count();
+            if (viaNodeCount > 1)
+            {
+                throw new CoreException(
+                        "Restriction relation should not have more than 1 via node. But, {} has {} via nodes",
+                        relation.getOsmIdentifier(), viaNodeCount);
+            }
 
             // Build the via members
             final Set<AtlasItem> viaMembers = new HashSet<>();
