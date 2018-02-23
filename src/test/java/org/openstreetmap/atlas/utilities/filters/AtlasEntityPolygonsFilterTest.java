@@ -77,7 +77,6 @@ public class AtlasEntityPolygonsFilterTest
                 totalLineCount - 2L, totalAreaCount, totalRelationCount);
         this.assertCounts(testCountsAtlas, excludePolygon1And2, 1L, 2L, 0L, 0L);
         this.assertCounts(testCountsAtlas, includePolygon1And2.negate(), 1L, 2L, 0L, 0L);
-
     }
 
     /**
@@ -124,9 +123,9 @@ public class AtlasEntityPolygonsFilterTest
         final Polygon includePolygon = this.getPolygonWithName(includeExcludeArrangements,
                 "include");
 
-        for (int caseNum = 1; caseNum <= numberOfCases; caseNum++)
+        for (int caseNumber = 1; caseNumber <= numberOfCases; caseNumber++)
         {
-            final String caseString = String.format("case_%d", caseNum);
+            final String caseString = String.format("case_%d", caseNumber);
             final String excludePolygonName = "exclude_".concat(caseString);
             final Polygon excludePolygon = this.getPolygonWithName(includeExcludeArrangements,
                     excludePolygonName);
@@ -179,7 +178,7 @@ public class AtlasEntityPolygonsFilterTest
     private AtlasEntityPolygonsFilter constructFilter(final String format,
             final Object... polygonStrings)
     {
-        return new AtlasEntityPolygonsFilter(new StandardConfiguration(
+        return AtlasEntityPolygonsFilter.forConfiguration(new StandardConfiguration(
                 new StringResource(String.format(format, polygonStrings))));
     }
 
