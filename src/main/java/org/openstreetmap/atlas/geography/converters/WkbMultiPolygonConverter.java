@@ -1,13 +1,14 @@
 package org.openstreetmap.atlas.geography.converters;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKBReader;
-import com.vividsolutions.jts.io.WKBWriter;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
+
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKBReader;
+import com.vividsolutions.jts.io.WKBWriter;
 
 /**
  * Converter class for conversion between Wkb byte array and {@link MultiPolygon}
@@ -35,7 +36,8 @@ public class WkbMultiPolygonConverter implements TwoWayConverter<MultiPolygon, b
     @Override
     public byte[] convert(final MultiPolygon multiPolygon)
     {
-        final Geometry geometry = new JtsMultiPolygonToMultiPolygonConverter().backwardConvert(multiPolygon);
+        final Geometry geometry = new JtsMultiPolygonToMultiPolygonConverter()
+                .backwardConvert(multiPolygon);
         final byte[] wkb = new WKBWriter().write(geometry);
         return wkb;
     }

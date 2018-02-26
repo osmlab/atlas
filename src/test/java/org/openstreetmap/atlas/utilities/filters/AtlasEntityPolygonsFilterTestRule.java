@@ -13,6 +13,8 @@ public class AtlasEntityPolygonsFilterTestRule extends CoreTestRule
 {
     @TestAtlas(loadFromJosmOsmResource = "includeExcludePolygonArrangements.osm")
     private Atlas includeExcludeArrangements;
+    @TestAtlas(loadFromJosmOsmResource = "multiPolygons.osm")
+    private Atlas multiPolygons;
     @TestAtlas(loadFromJosmOsmResource = "testCounts.osm")
     private Atlas testCounts;
     @TestAtlas(loadFromJosmOsmResource = "testForms.osm")
@@ -21,6 +23,11 @@ public class AtlasEntityPolygonsFilterTestRule extends CoreTestRule
     public Atlas getIncludeExcludeArrangements()
     {
         return this.includeExcludeArrangements;
+    }
+
+    public Atlas getMultiPolygons()
+    {
+        return this.multiPolygons;
     }
 
     public Atlas getTestCounts()

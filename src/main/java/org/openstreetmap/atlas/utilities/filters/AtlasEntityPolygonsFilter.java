@@ -62,7 +62,7 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
     public static final IntersectionDeciding DEFAULT_INTERSECTION_DECIDING = new IntersectionDeciding()
     {
         @Override
-        public boolean multiPolygonAndEntity(final MultiPolygon multiPolygon,
+        public boolean multiPolygonEntityIntersecting(final MultiPolygon multiPolygon,
                 final AtlasEntity entity)
         {
             if (entity instanceof LineItem)
@@ -81,8 +81,8 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
             if (entity instanceof Relation)
             {
                 return ((Relation) entity).members().stream().map(RelationMember::getEntity)
-                        .anyMatch(relationEntity -> this.multiPolygonAndEntity(multiPolygon,
-                                relationEntity));
+                        .anyMatch(relationEntity -> this
+                                .multiPolygonEntityIntersecting(multiPolygon, relationEntity));
             }
             else
             {
@@ -92,7 +92,7 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
         }
 
         @Override
-        public boolean polygonAndEntity(final Polygon polygon, final AtlasEntity entity)
+        public boolean polygonEntityIntersecting(final Polygon polygon, final AtlasEntity entity)
         {
             return entity.intersects(polygon);
         }
@@ -272,9 +272,8 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
             return Collections.emptyList();
         }
         return polygonLists.entrySet().stream()
-                .flatMap(formatAndPolygonStrings -> formatAndPolygonStrings.getValue().stream()
-                        .map(getPolygonConverterForFormat(
-                                formatAndPolygonStrings.getKey())::convert)
+                .flatMap(formatAndPolygonStrings -> formatAndPolygonStrings.getValue().stream().map(
+                        getPolygonConverterForFormat(formatAndPolygonStrings.getKey())::convert)
                         .filter(Optional::isPresent).map(Optional::get).flatMap(List::stream))
                 .collect(Collectors.toList());
     }
@@ -362,11 +361,9 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
         final QuadTree<Located> vettedPolygons = new QuadTree<>();
         if (filterType == Type.INCLUDE)
         {
-            this.includePolygons
-                    .addAll(polygons == null ? Collections.EMPTY_SET
-                            : polygons.stream()
-                                    .filter(notOverlappingPolygon(vettedPolygons, Type.INCLUDE))
-                                    .collect(Collectors.toSet()));
+            this.includePolygons.addAll(polygons == null ? Collections.EMPTY_SET
+                    : polygons.stream().filter(notOverlappingPolygon(vettedPolygons, Type.INCLUDE))
+                            .collect(Collectors.toSet()));
             this.includeMultiPolygons.addAll(multiPolygons == null ? Collections.EMPTY_SET
                     : multiPolygons.stream()
                             .filter(notOverlappingMultipolygon(vettedPolygons, Type.INCLUDE))
@@ -374,17 +371,14 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
         }
         else
         {
-            this.excludePolygons
-                    .addAll(polygons == null ? Collections.EMPTY_SET
-                            : polygons.stream()
-                                    .filter(notOverlappingPolygon(vettedPolygons, Type.EXCLUDE))
-                                    .collect(Collectors.toSet()));
+            this.excludePolygons.addAll(polygons == null ? Collections.EMPTY_SET
+                    : polygons.stream().filter(notOverlappingPolygon(vettedPolygons, Type.EXCLUDE))
+                            .collect(Collectors.toSet()));
             this.excludeMultiPolygons.addAll(multiPolygons == null ? Collections.EMPTY_SET
                     : multiPolygons.stream()
                             .filter(notOverlappingMultipolygon(vettedPolygons, Type.EXCLUDE))
                             .collect(Collectors.toSet()));
         }
-
     }
 
     @Override
@@ -405,24 +399,22 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
 
     private Predicate<AtlasEntity> isIncluded()
     {
-        return entity -> this.filterType == Type.INCLUDE
-                && (this.includePolygons.stream()
-                        .anyMatch(polygon -> this.intersectionDeciding.polygonAndEntity(polygon,
-                                entity))
+        return entity -> this.filterType == Type.INCLUDE && (this.includePolygons.stream().anyMatch(
+                polygon -> this.intersectionDeciding.polygonEntityIntersecting(polygon, entity))
                 || this.includeMultiPolygons.stream()
                         .anyMatch(multiPolygon -> this.intersectionDeciding
-                                .multiPolygonAndEntity(multiPolygon, entity)));
+                                .multiPolygonEntityIntersecting(multiPolygon, entity)));
     }
 
     private Predicate<AtlasEntity> isNotExcluded()
     {
         return entity -> this.filterType == Type.EXCLUDE
                 && this.excludePolygons.stream()
-                        .noneMatch(polygon -> this.intersectionDeciding.polygonAndEntity(polygon,
-                                entity))
+                        .noneMatch(polygon -> this.intersectionDeciding
+                                .polygonEntityIntersecting(polygon, entity))
                 && this.excludeMultiPolygons.stream()
                         .noneMatch(multiPolygon -> this.intersectionDeciding
-                                .multiPolygonAndEntity(multiPolygon, entity));
+                                .multiPolygonEntityIntersecting(multiPolygon, entity));
     }
 
     private Predicate<AtlasEntity> noPolygons()
@@ -430,13 +422,22 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
         return entity -> this.includePolygonsEmpty() && this.excludePolygonsEmpty();
     }
 
+    /**
+     * Interface to be implemented if custom intersection logic is required. The
+     * {@link AtlasEntityPolygonsFilter#DEFAULT_INTERSECTION_DECIDING} is that an entity is said to
+     * intersect when any part of the entity overlaps with any area of the Polygon or MultiPolygon.
+     */
     public interface IntersectionDeciding
     {
-        boolean multiPolygonAndEntity(final MultiPolygon multiPolygon, final AtlasEntity entity);
+        boolean multiPolygonEntityIntersecting(MultiPolygon multiPolygon, AtlasEntity entity);
 
-        boolean polygonAndEntity(final Polygon polygon, final AtlasEntity entity);
+        boolean polygonEntityIntersecting(Polygon polygon, AtlasEntity entity);
     }
 
+    /**
+     * The filter Type, either {@link Type#INCLUDE} or {@link Type#EXCLUDE}. Used for filter
+     * construction.
+     */
     public enum Type
     {
         INCLUDE,
@@ -480,6 +481,9 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
         }
     }
 
+    /**
+     * The enum for supported Polygon and Multipolygon string formats
+     */
     private enum PolygonStringFormat
     {
         ATLAS("atlas"),
