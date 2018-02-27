@@ -15,6 +15,7 @@ import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
+import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.TurnRestrictionTag;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.StringList;
@@ -240,29 +241,27 @@ public final class TurnRestriction implements Located, Serializable
             // Try to re-build the route, based on the "from", "via" and "to" members of the
             // relation
 
+            // Build the via members
+            final Set<AtlasItem> viaMembers = relation.members().stream()
+                    .filter(member -> member.getRole().equals(RelationTypeTag.RESTRICTION_ROLE_VIA))
+                    .filter(member -> member.getEntity() instanceof Node
+                            || member.getEntity() instanceof Edge)
+                    .map(RelationMember::getEntity).map(entity -> (AtlasItem) entity)
+                    .collect(Collectors.toSet());
+
             // According to OSM Wiki a restriction relation member can not have more than 1 via node
             // https://wiki.openstreetmap.org/wiki/Relation:restriction#Members
             // If the relation has more than 1 via node then discard the restriction as it is
             // incorrectly modeled.
             // To bring back the turn restriction OSM data needs to be modeled correctly
-            final long viaNodeCount = relation.members().stream().filter(
-                    member -> "via".equals(member.getRole()) && member.getEntity() instanceof Node)
-                    .count();
+            final long viaNodeCount = viaMembers.stream()
+                    .filter(atlasItem -> atlasItem instanceof Node).count();
             if (viaNodeCount > 1)
             {
                 throw new CoreException(
                         "Restriction relation should not have more than 1 via node. But, {} has {} via nodes",
                         relation.getOsmIdentifier(), viaNodeCount);
             }
-
-            // Build the via members
-            final Set<AtlasItem> viaMembers = new HashSet<>();
-            relation.members().stream().filter(member -> "via".equals(member.getRole())
-                    && (member.getEntity() instanceof Node || member.getEntity() instanceof Edge))
-                    .forEach(member ->
-                    {
-                        viaMembers.add((AtlasItem) member.getEntity());
-                    });
 
             // If there are no via members, create a temporary unfiltered set of "to" items, to help
             // with future filtering of "from" items by connectivity.
@@ -274,7 +273,8 @@ public final class TurnRestriction implements Located, Serializable
                     throw new CoreException(
                             "This relation has same members in from and to, but has no via members to disambiguate.");
                 }
-                relation.members().stream().filter(member -> "to".equals(member.getRole()))
+                relation.members().stream().filter(
+                        member -> member.getRole().equals(RelationTypeTag.RESTRICTION_ROLE_TO))
                         .forEach(member -> temporaryToMembers.add((AtlasItem) member.getEntity()));
             }
 
@@ -283,7 +283,8 @@ public final class TurnRestriction implements Located, Serializable
             final Set<Edge> fromMembers = new TreeSet<>();
             relation.members().stream().filter(member ->
             {
-                return "from".equals(member.getRole()) && member.getEntity() instanceof Edge
+                return member.getRole().equals(RelationTypeTag.RESTRICTION_ROLE_FROM)
+                        && member.getEntity() instanceof Edge
                         && (!viaMembers.isEmpty()
                                 && ((Edge) member.getEntity()).isConnectedAtEndTo(viaMembers)
                                 || ((Edge) member.getEntity())
@@ -296,7 +297,8 @@ public final class TurnRestriction implements Located, Serializable
             final Set<Edge> toMembers = new TreeSet<>();
             relation.members().stream().filter(member ->
             {
-                return "to".equals(member.getRole()) && member.getEntity() instanceof Edge
+                return member.getRole().equals(RelationTypeTag.RESTRICTION_ROLE_TO)
+                        && member.getEntity() instanceof Edge
                         && (!viaMembers.isEmpty()
                                 && ((Edge) member.getEntity()).isConnectedAtStartTo(viaMembers)
                                 || ((Edge) member.getEntity()).isConnectedAtStartTo(fromMembers));
