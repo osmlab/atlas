@@ -31,7 +31,7 @@ public class DynamicGridIndexBuilder extends AbstractGridIndexBuilder
      *
      * @author mkalender
      */
-    class GridWorkItem
+    private class GridWorkItem
     {
         private final double minX;
         private final double minY;
@@ -62,31 +62,6 @@ public class DynamicGridIndexBuilder extends AbstractGridIndexBuilder
             this.maxY = maxY;
             this.polygon = polygon;
         }
-
-        double maxX()
-        {
-            return this.maxX;
-        }
-
-        double maxY()
-        {
-            return this.maxY;
-        }
-
-        double minX()
-        {
-            return this.minX;
-        }
-
-        double minY()
-        {
-            return this.minY;
-        }
-
-        Polygon polygon()
-        {
-            return this.polygon;
-        }
     }
 
     /**
@@ -95,7 +70,7 @@ public class DynamicGridIndexBuilder extends AbstractGridIndexBuilder
      *
      * @author mkalender
      */
-    class Processor implements Runnable
+    private class Processor implements Runnable
     {
         private final BlockingQueue<GridWorkItem> queue;
         private final STRtree index;
@@ -132,8 +107,7 @@ public class DynamicGridIndexBuilder extends AbstractGridIndexBuilder
                     // Check for null item to avoid an exception.
                     if (itemToProcess != null)
                     {
-                        this.process(itemToProcess.minX, itemToProcess.minY, itemToProcess.maxX,
-                                itemToProcess.maxY, itemToProcess.polygon);
+                        this.process(itemToProcess);
                     }
                 }
 
@@ -145,9 +119,13 @@ public class DynamicGridIndexBuilder extends AbstractGridIndexBuilder
         }
 
         @SuppressWarnings("unchecked")
-        private void process(final double minX, final double minY, final double maxX,
-                final double maxY, final Polygon polygon)
+        private void process(final GridWorkItem item)
         {
+            final double minX = item.minX;
+            final double minY = item.minY;
+            final double maxX = item.maxX;
+            final double maxY = item.maxY;
+            final Polygon polygon = item.polygon;
             Envelope box = null;
 
             try

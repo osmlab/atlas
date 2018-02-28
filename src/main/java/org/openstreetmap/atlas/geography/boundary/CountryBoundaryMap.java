@@ -991,7 +991,7 @@ public class CountryBoundaryMap implements Serializable
     }
 
     /**
-     * @return the raw {@link STRtree} index used by this {@link CountryBoundaryMap}
+     * @return {@link STRtree} grid index used by this {@link CountryBoundaryMap}
      */
     public STRtree getGridIndex()
     {

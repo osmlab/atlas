@@ -1,8 +1,6 @@
 package org.openstreetmap.atlas.geography.boundary;
 
 import java.io.IOException;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Rectangle;
@@ -10,7 +8,6 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.streaming.compression.Compressor;
 import org.openstreetmap.atlas.streaming.resource.File;
-import org.openstreetmap.atlas.streaming.resource.LineFilteredResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.runtime.Command;
@@ -45,23 +42,6 @@ public class CountryBoundaryMapArchiver extends Command
             "Indicator whether to create a spatial grid index and include that in the output.",
             Boolean::parseBoolean, Optionality.OPTIONAL, Boolean.FALSE.toString());
 
-    private static final Function<Iterable<String>, Predicate<String>> COUNTRY_FILTER_GENERATOR = countryList ->
-    {
-        return countryLine ->
-        {
-            final String readCountryName = StringList
-                    .split(countryLine, CountryBoundaryMap.COUNTRY_BOUNDARY_DELIMITER).get(0);
-            for (final String countryName : countryList)
-            {
-                if (countryName.equals(readCountryName))
-                {
-                    return true;
-                }
-            }
-            return false;
-        };
-    };
-
     public static void main(final String[] args)
     {
         new CountryBoundaryMapArchiver().run(args);
@@ -75,19 +55,6 @@ public class CountryBoundaryMapArchiver extends Command
     public CountryBoundaryMap read(final Resource resource)
     {
         return CountryBoundaryMap.fromPlainText(resource);
-    }
-
-    /**
-     * @param resource
-     *            The {@link Resource} to read the {@link CountryBoundaryMap} from
-     * @param countries
-     *            The countries we want included in the resulting {@link CountryBoundaryMap}
-     * @return the created {@link CountryBoundaryMap}
-     */
-    public CountryBoundaryMap read(final Resource resource, final Iterable<String> countries)
-    {
-        return CountryBoundaryMap.fromPlainText(
-                new LineFilteredResource(resource, COUNTRY_FILTER_GENERATOR.apply(countries)));
     }
 
     @Override
