@@ -27,6 +27,7 @@ import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.configuration.StandardConfiguration;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
+import org.openstreetmap.atlas.utilities.testing.FreezeDryFunction;
 
 import com.vividsolutions.jts.io.WKBWriter;
 
@@ -37,6 +38,68 @@ import com.vividsolutions.jts.io.WKBWriter;
  */
 public class AtlasEntityPolygonsFilterTest
 {
+
+    private static final AtlasEntityPolygonsFilter.IntersectionDeciding FULL_GEOMETRIC_ENCLOSING = new AtlasEntityPolygonsFilter.IntersectionDeciding()
+    {
+        @Override
+        public boolean multiPolygonEntityIntersecting(final MultiPolygon multiPolygon,
+                final AtlasEntity entity)
+        {
+
+            if (entity instanceof LineItem)
+            {
+                return multiPolygon.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine());
+            }
+            if (entity instanceof LocationItem)
+            {
+                return multiPolygon
+                        .fullyGeometricallyEncloses(((LocationItem) entity).getLocation());
+            }
+            if (entity instanceof Area)
+            {
+                return multiPolygon.fullyGeometricallyEncloses(((Area) entity).asPolygon());
+            }
+            if (entity instanceof Relation)
+            {
+                return ((Relation) entity).members().stream().map(RelationMember::getEntity)
+                        .anyMatch(relationEntity -> this
+                                .multiPolygonEntityIntersecting(multiPolygon, relationEntity));
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        @Override
+        public boolean polygonEntityIntersecting(final Polygon polygon, final AtlasEntity entity)
+        {
+
+            if (entity instanceof LineItem)
+            {
+                return polygon.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine());
+            }
+            if (entity instanceof LocationItem)
+            {
+                return polygon.fullyGeometricallyEncloses(((LocationItem) entity).getLocation());
+            }
+            if (entity instanceof Area)
+            {
+                return polygon.fullyGeometricallyEncloses(((Area) entity).asPolygon());
+            }
+            if (entity instanceof Relation)
+            {
+                return ((Relation) entity).members().stream().map(RelationMember::getEntity)
+                        .anyMatch(relationEntity -> this.polygonEntityIntersecting(polygon,
+                                relationEntity));
+            }
+            else
+            {
+                return false;
+            }
+        }
+    };
+
     @Rule
     public final AtlasEntityPolygonsFilterTestRule setup = new AtlasEntityPolygonsFilterTestRule();
 
@@ -100,7 +163,6 @@ public class AtlasEntityPolygonsFilterTest
         this.assertCounts(testCountsAtlas,
                 AtlasEntityPolygonsFilter.Type.INCLUDE.polygons(Arrays.asList(polygon1, polygon2)),
                 totalPointCount - 1L, totalLineCount - 2L, totalAreaCount, totalRelationCount);
-
     }
 
     /**
@@ -202,69 +264,6 @@ public class AtlasEntityPolygonsFilterTest
                 return false;
             }
         };
-        final AtlasEntityPolygonsFilter.IntersectionDeciding fullGeometricEnclosing = new AtlasEntityPolygonsFilter.IntersectionDeciding()
-        {
-            @Override
-            public boolean multiPolygonEntityIntersecting(final MultiPolygon multiPolygon,
-                    final AtlasEntity entity)
-            {
-
-                if (entity instanceof LineItem)
-                {
-                    return multiPolygon
-                            .fullyGeometricallyEncloses(((LineItem) entity).asPolyLine());
-                }
-                if (entity instanceof LocationItem)
-                {
-                    return multiPolygon
-                            .fullyGeometricallyEncloses(((LocationItem) entity).getLocation());
-                }
-                if (entity instanceof Area)
-                {
-                    return multiPolygon.fullyGeometricallyEncloses(((Area) entity).asPolygon());
-                }
-                if (entity instanceof Relation)
-                {
-                    return ((Relation) entity).members().stream().map(RelationMember::getEntity)
-                            .anyMatch(relationEntity -> this
-                                    .multiPolygonEntityIntersecting(multiPolygon, relationEntity));
-                }
-                else
-                {
-                    return false;
-                }
-            }
-
-            @Override
-            public boolean polygonEntityIntersecting(final Polygon polygon,
-                    final AtlasEntity entity)
-            {
-
-                if (entity instanceof LineItem)
-                {
-                    return polygon.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine());
-                }
-                if (entity instanceof LocationItem)
-                {
-                    return polygon
-                            .fullyGeometricallyEncloses(((LocationItem) entity).getLocation());
-                }
-                if (entity instanceof Area)
-                {
-                    return polygon.fullyGeometricallyEncloses(((Area) entity).asPolygon());
-                }
-                if (entity instanceof Relation)
-                {
-                    return ((Relation) entity).members().stream().map(RelationMember::getEntity)
-                            .anyMatch(relationEntity -> this.polygonEntityIntersecting(polygon,
-                                    relationEntity));
-                }
-                else
-                {
-                    return false;
-                }
-            }
-        };
 
         // Test all three decision makers on the first polygon
         this.assertCounts(testCountsAtlas,
@@ -274,8 +273,8 @@ public class AtlasEntityPolygonsFilterTest
                 2L, 3L, 1L, 0L);
         this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE.polygons(
                 dudIntersectionDeciding, Collections.singleton(polygon1)), 0L, 0L, 0L, 0L);
-        this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
-                .polygons(fullGeometricEnclosing, Collections.singleton(polygon1)), 2L, 1L, 0L, 0L);
+        this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE.polygons(
+                FULL_GEOMETRIC_ENCLOSING, Collections.singleton(polygon1)), 2L, 1L, 0L, 0L);
 
         // Test all three decision makers on two polygon filter
         this.assertCounts(testCountsAtlas,
@@ -286,7 +285,14 @@ public class AtlasEntityPolygonsFilterTest
         this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
                 .polygons(dudIntersectionDeciding, Arrays.asList(polygon1, polygon2)), 0, 0, 0, 0);
         this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
-                .polygons(fullGeometricEnclosing, Arrays.asList(polygon1, polygon2)), 2, 1, 0, 0);
+                .polygons(FULL_GEOMETRIC_ENCLOSING, Arrays.asList(polygon1, polygon2)), 2, 1, 0, 0);
+
+        // Test Stabilizability
+        this.assertCounts(testCountsAtlas,
+                new FreezeDryFunction<AtlasEntityPolygonsFilter>().apply(
+                        AtlasEntityPolygonsFilter.Type.INCLUDE.polygons(FULL_GEOMETRIC_ENCLOSING,
+                                Arrays.asList(polygon1, polygon2))),
+                2, 1, 0, 0);
     }
 
     /**

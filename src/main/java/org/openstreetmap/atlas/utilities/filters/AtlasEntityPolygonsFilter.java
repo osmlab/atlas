@@ -52,12 +52,6 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
     public static final String EXCLUDED_POLYGONS_KEY = "filter.polygons.exclude";
     public static final String INCLUDED_MULTIPOLYGONS_KEY = "filter.multipolygons.include";
     public static final String INCLUDED_POLYGONS_KEY = "filter.polygons.include";
-    private static final MultiPolygonStringConverter MULTI_POLYGON_STRING_CONVERTER = new MultiPolygonStringConverter();
-    private static final PolygonStringConverter POLYGON_STRING_CONVERTER = new PolygonStringConverter();
-    private static final WkbMultiPolygonConverter WKB_MULTI_POLYGON_CONVERTER = new WkbMultiPolygonConverter();
-    private static final WkbPolygonConverter WKB_POLYGON_CONVERTER = new WkbPolygonConverter();
-    private static final WktMultiPolygonConverter WKT_MULTI_POLYGON_CONVERTER = new WktMultiPolygonConverter();
-    private static final WktPolygonConverter WKT_POLYGON_CONVERTER = new WktPolygonConverter();
     private static final Logger logger = LoggerFactory.getLogger(AtlasEntityPolygonsFilter.class);
     public static final IntersectionDeciding DEFAULT_INTERSECTION_DECIDING = new IntersectionDeciding()
     {
@@ -168,8 +162,8 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
         switch (PolygonStringFormat.getEnum(format))
         {
             case ATLAS:
-                return string -> Optional.of(
-                        Collections.singletonList(MULTI_POLYGON_STRING_CONVERTER.convert(string)));
+                return string -> Optional.of(Collections
+                        .singletonList(new MultiPolygonStringConverter().convert(string)));
             case GEOJSON:
                 return string ->
                 {
@@ -191,11 +185,12 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
                     return Optional.of(multiPolygons).filter(list -> !list.isEmpty());
                 };
             case WKB:
-                return string -> Optional.of(Collections.singletonList(
-                        WKB_MULTI_POLYGON_CONVERTER.backwardConvert(WKBReader.hexToBytes(string))));
+                return string -> Optional
+                        .of(Collections.singletonList(new WkbMultiPolygonConverter()
+                                .backwardConvert(WKBReader.hexToBytes(string))));
             case WKT:
                 return string -> Optional.of(Collections
-                        .singletonList(WKT_MULTI_POLYGON_CONVERTER.backwardConvert(string)));
+                        .singletonList(new WktMultiPolygonConverter().backwardConvert(string)));
             case UNSUPPORTED:
             default:
                 logger.warn("No converter set up for {} format. Supported formats are {}", format,
@@ -227,8 +222,8 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
         switch (PolygonStringFormat.getEnum(format))
         {
             case ATLAS:
-                return string -> Optional
-                        .of(Collections.singletonList(POLYGON_STRING_CONVERTER.convert(string)));
+                return string -> Optional.of(
+                        Collections.singletonList(new PolygonStringConverter().convert(string)));
             case GEOJSON:
                 return string ->
                 {
@@ -250,11 +245,11 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
                     return Optional.of(polygons).filter(list -> !list.isEmpty());
                 };
             case WKT:
-                return string -> Optional.of(
-                        Collections.singletonList(WKT_POLYGON_CONVERTER.backwardConvert(string)));
+                return string -> Optional.of(Collections
+                        .singletonList(new WktPolygonConverter().backwardConvert(string)));
             case WKB:
                 return string -> Optional.of(Collections.singletonList(
-                        WKB_POLYGON_CONVERTER.backwardConvert(WKBReader.hexToBytes(string))));
+                        new WkbPolygonConverter().backwardConvert(WKBReader.hexToBytes(string))));
             case UNSUPPORTED:
             default:
                 logger.warn("No converter set up for {} format. Supported formats are {}", format,
@@ -427,7 +422,7 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
      * {@link AtlasEntityPolygonsFilter#DEFAULT_INTERSECTION_DECIDING} is that an entity is said to
      * intersect when any part of the entity overlaps with any area of the Polygon or MultiPolygon.
      */
-    public interface IntersectionDeciding
+    public interface IntersectionDeciding extends Serializable
     {
         boolean multiPolygonEntityIntersecting(MultiPolygon multiPolygon, AtlasEntity entity);
 
