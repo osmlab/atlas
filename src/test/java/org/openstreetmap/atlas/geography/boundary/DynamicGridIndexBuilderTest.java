@@ -28,6 +28,26 @@ public class DynamicGridIndexBuilderTest
     protected static final Logger logger = LoggerFactory
             .getLogger(DynamicGridIndexBuilderTest.class);
 
+    private static void testAndValidateGridIndexConsistency(final Set<String> countries,
+            final String filename)
+    {
+        // Generate grid index for the first time
+        final CountryBoundaryMap firstMap = CountryBoundaryMap.fromPlainText(
+                new InputStreamResource(CountryBoundaryMapTest.class.getResourceAsStream(filename))
+                        .withDecompressor(Decompressor.GZIP));
+        firstMap.initializeGridIndex(countries);
+
+        // Generate grid index for the second time
+        final CountryBoundaryMap secondMap = CountryBoundaryMap.fromPlainText(
+                new InputStreamResource(CountryBoundaryMapTest.class.getResourceAsStream(filename))
+                        .withDecompressor(Decompressor.GZIP));
+        secondMap.initializeGridIndex(countries);
+
+        // Compare
+        Assert.assertTrue(CountryBoundaryMapCompareCommand.areSTRtreesEqual(firstMap.getGridIndex(),
+                secondMap.getGridIndex()));
+    }
+
     @Test
     public void testConsistencyOne()
     {
@@ -35,23 +55,7 @@ public class DynamicGridIndexBuilderTest
         countries.add("HTI");
         countries.add("DOM");
 
-        // Generate grid index for the first time
-        final CountryBoundaryMap firstMap = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(CountryBoundaryMapTest.class
-                        .getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP));
-        firstMap.initializeGridIndex(countries);
-
-        // Generate grid index for the second time
-        final CountryBoundaryMap secondMap = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(CountryBoundaryMapTest.class
-                        .getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP));
-        secondMap.initializeGridIndex(countries);
-
-        // Compare
-        Assert.assertTrue(CountryBoundaryMapCompareCommand.areSTRtreesEqual(firstMap.getGridIndex(),
-                secondMap.getGridIndex()));
+        testAndValidateGridIndexConsistency(countries, "HTI_DOM_osm_boundaries.txt.gz");
     }
 
     @Test
@@ -61,23 +65,7 @@ public class DynamicGridIndexBuilderTest
         countries.add("AIA");
         countries.add("MAF");
 
-        // Generate grid index for the first time
-        final CountryBoundaryMap firstMap = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(CountryBoundaryMapTest.class
-                        .getResourceAsStream("MAF_AIA_osm_boundaries.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP));
-        firstMap.initializeGridIndex(countries);
-
-        // Generate grid index for the second time
-        final CountryBoundaryMap secondMap = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(CountryBoundaryMapTest.class
-                        .getResourceAsStream("MAF_AIA_osm_boundaries.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP));
-        secondMap.initializeGridIndex(countries);
-
-        // Compare
-        Assert.assertTrue(CountryBoundaryMapCompareCommand.areSTRtreesEqual(firstMap.getGridIndex(),
-                secondMap.getGridIndex()));
+        testAndValidateGridIndexConsistency(countries, "MAF_AIA_osm_boundaries.txt.gz");
     }
 
     @Test

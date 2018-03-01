@@ -18,7 +18,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.index.strtree.STRtree;
 
 /**
- * Compares given {@link CountryBoundaryMap}s to find if there is any differences between them.
+ * Compares given {@link CountryBoundaryMap}s to find if there are any differences between them.
  *
  * @author mkalender
  */

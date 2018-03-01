@@ -110,7 +110,6 @@ public class DynamicGridIndexBuilder extends AbstractGridIndexBuilder
                         this.process(itemToProcess);
                     }
                 }
-
             }
             catch (final Exception e)
             {
@@ -187,10 +186,6 @@ public class DynamicGridIndexBuilder extends AbstractGridIndexBuilder
                 {
                     this.index.insert(box, polygon);
                 }
-            }
-            catch (final Exception e)
-            {
-                logger.error("Processor failed.", e);
             }
         }
     }

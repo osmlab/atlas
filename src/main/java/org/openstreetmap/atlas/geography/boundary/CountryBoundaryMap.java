@@ -162,24 +162,24 @@ public class CountryBoundaryMap implements Serializable
      * Collects leaf nodes of given {@link AbstractNode} into the given {@link MultiMap} from
      * {@link Geometry} to {@link Envelope}s.
      *
-     * @param root
-     *            Root node for collection
+     * @param node
+     *            Starting node for collection
      * @param cells
      *            {@link MultiMap} to save cells into
      */
     @SuppressWarnings("unchecked")
-    static void collectCells(final AbstractNode root, final MultiMap<Geometry, Envelope> cells)
+    static void collectCells(final AbstractNode node, final MultiMap<Geometry, Envelope> cells)
     {
-        if (root.getLevel() > 0)
+        if (node.getLevel() > 0)
         {
-            root.getChildBoundables().stream().forEach(node ->
+            node.getChildBoundables().stream().forEach(childNode ->
             {
-                collectCells((AbstractNode) node, cells);
+                collectCells((AbstractNode) childNode, cells);
             });
         }
-        else if (root.getLevel() == 0)
+        else if (node.getLevel() == 0)
         {
-            root.getChildBoundables().stream().forEach(item ->
+            node.getChildBoundables().stream().forEach(item ->
             {
                 final ItemBoundable boundable = (ItemBoundable) item;
                 final Geometry polygon = (Geometry) boundable.getItem();
@@ -540,7 +540,6 @@ public class CountryBoundaryMap implements Serializable
                 {
                     throw new CoreException("Failed to create grid index cells.", e);
                 }
-
             }
             else if (line.startsWith(GRID_ENVELOPE_DELIMITER))
             {
@@ -552,7 +551,7 @@ public class CountryBoundaryMap implements Serializable
                 }
                 catch (final ParseException e)
                 {
-                    logger.error("Failed to read grid index envelope.");
+                    throw new CoreException("Failed to read grid index envelope.", e);
                 }
             }
             else
@@ -600,7 +599,7 @@ public class CountryBoundaryMap implements Serializable
                 }
                 catch (final Exception e)
                 {
-                    logger.error("Invalid country boundary text file format.", e);
+                    throw new CoreException("Invalid country boundary text file format.", e);
                 }
             }
         }
@@ -666,8 +665,8 @@ public class CountryBoundaryMap implements Serializable
      */
     public List<String> allCountryNames()
     {
-        return this.boundaries(Rectangle.MAXIMUM).stream()
-                .map(boundary -> boundary.getCountryName()).collect(Collectors.toList());
+        return this.boundaries(Rectangle.MAXIMUM).stream().map(CountryBoundary::getCountryName)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -1315,6 +1314,16 @@ public class CountryBoundaryMap implements Serializable
         }
     }
 
+    /**
+     * Given a {@link Supplier}, retrieves {@link List} of {@link Polygon}s and applies given
+     * {@link Predicate}, and returns results as {@link CountryBoundary}.
+     *
+     * @param supplier
+     *            {@link Supplier} providing {@link List} of {@link Polygon}s
+     * @param filter
+     *            {@link Polygon} {@link Predicate} to be used as filter
+     * @return Filtered {@link Polygon}s as {@link CountryBoundary}s
+     */
     private List<CountryBoundary> boundariesHelper(final Supplier<List<Polygon>> supplier,
             final Predicate<Polygon> filter)
     {
@@ -1512,8 +1521,8 @@ public class CountryBoundaryMap implements Serializable
                         }
                         catch (final Exception e)
                         {
-                            logger.error(
-                                    String.format("Failed to write cell {} for {}", cell, country));
+                            throw new CoreException("Failed to write cell {} for {}", cell, country,
+                                    e);
                         }
 
                     });
@@ -1522,14 +1531,14 @@ public class CountryBoundaryMap implements Serializable
                 }
                 catch (final Exception e)
                 {
-                    logger.error(String.format("Failed to write cells for {}.", country));
+                    throw new CoreException("Failed to write cells for {}.", country, e);
                 }
 
             });
         }
-        catch (final Exception e)
+        catch (final IOException e)
         {
-            logger.error("Failed to write grid index.", e);
+            throw new CoreException("Failed to write grid index.", e);
         }
     }
 }
