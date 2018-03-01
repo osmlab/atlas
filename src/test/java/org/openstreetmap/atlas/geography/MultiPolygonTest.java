@@ -81,6 +81,25 @@ public class MultiPolygonTest
     }
 
     @Test
+    public void testOverlap()
+    {
+        final MultiPolygon multiPolygon1 = MultiPolygon.wkt("MULTIPOLYGON ("
+                + "((0 50, 50 50, 50 0, 0 0, 0 50)," + "(5 45, 45 45, 45 5, 5 5, 5 45)))");
+        final MultiPolygon multiPolygon2 = MultiPolygon
+                .wkt("MULTIPOLYGON (" + "((10 35, 35 35, 35 10, 10 10, 10 35),"
+                        + "(15 30, 30 30, 30 15, 15 15, 15 30)))");
+        final MultiPolygon multiPolygon3 = MultiPolygon
+                .wkt("MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),"
+                        + "((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),"
+                        + "(30 20, 20 15, 20 25, 30 20)))");
+
+        Assert.assertFalse(multiPolygon1.overlaps(multiPolygon2));
+        Assert.assertFalse(multiPolygon2.overlaps(multiPolygon1));
+        Assert.assertTrue(multiPolygon2.overlaps(multiPolygon3));
+        Assert.assertTrue(multiPolygon3.overlaps(multiPolygon2));
+    }
+
+    @Test
     public void testSerialization() throws ClassNotFoundException
     {
         final MultiPolygon map = new MultiPolygon(MultiMapTest.getMultiMap());

@@ -314,6 +314,12 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
         return overlapsInternal(polyLine, true);
     }
 
+    public boolean overlaps(final MultiPolygon otherMultiPolygon)
+    {
+        return this.outers().stream().anyMatch(otherMultiPolygon::overlaps)
+                && otherMultiPolygon.outers().stream().anyMatch(this::overlaps);
+    }
+
     public void saveAsGeoJson(final WritableResource resource)
     {
         final JsonWriter writer = new JsonWriter(resource);

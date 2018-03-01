@@ -17,14 +17,15 @@ import com.vividsolutions.jts.io.WKBWriter;
  */
 public class WkbMultiPolygonConverter implements TwoWayConverter<MultiPolygon, byte[]>
 {
+    private static final WKBReader WKB_READER = new WKBReader();
+
     @Override
     public MultiPolygon backwardConvert(final byte[] wkb)
     {
         com.vividsolutions.jts.geom.MultiPolygon geometry = null;
-        final WKBReader myReader = new WKBReader();
         try
         {
-            geometry = (com.vividsolutions.jts.geom.MultiPolygon) myReader.read(wkb);
+            geometry = (com.vividsolutions.jts.geom.MultiPolygon) WKB_READER.read(wkb);
         }
         catch (final ParseException | ClassCastException e)
         {

@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -53,7 +52,7 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
     public static final String INCLUDED_MULTIPOLYGONS_KEY = "filter.multipolygons.include";
     public static final String INCLUDED_POLYGONS_KEY = "filter.polygons.include";
     private static final Logger logger = LoggerFactory.getLogger(AtlasEntityPolygonsFilter.class);
-    public static final IntersectionDeciding DEFAULT_INTERSECTION_DECIDING = new IntersectionDeciding()
+    public static final IntersectionPolicy DEFAULT_INTERSECTION_POLICY = new IntersectionPolicy()
     {
         @Override
         public boolean multiPolygonEntityIntersecting(final MultiPolygon multiPolygon,
@@ -80,7 +79,8 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
             }
             else
             {
-                logger.warn("Unknown AtlasEntity Implementation {}", entity);
+                logger.warn("Unknown AtlasEntity Implementation {}",
+                        entity.getClass().getSimpleName());
                 return false;
             }
         }
@@ -97,20 +97,20 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
     private Type filterType;
     private List<MultiPolygon> includeMultiPolygons = new ArrayList<>();
     private List<Polygon> includePolygons = new ArrayList<>();
-    private IntersectionDeciding intersectionDeciding;
+    private IntersectionPolicy intersectionPolicy;
 
     public static AtlasEntityPolygonsFilter forConfiguration(final Configuration configuration)
     {
-        return forConfiguration(configuration, DEFAULT_INTERSECTION_DECIDING);
+        return forConfiguration(configuration, DEFAULT_INTERSECTION_POLICY);
     }
 
     public static AtlasEntityPolygonsFilter forConfiguration(final Configuration configuration,
-            final IntersectionDeciding intersectionDeciding)
+            final IntersectionPolicy intersectionPolicy)
     {
         return forConfigurationValues(configuration.get(INCLUDED_POLYGONS_KEY).value(),
                 configuration.get(INCLUDED_MULTIPOLYGONS_KEY).value(),
                 configuration.get(EXCLUDED_POLYGONS_KEY).value(),
-                configuration.get(EXCLUDED_MULTIPOLYGONS_KEY).value(), intersectionDeciding);
+                configuration.get(EXCLUDED_MULTIPOLYGONS_KEY).value(), intersectionPolicy);
     }
 
     public static AtlasEntityPolygonsFilter forConfigurationValues(
@@ -118,7 +118,7 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
             final Map<String, List<String>> includeMultiPolygonMap,
             final Map<String, List<String>> excludePolygonMap,
             final Map<String, List<String>> excludeMultiPolygonMap,
-            final IntersectionDeciding intersectionDeciding)
+            final IntersectionPolicy intersectionPolicy)
     {
         final List<Polygon> includePolygons;
         final List<Polygon> excludePolygons;
@@ -136,12 +136,12 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
 
         if (!includePolygons.isEmpty() || !includeMultiPolygons.isEmpty())
         {
-            return Type.INCLUDE.polygonsAndMultiPolygons(intersectionDeciding, includePolygons,
+            return Type.INCLUDE.polygonsAndMultiPolygons(intersectionPolicy, includePolygons,
                     includeMultiPolygons);
         }
         else
         {
-            return Type.EXCLUDE.polygonsAndMultiPolygons(intersectionDeciding, excludePolygons,
+            return Type.EXCLUDE.polygonsAndMultiPolygons(intersectionPolicy, excludePolygons,
                     excludeMultiPolygons);
         }
     }
@@ -153,7 +153,7 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
             final Map<String, List<String>> excludeMultiPolygonMap)
     {
         return forConfigurationValues(includePolygonMap, includeMultiPolygonMap, excludePolygonMap,
-                excludeMultiPolygonMap, DEFAULT_INTERSECTION_DECIDING);
+                excludeMultiPolygonMap, DEFAULT_INTERSECTION_POLICY);
     }
 
     private static StringConverter<Optional<List<MultiPolygon>>> getMultiPolygonConverterForFormat(
@@ -294,8 +294,8 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
                     .noneMatch(multiPolygon::overlaps)
                     && vettedPolygons.get(multiPolygon.bounds()).stream()
                             .filter(located -> located instanceof MultiPolygon)
-                            .map(located -> (MultiPolygon) located).map(MultiPolygon::outers)
-                            .flatMap(Set::stream).noneMatch(multiPolygon::overlaps))
+                            .map(located -> (MultiPolygon) located)
+                            .noneMatch(multiPolygon::overlaps))
             {
                 vettedPolygons.add(multiPolygon.bounds(), multiPolygon);
                 return true;
@@ -344,15 +344,15 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
     private AtlasEntityPolygonsFilter(final Type filterType, final Collection<Polygon> polygons,
             final Collection<MultiPolygon> multiPolygons)
     {
-        this(filterType, DEFAULT_INTERSECTION_DECIDING, polygons, multiPolygons);
+        this(filterType, DEFAULT_INTERSECTION_POLICY, polygons, multiPolygons);
     }
 
     private AtlasEntityPolygonsFilter(final Type filterType,
-            final IntersectionDeciding intersectionDeciding, final Collection<Polygon> polygons,
+            final IntersectionPolicy intersectionPolicy, final Collection<Polygon> polygons,
             final Collection<MultiPolygon> multiPolygons)
     {
         this.filterType = filterType;
-        this.intersectionDeciding = intersectionDeciding;
+        this.intersectionPolicy = intersectionPolicy;
         final QuadTree<Located> vettedPolygons = new QuadTree<>();
         if (filterType == Type.INCLUDE)
         {
@@ -395,9 +395,9 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
     private Predicate<AtlasEntity> isIncluded()
     {
         return entity -> this.filterType == Type.INCLUDE && (this.includePolygons.stream().anyMatch(
-                polygon -> this.intersectionDeciding.polygonEntityIntersecting(polygon, entity))
+                polygon -> this.intersectionPolicy.polygonEntityIntersecting(polygon, entity))
                 || this.includeMultiPolygons.stream()
-                        .anyMatch(multiPolygon -> this.intersectionDeciding
+                        .anyMatch(multiPolygon -> this.intersectionPolicy
                                 .multiPolygonEntityIntersecting(multiPolygon, entity)));
     }
 
@@ -405,10 +405,10 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
     {
         return entity -> this.filterType == Type.EXCLUDE
                 && this.excludePolygons.stream()
-                        .noneMatch(polygon -> this.intersectionDeciding
+                        .noneMatch(polygon -> this.intersectionPolicy
                                 .polygonEntityIntersecting(polygon, entity))
                 && this.excludeMultiPolygons.stream()
-                        .noneMatch(multiPolygon -> this.intersectionDeciding
+                        .noneMatch(multiPolygon -> this.intersectionPolicy
                                 .multiPolygonEntityIntersecting(multiPolygon, entity));
     }
 
@@ -419,10 +419,10 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
 
     /**
      * Interface to be implemented if custom intersection logic is required. The
-     * {@link AtlasEntityPolygonsFilter#DEFAULT_INTERSECTION_DECIDING} is that an entity is said to
+     * {@link AtlasEntityPolygonsFilter#DEFAULT_INTERSECTION_POLICY} is that an entity is said to
      * intersect when any part of the entity overlaps with any area of the Polygon or MultiPolygon.
      */
-    public interface IntersectionDeciding extends Serializable
+    public interface IntersectionPolicy extends Serializable
     {
         boolean multiPolygonEntityIntersecting(MultiPolygon multiPolygon, AtlasEntity entity);
 
@@ -443,11 +443,10 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
             return new AtlasEntityPolygonsFilter(this, null, multiPolygons);
         }
 
-        public AtlasEntityPolygonsFilter multiPolygons(
-                final IntersectionDeciding intersectionDeciding,
+        public AtlasEntityPolygonsFilter multiPolygons(final IntersectionPolicy intersectionPolicy,
                 final Collection<MultiPolygon> multiPolygons)
         {
-            return new AtlasEntityPolygonsFilter(this, intersectionDeciding, null, multiPolygons);
+            return new AtlasEntityPolygonsFilter(this, intersectionPolicy, null, multiPolygons);
         }
 
         public AtlasEntityPolygonsFilter polygons(final Collection<Polygon> polygons)
@@ -455,10 +454,10 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
             return new AtlasEntityPolygonsFilter(this, polygons, null);
         }
 
-        public AtlasEntityPolygonsFilter polygons(final IntersectionDeciding intersectionDeciding,
+        public AtlasEntityPolygonsFilter polygons(final IntersectionPolicy intersectionPolicy,
                 final Collection<Polygon> polygons)
         {
-            return new AtlasEntityPolygonsFilter(this, intersectionDeciding, polygons, null);
+            return new AtlasEntityPolygonsFilter(this, intersectionPolicy, polygons, null);
         }
 
         public AtlasEntityPolygonsFilter polygonsAndMultiPolygons(
@@ -468,11 +467,10 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
         }
 
         public AtlasEntityPolygonsFilter polygonsAndMultiPolygons(
-                final IntersectionDeciding intersectionDeciding, final Collection<Polygon> polygons,
+                final IntersectionPolicy intersectionPolicy, final Collection<Polygon> polygons,
                 final Collection<MultiPolygon> multiPolygons)
         {
-            return new AtlasEntityPolygonsFilter(this, intersectionDeciding, polygons,
-                    multiPolygons);
+            return new AtlasEntityPolygonsFilter(this, intersectionPolicy, polygons, multiPolygons);
         }
     }
 

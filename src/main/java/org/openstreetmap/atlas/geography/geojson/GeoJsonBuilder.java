@@ -439,7 +439,8 @@ public class GeoJsonBuilder
     }
 
     /**
-     * Creates multipolygons where first polygon assumed to be outer ring and the rest are inner.
+     * Creates multipolygon from {@link Iterable} of {@link Polygon}s where first polygon is assumed
+     * to be the outer ring and the rest are inner.
      * 
      * @param polygons
      *            an iterable of polygons where the first is assumed to be the outer polygon in a

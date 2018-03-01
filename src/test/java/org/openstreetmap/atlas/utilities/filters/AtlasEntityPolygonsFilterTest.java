@@ -38,8 +38,7 @@ import com.vividsolutions.jts.io.WKBWriter;
  */
 public class AtlasEntityPolygonsFilterTest
 {
-
-    private static final AtlasEntityPolygonsFilter.IntersectionDeciding FULL_GEOMETRIC_ENCLOSING = new AtlasEntityPolygonsFilter.IntersectionDeciding()
+    private static final AtlasEntityPolygonsFilter.IntersectionPolicy FULL_GEOMETRIC_ENCLOSING = new AtlasEntityPolygonsFilter.IntersectionPolicy()
     {
         @Override
         public boolean multiPolygonEntityIntersecting(final MultiPolygon multiPolygon,
@@ -238,7 +237,7 @@ public class AtlasEntityPolygonsFilterTest
     }
 
     @Test
-    public void testIntersectionDeciding()
+    public void testIntersectionPolicy()
     {
 
         final Atlas testCountsAtlas = this.setup.getTestCounts();
@@ -248,7 +247,7 @@ public class AtlasEntityPolygonsFilterTest
         final long totalLineCount = testCountsAtlas.numberOfLines();
         final long totalAreaCount = testCountsAtlas.numberOfAreas();
         final long totalRelationCount = testCountsAtlas.numberOfRelations();
-        final AtlasEntityPolygonsFilter.IntersectionDeciding dudIntersectionDeciding = new AtlasEntityPolygonsFilter.IntersectionDeciding()
+        final AtlasEntityPolygonsFilter.IntersectionPolicy dudIntersectionPolicy = new AtlasEntityPolygonsFilter.IntersectionPolicy()
         {
             @Override
             public boolean multiPolygonEntityIntersecting(final MultiPolygon multiPolygon,
@@ -265,25 +264,25 @@ public class AtlasEntityPolygonsFilterTest
             }
         };
 
-        // Test all three decision makers on the first polygon
+        // Test all three policies on the first polygon
         this.assertCounts(testCountsAtlas,
                 AtlasEntityPolygonsFilter.Type.INCLUDE.polygons(
-                        AtlasEntityPolygonsFilter.DEFAULT_INTERSECTION_DECIDING,
+                        AtlasEntityPolygonsFilter.DEFAULT_INTERSECTION_POLICY,
                         Collections.singleton(polygon1)),
                 2L, 3L, 1L, 0L);
-        this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE.polygons(
-                dudIntersectionDeciding, Collections.singleton(polygon1)), 0L, 0L, 0L, 0L);
+        this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
+                .polygons(dudIntersectionPolicy, Collections.singleton(polygon1)), 0L, 0L, 0L, 0L);
         this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE.polygons(
                 FULL_GEOMETRIC_ENCLOSING, Collections.singleton(polygon1)), 2L, 1L, 0L, 0L);
 
         // Test all three decision makers on two polygon filter
         this.assertCounts(testCountsAtlas,
                 AtlasEntityPolygonsFilter.Type.INCLUDE.polygons(
-                        AtlasEntityPolygonsFilter.DEFAULT_INTERSECTION_DECIDING,
+                        AtlasEntityPolygonsFilter.DEFAULT_INTERSECTION_POLICY,
                         Arrays.asList(polygon1, polygon2)),
                 totalPointCount - 1L, totalLineCount - 2L, totalAreaCount, totalRelationCount);
         this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
-                .polygons(dudIntersectionDeciding, Arrays.asList(polygon1, polygon2)), 0, 0, 0, 0);
+                .polygons(dudIntersectionPolicy, Arrays.asList(polygon1, polygon2)), 0, 0, 0, 0);
         this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
                 .polygons(FULL_GEOMETRIC_ENCLOSING, Arrays.asList(polygon1, polygon2)), 2, 1, 0, 0);
 
