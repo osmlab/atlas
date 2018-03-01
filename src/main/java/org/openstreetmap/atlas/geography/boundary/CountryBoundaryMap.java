@@ -112,6 +112,7 @@ public class CountryBoundaryMap implements Serializable
     private static final String POLYGON_ID_KEY = "pid";
 
     // For backward compatibility
+    // TODO Remove once all files move to the new format
     private static final String SPATIAL_INDEX_DELIMITER = "--";
 
     // Buffer values for slicing operation. If the remaining piece turns to be smaller than
@@ -428,6 +429,22 @@ public class CountryBoundaryMap implements Serializable
     }
 
     /**
+     * @return {@link STRtree} grid index used by this {@link CountryBoundaryMap}
+     */
+    STRtree getGridIndex()
+    {
+        return this.gridIndex;
+    }
+
+    /**
+     * @return the raw {@link STRtree} index used by this {@link CountryBoundaryMap}
+     */
+    STRtree getRawIndex()
+    {
+        return this.rawIndex;
+    }
+
+    /**
      * Read a {@link CountryBoundaryMap} from the {@link ComplexBoundary}(ies) inside an
      * {@link Atlas}
      *
@@ -574,6 +591,7 @@ public class CountryBoundaryMap implements Serializable
                         // NOTE: This is for backward compatibility. Older boundary maps save
                         // MultiPolygons, but newer ones save Polygons and use the order per country
                         // for grid indexing.
+                        // TODO Remove MultiPolygon part once all files move to the new format
                         if (geometry instanceof Polygon)
                         {
                             final Integer identifier = countryIdentifierMap.get(country);
@@ -990,14 +1008,6 @@ public class CountryBoundaryMap implements Serializable
     }
 
     /**
-     * @return {@link STRtree} grid index used by this {@link CountryBoundaryMap}
-     */
-    public STRtree getGridIndex()
-    {
-        return this.gridIndex;
-    }
-
-    /**
      * @return all the countries represented by this {@link CountryBoundaryMap}
      */
     public Set<String> getLoadedCountries()
@@ -1006,11 +1016,11 @@ public class CountryBoundaryMap implements Serializable
     }
 
     /**
-     * @return the raw {@link STRtree} index used by this {@link CountryBoundaryMap}
+     * @return true if a {@link STRtree} grid index is available
      */
-    public STRtree getRawIndex()
+    public boolean hasGridIndex()
     {
-        return this.rawIndex;
+        return this.gridIndex == null;
     }
 
     /**
