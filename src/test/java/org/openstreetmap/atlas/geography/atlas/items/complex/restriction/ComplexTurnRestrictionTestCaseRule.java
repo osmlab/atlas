@@ -14,12 +14,12 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation.Member;
  */
 public class ComplexTurnRestrictionTestCaseRule extends CoreTestRule
 {
-    private static final String ONE = "37.780574, -122.472852";
-    private static final String TWO = "37.780592, -122.472242";
-    private static final String THREE = "37.780724, -122.472249";
-    private static final String FOUR = "37.780716, -122.472395";
     private static final String FIVE = "37.780572, -122.472846";
+    private static final String FOUR = "37.780716, -122.472395";
+    private static final String ONE = "37.780574, -122.472852";
     private static final String SIX = "37.780592, -122.472142";
+    private static final String THREE = "37.780724, -122.472249";
+    private static final String TWO = "37.780592, -122.472242";
 
     @TestAtlas(
 
@@ -70,6 +70,27 @@ public class ComplexTurnRestrictionTestCaseRule extends CoreTestRule
     @TestAtlas(loadFromTextResource = "bigNodeWithOnlyTurnRestrictions.txt.gz")
     private Atlas bigNodeWithOnlyTurnRestrictionsAtlas;
 
+    @TestAtlas(
+
+            nodes = {
+
+                    @Node(id = "1", coordinates = @Loc(value = ONE)),
+                    @Node(id = "2", coordinates = @Loc(value = TWO)),
+
+            }, edges = { @Edge(id = "102", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }, tags = { "highway=trunk" }), @Edge(id = "-102", coordinates = { @Loc(value = TWO), @Loc(value = ONE) }, tags = { "highway=trunk" })
+
+            }, relations = {
+
+                    @Relation(id = "1", tags = { "type=restriction",
+                            "restriction=no_u_turn" }, members = {
+                                    @Member(id = "102", role = "from", type = "edge"),
+                                    @Member(id = "1", role = "via", type = "node"),
+                                    @Member(id = "2", role = "via", type = "node"),
+                                    @Member(id = "-102", role = "to", type = "edge") })
+
+            })
+    private Atlas relationWithTwoViaNodes;
+
     public Atlas getAtlasNo()
     {
         return this.atlasNo;
@@ -83,5 +104,10 @@ public class ComplexTurnRestrictionTestCaseRule extends CoreTestRule
     public Atlas getBigNodeWithOnlyTurnRestrictionsAtlas()
     {
         return this.bigNodeWithOnlyTurnRestrictionsAtlas;
+    }
+
+    public Atlas getRelationWithTwoViaNodes()
+    {
+        return this.relationWithTwoViaNodes;
     }
 }
