@@ -2,9 +2,6 @@ package org.openstreetmap.atlas.geography.boundary;
 
 import java.util.List;
 
-import org.openstreetmap.atlas.tags.ISOCountryTag;
-import org.openstreetmap.atlas.utilities.maps.MultiMap;
-
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.index.strtree.STRtree;
@@ -23,7 +20,6 @@ public class FixedGridIndexBuilder extends AbstractGridIndexBuilder
 
     private final List<Polygon> boundaries;
     private final Envelope envelope;
-    private MultiMap<String, Envelope> spatialIndexCells;
 
     /**
      * @param boundaries
@@ -37,10 +33,6 @@ public class FixedGridIndexBuilder extends AbstractGridIndexBuilder
         this.envelope = envelope;
         this.boundaries = boundaries;
         this.index = null;
-        if (savingGridIndexCells())
-        {
-            this.spatialIndexCells = new MultiMap<>();
-        }
     }
 
     /**
@@ -92,27 +84,13 @@ public class FixedGridIndexBuilder extends AbstractGridIndexBuilder
                                 currentY, currentY + incrementValue);
                         if (geoBox.intersects(polygon))
                         {
-                            if (savingGridIndexCells())
-                            {
-                                final String countryCode = CountryBoundaryMap
-                                        .getGeometryProperty(polygon, ISOCountryTag.KEY);
-                                this.spatialIndexCells.add(countryCode, box);
-                            }
                             this.index.insert(box, polygon);
                         }
                     }
                 }
             }
         }
-        return this.index;
-    }
 
-    /**
-     * @return the Quad-Tree cells stored within the Spatial Index (R-Tree).
-     */
-    @Override
-    public MultiMap<String, Envelope> getSpatialIndexCells()
-    {
-        return this.spatialIndexCells;
+        return this.index;
     }
 }

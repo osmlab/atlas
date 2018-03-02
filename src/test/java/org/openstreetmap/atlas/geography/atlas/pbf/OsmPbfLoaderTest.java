@@ -57,9 +57,9 @@ public class OsmPbfLoaderTest
         this.countryShape2 = MultiPolygon.forPolygon(polygon2);
         final Map<String, MultiPolygon> boundaries = new HashMap<>();
         boundaries.put(COUNTRY_1_NAME, this.countryShape1);
-        this.countryBoundaries1 = new CountryBoundaryMap(boundaries);
+        this.countryBoundaries1 = CountryBoundaryMap.fromBoundaryMap(boundaries);
         boundaries.put(COUNTRY_2_NAME, this.countryShape2);
-        this.countryBoundariesAll = new CountryBoundaryMap(boundaries);
+        this.countryBoundariesAll = CountryBoundaryMap.fromBoundaryMap(boundaries);
         this.store = new AtlasPrimitiveObjectStore();
 
         // Add Nodes

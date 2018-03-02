@@ -36,8 +36,8 @@ public class CountrySlicingProcessorTest
     @BeforeClass
     public static void setup()
     {
-        boundaryMap = new CountryBoundaryMap(
-                new InputStreamResource(CountrySlicingProcessorTest.class
+        boundaryMap = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(CountrySlicingProcessorTest.class
                         .getResourceAsStream("CIV_GIN_LBR_osm_boundaries.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
     }
@@ -90,7 +90,7 @@ public class CountrySlicingProcessorTest
         final CountrySlicingProcessor processor = new CountrySlicingProcessor(this.store,
                 boundaryMap);
         processor.run();
-        Assert.assertEquals("LBR,CIV", this.store.getNode(1001000L).getTags().stream()
+        Assert.assertEquals("CIV,LBR", this.store.getNode(1001000L).getTags().stream()
                 .filter(tag -> tag.getKey().equals(ISOCountryTag.KEY)).findAny().get().getValue());
     }
 

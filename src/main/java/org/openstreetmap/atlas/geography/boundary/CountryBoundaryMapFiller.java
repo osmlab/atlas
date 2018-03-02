@@ -41,7 +41,7 @@ public class CountryBoundaryMapFiller extends Command
     {
         final File input = (File) command.get(INPUT);
         final File output = (File) command.get(OUTPUT);
-        final CountryBoundaryMap map = new CountryBoundaryMap(input);
+        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(input);
         final MultiMap<Polygon, Polygon> outerToInners = new MultiMap<>();
         final Map<String, MultiPolygon> resultMap = new HashMap<>();
         map.allCountryNames().stream()
@@ -68,7 +68,7 @@ public class CountryBoundaryMapFiller extends Command
         resultMap.put(ISOCountryTag.COUNTRY_MISSING, result);
         try
         {
-            new CountryBoundaryMap(resultMap).writeBoundariesAsText(output);
+            CountryBoundaryMap.fromBoundaryMap(resultMap).writeToFile(output);
         }
         catch (final IOException e)
         {
