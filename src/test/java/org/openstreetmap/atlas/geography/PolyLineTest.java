@@ -6,6 +6,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.converters.WktPolyLineConverter;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,6 +85,15 @@ public class PolyLineTest
         Assert.assertTrue(polyLine1.equalsShape(polyLine2));
     }
 
+    @Test
+    public void testInnerLocations()
+    {
+        final PolyLine source = new PolyLine(Location.CROSSING_85_280, Location.TEST_7,
+                Location.TEST_1);
+        Assert.assertTrue("Make sure there is a single inner location",
+                source.innerLocations().iterator().next().equals(Location.TEST_7));
+    }
+
     @Test(expected = CoreException.class)
     public void testInvalidAppend()
     {
@@ -100,6 +110,14 @@ public class PolyLineTest
         final PolyLine line2 = new PolyLine(Location.CROSSING_85_280, Location.TEST_7);
         @SuppressWarnings("unused")
         final PolyLine prepended = line.prepend(line2);
+    }
+
+    @Test
+    public void testNoInnerLocations()
+    {
+        final PolyLine source = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
+        Assert.assertTrue("Make sure the iterable is empty",
+                Iterables.isEmpty(source.innerLocations()));
     }
 
     @Test
@@ -231,36 +249,36 @@ public class PolyLineTest
         Assert.assertTrue(new PolyLine(truncated).equals(new PolyLine(Location.TEST_1)));
     }
 
-    @Test(expected = CoreException.class)
+    @Test
     public void testTruncatingWithEndIndexEqualToPolyLineSize()
     {
         final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
         final Iterable<Location> truncated = line.truncate(0, 2);
-        Assert.assertTrue(new PolyLine(truncated).equals(new PolyLine(Location.CROSSING_85_280)));
+        Assert.assertTrue("Make sure truncated is empty", Iterables.isEmpty(truncated));
     }
 
-    @Test(expected = CoreException.class)
+    @Test
     public void testTruncatingWithInvalidIndex()
     {
         final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
         final Iterable<Location> truncated = line.truncate(-1, 1);
-        Assert.assertTrue(new PolyLine(truncated).equals(new PolyLine(Location.CROSSING_85_280)));
+        Assert.assertTrue("Make sure truncated is empty", Iterables.isEmpty(truncated));
     }
 
-    @Test(expected = CoreException.class)
+    @Test
     public void testTruncatingWithStartAndEndCombinedEqualToPolyLineSize()
     {
         final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
         final Iterable<Location> truncated = line.truncate(1, 1);
-        Assert.assertTrue(new PolyLine(truncated).equals(new PolyLine(Location.CROSSING_85_280)));
+        Assert.assertTrue("Make sure truncated is empty", Iterables.isEmpty(truncated));
     }
 
-    @Test(expected = CoreException.class)
+    @Test
     public void testTruncatingWithStartIndexEqualToPolyLineSize()
     {
         final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
         final Iterable<Location> truncated = line.truncate(2, 0);
-        Assert.assertTrue(new PolyLine(truncated).equals(new PolyLine(Location.CROSSING_85_280)));
+        Assert.assertTrue("Make sure truncated is empty", Iterables.isEmpty(truncated));
     }
 
     @Test
