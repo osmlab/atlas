@@ -38,9 +38,9 @@ public class OsmPbfToSlicedRawAtlasTest
         COUNTRIES.add(IsoCountry.forCountryCode("GIN").get());
         COUNTRIES.add(IsoCountry.forCountryCode("LBR").get());
 
-        COUNTRY_BOUNDARY_MAP = new CountryBoundaryMap(
-                new InputStreamResource(() -> OsmPbfToSlicedRawAtlasTest.class
-                        .getResourceAsStream("CIV_GIN_LBR_osm_boundaries.txt.gz"))
+        COUNTRY_BOUNDARY_MAP = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> OsmPbfToSlicedRawAtlasTest.class
+                        .getResourceAsStream("CIV_GIN_LBR_osm_boundaries_with_grid_index.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
     }
 
@@ -94,7 +94,7 @@ public class OsmPbfToSlicedRawAtlasTest
         Assert.assertEquals(0, slicedRawAtlas.numberOfEdges());
         Assert.assertEquals(0, slicedRawAtlas.numberOfAreas());
         Assert.assertEquals(648704, slicedRawAtlas.numberOfPoints());
-        Assert.assertEquals(57644, slicedRawAtlas.numberOfLines());
+        Assert.assertEquals(57643, slicedRawAtlas.numberOfLines());
         Assert.assertEquals(44, slicedRawAtlas.numberOfRelations());
 
         // Assert all Raw Atlas Entities have a country code

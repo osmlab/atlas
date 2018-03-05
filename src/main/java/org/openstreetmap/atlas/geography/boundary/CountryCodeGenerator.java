@@ -34,7 +34,7 @@ public class CountryCodeGenerator extends Command
     protected int onRun(final CommandMap command)
     {
         final java.io.File boundaryFile = (java.io.File) command.get(BOUNDARY);
-        final CountryBoundaryMap boundaryMap = new CountryBoundaryMap(boundaryFile);
+        final CountryBoundaryMap boundaryMap = CountryBoundaryMap.fromShapeFile(boundaryFile);
         final StringList allCountries = boundaryMap.countryCodesOverlappingWith(Rectangle.MAXIMUM);
         System.out.println("The number of all countries: " + allCountries.size());
         System.out.println(allCountries.join(SEPARATOR));
