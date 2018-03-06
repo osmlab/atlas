@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.utilities.filters;
 
+import static org.openstreetmap.atlas.utilities.filters.IntersectionPolicy.DEFAULT_INTERSECTION_POLICY;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
@@ -38,7 +40,7 @@ import com.vividsolutions.jts.io.WKBWriter;
  */
 public class AtlasEntityPolygonsFilterTest
 {
-    private static final AtlasEntityPolygonsFilter.IntersectionPolicy FULL_GEOMETRIC_ENCLOSING = new AtlasEntityPolygonsFilter.IntersectionPolicy()
+    private static final IntersectionPolicy FULL_GEOMETRIC_ENCLOSING = new IntersectionPolicy()
     {
         @Override
         public boolean multiPolygonEntityIntersecting(final MultiPolygon multiPolygon,
@@ -247,7 +249,7 @@ public class AtlasEntityPolygonsFilterTest
         final long totalLineCount = testCountsAtlas.numberOfLines();
         final long totalAreaCount = testCountsAtlas.numberOfAreas();
         final long totalRelationCount = testCountsAtlas.numberOfRelations();
-        final AtlasEntityPolygonsFilter.IntersectionPolicy dudIntersectionPolicy = new AtlasEntityPolygonsFilter.IntersectionPolicy()
+        final IntersectionPolicy dudIntersectionPolicy = new IntersectionPolicy()
         {
             @Override
             public boolean multiPolygonEntityIntersecting(final MultiPolygon multiPolygon,
@@ -265,10 +267,9 @@ public class AtlasEntityPolygonsFilterTest
         };
 
         // Test all three policies on the first polygon
-        this.assertCounts(testCountsAtlas,
-                AtlasEntityPolygonsFilter.Type.INCLUDE.polygons(
-                        AtlasEntityPolygonsFilter.DEFAULT_INTERSECTION_POLICY,
-                        Collections.singleton(polygon1)),
+        this.assertCounts(
+                testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
+                        .polygons(DEFAULT_INTERSECTION_POLICY, Collections.singleton(polygon1)),
                 2L, 3L, 1L, 0L);
         this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
                 .polygons(dudIntersectionPolicy, Collections.singleton(polygon1)), 0L, 0L, 0L, 0L);
@@ -277,8 +278,7 @@ public class AtlasEntityPolygonsFilterTest
 
         // Test all three decision makers on two polygon filter
         this.assertCounts(testCountsAtlas,
-                AtlasEntityPolygonsFilter.Type.INCLUDE.polygons(
-                        AtlasEntityPolygonsFilter.DEFAULT_INTERSECTION_POLICY,
+                AtlasEntityPolygonsFilter.Type.INCLUDE.polygons(DEFAULT_INTERSECTION_POLICY,
                         Arrays.asList(polygon1, polygon2)),
                 totalPointCount - 1L, totalLineCount - 2L, totalAreaCount, totalRelationCount);
         this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
@@ -400,6 +400,40 @@ public class AtlasEntityPolygonsFilterTest
                 this.constructConfiguredFilter(geojsonConfigurationStringFormat, multiPolygon1
                         .asGeoJsonFeatureCollection().toString().replaceAll("\"", "\\\\\"")),
                 3, 1, -1, -1);
+    }
+
+    @Test
+    public void testOverlappingPolygons()
+    {
+        final Atlas testOverlappingPolygonsAtlas = this.setup.getOverlappingPolygons();
+        final Polygon polygon1 = this.getPolygonWithName(testOverlappingPolygonsAtlas, "polygon1");
+        final Polygon polygon2 = this.getPolygonWithName(testOverlappingPolygonsAtlas, "polygon2");
+        final Polygon polygon3 = this.getPolygonWithName(testOverlappingPolygonsAtlas, "polygon3");
+        final Polygon polygon4 = this.getPolygonWithName(testOverlappingPolygonsAtlas, "polygon4");
+        final Polygon polygon5 = this.getPolygonWithName(testOverlappingPolygonsAtlas, "polygon5");
+        final MultiMap<Polygon, Polygon> multiPolygonMap1 = new MultiMap<>();
+        final MultiMap<Polygon, Polygon> multiPolygonMap2 = new MultiMap<>();
+        multiPolygonMap1.add(polygon3, polygon4);
+        multiPolygonMap2.add(polygon5, polygon2);
+
+        final MultiPolygon multiPolygon1 = new MultiPolygon(multiPolygonMap1);
+        final MultiPolygon multiPolygon2 = new MultiPolygon(multiPolygonMap2);
+
+        // Test overlapping polygons
+        this.assertCounts(testOverlappingPolygonsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
+                .polygons(Arrays.asList(polygon1, polygon2, polygon3)), 2, 4, -1, -1);
+        this.assertCounts(testOverlappingPolygonsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
+                .polygons(Arrays.asList(polygon2, polygon1, polygon3)), 4, 5, -1, -1);
+        this.assertCounts(testOverlappingPolygonsAtlas,
+                AtlasEntityPolygonsFilter.Type.INCLUDE.polygonsAndMultiPolygons(
+                        Arrays.asList(polygon1, polygon2), Collections.singleton(multiPolygon1)),
+                2, 4, -1, -1);
+
+        // Test overlapping multipolygons
+        this.assertCounts(testOverlappingPolygonsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
+                .multiPolygons(Arrays.asList(multiPolygon1, multiPolygon2)), 0, 3, -1, -1);
+        this.assertCounts(testOverlappingPolygonsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
+                .multiPolygons(Arrays.asList(multiPolygon2, multiPolygon1)), 1, 6, -1, -1);
     }
 
     private void assertCounts(final Atlas atlas, final Predicate<AtlasEntity> filter,

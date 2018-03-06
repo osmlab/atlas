@@ -15,6 +15,8 @@ public class AtlasEntityPolygonsFilterTestRule extends CoreTestRule
     private Atlas includeExcludeArrangements;
     @TestAtlas(loadFromJosmOsmResource = "multiPolygons.osm")
     private Atlas multiPolygons;
+    @TestAtlas(loadFromJosmOsmResource = "overlappingPolygons.osm")
+    private Atlas overlappingPolygons;
     @TestAtlas(loadFromJosmOsmResource = "testCounts.osm")
     private Atlas testCounts;
     @TestAtlas(loadFromJosmOsmResource = "testForms.osm")
@@ -28,6 +30,11 @@ public class AtlasEntityPolygonsFilterTestRule extends CoreTestRule
     public Atlas getMultiPolygons()
     {
         return this.multiPolygons;
+    }
+
+    public Atlas getOverlappingPolygons()
+    {
+        return this.overlappingPolygons;
     }
 
     public Atlas getTestCounts()
