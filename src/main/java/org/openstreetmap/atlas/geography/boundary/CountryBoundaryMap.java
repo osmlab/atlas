@@ -1020,7 +1020,7 @@ public class CountryBoundaryMap implements Serializable
      */
     public boolean hasGridIndex()
     {
-        return this.gridIndex == null;
+        return this.gridIndex != null;
     }
 
     /**
