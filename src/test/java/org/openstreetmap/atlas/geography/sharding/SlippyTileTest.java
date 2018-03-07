@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * {@link SlippyTile} unit tests.
+ *
  * @author matthieun
  * @author mgostintsev
  */
@@ -37,6 +39,24 @@ public class SlippyTileTest extends Command
     {
         Assert.assertEquals(1_024, Iterables.size(SlippyTile.allTiles(5, Rectangle.MAXIMUM)));
         Assert.assertEquals(1, Iterables.size(SlippyTile.allTiles(17, Rectangle.TEST_RECTANGLE_2)));
+    }
+
+    @Test
+    public void testCompareTo()
+    {
+        final SlippyTile tile = new SlippyTile(10, 10, 17);
+        final SlippyTile identical = new SlippyTile(10, 10, 17);
+        final SlippyTile sameZ = new SlippyTile(5, 5, 17);
+        final SlippyTile sameZAndX = new SlippyTile(10, 5, 17);
+        final SlippyTile sameZAndY = new SlippyTile(5, 10, 17);
+
+        Assert.assertTrue("Identical tiles", tile.compareTo(identical) == 0);
+        Assert.assertTrue("Same z levels, original tile should be preferred with higher X-value",
+                tile.compareTo(sameZ) == 1);
+        Assert.assertTrue("Same z levels, original tile should be preferred with higher y value",
+                tile.compareTo(sameZAndX) == 1);
+        Assert.assertTrue("Same z levels, original tile should be preferred with higher x value",
+                tile.compareTo(sameZAndY) == 1);
     }
 
     @Test

@@ -1,11 +1,16 @@
 package org.openstreetmap.atlas.geography.atlas.raw;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.ShardFileOverlapsPolygonTest;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader;
@@ -13,6 +18,9 @@ import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
+import org.openstreetmap.atlas.geography.sharding.DynamicTileSharding;
+import org.openstreetmap.atlas.geography.sharding.Shard;
+import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.File;
@@ -20,9 +28,12 @@ import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Tests OSM PBF --> Raw Atlas --> Sliced Raw Atlas flow.
+ * Tests several Raw Atlas Flows: 1. OSM PBF to Sliced Raw Atlas 2. Sliced Raw Atlas to Sectioned
+ * Raw Atlas 3. Multiple Sliced Raw Atlases to Sectioned Raw atlas
  *
  * @author mgostintsev
  */
@@ -30,6 +41,8 @@ public class OsmPbfToSlicedRawAtlasTest
 {
     private static CountryBoundaryMap COUNTRY_BOUNDARY_MAP;
     private static Set<IsoCountry> COUNTRIES;
+
+    private static final Logger logger = LoggerFactory.getLogger(OsmPbfToSlicedRawAtlasTest.class);
 
     static
     {
@@ -44,29 +57,13 @@ public class OsmPbfToSlicedRawAtlasTest
                                 .withDecompressor(Decompressor.GZIP));
     }
 
-    @Test
-    public void testPbfToCountrySlicedAndWaySectionedAtlas()
-    {
-        final String path = OsmPbfToSlicedRawAtlasTest.class.getResource("8-122-122.osm.pbf")
-                .getPath();
-        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
-        final Atlas rawAtlas = rawAtlasGenerator.build();
-
-        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
-
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
-                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
-
-        System.out.println(finalAtlas.summary());
-
-        // TODO - compare the old atlas to the new atlas to see differences
-    }
+    // @Rule
+    // public DynamicRawAtlasSectioningTestRule setup = new DynamicRawAtlasSectioningTestRule();
 
     @Test
     public void testPbfToSlicedAtlasWithExpansion()
     {
-        // TODO
+        // TODO - finish test using the setup above!
     }
 
     @Test
@@ -124,5 +121,59 @@ public class OsmPbfToSlicedRawAtlasTest
                 Iterables.size(Iterables.filter(oldSlicedAtlas.edges(), Edge::isMasterEdge))
                         + oldSlicedAtlas.numberOfAreas()
                         + oldSlicedAtlas.numberOfLines() == slicedRawAtlas.numberOfLines() - 1);
+    }
+
+    @Test
+    public void testSectioningFromRawAtlas()
+    {
+        final String path = OsmPbfToSlicedRawAtlasTest.class.getResource("8-122-122.osm.pbf")
+                .getPath();
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
+        final Atlas rawAtlas = rawAtlasGenerator.build();
+
+        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
+                .slice(rawAtlas);
+
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
+
+        logger.info(finalAtlas.summary());
+    }
+
+    @Test
+    public void testSectioningFromShard()
+    {
+        final String path = OsmPbfToSlicedRawAtlasTest.class.getResource("8-122-122.osm.pbf")
+                .getPath();
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
+        final Atlas rawAtlas = rawAtlasGenerator.build();
+
+        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
+                .slice(rawAtlas);
+
+        // Simple fetcher that returns the atlas from above for the corresponding shard
+        final Map<Shard, Atlas> store = new HashMap<>();
+        store.put(new SlippyTile(122, 122, 8), slicedRawAtlas);
+        final Function<Shard, Optional<Atlas>> rawAtlasFetcher = shard ->
+        {
+            if (store.containsKey(shard))
+            {
+                return Optional.of(store.get(shard));
+            }
+            else
+            {
+                return Optional.empty();
+            }
+        };
+
+        final Atlas finalAtlas = new WaySectionProcessor(new SlippyTile(122, 122, 8),
+                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP),
+                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class
+                        .getResource(
+                                "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
+                        .getFile())),
+                rawAtlasFetcher).run();
+
+        logger.info(finalAtlas.summary());
     }
 }
