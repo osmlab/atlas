@@ -1,0 +1,147 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-38986' action='modify' lat='26.97532157261' lon='-45.28701816559' />
+  <node id='-38988' action='modify' lat='26.97470963111' lon='-45.17200504303' />
+  <node id='-38990' action='modify' lat='26.87491874122' lon='-45.17440830231' />
+  <node id='-38992' action='modify' lat='26.87614370399' lon='-45.29045139313' />
+  <node id='-38994' action='modify' lat='26.95910399899' lon='-45.21869693756' />
+  <node id='-38996' action='modify' lat='26.95910399899' lon='-45.19363437653' />
+  <node id='-38998' action='modify' lat='26.93706883755' lon='-45.19397769928' />
+  <node id='-39000' action='modify' lat='26.93676276331' lon='-45.21869693756' />
+  <node id='-39002' action='modify' lat='26.88808639533' lon='-45.30864749908' />
+  <node id='-39004' action='modify' lat='26.88533050164' lon='-45.12874637604' />
+  <node id='-39006' action='modify' lat='26.78116977658' lon='-45.13114963531' />
+  <node id='-39008' action='modify' lat='26.78392820597' lon='-45.31585727692' />
+  <node id='-39010' action='modify' lat='26.98266461115' lon='-45.38589511871' />
+  <node id='-39012' action='modify' lat='26.98235866077' lon='-45.33439670563' />
+  <node id='-39014' action='modify' lat='26.93278372258' lon='-45.33508335114' />
+  <node id='-39016' action='modify' lat='26.93339589183' lon='-45.38658176422' />
+  <node id='-39018' action='modify' lat='27.05178835252' lon='-45.426407547' />
+  <node id='-39020' action='modify' lat='27.05056529863' lon='-45.0487525177' />
+  <node id='-39022' action='modify' lat='26.69286497728' lon='-45.04463264465' />
+  <node id='-39024' action='modify' lat='26.70513367403' lon='-45.44563362122' />
+  <node id='-39026' action='modify' lat='26.95436052931' lon='-45.23019807816' />
+  <node id='-39028' action='modify' lat='26.95436052931' lon='-45.20891206741' />
+  <node id='-39030' action='modify' lat='26.94808680378' lon='-45.24942415237' />
+  <node id='-39032' action='modify' lat='26.94823982563' lon='-45.23019807816' />
+  <node id='-39034' action='modify' lat='26.94833588924' lon='-45.16047971726' />
+  <node id='-39036' action='modify' lat='26.94848891076' lon='-45.14588850021' />
+  <node id='-39038' action='modify' lat='26.90462034578' lon='-45.26744876862' />
+  <node id='-39040' action='modify' lat='26.89237320746' lon='-45.26744876862' />
+  <node id='-39042' action='modify' lat='26.89145461855' lon='-45.257149086' />
+  <node id='-39044' action='modify' lat='26.87116721019' lon='-45.257149086' />
+  <node id='-39046' action='modify' lat='26.86955921994' lon='-45.26916521072' />
+  <node id='-39048' action='modify' lat='26.850110237' lon='-45.26950853348' />
+  <node id='-39050' action='modify' lat='26.96124607654' lon='-45.27774845123' />
+  <node id='-39052' action='modify' lat='26.96430611665' lon='-45.34469638824' />
+  <node id='-39054' action='modify' lat='26.9523714901' lon='-45.27362857819' />
+  <node id='-39056' action='modify' lat='26.95267752196' lon='-45.28427158356' />
+  <node id='-39058' action='modify' lat='26.97623947862' lon='-45.30590091705' />
+  <node id='-39060' action='modify' lat='26.97654544563' lon='-45.32203708649' />
+  <node id='-39062' action='modify' lat='26.9572679001' lon='-45.25680576324' />
+  <node id='-39064' action='modify' lat='26.96644809526' lon='-45.25680576324' />
+  <node id='-39066' action='modify' lat='26.96736607362' lon='-45.24616275787' />
+  <node id='-39068' action='modify' lat='27.0001024073' lon='-45.24547611237' />
+  <node id='-39070' action='modify' lat='26.99979650435' lon='-45.26195560455' />
+  <node id='-39072' action='modify' lat='27.02579528372' lon='-45.26195560455' />
+  <way id='-39074' action='modify'>
+    <nd ref='-38986' />
+    <nd ref='-38988' />
+    <nd ref='-38990' />
+    <nd ref='-38992' />
+    <nd ref='-38986' />
+    <tag k='name' v='include' />
+  </way>
+  <way id='-39076' action='modify'>
+    <nd ref='-38994' />
+    <nd ref='-38996' />
+    <nd ref='-38998' />
+    <nd ref='-39000' />
+    <nd ref='-38994' />
+    <tag k='name' v='exclude_case_1' />
+  </way>
+  <way id='-39078' action='modify'>
+    <nd ref='-39002' />
+    <nd ref='-39004' />
+    <nd ref='-39006' />
+    <nd ref='-39008' />
+    <nd ref='-39002' />
+    <tag k='name' v='exclude_case_2' />
+  </way>
+  <way id='-39080' action='modify'>
+    <nd ref='-39010' />
+    <nd ref='-39012' />
+    <nd ref='-39014' />
+    <nd ref='-39016' />
+    <nd ref='-39010' />
+    <tag k='name' v='exclude_case_3' />
+  </way>
+  <way id='-39082' action='modify'>
+    <nd ref='-39018' />
+    <nd ref='-39020' />
+    <nd ref='-39022' />
+    <nd ref='-39024' />
+    <nd ref='-39018' />
+    <tag k='name' v='exclude_case_4' />
+  </way>
+  <way id='-39084' action='modify'>
+    <nd ref='-39026' />
+    <nd ref='-39028' />
+    <tag k='name' v='case_1_included' />
+  </way>
+  <way id='-39086' action='modify'>
+    <nd ref='-39030' />
+    <nd ref='-39032' />
+    <tag k='name' v='case_1_included' />
+  </way>
+  <way id='-39088' action='modify'>
+    <nd ref='-39034' />
+    <nd ref='-39036' />
+    <tag k='name' v='case_1_excluded' />
+  </way>
+  <way id='-39090' action='modify'>
+    <nd ref='-39038' />
+    <nd ref='-39040' />
+    <tag k='name' v='case_2_included' />
+  </way>
+  <way id='-39092' action='modify'>
+    <nd ref='-39042' />
+    <nd ref='-39044' />
+    <tag k='name' v='case_2_included' />
+  </way>
+  <way id='-39094' action='modify'>
+    <nd ref='-39046' />
+    <nd ref='-39048' />
+    <tag k='name' v='case_2_excluded' />
+  </way>
+  <way id='-39096' action='modify'>
+    <nd ref='-39050' />
+    <nd ref='-39052' />
+    <tag k='name' v='case_3_included' />
+  </way>
+  <way id='-39098' action='modify'>
+    <nd ref='-39054' />
+    <nd ref='-39056' />
+    <tag k='name' v='case_3_included' />
+  </way>
+  <way id='-39100' action='modify'>
+    <nd ref='-39058' />
+    <nd ref='-39060' />
+    <tag k='name' v='case_3_excluded' />
+  </way>
+  <way id='-39102' action='modify'>
+    <nd ref='-39062' />
+    <nd ref='-39064' />
+    <tag k='name' v='case_4_included' />
+  </way>
+  <way id='-39104' action='modify'>
+    <nd ref='-39066' />
+    <nd ref='-39068' />
+    <tag k='name' v='case_4_included' />
+  </way>
+  <way id='-39106' action='modify'>
+    <nd ref='-39070' />
+    <nd ref='-39072' />
+    <tag k='name' v='case_4_excluded' />
+  </way>
+</osm>

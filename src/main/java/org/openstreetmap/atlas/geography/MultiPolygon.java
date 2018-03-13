@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -85,19 +86,29 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
         return new GeoJsonBuilder().create(asLocationIterableProperties());
     }
 
+    public GeoJsonObject asGeoJsonFeatureCollection()
+    {
+        final GeoJsonBuilder builder = new GeoJsonBuilder();
+        return builder.createFeatureCollection(Iterables.translate(outers(), outerPolygon ->
+        {
+            return builder.createOneOuterMultiPolygon(new MultiIterable<>(
+                    Collections.singleton(outerPolygon), this.outerToInners.get(outerPolygon)));
+        }));
+    }
+
     public Iterable<LocationIterableProperties> asLocationIterableProperties()
     {
         final Iterable<LocationIterableProperties> outers = Iterables.translate(outers(), polygon ->
         {
             final Map<String, String> tags = new HashMap<>();
             tags.put("MultiPolygon", "outer");
-            return new LocationIterableProperties(polygon, new HashMap<>());
+            return new LocationIterableProperties(polygon, tags);
         });
         final Iterable<LocationIterableProperties> inners = Iterables.translate(inners(), polygon ->
         {
             final Map<String, String> tags = new HashMap<>();
             tags.put("MultiPolygon", "inner");
-            return new LocationIterableProperties(polygon, new HashMap<>());
+            return new LocationIterableProperties(polygon, tags);
         });
         return new MultiIterable<>(outers, inners);
     }
@@ -301,6 +312,12 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
     public boolean overlaps(final PolyLine polyLine)
     {
         return overlapsInternal(polyLine, true);
+    }
+
+    public boolean overlaps(final MultiPolygon otherMultiPolygon)
+    {
+        return this.outers().stream().anyMatch(otherMultiPolygon::overlaps)
+                && otherMultiPolygon.outers().stream().anyMatch(this::overlaps);
     }
 
     public void saveAsGeoJson(final WritableResource resource)
