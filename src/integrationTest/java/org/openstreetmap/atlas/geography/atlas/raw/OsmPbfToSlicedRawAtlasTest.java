@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.ShardFileOverlapsPolygonTest;
@@ -42,6 +43,8 @@ public class OsmPbfToSlicedRawAtlasTest
     private static CountryBoundaryMap COUNTRY_BOUNDARY_MAP;
     private static Set<IsoCountry> COUNTRIES;
 
+    private static final long LINE_OSM_IDENTIFIER_CROSSING_3_SHARDS = 541706;
+
     private static final Logger logger = LoggerFactory.getLogger(OsmPbfToSlicedRawAtlasTest.class);
 
     static
@@ -57,13 +60,68 @@ public class OsmPbfToSlicedRawAtlasTest
                                 .withDecompressor(Decompressor.GZIP));
     }
 
-    // @Rule
-    // public DynamicRawAtlasSectioningTestRule setup = new DynamicRawAtlasSectioningTestRule();
+    @Rule
+    public DynamicRawAtlasSectioningTestRule setup = new DynamicRawAtlasSectioningTestRule();
 
     @Test
     public void testPbfToSlicedAtlasWithExpansion()
     {
-        // TODO - finish test using the setup above!
+        // Create a simple store, populated with 3 shards and the corresponding atlases.
+        final Map<Shard, Atlas> store = prepareShardStore();
+        final Function<Shard, Optional<Atlas>> rawAtlasFetcher = shard ->
+        {
+            if (store.containsKey(shard))
+            {
+                return Optional.of(store.get(shard));
+            }
+            else
+            {
+                return Optional.empty();
+            }
+        };
+
+        // Create 3 atlas files, starting from each of the different shards
+        final Atlas atlasFromz8x123y122 = generateSectionedAtlasStartingAtShard(
+                new SlippyTile(123, 122, 8), rawAtlasFetcher);
+        logger.info(atlasFromz8x123y122.summary());
+
+        final Atlas atlasFromz8x123y123 = generateSectionedAtlasStartingAtShard(
+                new SlippyTile(123, 123, 8), rawAtlasFetcher);
+        logger.info(atlasFromz8x123y123.summary());
+
+        final Atlas atlasFromz7x62y61 = generateSectionedAtlasStartingAtShard(
+                new SlippyTile(62, 61, 7), rawAtlasFetcher);
+        logger.info(atlasFromz7x62y61.summary());
+
+        // Let's focus on the edge spanning all 3 shards and verify it got sectioned properly.
+        final Iterable<Edge> firstGroupOfEdges = atlasFromz8x123y122
+                .edges(edge -> edge.getOsmIdentifier() == LINE_OSM_IDENTIFIER_CROSSING_3_SHARDS);
+        final Iterable<Edge> secondGroupOfEdges = atlasFromz8x123y123
+                .edges(edge -> edge.getOsmIdentifier() == LINE_OSM_IDENTIFIER_CROSSING_3_SHARDS);
+        final Iterable<Edge> thirdGroupOfEdges = atlasFromz7x62y61
+                .edges(edge -> edge.getOsmIdentifier() == LINE_OSM_IDENTIFIER_CROSSING_3_SHARDS);
+
+        // First look at absolute counts. Each shard will have two forward and reverse edges
+        Assert.assertTrue(Iterables.size(firstGroupOfEdges) == 4);
+        Assert.assertTrue(Iterables.size(secondGroupOfEdges) == 4);
+        Assert.assertTrue(Iterables.size(thirdGroupOfEdges) == 4);
+
+        // Next, let's check identifier consistency
+        final Set<Long> uniqueIdentifiers = new HashSet<>();
+        Iterables.stream(firstGroupOfEdges)
+                .forEach(edge -> uniqueIdentifiers.add(edge.getIdentifier()));
+        Iterables.stream(secondGroupOfEdges)
+                .forEach(edge -> uniqueIdentifiers.add(edge.getIdentifier()));
+        Iterables.stream(thirdGroupOfEdges)
+                .forEach(edge -> uniqueIdentifiers.add(edge.getIdentifier()));
+
+        // There should be 4 pieces (each having a forward and reverse edge) total.
+        Assert.assertTrue(uniqueIdentifiers.size() == 8);
+
+        // Let's validate absolute number of edges in each shard
+        Assert.assertTrue(atlasFromz8x123y122.numberOfEdges() == 12);
+        Assert.assertTrue(atlasFromz8x123y123.numberOfEdges() == 16);
+        Assert.assertTrue(atlasFromz7x62y61.numberOfEdges() == 20);
     }
 
     @Test
@@ -175,5 +233,26 @@ public class OsmPbfToSlicedRawAtlasTest
                 rawAtlasFetcher).run();
 
         logger.info(finalAtlas.summary());
+    }
+
+    private Atlas generateSectionedAtlasStartingAtShard(final Shard shard,
+            final Function<Shard, Optional<Atlas>> rawAtlasFetcher)
+    {
+        return new WaySectionProcessor(shard,
+                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP),
+                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class
+                        .getResource(
+                                "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
+                        .getFile())),
+                rawAtlasFetcher).run();
+    }
+
+    private Map<Shard, Atlas> prepareShardStore()
+    {
+        final Map<Shard, Atlas> store = new HashMap<>();
+        store.put(new SlippyTile(62, 61, 7), this.setup.getAtlasz7x62y61());
+        store.put(new SlippyTile(123, 123, 8), this.setup.getAtlasz8x123y123());
+        store.put(new SlippyTile(123, 122, 8), this.setup.getAtlasz8x123y122());
+        return store;
     }
 }

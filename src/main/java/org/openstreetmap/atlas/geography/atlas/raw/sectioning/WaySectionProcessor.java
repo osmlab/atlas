@@ -3,8 +3,6 @@ package org.openstreetmap.atlas.geography.atlas.raw.sectioning;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -66,11 +64,13 @@ public class WaySectionProcessor
 
     private final Atlas rawAtlas;
     private final AtlasLoadingOption loadingOption;
-    private final Set<Shard> loadedShards = new TreeSet<>();
+    private final List<Shard> loadedShards = new ArrayList<>();
 
     // Grab all entities that are lines and that will become an atlas edge
-    private final Predicate<AtlasEntity> dynamicAtlasExpansionFilter = entity -> entity instanceof Line
-            && isAtlasEdge((Line) entity);
+    // TODO currently we're pulling in all points and line-edges. We can optimize this further to
+    // avoid memory overhead on each slave.
+    private final Predicate<AtlasEntity> dynamicAtlasExpansionFilter = entity -> entity instanceof Point
+            || entity instanceof Line && isAtlasEdge((Line) entity);
 
     /**
      * Default constructor. Will section given raw {@link Atlas} file.
@@ -439,8 +439,8 @@ public class WaySectionProcessor
         {
             if (this.loadedShards.size() > 1)
             {
-                // The first shard is always the initial one. Use it's bounds to cut
-                final Rectangle originalShardBounds = this.loadedShards.iterator().next().bounds();
+                // The first shard is always the initial one. Use its bounds to build the atlas.
+                final Rectangle originalShardBounds = this.loadedShards.get(0).bounds();
                 return atlas.subAtlas(originalShardBounds).get();
             }
             else
