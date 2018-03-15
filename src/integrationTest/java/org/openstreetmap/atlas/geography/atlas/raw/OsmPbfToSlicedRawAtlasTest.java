@@ -118,6 +118,15 @@ public class OsmPbfToSlicedRawAtlasTest
         // There should be 4 pieces (each having a forward and reverse edge) total.
         Assert.assertTrue(uniqueIdentifiers.size() == 8);
 
+        // Validate the same edge identifiers built from different shards to test equality
+        final Edge piece2from122 = atlasFromz8x123y122.edge(541706001002L);
+        final Edge piece2from123 = atlasFromz8x123y123.edge(541706001002L);
+        Assert.assertTrue(piece2from122.asPolyLine().equals(piece2from123.asPolyLine()));
+
+        final Edge piece3from123 = atlasFromz8x123y123.edge(541706001003L);
+        final Edge piece3from62 = atlasFromz7x62y61.edge(541706001003L);
+        Assert.assertTrue(piece3from123.asPolyLine().equals(piece3from62.asPolyLine()));
+
         // Let's validate absolute number of edges in each shard
         Assert.assertTrue(atlasFromz8x123y122.numberOfEdges() == 12);
         Assert.assertTrue(atlasFromz8x123y123.numberOfEdges() == 16);
@@ -226,9 +235,8 @@ public class OsmPbfToSlicedRawAtlasTest
 
         final Atlas finalAtlas = new WaySectionProcessor(new SlippyTile(122, 122, 8),
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP),
-                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class
-                        .getResource(
-                                "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
+                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class.getResource(
+                        "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
                         .getFile())),
                 rawAtlasFetcher).run();
 
@@ -240,9 +248,8 @@ public class OsmPbfToSlicedRawAtlasTest
     {
         return new WaySectionProcessor(shard,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP),
-                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class
-                        .getResource(
-                                "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
+                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class.getResource(
+                        "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
                         .getFile())),
                 rawAtlasFetcher).run();
     }
