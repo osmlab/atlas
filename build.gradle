@@ -40,11 +40,15 @@ idea {
 }
 
 spotless {
-   java {
-      importOrder(['static java', 'static javax', 'static org', 'static com', 'static scala', 'java', 'javax', 'org', 'com', 'scala'])
-      removeUnusedImports()
-      eclipse().configFile 'config/format/code_format.xml'
-   }
+    java {
+        target project.fileTree(project.rootDir) {
+            include '**/*.java'
+            exclude 'gen/**/*.java'
+        }
+        importOrder(['static java', 'static javax', 'static org', 'static com', 'static scala', 'java', 'javax', 'org', 'com', 'scala'])
+        removeUnusedImports()
+        eclipse().configFile 'config/format/code_format.xml'
+    }
 }
 
 // corresponds to POM description
