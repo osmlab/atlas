@@ -140,10 +140,8 @@ public class OsmPbfLoaderTest
         {
             final OsmPbfLoader osmPbfLoader = new OsmPbfLoader(() -> osmosis,
                     // Here reduce the loading bounds to a small area around Edge 3. In this case
-                    // Node 3
-                    // is included in the country boundary but not in the loading area. It should
-                    // not
-                    // have any boundary tag.
+                    // Node 3 is included in the country boundary but not in the loading area. It
+                    // should not have any boundary tag.
                     MultiPolygon.forPolygon(SHAPEPOINT.boxAround(Distance.meters(10))),
                     AtlasLoadingOption.createOptionWithAllEnabled(this.countryBoundaries1)
                             .setAdditionalCountryCodes(COUNTRY_1_NAME));
