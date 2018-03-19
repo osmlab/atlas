@@ -9,5 +9,6 @@
 	<suppress checks="MultipleStringLiterals" files="src/test/*" />
 	<suppress checks="MultipleStringLiterals" files="src/integrationTest/*" />
 	<suppress checks="InnerAssignment" files="src/test/*" />
-	<suppress checks="InnerAssignment" files="src/integrationTest/*" />
+    <suppress checks="InnerAssignment" files="src/integrationTest/*" />
+    <suppress checks="." files="gen/main/*" />
 </suppressions>
