@@ -10,11 +10,16 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.dynamic.DynamicAtlas;
+import org.openstreetmap.atlas.geography.atlas.dynamic.policy.DynamicAtlasPolicy;
+import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
@@ -28,19 +33,21 @@ import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.tags.AtlasTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Way-section processor that runs on raw atlases. It's main purpose is to split raw atlas points
+ * Way-section processor that runs on raw atlases. Its main purpose is to split raw atlas points
  * into nodes, points or shape points, split lines into edges, lines or areas and update all
- * relation members to reflect these changes. This will work on both a single shard or multiple
- * shards - provided the sharding and the raw atlas fetcher policy. In the case of sharded
- * sectioning - we are guaranteed to have consistent identifiers across shards when running
- * way-sectioning since we are relying on the line shape point order creation and identifying all
- * edge intersections that span shard boundaries.
+ * relation members to reflect these changes. This will work in two ways: 1. Section a given raw
+ * atlas. 2. Given a shard, sharding and raw atlas fetcher policy to - leverage {@link DynamicAtlas}
+ * to build an Atlas that contains all edges from the initial shard to their completion as well as
+ * any edges that may intersect them. For the second case above, we are guaranteed to have
+ * consistent identifiers across shards after way-sectioning, since we are relying on the line shape
+ * point order creation and identifying all edge intersections that span shard boundaries.
  *
  * @author mgostintsev
  */
@@ -51,10 +58,19 @@ public class WaySectionProcessor
     private static final int MINIMUM_SHAPE_POINTS_TO_QUALIFY_AS_AREA = 3;
     private static final int MINIMUM_POINTS_TO_QUALIFY_AS_A_LINE = 2;
 
+    // This is used to expand the initial shard boundary to capture any edges that are crossing the
+    // shard boundary
+    private static final Distance SHARD_EXPANSION_DISTANCE = Distance.meters(20);
+
     private final Atlas rawAtlas;
-    private final Sharding sharding;
-    private final Function<Shard, Optional<Atlas>> rawAtlasFetcher;
     private final AtlasLoadingOption loadingOption;
+    private final List<Shard> loadedShards = new ArrayList<>();
+
+    // Grab all entities that are lines and that will become an atlas edge
+    // TODO currently we're pulling in all points and line-edges. We can optimize this further to
+    // avoid memory overhead on each slave.
+    private final Predicate<AtlasEntity> dynamicAtlasExpansionFilter = entity -> entity instanceof Point
+            || entity instanceof Line && isAtlasEdge((Line) entity);
 
     /**
      * Default constructor. Will section given raw {@link Atlas} file.
@@ -66,18 +82,27 @@ public class WaySectionProcessor
      */
     public WaySectionProcessor(final Atlas rawAtlas, final AtlasLoadingOption loadingOption)
     {
-        this(rawAtlas, loadingOption, null, null);
+        this.rawAtlas = rawAtlas;
+        this.loadingOption = loadingOption;
     }
 
     /**
-     * Sections the given raw {@link Atlas} and guarantees consistent identifiers for all Atlas
-     * files obtained by using the given fetcher policy. If the sharding and raw atlas fetcher
-     * function is not provided, then no expansion will be done and only the given atlas will be
-     * way-sectioned. Note: the sharding must the same as the one used to generate the input raw
-     * Atlas.
+     * Takes in a starting {@link Shard} and uses the given sharding and atlas fetcher function to
+     * build a {@link DynamicAtlas}, which is then sectioned. This guarantees consistent identifiers
+     * across the constructed atlas. The sharding and raw atlas fetcher function must be provided
+     * and the sharding must the same as the one used to generate the input shard. The overall logic
+     * for atlas construction and sectioning is:
+     * <ul>
+     * <li>Grab the atlas for the starting shard in its entirety, expand out if there are any edges
+     * bleeding into neighboring shards.
+     * <li>Once the full atlas is built, way-section it.
+     * <li>After sectioning is completed and atlas is rebuild, cut a sub-atlas representing the
+     * bounds of the original shard being processed. This is a soft cut, so any edges that start in
+     * the shard and end in neighboring shards, will be captured.
+     * </ul>
      *
-     * @param rawAtlas
-     *            The raw {@link Atlas} to section
+     * @param initialShard
+     *            The initial {@link Shard} to start at
      * @param loadingOption
      *            The {@link AtlasLoadingOption} to use
      * @param sharding
@@ -85,13 +110,16 @@ public class WaySectionProcessor
      * @param rawAtlasFetcher
      *            The fetching policy to use to obtain adjacent raw atlas files
      */
-    public WaySectionProcessor(final Atlas rawAtlas, final AtlasLoadingOption loadingOption,
+    public WaySectionProcessor(final Shard initialShard, final AtlasLoadingOption loadingOption,
             final Sharding sharding, final Function<Shard, Optional<Atlas>> rawAtlasFetcher)
     {
-        this.rawAtlas = rawAtlas;
-        this.sharding = sharding;
         this.loadingOption = loadingOption;
-        this.rawAtlasFetcher = rawAtlasFetcher;
+        if (sharding == null || rawAtlasFetcher == null)
+        {
+            throw new IllegalArgumentException(
+                    "Must supply a valid sharding and fetcher function for sectioning!");
+        }
+        this.rawAtlas = buildExpandedAtlas(initialShard, sharding, rawAtlasFetcher);
     }
 
     /**
@@ -108,7 +136,7 @@ public class WaySectionProcessor
         // nodes, lines becoming areas, etc.)
         final WaySectionChangeSet changeSet = new WaySectionChangeSet();
 
-        // Go through all the Lines and determine what will become an edge, area or stay a line.
+        // Go through all the lines and determine what will become an edge, area or stay a line.
         // This includes node detection through edge intersection and tagging configuration.
         identifyEdgesNodesAndAreasFromLines(changeSet);
 
@@ -119,13 +147,10 @@ public class WaySectionProcessor
         sectionEdges(changeSet);
 
         final Atlas atlas = buildSectionedAtlas(changeSet);
-
         logger.info("Finished way-sectioning atlas {} in {}", atlas.getName(), time.untilNow());
 
-        return atlas;
+        return cutSubAtlasForOriginalShard(atlas);
     }
-
-    // TODO add statistics
 
     /**
      * Adds a {@link TemporaryNode} for the given {@link Location} to the given
@@ -142,6 +167,59 @@ public class WaySectionProcessor
     {
         this.rawAtlas.pointsAt(location).forEach(point -> nodeCounter
                 .addNode(new TemporaryNode(point.getIdentifier(), point.getLocation())));
+    }
+
+    // TODO add statistics
+
+    /**
+     * Grabs the atlas for the initial shard, in its entirety. Then proceeds to expand out to
+     * surrounding shards if there are any edges bleeding over the shard bounds plus
+     * {@link #SHARD_EXPANSION_DISTANCE}. Finally, will return the constructed Atlas.
+     *
+     * @param initialShard
+     *            The initial {@link Shard} being processed
+     * @param sharding
+     *            The {@link Sharding} used to identify which shards to fetch
+     * @param rawAtlasFetcher
+     *            The fetcher policy to retrieve an Atlas file for each shard
+     * @return the expanded {@link Atlas}
+     */
+    private Atlas buildExpandedAtlas(final Shard initialShard, final Sharding sharding,
+            final Function<Shard, Optional<Atlas>> rawAtlasFetcher)
+    {
+        // Keep track of all loaded shards. This will be used to cut the sub-atlas for the shard
+        // we're processing after all sectioning is completed. Initial shard will always be first!
+        this.loadedShards.add(initialShard);
+
+        // Wraps the given fetcher, by always returning the entire atlas for the initial shard
+        final Function<Shard, Optional<Atlas>> shardAwareFetcher = shard ->
+        {
+            if (shard.equals(initialShard))
+            {
+                return rawAtlasFetcher.apply(initialShard);
+            }
+            else
+            {
+                final Optional<Atlas> possibleAtlas = rawAtlasFetcher.apply(shard);
+                if (possibleAtlas.isPresent())
+                {
+                    this.loadedShards.add(shard);
+                    final Atlas atlas = possibleAtlas.get();
+                    return atlas.subAtlas(this.dynamicAtlasExpansionFilter);
+                }
+                return Optional.empty();
+            }
+        };
+
+        final DynamicAtlasPolicy policy = new DynamicAtlasPolicy(shardAwareFetcher, sharding,
+                initialShard.bounds().expand(SHARD_EXPANSION_DISTANCE), Rectangle.MAXIMUM)
+                        .withDeferredLoading(true).withExtendIndefinitely(false)
+                        .withAtlasEntitiesToConsiderForExpansion(
+                                this.dynamicAtlasExpansionFilter::test);
+
+        final DynamicAtlas atlas = new DynamicAtlas(policy);
+        atlas.preemptiveLoad();
+        return atlas;
     }
 
     /**
@@ -342,6 +420,40 @@ public class WaySectionProcessor
         return new AtlasSize(numberOfEdges, changeSet.getPointsThatBecomeNodes().size(),
                 numberOfAreas, numberOfLines, changeSet.getPointsThatStayPoints().size(),
                 this.rawAtlas.numberOfRelations());
+    }
+
+    /**
+     * Up to this point, we've constructed the {@link DynamicAtlas} and way-sectioned it. Since
+     * we're only responsible for returning an Atlas for the provided shard, we now need to cut a
+     * sub-atlas for the initial shard boundary and return it. We can leverage the loaded shards
+     * parameter, which will always contain the starting shard as the first shard and all other
+     * loaded shards after. If no other shards were loaded, simply return the given Atlas.
+     *
+     * @param atlas
+     *            The {@link Atlas} file we need to trim
+     * @return the {@link Atlas} for the bounds of the input shard
+     */
+    private Atlas cutSubAtlasForOriginalShard(final Atlas atlas)
+    {
+        try
+        {
+            if (this.loadedShards.size() > 1)
+            {
+                // The first shard is always the initial one. Use its bounds to build the atlas.
+                final Rectangle originalShardBounds = this.loadedShards.get(0).bounds();
+                return atlas.subAtlas(originalShardBounds).get();
+            }
+            else
+            {
+                // We don't need to cut anything away, since no other shards were loaded
+                return atlas;
+            }
+        }
+        catch (final Exception e)
+        {
+            logger.error("Error creating sub-atlas for original shard bounds");
+            return null;
+        }
     }
 
     /**
