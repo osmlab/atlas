@@ -1071,6 +1071,18 @@ public class CountryBoundaryMap implements Serializable
         final com.vividsolutions.jts.geom.MultiPolygon area = JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER
                 .backwardConvert(multiPolygon);
         this.initializeGridIndex(area);
+
+        // Verify that all countries had at least one grid index
+        final Set<String> countriesWithoutGrids = new HashSet<>(countries);
+        this.getCells().keySet().forEach(geometry -> countriesWithoutGrids
+                .remove(getGeometryProperty(geometry, ISOCountryTag.KEY)));
+        if (!countriesWithoutGrids.isEmpty())
+        {
+            throw new CoreException(
+                    "Countries {} didn't have any grid index generated for them. "
+                            + "Please check the input used for boundary generation.",
+                    countriesWithoutGrids);
+        }
     }
 
     /**

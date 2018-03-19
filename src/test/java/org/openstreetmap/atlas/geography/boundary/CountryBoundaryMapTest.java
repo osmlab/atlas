@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.boundary;
 
+import java.io.File;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -7,6 +9,7 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -139,6 +142,24 @@ public class CountryBoundaryMapTest
         Assert.assertEquals(0, map.boundaries(locationOutsideOuter2).size());
         Assert.assertEquals(1, map.boundaries(polyLineAcrossOuter).size());
         Assert.assertEquals(0, map.boundaries(polyLineOuter).size());
+    }
+
+    @Test(expected = CoreException.class)
+    public void testDuplicateBoundary() throws URISyntaxException
+    {
+        // ABC and DEF has the same boundaries
+        final Set<String> countries = new HashSet<>();
+        countries.add("ABC");
+        countries.add("DEF");
+
+        // Read from shape file
+        final CountryBoundaryMap boundaryMap = CountryBoundaryMap.fromShapeFile(new File(
+                CountryBoundaryMapTest.class.getResource("duplicate_shape.shp").getFile()));
+        Assert.assertFalse(boundaryMap.hasGridIndex());
+
+        // Initialize grid index
+        boundaryMap.initializeGridIndex(countries);
+        Assert.assertTrue(boundaryMap.hasGridIndex());
     }
 
     @Test
