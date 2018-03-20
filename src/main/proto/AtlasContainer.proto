@@ -1,0 +1,12 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_outer_classname = "ProtoAtlasContainerWrapper";
+
+package org.openstreetmap.atlas.proto;
+
+import "Point.proto";
+
+message ProtoAtlasContainer {
+    repeated ProtoPoint points = 1;
+}
