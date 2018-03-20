@@ -237,6 +237,11 @@ public class SlippyTile implements Shard, Comparable<SlippyTile>
         return false;
     }
 
+    public void freeBoundsForGC()
+    {
+        this.bounds = null;
+    }
+
     @Override
     public String getName()
     {

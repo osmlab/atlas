@@ -83,6 +83,7 @@ public class TilePrinter extends Command
                     writer.write(";");
                 }
                 writer.write("\n");
+                tile.freeBoundsForGC();
             }
         }
         Streams.close(writer);
