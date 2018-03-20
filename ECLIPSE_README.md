@@ -8,7 +8,7 @@
 3. From the command line, run
 ```
 $ cd /path/to/local/Atlas/repo
-$ ./gradlew clean build
+$ ./gradlew clean build -x test -x integrationTest
 ```
 
 4. Back in Eclipse, right click the Atlas project in Package Explorer and click "Refresh"
@@ -30,7 +30,7 @@ $ ./gradlew clean build
 3. Once you are done adjusting the .proto files, open a command line and run
 ```
 $ cd /path/to/local/Atlas/repo
-$ ./gradlew clean build
+$ ./gradlew clean build -x test -x integrationTest
 ```
 
 4. Back in Eclipse, right click on the Atlas project in Package Explorer and click "Refresh"

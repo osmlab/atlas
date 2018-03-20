@@ -153,9 +153,6 @@ final Atlas atlas2;
 new PackedAtlasCloner().cloneFrom(new MultiAtlas(atlas1, atlas2)).save(new File("/path/to/file.atlas"));
 ```
 
-## Using `Atlas` in Eclipse
-See the instructions in [ECLIPSE_README.md](ECLIPSE_REAMDE.md) before attempting to integrate the `Atlas` project with Eclipse. Some extra setup is required to get the Eclipse playbutton to work.
-
 # Implementation Details
 
 ## [`PackedAtlas`](src/main/java/org/openstreetmap/atlas/geography/atlas/packed/PackedAtlas.java)
