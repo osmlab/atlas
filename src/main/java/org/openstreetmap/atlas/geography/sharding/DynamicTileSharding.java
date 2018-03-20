@@ -377,7 +377,7 @@ public class DynamicTileSharding extends Command implements Sharding
             numberLines++;
         }
         logger.info("There are {} tiles.", numberLines);
-        final Map<SlippyTile, Integer> counts = new HashMap<>(numberLines);
+        final Map<SlippyTile, Long> counts = new HashMap<>(numberLines);
         final WritableResource output = (WritableResource) command.get(OUTPUT);
         final int maximum = (int) command.get(MAXIMUM_COUNT);
         final int minimumZoom = (int) command.get(MINIMUM_ZOOM);
@@ -389,7 +389,7 @@ public class DynamicTileSharding extends Command implements Sharding
         {
             final StringList split = StringList.split(line, ",");
             final SlippyTile tile = SlippyTile.forName(split.get(0));
-            counts.put(tile, Integer.valueOf(split.get(1)));
+            counts.put(tile, Long.valueOf(split.get(1)));
             zoom = tile.getZoom();
             if (++counter % READER_REPORT_FREQUENCY == 0)
             {
@@ -410,11 +410,7 @@ public class DynamicTileSharding extends Command implements Sharding
         }
         this.root.build(tile ->
         {
-            long count = 0;
-            for (final SlippyTile miniTile : tile.split(finalZoom))
-            {
-                count += counts.getOrDefault(miniTile, 0);
-            }
+            final long count = counts.getOrDefault(tile, (long) 0);
             if (count <= MINIMUM_TO_SPLIT)
             {
                 return false;
