@@ -1064,9 +1064,12 @@ public class CountryBoundaryMap implements Serializable
         for (final String countryCode : countries)
         {
             final List<CountryBoundary> boundaries = this.countryBoundary(countryCode);
-            for (final CountryBoundary boundary : boundaries)
+            if (boundaries != null)
             {
-                multiPolygon = multiPolygon.concatenate(boundary.getBoundary());
+                for (final CountryBoundary boundary : boundaries)
+                {
+                    multiPolygon = multiPolygon.concatenate(boundary.getBoundary());
+                }
             }
         }
         final com.vividsolutions.jts.geom.MultiPolygon area = JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER

@@ -238,6 +238,20 @@ public class CountryBoundaryMapTest
         }
     }
 
+    @Test(expected = CoreException.class)
+    public void testGridIndexReconstructionWithMissingCountryCode()
+    {
+        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
+                CountryBoundaryMapTest.class.getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
+                        .withDecompressor(Decompressor.GZIP));
+        Assert.assertFalse(map.hasGridIndex());
+
+        final Set<String> countries = new HashSet<>(
+                Arrays.asList("HTI", "DOM", /* Not there on purpose */"CIV"));
+        // This is expected to throw a CoreException listing the missing country, versus a NPE.
+        map.initializeGridIndex(countries);
+    }
+
     @Test
     public void testIndexBuildWithMultipleThreads()
     {
