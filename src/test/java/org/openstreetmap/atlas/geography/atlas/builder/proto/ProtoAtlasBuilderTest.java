@@ -1,10 +1,14 @@
 package org.openstreetmap.atlas.geography.atlas.builder.proto;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
@@ -20,18 +24,40 @@ public class ProtoAtlasBuilderTest
     private static final Logger logger = LoggerFactory.getLogger(ProtoAtlasBuilderTest.class);
 
     @Test
-    public void testWriteFunctionality()
+    public void testReadWriteConsistency()
     {
-        final PackedAtlasBuilder builder = new PackedAtlasBuilder();
+        final WritableResource resource = new ByteArrayResource();
+        final ProtoAtlasBuilder protoAtlasBuilder = new ProtoAtlasBuilder();
+        final PackedAtlasBuilder packedAtlasBuilder = setUpTestAtlasBuilder();
+
+        // make sure the atlases are the same
+        final Atlas outAtlas = packedAtlasBuilder.get();
+        protoAtlasBuilder.write(outAtlas, resource);
+        final Atlas inAtlas = protoAtlasBuilder.read(resource);
+        Assert.assertEquals(outAtlas, inAtlas);
+    }
+
+    private PackedAtlasBuilder setUpTestAtlasBuilder()
+    {
+        final PackedAtlasBuilder packedAtlasBuilder = new PackedAtlasBuilder();
         final Map<String, String> tags = new HashMap<>();
+
         tags.put("building", "yes");
         tags.put("name", "eiffel_tower");
-        builder.addPoint(0, Location.EIFFEL_TOWER, tags);
+        packedAtlasBuilder.addPoint(0, Location.EIFFEL_TOWER, tags);
 
-        final Atlas atlas = builder.get();
-        final WritableResource resource = new ByteArrayResource();
+        tags.clear();
+        tags.put("building", "yes");
+        tags.put("name", "colosseum");
+        packedAtlasBuilder.addPoint(1, Location.COLOSSEUM, tags);
 
-        final ProtoAtlasBuilder protoAtlasBuilder = new ProtoAtlasBuilder();
-        protoAtlasBuilder.write(atlas, resource);
+        tags.clear();
+        tags.put("path", "yes");
+        final List<Location> shapePoints = new ArrayList<>();
+        shapePoints.add(Location.EIFFEL_TOWER);
+        shapePoints.add(Location.COLOSSEUM);
+        packedAtlasBuilder.addLine(2, new PolyLine(shapePoints), tags);
+
+        return packedAtlasBuilder;
     }
 }
