@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.pbf;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,6 +42,7 @@ public class OsmPbfLoaderTest
     private static final String COUNTRY_2_NAME = "COUNTRY_2";
     private static final Location SHAPEPOINT = Location.forString("37.328076,-122.031869");
     private static final Location DE_ANZA_AT_280 = Location.forString("37.334384,-122.032327");
+    private static final Location OUTSIDE_COUNTRY_1 = Location.forString("37.350987,-121.988496");
 
     private MultiPolygon countryShape1;
     private MultiPolygon countryShape2;
@@ -51,8 +53,19 @@ public class OsmPbfLoaderTest
     @Before
     public void init()
     {
-        final Polygon polygon1 = new Polygon(Location.TEST_6, Location.TEST_2, Location.TEST_5);
-        final Polygon polygon2 = new Polygon(Location.TEST_1, Location.TEST_2, Location.TEST_5);
+        final Polygon polygon1 = new Polygon(
+                Location.forString("37.330310627190194,-122.08282470703124"),
+                Location.forString("37.25014416051375,-122.04025268554688"),
+                Location.forString("37.242218476496625,-121.937255859375"),
+                Location.forString("37.28060928450999,-121.95030212402344"),
+                Location.forString("37.33310876404607,-122.02986717224121"),
+                Location.forString("37.33604328341095,-122.06462860107422"));
+        final Polygon polygon2 = new Polygon(
+                Location.forString("37.34232140492521,-122.06904888153078"),
+                Location.forString("37.33474664945566,-122.06102371215819"),
+                Location.forString("37.331308755038414,-122.0297384262085"),
+                Location.forString("37.34051308677875,-122.02124118804932"),
+                Location.forString("37.3447096829136,-122.03505992889404"));
         this.countryShape1 = MultiPolygon.forPolygon(polygon1);
         this.countryShape2 = MultiPolygon.forPolygon(polygon2);
         final Map<String, MultiPolygon> boundaries = new HashMap<>();
@@ -79,6 +92,7 @@ public class OsmPbfLoaderTest
                 Maps.stringMap("tag_key", "tag_value")));
         this.store.addNode(new AtlasPrimitiveLocationItem(10, DE_ANZA_AT_280,
                 Maps.stringMap("tag_key", "tag_value")));
+        this.store.addNode(new AtlasPrimitiveLocationItem(11, OUTSIDE_COUNTRY_1, Maps.stringMap()));
 
         // Add Edges
         this.store.addEdge(new AtlasPrimitiveLineItem(3,
@@ -89,6 +103,9 @@ public class OsmPbfLoaderTest
                 Maps.stringMap(HighwayTag.KEY, HighwayTag.MOTORWAY.name().toLowerCase())));
         this.store.addEdge(
                 new AtlasPrimitiveLineItem(8, new PolyLine(Location.TEST_7, DE_ANZA_AT_280),
+                        Maps.stringMap(HighwayTag.KEY, HighwayTag.MOTORWAY.name().toLowerCase())));
+        this.store.addEdge(
+                new AtlasPrimitiveLineItem(9, new PolyLine(DE_ANZA_AT_280, OUTSIDE_COUNTRY_1),
                         Maps.stringMap(HighwayTag.KEY, HighwayTag.MOTORWAY.name().toLowerCase())));
 
         // Add Lines
@@ -111,70 +128,82 @@ public class OsmPbfLoaderTest
      * In some cases, ways can be outside the loading area (still inside the osm PBF) and connected
      * to some other ways that are inside the loading area, but still inside the country boundary.
      * That happens at shard boundaries, which do a soft cut.
+     *
+     * @throws IOException
+     *             Exception thrown when {@link OsmosisReaderMock} fails to close
      */
     @Test
     public void testBoundaryNodesForWayOutsideLoadingAreaButInsideCountryBoundary()
+            throws IOException
     {
-        final OsmosisReaderMock osmosis = new OsmosisReaderMock(this.store);
-        final OsmPbfLoader osmPbfLoader = new OsmPbfLoader(() -> osmosis,
-                // Here reduce the loading bounds to a small area around Edge 3. In this case Node 3
-                // is included in the country boundary but not in the loading area. It should not
-                // have any boundary tag.
-                MultiPolygon.forPolygon(SHAPEPOINT.boxAround(Distance.meters(10))),
-                AtlasLoadingOption.createOptionWithAllEnabled(this.countryBoundaries1)
-                        .setAdditionalCountryCodes(COUNTRY_1_NAME));
-        final Atlas atlas = osmPbfLoader.read();
-        logger.info("{}", atlas);
-        final Edge edgeIn = atlas.edgesIntersecting(DE_ANZA_AT_280.bounds()).iterator().next();
-        final Node nodeIn = edgeIn.end();
-        Assert.assertNull(nodeIn.tag(SyntheticBoundaryNodeTag.KEY));
+        try (OsmosisReaderMock osmosis = new OsmosisReaderMock(this.store))
+        {
+            final OsmPbfLoader osmPbfLoader = new OsmPbfLoader(() -> osmosis,
+                    // Here reduce the loading bounds to a small area around Edge 3. In this case
+                    // Node 3 is included in the country boundary but not in the loading area. It
+                    // should not have any boundary tag.
+                    MultiPolygon.forPolygon(SHAPEPOINT.boxAround(Distance.meters(10))),
+                    AtlasLoadingOption.createOptionWithAllEnabled(this.countryBoundaries1)
+                            .setAdditionalCountryCodes(COUNTRY_1_NAME));
+            final Atlas atlas = osmPbfLoader.read();
+            logger.info("{}", atlas);
+            final Edge edgeIn = atlas.edgesIntersecting(DE_ANZA_AT_280.bounds()).iterator().next();
+            final Node nodeIn = edgeIn.end();
+            Assert.assertNull(nodeIn.tag(SyntheticBoundaryNodeTag.KEY));
+        }
     }
 
     @Test
-    public void testEmptyRelations()
+    public void testEmptyRelations() throws IOException
     {
-        final OsmosisReaderMock osmosis = new OsmosisReaderMock(this.store);
-        final OsmPbfLoader osmPbfLoader = new OsmPbfLoader(() -> osmosis, MultiPolygon.MAXIMUM,
-                AtlasLoadingOption.createOptionWithAllEnabled(this.countryBoundariesAll)
-                        .setAdditionalCountryCodes(COUNTRY_1_NAME));
-        final Atlas atlas = osmPbfLoader.read();
-        logger.info("{}", atlas);
-        Assert.assertEquals(1, atlas.numberOfLines());
-        Assert.assertEquals(1, atlas.numberOfRelations());
-        final Relation relation = atlas.relations().iterator().next();
-        Assert.assertEquals(1, relation.members().size());
-        Assert.assertEquals(3, atlas.numberOfEdges());
+        try (OsmosisReaderMock osmosis = new OsmosisReaderMock(this.store))
+        {
+            final OsmPbfLoader osmPbfLoader = new OsmPbfLoader(() -> osmosis, MultiPolygon.MAXIMUM,
+                    AtlasLoadingOption.createOptionWithAllEnabled(this.countryBoundariesAll)
+                            .setAdditionalCountryCodes(COUNTRY_1_NAME));
+            final Atlas atlas = osmPbfLoader.read();
+            logger.info("{}", atlas);
+            Assert.assertEquals(2, atlas.numberOfLines());
+            Assert.assertEquals(1, atlas.numberOfRelations());
+            final Relation relation = atlas.relations().iterator().next();
+            Assert.assertEquals(2, relation.members().size());
+            Assert.assertEquals(2, atlas.numberOfEdges());
+        }
     }
 
     @Test
-    public void testNoFilter()
+    public void testNoFilter() throws IOException
     {
-        final OsmosisReaderMock osmosis = new OsmosisReaderMock(this.store);
-        final OsmPbfLoader osmPbfLoader = new OsmPbfLoader(() -> osmosis, MultiPolygon.MAXIMUM,
-                AtlasLoadingOption.withNoFilter());
-        final Atlas atlas = osmPbfLoader.read();
-        logger.info("{}", atlas);
-        Assert.assertEquals(3, atlas.numberOfLines());
+        try (OsmosisReaderMock osmosis = new OsmosisReaderMock(this.store))
+        {
+            final OsmPbfLoader osmPbfLoader = new OsmPbfLoader(() -> osmosis, MultiPolygon.MAXIMUM,
+                    AtlasLoadingOption.withNoFilter());
+            final Atlas atlas = osmPbfLoader.read();
+            logger.info("{}", atlas);
+            Assert.assertEquals(3, atlas.numberOfLines());
+        }
     }
 
     @Test
-    public void testOutsideWayBoundaryNodes()
+    public void testOutsideWayBoundaryNodes() throws IOException
     {
-        final OsmosisReaderMock osmosis = new OsmosisReaderMock(this.store);
-        final OsmPbfLoader osmPbfLoader = new OsmPbfLoader(() -> osmosis,
-                this.countryBoundaries1.countryBoundary(COUNTRY_1_NAME).iterator().next()
-                        .getBoundary(),
-                AtlasLoadingOption.createOptionWithAllEnabled(this.countryBoundaries1)
-                        .setAdditionalCountryCodes(COUNTRY_1_NAME));
-        final Atlas atlas = osmPbfLoader.read();
-        logger.info("{}", atlas);
-        final Edge edgeOut = atlas.edgesIntersecting(Location.CROSSING_85_17.bounds()).iterator()
-                .next();
-        final Node nodeOut = edgeOut.end();
-        Assert.assertNotNull(nodeOut.tag(SyntheticBoundaryNodeTag.KEY));
-        final Edge edgeIn = atlas.edgesIntersecting(Location.TEST_7.bounds()).iterator().next();
-        final Node nodeIn = edgeIn.end();
-        Assert.assertNull(nodeIn.tag(SyntheticBoundaryNodeTag.KEY));
-        Assert.assertEquals(2, atlas.numberOfPoints());
+        try (OsmosisReaderMock osmosis = new OsmosisReaderMock(this.store))
+        {
+            final OsmPbfLoader osmPbfLoader = new OsmPbfLoader(() -> osmosis,
+                    this.countryBoundaries1.countryBoundary(COUNTRY_1_NAME).iterator().next()
+                            .getBoundary(),
+                    AtlasLoadingOption.createOptionWithAllEnabled(this.countryBoundaries1)
+                            .setAdditionalCountryCodes(COUNTRY_1_NAME));
+            final Atlas atlas = osmPbfLoader.read();
+            logger.info("{}", atlas);
+            final Edge edgeOut = atlas.edgesIntersecting(OUTSIDE_COUNTRY_1.bounds()).iterator()
+                    .next();
+            final Node nodeOut = edgeOut.end();
+            Assert.assertNotNull(nodeOut.tag(SyntheticBoundaryNodeTag.KEY));
+            final Edge edgeIn = atlas.edgesIntersecting(Location.TEST_7.bounds()).iterator().next();
+            final Node nodeIn = edgeIn.end();
+            Assert.assertNull(nodeIn.tag(SyntheticBoundaryNodeTag.KEY));
+            Assert.assertEquals(2, atlas.numberOfPoints());
+        }
     }
 }

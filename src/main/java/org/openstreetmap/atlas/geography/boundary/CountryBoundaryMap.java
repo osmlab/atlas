@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -1118,27 +1119,27 @@ public class CountryBoundaryMap implements Serializable
 
         Geometry target = geometry;
         final List<Geometry> results = new ArrayList<>();
-        List<Polygon> polygons = this.query(target.getEnvelopeInternal());
+        List<Polygon> candidates = this.query(target.getEnvelopeInternal());
 
         // Performance improvement, if only one polygon returned no need to do any further
         // evaluation.
-        if (isSameCountry(polygons))
+        if (isSameCountry(candidates))
         {
-            final String countryCode = getGeometryProperty(polygons.get(0), ISOCountryTag.KEY);
+            final String countryCode = getGeometryProperty(candidates.get(0), ISOCountryTag.KEY);
             setGeometryProperty(target, ISOCountryTag.KEY, countryCode);
             addResult(target, results);
             return results;
         }
 
         // Remove duplicates
-        polygons = polygons.stream().distinct().collect(Collectors.toList());
+        candidates = candidates.stream().distinct().collect(Collectors.toList());
 
         // Avoid slicing across too many polygons for performance reasons
-        if (polygons.size() > this.getPolygonSliceLimit())
+        if (candidates.size() > this.getPolygonSliceLimit())
         {
             RuntimeCounter.waySkipped(identifier);
             logger.warn("Skipping slicing way {} due to too many intersecting polygons [{}]",
-                    identifier, polygons.size());
+                    identifier, candidates.size());
             return null;
         }
 
@@ -1147,33 +1148,34 @@ public class CountryBoundaryMap implements Serializable
         boolean isWarned = false;
         final Time time = Time.now();
 
-        if (polygons.size() > MAXIMUM_EXPECTED_COUNTRIES_TO_SLICE_WITH)
+        if (candidates.size() > MAXIMUM_EXPECTED_COUNTRIES_TO_SLICE_WITH)
         {
-            logger.warn("slicing way {} with {} polygons", identifier, polygons.size());
+            logger.warn("Slicing way {} with {} polygons.", identifier, candidates.size());
             if (logger.isTraceEnabled())
             {
-                final Map<String, List<Polygon>> countries = polygons.stream().collect(Collectors
+                final Map<String, List<Polygon>> countries = candidates.stream().collect(Collectors
                         .groupingBy(polygon -> getGeometryProperty(polygon, ISOCountryTag.KEY)));
                 countries.forEach((key, value) -> logger.trace("{} : {}", key, value.size()));
             }
         }
 
-        final List<Polygon> intersected = new ArrayList<>();
-
         // Check relation of target to all polygons
-        for (final Polygon polygon : polygons)
+        final Iterator<Polygon> candidateIterator = candidates.iterator();
+        while (candidateIterator.hasNext())
         {
-            final String countryCode = getGeometryProperty(polygon, ISOCountryTag.KEY);
+            final Polygon candidate = candidateIterator.next();
+            final String countryCode = getGeometryProperty(candidate, ISOCountryTag.KEY);
             if (Strings.isNullOrEmpty(countryCode))
             {
-                logger.warn("Ignoring a polygon from slicing, because it is missing country tag.");
+                logger.warn(
+                        "Ignoring a candidate polygon from slicing, because it is missing country tag.");
                 continue;
             }
 
             final IntersectionMatrix matrix;
             try
             {
-                matrix = target.relate(polygon);
+                matrix = target.relate(candidate);
             }
             catch (final Exception e)
             {
@@ -1195,39 +1197,37 @@ public class CountryBoundaryMap implements Serializable
                 setGeometryProperty(target, ISOCountryTag.KEY, countryCode);
                 this.addResult(target, results);
                 fullyMatched = true;
-                break;
+                return results;
             }
 
+            // No intersection, remove from candidate list
             if (!matrix.isIntersects())
             {
                 RuntimeCounter.geometryCheckedNoIntersect();
-            }
-            else
-            {
-                intersected.add(polygon);
+                candidateIterator.remove();
             }
         }
 
         // Performance: short circuit, if all intersected polygons in same country, skip cutting.
-        if (isSameCountry(intersected))
+        if (isSameCountry(candidates))
         {
-            final String countryCode = getGeometryProperty(intersected.get(0), ISOCountryTag.KEY);
+            final String countryCode = getGeometryProperty(candidates.get(0), ISOCountryTag.KEY);
             setGeometryProperty(target, ISOCountryTag.KEY, countryCode);
             this.addResult(target, results);
             return results;
         }
 
         // Sort intersecting polygons for consistent slicing
-        Collections.sort(intersected,
+        Collections.sort(candidates,
                 (final Polygon first,
                         final Polygon second) -> getGeometryProperty(first, ISOCountryTag.KEY)
                                 .compareTo(getGeometryProperty(second, ISOCountryTag.KEY)));
 
-        // Start the cutting
-        for (final Polygon intersection : intersected)
+        // Start cut process
+        for (final Polygon candidate : candidates)
         {
             RuntimeCounter.geometryCheckedIntersect();
-            final Geometry clipped = target.intersection(intersection);
+            final Geometry clipped = target.intersection(candidate);
 
             // We don't want single point pieces
             if (clipped.getNumPoints() < 2)
@@ -1235,15 +1235,16 @@ public class CountryBoundaryMap implements Serializable
                 continue;
             }
 
-            final String countryCode = getGeometryProperty(intersection, ISOCountryTag.KEY);
+            // Add to the results
+            final String countryCode = getGeometryProperty(candidate, ISOCountryTag.KEY);
             setGeometryProperty(clipped, ISOCountryTag.KEY, countryCode);
             this.addResult(clipped, results);
 
             // Update target to be what's left after clipping
-            target = target.difference(intersection);
+            target = target.difference(candidate);
             if (target.getDimension() == 1 && target.getLength() < LINE_BUFFER
                     || target.getDimension() == 2 && target.getArea() < AREA_BUFFER
-                            && new DiscreteHausdorffDistance(target, intersection)
+                            && new DiscreteHausdorffDistance(target, candidate)
                                     .orientedDistance() < LINE_BUFFER)
             {
                 // The remaining piece is very small and we ignore it. This also helps avoid
