@@ -56,7 +56,8 @@ public class TilePrinter extends Command
                 "CREATE TABLE sharding.counts(tile text, count integer) WITH ( OIDS=FALSE );");
         writer.writeLine("ALTER TABLE sharding.counts OWNER TO osm;");
 
-        final Iterator<SlippyTile> tileIterator = SlippyTile.allTiles(this.zoom).iterator();
+        final Iterator<SlippyTile> tileIterator = SlippyTile.allTilesIterator(this.zoom,
+                Rectangle.MAXIMUM);
         while (tileIterator.hasNext())
         {
             Streams.close(writer);
@@ -83,7 +84,6 @@ public class TilePrinter extends Command
                     writer.write(";");
                 }
                 writer.write("\n");
-                tile.freeBoundsForGC();
             }
         }
         Streams.close(writer);

@@ -70,13 +70,37 @@ public class SlippyTile implements Shard, Comparable<SlippyTile>
         {
             throw new CoreException("Zoom too large.");
         }
+        final Iterable<SlippyTile> result = () -> allTilesIterator(zoom, bounds);
+        final List<SlippyTile> list = Iterables.asList(result);
+        if (list.isEmpty())
+        {
+            throw new CoreException("List cannot be empty");
+        }
+        return list;
+    }
+
+    /**
+     * Iterator for all tiles within some bounds
+     *
+     * @param zoom
+     *            The zoom to consider
+     * @param bounds
+     *            The bounds to consider
+     * @return Iterator for all tiles within some bounds
+     */
+    public static Iterator<SlippyTile> allTilesIterator(final int zoom, final Rectangle bounds)
+    {
+        if (zoom > MAX_ZOOM)
+        {
+            throw new CoreException("Zoom too large.");
+        }
         final SlippyTile lowerLeft = new SlippyTile(bounds.lowerLeft(), zoom);
         final SlippyTile upperRight = new SlippyTile(bounds.upperRight(), zoom);
         final int minX = lowerLeft.getX();
         final int maxX = upperRight.getX();
         final int minY = upperRight.getY();
         final int maxY = lowerLeft.getY();
-        final Iterable<SlippyTile> result = () -> new Iterator<SlippyTile>()
+        final Iterator<SlippyTile> result = new Iterator<SlippyTile>()
         {
             private int xAxis = minX;
             private int yAxis = minY;
@@ -104,12 +128,7 @@ public class SlippyTile implements Shard, Comparable<SlippyTile>
                 return result;
             }
         };
-        final List<SlippyTile> list = Iterables.asList(result);
-        if (list.isEmpty())
-        {
-            throw new CoreException("List cannot be empty");
-        }
-        return list;
+        return result;
     }
 
     /**
@@ -235,11 +254,6 @@ public class SlippyTile implements Shard, Comparable<SlippyTile>
                     && this.getY() == that.getY();
         }
         return false;
-    }
-
-    public void freeBoundsForGC()
-    {
-        this.bounds = null;
     }
 
     @Override
