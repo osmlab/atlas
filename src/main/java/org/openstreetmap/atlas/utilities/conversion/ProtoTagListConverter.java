@@ -34,8 +34,8 @@ public class ProtoTagListConverter implements TwoWayConverter<List<ProtoTag>, Ma
 
             if (entry.getKey() == null)
             {
-                logger.warn("buildProtoTagListFromTagMap found null key");
-                keyText = "null";
+                logger.warn("Conversion from OSM tagmap found null key, skipping...");
+                continue;
             }
             else
             {
@@ -44,8 +44,8 @@ public class ProtoTagListConverter implements TwoWayConverter<List<ProtoTag>, Ma
 
             if (entry.getValue() == null)
             {
-                logger.warn("buildProtoTagListFromTagMap found null value");
-                valueText = "null";
+                logger.warn("Conversion from OSM tagmap found null value for key {}", keyText);
+                valueText = "";
             }
             else
             {

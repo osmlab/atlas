@@ -62,7 +62,8 @@ public class ProtoAtlasBuilder
         }
         catch (final InvalidProtocolBufferException exception)
         {
-            throw new CoreException("Error deserializing the ProtoAtlasContainer", exception);
+            throw new CoreException("Error deserializing the ProtoAtlasContainer from {}",
+                    resource.getName(), exception);
         }
 
         // initialize atlas metadata
