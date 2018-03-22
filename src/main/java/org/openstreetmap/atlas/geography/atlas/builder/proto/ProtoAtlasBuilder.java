@@ -9,6 +9,7 @@ import org.openstreetmap.atlas.geography.Latitude;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Longitude;
 import org.openstreetmap.atlas.geography.PolyLine;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
@@ -117,9 +118,11 @@ public class ProtoAtlasBuilder
             final long identifier = protoArea.getId();
             final List<Location> shapePoints = protoArea.getShapePointsList().stream()
                     .map(protoLocationConverter::convert).collect(Collectors.toList());
-            final PolyLine geometry = new PolyLine(shapePoints);
+            final Polygon geometry = new Polygon(shapePoints);
             final Map<String, String> tags = protoTagListConverter.convert(protoArea.getTagsList());
-            builder.addLine(identifier, geometry, tags);
+            // TODO see Mike's PR note about duplicate points, since start and end are the same for
+            // polygons, make sure this is not happening
+            builder.addArea(identifier, geometry, tags);
         });
     }
 
