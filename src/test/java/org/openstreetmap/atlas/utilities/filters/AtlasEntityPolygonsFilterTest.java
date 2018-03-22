@@ -11,6 +11,7 @@ import java.util.stream.StreamSupport;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -92,6 +93,35 @@ public class AtlasEntityPolygonsFilterTest
             {
                 return ((Relation) entity).members().stream().map(RelationMember::getEntity)
                         .anyMatch(relationEntity -> this.polygonEntityIntersecting(polygon,
+                                relationEntity));
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        //note this is the only one now used by the filter
+        @Override
+        public boolean geometricSurfaceEntityIntersecting(
+                final GeometricSurface geometricSurface, final AtlasEntity entity)
+        {
+            if (entity instanceof LineItem)
+            {
+                return geometricSurface.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine());
+            }
+            if (entity instanceof LocationItem)
+            {
+                return geometricSurface.fullyGeometricallyEncloses(((LocationItem) entity).getLocation());
+            }
+            if (entity instanceof Area)
+            {
+                return geometricSurface.fullyGeometricallyEncloses(((Area) entity).asPolygon());
+            }
+            if (entity instanceof Relation)
+            {
+                return ((Relation) entity).members().stream().map(RelationMember::getEntity)
+                        .anyMatch(relationEntity -> this.geometricSurfaceEntityIntersecting(geometricSurface,
                                 relationEntity));
             }
             else

@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.items;
 
 import java.util.Map;
 
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
@@ -43,9 +44,9 @@ public abstract class LocationItem extends AtlasItem
     }
 
     @Override
-    public boolean intersects(final Polygon polygon)
+    public boolean intersects(final GeometricSurface geometricSurface)
     {
-        return polygon.fullyGeometricallyEncloses(getLocation());
+        return geometricSurface.fullyGeometricallyEncloses(getLocation());
     }
 
     public SnappedLocation snapTo(final Area other)

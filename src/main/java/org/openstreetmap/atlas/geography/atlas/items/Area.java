@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.items;
 
 import java.util.Map;
 
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -62,9 +63,9 @@ public abstract class Area extends AtlasItem
     }
 
     @Override
-    public boolean intersects(final Polygon polygon)
+    public boolean intersects(final GeometricSurface geometricSurface)
     {
-        return polygon.overlaps(asPolygon());
+        return geometricSurface.overlaps(asPolygon());
     }
 
     @Override

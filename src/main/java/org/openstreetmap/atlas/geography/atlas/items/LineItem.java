@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.items;
 import java.util.Map;
 import java.util.Optional;
 
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Heading;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -47,9 +48,9 @@ public abstract class LineItem extends AtlasItem
     }
 
     @Override
-    public boolean intersects(final Polygon polygon)
+    public boolean intersects(final GeometricSurface geometricSurface)
     {
-        return polygon.overlaps(asPolyLine());
+        return geometricSurface.overlaps(asPolyLine());
     }
 
     /**

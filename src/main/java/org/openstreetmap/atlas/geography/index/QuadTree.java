@@ -1,12 +1,15 @@
 package org.openstreetmap.atlas.geography.index;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 
 import com.vividsolutions.jts.index.quadtree.Quadtree;
+import org.openstreetmap.atlas.utilities.testing.TestAtlas;
 
 /**
  * A JTS Quadtree wrapper.
@@ -32,6 +35,13 @@ public class QuadTree<T> implements JtsSpatialIndex<T>
     private static final long serialVersionUID = 7515245245282264428L;
     private final Quadtree tree = new Quadtree();
     private Rectangle bound;
+
+    public static <K extends Located> QuadTree<K> forLocated(Collection<K> locatedCollection)
+    {
+        final QuadTree<K> toReturn= new QuadTree<>();
+        locatedCollection.forEach(located -> toReturn.add(located.bounds(), located));
+        return toReturn;
+    }
 
     @Override
     public void add(final Rectangle bound, final T item)
