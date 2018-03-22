@@ -1,0 +1,18 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_outer_classname = "ProtoEdgeWrapper";
+
+package org.openstreetmap.atlas.proto;
+
+import "Node.proto";
+import "Tag.proto";
+
+message ProtoEdge {
+    optional int64 id = 1;
+
+    optional ProtoNode startNode = 2;
+    optional ProtoNode endNode = 3;
+
+    repeated ProtoTag tags = 4;
+}

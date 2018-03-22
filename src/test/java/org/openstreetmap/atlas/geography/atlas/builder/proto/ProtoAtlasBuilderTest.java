@@ -24,6 +24,14 @@ public class ProtoAtlasBuilderTest
 {
     private static final Logger logger = LoggerFactory.getLogger(ProtoAtlasBuilderTest.class);
 
+    private static long idCounter = 0L;
+
+    private static long getNextId()
+    {
+        idCounter++;
+        return idCounter;
+    }
+
     @Test
     public void testReadWriteConsistency()
     {
@@ -48,21 +56,23 @@ public class ProtoAtlasBuilderTest
         final Map<String, String> tags = new HashMap<>();
         final List<Location> shapePoints = new ArrayList<>();
 
+        // add points
         tags.put("building", "yes");
         tags.put("name", "eiffel_tower");
-        packedAtlasBuilder.addPoint(0, Location.EIFFEL_TOWER, tags);
-
+        packedAtlasBuilder.addPoint(getNextId(), Location.EIFFEL_TOWER, tags);
         tags.clear();
         tags.put("building", "yes");
         tags.put("name", "colosseum");
-        packedAtlasBuilder.addPoint(1, Location.COLOSSEUM, tags);
+        packedAtlasBuilder.addPoint(getNextId(), Location.COLOSSEUM, tags);
 
+        // add lines
         tags.clear();
         tags.put("path", "yes");
         shapePoints.add(Location.EIFFEL_TOWER);
         shapePoints.add(Location.COLOSSEUM);
-        packedAtlasBuilder.addLine(2, new PolyLine(shapePoints), tags);
+        packedAtlasBuilder.addLine(getNextId(), new PolyLine(shapePoints), tags);
 
+        // add areas
         tags.clear();
         tags.put("triangle", "yes");
         tags.put("size", "stupidbig");
@@ -70,8 +80,17 @@ public class ProtoAtlasBuilderTest
         shapePoints.add(Location.EIFFEL_TOWER);
         shapePoints.add(Location.COLOSSEUM);
         shapePoints.add(Location.STEVENS_CREEK);
+        packedAtlasBuilder.addArea(getNextId(), new Polygon(shapePoints), tags);
 
-        packedAtlasBuilder.addArea(3, new Polygon(shapePoints), tags);
+        // add nodes
+        // tags.clear();
+        // tags.put("sometag:namespace", "somevalue");
+        // packedAtlasBuilder.addNode(getNextId(), Location.forString("48.3406719,10.5563445"),
+        // tags);
+        // tags.clear();
+        // packedAtlasBuilder.addNode(getNextId(), Location.forString("48.34204,10.55844"), tags);
+
+        // add edges
 
         return packedAtlasBuilder;
     }
