@@ -69,7 +69,7 @@ public class ProtoAtlasBuilder
         // initialize atlas metadata
         final long numberOfPoints = protoAtlasContainer.getNumberOfPoints();
         final long numberOfLines = protoAtlasContainer.getNumberOfLines();
-        final long numberOfAreas = 0;
+        final long numberOfAreas = protoAtlasContainer.getNumberOfAreas();
         final long numberOfNodes = 0;
         final long numberOfEdges = 0;
         final long numberOfRelations = 0;
