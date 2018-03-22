@@ -61,14 +61,15 @@ public interface IntersectionPolicy extends Serializable
         }
 
         @Override
-        public boolean geometricSurfaceEntityIntersecting(
-                final GeometricSurface geometricSurface, final AtlasEntity entity)
+        public boolean geometricSurfaceEntityIntersecting(final GeometricSurface geometricSurface,
+                final AtlasEntity entity)
         {
             return entity.intersects(geometricSurface);
         }
     };
 
-    default boolean geometricSurfaceEntityIntersecting(GeometricSurface geometricSurface, AtlasEntity entity)
+    default boolean geometricSurfaceEntityIntersecting(GeometricSurface geometricSurface,
+            AtlasEntity entity)
     {
         return false;
     }

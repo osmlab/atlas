@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.clipping.Clip;
 import org.openstreetmap.atlas.geography.clipping.Clip.ClipType;
@@ -242,26 +241,30 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Locate
     }
 
     /**
-     * Tests to see if entire surface of the provided {@link MultiPolygon} lies within this {@link MultiPolygon}
-     * @param that the provided {@link MultiPolygon} to test
+     * Tests to see if entire surface of the provided {@link MultiPolygon} lies within this
+     * {@link MultiPolygon}
+     * 
+     * @param that
+     *            the provided {@link MultiPolygon} to test
      * @return true if the conditions are met, false otherwise
      */
     @Override
     public boolean fullyGeometricallyEncloses(final MultiPolygon that)
     {
         final QuadTree<Polygon> thisOuters = QuadTree.forLocated(this.outers());
-        //each outer of that must fit within one of this' outer/inner groups
-        for (Polygon thatOuter : that.outers())
+        // each outer of that must fit within one of this' outer/inner groups
+        for (final Polygon thatOuter : that.outers())
         {
             boolean cleared = false;
-            for(Polygon thisOuter : thisOuters.get(thatOuter.bounds(), thatOuter::overlaps))
+            for (final Polygon thisOuter : thisOuters.get(thatOuter.bounds(), thatOuter::overlaps))
             {
-                if(thisOuter.fullyGeometricallyEncloses(thatOuter))
+                if (thisOuter.fullyGeometricallyEncloses(thatOuter))
                 {
-                    cleared = this.getOuterToInners().get(thisOuter).stream().noneMatch(that::overlaps);
+                    cleared = this.getOuterToInners().get(thisOuter).stream()
+                            .noneMatch(that::overlaps);
                 }
             }
-            if(!cleared)
+            if (!cleared)
             {
                 return false;
             }
@@ -272,7 +275,9 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Locate
     @Override
     public boolean fullyGeometricallyEncloses(final Segment segment)
     {
-        final Set<Location> intersections = Iterables.stream(this).flatMap(polygon -> Iterables.stream(polygon.intersections(segment))).collectToSet();
+        final Set<Location> intersections = Iterables.stream(this)
+                .flatMap(polygon -> Iterables.stream(polygon.intersections(segment)))
+                .collectToSet();
         for (final Location intersection : intersections)
         {
             if (!intersection.equals(segment.start()) && !intersection.equals(segment.end()))

@@ -4,7 +4,6 @@ import java.util.Map;
 
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.Snapper.SnappedLocation;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
