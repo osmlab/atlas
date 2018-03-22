@@ -12,11 +12,14 @@ import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
+import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
+import org.openstreetmap.atlas.proto.ProtoArea;
 import org.openstreetmap.atlas.proto.ProtoAtlasContainer;
+import org.openstreetmap.atlas.proto.ProtoAtlasContainer.Builder;
 import org.openstreetmap.atlas.proto.ProtoLine;
 import org.openstreetmap.atlas.proto.ProtoLocation;
 import org.openstreetmap.atlas.proto.ProtoPoint;
@@ -80,6 +83,7 @@ public class ProtoAtlasBuilder
         // build the atlas features
         parsePoints(builder, protoAtlasContainer.getPointsList());
         parseLines(builder, protoAtlasContainer.getLinesList());
+        parseAreas(builder, protoAtlasContainer.getAreasList());
 
         return (PackedAtlas) builder.get();
     }
@@ -98,9 +102,25 @@ public class ProtoAtlasBuilder
 
         writePointsToBuilder(atlas, protoAtlasBuilder);
         writeLinesToBuilder(atlas, protoAtlasBuilder);
+        writeAreasToBuilder(atlas, protoAtlasBuilder);
 
         final ProtoAtlasContainer protoAtlas = protoAtlasBuilder.build();
         resource.writeAndClose(protoAtlas.toByteArray());
+    }
+
+    private void parseAreas(final PackedAtlasBuilder builder, final List<ProtoArea> areas)
+    {
+        final ProtoLocationConverter protoLocationConverter = new ProtoLocationConverter();
+        final ProtoTagListConverter protoTagListConverter = new ProtoTagListConverter();
+        areas.forEach(protoArea ->
+        {
+            final long identifier = protoArea.getId();
+            final List<Location> shapePoints = protoArea.getShapePointsList().stream()
+                    .map(protoLocationConverter::convert).collect(Collectors.toList());
+            final PolyLine geometry = new PolyLine(shapePoints);
+            final Map<String, String> tags = protoTagListConverter.convert(protoArea.getTagsList());
+            builder.addLine(identifier, geometry, tags);
+        });
     }
 
     private void parseLines(final PackedAtlasBuilder builder, final List<ProtoLine> lines)
@@ -130,6 +150,30 @@ public class ProtoAtlasBuilder
             final Map<String, String> tags = converter.convert(protoPoint.getTagsList());
             builder.addPoint(identifier, geometry, tags);
         });
+    }
+
+    private void writeAreasToBuilder(final Atlas atlas, final Builder protoAtlasBuilder)
+    {
+        long numberOfLines = 0;
+        final ProtoLocationConverter protoLocationConverter = new ProtoLocationConverter();
+        final ProtoTagListConverter protoTagListConverter = new ProtoTagListConverter();
+
+        for (final Area area : atlas.areas())
+        {
+            final ProtoLine.Builder protoLineBuilder = ProtoLine.newBuilder();
+            protoLineBuilder.setId(area.getIdentifier());
+
+            final List<ProtoLocation> protoLocations = area.asPolygon().stream()
+                    .map(protoLocationConverter::backwardConvert).collect(Collectors.toList());
+            protoLineBuilder.addAllShapePoints(protoLocations);
+
+            final Map<String, String> tags = area.getTags();
+            protoLineBuilder.addAllTags(protoTagListConverter.backwardConvert(tags));
+
+            numberOfLines++;
+            protoAtlasBuilder.addLines(protoLineBuilder.build());
+        }
+        protoAtlasBuilder.setNumberOfLines(numberOfLines);
     }
 
     private void writeLinesToBuilder(final Atlas atlas,

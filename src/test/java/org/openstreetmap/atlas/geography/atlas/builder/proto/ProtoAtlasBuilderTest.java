@@ -41,6 +41,7 @@ public class ProtoAtlasBuilderTest
     {
         final PackedAtlasBuilder packedAtlasBuilder = new PackedAtlasBuilder();
         final Map<String, String> tags = new HashMap<>();
+        final List<Location> shapePoints = new ArrayList<>();
 
         tags.put("building", "yes");
         tags.put("name", "eiffel_tower");
@@ -53,10 +54,19 @@ public class ProtoAtlasBuilderTest
 
         tags.clear();
         tags.put("path", "yes");
-        final List<Location> shapePoints = new ArrayList<>();
         shapePoints.add(Location.EIFFEL_TOWER);
         shapePoints.add(Location.COLOSSEUM);
         packedAtlasBuilder.addLine(2, new PolyLine(shapePoints), tags);
+
+        tags.clear();
+        tags.put("triangle", "yes");
+        tags.put("size", "stupidbig");
+        shapePoints.clear();
+        shapePoints.add(Location.EIFFEL_TOWER);
+        shapePoints.add(Location.COLOSSEUM);
+        shapePoints.add(Location.STEVENS_CREEK);
+        // TODO this is failing, why
+        // packedAtlasBuilder.addArea(3, new Polygon(shapePoints), tags);
 
         return packedAtlasBuilder;
     }

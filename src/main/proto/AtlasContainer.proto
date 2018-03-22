@@ -5,8 +5,9 @@ option java_outer_classname = "ProtoAtlasContainerWrapper";
 
 package org.openstreetmap.atlas.proto;
 
-import "Line.proto";
 import "Point.proto";
+import "Line.proto";
+import "Area.proto";
 
 message ProtoAtlasContainer {
     optional int64 numberOfPoints = 1;
@@ -14,4 +15,7 @@ message ProtoAtlasContainer {
 
     optional int64 numberOfLines = 3;
     repeated ProtoLine lines = 4;
+
+    optional int64 numberOfAreas = 5;
+    repeated ProtoArea areas = 6;
 }
