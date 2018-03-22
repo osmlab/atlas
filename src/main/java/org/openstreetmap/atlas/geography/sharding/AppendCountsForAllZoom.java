@@ -14,9 +14,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Command that takes the data mining concat.csv and appends the slippytile counts for every zoom
- * layer to the file. This is meant to be used as a pre-processing step before creating the sharding
- * tree in DynamicTileSharding.
+ * Command that takes a file with feature counts for each {@link SlippyTile} at a certain zoom
+ * level, and then calculates summed counts for every lower zoom layer to the file. This is meant to
+ * be used as a pre-processing step before creating the sharding tree in
+ * {@link DynamicTileSharding}.
  *
  * @author james-gage
  * @author lcram
@@ -28,10 +29,10 @@ public class AppendCountsForAllZoom extends Command
             "Resource containing tile to feature count mapping for zoom 0 to maxZoom-1.", File::new,
             Optionality.REQUIRED);
     public static final Switch<WritableResource> OUTPUT = new Switch<>("output",
-            "The resource where to save the formatted probe data counts.", File::new,
+            "The resource where to save the feature counts for all zooms.", File::new,
             Optionality.REQUIRED);
     private static final Switch<Integer> ZOOM = new Switch<>("zoom",
-            "The zoom layer the csv represents", Integer::valueOf, Optionality.REQUIRED);
+            "The zoom layer the input csv represents", Integer::valueOf, Optionality.REQUIRED);
 
     private static final Logger logger = LoggerFactory.getLogger(AppendCountsForAllZoom.class);
     private static final int READER_REPORT_FREQUENCY = 10_000_000;
@@ -49,14 +50,7 @@ public class AppendCountsForAllZoom extends Command
         final WritableResource output = (WritableResource) command.get(OUTPUT);
         final BufferedWriter bufferedWriter = output.writer();
 
-        // read in csv and put in slippytile keyed hashmap of counts
-        int numberLines = 0;
-        for (@SuppressWarnings("unused")
-        final String line : definition.lines())
-        {
-            numberLines++;
-        }
-        logger.info("There are {} tiles.", numberLines);
+        final int numberLines = linesInFile(definition);
         HashMap<SlippyTile, Long> countsAtZoom = new HashMap<>(numberLines);
         int counter = 0;
         for (final String line : definition.lines())
@@ -71,10 +65,6 @@ public class AppendCountsForAllZoom extends Command
         }
         writeToFile(countsAtZoom, bufferedWriter);
 
-        // start at level 17
-        // take boxes of 4, take the sum of those boxes, write it to the csv with the corresponding
-        // zoom 16 slippy tile name
-        // run this for every zoom layer until 0
         for (int i = zoom - 1; i >= 0; i--)
         {
             countsAtZoom = writeTileCountsForZoom(i, countsAtZoom);
@@ -103,11 +93,32 @@ public class AppendCountsForAllZoom extends Command
         return new SwitchList().with(DEFINITION, OUTPUT, ZOOM);
     }
 
+    private int linesInFile(WritableResource definition)
+    {
+        int numberLines = 0;
+        for (@SuppressWarnings("unused")
+        final String line : definition.lines())
+        {
+            numberLines++;
+        }
+        logger.info("There are {} tiles.", numberLines);
+        return numberLines;
+    }
+
+    /**
+     * Generates the counts for the nth zoom layer based on information from zoom layer n+1.
+     *
+     * @param zoomLayerToGenerate
+     *            the zoom layer for which to generate counts
+     * @param countsAtHigherZoom
+     *            HashMap containing counts for all {@link SlippyTile} in zoomLayerToGenerate+1
+     * @return a HashMap containing counts for all (@link SlippyTile} in zoomLayerToGenerate
+     */
     private HashMap<SlippyTile, Long> writeTileCountsForZoom(final int zoomLayerToGenerate,
             final HashMap<SlippyTile, Long> countsAtHigherZoom)
     {
         long count = 0;
-        long counter = 0;
+        long tilesCalculated = 0;
         final HashMap<SlippyTile, Long> countsAtThisZoom = new HashMap<>();
         for (int x = 0; x < Math.pow(2, zoomLayerToGenerate + 1); x += 2)
         {
@@ -126,19 +137,28 @@ public class AppendCountsForAllZoom extends Command
                 // bottom right
                 count += countsAtHigherZoom.getOrDefault(
                         new SlippyTile(x + 1, y + 1, zoomLayerToGenerate + 1), (long) 0);
-                // write to file the slippy tile this count represents
                 if (count != 0)
                 {
                     countsAtThisZoom.put(new SlippyTile(x / 2, y / 2, zoomLayerToGenerate), count);
                 }
-                if (++counter % READER_REPORT_FREQUENCY == 0)
+                if (++tilesCalculated % READER_REPORT_FREQUENCY == 0)
                 {
-                    logger.info("Calculated {} zoom level {} tiles.", counter, zoomLayerToGenerate);
+                    logger.info("Calculated {} zoom level {} tiles.", tilesCalculated,
+                            zoomLayerToGenerate);
                 }
             }
         }
         return countsAtThisZoom;
     }
+
+    /**
+     * Writes to file all the {@link SlippyTile} feature counts at a certain zoom level.
+     *
+     * @param countsAtZoom
+     *            HashMap containing the feature counts at that zoom level.
+     * @param bufferedWriter
+     *            The writer to write to.
+     */
 
     private void writeToFile(final HashMap<SlippyTile, Long> countsAtZoom,
             final BufferedWriter bufferedWriter)
