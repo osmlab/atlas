@@ -67,7 +67,7 @@ public class AppendCountsForAllZoom extends Command
 
         for (int i = zoom - 1; i >= 0; i--)
         {
-            countsAtZoom = writeTileCountsForZoom(i, countsAtZoom);
+            countsAtZoom = calculateTileCountsForZoom(i, countsAtZoom);
             writeToFile(countsAtZoom, bufferedWriter);
             logger.info("Wrote tiles for zoom {} to file!", i);
         }
@@ -114,7 +114,7 @@ public class AppendCountsForAllZoom extends Command
      *            HashMap containing counts for all {@link SlippyTile} in zoomLayerToGenerate+1
      * @return a HashMap containing counts for all (@link SlippyTile} in zoomLayerToGenerate
      */
-    private HashMap<SlippyTile, Long> writeTileCountsForZoom(final int zoomLayerToGenerate,
+    private HashMap<SlippyTile, Long> calculateTileCountsForZoom(final int zoomLayerToGenerate,
             final HashMap<SlippyTile, Long> countsAtHigherZoom)
     {
         long count = 0;
@@ -159,7 +159,6 @@ public class AppendCountsForAllZoom extends Command
      * @param bufferedWriter
      *            The writer to write to.
      */
-
     private void writeToFile(final HashMap<SlippyTile, Long> countsAtZoom,
             final BufferedWriter bufferedWriter)
     {
