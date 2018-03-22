@@ -8,6 +8,7 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
@@ -34,6 +35,10 @@ public class ProtoAtlasBuilderTest
         final Atlas outAtlas = packedAtlasBuilder.get();
         protoAtlasBuilder.write(outAtlas, resource);
         final Atlas inAtlas = protoAtlasBuilder.read(resource);
+
+        logger.debug("ATLAS THAT WAS WRITTEN OUT:\n{}\n", outAtlas);
+        logger.debug("ATLAS THAT WAS READ BACK:\n{}\n", inAtlas);
+
         Assert.assertEquals(outAtlas, inAtlas);
     }
 
@@ -45,18 +50,18 @@ public class ProtoAtlasBuilderTest
 
         tags.put("building", "yes");
         tags.put("name", "eiffel_tower");
-        // packedAtlasBuilder.addPoint(0, Location.EIFFEL_TOWER, tags);
+        packedAtlasBuilder.addPoint(0, Location.EIFFEL_TOWER, tags);
 
         tags.clear();
         tags.put("building", "yes");
         tags.put("name", "colosseum");
-        // packedAtlasBuilder.addPoint(1, Location.COLOSSEUM, tags);
+        packedAtlasBuilder.addPoint(1, Location.COLOSSEUM, tags);
 
         tags.clear();
         tags.put("path", "yes");
         shapePoints.add(Location.EIFFEL_TOWER);
         shapePoints.add(Location.COLOSSEUM);
-        // packedAtlasBuilder.addLine(2, new PolyLine(shapePoints), tags);
+        packedAtlasBuilder.addLine(2, new PolyLine(shapePoints), tags);
 
         tags.clear();
         tags.put("triangle", "yes");
@@ -65,7 +70,7 @@ public class ProtoAtlasBuilderTest
         shapePoints.add(Location.EIFFEL_TOWER);
         shapePoints.add(Location.COLOSSEUM);
         shapePoints.add(Location.STEVENS_CREEK);
-        // TODO this is failing due to point duplication issue Mike mentioned
+
         packedAtlasBuilder.addArea(3, new Polygon(shapePoints), tags);
 
         return packedAtlasBuilder;

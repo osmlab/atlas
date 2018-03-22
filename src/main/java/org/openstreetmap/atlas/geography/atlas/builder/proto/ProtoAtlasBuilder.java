@@ -74,8 +74,7 @@ public class ProtoAtlasBuilder
         final long numberOfRelations = 0;
         final AtlasSize atlasSize = new AtlasSize(numberOfEdges, numberOfNodes, numberOfAreas,
                 numberOfLines, numberOfPoints, numberOfRelations);
-        // TODO it would be nice to programmatically decide which version of protobuf is being used
-        // and store that with the atlas data
+        // TODO it would be nice to programmatically determine which protobuf version is in use
         final AtlasMetaData atlasMetaData = new AtlasMetaData(atlasSize, true, "unknown",
                 "ProtoAtlas", "unknown", "unknown", Maps.hashMap());
         final PackedAtlasBuilder builder = new PackedAtlasBuilder().withSizeEstimates(atlasSize)
@@ -121,7 +120,9 @@ public class ProtoAtlasBuilder
             final Polygon geometry = new Polygon(shapePoints);
             final Map<String, String> tags = protoTagListConverter.convert(protoArea.getTagsList());
             // TODO see Mike's PR note about duplicate points, since start and end are the same for
-            // polygons, make sure this is not happening
+            // polygons. Make sure this is not happening. I think it's fine since I am building the
+            // Polygon using the Polygon constructor from a list of points that contains no
+            // duplicates.
             builder.addArea(identifier, geometry, tags);
         });
     }
@@ -163,18 +164,18 @@ public class ProtoAtlasBuilder
 
         for (final Area area : atlas.areas())
         {
-            final ProtoLine.Builder protoLineBuilder = ProtoLine.newBuilder();
-            protoLineBuilder.setId(area.getIdentifier());
+            final ProtoArea.Builder protoAreaBuilder = ProtoArea.newBuilder();
+            protoAreaBuilder.setId(area.getIdentifier());
 
             final List<ProtoLocation> protoLocations = area.asPolygon().stream()
                     .map(protoLocationConverter::backwardConvert).collect(Collectors.toList());
-            protoLineBuilder.addAllShapePoints(protoLocations);
+            protoAreaBuilder.addAllShapePoints(protoLocations);
 
             final Map<String, String> tags = area.getTags();
-            protoLineBuilder.addAllTags(protoTagListConverter.backwardConvert(tags));
+            protoAreaBuilder.addAllTags(protoTagListConverter.backwardConvert(tags));
 
             numberOfLines++;
-            protoAtlasBuilder.addLines(protoLineBuilder.build());
+            protoAtlasBuilder.addAreas(protoAreaBuilder.build());
         }
         protoAtlasBuilder.setNumberOfLines(numberOfLines);
     }
