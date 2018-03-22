@@ -178,7 +178,7 @@ public class ProtoAtlasBuilder
             numberOfAreas++;
             protoAtlasBuilder.addAreas(protoAreaBuilder.build());
         }
-        protoAtlasBuilder.setNumberOfLines(numberOfAreas);
+        protoAtlasBuilder.setNumberOfAreas(numberOfAreas);
     }
 
     private void writeLinesToBuilder(final Atlas atlas,
