@@ -159,7 +159,7 @@ public class ProtoAtlasBuilder
 
     private void writeAreasToBuilder(final Atlas atlas, final Builder protoAtlasBuilder)
     {
-        long numberOfLines = 0;
+        long numberOfAreas = 0;
         final ProtoLocationConverter protoLocationConverter = new ProtoLocationConverter();
         final ProtoTagListConverter protoTagListConverter = new ProtoTagListConverter();
 
@@ -175,10 +175,10 @@ public class ProtoAtlasBuilder
             final Map<String, String> tags = area.getTags();
             protoAreaBuilder.addAllTags(protoTagListConverter.backwardConvert(tags));
 
-            numberOfLines++;
+            numberOfAreas++;
             protoAtlasBuilder.addAreas(protoAreaBuilder.build());
         }
-        protoAtlasBuilder.setNumberOfLines(numberOfLines);
+        protoAtlasBuilder.setNumberOfLines(numberOfAreas);
     }
 
     private void writeLinesToBuilder(final Atlas atlas,
