@@ -93,7 +93,7 @@ public class AppendCountsForAllZoom extends Command
         return new SwitchList().with(DEFINITION, OUTPUT, ZOOM);
     }
 
-    private int linesInFile(WritableResource definition)
+    private int linesInFile(final WritableResource definition)
     {
         int numberLines = 0;
         for (@SuppressWarnings("unused")
