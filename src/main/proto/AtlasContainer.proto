@@ -10,6 +10,7 @@ import "Line.proto";
 import "Area.proto";
 import "Node.proto";
 import "Edge.proto";
+import "Relation.proto";
 
 message ProtoAtlasContainer {
     optional int64 numberOfPoints = 1;
@@ -26,4 +27,7 @@ message ProtoAtlasContainer {
 
     optional int64 numberOfEdges = 9;
     repeated ProtoEdge edges = 10;
+
+    optional int64 numberOfRelations = 11;
+    repeated ProtoRelation relations = 12;
 }

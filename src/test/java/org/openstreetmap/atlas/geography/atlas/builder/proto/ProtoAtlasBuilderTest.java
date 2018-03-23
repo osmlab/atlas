@@ -97,6 +97,13 @@ public class ProtoAtlasBuilderTest
         shapePoints.add(Location.forString("48.34204,10.55844"));
         packedAtlasBuilder.addEdge(getNextId(), new PolyLine(shapePoints), tags);
 
+        // add relations
+        // tags.clear();
+        // tags.put("relationtag", "somevalue");
+        // final RelationBean bean = new RelationBean();
+        // bean.addItem(1L, "This is the Eiffel Tower Point", ItemType.POINT);
+        // packedAtlasBuilder.addRelation(getNextId(), idCounter, bean, tags);
+
         return packedAtlasBuilder;
     }
 }

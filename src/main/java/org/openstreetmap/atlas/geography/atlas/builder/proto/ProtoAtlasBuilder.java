@@ -13,11 +13,15 @@ import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.converters.proto.ProtoLocationConverter;
@@ -30,6 +34,7 @@ import org.openstreetmap.atlas.proto.ProtoLine;
 import org.openstreetmap.atlas.proto.ProtoLocation;
 import org.openstreetmap.atlas.proto.ProtoNode;
 import org.openstreetmap.atlas.proto.ProtoPoint;
+import org.openstreetmap.atlas.proto.ProtoRelation;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.collections.Maps;
@@ -74,14 +79,10 @@ public class ProtoAtlasBuilder
         }
 
         // initialize atlas metadata
-        final long numberOfPoints = protoAtlasContainer.getNumberOfPoints();
-        final long numberOfLines = protoAtlasContainer.getNumberOfLines();
-        final long numberOfAreas = protoAtlasContainer.getNumberOfAreas();
-        final long numberOfNodes = protoAtlasContainer.getNumberOfNodes();
-        final long numberOfEdges = protoAtlasContainer.getNumberOfEdges();
-        final long numberOfRelations = 0;
-        final AtlasSize atlasSize = new AtlasSize(numberOfEdges, numberOfNodes, numberOfAreas,
-                numberOfLines, numberOfPoints, numberOfRelations);
+        final AtlasSize atlasSize = new AtlasSize(protoAtlasContainer.getNumberOfEdges(),
+                protoAtlasContainer.getNumberOfNodes(), protoAtlasContainer.getNumberOfAreas(),
+                protoAtlasContainer.getNumberOfLines(), protoAtlasContainer.getNumberOfPoints(),
+                protoAtlasContainer.getNumberOfRelations());
         // TODO it would be nice to programmatically determine which protobuf version is in use
         final AtlasMetaData atlasMetaData = new AtlasMetaData(atlasSize, true, "unknown",
                 "ProtoAtlas", "unknown", "unknown", Maps.hashMap());
@@ -94,6 +95,7 @@ public class ProtoAtlasBuilder
         parseAreas(builder, protoAtlasContainer.getAreasList());
         parseNodes(builder, protoAtlasContainer.getNodesList());
         parseEdges(builder, protoAtlasContainer.getEdgesList());
+        parseRelations(builder, protoAtlasContainer.getRelationsList());
 
         return (PackedAtlas) builder.get();
     }
@@ -110,12 +112,13 @@ public class ProtoAtlasBuilder
     {
         final ProtoAtlasContainer.Builder protoAtlasBuilder = ProtoAtlasContainer.newBuilder();
 
-        // get the Atlas features into the ProtoAtlasBuilder
+        // put the Atlas features into the ProtoAtlasBuilder
         writePointsToBuilder(atlas, protoAtlasBuilder);
         writeLinesToBuilder(atlas, protoAtlasBuilder);
         writeAreasToBuilder(atlas, protoAtlasBuilder);
         writeNodesToBuilder(atlas, protoAtlasBuilder);
         writeEdgesToBuilder(atlas, protoAtlasBuilder);
+        writeRelationsToBuilder(atlas, protoAtlasBuilder);
 
         final ProtoAtlasContainer protoAtlas = protoAtlasBuilder.build();
         resource.writeAndClose(protoAtlas.toByteArray());
@@ -196,6 +199,37 @@ public class ProtoAtlasBuilder
             final Map<String, String> tags = protoTagListConverter
                     .convert(protoPoint.getTagsList());
             builder.addPoint(identifier, geometry, tags);
+        });
+    }
+
+    private RelationBean parseRelationBean(final ProtoRelation protoRelation)
+    {
+        final RelationBean bean = new RelationBean();
+
+        protoRelation.getBeansList().forEach(protoRelationBean ->
+        {
+            final long memberId = protoRelationBean.getMemberId();
+            final String memberRole = protoRelationBean.getMemberRole();
+            final ItemType memberType = ItemType
+                    .forValue(protoRelationBean.getMemberType().getNumber());
+            bean.addItem(memberId, memberRole, memberType);
+        });
+
+        return bean;
+    }
+
+    private void parseRelations(final PackedAtlasBuilder builder,
+            final List<ProtoRelation> relations)
+    {
+        final ProtoTagListConverter protoTagListConverter = new ProtoTagListConverter();
+        relations.forEach(protoRelation ->
+        {
+            final long identifier = protoRelation.getId();
+            final RelationBean bean = parseRelationBean(protoRelation);
+            final Map<String, String> tags = protoTagListConverter
+                    .convert(protoRelation.getTagsList());
+            // TODO should identifier and OSMIdentifier be the same?
+            builder.addRelation(identifier, identifier, bean, tags);
         });
     }
 
@@ -317,5 +351,35 @@ public class ProtoAtlasBuilder
             protoAtlasBuilder.addPoints(protoPointBuilder.build());
         }
         protoAtlasBuilder.setNumberOfPoints(numberOfPoints);
+    }
+
+    private void writeRelationsToBuilder(final Atlas atlas, final Builder protoAtlasBuilder)
+    {
+        long numberOfRelations = 0;
+        final ProtoTagListConverter protoTagListConverter = new ProtoTagListConverter();
+
+        for (final Relation relation : atlas.relations())
+        {
+            final ProtoRelation.Builder protoRelationBuilder = ProtoRelation.newBuilder();
+            protoRelationBuilder.setId(relation.getIdentifier());
+            for (final RelationMember member : relation.members())
+            {
+                final ProtoRelation.RelationBean.Builder beanBuilder = ProtoRelation.RelationBean
+                        .newBuilder();
+                beanBuilder.setMemberId(member.getRelationIdentifier());
+                beanBuilder.setMemberRole(member.getRole());
+                final ItemType type = ItemType.forEntity(member.getEntity());
+                beanBuilder.setMemberType(ProtoRelation.ProtoItemType.valueOf(type.getValue()));
+
+                // TODO there may be a problem here if there are more relations in this atlas than
+                // possible int32 values. This is because protobuf internally stores the protobeans
+                // list as an ArrayList
+                protoRelationBuilder.addBeans(beanBuilder.build());
+
+            }
+            numberOfRelations++;
+            protoAtlasBuilder.addRelations(protoRelationBuilder.build());
+        }
+        protoAtlasBuilder.setNumberOfRelations(numberOfRelations);
     }
 }
