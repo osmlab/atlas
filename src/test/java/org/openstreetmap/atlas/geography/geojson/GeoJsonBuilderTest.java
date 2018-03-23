@@ -55,7 +55,7 @@ public class GeoJsonBuilderTest
         Assert.assertEquals(
                 "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\""
                         + ":[-122.009566,37.33531]},\"properties\":{\"property2\":\"value2\",\"property\":\"value\"}},{\"type\":\"Feature\",\"geometry\""
-                        + ":{\"type\":\"Polygon\",\"coordinates\":[[[-122.031007,37.390535],[-122.028464,37.321628],[-122.033948,37.32544]]]},\"properties\""
+                        + ":{\"type\":\"Polygon\",\"coordinates\":[[[-122.031007,37.390535],[-122.028464,37.321628],[-122.033948,37.32544],[-122.031007,37.390535]]]},\"properties\""
                         + ":{\"property2\":\"value2\",\"property\":\"value\"}},{\"type\":\"Feature\",\"geometry\":{\"type\":\"LineString\",\"coordinates\""
                         + ":[[-122.031007,37.390535],[-122.028464,37.321628]]},\"properties\":{\"property2\":\"value2\",\"property\":\"value\"}}]}",
                 object.toString());
@@ -94,7 +94,7 @@ public class GeoJsonBuilderTest
                 properties));
         final GeoJsonObject object = new GeoJsonBuilder().createGeometryCollection(items);
         Assert.assertEquals(
-                "{\"type\":\"Feature\",\"geometry\":{\"type\":\"GeometryCollection\",\"geometries\":[{\"type\":\"MultiPoint\",\"coordinates\":[[-122.009566,37.33531],[-122.009566,37.33531]]},{\"type\":\"MultiPolygon\",\"coordinates\":[[[[-122.031007,37.390535],[-122.028464,37.321628],[-122.033948,37.32544]]],[[[-122.031007,37.390535],[-122.028464,37.321628],[-122.033948,37.32544]]]]},{\"type\":\"MultiLineString\",\"coordinates\":[[[-122.031007,37.390535],[-122.028464,37.321628]],[[-122.031007,37.390535],[-122.028464,37.321628]]]}]}}",
+                "{\"type\":\"Feature\",\"geometry\":{\"type\":\"GeometryCollection\",\"geometries\":[{\"type\":\"MultiPoint\",\"coordinates\":[[-122.009566,37.33531],[-122.009566,37.33531]]},{\"type\":\"MultiPolygon\",\"coordinates\":[[[[-122.031007,37.390535],[-122.028464,37.321628],[-122.033948,37.32544],[-122.031007,37.390535]]],[[[-122.031007,37.390535],[-122.028464,37.321628],[-122.033948,37.32544],[-122.031007,37.390535]]]]},{\"type\":\"MultiLineString\",\"coordinates\":[[[-122.031007,37.390535],[-122.028464,37.321628]],[[-122.031007,37.390535],[-122.028464,37.321628]]]}]}}",
                 object.toString());
     }
 
@@ -178,7 +178,7 @@ public class GeoJsonBuilderTest
         final GeoJsonObject object = new GeoJsonBuilder().createMultiPolygons(polygons);
 
         Assert.assertEquals(
-                "{\"type\":\"Feature\",\"geometry\":{\"type\":\"MultiPolygon\",\"coordinates\":[[[[-122.031007,37.390535],[-122.028464,37.321628],[-122.033948,37.32544]]],[[[12.49234,41.890224],[2.294495,48.858241],[-122.0304871,37.3314171]]]]}}",
+                "{\"type\":\"Feature\",\"geometry\":{\"type\":\"MultiPolygon\",\"coordinates\":[[[[-122.031007,37.390535],[-122.028464,37.321628],[-122.033948,37.32544],[-122.031007,37.390535]]],[[[12.49234,41.890224],[2.294495,48.858241],[-122.0304871,37.3314171],[12.49234,41.890224]]]]}}",
                 object.toString());
     }
 
@@ -188,7 +188,7 @@ public class GeoJsonBuilderTest
         final GeoJsonObject object = new GeoJsonBuilder()
                 .create(new Polygon(Location.TEST_5, Location.TEST_2, Location.TEST_6));
         Assert.assertEquals(
-                "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-122.031007,37.390535],[-122.028464,37.321628],[-122.033948,37.32544]]]}}",
+                "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-122.031007,37.390535],[-122.028464,37.321628],[-122.033948,37.32544],[-122.031007,37.390535]]]}}",
                 object.toString());
 
         final Map<String, String> properties = new HashMap<>();
@@ -196,7 +196,7 @@ public class GeoJsonBuilderTest
         properties.put("property2", "value2");
         object.withNewProperties(properties);
         Assert.assertEquals(
-                "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-122.031007,37.390535],[-122.028464,37.321628],[-122.033948,37.32544]]]},\"properties\":{\"property2\":\"value2\",\"property\":\"value\"}}",
+                "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-122.031007,37.390535],[-122.028464,37.321628],[-122.033948,37.32544],[-122.031007,37.390535]]]},\"properties\":{\"property2\":\"value2\",\"property\":\"value\"}}",
                 object.toString());
     }
 }

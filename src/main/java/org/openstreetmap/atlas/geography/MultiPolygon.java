@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.openstreetmap.atlas.geography.clipping.Clip;
@@ -81,6 +82,12 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
         this.outerToInners = outerToInners;
     }
 
+    /**
+     * @deprecated use {@link MultiPolygon#asGeoJsonFeatureCollection()} instead, for geojson that
+     *             represents the same geometry
+     * @return multiple geojson polygon features in a feature collection
+     */
+    @Deprecated
     public GeoJsonObject asGeoJson()
     {
         return new GeoJsonBuilder().create(asLocationIterableProperties());
@@ -111,6 +118,18 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
             return new LocationIterableProperties(polygon, tags);
         });
         return new MultiIterable<>(outers, inners);
+    }
+
+    /**
+     * @return Optional of {@link Polygon} representation if possible
+     */
+    public Optional<Polygon> asSimplePolygon()
+    {
+        if (this.isSimplePolygon())
+        {
+            return outers().stream().findFirst();
+        }
+        return Optional.empty();
     }
 
     @Override
@@ -280,6 +299,14 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
             }
         }
         return false;
+    }
+
+    /**
+     * @return whether this Multipolygon can be represented as a {@link Polygon}
+     */
+    public boolean isSimplePolygon()
+    {
+        return this.outers().size() == 1;
     }
 
     @Override

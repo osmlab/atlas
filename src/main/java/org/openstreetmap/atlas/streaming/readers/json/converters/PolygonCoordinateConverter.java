@@ -45,6 +45,9 @@ public class PolygonCoordinateConverter implements Converter<Iterable<Location>,
                     result.add(this.coordinateConverter.revert().convert(array2));
                 });
             });
+            // in valid Geojson the first point is repeated at the end where it does not need to be
+            // for our polygons
+            result.remove(result.size() - 1);
             return result;
         };
     }
