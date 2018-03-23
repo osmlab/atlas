@@ -18,6 +18,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
+import org.openstreetmap.atlas.geography.converters.proto.ProtoLocationConverter;
+import org.openstreetmap.atlas.geography.converters.proto.ProtoTagListConverter;
 import org.openstreetmap.atlas.proto.ProtoArea;
 import org.openstreetmap.atlas.proto.ProtoAtlasContainer;
 import org.openstreetmap.atlas.proto.ProtoAtlasContainer.Builder;
@@ -27,8 +29,6 @@ import org.openstreetmap.atlas.proto.ProtoPoint;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.collections.Maps;
-import org.openstreetmap.atlas.utilities.conversion.ProtoLocationConverter;
-import org.openstreetmap.atlas.utilities.conversion.ProtoTagListConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
