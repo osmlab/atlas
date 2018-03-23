@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.utilities.conversion;
+package org.openstreetmap.atlas.geography.converters.proto;
 
 import org.junit.Assert;
 import org.junit.Test;

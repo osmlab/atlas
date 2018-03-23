@@ -1,9 +1,10 @@
-package org.openstreetmap.atlas.utilities.conversion;
+package org.openstreetmap.atlas.geography.converters.proto;
 
 import org.openstreetmap.atlas.geography.Latitude;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Longitude;
 import org.openstreetmap.atlas.proto.ProtoLocation;
+import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
 /**
  * Converts back and forth between ProtoLocation and Location

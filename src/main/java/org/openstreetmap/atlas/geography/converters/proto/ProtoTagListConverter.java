@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.utilities.conversion;
+package org.openstreetmap.atlas.geography.converters.proto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +8,7 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.proto.ProtoTag;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.StringList;
+import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
