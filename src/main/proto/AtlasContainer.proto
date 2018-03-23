@@ -8,6 +8,8 @@ package org.openstreetmap.atlas.proto;
 import "Point.proto";
 import "Line.proto";
 import "Area.proto";
+import "Node.proto";
+import "Edge.proto";
 
 message ProtoAtlasContainer {
     optional int64 numberOfPoints = 1;
@@ -18,4 +20,10 @@ message ProtoAtlasContainer {
 
     optional int64 numberOfAreas = 5;
     repeated ProtoArea areas = 6;
+
+    optional int64 numberOfNodes = 7;
+    repeated ProtoNode nodes = 8;
+
+    optional int64 numberOfEdges = 9;
+    repeated ProtoEdge edges = 10;
 }

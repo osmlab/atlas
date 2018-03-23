@@ -83,14 +83,19 @@ public class ProtoAtlasBuilderTest
         packedAtlasBuilder.addArea(getNextId(), new Polygon(shapePoints), tags);
 
         // add nodes
-        // tags.clear();
-        // tags.put("sometag:namespace", "somevalue");
-        // packedAtlasBuilder.addNode(getNextId(), Location.forString("48.3406719,10.5563445"),
-        // tags);
-        // tags.clear();
-        // packedAtlasBuilder.addNode(getNextId(), Location.forString("48.34204,10.55844"), tags);
+        tags.clear();
+        tags.put("sometag:namespace", "somevalue");
+        packedAtlasBuilder.addNode(getNextId(), Location.forString("48.3406719,10.5563445"), tags);
+        tags.clear();
+        packedAtlasBuilder.addNode(getNextId(), Location.forString("48.34204,10.55844"), tags);
 
         // add edges
+        tags.clear();
+        tags.put("edge", "yes");
+        shapePoints.clear();
+        shapePoints.add(Location.forString("48.3406719,10.5563445"));
+        shapePoints.add(Location.forString("48.34204,10.55844"));
+        packedAtlasBuilder.addEdge(getNextId(), new PolyLine(shapePoints), tags);
 
         return packedAtlasBuilder;
     }

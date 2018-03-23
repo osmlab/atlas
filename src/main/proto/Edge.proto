@@ -5,14 +5,11 @@ option java_outer_classname = "ProtoEdgeWrapper";
 
 package org.openstreetmap.atlas.proto;
 
-import "Node.proto";
+import "Location.proto";
 import "Tag.proto";
 
 message ProtoEdge {
     optional int64 id = 1;
-
-    optional ProtoNode startNode = 2;
-    optional ProtoNode endNode = 3;
-
-    repeated ProtoTag tags = 4;
+    repeated ProtoLocation shapePoints = 2;
+    repeated ProtoTag tags = 5;
 }

@@ -11,9 +11,5 @@ import "Tag.proto";
 message ProtoNode {
     optional int64 id = 1;
     optional ProtoLocation location = 2;
-
-    repeated int64 inEdgeIds = 3;
-    repeated int64 outEdgeIds = 4;
-
     repeated ProtoTag tags = 5;
 }
