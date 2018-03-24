@@ -366,7 +366,7 @@ public class ProtoAtlasBuilder
             {
                 final ProtoRelation.RelationBean.Builder beanBuilder = ProtoRelation.RelationBean
                         .newBuilder();
-                beanBuilder.setMemberId(member.getRelationIdentifier());
+                beanBuilder.setMemberId(member.getEntity().getIdentifier());
                 beanBuilder.setMemberRole(member.getRole());
                 final ItemType type = ItemType.forEntity(member.getEntity());
                 beanBuilder.setMemberType(ProtoRelation.ProtoItemType.valueOf(type.getValue()));
@@ -377,6 +377,9 @@ public class ProtoAtlasBuilder
                 protoRelationBuilder.addBeans(beanBuilder.build());
 
             }
+            final Map<String, String> tags = relation.getTags();
+            protoRelationBuilder.addAllTags(protoTagListConverter.backwardConvert(tags));
+
             numberOfRelations++;
             protoAtlasBuilder.addRelations(protoRelationBuilder.build());
         }

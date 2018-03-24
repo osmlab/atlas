@@ -11,6 +11,8 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
@@ -98,11 +100,11 @@ public class ProtoAtlasBuilderTest
         packedAtlasBuilder.addEdge(getNextId(), new PolyLine(shapePoints), tags);
 
         // add relations
-        // tags.clear();
-        // tags.put("relationtag", "somevalue");
-        // final RelationBean bean = new RelationBean();
-        // bean.addItem(1L, "This is the Eiffel Tower Point", ItemType.POINT);
-        // packedAtlasBuilder.addRelation(getNextId(), idCounter, bean, tags);
+        tags.clear();
+        tags.put("relationtag", "somevalue");
+        final RelationBean bean = new RelationBean();
+        bean.addItem(1L, "This is the Eiffel Tower Point", ItemType.POINT);
+        packedAtlasBuilder.addRelation(getNextId(), idCounter, bean, tags);
 
         return packedAtlasBuilder;
     }
