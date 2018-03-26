@@ -131,11 +131,11 @@ public abstract class AtlasEntity implements AtlasObject
      * an {@link Area} the geometricSurface overlaps it. For a relation, at least one member of the
      * relation returns true to this method.
      *
-     * @param geometricSurface
+     * @param surface
      *            The {@link GeometricSurface} to test
      * @return True if it intersects
      */
-    public abstract boolean intersects(GeometricSurface geometricSurface);
+    public abstract boolean intersects(GeometricSurface surface);
 
     /**
      * @return If available, the {@link Time} at which the entity was last edited.

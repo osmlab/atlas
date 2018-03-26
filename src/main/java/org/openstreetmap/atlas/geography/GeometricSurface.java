@@ -13,8 +13,6 @@ public interface GeometricSurface extends Located
 
     boolean fullyGeometricallyEncloses(PolyLine polyLine);
 
-    boolean fullyGeometricallyEncloses(Segment segment);
-
     boolean fullyGeometricallyEncloses(MultiPolygon multiPolygon);
 
     boolean overlaps(PolyLine polyLine);

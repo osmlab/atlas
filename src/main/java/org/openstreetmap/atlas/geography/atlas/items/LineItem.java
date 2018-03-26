@@ -47,9 +47,9 @@ public abstract class LineItem extends AtlasItem
     }
 
     @Override
-    public boolean intersects(final GeometricSurface geometricSurface)
+    public boolean intersects(final GeometricSurface surface)
     {
-        return geometricSurface.overlaps(asPolyLine());
+        return surface.overlaps(asPolyLine());
     }
 
     /**

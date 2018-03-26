@@ -128,9 +128,9 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     }
 
     @Override
-    public boolean intersects(final GeometricSurface geometricSurface)
+    public boolean intersects(final GeometricSurface surface)
     {
-        return intersectsInternal(geometricSurface, new LinkedHashSet<>());
+        return intersectsInternal(surface, new LinkedHashSet<>());
     }
 
     public boolean isMultiPolygon()
@@ -248,13 +248,13 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
      * {@link PackedAtlas} but could happen when two {@link Atlas} are combined into a
      * {@link MultiAtlas}.
      *
-     * @param geometricSurface
-     *            The geometricSurface to check for
+     * @param surface
+     *            The {@link GeometricSurface} to check for
      * @param parentRelationIdentifiers
      *            The identifiers of the parent relations that have already been visited.
      * @return True if the relation intersects the geometricSurface
      */
-    protected boolean intersectsInternal(final GeometricSurface geometricSurface,
+    protected boolean intersectsInternal(final GeometricSurface surface,
             final Set<Long> parentRelationIdentifiers)
     {
         for (final RelationMember member : this)
@@ -270,14 +270,13 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
                 else
                 {
                     parentRelationIdentifiers.add(identifier);
-                    if (((Relation) entity).intersectsInternal(geometricSurface,
-                            parentRelationIdentifiers))
+                    if (((Relation) entity).intersectsInternal(surface, parentRelationIdentifiers))
                     {
                         return true;
                     }
                 }
             }
-            else if (entity.intersects(geometricSurface))
+            else if (entity.intersects(surface))
             {
                 return true;
             }

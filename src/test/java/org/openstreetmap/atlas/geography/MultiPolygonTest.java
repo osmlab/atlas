@@ -100,6 +100,7 @@ public class MultiPolygonTest
         final MultiPolygon multiPolygon7 = MultiPolygon
                 .wkt("MULTIPOLYGON (" + "((89 90, 90 90, 90 89, 89 89, 89 90),"
                         + "(89.25 89.75, 89.75 89.75, 89.75 89.25, 89.25 89.25, 89.25 89.75)))");
+        // Test Multipolygon enclose
         Assert.assertTrue(multiPolygon1.fullyGeometricallyEncloses(multiPolygon2));
         Assert.assertFalse(multiPolygon2.fullyGeometricallyEncloses(multiPolygon1));
         Assert.assertFalse(multiPolygon1.fullyGeometricallyEncloses(multiPolygon3));
@@ -109,6 +110,15 @@ public class MultiPolygonTest
                 multiPolygon1.fullyGeometricallyEncloses(multiPolygon2.merge(multiPolygon5)));
         Assert.assertTrue(multiPolygon1.fullyGeometricallyEncloses(multiPolygon6));
         Assert.assertFalse(multiPolygon1.fullyGeometricallyEncloses(multiPolygon7));
+
+        final PolyLine polyLine1 = PolyLine.wkt("LINESTRING (6 6, -6 -6)");
+        final PolyLine polyLine2 = PolyLine.wkt("LINESTRING (6 6, -6 6, -6 -6, 6 -6)");
+        final Polygon polygon1 = Polygon.wkt("POLYGON ((6 6, -6 6, -6 -6, 6 -6, 6 6))");
+
+        // Test Polyline Enclose
+        Assert.assertFalse(multiPolygon1.fullyGeometricallyEncloses(polyLine1));
+        Assert.assertTrue(multiPolygon1.fullyGeometricallyEncloses(polyLine2));
+        Assert.assertFalse(multiPolygon1.fullyGeometricallyEncloses(polygon1));
     }
 
     @Test

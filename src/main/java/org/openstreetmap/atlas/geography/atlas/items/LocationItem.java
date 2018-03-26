@@ -43,9 +43,9 @@ public abstract class LocationItem extends AtlasItem
     }
 
     @Override
-    public boolean intersects(final GeometricSurface geometricSurface)
+    public boolean intersects(final GeometricSurface surface)
     {
-        return geometricSurface.fullyGeometricallyEncloses(getLocation());
+        return surface.fullyGeometricallyEncloses(getLocation());
     }
 
     public SnappedLocation snapTo(final Area other)

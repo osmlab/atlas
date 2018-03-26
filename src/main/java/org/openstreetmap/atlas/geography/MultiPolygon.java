@@ -223,18 +223,12 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Locate
     @Override
     public boolean fullyGeometricallyEncloses(final PolyLine polyLine)
     {
-        for (final Polygon inner : inners())
-        {
-            if (inner.overlaps(polyLine))
-            {
-                return false;
-            }
-        }
         for (final Polygon outer : outers())
         {
             if (outer.fullyGeometricallyEncloses(polyLine))
             {
-                return true;
+                return this.getOuterToInners().get(outer).stream()
+                        .noneMatch(inner -> inner.overlaps(polyLine));
             }
         }
         return false;
@@ -255,38 +249,21 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Locate
         // each outer of that must fit within one of this' outer/inner groups
         for (final Polygon thatOuter : that.outers())
         {
-            boolean cleared = false;
+            boolean enclosedWithoutInnerOverlap = false;
             for (final Polygon thisOuter : thisOuters.get(thatOuter.bounds(), thatOuter::overlaps))
             {
                 if (thisOuter.fullyGeometricallyEncloses(thatOuter))
                 {
-                    cleared = this.getOuterToInners().get(thisOuter).stream()
+                    enclosedWithoutInnerOverlap = this.getOuterToInners().get(thisOuter).stream()
                             .noneMatch(that::overlaps);
                 }
             }
-            if (!cleared)
+            if (!enclosedWithoutInnerOverlap)
             {
                 return false;
             }
         }
         return true;
-    }
-
-    @Override
-    public boolean fullyGeometricallyEncloses(final Segment segment)
-    {
-        final Set<Location> intersections = Iterables.stream(this)
-                .flatMap(polygon -> Iterables.stream(polygon.intersections(segment)))
-                .collectToSet();
-        for (final Location intersection : intersections)
-        {
-            if (!intersection.equals(segment.start()) && !intersection.equals(segment.end()))
-            {
-                // This is a non-end intersection
-                return false;
-            }
-        }
-        return this.fullyGeometricallyEncloses(segment.middle());
     }
 
     @Override
