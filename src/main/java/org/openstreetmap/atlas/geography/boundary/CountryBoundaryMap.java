@@ -1221,10 +1221,17 @@ public class CountryBoundaryMap implements Serializable
         }
 
         // Sort intersecting polygons for consistent slicing
-        Collections.sort(candidates,
-                (final Polygon first,
-                        final Polygon second) -> getGeometryProperty(first, ISOCountryTag.KEY)
-                                .compareTo(getGeometryProperty(second, ISOCountryTag.KEY)));
+        Collections.sort(candidates, (final Polygon first, final Polygon second) ->
+        {
+            final int countryCodeComparison = getGeometryProperty(first, ISOCountryTag.KEY)
+                    .compareTo(getGeometryProperty(second, ISOCountryTag.KEY));
+            if (countryCodeComparison != 0)
+            {
+                return countryCodeComparison;
+            }
+
+            return first.compareTo(second);
+        });
 
         // Start cut process
         for (final Polygon candidate : candidates)
@@ -1323,11 +1330,11 @@ public class CountryBoundaryMap implements Serializable
         if (geometry instanceof GeometryCollection)
         {
             final GeometryCollection collection = (GeometryCollection) geometry;
-            geometries(collection).forEach(point ->
+            geometries(collection).forEach(part ->
             {
                 final String countryCode = getGeometryProperty(geometry, ISOCountryTag.KEY);
-                setGeometryProperty(point, ISOCountryTag.KEY, countryCode);
-                this.addResult(point, results);
+                setGeometryProperty(part, ISOCountryTag.KEY, countryCode);
+                this.addResult(part, results);
             });
         }
         else if (geometry instanceof LineString || geometry instanceof Polygon)
