@@ -24,7 +24,8 @@ import org.slf4j.LoggerFactory;
  */
 public class PackedToProtoAtlasSubCommand implements FlexibleSubCommand
 {
-    private static final Logger logger = LoggerFactory.getLogger(PackedToProtoAtlasSubCommand.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(PackedToProtoAtlasSubCommand.class);
 
     private static final String NAME = "packed-to-proto";
     private static final String DESCRIPTION = "converts a packed atlas to a naive proto-based atlas";
