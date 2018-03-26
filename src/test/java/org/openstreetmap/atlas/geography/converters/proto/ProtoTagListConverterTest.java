@@ -19,6 +19,20 @@ public class ProtoTagListConverterTest
     private static final Logger logger = LoggerFactory.getLogger(ProtoTagListConverterTest.class);
 
     @Test
+    public void testEmptyConversion()
+    {
+        final ProtoTagListConverter converter = new ProtoTagListConverter();
+        final Map<String, String> osmTagMap = new HashMap<>();
+        final List<ProtoTag> protoTagList = new ArrayList<>();
+
+        final List<ProtoTag> listFromMap = converter.backwardConvert(osmTagMap);
+        Assert.assertEquals(protoTagList, listFromMap);
+
+        final Map<String, String> mapFromList = converter.convert(protoTagList);
+        Assert.assertEquals(osmTagMap, mapFromList);
+    }
+
+    @Test
     public void testOSMToProtoTagList()
     {
         final ProtoTagListConverter converter = new ProtoTagListConverter();

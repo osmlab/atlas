@@ -102,8 +102,17 @@ public class ProtoAtlasBuilderTest
         // add relations
         tags.clear();
         tags.put("relationtag", "somevalue");
-        final RelationBean bean = new RelationBean();
+        RelationBean bean = new RelationBean();
         bean.addItem(1L, "This is the Eiffel Tower Point", ItemType.POINT);
+        packedAtlasBuilder.addRelation(getNextId(), idCounter, bean, tags);
+
+        tags.clear();
+        tags.put("name", "coolstuff");
+        tags.put("has_subrelation", "yes");
+        bean = new RelationBean();
+        bean.addItem(1L, "Eiffel Tower", ItemType.POINT);
+        bean.addItem(2L, "Colosseum", ItemType.POINT);
+        bean.addItem(8L, "subrelation", ItemType.RELATION);
         packedAtlasBuilder.addRelation(getNextId(), idCounter, bean, tags);
 
         return packedAtlasBuilder;
