@@ -51,9 +51,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
  */
 public class ProtoAtlasBuilder
 {
-    // File extension for naive protoatlas format
-    public static final String SUGGESTED_FILE_EXTENSION = ".npatlas";
-
     private static final Logger logger = LoggerFactory.getLogger(ProtoAtlasBuilder.class);
 
     /**
