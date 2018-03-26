@@ -83,9 +83,11 @@ public class ProtoAtlasBuilder
                 protoAtlasContainer.getNumberOfNodes(), protoAtlasContainer.getNumberOfAreas(),
                 protoAtlasContainer.getNumberOfLines(), protoAtlasContainer.getNumberOfPoints(),
                 protoAtlasContainer.getNumberOfRelations());
+
         // TODO it would be nice to programmatically determine which protobuf version is in use
         final AtlasMetaData atlasMetaData = new AtlasMetaData(atlasSize, true, "unknown",
                 "ProtoAtlas", "unknown", "unknown", Maps.hashMap());
+
         final PackedAtlasBuilder builder = new PackedAtlasBuilder().withSizeEstimates(atlasSize)
                 .withMetaData(atlasMetaData).withName(resource.getName());
 

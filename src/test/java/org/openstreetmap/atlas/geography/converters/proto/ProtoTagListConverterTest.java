@@ -40,8 +40,8 @@ public class ProtoTagListConverterTest
         osmTagMap.put("key1", "value1");
         osmTagMap.put("key2", "value2");
         final List<ProtoTag> protoTagList = new ArrayList<>();
-        protoTagList.add(ProtoTag.newBuilder().setTagText("key1=value1").build());
-        protoTagList.add(ProtoTag.newBuilder().setTagText("key2=value2").build());
+        protoTagList.add(ProtoTag.newBuilder().setKey("key1").setValue("value1").build());
+        protoTagList.add(ProtoTag.newBuilder().setKey("key2").setValue("value2").build());
 
         final List<ProtoTag> listFromMap = converter.backwardConvert(osmTagMap);
         Assert.assertEquals(protoTagList, listFromMap);
@@ -52,8 +52,8 @@ public class ProtoTagListConverterTest
     {
         final ProtoTagListConverter converter = new ProtoTagListConverter();
         final List<ProtoTag> protoTagList = new ArrayList<>();
-        protoTagList.add(ProtoTag.newBuilder().setTagText("key1=value1").build());
-        protoTagList.add(ProtoTag.newBuilder().setTagText("key2=value2").build());
+        protoTagList.add(ProtoTag.newBuilder().setKey("key1").setValue("value1").build());
+        protoTagList.add(ProtoTag.newBuilder().setKey("key2").setValue("value2").build());
         final Map<String, String> osmTagMap = new HashMap<>();
         osmTagMap.put("key1", "value1");
         osmTagMap.put("key2", "value2");

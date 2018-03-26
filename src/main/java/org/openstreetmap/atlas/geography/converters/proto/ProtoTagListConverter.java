@@ -7,7 +7,6 @@ import java.util.Map;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.proto.ProtoTag;
 import org.openstreetmap.atlas.utilities.collections.Maps;
-import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,8 +52,8 @@ public class ProtoTagListConverter implements TwoWayConverter<List<ProtoTag>, Ma
                 valueText = entry.getValue();
             }
 
-            final String fullTag = keyText + TAG_DELIMITER + valueText;
-            tagBuilder.setTagText(fullTag);
+            tagBuilder.setKey(keyText);
+            tagBuilder.setValue(valueText);
             protoTags.add(tagBuilder.build());
 
         }
@@ -69,15 +68,7 @@ public class ProtoTagListConverter implements TwoWayConverter<List<ProtoTag>, Ma
             final Map<String, String> result = Maps.hashMap();
             for (final ProtoTag tag : protoTagList)
             {
-                final StringList tagSplit = StringList.split(tag.getTagText(), TAG_DELIMITER);
-                if (tagSplit.size() == 2)
-                {
-                    result.put(tagSplit.get(0), tagSplit.get(1));
-                }
-                if (tagSplit.size() == 1)
-                {
-                    result.put(tagSplit.get(0), "");
-                }
+                result.put(tag.getKey(), tag.getValue());
             }
             return result;
         }
