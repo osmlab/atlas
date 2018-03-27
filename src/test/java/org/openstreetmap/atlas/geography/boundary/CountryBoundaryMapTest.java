@@ -20,6 +20,7 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPo
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.test.TestUtility;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.threads.Pool;
@@ -176,6 +177,55 @@ public class CountryBoundaryMapTest
         final List<Geometry> pieces = map.slice(1000000L, geometry);
         logger.info(pieces.toString());
         Assert.assertEquals(2, pieces.size());
+    }
+
+    @Test
+    public void testFeatureRightByCountryBoundary() throws ParseException
+    {
+        // Work on HTI and DOM
+        final Set<String> countries = new HashSet<>();
+        countries.add("HTI");
+        countries.add("DOM");
+
+        // Initialize grid index
+        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
+                CountryBoundaryMapTest.class.getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
+                        .withDecompressor(Decompressor.GZIP));
+        Assert.assertFalse(map.hasGridIndex());
+        map.initializeGridIndex(countries);
+        Assert.assertTrue(map.hasGridIndex());
+
+        // Slice a line along the border
+        final WKTReader reader = new WKTReader();
+        final Geometry geometry = reader.read(
+                "LINESTRING(-71.71119689941406 19.465297438875965,-71.70982360839844 19.425153718960143,-71.72767639160156 19.390181749736552,-71.77093505859375 19.363623938901224,-71.8121337890625 19.32280716454424,-71.78123474121094 19.296886457967965,-71.74896240234375 19.250218840825706,-71.70433044433594 19.22428664772902,-71.66038513183594 19.21391262405755,-71.66862487792969 19.176301302579176,-71.67755126953125 19.143870855908183,-71.73660278320312 19.117921909279115,-71.75033569335938 19.07509724212452,-71.81625366210938 19.03161239237521,-71.88217163085938 19.003048981647012,-71.91925048828125 18.95370063230706,-71.89521789550781 18.923175265301367,-71.80938720703125 18.923175265301367,-71.73934936523438 18.938113908068473,-71.66107177734375 18.94850521929427,-71.60957336425781 18.910184055628548,-71.61026000976562 18.86405711499645,-71.6195297241211 18.813042837757894,-71.64630889892578 18.78249184724649,-71.7242431640625 18.77371553802311,-71.78054809570312 18.745108099985455,-71.83959960937499 18.683975975631473,-71.87118530273438 18.6592567227563)");
+        final List<Geometry> pieces = map.slice(1000000L, geometry);
+        Assert.assertEquals(4, pieces.size());
+
+        // First piece should be in DOM and rest should be in HTI
+        Assert.assertEquals("DOM",
+                CountryBoundaryMap.getGeometryProperty(pieces.get(0), ISOCountryTag.KEY));
+        pieces.stream().skip(1).forEach(piece -> Assert.assertEquals("HTI",
+                CountryBoundaryMap.getGeometryProperty(piece, ISOCountryTag.KEY)));
+
+        // Reverse the line and slice again
+        // Again first piece should be in DOM and rest should be in HTI
+        final List<Geometry> reversedPieces = map.slice(2000000L, geometry.reverse());
+        Assert.assertEquals(4, reversedPieces.size());
+        Assert.assertEquals("DOM",
+                CountryBoundaryMap.getGeometryProperty(reversedPieces.get(0), ISOCountryTag.KEY));
+        pieces.stream().skip(1).forEach(piece -> Assert.assertEquals("HTI",
+                CountryBoundaryMap.getGeometryProperty(piece, ISOCountryTag.KEY)));
+
+        // Returned pieces should be reverse version of each other
+        // First pieces are from DOM, they should have reverse geometry
+        Assert.assertEquals(pieces.get(0), reversedPieces.get(0).reverse());
+
+        // The rest is coming from HTI
+        // Reversed geometry slice operation would return pieces in reverse order
+        Assert.assertEquals(pieces.get(1), reversedPieces.get(3).reverse());
+        Assert.assertEquals(pieces.get(2), reversedPieces.get(2).reverse());
+        Assert.assertEquals(pieces.get(3), reversedPieces.get(1).reverse());
     }
 
     @Test
