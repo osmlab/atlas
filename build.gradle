@@ -107,7 +107,7 @@ protobuf {
     generatedFilesBaseDir = 'gen/' 
 
     protoc {
-        artifact = 'com.google.protobuf:protoc:2.6.1'
+        artifact = "${packages.protoc}"
     }
 
     generateProtoTasks {
