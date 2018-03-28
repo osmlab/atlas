@@ -121,7 +121,9 @@ protobuf {
         }
 
         task deleteGeneratedProto {
-            delete generatedFilesBaseDir
+            // dummy task
+            // Since Eclipse's Gradle -> Refresh Gradle Project option runs all the clean commands
+            // we need to make sure this task doesn't delete the generated proto code
         }
 
         task recompileProto {}
