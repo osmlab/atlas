@@ -12,6 +12,12 @@ import "Node.proto";
 import "Edge.proto";
 import "Relation.proto";
 
+/*
+ * NOTE: the 'repeated' directive is cpmpiled into Java as an ArrayList.
+ * The ArrayList implementation has a 32bit signed integer size limit.
+ * This could be a potential problem for atlases with an absurd number
+ * of a specific feature.
+ */
 message ProtoAtlasContainer {
     optional int64 numberOfPoints = 1;
     repeated ProtoPoint points = 2;

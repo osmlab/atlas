@@ -20,8 +20,6 @@ public class ProtoTagListConverter implements TwoWayConverter<List<ProtoTag>, Ma
 {
     private static final Logger logger = LoggerFactory.getLogger(ProtoTagListConverter.class);
 
-    private static final String TAG_DELIMITER = "=";
-
     @Override
     public List<ProtoTag> backwardConvert(final Map<String, String> osmTagMap)
     {

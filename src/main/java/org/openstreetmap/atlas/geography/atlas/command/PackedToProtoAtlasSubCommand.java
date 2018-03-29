@@ -14,8 +14,6 @@ import org.openstreetmap.atlas.utilities.runtime.Command.Switch;
 import org.openstreetmap.atlas.utilities.runtime.Command.SwitchList;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 import org.openstreetmap.atlas.utilities.runtime.FlexibleSubCommand;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Command for converting a serialized PackedAtlas to a serialized ProtoAtlas
@@ -24,9 +22,6 @@ import org.slf4j.LoggerFactory;
  */
 public class PackedToProtoAtlasSubCommand implements FlexibleSubCommand
 {
-    private static final Logger logger = LoggerFactory
-            .getLogger(PackedToProtoAtlasSubCommand.class);
-
     private static final String NAME = "packed-to-proto";
     private static final String DESCRIPTION = "converts a packed atlas to a naive proto-based atlas";
     private static final String PACKED_SWITCH_TEXT = "packed-atlas";

@@ -8,16 +8,12 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.proto.ProtoTag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author lcram
  */
 public class ProtoTagListConverterTest
 {
-    private static final Logger logger = LoggerFactory.getLogger(ProtoTagListConverterTest.class);
-
     @Test
     public void testEmptyConversion()
     {

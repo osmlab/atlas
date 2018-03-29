@@ -24,6 +24,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
+import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
 import org.openstreetmap.atlas.geography.converters.proto.ProtoLocationConverter;
 import org.openstreetmap.atlas.geography.converters.proto.ProtoTagListConverter;
 import org.openstreetmap.atlas.proto.ProtoArea;
@@ -38,8 +39,6 @@ import org.openstreetmap.atlas.proto.ProtoRelation;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.collections.Maps;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
@@ -51,7 +50,9 @@ import com.google.protobuf.InvalidProtocolBufferException;
  */
 public class ProtoAtlasBuilder
 {
-    private static final Logger logger = LoggerFactory.getLogger(ProtoAtlasBuilder.class);
+    private final ProtoLocationConverter protoLocationConverter = new ProtoLocationConverter();
+    private final ProtoTagListConverter protoTagListConverter = new ProtoTagListConverter();
+    private final ReverseIdentifierFactory reverseIDFactory = new ReverseIdentifierFactory();
 
     /**
      * Read a resource in naive ProtoAtlas format into a PackedAtlas.
@@ -125,77 +126,69 @@ public class ProtoAtlasBuilder
 
     private void parseAreas(final PackedAtlasBuilder builder, final List<ProtoArea> areas)
     {
-        final ProtoLocationConverter protoLocationConverter = new ProtoLocationConverter();
-        final ProtoTagListConverter protoTagListConverter = new ProtoTagListConverter();
         areas.forEach(protoArea ->
         {
             final long identifier = protoArea.getId();
             final List<Location> shapePoints = protoArea.getShapePointsList().stream()
-                    .map(protoLocationConverter::convert).collect(Collectors.toList());
+                    .map(this.protoLocationConverter::convert).collect(Collectors.toList());
             final Polygon geometry = new Polygon(shapePoints);
-            final Map<String, String> tags = protoTagListConverter.convert(protoArea.getTagsList());
-            // TODO see Mike's PR note about duplicate points, since start and end are the same for
-            // polygons. Make sure this is not happening. I think it's fine since I am building the
-            // Polygon using the Polygon constructor from a list of points that contains no
-            // duplicates.
+            final Map<String, String> tags = this.protoTagListConverter
+                    .convert(protoArea.getTagsList());
             builder.addArea(identifier, geometry, tags);
         });
     }
 
     private void parseEdges(final PackedAtlasBuilder builder, final List<ProtoEdge> edges)
     {
-        final ProtoLocationConverter protoLocationConverter = new ProtoLocationConverter();
-        final ProtoTagListConverter protoTagListConverter = new ProtoTagListConverter();
         edges.forEach(protoEdge ->
         {
             final long identifier = protoEdge.getId();
             final List<Location> shapePoints = protoEdge.getShapePointsList().stream()
-                    .map(protoLocationConverter::convert).collect(Collectors.toList());
+                    .map(this.protoLocationConverter::convert).collect(Collectors.toList());
             final PolyLine geometry = new PolyLine(shapePoints);
-            final Map<String, String> tags = protoTagListConverter.convert(protoEdge.getTagsList());
+            final Map<String, String> tags = this.protoTagListConverter
+                    .convert(protoEdge.getTagsList());
             builder.addEdge(identifier, geometry, tags);
         });
     }
 
     private void parseLines(final PackedAtlasBuilder builder, final List<ProtoLine> lines)
     {
-        final ProtoLocationConverter protoLocationConverter = new ProtoLocationConverter();
-        final ProtoTagListConverter protoTagListConverter = new ProtoTagListConverter();
         lines.forEach(protoLine ->
         {
             final long identifier = protoLine.getId();
             final List<Location> shapePoints = protoLine.getShapePointsList().stream()
-                    .map(protoLocationConverter::convert).collect(Collectors.toList());
+                    .map(this.protoLocationConverter::convert).collect(Collectors.toList());
             final PolyLine geometry = new PolyLine(shapePoints);
-            final Map<String, String> tags = protoTagListConverter.convert(protoLine.getTagsList());
+            final Map<String, String> tags = this.protoTagListConverter
+                    .convert(protoLine.getTagsList());
             builder.addLine(identifier, geometry, tags);
         });
     }
 
     private void parseNodes(final PackedAtlasBuilder builder, final List<ProtoNode> nodes)
     {
-        final ProtoTagListConverter protoTagListConverter = new ProtoTagListConverter();
         nodes.forEach(protoNode ->
         {
             final long identifier = protoNode.getId();
             final Longitude longitude = Longitude.dm7(protoNode.getLocation().getLongitude());
             final Latitude latitude = Latitude.dm7(protoNode.getLocation().getLatitude());
             final Location geometry = new Location(latitude, longitude);
-            final Map<String, String> tags = protoTagListConverter.convert(protoNode.getTagsList());
+            final Map<String, String> tags = this.protoTagListConverter
+                    .convert(protoNode.getTagsList());
             builder.addNode(identifier, geometry, tags);
         });
     }
 
     private void parsePoints(final PackedAtlasBuilder builder, final List<ProtoPoint> points)
     {
-        final ProtoTagListConverter protoTagListConverter = new ProtoTagListConverter();
         points.forEach(protoPoint ->
         {
             final long identifier = protoPoint.getId();
             final Longitude longitude = Longitude.dm7(protoPoint.getLocation().getLongitude());
             final Latitude latitude = Latitude.dm7(protoPoint.getLocation().getLatitude());
             final Location geometry = new Location(latitude, longitude);
-            final Map<String, String> tags = protoTagListConverter
+            final Map<String, String> tags = this.protoTagListConverter
                     .convert(protoPoint.getTagsList());
             builder.addPoint(identifier, geometry, tags);
         });
@@ -220,23 +213,20 @@ public class ProtoAtlasBuilder
     private void parseRelations(final PackedAtlasBuilder builder,
             final List<ProtoRelation> relations)
     {
-        final ProtoTagListConverter protoTagListConverter = new ProtoTagListConverter();
         relations.forEach(protoRelation ->
         {
             final long identifier = protoRelation.getId();
             final RelationBean bean = parseRelationBean(protoRelation);
-            final Map<String, String> tags = protoTagListConverter
+            final Map<String, String> tags = this.protoTagListConverter
                     .convert(protoRelation.getTagsList());
-            // TODO should identifier and OSMIdentifier be the same?
-            builder.addRelation(identifier, identifier, bean, tags);
+            builder.addRelation(identifier, this.reverseIDFactory.getOsmIdentifier(identifier),
+                    bean, tags);
         });
     }
 
     private void writeAreasToBuilder(final Atlas atlas, final Builder protoAtlasBuilder)
     {
         long numberOfAreas = 0;
-        final ProtoLocationConverter protoLocationConverter = new ProtoLocationConverter();
-        final ProtoTagListConverter protoTagListConverter = new ProtoTagListConverter();
 
         for (final Area area : atlas.areas())
         {
@@ -244,11 +234,11 @@ public class ProtoAtlasBuilder
             protoAreaBuilder.setId(area.getIdentifier());
 
             final List<ProtoLocation> protoLocations = area.asPolygon().stream()
-                    .map(protoLocationConverter::backwardConvert).collect(Collectors.toList());
+                    .map(this.protoLocationConverter::backwardConvert).collect(Collectors.toList());
             protoAreaBuilder.addAllShapePoints(protoLocations);
 
             final Map<String, String> tags = area.getTags();
-            protoAreaBuilder.addAllTags(protoTagListConverter.backwardConvert(tags));
+            protoAreaBuilder.addAllTags(this.protoTagListConverter.backwardConvert(tags));
 
             numberOfAreas++;
             protoAtlasBuilder.addAreas(protoAreaBuilder.build());
@@ -259,8 +249,6 @@ public class ProtoAtlasBuilder
     private void writeEdgesToBuilder(final Atlas atlas, final Builder protoAtlasBuilder)
     {
         long numberOfEdges = 0;
-        final ProtoLocationConverter protoLocationConverter = new ProtoLocationConverter();
-        final ProtoTagListConverter protoTagListConverter = new ProtoTagListConverter();
 
         for (final Edge edge : atlas.edges())
         {
@@ -268,11 +256,11 @@ public class ProtoAtlasBuilder
             protoEdgeBuilder.setId(edge.getIdentifier());
 
             final List<ProtoLocation> protoLocations = edge.asPolyLine().stream()
-                    .map(protoLocationConverter::backwardConvert).collect(Collectors.toList());
+                    .map(this.protoLocationConverter::backwardConvert).collect(Collectors.toList());
             protoEdgeBuilder.addAllShapePoints(protoLocations);
 
             final Map<String, String> tags = edge.getTags();
-            protoEdgeBuilder.addAllTags(protoTagListConverter.backwardConvert(tags));
+            protoEdgeBuilder.addAllTags(this.protoTagListConverter.backwardConvert(tags));
 
             numberOfEdges++;
             protoAtlasBuilder.addEdges(protoEdgeBuilder.build());
@@ -284,8 +272,6 @@ public class ProtoAtlasBuilder
             final ProtoAtlasContainer.Builder protoAtlasBuilder)
     {
         long numberOfLines = 0;
-        final ProtoLocationConverter protoLocationConverter = new ProtoLocationConverter();
-        final ProtoTagListConverter protoTagListConverter = new ProtoTagListConverter();
 
         for (final Line line : atlas.lines())
         {
@@ -293,11 +279,11 @@ public class ProtoAtlasBuilder
             protoLineBuilder.setId(line.getIdentifier());
 
             final List<ProtoLocation> protoLocations = line.asPolyLine().stream()
-                    .map(protoLocationConverter::backwardConvert).collect(Collectors.toList());
+                    .map(this.protoLocationConverter::backwardConvert).collect(Collectors.toList());
             protoLineBuilder.addAllShapePoints(protoLocations);
 
             final Map<String, String> tags = line.getTags();
-            protoLineBuilder.addAllTags(protoTagListConverter.backwardConvert(tags));
+            protoLineBuilder.addAllTags(this.protoTagListConverter.backwardConvert(tags));
 
             numberOfLines++;
             protoAtlasBuilder.addLines(protoLineBuilder.build());
@@ -308,8 +294,6 @@ public class ProtoAtlasBuilder
     private void writeNodesToBuilder(final Atlas atlas, final Builder protoAtlasBuilder)
     {
         long numberOfNodes = 0;
-        final ProtoLocationConverter protoLocationConverter = new ProtoLocationConverter();
-        final ProtoTagListConverter protoTagListConverter = new ProtoTagListConverter();
 
         for (final Node node : atlas.nodes())
         {
@@ -317,10 +301,10 @@ public class ProtoAtlasBuilder
 
             protoNodeBuilder.setId(node.getIdentifier());
             protoNodeBuilder
-                    .setLocation(protoLocationConverter.backwardConvert(node.getLocation()));
+                    .setLocation(this.protoLocationConverter.backwardConvert(node.getLocation()));
 
             final Map<String, String> tags = node.getTags();
-            protoNodeBuilder.addAllTags(protoTagListConverter.backwardConvert(tags));
+            protoNodeBuilder.addAllTags(this.protoTagListConverter.backwardConvert(tags));
 
             numberOfNodes++;
             protoAtlasBuilder.addNodes(protoNodeBuilder.build());
@@ -332,8 +316,6 @@ public class ProtoAtlasBuilder
             final ProtoAtlasContainer.Builder protoAtlasBuilder)
     {
         long numberOfPoints = 0;
-        final ProtoLocationConverter protoLocationConverter = new ProtoLocationConverter();
-        final ProtoTagListConverter protoTagListConverter = new ProtoTagListConverter();
 
         for (final Point point : atlas.points())
         {
@@ -341,10 +323,10 @@ public class ProtoAtlasBuilder
 
             protoPointBuilder.setId(point.getIdentifier());
             protoPointBuilder
-                    .setLocation(protoLocationConverter.backwardConvert(point.getLocation()));
+                    .setLocation(this.protoLocationConverter.backwardConvert(point.getLocation()));
 
             final Map<String, String> tags = point.getTags();
-            protoPointBuilder.addAllTags(protoTagListConverter.backwardConvert(tags));
+            protoPointBuilder.addAllTags(this.protoTagListConverter.backwardConvert(tags));
 
             numberOfPoints++;
             protoAtlasBuilder.addPoints(protoPointBuilder.build());
@@ -355,7 +337,6 @@ public class ProtoAtlasBuilder
     private void writeRelationsToBuilder(final Atlas atlas, final Builder protoAtlasBuilder)
     {
         long numberOfRelations = 0;
-        final ProtoTagListConverter protoTagListConverter = new ProtoTagListConverter();
 
         for (final Relation relation : atlas.relations())
         {
@@ -369,15 +350,11 @@ public class ProtoAtlasBuilder
                 beanBuilder.setMemberRole(member.getRole());
                 final ItemType type = ItemType.forEntity(member.getEntity());
                 beanBuilder.setMemberType(ProtoRelation.ProtoItemType.valueOf(type.getValue()));
-
-                // TODO there may be a problem here if there are more relations in this atlas than
-                // possible int32 values. This is because protobuf internally stores the protobeans
-                // list as an ArrayList
                 protoRelationBuilder.addBeans(beanBuilder.build());
 
             }
             final Map<String, String> tags = relation.getTags();
-            protoRelationBuilder.addAllTags(protoTagListConverter.backwardConvert(tags));
+            protoRelationBuilder.addAllTags(this.protoTagListConverter.backwardConvert(tags));
 
             numberOfRelations++;
             protoAtlasBuilder.addRelations(protoRelationBuilder.build());
