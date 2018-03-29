@@ -82,7 +82,7 @@ sourceSets
     {
         java
         {
-            srcDirs 'gen/main/java'
+            srcDirs 'src/main/java', 'src/generated/main/java'
         }
     }
 }
@@ -104,7 +104,7 @@ configurations
 
 protobuf {
 
-    generatedFilesBaseDir = 'gen/' 
+    generatedFilesBaseDir = 'src/generated/'
 
     protoc {
         artifact = "${packages.protoc}"
@@ -119,20 +119,11 @@ protobuf {
             }
         }
 
-        task clearGeneratedProto {
-            delete generatedFilesBaseDir
-        }
-
         task deleteGeneratedProto {
-            // the Google gradle-protobuf plugin automatically registers this task
-            // to be run as a pre-requisite to 'clean'. Since Eclipse's "Refresh Gradle Project"
-            // directive runs the 'clean' task (which tries to delete the proto files), we must
-            // override this behaviour here
-            println "-------------------------------------------------"
-            println "Dummy task deleteGeneratedProto"
-            println "If you would like to actually clear the generated"
-            println "code, run task \'clearGeneratedProto\'"
-            println "-------------------------------------------------"
+            doLast{
+                println "Deleting generated protos"
+                delete generatedFilesBaseDir
+            }
         }
 
         task recompileProto {}
@@ -173,7 +164,7 @@ dependencies
     compile packages.jackson.core
     compile packages.jackson.databind
     compile packages.protobuf_java
-    
+
     shaded project.configurations.getByName('compile')
     shaded packages.slf4j.log4j12
     shaded packages.log4j
