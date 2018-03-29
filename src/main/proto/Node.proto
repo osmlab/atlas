@@ -1,0 +1,15 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_outer_classname = "ProtoNodeWrapper";
+
+package org.openstreetmap.atlas.proto;
+
+import "Location.proto";
+import "Tag.proto";
+
+message ProtoNode {
+    optional int64 id = 1;
+    optional ProtoLocation location = 2;
+    repeated ProtoTag tags = 5;
+}

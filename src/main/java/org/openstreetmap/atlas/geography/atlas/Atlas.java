@@ -699,6 +699,14 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     void saveAsList(WritableResource resource);
 
     /**
+     * Save as a naive proto file
+     *
+     * @param resource
+     *            The resource to write to
+     */
+    void saveAsProto(WritableResource resource);
+
+    /**
      * Save as a text file
      *
      * @param resource
