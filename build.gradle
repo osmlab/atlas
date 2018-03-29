@@ -16,7 +16,6 @@ plugins
 
 apply from: 'dependencies.gradle'
 apply plugin: 'java'
-apply plugin: 'eclipse'
 apply plugin: 'checkstyle'
 apply plugin: 'maven'
 apply plugin: 'signing'
@@ -121,7 +120,7 @@ protobuf {
         }
 
         task clearGeneratedProto {
-            //delete generatedFilesBaseDir
+            delete generatedFilesBaseDir
         }
 
         task deleteGeneratedProto {
@@ -305,12 +304,5 @@ uploadArchives
                 }
             }
         }
-    }
-}
-
-eclipse.classpath.file {
-    beforeMerged { classpath ->
-        def src = new org.gradle.plugins.ide.eclipse.model.SourceFolder('gen/main/java', null)
-        classpath.entries << src
     }
 }
