@@ -120,10 +120,20 @@ protobuf {
             }
         }
 
+        task clearGeneratedProto {
+            delete generatedFilesBaseDir
+        }
+
         task deleteGeneratedProto {
-            // dummy task
-            // Since Eclipse's Gradle -> Refresh Gradle Project option runs all the clean commands
-            // we need to make sure this task doesn't delete the generated proto code
+            // the Google gradle-protobuf plugin automatically registers this task
+            // to be run as a pre-requisite to 'clean'. Since Eclipse's "Refresh Gradle Project"
+            // directive runs the 'clean' task (which tries to delete the proto files), we must
+            // override this behaviour here
+            println "-------------------------------------------------"
+            println "Dummy task deleteGeneratedProto"
+            println "If you would like to actually clear the generated"
+            println "code, run task \'clearGeneratedProto\'"
+            println "-------------------------------------------------"
         }
 
         task recompileProto {}
