@@ -121,7 +121,7 @@ protobuf {
         }
 
         task clearGeneratedProto {
-            delete generatedFilesBaseDir
+            //delete generatedFilesBaseDir
         }
 
         task deleteGeneratedProto {
@@ -309,7 +309,7 @@ uploadArchives
 }
 
 eclipse.classpath.file {
-    whenMerged { classpath ->
+    beforeMerged { classpath ->
         def src = new org.gradle.plugins.ide.eclipse.model.SourceFolder('gen/main/java', null)
         classpath.entries << src
     }
