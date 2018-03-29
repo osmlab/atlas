@@ -251,11 +251,7 @@ public class OsmPbfToSlicedRawAtlasTest
     public void testStandAloneNodeIngest()
     {
         // This is an OSM node that doesn't have any tags, is not a member of a relation or part of
-        // a way. It should still end up as an atlas point.
-        final String pbfPath = OsmPbfToSlicedRawAtlasTest.class.getResource("node-4353689487.pbf")
-                .getPath();
-        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(pbfPath));
-        final Atlas rawAtlas = rawAtlasGenerator.build();
+        // a way. It should end up as a point in the final atlas.
 
         // Create an Antarctica country
         final Set<IsoCountry> countries = new HashSet<>();
@@ -269,9 +265,15 @@ public class OsmPbfToSlicedRawAtlasTest
                 .forPolygon(targetPoint.boxAround(Distance.meters(1)));
         boundaries.put(antarctica, antarcticaBoundary);
 
+        // Create a country boundary map with the fake Antarctica country boundary
         final CountryBoundaryMap countryBoundaryMap = CountryBoundaryMap
                 .fromBoundaryMap(boundaries);
 
+        // Create a raw atlas, slice and section it
+        final String pbfPath = OsmPbfToSlicedRawAtlasTest.class.getResource("node-4353689487.pbf")
+                .getPath();
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(pbfPath));
+        final Atlas rawAtlas = rawAtlasGenerator.build();
         final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(countries, countryBoundaryMap)
                 .slice(rawAtlas);
         final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
