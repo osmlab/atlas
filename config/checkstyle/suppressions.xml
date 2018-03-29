@@ -10,5 +10,5 @@
     <suppress checks="MultipleStringLiterals" files="src/integrationTest/*" />
     <suppress checks="InnerAssignment" files="src/test/*" />
     <suppress checks="InnerAssignment" files="src/integrationTest/*" />
-    <suppress checks="." files="gen/main/*" />
+    <suppress checks="." files="src/generated/*" />
 </suppressions>
