@@ -25,6 +25,8 @@ import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Multiple {@link Polygon}s some inner, some outer.
@@ -33,6 +35,7 @@ import org.openstreetmap.atlas.utilities.scalars.Surface;
  */
 public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
 {
+    private static final Logger logger = LoggerFactory.getLogger(MultiPolygon.class);
     private static final long serialVersionUID = 4198234682870043547L;
     private static final int SIMPLE_STRING_LENGTH = 200;
 
@@ -129,6 +132,7 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
         {
             return outers().stream().findFirst();
         }
+        logger.warn("Trying to read complex MultiPolygon as simple Polygon");
         return Optional.empty();
     }
 
