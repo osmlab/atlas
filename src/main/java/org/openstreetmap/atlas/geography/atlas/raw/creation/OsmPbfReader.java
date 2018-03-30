@@ -192,7 +192,7 @@ public class OsmPbfReader implements Sink
      * @return all the {@link Point} identifiers that make up {@link Line}s that were filtered. We
      *         process all PBF {@link Node}s first and add them as Atlas {@link Point}s. After this,
      *         we may filter out some PBF {@link Way}s. As a result, our Atlas file may contain
-     *         Points which aren't used by any Lines. We want to record these and see if we can
+     *         points which aren't used by any lines. We want to record these and see if we can
      *         filter them out downstream.
      */
     protected Set<Long> getPointIdentifiersFromFilteredLines()

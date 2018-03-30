@@ -10,6 +10,8 @@ import java.util.function.Function;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.ShardFileOverlapsPolygonTest;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -29,6 +31,7 @@ import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -242,6 +245,47 @@ public class OsmPbfToSlicedRawAtlasTest
                 rawAtlasFetcher).run();
 
         logger.info(finalAtlas.summary());
+    }
+
+    @Test
+    public void testStandAloneNodeIngest()
+    {
+        // This is an OSM node that doesn't have any tags, is not a member of a relation or part of
+        // a way. It should end up as a point in the final atlas.
+
+        // Create an Antarctica country
+        final Set<IsoCountry> countries = new HashSet<>();
+        final String antarctica = "ATA";
+        countries.add(IsoCountry.forCountryCode(antarctica).get());
+
+        // Create a fake boundary as a bounding box around the target point
+        final Map<String, MultiPolygon> boundaries = new HashMap<>();
+        final Location targetPoint = Location.forString("-81.2022146, 51.6408578");
+        final MultiPolygon antarcticaBoundary = MultiPolygon
+                .forPolygon(targetPoint.boxAround(Distance.meters(1)));
+        boundaries.put(antarctica, antarcticaBoundary);
+
+        // Create a country boundary map with the fake Antarctica country boundary
+        final CountryBoundaryMap countryBoundaryMap = CountryBoundaryMap
+                .fromBoundaryMap(boundaries);
+
+        // Create a raw atlas, slice and section it
+        final String pbfPath = OsmPbfToSlicedRawAtlasTest.class.getResource("node-4353689487.pbf")
+                .getPath();
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(pbfPath));
+        final Atlas rawAtlas = rawAtlasGenerator.build();
+        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(countries, countryBoundaryMap)
+                .slice(rawAtlas);
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(countryBoundaryMap)).run();
+
+        // Verify only a single point exists
+        Assert.assertEquals(0, finalAtlas.numberOfNodes());
+        Assert.assertEquals(0, finalAtlas.numberOfEdges());
+        Assert.assertEquals(0, finalAtlas.numberOfAreas());
+        Assert.assertEquals(1, finalAtlas.numberOfPoints());
+        Assert.assertEquals(0, finalAtlas.numberOfLines());
+        Assert.assertEquals(0, finalAtlas.numberOfRelations());
     }
 
     private Atlas generateSectionedAtlasStartingAtShard(final Shard shard,

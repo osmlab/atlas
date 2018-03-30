@@ -383,12 +383,12 @@ public class RawAtlasGenerator
      * <li>1. A {@link Point} was a shape point for an OSM {@link Way} that was removed. This point
      * doesn't have any tags, isn't a part of a {@link Relation} and doesn't intersect with any
      * other features in the Atlas.
-     * <li>2. A {@link Point} has multiple points at its {@link Location}. In this case, we sort all
-     * the Points, keep the one with the smallest identifier, add a
-     * {@link SyntheticDuplicateOsmNodeTag} and remove the rest of the duplicate Points. Note: we
-     * can potentially be tossing out OSM Nodes with non-empty tags. However, this is the most
-     * deterministic and simple way to handle this. The presence of the synthetic tag will make it
-     * easy to write an Atlas Check to resolve the data error.
+     * <li>2. There are multiple {@link Point}s at a {@link Location}. In this case, we sort all the
+     * points, keep the one with the smallest identifier, add a {@link SyntheticDuplicateOsmNodeTag}
+     * and remove the rest of the duplicate points. Note: we can potentially be tossing out OSM
+     * Nodes with non-empty tags. However, this is the most deterministic and simple way to handle
+     * this. The presence of the synthetic tag will make it easy to write an Atlas Check to resolve
+     * the data error.
      * </ul>
      *
      * @param atlas

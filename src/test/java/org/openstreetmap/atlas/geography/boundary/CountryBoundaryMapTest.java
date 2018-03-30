@@ -346,10 +346,6 @@ public class CountryBoundaryMapTest
     @Test
     public void testOnDemandIndexAndIndexFromFileViaArea()
     {
-        final Set<String> countries = new HashSet<>();
-        countries.add("AIA");
-        countries.add("MAF");
-
         // Generate grid index for the first time
         final CountryBoundaryMap firstMap = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(CountryBoundaryMapTest.class

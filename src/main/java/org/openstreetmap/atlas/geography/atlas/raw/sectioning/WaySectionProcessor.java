@@ -639,12 +639,23 @@ public class WaySectionProcessor
     private boolean isAtlasPoint(final WaySectionChangeSet changeSet, final Point point)
     {
         final boolean hasExplicitOsmTags = pointHasExplicitOsmTags(point);
+        final boolean isRelationMember = !point.relations().isEmpty();
 
-        if (!point.relations().isEmpty() && !hasExplicitOsmTags && !isAtlasNode(changeSet, point))
+        if (isRelationMember && !hasExplicitOsmTags && !isAtlasNode(changeSet, point))
         {
             // When the OSM node is part of a relation, doesn't have explicit OSM tagging and is not
             // at an intersection (not an atlas node), then we want to create an atlas point so we
             // don't lose this node as a member of our relation.
+            return true;
+        }
+
+        final boolean isIsolatedNode = Iterables
+                .isEmpty(this.rawAtlas.linesContaining(point.getLocation()));
+        if (!isRelationMember && !hasExplicitOsmTags && isIsolatedNode)
+        {
+            // This is a special case - when an OSM node is not part of a relation, doesn't have
+            // explicit OSM tagging and is not a part of an OSM way, then we want to bring it in as
+            // a stand-alone Atlas point and differentiate this case from a simple shape point.
             return true;
         }
 
@@ -690,16 +701,16 @@ public class WaySectionProcessor
 
         if (pointTagSize > AtlasTag.TAGS_FROM_OSM.size())
         {
-            int counter = 0;
+            int atlasTagCounter = 0;
             for (final String tag : point.getTags().keySet())
             {
                 // Tags from atlas are the tags that only some points will have
                 if (AtlasTag.TAGS_FROM_ATLAS.contains(tag))
                 {
-                    counter++;
+                    atlasTagCounter++;
                 }
             }
-            osmAndAtlasTagCount = AtlasTag.TAGS_FROM_OSM.size() + counter;
+            osmAndAtlasTagCount = AtlasTag.TAGS_FROM_OSM.size() + atlasTagCounter;
         }
         else if (pointTagSize < AtlasTag.TAGS_FROM_OSM.size())
         {
