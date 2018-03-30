@@ -238,8 +238,9 @@ public class OsmPbfToSlicedRawAtlasTest
 
         final Atlas finalAtlas = new WaySectionProcessor(new SlippyTile(122, 122, 8),
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP),
-                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class.getResource(
-                        "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
+                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class
+                        .getResource(
+                                "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
                         .getFile())),
                 rawAtlasFetcher).run();
 
@@ -250,7 +251,7 @@ public class OsmPbfToSlicedRawAtlasTest
     public void testStandAloneNodeIngest()
     {
         // This is an OSM node that doesn't have any tags, is not a member of a relation or part of
-        // a way. It should still end up as an atlas point.
+        // a way. It should end up as a point in the final atlas.
 
         // Create an Antarctica country
         final Set<IsoCountry> countries = new HashSet<>();
@@ -293,8 +294,9 @@ public class OsmPbfToSlicedRawAtlasTest
     {
         return new WaySectionProcessor(shard,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP),
-                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class.getResource(
-                        "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
+                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class
+                        .getResource(
+                                "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
                         .getFile())),
                 rawAtlasFetcher).run();
     }
