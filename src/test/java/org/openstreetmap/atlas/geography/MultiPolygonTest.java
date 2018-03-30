@@ -106,6 +106,7 @@ public class MultiPolygonTest
         Assert.assertFalse(multiPolygon1.fullyGeometricallyEncloses(multiPolygon3));
         Assert.assertFalse(multiPolygon1.fullyGeometricallyEncloses(multiPolygon4));
         Assert.assertFalse(multiPolygon1.fullyGeometricallyEncloses(multiPolygon5));
+        Assert.assertFalse(multiPolygon5.fullyGeometricallyEncloses(multiPolygon1));
         Assert.assertFalse(
                 multiPolygon1.fullyGeometricallyEncloses(multiPolygon2.merge(multiPolygon5)));
         Assert.assertTrue(multiPolygon1.fullyGeometricallyEncloses(multiPolygon6));

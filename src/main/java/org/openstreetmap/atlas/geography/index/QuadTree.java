@@ -1,6 +1,5 @@
 package org.openstreetmap.atlas.geography.index;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -36,18 +35,18 @@ public class QuadTree<T> implements JtsSpatialIndex<T>
     private final Quadtree tree = new Quadtree();
     private Rectangle bound;
 
-    public static <K extends Located> QuadTree<K> forLocated(final Collection<K> locatedCollection)
+    public static <K extends Located> QuadTree<K> forLocated(final Iterable<K> locatedIterable)
     {
         final QuadTree<K> toReturn = new QuadTree<>();
-        locatedCollection.forEach(located -> toReturn.add(located.bounds(), located));
+        locatedIterable.forEach(located -> toReturn.add(located.bounds(), located));
         return toReturn;
     }
 
-    public static <K> QuadTree<K> forCollection(final Collection<K> collection,
+    public static <K> QuadTree<K> forCollection(final Iterable<K> iterable,
             final Function<K, Rectangle> transform)
     {
         final QuadTree<K> toReturn = new QuadTree<>();
-        collection.forEach(item -> toReturn.add(transform.apply(item), item));
+        iterable.forEach(item -> toReturn.add(transform.apply(item), item));
         return toReturn;
     }
 

@@ -17,7 +17,7 @@ import org.openstreetmap.atlas.geography.converters.WktMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
-import org.openstreetmap.atlas.geography.index.QuadTree;
+import org.openstreetmap.atlas.geography.index.RTree;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.streaming.writers.JsonWriter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -31,7 +31,7 @@ import org.openstreetmap.atlas.utilities.scalars.Surface;
  *
  * @author matthieun
  */
-public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Located, Serializable
+public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serializable
 {
     private static final long serialVersionUID = 4198234682870043547L;
     private static final int SIMPLE_STRING_LENGTH = 200;
@@ -245,7 +245,7 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Locate
     @Override
     public boolean fullyGeometricallyEncloses(final MultiPolygon that)
     {
-        final QuadTree<Polygon> thisOuters = QuadTree.forLocated(this.outers());
+        final RTree<Polygon> thisOuters = RTree.forLocated(this.outers());
         // each outer of that must fit within one of this' outer/inner groups
         for (final Polygon thatOuter : that.outers())
         {
