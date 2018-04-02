@@ -76,7 +76,7 @@ public class AtlasStatistics implements Iterable<AtlasStatistics.StatisticKey>, 
         @Override
         public String toString()
         {
-            return this.tag + "," + this.type + "," + this.subType;
+            return this.tag + "," + this.type + "," + this.subType.replace("\"", "\"\"");
         }
     }
 
@@ -216,7 +216,8 @@ public class AtlasStatistics implements Iterable<AtlasStatistics.StatisticKey>, 
     public boolean equals(final Object other)
     {
         return other instanceof AtlasStatistics
-                ? ((AtlasStatistics) other).getData().equals(getData()) : false;
+                ? ((AtlasStatistics) other).getData().equals(getData())
+                : false;
     }
 
     public StatisticValue get(final StatisticKey key)
