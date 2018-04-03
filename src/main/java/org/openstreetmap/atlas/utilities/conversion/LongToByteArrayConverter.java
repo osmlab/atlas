@@ -6,6 +6,11 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Convert a long to an equivalent Big Endian byte array representation and vice versa.
+ * 
+ * @author lcram
+ */
 public class LongToByteArrayConverter implements TwoWayConverter<Long, byte[]>
 {
     private static final Logger logger = LoggerFactory.getLogger(LongToByteArrayConverter.class);

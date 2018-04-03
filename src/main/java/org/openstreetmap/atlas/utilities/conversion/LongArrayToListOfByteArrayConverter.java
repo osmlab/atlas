@@ -31,27 +31,26 @@ public class LongArrayToListOfByteArrayConverter implements TwoWayConverter<Long
     // for packing.
     // NOTE this needs to be a multiple of 8 since longs are 8 bytes, if this is not a multiple of 8
     // then an ArrayIndexOutOfBounds will be thrown by convert()
-    private static final int BYTE_BUFFER_SIZE = 8 * 1024; // 8K
+    private static final int BYTE_BUFFER_SIZE = 8 * 1024;
 
     private static final LongToByteArrayConverter CONVERTER = new LongToByteArrayConverter();
 
     @Override
     public LongArray backwardConvert(final List<byte[]> byteArrayList)
     {
-        long lengthOfByteArrays = 0;
-
         // count the total length in bytes of the sequence, so we can allocate the LongArray
         // accurately
-        for (final byte[] element : byteArrayList)
+        final long lengthOfByteArrays = byteArrayList.stream().mapToLong(element ->
         {
-            lengthOfByteArrays += element.length;
-        }
-        if (lengthOfByteArrays % 8 != 0)
+            return element.length;
+        }).sum();
+
+        if (lengthOfByteArrays % BYTES_PER_LONG != 0)
         {
             throw new CoreException("Byte sequence cannot represent a well formed LongArray");
         }
 
-        final LongArray array = new LongArray(lengthOfByteArrays / 8);
+        final LongArray array = new LongArray(lengthOfByteArrays / BYTES_PER_LONG);
 
         for (final byte[] element : byteArrayList)
         {

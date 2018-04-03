@@ -26,8 +26,8 @@ public class ProtoPrimitiveLongArrayAdapterTest
     {
         final Random random = new Random();
         final LongArray longArray = new LongArray(TEST_ARRAY_SIZE);
-        LongArray unpackedArray;
-        ProtoPrimitiveLongArray primitiveLongArray;
+        final LongArray unpackedArray;
+        final ProtoPrimitiveLongArray primitiveLongArray;
         final ProtoPrimitiveLongArrayAdapter adapter = new ProtoPrimitiveLongArrayAdapter();
         for (int i = 0; i < TEST_ARRAY_SIZE; i++)
         {

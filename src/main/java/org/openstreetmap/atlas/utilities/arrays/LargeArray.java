@@ -171,6 +171,23 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
         return this.name;
     }
 
+    @Override
+    public int hashCode()
+    {
+        // TODO I had to implement this because I implemented equals(). Since I mainly needed
+        // equals() for easier testing maybe there is another way? Or is having these implemented
+        // something we can tolerate?
+        final int prime = 31;
+        int result = 1;
+        for (int index = 0; index < this.size(); index++)
+        {
+            // TODO let's make sure this is correct
+            final T element = this.get(index);
+            result = prime * result + (element == null ? 0 : element.hashCode());
+        }
+        return result;
+    }
+
     public boolean isEmpty()
     {
         return size() == 0;
