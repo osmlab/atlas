@@ -50,6 +50,19 @@ public class LongArrayToListOfByteArrayConverterTest
     @Test
     public void testLongArrayToListOfByteArray()
     {
+        final LongArray longs = new LongArray(2);
+        longs.add(2L);
+        longs.add(6L);
 
+        final byte[] bytes1 = { 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 6 };
+        final List<byte[]> listOfByteArray = new ArrayList<>();
+        listOfByteArray.add(bytes1);
+
+        final List<byte[]> convertedFrom = CONVERTER.convert(longs);
+
+        for (int i = 0; i < convertedFrom.size(); i++)
+        {
+            Assert.assertArrayEquals(listOfByteArray.get(i), convertedFrom.get(i));
+        }
     }
 }

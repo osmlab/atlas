@@ -22,9 +22,16 @@ public class LongArrayToListOfByteArrayConverter implements TwoWayConverter<Long
 
     private static final int BYTES_PER_LONG = 8;
 
-    // round Integer.MAX_VALUE down to closest multiple of 8, this will make packing/unpacking logic
-    // much simpler
+    // the maximum allowed size of the LongArray to convert
+    // TODO I think this can probably be made larger
     private static final int MAXIMUM_ARRAY_SIZE = 8 * (Integer.MAX_VALUE / 8);
+
+    // TODO need to figure out a reasonable size for this. The tradeoff is that the smaller the
+    // buffer size, the larger the list of byte[] is. However, small buffer means fast allocation
+    // for packing.
+    // NOTE this needs to be a multiple of 8 since longs are 8 bytes, if this is not a multiple of 8
+    // then an ArrayIndexOutOfBounds will be thrown by convert()
+    private static final int BYTE_BUFFER_SIZE = 8 * 1024; // 8K
 
     private static final LongToByteArrayConverter CONVERTER = new LongToByteArrayConverter();
 
@@ -62,7 +69,6 @@ public class LongArrayToListOfByteArrayConverter implements TwoWayConverter<Long
     @Override
     public List<byte[]> convert(final LongArray longArray)
     {
-        // TODO this may not be necessary
         if (longArray.size() > MAXIMUM_ARRAY_SIZE)
         {
             throw new CoreException("Size of array to convert cannot exceed " + MAXIMUM_ARRAY_SIZE);
@@ -76,19 +82,18 @@ public class LongArrayToListOfByteArrayConverter implements TwoWayConverter<Long
         {
             if (bytesWritten == 0)
             {
-                // TODO this OOMs on relatively low LongArray sizes, fix?
-                temporaryBuffer = new byte[MAXIMUM_ARRAY_SIZE];
+                temporaryBuffer = new byte[BYTE_BUFFER_SIZE];
             }
 
             final byte[] convertedLongBuffer = CONVERTER.convert(longArray.get(indexIntoLongArray));
             for (int convertedLongBufferIndex = 0; convertedLongBufferIndex < convertedLongBuffer.length; convertedLongBufferIndex++)
             {
                 temporaryBuffer[bytesWritten] = convertedLongBuffer[convertedLongBufferIndex];
+                bytesWritten++;
             }
-            bytesWritten += BYTES_PER_LONG;
 
-            // flush the temporaryBuffer to the list upon full
-            if (bytesWritten >= MAXIMUM_ARRAY_SIZE)
+            // flush the temporaryBuffer to the list if it is full
+            if (bytesWritten >= BYTE_BUFFER_SIZE)
             {
                 bytesWritten = 0;
                 resultListOfByteArrays.add(temporaryBuffer);

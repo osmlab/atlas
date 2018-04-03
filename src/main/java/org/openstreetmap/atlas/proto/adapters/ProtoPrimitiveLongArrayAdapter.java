@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.proto.ProtoPrimitiveLongArray;
 import org.openstreetmap.atlas.utilities.arrays.LongArray;
 import org.openstreetmap.atlas.utilities.conversion.LongArrayToListOfByteArrayConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.protobuf.ByteString;
 
@@ -18,7 +20,12 @@ import com.google.protobuf.ByteString;
  */
 public class ProtoPrimitiveLongArrayAdapter
 {
-    // TODO perhaps this class would be better implemented as a TwoWayConverter and not an Adapter?
+    /*
+     * TODO perhaps this class would be better implemented as a TwoWayConverter and not an Adapter?
+     */
+
+    private static final Logger logger = LoggerFactory
+            .getLogger(ProtoPrimitiveLongArrayAdapter.class);
 
     private static final LongArrayToListOfByteArrayConverter CONVERTER = new LongArrayToListOfByteArrayConverter();
 
