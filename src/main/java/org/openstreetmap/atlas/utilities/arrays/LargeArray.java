@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
  * @param <T>
  *            The type of items in the array
  * @author matthieun
+ * @author lcram
  */
 public abstract class LargeArray<T> implements Iterable<T>, Serializable
 {
@@ -98,6 +99,50 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
         }
         this.arrays.get(arrayIndex(this.nextIndex)).set(indexInside(this.nextIndex), item);
         this.nextIndex++;
+    }
+
+    /**
+     * Add each element of an array of items to the large array.
+     *
+     * @param items
+     *            The array of items to add
+     * @throws CoreException
+     *             if the array is full
+     */
+    public void addAll(final T[] items)
+    {
+        for (int index = 0; index < items.length; index++)
+        {
+            this.add(items[index]);
+        }
+    }
+
+    @Override
+    public boolean equals(final Object other)
+    {
+        if (other instanceof LargeArray)
+        {
+            if (this == other)
+            {
+                return true;
+            }
+            // TODO not sure if this is the best idea, please advise
+            @SuppressWarnings("unchecked")
+            final LargeArray<T> that = (LargeArray<T>) other;
+            if (this.size() != that.size())
+            {
+                return false;
+            }
+            for (long index = 0; index < this.size(); index++)
+            {
+                if (!this.get(index).equals(that.get(index)))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
