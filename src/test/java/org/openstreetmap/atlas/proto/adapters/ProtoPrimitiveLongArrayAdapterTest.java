@@ -5,6 +5,7 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.proto.ProtoPrimitiveLongArray;
+import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.arrays.LongArray;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
@@ -15,7 +16,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ProtoPrimitiveLongArrayAdapterTest
 {
-    private static final int TEST_ARRAY_SIZE = 50_000_000;
+    private static final int TEST_ARRAY_SIZE = 1_000_000;
     private static final int RANDOM_CEILING = 10;
 
     private static final Logger logger = LoggerFactory
@@ -44,5 +45,20 @@ public class ProtoPrimitiveLongArrayAdapterTest
 
         logger.info("Comparing equality...");
         Assert.assertEquals(longArray, unpackedArray);
+
+        logger.info("Testing file IO...");
+        currentTime = Time.now();
+        final File file = File.temporary();
+        final byte[] contents = primitiveLongArray.toByteArray();
+        file.writeAndClose(contents);
+        final byte[] contents2 = file.readBytesAndClose();
+        logger.info("File IO roundtrip took {}", currentTime.elapsedSince());
+        logger.info("Checking read/write consistency...");
+        // TODO assertArrayEquals does not work here because JUnit tries to actually print the
+        // array to the console for some reason, totally blowing the heap
+        for (int i = 0; i < contents.length; i++)
+        {
+            Assert.assertEquals(contents[i], contents2[i]);
+        }
     }
 }
