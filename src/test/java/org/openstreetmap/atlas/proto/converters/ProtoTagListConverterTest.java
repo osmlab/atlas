@@ -8,7 +8,6 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.proto.ProtoTag;
-import org.openstreetmap.atlas.proto.converters.ProtoTagListConverter;
 
 /**
  * @author lcram
