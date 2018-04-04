@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.builder.proto;
+package org.openstreetmap.atlas.proto.builders;
 
 import java.util.List;
 import java.util.Map;
@@ -25,8 +25,6 @@ import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
-import org.openstreetmap.atlas.geography.converters.proto.ProtoLocationConverter;
-import org.openstreetmap.atlas.geography.converters.proto.ProtoTagListConverter;
 import org.openstreetmap.atlas.proto.ProtoArea;
 import org.openstreetmap.atlas.proto.ProtoAtlasContainer;
 import org.openstreetmap.atlas.proto.ProtoAtlasContainer.Builder;
@@ -36,6 +34,8 @@ import org.openstreetmap.atlas.proto.ProtoLocation;
 import org.openstreetmap.atlas.proto.ProtoNode;
 import org.openstreetmap.atlas.proto.ProtoPoint;
 import org.openstreetmap.atlas.proto.ProtoRelation;
+import org.openstreetmap.atlas.proto.converters.ProtoLocationConverter;
+import org.openstreetmap.atlas.proto.converters.ProtoTagListConverter;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.collections.Maps;

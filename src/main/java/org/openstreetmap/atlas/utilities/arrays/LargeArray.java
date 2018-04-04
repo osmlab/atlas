@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
  * @param <T>
  *            The type of items in the array
  * @author matthieun
+ * @author lcram
  */
 public abstract class LargeArray<T> implements Iterable<T>, Serializable
 {
@@ -101,6 +102,50 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
     }
 
     /**
+     * Add each element of an array of items to the large array.
+     *
+     * @param items
+     *            The array of items to add
+     * @throws CoreException
+     *             if the array is full
+     */
+    public void addAll(final T[] items)
+    {
+        for (int index = 0; index < items.length; index++)
+        {
+            this.add(items[index]);
+        }
+    }
+
+    @Override
+    public boolean equals(final Object other)
+    {
+        if (other instanceof LargeArray)
+        {
+            if (this == other)
+            {
+                return true;
+            }
+            // TODO not sure if this is the best idea, please advise
+            @SuppressWarnings("unchecked")
+            final LargeArray<T> that = (LargeArray<T>) other;
+            if (this.size() != that.size())
+            {
+                return false;
+            }
+            for (long index = 0; index < this.size(); index++)
+            {
+                if (!this.get(index).equals(that.get(index)))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Get an item from the array
      *
      * @param index
@@ -124,6 +169,23 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
     public String getName()
     {
         return this.name;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        // TODO I had to implement this because I implemented equals(). Since I mainly needed
+        // equals() for easier testing maybe there is another way? Or is having these implemented
+        // something we can tolerate?
+        final int prime = 31;
+        int result = 1;
+        for (int index = 0; index < this.size(); index++)
+        {
+            // TODO let's make sure this is correct
+            final T element = this.get(index);
+            result = prime * result + (element == null ? 0 : element.hashCode());
+        }
+        return result;
     }
 
     public boolean isEmpty()

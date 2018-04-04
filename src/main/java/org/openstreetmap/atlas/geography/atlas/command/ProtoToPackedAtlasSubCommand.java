@@ -7,7 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.atlas.builder.proto.ProtoAtlasBuilder;
+import org.openstreetmap.atlas.proto.builders.ProtoAtlasBuilder;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.runtime.Command.Optionality;
 import org.openstreetmap.atlas.utilities.runtime.Command.Switch;

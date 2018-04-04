@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.builder.proto;
+package org.openstreetmap.atlas.proto.builders;
 
 import java.util.ArrayList;
 import java.util.HashMap;
