@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.converters.proto;
+package org.openstreetmap.atlas.proto.converters;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -6,6 +6,7 @@ import org.openstreetmap.atlas.geography.Latitude;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Longitude;
 import org.openstreetmap.atlas.proto.ProtoLocation;
+import org.openstreetmap.atlas.proto.converters.ProtoLocationConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

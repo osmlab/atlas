@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.builder.proto;
+package org.openstreetmap.atlas.proto.builders;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,6 +14,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
+import org.openstreetmap.atlas.proto.builders.ProtoAtlasBuilder;
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.slf4j.Logger;
