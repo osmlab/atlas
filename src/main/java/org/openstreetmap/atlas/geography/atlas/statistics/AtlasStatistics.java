@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.Streams;
 import org.openstreetmap.atlas.streaming.resource.Resource;
@@ -76,7 +77,7 @@ public class AtlasStatistics implements Iterable<AtlasStatistics.StatisticKey>, 
         @Override
         public String toString()
         {
-            return this.tag + "," + this.type + "," + this.subType;
+            return this.tag + "," + this.type + "," + StringEscapeUtils.escapeCsv(this.subType);
         }
     }
 
