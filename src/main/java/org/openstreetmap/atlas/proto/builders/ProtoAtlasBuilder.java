@@ -28,14 +28,14 @@ import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIde
 import org.openstreetmap.atlas.proto.ProtoArea;
 import org.openstreetmap.atlas.proto.ProtoAtlasContainer;
 import org.openstreetmap.atlas.proto.ProtoAtlasContainer.Builder;
-import org.openstreetmap.atlas.proto.converters.ProtoLocationConverter;
-import org.openstreetmap.atlas.proto.converters.ProtoTagListConverter;
 import org.openstreetmap.atlas.proto.ProtoEdge;
 import org.openstreetmap.atlas.proto.ProtoLine;
 import org.openstreetmap.atlas.proto.ProtoLocation;
 import org.openstreetmap.atlas.proto.ProtoNode;
 import org.openstreetmap.atlas.proto.ProtoPoint;
 import org.openstreetmap.atlas.proto.ProtoRelation;
+import org.openstreetmap.atlas.proto.converters.ProtoLocationConverter;
+import org.openstreetmap.atlas.proto.converters.ProtoTagListConverter;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.collections.Maps;
