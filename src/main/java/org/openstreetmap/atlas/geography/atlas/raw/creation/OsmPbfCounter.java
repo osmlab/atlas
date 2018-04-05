@@ -36,10 +36,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link OsmPbfCounter} is responsible for counting the number of {@link Point}s, {@link Line}s
- * and {@link org.openstreetmap.atlas.geography.atlas.items.Relation}s can be extracted from the
- * given OSM PBF file. This information will be used to populate the {@link AtlasSize} field to
- * efficiently construct a Raw {@link Atlas}.
+ * The {@link OsmPbfCounter} is responsible for identifying and counting the number of
+ * {@link Point}s, {@link Line}s and {@link org.openstreetmap.atlas.geography.atlas.items.Relation}s
+ * that will be brought in from the given OSM PBF file. This information will be used to populate
+ * the {@link AtlasSize} field to efficiently construct a Raw {@link Atlas}. The logic for
+ * determining whether a feature should be brought in is as follows: *
+ * <ul>
+ * <li>Look at each OSM Node, if it's inside the given bounding box, bring it in. Keep track of all
+ * nodes that were not brought in.
+ * <li>Look at each OSM Way, if it has a Node that was brought in, bring in the Way and all other
+ * Nodes that are part of this Way (since they may not have been originally brought in).
+ * <li>Look at each OSM Relation at a shallow level - if it has a member (Node, Way or Relation)
+ * that was brought in, go ahead and bring this Relation in. At this stage, we don't look at nested
+ * relations. If we can't find a shallow member, stage this relation.
+ * <li>Look at all staged relations and try to bring any in. If we loop through all staged relations
+ * without bringing anything in, we can conclude that all remaining relations are either fully
+ * outside the given boundary or are looping over each other.
+ * </ul>
  *
  * @author mgostintsev
  */
