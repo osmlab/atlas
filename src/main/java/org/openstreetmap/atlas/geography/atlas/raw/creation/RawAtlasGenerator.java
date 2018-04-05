@@ -73,7 +73,18 @@ public class RawAtlasGenerator
     private AtlasMetaData metaData = new AtlasMetaData();
 
     /**
-     * Constructor.
+     * Constructor that supplies the maximum bounds possible as the bounding box.
+     *
+     * @param resource
+     *            The OSM PBF {@link Resource} to use
+     */
+    public RawAtlasGenerator(final Resource resource)
+    {
+        this(resource, AtlasLoadingOption.createOptionWithNoSlicing(), MultiPolygon.MAXIMUM);
+    }
+
+    /**
+     * Default constructor.
      *
      * @param resource
      *            The OSM PBF {@link Resource} to use
@@ -89,7 +100,7 @@ public class RawAtlasGenerator
     }
 
     /**
-     * Constructor.
+     * Constructor that uses the default configuration with a given bounding box.
      *
      * @param resource
      *            The OSM PBF {@link Resource} to use

@@ -118,8 +118,7 @@ public class RawAtlasGeneratorTest
         final Atlas oldAtlas = loader.read();
 
         // Raw Atlas Implementation
-        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(pbfPath),
-                MultiPolygon.MAXIMUM);
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(pbfPath));
         final Atlas rawAtlas = rawAtlasGenerator.build();
 
         Assert.assertEquals(
@@ -142,8 +141,7 @@ public class RawAtlasGeneratorTest
         // This PBF has several interesting use cases. 1. It will have relations of relations. 2.
         // Some of the member relations will be outside of the PBF and will be missing.
         final String path = RawAtlasGeneratorTest.class.getResource("7-105-51.osm.pbf").getPath();
-        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path),
-                MultiPolygon.MAXIMUM);
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
         final Atlas atlas = rawAtlasGenerator.build();
 
         // Verify Atlas Entities
@@ -159,8 +157,7 @@ public class RawAtlasGeneratorTest
     public void testRawAtlasCreation()
     {
         final String path = RawAtlasGeneratorTest.class.getResource("9-433-268.osm.pbf").getPath();
-        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path),
-                MultiPolygon.MAXIMUM);
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
         final Atlas atlas = rawAtlasGenerator.build();
 
         // Verify Atlas Entities
