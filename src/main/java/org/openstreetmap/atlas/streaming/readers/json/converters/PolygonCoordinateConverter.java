@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.streaming.readers.json.converters;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.utilities.conversion.Converter;
@@ -45,6 +46,13 @@ public class PolygonCoordinateConverter implements Converter<Iterable<Location>,
                     result.add(this.coordinateConverter.revert().convert(array2));
                 });
             });
+            if (result.isEmpty() || !result.get(0).equals(result.get(result.size() - 1)))
+            {
+                throw new CoreException("Invalidly formatted Geojson Polygon");
+            }
+            // in valid Geojson the first point is repeated at the end where it does not need to be
+            // for our polygons
+            result.remove(result.size() - 1);
             return result;
         };
     }
