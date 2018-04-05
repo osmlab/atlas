@@ -18,6 +18,7 @@ import org.openstreetmap.atlas.geography.converters.WktMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
+import org.openstreetmap.atlas.geography.index.RTree;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.streaming.writers.JsonWriter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -33,7 +34,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author matthieun
  */
-public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
+public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serializable
 {
     private static final Logger logger = LoggerFactory.getLogger(MultiPolygon.class);
     private static final long serialVersionUID = 4198234682870043547L;
@@ -41,7 +42,6 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
 
     public static final MultiPolygon MAXIMUM = forPolygon(Rectangle.MAXIMUM);
     public static final MultiPolygon TEST_MULTI_POLYGON;
-
     static
     {
         final MultiMap<Polygon, Polygon> outerToInners = new MultiMap<>();
@@ -218,6 +218,7 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
      * @return True if the {@link MultiPolygon} contains the provided item (i.e. it is within the
      *         outer polygons and not within the inner polygons)
      */
+    @Override
     public boolean fullyGeometricallyEncloses(final Location location)
     {
         for (final Polygon inner : inners())
@@ -242,23 +243,50 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
      *            A {@link PolyLine} item
      * @return True if the {@link MultiPolygon} contains the provided {@link PolyLine}.
      */
+    @Override
     public boolean fullyGeometricallyEncloses(final PolyLine polyLine)
     {
-        for (final Polygon inner : inners())
-        {
-            if (inner.overlaps(polyLine))
-            {
-                return false;
-            }
-        }
         for (final Polygon outer : outers())
         {
             if (outer.fullyGeometricallyEncloses(polyLine))
             {
-                return true;
+                return this.getOuterToInners().get(outer).stream()
+                        .noneMatch(inner -> inner.overlaps(polyLine));
             }
         }
         return false;
+    }
+
+    /**
+     * Tests to see if entire surface of the provided {@link MultiPolygon} lies within this
+     * {@link MultiPolygon}
+     * 
+     * @param that
+     *            the provided {@link MultiPolygon} to test
+     * @return true if the conditions are met, false otherwise
+     */
+    @Override
+    public boolean fullyGeometricallyEncloses(final MultiPolygon that)
+    {
+        final RTree<Polygon> thisOuters = RTree.forLocated(this.outers());
+        // each outer of that must fit within one of this' outer/inner groups
+        for (final Polygon thatOuter : that.outers())
+        {
+            boolean enclosedWithoutInnerOverlap = false;
+            for (final Polygon thisOuter : thisOuters.get(thatOuter.bounds(), thatOuter::overlaps))
+            {
+                if (thisOuter.fullyGeometricallyEncloses(thatOuter))
+                {
+                    enclosedWithoutInnerOverlap = this.getOuterToInners().get(thisOuter).stream()
+                            .noneMatch(that::overlaps);
+                }
+            }
+            if (!enclosedWithoutInnerOverlap)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -358,6 +386,7 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
         writer.close();
     }
 
+    @Override
     public Surface surface()
     {
         Surface result = Surface.MINIMUM;
@@ -368,6 +397,21 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
         for (final Polygon inner : this.inners())
         {
             result = result.subtract(inner.surface());
+        }
+        return result;
+    }
+
+    @Override
+    public Surface surfaceOnSphere()
+    {
+        Surface result = Surface.MINIMUM;
+        for (final Polygon outer : this.outers())
+        {
+            result = result.add(outer.surfaceOnSphere());
+        }
+        for (final Polygon inner : this.inners())
+        {
+            result = result.subtract(inner.surfaceOnSphere());
         }
         return result;
     }

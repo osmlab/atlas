@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.utilities.filters;
 
 import java.io.Serializable;
 
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
@@ -58,15 +59,28 @@ public interface IntersectionPolicy extends Serializable
         {
             return entity.intersects(polygon);
         }
+
+        @Override
+        public boolean geometricSurfaceEntityIntersecting(final GeometricSurface geometricSurface,
+                final AtlasEntity entity)
+        {
+            return entity.intersects(geometricSurface);
+        }
     };
+
+    default boolean geometricSurfaceEntityIntersecting(GeometricSurface geometricSurface,
+            AtlasEntity entity)
+    {
+        return false;
+    }
 
     default boolean multiPolygonEntityIntersecting(MultiPolygon multiPolygon, AtlasEntity entity)
     {
         return false;
-    };
+    }
 
     default boolean polygonEntityIntersecting(Polygon polygon, AtlasEntity entity)
     {
         return false;
-    };
+    }
 }
