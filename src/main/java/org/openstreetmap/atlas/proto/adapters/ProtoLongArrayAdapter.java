@@ -32,6 +32,7 @@ public class ProtoLongArrayAdapter implements ProtoAdapter
         {
             longArray.add(protoLongArray.getElements(i));
         }
+        longArray.setName(protoLongArray.getName());
 
         return longArray;
     }
@@ -52,6 +53,7 @@ public class ProtoLongArrayAdapter implements ProtoAdapter
         {
             builder.addElements(longArray.get(i));
         }
+        builder.setName(longArray.getName());
 
         final ProtoLongArray protoLongArray = builder.build();
         return protoLongArray.toByteArray();
