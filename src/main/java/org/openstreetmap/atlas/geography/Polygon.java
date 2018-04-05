@@ -33,7 +33,7 @@ import com.vividsolutions.jts.triangulate.ConformingDelaunayTriangulationBuilder
  *
  * @author matthieun
  */
-public class Polygon extends PolyLine
+public class Polygon extends PolyLine implements GeometricSurface
 {
     public static final Polygon SILICON_VALLEY = new Polygon(Location.TEST_3, Location.TEST_7,
             Location.TEST_4, Location.TEST_1, Location.TEST_5);
@@ -174,6 +174,7 @@ public class Polygon extends PolyLine
      *            The {@link Location} to test
      * @return True if the {@link Polygon} contains the {@link Location}
      */
+    @Override
     public boolean fullyGeometricallyEncloses(final Location location)
     {
         // if this value overflows, use JTS to correctly calculate covers
@@ -190,6 +191,12 @@ public class Polygon extends PolyLine
         }
     }
 
+    @Override
+    public boolean fullyGeometricallyEncloses(final MultiPolygon multiPolygon)
+    {
+        return multiPolygon.outers().stream().allMatch(this::fullyGeometricallyEncloses);
+    }
+
     /**
      * Tests if this {@link Polygon} fully encloses (geometrically contains) a {@link PolyLine}.
      * Note: this will return false for the case when the {@link Polygon} and given {@link PolyLine}
@@ -200,6 +207,7 @@ public class Polygon extends PolyLine
      * @return True if this {@link Polygon} wraps (geometrically contains) the provided
      *         {@link PolyLine}
      */
+    @Override
     public boolean fullyGeometricallyEncloses(final PolyLine polyLine)
     {
         final List<Segment> segments = polyLine.segments();
@@ -481,6 +489,7 @@ public class Polygon extends PolyLine
      *         overlaps itself
      * @see "http://www.mathopenref.com/coordpolygonarea2.html"
      */
+    @Override
     public Surface surface()
     {
         long dm7Squared = 0L;
@@ -507,6 +516,7 @@ public class Polygon extends PolyLine
      *         for Polygons on a Sphere" paper as reference.
      * @see "https://trs.jpl.nasa.gov/bitstream/handle/2014/41271/07-0286.pdf"
      */
+    @Override
     public Surface surfaceOnSphere()
     {
         double dm7 = 0L;

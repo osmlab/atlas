@@ -255,6 +255,23 @@ public class PolygonTest
     }
 
     @Test
+    public void testFullyGeometricallyEnclosingMultiPolygon()
+    {
+        final MultiPolygon multiPolygon1 = MultiPolygon
+                .wkt("MULTIPOLYGON (" + "((-10 10, 10 10, 10 -10, -10 -10, -10 10),"
+                        + "(-6 6, 6 6, 6 -6, -6 -6, -6 6)))");
+        final MultiPolygon multiPolygon2 = MultiPolygon.wkt("MULTIPOLYGON ("
+                + "((-4 4, 4 4, 4 -4, -4 -4, -4 4)," + "(-3 3, 3 3, 3 -3, -3 -3, -3 3)))");
+        final Polygon polygon1 = Polygon.wkt("POLYGON " + "((-8 8, 8 8, 8 -8, -8 -8, -8 8))");
+        final Polygon polygon2 = Polygon.wkt("POLYGON " + "((-5 5, 5 5, 5 -5, -5 -5, -5 5))");
+
+        Assert.assertFalse(polygon2.fullyGeometricallyEncloses(multiPolygon1));
+        Assert.assertTrue(polygon1.fullyGeometricallyEncloses(multiPolygon2));
+        Assert.assertFalse(polygon1.fullyGeometricallyEncloses(multiPolygon1));
+        Assert.assertTrue(polygon2.fullyGeometricallyEncloses(multiPolygon2));
+    }
+
+    @Test
     public void testIntersects()
     {
         final Set<Location> intersection = this.quadrant.intersections(new Segment(Location.TEST_5,

@@ -11,6 +11,7 @@ import java.util.stream.StreamSupport;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -99,6 +100,37 @@ public class AtlasEntityPolygonsFilterTest
                 return false;
             }
         }
+
+        // note this is the only one now used by the filter
+        @Override
+        public boolean geometricSurfaceEntityIntersecting(final GeometricSurface geometricSurface,
+                final AtlasEntity entity)
+        {
+            if (entity instanceof LineItem)
+            {
+                return geometricSurface
+                        .fullyGeometricallyEncloses(((LineItem) entity).asPolyLine());
+            }
+            if (entity instanceof LocationItem)
+            {
+                return geometricSurface
+                        .fullyGeometricallyEncloses(((LocationItem) entity).getLocation());
+            }
+            if (entity instanceof Area)
+            {
+                return geometricSurface.fullyGeometricallyEncloses(((Area) entity).asPolygon());
+            }
+            if (entity instanceof Relation)
+            {
+                return ((Relation) entity).members().stream().map(RelationMember::getEntity)
+                        .anyMatch(relationEntity -> this.geometricSurfaceEntityIntersecting(
+                                geometricSurface, relationEntity));
+            }
+            else
+            {
+                return false;
+            }
+        }
     };
 
     @Rule
@@ -158,8 +190,14 @@ public class AtlasEntityPolygonsFilterTest
         this.assertCounts(testCountsAtlas,
                 AtlasEntityPolygonsFilter.Type.INCLUDE.polygons(Collections.singleton(polygon1)),
                 2L, 3L, 1L, 0L);
+        this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
+                .geometricSurfaces(Collections.singleton(polygon1)), 2L, 3L, 1L, 0L);
         this.assertCounts(testCountsAtlas,
                 AtlasEntityPolygonsFilter.Type.EXCLUDE.polygons(Collections.singleton(polygon1)),
+                totalPointCount - 2L, totalLineCount - 3L, totalAreaCount - 1L, totalRelationCount);
+        this.assertCounts(testCountsAtlas,
+                AtlasEntityPolygonsFilter.Type.EXCLUDE
+                        .geometricSurfaces(Collections.singleton(polygon1)),
                 totalPointCount - 2L, totalLineCount - 3L, totalAreaCount - 1L, totalRelationCount);
         this.assertCounts(testCountsAtlas,
                 AtlasEntityPolygonsFilter.Type.INCLUDE.polygons(Arrays.asList(polygon1, polygon2)),
@@ -251,19 +289,7 @@ public class AtlasEntityPolygonsFilterTest
         final long totalRelationCount = testCountsAtlas.numberOfRelations();
         final IntersectionPolicy dudIntersectionPolicy = new IntersectionPolicy()
         {
-            @Override
-            public boolean multiPolygonEntityIntersecting(final MultiPolygon multiPolygon,
-                    final AtlasEntity entity)
-            {
-                return false;
-            }
-
-            @Override
-            public boolean polygonEntityIntersecting(final Polygon polygon,
-                    final AtlasEntity entity)
-            {
-                return false;
-            }
+            // uses all false defaults
         };
 
         // Test all three policies on the first polygon
@@ -274,6 +300,8 @@ public class AtlasEntityPolygonsFilterTest
         this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
                 .polygons(dudIntersectionPolicy, Collections.singleton(polygon1)), 0L, 0L, 0L, 0L);
         this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE.polygons(
+                FULL_GEOMETRIC_ENCLOSING, Collections.singleton(polygon1)), 2L, 1L, 0L, 0L);
+        this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE.geometricSurfaces(
                 FULL_GEOMETRIC_ENCLOSING, Collections.singleton(polygon1)), 2L, 1L, 0L, 0L);
 
         // Test all three decision makers on two polygon filter
@@ -286,7 +314,7 @@ public class AtlasEntityPolygonsFilterTest
         this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
                 .polygons(FULL_GEOMETRIC_ENCLOSING, Arrays.asList(polygon1, polygon2)), 2, 1, 0, 0);
 
-        // Test Stabilizability
+        // Test Serializability
         this.assertCounts(testCountsAtlas,
                 new FreezeDryFunction<AtlasEntityPolygonsFilter>().apply(
                         AtlasEntityPolygonsFilter.Type.INCLUDE.polygons(FULL_GEOMETRIC_ENCLOSING,

@@ -218,7 +218,7 @@ public class GeoJsonBuilder
      */
     public GeoJsonObject create(final Polygon polygon)
     {
-        return this.create(polygon, GeoJsonType.POLYGON);
+        return this.create(polygon.closedLoop(), GeoJsonType.POLYGON);
     }
 
     /**
@@ -415,7 +415,7 @@ public class GeoJsonBuilder
         final List<GeoJsonObject> objects = new ArrayList<>();
         for (final Polygon polygon : polygons)
         {
-            objects.add(this.create(polygon, GeoJsonType.MULTI_POLYGON));
+            objects.add(this.create(polygon.closedLoop(), GeoJsonType.MULTI_POLYGON));
         }
 
         final JsonObject result = new JsonObject();
@@ -454,7 +454,7 @@ public class GeoJsonBuilder
         final List<GeoJsonObject> objects = new ArrayList<>();
         for (final Polygon polygon : polygons)
         {
-            objects.add(this.create(polygon, GeoJsonType.MULTI_POLYGON));
+            objects.add(this.create(polygon.closedLoop(), GeoJsonType.MULTI_POLYGON));
         }
 
         final JsonObject result = new JsonObject();

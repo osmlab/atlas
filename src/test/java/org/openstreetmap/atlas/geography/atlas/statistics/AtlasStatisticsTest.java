@@ -24,6 +24,16 @@ public class AtlasStatisticsTest
     }
 
     @Test
+    public void testCSVCompatability()
+    {
+        final StatisticKey key = new StatisticKey("", "last_edit_user_name", "kepta\"sds'sds");
+        // if there is a " or , or \n character within a field in a CSV, the CSV field is wrapped in
+        // double quotes and the interior double quote is escaped
+        final String correctlyFormattedCSVKey = ",last_edit_user_name,\"kepta\"\"sds'sds\"";
+        Assert.assertEquals(key.toString(), correctlyFormattedCSVKey);
+    }
+
+    @Test
     public void testMerge()
     {
         final StatisticKey key = new StatisticKey("RESIDENTIAL", "length_named", "TRUE");
