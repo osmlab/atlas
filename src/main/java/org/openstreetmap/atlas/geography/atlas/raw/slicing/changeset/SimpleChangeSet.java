@@ -29,11 +29,11 @@ public class SimpleChangeSet
     // Points
     private final Set<TemporaryPoint> createdPoints;
     private final Map<Long, Map<String, String>> updatedPointTags;
+    private final Set<Long> deletedPoints;
 
     // Lines
     private final Set<TemporaryLine> createdLines;
     private final Map<Long, Map<String, String>> updatedLineTags;
-    private final Set<Long> deletedLines;
 
     // Lines that were sliced will be deleted and replaced by two or more new line segments. We need
     // to maintain this mapping to maintain relation integrity by removing deleted line members and
@@ -44,9 +44,9 @@ public class SimpleChangeSet
     {
         this.createdPoints = new HashSet<>();
         this.updatedPointTags = new HashMap<>();
+        this.deletedPoints = new HashSet<>();
         this.createdLines = new HashSet<>();
         this.updatedLineTags = new HashMap<>();
-        this.deletedLines = new HashSet<>();
         this.deletedToCreatedLineMapping = new MultiMapWithSet<>();
     }
 
@@ -66,9 +66,9 @@ public class SimpleChangeSet
         this.createdPoints.add(point);
     }
 
-    public void deleteLine(final long identifier)
+    public void deletePoint(final long identifier)
     {
-        this.deletedLines.add(identifier);
+        this.deletedPoints.add(identifier);
     }
 
     public Set<TemporaryLine> getCreatedLines()
@@ -81,9 +81,9 @@ public class SimpleChangeSet
         return this.createdPoints;
     }
 
-    public Set<Long> getDeletedLines()
+    public Set<Long> getDeletedPoints()
     {
-        return this.deletedLines;
+        return this.deletedPoints;
     }
 
     public MultiMapWithSet<Long, Long> getDeletedToCreatedLineMapping()

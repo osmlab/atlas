@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -22,11 +23,27 @@ public class RawAtlasCountrySlicer
     private final CountryBoundaryMap countryBoundaryMap;
 
     // The boundaries used for slicing
-    private final Set<IsoCountry> countries;
+    private final Set<IsoCountry> countries = new HashSet<>();
 
     /**
      * Slices against the given country set and boundary map. Note: Will assume the entire world to
      * be the target MultiPolygon to use.
+     *
+     * @param country
+     *            The country to slice against
+     * @param countryBoundaryMap
+     *            The {@link CountryBoundaryMap} to use when slicing
+     */
+    public RawAtlasCountrySlicer(final IsoCountry country,
+            final CountryBoundaryMap countryBoundaryMap)
+    {
+        this.countries.add(country);
+        this.countryBoundaryMap = countryBoundaryMap;
+    }
+
+    /**
+     * Slices against the given country and boundary map. Note: Will assume the entire world to be
+     * the target MultiPolygon to use.
      *
      * @param countries
      *            The Set of countries to be sliced against
@@ -36,7 +53,7 @@ public class RawAtlasCountrySlicer
     public RawAtlasCountrySlicer(final Set<IsoCountry> countries,
             final CountryBoundaryMap countryBoundaryMap)
     {
-        this.countries = countries;
+        this.countries.addAll(countries);
         this.countryBoundaryMap = countryBoundaryMap;
     }
 
@@ -55,7 +72,7 @@ public class RawAtlasCountrySlicer
         final RelationChangeSet slicedRelationChanges = new RelationChangeSet();
 
         // Mapping between Coordinate and created Temporary Point identifiers. This is to avoid
-        // duplicate points at the same locations and to allow fast lookup to construct new lines
+        // duplicate points at the same location and to allow fast lookup to construct new lines
         // requiring the temporary point as a Line shape point
         final CoordinateToNewPointMapping newPointCoordinates = new CoordinateToNewPointMapping();
 
