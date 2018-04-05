@@ -46,7 +46,6 @@ public class LongArray extends LargeArray<Long> implements ProtoSerializable
     }
 
     private static final long serialVersionUID = -6368556371326217582L;
-    private final transient ProtoAdapter protoLongArrayAdapter = new ProtoLongArrayAdapter();
 
     public LongArray(final long maximumSize)
     {
@@ -61,7 +60,7 @@ public class LongArray extends LargeArray<Long> implements ProtoSerializable
     @Override
     public ProtoAdapter getProtoAdapter()
     {
-        return this.protoLongArrayAdapter;
+        return new ProtoLongArrayAdapter();
     }
 
     @Override

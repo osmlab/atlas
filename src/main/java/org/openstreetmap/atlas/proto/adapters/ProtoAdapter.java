@@ -10,11 +10,11 @@ import org.openstreetmap.atlas.proto.ProtoSerializable;
 public interface ProtoAdapter
 {
     /**
-     * @param byteStream
+     * @param byteArray
      *            the raw byte representation of the ProtoSerializable in protocol buffer format
      * @return The object represented by the byte stream.
      */
-    ProtoSerializable deserialize(byte[] byteStream);
+    ProtoSerializable deserialize(byte[] byteArray);
 
     /**
      * @param serializable

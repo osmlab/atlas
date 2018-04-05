@@ -15,12 +15,12 @@ import com.google.protobuf.InvalidProtocolBufferException;
 public class ProtoLongArrayAdapter implements ProtoAdapter
 {
     @Override
-    public ProtoSerializable deserialize(final byte[] byteStream)
+    public ProtoSerializable deserialize(final byte[] byteArray)
     {
         ProtoLongArray protoLongArray = null;
         try
         {
-            protoLongArray = ProtoLongArray.parseFrom(byteStream);
+            protoLongArray = ProtoLongArray.parseFrom(byteArray);
         }
         catch (final InvalidProtocolBufferException excep)
         {
@@ -42,8 +42,8 @@ public class ProtoLongArrayAdapter implements ProtoAdapter
         if (!(serializable instanceof LongArray))
         {
             throw new CoreException(
-                    "Invalid ProtoSerializable type was provided to " + this.getClass().getName()
-                            + ": cannot serialize " + serializable.getClass().getName());
+                    "Invalid ProtoSerializable type was provided to {}: cannot serialize {}",
+                    this.getClass().getName(), serializable.getClass().getName());
         }
         final LongArray longArray = (LongArray) serializable;
 
