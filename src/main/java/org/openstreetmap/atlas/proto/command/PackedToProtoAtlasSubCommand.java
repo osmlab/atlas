@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.command;
+package org.openstreetmap.atlas.proto.command;
 
 import java.io.IOException;
 import java.io.PrintStream;
