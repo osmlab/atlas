@@ -24,6 +24,7 @@ public class ProtoLongArrayAdapterTest
         {
             longArray.add((long) i);
         }
+        longArray.setName("test");
 
         Time startTime = Time.now();
         final byte[] contents = this.adapter.serialize(longArray);
