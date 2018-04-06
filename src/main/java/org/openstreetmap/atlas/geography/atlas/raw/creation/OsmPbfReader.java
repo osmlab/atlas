@@ -278,7 +278,7 @@ public class OsmPbfReader implements Sink
                 }
                 else
                 {
-                    logger.debug(MISSING_MEMBER_MESSAGE, relation.getId(), EntityType.Node,
+                    logger.trace(MISSING_MEMBER_MESSAGE, relation.getId(), EntityType.Node,
                             memberIdentifier);
                 }
             }
@@ -290,7 +290,7 @@ public class OsmPbfReader implements Sink
                 }
                 else
                 {
-                    logger.debug(MISSING_MEMBER_MESSAGE, relation.getId(), EntityType.Way,
+                    logger.trace(MISSING_MEMBER_MESSAGE, relation.getId(), EntityType.Way,
                             memberIdentifier);
                 }
             }
@@ -302,7 +302,7 @@ public class OsmPbfReader implements Sink
                 }
                 else
                 {
-                    logger.debug(MISSING_MEMBER_MESSAGE, relation.getId(), EntityType.Relation,
+                    logger.trace(MISSING_MEMBER_MESSAGE, relation.getId(), EntityType.Relation,
                             memberIdentifier);
                 }
             }

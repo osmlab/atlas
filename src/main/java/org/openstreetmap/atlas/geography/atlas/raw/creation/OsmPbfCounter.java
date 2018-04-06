@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -18,9 +17,9 @@ import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
+import org.openstreetmap.atlas.geography.atlas.pbf.store.TagMap;
 import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.RouteTag;
-import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.osmosis.core.container.v0_6.EntityContainer;
 import org.openstreetmap.osmosis.core.domain.v0_6.Bound;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
@@ -28,7 +27,6 @@ import org.openstreetmap.osmosis.core.domain.v0_6.EntityType;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
 import org.openstreetmap.osmosis.core.domain.v0_6.Relation;
 import org.openstreetmap.osmosis.core.domain.v0_6.RelationMember;
-import org.openstreetmap.osmosis.core.domain.v0_6.Tag;
 import org.openstreetmap.osmosis.core.domain.v0_6.Way;
 import org.openstreetmap.osmosis.core.domain.v0_6.WayNode;
 import org.openstreetmap.osmosis.core.task.v0_6.Sink;
@@ -276,24 +274,7 @@ public class OsmPbfCounter implements Sink
 
     private boolean isHighwayOrFerry(final Way way)
     {
-        final Taggable taggableWay = new Taggable()
-        {
-            private Map<String, String> tags = null;
-
-            @Override
-            public Optional<String> getTag(final String key)
-            {
-                if (this.tags == null)
-                {
-                    this.tags = new HashMap<>();
-                    for (final Tag tag : way.getTags())
-                    {
-                        this.tags.put(tag.getKey(), tag.getValue());
-                    }
-                }
-                return Optional.ofNullable(this.tags.get(key));
-            }
-        };
+        final TagMap taggableWay = new TagMap(way.getTags());
         return HighwayTag.isCoreWay(taggableWay) || RouteTag.isFerry(taggableWay);
     }
 
