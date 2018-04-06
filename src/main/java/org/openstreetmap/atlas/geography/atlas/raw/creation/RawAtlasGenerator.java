@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
@@ -58,7 +59,7 @@ public class RawAtlasGenerator
     private final OsmPbfReader pbfReader;
 
     // The target bounding box. Anything outside of this will be discarded.
-    private final MultiPolygon boundingBox;
+    private final GeometricSurface boundingBox;
 
     // Builder to build raw Atlas
     private final PackedAtlasBuilder builder;
@@ -115,7 +116,7 @@ public class RawAtlasGenerator
     }
 
     protected RawAtlasGenerator(final Supplier<CloseableOsmosisReader> osmosisReaderSupplier,
-            final AtlasLoadingOption atlasLoadingOption, final MultiPolygon boundingBox)
+            final AtlasLoadingOption atlasLoadingOption, final GeometricSurface boundingBox)
     {
         this.osmosisReaderSupplier = osmosisReaderSupplier;
         this.atlasLoadingOption = atlasLoadingOption;

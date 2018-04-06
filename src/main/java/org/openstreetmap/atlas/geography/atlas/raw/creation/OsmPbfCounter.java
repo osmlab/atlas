@@ -8,10 +8,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Latitude;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Longitude;
-import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
@@ -61,7 +61,7 @@ public class OsmPbfCounter implements Sink
     private static final int MAXIMUM_NETWORK_EXTENSION = 2;
 
     private final AtlasLoadingOption loadingOption;
-    private final MultiPolygon boundingBox;
+    private final GeometricSurface boundingBox;
 
     // Identifiers to bring in to the raw atlas
     private final Set<Long> nodeIdentifiersToInclude = new HashSet<>();
@@ -83,7 +83,7 @@ public class OsmPbfCounter implements Sink
      * @param boundingBox
      *            The bounding box to consider when including features in the raw atlas
      */
-    public OsmPbfCounter(final AtlasLoadingOption loadingOption, final MultiPolygon boundingBox)
+    public OsmPbfCounter(final AtlasLoadingOption loadingOption, final GeometricSurface boundingBox)
     {
         this.loadingOption = loadingOption;
         this.boundingBox = boundingBox;
