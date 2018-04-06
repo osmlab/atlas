@@ -52,6 +52,12 @@ public class ProtoLongToLongMapAdapter implements ProtoAdapter
         }
         final LongToLongMap longMap = (LongToLongMap) serializable;
 
+        if (longMap.size() > Integer.MAX_VALUE)
+        {
+            throw new CoreException("Cannot serialize provided {}, size {} too large",
+                    serializable.getClass().getName(), longMap.size());
+        }
+
         final ProtoLongToLongMap.Builder mapBuilder = ProtoLongToLongMap.newBuilder();
         final ProtoLongArray.Builder keysBuilder = ProtoLongArray.newBuilder();
         final ProtoLongArray.Builder valuesBuilder = ProtoLongArray.newBuilder();
