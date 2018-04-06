@@ -286,7 +286,7 @@ public class DynamicTileSharding extends Command implements Sharding
 
     private static final long serialVersionUID = 229952569300405488L;
     private static final Logger logger = LoggerFactory.getLogger(DynamicTileSharding.class);
-    private static final int READER_REPORT_FREQUENCY = 100_000;
+    private static final int READER_REPORT_FREQUENCY = 10_000_000;
     private static final int MINIMUM_TO_SPLIT = 1_000;
 
     public static final Switch<Resource> DEFINITION = new Switch<>("definition",
@@ -377,7 +377,7 @@ public class DynamicTileSharding extends Command implements Sharding
             numberLines++;
         }
         logger.info("There are {} tiles.", numberLines);
-        final Map<SlippyTile, Long> counts = new HashMap<>(numberLines);
+        HashMap<SlippyTile, Long> counts = new HashMap<>(numberLines);
         final WritableResource output = (WritableResource) command.get(OUTPUT);
         final int maximum = (int) command.get(MAXIMUM_COUNT);
         final int minimumZoom = (int) command.get(MINIMUM_ZOOM);
@@ -396,6 +396,9 @@ public class DynamicTileSharding extends Command implements Sharding
                 logger.info("Read counts for {} zoom level {} tiles.", counter, zoom);
             }
         }
+        final HashMap<SlippyTile, Long> allCounts = calculateTileCountsForAllZoom(maximumZoom - 2,
+                counts);
+        counts = null;
         if (zoom == 0)
         {
             throw new CoreException("No tiles in definition");
@@ -410,7 +413,7 @@ public class DynamicTileSharding extends Command implements Sharding
         }
         this.root.build(tile ->
         {
-            final long count = counts.getOrDefault(tile, (long) 0);
+            final long count = allCounts.getOrDefault(tile, (long) 0);
             if (count <= MINIMUM_TO_SPLIT)
             {
                 return false;
@@ -442,6 +445,55 @@ public class DynamicTileSharding extends Command implements Sharding
     {
         return new SwitchList().with(DEFINITION, OUTPUT, MINIMUM_ZOOM, MAXIMUM_ZOOM, MAXIMUM_COUNT,
                 GEOJSON);
+    }
+
+    /**
+     * Calculates and saves the counts for each zoom layer lower than firstZoomLayerToGenerate.
+     *
+     * @param firstZoomLayerToGenerate
+     *            the first zoom layer for which to generate counts
+     * @param countsAtHigherZoom
+     *            HashMap containing counts for all {@link SlippyTile}s in
+     *            firstZoomLayerToGenerate+1
+     * @return a HashMap containing counts for all (@link SlippyTile}s in zoomLayerToGenerate and
+     *         below
+     */
+    private HashMap<SlippyTile, Long> calculateTileCountsForAllZoom(
+            final int firstZoomLayerToGenerate, final HashMap<SlippyTile, Long> counts)
+    {
+        for (int currentZoom = firstZoomLayerToGenerate; currentZoom >= 0; currentZoom--)
+        {
+            long count = 0;
+            long tilesCalculated = 0;
+            for (int x = 0; x < Math.pow(2, currentZoom + 1); x += 2)
+            {
+                for (int y = 0; y < Math.pow(2, currentZoom + 1); y += 2)
+                {
+                    count = 0;
+                    // top left
+                    count += counts.getOrDefault(new SlippyTile(x, y, currentZoom + 1), (long) 0);
+                    // top right
+                    count += counts.getOrDefault(new SlippyTile(x + 1, y, currentZoom + 1),
+                            (long) 0);
+                    // bottom left
+                    count += counts.getOrDefault(new SlippyTile(x, y + 1, currentZoom + 1),
+                            (long) 0);
+                    // bottom right
+                    count += counts.getOrDefault(new SlippyTile(x + 1, y + 1, currentZoom + 1),
+                            (long) 0);
+                    if (count != 0)
+                    {
+                        counts.put(new SlippyTile(x / 2, y / 2, currentZoom), count);
+                    }
+                    if (++tilesCalculated % READER_REPORT_FREQUENCY == 0)
+                    {
+                        logger.info("Calculated {} zoom level {} tiles.", tilesCalculated,
+                                currentZoom);
+                    }
+                }
+            }
+        }
+        return counts;
     }
 
     /**
