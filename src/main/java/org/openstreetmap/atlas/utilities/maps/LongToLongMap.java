@@ -1,5 +1,8 @@
 package org.openstreetmap.atlas.utilities.maps;
 
+import org.openstreetmap.atlas.proto.ProtoSerializable;
+import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
+import org.openstreetmap.atlas.proto.adapters.ProtoLongToLongMapAdapter;
 import org.openstreetmap.atlas.utilities.arrays.LargeArray;
 import org.openstreetmap.atlas.utilities.arrays.LongArray;
 
@@ -8,7 +11,7 @@ import org.openstreetmap.atlas.utilities.arrays.LongArray;
  *
  * @author matthieun
  */
-public class LongToLongMap extends LargeMap<Long, Long>
+public class LongToLongMap extends LargeMap<Long, Long> implements ProtoSerializable
 {
     private static final long serialVersionUID = -3488197516341341480L;
 
@@ -78,6 +81,12 @@ public class LongToLongMap extends LargeMap<Long, Long>
     {
         super(name, maximumSize, hashSize, keyMemoryBlockSize, keySubArraySize,
                 valueMemoryBlockSize, valueSubArraySize);
+    }
+
+    @Override
+    public ProtoAdapter getProtoAdapter()
+    {
+        return new ProtoLongToLongMapAdapter();
     }
 
     @Override

@@ -177,6 +177,14 @@ public abstract class LargeMap<K, V> implements Iterable<K>, Serializable
         return this.maximumSize;
     }
 
+    /**
+     * @return The name of this map
+     */
+    public String getName()
+    {
+        return this.name;
+    }
+
     public boolean isEmpty()
     {
         return this.keys.size() <= 0;
@@ -308,14 +316,6 @@ public abstract class LargeMap<K, V> implements Iterable<K>, Serializable
      * @return An empty array of values
      */
     protected abstract LargeArray<V> createValues(int memoryBlockSize, int subArraySize);
-
-    /**
-     * @return The name of this map
-     */
-    protected String getName()
-    {
-        return this.name;
-    }
 
     private int modulo(final int hashValue)
     {

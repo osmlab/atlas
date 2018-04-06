@@ -8,7 +8,8 @@ import org.openstreetmap.atlas.utilities.arrays.LongArray;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 /**
- * Implements the {@link ProtoAdapter} interface to connect LongArray and ProtoLongArray.
+ * Implements the {@link ProtoAdapter} interface to connect {@link LongArray} and
+ * {@link ProtoLongArray}.
  *
  * @author lcram
  */
