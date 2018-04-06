@@ -2,7 +2,7 @@ package org.openstreetmap.atlas.proto.adapters;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.openstreetmap.atlas.utilities.arrays.LongArrayOfArrays;
+import org.openstreetmap.atlas.utilities.arrays.IntegerArrayOfArrays;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,43 +10,44 @@ import org.slf4j.LoggerFactory;
 /**
  * @author lcram
  */
-public class ProtoLongArrayOfArraysAdapterTest
+public class ProtoIntegerArrayOfArraysAdapterTest
 {
     private static final Logger logger = LoggerFactory
-            .getLogger(ProtoLongArrayOfArraysAdapterTest.class);
+            .getLogger(ProtoIntegerArrayOfArraysAdapterTest.class);
     private static final int TEST_ARRAY_SIZE = 200;
     private static final int TEST_SUBARRAY_SIZE = 100_000;
-    private final ProtoLongArrayOfArraysAdapter adapter = new ProtoLongArrayOfArraysAdapter();
+    private final ProtoIntegerArrayOfArraysAdapter adapter = new ProtoIntegerArrayOfArraysAdapter();
 
     @Test
     public void testConsistency()
     {
-        final LongArrayOfArrays longArrayOfArrays = new LongArrayOfArrays(TEST_ARRAY_SIZE);
+        final IntegerArrayOfArrays integerArrayOfArrays = new IntegerArrayOfArrays(TEST_ARRAY_SIZE);
         for (int index = 0; index < TEST_ARRAY_SIZE; index++)
         {
-            final long[] items = new long[TEST_SUBARRAY_SIZE];
+            final int[] items = new int[TEST_SUBARRAY_SIZE];
             for (int subIndex = 0; subIndex < TEST_SUBARRAY_SIZE; subIndex++)
             {
                 items[subIndex] = subIndex;
             }
-            longArrayOfArrays.add(items);
+            integerArrayOfArrays.add(items);
         }
 
         Time startTime = Time.now();
-        final byte[] contents = this.adapter.serialize(longArrayOfArrays);
-        logger.info("Took {} to serialize LongArrayOfArrays", startTime.elapsedSince());
+        final byte[] contents = this.adapter.serialize(integerArrayOfArrays);
+        logger.info("Took {} to serialize IntegerArrayOfArrays", startTime.elapsedSince());
 
         startTime = Time.now();
-        final LongArrayOfArrays parsedFrom = (LongArrayOfArrays) this.adapter.deserialize(contents);
-        logger.info("Took {} to deserialize LongArrayOfArrays from bytestream",
+        final IntegerArrayOfArrays parsedFrom = (IntegerArrayOfArrays) this.adapter
+                .deserialize(contents);
+        logger.info("Took {} to deserialize IntegerArrayOfArrays from bytestream",
                 startTime.elapsedSince());
 
         logger.info("Testing equality...");
-        Assert.assertEquals(longArrayOfArrays.size(), parsedFrom.size());
+        Assert.assertEquals(integerArrayOfArrays.size(), parsedFrom.size());
         for (int index = 0; index < TEST_ARRAY_SIZE; index++)
         {
-            final long[] items1 = longArrayOfArrays.get(index);
-            final long[] items2 = parsedFrom.get(index);
+            final int[] items1 = integerArrayOfArrays.get(index);
+            final int[] items2 = parsedFrom.get(index);
             Assert.assertEquals(items1.length, items2.length);
             for (int subIndex = 0; subIndex < TEST_SUBARRAY_SIZE; subIndex++)
             {
