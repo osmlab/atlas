@@ -14,31 +14,33 @@ public class ProtoLongToLongMapAdapterTest
 {
     private static final Logger logger = LoggerFactory
             .getLogger(ProtoLongToLongMapAdapterTest.class);
-    private static final long TEST_SIZE = 5_000_000;
+    private static final int TEST_SIZE = 5_000_000;
     private final ProtoLongToLongMapAdapter adapter = new ProtoLongToLongMapAdapter();
 
     @Test
     public void testConsistency()
     {
         final LongToLongMap longMap = new LongToLongMap("test", TEST_SIZE);
-        for (long l = 0; l < TEST_SIZE; l++)
+        for (int index = 0; index < TEST_SIZE; index++)
         {
-            longMap.put(l, l);
+            final long value = index;
+            longMap.put(value, value);
         }
 
         Time startTime = Time.now();
         final byte[] contents = this.adapter.serialize(longMap);
-        logger.info("Took {} to serialize LongArray", startTime.elapsedSince());
+        logger.info("Took {} to serialize LongToLongMap", startTime.elapsedSince());
 
         startTime = Time.now();
         final LongToLongMap parsedFrom = (LongToLongMap) this.adapter.deserialize(contents);
-        logger.info("Took {} to deserialize LongArray from bytestream", startTime.elapsedSince());
+        logger.info("Took {} to deserialize LongToLongMap from bytestream",
+                startTime.elapsedSince());
 
         logger.info("Testing equality...");
         Assert.assertEquals(longMap.getMaximumSize(), longMap.getMaximumSize());
-        for (long l = 0; l < TEST_SIZE; l++)
+        for (int index = 0; index < TEST_SIZE; index++)
         {
-            Assert.assertEquals(longMap.get(l), parsedFrom.get(l));
+            Assert.assertEquals(longMap.get(index), parsedFrom.get(index));
         }
     }
 }

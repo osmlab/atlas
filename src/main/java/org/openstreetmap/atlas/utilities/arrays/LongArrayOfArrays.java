@@ -1,11 +1,15 @@
 package org.openstreetmap.atlas.utilities.arrays;
 
+import org.openstreetmap.atlas.proto.ProtoSerializable;
+import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
+import org.openstreetmap.atlas.proto.adapters.ProtoLongArrayOfArraysAdapter;
+
 /**
  * {@link LargeArray} of arrays of long (long[])
  *
  * @author matthieun
  */
-public class LongArrayOfArrays extends LargeArray<long[]>
+public class LongArrayOfArrays extends LargeArray<long[]> implements ProtoSerializable
 {
     /**
      * {@link PrimitiveArray} for type {@link Long}
@@ -52,6 +56,12 @@ public class LongArrayOfArrays extends LargeArray<long[]>
             final int subArraySize)
     {
         super(maximumSize, memoryBlockSize, subArraySize);
+    }
+
+    @Override
+    public ProtoAdapter getProtoAdapter()
+    {
+        return new ProtoLongArrayOfArraysAdapter();
     }
 
     @Override
