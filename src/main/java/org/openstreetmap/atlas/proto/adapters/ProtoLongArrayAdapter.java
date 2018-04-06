@@ -22,9 +22,10 @@ public class ProtoLongArrayAdapter implements ProtoAdapter
         {
             protoLongArray = ProtoLongArray.parseFrom(byteArray);
         }
-        catch (final InvalidProtocolBufferException excep)
+        catch (final InvalidProtocolBufferException exception)
         {
-            throw new CoreException("Error encountered while parsing protobuf bytestream", excep);
+            throw new CoreException("Error encountered while parsing protobuf bytestream",
+                    exception);
         }
 
         final LongArray longArray = new LongArray(protoLongArray.getElementsCount());
