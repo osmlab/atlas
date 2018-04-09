@@ -7,8 +7,16 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
 
+/**
+ * Tests the functionality of DynamicTileSharding.
+ *
+ * @author james-gage
+ */
 public class DynamicTileShardingTest
 {
+    /**
+     * Tests the method that calculates the counts for all SlippyTiles below a certain zoom level.
+     */
     @Test
     public void testCalculateTileCountsForAllZoom()
     {
@@ -47,6 +55,6 @@ public class DynamicTileShardingTest
         final Map<SlippyTile, Long> allCounts = dynamicTileSharding.calculateTileCountsForAllZoom(1,
                 countsAtZoom2);
         final long zoom0 = allCounts.get(new SlippyTile(0, 0, 0));
-        Assert.assertEquals("The lowest zoom and the total", zoom0, total);
+        Assert.assertEquals("The summed counts and the total", zoom0, total);
     }
 }
