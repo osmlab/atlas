@@ -60,10 +60,12 @@ import org.slf4j.LoggerFactory;
 public class OsmPbfReader implements Sink
 {
     private static final Logger logger = LoggerFactory.getLogger(OsmPbfReader.class);
-    private static final String MISSING_MEMBER_MESSAGE = "Relation {} contains {} {} as a member, but this PBF shard does not contain it.";
+    private static final String MISSING_MEMBER_MESSAGE = "Relation {} contains {} {} as a member, but it's either filtered out or this PBF shard does not contain it.";
 
     private final PackedAtlasBuilder builder;
     private final AtlasLoadingOption loadingOption;
+    private final Set<Long> nodeIdentifiersToInclude = new HashSet<>();
+    private final Set<Long> wayIdentifiersToInclude = new HashSet<>();
     private final Set<Long> pointIdentifiersFromFilteredLines = new HashSet<>();
     private final List<Relation> stagedRelations = new ArrayList<>();
     private final RawAtlasStatistic statistics = new RawAtlasStatistic(logger);
@@ -152,11 +154,13 @@ public class OsmPbfReader implements Sink
 
         if (shouldProcessEntity(this.loadingOption, rawEntity))
         {
-            if (this.loadingOption.isLoadOsmNode() && rawEntity instanceof Node)
+            if (rawEntity instanceof Node
+                    && this.nodeIdentifiersToInclude.contains(rawEntity.getId()))
             {
                 processNode(rawEntity);
             }
-            else if (this.loadingOption.isLoadOsmWay() && rawEntity instanceof Way)
+            else if (rawEntity instanceof Way
+                    && this.wayIdentifiersToInclude.contains(rawEntity.getId()))
             {
                 processWay(rawEntity);
             }
@@ -173,7 +177,7 @@ public class OsmPbfReader implements Sink
         {
             recordNodeIdentifiersFromFilteredEntity(rawEntity);
             logFilteredStatistics(rawEntity);
-            logger.trace("Excluding OSM {} {} from Raw Atlas", rawEntity.getType(),
+            logger.trace("Filtering out OSM {} {} from Raw Atlas", rawEntity.getType(),
                     rawEntity.getId());
         }
     }
@@ -186,6 +190,28 @@ public class OsmPbfReader implements Sink
         processStagedRelations();
         this.statistics.summary();
         logger.info("Released OSM PBF Reader");
+    }
+
+    /**
+     * Sets all the Node identifiers marked for inclusion.
+     *
+     * @param nodesToInclude
+     *            The set of Node identifiers to include in the atlas
+     */
+    public void setIncludedNodes(final Set<Long> nodesToInclude)
+    {
+        this.nodeIdentifiersToInclude.addAll(nodesToInclude);
+    }
+
+    /**
+     * Sets all the Way identifiers marked for inclusion.
+     *
+     * @param waysToInclude
+     *            The set of Way identifiers to include in the atlas
+     */
+    public void setIncludedWays(final Set<Long> waysToInclude)
+    {
+        this.wayIdentifiersToInclude.addAll(waysToInclude);
     }
 
     /**
@@ -221,7 +247,7 @@ public class OsmPbfReader implements Sink
         else
         {
             this.statistics.recordDroppedRelation();
-            logger.debug("Empty Relation {} cannot be added to the Atlas. We're either filtering"
+            logger.debug("Cannot add empty Relation {} to the Atlas. We're either filtering"
                     + " out the members that make up the Relation or none of the "
                     + "members are present in this PBF shard.", relation.getId());
         }
@@ -252,7 +278,7 @@ public class OsmPbfReader implements Sink
                 }
                 else
                 {
-                    logger.warn(MISSING_MEMBER_MESSAGE, relation.getId(), EntityType.Node,
+                    logger.trace(MISSING_MEMBER_MESSAGE, relation.getId(), EntityType.Node,
                             memberIdentifier);
                 }
             }
@@ -264,7 +290,7 @@ public class OsmPbfReader implements Sink
                 }
                 else
                 {
-                    logger.warn(MISSING_MEMBER_MESSAGE, relation.getId(), EntityType.Way,
+                    logger.trace(MISSING_MEMBER_MESSAGE, relation.getId(), EntityType.Way,
                             memberIdentifier);
                 }
             }
@@ -276,7 +302,7 @@ public class OsmPbfReader implements Sink
                 }
                 else
                 {
-                    logger.warn(MISSING_MEMBER_MESSAGE, relation.getId(), EntityType.Relation,
+                    logger.trace(MISSING_MEMBER_MESSAGE, relation.getId(), EntityType.Relation,
                             memberIdentifier);
                 }
             }

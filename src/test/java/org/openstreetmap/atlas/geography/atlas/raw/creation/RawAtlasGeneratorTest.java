@@ -5,8 +5,8 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.Segment;
@@ -24,6 +24,7 @@ import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.tags.SyntheticDuplicateOsmNodeTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Maps;
+import org.openstreetmap.atlas.utilities.scalars.Distance;
 
 import com.google.common.collect.Iterables;
 
@@ -66,7 +67,7 @@ public class RawAtlasGeneratorTest
         @SuppressWarnings("resource")
         final OsmosisReaderMock osmosis = new OsmosisReaderMock(store);
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(() -> osmosis,
-                AtlasLoadingOption.createOptionWithNoSlicing());
+                AtlasLoadingOption.createOptionWithNoSlicing(), MultiPolygon.MAXIMUM);
         final Atlas atlas = rawAtlasGenerator.build();
 
         // Verify Atlas Entities
@@ -76,7 +77,7 @@ public class RawAtlasGeneratorTest
         Assert.assertEquals(1, atlas.numberOfRelations());
     }
 
-    @Test(expected = CoreException.class)
+    @Test
     public void testLoadingPbfWithWayThatReferencesMissingNode()
     {
         final AtlasPrimitiveObjectStore store = new AtlasPrimitiveObjectStore();
@@ -94,11 +95,16 @@ public class RawAtlasGeneratorTest
         @SuppressWarnings("resource")
         final OsmosisReaderMock osmosis = new OsmosisReaderMock(store);
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(() -> osmosis,
-                AtlasLoadingOption.createOptionWithNoSlicing());
+                AtlasLoadingOption.createOptionWithNoSlicing(), MultiPolygon.MAXIMUM);
 
         // The raw Atlas should not get built, as one of the nodes referenced by the PBF is missing.
-        @SuppressWarnings("unused")
         final Atlas atlas = rawAtlasGenerator.build();
+
+        // Verify Atlas Entities
+        assertBasicRawAtlasPrinciples(atlas);
+        Assert.assertEquals(1, atlas.numberOfLines());
+        Assert.assertEquals(2, atlas.numberOfPoints());
+        Assert.assertEquals(0, atlas.numberOfRelations());
     }
 
     @Test
@@ -159,6 +165,22 @@ public class RawAtlasGeneratorTest
         Assert.assertEquals(52188, atlas.numberOfPoints());
         Assert.assertEquals(6080, atlas.numberOfLines());
         Assert.assertEquals(3, atlas.numberOfRelations());
+    }
+
+    @Test
+    public void testRawAtlasCreationWithBoundingBox()
+    {
+        final String path = RawAtlasGeneratorTest.class.getResource("9-433-268.osm.pbf").getPath();
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path),
+                MultiPolygon.forPolygon(Location.forWkt("POINT (124.9721500 -8.9466200)").bounds()
+                        .expand(Distance.meters(100))));
+        final Atlas atlas = rawAtlasGenerator.build();
+
+        // Verify Atlas Entities
+        assertBasicRawAtlasPrinciples(atlas);
+        Assert.assertEquals(1361, atlas.numberOfPoints());
+        Assert.assertEquals(25, atlas.numberOfLines());
+        Assert.assertEquals(0, atlas.numberOfRelations());
     }
 
     private void assertBasicRawAtlasPrinciples(final Atlas atlas)

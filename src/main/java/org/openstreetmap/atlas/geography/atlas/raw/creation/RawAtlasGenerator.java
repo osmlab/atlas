@@ -7,6 +7,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.GeometricSurface;
+import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
@@ -16,6 +18,7 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.CloseableOsmosisReader;
@@ -32,55 +35,95 @@ import org.slf4j.LoggerFactory;
 /**
  * The {@link RawAtlasGenerator} loads an OSM protobuf file and constructs a raw {@link Atlas} from
  * it. A raw {@link Atlas} will only contains Atlas {@link Point}s, {@link Line}s and
- * {@link Relation}s.
+ * {@link Relation}s. The protobuf file is structured in a specific way - there is a distinct order:
+ * the file first contains Nodes, then Ways and lastly Relations. Each Way only references the
+ * identifier, it doesn't contain any location or tag properties of the Nodes used to construct
+ * itself. In order to process them - we can either create a Node map or read the file twice. We
+ * also want to identify all features that will be part of the Atlas before building it so we can
+ * create an accurate {@link AtlasSize}. It is a lot faster to read the file twice than resize the
+ * underlying {@link PackedAtlas} arrays during build time. In our implementation, the
+ * {@link OsmPbfCounter} is responsible for identifying and counting what to pull in by going
+ * through the PBF file once. The {@link OsmPbfReader} will go through it a second time and build
+ * the raw Atlas using the information obtained from the counter.
  *
  * @author mgostintsev
  */
 public class RawAtlasGenerator
 {
     private static final Logger logger = LoggerFactory.getLogger(RawAtlasGenerator.class);
-    private final OsmPbfReader pbfReader;
+
+    // Used to identify and count all entities pulled into the Atlas
     private final OsmPbfCounter pbfCounter;
+
+    // Used to build the raw Atlas given the information from the OsmPbfCounter
+    private final OsmPbfReader pbfReader;
+
+    // The target bounding box. Anything outside of this will be discarded.
+    private final GeometricSurface boundingBox;
+
+    // Builder to build raw Atlas
     private final PackedAtlasBuilder builder;
+
+    // Any configurations needed
     private final AtlasLoadingOption atlasLoadingOption;
+
+    // Osmosis supplier
     private final Supplier<CloseableOsmosisReader> osmosisReaderSupplier;
 
+    // Raw atlas metadata
     private AtlasMetaData metaData = new AtlasMetaData();
 
     /**
-     * Constructor.
+     * Constructor that supplies the maximum bounds possible as the bounding box.
      *
      * @param resource
      *            The OSM PBF {@link Resource} to use
      */
     public RawAtlasGenerator(final Resource resource)
     {
-        // TODO : Update AtlasLoadingOption to remove country-slicing/way-sectioning configurations
-        // after refactor is complete.
-        this(resource, AtlasLoadingOption.createOptionWithNoSlicing());
+        this(resource, AtlasLoadingOption.createOptionWithNoSlicing(), MultiPolygon.MAXIMUM);
     }
 
     /**
-     * Constructor.
+     * Default constructor.
      *
      * @param resource
      *            The OSM PBF {@link Resource} to use
      * @param loadingOption
      *            The {@link AtlasLoadingOption} to use
+     * @param boundingBox
+     *            The bounding box to consider when including features in the raw atlas
      */
-    public RawAtlasGenerator(final Resource resource, final AtlasLoadingOption loadingOption)
+    public RawAtlasGenerator(final Resource resource, final AtlasLoadingOption loadingOption,
+            final MultiPolygon boundingBox)
     {
-        this(() -> new CloseableOsmosisReader(resource.read()), loadingOption);
+        this(() -> new CloseableOsmosisReader(resource.read()), loadingOption, boundingBox);
+    }
+
+    /**
+     * Constructor that uses the default configuration with a given bounding box.
+     *
+     * @param resource
+     *            The OSM PBF {@link Resource} to use
+     * @param boundingBox
+     *            The bounding box to consider when including features in the raw atlas
+     */
+    public RawAtlasGenerator(final Resource resource, final MultiPolygon boundingBox)
+    {
+        // TODO : Update AtlasLoadingOption to remove country-slicing/way-sectioning configurations
+        // after refactor is complete.
+        this(resource, AtlasLoadingOption.createOptionWithNoSlicing(), boundingBox);
     }
 
     protected RawAtlasGenerator(final Supplier<CloseableOsmosisReader> osmosisReaderSupplier,
-            final AtlasLoadingOption atlasLoadingOption)
+            final AtlasLoadingOption atlasLoadingOption, final GeometricSurface boundingBox)
     {
         this.osmosisReaderSupplier = osmosisReaderSupplier;
         this.atlasLoadingOption = atlasLoadingOption;
+        this.boundingBox = boundingBox;
         this.builder = new PackedAtlasBuilder();
         this.pbfReader = new OsmPbfReader(atlasLoadingOption, this.builder);
-        this.pbfCounter = new OsmPbfCounter(atlasLoadingOption);
+        this.pbfCounter = new OsmPbfCounter(atlasLoadingOption, this.boundingBox);
     }
 
     /**
@@ -93,17 +136,19 @@ public class RawAtlasGenerator
     public Atlas build()
     {
         // First pass -- loop through the PBF file and count the number of Points, Lines and
-        // Relations in the PBF file. The counts are used to initialize the Atlas Size Estimate when
+        // Relations in the file. The counts are used to initialize the AtlasSize estimate when
         // building the Raw Atlas. It's much faster to loop through the PBF file and count the
-        // entities rather than re-size the underlying entity arrays on the fly when building the
-        // Atlas.
+        // entities rather than re-size the underlying entity arrays on the fly when building.
         countOsmPbfEntities();
 
-        // Update the metadata to reflect any configuration that was used.
+        // Update the metadata to reflect any configuration that was used and use count results to
+        // set the AtlasSize estimate.
         populateAtlasMetadata();
-
-        // Use the entity counts from above to set the size estimates.
         setAtlasSizeEstimate();
+
+        // Update the reader to be aware of any included nodes/ways to avoid repeated calculations
+        this.pbfReader.setIncludedNodes(this.pbfCounter.getIncludedNodeIdentifiers());
+        this.pbfReader.setIncludedWays(this.pbfCounter.getIncludedWayIdentifiers());
 
         // Second pass -- loop through the PBF file again. This time, read the entities and
         // construct a raw Atlas.
@@ -305,6 +350,7 @@ public class RawAtlasGenerator
     private Set<Long> preFilterPointsToRemove(final Atlas atlas)
     {
         return this.pbfReader.getPointIdentifiersFromFilteredLines().stream()
+                .filter(identifier -> atlas.point(identifier) != null)
                 .filter(identifier -> isSimplePoint(atlas, identifier))
                 .filter(identifier -> !isRelationMember(atlas, identifier))
                 .filter(identifier -> !isShapePoint(atlas, identifier)).collect(Collectors.toSet());

@@ -101,7 +101,7 @@ public class SimpleChangeSetHandler extends ChangeSetHandler
         {
             final long lineIdentifier = line.getIdentifier();
             // Only add if we've not deleted this line
-            if (!this.changeSet.getDeletedLines().contains(lineIdentifier))
+            if (!this.changeSet.getDeletedToCreatedLineMapping().keySet().contains(lineIdentifier))
             {
                 // Add the Line with the updated tag value
                 if (this.changeSet.getUpdatedLineTags().containsKey(lineIdentifier))
@@ -145,24 +145,11 @@ public class SimpleChangeSetHandler extends ChangeSetHandler
                 this.getBuilder().addPoint(pointIdentifier, originalPoint.getLocation(),
                         updatedTags);
             }
-            else
-            {
-                // All points should have at least a country code tag addition after
-                // country-slicing takes place. If it doesn't, it means we couldn't slice it
-                // properly. Add this feature into the Atlas with a missing country code.
-                logger.error(
-                        "Adding Point {} with missing country code to maintain Atlas integrity.",
-                        pointIdentifier);
-                final Map<String, String> updatedTags = point.getTags();
-                updatedTags.put(ISOCountryTag.KEY, ISOCountryTag.COUNTRY_MISSING);
-                this.getBuilder().addPoint(pointIdentifier, point.getLocation(), updatedTags);
-            }
         });
     }
 
     /**
-     * Updates relations to replace any deleted member lines with member lines that got created
-     * during way slicing.
+     * Updates relations to replace or remove any members that were modified during slicing.
      */
     private void updateAndAddRelations()
     {
@@ -174,15 +161,14 @@ public class SimpleChangeSetHandler extends ChangeSetHandler
                 final long memberIdentifier = member.getEntity().getIdentifier();
                 final ItemType memberType = member.getEntity().getType();
 
-                if (this.changeSet.getDeletedToCreatedLineMapping().keySet()
-                        .contains(memberIdentifier) && memberType == ItemType.LINE)
+                if (memberType == ItemType.LINE && this.changeSet.getDeletedToCreatedLineMapping()
+                        .keySet().contains(memberIdentifier))
                 {
-                    // We found a deleted Line, replace it with the newly created Line(s)
+                    // Found a deleted line, try to replace it with the newly created line(s)
                     for (final long addedLineIdentifier : this.changeSet
                             .getDeletedToCreatedLineMapping().get(memberIdentifier))
                     {
-                        // Do one last sanity check to make sure the member we're adding
-                        // actually exists
+                        // Check that the new line being added exists
                         if (this.getBuilder().peek().line(addedLineIdentifier) != null)
                         {
                             bean.addItem(addedLineIdentifier, member.getRole(),
@@ -198,6 +184,14 @@ public class SimpleChangeSetHandler extends ChangeSetHandler
                         }
                     }
                 }
+                else if (memberType == ItemType.POINT
+                        && this.changeSet.getDeletedPoints().contains(memberIdentifier))
+                {
+                    // Found a deleted point, don't add it to the relation
+                    logger.trace(
+                            "Point {} wasn't in the working country set and is being filtered out of Relation {}",
+                            memberIdentifier, relation.getIdentifier());
+                }
                 else
                 {
                     // Non-deleted member, simply add it
@@ -205,8 +199,19 @@ public class SimpleChangeSetHandler extends ChangeSetHandler
                             member.getEntity().getType());
                 }
             }
-            this.getBuilder().addRelation(relation.getIdentifier(), relation.getOsmIdentifier(),
-                    bean, relation.getTags());
+
+            // Guard against empty relations - we might have filtered out all members if they
+            // weren't in the working country set
+            if (!bean.isEmpty())
+            {
+                this.getBuilder().addRelation(relation.getIdentifier(), relation.getOsmIdentifier(),
+                        bean, relation.getTags());
+            }
+            else
+            {
+                logger.trace("Excluding Relation {} from Atlas due to empty member list",
+                        relation.getIdentifier());
+            }
         }
     }
 

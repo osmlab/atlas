@@ -154,8 +154,7 @@ public class OsmPbfToSlicedRawAtlasTest
         Assert.assertEquals(57133, rawAtlas.numberOfLines());
         Assert.assertEquals(36, rawAtlas.numberOfRelations());
 
-        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
+        final Atlas slicedRawAtlas = sliceRawAtlas(rawAtlas, COUNTRIES);
 
         Assert.assertEquals(0, slicedRawAtlas.numberOfNodes());
         Assert.assertEquals(0, slicedRawAtlas.numberOfEdges());
@@ -165,18 +164,7 @@ public class OsmPbfToSlicedRawAtlasTest
         Assert.assertEquals(44, slicedRawAtlas.numberOfRelations());
 
         // Assert all Raw Atlas Entities have a country code
-        slicedRawAtlas.lines().forEach(line ->
-        {
-            Assert.assertTrue(Validators.hasValuesFor(line, ISOCountryTag.class));
-        });
-        slicedRawAtlas.points().forEach(point ->
-        {
-            Assert.assertTrue(Validators.hasValuesFor(point, ISOCountryTag.class));
-        });
-        slicedRawAtlas.relations().forEach(point ->
-        {
-            Assert.assertTrue(Validators.hasValuesFor(point, ISOCountryTag.class));
-        });
+        assertAllEntitiesHaveCountryCode(slicedRawAtlas);
 
         // Previous PBF-to-Atlas Implementation - let's compare the two results
         final String pbfPath = OsmPbfToSlicedRawAtlasTest.class.getResource("8-122-122.osm.pbf")
@@ -194,16 +182,61 @@ public class OsmPbfToSlicedRawAtlasTest
     }
 
     @Test
+    public void testPbfToSlicedRawAtlasFilterByCountry()
+    {
+        // This test is identical to test PbfToSlicedRawAtlas, except it will filter out neighboring
+        // countries
+        final String path = OsmPbfToSlicedRawAtlasTest.class.getResource("8-122-122.osm.pbf")
+                .getPath();
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
+        final Atlas rawAtlas = rawAtlasGenerator.build();
+
+        Assert.assertEquals(0, rawAtlas.numberOfNodes());
+        Assert.assertEquals(0, rawAtlas.numberOfEdges());
+        Assert.assertEquals(0, rawAtlas.numberOfAreas());
+        Assert.assertEquals(646583, rawAtlas.numberOfPoints());
+        Assert.assertEquals(57133, rawAtlas.numberOfLines());
+        Assert.assertEquals(36, rawAtlas.numberOfRelations());
+
+        final Set<IsoCountry> onlyIvoryCoast = new HashSet<>();
+        onlyIvoryCoast.add(IsoCountry.forCountryCode("CIV").get());
+        final Atlas slicedRawAtlas = sliceRawAtlas(rawAtlas, onlyIvoryCoast);
+
+        Assert.assertEquals(0, slicedRawAtlas.numberOfNodes());
+        Assert.assertEquals(0, slicedRawAtlas.numberOfEdges());
+        Assert.assertEquals(0, slicedRawAtlas.numberOfAreas());
+        Assert.assertEquals(298840, slicedRawAtlas.numberOfPoints());
+        Assert.assertEquals(27480, slicedRawAtlas.numberOfLines());
+        Assert.assertEquals(28, slicedRawAtlas.numberOfRelations());
+
+        // Assert all Raw Atlas Entities have a country code
+        assertAllEntitiesHaveCountryCode(slicedRawAtlas);
+
+        // Previous PBF-to-Atlas Implementation - let's compare the two results
+        final String pbfPath = OsmPbfToSlicedRawAtlasTest.class.getResource("8-122-122.osm.pbf")
+                .getPath();
+        final OsmPbfLoader loader = new OsmPbfLoader(new File(pbfPath),
+                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)
+                        .setWaySectioning(false).setAdditionalCountryCodes("CIV"));
+        final Atlas oldSlicedAtlas = loader.read();
+
+        Assert.assertTrue(
+                "The original Atlas counts of (Lines + Master Edges + Areas), without way-sectioning, should be"
+                        + "equal to the total number of all Lines in the Raw Atlas (+1 for relation handling).",
+                Iterables.size(Iterables.filter(oldSlicedAtlas.edges(), Edge::isMasterEdge))
+                        + oldSlicedAtlas.numberOfAreas()
+                        + oldSlicedAtlas.numberOfLines() == slicedRawAtlas.numberOfLines() - 1);
+    }
+
+    @Test
     public void testSectioningFromRawAtlas()
     {
         final String path = OsmPbfToSlicedRawAtlasTest.class.getResource("8-122-122.osm.pbf")
                 .getPath();
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
         final Atlas rawAtlas = rawAtlasGenerator.build();
-
         final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
                 .slice(rawAtlas);
-
         final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
@@ -217,7 +250,6 @@ public class OsmPbfToSlicedRawAtlasTest
                 .getPath();
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
         final Atlas rawAtlas = rawAtlasGenerator.build();
-
         final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
                 .slice(rawAtlas);
 
@@ -274,6 +306,7 @@ public class OsmPbfToSlicedRawAtlasTest
                 .getPath();
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(pbfPath));
         final Atlas rawAtlas = rawAtlasGenerator.build();
+
         final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(countries, countryBoundaryMap)
                 .slice(rawAtlas);
         final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
@@ -286,6 +319,22 @@ public class OsmPbfToSlicedRawAtlasTest
         Assert.assertEquals(1, finalAtlas.numberOfPoints());
         Assert.assertEquals(0, finalAtlas.numberOfLines());
         Assert.assertEquals(0, finalAtlas.numberOfRelations());
+    }
+
+    private void assertAllEntitiesHaveCountryCode(final Atlas atlas)
+    {
+        atlas.lines().forEach(line ->
+        {
+            Assert.assertTrue(Validators.hasValuesFor(line, ISOCountryTag.class));
+        });
+        atlas.points().forEach(point ->
+        {
+            Assert.assertTrue(Validators.hasValuesFor(point, ISOCountryTag.class));
+        });
+        atlas.relations().forEach(point ->
+        {
+            Assert.assertTrue(Validators.hasValuesFor(point, ISOCountryTag.class));
+        });
     }
 
     private Atlas generateSectionedAtlasStartingAtShard(final Shard shard,
@@ -307,5 +356,10 @@ public class OsmPbfToSlicedRawAtlasTest
         store.put(new SlippyTile(123, 123, 8), this.setup.getAtlasz8x123y123());
         store.put(new SlippyTile(123, 122, 8), this.setup.getAtlasz8x123y122());
         return store;
+    }
+
+    private Atlas sliceRawAtlas(final Atlas rawAtlas, final Set<IsoCountry> countries)
+    {
+        return new RawAtlasCountrySlicer(countries, COUNTRY_BOUNDARY_MAP).slice(rawAtlas);
     }
 }
