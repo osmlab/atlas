@@ -1,0 +1,61 @@
+package org.openstreetmap.atlas.proto.adapters;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.openstreetmap.atlas.utilities.maps.LongToLongMultiMap;
+import org.openstreetmap.atlas.utilities.time.Time;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * @author lcram
+ */
+public class ProtoLongToLongMultiMapAdapterTest
+{
+    private static final Logger logger = LoggerFactory
+            .getLogger(ProtoLongToLongMultiMapAdapterTest.class);
+    private static final int TEST_SIZE = 1000;
+    private static final int TEST_SUBARRAY_SIZE = 10_000;
+    private static final String TEST_NAME = "testmap";
+    private final ProtoLongToLongMultiMapAdapter adapter = new ProtoLongToLongMultiMapAdapter();
+
+    @Test
+    public void testConsistency()
+    {
+        final LongToLongMultiMap longMultiMap = new LongToLongMultiMap(TEST_NAME, TEST_SIZE);
+        for (int index = 0; index < TEST_SIZE; index++)
+        {
+            final long key = index;
+            final long[] values = new long[TEST_SUBARRAY_SIZE];
+            for (int subIndex = 0; subIndex < values.length; subIndex++)
+            {
+                values[subIndex] = subIndex;
+            }
+            longMultiMap.put(key, values);
+        }
+
+        Time startTime = Time.now();
+        final byte[] contents = this.adapter.serialize(longMultiMap);
+        logger.info("Took {} to serialize LongToLongMultiMap", startTime.elapsedSince());
+
+        startTime = Time.now();
+        final LongToLongMultiMap parsedFrom = (LongToLongMultiMap) this.adapter
+                .deserialize(contents);
+        logger.info("Took {} to deserialize LongToLongMultiMap from bytestream",
+                startTime.elapsedSince());
+
+        logger.info("Testing equality...");
+        Assert.assertEquals(longMultiMap.getName(), parsedFrom.getName());
+        for (int index = 0; index < TEST_SIZE; index++)
+        {
+            final long key = index;
+            final long[] values1 = longMultiMap.get(key);
+            final long[] values2 = parsedFrom.get(key);
+            Assert.assertEquals(values1.length, values2.length);
+            for (int subIndex = 0; subIndex < TEST_SUBARRAY_SIZE; subIndex++)
+            {
+                Assert.assertEquals(values1[subIndex], values2[subIndex]);
+            }
+        }
+    }
+}

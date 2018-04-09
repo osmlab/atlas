@@ -1,5 +1,8 @@
 package org.openstreetmap.atlas.utilities.maps;
 
+import org.openstreetmap.atlas.proto.ProtoSerializable;
+import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
+import org.openstreetmap.atlas.proto.adapters.ProtoLongToLongMultiMapAdapter;
 import org.openstreetmap.atlas.utilities.arrays.Arrays;
 import org.openstreetmap.atlas.utilities.arrays.LargeArray;
 import org.openstreetmap.atlas.utilities.arrays.LongArray;
@@ -10,8 +13,9 @@ import org.openstreetmap.atlas.utilities.collections.StringList;
  * {@link LargeMap} long to long[]
  *
  * @author matthieun
+ * @author lcram
  */
-public class LongToLongMultiMap extends LargeMap<Long, long[]>
+public class LongToLongMultiMap extends LargeMap<Long, long[]> implements ProtoSerializable
 {
     private static final long serialVersionUID = 6741833447370296269L;
 
@@ -33,6 +37,17 @@ public class LongToLongMultiMap extends LargeMap<Long, long[]>
     public LongToLongMultiMap(final long maximumSize, final int hashSize)
     {
         super(maximumSize, hashSize);
+    }
+
+    /**
+     * @param name
+     *            The name of the map
+     * @param maximumSize
+     *            The maximum number of keys in the map
+     */
+    public LongToLongMultiMap(final String name, final long maximumSize)
+    {
+        super(name, maximumSize);
     }
 
     /**
@@ -72,6 +87,12 @@ public class LongToLongMultiMap extends LargeMap<Long, long[]>
             result[0] = value;
         }
         this.put(key, result);
+    }
+
+    @Override
+    public ProtoAdapter getProtoAdapter()
+    {
+        return new ProtoLongToLongMultiMapAdapter();
     }
 
     @Override

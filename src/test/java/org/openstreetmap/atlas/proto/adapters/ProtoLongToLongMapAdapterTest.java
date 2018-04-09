@@ -39,7 +39,6 @@ public class ProtoLongToLongMapAdapterTest
 
         logger.info("Testing equality...");
         Assert.assertEquals(longMap.getName(), parsedFrom.getName());
-        Assert.assertEquals(longMap.getMaximumSize(), longMap.getMaximumSize());
         for (int index = 0; index < TEST_SIZE; index++)
         {
             Assert.assertEquals(longMap.get(index), parsedFrom.get(index));
