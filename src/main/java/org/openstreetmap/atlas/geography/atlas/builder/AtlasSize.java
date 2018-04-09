@@ -17,6 +17,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  * Size estimates for an {@link AtlasBuilder}
  *
  * @author matthieun
+ * @author lcram
  */
 public class AtlasSize implements Serializable
 {
@@ -110,6 +111,46 @@ public class AtlasSize implements Serializable
         this.lineNumber = lineNumber;
         this.pointNumber = pointNumber;
         this.relationNumber = relationNumber;
+    }
+
+    @Override
+    public boolean equals(final Object other)
+    {
+        if (other instanceof AtlasSize)
+        {
+            if (this == other)
+            {
+                return true;
+            }
+            final AtlasSize that = (AtlasSize) other;
+            if (this.getEdgeNumber() != that.getEdgeNumber())
+            {
+                return false;
+            }
+            if (this.getNodeNumber() != that.getNodeNumber())
+            {
+                return false;
+            }
+            if (this.getAreaNumber() != that.getAreaNumber())
+            {
+                return false;
+            }
+            if (this.getLineNumber() != that.getLineNumber())
+            {
+                return false;
+            }
+            if (this.getPointNumber() != that.getPointNumber())
+            {
+                return false;
+            }
+            if (this.getRelationNumber() != that.getRelationNumber())
+            {
+                return false;
+            }
+
+            return true;
+        }
+        return false;
     }
 
     public long getAreaNumber()
