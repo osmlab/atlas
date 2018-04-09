@@ -14,13 +14,14 @@ public class ProtoLongToLongMapAdapterTest
 {
     private static final Logger logger = LoggerFactory
             .getLogger(ProtoLongToLongMapAdapterTest.class);
-    private static final int TEST_SIZE = 5_000_000;
+    private static final int TEST_SIZE = 500_000;
+    private static final String TEST_NAME = "testmap";
     private final ProtoLongToLongMapAdapter adapter = new ProtoLongToLongMapAdapter();
 
     @Test
     public void testConsistency()
     {
-        final LongToLongMap longMap = new LongToLongMap("test", TEST_SIZE);
+        final LongToLongMap longMap = new LongToLongMap(TEST_NAME, TEST_SIZE);
         for (int index = 0; index < TEST_SIZE; index++)
         {
             final long value = index;
@@ -37,6 +38,7 @@ public class ProtoLongToLongMapAdapterTest
                 startTime.elapsedSince());
 
         logger.info("Testing equality...");
+        Assert.assertEquals(longMap.getName(), parsedFrom.getName());
         Assert.assertEquals(longMap.getMaximumSize(), longMap.getMaximumSize());
         for (int index = 0; index < TEST_SIZE; index++)
         {

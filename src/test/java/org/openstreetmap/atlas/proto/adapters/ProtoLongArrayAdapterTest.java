@@ -13,7 +13,8 @@ import org.slf4j.LoggerFactory;
 public class ProtoLongArrayAdapterTest
 {
     private static final Logger logger = LoggerFactory.getLogger(ProtoLongArrayAdapterTest.class);
-    private static final int TEST_SIZE = 5_000_000;
+    private static final int TEST_SIZE = 500_000;
+    private static final String TEST_NAME = "testarray";
     private final ProtoLongArrayAdapter adapter = new ProtoLongArrayAdapter();
 
     @Test
@@ -25,7 +26,7 @@ public class ProtoLongArrayAdapterTest
             final long value = index;
             longArray.add(value);
         }
-        longArray.setName("test");
+        longArray.setName(TEST_NAME);
 
         Time startTime = Time.now();
         final byte[] contents = this.adapter.serialize(longArray);
@@ -38,6 +39,7 @@ public class ProtoLongArrayAdapterTest
         // We have to compare arrays pair-wise since assertArrayEquals tries to print the entire
         // array for some reason
         logger.info("Testing array equality...");
+        Assert.assertEquals(longArray.getName(), parsedFrom.getName());
         for (int index = 0; index < TEST_SIZE; index++)
         {
             Assert.assertEquals(longArray.get(index), parsedFrom.get(index));

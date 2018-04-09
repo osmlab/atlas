@@ -15,7 +15,8 @@ public class ProtoIntegerArrayOfArraysAdapterTest
     private static final Logger logger = LoggerFactory
             .getLogger(ProtoIntegerArrayOfArraysAdapterTest.class);
     private static final int TEST_ARRAY_SIZE = 200;
-    private static final int TEST_SUBARRAY_SIZE = 100_000;
+    private static final int TEST_SUBARRAY_SIZE = 10_000;
+    private static final String TEST_NAME = "testarray";
     private final ProtoIntegerArrayOfArraysAdapter adapter = new ProtoIntegerArrayOfArraysAdapter();
 
     @Test
@@ -31,6 +32,7 @@ public class ProtoIntegerArrayOfArraysAdapterTest
             }
             integerArrayOfArrays.add(items);
         }
+        integerArrayOfArrays.setName(TEST_NAME);
 
         Time startTime = Time.now();
         final byte[] contents = this.adapter.serialize(integerArrayOfArrays);
@@ -43,6 +45,7 @@ public class ProtoIntegerArrayOfArraysAdapterTest
                 startTime.elapsedSince());
 
         logger.info("Testing equality...");
+        Assert.assertEquals(integerArrayOfArrays.getName(), parsedFrom.getName());
         Assert.assertEquals(integerArrayOfArrays.size(), parsedFrom.size());
         for (int index = 0; index < TEST_ARRAY_SIZE; index++)
         {
