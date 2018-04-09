@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
@@ -156,6 +157,14 @@ public final class AtlasMetaData implements Serializable, Taggable, ProtoSeriali
     public Map<String, String> getTags()
     {
         return new HashMap<>(this.tags);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int sizeHash = this.getSize().hashCode();
+        return Objects.hash(Integer.valueOf(sizeHash), Boolean.valueOf(this.original),
+                this.codeVersion, this.country, this.shardName, this.tags);
     }
 
     public boolean isOriginal()

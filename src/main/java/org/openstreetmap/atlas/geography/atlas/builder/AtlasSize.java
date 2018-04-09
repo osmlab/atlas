@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.builder;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.Objects;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
@@ -181,6 +182,14 @@ public class AtlasSize implements Serializable
     public long getRelationNumber()
     {
         return this.relationNumber;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(Long.valueOf(this.edgeNumber), Long.valueOf(this.nodeNumber),
+                Long.valueOf(this.areaNumber), Long.valueOf(this.lineNumber),
+                Long.valueOf(this.pointNumber), Long.valueOf(this.relationNumber));
     }
 
     @Override
