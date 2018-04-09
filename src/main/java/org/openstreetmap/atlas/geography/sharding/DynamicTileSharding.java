@@ -366,6 +366,55 @@ public class DynamicTileSharding extends Command implements Sharding
         return Iterables.stream(this.root.leafNodesIntersecting(polyLine)).map(Node::getTile);
     }
 
+    /**
+     * Calculates and saves the counts for each zoom layer lower than firstZoomLayerToGenerate.
+     *
+     * @param firstZoomLayerToGenerate
+     *            the first zoom layer for which to generate counts
+     * @param counts
+     *            HashMap containing counts for all {@link SlippyTile}s in
+     *            firstZoomLayerToGenerate+1
+     * @return a HashMap containing counts for all (@link SlippyTile}s in zoomLayerToGenerate and
+     *         below
+     */
+    protected Map<SlippyTile, Long> calculateTileCountsForAllZoom(
+            final int firstZoomLayerToGenerate, final Map<SlippyTile, Long> counts)
+    {
+        for (int currentZoom = firstZoomLayerToGenerate; currentZoom >= 0; currentZoom--)
+        {
+            long count = 0;
+            long tilesCalculated = 0;
+            for (int x = 0; x < Math.pow(2, currentZoom + 1); x += 2)
+            {
+                for (int y = 0; y < Math.pow(2, currentZoom + 1); y += 2)
+                {
+                    count = 0;
+                    // top left
+                    count += counts.getOrDefault(new SlippyTile(x, y, currentZoom + 1), (long) 0);
+                    // top right
+                    count += counts.getOrDefault(new SlippyTile(x + 1, y, currentZoom + 1),
+                            (long) 0);
+                    // bottom left
+                    count += counts.getOrDefault(new SlippyTile(x, y + 1, currentZoom + 1),
+                            (long) 0);
+                    // bottom right
+                    count += counts.getOrDefault(new SlippyTile(x + 1, y + 1, currentZoom + 1),
+                            (long) 0);
+                    if (count != 0)
+                    {
+                        counts.put(new SlippyTile(x / 2, y / 2, currentZoom), count);
+                    }
+                    if (++tilesCalculated % READER_REPORT_FREQUENCY == 0)
+                    {
+                        logger.info("Calculated {} zoom level {} tiles.", tilesCalculated,
+                                currentZoom);
+                    }
+                }
+            }
+        }
+        return counts;
+    }
+
     @Override
     protected int onRun(final CommandMap command)
     {
@@ -377,7 +426,7 @@ public class DynamicTileSharding extends Command implements Sharding
             numberLines++;
         }
         logger.info("There are {} tiles.", numberLines);
-        HashMap<SlippyTile, Long> counts = new HashMap<>(numberLines);
+        Map<SlippyTile, Long> counts = new HashMap<>(numberLines);
         final WritableResource output = (WritableResource) command.get(OUTPUT);
         final int maximum = (int) command.get(MAXIMUM_COUNT);
         final int minimumZoom = (int) command.get(MINIMUM_ZOOM);
@@ -396,7 +445,11 @@ public class DynamicTileSharding extends Command implements Sharding
                 logger.info("Read counts for {} zoom level {} tiles.", counter, zoom);
             }
         }
-        final HashMap<SlippyTile, Long> allCounts = calculateTileCountsForAllZoom(maximumZoom - 2,
+        // maximumZoom is decremented by 2 because it represents the highest zoom that the sharding
+        // tree will split to. The input CSV (definition) has count information at the
+        // (maximumZoom-1) level, which is already put into the HashMap "counts" by the code above.
+        // Therefore we want to start calculating counts one level below, which is (maximumZoom-2)
+        final Map<SlippyTile, Long> allCounts = calculateTileCountsForAllZoom(maximumZoom - 2,
                 counts);
         counts = null;
         if (zoom == 0)
@@ -445,55 +498,6 @@ public class DynamicTileSharding extends Command implements Sharding
     {
         return new SwitchList().with(DEFINITION, OUTPUT, MINIMUM_ZOOM, MAXIMUM_ZOOM, MAXIMUM_COUNT,
                 GEOJSON);
-    }
-
-    /**
-     * Calculates and saves the counts for each zoom layer lower than firstZoomLayerToGenerate.
-     *
-     * @param firstZoomLayerToGenerate
-     *            the first zoom layer for which to generate counts
-     * @param countsAtHigherZoom
-     *            HashMap containing counts for all {@link SlippyTile}s in
-     *            firstZoomLayerToGenerate+1
-     * @return a HashMap containing counts for all (@link SlippyTile}s in zoomLayerToGenerate and
-     *         below
-     */
-    private HashMap<SlippyTile, Long> calculateTileCountsForAllZoom(
-            final int firstZoomLayerToGenerate, final HashMap<SlippyTile, Long> counts)
-    {
-        for (int currentZoom = firstZoomLayerToGenerate; currentZoom >= 0; currentZoom--)
-        {
-            long count = 0;
-            long tilesCalculated = 0;
-            for (int x = 0; x < Math.pow(2, currentZoom + 1); x += 2)
-            {
-                for (int y = 0; y < Math.pow(2, currentZoom + 1); y += 2)
-                {
-                    count = 0;
-                    // top left
-                    count += counts.getOrDefault(new SlippyTile(x, y, currentZoom + 1), (long) 0);
-                    // top right
-                    count += counts.getOrDefault(new SlippyTile(x + 1, y, currentZoom + 1),
-                            (long) 0);
-                    // bottom left
-                    count += counts.getOrDefault(new SlippyTile(x, y + 1, currentZoom + 1),
-                            (long) 0);
-                    // bottom right
-                    count += counts.getOrDefault(new SlippyTile(x + 1, y + 1, currentZoom + 1),
-                            (long) 0);
-                    if (count != 0)
-                    {
-                        counts.put(new SlippyTile(x / 2, y / 2, currentZoom), count);
-                    }
-                    if (++tilesCalculated % READER_REPORT_FREQUENCY == 0)
-                    {
-                        logger.info("Calculated {} zoom level {} tiles.", tilesCalculated,
-                                currentZoom);
-                    }
-                }
-            }
-        }
-        return counts;
     }
 
     /**
