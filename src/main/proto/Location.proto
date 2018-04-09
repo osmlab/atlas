@@ -5,7 +5,7 @@ option java_outer_classname = "ProtoLocationWrapper";
 
 package org.openstreetmap.atlas.proto;
 
-import "protoatlas/Tag.proto";
+import "Tag.proto";
 
 message ProtoLocation {
     optional int32 latitude = 1;

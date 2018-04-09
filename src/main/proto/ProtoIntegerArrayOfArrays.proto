@@ -5,7 +5,7 @@ option java_outer_classname = "ProtoIntegerArrayOfArraysWrapper";
 
 package org.openstreetmap.atlas.proto;
 
-import "packedatlas/ProtoIntegerArray.proto";
+import "ProtoIntegerArray.proto";
 
 message ProtoIntegerArrayOfArrays {
     optional string name = 1;

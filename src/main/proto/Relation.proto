@@ -5,7 +5,7 @@ option java_outer_classname = "ProtoRelationWrapper";
 
 package org.openstreetmap.atlas.proto;
 
-import "protoatlas/Tag.proto";
+import "Tag.proto";
 
 message ProtoRelation {
     optional int64 id = 1;

@@ -5,12 +5,12 @@ option java_outer_classname = "ProtoAtlasContainerWrapper";
 
 package org.openstreetmap.atlas.proto;
 
-import "protoatlas/Point.proto";
-import "protoatlas/Line.proto";
-import "protoatlas/Area.proto";
-import "protoatlas/Node.proto";
-import "protoatlas/Edge.proto";
-import "protoatlas/Relation.proto";
+import "Point.proto";
+import "Line.proto";
+import "Area.proto";
+import "Node.proto";
+import "Edge.proto";
+import "Relation.proto";
 
 /*
  * NOTE: the 'repeated' directive is cpmpiled into Java as an ArrayList.

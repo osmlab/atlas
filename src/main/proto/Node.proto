@@ -5,8 +5,8 @@ option java_outer_classname = "ProtoNodeWrapper";
 
 package org.openstreetmap.atlas.proto;
 
-import "protoatlas/Location.proto";
-import "protoatlas/Tag.proto";
+import "Location.proto";
+import "Tag.proto";
 
 message ProtoNode {
     optional int64 id = 1;
