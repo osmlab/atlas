@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
+import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.maps.MultiMapTest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,6 +79,13 @@ public class MultiPolygonTest
         final PolyLine jumpyLine = new PolyLine(Location.forString("32.095270, 19.955880"),
                 Location.forString("39.927387, 32.842205"));
         Assert.assertFalse(multiPolygon.fullyGeometricallyEncloses(jumpyLine));
+    }
+
+    @Test
+    public void testEmptyMultiPolygon()
+    {
+        final MultiPolygon empty = new MultiPolygon(new MultiMap<>());
+        Assert.assertNull(empty.bounds());
     }
 
     @Test
