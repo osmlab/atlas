@@ -172,6 +172,7 @@ dependencies
 
 task shaded(type: Jar){
     baseName = project.name
+    classifier = 'shaded'
     from
     {
         configurations.shaded.collect
