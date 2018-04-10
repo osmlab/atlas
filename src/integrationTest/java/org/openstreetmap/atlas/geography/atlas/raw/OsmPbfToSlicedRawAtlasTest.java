@@ -144,8 +144,7 @@ public class OsmPbfToSlicedRawAtlasTest
         // nested relations (http://www.openstreetmap.org/relation/3314886)
         final String path = OsmPbfToSlicedRawAtlasTest.class.getResource("8-122-122.osm.pbf")
                 .getPath();
-        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path),
-                MultiPolygon.MAXIMUM);
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
         final Atlas rawAtlas = rawAtlasGenerator.build();
 
         Assert.assertEquals(0, rawAtlas.numberOfNodes());
@@ -189,8 +188,7 @@ public class OsmPbfToSlicedRawAtlasTest
         // countries
         final String path = OsmPbfToSlicedRawAtlasTest.class.getResource("8-122-122.osm.pbf")
                 .getPath();
-        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path),
-                MultiPolygon.MAXIMUM);
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
         final Atlas rawAtlas = rawAtlasGenerator.build();
 
         Assert.assertEquals(0, rawAtlas.numberOfNodes());
@@ -235,13 +233,10 @@ public class OsmPbfToSlicedRawAtlasTest
     {
         final String path = OsmPbfToSlicedRawAtlasTest.class.getResource("8-122-122.osm.pbf")
                 .getPath();
-        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path),
-                MultiPolygon.MAXIMUM);
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
         final Atlas rawAtlas = rawAtlasGenerator.build();
-
         final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
                 .slice(rawAtlas);
-
         final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
@@ -253,10 +248,8 @@ public class OsmPbfToSlicedRawAtlasTest
     {
         final String path = OsmPbfToSlicedRawAtlasTest.class.getResource("8-122-122.osm.pbf")
                 .getPath();
-        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path),
-                MultiPolygon.MAXIMUM);
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
         final Atlas rawAtlas = rawAtlasGenerator.build();
-
         final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
                 .slice(rawAtlas);
 
@@ -277,9 +270,8 @@ public class OsmPbfToSlicedRawAtlasTest
 
         final Atlas finalAtlas = new WaySectionProcessor(new SlippyTile(122, 122, 8),
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP),
-                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class
-                        .getResource(
-                                "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
+                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class.getResource(
+                        "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
                         .getFile())),
                 rawAtlasFetcher).run();
 
@@ -311,8 +303,7 @@ public class OsmPbfToSlicedRawAtlasTest
         // Create a raw atlas, slice and section it
         final String pbfPath = OsmPbfToSlicedRawAtlasTest.class.getResource("node-4353689487.pbf")
                 .getPath();
-        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(pbfPath),
-                MultiPolygon.MAXIMUM);
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(pbfPath));
         final Atlas rawAtlas = rawAtlasGenerator.build();
 
         final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(countries, countryBoundaryMap)
@@ -350,9 +341,8 @@ public class OsmPbfToSlicedRawAtlasTest
     {
         return new WaySectionProcessor(shard,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP),
-                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class
-                        .getResource(
-                                "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
+                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class.getResource(
+                        "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
                         .getFile())),
                 rawAtlasFetcher).run();
     }

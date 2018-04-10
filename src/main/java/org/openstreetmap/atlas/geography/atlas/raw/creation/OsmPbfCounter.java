@@ -5,22 +5,21 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Latitude;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Longitude;
-import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
+import org.openstreetmap.atlas.geography.atlas.pbf.store.TagMap;
 import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.RouteTag;
-import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.osmosis.core.container.v0_6.EntityContainer;
 import org.openstreetmap.osmosis.core.domain.v0_6.Bound;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
@@ -28,7 +27,6 @@ import org.openstreetmap.osmosis.core.domain.v0_6.EntityType;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
 import org.openstreetmap.osmosis.core.domain.v0_6.Relation;
 import org.openstreetmap.osmosis.core.domain.v0_6.RelationMember;
-import org.openstreetmap.osmosis.core.domain.v0_6.Tag;
 import org.openstreetmap.osmosis.core.domain.v0_6.Way;
 import org.openstreetmap.osmosis.core.domain.v0_6.WayNode;
 import org.openstreetmap.osmosis.core.task.v0_6.Sink;
@@ -36,10 +34,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link OsmPbfCounter} is responsible for counting the number of {@link Point}s, {@link Line}s
- * and {@link org.openstreetmap.atlas.geography.atlas.items.Relation}s can be extracted from the
- * given OSM PBF file. This information will be used to populate the {@link AtlasSize} field to
- * efficiently construct a Raw {@link Atlas}.
+ * The {@link OsmPbfCounter} is responsible for identifying and counting the number of
+ * {@link Point}s, {@link Line}s and {@link org.openstreetmap.atlas.geography.atlas.items.Relation}s
+ * that will be brought in from the given OSM PBF file. This information will be used to populate
+ * the {@link AtlasSize} field to efficiently construct a Raw {@link Atlas}. The logic for
+ * determining whether a feature should be brought in is as follows: *
+ * <ul>
+ * <li>Look at each OSM Node, if it's inside the given bounding box, bring it in. Keep track of all
+ * nodes that were not brought in.
+ * <li>Look at each OSM Way, if it has a Node that was brought in, bring in the Way and all other
+ * Nodes that are part of this Way (since they may not have been originally brought in).
+ * <li>Look at each OSM Relation at a shallow level - if it has a member (Node, Way or Relation)
+ * that was brought in, go ahead and bring this Relation in. At this stage, we don't look at nested
+ * relations. If we can't find a shallow member, stage this relation.
+ * <li>Look at all staged relations and try to bring any in. If we loop through all staged relations
+ * without bringing anything in, we can conclude that all remaining relations are either fully
+ * outside the given boundary or are looping over each other.
+ * </ul>
  *
  * @author mgostintsev
  */
@@ -50,7 +61,8 @@ public class OsmPbfCounter implements Sink
     private static final int MAXIMUM_NETWORK_EXTENSION = 2;
 
     private final AtlasLoadingOption loadingOption;
-    private final MultiPolygon boundingBox;
+
+    private final GeometricSurface boundingBox;
 
     // Identifiers to bring in to the raw atlas
     private final Set<Long> nodeIdentifiersToInclude = new HashSet<>();
@@ -72,7 +84,7 @@ public class OsmPbfCounter implements Sink
      * @param boundingBox
      *            The bounding box to consider when including features in the raw atlas
      */
-    public OsmPbfCounter(final AtlasLoadingOption loadingOption, final MultiPolygon boundingBox)
+    public OsmPbfCounter(final AtlasLoadingOption loadingOption, final GeometricSurface boundingBox)
     {
         this.loadingOption = loadingOption;
         this.boundingBox = boundingBox;
@@ -263,24 +275,7 @@ public class OsmPbfCounter implements Sink
 
     private boolean isHighwayOrFerry(final Way way)
     {
-        final Taggable taggableWay = new Taggable()
-        {
-            private Map<String, String> tags = null;
-
-            @Override
-            public Optional<String> getTag(final String key)
-            {
-                if (this.tags == null)
-                {
-                    this.tags = new HashMap<>();
-                    for (final Tag tag : way.getTags())
-                    {
-                        this.tags.put(tag.getKey(), tag.getValue());
-                    }
-                }
-                return Optional.ofNullable(this.tags.get(key));
-            }
-        };
+        final TagMap taggableWay = new TagMap(way.getTags());
         return HighwayTag.isCoreWay(taggableWay) || RouteTag.isFerry(taggableWay);
     }
 
