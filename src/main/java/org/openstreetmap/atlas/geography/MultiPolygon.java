@@ -139,7 +139,7 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
     @Override
     public Rectangle bounds()
     {
-        if (this.bounds == null)
+        if (this.bounds == null && !this.isEmpty())
         {
             final Set<Location> locations = new HashSet<>();
             forEach(polygon -> polygon.forEach(location -> locations.add(location)));
