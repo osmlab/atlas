@@ -18,10 +18,10 @@ import org.openstreetmap.atlas.proto.adapters.ProtoIntegerStringDictionaryAdapte
 public class IntegerDictionary<Type> implements Serializable, ProtoSerializable
 {
     private static final long serialVersionUID = -1781411097803512149L;
-    public static final String INDEX_FIELD = "index";
 
     private final Map<Type, Integer> wordToIndex;
     private final Map<Integer, Type> indexToWord;
+
     private int index = 0;
 
     public IntegerDictionary()
