@@ -53,7 +53,7 @@ public class IntegerDictionary<Type> implements Serializable, ProtoSerializable
 
     public int size()
     {
-        return this.wordToIndex.size();
+        return this.index;
     }
 
     public Type word(final int index)

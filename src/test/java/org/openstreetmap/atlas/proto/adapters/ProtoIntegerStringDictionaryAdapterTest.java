@@ -57,5 +57,4 @@ public class ProtoIntegerStringDictionaryAdapterTest
         @SuppressWarnings("unused")
         final byte[] contents = dictionary.getProtoAdapter().serialize(dictionary);
     }
-
 }
