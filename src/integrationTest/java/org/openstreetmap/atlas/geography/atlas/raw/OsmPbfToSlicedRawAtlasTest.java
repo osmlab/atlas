@@ -270,8 +270,9 @@ public class OsmPbfToSlicedRawAtlasTest
 
         final Atlas finalAtlas = new WaySectionProcessor(new SlippyTile(122, 122, 8),
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP),
-                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class.getResource(
-                        "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
+                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class
+                        .getResource(
+                                "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
                         .getFile())),
                 rawAtlasFetcher).run();
 
@@ -341,8 +342,9 @@ public class OsmPbfToSlicedRawAtlasTest
     {
         return new WaySectionProcessor(shard,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP),
-                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class.getResource(
-                        "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
+                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class
+                        .getResource(
+                                "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
                         .getFile())),
                 rawAtlasFetcher).run();
     }

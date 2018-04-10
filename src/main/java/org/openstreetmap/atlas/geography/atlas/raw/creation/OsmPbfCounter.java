@@ -61,7 +61,6 @@ public class OsmPbfCounter implements Sink
     private static final int MAXIMUM_NETWORK_EXTENSION = 2;
 
     private final AtlasLoadingOption loadingOption;
-
     private final GeometricSurface boundingBox;
 
     // Identifiers to bring in to the raw atlas

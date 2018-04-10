@@ -201,10 +201,6 @@ public abstract class RawAtlasSlicer
     protected Map<String, String> createPointTags(final Location location,
             final boolean fromRawAtlas)
     {
-        if (location.equals(Location.forWkt("POINT (-63.0473703 18.001941)")))
-        {
-            System.out.println("Trying to get tags for our target point");
-        }
         final Map<String, String> tags = new HashMap<>();
 
         // Get the country code details
