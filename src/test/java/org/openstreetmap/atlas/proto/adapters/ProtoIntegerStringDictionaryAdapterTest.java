@@ -1,13 +1,12 @@
 package org.openstreetmap.atlas.proto.adapters;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.compression.IntegerDictionary;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.vividsolutions.jts.util.Assert;
 
 /**
  * @author lcram
@@ -40,10 +39,10 @@ public class ProtoIntegerStringDictionaryAdapterTest
                 startTime.elapsedSince());
 
         logger.info("Testing equality...");
-        Assert.equals(dictionary.size(), parsedFrom.size());
+        Assert.assertEquals(dictionary.size(), parsedFrom.size());
         for (int index = 0; index < dictionary.size(); index++)
         {
-            Assert.equals(dictionary.word(index), parsedFrom.word(index));
+            Assert.assertEquals(dictionary.word(index), parsedFrom.word(index));
         }
     }
 
