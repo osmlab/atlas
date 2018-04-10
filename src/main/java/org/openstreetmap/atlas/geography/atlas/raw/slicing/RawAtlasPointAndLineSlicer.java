@@ -152,22 +152,27 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         return false;
     }
 
-    /**
-     * Checks if there is a single slice or if all of the slices are in the same country.
-     *
-     * @param line
-     *            The {@link Line} that was sliced
-     * @param slices
-     *            The resulting sliced pieces
-     * @return {@code true} if the slices for this line are all part of the same country
-     */
-    private boolean lineBelongsToSingleCountry(final Line line, final List<Geometry> slices)
+    private boolean isOutsideWorkingBound(final Map<String, String> tags)
     {
-        // TODO - this is an optimization that hides the corner case of not slicing any pier or
-        // ferry that extends into the ocean. Because the ocean isn't viewed as another country, the
-        // pier and ferries are not sliced at the country boundary and ocean. This should be fixed
-        // for consistency issues.
-        return slices.size() == 1 || CountryBoundaryMap.isSameCountry(slices);
+        if (getCountries() != null && !getCountries().isEmpty())
+        {
+            final String tagValue = tags.get(ISOCountryTag.KEY);
+            final String[] countryCodes = tagValue.split(ISOCountryTag.COUNTRY_DELIMITER);
+            for (final String countryCode : countryCodes)
+            {
+                // Break if any one the countries is inside the bound
+                if (getCountries().contains(IsoCountry.forCountryCode(countryCode).get()))
+                {
+                    return false;
+                }
+            }
+
+            // We've gone through all the countries and haven't seen one inside, it must be outside
+            return true;
+        }
+
+        // Assume it's inside
+        return false;
     }
 
     /**
@@ -191,12 +196,20 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             this.slicedPointAndLineChanges.updateLineTags(line.getIdentifier(), tags);
             updateLineShapePoints(line);
         }
-        else if (lineBelongsToSingleCountry(line, slices))
+        else if (slicesBelongToSingleCountry(slices))
         {
-            // This line belongs to a single country
-            this.slicedPointAndLineChanges.updateLineTags(line.getIdentifier(),
-                    createLineTags(slices.get(0), line.getTags()));
-            updateLineShapePoints(line);
+            // This line belongs to a single country, check to make sure it's the right one
+            if (isOutsideWorkingBound(slices.get(0)))
+            {
+                this.slicedPointAndLineChanges.createDeletedToCreatedMapping(line.getIdentifier(),
+                        Collections.emptySet());
+            }
+            else
+            {
+                this.slicedPointAndLineChanges.updateLineTags(line.getIdentifier(),
+                        createLineTags(slices.get(0), line.getTags()));
+                updateLineShapePoints(line);
+            }
         }
         else if (slices.size() < AbstractIdentifierFactory.IDENTIFIER_SCALE)
         {
@@ -253,14 +266,14 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                                 final TemporaryPoint newPoint = createNewPoint(coordinate,
                                         pointIdentifierFactory, pointTags);
 
-                                // Store coordinate to avoid creating duplicate Points
+                                // Store coordinate to avoid creating duplicate points
                                 getCoordinateToPointMapping().storeMapping(coordinate,
                                         newPoint.getIdentifier());
 
-                                // Store this point to reconstruct the Line geometry
+                                // Store this point to reconstruct the line geometry
                                 newLineShapePoints.add(newPoint.getIdentifier());
 
-                                // Save the Point to add to the rebuilt atlas
+                                // Save the point to add to the rebuilt atlas
                                 this.slicedPointAndLineChanges.createPoint(newPoint);
                             }
                             else
@@ -296,8 +309,6 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                 // Update the change with the added and removed lines
                 createdLines.forEach(
                         createdLine -> this.slicedPointAndLineChanges.createLine(createdLine));
-
-                this.slicedPointAndLineChanges.deleteLine(line.getIdentifier());
                 this.slicedPointAndLineChanges.createDeletedToCreatedMapping(line.getIdentifier(),
                         createdLines.stream().map(TemporaryLine::getIdentifier)
                                 .collect(Collectors.toSet()));
@@ -376,8 +387,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
 
     /**
      * Updates all points that haven't been assigned a country code after line-slicing. This
-     * includes any stand-alone points (e.g. trees, barriers) or points that fell outside of any
-     * country boundary.
+     * includes any stand-alone points (e.g. trees, barriers) or points that didn't get sliced
+     * during line slicing.
      */
     private void slicePoints()
     {
@@ -389,10 +400,35 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             if (!this.slicedPointAndLineChanges.getUpdatedPointTags().containsKey(pointIdentifier))
             {
                 getStatistics().recordProcessedPoint();
-                this.slicedPointAndLineChanges.updatePointTags(pointIdentifier,
-                        createPointTags(point.getLocation(), true));
+                final Map<String, String> updatedTags = createPointTags(point.getLocation(), true);
+                if (isOutsideWorkingBound(updatedTags))
+                {
+                    // This point is outside our boundary, remove it
+                    this.slicedPointAndLineChanges.deletePoint(pointIdentifier);
+                }
+                else
+                {
+                    // Update the point tags
+                    this.slicedPointAndLineChanges.updatePointTags(pointIdentifier, updatedTags);
+                }
             }
         });
+    }
+
+    /**
+     * Checks if there is a single slice or if all of the slices are in the same country.
+     *
+     * @param slices
+     *            The sliced pieces to check
+     * @return {@code true} if the slices for this line are all part of the same country
+     */
+    private boolean slicesBelongToSingleCountry(final List<Geometry> slices)
+    {
+        // TODO - this is an optimization that hides the corner case of not slicing any pier or
+        // ferry that extends into the ocean. Because the ocean isn't viewed as another country, the
+        // pier and ferries are not sliced at the country boundary and ocean. This should be fixed
+        // for consistency issues.
+        return slices.size() == 1 || CountryBoundaryMap.isSameCountry(slices);
     }
 
     /**

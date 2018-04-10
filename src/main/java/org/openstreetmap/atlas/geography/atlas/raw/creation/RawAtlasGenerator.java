@@ -6,15 +6,22 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.GeometricSurface;
+import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
+import org.openstreetmap.atlas.geography.atlas.pbf.CloseableOsmosisReader;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.AtlasTag;
@@ -25,12 +32,19 @@ import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import crosby.binary.osmosis.OsmosisReader;
-
 /**
  * The {@link RawAtlasGenerator} loads an OSM protobuf file and constructs a raw {@link Atlas} from
  * it. A raw {@link Atlas} will only contains Atlas {@link Point}s, {@link Line}s and
- * {@link Relation}s.
+ * {@link Relation}s. The protobuf file is structured in a specific way - there is a distinct order:
+ * the file first contains Nodes, then Ways and lastly Relations. Each Way only references the
+ * identifier, it doesn't contain any location or tag properties of the Nodes used to construct
+ * itself. In order to process them - we can either create a Node map or read the file twice. We
+ * also want to identify all features that will be part of the Atlas before building it so we can
+ * create an accurate {@link AtlasSize}. It is a lot faster to read the file twice than resize the
+ * underlying {@link PackedAtlas} arrays during build time. In our implementation, the
+ * {@link OsmPbfCounter} is responsible for identifying and counting what to pull in by going
+ * through the PBF file once. The {@link OsmPbfReader} will go through it a second time and build
+ * the raw Atlas using the information obtained from the counter.
  *
  * @author mgostintsev
  */
@@ -38,48 +52,78 @@ public class RawAtlasGenerator
 {
     private static final Logger logger = LoggerFactory.getLogger(RawAtlasGenerator.class);
 
-    private OsmosisReader reader;
-    private final OsmPbfReader pbfReader;
+    // Used to identify and count all entities pulled into the Atlas
     private final OsmPbfCounter pbfCounter;
+
+    // Used to build the raw Atlas given the information from the OsmPbfCounter
+    private final OsmPbfReader pbfReader;
+
+    // The target bounding box. Anything outside of this will be discarded.
+    private final GeometricSurface boundingBox;
+
+    // Builder to build raw Atlas
     private final PackedAtlasBuilder builder;
+
+    // Any configurations needed
     private final AtlasLoadingOption atlasLoadingOption;
-    private final Supplier<OsmosisReader> osmosisReaderSupplier;
+
+    // Osmosis supplier
+    private final Supplier<CloseableOsmosisReader> osmosisReaderSupplier;
+
+    // Raw atlas metadata
     private AtlasMetaData metaData = new AtlasMetaData();
 
     /**
-     * Constructor.
+     * Constructor that supplies the maximum bounds possible as the bounding box.
      *
      * @param resource
      *            The OSM PBF {@link Resource} to use
      */
     public RawAtlasGenerator(final Resource resource)
     {
-        // TODO : Update AtlasLoadingOption to remove country-slicing/way-sectioning configurations
-        // after refactor is complete.
-        this(resource, AtlasLoadingOption.createOptionWithNoSlicing());
+        this(resource, AtlasLoadingOption.createOptionWithNoSlicing(), MultiPolygon.MAXIMUM);
     }
 
     /**
-     * Constructor.
+     * Default constructor.
      *
      * @param resource
      *            The OSM PBF {@link Resource} to use
      * @param loadingOption
      *            The {@link AtlasLoadingOption} to use
+     * @param boundingBox
+     *            The bounding box to consider when including features in the raw atlas
      */
-    public RawAtlasGenerator(final Resource resource, final AtlasLoadingOption loadingOption)
+    public RawAtlasGenerator(final Resource resource, final AtlasLoadingOption loadingOption,
+            final MultiPolygon boundingBox)
     {
-        this(() -> new OsmosisReader(resource.read()), loadingOption);
+        this(() -> new CloseableOsmosisReader(resource.read()), loadingOption, boundingBox);
     }
 
-    protected RawAtlasGenerator(final Supplier<OsmosisReader> osmosisReaderSupplier,
-            final AtlasLoadingOption atlasLoadingOption)
+    /**
+     * Constructor that uses the default configuration with a given bounding box.
+     *
+     * @param resource
+     *            The OSM PBF {@link Resource} to use
+     * @param boundingBox
+     *            The bounding box to consider when including features in the raw atlas
+     */
+    public RawAtlasGenerator(final Resource resource, final MultiPolygon boundingBox)
+    {
+        // TODO : Update AtlasLoadingOption to remove country-slicing/way-sectioning configurations
+        // after refactor is complete.
+        this(resource, AtlasLoadingOption.createOptionWithNoSlicing(), boundingBox);
+    }
+
+    protected RawAtlasGenerator(final Supplier<CloseableOsmosisReader> osmosisReaderSupplier,
+            final AtlasLoadingOption atlasLoadingOption, final GeometricSurface boundingBox)
     {
         this.osmosisReaderSupplier = osmosisReaderSupplier;
         this.atlasLoadingOption = atlasLoadingOption;
+        this.boundingBox = boundingBox;
         this.builder = new PackedAtlasBuilder();
         this.pbfReader = new OsmPbfReader(atlasLoadingOption, this.builder);
-        this.pbfCounter = new OsmPbfCounter(atlasLoadingOption);
+        this.pbfCounter = new OsmPbfCounter(atlasLoadingOption, this.boundingBox);
     }
 
     /**
@@ -92,17 +136,19 @@ public class RawAtlasGenerator
     public Atlas build()
     {
         // First pass -- loop through the PBF file and count the number of Points, Lines and
-        // Relations in the PBF file. The counts are used to initialize the Atlas Size Estimate when
+        // Relations in the file. The counts are used to initialize the AtlasSize estimate when
         // building the Raw Atlas. It's much faster to loop through the PBF file and count the
-        // entities rather than re-size the underlying entity arrays on the fly when building the
-        // Atlas.
+        // entities rather than re-size the underlying entity arrays on the fly when building.
         countOsmPbfEntities();
 
-        // Update the metadata to reflect any configuration that was used.
+        // Update the metadata to reflect any configuration that was used and use count results to
+        // set the AtlasSize estimate.
         populateAtlasMetadata();
-
-        // Use the entity counts from above to set the size estimates.
         setAtlasSizeEstimate();
+
+        // Update the reader to be aware of any included nodes/ways to avoid repeated calculations
+        this.pbfReader.setIncludedNodes(this.pbfCounter.getIncludedNodeIdentifiers());
+        this.pbfReader.setIncludedWays(this.pbfCounter.getIncludedWayIdentifiers());
 
         // Second pass -- loop through the PBF file again. This time, read the entities and
         // construct a raw Atlas.
@@ -166,8 +212,14 @@ public class RawAtlasGenerator
     private Atlas buildRawAtlas()
     {
         final Time parseTime = Time.now();
-        connectOsmPbfToPbfConsumer(this.pbfReader);
-        this.reader.run();
+        try (CloseableOsmosisReader reader = connectOsmPbfToPbfConsumer(this.pbfReader))
+        {
+            reader.run();
+        }
+        catch (final Exception e)
+        {
+            throw new CoreException("Error during Atlas creation from PBF", e);
+        }
         logger.info("Read PBF in {}, preparing to build Raw Atlas", parseTime.elapsedSince());
 
         final Time buildTime = Time.now();
@@ -192,10 +244,11 @@ public class RawAtlasGenerator
     /**
      * Connects the given {@link Sink} implementation to the PBF File.
      */
-    private void connectOsmPbfToPbfConsumer(final Sink consumer)
+    private CloseableOsmosisReader connectOsmPbfToPbfConsumer(final Sink consumer)
     {
-        this.reader = this.osmosisReaderSupplier.get();
-        this.reader.setSink(consumer);
+        final CloseableOsmosisReader reader = this.osmosisReaderSupplier.get();
+        reader.setSink(consumer);
+        return reader;
     }
 
     /**
@@ -206,8 +259,14 @@ public class RawAtlasGenerator
     private void countOsmPbfEntities()
     {
         final Time countTime = Time.now();
-        connectOsmPbfToPbfConsumer(this.pbfCounter);
-        this.reader.run();
+        try (CloseableOsmosisReader reader = connectOsmPbfToPbfConsumer(this.pbfCounter))
+        {
+            reader.run();
+        }
+        catch (final Exception e)
+        {
+            throw new CoreException("Error counting PBF entities", e);
+        }
         logger.info("Counted PBF entities in {}", countTime.elapsedSince());
     }
 
@@ -291,6 +350,7 @@ public class RawAtlasGenerator
     private Set<Long> preFilterPointsToRemove(final Atlas atlas)
     {
         return this.pbfReader.getPointIdentifiersFromFilteredLines().stream()
+                .filter(identifier -> atlas.point(identifier) != null)
                 .filter(identifier -> isSimplePoint(atlas, identifier))
                 .filter(identifier -> !isRelationMember(atlas, identifier))
                 .filter(identifier -> !isShapePoint(atlas, identifier)).collect(Collectors.toSet());
@@ -337,8 +397,22 @@ public class RawAtlasGenerator
         atlas.relations().forEach(relation ->
         {
             final RelationBean bean = new RelationBean();
-            relation.members().forEach(member -> bean.addItem(member.getEntity().getIdentifier(),
-                    member.getRole(), member.getEntity().getType()));
+            relation.members().forEach(member ->
+            {
+                final AtlasEntity entity = member.getEntity();
+                final long memberIdentifier = entity.getIdentifier();
+                if (entity.getType() == ItemType.POINT && pointsToRemove.contains(memberIdentifier))
+                {
+                    // Make sure not to add any removed points
+                    logger.debug(
+                            "Excluding point {} from relation {} since point was removed from Atlas",
+                            memberIdentifier, relation.getIdentifier());
+                }
+                else
+                {
+                    bean.addItem(memberIdentifier, member.getRole(), entity.getType());
+                }
+            });
             builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(), bean,
                     relation.getTags());
         });
@@ -355,12 +429,12 @@ public class RawAtlasGenerator
      * <li>1. A {@link Point} was a shape point for an OSM {@link Way} that was removed. This point
      * doesn't have any tags, isn't a part of a {@link Relation} and doesn't intersect with any
      * other features in the Atlas.
-     * <li>2. A {@link Point} has multiple points at its {@link Location}. In this case, we sort all
-     * the Points, keep the one with the smallest identifier, add a
-     * {@link SyntheticDuplicateOsmNodeTag} and remove the rest of the duplicate Points. Note: we
-     * can potentially be tossing out OSM Nodes with non-empty tags. However, this is the most
-     * deterministic and simple way to handle this. The presence of the synthetic tag will make it
-     * easy to write an Atlas Check to resolve the data error.
+     * <li>2. There are multiple {@link Point}s at a {@link Location}. In this case, we sort all the
+     * points, keep the one with the smallest identifier, add a {@link SyntheticDuplicateOsmNodeTag}
+     * and remove the rest of the duplicate points. Note: we can potentially be tossing out OSM
+     * Nodes with non-empty tags. However, this is the most deterministic and simple way to handle
+     * this. The presence of the synthetic tag will make it easy to write an Atlas Check to resolve
+     * the data error.
      * </ul>
      *
      * @param atlas

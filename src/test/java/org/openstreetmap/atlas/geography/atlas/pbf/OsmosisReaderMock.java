@@ -3,7 +3,6 @@ package org.openstreetmap.atlas.geography.atlas.pbf;
 import java.util.HashMap;
 
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveObjectStore;
-import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader.CloseableOsmosisReader;
 import org.openstreetmap.atlas.geography.atlas.pbf.converters.AtlasPrimitiveAreaToOsmosisWayConverter;
 import org.openstreetmap.atlas.geography.atlas.pbf.converters.AtlasPrimitiveLineItemToOsmosisWayConverter;
 import org.openstreetmap.atlas.geography.atlas.pbf.converters.AtlasPrimitiveLocationItemToOsmosisNodeConverter;

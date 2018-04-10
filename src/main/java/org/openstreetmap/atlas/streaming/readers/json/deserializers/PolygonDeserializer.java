@@ -19,6 +19,12 @@ public class PolygonDeserializer implements JsonDeserializer<Polygon>
 {
     private final PolygonCoordinateConverter multiMultiCoordinateConverter = new PolygonCoordinateConverter();
 
+    /**
+     * @deprecated Currently doesn't return accurate geometric representations for Geojson polygons
+     *             with inner rings use {@link MultiPolygonDeserializer} and check to see if the
+     *             returned multipolygon is a simple polygon
+     **/
+    @Deprecated
     @Override
     public Polygon deserialize(final JsonElement json, final Type typeOfT,
             final JsonDeserializationContext context) throws JsonParseException

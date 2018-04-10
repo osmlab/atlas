@@ -23,6 +23,7 @@ import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.builder.proto.ProtoAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.builder.text.TextAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -467,6 +468,12 @@ public abstract class BareAtlas implements Atlas
             Streams.close(writer);
             throw new CoreException("Could not save atlas as list", e);
         }
+    }
+
+    @Override
+    public void saveAsProto(final WritableResource resource)
+    {
+        new ProtoAtlasBuilder().write(this, resource);
     }
 
     @Override

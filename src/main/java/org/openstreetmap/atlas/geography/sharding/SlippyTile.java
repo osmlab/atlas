@@ -22,7 +22,7 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
  * @author matthieun
  * @author mgostintsev
  */
-public class SlippyTile implements Shard
+public class SlippyTile implements Shard, Comparable<SlippyTile>
 {
     private static final long serialVersionUID = -3752920878013084039L;
 
@@ -70,13 +70,37 @@ public class SlippyTile implements Shard
         {
             throw new CoreException("Zoom too large.");
         }
+        final Iterable<SlippyTile> result = () -> allTilesIterator(zoom, bounds);
+        final List<SlippyTile> list = Iterables.asList(result);
+        if (list.isEmpty())
+        {
+            throw new CoreException("List cannot be empty");
+        }
+        return list;
+    }
+
+    /**
+     * Iterator for all tiles within some bounds
+     *
+     * @param zoom
+     *            The zoom to consider
+     * @param bounds
+     *            The bounds to consider
+     * @return Iterator for all tiles within some bounds
+     */
+    public static Iterator<SlippyTile> allTilesIterator(final int zoom, final Rectangle bounds)
+    {
+        if (zoom > MAX_ZOOM)
+        {
+            throw new CoreException("Zoom too large.");
+        }
         final SlippyTile lowerLeft = new SlippyTile(bounds.lowerLeft(), zoom);
         final SlippyTile upperRight = new SlippyTile(bounds.upperRight(), zoom);
         final int minX = lowerLeft.getX();
         final int maxX = upperRight.getX();
         final int minY = upperRight.getY();
         final int maxY = lowerLeft.getY();
-        final Iterable<SlippyTile> result = () -> new Iterator<SlippyTile>()
+        final Iterator<SlippyTile> result = new Iterator<SlippyTile>()
         {
             private int xAxis = minX;
             private int yAxis = minY;
@@ -104,12 +128,7 @@ public class SlippyTile implements Shard
                 return result;
             }
         };
-        final List<SlippyTile> list = Iterables.asList(result);
-        if (list.isEmpty())
-        {
-            throw new CoreException("List cannot be empty");
-        }
-        return list;
+        return result;
     }
 
     /**
@@ -180,6 +199,49 @@ public class SlippyTile implements Shard
             this.bounds = tile2boundingBox(this.xAxis, this.yAxis, this.zoom);
         }
         return this.bounds;
+    }
+
+    @Override
+    public int compareTo(final SlippyTile other)
+    {
+        // Order by z-level, x-value and then y-value
+        final int zoomLevelDelta = this.getZoom() - other.getZoom();
+        if (zoomLevelDelta > 0)
+        {
+            return 1;
+        }
+        else if (zoomLevelDelta < 0)
+        {
+            return -1;
+        }
+        else
+        {
+            final int xDelta = this.getX() - other.getX();
+            if (xDelta > 0)
+            {
+                return 1;
+            }
+            else if (xDelta < 0)
+            {
+                return -1;
+            }
+            else
+            {
+                final int yDelta = this.getY() - other.getY();
+                if (yDelta > 0)
+                {
+                    return 1;
+                }
+                else if (yDelta < 0)
+                {
+                    return -1;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
     }
 
     @Override

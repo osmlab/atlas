@@ -1,0 +1,39 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_outer_classname = "ProtoAtlasContainerWrapper";
+
+package org.openstreetmap.atlas.proto;
+
+import "Point.proto";
+import "Line.proto";
+import "Area.proto";
+import "Node.proto";
+import "Edge.proto";
+import "Relation.proto";
+
+/*
+ * NOTE: the 'repeated' directive is cpmpiled into Java as an ArrayList.
+ * The ArrayList implementation has a 32bit signed integer size limit.
+ * This could be a potential problem for atlases with an absurd number
+ * of a specific feature.
+ */
+message ProtoAtlasContainer {
+    optional int64 numberOfPoints = 1;
+    repeated ProtoPoint points = 2;
+
+    optional int64 numberOfLines = 3;
+    repeated ProtoLine lines = 4;
+
+    optional int64 numberOfAreas = 5;
+    repeated ProtoArea areas = 6;
+
+    optional int64 numberOfNodes = 7;
+    repeated ProtoNode nodes = 8;
+
+    optional int64 numberOfEdges = 9;
+    repeated ProtoEdge edges = 10;
+
+    optional int64 numberOfRelations = 11;
+    repeated ProtoRelation relations = 12;
+}

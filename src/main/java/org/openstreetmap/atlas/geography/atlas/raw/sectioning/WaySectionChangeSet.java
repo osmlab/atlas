@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -24,6 +25,8 @@ import org.openstreetmap.atlas.utilities.maps.MultiMap;
  * <li>Raw atlas point staying a {@link Point} (vs. becoming a simple shape point).
  * <li>Raw atlas line becoming an {@link Edge}.
  * <li>Raw atlas line becoming an {@link Area}.
+ * <li>Raw atlas line staying an {@link Area}, implying some raw atlas lines get filtered from the
+ * final atlas.
  * <li>{@link Relation} member updates. If a raw atlas line becomes a series of {@link Edge}s, we
  * need to update the relation member bean to remove the line and add all the edges that replaced
  * it.
@@ -35,10 +38,10 @@ public class WaySectionChangeSet
 {
     // All 1-1 mappings
     private final Set<Long> linesToBecomeAreas;
+    private final Set<Long> linesExcludedFromAtlas;
     private final Set<Long> pointsToStayPoints;
 
-    // Mapping of line identifiers (that become edges) to a collection of TemporaryNodes and their
-    // occurrences
+    // Mapping of line identifiers (that become edges) to TemporaryNodes
     private final Map<Long, NodeOccurrenceCounter> edgeToNodeMapping;
 
     // Mapping of line identifiers to temporary edges. These are needed so we can update the
@@ -48,6 +51,7 @@ public class WaySectionChangeSet
     public WaySectionChangeSet()
     {
         this.linesToBecomeAreas = new HashSet<>();
+        this.linesExcludedFromAtlas = new HashSet<>();
         this.pointsToStayPoints = new HashSet<>();
         this.edgeToNodeMapping = new HashMap<>();
         this.lineToEdgeMapping = new MultiMap<>();
@@ -67,6 +71,17 @@ public class WaySectionChangeSet
     public List<TemporaryEdge> getCreatedEdges()
     {
         return this.lineToEdgeMapping.allValues();
+    }
+
+    public Set<TemporaryNode> getCreatedNodes()
+    {
+        return this.edgeToNodeMapping.values().stream()
+                .flatMap(mapping -> mapping.getNodes().stream()).collect(Collectors.toSet());
+    }
+
+    public Set<Long> getExcludedLines()
+    {
+        return this.linesExcludedFromAtlas;
     }
 
     public Set<Long> getLinesThatBecomeAreas()
@@ -89,11 +104,10 @@ public class WaySectionChangeSet
         return this.edgeToNodeMapping.get(line.getIdentifier());
     }
 
-    public Set<TemporaryNode> getPointsThatBecomeNodes()
+    public Set<Long> getPointsThatBecomeNodes()
     {
-        final Set<TemporaryNode> allNodes = new HashSet<>();
-        this.edgeToNodeMapping.values().forEach(mapping -> allNodes.addAll(mapping.getNodes()));
-        return allNodes;
+        return this.getCreatedNodes().stream().map(TemporaryNode::getIdentifier)
+                .collect(Collectors.toSet());
     }
 
     public Set<Long> getPointsThatStayPoints()
@@ -104,6 +118,11 @@ public class WaySectionChangeSet
     public void recordArea(final Line line)
     {
         this.linesToBecomeAreas.add(line.getIdentifier());
+    }
+
+    public void recordExcludedLine(final Line line)
+    {
+        this.linesExcludedFromAtlas.add(line.getIdentifier());
     }
 
     public void recordPoint(final Point point)

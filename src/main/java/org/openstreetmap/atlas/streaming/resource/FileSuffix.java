@@ -21,6 +21,7 @@ public enum FileSuffix
     EXTENDED(".ext"),
     JSON(".json"),
     PBF(".pbf"),
+    PROTOATLAS(".patlas"),
     TEMPORARY(".tmp"),
     TEXT(".txt"),
     ZIP(".zip"),

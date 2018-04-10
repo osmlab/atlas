@@ -19,7 +19,7 @@ public class CountryBoundaryMapIntegrationTest
     public void testCountryBoundaryMapFromAtlas()
     {
         final Atlas atlas = this.rule.getAtlas();
-        final CountryBoundaryMap map = new CountryBoundaryMap(atlas);
+        final CountryBoundaryMap map = CountryBoundaryMap.fromAtlas(atlas);
         Assert.assertEquals(2, map.allCountryNames().size());
         Assert.assertEquals(
                 "MULTIPOLYGON (((-75.2288309 18.3520806, -75.2336999 18.3664654, -75.2384618 18.398702, "

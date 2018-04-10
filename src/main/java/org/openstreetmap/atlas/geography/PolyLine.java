@@ -1118,24 +1118,26 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     }
 
     /**
-     * Truncates this {@link PolyLine} at the given start and end index
+     * Truncates this {@link PolyLine} at the given start and end index. If the provided indices are
+     * invalid, an empty Iterable will be returned.
      *
-     * @param startIndex
+     * @param indexFromStart
      *            The index before which to truncate from the start
-     * @param endIndex
+     * @param indexFromEnd
      *            The index after which to truncate from the end
      * @return all the locations in this {@link PolyLine} after truncation.
      */
-    public Iterable<Location> truncate(final int startIndex, final int endIndex)
+    public Iterable<Location> truncate(final int indexFromStart, final int indexFromEnd)
     {
-        if (startIndex < 0 || endIndex < 0 || startIndex >= this.size() || endIndex >= this.size()
-                || startIndex + endIndex >= this.size())
+        if (indexFromStart < 0 || indexFromEnd < 0 || indexFromStart >= this.size()
+                || indexFromEnd >= this.size() || indexFromStart + indexFromEnd >= this.size())
         {
-            throw new CoreException("Invalid start index {} or end index {} supplied.", startIndex,
-                    endIndex);
+            logger.debug("Invalid start index {} or end index {} supplied.", indexFromStart,
+                    indexFromEnd);
+            return Collections.emptyList();
         }
 
-        return Iterables.stream(this).truncate(startIndex, endIndex);
+        return Iterables.stream(this).truncate(indexFromStart, indexFromEnd);
     }
 
     /**

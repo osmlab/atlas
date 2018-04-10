@@ -5,7 +5,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
@@ -126,16 +126,16 @@ public abstract class AtlasEntity implements AtlasObject
     }
 
     /**
-     * Return true if the entity intersects the polygon. If it is a {@link LocationItem}, the
-     * polygon fully encloses it. For a {@link LineItem} the polygon overlaps it. For an
-     * {@link Area} the polygon overlaps it. For a relation, at least one member of the relation
-     * returns true to this method.
+     * Return true if the entity intersects the geometricSurface. If it is a {@link LocationItem},
+     * the polygon fully encloses it. For a {@link LineItem} the geometricSurface overlaps it. For
+     * an {@link Area} the geometricSurface overlaps it. For a relation, at least one member of the
+     * relation returns true to this method.
      *
-     * @param polygon
-     *            The polygon to test
+     * @param surface
+     *            The {@link GeometricSurface} to test
      * @return True if it intersects
      */
-    public abstract boolean intersects(Polygon polygon);
+    public abstract boolean intersects(GeometricSurface surface);
 
     /**
      * @return If available, the {@link Time} at which the entity was last edited.

@@ -10,10 +10,10 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.MultiPolygon;
-import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
@@ -128,9 +128,9 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     }
 
     @Override
-    public boolean intersects(final Polygon polygon)
+    public boolean intersects(final GeometricSurface surface)
     {
-        return intersectsInternal(polygon, new LinkedHashSet<>());
+        return intersectsInternal(surface, new LinkedHashSet<>());
     }
 
     public boolean isMultiPolygon()
@@ -248,13 +248,13 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
      * {@link PackedAtlas} but could happen when two {@link Atlas} are combined into a
      * {@link MultiAtlas}.
      *
-     * @param polygon
-     *            The polygon to check for
+     * @param surface
+     *            The {@link GeometricSurface} to check for
      * @param parentRelationIdentifiers
      *            The identifiers of the parent relations that have already been visited.
-     * @return True if the relation intersects the polygon
+     * @return True if the relation intersects the geometricSurface
      */
-    protected boolean intersectsInternal(final Polygon polygon,
+    protected boolean intersectsInternal(final GeometricSurface surface,
             final Set<Long> parentRelationIdentifiers)
     {
         for (final RelationMember member : this)
@@ -270,13 +270,13 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
                 else
                 {
                     parentRelationIdentifiers.add(identifier);
-                    if (((Relation) entity).intersectsInternal(polygon, parentRelationIdentifiers))
+                    if (((Relation) entity).intersectsInternal(surface, parentRelationIdentifiers))
                     {
                         return true;
                     }
                 }
             }
-            else if (entity.intersects(polygon))
+            else if (entity.intersects(surface))
             {
                 return true;
             }
