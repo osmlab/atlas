@@ -4,6 +4,10 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.openstreetmap.atlas.proto.ProtoSerializable;
+import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
+import org.openstreetmap.atlas.proto.adapters.ProtoIntegerStringDictionaryAdapter;
+
 /**
  * Simple dictionary encoding for {@link String}s
  *
@@ -11,12 +15,13 @@ import java.util.Map;
  * @param <Type>
  *            The type to encode. Typically called word
  */
-public class IntegerDictionary<Type> implements Serializable
+public class IntegerDictionary<Type> implements Serializable, ProtoSerializable
 {
     private static final long serialVersionUID = -1781411097803512149L;
+    public static final String INDEX_FIELD = "index";
+
     private final Map<Type, Integer> wordToIndex;
     private final Map<Integer, Type> indexToWord;
-
     private int index = 0;
 
     public IntegerDictionary()
@@ -34,6 +39,21 @@ public class IntegerDictionary<Type> implements Serializable
         this.wordToIndex.put(word, this.index);
         this.indexToWord.put(this.index, word);
         return this.index++;
+    }
+
+    // TODO the problem here is that if someone tries to get an adapter for an
+    // IntegerDictionary<SomeTypeThatIsNotAString>, this method will return the wrong adapter.
+    // Currently, the ProtoIntegerStringDictionaryAdapter class's serialize() method handles this by
+    // catching a ClassCastException and rethrowing a CoreException with a better message.
+    @Override
+    public ProtoAdapter getProtoAdapter()
+    {
+        return new ProtoIntegerStringDictionaryAdapter();
+    }
+
+    public int size()
+    {
+        return this.wordToIndex.size();
     }
 
     public Type word(final int index)
