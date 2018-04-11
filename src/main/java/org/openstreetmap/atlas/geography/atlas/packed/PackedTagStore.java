@@ -48,7 +48,7 @@ public class PackedTagStore implements Serializable
      */
     public void add(final long index, final String key, final String value)
     {
-        if (index > this.index)
+        if (index > size())
         {
             throw new CoreException(
                     "Cannot add. Invalid index " + index + " is bigger than the size " + size());
