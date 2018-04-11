@@ -38,6 +38,17 @@ public class MultiPolygonClipperTest
             Location.forString("37.331287,-121.995459"), Location.TEST_3);
 
     @Test
+    public void testEmptyClip()
+    {
+        final Polygon outer = Polygon.wkt(
+                "POLYGON ((-122.05576 37.332439,  -122.009566 37.36531, -122.031007 37.390535, -122.05576 37.332439))");
+        final MultiPolygon clipping = MultiPolygon.forPolygon(outer);
+        final MultiPolygon clipped = SUBJECT_MULTIPOLYGON.clip(clipping, ClipType.AND)
+                .getClipMultiPolygon();
+        Assert.assertTrue(clipped.isEmpty());
+    }
+
+    @Test
     public void testMultiPolygonAnd()
     {
         final MultiPolygon clipped = SUBJECT_MULTIPOLYGON.clip(CLIPPING, ClipType.AND)

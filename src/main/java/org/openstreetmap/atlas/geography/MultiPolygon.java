@@ -139,7 +139,7 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
     @Override
     public Rectangle bounds()
     {
-        if (this.bounds == null)
+        if (this.bounds == null && !this.isEmpty())
         {
             final Set<Location> locations = new HashSet<>();
             forEach(polygon -> polygon.forEach(location -> locations.add(location)));
@@ -239,28 +239,9 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
     }
 
     /**
-     * @param polyLine
-     *            A {@link PolyLine} item
-     * @return True if the {@link MultiPolygon} contains the provided {@link PolyLine}.
-     */
-    @Override
-    public boolean fullyGeometricallyEncloses(final PolyLine polyLine)
-    {
-        for (final Polygon outer : outers())
-        {
-            if (outer.fullyGeometricallyEncloses(polyLine))
-            {
-                return this.getOuterToInners().get(outer).stream()
-                        .noneMatch(inner -> inner.overlaps(polyLine));
-            }
-        }
-        return false;
-    }
-
-    /**
      * Tests to see if entire surface of the provided {@link MultiPolygon} lies within this
      * {@link MultiPolygon}
-     * 
+     *
      * @param that
      *            the provided {@link MultiPolygon} to test
      * @return true if the conditions are met, false otherwise
@@ -287,6 +268,25 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
             }
         }
         return true;
+    }
+
+    /**
+     * @param polyLine
+     *            A {@link PolyLine} item
+     * @return True if the {@link MultiPolygon} contains the provided {@link PolyLine}.
+     */
+    @Override
+    public boolean fullyGeometricallyEncloses(final PolyLine polyLine)
+    {
+        for (final Polygon outer : outers())
+        {
+            if (outer.fullyGeometricallyEncloses(polyLine))
+            {
+                return this.getOuterToInners().get(outer).stream()
+                        .noneMatch(inner -> inner.overlaps(polyLine));
+            }
+        }
+        return false;
     }
 
     @Override
@@ -334,6 +334,14 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
     }
 
     /**
+     * @return {@code true} if this {@link MultiPolygon} doesn't have any outer members
+     */
+    public boolean isEmpty()
+    {
+        return this.outerToInners.isEmpty();
+    }
+
+    /**
      * @return whether this Multipolygon can be represented as a {@link Polygon}
      */
     public boolean isSimplePolygon()
@@ -368,15 +376,17 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
         return this.outerToInners.keySet();
     }
 
-    public boolean overlaps(final PolyLine polyLine)
-    {
-        return overlapsInternal(polyLine, true);
-    }
-
+    @Override
     public boolean overlaps(final MultiPolygon otherMultiPolygon)
     {
         return this.outers().stream().anyMatch(otherMultiPolygon::overlaps)
                 && otherMultiPolygon.outers().stream().anyMatch(this::overlaps);
+    }
+
+    @Override
+    public boolean overlaps(final PolyLine polyLine)
+    {
+        return overlapsInternal(polyLine, true);
     }
 
     public void saveAsGeoJson(final WritableResource resource)
