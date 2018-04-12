@@ -7,7 +7,6 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
@@ -105,7 +104,7 @@ public abstract class ChangeSetHandler
                 Math.round(this.getAtlas().numberOfPoints() * ENTITY_SCALING_FACTOR),
                 this.getAtlas().numberOfRelations());
         this.getBuilder().setSizeEstimates(size);
-        this.getBuilder().setMetaData(new AtlasMetaData());
+        this.getBuilder().setMetaData(this.atlas.metaData());
     }
 
 }

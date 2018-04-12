@@ -367,7 +367,7 @@ public class WaySectionProcessor
     }
 
     /**
-     * Updates the {@link AtlasMetaData} with all configurations.
+     * Updates the {@link AtlasMetaData} with all Atlas Entity configurations.
      *
      * @return the final {@link AtlasMetaData}
      */
@@ -380,12 +380,6 @@ public class WaySectionProcessor
                 this.loadingOption.getAreaFilter().toString());
         metadata.getTags().put(AtlasMetaData.WAY_SECTIONING_CONFIGURATION,
                 this.loadingOption.getWaySectionFilter().toString());
-        metadata.getTags().put(AtlasMetaData.OSM_PBF_NODE_CONFIGURATION,
-                this.loadingOption.getOsmPbfNodeFilter().toString());
-        metadata.getTags().put(AtlasMetaData.OSM_PBF_WAY_CONFIGURATION,
-                this.loadingOption.getOsmPbfWayFilter().toString());
-        metadata.getTags().put(AtlasMetaData.OSM_PBF_RELATION_CONFIGURATION,
-                this.loadingOption.getOsmPbfRelationFilter().toString());
         return metadata;
     }
 
