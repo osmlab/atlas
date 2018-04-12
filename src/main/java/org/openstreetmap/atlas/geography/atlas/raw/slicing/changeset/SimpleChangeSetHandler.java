@@ -29,7 +29,7 @@ public class SimpleChangeSetHandler extends ChangeSetHandler
     private final SimpleChangeSet changeSet;
 
     // Keep track of empty relations that have been filtered to avoid adding them to their parents
-    final Set<Long> filteredEmptyRelations = new HashSet<>();
+    private final Set<Long> filteredEmptyRelations = new HashSet<>();
 
     /**
      * Default constructor.
