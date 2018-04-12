@@ -1,12 +1,11 @@
 package org.openstreetmap.atlas.proto.adapters;
 
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.proto.ProtoIntegerArray;
 import org.openstreetmap.atlas.proto.ProtoIntegerArrayOfArrays;
 import org.openstreetmap.atlas.proto.ProtoSerializable;
+import org.openstreetmap.atlas.proto.converters.ProtoIntegerArrayOfArraysConverter;
 import org.openstreetmap.atlas.utilities.arrays.IntegerArrayOfArrays;
 
-import com.google.common.primitives.Ints;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 /**
@@ -17,6 +16,8 @@ import com.google.protobuf.InvalidProtocolBufferException;
  */
 public class ProtoIntegerArrayOfArraysAdapter implements ProtoAdapter
 {
+    private static final ProtoIntegerArrayOfArraysConverter CONVERTER = new ProtoIntegerArrayOfArraysConverter();
+
     @Override
     public ProtoSerializable deserialize(final byte[] byteArray)
     {
@@ -31,15 +32,8 @@ public class ProtoIntegerArrayOfArraysAdapter implements ProtoAdapter
                     exception);
         }
 
-        final IntegerArrayOfArrays integerArrayOfArrays = new IntegerArrayOfArrays(
-                protoIntegerArrayOfArrays.getArraysCount());
-        integerArrayOfArrays.setName(protoIntegerArrayOfArrays.getName());
-        for (int index = 0; index < protoIntegerArrayOfArrays.getArraysCount(); index++)
-        {
-            final int[] items = Ints
-                    .toArray(protoIntegerArrayOfArrays.getArrays(index).getElementsList());
-            integerArrayOfArrays.add(items);
-        }
+        final IntegerArrayOfArrays integerArrayOfArrays = CONVERTER
+                .convert(protoIntegerArrayOfArrays);
 
         return integerArrayOfArrays;
     }
@@ -62,23 +56,9 @@ public class ProtoIntegerArrayOfArraysAdapter implements ProtoAdapter
                     serializable.getClass().getName(), integerArrayOfArrays.size());
         }
 
-        final ProtoIntegerArrayOfArrays.Builder arraysBuilder = ProtoIntegerArrayOfArrays
-                .newBuilder();
-        for (int index = 0; index < integerArrayOfArrays.size(); index++)
-        {
-            final ProtoIntegerArray.Builder subArrayBuilder = ProtoIntegerArray.newBuilder();
-            final int[] subArray = integerArrayOfArrays.get(index);
-            for (int subIndex = 0; subIndex < subArray.length; subIndex++)
-            {
-                subArrayBuilder.addElements(subArray[subIndex]);
-            }
-            arraysBuilder.addArrays(subArrayBuilder);
-        }
-        final String name = integerArrayOfArrays.getName() == null ? ""
-                : integerArrayOfArrays.getName();
-        arraysBuilder.setName(name);
+        final ProtoIntegerArrayOfArrays protoArrays = CONVERTER
+                .backwardConvert(integerArrayOfArrays);
 
-        final ProtoIntegerArrayOfArrays protoArrays = arraysBuilder.build();
         return protoArrays.toByteArray();
     }
 }

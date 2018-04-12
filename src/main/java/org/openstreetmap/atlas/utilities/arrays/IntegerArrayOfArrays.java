@@ -59,9 +59,64 @@ public class IntegerArrayOfArrays extends LargeArray<int[]> implements ProtoSeri
     }
 
     @Override
+    public boolean equals(final Object other)
+    {
+        if (other instanceof IntegerArrayOfArrays)
+        {
+            if (this == other)
+            {
+                return true;
+            }
+            final IntegerArrayOfArrays that = (IntegerArrayOfArrays) other;
+            if (this.size() != that.size())
+            {
+                return false;
+            }
+            for (int index = 0; index < this.size(); index++)
+            {
+                final int[] thisSubArray = this.get(index);
+                final int[] thatSubArray = that.get(index);
+                if (thisSubArray.length != thatSubArray.length)
+                {
+                    return false;
+                }
+                for (int subIndex = 0; subIndex < thisSubArray.length; subIndex++)
+                {
+                    if (thisSubArray[subIndex] != thatSubArray[subIndex])
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public ProtoAdapter getProtoAdapter()
     {
         return new ProtoIntegerArrayOfArraysAdapter();
+    }
+
+    /*
+     * TODO: refactor hashCode implementation?
+     */
+    /*
+     * NOTE: This hashCode implementation uses the array object references and not the actual array
+     * values. Keep this in mind before using.
+     */
+    @Override
+    public int hashCode()
+    {
+        int hash = 31;
+        for (int index = 0; index < this.size(); index++)
+        {
+            hash = 37 * hash + this.get(index).hashCode();
+        }
+
+        return hash;
     }
 
     @Override
