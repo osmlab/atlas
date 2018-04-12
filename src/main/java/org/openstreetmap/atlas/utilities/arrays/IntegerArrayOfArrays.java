@@ -101,19 +101,19 @@ public class IntegerArrayOfArrays extends LargeArray<int[]> implements ProtoSeri
     }
 
     /*
-     * TODO: refactor hashCode implementation?
-     */
-    /*
      * NOTE: This hashCode implementation uses the array object references and not the actual array
      * values. Keep this in mind before using.
      */
     @Override
     public int hashCode()
     {
-        int hash = 31;
+        final int initialPrime = 31;
+        final int hashSeed = 37;
+
+        int hash = initialPrime;
         for (int index = 0; index < this.size(); index++)
         {
-            hash = 37 * hash + this.get(index).hashCode();
+            hash = hashSeed * hash + this.get(index).hashCode();
         }
 
         return hash;
