@@ -969,12 +969,11 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
 
                 if (!candidateMembers.isEmpty())
                 {
-                    // Create new relation tags - add in a country code,
+                    // Create new relation tags - add in a country code
                     final Map<String, String> relationTags = relation.getTags();
                     relationTags.put(ISOCountryTag.KEY, entry.getKey());
 
-                    // Add any synthetic tags for this relation that were created during
-                    // multipolygon fixing
+                    // Add synthetic tags from multipolygon fixing
                     if (this.slicedRelationChanges.getUpdatedRelationTags()
                             .containsKey(relation.getIdentifier()))
                     {
@@ -984,7 +983,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
 
                     final TemporaryRelation newRelation = new TemporaryRelation(
                             relationIdentifierFactory.nextIdentifier(), relationTags);
-                    candidateMembers.forEach(member -> newRelation.addMember(member));
+                    candidateMembers.forEach(newRelation::addMember);
                     createdRelations.add(newRelation);
                     this.slicedRelationChanges.createRelation(newRelation);
                     this.slicedRelationChanges.createDeletedToCreatedMapping(

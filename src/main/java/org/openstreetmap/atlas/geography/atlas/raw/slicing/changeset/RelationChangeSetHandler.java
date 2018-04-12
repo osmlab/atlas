@@ -115,6 +115,21 @@ public class RelationChangeSetHandler extends ChangeSetHandler
                 .addPoint(point.getIdentifier(), point.getLocation(), point.getTags()));
     }
 
+    private void addRelation(final Relation relation, final Map<String, String> tags)
+    {
+        final long identifier = relation.getIdentifier();
+        final RelationBean bean = constructRelationBean(relation);
+        if (!bean.isEmpty())
+        {
+            this.getBuilder().addRelation(identifier, getOsmIdentifier(identifier), bean, tags);
+        }
+        else
+        {
+            logger.error("Could not add Relation {} to atlas - it contains an empty Relation bean",
+                    identifier);
+        }
+    }
+
     /**
      * Updates the tags for all existing {@link Relation}s in the original Atlas and adds it to the
      * updated Atlas. If the {@link Relation} was deleted, it will add the {@link Relation}s that
@@ -151,10 +166,7 @@ public class RelationChangeSetHandler extends ChangeSetHandler
                     // Update the tags
                     final Map<String, String> updatedTags = originalRelation.getTags();
                     updatedTags.putAll(this.changeSet.getUpdatedRelationTags().get(identifier));
-
-                    // Add the modified Relation
-                    this.getBuilder().addRelation(identifier, getOsmIdentifier(identifier),
-                            constructRelationBean(relation), updatedTags);
+                    addRelation(relation, updatedTags);
                 }
                 else
                 {
@@ -167,8 +179,7 @@ public class RelationChangeSetHandler extends ChangeSetHandler
 
                     final Map<String, String> updatedTags = relation.getTags();
                     updatedTags.put(ISOCountryTag.KEY, ISOCountryTag.COUNTRY_MISSING);
-                    this.getBuilder().addRelation(identifier, getOsmIdentifier(identifier),
-                            constructRelationBean(relation), updatedTags);
+                    addRelation(relation, updatedTags);
                 }
             }
         });
