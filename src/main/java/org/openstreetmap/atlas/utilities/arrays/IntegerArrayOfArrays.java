@@ -8,6 +8,7 @@ import org.openstreetmap.atlas.proto.adapters.ProtoIntegerArrayOfArraysAdapter;
  * {@link LargeArray} of arrays of int (int[])
  *
  * @author matthieun
+ * @author lcram
  */
 public class IntegerArrayOfArrays extends LargeArray<int[]> implements ProtoSerializable
 {

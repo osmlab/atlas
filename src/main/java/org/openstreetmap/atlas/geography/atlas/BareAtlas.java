@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
  * @author matthieun
  * @author tony
  * @author mgostintsev
+ * @author lcram
  */
 public abstract class BareAtlas implements Atlas
 {

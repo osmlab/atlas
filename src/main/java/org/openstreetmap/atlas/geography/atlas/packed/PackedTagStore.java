@@ -20,6 +20,7 @@ import org.openstreetmap.atlas.utilities.compression.IntegerDictionary;
  * assumes each item will have a reasonably small number of key-value pairs.
  *
  * @author matthieun
+ * @author lcram
  */
 public class PackedTagStore implements Serializable, ProtoSerializable
 {

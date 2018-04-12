@@ -10,6 +10,7 @@ import org.openstreetmap.atlas.utilities.arrays.LongArray;
  * {@link LargeMap} from {@link Long} to {@link Long}
  *
  * @author matthieun
+ * @author lcram
  */
 public class LongToLongMap extends LargeMap<Long, Long> implements ProtoSerializable
 {

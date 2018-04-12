@@ -8,6 +8,7 @@ import org.openstreetmap.atlas.proto.adapters.ProtoByteArrayOfArraysAdapter;
  * {@link LargeArray} of arrays of byte (byte[])
  *
  * @author matthieun
+ * @author lcram
  */
 public class ByteArrayOfArrays extends LargeArray<byte[]> implements ProtoSerializable
 {

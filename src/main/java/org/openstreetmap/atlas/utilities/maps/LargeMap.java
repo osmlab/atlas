@@ -14,6 +14,7 @@ import org.openstreetmap.atlas.utilities.scalars.Ratio;
  * Large map that is based on {@link LargeArray}s.
  *
  * @author matthieun
+ * @author lcram
  * @param <K>
  *            The key type
  * @param <V>

@@ -8,6 +8,7 @@ import org.openstreetmap.atlas.proto.adapters.ProtoLongArrayAdapter;
  * {@link LargeArray} for type {@link Long}
  *
  * @author matthieun
+ * @author lcram
  */
 public class LongArray extends LargeArray<Long> implements ProtoSerializable
 {

@@ -12,6 +12,7 @@ import org.openstreetmap.atlas.proto.adapters.ProtoIntegerStringDictionaryAdapte
  * Simple dictionary encoding for {@link String}s
  *
  * @author matthieun
+ * @author lcram
  * @param <Type>
  *            The type to encode. Typically called word
  */
