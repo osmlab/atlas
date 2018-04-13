@@ -67,14 +67,16 @@ public abstract class BareAtlas implements Atlas
     private static final int MAXIMUM_RELATION_DEPTH = 500;
     private static NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
     private static final AtomicInteger ATLAS_IDENTIFIER_FACTORY = new AtomicInteger();
-
     static
     {
         NUMBER_FORMAT.setGroupingUsed(true);
     }
 
+    private AtlasSerializationFormat serializationFormat = AtlasSerializationFormat.DEFAULT;
+
     // Transient name
     private transient String name;
+
     private final transient int identifier;
 
     protected BareAtlas()
@@ -237,6 +239,12 @@ public abstract class BareAtlas implements Atlas
         {
             return this.name;
         }
+    }
+
+    @Override
+    public AtlasSerializationFormat getSerializationFormat()
+    {
+        return this.serializationFormat;
     }
 
     @Override
@@ -481,6 +489,12 @@ public abstract class BareAtlas implements Atlas
     public void saveAsText(final WritableResource resource)
     {
         new TextAtlasBuilder().write(this, resource);
+    }
+
+    @Override
+    public void setSerializationFormat(final AtlasSerializationFormat format)
+    {
+        this.serializationFormat = format;
     }
 
     @Override

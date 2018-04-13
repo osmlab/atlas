@@ -9,6 +9,9 @@ import java.io.OutputStream;
 import java.lang.reflect.Field;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.Atlas.AtlasSerializationFormat;
+import org.openstreetmap.atlas.proto.ProtoSerializable;
+import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
 import org.openstreetmap.atlas.streaming.CounterOutputStream;
 import org.openstreetmap.atlas.streaming.Streams;
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
@@ -314,8 +317,19 @@ public final class PackedAtlasSerializer
      */
     private Resource fieldTranslator(final Field field)
     {
-        final Object candidate = getField(field);
-        final Resource resource = makeResource(candidate, field.getName());
+        Resource resource = null;
+
+        if (this.atlas.getSerializationFormat() == AtlasSerializationFormat.PROTOBUF)
+        {
+            final ProtoSerializable candidate = (ProtoSerializable) getField(field);
+            resource = makeProtoResource(candidate, field.getName());
+        }
+        else
+        {
+            final Object candidate = getField(field);
+            resource = makeResource(candidate, field.getName());
+        }
+
         return resource;
     }
 
@@ -348,6 +362,27 @@ public final class PackedAtlasSerializer
         {
             deserializeAllFields();
         }
+    }
+
+    private Resource makeProtoResource(final ProtoSerializable field, final String name)
+    {
+        // We automatically get the correct adapter for whatever type 'field' happens to be
+        final ProtoAdapter adapter = field.getProtoAdapter();
+        // The adapter handles all the actual serialization using the protobuf classes. Easy!
+        final byte[] byteContents = adapter.serialize(field);
+
+        final ByteArrayResource resource = new ByteArrayResource(byteContents.length)
+                .withName(name);
+
+        try (BufferedOutputStream out = new BufferedOutputStream(resource.write()))
+        {
+            out.write(byteContents);
+        }
+        catch (final Exception e)
+        {
+            throw new CoreException("Could not convert {} to a readable resource.", field, e);
+        }
+        return resource;
     }
 
     /**
