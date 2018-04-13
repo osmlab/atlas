@@ -22,7 +22,8 @@ public class ProtoIntegerArrayOfArraysAdapterTest
     @Test
     public void testConsistency()
     {
-        final IntegerArrayOfArrays integerArrayOfArrays = new IntegerArrayOfArrays(TEST_ARRAY_SIZE);
+        final IntegerArrayOfArrays integerArrayOfArrays = new IntegerArrayOfArrays(TEST_ARRAY_SIZE,
+                TEST_SUBARRAY_SIZE, TEST_SUBARRAY_SIZE);
         for (int index = 0; index < TEST_ARRAY_SIZE; index++)
         {
             final int[] items = new int[TEST_SUBARRAY_SIZE];
@@ -45,17 +46,6 @@ public class ProtoIntegerArrayOfArraysAdapterTest
                 startTime.elapsedSince());
 
         logger.info("Testing equality...");
-        Assert.assertEquals(integerArrayOfArrays.getName(), parsedFrom.getName());
-        Assert.assertEquals(integerArrayOfArrays.size(), parsedFrom.size());
-        for (int index = 0; index < TEST_ARRAY_SIZE; index++)
-        {
-            final int[] items1 = integerArrayOfArrays.get(index);
-            final int[] items2 = parsedFrom.get(index);
-            Assert.assertEquals(items1.length, items2.length);
-            for (int subIndex = 0; subIndex < TEST_SUBARRAY_SIZE; subIndex++)
-            {
-                Assert.assertEquals(items1[subIndex], items2[subIndex]);
-            }
-        }
+        Assert.assertEquals(integerArrayOfArrays, parsedFrom);
     }
 }
