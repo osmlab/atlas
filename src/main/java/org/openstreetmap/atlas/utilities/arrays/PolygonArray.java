@@ -2,6 +2,9 @@ package org.openstreetmap.atlas.utilities.arrays;
 
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.StringCompressedPolygon;
+import org.openstreetmap.atlas.proto.ProtoSerializable;
+import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
+import org.openstreetmap.atlas.proto.adapters.ProtoPolygonArrayAdapter;
 import org.openstreetmap.atlas.utilities.arrays.PolyLineArray.PrimitivePointsArray;
 
 /**
@@ -9,7 +12,7 @@ import org.openstreetmap.atlas.utilities.arrays.PolyLineArray.PrimitivePointsArr
  *
  * @author matthieun
  */
-public class PolygonArray extends LargeArray<Polygon>
+public class PolygonArray extends LargeArray<Polygon> implements ProtoSerializable
 {
     /**
      * Primitive array for polygons
@@ -48,6 +51,12 @@ public class PolygonArray extends LargeArray<Polygon>
     public PolygonArray(final long maximumSize, final int memoryBlockSize, final int subArraySize)
     {
         super(maximumSize, memoryBlockSize, subArraySize);
+    }
+
+    @Override
+    public ProtoAdapter getProtoAdapter()
+    {
+        return new ProtoPolygonArrayAdapter();
     }
 
     @Override
