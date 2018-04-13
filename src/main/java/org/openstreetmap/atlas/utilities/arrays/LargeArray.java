@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
  * @param <T>
  *            The type of items in the array
  * @author matthieun
+ * @author lcram
  */
 public abstract class LargeArray<T> implements Iterable<T>, Serializable
 {
@@ -179,7 +180,10 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
         final int initialPrime = 31;
         final int hashSeed = 37;
 
-        int hash = initialPrime;
+        final int nameHash = this.getName() == null ? 0 : this.getName().hashCode();
+        int hash = hashSeed * initialPrime + nameHash;
+        hash = hashSeed * hash + Long.valueOf(this.size()).hashCode();
+
         for (long index = 0; index < this.size(); index++)
         {
             hash = hashSeed * hash + this.get(index).hashCode();

@@ -148,7 +148,6 @@ public class AtlasSize implements Serializable
             {
                 return false;
             }
-
             return true;
         }
         return false;
