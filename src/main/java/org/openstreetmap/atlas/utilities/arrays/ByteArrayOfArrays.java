@@ -61,9 +61,67 @@ public class ByteArrayOfArrays extends LargeArray<byte[]> implements ProtoSerial
     }
 
     @Override
+    public boolean equals(final Object other)
+    {
+        if (other instanceof ByteArrayOfArrays)
+        {
+            if (this == other)
+            {
+                return true;
+            }
+            final ByteArrayOfArrays that = (ByteArrayOfArrays) other;
+            if (!this.getName().equals(that.getName()))
+            {
+                return false;
+            }
+            if (this.size() != that.size())
+            {
+                return false;
+            }
+            for (long index = 0; index < this.size(); index++)
+            {
+                final byte[] thisSubArray = this.get(index);
+                final byte[] thatSubArray = that.get(index);
+                if (thisSubArray.length != thatSubArray.length)
+                {
+                    return false;
+                }
+                for (int subIndex = 0; subIndex < thisSubArray.length; subIndex++)
+                {
+                    if (thisSubArray[subIndex] != thatSubArray[subIndex])
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public ProtoAdapter getProtoAdapter()
     {
         return new ProtoByteArrayOfArraysAdapter();
+    }
+
+    /*
+     * NOTE: This hashCode implementation uses the array object references and not the actual array
+     * values. Keep this in mind before using.
+     */
+    @Override
+    public int hashCode()
+    {
+        final int initialPrime = 31;
+        final int hashSeed = 37;
+
+        int hash = initialPrime;
+        for (int index = 0; index < this.size(); index++)
+        {
+            hash = hashSeed * hash + this.get(index).hashCode();
+        }
+
+        return hash;
     }
 
     @Override

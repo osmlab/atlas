@@ -69,11 +69,15 @@ public class IntegerArrayOfArrays extends LargeArray<int[]> implements ProtoSeri
                 return true;
             }
             final IntegerArrayOfArrays that = (IntegerArrayOfArrays) other;
+            if (!this.getName().equals(that.getName()))
+            {
+                return false;
+            }
             if (this.size() != that.size())
             {
                 return false;
             }
-            for (int index = 0; index < this.size(); index++)
+            for (long index = 0; index < this.size(); index++)
             {
                 final int[] thisSubArray = this.get(index);
                 final int[] thatSubArray = that.get(index);
@@ -89,7 +93,6 @@ public class IntegerArrayOfArrays extends LargeArray<int[]> implements ProtoSeri
                     }
                 }
             }
-
             return true;
         }
         return false;
