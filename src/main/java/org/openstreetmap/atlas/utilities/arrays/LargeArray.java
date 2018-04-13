@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.scalars.Ratio;
@@ -128,7 +129,7 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
             }
             @SuppressWarnings("unchecked")
             final LargeArray<T> that = (LargeArray<T>) other;
-            if (!this.getName().equals(that.getName()))
+            if (!Objects.equals(this.getName(), that.getName()))
             {
                 return false;
             }

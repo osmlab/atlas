@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.utilities.arrays;
 
+import java.util.Objects;
+
 import org.openstreetmap.atlas.proto.ProtoSerializable;
 import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
 import org.openstreetmap.atlas.proto.adapters.ProtoIntegerArrayOfArraysAdapter;
@@ -69,7 +71,7 @@ public class IntegerArrayOfArrays extends LargeArray<int[]> implements ProtoSeri
                 return true;
             }
             final IntegerArrayOfArrays that = (IntegerArrayOfArrays) other;
-            if (!this.getName().equals(that.getName()))
+            if (!Objects.equals(this.getName(), that.getName()))
             {
                 return false;
             }

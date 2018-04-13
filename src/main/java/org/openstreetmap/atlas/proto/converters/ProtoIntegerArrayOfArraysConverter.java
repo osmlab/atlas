@@ -44,7 +44,6 @@ public class ProtoIntegerArrayOfArraysConverter
     {
         final IntegerArrayOfArrays integerArrayOfArrays = new IntegerArrayOfArrays(
                 protoArray.getArraysCount());
-        integerArrayOfArrays.setName(protoArray.getName());
         for (int index = 0; index < protoArray.getArraysCount(); index++)
         {
             final int[] items = Ints.toArray(protoArray.getArrays(index).getElementsList());

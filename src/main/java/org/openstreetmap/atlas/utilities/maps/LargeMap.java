@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.utilities.maps;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.Objects;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.arrays.Arrays;
@@ -172,7 +173,7 @@ public abstract class LargeMap<K, V> implements Iterable<K>, Serializable
             }
             @SuppressWarnings("unchecked")
             final LargeMap<K, V> that = (LargeMap<K, V>) other;
-            if (!this.getName().equals(that.getName()))
+            if (!Objects.equals(this.getName(), that.getName()))
             {
                 return false;
             }
