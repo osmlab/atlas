@@ -153,8 +153,10 @@ public class PackedTagStore implements Serializable, ProtoSerializable
             {
                 return false;
             }
-            // We use reference equality for the dictionary, since PackedTagStores do not actually
-            // contain their own dictionaries
+
+            // Two PackedTagStores are considered equivalent if they both have references to the
+            // same dictionary.
+            // TODO once IntegerDictionary has an equals() implementation, use that here instead
             if (this.dictionary != that.dictionary)
             {
                 return false;

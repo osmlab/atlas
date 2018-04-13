@@ -111,6 +111,43 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
     }
 
     /**
+     * A basic equals() implementation. Note that if this class is parameterized with an array type,
+     * this method may not work as expected (due to array equals() performing a reference
+     * comparison). Child classes of LargeArray may want to override this method to improve its
+     * behavior in special cases.
+     */
+    @Override
+    public boolean equals(final Object other)
+    {
+        if (other instanceof LargeArray)
+        {
+            if (this == other)
+            {
+                return true;
+            }
+            @SuppressWarnings("unchecked")
+            final LargeArray<T> that = (LargeArray<T>) other;
+            if (!this.getName().equals(that.getName()))
+            {
+                return false;
+            }
+            if (this.size() != that.size())
+            {
+                return false;
+            }
+            for (long index = 0; index < this.size(); index++)
+            {
+                if (!this.get(index).equals(that.get(index)))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Get an item from the array
      *
      * @param index
@@ -134,6 +171,21 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
     public String getName()
     {
         return this.name;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int initialPrime = 31;
+        final int hashSeed = 37;
+
+        int hash = initialPrime;
+        for (long index = 0; index < this.size(); index++)
+        {
+            hash = hashSeed * hash + this.get(index).hashCode();
+        }
+
+        return hash;
     }
 
     public boolean isEmpty()

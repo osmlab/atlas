@@ -4,6 +4,9 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.StringCompressedPolyLine;
 import org.openstreetmap.atlas.geography.StringCompressedPolyLine.PolyLineCompressionException;
+import org.openstreetmap.atlas.proto.ProtoSerializable;
+import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
+import org.openstreetmap.atlas.proto.adapters.ProtoPolyLineArrayAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +16,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author matthieun
  */
-public class PolyLineArray extends LargeArray<PolyLine>
+public class PolyLineArray extends LargeArray<PolyLine> implements ProtoSerializable
 {
     /**
      * @author matthieun
@@ -97,6 +100,12 @@ public class PolyLineArray extends LargeArray<PolyLine>
     public PolyLineArray(final long maximumSize, final int memoryBlockSize, final int subArraySize)
     {
         super(maximumSize, memoryBlockSize, subArraySize);
+    }
+
+    @Override
+    public ProtoAdapter getProtoAdapter()
+    {
+        return new ProtoPolyLineArrayAdapter();
     }
 
     @Override
