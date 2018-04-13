@@ -20,7 +20,7 @@ public class ProtoLongArrayAdapterTest
     @Test
     public void testConsistency()
     {
-        final LongArray longArray = new LongArray(TEST_SIZE);
+        final LongArray longArray = new LongArray(TEST_SIZE, TEST_SIZE, TEST_SIZE);
         for (int index = 0; index < TEST_SIZE; index++)
         {
             final long value = index;

@@ -29,7 +29,8 @@ public class ProtoLongArrayAdapter implements ProtoAdapter
                     exception);
         }
 
-        final LongArray longArray = new LongArray(protoLongArray.getElementsCount());
+        final int elementCount = protoLongArray.getElementsCount();
+        final LongArray longArray = new LongArray(elementCount, elementCount, elementCount);
         for (int i = 0; i < protoLongArray.getElementsCount(); i++)
         {
             longArray.add(protoLongArray.getElements(i));
