@@ -1,16 +1,10 @@
 package org.openstreetmap.atlas.geography.boundary;
 
-import java.util.List;
-
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.MultiPolygon;
-import org.openstreetmap.atlas.geography.clipping.Clip;
-import org.openstreetmap.atlas.geography.clipping.Clip.ClipType;
 import org.openstreetmap.atlas.geography.sharding.CountryShard;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.streaming.resource.File;
-import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.streaming.writers.SafeBufferedWriter;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.runtime.Command;
@@ -20,7 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * List all the {@link Shard}s for each country
+ * List all the {@link Shard}s for each country, wrapped in a command to print the result to a
+ * Resource.
  *
  * @author matthieun
  */
@@ -51,55 +46,6 @@ public class CountryToShardListing extends Command
         new CountryToShardListing().run(args);
     }
 
-    protected void intersectShards(final StringList countries, final CountryBoundaryMap boundaries,
-            final Sharding sharding, final WritableResource output)
-    {
-        try (SafeBufferedWriter writer = output.writer())
-        {
-            countries.forEach(country ->
-            {
-                logger.info("Processing country {}", country);
-                final Time start = Time.now();
-                final List<CountryBoundary> countryBoundaries = boundaries.countryBoundary(country);
-                if (countryBoundaries != null)
-                {
-                    // for countries split by the Meridian line there will be two countryBoundaries
-                    for (final CountryBoundary countryBound : countryBoundaries)
-                    {
-                        final MultiPolygon countryBoundary = countryBound.getBoundary();
-                        final Iterable<? extends Shard> potentialShards = sharding
-                                .shards(countryBoundary.bounds());
-                        potentialShards.forEach(shard ->
-                        {
-                            final Clip clip = new Clip(ClipType.AND, shard.bounds(),
-                                    countryBoundary);
-                            if (clip.getClipMultiPolygon().surface().asKilometerSquared() > 0)
-                            {
-                                try
-                                {
-                                    writer.writeLine(new CountryShard(country, shard).toString());
-                                }
-                                catch (final Exception e)
-                                {
-                                    throw new CoreException("Unable to write to {}", output, e);
-                                }
-                            }
-                        });
-                    }
-                    logger.info("Processed country {} in {}", country, start.elapsedSince());
-                }
-                else
-                {
-                    logger.info("Failed to process: {} is not a valid country name", country);
-                }
-            });
-        }
-        catch (final Exception e)
-        {
-            throw new CoreException("Could not match shards to boundaries", e);
-        }
-    }
-
     @Override
     protected int onRun(final CommandMap command)
     {
@@ -109,7 +55,21 @@ public class CountryToShardListing extends Command
         final CountryBoundaryMap boundaries = (CountryBoundaryMap) command.get(BOUNDARIES);
         final File output = (File) command.get(OUTPUT);
         final Sharding sharding = (Sharding) command.get(SHARDING);
-        intersectShards(countries, boundaries, sharding, output);
+        try (SafeBufferedWriter writer = output.writer())
+        {
+            CountryShardListing.countryToShardList(countries, boundaries, sharding)
+                    .forEach((country, shardSet) ->
+                    {
+                        shardSet.forEach(shard ->
+                        {
+                            writer.writeLine(new CountryShard(country, shard).toString());
+                        });
+                    });
+        }
+        catch (final Exception e)
+        {
+            throw new CoreException("Could not match shards to boundaries", e);
+        }
         logger.info("Finished in {}", overall.elapsedSince());
         return 0;
     }
