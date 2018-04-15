@@ -5,8 +5,6 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
 import org.openstreetmap.atlas.geography.Rectangle;
-import org.openstreetmap.atlas.geography.boundary.CountryBoundary;
-import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;

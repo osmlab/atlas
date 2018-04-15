@@ -95,7 +95,7 @@ public class CountryBoundaryMapPrinter extends Command
                 {
                     final File countryFile = geojson.get()
                             .child(name + "_boundary" + FileSuffix.GEO_JSON);
-                    multiPolygon.asGeoJson().save(countryFile);
+                    multiPolygon.asGeoJsonFeatureCollection().save(countryFile);
                 }
             }
         }

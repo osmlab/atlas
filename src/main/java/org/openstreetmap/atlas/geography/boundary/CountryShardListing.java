@@ -6,8 +6,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.IntStream;
 
-import org.openstreetmap.atlas.geography.boundary.CountryBoundary;
-import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
@@ -18,7 +16,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Utility class that transforms a {@link CountryBoundaryMap}, {@link Sharding} and returns all the
  * {@link Shard}s that are covered by each country in a provided list.
- * 
+ *
  * @author mkalender
  * @author matthieun
  */
