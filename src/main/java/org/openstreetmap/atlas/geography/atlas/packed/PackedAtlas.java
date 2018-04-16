@@ -54,6 +54,7 @@ import org.slf4j.LoggerFactory;
  * Atlas that packs data in large arrays
  *
  * @author matthieun
+ * @author lcram
  */
 public final class PackedAtlas extends AbstractAtlas
 {

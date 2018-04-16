@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
  * Class that serializes and deserializes {@link PackedAtlas}s to a {@link ZipResource}
  *
  * @author matthieun
+ * @author lcram
  */
 public final class PackedAtlasSerializer
 {
