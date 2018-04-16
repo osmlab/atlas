@@ -157,7 +157,7 @@ public class WaySectionProcessorTest
         Assert.assertEquals("Two nodes", 2, finalAtlas.numberOfNodes());
         Assert.assertEquals("Verify that the direction of the original line was reversed",
                 slicedRawAtlas.line(333112568000000L).asPolyLine(),
-                finalAtlas.edge(333112568000001L).asPolyLine().reversed());
+                finalAtlas.edge(333112568000000L).asPolyLine().reversed());
     }
 
     @Test

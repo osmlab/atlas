@@ -446,7 +446,7 @@ public class WaySectionProcessor
         }
         catch (final Exception e)
         {
-            logger.error("Error creating sub-atlas for original shard bounds");
+            logger.error("Error creating sub-atlas for original shard bounds", e);
             return null;
         }
     }
@@ -841,12 +841,12 @@ public class WaySectionProcessor
             {
                 // Weren't able to find the starting node, abort slicing
                 logger.error(
-                        "Could not find starting Node for Line {} during way-sectioning. Aborting!",
+                        "Can't find starting Node for Line {} during way-sectioning. Aborting!",
                         line.getIdentifier());
                 return newEdgesForLine;
             }
 
-            // We've already processed the starting node, so we start with the first index
+            // We've already processed the starting node, so start with the first index
             for (int index = 1; index < polyline.size(); index++)
             {
                 // Check to see if this location is a node
@@ -866,8 +866,23 @@ public class WaySectionProcessor
                             startOccurrence, polyline.get(index), endOccurrence);
                     final PolyLine edgePolyline = isReversed ? rawPolyline.reversed() : rawPolyline;
 
-                    newEdgesForLine.add(new TemporaryEdge(identifierFactory.nextIdentifier(),
-                            edgePolyline, line.getTags(), hasReverseEdge));
+                    // If the line (OSM way) was split, start the identifier at 001, otherwise
+                    // identifier will start at 000.
+                    final long edgeIdentifier;
+                    if (!line.isClosed() && nodesToSectionAt.size() == 2
+                            && polyline.size() - 1 == index)
+                    {
+                        // The only time we want to do this is if there are two nodes, the line
+                        // isn't a ring and the last node is the end of the polyline
+                        edgeIdentifier = line.getIdentifier();
+                    }
+                    else
+                    {
+                        edgeIdentifier = identifierFactory.nextIdentifier();
+                    }
+
+                    newEdgesForLine.add(new TemporaryEdge(edgeIdentifier, edgePolyline,
+                            line.getTags(), hasReverseEdge));
 
                     // Increment starting pointers
                     startIndex = index;
