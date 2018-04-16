@@ -9,8 +9,7 @@ import org.openstreetmap.atlas.geography.atlas.raw.slicing.LineAndPointSlicingTe
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
-
-import com.google.common.collect.Iterables;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * {@link WaySectionProcessor} unit tests
@@ -79,6 +78,24 @@ public class WaySectionProcessorTest
         Assert.assertEquals(4, finalAtlas.node(4560902689000000L).connectedEdges().size());
         Assert.assertEquals(2, finalAtlas.node(4560902695000000L).connectedEdges().size());
         Assert.assertEquals(4, finalAtlas.node(4560902693000000L).connectedEdges().size());
+    }
+
+    @Test
+    public void testLineWithLoopInMiddle()
+    {
+        // Loosely based on https://www.openstreetmap.org/way/460419987 - with a new added node
+        final Atlas slicedRawAtlas = this.setup.getLineWithLoopInMiddleAtlas();
+
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
+
+        Assert.assertEquals("Four edges, each having a reverse counterpart", 8,
+                finalAtlas.numberOfEdges());
+        Assert.assertEquals("Four nodes", 4, finalAtlas.numberOfNodes());
+        Assert.assertEquals(2, finalAtlas.node(4560902695000000L).connectedEdges().size());
+        Assert.assertEquals(4, finalAtlas.node(4560902693000000L).connectedEdges().size());
+        Assert.assertEquals(2, finalAtlas.node(4560902612000000L).connectedEdges().size());
+        Assert.assertEquals(6, finalAtlas.node(4560902689000000L).connectedEdges().size());
     }
 
     @Test
