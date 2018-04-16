@@ -115,7 +115,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
 
         // Slice the JTS Geometry
         result = sliceGeometry(geometry, lineIdentifier);
-        if (result.isEmpty() && line.isClosed())
+
+        if ((result == null || result.isEmpty()) && line.isClosed())
         {
             // If we failed to slice an invalid Polygon (self-intersecting for example), let's try
             // to slice it as a PolyLine. Only if we cannot do that, then return an empty list.
@@ -123,7 +124,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             result = sliceGeometry(geometry, lineIdentifier);
         }
 
-        if (result.isEmpty())
+        if (result == null || result.isEmpty())
         {
             logger.error("Invalid Geometry for line {}", lineIdentifier);
         }
