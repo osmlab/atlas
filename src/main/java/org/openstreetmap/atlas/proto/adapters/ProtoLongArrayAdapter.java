@@ -57,15 +57,14 @@ public class ProtoLongArrayAdapter implements ProtoAdapter
                     serializable.getClass().getName(), longArray.size());
         }
 
-        final ProtoLongArray.Builder builder = ProtoLongArray.newBuilder();
+        final ProtoLongArray.Builder protoLongArrayBuilder = ProtoLongArray.newBuilder();
         for (int i = 0; i < longArray.size(); i++)
         {
-            builder.addElements(longArray.get(i));
+            protoLongArrayBuilder.addElements(longArray.get(i));
         }
         final String name = longArray.getName() == null ? "" : longArray.getName();
-        builder.setName(name);
+        protoLongArrayBuilder.setName(name);
 
-        final ProtoLongArray protoLongArray = builder.build();
-        return protoLongArray.toByteArray();
+        return protoLongArrayBuilder.build().toByteArray();
     }
 }

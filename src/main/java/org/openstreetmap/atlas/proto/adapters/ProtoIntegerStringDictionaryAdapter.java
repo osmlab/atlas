@@ -54,7 +54,7 @@ public class ProtoIntegerStringDictionaryAdapter implements ProtoAdapter
         @SuppressWarnings("unchecked")
         final IntegerDictionary<String> integerDictionary = (IntegerDictionary<String>) serializable;
 
-        final ProtoIntegerStringDictionary.Builder dictionaryBuilder = ProtoIntegerStringDictionary
+        final ProtoIntegerStringDictionary.Builder protoDictionaryBuilder = ProtoIntegerStringDictionary
                 .newBuilder();
 
         int index = 0;
@@ -64,7 +64,7 @@ public class ProtoIntegerStringDictionaryAdapter implements ProtoAdapter
         {
             while ((word = integerDictionary.word(index)) != null)
             {
-                dictionaryBuilder.addWords(word);
+                protoDictionaryBuilder.addWords(word);
                 index++;
             }
         }
@@ -75,7 +75,6 @@ public class ProtoIntegerStringDictionaryAdapter implements ProtoAdapter
                     serializable.getClass().getName(), exception);
         }
 
-        final ProtoIntegerStringDictionary protoDictionary = dictionaryBuilder.build();
-        return protoDictionary.toByteArray();
+        return protoDictionaryBuilder.build().toByteArray();
     }
 }

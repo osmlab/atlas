@@ -64,7 +64,8 @@ public class ProtoLongArrayOfArraysAdapter implements ProtoAdapter
                     serializable.getClass().getName(), longArrayOfArrays.size());
         }
 
-        final ProtoLongArrayOfArrays.Builder arraysBuilder = ProtoLongArrayOfArrays.newBuilder();
+        final ProtoLongArrayOfArrays.Builder protoArraysBuilder = ProtoLongArrayOfArrays
+                .newBuilder();
         for (int index = 0; index < longArrayOfArrays.size(); index++)
         {
             final ProtoLongArray.Builder subArrayBuilder = ProtoLongArray.newBuilder();
@@ -73,12 +74,11 @@ public class ProtoLongArrayOfArraysAdapter implements ProtoAdapter
             {
                 subArrayBuilder.addElements(subArray[subIndex]);
             }
-            arraysBuilder.addArrays(subArrayBuilder);
+            protoArraysBuilder.addArrays(subArrayBuilder);
         }
         final String name = longArrayOfArrays.getName() == null ? "" : longArrayOfArrays.getName();
-        arraysBuilder.setName(name);
+        protoArraysBuilder.setName(name);
 
-        final ProtoLongArrayOfArrays protoArrays = arraysBuilder.build();
-        return protoArrays.toByteArray();
+        return protoArraysBuilder.build().toByteArray();
     }
 }

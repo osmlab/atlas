@@ -58,7 +58,7 @@ public class ProtoLongToLongMapAdapter implements ProtoAdapter
                     serializable.getClass().getName(), longMap.size());
         }
 
-        final ProtoLongToLongMap.Builder mapBuilder = ProtoLongToLongMap.newBuilder();
+        final ProtoLongToLongMap.Builder protoMapBuilder = ProtoLongToLongMap.newBuilder();
         final ProtoLongArray.Builder keysBuilder = ProtoLongArray.newBuilder();
         final ProtoLongArray.Builder valuesBuilder = ProtoLongArray.newBuilder();
 
@@ -69,12 +69,11 @@ public class ProtoLongToLongMapAdapter implements ProtoAdapter
             keysBuilder.addElements(key);
             valuesBuilder.addElements(value);
         }
-        mapBuilder.setKeys(keysBuilder);
-        mapBuilder.setValues(valuesBuilder);
+        protoMapBuilder.setKeys(keysBuilder);
+        protoMapBuilder.setValues(valuesBuilder);
         final String name = longMap.getName() == null ? "" : longMap.getName();
-        mapBuilder.setName(name);
+        protoMapBuilder.setName(name);
 
-        final ProtoLongToLongMap protoMap = mapBuilder.build();
-        return protoMap.toByteArray();
+        return protoMapBuilder.build().toByteArray();
     }
 }

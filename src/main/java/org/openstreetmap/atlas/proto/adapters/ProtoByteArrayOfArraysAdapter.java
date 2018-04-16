@@ -62,18 +62,18 @@ public class ProtoByteArrayOfArraysAdapter implements ProtoAdapter
                     serializable.getClass().getName(), byteArrayOfArrays.size());
         }
 
-        final ProtoByteArrayOfArrays.Builder arraysBuilder = ProtoByteArrayOfArrays.newBuilder();
+        final ProtoByteArrayOfArrays.Builder protoArraysBuilder = ProtoByteArrayOfArrays
+                .newBuilder();
         for (int index = 0; index < byteArrayOfArrays.size(); index++)
         {
             final ProtoByteArray.Builder subArrayBuilder = ProtoByteArray.newBuilder();
             final byte[] subArray = byteArrayOfArrays.get(index);
             subArrayBuilder.setElements(ByteString.copyFrom(subArray));
-            arraysBuilder.addArrays(subArrayBuilder);
+            protoArraysBuilder.addArrays(subArrayBuilder);
         }
         final String name = byteArrayOfArrays.getName() == null ? "" : byteArrayOfArrays.getName();
-        arraysBuilder.setName(name);
+        protoArraysBuilder.setName(name);
 
-        final ProtoByteArrayOfArrays protoArrays = arraysBuilder.build();
-        return protoArrays.toByteArray();
+        return protoArraysBuilder.build().toByteArray();
     }
 }

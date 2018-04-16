@@ -109,7 +109,7 @@ public class ProtoPackedTagStoreAdapter implements ProtoAdapter
         }
         final PackedTagStore store = (PackedTagStore) serializable;
 
-        final ProtoPackedTagStore.Builder builder = ProtoPackedTagStore.newBuilder();
+        final ProtoPackedTagStore.Builder protoTagStoreBuilder = ProtoPackedTagStore.newBuilder();
 
         Field keyArrayField = null;
         IntegerArrayOfArrays keyArray = null;
@@ -157,11 +157,10 @@ public class ProtoPackedTagStoreAdapter implements ProtoAdapter
                     PackedTagStore.FIELD_INDEX, store.getClass().getName(), exception);
         }
 
-        builder.setKeys(CONVERTER.backwardConvert(keyArray));
-        builder.setValues(CONVERTER.backwardConvert(valueArray));
-        builder.setIndex(index);
+        protoTagStoreBuilder.setKeys(CONVERTER.backwardConvert(keyArray));
+        protoTagStoreBuilder.setValues(CONVERTER.backwardConvert(valueArray));
+        protoTagStoreBuilder.setIndex(index);
 
-        final ProtoPackedTagStore protoStore = builder.build();
-        return protoStore.toByteArray();
+        return protoTagStoreBuilder.build().toByteArray();
     }
 }

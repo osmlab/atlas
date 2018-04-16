@@ -206,8 +206,7 @@ public class PackedTagStore implements Serializable, ProtoSerializable
         final int initialPrime = 31;
         final int hashSeed = 37;
 
-        int hash = initialPrime;
-        hash = hashSeed * hash + this.keys.hashCode();
+        int hash = hashSeed * initialPrime + this.keys.hashCode();
         hash = hashSeed * hash + this.values.hashCode();
 
         final int keysDictionaryHash = this.keysDictionary() == null ? 0
