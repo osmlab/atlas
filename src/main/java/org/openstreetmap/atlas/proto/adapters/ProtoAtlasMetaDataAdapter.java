@@ -1,7 +1,6 @@
 package org.openstreetmap.atlas.proto.adapters;
 
 import java.util.Map;
-import java.util.Optional;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
@@ -75,29 +74,25 @@ public class ProtoAtlasMetaDataAdapter implements ProtoAdapter
         builder.setRelationNumber(atlasMetaData.getSize().getRelationNumber());
         builder.setOriginal(atlasMetaData.isOriginal());
 
-        final Optional<String> codeVersionOptional = atlasMetaData.getCodeVersion();
-        if (codeVersionOptional.isPresent())
+        atlasMetaData.getCodeVersion().ifPresent(value ->
         {
-            builder.setCodeVersion(codeVersionOptional.get());
-        }
+            builder.setCodeVersion(value);
+        });
 
-        final Optional<String> dataVersionOptional = atlasMetaData.getDataVersion();
-        if (dataVersionOptional.isPresent())
+        atlasMetaData.getDataVersion().ifPresent(value ->
         {
-            builder.setDataVersion(dataVersionOptional.get());
-        }
+            builder.setDataVersion(value);
+        });
 
-        final Optional<String> countryOptional = atlasMetaData.getCountry();
-        if (countryOptional.isPresent())
+        atlasMetaData.getCountry().ifPresent(value ->
         {
-            builder.setCountry(countryOptional.get());
-        }
+            builder.setCountry(value);
+        });
 
-        final Optional<String> shardNameOptional = atlasMetaData.getShardName();
-        if (shardNameOptional.isPresent())
+        atlasMetaData.getShardName().ifPresent(value ->
         {
-            builder.setShardName(shardNameOptional.get());
-        }
+            builder.setShardName(value);
+        });
 
         final Map<String, String> tags = atlasMetaData.getTags();
         builder.addAllTags(ProtoAtlasMetaDataAdapter.PROTOTAG_LIST_CONVERTER.backwardConvert(tags));
