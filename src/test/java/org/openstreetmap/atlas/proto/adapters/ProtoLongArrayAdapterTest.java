@@ -36,13 +36,7 @@ public class ProtoLongArrayAdapterTest
         final LongArray parsedFrom = (LongArray) this.adapter.deserialize(contents);
         logger.info("Took {} to deserialize LongArray from bytestream", startTime.elapsedSince());
 
-        // We have to compare arrays pair-wise since assertArrayEquals tries to print the entire
-        // array for some reason
         logger.info("Testing array equality...");
-        Assert.assertEquals(longArray.getName(), parsedFrom.getName());
-        for (int index = 0; index < TEST_SIZE; index++)
-        {
-            Assert.assertEquals(longArray.get(index), parsedFrom.get(index));
-        }
+        Assert.assertEquals(longArray, parsedFrom);
     }
 }
