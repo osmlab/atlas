@@ -16,8 +16,7 @@ import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
-
-import com.google.common.collect.Iterables;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * {@link RawAtlasRelationSlicer} unit tests for slicing {@link Relation}s.
