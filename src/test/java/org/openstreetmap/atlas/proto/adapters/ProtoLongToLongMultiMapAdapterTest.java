@@ -45,17 +45,6 @@ public class ProtoLongToLongMultiMapAdapterTest
                 startTime.elapsedSince());
 
         logger.info("Testing equality...");
-        Assert.assertEquals(longMultiMap.getName(), parsedFrom.getName());
-        for (int index = 0; index < TEST_SIZE; index++)
-        {
-            final long key = index;
-            final long[] values1 = longMultiMap.get(key);
-            final long[] values2 = parsedFrom.get(key);
-            Assert.assertEquals(values1.length, values2.length);
-            for (int subIndex = 0; subIndex < TEST_SUBARRAY_SIZE; subIndex++)
-            {
-                Assert.assertEquals(values1[subIndex], values2[subIndex]);
-            }
-        }
+        Assert.assertEquals(longMultiMap, parsedFrom);
     }
 }
