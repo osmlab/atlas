@@ -42,6 +42,34 @@ public class IntegerDictionary<Type> implements Serializable, ProtoSerializable
         return this.index++;
     }
 
+    @Override
+    public boolean equals(final Object other)
+    {
+        if (other instanceof IntegerDictionary)
+        {
+            if (this == other)
+            {
+                return true;
+            }
+            @SuppressWarnings("unchecked")
+            final IntegerDictionary<Type> that = (IntegerDictionary<Type>) other;
+            if (this.size() != that.size())
+            {
+                return false;
+            }
+            if (!this.wordToIndex.equals(that.wordToIndex))
+            {
+                return false;
+            }
+            if (!this.indexToWord.equals(that.indexToWord))
+            {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
     // TODO the problem here is that if someone tries to get an adapter for an
     // IntegerDictionary<SomeTypeThatIsNotAString>, this method will return the wrong adapter.
     // Currently, the ProtoIntegerStringDictionaryAdapter class's serialize() method handles this by
@@ -50,6 +78,29 @@ public class IntegerDictionary<Type> implements Serializable, ProtoSerializable
     public ProtoAdapter getProtoAdapter()
     {
         return new ProtoIntegerStringDictionaryAdapter();
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int initialPrime = 31;
+        final int hashSeed = 37;
+
+        int hash = hashSeed * initialPrime + Integer.valueOf(this.size()).hashCode();
+        for (final Type key : this.wordToIndex.keySet())
+        {
+            final Integer value = this.wordToIndex.get(key);
+            hash = hashSeed * hash + key.hashCode();
+            hash = hashSeed * hash + value.hashCode();
+        }
+        for (final Integer key : this.indexToWord.keySet())
+        {
+            final Type value = this.indexToWord.get(key);
+            hash = hashSeed * hash + key.hashCode();
+            hash = hashSeed * hash + value.hashCode();
+        }
+
+        return hash;
     }
 
     public int size()

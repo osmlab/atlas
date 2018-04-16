@@ -39,11 +39,7 @@ public class ProtoIntegerStringDictionaryAdapterTest
                 startTime.elapsedSince());
 
         logger.info("Testing equality...");
-        Assert.assertEquals(dictionary.size(), parsedFrom.size());
-        for (int index = 0; index < dictionary.size(); index++)
-        {
-            Assert.assertEquals(dictionary.word(index), parsedFrom.word(index));
-        }
+        Assert.assertEquals(dictionary, parsedFrom);
     }
 
     @Test(expected = CoreException.class)
