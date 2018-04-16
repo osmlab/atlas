@@ -21,7 +21,8 @@ public class ProtoLongToLongMapAdapterTest
     @Test
     public void testConsistency()
     {
-        final LongToLongMap longMap = new LongToLongMap(TEST_NAME, TEST_SIZE);
+        final LongToLongMap longMap = new LongToLongMap(TEST_NAME, TEST_SIZE, TEST_SIZE, TEST_SIZE,
+                TEST_SIZE, TEST_SIZE, TEST_SIZE);
         for (int index = 0; index < TEST_SIZE; index++)
         {
             final long value = index;
@@ -38,10 +39,6 @@ public class ProtoLongToLongMapAdapterTest
                 startTime.elapsedSince());
 
         logger.info("Testing equality...");
-        Assert.assertEquals(longMap.getName(), parsedFrom.getName());
-        for (int index = 0; index < TEST_SIZE; index++)
-        {
-            Assert.assertEquals(longMap.get(index), parsedFrom.get(index));
-        }
+        Assert.assertEquals(longMap, parsedFrom);
     }
 }
