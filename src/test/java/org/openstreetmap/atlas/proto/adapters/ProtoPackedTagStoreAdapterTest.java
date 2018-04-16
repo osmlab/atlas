@@ -15,9 +15,9 @@ public class ProtoPackedTagStoreAdapterTest
 {
     private static final Logger logger = LoggerFactory
             .getLogger(ProtoPackedTagStoreAdapterTest.class);
-    private static final int TEST_SIZE = 10;
-    private static final int BLOCK_SIZE = 1024;
-    private static final int TEST_SUBARRAY_SIZE = 3;
+    private static final int TEST_NUMBER_FEATURES = 10_000;
+    private static final int BLOCK_SIZE = 4096;
+    private static final int TEST_TAGSPERFEATURE_SIZE = 10;
     private final ProtoPackedTagStoreAdapter adapter = new ProtoPackedTagStoreAdapter();
 
     @Test
@@ -25,12 +25,12 @@ public class ProtoPackedTagStoreAdapterTest
     {
         final IntegerDictionary<String> dictionary = new IntegerDictionary<String>();
 
-        final PackedTagStore store = new PackedTagStore(TEST_SIZE, BLOCK_SIZE, TEST_SUBARRAY_SIZE,
-                dictionary);
+        final PackedTagStore store = new PackedTagStore(TEST_NUMBER_FEATURES, BLOCK_SIZE,
+                TEST_TAGSPERFEATURE_SIZE, dictionary);
 
-        for (int index = 0; index < TEST_SIZE; index++)
+        for (int index = 0; index < TEST_NUMBER_FEATURES; index++)
         {
-            for (int subIndex = 0; subIndex < TEST_SUBARRAY_SIZE; subIndex++)
+            for (int subIndex = 0; subIndex < TEST_TAGSPERFEATURE_SIZE; subIndex++)
             {
                 store.add(index, "key" + index + "_" + subIndex, "value" + index + "_" + subIndex);
             }

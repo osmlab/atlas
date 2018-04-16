@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -153,11 +154,11 @@ public class PackedTagStore implements Serializable, ProtoSerializable
             {
                 return false;
             }
-
-            // Two PackedTagStores are considered equivalent if they both have references to the
-            // same dictionary.
-            // TODO once IntegerDictionary has an equals() implementation, use that here instead
-            if (this.dictionary != that.dictionary)
+            if (!Objects.equals(this.keysDictionary(), that.keysDictionary()))
+            {
+                return false;
+            }
+            if (!Objects.equals(this.valuesDictionary(), that.valuesDictionary()))
             {
                 return false;
             }
@@ -208,6 +209,15 @@ public class PackedTagStore implements Serializable, ProtoSerializable
         int hash = initialPrime;
         hash = hashSeed * hash + this.keys.hashCode();
         hash = hashSeed * hash + this.values.hashCode();
+
+        final int keysDictionaryHash = this.keysDictionary() == null ? 0
+                : this.keysDictionary().hashCode();
+        final int valuesDictionaryHash = this.valuesDictionary() == null ? 0
+                : this.valuesDictionary().hashCode();
+
+        hash = hashSeed * hash + keysDictionaryHash;
+        hash = hashSeed * hash + valuesDictionaryHash;
+
         return hash;
     }
 
