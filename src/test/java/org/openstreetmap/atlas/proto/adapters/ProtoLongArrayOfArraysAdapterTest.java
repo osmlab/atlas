@@ -44,17 +44,6 @@ public class ProtoLongArrayOfArraysAdapterTest
                 startTime.elapsedSince());
 
         logger.info("Testing equality...");
-        Assert.assertEquals(longArrayOfArrays.getName(), parsedFrom.getName());
-        Assert.assertEquals(longArrayOfArrays.size(), parsedFrom.size());
-        for (int index = 0; index < TEST_ARRAY_SIZE; index++)
-        {
-            final long[] items1 = longArrayOfArrays.get(index);
-            final long[] items2 = parsedFrom.get(index);
-            Assert.assertEquals(items1.length, items2.length);
-            for (int subIndex = 0; subIndex < TEST_SUBARRAY_SIZE; subIndex++)
-            {
-                Assert.assertEquals(items1[subIndex], items2[subIndex]);
-            }
-        }
+        Assert.assertEquals(longArrayOfArrays, parsedFrom);
     }
 }

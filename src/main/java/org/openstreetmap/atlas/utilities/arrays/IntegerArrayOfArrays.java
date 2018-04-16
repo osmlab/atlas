@@ -116,8 +116,10 @@ public class IntegerArrayOfArrays extends LargeArray<int[]> implements ProtoSeri
         final int initialPrime = 31;
         final int hashSeed = 37;
 
-        int hash = initialPrime;
-        for (int index = 0; index < this.size(); index++)
+        final int nameHash = this.getName() == null ? 0 : this.getName().hashCode();
+        int hash = hashSeed * initialPrime + nameHash;
+        hash = hashSeed * hash + Long.valueOf(this.size()).hashCode();
+        for (long index = 0; index < this.size(); index++)
         {
             hash = hashSeed * hash + this.get(index).hashCode();
         }
