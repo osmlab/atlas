@@ -31,9 +31,9 @@ public class ProtoLongArrayAdapter implements ProtoAdapter
 
         final int elementCount = protoLongArray.getElementsCount();
         final LongArray longArray = new LongArray(elementCount, elementCount, elementCount);
-        for (int i = 0; i < protoLongArray.getElementsCount(); i++)
+        for (int index = 0; index < protoLongArray.getElementsCount(); index++)
         {
-            longArray.add(protoLongArray.getElements(i));
+            longArray.add(protoLongArray.getElements(index));
         }
         longArray.setName(protoLongArray.getName());
 
@@ -50,12 +50,6 @@ public class ProtoLongArrayAdapter implements ProtoAdapter
                     this.getClass().getName(), serializable.getClass().getName());
         }
         final LongArray longArray = (LongArray) serializable;
-
-        if (longArray.size() > Integer.MAX_VALUE)
-        {
-            throw new CoreException("Cannot serialize provided {}, size {} too large",
-                    serializable.getClass().getName(), longArray.size());
-        }
 
         final ProtoLongArray.Builder protoLongArrayBuilder = ProtoLongArray.newBuilder();
         for (int i = 0; i < longArray.size(); i++)

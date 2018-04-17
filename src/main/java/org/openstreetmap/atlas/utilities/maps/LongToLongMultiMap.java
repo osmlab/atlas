@@ -94,7 +94,7 @@ public class LongToLongMultiMap extends LargeMap<Long, long[]> implements ProtoS
     @Override
     public boolean equals(final Object other)
     {
-        if (other instanceof LargeMap)
+        if (other instanceof LongToLongMultiMap)
         {
             if (this == other)
             {

@@ -18,7 +18,6 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  * Size estimates for an {@link AtlasBuilder}
  *
  * @author matthieun
- * @author lcram
  */
 public class AtlasSize implements Serializable
 {
@@ -47,7 +46,8 @@ public class AtlasSize implements Serializable
         }
 
         /**
-         * Builds an AtlasSize. By default it uses a small value for the size estimates.
+         * Builds an AtlasSize. By default it uses {@link AtlasSize#DEFAULT_ESTIMATE} for the size
+         * estimates.
          *
          * @return A new AtlasSize
          */

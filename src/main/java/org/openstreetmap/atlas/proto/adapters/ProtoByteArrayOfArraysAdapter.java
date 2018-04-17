@@ -55,13 +55,6 @@ public class ProtoByteArrayOfArraysAdapter implements ProtoAdapter
         }
         final ByteArrayOfArrays byteArrayOfArrays = (ByteArrayOfArrays) serializable;
 
-        if (byteArrayOfArrays.size() > Integer.MAX_VALUE)
-        {
-            // TODO see note about this check in ProtoLongArrayOfArraysAdapter
-            throw new CoreException("Cannot serialize provided {}, size {} too large",
-                    serializable.getClass().getName(), byteArrayOfArrays.size());
-        }
-
         final ProtoByteArrayOfArrays.Builder protoArraysBuilder = ProtoByteArrayOfArrays
                 .newBuilder();
         for (int index = 0; index < byteArrayOfArrays.size(); index++)

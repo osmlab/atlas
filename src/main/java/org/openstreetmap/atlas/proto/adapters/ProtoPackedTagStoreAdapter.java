@@ -18,7 +18,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
  *
  * @author lcram
  */
-
 public class ProtoPackedTagStoreAdapter implements ProtoAdapter
 {
     /*
@@ -62,8 +61,7 @@ public class ProtoPackedTagStoreAdapter implements ProtoAdapter
             keyArrayField.setAccessible(true);
             keyArrayField.set(store, keyArray);
         }
-        catch (NoSuchFieldException | SecurityException | IllegalArgumentException
-                | IllegalAccessException exception)
+        catch (final Exception exception)
         {
             throw new CoreException("Unable to set field \"{}\" in {}", PackedTagStore.FIELD_KEYS,
                     store.getClass().getName(), exception);
@@ -75,8 +73,7 @@ public class ProtoPackedTagStoreAdapter implements ProtoAdapter
             valueArrayField.setAccessible(true);
             valueArrayField.set(store, valueArray);
         }
-        catch (NoSuchFieldException | SecurityException | IllegalArgumentException
-                | IllegalAccessException exception)
+        catch (final Exception exception)
         {
             throw new CoreException("Unable to set field \"{}\" in {}", PackedTagStore.FIELD_VALUES,
                     store.getClass().getName(), exception);
@@ -88,8 +85,7 @@ public class ProtoPackedTagStoreAdapter implements ProtoAdapter
             indexField.setAccessible(true);
             indexField.set(store, index);
         }
-        catch (NoSuchFieldException | SecurityException | IllegalArgumentException
-                | IllegalAccessException exception)
+        catch (final Exception exception)
         {
             throw new CoreException("Unable to set field \"{}\" in {}", PackedTagStore.FIELD_INDEX,
                     store.getClass().getName(), exception);
@@ -124,8 +120,7 @@ public class ProtoPackedTagStoreAdapter implements ProtoAdapter
             keyArrayField.setAccessible(true);
             keyArray = (IntegerArrayOfArrays) keyArrayField.get(store);
         }
-        catch (NoSuchFieldException | SecurityException | IllegalArgumentException
-                | IllegalAccessException exception)
+        catch (final Exception exception)
         {
             throw new CoreException("Unable to read field \"{}\" from {}",
                     PackedTagStore.FIELD_KEYS, store.getClass().getName(), exception);
@@ -137,8 +132,7 @@ public class ProtoPackedTagStoreAdapter implements ProtoAdapter
             valueArrayField.setAccessible(true);
             valueArray = (IntegerArrayOfArrays) valueArrayField.get(store);
         }
-        catch (NoSuchFieldException | SecurityException | IllegalArgumentException
-                | IllegalAccessException exception)
+        catch (final Exception exception)
         {
             throw new CoreException("Unable to read field \"{}\" from {}",
                     PackedTagStore.FIELD_VALUES, store.getClass().getName(), exception);
@@ -150,8 +144,7 @@ public class ProtoPackedTagStoreAdapter implements ProtoAdapter
             indexField.setAccessible(true);
             index = (Long) indexField.get(store);
         }
-        catch (NoSuchFieldException | SecurityException | IllegalArgumentException
-                | IllegalAccessException exception)
+        catch (final Exception exception)
         {
             throw new CoreException("Unable to read field \"{}\" from {}",
                     PackedTagStore.FIELD_INDEX, store.getClass().getName(), exception);

@@ -49,13 +49,6 @@ public class ProtoIntegerArrayOfArraysAdapter implements ProtoAdapter
         }
         final IntegerArrayOfArrays integerArrayOfArrays = (IntegerArrayOfArrays) serializable;
 
-        if (integerArrayOfArrays.size() > Integer.MAX_VALUE)
-        {
-            // TODO see note about this check in ProtoLongArrayOfArraysAdapter
-            throw new CoreException("Cannot serialize provided {}, size {} too large",
-                    serializable.getClass().getName(), integerArrayOfArrays.size());
-        }
-
         final ProtoIntegerArrayOfArrays protoArrays = CONVERTER
                 .backwardConvert(integerArrayOfArrays);
 

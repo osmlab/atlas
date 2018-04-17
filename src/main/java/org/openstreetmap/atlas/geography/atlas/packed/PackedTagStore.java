@@ -71,8 +71,8 @@ public class PackedTagStore implements Serializable, ProtoSerializable
     {
         if (index > size())
         {
-            throw new CoreException(
-                    "Cannot add. Invalid index " + index + " is bigger than the size " + size());
+            throw new CoreException("Cannot add. Invalid index {} is bigger than the size {}",
+                    index, size());
         }
         final int keyIndex = keysDictionary().add(key);
         final int valueIndex = valuesDictionary().add(value);

@@ -164,7 +164,7 @@ public final class AtlasMetaData implements Serializable, Taggable, ProtoSeriali
     {
         final int sizeHash = this.getSize().hashCode();
         return Objects.hash(Integer.valueOf(sizeHash), Boolean.valueOf(this.original),
-                this.codeVersion, this.country, this.shardName, this.tags);
+                this.codeVersion, this.dataVersion, this.country, this.shardName, this.tags);
     }
 
     public boolean isOriginal()

@@ -10,7 +10,10 @@ import com.google.protobuf.InvalidProtocolBufferException;
 /**
  * Implements the {@link ProtoAdapter} interface to connect {@link IntegerDictionary} and
  * {@link ProtoIntegerStringDictionary}. This adapter will fail when attempting to serialize an
- * {@link IntegerDictionary} that is not type parameterized using {@link String}.
+ * {@link IntegerDictionary} that is not type parameterized using {@link String}. Also note that
+ * {@link ProtoIntegerStringDictionaryAdapter#deserialize(byte[])} will give back an
+ * {@link IntegerDictionary} parameterized with {@link String}, no matter what type parameterization
+ * was used by the parent {@link IntegerDictionary} the adapter belongs to.
  *
  * @author lcram
  */
