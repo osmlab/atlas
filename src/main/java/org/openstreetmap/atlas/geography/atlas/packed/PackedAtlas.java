@@ -112,6 +112,7 @@ public final class PackedAtlas extends AbstractAtlas
 
     // Dictionary
     private final IntegerDictionary<String> dictionary;
+
     // The OSM (and way-sectioned) edge and node indices
     private final LongArray edgeIdentifiers;
     private final LongArray nodeIdentifiers;
@@ -156,15 +157,16 @@ public final class PackedAtlas extends AbstractAtlas
     private final LongArray pointLocations;
     private final PackedTagStore pointTags;
     private final LongToLongMultiMap pointIndexToRelationIndices;
+
     // Relation attributes
     private final LongArrayOfArrays relationMemberIndices;
-
     private final ByteArrayOfArrays relationMemberTypes;
     private final IntegerArrayOfArrays relationMemberRoles;
     private final PackedTagStore relationTags;
     private final LongToLongMultiMap relationIndexToRelationIndices;
     private final LongToLongMultiMap relationOsmIdentifierToRelationIdentifiers;
     private final LongArray relationOsmIdentifiers;
+
     // Bounds of the Atlas
     private Rectangle bounds;
 
