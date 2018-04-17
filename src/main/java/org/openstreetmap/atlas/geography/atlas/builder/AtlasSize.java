@@ -53,8 +53,8 @@ public class AtlasSize implements Serializable
          */
         public AtlasSize build()
         {
-            return new AtlasSize(this.edgeEstimate, this.nodeEstimate, this.areaEstimate, this.lineEstimate,
-                    this.pointEstimate, this.relationEstimate);
+            return new AtlasSize(this.edgeEstimate, this.nodeEstimate, this.areaEstimate,
+                    this.lineEstimate, this.pointEstimate, this.relationEstimate);
         }
 
         public AtlasSizeBuilder withAreaEstimate(final long areaNumber)
