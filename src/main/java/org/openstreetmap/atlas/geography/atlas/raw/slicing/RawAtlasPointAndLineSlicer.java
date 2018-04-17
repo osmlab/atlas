@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -24,7 +23,6 @@ import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.SimpleChang
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryLine;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryPoint;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
-import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
@@ -53,7 +51,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
     // Keeps track of all changes made during slicing
     private final SimpleChangeSet slicedPointAndLineChanges;
 
-    public RawAtlasPointAndLineSlicer(final Set<IsoCountry> countries,
+    public RawAtlasPointAndLineSlicer(final Set<String> countries,
             final CountryBoundaryMap countryBoundaryMap, final Atlas atlas,
             final SimpleChangeSet changeSet, final CoordinateToNewPointMapping newPointCoordinates)
     {
@@ -115,7 +113,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
 
         // Slice the JTS Geometry
         result = sliceGeometry(geometry, lineIdentifier);
-        if (result.isEmpty() && line.isClosed())
+
+        if ((result == null || result.isEmpty()) && line.isClosed())
         {
             // If we failed to slice an invalid Polygon (self-intersecting for example), let's try
             // to slice it as a PolyLine. Only if we cannot do that, then return an empty list.
@@ -123,7 +122,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             result = sliceGeometry(geometry, lineIdentifier);
         }
 
-        if (result.isEmpty())
+        if (result == null || result.isEmpty())
         {
             logger.error("Invalid Geometry for line {}", lineIdentifier);
         }
@@ -140,12 +139,13 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      */
     private boolean isOutsideWorkingBound(final Geometry geometry)
     {
-        final Optional<IsoCountry> countryCode = IsoCountry.forCountryCode(
-                CountryBoundaryMap.getGeometryProperty(geometry, ISOCountryTag.KEY));
-        if (countryCode.isPresent())
+        final String countryCode = CountryBoundaryMap.getGeometryProperty(geometry,
+                ISOCountryTag.KEY);
+
+        if (countryCode != null)
         {
             return getCountries() != null && !getCountries().isEmpty()
-                    && !getCountries().contains(countryCode.get());
+                    && !getCountries().contains(countryCode);
         }
 
         // Assume it's inside the bound
@@ -161,7 +161,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             for (final String countryCode : countryCodes)
             {
                 // Break if any one the countries is inside the bound
-                if (getCountries().contains(IsoCountry.forCountryCode(countryCode).get()))
+                if (getCountries().contains(countryCode))
                 {
                     return false;
                 }

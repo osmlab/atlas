@@ -10,7 +10,6 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.RelationChangeSet;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.SimpleChangeSet;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
-import org.openstreetmap.atlas.locale.IsoCountry;
 
 /**
  * Main entry point to initiate raw {@link Atlas} country-slicing.
@@ -23,23 +22,7 @@ public class RawAtlasCountrySlicer
     private final CountryBoundaryMap countryBoundaryMap;
 
     // The boundaries used for slicing
-    private final Set<IsoCountry> countries = new HashSet<>();
-
-    /**
-     * Slices against the given country set and boundary map. Note: Will assume the entire world to
-     * be the target MultiPolygon to use.
-     *
-     * @param country
-     *            The country to slice against
-     * @param countryBoundaryMap
-     *            The {@link CountryBoundaryMap} to use when slicing
-     */
-    public RawAtlasCountrySlicer(final IsoCountry country,
-            final CountryBoundaryMap countryBoundaryMap)
-    {
-        this.countries.add(country);
-        this.countryBoundaryMap = countryBoundaryMap;
-    }
+    private final Set<String> countries = new HashSet<>();
 
     /**
      * Slices against the given country and boundary map. Note: Will assume the entire world to be
@@ -50,10 +33,25 @@ public class RawAtlasCountrySlicer
      * @param countryBoundaryMap
      *            The {@link CountryBoundaryMap} to use when slicing
      */
-    public RawAtlasCountrySlicer(final Set<IsoCountry> countries,
+    public RawAtlasCountrySlicer(final Set<String> countries,
             final CountryBoundaryMap countryBoundaryMap)
     {
         this.countries.addAll(countries);
+        this.countryBoundaryMap = countryBoundaryMap;
+    }
+
+    /**
+     * Slices against the given country set and boundary map. Note: Will assume the entire world to
+     * be the target MultiPolygon to use.
+     *
+     * @param country
+     *            The country to slice against
+     * @param countryBoundaryMap
+     *            The {@link CountryBoundaryMap} to use when slicing
+     */
+    public RawAtlasCountrySlicer(final String country, final CountryBoundaryMap countryBoundaryMap)
+    {
+        this.countries.add(country);
         this.countryBoundaryMap = countryBoundaryMap;
     }
 

@@ -13,11 +13,9 @@ import org.openstreetmap.atlas.geography.atlas.items.complex.buildings.ComplexBu
 import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWaterEntity;
 import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWaterEntityFinder;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
-import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
-
-import com.google.common.collect.Iterables;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * {@link RawAtlasRelationSlicer} unit tests for slicing {@link Relation}s.
@@ -28,14 +26,14 @@ public class RelationSlicingTest
 {
     private static RawAtlasCountrySlicer RAW_ATLAS_SLICER;
     private static CountryBoundaryMap COUNTRY_BOUNDARY_MAP;
-    private static Set<IsoCountry> COUNTRIES;
+    private static Set<String> COUNTRIES;
 
     static
     {
         COUNTRIES = new HashSet<>();
-        COUNTRIES.add(IsoCountry.forCountryCode("CIV").get());
-        COUNTRIES.add(IsoCountry.forCountryCode("GIN").get());
-        COUNTRIES.add(IsoCountry.forCountryCode("LBR").get());
+        COUNTRIES.add("CIV");
+        COUNTRIES.add("GIN");
+        COUNTRIES.add("LBR");
 
         COUNTRY_BOUNDARY_MAP = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> LineAndPointSlicingTest.class

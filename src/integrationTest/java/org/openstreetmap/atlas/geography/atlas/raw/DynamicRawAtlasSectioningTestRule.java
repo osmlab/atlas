@@ -8,7 +8,7 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas.Loc;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Point;
 
 /**
- * {@link OsmPbfToSlicedRawAtlasTest} test data.
+ * {@link RawAtlasIntegrationTest} test data.
  *
  * @author mgostintsev
  */

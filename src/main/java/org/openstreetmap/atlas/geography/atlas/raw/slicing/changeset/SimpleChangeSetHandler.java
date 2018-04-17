@@ -1,6 +1,8 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -25,6 +27,9 @@ public class SimpleChangeSetHandler extends ChangeSetHandler
     private static final Logger logger = LoggerFactory.getLogger(SimpleChangeSetHandler.class);
 
     private final SimpleChangeSet changeSet;
+
+    // Keep track of empty relations that have been filtered to avoid adding them to their parents
+    private final Set<Long> filteredEmptyRelations = new HashSet<>();
 
     /**
      * Default constructor.
@@ -164,7 +169,7 @@ public class SimpleChangeSetHandler extends ChangeSetHandler
                 if (memberType == ItemType.LINE && this.changeSet.getDeletedToCreatedLineMapping()
                         .keySet().contains(memberIdentifier))
                 {
-                    // Found a deleted line, try to replace it with the newly created line(s)
+                    // Deleted line, try to replace it with the newly created line(s)
                     for (final long addedLineIdentifier : this.changeSet
                             .getDeletedToCreatedLineMapping().get(memberIdentifier))
                     {
@@ -187,14 +192,22 @@ public class SimpleChangeSetHandler extends ChangeSetHandler
                 else if (memberType == ItemType.POINT
                         && this.changeSet.getDeletedPoints().contains(memberIdentifier))
                 {
-                    // Found a deleted point, don't add it to the relation
+                    // A deleted point, don't add it to the relation
                     logger.trace(
                             "Point {} wasn't in the working country set and is being filtered out of Relation {}",
                             memberIdentifier, relation.getIdentifier());
                 }
+                else if (memberType == ItemType.RELATION
+                        && this.filteredEmptyRelations.contains(memberIdentifier))
+                {
+                    // A deleted relation, don't add it to the relation
+                    logger.trace(
+                            "Relation {} is empty as a result of slicing and is being filtered out of parent Relation {}",
+                            memberIdentifier, relation.getIdentifier());
+                }
                 else
                 {
-                    // Non-deleted member, simply add it
+                    // Non-deleted member, add it
                     bean.addItem(member.getEntity().getIdentifier(), member.getRole(),
                             member.getEntity().getType());
                 }
@@ -209,6 +222,7 @@ public class SimpleChangeSetHandler extends ChangeSetHandler
             }
             else
             {
+                this.filteredEmptyRelations.add(relation.getIdentifier());
                 logger.trace("Excluding Relation {} from Atlas due to empty member list",
                         relation.getIdentifier());
             }

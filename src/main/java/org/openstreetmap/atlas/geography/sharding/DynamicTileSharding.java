@@ -342,8 +342,8 @@ public class DynamicTileSharding extends Command implements Sharding
     public void saveAsGeoJson(final WritableResource resource)
     {
         final JsonWriter writer = new JsonWriter(resource);
-        final GeoJsonObject geoJson = new GeoJsonBuilder().create(Iterables.translate(
-                this.root.leafNodes(Rectangle.MAXIMUM), node -> node.toGeoJsonBuildingBlock()));
+        final GeoJsonObject geoJson = new GeoJsonBuilder().create(Iterables
+                .translate(this.root.leafNodes(Rectangle.MAXIMUM), Node::toGeoJsonBuildingBlock));
         writer.write(geoJson.jsonObject());
         writer.close();
     }
@@ -372,10 +372,8 @@ public class DynamicTileSharding extends Command implements Sharding
      * @param firstZoomLayerToGenerate
      *            the first zoom layer for which to generate counts
      * @param counts
-     *            HashMap containing counts for all {@link SlippyTile}s in
-     *            firstZoomLayerToGenerate+1
-     * @return a HashMap containing counts for all (@link SlippyTile}s in zoomLayerToGenerate and
-     *         below
+     *            Map containing counts for all {@link SlippyTile}s in firstZoomLayerToGenerate+1
+     * @return a Map containing counts for all (@link SlippyTile}s in zoomLayerToGenerate and below
      */
     protected Map<SlippyTile, Long> calculateTileCountsForAllZoom(
             final int firstZoomLayerToGenerate, final Map<SlippyTile, Long> counts)

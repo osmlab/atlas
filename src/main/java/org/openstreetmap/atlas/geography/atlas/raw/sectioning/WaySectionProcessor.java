@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.raw.sectioning;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -367,7 +368,7 @@ public class WaySectionProcessor
     }
 
     /**
-     * Updates the {@link AtlasMetaData} with all configurations.
+     * Updates the {@link AtlasMetaData} with all Atlas Entity configurations.
      *
      * @return the final {@link AtlasMetaData}
      */
@@ -380,12 +381,6 @@ public class WaySectionProcessor
                 this.loadingOption.getAreaFilter().toString());
         metadata.getTags().put(AtlasMetaData.WAY_SECTIONING_CONFIGURATION,
                 this.loadingOption.getWaySectionFilter().toString());
-        metadata.getTags().put(AtlasMetaData.OSM_PBF_NODE_CONFIGURATION,
-                this.loadingOption.getOsmPbfNodeFilter().toString());
-        metadata.getTags().put(AtlasMetaData.OSM_PBF_WAY_CONFIGURATION,
-                this.loadingOption.getOsmPbfWayFilter().toString());
-        metadata.getTags().put(AtlasMetaData.OSM_PBF_RELATION_CONFIGURATION,
-                this.loadingOption.getOsmPbfRelationFilter().toString());
         return metadata;
     }
 
@@ -451,7 +446,7 @@ public class WaySectionProcessor
         }
         catch (final Exception e)
         {
-            logger.error("Error creating sub-atlas for original shard bounds");
+            logger.error("Error creating sub-atlas for original shard bounds", e);
             return null;
         }
     }
@@ -472,12 +467,12 @@ public class WaySectionProcessor
     }
 
     /**
-     * This function takes care of identifying any raw atlas {@link Line}s that will becomes
+     * This function takes care of identifying any raw atlas {@link Line}s that will become
      * {@link Edge}s or {@link Area}s. If we happen to find an {@link Edge}, then we will loop
-     * through its shape points and identify all the {@link Node}s as well. The
-     * {@link WaySectionChangeSet} will be used to track of any entity updates. It's important to
-     * note that can avoid any future spatial queries by doing them here and creating a mapping to
-     * use later for splitting {@link Line}s into {@link Edge}s.
+     * through its shape points and identify all the {@link Node}s. The {@link WaySectionChangeSet}
+     * will be used to track of any entity updates. It's important to note that can avoid any future
+     * spatial queries by doing them here and creating a mapping to use later for splitting
+     * {@link Line}s into {@link Edge}s.
      *
      * @param changeSet
      *            The {@link WaySectionChangeSet} to track any updates
@@ -490,23 +485,39 @@ public class WaySectionProcessor
             {
                 final NodeOccurrenceCounter nodesForEdge = new NodeOccurrenceCounter();
                 final PolyLine polyLine = line.asPolyLine();
+                final Set<Location> selfIntersections = polyLine.selfIntersections();
 
-                // Find any intersections with other edges
+                // A ring will have a self-intersection at the start/end - ignore it
+                if (line.isClosed())
+                {
+                    selfIntersections.remove(line.asPolyLine().first());
+                }
+
+                // Identify all nodes. We care about three cases: 1. sectioning based on tagging
+                // (ex. at a barrier) 2. self-intersections, if the way loops over itself 3. at an
+                // intersection with another edge
                 for (int index = 0; index < polyLine.size(); index++)
                 {
                     final Location shapePoint = polyLine.get(index);
 
-                    // Based on a configurable tag filter, a shape point that doesn't intersect
-                    // an edge may also become a node
+                    // We found a repeated location, mark it as a node
+                    if (selfIntersections.contains(shapePoint))
+                    {
+                        addPointToNodeList(shapePoint, nodesForEdge);
+                        continue;
+                    }
+
+                    // Check if we need to section based on tagging
                     if (shouldSectionAtLocation(shapePoint))
                     {
                         addPointToNodeList(shapePoint, nodesForEdge);
+                        continue;
                     }
 
                     // TODO - Getting non-intersecting lines from the spatial query results.
                     // So purposefully specifying "contains shapePoint". Need to resolve this!
 
-                    // If there are other edges intersecting the shape point, it becomes a node
+                    // Check if there is an edge intersection at this location
                     if (locationHasIntersectingLinesMatchingPredicate(shapePoint,
                             target -> target.getIdentifier() != line.getIdentifier()
                                     && isAtlasEdge(target)
@@ -521,6 +532,7 @@ public class WaySectionProcessor
                             logger.error("Detected more than one point at {}", shapePoint);
                         }
                         addPointToNodeList(shapePoint, nodesForEdge);
+                        continue;
                     }
                 }
 
@@ -829,12 +841,12 @@ public class WaySectionProcessor
             {
                 // Weren't able to find the starting node, abort slicing
                 logger.error(
-                        "Could not find starting Node for Line {} during way-sectioning. Aborting!",
+                        "Can't find starting Node for Line {} during way-sectioning. Aborting!",
                         line.getIdentifier());
                 return newEdgesForLine;
             }
 
-            // We've already processed the starting node, so we start with the first index
+            // We've already processed the starting node, so start with the first index
             for (int index = 1; index < polyline.size(); index++)
             {
                 // Check to see if this location is a node
@@ -854,8 +866,23 @@ public class WaySectionProcessor
                             startOccurrence, polyline.get(index), endOccurrence);
                     final PolyLine edgePolyline = isReversed ? rawPolyline.reversed() : rawPolyline;
 
-                    newEdgesForLine.add(new TemporaryEdge(identifierFactory.nextIdentifier(),
-                            edgePolyline, line.getTags(), hasReverseEdge));
+                    // If the line (OSM way) was split, start the identifier at 001, otherwise
+                    // identifier will start at 000.
+                    final long edgeIdentifier;
+                    if (!line.isClosed() && nodesToSectionAt.size() == 2
+                            && polyline.size() - 1 == index)
+                    {
+                        // The only time we want to do this is if there are two nodes, the line
+                        // isn't a ring and the last node is the end of the polyline
+                        edgeIdentifier = line.getIdentifier();
+                    }
+                    else
+                    {
+                        edgeIdentifier = identifierFactory.nextIdentifier();
+                    }
+
+                    newEdgesForLine.add(new TemporaryEdge(edgeIdentifier, edgePolyline,
+                            line.getTags(), hasReverseEdge));
 
                     // Increment starting pointers
                     startIndex = index;

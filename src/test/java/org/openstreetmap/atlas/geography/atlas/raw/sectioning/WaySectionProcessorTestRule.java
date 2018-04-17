@@ -29,6 +29,9 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     @TestAtlas(loadFromTextResource = "lineWithLoopAtEnd.atlas.txt")
     private Atlas lineWithLoopAtEnd;
 
+    @TestAtlas(loadFromTextResource = "lineWithLoopInMiddle.atlas.txt")
+    private Atlas lineWithLoopInMiddle;
+
     @TestAtlas(loadFromTextResource = "lineWithLoopAtStart.atlas.txt")
     private Atlas lineWithLoopAtStart;
 
@@ -62,6 +65,11 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     public Atlas getLineWithLoopAtStartAtlas()
     {
         return this.lineWithLoopAtStart;
+    }
+
+    public Atlas getLineWithLoopInMiddleAtlas()
+    {
+        return this.lineWithLoopInMiddle;
     }
 
     public Atlas getLoopingWayWithIntersectionAtlas()
