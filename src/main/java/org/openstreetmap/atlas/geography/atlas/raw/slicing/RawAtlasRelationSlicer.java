@@ -36,7 +36,6 @@ import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRe
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRelationMember;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.converters.jts.JtsUtility;
-import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.SyntheticRelationMemberAdded;
@@ -93,7 +92,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         return false;
     }
 
-    public RawAtlasRelationSlicer(final Atlas atlas, final Set<IsoCountry> countries,
+    public RawAtlasRelationSlicer(final Atlas atlas, final Set<String> countries,
             final CountryBoundaryMap countryBoundaryMap, final SimpleChangeSet simpleChangeSet,
             final RelationChangeSet relationChangeSet,
             final CoordinateToNewPointMapping newPointCoordinates)
@@ -449,12 +448,21 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
             if (entity != null)
             {
                 // Entity is in the Raw Atlas
-                final Iterable<IsoCountry> countryCodes = ISOCountryTag.all(entity);
-                for (final IsoCountry countryCode : countryCodes)
+                final Optional<String> countryCodeString = entity.getTag(ISOCountryTag.KEY);
+                if (countryCodeString.isPresent())
                 {
-                    // Entities that were not sliced could have more than one country code
-                    final String code = countryCode.getIso3CountryCode();
-                    countryEntityMap.add(code, member);
+                    final String[] countryCodes = countryCodeString.get()
+                            .split(ISOCountryTag.COUNTRY_DELIMITER);
+                    for (final String countryCode : countryCodes)
+                    {
+                        // Entities that were not sliced could have more than one country code
+                        countryEntityMap.add(countryCode, member);
+                    }
+                }
+                else
+                {
+                    logger.debug("{} {} doesn't have a country code tag value", entity.getType(),
+                            entity.getIdentifier());
                 }
             }
             else

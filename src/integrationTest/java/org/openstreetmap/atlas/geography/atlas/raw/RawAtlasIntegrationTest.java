@@ -23,7 +23,6 @@ import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.sharding.DynamicTileSharding;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
-import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
@@ -43,7 +42,7 @@ import org.slf4j.LoggerFactory;
 public class RawAtlasIntegrationTest
 {
     private static CountryBoundaryMap COUNTRY_BOUNDARY_MAP;
-    private static Set<IsoCountry> COUNTRIES;
+    private static Set<String> COUNTRIES;
 
     private static final long LINE_OSM_IDENTIFIER_CROSSING_3_SHARDS = 541706;
 
@@ -52,9 +51,9 @@ public class RawAtlasIntegrationTest
     static
     {
         COUNTRIES = new HashSet<>();
-        COUNTRIES.add(IsoCountry.forCountryCode("CIV").get());
-        COUNTRIES.add(IsoCountry.forCountryCode("GIN").get());
-        COUNTRIES.add(IsoCountry.forCountryCode("LBR").get());
+        COUNTRIES.add("CIV");
+        COUNTRIES.add("GIN");
+        COUNTRIES.add("LBR");
 
         COUNTRY_BOUNDARY_MAP = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
@@ -176,8 +175,8 @@ public class RawAtlasIntegrationTest
         final Atlas rawAtlas = rawAtlasGenerator.build();
 
         // We're only interested in CIV country
-        final Set<IsoCountry> onlyIvoryCoast = new HashSet<>();
-        onlyIvoryCoast.add(IsoCountry.forCountryCode("CIV").get());
+        final Set<String> onlyIvoryCoast = new HashSet<>();
+        onlyIvoryCoast.add("CIV");
         final Atlas slicedRawAtlas = sliceRawAtlas(rawAtlas, onlyIvoryCoast);
 
         Assert.assertEquals(0, slicedRawAtlas.numberOfNodes());
@@ -259,9 +258,9 @@ public class RawAtlasIntegrationTest
         // a way. It should end up as a point in the final atlas.
 
         // Create an Antarctica country
-        final Set<IsoCountry> countries = new HashSet<>();
+        final Set<String> countries = new HashSet<>();
         final String antarctica = "ATA";
-        countries.add(IsoCountry.forCountryCode(antarctica).get());
+        countries.add(antarctica);
 
         // Create a fake boundary as a bounding box around the target point
         final Map<String, MultiPolygon> boundaries = new HashMap<>();
@@ -331,7 +330,7 @@ public class RawAtlasIntegrationTest
         return store;
     }
 
-    private Atlas sliceRawAtlas(final Atlas rawAtlas, final Set<IsoCountry> countries)
+    private Atlas sliceRawAtlas(final Atlas rawAtlas, final Set<String> countries)
     {
         return new RawAtlasCountrySlicer(countries, COUNTRY_BOUNDARY_MAP).slice(rawAtlas);
     }
