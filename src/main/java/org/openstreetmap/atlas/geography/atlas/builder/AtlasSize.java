@@ -22,8 +22,81 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  */
 public class AtlasSize implements Serializable
 {
+    /**
+     * A simple builder class for creating AtlasSize objects with custom sizes.
+     *
+     * @author lcram
+     */
+    public static class AtlasSizeBuilder
+    {
+        private long edgeEstimate;
+        private long nodeEstimate;
+        private long areaEstimate;
+        private long lineEstimate;
+        private long pointEstimate;
+        private long relationEstimate;
+
+        public AtlasSizeBuilder()
+        {
+            this.edgeEstimate = DEFAULT_ESTIMATE;
+            this.nodeEstimate = DEFAULT_ESTIMATE;
+            this.areaEstimate = DEFAULT_ESTIMATE;
+            this.lineEstimate = DEFAULT_ESTIMATE;
+            this.pointEstimate = DEFAULT_ESTIMATE;
+            this.relationEstimate = DEFAULT_ESTIMATE;
+        }
+
+        /**
+         * Builds an AtlasSize. By default it uses a small value for the size estimates.
+         *
+         * @return A new AtlasSize
+         */
+        public AtlasSize build()
+        {
+            return new AtlasSize(this.edgeEstimate, this.nodeEstimate, this.areaEstimate, this.lineEstimate,
+                    this.pointEstimate, this.relationEstimate);
+        }
+
+        public AtlasSizeBuilder withAreaEstimate(final long areaNumber)
+        {
+            this.areaEstimate = areaNumber;
+            return this;
+        }
+
+        public AtlasSizeBuilder withEdgeEstimate(final long edgeNumber)
+        {
+            this.edgeEstimate = edgeNumber;
+            return this;
+        }
+
+        public AtlasSizeBuilder withLineEstimate(final long lineNumber)
+        {
+            this.lineEstimate = lineNumber;
+            return this;
+        }
+
+        public AtlasSizeBuilder withNodeEstimate(final long nodeNumber)
+        {
+            this.nodeEstimate = nodeNumber;
+            return this;
+        }
+
+        public AtlasSizeBuilder withPointEstimate(final long pointNumber)
+        {
+            this.pointEstimate = pointNumber;
+            return this;
+        }
+
+        public AtlasSizeBuilder withRelationEstimate(final long relationNumber)
+        {
+            this.relationEstimate = relationNumber;
+            return this;
+        }
+    }
+
     private static final long serialVersionUID = -4365680097735345765L;
     private static final long DEFAULT_ESTIMATE = 1024L;
+
     public static final AtlasSize DEFAULT = new AtlasSize(DEFAULT_ESTIMATE, DEFAULT_ESTIMATE,
             DEFAULT_ESTIMATE, DEFAULT_ESTIMATE, DEFAULT_ESTIMATE, DEFAULT_ESTIMATE);
 
