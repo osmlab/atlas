@@ -19,8 +19,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
  */
 public class ProtoIntegerStringDictionaryAdapter implements ProtoAdapter
 {
-    // NOTE this method will ALWAYS give back an IntegerDictionary<String>, no matter what type
-    // parameterization was used by the parent IntegerDictionary<T> the adapter belongs to
     @Override
     public ProtoSerializable deserialize(final byte[] byteArray)
     {
