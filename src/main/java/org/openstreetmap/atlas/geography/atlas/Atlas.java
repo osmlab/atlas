@@ -35,7 +35,6 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
  *
  * @author matthieun
  * @author tony
- * @author lcram
  */
 public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
 {
@@ -269,6 +268,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     /**
      * Get the serialization format setting for this Atlas.
      *
+     * @author lcram
      * @return the serialization format setting
      */
     AtlasSerializationFormat getSerializationFormat();
@@ -737,6 +737,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     /**
      * Set the serialization format for this Atlas.
      *
+     * @author lcram
      * @param format
      *            The format to use
      */
