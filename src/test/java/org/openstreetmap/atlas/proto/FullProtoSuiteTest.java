@@ -16,6 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
+import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.random.RandomTagsSupplier;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
@@ -66,17 +67,21 @@ public class FullProtoSuiteTest
     public void test()
     {
         final PackedAtlas atlas = getNewAtlas();
+        // final PackedAtlas atlas = getFileAtlas("/Users/lucascram/Desktop/DMA_9-168-233.atlas");
+
         final ByteArrayResource defaultResource = new ByteArrayResource(LARGE_DEFAULT_SIZE);
         final ByteArrayResource protoResource = new ByteArrayResource(LARGE_DEFAULT_SIZE);
 
         logger.info("Starting serialization process...");
         final Time defaultTime = Time.now();
         atlas.setSerializationFormat(AtlasSerializationFormat.DEFAULT);
+        atlas.bounds();
         atlas.save(defaultResource);
         logger.info("Default serialization time: {}", defaultTime.elapsedSince());
 
         final Time protoTime = Time.now();
         atlas.setSerializationFormat(AtlasSerializationFormat.PROTOBUF);
+        atlas.bounds();
         atlas.save(protoResource);
         logger.info("Proto serialization time: {}", protoTime.elapsedSince());
 
@@ -93,6 +98,11 @@ public class FullProtoSuiteTest
             this.cachedAtlas = setupAtlas1();
         }
         return this.cachedAtlas;
+    }
+
+    private PackedAtlas getFileAtlas(final String string)
+    {
+        return PackedAtlas.load(new File(string));
     }
 
     private PackedAtlas getNewAtlas()
