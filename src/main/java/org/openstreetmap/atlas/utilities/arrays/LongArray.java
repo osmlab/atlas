@@ -57,9 +57,6 @@ public class LongArray extends LargeArray<Long> implements ProtoSerializable
         super(maximumSize, memoryBlockSize, subArraySize);
     }
 
-    /**
-     * @author lcram
-     */
     @Override
     public ProtoAdapter getProtoAdapter()
     {

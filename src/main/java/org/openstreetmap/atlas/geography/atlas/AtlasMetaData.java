@@ -38,9 +38,6 @@ public final class AtlasMetaData implements Serializable, Taggable, ProtoSeriali
     private final String shardName;
     private final Map<String, String> tags;
 
-    /**
-     * @author lcram
-     */
     public AtlasMetaData()
     {
         this(AtlasSize.DEFAULT);
