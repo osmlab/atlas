@@ -66,8 +66,9 @@ public final class PackedAtlasSerializer
 
     private static final Logger logger = LoggerFactory.getLogger(PackedAtlasSerializer.class);
     // The fields not serialized.
-    private static final StringList EXCLUDED_FIELDS = new StringList("bounds", "serialVersionUID",
-            "logger", "$SWITCH_TABLE$", PackedAtlas.FIELD_SERIALIZER, "FIELD_");
+    private static final StringList EXCLUDED_FIELDS = new StringList(PackedAtlas.FIELD_BOUNDS,
+            PackedAtlas.FIELD_SERIAL_VERSION_UID, PackedAtlas.FIELD_LOGGER, "$SWITCH_TABLE$",
+            PackedAtlas.FIELD_SERIALIZER, PackedAtlas.FIELD_PREFIX);
 
     public static final String META_DATA_ERROR_MESSAGE = "MetaData not here!";
     private final PackedAtlas atlas;
