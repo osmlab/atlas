@@ -551,8 +551,6 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
     private void mergeOverlappingClosedMembers(final Relation relation,
             final List<RelationMember> outers, final List<RelationMember> inners)
     {
-        final long relationIdentifier = relation.getIdentifier();
-
         if (outers == null || outers.isEmpty())
         {
             return;
@@ -571,6 +569,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
             return;
         }
 
+        final long relationIdentifier = relation.getIdentifier();
         final List<RelationMember> closedOuters = generateMemberList(relationIdentifier, outers,
                 true);
         final List<RelationMember> closedInners = generateMemberList(relationIdentifier, inners,
@@ -606,7 +605,6 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                     .convert(new Polygon(outer.getRawGeometry()));
             final com.vividsolutions.jts.geom.Polygon outerPolygon = new com.vividsolutions.jts.geom.Polygon(
                     outerRing, null, JtsUtility.GEOMETRY_FACTORY);
-            boolean successfulMerge = true;
 
             for (final int innerIndex : innerIndices)
             {
@@ -624,53 +622,53 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 }
                 catch (final Exception e)
                 {
-                    successfulMerge = false;
                     logger.error(
                             "Error combining intersecting outer {} and inner {} members for relation {}",
                             outer, inner, relationIdentifier, e);
                 }
             }
 
-            // Make sure the merged piece is valid
-            final com.vividsolutions.jts.geom.Polygon merged = (com.vividsolutions.jts.geom.Polygon) mergedMembers;
-            final LineString exteriorRing = merged.getExteriorRing();
-            if (exteriorRing.isEmpty() || !exteriorRing.isClosed())
+            // Make sure the merged piece is valid. Some merges will be invalid - for example an
+            // outer contained within an inner. If that's the case, we want to abort the merge and
+            // leave the members as they are. We are also ignoring MultiPolygons as those have merge
+            // complications.
+            if (mergedMembers != null
+                    && mergedMembers instanceof com.vividsolutions.jts.geom.Polygon)
             {
-                // There is a chance that even a successful merge can result in an invalid Polygon.
-                // This can happen when we try to merge invalid members. One example is an outer
-                // contained within an inner. If that's the case, we want to abort the merge and
-                // leave the members as they are.
-                successfulMerge = false;
-            }
+                final LineString exteriorRing = ((com.vividsolutions.jts.geom.Polygon) mergedMembers)
+                        .getExteriorRing();
 
-            if (successfulMerge && mergedMembers != null)
-            {
-                // Remove the outer member
-                final TemporaryRelationMember outerToRemove = new TemporaryRelationMember(
-                        outer.getIdentifier(), RelationTypeTag.MULTIPOLYGON_ROLE_OUTER,
-                        outer.getType());
-                this.slicedRelationChanges.deleteRelationMember(relationIdentifier, outerToRemove);
-                markRemovedMemberLineForDeletion(outer, relationIdentifier);
-
-                // Remove the inner members
-                for (final int innerIndex : innerIndices)
+                // Check if the new ring is valid
+                if (!exteriorRing.isEmpty() && exteriorRing.isClosed())
                 {
-                    final Line inner = closedInnerLines.get(innerIndex);
-                    final TemporaryRelationMember innerToRemove = new TemporaryRelationMember(
-                            inner.getIdentifier(), RelationTypeTag.MULTIPOLYGON_ROLE_INNER,
-                            ItemType.LINE);
+                    // Remove the outer member
+                    final TemporaryRelationMember outerToRemove = new TemporaryRelationMember(
+                            outer.getIdentifier(), RelationTypeTag.MULTIPOLYGON_ROLE_OUTER,
+                            outer.getType());
                     this.slicedRelationChanges.deleteRelationMember(relationIdentifier,
-                            innerToRemove);
-                    markRemovedMemberLineForDeletion(inner, relationIdentifier);
+                            outerToRemove);
+                    markRemovedMemberLineForDeletion(outer, relationIdentifier);
+
+                    // Remove the inner members
+                    for (final int innerIndex : innerIndices)
+                    {
+                        final Line inner = closedInnerLines.get(innerIndex);
+                        final TemporaryRelationMember innerToRemove = new TemporaryRelationMember(
+                                inner.getIdentifier(), RelationTypeTag.MULTIPOLYGON_ROLE_INNER,
+                                ItemType.LINE);
+                        this.slicedRelationChanges.deleteRelationMember(relationIdentifier,
+                                innerToRemove);
+                        markRemovedMemberLineForDeletion(inner, relationIdentifier);
+                    }
+
+                    // Set the proper country code
+                    CountryBoundaryMap.setGeometryProperty(exteriorRing, ISOCountryTag.KEY,
+                            ISOCountryTag.first(outer).get().getIso3CountryCode());
+
+                    // Create points, lines and update members
+                    createNewLineMemberForRelation(exteriorRing, relationIdentifier,
+                            pointIdentifierGenerator, lineIdentifierGenerator);
                 }
-
-                // Set the proper country code
-                CountryBoundaryMap.setGeometryProperty(exteriorRing, ISOCountryTag.KEY,
-                        ISOCountryTag.first(outer).get().getIso3CountryCode());
-
-                // Create points, lines and update members
-                createNewLineMemberForRelation(exteriorRing, relationIdentifier,
-                        pointIdentifierGenerator, lineIdentifierGenerator);
             }
         }
     }
