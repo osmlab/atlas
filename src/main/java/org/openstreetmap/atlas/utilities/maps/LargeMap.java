@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.Objects;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasSerializer;
+import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
 import org.openstreetmap.atlas.utilities.arrays.Arrays;
 import org.openstreetmap.atlas.utilities.arrays.LargeArray;
 import org.openstreetmap.atlas.utilities.arrays.LongArrayOfArrays;
@@ -36,6 +38,23 @@ public abstract class LargeMap<K, V> implements Iterable<K>, Serializable
     // Each index of this list is a hash value (modulo-ed)
     // Each Value is an array of indices to look up the items in the key/value arrays
     private final LongArrayOfArrays hashes;
+
+    /**
+     * This nullary constructor exists solely for subclasses of {@link LargeMap} that wish to
+     * implement their own nullary constructor. These nullary constructors should only be used by
+     * serialization code in {@link PackedAtlasSerializer} that needs to obtain
+     * {@link ProtoAdapter}s. The objects they initialize are corrupted for general use and should
+     * be discarded.
+     */
+    protected LargeMap()
+    {
+        this.values = null;
+        this.keys = null;
+        this.hashSize = 0;
+        this.maximumSize = 0;
+        this.name = null;
+        this.hashes = null;
+    }
 
     /**
      * Construct a large map

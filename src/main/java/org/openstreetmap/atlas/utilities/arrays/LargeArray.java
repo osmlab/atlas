@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Objects;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasSerializer;
+import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
 import org.openstreetmap.atlas.utilities.scalars.Ratio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +74,21 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
         this.arrays = new ArrayList<>();
         this.memoryBlockSize = memoryBlockSize;
         this.subArraySize = subArraySize;
+    }
+
+    /**
+     * This nullary constructor exists solely for subclasses of {@link LargeArray} that wish to
+     * implement their own nullary constructor. These nullary constructors should only be used by
+     * serialization code in {@link PackedAtlasSerializer} that needs to obtain
+     * {@link ProtoAdapter}s. The objects they initialize are corrupted for general use and should
+     * be discarded.
+     */
+    protected LargeArray()
+    {
+        this.arrays = null;
+        this.maximumSize = 0;
+        this.memoryBlockSize = 0;
+        this.subArraySize = 0;
     }
 
     /**

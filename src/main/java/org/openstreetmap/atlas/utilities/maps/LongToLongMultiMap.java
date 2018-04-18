@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.utilities.maps;
 
 import java.util.Objects;
 
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasSerializer;
 import org.openstreetmap.atlas.proto.ProtoSerializable;
 import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
 import org.openstreetmap.atlas.proto.adapters.ProtoLongToLongMultiMapAdapter;
@@ -74,6 +75,19 @@ public class LongToLongMultiMap extends LargeMap<Long, long[]> implements ProtoS
     {
         super(name, maximumSize, hashSize, keyMemoryBlockSize, keySubArraySize,
                 valueMemoryBlockSize, valueSubArraySize);
+    }
+
+    /**
+     * This nullary constructor is solely for use by the {@link PackedAtlasSerializer}, which calls
+     * it using reflection. It allows the serializer code to obtain a handle on a
+     * {@link LongToLongMultiMap} that it can use to grab the correct {@link ProtoAdapter}. The
+     * object initialized with this constructor will be corrupted for general use and should be
+     * discarded.
+     */
+    @SuppressWarnings("unused")
+    private LongToLongMultiMap()
+    {
+        super();
     }
 
     public void add(final Long key, final long value)
