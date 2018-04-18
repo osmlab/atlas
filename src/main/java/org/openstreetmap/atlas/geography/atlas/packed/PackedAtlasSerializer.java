@@ -320,16 +320,21 @@ public final class PackedAtlasSerializer
     private Resource fieldTranslator(final Field field)
     {
         Resource resource = null;
+        final AtlasSerializationFormat format = this.atlas.getSerializationFormat();
 
-        if (this.atlas.getSerializationFormat() == AtlasSerializationFormat.PROTOBUF)
+        if (format == AtlasSerializationFormat.PROTOBUF)
         {
             final ProtoSerializable candidate = (ProtoSerializable) getField(field);
             resource = makeProtoResource(candidate, field.getName());
         }
-        else
+        else if (format == AtlasSerializationFormat.JAVA)
         {
             final Object candidate = getField(field);
             resource = makeResource(candidate, field.getName());
+        }
+        else
+        {
+            throw new CoreException("Unsupported serialization format {}", format);
         }
 
         return resource;

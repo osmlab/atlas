@@ -46,7 +46,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      */
     enum AtlasSerializationFormat
     {
-        DEFAULT,
+        JAVA,
         PROTOBUF,
     }
 

@@ -74,7 +74,7 @@ public class FullProtoSuiteTest
 
         logger.info("Starting serialization process...");
         final Time defaultTime = Time.now();
-        atlas.setSerializationFormat(AtlasSerializationFormat.DEFAULT);
+        atlas.setSerializationFormat(AtlasSerializationFormat.JAVA);
         atlas.bounds();
         atlas.save(defaultResource);
         logger.info("Default serialization time: {}", defaultTime.elapsedSince());
