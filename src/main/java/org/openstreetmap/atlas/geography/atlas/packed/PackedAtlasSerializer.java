@@ -297,11 +297,12 @@ public final class PackedAtlasSerializer
 
     private StreamIterable<Field> fields()
     {
-        return Iterables.stream(Iterables.from(PackedAtlas.class.getDeclaredFields())).map(field ->
-        {
-            field.setAccessible(true);
-            return field;
-        });
+        return Iterables.stream(Iterables.from(PackedAtlas.class.getDeclaredFields()))
+                .filter(field -> !EXCLUDED_FIELDS.startsWithContains(field.getName())).map(field ->
+                {
+                    field.setAccessible(true);
+                    return field;
+                });
     }
 
     /**

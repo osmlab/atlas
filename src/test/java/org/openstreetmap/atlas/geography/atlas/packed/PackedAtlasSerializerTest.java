@@ -51,6 +51,16 @@ public class PackedAtlasSerializerTest
     }
 
     @Test
+    public void testDeserializeThenSerialize()
+    {
+        final Atlas deserialized = PackedAtlas.load(new File(
+                "/Users/matthieun/projects/data/atlas/DMA/timestamp/atlas/DMA/DMA_9-168-233.atlas"));
+        final ByteArrayResource resource = new ByteArrayResource(5_000_000)
+                .withName("testDeserializeThenSerialize");
+        deserialized.save(resource);
+    }
+
+    @Test
     public void testPartialLoad() throws NoSuchFieldException, SecurityException
     {
         final PackedAtlas atlas = new PackedAtlasTest().getAtlas();
