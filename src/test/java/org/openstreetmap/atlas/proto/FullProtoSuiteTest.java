@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.proto;
 
 import java.util.Map;
 import java.util.Random;
+import java.util.SortedSet;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -13,6 +14,8 @@ import org.openstreetmap.atlas.geography.atlas.Atlas.AtlasSerializationFormat;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize.AtlasSizeBuilder;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.delta.AtlasDelta;
+import org.openstreetmap.atlas.geography.atlas.delta.Diff;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
@@ -101,6 +104,10 @@ public class FullProtoSuiteTest
         logger.info("Proto deserialization time: {}", protoTime.elapsedSince());
 
         Assert.assertEquals(loadedFromJava, loadedFromProto);
+
+        final SortedSet<Diff> diff = new AtlasDelta(loadedFromJava, loadedFromProto, true)
+                .generate().getDifferences();
+        Assert.assertTrue(diff.isEmpty());
     }
 
     private PackedAtlas getCachedAtlas()
