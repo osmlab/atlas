@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.utilities.collections;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -14,7 +15,7 @@ import org.openstreetmap.atlas.exception.CoreException;
  *
  * @author matthieun
  */
-public class StringList implements Iterable<String>
+public class StringList implements Iterable<String>, Serializable
 {
     private final List<String> list;
 
