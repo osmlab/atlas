@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.proto;
 import java.util.Map;
 import java.util.Random;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -69,26 +70,37 @@ public class FullProtoSuiteTest
         final PackedAtlas atlas = getNewAtlas();
         // final PackedAtlas atlas = getFileAtlas("/Users/lucascram/Desktop/DMA_9-168-233.atlas");
 
-        final ByteArrayResource defaultResource = new ByteArrayResource(LARGE_DEFAULT_SIZE);
+        final ByteArrayResource javaResource = new ByteArrayResource(LARGE_DEFAULT_SIZE);
         final ByteArrayResource protoResource = new ByteArrayResource(LARGE_DEFAULT_SIZE);
 
         logger.info("Starting serialization process...");
-        final Time defaultTime = Time.now();
+
+        Time javaTime = Time.now();
         atlas.setSerializationFormat(AtlasSerializationFormat.JAVA);
         atlas.bounds();
-        atlas.save(defaultResource);
-        logger.info("Default serialization time: {}", defaultTime.elapsedSince());
+        atlas.save(javaResource);
+        logger.info("Java serialization time: {}", javaTime.elapsedSince());
 
-        final Time protoTime = Time.now();
+        Time protoTime = Time.now();
         atlas.setSerializationFormat(AtlasSerializationFormat.PROTOBUF);
         atlas.bounds();
         atlas.save(protoResource);
         logger.info("Proto serialization time: {}", protoTime.elapsedSince());
 
-        logger.info("Default resource size: {} bytes ({} KiB)", defaultResource.length(),
-                defaultResource.length() / BYTES_PER_KIBIBYTE);
+        logger.info("Java resource size: {} bytes ({} KiB)", javaResource.length(),
+                javaResource.length() / BYTES_PER_KIBIBYTE);
         logger.info("Proto resource size: {} bytes ({} KiB)", protoResource.length(),
                 protoResource.length() / BYTES_PER_KIBIBYTE);
+
+        javaTime = Time.now();
+        final PackedAtlas loadedFromJava = PackedAtlas.load(javaResource);
+        logger.info("Java deserialization time: {}", javaTime.elapsedSince());
+
+        protoTime = Time.now();
+        final PackedAtlas loadedFromProto = PackedAtlas.loadProto(protoResource);
+        logger.info("Proto deserialization time: {}", protoTime.elapsedSince());
+
+        Assert.assertEquals(loadedFromJava, loadedFromProto);
     }
 
     private PackedAtlas getCachedAtlas()

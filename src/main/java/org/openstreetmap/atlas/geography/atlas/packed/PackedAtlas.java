@@ -195,7 +195,16 @@ public final class PackedAtlas extends AbstractAtlas
      */
     public static PackedAtlas load(final Resource resource)
     {
-        final PackedAtlas result = PackedAtlasSerializer.load(resource);
+        final PackedAtlas result = PackedAtlasSerializer.load(resource,
+                AtlasSerializationFormat.JAVA);
+        result.setName(resource.getName());
+        return result;
+    }
+
+    public static PackedAtlas loadProto(final Resource resource)
+    {
+        final PackedAtlas result = PackedAtlasSerializer.load(resource,
+                AtlasSerializationFormat.PROTOBUF);
         result.setName(resource.getName());
         return result;
     }

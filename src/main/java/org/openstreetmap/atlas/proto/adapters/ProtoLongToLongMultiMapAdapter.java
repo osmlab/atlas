@@ -30,9 +30,11 @@ public class ProtoLongToLongMultiMapAdapter implements ProtoAdapter
                     exception);
         }
 
+        // final int size = protoLongToLongMultiMap.getKeys().getElementsCount();
+        // TODO fix this egregious hack
+        final int hackSize = 1024 * 1024 * 24;
         final LongToLongMultiMap longToLongMultiMap = new LongToLongMultiMap(
-                protoLongToLongMultiMap.getName(),
-                protoLongToLongMultiMap.getKeys().getElementsCount());
+                protoLongToLongMultiMap.getName(), hackSize);
 
         for (int index = 0; index < protoLongToLongMultiMap.getKeys().getElementsCount(); index++)
         {
