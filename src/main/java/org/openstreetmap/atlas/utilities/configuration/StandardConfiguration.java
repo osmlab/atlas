@@ -89,7 +89,7 @@ public class StandardConfiguration implements Configuration
     public StandardConfiguration(final Resource resource)
     {
         this.name = resource.getName();
-        try (final InputStream read = resource.read())
+        try (InputStream read = resource.read())
         {
             final ObjectMapper objectMapper = new ObjectMapper();
             final SimpleModule simpleModule = new SimpleModule();
