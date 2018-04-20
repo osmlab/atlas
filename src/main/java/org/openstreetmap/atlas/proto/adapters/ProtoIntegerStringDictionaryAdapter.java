@@ -1,5 +1,10 @@
 package org.openstreetmap.atlas.proto.adapters;
 
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.proto.ProtoIntegerStringDictionary;
 import org.openstreetmap.atlas.proto.ProtoSerializable;
@@ -19,6 +24,11 @@ import com.google.protobuf.InvalidProtocolBufferException;
  */
 public class ProtoIntegerStringDictionaryAdapter implements ProtoAdapter
 {
+    /*
+     * IntegerDictionary does not provide an interface for setting its subfields directly. This
+     * class's implementation uses reflection to side-step the issue.
+     */
+
     @Override
     public ProtoSerializable deserialize(final byte[] byteArray)
     {
@@ -34,16 +44,70 @@ public class ProtoIntegerStringDictionaryAdapter implements ProtoAdapter
         }
         final IntegerDictionary<String> dictionary = new IntegerDictionary<>();
 
-        for (int index = 0; index < protoIntegerStringDictionary.getWordsCount(); index++)
+        final Integer currentIndex = protoIntegerStringDictionary.getCurrentIndex();
+        final List<Integer> indexes = protoIntegerStringDictionary.getIndexesList();
+        final List<String> words = protoIntegerStringDictionary.getWordsList();
+
+        final Map<String, Integer> wordToIndex = new HashMap<>();
+        final Map<Integer, String> indexToWord = new HashMap<>();
+
+        for (int index = 0; index < words.size(); index++)
         {
-            final String word = protoIntegerStringDictionary.getWords(index);
-            dictionary.add(word);
+            final String word = words.get(index);
+            final Integer theIndex = indexes.get(index);
+            wordToIndex.put(word, theIndex);
+            indexToWord.put(theIndex, word);
+        }
+
+        Field wordToIndexField = null;
+        Field indexToWordField = null;
+        Field indexField = null;
+
+        try
+        {
+            wordToIndexField = dictionary.getClass()
+                    .getDeclaredField(IntegerDictionary.FIELD_WORD_TO_INDEX);
+            wordToIndexField.setAccessible(true);
+            wordToIndexField.set(dictionary, wordToIndex);
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException("Unable to set field \"{}\" in {}",
+                    IntegerDictionary.FIELD_WORD_TO_INDEX, dictionary.getClass().getName(),
+                    exception);
+        }
+
+        try
+        {
+            indexToWordField = dictionary.getClass()
+                    .getDeclaredField(IntegerDictionary.FIELD_INDEX_TO_WORD);
+            indexToWordField.setAccessible(true);
+            indexToWordField.set(dictionary, indexToWord);
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException("Unable to set field \"{}\" in {}",
+                    IntegerDictionary.FIELD_INDEX_TO_WORD, dictionary.getClass().getName(),
+                    exception);
+        }
+
+        try
+        {
+            indexField = dictionary.getClass().getDeclaredField(IntegerDictionary.FIELD_INDEX);
+            indexField.setAccessible(true);
+            indexField.set(dictionary, currentIndex);
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException("Unable to set field \"{}\" in {}",
+                    IntegerDictionary.FIELD_INDEX, dictionary.getClass().getName(), exception);
         }
 
         return dictionary;
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public byte[] serialize(final ProtoSerializable serializable)
     {
         if (!(serializable instanceof IntegerDictionary))
@@ -52,29 +116,65 @@ public class ProtoIntegerStringDictionaryAdapter implements ProtoAdapter
                     "Invalid ProtoSerializable type was provided to {}: cannot serialize {}",
                     this.getClass().getName(), serializable.getClass().getName());
         }
-        @SuppressWarnings("unchecked")
         final IntegerDictionary<String> integerDictionary = (IntegerDictionary<String>) serializable;
 
         final ProtoIntegerStringDictionary.Builder protoDictionaryBuilder = ProtoIntegerStringDictionary
                 .newBuilder();
 
-        int index = 0;
-        String word;
+        Field indexToWordField = null;
+        Map<Integer, String> indexToWord = null;
+        Field indexField = null;
+        Integer index = -1;
 
         try
         {
-            while ((word = integerDictionary.word(index)) != null)
+            indexToWordField = integerDictionary.getClass()
+                    .getDeclaredField(IntegerDictionary.FIELD_INDEX_TO_WORD);
+            indexToWordField.setAccessible(true);
+            indexToWord = (Map<Integer, String>) indexToWordField.get(integerDictionary);
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException("Unable to read field \"{}\" from {}",
+                    IntegerDictionary.FIELD_INDEX_TO_WORD, integerDictionary.getClass().getName(),
+                    exception);
+        }
+
+        /*
+         * Wondering why we don't read the field wordToIndex? We don't need to, since it is
+         * symmetric with the indexToWord field! We can populate the underlying proto arrays by
+         * simply grabbing the keys and values from the indexToWord map.
+         */
+
+        try
+        {
+            indexField = integerDictionary.getClass()
+                    .getDeclaredField(IntegerDictionary.FIELD_INDEX);
+            indexField.setAccessible(true);
+            index = (Integer) indexField.get(integerDictionary);
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException("Unable to read field \"{}\" from {}",
+                    IntegerDictionary.FIELD_INDEX, integerDictionary.getClass().getName(),
+                    exception);
+        }
+
+        try
+        {
+            for (final Integer key : indexToWord.keySet())
             {
-                protoDictionaryBuilder.addWords(word);
-                index++;
+                protoDictionaryBuilder.addIndexes(key);
+                protoDictionaryBuilder.addWords(indexToWord.get(key));
             }
         }
         catch (final ClassCastException exception)
         {
             throw new CoreException(
-                    "This adapter is incompatible with its owner's ({}) current type parametrization. Must be java.lang.String",
+                    "This adapter is incompatible with type parametrization of the owning {}. Must be java.lang.String",
                     serializable.getClass().getName(), exception);
         }
+        protoDictionaryBuilder.setCurrentIndex(index);
 
         return protoDictionaryBuilder.build().toByteArray();
     }

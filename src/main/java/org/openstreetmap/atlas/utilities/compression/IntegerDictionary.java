@@ -20,6 +20,10 @@ public class IntegerDictionary<Type> implements Serializable, ProtoSerializable
 {
     private static final long serialVersionUID = -1781411097803512149L;
 
+    public static final String FIELD_WORD_TO_INDEX = "wordToIndex";
+    public static final String FIELD_INDEX_TO_WORD = "indexToWord";
+    public static final String FIELD_INDEX = "index";
+
     private final Map<Type, Integer> wordToIndex;
     private final Map<Integer, Type> indexToWord;
 

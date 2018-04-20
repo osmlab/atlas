@@ -42,6 +42,23 @@ public class ProtoIntegerStringDictionaryAdapterTest
         Assert.assertEquals(dictionary, parsedFrom);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void testContainsNullElements()
+    {
+        final IntegerDictionary<String> dictionary = new IntegerDictionary<>();
+
+        dictionary.add("testword1");
+        dictionary.add(null);
+        dictionary.add("testword2");
+
+        final byte[] contents = this.adapter.serialize(dictionary);
+        @SuppressWarnings("unchecked")
+        final IntegerDictionary<String> parsedFrom = (IntegerDictionary<String>) this.adapter
+                .deserialize(contents);
+
+        Assert.assertEquals(dictionary, parsedFrom);
+    }
+
     @Test(expected = CoreException.class)
     public void testExceptionOnInvalidOwnerTypeParameter()
     {
