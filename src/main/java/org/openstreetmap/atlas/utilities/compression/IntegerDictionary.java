@@ -74,10 +74,12 @@ public class IntegerDictionary<Type> implements Serializable, ProtoSerializable
         return false;
     }
 
-    // TODO the problem here is that if someone tries to get an adapter for an
-    // IntegerDictionary<SomeTypeThatIsNotAString>, this method will return the wrong adapter.
-    // Currently, the ProtoIntegerStringDictionaryAdapter class's serialize() method handles this by
-    // catching a ClassCastException and rethrowing a CoreException with a better message.
+    /*
+     * TODO the problem here is that if someone tries to get an adapter for an
+     * IntegerDictionary<SomeTypeThatIsNotAString>, this method will return the wrong adapter.
+     * Currently, the ProtoIntegerStringDictionaryAdapter class's serialize() method handles this by
+     * catching a ClassCastException and rethrowing a CoreException with a better message.
+     */
     @Override
     public ProtoAdapter getProtoAdapter()
     {

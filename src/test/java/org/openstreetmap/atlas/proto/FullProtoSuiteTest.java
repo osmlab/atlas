@@ -116,9 +116,10 @@ public class FullProtoSuiteTest
     @Test
     public void testEmptyTags()
     {
+        final HashMap<String, String> map = new HashMap<>();
+        // map.put("asd", "asd");
         final PackedAtlasBuilder builder = new PackedAtlasBuilder();
-        builder.addPoint(1, new Location(Latitude.ZERO, Longitude.ZERO),
-                new HashMap<String, String>());
+        builder.addPoint(1, new Location(Latitude.ZERO, Longitude.ZERO), map);
 
         final ByteArrayResource protoResource = new ByteArrayResource(LARGE_DEFAULT_SIZE);
 
@@ -126,7 +127,7 @@ public class FullProtoSuiteTest
 
         logger.info("Starting serialization process...");
 
-        final Time protoTime = Time.now();
+        Time protoTime = Time.now();
         atlas.setSerializationFormat(AtlasSerializationFormat.PROTOBUF);
         atlas.bounds();
         atlas.save(protoResource);
@@ -134,6 +135,10 @@ public class FullProtoSuiteTest
 
         logger.info("Proto resource size: {} bytes ({} KiB)", protoResource.length(),
                 protoResource.length() / BYTES_PER_KIBIBYTE);
+
+        protoTime = Time.now();
+        final PackedAtlas loadedFromProto = PackedAtlas.loadProto(protoResource);
+        logger.info("Proto deserialization time: {}", protoTime.elapsedSince());
     }
 
     private PackedAtlas getCachedAtlas()

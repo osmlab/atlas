@@ -49,4 +49,33 @@ public class ProtoPackedTagStoreAdapterTest
         logger.info("Testing equality...");
         Assert.assertEquals(store, parsedFrom);
     }
+
+    @Test
+    public void testContainsNullElements()
+    {
+        final IntegerDictionary<String> dictionary = new IntegerDictionary<String>();
+
+        final PackedTagStore store = new PackedTagStore(TEST_NUMBER_FEATURES, BLOCK_SIZE,
+                TEST_TAGSPERFEATURE_SIZE, dictionary);
+
+        store.add(0, null, null);
+        store.add(1, null, null);
+        store.add(2, "key1", "value1");
+        store.add(2, "key2", "value2");
+        store.add(3, null, "value3");
+        store.add(4, "key4", null);
+
+        Time startTime = Time.now();
+        final byte[] contents = this.adapter.serialize(store);
+        logger.info("Took {} to serialize PackedTagStore", startTime.elapsedSince());
+
+        startTime = Time.now();
+        final PackedTagStore parsedFrom = (PackedTagStore) this.adapter.deserialize(contents);
+        parsedFrom.setDictionary(dictionary);
+        logger.info("Took {} to deserialize PackedTagStore from bytestream",
+                startTime.elapsedSince());
+
+        logger.info("Testing equality...");
+        Assert.assertEquals(store, parsedFrom);
+    }
 }
