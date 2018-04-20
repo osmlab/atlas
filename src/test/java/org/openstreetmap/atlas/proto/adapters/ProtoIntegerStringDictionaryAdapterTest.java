@@ -42,7 +42,7 @@ public class ProtoIntegerStringDictionaryAdapterTest
         Assert.assertEquals(dictionary, parsedFrom);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testContainsNullElements()
     {
         final IntegerDictionary<String> dictionary = new IntegerDictionary<>();

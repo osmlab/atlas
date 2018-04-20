@@ -35,7 +35,10 @@ public class ProtoLongArrayAdapter implements ProtoAdapter
         {
             longArray.add(protoLongArray.getElements(index));
         }
-        longArray.setName(protoLongArray.getName());
+        if (protoLongArray.hasName())
+        {
+            longArray.setName(protoLongArray.getName());
+        }
 
         return longArray;
     }
@@ -56,8 +59,10 @@ public class ProtoLongArrayAdapter implements ProtoAdapter
         {
             protoLongArrayBuilder.addElements(longArray.get(i));
         }
-        final String name = longArray.getName() == null ? "" : longArray.getName();
-        protoLongArrayBuilder.setName(name);
+        if (longArray.getName() != null)
+        {
+            protoLongArrayBuilder.setName(longArray.getName());
+        }
 
         return protoLongArrayBuilder.build().toByteArray();
     }

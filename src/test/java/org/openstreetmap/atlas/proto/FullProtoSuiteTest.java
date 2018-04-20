@@ -1,12 +1,15 @@
 package org.openstreetmap.atlas.proto;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.SortedSet;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.geography.Latitude;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.Longitude;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
@@ -68,7 +71,7 @@ public class FullProtoSuiteTest
     private PackedAtlas cachedAtlas = null;
 
     @Test
-    public void test()
+    public void testConsistency()
     {
         final PackedAtlas atlas = getNewAtlas();
         // final PackedAtlas atlas = getFileAtlas("/Users/lucascram/Desktop/DMA_9-168-233.atlas");
@@ -108,6 +111,29 @@ public class FullProtoSuiteTest
         final SortedSet<Diff> diff = new AtlasDelta(loadedFromJava, loadedFromProto, true)
                 .generate().getDifferences();
         Assert.assertTrue(diff.isEmpty());
+    }
+
+    @Test
+    public void testEmptyTags()
+    {
+        final PackedAtlasBuilder builder = new PackedAtlasBuilder();
+        builder.addPoint(1, new Location(Latitude.ZERO, Longitude.ZERO),
+                new HashMap<String, String>());
+
+        final ByteArrayResource protoResource = new ByteArrayResource(LARGE_DEFAULT_SIZE);
+
+        final PackedAtlas atlas = (PackedAtlas) builder.get();
+
+        logger.info("Starting serialization process...");
+
+        final Time protoTime = Time.now();
+        atlas.setSerializationFormat(AtlasSerializationFormat.PROTOBUF);
+        atlas.bounds();
+        atlas.save(protoResource);
+        logger.info("Proto serialization time: {}", protoTime.elapsedSince());
+
+        logger.info("Proto resource size: {} bytes ({} KiB)", protoResource.length(),
+                protoResource.length() / BYTES_PER_KIBIBYTE);
     }
 
     private PackedAtlas getCachedAtlas()
