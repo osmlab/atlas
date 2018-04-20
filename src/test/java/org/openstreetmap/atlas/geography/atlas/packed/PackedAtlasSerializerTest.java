@@ -51,6 +51,15 @@ public class PackedAtlasSerializerTest
     }
 
     @Test
+    public void testDeserializeThenSerialize()
+    {
+        final Atlas deserialized = deserialized();
+        final ByteArrayResource resource = new ByteArrayResource(5_000_000)
+                .withName("testDeserializeThenSerialize");
+        deserialized.save(resource);
+    }
+
+    @Test
     public void testPartialLoad() throws NoSuchFieldException, SecurityException
     {
         final PackedAtlas atlas = new PackedAtlasTest().getAtlas();
