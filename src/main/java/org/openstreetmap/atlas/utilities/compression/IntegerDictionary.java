@@ -96,14 +96,18 @@ public class IntegerDictionary<Type> implements Serializable, ProtoSerializable
         for (final Type key : this.wordToIndex.keySet())
         {
             final Integer value = this.wordToIndex.get(key);
-            hash = hashSeed * hash + key.hashCode();
-            hash = hashSeed * hash + value.hashCode();
+            final int keyHash = key == null ? 0 : key.hashCode();
+            final int valueHash = value == null ? 0 : value.hashCode();
+            hash = hashSeed * hash + keyHash;
+            hash = hashSeed * hash + valueHash;
         }
         for (final Integer key : this.indexToWord.keySet())
         {
             final Type value = this.indexToWord.get(key);
-            hash = hashSeed * hash + key.hashCode();
-            hash = hashSeed * hash + value.hashCode();
+            final int keyHash = key == null ? 0 : key.hashCode();
+            final int valueHash = value == null ? 0 : value.hashCode();
+            hash = hashSeed * hash + keyHash;
+            hash = hashSeed * hash + valueHash;
         }
 
         return hash;
