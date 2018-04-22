@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.utilities.configuration;
 
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -88,13 +89,13 @@ public class StandardConfiguration implements Configuration
     public StandardConfiguration(final Resource resource)
     {
         this.name = resource.getName();
-        try
+        try (InputStream read = resource.read())
         {
             final ObjectMapper objectMapper = new ObjectMapper();
             final SimpleModule simpleModule = new SimpleModule();
             simpleModule.addDeserializer(Map.class, new ConfigurationDeserializer());
             objectMapper.registerModule(simpleModule);
-            final JsonParser parser = new JsonFactory().createParser(resource.read());
+            final JsonParser parser = new JsonFactory().createParser(read);
 
             this.configurationData = objectMapper.readValue(parser, Map.class);
         }
@@ -110,6 +111,7 @@ public class StandardConfiguration implements Configuration
         this.configurationData = configurationData;
     }
 
+    @Override
     public Configuration configurationForKeyword(final String keyword)
     {
         final Optional<Map<String, Object>> overrideDataForKeyword = this

@@ -24,7 +24,7 @@ public enum ManMadeTag
     CROSS,
     CUTLINE,
     CLEARCUT,
-    EMBARKMENT,
+    EMBANKMENT,
     DYKE,
     FLAGPOLE,
     GASOMETER,
