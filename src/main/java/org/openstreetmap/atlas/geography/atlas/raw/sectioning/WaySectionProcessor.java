@@ -360,8 +360,17 @@ public class WaySectionProcessor
                                 member.getEntity().getType());
                 }
             });
-            builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(), bean,
-                    relation.getTags());
+
+            if (!bean.isEmpty())
+            {
+                builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(), bean,
+                        relation.getTags());
+            }
+            else
+            {
+                logger.debug("Relation {} bean is empty, dropping from Atlas",
+                        relation.getIdentifier());
+            }
         });
 
         return builder.get();

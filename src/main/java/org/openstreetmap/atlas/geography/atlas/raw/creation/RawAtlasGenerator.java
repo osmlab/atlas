@@ -413,8 +413,17 @@ public class RawAtlasGenerator
                     bean.addItem(memberIdentifier, member.getRole(), entity.getType());
                 }
             });
-            builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(), bean,
-                    relation.getTags());
+
+            if (!bean.isEmpty())
+            {
+                builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(), bean,
+                        relation.getTags());
+            }
+            else
+            {
+                logger.debug("Relation {} bean is empty, dropping from Atlas",
+                        relation.getIdentifier());
+            }
         });
 
         // Build and return the new Atlas
