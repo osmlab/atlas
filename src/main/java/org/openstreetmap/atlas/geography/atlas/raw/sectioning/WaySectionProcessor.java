@@ -316,8 +316,8 @@ public class WaySectionProcessor
                         }
                         else
                         {
-                            throw new CoreException(
-                                    "Could not find corresponding Atlas entity for Point {} in Relation {}",
+                            logger.debug(
+                                    "Excluding Point {} from Relation {} since it's no longer in the Atlas",
                                     memberIdentifier, relation.getIdentifier());
                         }
                         break;
