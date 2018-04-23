@@ -394,7 +394,7 @@ public class RawAtlasGenerator
         });
 
         // Add Relations
-        atlas.relations().forEach(relation ->
+        atlas.relationsLowerOrderFirst().forEach(relation ->
         {
             final RelationBean bean = new RelationBean();
             relation.members().forEach(member ->
