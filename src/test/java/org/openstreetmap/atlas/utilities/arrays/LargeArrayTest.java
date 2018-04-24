@@ -26,6 +26,76 @@ public class LargeArrayTest
         new LargeArrayTest().largeSerialization();
     }
 
+    @Test
+    public void exposeTrimEdgecaseBug1()
+    {
+        final int maxSize = 30;
+        final int subArraySize = 10;
+        final int blockSize = subArraySize;
+
+        final LongArray array = new LongArray(maxSize, blockSize, subArraySize);
+
+        // Completely fill the first subarray
+        for (int i = 0; i < subArraySize; i++)
+        {
+            array.add(2L);
+        }
+
+        // Now, we trim the array. This will corrupt the rightmost* subarray if and only if it is
+        // completely full (ie. a subsequent call to add() will force a new array allocation)
+        // * Here, rightmost indicates it is the last subarray in LargeArray's list of subarrays
+        array.trim();
+
+        // this assert will throw an ArrayIndexOutOfBounds exception because the trim method resized
+        // the rightmost subarray to a size-0 array
+        try
+        {
+            Assert.assertEquals(2L, array.get(1).longValue());
+        }
+        catch (final ArrayIndexOutOfBoundsException exception)
+        {
+            exception.printStackTrace();
+            Assert.fail("Caught the bug!");
+        }
+    }
+
+    @Test
+    public void exposeTrimEdgecaseBug2()
+    {
+        final int maxSize = 30;
+        final int subArraySize = 10;
+        final int blockSize = subArraySize;
+
+        final LongArray array = new LongArray(maxSize, blockSize, subArraySize);
+
+        // fill all the subarrays
+        for (int i = 0; i < maxSize; i++)
+        {
+            array.add(2L);
+        }
+
+        // Now we trim. Like in exposeTrimEdgecaseBug1, this corrupts the rightmost subarray in the
+        // list. However, it does not corrupt any of the other subarrays
+        array.trim();
+
+        // this is fine, since we are reading from the first subarray
+        Assert.assertEquals(2L, array.get(1).longValue());
+
+        // also fine, since we are reading from the second subarray
+        Assert.assertEquals(2L, array.get(17).longValue());
+
+        // grab a value from the last subarray, this assert will fail
+        try
+        {
+            Assert.assertEquals(2L, array.get(28).longValue());
+        }
+        catch (final ArrayIndexOutOfBoundsException exception)
+        {
+            exception.printStackTrace();
+            Assert.fail("Caught the bug!");
+        }
+    }
+
     @Before
     public void init()
     {
