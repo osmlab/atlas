@@ -56,6 +56,20 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
      */
     public LargeArray(final long maximumSize, final int memoryBlockSize, final int subArraySize)
     {
+        if (memoryBlockSize <= 0)
+        {
+            throw new CoreException("memoryBlockSize ({}) must be a positive integer",
+                    memoryBlockSize);
+        }
+        if (subArraySize <= 0)
+        {
+            throw new CoreException("subArraySize ({}) must be a positive integer", subArraySize);
+        }
+        if (memoryBlockSize > subArraySize)
+        {
+            throw new CoreException("memoryBlockSize ({}) must not exceed the subArraySize ({})",
+                    memoryBlockSize, subArraySize);
+        }
         this.maximumSize = maximumSize;
         this.arrays = new ArrayList<>();
         this.memoryBlockSize = memoryBlockSize;
@@ -235,7 +249,7 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
          * fact, the trim logic below breaks in this case, and will wipe out the rightmost subarray
          * instead of trimming it.
          */
-        if (isRightmostSubarrayFull())
+        if (rightmostSubarrayIsFull())
         {
             return;
         }
@@ -295,7 +309,7 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
         return (int) (index % this.subArraySize);
     }
 
-    private boolean isRightmostSubarrayFull()
+    private boolean rightmostSubarrayIsFull()
     {
         return this.nextIndex > 0 && indexInside(this.nextIndex) == 0;
     }
