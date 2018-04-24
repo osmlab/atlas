@@ -103,7 +103,6 @@ public class LargeArrayTest
         final int blockSize = subArraySize;
 
         final LongArray array = new LongArray(maxSize, blockSize, subArraySize);
-        array.trim();
 
         // completely fill up three subarrays
         for (int i = 0; i < subArraySize * 3; i++)
