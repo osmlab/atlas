@@ -242,7 +242,6 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
         final PrimitiveArray<T> last = this.arrays.get(arrayIndex);
         // Here nextIndex is actually the size, and not size-1
         final int indexInside = indexInside(this.nextIndex);
-
         if (Ratio.ratio((double) indexInside / last.size()).isLessThan(ratio))
         {
             this.arrays.set(arrayIndex, last.trimmed(indexInside));
