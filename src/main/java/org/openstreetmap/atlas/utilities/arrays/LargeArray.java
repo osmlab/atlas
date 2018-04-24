@@ -227,6 +227,8 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
         {
             return;
         }
+        final int arrayIndex = this.arrays.size() - 1;
+        final PrimitiveArray<T> rightmost = this.arrays.get(arrayIndex);
 
         /*
          * Exit early in the case that the rightmost subarray is full - there is nothing to trim. In
@@ -238,13 +240,11 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
             return;
         }
 
-        final int arrayIndex = this.arrays.size() - 1;
-        final PrimitiveArray<T> last = this.arrays.get(arrayIndex);
         // Here nextIndex is actually the size, and not size-1
         final int indexInside = indexInside(this.nextIndex);
-        if (Ratio.ratio((double) indexInside / last.size()).isLessThan(ratio))
+        if (Ratio.ratio((double) indexInside / rightmost.size()).isLessThan(ratio))
         {
-            this.arrays.set(arrayIndex, last.trimmed(indexInside));
+            this.arrays.set(arrayIndex, rightmost.trimmed(indexInside));
         }
     }
 
