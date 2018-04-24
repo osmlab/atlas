@@ -227,10 +227,22 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
         {
             return;
         }
+
+        /*
+         * Exit early in the case that the rightmost subarray is full - there is nothing to trim. In
+         * fact, the trim logic below breaks in this case, and will wipe out the rightmost subarray
+         * instead of trimming it.
+         */
+        if (isRightmostSubarrayFull())
+        {
+            return;
+        }
+
         final int arrayIndex = this.arrays.size() - 1;
         final PrimitiveArray<T> last = this.arrays.get(arrayIndex);
         // Here nextIndex is actually the size, and not size-1
         final int indexInside = indexInside(this.nextIndex);
+
         if (Ratio.ratio((double) indexInside / last.size()).isLessThan(ratio))
         {
             this.arrays.set(arrayIndex, last.trimmed(indexInside));
@@ -282,5 +294,10 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
     private int indexInside(final long index)
     {
         return (int) (index % this.subArraySize);
+    }
+
+    private boolean isRightmostSubarrayFull()
+    {
+        return indexInside(this.nextIndex) == 0;
     }
 }
