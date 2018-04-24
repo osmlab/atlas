@@ -298,6 +298,6 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
 
     private boolean isRightmostSubarrayFull()
     {
-        return indexInside(this.nextIndex) == 0;
+        return this.nextIndex > 0 && indexInside(this.nextIndex) == 0;
     }
 }
