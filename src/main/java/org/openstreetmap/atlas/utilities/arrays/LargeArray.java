@@ -66,16 +66,6 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
             throw new CoreException("subArraySize ({}) must be a positive integer", subArraySize);
         }
 
-        /*
-         * This is something we should be doing, since having the memoryBlockSize exceed the
-         * subArraySize ends up allocating tons of wasted padding space. However, having this check
-         * here breaks about 300 off the ~1000 unit tests.
-         */
-        // if (memoryBlockSize > subArraySize)
-        // {
-        // throw new CoreException("memoryBlockSize ({}) must not exceed the subArraySize ({})",
-        // memoryBlockSize, subArraySize);
-        // }
         this.maximumSize = maximumSize;
         this.arrays = new ArrayList<>();
         this.memoryBlockSize = memoryBlockSize;
