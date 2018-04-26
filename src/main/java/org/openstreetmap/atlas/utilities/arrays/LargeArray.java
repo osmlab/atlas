@@ -60,12 +60,12 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
      */
     public LargeArray(final long maximumSize, final int memoryBlockSize, final int subArraySize)
     {
-        if (memoryBlockSize <= 0)
+        if (memoryBlockSize < 0)
         {
             throw new CoreException("memoryBlockSize ({}) must be a positive integer",
                     memoryBlockSize);
         }
-        if (subArraySize <= 0)
+        if (subArraySize < 0)
         {
             throw new CoreException("subArraySize ({}) must be a positive integer", subArraySize);
         }
