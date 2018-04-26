@@ -61,6 +61,7 @@ public class Polygon extends PolyLine implements GeometricSurface
     private static final int MINIMUM_N_FOR_SIDE_CALCULATION = 3;
     private Area awtArea;
     private java.awt.Polygon awtPolygon;
+    private transient Boolean awtOverflows;
 
     /**
      * Generate a random polygon within bounds.
@@ -401,6 +402,7 @@ public class Polygon extends PolyLine implements GeometricSurface
         }
     }
 
+    @Override
     public boolean overlaps(final MultiPolygon multiPolygon)
     {
         for (final Polygon outer : multiPolygon.outers())
@@ -436,6 +438,7 @@ public class Polygon extends PolyLine implements GeometricSurface
      *            The {@link PolyLine} to test
      * @return True if this {@link Polygon} intersects/overlaps the given {@link PolyLine}.
      */
+    @Override
     public boolean overlaps(final PolyLine polyline)
     {
         return overlapsInternal(polyline, true);
@@ -620,7 +623,12 @@ public class Polygon extends PolyLine implements GeometricSurface
 
     private boolean awtOverflows()
     {
-        return this.bounds().width().asDm7() < 0 || this.bounds().height().asDm7() < 0;
+        if (this.awtOverflows == null)
+        {
+            final Rectangle bounds = bounds();
+            this.awtOverflows = bounds.width().asDm7() < 0 || bounds.height().asDm7() < 0;
+        }
+        return this.awtOverflows;
     }
 
     private java.awt.Polygon awtPolygon()
