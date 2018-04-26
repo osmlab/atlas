@@ -30,11 +30,16 @@ public class ProtoLongToLongMapAdapter implements ProtoAdapter
                     exception);
         }
 
+        String deserializedName = null;
+        if (protoLongToLongMap.hasName())
+        {
+            deserializedName = protoLongToLongMap.getName();
+        }
+
         // final int size = protoLongToLongMultiMap.getKeys().getElementsCount();
         // TODO fix this egregious hack
         final int hackSize = 1024 * 1024 * 24;
-        final LongToLongMap longToLongMap = new LongToLongMap(protoLongToLongMap.getName(),
-                hackSize);
+        final LongToLongMap longToLongMap = new LongToLongMap(deserializedName, hackSize);
 
         for (int index = 0; index < protoLongToLongMap.getKeys().getElementsCount(); index++)
         {
@@ -75,8 +80,10 @@ public class ProtoLongToLongMapAdapter implements ProtoAdapter
         }
         protoMapBuilder.setKeys(keysBuilder);
         protoMapBuilder.setValues(valuesBuilder);
-        final String name = longMap.getName() == null ? "" : longMap.getName();
-        protoMapBuilder.setName(name);
+        if (longMap.getName() != null)
+        {
+            protoMapBuilder.setName(longMap.getName());
+        }
 
         return protoMapBuilder.build().toByteArray();
     }

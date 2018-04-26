@@ -41,4 +41,24 @@ public class ProtoLongToLongMapAdapterTest
         logger.info("Testing equality...");
         Assert.assertEquals(longMap, parsedFrom);
     }
+
+    @Test
+    public void testNullFields()
+    {
+        final LongToLongMap longMap = new LongToLongMap(null, 10);
+
+        Assert.assertTrue(longMap.getName() == null);
+
+        Time startTime = Time.now();
+        final byte[] contents = this.adapter.serialize(longMap);
+        logger.info("Took {} to serialize LongToLongMap", startTime.elapsedSince());
+
+        startTime = Time.now();
+        final LongToLongMap parsedFrom = (LongToLongMap) this.adapter.deserialize(contents);
+        logger.info("Took {} to deserialize LongToLongMap from bytestream",
+                startTime.elapsedSince());
+
+        logger.info("Testing equality...");
+        Assert.assertEquals(longMap, parsedFrom);
+    }
 }
