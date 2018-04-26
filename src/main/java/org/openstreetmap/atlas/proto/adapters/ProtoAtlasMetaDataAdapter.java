@@ -35,16 +35,41 @@ public class ProtoAtlasMetaDataAdapter implements ProtoAdapter
                     exception);
         }
 
-        final AtlasSize atlasSize = new AtlasSize(protoAtlasMetaData.getEdgeNumber(),
-                protoAtlasMetaData.getNodeNumber(), protoAtlasMetaData.getAreaNumber(),
-                protoAtlasMetaData.getLineNumber(), protoAtlasMetaData.getPointNumber(),
-                protoAtlasMetaData.getRelationNumber());
+        AtlasSize atlasSize = null;
+        final boolean hasAllAtlasSizeFeatures = protoAtlasMetaData.hasEdgeNumber()
+                && protoAtlasMetaData.hasNodeNumber() && protoAtlasMetaData.hasAreaNumber()
+                && protoAtlasMetaData.hasLineNumber() && protoAtlasMetaData.hasPointNumber()
+                && protoAtlasMetaData.hasRelationNumber();
+        if (hasAllAtlasSizeFeatures)
+        {
+            atlasSize = new AtlasSize(protoAtlasMetaData.getEdgeNumber(),
+                    protoAtlasMetaData.getNodeNumber(), protoAtlasMetaData.getAreaNumber(),
+                    protoAtlasMetaData.getLineNumber(), protoAtlasMetaData.getPointNumber(),
+                    protoAtlasMetaData.getRelationNumber());
+        }
 
         final boolean original = protoAtlasMetaData.getOriginal();
-        final String codeVersion = protoAtlasMetaData.getCodeVersion();
-        final String dataVersion = protoAtlasMetaData.getDataVersion();
-        final String country = protoAtlasMetaData.getCountry();
-        final String shardName = protoAtlasMetaData.getShardName();
+
+        String codeVersion = null;
+        if (protoAtlasMetaData.hasCodeVersion())
+        {
+            codeVersion = protoAtlasMetaData.getCodeVersion();
+        }
+        String dataVersion = null;
+        if (protoAtlasMetaData.hasDataVersion())
+        {
+            dataVersion = protoAtlasMetaData.getDataVersion();
+        }
+        String country = null;
+        if (protoAtlasMetaData.hasCountry())
+        {
+            country = protoAtlasMetaData.getCountry();
+        }
+        String shardName = null;
+        if (protoAtlasMetaData.hasShardName())
+        {
+            shardName = protoAtlasMetaData.getShardName();
+        }
         final Map<String, String> tags = PROTOTAG_LIST_CONVERTER
                 .convert(protoAtlasMetaData.getTagsList());
 
@@ -66,12 +91,17 @@ public class ProtoAtlasMetaDataAdapter implements ProtoAdapter
         final AtlasMetaData atlasMetaData = (AtlasMetaData) serializable;
 
         final ProtoAtlasMetaData.Builder protoMetaDataBuilder = ProtoAtlasMetaData.newBuilder();
-        protoMetaDataBuilder.setEdgeNumber(atlasMetaData.getSize().getEdgeNumber());
-        protoMetaDataBuilder.setNodeNumber(atlasMetaData.getSize().getNodeNumber());
-        protoMetaDataBuilder.setAreaNumber(atlasMetaData.getSize().getAreaNumber());
-        protoMetaDataBuilder.setLineNumber(atlasMetaData.getSize().getLineNumber());
-        protoMetaDataBuilder.setPointNumber(atlasMetaData.getSize().getPointNumber());
-        protoMetaDataBuilder.setRelationNumber(atlasMetaData.getSize().getRelationNumber());
+
+        if (atlasMetaData.getSize() != null)
+        {
+            protoMetaDataBuilder.setEdgeNumber(atlasMetaData.getSize().getEdgeNumber());
+            protoMetaDataBuilder.setNodeNumber(atlasMetaData.getSize().getNodeNumber());
+            protoMetaDataBuilder.setAreaNumber(atlasMetaData.getSize().getAreaNumber());
+            protoMetaDataBuilder.setLineNumber(atlasMetaData.getSize().getLineNumber());
+            protoMetaDataBuilder.setPointNumber(atlasMetaData.getSize().getPointNumber());
+            protoMetaDataBuilder.setRelationNumber(atlasMetaData.getSize().getRelationNumber());
+        }
+
         protoMetaDataBuilder.setOriginal(atlasMetaData.isOriginal());
 
         atlasMetaData.getCodeVersion().ifPresent(value ->
@@ -94,9 +124,11 @@ public class ProtoAtlasMetaDataAdapter implements ProtoAdapter
             protoMetaDataBuilder.setShardName(value);
         });
 
-        final Map<String, String> tags = atlasMetaData.getTags();
-        protoMetaDataBuilder.addAllTags(
-                ProtoAtlasMetaDataAdapter.PROTOTAG_LIST_CONVERTER.backwardConvert(tags));
+        if (atlasMetaData.getTags() != null)
+        {
+            protoMetaDataBuilder.addAllTags(ProtoAtlasMetaDataAdapter.PROTOTAG_LIST_CONVERTER
+                    .backwardConvert(atlasMetaData.getTags()));
+        }
 
         return protoMetaDataBuilder.build().toByteArray();
     }

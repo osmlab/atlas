@@ -83,7 +83,7 @@ public final class AtlasMetaData implements Serializable, Taggable, ProtoSeriali
                 return true;
             }
             final AtlasMetaData that = (AtlasMetaData) other;
-            if (!this.getSize().equals(that.getSize()))
+            if (!Objects.equals(this.getSize(), that.getSize()))
             {
                 return false;
             }
@@ -91,23 +91,23 @@ public final class AtlasMetaData implements Serializable, Taggable, ProtoSeriali
             {
                 return false;
             }
-            if (!this.getCodeVersion().equals(that.getCodeVersion()))
+            if (!Objects.equals(this.getCodeVersion(), that.getCodeVersion()))
             {
                 return false;
             }
-            if (!this.getDataVersion().equals(that.getDataVersion()))
+            if (!Objects.equals(this.getDataVersion(), that.getDataVersion()))
             {
                 return false;
             }
-            if (!this.getCountry().equals(that.getCountry()))
+            if (!Objects.equals(this.getCountry(), that.getCountry()))
             {
                 return false;
             }
-            if (!this.getShardName().equals(that.getShardName()))
+            if (!Objects.equals(this.getShardName(), that.getShardName()))
             {
                 return false;
             }
-            if (!this.getTags().equals(that.getTags()))
+            if (!Objects.equals(this.getTags(), that.getTags()))
             {
                 return false;
             }
@@ -156,6 +156,10 @@ public final class AtlasMetaData implements Serializable, Taggable, ProtoSeriali
     @Override
     public Map<String, String> getTags()
     {
+        if (this.tags == null)
+        {
+            return new HashMap<String, String>();
+        }
         return new HashMap<>(this.tags);
     }
 

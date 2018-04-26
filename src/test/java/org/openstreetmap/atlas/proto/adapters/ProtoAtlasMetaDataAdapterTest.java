@@ -39,4 +39,22 @@ public class ProtoAtlasMetaDataAdapterTest
 
         Assert.assertEquals(metaData, parsedFrom);
     }
+
+    @Test
+    public void testNullFields()
+    {
+        final AtlasMetaData nullified = new AtlasMetaData(null, false, null, null, null, null,
+                null);
+
+        Time startTime = Time.now();
+        final byte[] contents = this.adapter.serialize(nullified);
+        logger.info("Took {} to serialize AtlasMetaData", startTime.elapsedSince());
+
+        startTime = Time.now();
+        final AtlasMetaData parsedFrom = (AtlasMetaData) this.adapter.deserialize(contents);
+        logger.info("Took {} to deserialize AtlasMetaData from bytestream",
+                startTime.elapsedSince());
+
+        Assert.assertEquals(nullified, parsedFrom);
+    }
 }
