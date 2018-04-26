@@ -65,7 +65,6 @@ public final class PackedAtlas extends AbstractAtlas
     protected static final String FIELD_BOUNDS = "bounds";
     protected static final String FIELD_LOGGER = "logger";
     protected static final String FIELD_SERIAL_VERSION_UID = "serialVersionUID";
-
     protected static final String FIELD_SERIALIZER = "serializer";
     protected static final String FIELD_META_DATA = "metaData";
     protected static final String FIELD_DICTIONARY = "dictionary";

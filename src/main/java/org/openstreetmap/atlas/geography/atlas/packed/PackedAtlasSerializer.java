@@ -8,7 +8,6 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas.AtlasSerializationFormat;
@@ -296,10 +295,10 @@ public final class PackedAtlasSerializer
         {
             handle = fieldClassConstructor.newInstance();
         }
-        catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-                | InvocationTargetException exception)
+        catch (final Exception exception)
         {
-            throw new CoreException("", exception);
+            throw new CoreException("Failed to create instance of {}", fieldClass.getName(),
+                    exception);
         }
 
         ProtoSerializable protoHandle = null;
