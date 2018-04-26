@@ -137,7 +137,8 @@ public class FullProtoSuiteTest
         final PackedAtlas loadedFromProto = PackedAtlas.loadProto(protoResource);
         logger.info("Proto deserialization time: {}", protoTime.elapsedSince());
 
-        Assert.assertEquals(atlas, loadedFromProto);
+        // Assert.assertEquals(atlas, loadedFromProto);
+        Assert.assertTrue(atlas.equals(loadedFromProto));
     }
 
     private PackedAtlas getCachedAtlas()
