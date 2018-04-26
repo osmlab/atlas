@@ -117,7 +117,7 @@ public class FullProtoSuiteTest
     public void testEmptyTags()
     {
         final HashMap<String, String> map = new HashMap<>();
-        // map.put("asd", "asd");
+
         final PackedAtlasBuilder builder = new PackedAtlasBuilder();
         builder.addPoint(1, new Location(Latitude.ZERO, Longitude.ZERO), map);
 

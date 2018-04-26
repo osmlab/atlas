@@ -60,7 +60,11 @@ public class ProtoIntegerStringDictionaryAdapter implements ProtoAdapter
 
         for (int index = 0; index < words.size(); index++)
         {
-            final String word = words.get(index);
+            String word = words.get(index);
+            if (word.equals(NULL_SENTINEL_VALUE))
+            {
+                word = null;
+            }
             final Integer theIndex = indexes.get(index);
             wordToIndex.put(word, theIndex);
             indexToWord.put(theIndex, word);
@@ -171,8 +175,13 @@ public class ProtoIntegerStringDictionaryAdapter implements ProtoAdapter
         {
             for (final Integer key : indexToWord.keySet())
             {
+                String word = indexToWord.get(key);
+                if (word == null)
+                {
+                    word = NULL_SENTINEL_VALUE;
+                }
                 protoDictionaryBuilder.addIndexes(key);
-                protoDictionaryBuilder.addWords(indexToWord.get(key));
+                protoDictionaryBuilder.addWords(word);
             }
         }
         catch (final ClassCastException exception)
