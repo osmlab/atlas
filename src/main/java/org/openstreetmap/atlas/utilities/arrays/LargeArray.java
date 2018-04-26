@@ -56,6 +56,16 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
      */
     public LargeArray(final long maximumSize, final int memoryBlockSize, final int subArraySize)
     {
+        if (memoryBlockSize <= 0)
+        {
+            throw new CoreException("memoryBlockSize ({}) must be a positive integer",
+                    memoryBlockSize);
+        }
+        if (subArraySize <= 0)
+        {
+            throw new CoreException("subArraySize ({}) must be a positive integer", subArraySize);
+        }
+
         this.maximumSize = maximumSize;
         this.arrays = new ArrayList<>();
         this.memoryBlockSize = memoryBlockSize;
@@ -228,12 +238,23 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
             return;
         }
         final int arrayIndex = this.arrays.size() - 1;
-        final PrimitiveArray<T> last = this.arrays.get(arrayIndex);
+        final PrimitiveArray<T> rightmost = this.arrays.get(arrayIndex);
+
+        /*
+         * Exit early in the case that the rightmost subarray is full - there is nothing to trim. In
+         * fact, the trim logic below breaks in this case, and will wipe out the rightmost subarray
+         * instead of trimming it.
+         */
+        if (rightmostSubarrayIsFull())
+        {
+            return;
+        }
+
         // Here nextIndex is actually the size, and not size-1
         final int indexInside = indexInside(this.nextIndex);
-        if (Ratio.ratio((double) indexInside / last.size()).isLessThan(ratio))
+        if (Ratio.ratio((double) indexInside / rightmost.size()).isLessThan(ratio))
         {
-            this.arrays.set(arrayIndex, last.trimmed(indexInside));
+            this.arrays.set(arrayIndex, rightmost.trimmed(indexInside));
         }
     }
 
@@ -282,5 +303,10 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
     private int indexInside(final long index)
     {
         return (int) (index % this.subArraySize);
+    }
+
+    private boolean rightmostSubarrayIsFull()
+    {
+        return this.nextIndex > 0 && indexInside(this.nextIndex) == 0;
     }
 }
