@@ -29,6 +29,13 @@ public class ProtoIntegerStringDictionaryAdapter implements ProtoAdapter
      * class's implementation uses reflection to side-step the issue.
      */
 
+    /*
+     * IntegerDictionary relies on null entries. Since protobuf cannot serialize Java's 'null'
+     * value, we must represent 'null' in a non-null way. Note that if there are any tags that have
+     * this sentinel as an actual key or value, the adapter will effectively 'nullify' them.
+     */
+    private static final String NULL_SENTINEL_VALUE = "_+_NuLl{SeNTinEL_||";
+
     @Override
     public ProtoSerializable deserialize(final byte[] byteArray)
     {
