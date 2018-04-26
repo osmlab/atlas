@@ -62,12 +62,11 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
     {
         if (memoryBlockSize < 0)
         {
-            throw new CoreException("memoryBlockSize ({}) must be a positive integer",
-                    memoryBlockSize);
+            throw new CoreException("memoryBlockSize ({}) cannot be negative", memoryBlockSize);
         }
         if (subArraySize < 0)
         {
-            throw new CoreException("subArraySize ({}) must be a positive integer", subArraySize);
+            throw new CoreException("subArraySize ({}) cannot be negative", subArraySize);
         }
 
         this.maximumSize = maximumSize;
