@@ -83,13 +83,11 @@ public class FullProtoSuiteTest
 
         Time javaTime = Time.now();
         atlas.setSerializationFormat(AtlasSerializationFormat.JAVA);
-        atlas.bounds();
         atlas.save(javaResource);
         logger.info("Java serialization time: {}", javaTime.elapsedSince());
 
         Time protoTime = Time.now();
         atlas.setSerializationFormat(AtlasSerializationFormat.PROTOBUF);
-        atlas.bounds();
         atlas.save(protoResource);
         logger.info("Proto serialization time: {}", protoTime.elapsedSince());
 
@@ -129,7 +127,6 @@ public class FullProtoSuiteTest
 
         Time protoTime = Time.now();
         atlas.setSerializationFormat(AtlasSerializationFormat.PROTOBUF);
-        atlas.bounds();
         atlas.save(protoResource);
         logger.info("Proto serialization time: {}", protoTime.elapsedSince());
 
