@@ -30,11 +30,17 @@ public class ProtoLongToLongMultiMapAdapter implements ProtoAdapter
                     exception);
         }
 
+        String deserializedName = null;
+        if (protoLongToLongMultiMap.hasName())
+        {
+            deserializedName = protoLongToLongMultiMap.getName();
+        }
+
         // final int size = protoLongToLongMultiMap.getKeys().getElementsCount();
         // TODO fix this egregious hack
         final int hackSize = 1024 * 1024 * 24;
-        final LongToLongMultiMap longToLongMultiMap = new LongToLongMultiMap(
-                protoLongToLongMultiMap.getName(), hackSize);
+        final LongToLongMultiMap longToLongMultiMap = new LongToLongMultiMap(deserializedName,
+                hackSize);
 
         for (int index = 0; index < protoLongToLongMultiMap.getKeys().getElementsCount(); index++)
         {
@@ -76,6 +82,11 @@ public class ProtoLongToLongMultiMapAdapter implements ProtoAdapter
         {
             final ProtoLongArray.Builder valuesBuilder = ProtoLongArray.newBuilder();
             final long[] value = longMultiMap.get(key);
+            if (value == null)
+            {
+                throw new CoreException("{} cannot serialize arrays with null elements",
+                        this.getClass().getName());
+            }
             keysBuilder.addElements(key);
             for (int index = 0; index < value.length; index++)
             {
@@ -84,8 +95,10 @@ public class ProtoLongToLongMultiMapAdapter implements ProtoAdapter
             protoMapBuilder.addValues(valuesBuilder);
         }
         protoMapBuilder.setKeys(keysBuilder);
-        final String name = longMultiMap.getName() == null ? "" : longMultiMap.getName();
-        protoMapBuilder.setName(name);
+        if (longMultiMap.getName() != null)
+        {
+            protoMapBuilder.setName(longMultiMap.getName());
+        }
 
         return protoMapBuilder.build().toByteArray();
     }
