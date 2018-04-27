@@ -39,4 +39,23 @@ public class ProtoLongArrayAdapterTest
         logger.info("Testing array equality...");
         Assert.assertEquals(longArray, parsedFrom);
     }
+
+    @Test
+    public void testNullFields()
+    {
+        final LongArray longArray = new LongArray(10);
+
+        Assert.assertTrue(longArray.getName() == null);
+
+        Time startTime = Time.now();
+        final byte[] contents = this.adapter.serialize(longArray);
+        logger.info("Took {} to serialize LongArray", startTime.elapsedSince());
+
+        startTime = Time.now();
+        final LongArray parsedFrom = (LongArray) this.adapter.deserialize(contents);
+        logger.info("Took {} to deserialize LongArray from bytestream", startTime.elapsedSince());
+
+        logger.info("Testing equality...");
+        Assert.assertEquals(longArray, parsedFrom);
+    }
 }

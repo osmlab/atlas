@@ -33,7 +33,10 @@ public class ProtoLongArrayOfArraysAdapter implements ProtoAdapter
 
         final LongArrayOfArrays longArrayOfArrays = new LongArrayOfArrays(
                 protoLongArrayOfArrays.getArraysCount());
-        longArrayOfArrays.setName(protoLongArrayOfArrays.getName());
+        if (protoLongArrayOfArrays.hasName())
+        {
+            longArrayOfArrays.setName(protoLongArrayOfArrays.getName());
+        }
         for (int index = 0; index < protoLongArrayOfArrays.getArraysCount(); index++)
         {
             final long[] items = Longs
@@ -55,29 +58,27 @@ public class ProtoLongArrayOfArraysAdapter implements ProtoAdapter
         }
         final LongArrayOfArrays longArrayOfArrays = (LongArrayOfArrays) serializable;
 
-        if (longArrayOfArrays.size() > Integer.MAX_VALUE)
-        {
-            // TODO While we do check if the number of arrays exceeds the proto supported
-            // Integer.MAX_VALUE, we do not check if any of the contained arrays are too large.
-            // Technically we should also be doing this.
-            throw new CoreException("Cannot serialize provided {}, size {} too large",
-                    serializable.getClass().getName(), longArrayOfArrays.size());
-        }
-
         final ProtoLongArrayOfArrays.Builder protoArraysBuilder = ProtoLongArrayOfArrays
                 .newBuilder();
         for (int index = 0; index < longArrayOfArrays.size(); index++)
         {
             final ProtoLongArray.Builder subArrayBuilder = ProtoLongArray.newBuilder();
             final long[] subArray = longArrayOfArrays.get(index);
+            if (subArray == null)
+            {
+                throw new CoreException("{} cannot serialize arrays with null elements",
+                        this.getClass().getName());
+            }
             for (int subIndex = 0; subIndex < subArray.length; subIndex++)
             {
                 subArrayBuilder.addElements(subArray[subIndex]);
             }
             protoArraysBuilder.addArrays(subArrayBuilder);
         }
-        final String name = longArrayOfArrays.getName() == null ? "" : longArrayOfArrays.getName();
-        protoArraysBuilder.setName(name);
+        if (longArrayOfArrays.getName() != null)
+        {
+            protoArraysBuilder.setName(longArrayOfArrays.getName());
+        }
 
         return protoArraysBuilder.build().toByteArray();
     }
