@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.proto.converters;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.proto.ProtoIntegerArray;
 import org.openstreetmap.atlas.proto.ProtoIntegerArrayOfArrays;
 import org.openstreetmap.atlas.utilities.arrays.IntegerArrayOfArrays;
@@ -25,6 +26,11 @@ public class ProtoIntegerArrayOfArraysConverter
         {
             final ProtoIntegerArray.Builder subArrayBuilder = ProtoIntegerArray.newBuilder();
             final int[] subArray = array.get(index);
+            if (subArray == null)
+            {
+                throw new CoreException("{} cannot convert arrays with null elements",
+                        this.getClass().getName());
+            }
             for (int subIndex = 0; subIndex < subArray.length; subIndex++)
             {
                 subArrayBuilder.addElements(subArray[subIndex]);

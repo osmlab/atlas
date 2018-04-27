@@ -33,7 +33,10 @@ public class ProtoByteArrayOfArraysAdapter implements ProtoAdapter
 
         final ByteArrayOfArrays byteArrayOfArrays = new ByteArrayOfArrays(
                 protoByteArrayOfArrays.getArraysCount());
-        byteArrayOfArrays.setName(protoByteArrayOfArrays.getName());
+        if (protoByteArrayOfArrays.hasName())
+        {
+            byteArrayOfArrays.setName(protoByteArrayOfArrays.getName());
+        }
         for (int index = 0; index < protoByteArrayOfArrays.getArraysCount(); index++)
         {
             final byte[] items = protoByteArrayOfArrays.getArrays(index).getElements()
@@ -61,11 +64,18 @@ public class ProtoByteArrayOfArraysAdapter implements ProtoAdapter
         {
             final ProtoByteArray.Builder subArrayBuilder = ProtoByteArray.newBuilder();
             final byte[] subArray = byteArrayOfArrays.get(index);
+            if (subArray == null)
+            {
+                throw new CoreException("{} cannot serialize arrays with null elements",
+                        this.getClass().getName());
+            }
             subArrayBuilder.setElements(ByteString.copyFrom(subArray));
             protoArraysBuilder.addArrays(subArrayBuilder);
         }
-        final String name = byteArrayOfArrays.getName() == null ? "" : byteArrayOfArrays.getName();
-        protoArraysBuilder.setName(name);
+        if (byteArrayOfArrays.getName() != null)
+        {
+            protoArraysBuilder.setName(byteArrayOfArrays.getName());
+        }
 
         return protoArraysBuilder.build().toByteArray();
     }

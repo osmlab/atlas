@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.proto.adapters;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.arrays.IntegerArrayOfArrays;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
@@ -47,5 +48,31 @@ public class ProtoIntegerArrayOfArraysAdapterTest
 
         logger.info("Testing equality...");
         Assert.assertEquals(integerArrayOfArrays, parsedFrom);
+    }
+
+    @Test(expected = CoreException.class)
+    public void testNullFields()
+    {
+        final IntegerArrayOfArrays integerArrayOfArrays = new IntegerArrayOfArrays(10);
+
+        Assert.assertTrue(integerArrayOfArrays.getName() == null);
+
+        Time startTime = Time.now();
+        byte[] contents = this.adapter.serialize(integerArrayOfArrays);
+        logger.info("Took {} to serialize IntegerArrayOfArrays", startTime.elapsedSince());
+
+        startTime = Time.now();
+        final IntegerArrayOfArrays parsedFrom = (IntegerArrayOfArrays) this.adapter
+                .deserialize(contents);
+        logger.info("Took {} to deserialize IntegerArrayOfArrays from bytestream",
+                startTime.elapsedSince());
+
+        logger.info("Testing equality...");
+        Assert.assertEquals(integerArrayOfArrays, parsedFrom);
+
+        logger.info("Testing proper handling of null elements...");
+        integerArrayOfArrays.add(new int[10]);
+        integerArrayOfArrays.add(null);
+        contents = this.adapter.serialize(integerArrayOfArrays);
     }
 }
