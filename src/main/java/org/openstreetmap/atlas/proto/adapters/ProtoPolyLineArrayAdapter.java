@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.proto.adapters;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.StringCompressedPolyLine;
 import org.openstreetmap.atlas.proto.ProtoPolyLineArray;
 import org.openstreetmap.atlas.proto.ProtoSerializable;
@@ -61,8 +62,14 @@ public class ProtoPolyLineArrayAdapter implements ProtoAdapter
                 .newBuilder();
         for (int index = 0; index < polyLineArray.size(); index++)
         {
-            protoPolyLineArrayBuilder.addEncodings(ByteString.copyFrom(
-                    new StringCompressedPolyLine(polyLineArray.get(index)).getEncoding()));
+            final PolyLine polyLine = polyLineArray.get(index);
+            if (polyLine == null)
+            {
+                throw new CoreException("{} cannot serialize arrays with null elements",
+                        this.getClass().getName());
+            }
+            protoPolyLineArrayBuilder.addEncodings(
+                    ByteString.copyFrom(new StringCompressedPolyLine(polyLine).getEncoding()));
         }
 
         if (polyLineArray.getName() != null)
