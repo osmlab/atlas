@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Latitude;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Longitude;
@@ -21,7 +22,7 @@ public class ProtoPolygonArrayAdapterTest
 {
     private static final Logger logger = LoggerFactory
             .getLogger(ProtoPolygonArrayAdapterTest.class);
-    private static final int TEST_SIZE = 100_000;
+    private static final int TEST_SIZE = 10_000;
     private static final String TEST_NAME = "testarray";
     private final ProtoPolygonArrayAdapter adapter = new ProtoPolygonArrayAdapter();
 
@@ -56,5 +57,30 @@ public class ProtoPolygonArrayAdapterTest
 
         logger.info("Testing equality...");
         Assert.assertEquals(polygonArray, parsedFrom);
+    }
+
+    @Test(expected = CoreException.class)
+    public void testNullElements()
+    {
+        final PolygonArray polygonArray = new PolygonArray(10);
+
+        Assert.assertTrue(polygonArray.getName() == null);
+
+        Time startTime = Time.now();
+        byte[] contents = this.adapter.serialize(polygonArray);
+        logger.info("Took {} to serialize PolygonArray", startTime.elapsedSince());
+
+        startTime = Time.now();
+        final PolygonArray parsedFrom = (PolygonArray) this.adapter.deserialize(contents);
+        logger.info("Took {} to deserialize PolygonArray from bytestream",
+                startTime.elapsedSince());
+
+        logger.info("Testing equality...");
+        Assert.assertEquals(polygonArray, parsedFrom);
+
+        logger.info("Testing proper handling of null elements...");
+        polygonArray.add(new Polygon());
+        polygonArray.add(null);
+        contents = this.adapter.serialize(polygonArray);
     }
 }

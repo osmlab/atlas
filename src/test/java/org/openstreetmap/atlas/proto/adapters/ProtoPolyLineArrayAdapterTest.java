@@ -67,7 +67,7 @@ public class ProtoPolyLineArrayAdapterTest
 
         Time startTime = Time.now();
         byte[] contents = this.adapter.serialize(polyLineArray);
-        logger.info("Took {} to serialize pPolyLineArray", startTime.elapsedSince());
+        logger.info("Took {} to serialize PolyLineArray", startTime.elapsedSince());
 
         startTime = Time.now();
         final PolyLineArray parsedFrom = (PolyLineArray) this.adapter.deserialize(contents);
