@@ -32,6 +32,7 @@ public class ProtoLongArrayOfArraysAdapter implements ProtoAdapter
         }
 
         final LongArrayOfArrays longArrayOfArrays = new LongArrayOfArrays(
+                protoLongArrayOfArrays.getArraysCount(), protoLongArrayOfArrays.getArraysCount(),
                 protoLongArrayOfArrays.getArraysCount());
         if (protoLongArrayOfArrays.hasName())
         {

@@ -49,6 +49,7 @@ public class ProtoIntegerArrayOfArraysConverter
     public IntegerArrayOfArrays convert(final ProtoIntegerArrayOfArrays protoArray)
     {
         final IntegerArrayOfArrays integerArrayOfArrays = new IntegerArrayOfArrays(
+                protoArray.getArraysCount(), protoArray.getArraysCount(),
                 protoArray.getArraysCount());
         for (int index = 0; index < protoArray.getArraysCount(); index++)
         {
