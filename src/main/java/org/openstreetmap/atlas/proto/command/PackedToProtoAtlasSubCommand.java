@@ -16,7 +16,7 @@ import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 import org.openstreetmap.atlas.utilities.runtime.FlexibleSubCommand;
 
 /**
- * Command for converting a serialized PackedAtlas to a serialized ProtoAtlas
+ * Command for converting a serialized {@link PackedAtlas} to a serialized ProtoAtlas
  *
  * @author lcram
  */

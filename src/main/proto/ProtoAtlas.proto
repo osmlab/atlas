@@ -1,7 +1,7 @@
 syntax = "proto2";
 
 option java_multiple_files = true;
-option java_outer_classname = "ProtoAtlasContainerWrapper";
+option java_outer_classname = "ProtoAtlasWrapper";
 
 package org.openstreetmap.atlas.proto;
 
@@ -11,6 +11,7 @@ import "Area.proto";
 import "Node.proto";
 import "Edge.proto";
 import "Relation.proto";
+import "ProtoAtlasMetaData.proto";
 
 /*
  * NOTE: the 'repeated' directive is cpmpiled into Java as an ArrayList.
@@ -18,7 +19,7 @@ import "Relation.proto";
  * This could be a potential problem for atlases with an absurd number
  * of a specific feature.
  */
-message ProtoAtlasContainer {
+message ProtoAtlas {
     optional int64 numberOfPoints = 1;
     repeated ProtoPoint points = 2;
 
@@ -36,4 +37,6 @@ message ProtoAtlasContainer {
 
     optional int64 numberOfRelations = 11;
     repeated ProtoRelation relations = 12;
+
+    optional ProtoAtlasMetaData metaData = 13;
 }
