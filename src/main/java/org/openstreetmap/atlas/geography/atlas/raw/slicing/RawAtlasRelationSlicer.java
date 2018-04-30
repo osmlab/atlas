@@ -65,7 +65,6 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
     // The raw Atlas to slice
     private final Atlas partiallySlicedRawAtlas;
 
-    // Push this into Base class
     // Keep track of changes made during Point/Line and Relation slicing
     private final SimpleChangeSet slicedPointAndLineChanges;
     private final RelationChangeSet slicedRelationChanges;
@@ -74,15 +73,14 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
      * Determines whether any of the given members was sliced.
      *
      * @param members
-     *            The members we want to look at
+     *            The members to look at
      * @return {@code true} if any of the members was sliced
      */
     private static boolean containsSlicedMember(final Iterable<RelationMember> members)
     {
         for (final RelationMember member : members)
         {
-            // We know a member was sliced if the country code was incremented during the line
-            // slicing process
+            // A member was sliced if the country code was incremented during line slicing
             if (new ReverseIdentifierFactory()
                     .getCountryCode(member.getEntity().getIdentifier()) != 0)
             {
@@ -165,8 +163,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         }
         catch (final Exception e)
         {
-            // Could not form closed rings for some of the members. Keep them in the Atlas, but note
-            // the issue.
+            // Could not form closed rings for some of the members. Keep them in the Atlas.
             logger.error(
                     "One of the members for relation {} is invalid and does not form a closed ring!",
                     relationIdentifier, e);
@@ -237,8 +234,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
 
             if (getCoordinateToPointMapping().containsCoordinate(pointCoordinate))
             {
-                // A new point was already created for this coordinate. Look it up
-                // and use it for the line we're creating
+                // A new point was already created for this coordinate - use it
                 newLineShapePoints
                         .add(getCoordinateToPointMapping().getPointForCoordinate(pointCoordinate));
             }
@@ -257,22 +253,21 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                     final TemporaryPoint newPoint = createNewPoint(pointCoordinate,
                             pointIdentifierGenerator, newPointTags);
 
-                    // Store coordinate to avoid creating duplicate Points
+                    // Store coordinate to avoid creating duplicate points
                     getCoordinateToPointMapping().storeMapping(pointCoordinate,
                             newPoint.getIdentifier());
 
-                    // Store this point to reconstruct the Line geometry
+                    // Store this point to reconstruct the line geometry
                     newLineShapePoints.add(newPoint.getIdentifier());
 
-                    // Save the Point to add to the rebuilt atlas
+                    // Save the point to add to the rebuilt atlas
                     this.slicedRelationChanges.createPoint(newPoint);
                 }
                 else
                 {
-                    // There is at least one Point at this Location in the raw Atlas
-                    // Update all existing points to have the country code. Note: raw Atlas combines
-                    // all Nodes at a single location into one, so expect only a single point to be
-                    // added here.
+                    // There is at least one point at this Location in the raw Atlas. Update all
+                    // existing points to have the country code. Note: raw Atlas combines all nodes
+                    // at a single location, so expect only a single point to be added here.
                     for (final Point rawAtlasPoint : rawAtlasPointsAtCoordinate)
                     {
                         // Add all point identifiers to make up the new Line
@@ -282,7 +277,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
             }
         }
 
-        // Create the patched Line
+        // Create the patched line
         final Map<String, String> newLineTags = createLineTags(lineString, new HashMap<>());
         final long newLineIdentifier = lineIdentifierGenerator.nextIdentifier();
         final TemporaryLine newLine = new TemporaryLine(newLineIdentifier, newLineShapePoints,
@@ -831,7 +826,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
      * @param relation
      *            The {@link Relation} to slice
      */
-    private List<TemporaryRelation> sliceRelation(final Relation relation)
+    private void sliceRelation(final Relation relation)
     {
         getStatistics().recordProcessedRelation();
 
@@ -841,7 +836,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
             preProcessMultiPolygonRelation(relation);
         }
 
-        return updateAndSplitRelation(relation);
+        updateAndSplitRelation(relation);
     }
 
     /**
@@ -861,11 +856,10 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
      * @param relation
      *            The {@link Relation} to update
      */
-    private List<TemporaryRelation> updateAndSplitRelation(final Relation relation)
+    private void updateAndSplitRelation(final Relation relation)
     {
         // Work with TemporaryRelationMembers instead of RelationMembers. There is less overhead
         // this way - we don't need actual atlas entities, just their identifiers
-        final List<TemporaryRelation> createdRelations = new ArrayList<>();
         final List<TemporaryRelationMember> members = new ArrayList<>();
 
         final Set<TemporaryRelationMember> removedMembers = Optional
@@ -898,8 +892,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                         }
                         else
                         {
-                            // sub-relation was replaced, we need to update it with the
-                            // replacement(s)
+                            // sub-relation was replaced, update it with the replacement(s)
                             replacementIdentifiers.forEach(identifier ->
                             {
                                 final TemporaryRelation newSubRelation = this.slicedRelationChanges
@@ -923,7 +916,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         final Set<TemporaryRelationMember> addedMembers = Optional.ofNullable(
                 this.slicedRelationChanges.getAddedRelationMembers().get(relation.getIdentifier()))
                 .orElse(new HashSet<>());
-        addedMembers.forEach(newMember -> members.add(newMember));
+        addedMembers.forEach(members::add);
 
         // Group members by country
         final Map<String, List<TemporaryRelationMember>> countryEntityMap = groupRelationMembersByCountry(
@@ -990,15 +983,12 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                     final TemporaryRelation newRelation = new TemporaryRelation(
                             relationIdentifierFactory.nextIdentifier(), relationTags);
                     candidateMembers.forEach(newRelation::addMember);
-                    createdRelations.add(newRelation);
                     this.slicedRelationChanges.createRelation(newRelation);
                     this.slicedRelationChanges.createDeletedToCreatedMapping(
                             relation.getIdentifier(), newRelation.getIdentifier());
                 }
             });
         }
-
-        return createdRelations;
     }
 
     /**

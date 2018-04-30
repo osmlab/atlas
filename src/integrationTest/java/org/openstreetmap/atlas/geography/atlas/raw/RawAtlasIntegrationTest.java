@@ -182,7 +182,7 @@ public class RawAtlasIntegrationTest
         Assert.assertEquals(0, slicedRawAtlas.numberOfNodes());
         Assert.assertEquals(0, slicedRawAtlas.numberOfEdges());
         Assert.assertEquals(0, slicedRawAtlas.numberOfAreas());
-        Assert.assertEquals(34786, slicedRawAtlas.numberOfPoints());
+        Assert.assertEquals(34784, slicedRawAtlas.numberOfPoints());
         Assert.assertEquals(3636, slicedRawAtlas.numberOfLines());
         Assert.assertEquals(6, slicedRawAtlas.numberOfRelations());
 

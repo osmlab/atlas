@@ -67,11 +67,22 @@ public class WaySectionProcessor
     private final AtlasLoadingOption loadingOption;
     private final List<Shard> loadedShards = new ArrayList<>();
 
-    // Grab all entities that are lines and that will become an atlas edge
-    // TODO currently we're pulling in all points and line-edges. We can optimize this further to
-    // avoid memory overhead on each slave.
-    private final Predicate<AtlasEntity> dynamicAtlasExpansionFilter = entity -> entity instanceof Point
-            || entity instanceof Line && isAtlasEdge((Line) entity);
+    // Bring in all points that are part of any line that will become an edge
+    private final Predicate<AtlasEntity> pointPredicate = entity -> entity instanceof Point
+            && Iterables.stream(entity.getAtlas().linesContaining(((Point) entity).getLocation()))
+                    .anyMatch(this::isAtlasEdge);
+
+    // Bring in all lines that will become edges
+    private final Predicate<AtlasEntity> linePredicate = entity -> entity instanceof Line
+            && isAtlasEdge((Line) entity);
+
+    // TODO - we are pulling in all edges and their contained points in the shard. We can optimize
+    // this further by only considering the edges crossing the shard boundary and their intersecting
+    // edges to reduce the memory overhead on each slave.
+
+    // Combination of the line and point predicate used to
+    private final Predicate<AtlasEntity> dynamicAtlasExpansionFilter = entity -> this.pointPredicate
+            .test(entity) || this.linePredicate.test(entity);
 
     /**
      * Default constructor. Will section given raw {@link Atlas} file.
