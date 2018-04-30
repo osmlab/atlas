@@ -43,8 +43,8 @@ public class ProtoLongToLongMapAdapter implements ProtoAdapter
             deserializedName = protoLongToLongMap.getName();
         }
 
-        final int size = protoLongToLongMap.getKeys().getElementsCount() > DEFAULT_MAX_SIZE
-                ? protoLongToLongMap.getKeys().getElementsCount() : DEFAULT_MAX_SIZE;
+        final int size = protoLongToLongMap.getKeys().getElementsCount() <= DEFAULT_MAX_SIZE
+                ? DEFAULT_MAX_SIZE : protoLongToLongMap.getKeys().getElementsCount();
         final LongToLongMap longToLongMap = new LongToLongMap(deserializedName, size);
 
         for (int index = 0; index < protoLongToLongMap.getKeys().getElementsCount(); index++)
