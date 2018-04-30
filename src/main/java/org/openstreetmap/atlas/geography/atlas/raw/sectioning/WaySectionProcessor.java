@@ -80,7 +80,7 @@ public class WaySectionProcessor
     // this further by only considering the edges crossing the shard boundary and their intersecting
     // edges to reduce the memory overhead on each slave.
 
-    // Combination of the line and point predicate used to
+    // Dynamic expansion filter will be a combination of points and lines
     private final Predicate<AtlasEntity> dynamicAtlasExpansionFilter = entity -> this.pointPredicate
             .test(entity) || this.linePredicate.test(entity);
 
