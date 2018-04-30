@@ -16,6 +16,13 @@ import com.google.protobuf.InvalidProtocolBufferException;
  */
 public class ProtoLongToLongMultiMapAdapter implements ProtoAdapter
 {
+    /*
+     * If the maximum size of the LongToLongMap we are reading is less than this value, just use
+     * this value instead of the actual max size. This ensures that calculations in LargeMap using
+     * DEFAULT_HASH_MODULO_RATION do not fail do to integer division truncation.
+     */
+    private static final int DEFAULT_MAX_SIZE = 1024;
+
     @Override
     public ProtoSerializable deserialize(final byte[] byteArray)
     {
@@ -36,11 +43,10 @@ public class ProtoLongToLongMultiMapAdapter implements ProtoAdapter
             deserializedName = protoLongToLongMultiMap.getName();
         }
 
-        // final int size = protoLongToLongMultiMap.getKeys().getElementsCount();
-        // TODO fix this egregious hack
-        final int hackSize = 1024 * 1024 * 24;
+        final int size = protoLongToLongMultiMap.getKeys().getElementsCount() > DEFAULT_MAX_SIZE
+                ? protoLongToLongMultiMap.getKeys().getElementsCount() : DEFAULT_MAX_SIZE;
         final LongToLongMultiMap longToLongMultiMap = new LongToLongMultiMap(deserializedName,
-                hackSize);
+                size);
 
         for (int index = 0; index < protoLongToLongMultiMap.getKeys().getElementsCount(); index++)
         {
