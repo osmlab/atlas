@@ -24,16 +24,24 @@ public enum FerryTag
     RESIDENTIAL,
     SERVICE,
     FOOTWAY,
-    PEDESTRIAN;
+    PEDESTRIAN,
+    TRACK;
 
     private static final EnumSet<FerryTag> CAV_NAVIGABLE = EnumSet.of(MOTORWAY, TRUNK, PRIMARY,
             SECONDARY, TERTIARY, UNCLASSIFIED, RESIDENTIAL, SERVICE);
+    private static final EnumSet<FerryTag> PEDESTRIAN_NAVIGABLE = EnumSet.of(FOOTWAY, TRACK,
+            PEDESTRIAN);
 
     @TagKey
     public static final String KEY = "ferry";
 
-    public static boolean isCarNavigableHighway(final HighwayTag tag)
+    public static boolean isCarNavigableHighway(final FerryTag tag)
     {
         return CAV_NAVIGABLE.contains(tag);
+    }
+
+    public static boolean isPedestrianNavigableHighway(final FerryTag tag)
+    {
+        return PEDESTRIAN_NAVIGABLE.contains(tag);
     }
 }
