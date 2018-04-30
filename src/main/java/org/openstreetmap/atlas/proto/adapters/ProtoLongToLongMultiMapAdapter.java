@@ -19,7 +19,7 @@ public class ProtoLongToLongMultiMapAdapter implements ProtoAdapter
     /*
      * If the maximum size of the LongToLongMap we are reading is less than this value, just use
      * this value instead of the actual max size. This ensures that calculations in LargeMap using
-     * DEFAULT_HASH_MODULO_RATION do not fail do to integer division truncation.
+     * DEFAULT_HASH_MODULO_RATIO do not fail do to integer division truncation.
      */
     private static final int DEFAULT_MAX_SIZE = 1024;
 
