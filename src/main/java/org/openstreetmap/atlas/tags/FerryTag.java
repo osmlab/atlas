@@ -10,7 +10,7 @@ import org.openstreetmap.atlas.tags.annotations.TagKey;
  *
  * @author isabellehillberg
  */
-@Tag(taginfo = "https://taginfo.openstreetmap.org/keys/ferry#values")
+@Tag(taginfo = "https://taginfo.openstreetmap.org/keys/ferry#values", osm = "https://wiki.openstreetmap.org/wiki/Key:ferry")
 public enum FerryTag
 {
     YES,
