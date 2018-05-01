@@ -66,9 +66,8 @@ public class ProtoPolyLineArrayAdapter implements ProtoAdapter
 
         final ProtoPolyLineArray.Builder protoPolyLineArrayBuilder = ProtoPolyLineArray
                 .newBuilder();
-        for (int index = 0; index < polyLineArray.size(); index++)
+        for (final PolyLine polyLine : polyLineArray)
         {
-            final PolyLine polyLine = polyLineArray.get(index);
             if (polyLine == null)
             {
                 throw new CoreException("{} cannot serialize arrays with null elements",

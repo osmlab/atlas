@@ -66,9 +66,8 @@ public class ProtoPolygonArrayAdapter implements ProtoAdapter
         }
 
         final ProtoPolygonArray.Builder protoPolygonArrayBuilder = ProtoPolygonArray.newBuilder();
-        for (int index = 0; index < polygonArray.size(); index++)
+        for (final Polygon polygon : polygonArray)
         {
-            final Polygon polygon = polygonArray.get(index);
             if (polygon == null)
             {
                 throw new CoreException("{} cannot serialize arrays with null elements",

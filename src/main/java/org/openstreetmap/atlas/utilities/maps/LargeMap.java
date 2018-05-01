@@ -178,8 +178,8 @@ public abstract class LargeMap<K, V> implements Iterable<K>, Serializable
     /**
      * A basic equals() implementation. Note that if this class is parameterized with an array type,
      * this method may not work as expected (due to array equals() performing a reference
-     * comparison). Child classes of LargeMap may want to override this method to improve its
-     * behavior in special cases.
+     * comparison). Child classes of {@link LargeMap} may want to override this method to improve
+     * its behavior in special cases.
      */
     @Override
     public boolean equals(final Object other)

@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.Atlas.AtlasSerializationFormat;
 import org.openstreetmap.atlas.proto.ProtoSerializable;
 import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
@@ -119,14 +120,14 @@ public final class PackedAtlasSerializer
     };
 
     /**
-     * Construct
+     * Construct a new {@link PackedAtlasSerializer}.
      *
      * @param atlas
-     *            The Atlas to be serialized / deserialized
+     *            The {@link Atlas} to be serialized / deserialized
      * @param resource
      *            The resource where to serialize / deserialize from.
      * @param forLoading
-     *            Mark that this serializer is to be used for loading
+     *            Mark that this {@link PackedAtlasSerializer} is to be used for loading
      */
     protected PackedAtlasSerializer(final PackedAtlas atlas, final Resource resource,
             final boolean forLoading)

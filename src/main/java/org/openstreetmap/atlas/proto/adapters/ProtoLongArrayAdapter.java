@@ -31,10 +31,11 @@ public class ProtoLongArrayAdapter implements ProtoAdapter
 
         final int elementCount = protoLongArray.getElementsCount();
         final LongArray longArray = new LongArray(elementCount, elementCount, elementCount);
-        for (int index = 0; index < protoLongArray.getElementsCount(); index++)
+        protoLongArray.getElementsList().stream().forEach(element ->
         {
-            longArray.add(protoLongArray.getElements(index));
-        }
+            longArray.add(element);
+        });
+
         if (protoLongArray.hasName())
         {
             longArray.setName(protoLongArray.getName());
@@ -61,10 +62,11 @@ public class ProtoLongArrayAdapter implements ProtoAdapter
         }
 
         final ProtoLongArray.Builder protoLongArrayBuilder = ProtoLongArray.newBuilder();
-        for (int i = 0; i < longArray.size(); i++)
+        for (final long element : longArray)
         {
-            protoLongArrayBuilder.addElements(longArray.get(i));
+            protoLongArrayBuilder.addElements(element);
         }
+
         if (longArray.getName() != null)
         {
             protoLongArrayBuilder.setName(longArray.getName());

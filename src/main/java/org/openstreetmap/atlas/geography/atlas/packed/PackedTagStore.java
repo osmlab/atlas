@@ -45,10 +45,6 @@ public class PackedTagStore implements Serializable, ProtoSerializable
         this.dictionary = null;
     }
 
-    /*
-     * TODO test that backwards compatibility deserialization works when this is public (it used to
-     * be protected)
-     */
     public PackedTagStore(final long maximumSize, final int memoryBlockSize, final int subArraySize,
             final IntegerDictionary<String> dictionary)
     {

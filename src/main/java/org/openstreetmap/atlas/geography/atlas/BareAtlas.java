@@ -71,7 +71,7 @@ public abstract class BareAtlas implements Atlas
         NUMBER_FORMAT.setGroupingUsed(true);
     }
 
-    private AtlasSerializationFormat saveSerializationFormat = AtlasSerializationFormat.JAVA;
+    private transient AtlasSerializationFormat saveSerializationFormat = AtlasSerializationFormat.JAVA;
 
     // Transient name
     private transient String name;

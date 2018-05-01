@@ -22,7 +22,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 public class AtlasSize implements Serializable
 {
     /**
-     * A simple builder class for creating AtlasSize objects with custom sizes.
+     * A simple builder class for creating {@link AtlasSize} objects with custom sizes.
      *
      * @author lcram
      */
@@ -46,10 +46,10 @@ public class AtlasSize implements Serializable
         }
 
         /**
-         * Builds an AtlasSize. By default it uses {@link AtlasSize#DEFAULT_ESTIMATE} for the size
-         * estimates.
+         * Builds an {@link AtlasSize}. By default it uses {@link AtlasSize#DEFAULT_ESTIMATE} for
+         * the size estimates.
          *
-         * @return A new AtlasSize
+         * @return A new {@link AtlasSize}
          */
         public AtlasSize build()
         {

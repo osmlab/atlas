@@ -38,12 +38,11 @@ public class ProtoLongArrayOfArraysAdapter implements ProtoAdapter
         {
             longArrayOfArrays.setName(protoLongArrayOfArrays.getName());
         }
-        for (int index = 0; index < protoLongArrayOfArrays.getArraysCount(); index++)
+        protoLongArrayOfArrays.getArraysList().stream().forEach(array ->
         {
-            final long[] items = Longs
-                    .toArray(protoLongArrayOfArrays.getArrays(index).getElementsList());
+            final long[] items = Longs.toArray(array.getElementsList());
             longArrayOfArrays.add(items);
-        }
+        });
 
         return longArrayOfArrays;
     }
@@ -67,21 +66,21 @@ public class ProtoLongArrayOfArraysAdapter implements ProtoAdapter
 
         final ProtoLongArrayOfArrays.Builder protoArraysBuilder = ProtoLongArrayOfArrays
                 .newBuilder();
-        for (int index = 0; index < longArrayOfArrays.size(); index++)
+        for (final long[] elementArray : longArrayOfArrays)
         {
-            final ProtoLongArray.Builder subArrayBuilder = ProtoLongArray.newBuilder();
-            final long[] subArray = longArrayOfArrays.get(index);
-            if (subArray == null)
+            final ProtoLongArray.Builder elementArrayBuilder = ProtoLongArray.newBuilder();
+            if (elementArray == null)
             {
                 throw new CoreException("{} cannot serialize arrays with null elements",
                         this.getClass().getName());
             }
-            for (int subIndex = 0; subIndex < subArray.length; subIndex++)
+            for (int subIndex = 0; subIndex < elementArray.length; subIndex++)
             {
-                subArrayBuilder.addElements(subArray[subIndex]);
+                elementArrayBuilder.addElements(elementArray[subIndex]);
             }
-            protoArraysBuilder.addArrays(subArrayBuilder);
+            protoArraysBuilder.addArrays(elementArrayBuilder);
         }
+
         if (longArrayOfArrays.getName() != null)
         {
             protoArraysBuilder.setName(longArrayOfArrays.getName());

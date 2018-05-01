@@ -37,12 +37,11 @@ public class ProtoByteArrayOfArraysAdapter implements ProtoAdapter
         {
             byteArrayOfArrays.setName(protoByteArrayOfArrays.getName());
         }
-        for (int index = 0; index < protoByteArrayOfArrays.getArraysCount(); index++)
+        protoByteArrayOfArrays.getArraysList().stream().forEach(array ->
         {
-            final byte[] items = protoByteArrayOfArrays.getArrays(index).getElements()
-                    .toByteArray();
+            final byte[] items = array.getElements().toByteArray();
             byteArrayOfArrays.add(items);
-        }
+        });
 
         return byteArrayOfArrays;
     }
@@ -66,17 +65,17 @@ public class ProtoByteArrayOfArraysAdapter implements ProtoAdapter
 
         final ProtoByteArrayOfArrays.Builder protoArraysBuilder = ProtoByteArrayOfArrays
                 .newBuilder();
-        for (int index = 0; index < byteArrayOfArrays.size(); index++)
+
+        for (final byte[] elementArray : byteArrayOfArrays)
         {
-            final ProtoByteArray.Builder subArrayBuilder = ProtoByteArray.newBuilder();
-            final byte[] subArray = byteArrayOfArrays.get(index);
-            if (subArray == null)
+            final ProtoByteArray.Builder elementArrayBuilder = ProtoByteArray.newBuilder();
+            if (elementArray == null)
             {
                 throw new CoreException("{} cannot serialize arrays with null elements",
                         this.getClass().getName());
             }
-            subArrayBuilder.setElements(ByteString.copyFrom(subArray));
-            protoArraysBuilder.addArrays(subArrayBuilder);
+            elementArrayBuilder.setElements(ByteString.copyFrom(elementArray));
+            protoArraysBuilder.addArrays(elementArrayBuilder);
         }
         if (byteArrayOfArrays.getName() != null)
         {

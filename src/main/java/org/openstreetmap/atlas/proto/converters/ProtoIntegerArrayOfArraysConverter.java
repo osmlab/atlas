@@ -28,21 +28,21 @@ public class ProtoIntegerArrayOfArraysConverter
         final ProtoIntegerArrayOfArrays.Builder arraysBuilder = ProtoIntegerArrayOfArrays
                 .newBuilder();
 
-        for (int index = 0; index < array.size(); index++)
+        for (final int[] elementArray : array)
         {
             final ProtoIntegerArray.Builder subArrayBuilder = ProtoIntegerArray.newBuilder();
-            final int[] subArray = array.get(index);
-            if (subArray == null)
+            if (elementArray == null)
             {
                 throw new CoreException("{} cannot convert arrays with null elements",
                         this.getClass().getName());
             }
-            for (int subIndex = 0; subIndex < subArray.length; subIndex++)
+            for (final int element : elementArray)
             {
-                subArrayBuilder.addElements(subArray[subIndex]);
+                subArrayBuilder.addElements(element);
             }
             arraysBuilder.addArrays(subArrayBuilder);
         }
+
         if (array.getName() != null)
         {
             arraysBuilder.setName(array.getName());
@@ -57,11 +57,11 @@ public class ProtoIntegerArrayOfArraysConverter
         final IntegerArrayOfArrays integerArrayOfArrays = new IntegerArrayOfArrays(
                 protoArray.getArraysCount(), protoArray.getArraysCount(),
                 protoArray.getArraysCount());
-        for (int index = 0; index < protoArray.getArraysCount(); index++)
+        protoArray.getArraysList().stream().forEach(array ->
         {
-            final int[] items = Ints.toArray(protoArray.getArrays(index).getElementsList());
+            final int[] items = Ints.toArray(array.getElementsList());
             integerArrayOfArrays.add(items);
-        }
+        });
 
         if (protoArray.hasName())
         {
