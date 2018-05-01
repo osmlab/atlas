@@ -35,12 +35,12 @@ public enum FerryTag
     @TagKey
     public static final String KEY = "ferry";
 
-    public static boolean isCarNavigableHighway(final FerryTag tag)
+    public static boolean isCarNavigableFerry(final FerryTag tag)
     {
         return CAV_NAVIGABLE.contains(tag);
     }
 
-    public static boolean isPedestrianNavigableHighway(final FerryTag tag)
+    public static boolean isPedestrianNavigableFerry(final FerryTag tag)
     {
         return PEDESTRIAN_NAVIGABLE.contains(tag);
     }
