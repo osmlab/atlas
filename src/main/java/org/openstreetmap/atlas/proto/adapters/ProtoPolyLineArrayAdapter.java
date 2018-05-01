@@ -58,6 +58,12 @@ public class ProtoPolyLineArrayAdapter implements ProtoAdapter
         }
         final PolyLineArray polyLineArray = (PolyLineArray) serializable;
 
+        if (polyLineArray.size() > Integer.MAX_VALUE)
+        {
+            throw new CoreException("Cannot serialize {}, size too large ({})",
+                    polyLineArray.getClass().getName(), polyLineArray.size());
+        }
+
         final ProtoPolyLineArray.Builder protoPolyLineArrayBuilder = ProtoPolyLineArray
                 .newBuilder();
         for (int index = 0; index < polyLineArray.size(); index++)

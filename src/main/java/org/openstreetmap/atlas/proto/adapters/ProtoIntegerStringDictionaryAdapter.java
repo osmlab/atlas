@@ -129,6 +129,12 @@ public class ProtoIntegerStringDictionaryAdapter implements ProtoAdapter
         }
         final IntegerDictionary<String> integerDictionary = (IntegerDictionary<String>) serializable;
 
+        if (integerDictionary.size() > Integer.MAX_VALUE)
+        {
+            throw new CoreException("Cannot serialize {}, size too large ({})",
+                    integerDictionary.getClass().getName(), integerDictionary.size());
+        }
+
         final ProtoIntegerStringDictionary.Builder protoDictionaryBuilder = ProtoIntegerStringDictionary
                 .newBuilder();
 

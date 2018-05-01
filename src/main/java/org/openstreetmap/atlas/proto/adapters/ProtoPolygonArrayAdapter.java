@@ -59,6 +59,12 @@ public class ProtoPolygonArrayAdapter implements ProtoAdapter
         }
         final PolygonArray polygonArray = (PolygonArray) serializable;
 
+        if (polygonArray.size() > Integer.MAX_VALUE)
+        {
+            throw new CoreException("Cannot serialize {}, size too large ({})",
+                    polygonArray.getClass().getName(), polygonArray.size());
+        }
+
         final ProtoPolygonArray.Builder protoPolygonArrayBuilder = ProtoPolygonArray.newBuilder();
         for (int index = 0; index < polygonArray.size(); index++)
         {

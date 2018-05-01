@@ -54,6 +54,12 @@ public class ProtoLongArrayAdapter implements ProtoAdapter
         }
         final LongArray longArray = (LongArray) serializable;
 
+        if (longArray.size() > Integer.MAX_VALUE)
+        {
+            throw new CoreException("Cannot serialize {}, size too large ({})",
+                    longArray.getClass().getName(), longArray.size());
+        }
+
         final ProtoLongArray.Builder protoLongArrayBuilder = ProtoLongArray.newBuilder();
         for (int i = 0; i < longArray.size(); i++)
         {

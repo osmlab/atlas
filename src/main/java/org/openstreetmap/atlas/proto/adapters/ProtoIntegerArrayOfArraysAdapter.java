@@ -49,8 +49,16 @@ public class ProtoIntegerArrayOfArraysAdapter implements ProtoAdapter
         }
         final IntegerArrayOfArrays integerArrayOfArrays = (IntegerArrayOfArrays) serializable;
 
-        final ProtoIntegerArrayOfArrays protoArrays = CONVERTER
-                .backwardConvert(integerArrayOfArrays);
+        ProtoIntegerArrayOfArrays protoArrays = null;
+        try
+        {
+            protoArrays = CONVERTER.backwardConvert(integerArrayOfArrays);
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException("Failed to serialize {}",
+                    integerArrayOfArrays.getClass().getName(), exception);
+        }
 
         return protoArrays.toByteArray();
     }

@@ -19,6 +19,12 @@ public class ProtoIntegerArrayOfArraysConverter
     @Override
     public ProtoIntegerArrayOfArrays backwardConvert(final IntegerArrayOfArrays array)
     {
+        if (array.size() > Integer.MAX_VALUE)
+        {
+            throw new CoreException("Cannot convert {}, size too large ({})",
+                    array.getClass().getName(), array.size());
+        }
+
         final ProtoIntegerArrayOfArrays.Builder arraysBuilder = ProtoIntegerArrayOfArrays
                 .newBuilder();
 

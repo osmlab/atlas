@@ -150,8 +150,24 @@ public class ProtoPackedTagStoreAdapter implements ProtoAdapter
                     PackedTagStore.FIELD_INDEX, store.getClass().getName(), exception);
         }
 
-        protoTagStoreBuilder.setKeys(CONVERTER.backwardConvert(keyArray));
-        protoTagStoreBuilder.setValues(CONVERTER.backwardConvert(valueArray));
+        try
+        {
+            protoTagStoreBuilder.setKeys(CONVERTER.backwardConvert(keyArray));
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException("Failed to serialize {}", keyArray.getClass().getName(),
+                    exception);
+        }
+        try
+        {
+            protoTagStoreBuilder.setValues(CONVERTER.backwardConvert(valueArray));
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException("Failed to serialize {}", valueArray.getClass().getName(),
+                    exception);
+        }
         protoTagStoreBuilder.setIndex(index);
 
         return protoTagStoreBuilder.build().toByteArray();

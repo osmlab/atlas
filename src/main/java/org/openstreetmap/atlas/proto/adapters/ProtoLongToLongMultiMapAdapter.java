@@ -75,6 +75,12 @@ public class ProtoLongToLongMultiMapAdapter implements ProtoAdapter
 
         if (longMultiMap.size() > Integer.MAX_VALUE)
         {
+            throw new CoreException("Cannot serialize {}, size too large ({})",
+                    longMultiMap.getClass().getName(), longMultiMap.size());
+        }
+
+        if (longMultiMap.size() > Integer.MAX_VALUE)
+        {
             throw new CoreException("Cannot serialize provided {}, size {} too large",
                     serializable.getClass().getName(), longMultiMap.size());
         }
