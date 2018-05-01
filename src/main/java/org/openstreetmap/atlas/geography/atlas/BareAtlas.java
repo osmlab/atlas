@@ -58,7 +58,6 @@ import org.slf4j.LoggerFactory;
  * @author matthieun
  * @author tony
  * @author mgostintsev
- * @author lcram
  */
 public abstract class BareAtlas implements Atlas
 {
@@ -72,7 +71,7 @@ public abstract class BareAtlas implements Atlas
         NUMBER_FORMAT.setGroupingUsed(true);
     }
 
-    private AtlasSerializationFormat serializationFormat = AtlasSerializationFormat.JAVA;
+    private AtlasSerializationFormat saveSerializationFormat = AtlasSerializationFormat.JAVA;
 
     // Transient name
     private transient String name;
@@ -242,9 +241,9 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public AtlasSerializationFormat getSerializationFormat()
+    public AtlasSerializationFormat getSaveSerializationFormat()
     {
-        return this.serializationFormat;
+        return this.saveSerializationFormat;
     }
 
     @Override
@@ -492,9 +491,9 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public void setSerializationFormat(final AtlasSerializationFormat format)
+    public void setSaveSerializationFormat(final AtlasSerializationFormat format)
     {
-        this.serializationFormat = format;
+        this.saveSerializationFormat = format;
     }
 
     @Override

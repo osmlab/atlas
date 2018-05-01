@@ -66,6 +66,7 @@ public final class PackedAtlas extends AbstractAtlas
     protected static final String FIELD_LOGGER = "logger";
     protected static final String FIELD_SERIAL_VERSION_UID = "serialVersionUID";
     protected static final String FIELD_SERIALIZER = "serializer";
+    protected static final String FIELD_LOAD_SERIALIZATION_FORMAT = "loadSerializationFormat";
     protected static final String FIELD_META_DATA = "metaData";
     protected static final String FIELD_DICTIONARY = "dictionary";
     protected static final String FIELD_EDGE_IDENTIFIERS = "edgeIdentifiers";
@@ -109,6 +110,9 @@ public final class PackedAtlas extends AbstractAtlas
 
     // Serializer.
     private transient PackedAtlasSerializer serializer;
+
+    // Serialization format for loading this PackedAtlas
+    private transient AtlasSerializationFormat loadSerializationFormat = AtlasSerializationFormat.JAVA;
 
     // Meta-Data
     private AtlasMetaData metaData = new AtlasMetaData();
@@ -194,16 +198,7 @@ public final class PackedAtlas extends AbstractAtlas
      */
     public static PackedAtlas load(final Resource resource)
     {
-        final PackedAtlas result = PackedAtlasSerializer.load(resource,
-                AtlasSerializationFormat.JAVA);
-        result.setName(resource.getName());
-        return result;
-    }
-
-    public static PackedAtlas loadProto(final Resource resource)
-    {
-        final PackedAtlas result = PackedAtlasSerializer.load(resource,
-                AtlasSerializationFormat.PROTOBUF);
+        final PackedAtlas result = PackedAtlasSerializer.load(resource);
         result.setName(resource.getName());
         return result;
     }
@@ -662,7 +657,7 @@ public final class PackedAtlas extends AbstractAtlas
     @Override
     public void save(final WritableResource writableResource)
     {
-        new PackedAtlasSerializer(this, writableResource).save();
+        new PackedAtlasSerializer(this, writableResource, false).save();
     }
 
     /**
@@ -1073,6 +1068,16 @@ public final class PackedAtlas extends AbstractAtlas
         return this.edgeTags().keyValuePairs(index);
     }
 
+    /**
+     * Get the serialization format used for loading this {@link PackedAtlas}.
+     *
+     * @return The load serialization format setting
+     */
+    protected AtlasSerializationFormat getLoadSerializationFormat()
+    {
+        return this.loadSerializationFormat;
+    }
+
     @Override
     protected Logger getLogger()
     {
@@ -1336,6 +1341,17 @@ public final class PackedAtlas extends AbstractAtlas
     protected Map<String, String> relationTags(final long index)
     {
         return this.relationTags().keyValuePairs(index);
+    }
+
+    /**
+     * Set the serialization format for loading this {@link PackedAtlas}.
+     *
+     * @param loadFormat
+     *            The format to use
+     */
+    protected void setLoadSerializationFormat(final AtlasSerializationFormat loadFormat)
+    {
+        this.loadSerializationFormat = loadFormat;
     }
 
     /**

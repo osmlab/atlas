@@ -74,7 +74,6 @@ public class FullProtoSuiteTest
     public void testConsistency()
     {
         final PackedAtlas atlas = getNewAtlas();
-        // final PackedAtlas atlas = getFileAtlas("/Users/lucascram/Desktop/DMA_9-168-233.atlas");
 
         final ByteArrayResource javaResource = new ByteArrayResource(LARGE_DEFAULT_SIZE);
         final ByteArrayResource protoResource = new ByteArrayResource(LARGE_DEFAULT_SIZE);
@@ -82,12 +81,12 @@ public class FullProtoSuiteTest
         logger.info("Starting serialization process...");
 
         Time javaTime = Time.now();
-        atlas.setSerializationFormat(AtlasSerializationFormat.JAVA);
+        atlas.setSaveSerializationFormat(AtlasSerializationFormat.JAVA);
         atlas.save(javaResource);
         logger.info("Java serialization time: {}", javaTime.elapsedSince());
 
         Time protoTime = Time.now();
-        atlas.setSerializationFormat(AtlasSerializationFormat.PROTOBUF);
+        atlas.setSaveSerializationFormat(AtlasSerializationFormat.PROTOBUF);
         atlas.save(protoResource);
         logger.info("Proto serialization time: {}", protoTime.elapsedSince());
 
@@ -101,7 +100,7 @@ public class FullProtoSuiteTest
         logger.info("Java deserialization time: {}", javaTime.elapsedSince());
 
         protoTime = Time.now();
-        final PackedAtlas loadedFromProto = PackedAtlas.loadProto(protoResource);
+        final PackedAtlas loadedFromProto = PackedAtlas.load(protoResource);
         logger.info("Proto deserialization time: {}", protoTime.elapsedSince());
 
         Assert.assertEquals(loadedFromJava, loadedFromProto);
@@ -126,7 +125,7 @@ public class FullProtoSuiteTest
         logger.info("Starting serialization process...");
 
         Time protoTime = Time.now();
-        atlas.setSerializationFormat(AtlasSerializationFormat.PROTOBUF);
+        atlas.setSaveSerializationFormat(AtlasSerializationFormat.PROTOBUF);
         atlas.save(protoResource);
         logger.info("Proto serialization time: {}", protoTime.elapsedSince());
 
@@ -134,11 +133,10 @@ public class FullProtoSuiteTest
                 protoResource.length() / BYTES_PER_KIBIBYTE);
 
         protoTime = Time.now();
-        final PackedAtlas loadedFromProto = PackedAtlas.loadProto(protoResource);
+        final PackedAtlas loadedFromProto = PackedAtlas.load(protoResource);
         logger.info("Proto deserialization time: {}", protoTime.elapsedSince());
 
-        // Assert.assertEquals(atlas, loadedFromProto);
-        Assert.assertTrue(atlas.equals(loadedFromProto));
+        Assert.assertEquals(atlas, loadedFromProto);
     }
 
     private PackedAtlas getCachedAtlas()
