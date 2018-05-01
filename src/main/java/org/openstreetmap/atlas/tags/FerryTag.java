@@ -1,9 +1,11 @@
 package org.openstreetmap.atlas.tags;
 
 import java.util.EnumSet;
+import java.util.Optional;
 
 import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.tags.annotations.TagKey;
+import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 
 /**
  * OSM Ferry Tag
@@ -35,13 +37,15 @@ public enum FerryTag
     @TagKey
     public static final String KEY = "ferry";
 
-    public static boolean isCarNavigableFerry(final FerryTag tag)
+    public static boolean isCarNavigableFerry(final Taggable taggable)
     {
-        return CAV_NAVIGABLE.contains(tag);
+        final Optional<FerryTag> ferry = Validators.from(FerryTag.class, taggable);
+        return ferry.isPresent() && CAV_NAVIGABLE.contains(ferry);
     }
 
-    public static boolean isPedestrianNavigableFerry(final FerryTag tag)
+    public static boolean isPedestrianNavigableFerry(final Taggable taggable)
     {
-        return PEDESTRIAN_NAVIGABLE.contains(tag);
+        final Optional<FerryTag> ferry = Validators.from(FerryTag.class, taggable);
+        return ferry.isPresent() && PEDESTRIAN_NAVIGABLE.contains(ferry);
     }
 }
