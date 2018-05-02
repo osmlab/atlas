@@ -8,13 +8,10 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.List;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.Atlas.AtlasSerializationFormat;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas.AtlasSerializationFormat;
 import org.openstreetmap.atlas.proto.ProtoSerializable;
 import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
 import org.openstreetmap.atlas.streaming.CounterOutputStream;
@@ -34,8 +31,6 @@ import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.primitives.Bytes;
 
 /**
  * Class that serializes and deserializes {@link PackedAtlas}s to a {@link ZipResource}
@@ -75,17 +70,10 @@ public final class PackedAtlasSerializer
     // The fields not serialized.
     private static final StringList EXCLUDED_FIELDS = new StringList(PackedAtlas.FIELD_BOUNDS,
             PackedAtlas.FIELD_SERIAL_VERSION_UID, PackedAtlas.FIELD_LOGGER, "$SWITCH_TABLE$",
-            PackedAtlas.FIELD_SERIALIZER, PackedAtlas.FIELD_LOAD_SERIALIZATION_FORMAT,
-            PackedAtlas.FIELD_PREFIX);
+            PackedAtlas.FIELD_SERIALIZER, PackedAtlas.FIELD_SAVE_SERIALIZATION_FORMAT,
+            PackedAtlas.FIELD_LOAD_SERIALIZATION_FORMAT, PackedAtlas.FIELD_PREFIX);
 
     public static final String META_DATA_ERROR_MESSAGE = "MetaData not here!";
-
-    /*
-     * This string is stored in the comment section of the ZIP EOCD for PackedAtlases serialized in
-     * protobuf format. PackedAtlasSerializer can check for this string to automatically determine
-     * the format when performing deserialization.
-     */
-    private static final String PROTOBUF_ZIP_COMMENT = "PBFATLAS";
 
     private final PackedAtlas atlas;
     private final ZipResource source;
@@ -102,22 +90,42 @@ public final class PackedAtlasSerializer
         // Create an empty Atlas.
         final PackedAtlas atlas = new PackedAtlas();
         // Build the serializer with it
-        final PackedAtlasSerializer serializer = new PackedAtlasSerializer(atlas, resource, true);
+        final PackedAtlasSerializer serializer = new PackedAtlasSerializer(atlas, resource);
         // Assign the serializer to the Atlas! Then the Atlas will load all the fields depending on
         // demand.
         serializer.assign();
-        // TODO This is for backwards compatibility and will slow Atlas loading
-        // Try loading the meta data to make sure the data format is appropriate.
-        try
-        {
-            atlas.metaData();
-        }
-        catch (final CoreException e)
-        {
-            throw new CoreException(META_DATA_ERROR_MESSAGE, e);
-        }
+
+        // This is for backwards compatibility and will slow Atlas loading
+        determineAtlasLoadFormat(atlas);
+
         return atlas;
     };
+
+    /*
+     * Try loading the meta data to make sure the data format is appropriate. Keep trying formats
+     * until we find the right one
+     */
+    private static void determineAtlasLoadFormat(final PackedAtlas atlas)
+    {
+        final AtlasSerializationFormat[] possibleFormats = AtlasSerializationFormat.values();
+        for (final AtlasSerializationFormat candidateFormat : possibleFormats)
+        {
+            logger.info("Trying load format {}", candidateFormat);
+            atlas.setLoadSerializationFormat(candidateFormat);
+            try
+            {
+                atlas.metaData();
+            }
+            catch (final CoreException exception)
+            {
+                logger.info("Load format {} invalid", candidateFormat);
+                continue;
+            }
+            // If we make it here, then we found the appropriate format and we can bail out
+            logger.info("Using load format {}", candidateFormat);
+            break;
+        }
+    }
 
     /**
      * Construct a new {@link PackedAtlasSerializer}.
@@ -126,11 +134,8 @@ public final class PackedAtlasSerializer
      *            The {@link Atlas} to be serialized / deserialized
      * @param resource
      *            The resource where to serialize / deserialize from.
-     * @param forLoading
-     *            Mark that this {@link PackedAtlasSerializer} is to be used for loading
      */
-    protected PackedAtlasSerializer(final PackedAtlas atlas, final Resource resource,
-            final boolean forLoading)
+    protected PackedAtlasSerializer(final PackedAtlas atlas, final Resource resource)
     {
         this.atlas = atlas;
         if (resource instanceof File && !resource.isGzipped())
@@ -145,16 +150,6 @@ public final class PackedAtlasSerializer
         else
         {
             this.source = new ZipResource(resource);
-        }
-
-        if (forLoading)
-        {
-            this.atlas.setLoadSerializationFormat(AtlasSerializationFormat.JAVA);
-            if (isPbfCommentPresent(resource))
-            {
-                logger.info("Detected {} atlas in protobuf format", resource.toString());
-                this.atlas.setLoadSerializationFormat(AtlasSerializationFormat.PROTOBUF);
-            }
         }
     }
 
@@ -213,14 +208,7 @@ public final class PackedAtlasSerializer
             }).map(this::fieldTranslator).collect();
             // Put the metaData field first, always.
             final Iterable<Resource> result = new MultiIterable<>(firstResource, fieldResources);
-            if (this.atlas.getSaveSerializationFormat() == AtlasSerializationFormat.PROTOBUF)
-            {
-                destination.writeAndClose(result, PROTOBUF_ZIP_COMMENT);
-            }
-            else
-            {
-                destination.writeAndClose(result);
-            }
+            destination.writeAndClose(result);
         }
         else
         {
@@ -446,54 +434,6 @@ public final class PackedAtlasSerializer
             throw new CoreException("Unable to access field {} for {}", field.getName(),
                     this.atlas.getName(), e);
         }
-    }
-
-    /**
-     * Checks if a {@link Resource} is represented in protobuf format by comparing the ZIP EOCD
-     * comment with a known value defined by {@link PackedAtlasSerializer#PROTOBUF_ZIP_COMMENT}.
-     *
-     * @param resource
-     *            The resource to check
-     * @return Whether or not the {@link Resource} is in protobuf format
-     */
-    private boolean isPbfCommentPresent(final Resource resource)
-    {
-        final byte[] commentToMatch = PROTOBUF_ZIP_COMMENT.getBytes();
-        final int commentToMatchLength = commentToMatch.length;
-        int resourceLength = 0;
-
-        try
-        {
-            resourceLength = Math.toIntExact(resource.length());
-        }
-        catch (final ArithmeticException exception)
-        {
-            throw new CoreException("Resource {} is too large ({} bytes) to deserialize!",
-                    resource.toString(), resource.length(), exception);
-        }
-
-        final byte[] resourceBytes = new byte[resourceLength];
-        final InputStream inputStream = resource.read();
-        try
-        {
-            inputStream.read(resourceBytes);
-        }
-        catch (final IOException exception)
-        {
-            throw new CoreException("Failed to read the ZIP EOCD comment from resource {}",
-                    resource.toString(), exception);
-        }
-
-        /*
-         * The process of reading the comment out of the resource's bytes has been broken down so it
-         * is easier to follow.
-         */
-        final List<Byte> subresultList = Bytes.asList(resourceBytes)
-                .subList(Math.max(0, resourceLength - commentToMatchLength), resourceLength);
-        final Byte[] subresultArray = subresultList.toArray(new Byte[subresultList.size()]);
-        final byte[] commentBytes = ArrayUtils.toPrimitive(subresultArray);
-
-        return Arrays.equals(commentBytes, commentToMatch);
     }
 
     /**

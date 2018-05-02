@@ -57,11 +57,6 @@ public class ZipWritableResource extends ZipResource
      */
     public void writeAndClose(final Iterable<? extends Resource> entries)
     {
-        writeAndClose(entries, null);
-    }
-
-    public void writeAndClose(final Iterable<? extends Resource> entries, final String comment)
-    {
         try (ZipOutputStream output = new ZipOutputStream(
                 new BufferedOutputStream(getWritableSource().write())))
         {
@@ -86,10 +81,6 @@ public class ZipWritableResource extends ZipResource
                 {
                     throw new CoreException("Unable to read resource {}", resource, e);
                 }
-            }
-            if (comment != null)
-            {
-                output.setComment(comment);
             }
         }
         catch (final IOException e)

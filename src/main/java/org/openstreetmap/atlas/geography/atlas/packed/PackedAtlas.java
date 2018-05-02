@@ -57,6 +57,20 @@ import org.slf4j.LoggerFactory;
  */
 public final class PackedAtlas extends AbstractAtlas
 {
+    /**
+     * Serialization format settings for an {@link Atlas}. While the serialization interface for
+     * saving is well-defined by the {@link Atlas}, the actual serialization mechanics - as well as
+     * the interface for loading - are left up to the discretion of the implementing {@link Atlas}
+     * subclass.
+     *
+     * @author lcram
+     */
+    public enum AtlasSerializationFormat
+    {
+        JAVA,
+        PROTOBUF,
+    }
+
     private static final long serialVersionUID = -7582554057580336684L;
     private static final Logger logger = LoggerFactory.getLogger(PackedAtlas.class);
 
@@ -66,6 +80,7 @@ public final class PackedAtlas extends AbstractAtlas
     protected static final String FIELD_LOGGER = "logger";
     protected static final String FIELD_SERIAL_VERSION_UID = "serialVersionUID";
     protected static final String FIELD_SERIALIZER = "serializer";
+    protected static final String FIELD_SAVE_SERIALIZATION_FORMAT = "saveSerializationFormat";
     protected static final String FIELD_LOAD_SERIALIZATION_FORMAT = "loadSerializationFormat";
     protected static final String FIELD_META_DATA = "metaData";
     protected static final String FIELD_DICTIONARY = "dictionary";
@@ -111,8 +126,9 @@ public final class PackedAtlas extends AbstractAtlas
     // Serializer.
     private transient PackedAtlasSerializer serializer;
 
-    // Serialization format for loading this PackedAtlas
-    private transient AtlasSerializationFormat loadSerializationFormat = AtlasSerializationFormat.JAVA;
+    // Serialization formats for saving/loading this PackedAtlas
+    private transient AtlasSerializationFormat saveSerializationFormat = AtlasSerializationFormat.PROTOBUF;
+    private transient AtlasSerializationFormat loadSerializationFormat = AtlasSerializationFormat.PROTOBUF;
 
     // Meta-Data
     private AtlasMetaData metaData = new AtlasMetaData();
@@ -483,6 +499,17 @@ public final class PackedAtlas extends AbstractAtlas
         };
     }
 
+    /**
+     * Get the serialization format used for saving this {@link PackedAtlas}. By default use Java
+     * serialization.
+     *
+     * @return The serialization format setting
+     */
+    public AtlasSerializationFormat getSaveSerializationFormat()
+    {
+        return this.saveSerializationFormat;
+    }
+
     @Override
     public Line line(final long identifier)
     {
@@ -657,7 +684,18 @@ public final class PackedAtlas extends AbstractAtlas
     @Override
     public void save(final WritableResource writableResource)
     {
-        new PackedAtlasSerializer(this, writableResource, false).save();
+        new PackedAtlasSerializer(this, writableResource).save();
+    }
+
+    /**
+     * Set the serialization format for saving this {@link PackedAtlas}.
+     *
+     * @param format
+     *            The format to use
+     */
+    public void setSaveSerializationFormat(final AtlasSerializationFormat format)
+    {
+        this.saveSerializationFormat = format;
     }
 
     /**

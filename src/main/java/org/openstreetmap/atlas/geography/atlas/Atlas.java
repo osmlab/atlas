@@ -38,20 +38,6 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
  */
 public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
 {
-    /**
-     * Serialization format settings for an {@link Atlas}. While the serialization interface for
-     * saving is well-defined by the {@link Atlas}, the actual serialization mechanics - as well as
-     * the interface for loading - are left up to the discretion of the implementing {@link Atlas}
-     * subclass.
-     *
-     * @author lcram
-     */
-    enum AtlasSerializationFormat
-    {
-        JAVA,
-        PROTOBUF,
-    }
-
     Predicate<Resource> IS_ATLAS = FileSuffix.resourceFilter(FileSuffix.ATLAS)
             .or(FileSuffix.resourceFilter(FileSuffix.ATLAS, FileSuffix.GZIP));
 
@@ -266,17 +252,6 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      *         identifier.
      */
     String getName();
-
-    /**
-     * Get the serialization format used for saving this {@link Atlas}. By default use Java
-     * serialization.
-     *
-     * @return The serialization format setting
-     */
-    default AtlasSerializationFormat getSaveSerializationFormat()
-    {
-        return AtlasSerializationFormat.JAVA;
-    }
 
     /**
      * Return all the {@link AtlasItem}s
@@ -738,14 +713,6 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      *            The resource to write to
      */
     void saveAsText(WritableResource resource);
-
-    /**
-     * Set the serialization format for saving this {@link Atlas}.
-     *
-     * @param format
-     *            The format to use
-     */
-    void setSaveSerializationFormat(AtlasSerializationFormat format);
 
     /**
      * @return The size for this {@link Atlas}.

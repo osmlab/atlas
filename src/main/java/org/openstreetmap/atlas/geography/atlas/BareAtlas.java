@@ -71,8 +71,6 @@ public abstract class BareAtlas implements Atlas
         NUMBER_FORMAT.setGroupingUsed(true);
     }
 
-    private transient AtlasSerializationFormat saveSerializationFormat = AtlasSerializationFormat.JAVA;
-
     // Transient name
     private transient String name;
 
@@ -238,12 +236,6 @@ public abstract class BareAtlas implements Atlas
         {
             return this.name;
         }
-    }
-
-    @Override
-    public AtlasSerializationFormat getSaveSerializationFormat()
-    {
-        return this.saveSerializationFormat;
     }
 
     @Override
@@ -488,12 +480,6 @@ public abstract class BareAtlas implements Atlas
     public void saveAsText(final WritableResource resource)
     {
         new TextAtlasBuilder().write(this, resource);
-    }
-
-    @Override
-    public void setSaveSerializationFormat(final AtlasSerializationFormat format)
-    {
-        this.saveSerializationFormat = format;
     }
 
     @Override
