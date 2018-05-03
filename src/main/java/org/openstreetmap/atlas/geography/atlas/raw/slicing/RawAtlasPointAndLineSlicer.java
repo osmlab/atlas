@@ -366,10 +366,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         {
             final Location location = JTS_LOCATION_CONVERTER.backwardConvert(coordinate);
             final Iterable<Point> existingRawAtlasPoints = this.rawAtlas.pointsAt(location);
-            existingRawAtlasPoints.forEach(point ->
-            {
-                this.pointsMarkedForRemoval.add(point.getIdentifier());
-            });
+            existingRawAtlasPoints
+                    .forEach(point -> this.pointsMarkedForRemoval.add(point.getIdentifier()));
         }
     }
 
@@ -447,6 +445,10 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                 }
             }
         });
+
+        // Update all removed points
+        this.pointsMarkedForRemoval
+                .forEach(point -> this.slicedPointAndLineChanges.deletePoint(point));
     }
 
     /**

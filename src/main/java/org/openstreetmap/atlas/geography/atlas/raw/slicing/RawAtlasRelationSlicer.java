@@ -69,6 +69,9 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
     private final SimpleChangeSet slicedPointAndLineChanges;
     private final RelationChangeSet slicedRelationChanges;
 
+    // Keep track of any points that may have to be removed after relation merging
+    private final Set<Long> pointCandidatesForRemoval;
+
     /**
      * Determines whether any of the given members was sliced.
      *
@@ -99,6 +102,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         this.partiallySlicedRawAtlas = atlas;
         this.slicedPointAndLineChanges = simpleChangeSet;
         this.slicedRelationChanges = relationChangeSet;
+        this.pointCandidatesForRemoval = new HashSet<>();
     }
 
     /**
@@ -114,6 +118,9 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
 
         // Slice all relations
         sliceRelations();
+
+        // Remove any shape points from deleted lines
+        removeDeletedPoints();
 
         // Apply changes from relation slicing and rebuild the fully-sliced atlas
         final ChangeSetHandler relationChangeBuilder = new RelationChangeSetHandler(
@@ -521,7 +528,15 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
 
         if (!isPartOfOtherRelations)
         {
+            // Delete Line and all of its points
             this.slicedRelationChanges.deleteLine(line.getIdentifier());
+            this.partiallySlicedRawAtlas.line(line.getIdentifier()).asPolyLine().forEach(location ->
+            {
+                this.partiallySlicedRawAtlas.pointsAt(location).forEach(point ->
+                {
+                    this.pointCandidatesForRemoval.add(point.getIdentifier());
+                });
+            });
         }
     }
 
@@ -813,6 +828,40 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
 
         patchNonClosedMembers(relation, outers, inners);
         mergeOverlappingClosedMembers(relation, outers, inners);
+    }
+
+    /**
+     * Taking our pool of candidate points to delete, we check two cases before marking the point
+     * for deletion: 1. No remaining lines rely on the point 2. No new lines rely on the point
+     * without providing a replacement
+     */
+    private void removeDeletedPoints()
+    {
+        for (final long identifier : this.pointCandidatesForRemoval)
+        {
+            final Location location = this.partiallySlicedRawAtlas.point(identifier).getLocation();
+            final boolean partOfExistingNonDeletedLine = Iterables
+                    .stream(this.partiallySlicedRawAtlas.linesContaining(location))
+                    .anyMatch(line -> !this.slicedRelationChanges.getDeletedLines()
+                            .contains(line.getIdentifier()));
+
+            // Check if it's part of a created line
+            final boolean isPartOfNewLine = this.slicedRelationChanges.getCreatedLines().values()
+                    .stream()
+                    .anyMatch(line -> line.getShapePointIdentifiers().contains(identifier));
+
+            // Check if it's a new point
+            final boolean isNewPoint = this.slicedRelationChanges.getCreatedPoints()
+                    .containsKey(identifier);
+
+            final boolean newLineUsesExistingPoint = isPartOfNewLine && !isNewPoint;
+
+            // All lines that contain this point have been deleted, delete the point
+            if (!partOfExistingNonDeletedLine && !newLineUsesExistingPoint)
+            {
+                this.slicedRelationChanges.deletePoint(identifier);
+            }
+        }
     }
 
     // TODO come back and verify we're keeping track of all required statistics

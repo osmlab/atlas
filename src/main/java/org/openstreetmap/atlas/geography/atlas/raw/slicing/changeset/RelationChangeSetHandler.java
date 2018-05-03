@@ -88,11 +88,19 @@ public class RelationChangeSetHandler extends ChangeSetHandler
 
     private void addExistingPointsAndLines()
     {
-        this.getAtlas().points().forEach(point -> this.getBuilder().addPoint(point.getIdentifier(),
-                point.getLocation(), point.getTags()));
+        this.getAtlas().points().forEach(point ->
+        {
+            // Add the point, if it hasn't been deleted
+            if (!this.changeSet.getDeletedPoints().contains(point.getIdentifier()))
+            {
+                this.getBuilder().addPoint(point.getIdentifier(), point.getLocation(),
+                        point.getTags());
+            }
+        });
+
         this.getAtlas().lines().forEach(line ->
         {
-            // Add the line, if it hasn't been removed
+            // Add the line, if it hasn't been deleted
             if (!this.changeSet.getDeletedLines().contains(line.getIdentifier()))
             {
                 this.getBuilder().addLine(line.getIdentifier(), line.asPolyLine(), line.getTags());
