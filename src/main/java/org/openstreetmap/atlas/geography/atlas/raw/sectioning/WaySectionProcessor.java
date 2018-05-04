@@ -144,7 +144,7 @@ public class WaySectionProcessor
     public Atlas run()
     {
         final Time time = Time.now();
-        logger.info("Started Way-Sectioning for Shard {}", this.loadedShards.get(0));
+        logger.info("Started Way-Sectioning for Shard {}", getShardOrAtlasName());
 
         // Create a changeset to keep track of any intermediate state transitions (points becomes
         // nodes, lines becoming areas, etc.)
@@ -161,7 +161,7 @@ public class WaySectionProcessor
         sectionEdges(changeSet);
 
         final Atlas atlas = buildSectionedAtlas(changeSet);
-        logger.info("Finished Way-Sectioning for Shard {} in {}", this.loadedShards.get(0),
+        logger.info("Finished Way-Sectioning for Shard {} in {}", getShardOrAtlasName(),
                 time.untilNow());
 
         return cutSubAtlasForOriginalShard(atlas);
@@ -183,8 +183,6 @@ public class WaySectionProcessor
         this.rawAtlas.pointsAt(location).forEach(point -> nodeCounter
                 .addNode(new TemporaryNode(point.getIdentifier(), point.getLocation())));
     }
-
-    // TODO add statistics
 
     /**
      * Grabs the atlas for the initial shard, in its entirety. Then proceeds to expand out to
@@ -244,6 +242,8 @@ public class WaySectionProcessor
         return atlas;
     }
 
+    // TODO add statistics
+
     /**
      * Final step of way-sectioning. Use the {@link WaySectionChangeSet} to build an {@link Atlas}
      * that has all entities.
@@ -256,7 +256,7 @@ public class WaySectionProcessor
     private Atlas buildSectionedAtlas(final WaySectionChangeSet changeSet)
     {
         final Time time = Time.now();
-        logger.info("Started Final Atlas Build for Shard {}", this.loadedShards.get(0));
+        logger.info("Started Final Atlas Build for Shard {}", getShardOrAtlasName());
 
         // Create builder and set properties
         final PackedAtlasBuilder builder = new PackedAtlasBuilder();
@@ -397,7 +397,7 @@ public class WaySectionProcessor
             }
         });
 
-        logger.info("Finished Final Atlas Build for Shard {} in {}", this.loadedShards.get(0),
+        logger.info("Finished Final Atlas Build for Shard {} in {}", getShardOrAtlasName(),
                 time.untilNow());
         return builder.get();
     }
@@ -498,13 +498,26 @@ public class WaySectionProcessor
     private void distinguishPointsFromShapePoints(final WaySectionChangeSet changeSet)
     {
         final Time time = Time.now();
-        logger.info("Started Shape Point Detection for Shard {}", this.loadedShards.get(0));
+        logger.info("Started Shape Point Detection for Shard {}", getShardOrAtlasName());
 
         Iterables.stream(this.rawAtlas.points()).filter(point -> isAtlasPoint(changeSet, point))
                 .forEach(changeSet::recordPoint);
 
-        logger.info("Finished Shape Point Detection for Shard {} in {}", this.loadedShards.get(0),
+        logger.info("Finished Shape Point Detection for Shard {} in {}", getShardOrAtlasName(),
                 time.untilNow());
+    }
+
+    private String getShardOrAtlasName()
+    {
+        // Default to getting the Shard name, if available, otherwise fall back to atlas name
+        if (!this.loadedShards.isEmpty())
+        {
+            return this.loadedShards.get(0).getName();
+        }
+        else
+        {
+            return this.rawAtlas.getName();
+        }
     }
 
     /**
@@ -521,7 +534,7 @@ public class WaySectionProcessor
     private void identifyEdgesNodesAndAreasFromLines(final WaySectionChangeSet changeSet)
     {
         final Time time = Time.now();
-        logger.info("Started Atlas Feature Detection for Shard {}", this.loadedShards.get(0));
+        logger.info("Started Atlas Feature Detection for Shard {}", getShardOrAtlasName());
 
         this.rawAtlas.lines().forEach(line ->
         {
@@ -618,7 +631,7 @@ public class WaySectionProcessor
             }
         });
 
-        logger.info("Finished Atlas Feature Detection for Shard {} in {}", this.loadedShards.get(0),
+        logger.info("Finished Atlas Feature Detection for Shard {} in {}", getShardOrAtlasName(),
                 time.untilNow());
     }
 
@@ -809,7 +822,7 @@ public class WaySectionProcessor
     private void sectionEdges(final WaySectionChangeSet changeSet)
     {
         final Time time = Time.now();
-        logger.info("Started Edge Sectioning for Shard {}", this.loadedShards.get(0));
+        logger.info("Started Edge Sectioning for Shard {}", getShardOrAtlasName());
 
         changeSet.getLinesThatBecomeEdges().forEach(lineIdentifier ->
         {
@@ -826,7 +839,7 @@ public class WaySectionProcessor
             changeSet.createLineToEdgeMapping(line, edges);
         });
 
-        logger.info("Finished Edge Sectioning for Shard {} in {}", this.loadedShards.get(0),
+        logger.info("Finished Edge Sectioning for Shard {} in {}", getShardOrAtlasName(),
                 time.untilNow());
     }
 
@@ -917,8 +930,7 @@ public class WaySectionProcessor
                         // Found a duplicate point, update the map and skip over it
                         final long startIdentifier = startNode.get().getIdentifier();
                         final int duplicateCount = duplicateLocations.containsKey(startIdentifier)
-                                ? duplicateLocations.get(startIdentifier)
-                                : 0;
+                                ? duplicateLocations.get(startIdentifier) : 0;
                         duplicateLocations.put(startIdentifier, duplicateCount + 1);
                         continue;
                     }
@@ -1046,8 +1058,7 @@ public class WaySectionProcessor
                     if (!endNode.isPresent() && !startNode.isPresent())
                     {
                         final int duplicateCount = duplicateLocations.containsKey(currentLocation)
-                                ? duplicateLocations.get(currentLocation)
-                                : 0;
+                                ? duplicateLocations.get(currentLocation) : 0;
                         duplicateLocations.put(currentLocation, duplicateCount + 1);
                     }
 
@@ -1060,9 +1071,9 @@ public class WaySectionProcessor
                             if (endNode.get().equals(startNode.get()) && index - 1 == startIndex)
                             {
                                 // Found a duplicate point, update the map and skip over it
-                                final int duplicateCount = duplicateLocations.containsKey(
-                                        currentLocation) ? duplicateLocations.get(currentLocation)
-                                                : 0;
+                                final int duplicateCount = duplicateLocations
+                                        .containsKey(currentLocation)
+                                                ? duplicateLocations.get(currentLocation) : 0;
                                 duplicateLocations.put(currentLocation, duplicateCount + 1);
                                 continue;
                             }
@@ -1124,8 +1135,7 @@ public class WaySectionProcessor
 
                         // Get the raw polyline from the last node to the last(first) location
                         final int endOccurence = duplicateLocations.containsKey(currentLocation)
-                                ? duplicateLocations.get(currentLocation)
-                                : 1;
+                                ? duplicateLocations.get(currentLocation) : 1;
                         final PolyLine rawPolylineFromLastNodeToLastLocation = polyline.between(
                                 polyline.get(startIndex),
                                 nodesToSectionAt.getOccurrence(startNode.get()) - 1,
