@@ -211,6 +211,7 @@ public class RawAtlasGenerator
      */
     private Atlas buildRawAtlas()
     {
+        final String shardName = this.metaData.getShardName().orElse("unknown");
         final Time parseTime = Time.now();
         try (CloseableOsmosisReader reader = connectOsmPbfToPbfConsumer(this.pbfReader))
         {
@@ -218,27 +219,28 @@ public class RawAtlasGenerator
         }
         catch (final Exception e)
         {
-            throw new CoreException("Error during Atlas creation from PBF", e);
+            throw new CoreException("Atlas creation error for PBF shard {}", shardName, e);
         }
         logger.info("Read PBF in {}, preparing to build Raw Atlas", parseTime.elapsedSince());
 
         final Time buildTime = Time.now();
         final Atlas atlas = this.builder.get();
-        final Atlas trimmedAtlas = removeDuplicateAndExtraneousPointsFromAtlas(atlas);
+        logger.info("Built raw Atlas for {} in {}", shardName, buildTime.elapsedSince());
 
-        logger.info("Built Raw Atlas in {}", buildTime.elapsedSince());
-
-        if (trimmedAtlas != null)
+        if (atlas == null)
         {
-            logger.info("Successfully built atlas {}", trimmedAtlas.getName());
+            logger.info("Generated empty raw Atlas for PBF Shard {}", shardName);
+            return atlas;
         }
         else
         {
-            logger.info("No raw Atlas generated for given PBF Shard {}",
-                    this.metaData.getShardName().orElse("unknown"));
+            final Atlas trimmedAtlas = removeDuplicateAndExtraneousPointsFromAtlas(atlas);
+            if (trimmedAtlas == null)
+            {
+                logger.info("Empty raw Atlas after filtering for PBF Shard {}", shardName);
+            }
+            return trimmedAtlas;
         }
-
-        return trimmedAtlas;
     }
 
     /**
@@ -394,7 +396,7 @@ public class RawAtlasGenerator
         });
 
         // Add Relations
-        atlas.relations().forEach(relation ->
+        atlas.relationsLowerOrderFirst().forEach(relation ->
         {
             final RelationBean bean = new RelationBean();
             relation.members().forEach(member ->
@@ -413,8 +415,17 @@ public class RawAtlasGenerator
                     bean.addItem(memberIdentifier, member.getRole(), entity.getType());
                 }
             });
-            builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(), bean,
-                    relation.getTags());
+
+            if (!bean.isEmpty())
+            {
+                builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(), bean,
+                        relation.getTags());
+            }
+            else
+            {
+                logger.debug("Relation {} bean is empty, dropping from Atlas",
+                        relation.getIdentifier());
+            }
         });
 
         // Build and return the new Atlas

@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,6 +51,9 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
 
     // Keeps track of all changes made during slicing
     private final SimpleChangeSet slicedPointAndLineChanges;
+
+    // Keeps track of points marked for removal
+    private final Set<Long> pointsMarkedForRemoval = new HashSet<>();
 
     public RawAtlasPointAndLineSlicer(final Set<String> countries,
             final CountryBoundaryMap countryBoundaryMap, final Atlas atlas,
@@ -228,6 +232,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                     // Check if the slice is within the working bound
                     if (isOutsideWorkingBound(slice))
                     {
+                        // Mark all existing points from this slice for removal and continue
+                        removeShapePointsFromFilteredSliced(slice);
                         continue;
                     }
 
@@ -286,6 +292,10 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                                 // Update all existing points to have the country code.
                                 for (final Point rawAtlasPoint : rawAtlasPointsAtSliceVertex)
                                 {
+                                    // Make sure to keep this point
+                                    this.pointsMarkedForRemoval
+                                            .remove(rawAtlasPoint.getIdentifier());
+
                                     // Update the country codes
                                     this.slicedPointAndLineChanges.updatePointTags(
                                             rawAtlasPoint.getIdentifier(), pointTags);
@@ -338,6 +348,26 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             // Update to use all country codes
             updateLineToHaveCountryCodesFromAllSlices(line, slices);
             getStatistics().recordSkippedLine();
+        }
+    }
+
+    /**
+     * Given a slice, that is outside the working bound, mark all shape points for this slice for
+     * removal from the final atlas. Since we are removing the slice, we don't need its shape
+     * points.
+     *
+     * @param slice
+     *            The {@link Geometry} slice being filtered
+     */
+    private void removeShapePointsFromFilteredSliced(final Geometry slice)
+    {
+        final Coordinate[] jtsSliceCoordinates = slice.getCoordinates();
+        for (final Coordinate coordinate : jtsSliceCoordinates)
+        {
+            final Location location = JTS_LOCATION_CONVERTER.backwardConvert(coordinate);
+            final Iterable<Point> existingRawAtlasPoints = this.rawAtlas.pointsAt(location);
+            existingRawAtlasPoints
+                    .forEach(point -> this.pointsMarkedForRemoval.add(point.getIdentifier()));
         }
     }
 
@@ -396,8 +426,10 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         {
             final long pointIdentifier = point.getIdentifier();
 
-            // Only update points that haven't been assigned a country code after way slicing
-            if (!this.slicedPointAndLineChanges.getUpdatedPointTags().containsKey(pointIdentifier))
+            // Only update points that haven't been assigned a country code after way slicing or
+            // those marked for removal
+            if (!this.slicedPointAndLineChanges.getUpdatedPointTags().containsKey(pointIdentifier)
+                    && !this.pointsMarkedForRemoval.contains(pointIdentifier))
             {
                 getStatistics().recordProcessedPoint();
                 final Map<String, String> updatedTags = createPointTags(point.getLocation(), true);
@@ -413,6 +445,10 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                 }
             }
         });
+
+        // Update all removed points
+        this.pointsMarkedForRemoval
+                .forEach(point -> this.slicedPointAndLineChanges.deletePoint(point));
     }
 
     /**

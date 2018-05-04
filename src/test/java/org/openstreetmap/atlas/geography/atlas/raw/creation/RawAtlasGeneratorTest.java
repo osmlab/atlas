@@ -16,6 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveLineI
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveLocationItem;
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveObjectStore;
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveRelation;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader;
@@ -122,7 +123,7 @@ public class RawAtlasGeneratorTest
 
         Assert.assertEquals(
                 "The original Atlas counts of (Lines + Master Edges + Areas) should equal the total number of all Lines in the Raw Atlas, let's verify this",
-                Iterables.size(Iterables.filter(oldAtlas.edges(), edge -> edge.isMasterEdge()))
+                Iterables.size(Iterables.filter(oldAtlas.edges(), Edge::isMasterEdge))
                         + oldAtlas.numberOfAreas() + oldAtlas.numberOfLines(),
                 rawAtlas.numberOfLines());
 
