@@ -1,7 +1,9 @@
 package org.openstreetmap.atlas.geography.atlas.raw.sectioning;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -866,6 +868,9 @@ public class WaySectionProcessor
                 return newEdgesForLine;
             }
 
+            // Keep track of duplicate polyline locations to avoid single node edges
+            final Map<Long, Integer> duplicateLocations = new HashMap<>();
+
             // We've already processed the starting node, so start with the first index
             for (int index = 1; index < polyline.size(); index++)
             {
@@ -873,13 +878,36 @@ public class WaySectionProcessor
                 endNode = nodesToSectionAt.getNode(polyline.get(index));
                 if (endNode.isPresent())
                 {
+                    final TemporaryNode end = endNode.get();
+
+                    // Avoid sectioning at consecutive repeated points
+                    if (end.equals(startNode.get()) && index - 1 == startIndex)
+                    {
+                        // Found a duplicate point, update the map and skip over it
+                        final long startIdentifier = startNode.get().getIdentifier();
+                        final int duplicateCount = duplicateLocations.containsKey(startIdentifier)
+                                ? duplicateLocations.get(startIdentifier) : 0;
+                        duplicateLocations.put(startIdentifier, duplicateCount + 1);
+                        continue;
+                    }
+
+                    // Update end point occurrence to factor in duplicates
+                    final Integer duplicates = duplicateLocations.get(end.getIdentifier());
+                    if (duplicates != null)
+                    {
+                        for (int duplicate = 0; duplicate < duplicates; duplicate++)
+                        {
+                            nodesToSectionAt.incrementOccurrence(end);
+                        }
+                    }
+
                     // We found the end node, create the edge. Note: using occurrence minus one
                     // since PolyLine uses zero-based numbering. We are incrementing only the
                     // start node occurrence, since the end node will either be used as a future
                     // start node or be the end of the way, in which case we don't care.
                     final int startOccurrence = nodesToSectionAt.getOccurrence(startNode.get()) - 1;
                     nodesToSectionAt.incrementOccurrence(startNode.get());
-                    final int endOccurrence = nodesToSectionAt.getOccurrence(endNode.get()) - 1;
+                    final int endOccurrence = nodesToSectionAt.getOccurrence(end) - 1;
 
                     // Build the underlying polyline and reverse it, if necessary
                     final PolyLine rawPolyline = polyline.between(polyline.get(startIndex),
@@ -968,20 +996,54 @@ public class WaySectionProcessor
 
             if (startNode.isPresent())
             {
-                // We got lucky, the first node is the start of the ring. Use existing logic to
-                // treat it as a flat line.
+                // The first node is the start of the ring, treat it as a flat line
                 return splitNonRingLineIntoEdges(changeSet, line);
             }
             else
             {
+                // Keep track of duplicate polyline locations to avoid single node edges
+                final Map<Location, Integer> duplicateLocations = new HashMap<>();
+                duplicateLocations.put(polyline.first(), 1);
+
                 for (int index = 1; index < polyline.size(); index++)
                 {
+                    final Location currentLocation = polyline.get(index);
+                    endNode = nodesToSectionAt.getNode(currentLocation);
+
+                    // Keep track of duplicate start locations
+                    if (!endNode.isPresent() && !startNode.isPresent())
+                    {
+                        final int duplicateCount = duplicateLocations.containsKey(currentLocation)
+                                ? duplicateLocations.get(currentLocation) : 0;
+                        duplicateLocations.put(currentLocation, duplicateCount + 1);
+                    }
+
                     // Check to see if this location is a node
-                    endNode = nodesToSectionAt.getNode(polyline.get(index));
                     if (endNode.isPresent())
                     {
                         if (!isFirstNode)
                         {
+                            // Avoid sectioning at consecutive repeated points
+                            if (endNode.get().equals(startNode.get()) && index - 1 == startIndex)
+                            {
+                                // Found a duplicate point, update the map and skip over it
+                                final int duplicateCount = duplicateLocations
+                                        .containsKey(currentLocation)
+                                                ? duplicateLocations.get(currentLocation) : 0;
+                                duplicateLocations.put(currentLocation, duplicateCount + 1);
+                                continue;
+                            }
+
+                            // Update end point occurrence to factor in duplicates
+                            final Integer duplicates = duplicateLocations.get(currentLocation);
+                            if (duplicates != null)
+                            {
+                                for (int duplicate = 0; duplicate < duplicates; duplicate++)
+                                {
+                                    nodesToSectionAt.incrementOccurrence(endNode.get());
+                                }
+                            }
+
                             // We only want to create an edge if we've started from a node. If we've
                             // started from a shape point, we've just encountered our first node.
                             final PolyLine rawPolyline = polyline.between(polyline.get(startIndex),
@@ -1003,8 +1065,8 @@ public class WaySectionProcessor
                         startIndex = index;
                         startNode = endNode;
 
-                        // We've found the first node, save the polyline from the first location to
-                        // the first node so we can append it later
+                        // Found the first node, save the polyline from the first location to the
+                        // first node so we can append it later
                         if (isFirstNode)
                         {
                             final PolyLine rawPolyline = polyline.between(polyline.first(), 0,
@@ -1028,10 +1090,12 @@ public class WaySectionProcessor
                         }
 
                         // Get the raw polyline from the last node to the last(first) location
+                        final int endOccurence = duplicateLocations.containsKey(currentLocation)
+                                ? duplicateLocations.get(currentLocation) : 1;
                         final PolyLine rawPolylineFromLastNodeToLastLocation = polyline.between(
                                 polyline.get(startIndex),
                                 nodesToSectionAt.getOccurrence(startNode.get()) - 1,
-                                polyline.get(index), 1);
+                                currentLocation, endOccurence);
 
                         final PolyLine edgePolyLine;
                         if (isReversed)
