@@ -197,10 +197,8 @@ public class RawAtlasIntegrationTest
                 .getPath();
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
         final Atlas rawAtlas = rawAtlasGenerator.build();
-
         final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
                 .slice(rawAtlas);
-
         final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
