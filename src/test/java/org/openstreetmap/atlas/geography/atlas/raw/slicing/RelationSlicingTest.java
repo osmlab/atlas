@@ -123,15 +123,11 @@ public class RelationSlicingTest
         // one outer, both spanning the boundary of two countries.
         final Atlas rawAtlas = this.setup.getSimpleMultiPolygonWithHoleAtlas();
 
-        System.out.println(rawAtlas);
         Assert.assertEquals(2, rawAtlas.numberOfLines());
         Assert.assertEquals(8, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
         final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
-
-        System.out.println(slicedAtlas);
-
         new ComplexBuildingFinder().find(slicedAtlas).forEach(System.out::println);
 
         Assert.assertEquals(23, slicedAtlas.numberOfPoints());
