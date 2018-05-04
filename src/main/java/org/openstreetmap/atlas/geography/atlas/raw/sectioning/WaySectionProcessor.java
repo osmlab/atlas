@@ -201,6 +201,9 @@ public class WaySectionProcessor
     private Atlas buildExpandedAtlas(final Shard initialShard, final Sharding sharding,
             final Function<Shard, Optional<Atlas>> rawAtlasFetcher)
     {
+        final Time time = Time.now();
+        logger.info("Started Dynamic Atlas Construction for Shard {}", initialShard.getName());
+
         // Keep track of all loaded shards. This will be used to cut the sub-atlas for the shard
         // we're processing after all sectioning is completed. Initial shard will always be first!
         this.loadedShards.add(initialShard);
@@ -233,6 +236,9 @@ public class WaySectionProcessor
 
         final DynamicAtlas atlas = new DynamicAtlas(policy);
         atlas.preemptiveLoad();
+
+        logger.info("Finished Dynamic Atlas Construction for {} in {}", initialShard.getName(),
+                time.untilNow());
         return atlas;
     }
 
@@ -247,6 +253,9 @@ public class WaySectionProcessor
      */
     private Atlas buildSectionedAtlas(final WaySectionChangeSet changeSet)
     {
+        final Time time = Time.now();
+        logger.info("Started Final Atlas Build");
+
         // Create builder and set properties
         final PackedAtlasBuilder builder = new PackedAtlasBuilder();
         final AtlasSize sizeEstimate = createAtlasSizeEstimate(changeSet);
@@ -386,6 +395,7 @@ public class WaySectionProcessor
             }
         });
 
+        logger.info("Finished Final Atlas Build in {}", time.untilNow());
         return builder.get();
     }
 
@@ -484,8 +494,13 @@ public class WaySectionProcessor
      */
     private void distinguishPointsFromShapePoints(final WaySectionChangeSet changeSet)
     {
+        final Time time = Time.now();
+        logger.info("Started Shape Point Detection...");
+
         Iterables.stream(this.rawAtlas.points()).filter(point -> isAtlasPoint(changeSet, point))
                 .forEach(changeSet::recordPoint);
+
+        logger.info("Finished Shape Point Detection in {}", time.untilNow());
     }
 
     /**
@@ -501,6 +516,9 @@ public class WaySectionProcessor
      */
     private void identifyEdgesNodesAndAreasFromLines(final WaySectionChangeSet changeSet)
     {
+        final Time time = Time.now();
+        logger.info("Started Atlas Feature Detection...");
+
         this.rawAtlas.lines().forEach(line ->
         {
             if (isAtlasEdge(line))
@@ -595,6 +613,8 @@ public class WaySectionProcessor
                         line.getIdentifier());
             }
         });
+
+        logger.info("Finished Atlas Feature Detection in {}", time.untilNow());
     }
 
     /**
@@ -783,6 +803,9 @@ public class WaySectionProcessor
      */
     private void sectionEdges(final WaySectionChangeSet changeSet)
     {
+        final Time time = Time.now();
+        logger.info("Started Edge Sectioning...");
+
         changeSet.getLinesThatBecomeEdges().forEach(lineIdentifier ->
         {
             final Line line = this.rawAtlas.line(lineIdentifier);
@@ -797,6 +820,8 @@ public class WaySectionProcessor
             }
             changeSet.createLineToEdgeMapping(line, edges);
         });
+
+        logger.info("Finished Edge Sectioning in {}", time.untilNow());
     }
 
     /**
