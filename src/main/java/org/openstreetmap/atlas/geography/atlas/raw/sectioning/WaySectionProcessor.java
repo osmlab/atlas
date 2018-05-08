@@ -537,7 +537,7 @@ public class WaySectionProcessor
         final Time time = Time.now();
         logger.info("Started Atlas Feature Detection for Shard {}", getShardOrAtlasName());
 
-        this.rawAtlas.lines().forEach(line ->
+        StreamSupport.stream(this.rawAtlas.lines().spliterator(), true).forEach(line ->
         {
             if (isAtlasEdge(line))
             {

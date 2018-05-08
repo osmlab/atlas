@@ -1,8 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.raw.sectioning;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,10 +50,10 @@ public class WaySectionChangeSet
 
     public WaySectionChangeSet()
     {
-        this.linesToBecomeAreas = new HashSet<>();
-        this.linesExcludedFromAtlas = new HashSet<>();
+        this.linesToBecomeAreas = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        this.linesExcludedFromAtlas = Collections.newSetFromMap(new ConcurrentHashMap<>());
         this.pointsToStayPoints = Collections.newSetFromMap(new ConcurrentHashMap<>());
-        this.edgeToNodeMapping = new HashMap<>();
+        this.edgeToNodeMapping = new ConcurrentHashMap<>();
         this.lineToEdgeMapping = new MultiMap<>();
     }
 
