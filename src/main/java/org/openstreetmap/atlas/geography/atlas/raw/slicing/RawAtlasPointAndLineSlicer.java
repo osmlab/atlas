@@ -28,6 +28,7 @@ import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +73,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
     @Override
     public Atlas slice()
     {
+        final Time time = Time.now();
         logger.info("Starting slicing Lines and Points for Raw Atlas {}", this.rawAtlas.getName());
 
         // Slice lines and points
@@ -83,7 +85,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                 this.slicedPointAndLineChanges);
         final Atlas atlasWithSlicedWaysAndPoints = simpleChangeBuilder.applyChanges();
 
-        logger.info("Finished slicing Lines and Points for Raw Atlas {}", this.rawAtlas.getName());
+        logger.info("Finished slicing Lines and Points for Raw Atlas {} in {}",
+                this.rawAtlas.getName(), time.untilNow());
 
         getStatistics().summary();
         return atlasWithSlicedWaysAndPoints;
@@ -447,8 +450,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         });
 
         // Update all removed points
-        this.pointsMarkedForRemoval
-                .forEach(point -> this.slicedPointAndLineChanges.deletePoint(point));
+        this.pointsMarkedForRemoval.forEach(this.slicedPointAndLineChanges::deletePoint);
     }
 
     /**

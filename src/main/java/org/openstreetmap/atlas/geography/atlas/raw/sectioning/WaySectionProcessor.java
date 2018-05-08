@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.StreamSupport;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
@@ -500,8 +501,8 @@ public class WaySectionProcessor
         final Time time = Time.now();
         logger.info("Started Shape Point Detection for Shard {}", getShardOrAtlasName());
 
-        Iterables.stream(this.rawAtlas.points()).filter(point -> isAtlasPoint(changeSet, point))
-                .forEach(changeSet::recordPoint);
+        StreamSupport.stream(this.rawAtlas.points().spliterator(), true)
+                .filter(point -> isAtlasPoint(changeSet, point)).forEach(changeSet::recordPoint);
 
         logger.info("Finished Shape Point Detection for Shard {} in {}", getShardOrAtlasName(),
                 time.untilNow());
