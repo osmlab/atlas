@@ -89,4 +89,39 @@ public class LargeArrayTest
         Assert.assertEquals(10,
                 this.array.getArrays().get(this.array.getArrays().size() - 1).size());
     }
+
+    /*
+     * A NOTE ABOUT THIS TEST: Historically, LargeArray would mishandle trim() in the case that the
+     * rightmost subarray was completely full. The trim() function has now been fixed, so this
+     * should no longer happen. If this test ever fails, that means the bug has been re-introduced.
+     */
+    @Test
+    public void trimArrayWithFullRightmostSubArray()
+    {
+        final int maxSize = 100;
+        final int subArraySize = 10;
+        final int blockSize = subArraySize;
+
+        final LongArray array = new LongArray(maxSize, blockSize, subArraySize);
+
+        // completely fill up three subarrays
+        for (int i = 0; i < subArraySize * 3; i++)
+        {
+            array.add(2L);
+        }
+
+        // Now, we trim the array. This should only affect the rightmost* subarray
+        // * Here, rightmost indicates it is the last subarray in LargeArray's list of subarrays
+        array.trim();
+
+        // this is fine, since the first subarray is not corrupted by trim()
+        Assert.assertEquals(2L, array.get(2).longValue());
+
+        // this is also fine, the second subarray is not corrupted
+        Assert.assertEquals(2L, array.get(12).longValue());
+
+        // this should be fine as well, now that the bug is fixed
+        // NOTE that the bug would have caused this line to throw ArrayIndexOutOfBoundsException
+        Assert.assertEquals(2L, array.get(23).longValue());
+    }
 }
