@@ -105,7 +105,6 @@ public class DynamicAtlasPolicy
                 catch (final Throwable error)
                 {
                     logger.error("Could not load shard {}, skipping.", shard.getName(), error);
-
                 }
             }
             else

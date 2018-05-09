@@ -42,6 +42,7 @@ import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
 public class RelationChangeSet
 {
     // Created entities
+    private final Set<Long> deletedPoints;
     private final Map<Long, TemporaryPoint> createdPoints;
     private final Map<Long, TemporaryLine> createdLines;
     private final Map<Long, TemporaryRelation> createdRelations;
@@ -63,6 +64,7 @@ public class RelationChangeSet
 
     public RelationChangeSet()
     {
+        this.deletedPoints = new HashSet<>();
         this.createdPoints = new HashMap<>();
         this.createdLines = new HashMap<>();
         this.createdRelations = new HashMap<>();
@@ -106,6 +108,11 @@ public class RelationChangeSet
         this.deletedLines.add(identifier);
     }
 
+    public void deletePoint(final Long identifier)
+    {
+        this.deletedPoints.add(identifier);
+    }
+
     public void deleteRelation(final long identifier)
     {
         this.deletedRelations.add(identifier);
@@ -140,6 +147,11 @@ public class RelationChangeSet
     public Set<Long> getDeletedLines()
     {
         return this.deletedLines;
+    }
+
+    public Set<Long> getDeletedPoints()
+    {
+        return this.deletedPoints;
     }
 
     public MultiMapWithSet<Long, TemporaryRelationMember> getDeletedRelationMembers()
