@@ -96,6 +96,13 @@ public abstract class NumericValidator extends ExactMatchValidator
             this.minimum = minimum;
             this.maximum = maximum;
         }
+        else if (minimum == Long.MAX_VALUE || maximum == Long.MIN_VALUE)
+        {
+            /*
+             * Special case where at least one of the range endpoints is a default value. In this
+             * case, we don't want to send out a log message - instead just do nothing.
+             */
+        }
         else
         {
             logger.debug("Invalid range supplied, minimum: {} cannot be greater than maximum: {}.",
