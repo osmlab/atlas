@@ -127,8 +127,8 @@ public final class PackedAtlas extends AbstractAtlas
     private transient PackedAtlasSerializer serializer;
 
     // Serialization formats for saving/loading this PackedAtlas
-    private transient AtlasSerializationFormat saveSerializationFormat = AtlasSerializationFormat.JAVA;
-    private transient AtlasSerializationFormat loadSerializationFormat = AtlasSerializationFormat.JAVA;
+    private transient AtlasSerializationFormat saveSerializationFormat = AtlasSerializationFormat.PROTOBUF;
+    private transient AtlasSerializationFormat loadSerializationFormat = AtlasSerializationFormat.PROTOBUF;
 
     // Meta-Data
     private AtlasMetaData metaData = new AtlasMetaData();
