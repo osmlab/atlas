@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.multi;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,6 +18,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
+
+import com.google.common.collect.Sets;
 
 /**
  * {@link Relation} made from a {@link MultiAtlas}.
@@ -169,8 +172,15 @@ public class MultiRelation extends Relation
     @Override
     public Set<Relation> relations()
     {
-        // They all should have the same tags
-        return multiAtlas().multifyRelations(getSingleSubRelation());
+        Set<Relation> unionOfAllParentRelations = new HashSet<>();
+        for (final Relation subRelations : getSubRelations().getSubRelations())
+        {
+            final Set<Relation> currentSubRelationParentRelations = multiAtlas()
+                    .multifyRelations(subRelations);
+            unionOfAllParentRelations = Sets.union(unionOfAllParentRelations,
+                    currentSubRelationParentRelations);
+        }
+        return unionOfAllParentRelations;
     }
 
     private Relation getSingleSubRelation()
