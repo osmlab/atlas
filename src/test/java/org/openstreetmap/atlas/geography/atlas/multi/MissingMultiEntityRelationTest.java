@@ -13,15 +13,35 @@ import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 
 /**
- * Expose a bug with the way {@link MultiNode} calculates parent relations of its constituent sub
- * nodes. This test should pass now that the bug is fixed.
+ * Expose bugs with the way {@link MultiAtlas} calculates parent relations of its constituent
+ * entities. These tests should pass now that all bugs are fixed.
  *
+ * @see <a href="https://github.com/osmlab/atlas/pull/126">The PR that demonstrates and corrects
+ *      these bugs</a>
  * @author lcram
  */
-public class MissingMultiNodeRelationTest
+public class MissingMultiEntityRelationTest
 {
     @Test
-    public void testForMissingRelation()
+    public void testAreasForMissingRelation()
+    {
+
+    }
+
+    @Test
+    public void testEdgesForMissingRelation()
+    {
+
+    }
+
+    @Test
+    public void testLinesForMissingRelation()
+    {
+
+    }
+
+    @Test
+    public void testNodesForMissingRelation()
     {
         final PackedAtlasBuilder builderWithRelation = new PackedAtlasBuilder();
         builderWithRelation.addNode(1L, Location.forString("1,1"),
@@ -50,5 +70,17 @@ public class MissingMultiNodeRelationTest
                 resourceWithRelation);
 
         Assert.assertTrue(!multiAtlas.node(1L).relations().isEmpty());
+    }
+
+    @Test
+    public void testPointsForMissingRelation()
+    {
+
+    }
+
+    @Test
+    public void testRelationsForMissingRelation()
+    {
+
     }
 }
