@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
@@ -74,7 +75,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
     public Atlas slice()
     {
         final Time time = Time.now();
-        logger.info("Starting slicing Lines and Points for Raw Atlas {}", this.rawAtlas.getName());
+        logger.info("Starting Point and Line Slicing for {}", getShardOrAtlasName());
 
         // Slice lines and points
         sliceLines();
@@ -85,9 +86,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                 this.slicedPointAndLineChanges);
         final Atlas atlasWithSlicedWaysAndPoints = simpleChangeBuilder.applyChanges();
 
-        logger.info("Finished slicing Lines and Points for Raw Atlas {} in {}",
-                this.rawAtlas.getName(), time.untilNow());
-
+        logger.info("Finished Point and Line Slicing for {} in {}", getShardOrAtlasName(),
+                time.untilNow());
         getStatistics().summary();
         return atlasWithSlicedWaysAndPoints;
     }
@@ -135,6 +135,11 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         }
 
         return result;
+    }
+
+    private String getShardOrAtlasName()
+    {
+        return this.rawAtlas.metaData().getShardName().orElse(this.rawAtlas.getName());
     }
 
     /**
@@ -415,7 +420,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      */
     private void sliceLines()
     {
-        this.rawAtlas.lines().forEach(this::sliceLine);
+        StreamSupport.stream(this.rawAtlas.lines().spliterator(), true).forEach(this::sliceLine);
     }
 
     /**
@@ -425,7 +430,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      */
     private void slicePoints()
     {
-        this.rawAtlas.points().forEach(point ->
+        StreamSupport.stream(this.rawAtlas.points().spliterator(), true).forEach(point ->
         {
             final long pointIdentifier = point.getIdentifier();
 

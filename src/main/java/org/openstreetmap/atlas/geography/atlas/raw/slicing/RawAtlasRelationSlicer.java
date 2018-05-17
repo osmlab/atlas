@@ -44,6 +44,7 @@ import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
+import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,8 +115,8 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
     @Override
     public Atlas slice()
     {
-        logger.info("Starting Relation slicing for Raw Atlas {}",
-                this.partiallySlicedRawAtlas.getName());
+        final Time time = Time.now();
+        logger.info("Starting Relation Slicing for {}", getShardOrAtlasName());
 
         // Slice all relations
         sliceRelations();
@@ -128,8 +129,8 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 this.partiallySlicedRawAtlas, this.slicedRelationChanges);
 
         final Atlas fullySlicedAtlas = relationChangeBuilder.applyChanges();
-        logger.info("Finished Relation slicing for Raw Atlas {}",
-                this.partiallySlicedRawAtlas.getName());
+        logger.info("Finished Relation Slicing for {} in {}", getShardOrAtlasName(),
+                time.untilNow());
 
         getStatistics().summary();
         return fullySlicedAtlas;
@@ -434,6 +435,12 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         {
             return Collections.emptyList();
         }
+    }
+
+    private String getShardOrAtlasName()
+    {
+        return this.partiallySlicedRawAtlas.metaData().getShardName()
+                .orElse(this.partiallySlicedRawAtlas.getName());
     }
 
     /**

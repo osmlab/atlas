@@ -1,14 +1,13 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryEntity;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryLine;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryPoint;
-import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
 
 /**
  * Records any additions, updates and deletions that occurred during point and way raw Atlas
@@ -38,16 +37,16 @@ public class SimpleChangeSet
     // Lines that were sliced will be deleted and replaced by two or more new line segments. We need
     // to maintain this mapping to maintain relation integrity by removing deleted line members and
     // replacing them with the created sliced segments.
-    private final MultiMapWithSet<Long, Long> deletedToCreatedLineMapping;
+    private final Map<Long, Set<Long>> deletedToCreatedLineMapping;
 
     public SimpleChangeSet()
     {
-        this.createdPoints = new HashSet<>();
-        this.updatedPointTags = new HashMap<>();
-        this.deletedPoints = new HashSet<>();
-        this.createdLines = new HashSet<>();
-        this.updatedLineTags = new HashMap<>();
-        this.deletedToCreatedLineMapping = new MultiMapWithSet<>();
+        this.createdPoints = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        this.updatedPointTags = new ConcurrentHashMap<>();
+        this.deletedPoints = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        this.createdLines = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        this.updatedLineTags = new ConcurrentHashMap<>();
+        this.deletedToCreatedLineMapping = new ConcurrentHashMap<>();
     }
 
     public void createDeletedToCreatedMapping(final long deletedIdentifier,
@@ -86,7 +85,7 @@ public class SimpleChangeSet
         return this.deletedPoints;
     }
 
-    public MultiMapWithSet<Long, Long> getDeletedToCreatedLineMapping()
+    public Map<Long, Set<Long>> getDeletedToCreatedLineMapping()
     {
         return this.deletedToCreatedLineMapping;
     }

@@ -221,11 +221,11 @@ public class RawAtlasGenerator
         {
             throw new CoreException("Atlas creation error for PBF shard {}", shardName, e);
         }
-        logger.info("Read PBF in {}, preparing to build Raw Atlas", parseTime.elapsedSince());
+        logger.info("Read PBF for {} in {}", shardName, parseTime.elapsedSince());
 
         final Time buildTime = Time.now();
         final Atlas atlas = this.builder.get();
-        logger.info("Built raw Atlas for {} in {}", shardName, buildTime.elapsedSince());
+        logger.info("Built Raw Atlas for {} in {}", shardName, buildTime.elapsedSince());
 
         if (atlas == null)
         {
@@ -234,7 +234,11 @@ public class RawAtlasGenerator
         }
         else
         {
+            final Time trimTime = Time.now();
             final Atlas trimmedAtlas = removeDuplicateAndExtraneousPointsFromAtlas(atlas);
+            logger.info("Trimmed Raw Atlas for {} in {}", shardName, atlas.getName(),
+                    trimTime.untilNow());
+
             if (trimmedAtlas == null)
             {
                 logger.info("Empty raw Atlas after filtering for PBF Shard {}", shardName);
@@ -261,15 +265,15 @@ public class RawAtlasGenerator
     private void countOsmPbfEntities()
     {
         final Time countTime = Time.now();
-        try (CloseableOsmosisReader reader = connectOsmPbfToPbfConsumer(this.pbfCounter))
+        try (CloseableOsmosisReader counter = connectOsmPbfToPbfConsumer(this.pbfCounter))
         {
-            reader.run();
+            counter.run();
         }
         catch (final Exception e)
         {
             throw new CoreException("Error counting PBF entities", e);
         }
-        logger.info("Counted PBF entities in {}", countTime.elapsedSince());
+        logger.info("Counted PBF Entities in {}", countTime.elapsedSince());
     }
 
     /**
@@ -483,7 +487,7 @@ public class RawAtlasGenerator
             pointsToRemove.addAll(preFilterPointsToRemove(atlas));
         }
 
-        // If there's any points to be removed, cut a sub-atlas. Otherwise return the original atlas
+        // Remove points or return the original atlas
         if (pointsToRemove.isEmpty())
         {
             return atlas;
