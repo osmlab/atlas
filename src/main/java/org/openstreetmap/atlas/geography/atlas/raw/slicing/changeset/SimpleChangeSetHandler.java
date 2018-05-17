@@ -56,6 +56,7 @@ public class SimpleChangeSetHandler extends ChangeSetHandler
     public Atlas applyChanges()
     {
         final Time time = Time.now();
+        logger.info("Started Applying Point and Line Changes for {}", getShardOrAtlasName());
 
         // Log original Atlas statistics
         logger.info(atlasStatistics(this.getAtlas()));
@@ -78,7 +79,7 @@ public class SimpleChangeSetHandler extends ChangeSetHandler
         final Atlas atlasWithUpdates = this.getBuilder().get();
         logger.info(atlasStatistics(atlasWithUpdates));
 
-        logger.info("Finished Point and Line Changes for {} in {}", getShardOrAtlasName(),
+        logger.info("Finished Applying Point and Line Changes for {} in {}", getShardOrAtlasName(),
                 time.untilNow());
 
         return atlasWithUpdates;

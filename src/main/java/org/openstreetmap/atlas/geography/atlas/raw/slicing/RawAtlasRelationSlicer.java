@@ -116,7 +116,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
     public Atlas slice()
     {
         final Time time = Time.now();
-        logger.info("Starting Relation Slicing for {}", getShardOrAtlasName());
+        logger.info("Started Relation Slicing for {}", getShardOrAtlasName());
 
         // Slice all relations
         sliceRelations();

@@ -56,6 +56,7 @@ public class RelationChangeSetHandler extends ChangeSetHandler
     public Atlas applyChanges()
     {
         final Time time = Time.now();
+        logger.info("Started Applying Relation Changes for {}", getShardOrAtlasName());
 
         // Log original Atlas statistics
         if (logger.isInfoEnabled())
