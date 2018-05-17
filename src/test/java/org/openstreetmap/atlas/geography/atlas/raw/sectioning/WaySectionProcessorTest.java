@@ -242,6 +242,19 @@ public class WaySectionProcessorTest
     }
 
     @Test
+    public void testSelfIntersectingLoop()
+    {
+        // Based on https://www.openstreetmap.org/way/373705334 and surrounding edge network
+        final Atlas slicedRawAtlas = this.setup.getSelfIntersectingLoopAtlas();
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
+
+        Assert.assertEquals("Ten edges, each having a reverse counterpart", 20,
+                finalAtlas.numberOfEdges());
+        Assert.assertEquals("Nine nodes", 9, finalAtlas.numberOfNodes());
+    }
+
+    @Test
     public void testSimpleBiDirectionalLine()
     {
         // Based on https://www.openstreetmap.org/way/460834514
