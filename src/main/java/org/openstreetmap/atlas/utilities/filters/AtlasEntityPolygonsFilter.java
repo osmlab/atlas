@@ -245,8 +245,7 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
         public AtlasEntityPolygonsFilter geometricSurfaces(
                 final Collection<GeometricSurface> geometricSurfaces)
         {
-            return new AtlasEntityPolygonsFilter(this,
-                    IntersectionPolicy.DEFAULT_INTERSECTION_POLICY, geometricSurfaces);
+            return new AtlasEntityPolygonsFilter(this, geometricSurfaces);
         }
 
         public AtlasEntityPolygonsFilter multiPolygons(final Collection<MultiPolygon> multiPolygons)
