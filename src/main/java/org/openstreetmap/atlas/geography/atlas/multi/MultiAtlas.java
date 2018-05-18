@@ -76,7 +76,7 @@ public class MultiAtlas extends AbstractAtlas
     private final LongToIntegerMultiMap nodeIdentifierToAtlasIndices;
     private final LongToIntegerMap areaIdentifierToAtlasIndex;
     private final LongToIntegerMap lineIdentifierToAtlasIndex;
-    private final LongToIntegerMap pointIdentifierToAtlasIndex;
+    private final LongToIntegerMultiMap pointIdentifierToAtlasIndices;
     private final LongToIntegerMultiMap relationIdentifierToAtlasIndices;
 
     // Re-build relations with the same OSM identifier
@@ -388,7 +388,7 @@ public class MultiAtlas extends AbstractAtlas
                 "MultiAtlas - lineIdentifierToAtlasIndex", this.maximumSize, this.lineHashSize,
                 this.lineMemoryBlockSize, this.subArraySize, this.lineMemoryBlockSize,
                 this.subArraySize);
-        this.pointIdentifierToAtlasIndex = new LongToIntegerMap(
+        this.pointIdentifierToAtlasIndices = new LongToIntegerMultiMap(
                 "MultiAtlas - pointIdentifierToAtlasIndex", this.maximumSize, this.pointHashSize,
                 this.pointMemoryBlockSize, this.subArraySize, this.pointMemoryBlockSize,
                 this.subArraySize);
@@ -456,7 +456,7 @@ public class MultiAtlas extends AbstractAtlas
                 .forEach(identifier -> this.getAreaSpatialIndex().add(area(identifier)));
         this.lineIdentifierToAtlasIndex
                 .forEach(identifier -> this.getLineSpatialIndex().add(line(identifier)));
-        this.pointIdentifierToAtlasIndex
+        this.pointIdentifierToAtlasIndices
                 .forEach(identifier -> this.getPointSpatialIndex().add(point(identifier)));
         this.relationIdentifierToAtlasIndices.forEach(identifier ->
         {
@@ -481,7 +481,7 @@ public class MultiAtlas extends AbstractAtlas
         this.numberOfNodes = this.nodeIdentifierToAtlasIndices.size();
         this.numberOfAreas = this.areaIdentifierToAtlasIndex.size();
         this.numberOfLines = this.lineIdentifierToAtlasIndex.size();
-        this.numberOfPoints = this.pointIdentifierToAtlasIndex.size();
+        this.numberOfPoints = this.pointIdentifierToAtlasIndices.size();
         this.numberOfRelations = this.relationIdentifierToAtlasIndices.size();
 
         if (!lotsOfOverlap)
@@ -493,7 +493,7 @@ public class MultiAtlas extends AbstractAtlas
             this.edgeIdentifierToAtlasIndex.trimIfLessFilledThan(trimRatio);
             this.areaIdentifierToAtlasIndex.trimIfLessFilledThan(trimRatio);
             this.lineIdentifierToAtlasIndex.trimIfLessFilledThan(trimRatio);
-            this.pointIdentifierToAtlasIndex.trimIfLessFilledThan(trimRatio);
+            this.pointIdentifierToAtlasIndices.trimIfLessFilledThan(trimRatio);
             this.relationIdentifierToAtlasIndices.trimIfLessFilledThan(trimRatio);
             this.relationOsmIdentifierToRelationIdentifiers.trimIfLessFilledThan(trimRatio);
             this.relationIdentifierToRelationOsmIdentifier.trimIfLessFilledThan(trimRatio);
@@ -642,7 +642,7 @@ public class MultiAtlas extends AbstractAtlas
     @Override
     public Point point(final long identifier)
     {
-        if (this.pointIdentifierToAtlasIndex.containsKey(identifier))
+        if (this.pointIdentifierToAtlasIndices.containsKey(identifier))
         {
             return new MultiPoint(this, identifier);
         }
@@ -652,7 +652,7 @@ public class MultiAtlas extends AbstractAtlas
     @Override
     public Iterable<Point> points()
     {
-        return Iterables.translate(this.pointIdentifierToAtlasIndex,
+        return Iterables.translate(this.pointIdentifierToAtlasIndices,
                 identifier -> point(identifier));
     }
 
@@ -810,7 +810,7 @@ public class MultiAtlas extends AbstractAtlas
         }
         for (final Point point : atlas.points())
         {
-            this.pointIdentifierToAtlasIndex.put(point.getIdentifier(), atlasIndex);
+            this.pointIdentifierToAtlasIndices.add(point.getIdentifier(), atlasIndex);
         }
         for (final Relation relation : atlas.relations())
         {
@@ -918,9 +918,17 @@ public class MultiAtlas extends AbstractAtlas
      *            The identifier to query
      * @return The {@link Point} with this identifier
      */
-    protected Point subPoint(final long identifier)
+    protected SubPointList subPoint(final long identifier)
     {
-        return this.atlases.get(this.pointIdentifierToAtlasIndex.get(identifier)).point(identifier);
+        final List<Point> subPoints = new ArrayList<>();
+        for (final int index : this.pointIdentifierToAtlasIndices.get(identifier))
+        {
+            if (index != -1)
+            {
+                subPoints.add(this.atlases.get(index).point(identifier));
+            }
+        }
+        return new SubPointList(subPoints);
     }
 
     /**
