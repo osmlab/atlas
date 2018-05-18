@@ -47,7 +47,7 @@ public class MultiLine extends Line
     {
         if (this.subLineList == null)
         {
-            this.subLineList = multiAtlas().subLine(this.identifier);
+            this.subLineList = multiAtlas().subLines(this.identifier);
         }
         return this.subLineList;
     }
