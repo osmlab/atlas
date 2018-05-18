@@ -516,8 +516,7 @@ public class MultiAtlas extends AbstractAtlas
     @Override
     public Iterable<Area> areas()
     {
-        return Iterables.translate(this.areaIdentifierToAtlasIndices,
-                identifier -> area(identifier));
+        return Iterables.translate(this.areaIdentifierToAtlasIndices, this::area);
     }
 
     /**
@@ -572,8 +571,7 @@ public class MultiAtlas extends AbstractAtlas
     @Override
     public Iterable<Line> lines()
     {
-        return Iterables.translate(this.lineIdentifierToAtlasIndices,
-                identifier -> line(identifier));
+        return Iterables.translate(this.lineIdentifierToAtlasIndices, this::line);
     }
 
     @Override
@@ -842,7 +840,7 @@ public class MultiAtlas extends AbstractAtlas
      *
      * @param identifier
      *            The identifier to query
-     * @return The {@link Area} with this identifier
+     * @return The {@link Area}s that have this identifier
      */
     protected SubAreaList subAreas(final long identifier)
     {
@@ -882,7 +880,7 @@ public class MultiAtlas extends AbstractAtlas
      *
      * @param identifier
      *            The identifier to query
-     * @return The {@link SubLineList} with this identifier
+     * @return The {@link Line}s that have this identifier
      */
     protected SubLineList subLines(final long identifier)
     {
@@ -902,7 +900,7 @@ public class MultiAtlas extends AbstractAtlas
      *
      * @param identifier
      *            The identifier to query
-     * @return The nodes that have this identifier
+     * @return The {@link Node}s that have this identifier
      */
     protected SubNodeList subNodes(final long identifier)
     {
@@ -934,7 +932,7 @@ public class MultiAtlas extends AbstractAtlas
      *
      * @param identifier
      *            The identifier to query
-     * @return The {@link SubPointList} with this identifier
+     * @return The {@link Point}s that have this identifier
      */
     protected SubPointList subPoints(final long identifier)
     {
@@ -954,7 +952,7 @@ public class MultiAtlas extends AbstractAtlas
      *
      * @param identifier
      *            The identifier to query
-     * @return The {@link Relation}s with this identifier
+     * @return The {@link Relation}s that have this identifier
      */
     protected SubRelationList subRelations(final long identifier)
     {

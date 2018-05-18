@@ -847,6 +847,16 @@ public class MultiAtlasBorderFixer implements Serializable
         return false;
     }
 
+    /**
+     * Check if identical edges in the new {@link MultiAtlas} have consistent parent relations. It
+     * is possible the the same {@link Edge} may have a different set of parent relations depending
+     * on which subatlas is was pulled from. In this case, we want to detect this so we can unify
+     * the sets.
+     *
+     * @param identifierToEdgeList
+     *            A mapping from edge identifiers to list of edges with that identifier
+     * @return Indicator whether relations are consistent across identical edges
+     */
     private boolean hasInconsistentRelations(final MultiMap<Long, Edge> identifierToEdgeList)
     {
         for (final Long edgeListForSameIdentifier : identifierToEdgeList.keySet())
