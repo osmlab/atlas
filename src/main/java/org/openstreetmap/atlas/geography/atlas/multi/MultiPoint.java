@@ -46,7 +46,7 @@ public class MultiPoint extends Point
     {
         if (this.subPoints == null)
         {
-            this.subPoints = multiAtlas().subPoint(this.identifier);
+            this.subPoints = multiAtlas().subPoints(this.identifier);
         }
         return this.subPoints;
     }
@@ -63,10 +63,10 @@ public class MultiPoint extends Point
         Set<Relation> unionOfAllParentRelations = new HashSet<>();
         for (final Point subPoint : getSubPoints().getSubPoints())
         {
-            final Set<Relation> currentSubNodeParentRelations = multiAtlas()
+            final Set<Relation> currentSubPointParentRelations = multiAtlas()
                     .multifyRelations(subPoint);
             unionOfAllParentRelations = Sets.union(unionOfAllParentRelations,
-                    currentSubNodeParentRelations);
+                    currentSubPointParentRelations);
         }
         return unionOfAllParentRelations;
     }

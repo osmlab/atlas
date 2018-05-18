@@ -20,7 +20,7 @@ public class SubPointList implements Iterable<Point>, Serializable
     {
         if (subPoints == null)
         {
-            throw new CoreException("Cannot have a null list of sub nodes.");
+            throw new CoreException("Cannot have a null list of sub points.");
         }
         this.subPoints = subPoints;
     }
