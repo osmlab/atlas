@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.multi;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -7,6 +8,8 @@ import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+
+import com.google.common.collect.Sets;
 
 /**
  * {@link Area} made from a {@link MultiAtlas}.
@@ -20,7 +23,7 @@ public class MultiLine extends Line
     // Not index!
     private final long identifier;
 
-    private Line subLine;
+    private SubLineList subLineList;
 
     protected MultiLine(final MultiAtlas atlas, final long identifier)
     {
@@ -31,7 +34,7 @@ public class MultiLine extends Line
     @Override
     public PolyLine asPolyLine()
     {
-        return getSubLine().asPolyLine();
+        return getRepresentativeSubLine().asPolyLine();
     }
 
     @Override
@@ -40,25 +43,38 @@ public class MultiLine extends Line
         return this.identifier;
     }
 
+    public SubLineList getSubLines()
+    {
+        if (this.subLineList == null)
+        {
+            this.subLineList = multiAtlas().subLines(this.identifier);
+        }
+        return this.subLineList;
+    }
+
     @Override
     public Map<String, String> getTags()
     {
-        return this.getSubLine().getTags();
+        return this.getRepresentativeSubLine().getTags();
     }
 
     @Override
     public Set<Relation> relations()
     {
-        return multiAtlas().multifyRelations(getSubLine());
+        Set<Relation> unionOfAllParentRelations = new HashSet<>();
+        for (final Line subLine : getSubLines().getSubLines())
+        {
+            final Set<Relation> currentSubLineParentRelations = multiAtlas()
+                    .multifyRelations(subLine);
+            unionOfAllParentRelations = Sets.union(unionOfAllParentRelations,
+                    currentSubLineParentRelations);
+        }
+        return unionOfAllParentRelations;
     }
 
-    private Line getSubLine()
+    private Line getRepresentativeSubLine()
     {
-        if (this.subLine == null)
-        {
-            this.subLine = this.multiAtlas().subLine(this.identifier);
-        }
-        return this.subLine;
+        return getSubLines().getSubLines().get(0);
     }
 
     private MultiAtlas multiAtlas()
