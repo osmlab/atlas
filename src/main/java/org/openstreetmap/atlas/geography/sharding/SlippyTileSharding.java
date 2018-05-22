@@ -1,9 +1,9 @@
 package org.openstreetmap.atlas.geography.sharding;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
-import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
@@ -36,10 +36,10 @@ public class SlippyTileSharding implements Sharding
     }
 
     @Override
-    public Iterable<? extends Shard> shards(final Polygon polygon)
+    public Iterable<? extends Shard> shards(final GeometricSurface surface)
     {
-        return Iterables.stream(SlippyTile.allTiles(this.zoom, polygon.bounds()))
-                .filter(slippyTile -> polygon.overlaps(slippyTile.bounds()));
+        return Iterables.stream(SlippyTile.allTiles(this.zoom, surface.bounds()))
+                .filter(slippyTile -> surface.overlaps(slippyTile.bounds()));
     }
 
     @Override
