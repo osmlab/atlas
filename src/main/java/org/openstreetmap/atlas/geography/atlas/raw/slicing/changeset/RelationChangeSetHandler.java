@@ -16,6 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIde
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRelation;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRelationMember;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
+import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +55,9 @@ public class RelationChangeSetHandler extends ChangeSetHandler
     @Override
     public Atlas applyChanges()
     {
+        final Time time = Time.now();
+        logger.info("Started Applying Relation Changes for {}", getShardOrAtlasName());
+
         // Log original Atlas statistics
         if (logger.isInfoEnabled())
         {
@@ -82,6 +86,9 @@ public class RelationChangeSetHandler extends ChangeSetHandler
         {
             logger.info("After Slicing Relations: " + atlasStatistics(atlasWithUpdates));
         }
+
+        logger.info("Finished Applying Relation Changes for {} in {}", getShardOrAtlasName(),
+                time.untilNow());
 
         return atlasWithUpdates;
     }

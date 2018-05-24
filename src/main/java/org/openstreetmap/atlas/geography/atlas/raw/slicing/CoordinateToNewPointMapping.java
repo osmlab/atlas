@@ -1,7 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 
@@ -32,7 +32,7 @@ public class CoordinateToNewPointMapping
 
     public CoordinateToNewPointMapping()
     {
-        this.coordinateToPointIdentifierMap = new HashMap<>();
+        this.coordinateToPointIdentifierMap = new ConcurrentHashMap<>();
         this.precisionModel = new PrecisionModel(SIX_DIGIT_PRECISION_SCALE);
     }
 

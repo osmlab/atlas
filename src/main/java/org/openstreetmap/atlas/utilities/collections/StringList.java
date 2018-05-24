@@ -17,6 +17,7 @@ import org.openstreetmap.atlas.exception.CoreException;
  */
 public class StringList implements Iterable<String>, Serializable
 {
+    private static final long serialVersionUID = -7923796535827613632L;
     private final List<String> list;
 
     public static StringList split(final String item, final String separator)

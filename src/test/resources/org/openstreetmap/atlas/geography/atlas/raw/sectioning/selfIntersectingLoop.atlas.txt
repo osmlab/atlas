@@ -1,0 +1,24 @@
+# Nodes
+# Edges
+# Areas
+# Lines
+373705333000000 && 47.1458148,47.2824511:47.1454972,47.2832076 && last_edit_user_name -> A-lex-W || last_edit_changeset -> 34417557 || last_edit_time -> 1443913657000 || last_edit_user_id -> 3255141 || iso_country_code -> RUS || highway -> track || last_edit_version -> 1
+373706224000000 && 47.1448746,47.2838708:47.1444123,47.2847417 && last_edit_user_name -> A-lex-W || last_edit_changeset -> 34417759 || last_edit_time -> 1443914914000 || last_edit_user_id -> 3255141 || iso_country_code -> RUS || highway -> track || last_edit_version -> 1
+373705334000000 && 47.1453511,47.2827126:47.1453956,47.2824698:47.1452367,47.2824324:47.1453511,47.2827126:47.1454972,47.2832076:47.1453765,47.2835532:47.1452876,47.2840109:47.1450398,47.283796:47.1448746,47.2838708:47.1452622,47.2831329:47.1453511,47.2827126 && last_edit_user_name -> A-lex-W || last_edit_changeset -> 34417557 || last_edit_time -> 1443913657000 || last_edit_user_id -> 3255141 || iso_country_code -> RUS || highway -> track || last_edit_version -> 1
+373773345000000 && 47.1452367,47.2824324:47.145071,47.2823274 && last_edit_user_name -> A-lex-W || last_edit_changeset -> 34429007 || last_edit_time -> 1443969324000 || last_edit_user_id -> 3255141 || iso_country_code -> RUS || highway -> track || last_edit_version -> 1
+373705335000000 && 47.1453956,47.2824698:47.1455861,47.281816 && last_edit_user_name -> A-lex-W || last_edit_changeset -> 34417557 || last_edit_time -> 1443913657000 || last_edit_user_id -> 3255141 || iso_country_code -> RUS || highway -> track || last_edit_version -> 1
+# Points
+3771250158000000 && 47.1453511,47.2827126 && last_edit_user_name -> A-lex-W || last_edit_changeset -> 34417557 || last_edit_time -> 1443913656000 || last_edit_user_id -> 3255141 || iso_country_code -> RUS || last_edit_version -> 1
+3771250159000000 && 47.1453956,47.2824698 && last_edit_user_name -> A-lex-W || last_edit_changeset -> 34417557 || last_edit_time -> 1443913656000 || last_edit_user_id -> 3255141 || iso_country_code -> RUS || last_edit_version -> 1
+3771250160000000 && 47.1452367,47.2824324 && last_edit_user_name -> A-lex-W || last_edit_changeset -> 34417557 || last_edit_time -> 1443913656000 || last_edit_user_id -> 3255141 || iso_country_code -> RUS || last_edit_version -> 1
+3771250157000000 && 47.1454972,47.2832076 && last_edit_user_name -> A-lex-W || last_edit_changeset -> 34417557 || last_edit_time -> 1443913656000 || last_edit_user_id -> 3255141 || iso_country_code -> RUS || last_edit_version -> 1
+3771250161000000 && 47.1453765,47.2835532 && last_edit_user_name -> A-lex-W || last_edit_changeset -> 34417557 || last_edit_time -> 1443913656000 || last_edit_user_id -> 3255141 || iso_country_code -> RUS || last_edit_version -> 1
+3771250162000000 && 47.1452876,47.2840109 && last_edit_user_name -> A-lex-W || last_edit_changeset -> 34417557 || last_edit_time -> 1443913656000 || last_edit_user_id -> 3255141 || iso_country_code -> RUS || last_edit_version -> 1
+3771250163000000 && 47.1450398,47.283796 && last_edit_user_name -> A-lex-W || last_edit_changeset -> 34417557 || last_edit_time -> 1443913656000 || last_edit_user_id -> 3255141 || iso_country_code -> RUS || last_edit_version -> 1
+3771250164000000 && 47.1448746,47.2838708 && last_edit_user_name -> A-lex-W || last_edit_changeset -> 34417557 || last_edit_time -> 1443913656000 || last_edit_user_id -> 3255141 || iso_country_code -> RUS || last_edit_version -> 1
+3771250165000000 && 47.1452622,47.2831329 && last_edit_user_name -> A-lex-W || last_edit_changeset -> 34417557 || last_edit_time -> 1443913656000 || last_edit_user_id -> 3255141 || iso_country_code -> RUS || last_edit_version -> 1
+3771250166000000 && 47.1455861,47.281816 && last_edit_user_name -> A-lex-W || last_edit_changeset -> 34417557 || last_edit_time -> 1443913656000 || last_edit_user_id -> 3255141 || iso_country_code -> RUS || last_edit_version -> 1
+3771860116000000 && 47.145071,47.2823274 && last_edit_user_name -> A-lex-W || last_edit_changeset -> 34429007 || last_edit_time -> 1443969324000 || last_edit_user_id -> 3255141 || iso_country_code -> RUS || last_edit_version -> 1
+3771256499000000 && 47.1444123,47.2847417 && last_edit_user_name -> A-lex-W || last_edit_changeset -> 34417759 || last_edit_time -> 1443914914000 || last_edit_user_id -> 3255141 || iso_country_code -> RUS || last_edit_version -> 1
+3771250056000000 && 47.1458148,47.2824511 && last_edit_user_name -> A-lex-W || last_edit_changeset -> 34417557 || last_edit_time -> 1443913656000 || last_edit_user_id -> 3255141 || iso_country_code -> RUS || last_edit_version -> 1
+# Relations
