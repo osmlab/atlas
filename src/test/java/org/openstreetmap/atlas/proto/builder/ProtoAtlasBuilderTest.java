@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.builder.proto;
+package org.openstreetmap.atlas.proto.builder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,6 +11,8 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
+import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
@@ -57,6 +59,13 @@ public class ProtoAtlasBuilderTest
         final PackedAtlasBuilder packedAtlasBuilder = new PackedAtlasBuilder();
         final Map<String, String> tags = new HashMap<>();
         final List<Location> shapePoints = new ArrayList<>();
+
+        final Map<String, String> metaTags = new HashMap<>();
+        metaTags.put("key1", "val1");
+        metaTags.put("key2", "val2");
+        final AtlasMetaData metaData = new AtlasMetaData(AtlasSize.DEFAULT, true, "testCodeVersion",
+                ProtoAtlasBuilder.PROTOATLAS_DATA_VERSION, "testCountry", "testShardName",
+                metaTags);
 
         // add points
         tags.put("building", "yes");

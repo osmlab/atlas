@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.converters.proto;
+package org.openstreetmap.atlas.proto.converters;
 
 import org.openstreetmap.atlas.geography.Latitude;
 import org.openstreetmap.atlas.geography.Location;

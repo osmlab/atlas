@@ -1,11 +1,16 @@
 package org.openstreetmap.atlas.utilities.arrays;
 
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasSerializer;
+import org.openstreetmap.atlas.proto.ProtoSerializable;
+import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
+import org.openstreetmap.atlas.proto.adapters.ProtoLongArrayAdapter;
+
 /**
  * {@link LargeArray} for type {@link Long}
  *
  * @author matthieun
  */
-public class LongArray extends LargeArray<Long>
+public class LongArray extends LargeArray<Long> implements ProtoSerializable
 {
     /**
      * {@link PrimitiveArray} for type {@link Long}
@@ -51,6 +56,24 @@ public class LongArray extends LargeArray<Long>
     public LongArray(final long maximumSize, final int memoryBlockSize, final int subArraySize)
     {
         super(maximumSize, memoryBlockSize, subArraySize);
+    }
+
+    /**
+     * This nullary constructor is solely for use by the {@link PackedAtlasSerializer}, which calls
+     * it using reflection. It allows the serializer code to obtain a handle on a {@link LongArray}
+     * that it can use to grab the correct {@link ProtoAdapter}. The object initialized with this
+     * constructor will be corrupted for general use and should be discarded.
+     */
+    @SuppressWarnings("unused")
+    private LongArray()
+    {
+        super();
+    }
+
+    @Override
+    public ProtoAdapter getProtoAdapter()
+    {
+        return new ProtoLongArrayAdapter();
     }
 
     @Override

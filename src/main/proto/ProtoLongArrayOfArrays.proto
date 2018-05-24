@@ -1,0 +1,13 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_outer_classname = "ProtoLongArrayOfArraysWrapper";
+
+package org.openstreetmap.atlas.proto;
+
+import "ProtoLongArray.proto";
+
+message ProtoLongArrayOfArrays {
+    optional string name = 1;
+    repeated ProtoLongArray arrays = 2;
+}

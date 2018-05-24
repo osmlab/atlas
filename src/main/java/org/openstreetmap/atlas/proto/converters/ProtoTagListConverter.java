@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.converters.proto;
+package org.openstreetmap.atlas.proto.converters;
 
 import java.util.ArrayList;
 import java.util.List;

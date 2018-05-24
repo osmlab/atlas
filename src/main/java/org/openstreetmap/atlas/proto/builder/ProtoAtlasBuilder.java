@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.builder.proto;
+package org.openstreetmap.atlas.proto.builder;
 
 import java.util.List;
 import java.util.Map;
@@ -24,27 +24,31 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasSerializer;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
-import org.openstreetmap.atlas.geography.converters.proto.ProtoLocationConverter;
-import org.openstreetmap.atlas.geography.converters.proto.ProtoTagListConverter;
 import org.openstreetmap.atlas.proto.ProtoArea;
-import org.openstreetmap.atlas.proto.ProtoAtlasContainer;
-import org.openstreetmap.atlas.proto.ProtoAtlasContainer.Builder;
+import org.openstreetmap.atlas.proto.ProtoAtlas;
+import org.openstreetmap.atlas.proto.ProtoAtlasMetaData;
 import org.openstreetmap.atlas.proto.ProtoEdge;
 import org.openstreetmap.atlas.proto.ProtoLine;
 import org.openstreetmap.atlas.proto.ProtoLocation;
 import org.openstreetmap.atlas.proto.ProtoNode;
 import org.openstreetmap.atlas.proto.ProtoPoint;
 import org.openstreetmap.atlas.proto.ProtoRelation;
+import org.openstreetmap.atlas.proto.converters.ProtoLocationConverter;
+import org.openstreetmap.atlas.proto.converters.ProtoTagListConverter;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
-import org.openstreetmap.atlas.utilities.collections.Maps;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
 /**
- * Build an Atlas from a naive proto serialized file, or write an Atlas to a naive proto serialized
- * file. At this stage, the builder can only handle Atlases that have tagged Points and Lines.
+ * Build an {@link Atlas} from a ProtoAtlas formatted file, or write an {@link Atlas} to a
+ * ProtoAtlas formatted file. ProtoAtlas is a naive encoding for {@link Atlas}es using protocol
+ * buffers. A more compact and performant encoding can be obtained by using
+ * {@link PackedAtlasSerializer}.
  *
  * @author lcram
  */
@@ -53,6 +57,20 @@ public class ProtoAtlasBuilder
     private static final ProtoLocationConverter PROTOLOCATION_CONVERTER = new ProtoLocationConverter();
     private static final ProtoTagListConverter PROTOTAG_LIST_CONVERTER = new ProtoTagListConverter();
     private static final ReverseIdentifierFactory REVERSE_IDENTIFIER_FACTORY = new ReverseIdentifierFactory();
+    private static final Logger logger = LoggerFactory.getLogger(ProtoAtlasBuilder.class);
+
+    /*
+     * When performing serialization, metadata fields with 'null' values will be serialized as
+     * "unknown". When deserializing, fields not present in the proto object will be interpreted
+     * with this value.
+     */
+    private static final String NULL_SENTINEL = "unknown";
+
+    /*
+     * String that describes the data format of the atlas. This is used by the AtlasMetaData class
+     * to record this version.
+     */
+    public static final String PROTOATLAS_DATA_VERSION = "ProtoAtlas";
 
     /**
      * Read a resource in naive ProtoAtlas format into a PackedAtlas.
@@ -63,12 +81,12 @@ public class ProtoAtlasBuilder
      */
     public PackedAtlas read(final Resource resource)
     {
-        ProtoAtlasContainer protoAtlasContainer = null;
+        ProtoAtlas protoAtlas = null;
 
         // First, we need to construct the container object from the proto binary
         try
         {
-            protoAtlasContainer = ProtoAtlasContainer.parseFrom(resource.readBytesAndClose());
+            protoAtlas = ProtoAtlas.parseFrom(resource.readBytesAndClose());
         }
         catch (final InvalidProtocolBufferException exception)
         {
@@ -76,26 +94,53 @@ public class ProtoAtlasBuilder
                     resource.getName(), exception);
         }
 
-        // initialize atlas metadata
-        final AtlasSize atlasSize = new AtlasSize(protoAtlasContainer.getNumberOfEdges(),
-                protoAtlasContainer.getNumberOfNodes(), protoAtlasContainer.getNumberOfAreas(),
-                protoAtlasContainer.getNumberOfLines(), protoAtlasContainer.getNumberOfPoints(),
-                protoAtlasContainer.getNumberOfRelations());
+        // TODO make sure metadata read is consistent with what is written
+        final ProtoAtlasMetaData protoAtlasMetaData = protoAtlas.getMetaData();
 
-        // TODO it would be nice to programmatically determine which protobuf version is in use
-        final AtlasMetaData atlasMetaData = new AtlasMetaData(atlasSize, true, "unknown",
-                "ProtoAtlas", "unknown", "unknown", Maps.hashMap());
+        AtlasSize atlasSize = null;
+        final boolean hasAllAtlasSizeFeatures = protoAtlasMetaData.hasEdgeNumber()
+                && protoAtlasMetaData.hasNodeNumber() && protoAtlasMetaData.hasAreaNumber()
+                && protoAtlasMetaData.hasLineNumber() && protoAtlasMetaData.hasPointNumber()
+                && protoAtlasMetaData.hasRelationNumber();
+        if (hasAllAtlasSizeFeatures)
+        {
+            atlasSize = new AtlasSize(protoAtlasMetaData.getEdgeNumber(),
+                    protoAtlasMetaData.getNodeNumber(), protoAtlasMetaData.getAreaNumber(),
+                    protoAtlasMetaData.getLineNumber(), protoAtlasMetaData.getPointNumber(),
+                    protoAtlasMetaData.getRelationNumber());
+        }
+        else
+        {
+            logger.warn("Could not deserialize AtlasSize, using defaults");
+            atlasSize = AtlasSize.DEFAULT;
+        }
+
+        final String codeVersion = protoAtlasMetaData.hasCodeVersion()
+                ? protoAtlasMetaData.getCodeVersion() : NULL_SENTINEL;
+        final String dataVersion = protoAtlasMetaData.hasDataVersion()
+                ? protoAtlasMetaData.getDataVersion() : NULL_SENTINEL;
+        final String country = protoAtlasMetaData.hasCountry() ? protoAtlasMetaData.getCountry()
+                : NULL_SENTINEL;
+        final String shardName = protoAtlasMetaData.hasShardName()
+                ? protoAtlasMetaData.getShardName() : NULL_SENTINEL;
+
+        final Map<String, String> tags = PROTOTAG_LIST_CONVERTER
+                .convert(protoAtlasMetaData.getTagsList());
+
+        final AtlasMetaData atlasMetaData = new AtlasMetaData(atlasSize,
+                protoAtlasMetaData.getOriginal(), codeVersion, dataVersion, country, shardName,
+                tags);
 
         final PackedAtlasBuilder builder = new PackedAtlasBuilder().withSizeEstimates(atlasSize)
                 .withMetaData(atlasMetaData).withName(resource.getName());
 
         // build the atlas features
-        parsePoints(builder, protoAtlasContainer.getPointsList());
-        parseLines(builder, protoAtlasContainer.getLinesList());
-        parseAreas(builder, protoAtlasContainer.getAreasList());
-        parseNodes(builder, protoAtlasContainer.getNodesList());
-        parseEdges(builder, protoAtlasContainer.getEdgesList());
-        parseRelations(builder, protoAtlasContainer.getRelationsList());
+        parsePoints(builder, protoAtlas.getPointsList());
+        parseLines(builder, protoAtlas.getLinesList());
+        parseAreas(builder, protoAtlas.getAreasList());
+        parseNodes(builder, protoAtlas.getNodesList());
+        parseEdges(builder, protoAtlas.getEdgesList());
+        parseRelations(builder, protoAtlas.getRelationsList());
 
         return (PackedAtlas) builder.get();
     }
@@ -110,7 +155,7 @@ public class ProtoAtlasBuilder
      */
     public void write(final Atlas atlas, final WritableResource resource)
     {
-        final ProtoAtlasContainer.Builder protoAtlasBuilder = ProtoAtlasContainer.newBuilder();
+        final ProtoAtlas.Builder protoAtlasBuilder = ProtoAtlas.newBuilder();
 
         // put the Atlas features into the ProtoAtlasBuilder
         writePointsToBuilder(atlas, protoAtlasBuilder);
@@ -120,7 +165,48 @@ public class ProtoAtlasBuilder
         writeEdgesToBuilder(atlas, protoAtlasBuilder);
         writeRelationsToBuilder(atlas, protoAtlasBuilder);
 
-        final ProtoAtlasContainer protoAtlas = protoAtlasBuilder.build();
+        final AtlasMetaData atlasMetaData = atlas.metaData();
+        final ProtoAtlasMetaData.Builder protoMetaDataBuilder = ProtoAtlasMetaData.newBuilder();
+        if (atlasMetaData.getSize() != null)
+        {
+            protoMetaDataBuilder.setEdgeNumber(atlasMetaData.getSize().getEdgeNumber());
+            protoMetaDataBuilder.setNodeNumber(atlasMetaData.getSize().getNodeNumber());
+            protoMetaDataBuilder.setAreaNumber(atlasMetaData.getSize().getAreaNumber());
+            protoMetaDataBuilder.setLineNumber(atlasMetaData.getSize().getLineNumber());
+            protoMetaDataBuilder.setPointNumber(atlasMetaData.getSize().getPointNumber());
+            protoMetaDataBuilder.setRelationNumber(atlasMetaData.getSize().getRelationNumber());
+        }
+        protoMetaDataBuilder.setOriginal(atlasMetaData.isOriginal());
+
+        atlasMetaData.getCodeVersion().ifPresent(value ->
+        {
+            protoMetaDataBuilder.setCodeVersion(value);
+        });
+
+        atlasMetaData.getDataVersion().ifPresent(value ->
+        {
+            protoMetaDataBuilder.setDataVersion(value);
+        });
+
+        atlasMetaData.getCountry().ifPresent(value ->
+        {
+            protoMetaDataBuilder.setCountry(value);
+        });
+
+        atlasMetaData.getShardName().ifPresent(value ->
+        {
+            protoMetaDataBuilder.setShardName(value);
+        });
+
+        if (atlasMetaData.getTags() != null)
+        {
+            protoMetaDataBuilder
+                    .addAllTags(PROTOTAG_LIST_CONVERTER.backwardConvert(atlasMetaData.getTags()));
+        }
+
+        protoAtlasBuilder.setMetaData(protoMetaDataBuilder);
+
+        final ProtoAtlas protoAtlas = protoAtlasBuilder.build();
         resource.writeAndClose(protoAtlas.toByteArray());
     }
 
@@ -228,7 +314,7 @@ public class ProtoAtlasBuilder
         });
     }
 
-    private void writeAreasToBuilder(final Atlas atlas, final Builder protoAtlasBuilder)
+    private void writeAreasToBuilder(final Atlas atlas, final ProtoAtlas.Builder protoAtlasBuilder)
     {
         long numberOfAreas = 0;
 
@@ -252,7 +338,7 @@ public class ProtoAtlasBuilder
         protoAtlasBuilder.setNumberOfAreas(numberOfAreas);
     }
 
-    private void writeEdgesToBuilder(final Atlas atlas, final Builder protoAtlasBuilder)
+    private void writeEdgesToBuilder(final Atlas atlas, final ProtoAtlas.Builder protoAtlasBuilder)
     {
         long numberOfEdges = 0;
 
@@ -276,8 +362,7 @@ public class ProtoAtlasBuilder
         protoAtlasBuilder.setNumberOfEdges(numberOfEdges);
     }
 
-    private void writeLinesToBuilder(final Atlas atlas,
-            final ProtoAtlasContainer.Builder protoAtlasBuilder)
+    private void writeLinesToBuilder(final Atlas atlas, final ProtoAtlas.Builder protoAtlasBuilder)
     {
         long numberOfLines = 0;
 
@@ -301,7 +386,7 @@ public class ProtoAtlasBuilder
         protoAtlasBuilder.setNumberOfLines(numberOfLines);
     }
 
-    private void writeNodesToBuilder(final Atlas atlas, final Builder protoAtlasBuilder)
+    private void writeNodesToBuilder(final Atlas atlas, final ProtoAtlas.Builder protoAtlasBuilder)
     {
         long numberOfNodes = 0;
 
@@ -323,8 +408,7 @@ public class ProtoAtlasBuilder
         protoAtlasBuilder.setNumberOfNodes(numberOfNodes);
     }
 
-    private void writePointsToBuilder(final Atlas atlas,
-            final ProtoAtlasContainer.Builder protoAtlasBuilder)
+    private void writePointsToBuilder(final Atlas atlas, final ProtoAtlas.Builder protoAtlasBuilder)
     {
         long numberOfPoints = 0;
 
@@ -346,7 +430,8 @@ public class ProtoAtlasBuilder
         protoAtlasBuilder.setNumberOfPoints(numberOfPoints);
     }
 
-    private void writeRelationsToBuilder(final Atlas atlas, final Builder protoAtlasBuilder)
+    private void writeRelationsToBuilder(final Atlas atlas,
+            final ProtoAtlas.Builder protoAtlasBuilder)
     {
         long numberOfRelations = 0;
 
