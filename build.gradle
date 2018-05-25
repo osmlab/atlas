@@ -207,6 +207,14 @@ tasks.withType(Test) {
 }
 
 /**
+ * pyatlas tasks
+ */
+task buildPyatlas(type: Exec) {
+    commandLine './pyatlas/build.sh'
+    args 'ranFromGradle'
+}
+
+/**
  * Artifact related items
  */
 task javadocJar(type: Jar) {

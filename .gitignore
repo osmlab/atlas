@@ -1,5 +1,7 @@
 */build/
 */bin/
+*/dist/
+*/pyatlas.egg-info/
 .classpath
 .project
 .settings
