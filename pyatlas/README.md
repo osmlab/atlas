@@ -24,7 +24,7 @@ If `pip` can not find the `pyatlas` module, you may need to build it from source
 To test that everything went smoothly, create a file `helloatlas.py` with the following code:
 
     import pyatlas
-    pyatlas.pyatlas_test()
+    pyatlas.hello_atlas()
 
 Now run:
 

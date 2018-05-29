@@ -22,4 +22,5 @@ rm -rf "$pyatlas_root_dir/build"
 rm -rf "$pyatlas_root_dir/dist"
 rm -rf "$pyatlas_root_dir/pyatlas.egg-info"
 rm -f "$pyatlas_root_dir/pyatlas/"*_pb2.py
+rm -f "$pyatlas_root_dir/pyatlas/"*.pyc
 #################################################################
