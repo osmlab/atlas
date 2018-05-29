@@ -13,6 +13,9 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/osmlab/atlas",
     packages=setuptools.find_packages(),
+    install_requires=[
+        'protobuf==2.6.1'
+    ],
     classifiers=(
         "Programming Language :: Python :: 2",
         "Operating System :: OS Independent",
