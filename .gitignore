@@ -22,3 +22,7 @@
 /bin/
 **/ignored/
 src/generated/
+
+# python protobuf source files
+*_pb2.py
+
