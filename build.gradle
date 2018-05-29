@@ -209,10 +209,17 @@ tasks.withType(Test) {
 /**
  * pyatlas tasks
  */
+task cleanPyatlas(type: Exec) {
+    commandLine './pyatlas/clean.sh'
+    args 'ranFromGradle'
+}
+
 task buildPyatlas(type: Exec) {
     commandLine './pyatlas/build.sh'
     args 'ranFromGradle'
 }
+
+buildPyatlas.dependsOn cleanPyatlas
 
 /**
  * Artifact related items

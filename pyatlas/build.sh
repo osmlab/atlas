@@ -29,8 +29,12 @@ source "$venv_path/bin/activate"
 
 echo "Preparing protoc..."
 
+# enter the pyatlas project directory so module metadata is generated correctly
+pushd "$pyatlas_root_dir"
 echo "Building and packaging pyatlas module..."
-python "$pyatlas_root_dir/setup.py" sdist -d "$pyatlas_root_dir/dist" bdist_wheel -d "$pyatlas_root_dir/dist" bdist_egg -d "$pyatlas_root_dir/dist" > /dev/null 2> /dev/null
+python "$pyatlas_root_dir/setup.py" sdist -d "$pyatlas_root_dir/dist" bdist_wheel -d "$pyatlas_root_dir/dist"
+# get back to gradle project directory
+popd
 
 echo "Tearing down pyatlas venv..."
 deactivate
