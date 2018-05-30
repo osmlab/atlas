@@ -68,7 +68,7 @@ fi
 echo "Preparing protoc..."
 # hack to grab the protoc version from dependencies.gradle
 protoc_version=$(grep 'protoc' "$gradle_project_root_dir/dependencies.gradle" | awk -F':' '{print $2; exit}' | tr -d "'")
-protoc_path="/tmp/protoc"
+protoc_path="$pyatlas_root_dir/protoc"
 # detemine what platform we are on
 if [ "$(uname)" == "Darwin" ];
 then
