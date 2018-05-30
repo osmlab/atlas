@@ -85,7 +85,7 @@ then
 else
     err_shutdown "unrecognized platform $(uname)"
 fi
-chmod 700 $protoc_path
+chmod 700 "$protoc_path"
 
 # complicated mess to handle case where a proto filename has a space
 # basically, 'find' outputs each file separated by a NUL terminator
