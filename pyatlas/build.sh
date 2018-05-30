@@ -3,6 +3,10 @@
 # THIS ENTIRE SCRIPT IS A MASSIVE HACK
 # THIS SHOULD REALLY BE DONE WITH GRADLE
 
+# general case script abort if a command fails
+# this can be overridden with a custom error message using '|| err_shutdown'
+set -e
+set -o pipefail
 
 ### define utility functions ###
 ################################
