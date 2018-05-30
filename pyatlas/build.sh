@@ -84,7 +84,7 @@ fi
 chmod 700 $protoc_path
 
 # complicated mess to handle case where a proto filename has a space
-protoc_cmd="$protoc_path "{}" --proto_path="$protofiles_dir" --python_out="$pyatlas_root_dir/$pyatlas_srcdir/autogen""
+protoc_cmd="$protoc_path "{}" --proto_path="$protofiles_dir" --python_out="$pyatlas_root_dir/$pyatlas_srcdir/autogen" || err_shutdown "protoc invocation failed""
 find "$protofiles_dir" -type f -name "*.proto" -exec $protoc_cmd \; || err_shutdown "'find' command failed"
 
 rm -f $protoc_path
