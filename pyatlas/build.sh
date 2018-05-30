@@ -7,6 +7,7 @@
 ### define utility functions ###
 ################################
 err_shutdown() {
+    echo "build.sh: ERROR: $1"
     deactivate
     exit 1
 }
@@ -17,8 +18,7 @@ err_shutdown() {
 ################################################################
 if [ "$1" != "ranFromGradle" ];
 then
-    echo "This script should be run using the atlas gradle task 'buildPyatlas'"
-    err_shutdown
+    err_shutdown "this script should be run using the atlas gradle task 'buildPyatlas'"
 fi
 #################################################################
 
@@ -26,10 +26,20 @@ fi
 ### set up variables to store directory names ###
 #################################################
 pyatlas_dir="pyatlas"
+pyatlas_srcdir="pyatlas"
 gradle_project_root_dir="$(pwd)"
 pyatlas_root_dir="$gradle_project_root_dir/$pyatlas_dir"
 protofiles_dir="$gradle_project_root_dir/src/main/proto"
 #################################################################
+
+
+### abort the script if the pyatlas source folder is not present ###
+####################################################################
+if [ ! -d "$pyatlas_root_dir/$pyatlas_srcdir" ];
+then
+    err_shutdown "pyatlas source folder not found"
+fi
+####################################################################
 
 
 ### determine if virtualenv is installed ###
@@ -38,8 +48,7 @@ if command -v virtualenv;
 then
     virtualenv_command="$(command -v virtualenv)"
 else
-    echo "ERROR: 'command -v virtualenv' returned non-zero exit status"
-    err_shutdown
+    err_shutdown "'command -v virtualenv' returned non-zero exit status"
 fi
 #################################################################
 
@@ -50,8 +59,7 @@ if command -v wget ;
 then
     wget_command="$(command -v wget)"
 else
-    echo "ERROR: 'command -v wget' returned non-zero exit status: install wget to run this script"
-    err_shutdown
+    err_shutdown "'command -v wget' returned non-zero exit status: install wget to run this script"
 fi
 
 
@@ -64,18 +72,20 @@ protoc_path="/tmp/protoc"
 # detemine what platform we are on
 if [ "$(uname)" == "Darwin" ];
 then
-    $wget_command "https://repo1.maven.org/maven2/com/google/protobuf/protoc/${protoc_version}/protoc-${protoc_version}-osx-x86_32.exe" -O $protoc_path
+    download_link="https://repo1.maven.org/maven2/com/google/protobuf/protoc/${protoc_version}/protoc-${protoc_version}-osx-x86_32.exe"
+    $wget_command "$download_link" -O $protoc_path || err_shutdown "wget of '$download_link' failed"
 elif [ "$(uname)" == "Linux" ];
 then
-    $wget_command "https://repo1.maven.org/maven2/com/google/protobuf/protoc/${protoc_version}/protoc-${protoc_version}-linux-x86_32.exe" -O $protoc_path
+    download_link="https://repo1.maven.org/maven2/com/google/protobuf/protoc/${protoc_version}/protoc-${protoc_version}-linux-x86_32.exe"
+    $wget_command "$download_link" -O $protoc_path || err_shutdown "wget of '$download_link' failed"
 else
-    echo "ERROR: unrecognized platform $(uname)"
-    err_shutdown
+    err_shutdown "unrecognized platform $(uname)"
 fi
 chmod 700 $protoc_path
 
-# FIXME this line will break horribly if any proto files have a space in their names
-$protoc_path "$protofiles_dir/"*.proto --proto_path="$protofiles_dir" --python_out="$pyatlas_root_dir/pyatlas"
+# complicated mess to handle case where a proto filename has a space
+protoc_cmd="$protoc_path {} --proto_path="$protofiles_dir" --python_out="$pyatlas_root_dir/$pyatlas_srcdir""
+find "$protofiles_dir" -type f -name "*.proto" -exec $protoc_cmd \; || err_shutdown "'find' command failed"
 
 rm -f $protoc_path
 #################################################################
@@ -85,11 +95,10 @@ rm -f $protoc_path
 ########################
 # start the venv
 echo "Setting up pyatlas venv..."
-venv_path="$pyatlas_root_dir/__pyatlasvenv__"
+venv_path="$pyatlas_root_dir/__pyatlas_build_venv__"
 if ! $virtualenv_command --python=python2.7 "$venv_path";
 then
-    echo "ERROR: virtualenv command returned non-zero exit status"
-    err_shutdown
+    err_shutdown "virtualenv command returned non-zero exit status"
 fi
 source "$venv_path/bin/activate"
 
