@@ -165,6 +165,7 @@ dependencies
     compile packages.jackson.core
     compile packages.jackson.databind
     compile packages.protobuf_java
+    compile packages.protoc
 
     shaded project.configurations.getByName('compile')
     shaded packages.slf4j.log4j12
@@ -205,6 +206,21 @@ integrationTest.mustRunAfter test
 tasks.withType(Test) {
     reports.html.destination = file("${reporting.baseDir}/${name}")
 }
+
+/**
+ * pyatlas tasks
+ */
+task cleanPyatlas(type: Exec) {
+    commandLine './pyatlas/clean.sh'
+    args 'ranFromGradle'
+}
+
+task buildPyatlas(type: Exec) {
+    commandLine './pyatlas/build.sh'
+    args 'ranFromGradle'
+}
+
+buildPyatlas.dependsOn cleanPyatlas
 
 /**
  * Artifact related items

@@ -20,3 +20,10 @@
 /bin/
 **/ignored/
 src/generated/
+
+# misc python stuff
+*_pb2.py
+*.pyc
+*/dist/
+*/pyatlas.egg-info/
+
