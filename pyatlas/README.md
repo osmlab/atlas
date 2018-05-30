@@ -1,8 +1,8 @@
 # PyAtlas
-####A simplified Atlas API for Python
+#### A simplified Atlas API for Python
 
 ----
-##Dependency Information
+## Dependency Information
 This project is developed with Python 2.7 and Protocol Buffers 2.6.1.
 
 ----
