@@ -63,6 +63,7 @@ if ! $virtualenv_command --python=python2.7 "$venv_path";
 then
     err_shutdown "virtualenv command returned non-zero exit status"
 fi
+# shellcheck source=/dev/null
 source "$venv_path/bin/activate"
 
 # enter the pyatlas project directory so the unittest code can discover tests

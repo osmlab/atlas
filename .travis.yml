@@ -24,6 +24,7 @@ before_install:
   - .travis/install.sh
 script:
   - chmod -R ug+x .travis
+  - shellcheck pyatlas/*.sh
   - .travis/build.sh
   - .travis/merge-dev-to-master-gate.sh
   - .travis/deploy-gate.sh

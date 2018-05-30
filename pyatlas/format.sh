@@ -64,11 +64,12 @@ if ! $virtualenv_command --python=python2.7 "$venv_path";
 then
     err_shutdown "virtualenv command returned non-zero exit status"
 fi
+# shellcheck source=/dev/null
 source "$venv_path/bin/activate"
 
 # enter the pyatlas project directory so the formatting script will work
 pushd "$pyatlas_root_dir"
-pip install yapf
+pip install yapf==0.22.0
 python "$pyatlas_format_script" "$pyatlas_srcdir"
 python "$pyatlas_format_script" "$pyatlas_testdir"
 # get back to gradle project directory
