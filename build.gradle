@@ -215,12 +215,31 @@ task cleanPyatlas(type: Exec) {
     args 'ranFromGradle'
 }
 
-task buildPyatlas(type: Exec) {
-    commandLine './pyatlas/build.sh'
+task formatPyatlas(type: Exec) {
+    dependsOn 'cleanPyatlas'
+    commandLine './pyatlas/format.sh'
     args 'ranFromGradle'
 }
 
-buildPyatlas.dependsOn cleanPyatlas
+task packagePyatlas(type: Exec) {
+    dependsOn 'formatPyatlas'
+    commandLine './pyatlas/package.sh'
+    args 'ranFromGradle'
+}
+
+task testPyatlas(type: Exec) {
+    dependsOn 'packagePyatlas'
+    commandLine './pyatlas/test.sh'
+    args 'ranFromGradle'
+}
+
+task buildPyatlas() {
+    dependsOn 'cleanPyatlas'
+    dependsOn 'formatPyatlas'
+    dependsOn 'packagePyatlas'
+    dependsOn 'testPyatlas'
+}
+
 
 /**
  * Artifact related items

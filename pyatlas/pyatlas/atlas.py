@@ -2,8 +2,10 @@
 
 from atlas_serializer import AtlasSerializer
 
+
 class Atlas:
     """Atlas class, NOT THREADSAFE"""
+
     def __init__(self, atlas_file, lazy_loading=True):
         self.serializer = AtlasSerializer(atlas_file, self)
         self.lazy_loading = lazy_loading

@@ -8,7 +8,7 @@ set -o pipefail
 ### define utility functions ###
 ################################
 err_shutdown() {
-    echo "clean.sh: ERROR: $1"
+    echo "format.sh: ERROR: $1"
     deactivate
     exit 1
 }
@@ -19,7 +19,7 @@ err_shutdown() {
 ################################################################
 if [ "$1" != "ranFromGradle" ];
 then
-    err_shutdown "this script should be run using the atlas gradle task 'cleanPyatlas'"
+    err_shutdown "this script should be run using the atlas gradle task 'formatPyatlas'"
 fi
 #################################################################
 
@@ -28,8 +28,10 @@ fi
 #################################################
 pyatlas_dir="pyatlas"
 pyatlas_srcdir="pyatlas"
+pyatlas_testdir="unit_tests"
 gradle_project_root_dir="$(pwd)"
 pyatlas_root_dir="$gradle_project_root_dir/$pyatlas_dir"
+pyatlas_format_script="apply_yapf_format.py"
 #################################################################
 
 
@@ -42,12 +44,38 @@ fi
 ####################################################################
 
 
-### clean up the build artifacts ###
-####################################
-rm -rf "$pyatlas_root_dir/build"
-rm -rf "$pyatlas_root_dir/dist"
-rm -rf "$pyatlas_root_dir/pyatlas.egg-info"
-# use 'find' to handle case where filenames contain spaces
-find "$pyatlas_root_dir/$pyatlas_srcdir/autogen" -type f -name "*_pb2.py" -delete
-find "$pyatlas_root_dir/$pyatlas_srcdir" -type f -name "*.pyc" -delete
+### determine if virtualenv is installed ###
+############################################
+if command -v virtualenv;
+then
+    virtualenv_command="$(command -v virtualenv)"
+else
+    err_shutdown "'command -v virtualenv' returned non-zero exit status"
+fi
+#################################################################
+
+
+### format the module source code ###
+#####################################
+# start the venv
+echo "Setting up pyatlas venv..."
+venv_path="$pyatlas_root_dir/__pyatlas_format_venv__"
+if ! $virtualenv_command --python=python2.7 "$venv_path";
+then
+    err_shutdown "virtualenv command returned non-zero exit status"
+fi
+source "$venv_path/bin/activate"
+
+# enter the pyatlas project directory so the formatting script will work
+pushd "$pyatlas_root_dir"
+pip install yapf
+python "$pyatlas_format_script" "$pyatlas_srcdir"
+python "$pyatlas_format_script" "$pyatlas_testdir"
+# get back to gradle project directory
+popd
+
+# shutdown the venv
+echo "Tearing down pyatlas venv..."
+deactivate
+rm -rf "$venv_path"
 #################################################################

@@ -4,10 +4,11 @@ import zipfile
 
 import autogen.ProtoAtlasMetaData_pb2
 
+
 class AtlasSerializer:
     """Atlas serializer"""
 
-    FIELD_NAMES_TO_LOAD_METHODS = {'metaData':'load_meta_data'}
+    FIELD_NAMES_TO_LOAD_METHODS = {'metaData': 'load_meta_data'}
 
     def __init__(self, atlas_file, atlas):
         self.atlas_file = atlas_file
@@ -19,7 +20,8 @@ class AtlasSerializer:
 
     def load_meta_data(self):
         zip_entry_data = self.read_zipentry(self.atlas_file, 'metaData')
-        self.atlas.metaData = autogen.ProtoAtlasMetaData_pb2.ProtoAtlasMetaData()
+        self.atlas.metaData = autogen.ProtoAtlasMetaData_pb2.ProtoAtlasMetaData(
+        )
         self.atlas.metaData.ParseFromString(zip_entry_data)
 
     def load_field(self, field_name):

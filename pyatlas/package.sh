@@ -11,18 +11,18 @@ set -o pipefail
 ### define utility functions ###
 ################################
 err_shutdown() {
-    echo "build.sh: ERROR: $1"
+    echo "package.sh: ERROR: $1"
     deactivate
     exit 1
 }
 #################################################################
 
 
-### Check to prevent users from running this script directly ###
+### check to prevent users from running this script directly ###
 ################################################################
 if [ "$1" != "ranFromGradle" ];
 then
-    err_shutdown "this script should be run using the atlas gradle task 'buildPyatlas'"
+    err_shutdown "this script should be run using the atlas gradle task 'packagePyatlas'"
 fi
 #################################################################
 
@@ -97,7 +97,7 @@ rm -f $protoc_path
 #################################################################
 
 
-### Build the module ###
+### build the module ###
 ########################
 # start the venv
 echo "Setting up pyatlas venv..."
