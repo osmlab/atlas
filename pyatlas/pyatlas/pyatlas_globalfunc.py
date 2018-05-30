@@ -1,4 +1,4 @@
-"""pyatlas main module"""
+"""Global utility functions for pyatlas"""
 
 import zipfile
 

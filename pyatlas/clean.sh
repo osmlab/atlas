@@ -43,6 +43,6 @@ rm -rf "$pyatlas_root_dir/build"
 rm -rf "$pyatlas_root_dir/dist"
 rm -rf "$pyatlas_root_dir/pyatlas.egg-info"
 # use 'find' to handle case where filenames contain spaces
-find "$pyatlas_root_dir/$pyatlas_srcdir" -type f -name "*_pb2.py" -delete
+find "$pyatlas_root_dir/$pyatlas_srcdir/autogen" -type f -name "*_pb2.py" -delete
 find "$pyatlas_root_dir/$pyatlas_srcdir" -type f -name "*.pyc" -delete
 #################################################################
