@@ -12,7 +12,7 @@ def main(argv):
                 original = read_file_contents(filepath)
                 reformatted = FormatFile(filepath)
                 if original != reformatted[0]:
-                    print "formatting error in " + str(file)
+                    print str(argv[0]) + ": ERROR: formatting violation detected in " + str(file)
                     exit(1)
             elif mode == "APPLY":
                 print "re-formatting " + str(file)

@@ -76,7 +76,7 @@ pip install yapf==0.22.0
 
 if ! python "$pyatlas_format_script" "$pyatlas_srcdir" "$format_mode";
 then
-    err_shutdown "CHECK format step failed: run APPLY step"
+    err_shutdown "CHECK format step failed: run './gradlew applyFormatPyatlas'"
 fi
 
 # get back to gradle project directory

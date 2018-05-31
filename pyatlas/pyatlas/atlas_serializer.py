@@ -21,10 +21,12 @@ class AtlasSerializer:
             self.load_field(field)
 
     def load_metadata(self):
-        zip_entry_data = self._read_zipentry(self.atlas_file, self._FIELD_METADATA)
+        zip_entry_data = self._read_zipentry(self.atlas_file,
+                                             self._FIELD_METADATA)
         proto_metadata = autogen.ProtoAtlasMetaData_pb2.ProtoAtlasMetaData()
         proto_metadata.ParseFromString(zip_entry_data)
-        self.atlas.metaData = atlas_metadata.get_metadata_from_proto(proto_metadata)
+        self.atlas.metaData = atlas_metadata.get_metadata_from_proto(
+            proto_metadata)
 
     def load_field(self, field_name):
         if field_name not in self._FIELD_NAMES_TO_LOAD_METHODS:
