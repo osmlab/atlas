@@ -10,6 +10,7 @@ set -o pipefail
 err_shutdown() {
     echo "test.sh: ERROR: $1"
     deactivate
+    rm -rf "$venv_path"
     exit 1
 }
 #################################################################
@@ -58,7 +59,7 @@ fi
 #######################
 # start the venv
 echo "Setting up pyatlas venv..."
-venv_path="$pyatlas_root_dir/__pyatlas_test_venv__"
+venv_path="$pyatlas_root_dir/__pyatlas_venv__"
 if ! $virtualenv_command --python=python2.7 "$venv_path";
 then
     err_shutdown "virtualenv command returned non-zero exit status"

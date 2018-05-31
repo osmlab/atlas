@@ -14,7 +14,7 @@ class AtlasSerializer:
         self.atlas_file = atlas_file
         self.atlas = atlas
 
-    def load_all_fields(self):
+    def     load_all_fields(self):
         for field in self.FIELD_NAMES_TO_LOAD_METHODS:
             self.load_field(field)
 
