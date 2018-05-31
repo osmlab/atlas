@@ -216,12 +216,14 @@ task cleanPyatlas(type: Exec) {
 }
 
 task checkFormatPyatlas(type: Exec) {
+    dependsOn 'cleanPyatlas'
     commandLine './pyatlas/format.sh'
     args 'ranFromGradle'
     args 'CHECK'
 }
 
 task applyFormatPyatlas(type: Exec) {
+    dependsOn 'cleanPyatlas'
     commandLine './pyatlas/format.sh'
     args 'ranFromGradle'
     args 'APPLY'

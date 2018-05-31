@@ -34,15 +34,7 @@ pyatlas_dir="pyatlas"
 pyatlas_srcdir="pyatlas"
 gradle_project_root_dir="$(pwd)"
 pyatlas_root_dir="$gradle_project_root_dir/$pyatlas_dir"
-if [ "$format_mode" == "CHECK" ];
-then
-    pyatlas_format_script="check_yapf_format.py"
-elif [ "$format_mode" == "APPLY" ];
-then
-    pyatlas_format_script="apply_yapf_format.py"
-else
-    echo "ERROR: invalid format mode $format_mode"
-fi
+pyatlas_format_script="yapf_format.py"
 #################################################################
 
 
@@ -82,7 +74,7 @@ source "$venv_path/bin/activate"
 pushd "$pyatlas_root_dir"
 pip install yapf==0.22.0
 
-if ! python "$pyatlas_format_script" "$pyatlas_srcdir";
+if ! python "$pyatlas_format_script" "$pyatlas_srcdir" "$format_mode";
 then
     err_shutdown "CHECK format step failed: run APPLY step"
 fi
