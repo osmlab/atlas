@@ -69,9 +69,10 @@ source "$venv_path/bin/activate"
 
 # enter the pyatlas project directory so the unittest code can discover tests
 pushd "$pyatlas_root_dir"
+pip install -e "$pyatlas_root_dir"
 echo "Discovering and running unit tests..."
 echo "----------------------------------------------------------------------"
-python -m unittest discover -v "$pyatlas_testdir"
+python -m unittest discover -v -s "$pyatlas_testdir"
 # get back to gradle project directory
 popd
 

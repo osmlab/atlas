@@ -22,11 +22,11 @@ Now that you have your virtual environment set up, you can install `pyatlas` wit
 If `pip` can not find the `pyatlas` module, you may need to build it from source yourself. Check the next section for more info.
 
 To test that everything went smoothly, create a file `helloatlas.py` with the following code:
-
-    from pyatlas import Atlas
-    myatlas = Atlas("/path/to/atlas/file.atlas")
-    print myatlas.get_metadata().shard_name
-
+```python
+from pyatlas import Atlas
+myatlas = Atlas("/path/to/atlas/file.atlas")
+print myatlas.get_metadata().shard_name
+```
 Now run:
 
     (venv) $ python helloatlas.py
