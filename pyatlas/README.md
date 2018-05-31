@@ -23,18 +23,15 @@ If `pip` can not find the `pyatlas` module, you may need to build it from source
 
 To test that everything went smoothly, create a file `helloatlas.py` with the following code:
 
-    import pyatlas
-    pyatlas.hello_atlas()
+    from pyatlas import Atlas
+    myatlas = Atlas("/path/to/atlas/file.atlas")
+    print myatlas.get_metadata().shard_name
 
 Now run:
 
     (venv) $ python helloatlas.py
 
-You should see
-
-    Hello Atlas!
-
-At this point, you're good to go!
+If you see the shard name, you should be good to go!
 
 ----
 ## Building the `pyatlas` module
