@@ -6,7 +6,14 @@ _LONGITUDE_MAX_DM7 = 1800000000 - 1
 
 class Location:
     """
-    A latitude-longitude location.
+    A latitude-longitude location. Uses the dm7 type to represent coordinates.
+    dm7 is an integral representation of a fixed point decimal. 7 decimal
+    places are enough to specify any location on Earth with submeter accuracy.
+
+    Examples:
+    45.01 degrees -> 450_100_000
+    -90 degrees -> -900_000_000
+    150.5 degrees -> 1_505_000_000
     """
 
     def __init__(self, latitude, longitude):
@@ -44,11 +51,17 @@ def get_location_from_packed_int(packed_location):
     :return: a new Location with unpacked latitude and longitude
     """
     longitude = packed_location & 0xFFFFFFFF
-    if longitude < _LONGITUDE_MIN_DM7 or longitude > _LONGITUDE_MAX_DM7:
+    if longitude & 0x80000000 > 0:
         longitude = longitude - (1 << 32)
+    # alternate way to test
+    #if longitude < _LONGITUDE_MIN_DM7 or longitude > _LONGITUDE_MAX_DM7:
+    #    longitude = longitude - (1 << 32)
 
     latitude = (packed_location >> 32) & 0xFFFFFFFF
-    if latitude < _LATITUDE_MIN_DM7 or latitude > _LATITUDE_MAX_DM7:
+    if latitude & 0x80000000 > 0:
         latitude = latitude - (1 << 32)
+    # alternate way to test
+    #if latitude < _LATITUDE_MIN_DM7 or latitude > _LATITUDE_MAX_DM7:
+    #    latitude = latitude - (1 << 32)
 
     return Location(latitude, longitude)
