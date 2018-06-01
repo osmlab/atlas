@@ -19,7 +19,7 @@ class Point:
     def get_location(self):
         long_location = self.get_parent_atlas()._get_pointLocations().elements[
             self.index]
-        return location.get_location_from_long(long_location)
+        return location.get_location_from_packed_int(long_location)
 
     def get_tags(self):
         raise NotImplementedError
