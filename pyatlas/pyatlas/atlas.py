@@ -41,7 +41,7 @@ class Atlas:
             i += 1
 
     def point(self, identifier):
-        pass
+        raise NotImplementedError
 
     def load_all_fields(self):
         self.serializer.load_all_fields()

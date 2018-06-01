@@ -1,6 +1,7 @@
 import sys
 import os
 from yapf.yapflib.yapf_api import FormatFile
+from yapf.yapflib.yapf_api import FormatCode
 
 def main(argv):
     srcdir = argv[1]
@@ -13,6 +14,7 @@ def main(argv):
                 reformatted = FormatFile(filepath)
                 if original != reformatted[0]:
                     print str(argv[0]) + ": ERROR: formatting violation detected in " + str(file)
+                    print(FormatCode(original, filename=filepath, print_diff=True)[0])
                     exit(1)
             elif mode == "APPLY":
                 print "re-formatting " + str(file)

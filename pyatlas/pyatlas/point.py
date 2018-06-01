@@ -15,7 +15,7 @@ class Point:
     def __str__(self):
         result = '[Point: id=' + str(self.get_identifier())
         result += ', location_latlon=' + str(self.get_location())
-        result += ', tags=' + str(self.get_tags())
+        result += ', tags=' + str(self.get_tags()) + ']'
         return result
 
     def get_identifier(self):
