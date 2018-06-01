@@ -20,7 +20,7 @@ class PackedTagStore:
 
     def to_key_value_dict(self, index):
         if self.dictionary is None:
-            raise ValueError('my dictionary is not set')
+            raise ValueError('dictionary is not set')
 
         result = {}
         if len(self.keys) == 0:
@@ -29,13 +29,10 @@ class PackedTagStore:
         value_array = self.values[index]
 
         if len(key_array) != len(value_array):
-            raise ValueError('array lengths do not match')
+            raise ValueError('array length mismatch')
 
-        for i in range(0, len(key_array)):
-            key_index = key_array[i]
-            value_index = value_array[i]
-            result[self.dictionary.word(key_index)] = self.dictionary.word(
-                value_index)
+        for key, value in zip(key_array, value_array):
+            result[self.dictionary.word(key)] = self.dictionary.word(value)
 
         return result
 

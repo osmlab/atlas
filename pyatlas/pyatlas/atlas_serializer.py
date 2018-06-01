@@ -6,6 +6,7 @@ import autogen.ProtoAtlasMetaData_pb2
 import autogen.ProtoLongArray_pb2
 import autogen.ProtoIntegerStringDictionary_pb2
 import autogen.ProtoPackedTagStore_pb2
+import autogen.ProtoLongToLongMap_pb2
 import atlas_metadata
 import integer_dictionary
 import packed_tag_store
@@ -17,14 +18,22 @@ class AtlasSerializer:
     _FIELD_METADATA = 'metaData'
     _FIELD_DICTIONARY = 'dictionary'
     _FIELD_POINT_IDENTIFIERS = 'pointIdentifiers'
+    _FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX = 'pointIdentifierToPointArrayIndex'
     _FIELD_POINT_LOCATIONS = 'pointLocations'
     _FIELD_POINT_TAGS = 'pointTags'
     _FIELD_NAMES_TO_LOAD_METHODS = {
-        _FIELD_METADATA: 'load_metadata',
-        _FIELD_DICTIONARY: 'load_dictionary',
-        _FIELD_POINT_IDENTIFIERS: 'load_point_identifiers',
-        _FIELD_POINT_LOCATIONS: 'load_point_locations',
-        _FIELD_POINT_TAGS: 'load_point_tags'
+        _FIELD_METADATA:
+        'load_metadata',
+        _FIELD_DICTIONARY:
+        'load_dictionary',
+        _FIELD_POINT_IDENTIFIERS:
+        'load_point_identifiers',
+        _FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX:
+        'load_point_identifier_to_point_array_index',
+        _FIELD_POINT_LOCATIONS:
+        'load_point_locations',
+        _FIELD_POINT_TAGS:
+        'load_point_tags'
     }
 
     def __init__(self, atlas_file, atlas):
@@ -58,6 +67,20 @@ class AtlasSerializer:
         )
         self.atlas.pointIdentifiers.ParseFromString(zip_entry_data)
 
+    def load_point_identifier_to_point_array_index(self):
+        zip_entry_data = _read_zipentry(
+            self.atlas_file, self._FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX)
+        proto_map = autogen.ProtoLongToLongMap_pb2.ProtoLongToLongMap()
+        proto_map.ParseFromString(zip_entry_data)
+
+        if len(proto_map.keys.elements) != len(proto_map.values.elements):
+            raise ValueError('array length mismatch')
+        new_dict = {}
+        for key, value in zip(proto_map.keys.elements,
+                              proto_map.values.elements):
+            new_dict[key] = value
+        self.atlas.pointIdentifierToPointArrayIndex = new_dict
+
     def load_point_locations(self):
         zip_entry_data = _read_zipentry(self.atlas_file,
                                         self._FIELD_POINT_LOCATIONS)
@@ -75,7 +98,7 @@ class AtlasSerializer:
 
     def load_field(self, field_name):
         if field_name not in self._FIELD_NAMES_TO_LOAD_METHODS:
-            raise KeyError('Unrecognized field {}'.format(field_name))
+            raise KeyError('unrecognized field {}'.format(field_name))
 
         # reflection code to get the appropriate load method for the field we are loading
         method_name = self._FIELD_NAMES_TO_LOAD_METHODS[field_name]

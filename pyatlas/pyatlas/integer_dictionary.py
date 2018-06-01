@@ -17,7 +17,7 @@ class IntegerDictionary:
         return len(self.word_to_index)
 
     def word(self, index):
-        # TODO this throws a KeyError, how to handle?
+        # TODO this could throw a KeyError, how to handle?
         return self.index_to_word[index]
 
 
@@ -33,9 +33,9 @@ def get_integer_dictionary_from_proto(proto_integer_dictionary):
     size_words = len(proto_integer_dictionary.words)
     if size_words != size_indexes:
         raise ValueError('proto array sizes do not match')
-    for i in range(0, size_words):
-        index = proto_integer_dictionary.indexes[i]
-        word = proto_integer_dictionary.words[i]
+
+    for index, word in zip(proto_integer_dictionary.indexes,
+                           proto_integer_dictionary.words):
         new_dict.add(index, word)
 
     return new_dict
