@@ -1,0 +1,41 @@
+class IntegerDictionary:
+    """
+    Integer string dictionary.
+    """
+
+    def __init__(self):
+        self.word_to_index = {}
+        self.index_to_word = {}
+
+    def add(self, index, word):
+        if word in self.word_to_index:
+            return self.word_to_index[word]
+        self.word_to_index[word] = index
+        self.index_to_word[index] = word
+
+    def size(self):
+        return len(self.word_to_index)
+
+    def word(self, index):
+        # TODO this throws a KeyError, how to handle?
+        return self.index_to_word[index]
+
+
+def get_integer_dictionary_from_proto(proto_integer_dictionary):
+    """
+    Takes a decoded ProtoIntegerStringDictionary object and turns
+    it into a more user friendly IntegerDictionary object.
+    :param proto_integer_dictionary: the proto dictionary
+    :return: the converted dictionary
+    """
+    new_dict = IntegerDictionary()
+    size_indexes = len(proto_integer_dictionary.indexes)
+    size_words = len(proto_integer_dictionary.words)
+    if size_words != size_indexes:
+        raise ValueError('proto array sizes do not match')
+    for i in range(0, size_words):
+        index = proto_integer_dictionary.indexes[i]
+        word = proto_integer_dictionary.words[i]
+        new_dict.add(index, word)
+
+    return new_dict

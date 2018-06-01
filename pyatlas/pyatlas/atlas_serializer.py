@@ -4,19 +4,27 @@ import zipfile
 
 import autogen.ProtoAtlasMetaData_pb2
 import autogen.ProtoLongArray_pb2
+import autogen.ProtoIntegerStringDictionary_pb2
+import autogen.ProtoPackedTagStore_pb2
 import atlas_metadata
+import integer_dictionary
+import packed_tag_store
 
 
 class AtlasSerializer:
     """Atlas serializer"""
 
     _FIELD_METADATA = 'metaData'
+    _FIELD_DICTIONARY = 'dictionary'
     _FIELD_POINT_IDENTIFIERS = 'pointIdentifiers'
     _FIELD_POINT_LOCATIONS = 'pointLocations'
+    _FIELD_POINT_TAGS = 'pointTags'
     _FIELD_NAMES_TO_LOAD_METHODS = {
         _FIELD_METADATA: 'load_metadata',
+        _FIELD_DICTIONARY: 'load_dictionary',
         _FIELD_POINT_IDENTIFIERS: 'load_point_identifiers',
-        _FIELD_POINT_LOCATIONS: 'load_point_locations'
+        _FIELD_POINT_LOCATIONS: 'load_point_locations',
+        _FIELD_POINT_TAGS: 'load_point_tags'
     }
 
     def __init__(self, atlas_file, atlas):
@@ -31,8 +39,17 @@ class AtlasSerializer:
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_METADATA)
         proto_metadata = autogen.ProtoAtlasMetaData_pb2.ProtoAtlasMetaData()
         proto_metadata.ParseFromString(zip_entry_data)
-        self.atlas.metaData = atlas_metadata.get_metadata_from_proto(
+        self.atlas.metaData = atlas_metadata.get_atlas_metadata_from_proto(
             proto_metadata)
+
+    def load_dictionary(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_DICTIONARY)
+        proto_dictionary = autogen.ProtoIntegerStringDictionary_pb2.ProtoIntegerStringDictionary(
+        )
+        proto_dictionary.ParseFromString(zip_entry_data)
+        self.atlas.dictionary = integer_dictionary.get_integer_dictionary_from_proto(
+            proto_dictionary)
 
     def load_point_identifiers(self):
         zip_entry_data = _read_zipentry(self.atlas_file,
@@ -46,6 +63,15 @@ class AtlasSerializer:
                                         self._FIELD_POINT_LOCATIONS)
         self.atlas.pointLocations = autogen.ProtoLongArray_pb2.ProtoLongArray()
         self.atlas.pointLocations.ParseFromString(zip_entry_data)
+
+    def load_point_tags(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_POINT_TAGS)
+        proto_point_tags = autogen.ProtoPackedTagStore_pb2.ProtoPackedTagStore(
+        )
+        proto_point_tags.ParseFromString(zip_entry_data)
+        self.atlas.pointTags = packed_tag_store.get_packed_tag_store_from_proto(
+            proto_point_tags)
 
     def load_field(self, field_name):
         if field_name not in self._FIELD_NAMES_TO_LOAD_METHODS:

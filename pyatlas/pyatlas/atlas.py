@@ -19,6 +19,8 @@ class Atlas:
         self.metaData = None
         self.pointIdentifiers = None
         self.pointLocations = None
+        self.dictionary = None
+        self.pointTags = None
 
         if not self.lazy_loading:
             self.load_all_fields()
@@ -38,6 +40,9 @@ class Atlas:
             yield Point(self, i)
             i += 1
 
+    def point(self, identifier):
+        pass
+
     def load_all_fields(self):
         self.serializer.load_all_fields()
 
@@ -51,3 +56,14 @@ class Atlas:
         if self.pointLocations is None:
             self.serializer.load_field(self.serializer._FIELD_POINT_LOCATIONS)
         return self.pointLocations
+
+    def _get_dictionary(self):
+        if self.dictionary is None:
+            self.serializer.load_field(self.serializer._FIELD_DICTIONARY)
+        return self.dictionary
+
+    def _get_pointTags(self):
+        if self.pointTags is None:
+            self.serializer.load_field(self.serializer._FIELD_POINT_TAGS)
+        self.pointTags.set_dictionary(self._get_dictionary())
+        return self.pointTags

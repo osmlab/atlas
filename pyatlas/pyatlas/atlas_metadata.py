@@ -19,7 +19,7 @@ class AtlasMetaData:
         self.tags = {}
 
 
-def get_metadata_from_proto(proto_atlas_metadata):
+def get_atlas_metadata_from_proto(proto_atlas_metadata):
     """
     Takes a decoded ProtoAtlasMetaData object and turns
     it into a more user friendly AtlasMetaData object.
