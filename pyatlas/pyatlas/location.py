@@ -1,3 +1,9 @@
+_LATITUDE_MIN_DM7 = -900000000
+_LATITUDE_MAX_DM7 = 900000000
+_LONGITUDE_MIN_DM7 = -1800000000
+_LONGITUDE_MAX_DM7 = 1800000000 - 1
+
+
 class Location:
     """
     A latitude-longitude location.
@@ -33,5 +39,11 @@ def get_location_from_packed_int(packed_location):
     :return: a new Location with unpacked latitude and longitude
     """
     longitude = packed_location & 0xFFFFFFFF
+    if longitude < _LONGITUDE_MIN_DM7 or longitude > _LONGITUDE_MAX_DM7:
+        longitude = longitude - (1 << 32)
+
     latitude = (packed_location >> 32) & 0xFFFFFFFF
+    if latitude < _LATITUDE_MIN_DM7 or latitude > _LATITUDE_MAX_DM7:
+        latitude = latitude - (1 << 32)
+
     return Location(latitude, longitude)

@@ -72,7 +72,7 @@ pushd "$pyatlas_root_dir"
 pip install -e "$pyatlas_root_dir"
 echo "Discovering and running unit tests..."
 echo "----------------------------------------------------------------------"
-python -m unittest discover -v -s "$pyatlas_testdir"
+python -m unittest discover -v -s "$pyatlas_testdir" || err_shutdown "a test failed, aborting early..."
 # get back to gradle project directory
 popd
 
