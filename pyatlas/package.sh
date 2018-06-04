@@ -32,6 +32,7 @@ fi
 #################################################
 pyatlas_dir="pyatlas"
 pyatlas_srcdir="pyatlas"
+doc_dir="doc"
 gradle_project_root_dir="$(pwd)"
 pyatlas_root_dir="$gradle_project_root_dir/$pyatlas_dir"
 protofiles_dir="$gradle_project_root_dir/src/main/proto"
@@ -100,8 +101,8 @@ rm -f "$protoc_path"
 #################################################################
 
 
-### build the module ###
-########################
+### build the module and documentation ###
+##########################################
 # start the venv
 echo "Setting up pyatlas venv..."
 venv_path="$pyatlas_root_dir/__pyatlas_venv__"
@@ -115,7 +116,16 @@ source "$venv_path/bin/activate"
 # enter the pyatlas project directory so module metadata is generated correctly
 pushd "$pyatlas_root_dir"
 echo "Building and packaging pyatlas module..."
-python "$pyatlas_root_dir/setup.py" sdist -d "$pyatlas_root_dir/dist" bdist_wheel -d "$pyatlas_root_dir/dist"
+python "setup.py" sdist -d "dist" bdist_wheel -d "dist"
+
+# self-install and create the docs
+pip install -e .
+# hack to make pydoc work
+export PYTHONPATH="$PYTHONPATH:$pyatlas_root_dir/$pyatlas_srcdir:$pyatlas_root_dir/$pyatlas_srcdir/autogen"
+# FIXME this fails to glob files with a space
+pydoc -w "$pyatlas_srcdir"/*.py
+mv *.html "$doc_dir"
+
 # get back to gradle project directory
 popd
 

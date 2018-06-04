@@ -36,16 +36,16 @@ class Atlas:
             self.serializer.load_field(self.serializer._FIELD_METADATA)
         return self.metaData
 
-    def points(self, point_filter=lambda point: True):
+    def points(self, predicate=lambda point: True):
         """
         Get a generator for points in this Atlas. Can optionally also accept a
-        filter for the generated points.
-        :param point_filter: a point filter function
+        predicate to filter the generated points.
+        :param predicate: a point filter predicate
         :return: the point generator
         """
         for i, element in enumerate(self._get_pointIdentifiers().elements):
             point = Point(self, i)
-            if point_filter(point):
+            if predicate(point):
                 yield point
 
     def point(self, identifier):
