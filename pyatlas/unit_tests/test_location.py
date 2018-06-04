@@ -7,23 +7,49 @@ class LocationTest(unittest.TestCase):
         pass
 
     def test_location_packing(self):
-        testlocation1 = location.Location(1, 1)
-        self.assertEqual(testlocation1, location.get_location_from_packed_int(testlocation1.get_as_packed_int()))
+        testlocation = location.Location(1, 1)
+        self.assertEqual(testlocation, location.get_location_from_packed_int(testlocation.get_as_packed_int()))
 
-        testlocation2 = location.Location(1, -3)
-        self.assertEqual(testlocation2, location.get_location_from_packed_int(testlocation2.get_as_packed_int()))
+        testlocation = location.Location(1, -3)
+        self.assertEqual(testlocation, location.get_location_from_packed_int(testlocation.get_as_packed_int()))
 
-        testlocation3 = location.Location(-3, -3)
-        self.assertEqual(testlocation3, location.get_location_from_packed_int(testlocation3.get_as_packed_int()))
+        testlocation = location.Location(-3, -3)
+        self.assertEqual(testlocation, location.get_location_from_packed_int(testlocation.get_as_packed_int()))
 
-        testlocation4 = location.Location(-900000000, 450000000)
-        self.assertEqual(testlocation4, location.get_location_from_packed_int(testlocation4.get_as_packed_int()))
+        testlocation = location.Location(-900000000, 450000000)
+        self.assertEqual(testlocation, location.get_location_from_packed_int(testlocation.get_as_packed_int()))
 
-        testlocation5 = location.Location(900000000, -1800000000)
-        self.assertEqual(testlocation5, location.get_location_from_packed_int(testlocation5.get_as_packed_int()))
+        testlocation = location.Location(900000000, -1800000000)
+        self.assertEqual(testlocation, location.get_location_from_packed_int(testlocation.get_as_packed_int()))
 
-        testlocation6 = location.Location(900000000, 1800000000 - 1)
-        self.assertEqual(testlocation6, location.get_location_from_packed_int(testlocation6.get_as_packed_int()))
+        testlocation = location.Location(900000000, 1800000000 - 1)
+        self.assertEqual(testlocation, location.get_location_from_packed_int(testlocation.get_as_packed_int()))
+
+    def test_location_conversion(self):
+        loc_deg = 45.0
+        loc_dm7 = 450000000
+        self.assertEqual(loc_deg, location.dm7_as_degree(loc_dm7))
+        self.assertEqual(loc_dm7, location.degree_as_dm7(loc_deg))
+
+        loc_deg = 90
+        loc_dm7 = 900000000
+        self.assertEqual(loc_deg, location.dm7_as_degree(loc_dm7))
+        self.assertEqual(loc_dm7, location.degree_as_dm7(loc_deg))
+
+        loc_deg = -30
+        loc_dm7 = -300000000
+        self.assertEqual(loc_deg, location.dm7_as_degree(loc_dm7))
+        self.assertEqual(loc_dm7, location.degree_as_dm7(loc_deg))
+
+        loc_deg = -180
+        loc_dm7 = -1800000000
+        self.assertEqual(loc_deg, location.dm7_as_degree(loc_dm7))
+        self.assertEqual(loc_dm7, location.degree_as_dm7(loc_deg))
+
+        loc_deg = 179.9999
+        loc_dm7 = 1799999000
+        self.assertEqual(loc_deg, location.dm7_as_degree(loc_dm7))
+        self.assertEqual(loc_dm7, location.degree_as_dm7(loc_deg))
 
 if __name__ == "__main__":
     unittest.main()

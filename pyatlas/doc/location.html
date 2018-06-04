@@ -55,7 +55,10 @@ the&nbsp;latitude,&nbsp;the&nbsp;lower&nbsp;order&nbsp;bits&nbsp;are&nbsp;the&nb
 <font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
     
 <tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><dl><dt><a name="-get_location_from_packed_int"><strong>get_location_from_packed_int</strong></a>(packed_location)</dt><dd><tt>Decode&nbsp;a&nbsp;<a href="#Location">Location</a>&nbsp;object&nbsp;from&nbsp;a&nbsp;64&nbsp;bit&nbsp;integer&nbsp;with&nbsp;the&nbsp;latitude&nbsp;and<br>
+<td width="100%"><dl><dt><a name="-degree_as_dm7"><strong>degree_as_dm7</strong></a>(degree)</dt><dd><tt>Given&nbsp;a&nbsp;degree,&nbsp;return&nbsp;the&nbsp;equivalent&nbsp;dm7.&nbsp;Does&nbsp;not&nbsp;perform&nbsp;range&nbsp;validation.<br>
+Performs&nbsp;integer&nbsp;conversion&nbsp;of&nbsp;the&nbsp;result.</tt></dd></dl>
+ <dl><dt><a name="-dm7_as_degree"><strong>dm7_as_degree</strong></a>(dm7)</dt><dd><tt>Given&nbsp;a&nbsp;dm7,&nbsp;return&nbsp;the&nbsp;equivalent&nbsp;degree.&nbsp;Does&nbsp;not&nbsp;perform&nbsp;range&nbsp;validation.</tt></dd></dl>
+ <dl><dt><a name="-get_location_from_packed_int"><strong>get_location_from_packed_int</strong></a>(packed_location)</dt><dd><tt>Decode&nbsp;a&nbsp;<a href="#Location">Location</a>&nbsp;object&nbsp;from&nbsp;a&nbsp;64&nbsp;bit&nbsp;integer&nbsp;with&nbsp;the&nbsp;latitude&nbsp;and<br>
 longitude&nbsp;packed&nbsp;in.<br>
 :param&nbsp;packed_location:&nbsp;a&nbsp;packed&nbsp;64&nbsp;bit&nbsp;integer<br>
 :return:&nbsp;a&nbsp;new&nbsp;<a href="#Location">Location</a>&nbsp;with&nbsp;unpacked&nbsp;latitude&nbsp;and&nbsp;longitude</tt></dd></dl>

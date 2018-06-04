@@ -2,6 +2,8 @@ _LATITUDE_MIN_DM7 = -900000000
 _LATITUDE_MAX_DM7 = 900000000
 _LONGITUDE_MIN_DM7 = -1800000000
 _LONGITUDE_MAX_DM7 = 1800000000 - 1
+"""There are 10 million dm7 in a degree"""
+_DM7_PER_DEGREE = 10000000
 
 
 class Location:
@@ -17,6 +19,8 @@ class Location:
     """
 
     def __init__(self, latitude, longitude):
+        latitude = int(latitude)
+        longitude = int(longitude)
         if latitude > _LATITUDE_MAX_DM7 or latitude < _LATITUDE_MIN_DM7:
             raise ValueError('latitude {} out of range'.format(str(latitude)))
         if longitude > _LONGITUDE_MAX_DM7 or longitude < _LONGITUDE_MIN_DM7:
@@ -41,6 +45,21 @@ class Location:
         packed = packed << 32
         packed = packed | (self.longitude & 0xFFFFFFFF)
         return packed
+
+
+def degree_as_dm7(degree):
+    """
+    Given a degree, return the equivalent dm7. Does not perform range validation.
+    Performs integer conversion of the result.
+    """
+    return int(_DM7_PER_DEGREE * degree)
+
+
+def dm7_as_degree(dm7):
+    """
+    Given a dm7, return the equivalent degree. Does not perform range validation.
+    """
+    return float(dm7) / _DM7_PER_DEGREE
 
 
 def get_location_from_packed_int(packed_location):
