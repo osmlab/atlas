@@ -27,4 +27,4 @@ src/generated/
 */dist/
 */pyatlas.egg-info/
 __*venv__
-pyatlas/doc
+
