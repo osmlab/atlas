@@ -124,7 +124,7 @@ pip install -e .
 export PYTHONPATH="$PYTHONPATH:$pyatlas_root_dir/$pyatlas_srcdir:$pyatlas_root_dir/$pyatlas_srcdir/autogen"
 # FIXME this fails to glob files with a space
 pydoc -w "$pyatlas_srcdir"/*.py
-mv *.html "$doc_dir"
+mv ./*.html "$doc_dir"
 
 # get back to gradle project directory
 popd
