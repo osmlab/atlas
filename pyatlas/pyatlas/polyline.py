@@ -1,5 +1,14 @@
-# Hardcode this to 7 to match the Java Atlas implementation
+"""
+PolyLine module.
+"""
+"""
+Do not change the precision. It matches the default in the Java implementation.
+"""
 _PRECISION = 7
+_ENCODING_OFFSET_MINUS_ONE = 63
+_FIVE_BIT_MASK = 0x1f
+_SIXTH_BIT_MASK = 0x20
+_BIT_SHIFT = 5
 
 
 class PolyLine:
@@ -26,3 +35,12 @@ class PolyLine:
 def as_polyline(bytestring):
     precision = pow(10, -1 * _PRECISION)
     length = len(bytestring)
+    index = 0
+    latitude = 0
+    longitude = 0
+    locations = []
+
+    while index < length:
+        pass
+
+    return PolyLine(locations)
