@@ -45,9 +45,33 @@ class Node:
         node_tag_store = self.get_parent_atlas()._get_nodeTags()
         return node_tag_store.to_key_value_dict(self.index)
 
+    def in_edges(self):
+        """
+        The incoming edges to this Node.
+        :return:
+        """
+        # TODO implement
+        raise NotImplementedError
+
+    def out_edges(self):
+        """
+        The outgoing edges from this Node.
+        :return:
+        """
+        # TODO implement
+        raise NotImplementedError
+
+    def get_relations(self):
+        """
+        Get the set of relations of which this Node is a member.
+        :return: the set of relations
+        """
+        # TODO implement
+        raise NotImplementedError
+
     def get_parent_atlas(self):
         """
-        Get the Atlas that contains this node.
+        Get the Atlas that contains this Node.
         :return: the parent atlas
         """
         return self.parent_atlas

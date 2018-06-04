@@ -3,6 +3,7 @@
 from atlas_serializer import AtlasSerializer
 from point import Point
 from node import Node
+from edge import Edge
 
 
 class Atlas:
@@ -31,6 +32,10 @@ class Atlas:
         self.nodeIdentifierToNodeArrayIndex = None
         self.nodeLocations = None
         self.nodeTags = None
+
+        self.edgeIdentifiers = None
+        self.edgeIdentifierToEdgeArrayIndex = None
+        self.edgeTags = None
 
         if not self.lazy_loading:
             self.load_all_fields()
@@ -93,6 +98,30 @@ class Atlas:
             return Node(self, identifier_to_index[identifier])
         return None
 
+    def edges(self, predicate=lambda point: True):
+        """
+        Get a generator for Edges in this Atlas. Can optionally also accept a
+        predicate to filter the generated Edges.
+        :param predicate: a Edges filter predicate
+        :return: the Edge generator
+        """
+        for i, element in enumerate(self._get_edgeIdentifiers().elements):
+            edge = Edge(self, i)
+            if predicate(edge):
+                yield edge
+
+    def edge(self, identifier):
+        """
+        Get an Edge with a given Atlas identifier. Returns None if there is no
+        Edge with the given identifier.
+        :param identifier: the identifier
+        :return: the Edge with this identifier, None if it does not exist
+        """
+        identifier_to_index = self._get_edgeIdentifierToNodeArrayIndex()
+        if identifier in identifier_to_index:
+            return Edge(self, identifier_to_index[identifier])
+        return None
+
     def load_all_fields(self):
         """
         Force this Atlas to load all its fields from its backing store.
@@ -143,6 +172,23 @@ class Atlas:
             self.serializer.load_field(self.serializer._FIELD_NODE_TAGS)
         self.nodeTags.set_dictionary(self._get_dictionary())
         return self.nodeTags
+
+    def _get_edgeIdentifiers(self):
+        if self.edgeIdentifiers is None:
+            self.serializer.load_field(self.serializer._FIELD_EDGE_IDENTIFIERS)
+        return self.edgeIdentifiers
+
+    def _get_edgeIdentifierToNodeArrayIndex(self):
+        if self.edgeIdentifierToEdgeArrayIndex is None:
+            self.serializer.load_field(
+                self.serializer._FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX)
+        return self.edgeIdentifierToEdgeArrayIndex
+
+    def _get_edgeTags(self):
+        if self.edgeTags is None:
+            self.serializer.load_field(self.serializer._FIELD_EDGE_TAGS)
+        self.edgeTags.set_dictionary(self._get_dictionary())
+        return self.edgeTags
 
     def _get_dictionary(self):
         if self.dictionary is None:

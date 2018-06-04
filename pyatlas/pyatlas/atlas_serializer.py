@@ -25,6 +25,9 @@ class AtlasSerializer:
     _FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX = 'nodeIdentifierToNodeArrayIndex'
     _FIELD_NODE_LOCATIONS = 'nodeLocations'
     _FIELD_NODE_TAGS = 'nodeTags'
+    _FIELD_EDGE_IDENTIFIERS = 'edgeIdentifiers'
+    _FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX = 'edgeIdentifierToEdgeArrayIndex'
+    _FIELD_EDGE_TAGS = 'edgeTags'
     _FIELD_NAMES_TO_LOAD_METHODS = {
         _FIELD_METADATA:
         'load_metadata',
@@ -45,7 +48,13 @@ class AtlasSerializer:
         _FIELD_NODE_LOCATIONS:
         'load_node_locations',
         _FIELD_NODE_TAGS:
-        'load_node_tags'
+        'load_node_tags',
+        _FIELD_EDGE_IDENTIFIERS:
+        'load_edge_identifiers',
+        _FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX:
+        'load_edge_identifier_to_edge_array_index',
+        _FIELD_EDGE_TAGS:
+        'load_edge_tags'
     }
 
     def __init__(self, atlas_file, atlas):
@@ -131,6 +140,29 @@ class AtlasSerializer:
         proto_node_tags.ParseFromString(zip_entry_data)
         self.atlas.nodeTags = packed_tag_store.get_packed_tag_store_from_proto(
             proto_node_tags)
+
+    def load_edge_identifiers(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_EDGE_IDENTIFIERS)
+        self.atlas.edgeIdentifiers = autogen.ProtoLongArray_pb2.ProtoLongArray(
+        )
+        self.atlas.edgeIdentifiers.ParseFromString(zip_entry_data)
+
+    def load_edge_identifier_to_edge_array_index(self):
+        zip_entry_data = _read_zipentry(
+            self.atlas_file, self._FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX)
+        proto_map = autogen.ProtoLongToLongMap_pb2.ProtoLongToLongMap()
+        proto_map.ParseFromString(zip_entry_data)
+
+        self.atlas.edgeIdentifierToEdgeArrayIndex = _convert_protolongtolongmap(
+            proto_map)
+
+    def load_edge_tags(self):
+        zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_EDGE_TAGS)
+        proto_edge_tags = autogen.ProtoPackedTagStore_pb2.ProtoPackedTagStore()
+        proto_edge_tags.ParseFromString(zip_entry_data)
+        self.atlas.edgeTags = packed_tag_store.get_packed_tag_store_from_proto(
+            proto_edge_tags)
 
     def load_field(self, field_name):
         if field_name not in self._FIELD_NAMES_TO_LOAD_METHODS:
