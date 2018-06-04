@@ -2,15 +2,17 @@ _LATITUDE_MIN_DM7 = -900000000
 _LATITUDE_MAX_DM7 = 900000000
 _LONGITUDE_MIN_DM7 = -1800000000
 _LONGITUDE_MAX_DM7 = 1800000000 - 1
-"""There are 10 million dm7 in a degree"""
+
 _DM7_PER_DEGREE = 10000000
+"""There are 10 million dm7 in a degree"""
 
 
 class Location:
     """
     A latitude-longitude location. Uses the dm7 type to represent coordinates.
-    dm7 is an integral representation of a fixed point decimal. 7 decimal
-    places are enough to specify any location on Earth with submeter accuracy.
+    dm7 is an integral representation of a decimal degree fixed to 7 places of
+    precision. 7 places are enough to specify any location on Earth with
+    submeter accuracy.
 
     Examples:
     45.01 degrees -> 450_100_000
@@ -52,7 +54,7 @@ def degree_as_dm7(degree):
     Given a degree, return the equivalent dm7. Does not perform range validation.
     Performs integer conversion of the result.
     """
-    return int(_DM7_PER_DEGREE * degree)
+    return int(round(_DM7_PER_DEGREE * degree))
 
 
 def dm7_as_degree(dm7):

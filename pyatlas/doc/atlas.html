@@ -43,15 +43,25 @@ for&nbsp;more&nbsp;information.<br>
 
 <dl><dt><a name="Atlas-load_all_fields"><strong>load_all_fields</strong></a>(self)</dt><dd><tt>Force&nbsp;this&nbsp;<a href="#Atlas">Atlas</a>&nbsp;to&nbsp;load&nbsp;all&nbsp;its&nbsp;fields&nbsp;from&nbsp;its&nbsp;backing&nbsp;store.</tt></dd></dl>
 
-<dl><dt><a name="Atlas-point"><strong>point</strong></a>(self, identifier)</dt><dd><tt>Get&nbsp;a&nbsp;point&nbsp;with&nbsp;a&nbsp;given&nbsp;<a href="#Atlas">Atlas</a>&nbsp;identifier.&nbsp;Returns&nbsp;None&nbsp;if&nbsp;there&nbsp;is&nbsp;no<br>
-point&nbsp;with&nbsp;the&nbsp;given&nbsp;identifier.<br>
+<dl><dt><a name="Atlas-node"><strong>node</strong></a>(self, identifier)</dt><dd><tt>Get&nbsp;a&nbsp;Node&nbsp;with&nbsp;a&nbsp;given&nbsp;<a href="#Atlas">Atlas</a>&nbsp;identifier.&nbsp;Returns&nbsp;None&nbsp;if&nbsp;there&nbsp;is&nbsp;no<br>
+Node&nbsp;with&nbsp;the&nbsp;given&nbsp;identifier.<br>
+:param&nbsp;identifier:&nbsp;the&nbsp;identifier<br>
+:return:&nbsp;the&nbsp;Node&nbsp;with&nbsp;this&nbsp;identifier,&nbsp;None&nbsp;if&nbsp;it&nbsp;does&nbsp;not&nbsp;exist</tt></dd></dl>
+
+<dl><dt><a name="Atlas-nodes"><strong>nodes</strong></a>(self, predicate<font color="#909090">=&lt;function &lt;lambda&gt;&gt;</font>)</dt><dd><tt>Get&nbsp;a&nbsp;generator&nbsp;for&nbsp;Nodes&nbsp;in&nbsp;this&nbsp;<a href="#Atlas">Atlas</a>.&nbsp;Can&nbsp;optionally&nbsp;also&nbsp;accept&nbsp;a<br>
+predicate&nbsp;to&nbsp;filter&nbsp;the&nbsp;generated&nbsp;Nodes.<br>
+:param&nbsp;predicate:&nbsp;a&nbsp;Node&nbsp;filter&nbsp;predicate<br>
+:return:&nbsp;the&nbsp;Node&nbsp;generator</tt></dd></dl>
+
+<dl><dt><a name="Atlas-point"><strong>point</strong></a>(self, identifier)</dt><dd><tt>Get&nbsp;a&nbsp;Point&nbsp;with&nbsp;a&nbsp;given&nbsp;<a href="#Atlas">Atlas</a>&nbsp;identifier.&nbsp;Returns&nbsp;None&nbsp;if&nbsp;there&nbsp;is&nbsp;no<br>
+Point&nbsp;with&nbsp;the&nbsp;given&nbsp;identifier.<br>
 :param&nbsp;identifier:&nbsp;the&nbsp;identifier<br>
 :return:&nbsp;the&nbsp;point&nbsp;with&nbsp;this&nbsp;identifier,&nbsp;None&nbsp;if&nbsp;it&nbsp;does&nbsp;not&nbsp;exist</tt></dd></dl>
 
-<dl><dt><a name="Atlas-points"><strong>points</strong></a>(self, predicate<font color="#909090">=&lt;function &lt;lambda&gt;&gt;</font>)</dt><dd><tt>Get&nbsp;a&nbsp;generator&nbsp;for&nbsp;points&nbsp;in&nbsp;this&nbsp;<a href="#Atlas">Atlas</a>.&nbsp;Can&nbsp;optionally&nbsp;also&nbsp;accept&nbsp;a<br>
-predicate&nbsp;to&nbsp;filter&nbsp;the&nbsp;generated&nbsp;points.<br>
-:param&nbsp;predicate:&nbsp;a&nbsp;point&nbsp;filter&nbsp;predicate<br>
-:return:&nbsp;the&nbsp;point&nbsp;generator</tt></dd></dl>
+<dl><dt><a name="Atlas-points"><strong>points</strong></a>(self, predicate<font color="#909090">=&lt;function &lt;lambda&gt;&gt;</font>)</dt><dd><tt>Get&nbsp;a&nbsp;generator&nbsp;for&nbsp;Points&nbsp;in&nbsp;this&nbsp;<a href="#Atlas">Atlas</a>.&nbsp;Can&nbsp;optionally&nbsp;also&nbsp;accept&nbsp;a<br>
+predicate&nbsp;to&nbsp;filter&nbsp;the&nbsp;generated&nbsp;Points.<br>
+:param&nbsp;predicate:&nbsp;a&nbsp;Point&nbsp;filter&nbsp;predicate<br>
+:return:&nbsp;the&nbsp;Point&nbsp;generator</tt></dd></dl>
 
 </td></tr></table></td></tr></table>
 </body></html>

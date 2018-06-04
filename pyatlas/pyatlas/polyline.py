@@ -40,6 +40,14 @@ class PolyLine:
         result += "]"
         return result
 
+    def __eq__(self, other):
+        if len(self.points) != len(other.points):
+            return False
+        for point, other_point in zip(self.points, other.points):
+            if not point == other_point:
+                return False
+        return True
+
     def compress(self):
         """
         Transform a PolyLine into its string compressed representation.
@@ -85,7 +93,7 @@ def _encode_number(number):
     return encoded
 
 
-def as_polyline(bytestring):
+def decompress_polyline(bytestring):
     precision = pow(10, -1 * _PRECISION)
     length = len(bytestring)
     index = 0

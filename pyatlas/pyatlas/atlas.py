@@ -2,6 +2,7 @@
 
 from atlas_serializer import AtlasSerializer
 from point import Point
+from node import Node
 
 
 class Atlas:
@@ -16,12 +17,20 @@ class Atlas:
     def __init__(self, atlas_file, lazy_loading=True):
         self.serializer = AtlasSerializer(atlas_file, self)
         self.lazy_loading = lazy_loading
+
+        ### PackedAtlas fields ###
         self.metaData = None
+        self.dictionary = None
+
         self.pointIdentifiers = None
         self.pointIdentifierToPointArrayIndex = None
         self.pointLocations = None
-        self.dictionary = None
         self.pointTags = None
+
+        self.nodeIdentifiers = None
+        self.nodeIdentifierToNodeArrayIndex = None
+        self.nodeLocations = None
+        self.nodeTags = None
 
         if not self.lazy_loading:
             self.load_all_fields()
@@ -38,10 +47,10 @@ class Atlas:
 
     def points(self, predicate=lambda point: True):
         """
-        Get a generator for points in this Atlas. Can optionally also accept a
-        predicate to filter the generated points.
-        :param predicate: a point filter predicate
-        :return: the point generator
+        Get a generator for Points in this Atlas. Can optionally also accept a
+        predicate to filter the generated Points.
+        :param predicate: a Point filter predicate
+        :return: the Point generator
         """
         for i, element in enumerate(self._get_pointIdentifiers().elements):
             point = Point(self, i)
@@ -50,14 +59,38 @@ class Atlas:
 
     def point(self, identifier):
         """
-        Get a point with a given Atlas identifier. Returns None if there is no
-        point with the given identifier.
+        Get a Point with a given Atlas identifier. Returns None if there is no
+        Point with the given identifier.
         :param identifier: the identifier
         :return: the point with this identifier, None if it does not exist
         """
         identifier_to_index = self._get_pointIdentifierToPointArrayIndex()
         if identifier in identifier_to_index:
             return Point(self, identifier_to_index[identifier])
+        return None
+
+    def nodes(self, predicate=lambda point: True):
+        """
+        Get a generator for Nodes in this Atlas. Can optionally also accept a
+        predicate to filter the generated Nodes.
+        :param predicate: a Node filter predicate
+        :return: the Node generator
+        """
+        for i, element in enumerate(self._get_nodeIdentifiers().elements):
+            node = Node(self, i)
+            if predicate(node):
+                yield node
+
+    def node(self, identifier):
+        """
+        Get a Node with a given Atlas identifier. Returns None if there is no
+        Node with the given identifier.
+        :param identifier: the identifier
+        :return: the Node with this identifier, None if it does not exist
+        """
+        identifier_to_index = self._get_nodeIdentifierToNodeArrayIndex()
+        if identifier in identifier_to_index:
+            return Node(self, identifier_to_index[identifier])
         return None
 
     def load_all_fields(self):
@@ -83,13 +116,35 @@ class Atlas:
             self.serializer.load_field(self.serializer._FIELD_POINT_LOCATIONS)
         return self.pointLocations
 
-    def _get_dictionary(self):
-        if self.dictionary is None:
-            self.serializer.load_field(self.serializer._FIELD_DICTIONARY)
-        return self.dictionary
-
     def _get_pointTags(self):
         if self.pointTags is None:
             self.serializer.load_field(self.serializer._FIELD_POINT_TAGS)
         self.pointTags.set_dictionary(self._get_dictionary())
         return self.pointTags
+
+    def _get_nodeIdentifiers(self):
+        if self.nodeIdentifiers is None:
+            self.serializer.load_field(self.serializer._FIELD_NODE_IDENTIFIERS)
+        return self.nodeIdentifiers
+
+    def _get_nodeIdentifierToNodeArrayIndex(self):
+        if self.nodeIdentifierToNodeArrayIndex is None:
+            self.serializer.load_field(
+                self.serializer._FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX)
+        return self.nodeIdentifierToNodeArrayIndex
+
+    def _get_nodeLocations(self):
+        if self.nodeLocations is None:
+            self.serializer.load_field(self.serializer._FIELD_NODE_LOCATIONS)
+        return self.nodeLocations
+
+    def _get_nodeTags(self):
+        if self.nodeTags is None:
+            self.serializer.load_field(self.serializer._FIELD_NODE_TAGS)
+        self.nodeTags.set_dictionary(self._get_dictionary())
+        return self.nodeTags
+
+    def _get_dictionary(self):
+        if self.dictionary is None:
+            self.serializer.load_field(self.serializer._FIELD_DICTIONARY)
+        return self.dictionary

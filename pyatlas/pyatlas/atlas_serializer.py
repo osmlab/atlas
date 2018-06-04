@@ -21,6 +21,10 @@ class AtlasSerializer:
     _FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX = 'pointIdentifierToPointArrayIndex'
     _FIELD_POINT_LOCATIONS = 'pointLocations'
     _FIELD_POINT_TAGS = 'pointTags'
+    _FIELD_NODE_IDENTIFIERS = 'nodeIdentifiers'
+    _FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX = 'nodeIdentifierToNodeArrayIndex'
+    _FIELD_NODE_LOCATIONS = 'nodeLocations'
+    _FIELD_NODE_TAGS = 'nodeTags'
     _FIELD_NAMES_TO_LOAD_METHODS = {
         _FIELD_METADATA:
         'load_metadata',
@@ -33,7 +37,15 @@ class AtlasSerializer:
         _FIELD_POINT_LOCATIONS:
         'load_point_locations',
         _FIELD_POINT_TAGS:
-        'load_point_tags'
+        'load_point_tags',
+        _FIELD_NODE_IDENTIFIERS:
+        'load_node_identifiers',
+        _FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX:
+        'load_node_identifier_to_node_array_index',
+        _FIELD_NODE_LOCATIONS:
+        'load_node_locations',
+        _FIELD_NODE_TAGS:
+        'load_node_tags'
     }
 
     def __init__(self, atlas_file, atlas):
@@ -73,13 +85,8 @@ class AtlasSerializer:
         proto_map = autogen.ProtoLongToLongMap_pb2.ProtoLongToLongMap()
         proto_map.ParseFromString(zip_entry_data)
 
-        if len(proto_map.keys.elements) != len(proto_map.values.elements):
-            raise ValueError('array length mismatch')
-        new_dict = {}
-        for key, value in zip(proto_map.keys.elements,
-                              proto_map.values.elements):
-            new_dict[key] = value
-        self.atlas.pointIdentifierToPointArrayIndex = new_dict
+        self.atlas.pointIdentifierToPointArrayIndex = _convert_protolongtolongmap(
+            proto_map)
 
     def load_point_locations(self):
         zip_entry_data = _read_zipentry(self.atlas_file,
@@ -96,6 +103,35 @@ class AtlasSerializer:
         self.atlas.pointTags = packed_tag_store.get_packed_tag_store_from_proto(
             proto_point_tags)
 
+    def load_node_identifiers(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_NODE_IDENTIFIERS)
+        self.atlas.nodeIdentifiers = autogen.ProtoLongArray_pb2.ProtoLongArray(
+        )
+        self.atlas.nodeIdentifiers.ParseFromString(zip_entry_data)
+
+    def load_node_identifier_to_node_array_index(self):
+        zip_entry_data = _read_zipentry(
+            self.atlas_file, self._FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX)
+        proto_map = autogen.ProtoLongToLongMap_pb2.ProtoLongToLongMap()
+        proto_map.ParseFromString(zip_entry_data)
+
+        self.atlas.nodeIdentifierToNodeArrayIndex = _convert_protolongtolongmap(
+            proto_map)
+
+    def load_node_locations(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_NODE_LOCATIONS)
+        self.atlas.nodeLocations = autogen.ProtoLongArray_pb2.ProtoLongArray()
+        self.atlas.nodeLocations.ParseFromString(zip_entry_data)
+
+    def load_node_tags(self):
+        zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_NODE_TAGS)
+        proto_node_tags = autogen.ProtoPackedTagStore_pb2.ProtoPackedTagStore()
+        proto_node_tags.ParseFromString(zip_entry_data)
+        self.atlas.nodeTags = packed_tag_store.get_packed_tag_store_from_proto(
+            proto_node_tags)
+
     def load_field(self, field_name):
         if field_name not in self._FIELD_NAMES_TO_LOAD_METHODS:
             raise KeyError('unrecognized field {}'.format(field_name))
@@ -109,3 +145,12 @@ class AtlasSerializer:
 def _read_zipentry(protofile, entry):
     with zipfile.ZipFile(protofile, 'r') as myzip:
         return myzip.read(entry)
+
+
+def _convert_protolongtolongmap(proto_map):
+    if len(proto_map.keys.elements) != len(proto_map.values.elements):
+        raise ValueError('array length mismatch')
+    new_dict = {}
+    for key, value in zip(proto_map.keys.elements, proto_map.values.elements):
+        new_dict[key] = value
+    return new_dict
