@@ -32,9 +32,13 @@ class Atlas:
         self.nodeIdentifierToNodeArrayIndex = None
         self.nodeLocations = None
         self.nodeTags = None
+        self.nodeInEdgesIndices = None
+        self.nodeOutEdgesIndices = None
 
         self.edgeIdentifiers = None
         self.edgeIdentifierToEdgeArrayIndex = None
+        self.edgeStartNodeIndex = None
+        self.edgeEndNodeIndex = None
         self.edgeTags = None
 
         if not self.lazy_loading:
@@ -173,6 +177,18 @@ class Atlas:
         self.nodeTags.set_dictionary(self._get_dictionary())
         return self.nodeTags
 
+    def _get_nodeInEdgesIndices(self):
+        if self.nodeInEdgesIndices is None:
+            self.serializer.load_field(
+                self.serializer._FIELD_NODE_IN_EDGES_INDICES)
+        return self.nodeInEdgesIndices
+
+    def _get_nodeOutEdgesIndices(self):
+        if self.nodeOutEdgesIndices is None:
+            self.serializer.load_field(
+                self.serializer._FIELD_NODE_OUT_EDGES_INDICES)
+        return self.nodeOutEdgesIndices
+
     def _get_edgeIdentifiers(self):
         if self.edgeIdentifiers is None:
             self.serializer.load_field(self.serializer._FIELD_EDGE_IDENTIFIERS)
@@ -183,6 +199,18 @@ class Atlas:
             self.serializer.load_field(
                 self.serializer._FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX)
         return self.edgeIdentifierToEdgeArrayIndex
+
+    def _get_edgeStartNodeIndex(self):
+        if self.edgeStartNodeIndex is None:
+            self.serializer.load_field(
+                self.serializer._FIELD_EDGE_START_NODE_INDEX)
+        return self.edgeStartNodeIndex
+
+    def _get_edgeEndNodeIndex(self):
+        if self.edgeEndNodeIndex is None:
+            self.serializer.load_field(
+                self.serializer._FIELD_EDGE_END_NODE_INDEX)
+        return self.edgeEndNodeIndex
 
     def _get_edgeTags(self):
         if self.edgeTags is None:

@@ -1,5 +1,7 @@
 import location
 
+import edge
+
 
 class Node:
     """
@@ -15,6 +17,17 @@ class Node:
         result = '['
         result += 'Node: id=' + str(self.get_identifier())
         result += ', location_latlon=' + str(self.get_location())
+
+        string = ""
+        for edge in self.in_edges():
+            string += str(edge.get_identifier()) + ', '
+        result += ', inEdges=[' + string + ']'
+
+        string = ""
+        for edge in self.out_edges():
+            string += str(edge.get_identifier()) + ', '
+        result += ', outEdges=[' + string + ']'
+
         result += ', tags=' + str(self.get_tags())
         result += ']'
         return result
@@ -47,19 +60,42 @@ class Node:
 
     def in_edges(self):
         """
-        The incoming edges to this Node.
+        Get a list of incoming Edges to this Node. The list is sorted by the
+        Edges' Atlas IDs.
         :return:
         """
-        # TODO implement
-        raise NotImplementedError
+        result = []
+        node_in_edges_indices = self.get_parent_atlas(
+        )._get_nodeInEdgesIndices()
+        for index in node_in_edges_indices.arrays[self.index].elements:
+            result.append(edge.Edge(self.get_parent_atlas(), index))
+        return sorted(result)
 
     def out_edges(self):
         """
-        The outgoing edges from this Node.
+        Get a list of outgoing Edges from this Node. The list is sorted by the
+        Edges' Atlas IDs.
         :return:
         """
-        # TODO implement
-        raise NotImplementedError
+        result = []
+        node_out_edges_indices = self.get_parent_atlas(
+        )._get_nodeOutEdgesIndices()
+        for index in node_out_edges_indices.arrays[self.index].elements:
+            result.append(edge.Edge(self.get_parent_atlas(), index))
+        return sorted(result)
+
+    def connected_edges(self):
+        """
+        Get a list of all Edges connected to this Node. The list is sorted by
+        the Edges' Atlas IDs.
+        :return:
+        """
+        result = []
+        for edge in self.in_edges():
+            result.append(edge)
+        for edge in self.out_edges():
+            result.append(edge)
+        return sorted(result)
 
     def get_relations(self):
         """

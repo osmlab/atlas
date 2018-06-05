@@ -4,6 +4,7 @@ import zipfile
 
 import autogen.ProtoAtlasMetaData_pb2
 import autogen.ProtoLongArray_pb2
+import autogen.ProtoLongArrayOfArrays_pb2
 import autogen.ProtoIntegerStringDictionary_pb2
 import autogen.ProtoPackedTagStore_pb2
 import autogen.ProtoLongToLongMap_pb2
@@ -17,17 +18,25 @@ class AtlasSerializer:
 
     _FIELD_METADATA = 'metaData'
     _FIELD_DICTIONARY = 'dictionary'
+
     _FIELD_POINT_IDENTIFIERS = 'pointIdentifiers'
     _FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX = 'pointIdentifierToPointArrayIndex'
     _FIELD_POINT_LOCATIONS = 'pointLocations'
     _FIELD_POINT_TAGS = 'pointTags'
+
     _FIELD_NODE_IDENTIFIERS = 'nodeIdentifiers'
     _FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX = 'nodeIdentifierToNodeArrayIndex'
     _FIELD_NODE_LOCATIONS = 'nodeLocations'
     _FIELD_NODE_TAGS = 'nodeTags'
+    _FIELD_NODE_IN_EDGES_INDICES = 'nodeInEdgesIndices'
+    _FIELD_NODE_OUT_EDGES_INDICES = 'nodeOutEdgesIndices'
+
     _FIELD_EDGE_IDENTIFIERS = 'edgeIdentifiers'
     _FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX = 'edgeIdentifierToEdgeArrayIndex'
+    _FIELD_EDGE_START_NODE_INDEX = 'edgeStartNodeIndex'
+    _FIELD_EDGE_END_NODE_INDEX = 'edgeEndNodeIndex'
     _FIELD_EDGE_TAGS = 'edgeTags'
+
     _FIELD_NAMES_TO_LOAD_METHODS = {
         _FIELD_METADATA:
         'load_metadata',
@@ -49,10 +58,18 @@ class AtlasSerializer:
         'load_node_locations',
         _FIELD_NODE_TAGS:
         'load_node_tags',
+        _FIELD_NODE_IN_EDGES_INDICES:
+        'load_node_in_edges_indices',
+        _FIELD_NODE_OUT_EDGES_INDICES:
+        'load_node_out_edges_indices',
         _FIELD_EDGE_IDENTIFIERS:
         'load_edge_identifiers',
         _FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX:
         'load_edge_identifier_to_edge_array_index',
+        _FIELD_EDGE_START_NODE_INDEX:
+        'load_edge_start_node_index',
+        _FIELD_EDGE_END_NODE_INDEX:
+        'load_edge_end_node_index',
         _FIELD_EDGE_TAGS:
         'load_edge_tags'
     }
@@ -157,12 +174,40 @@ class AtlasSerializer:
         self.atlas.edgeIdentifierToEdgeArrayIndex = _convert_protolongtolongmap(
             proto_map)
 
+    def load_edge_start_node_index(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_EDGE_START_NODE_INDEX)
+        self.atlas.edgeStartNodeIndex = autogen.ProtoLongArray_pb2.ProtoLongArray(
+        )
+        self.atlas.edgeStartNodeIndex.ParseFromString(zip_entry_data)
+
+    def load_edge_end_node_index(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_EDGE_END_NODE_INDEX)
+        self.atlas.edgeEndNodeIndex = autogen.ProtoLongArray_pb2.ProtoLongArray(
+        )
+        self.atlas.edgeEndNodeIndex.ParseFromString(zip_entry_data)
+
     def load_edge_tags(self):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_EDGE_TAGS)
         proto_edge_tags = autogen.ProtoPackedTagStore_pb2.ProtoPackedTagStore()
         proto_edge_tags.ParseFromString(zip_entry_data)
         self.atlas.edgeTags = packed_tag_store.get_packed_tag_store_from_proto(
             proto_edge_tags)
+
+    def load_node_in_edges_indices(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_NODE_IN_EDGES_INDICES)
+        self.atlas.nodeInEdgesIndices = autogen.ProtoLongArrayOfArrays_pb2.ProtoLongArrayOfArrays(
+        )
+        self.atlas.nodeInEdgesIndices.ParseFromString(zip_entry_data)
+
+    def load_node_out_edges_indices(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_NODE_OUT_EDGES_INDICES)
+        self.atlas.nodeOutEdgesIndices = autogen.ProtoLongArrayOfArrays_pb2.ProtoLongArrayOfArrays(
+        )
+        self.atlas.nodeOutEdgesIndices.ParseFromString(zip_entry_data)
 
     def load_field(self, field_name):
         if field_name not in self._FIELD_NAMES_TO_LOAD_METHODS:

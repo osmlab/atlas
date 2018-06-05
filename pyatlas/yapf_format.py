@@ -30,6 +30,8 @@ def main(argv):
 
     if violation_detected:
         exit(1)
+    else:
+        print str(argv[0]) + " INFO: all formatting for targets in " + str(argv[1]) + " OK!"
 
 def read_file_contents(filepath):
     with open(filepath, 'r') as srcfile:
