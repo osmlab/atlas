@@ -1,7 +1,8 @@
 import location
+import atlas_entity
 
 
-class Point:
+class Point(atlas_entity.AtlasEntity):
     """
     An Atlas Point.
     """

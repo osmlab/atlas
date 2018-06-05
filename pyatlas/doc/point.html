@@ -18,8 +18,9 @@
 <font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="location.html">location</a><br>
-</td><td width="25%" valign=top></td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="atlas_entity.html">atlas_entity</a><br>
+</td><td width="25%" valign=top><a href="location.html">location</a><br>
+</td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
 <td colspan=3 valign=bottom>&nbsp;<br>
@@ -27,13 +28,18 @@
     
 <tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="atlas_entity.html#AtlasEntity">atlas_entity.AtlasEntity</a>
+</font></dt><dd>
+<dl>
 <dt><font face="helvetica, arial"><a href="point.html#Point">Point</a>
 </font></dt></dl>
+</dd>
+</dl>
  <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ffc8d8">
 <td colspan=3 valign=bottom>&nbsp;<br>
-<font color="#000000" face="helvetica, arial"><a name="Point">class <strong>Point</strong></a></font></td></tr>
+<font color="#000000" face="helvetica, arial"><a name="Point">class <strong>Point</strong></a>(<a href="atlas_entity.html#AtlasEntity">atlas_entity.AtlasEntity</a>)</font></td></tr>
     
 <tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
 <td colspan=2><tt>An&nbsp;Atlas&nbsp;<a href="#Point">Point</a>.<br>&nbsp;</tt></td></tr>
@@ -58,6 +64,14 @@ information.<br>
 
 <dl><dt><a name="Point-get_tags"><strong>get_tags</strong></a>(self)</dt><dd><tt>Get&nbsp;a&nbsp;dictionary&nbsp;of&nbsp;this&nbsp;point's&nbsp;tags.<br>
 :return:&nbsp;the&nbsp;dictionary</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="atlas_entity.html#AtlasEntity">atlas_entity.AtlasEntity</a>:<br>
+<dl><dt><a name="Point-get_osm_identifier"><strong>get_osm_identifier</strong></a>(self)</dt><dd><tt>Get&nbsp;the&nbsp;OSM&nbsp;identifier&nbsp;from&nbsp;the&nbsp;full&nbsp;Atlas&nbsp;identifier&nbsp;by&nbsp;removing&nbsp;the<br>
+country&nbsp;code&nbsp;and&nbsp;way&nbsp;sectioned&nbsp;identifiers.<br>
+&nbsp;<br>
+Example:<br>
+Atlas&nbsp;ID:&nbsp;222222001003&nbsp;would&nbsp;return&nbsp;OSM&nbsp;ID:&nbsp;222222</tt></dd></dl>
 
 </td></tr></table></td></tr></table>
 </body></html>

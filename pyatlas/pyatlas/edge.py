@@ -1,7 +1,8 @@
 import node
+import atlas_entity
 
 
-class Edge:
+class Edge(atlas_entity.AtlasEntity):
     """
     A unidirectional Atlas Edge. Bidirectional OSM ways are represented with
     two opposing Edges, where one of them is the master Edge. The master Edge

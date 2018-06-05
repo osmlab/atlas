@@ -13,25 +13,33 @@ def main(argv):
             filepath = os.path.join(srcdir, file_to_style)
 
             if mode == "CHECK":
-                original = read_file_contents(filepath)
-                reformatted = FormatFile(filepath, style_config='pep8')
-                if original != reformatted[0]:
+                if detect_formatting_violation(filepath):
                     print str(argv[0]) + ": ERROR: formatting violation detected in " + str(file_to_style)
-                    print(FormatCode(original, filename=filepath, print_diff=True, style_config='pep8')[0])
                     violation_detected = True
 
             elif mode == "APPLY":
-                print "re-formatting " + str(file_to_style)
-                FormatFile(filepath, in_place=True, style_config='pep8')
+                if detect_formatting_violation(filepath):
+                    print str(file_to_style) + ": found issue, reformatting..."
+                    FormatFile(filepath, in_place=True, style_config='pep8')
+                    violation_detected = True
 
             else:
                 print "ERROR: invalid mode " + str(mode)
                 exit(1)
 
-    if violation_detected:
+    if mode == 'CHECK' and violation_detected:
         exit(1)
-    else:
+    elif mode == 'APPLY' and not violation_detected:
         print str(argv[0]) + " INFO: all formatting for targets in " + str(argv[1]) + " OK!"
+
+def detect_formatting_violation(filepath):
+    original = read_file_contents(filepath)
+    reformatted = FormatFile(filepath, style_config='pep8')
+    if original != reformatted[0]:
+        print(FormatCode(original, filename=filepath, print_diff=True, style_config='pep8')[0])
+        return True
+    return False
+
 
 def read_file_contents(filepath):
     with open(filepath, 'r') as srcfile:

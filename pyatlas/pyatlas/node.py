@@ -1,9 +1,9 @@
 import location
-
+import atlas_entity
 import edge
 
 
-class Node:
+class Node(atlas_entity.AtlasEntity):
     """
     An Atlas Node.
     """

@@ -22,3 +22,8 @@ class IdentifierConversionTest(unittest.TestCase):
         osm_id = 3
         self.assertEqual(osm_id,
                          identifier_conversion.get_osm_identifier(atlas_id))
+
+        atlas_id = -222222000001
+        osm_id = 222222
+        self.assertEqual(osm_id,
+                         identifier_conversion.get_osm_identifier(atlas_id))
