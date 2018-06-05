@@ -66,16 +66,19 @@ echo "Preparing protoc..."
 protoc_version=$(grep 'protoc' "$gradle_project_root_dir/dependencies.gradle" | awk -F':' '{print $2; exit}' | tr -d "'")
 protoc_path="$pyatlas_root_dir/protoc"
 # detemine what platform we are on
-if [ "$(uname)" == "Darwin" ];
+if [ ! -f "$protoc_path" ];
 then
-    download_link="https://repo1.maven.org/maven2/com/google/protobuf/protoc/${protoc_version}/protoc-${protoc_version}-osx-x86_64.exe"
-    $wget_command "$download_link" -O "$protoc_path" || err_shutdown "wget of '$download_link' failed"
-elif [ "$(uname)" == "Linux" ];
-then
-    download_link="https://repo1.maven.org/maven2/com/google/protobuf/protoc/${protoc_version}/protoc-${protoc_version}-linux-x86_64.exe"
-    $wget_command "$download_link" -O "$protoc_path" || err_shutdown "wget of '$download_link' failed"
-else
-    err_shutdown "unrecognized platform $(uname)"
+    if [ "$(uname)" == "Darwin" ];
+    then
+        download_link="https://repo1.maven.org/maven2/com/google/protobuf/protoc/${protoc_version}/protoc-${protoc_version}-osx-x86_64.exe"
+        "$wget_command" "$download_link" -O "$protoc_path" || err_shutdown "wget of '$download_link' failed"
+    elif [ "$(uname)" == "Linux" ];
+    then
+        download_link="https://repo1.maven.org/maven2/com/google/protobuf/protoc/${protoc_version}/protoc-${protoc_version}-linux-x86_64.exe"
+        "$wget_command" "$download_link" -O "$protoc_path" || err_shutdown "wget of '$download_link' failed"
+    else
+        err_shutdown "unrecognized platform $(uname)"
+fi
 fi
 chmod 700 "$protoc_path"
 
@@ -86,8 +89,6 @@ while IFS= read -r -d '' protofile
 do
     $protoc_path "$protofile" --proto_path="$protofiles_dir" --python_out="$pyatlas_root_dir/$pyatlas_srcdir/autogen" || err_shutdown "protoc invocation failed"
 done < <(find "$protofiles_dir" -type f -name "*.proto" -print0)
-
-rm -f "$protoc_path"
 #################################################################
 
 
