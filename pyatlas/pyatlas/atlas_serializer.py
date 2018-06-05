@@ -8,9 +8,11 @@ import autogen.ProtoLongArrayOfArrays_pb2
 import autogen.ProtoIntegerStringDictionary_pb2
 import autogen.ProtoPackedTagStore_pb2
 import autogen.ProtoLongToLongMap_pb2
+import autogen.ProtoPolyLineArray_pb2
 import atlas_metadata
 import integer_dictionary
 import packed_tag_store
+import polyline
 
 
 class AtlasSerializer:
@@ -35,13 +37,16 @@ class AtlasSerializer:
     _FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX = 'edgeIdentifierToEdgeArrayIndex'
     _FIELD_EDGE_START_NODE_INDEX = 'edgeStartNodeIndex'
     _FIELD_EDGE_END_NODE_INDEX = 'edgeEndNodeIndex'
+    _FIELD_EDGE_POLYLINES = 'edgePolyLines'
     _FIELD_EDGE_TAGS = 'edgeTags'
 
+    # yapf: disable
     _FIELD_NAMES_TO_LOAD_METHODS = {
         _FIELD_METADATA:
         'load_metadata',
         _FIELD_DICTIONARY:
         'load_dictionary',
+
         _FIELD_POINT_IDENTIFIERS:
         'load_point_identifiers',
         _FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX:
@@ -50,6 +55,7 @@ class AtlasSerializer:
         'load_point_locations',
         _FIELD_POINT_TAGS:
         'load_point_tags',
+
         _FIELD_NODE_IDENTIFIERS:
         'load_node_identifiers',
         _FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX:
@@ -62,6 +68,7 @@ class AtlasSerializer:
         'load_node_in_edges_indices',
         _FIELD_NODE_OUT_EDGES_INDICES:
         'load_node_out_edges_indices',
+
         _FIELD_EDGE_IDENTIFIERS:
         'load_edge_identifiers',
         _FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX:
@@ -70,9 +77,12 @@ class AtlasSerializer:
         'load_edge_start_node_index',
         _FIELD_EDGE_END_NODE_INDEX:
         'load_edge_end_node_index',
+        _FIELD_EDGE_POLYLINES:
+        'load_edge_polylines',
         _FIELD_EDGE_TAGS:
         'load_edge_tags'
     }
+    # yapf: enable
 
     def __init__(self, atlas_file, atlas):
         self.atlas_file = atlas_file
@@ -187,6 +197,17 @@ class AtlasSerializer:
         self.atlas.edgeEndNodeIndex = autogen.ProtoLongArray_pb2.ProtoLongArray(
         )
         self.atlas.edgeEndNodeIndex.ParseFromString(zip_entry_data)
+
+    def load_edge_polylines(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_EDGE_POLYLINES)
+        proto_array = autogen.ProtoPolyLineArray_pb2.ProtoPolyLineArray()
+        proto_array.ParseFromString(zip_entry_data)
+        result = []
+        for encoding in proto_array.encodings:
+            poly_line = polyline.decompress_polyline(encoding)
+            result.append(poly_line)
+        self.atlas.edgePolyLines = result
 
     def load_edge_tags(self):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_EDGE_TAGS)

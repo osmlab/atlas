@@ -8,10 +8,9 @@ from edge import Edge
 
 class Atlas:
     """
-    Atlas class - the current implementation is not threadsafe.
+    The Atlas - current implementation is not threadsafe.
 
-    Note that the member field names do not follow PEP 8 naming conventions.
-    This is so they match up with the name of their corresponding ZIP entry.
+    The field names match up with the name of their corresponding ZIP entry.
     These ZIP entry names come from from the PackedAtlas Java implementation.
     """
 
@@ -39,6 +38,7 @@ class Atlas:
         self.edgeIdentifierToEdgeArrayIndex = None
         self.edgeStartNodeIndex = None
         self.edgeEndNodeIndex = None
+        self.edgePolyLines = None
         self.edgeTags = None
 
         if not self.lazy_loading:
@@ -211,6 +211,11 @@ class Atlas:
             self.serializer.load_field(
                 self.serializer._FIELD_EDGE_END_NODE_INDEX)
         return self.edgeEndNodeIndex
+
+    def _get_edgePolyLines(self):
+        if self.edgePolyLines is None:
+            self.serializer.load_field(self.serializer._FIELD_EDGE_POLYLINES)
+        return self.edgePolyLines
 
     def _get_edgeTags(self):
         if self.edgeTags is None:

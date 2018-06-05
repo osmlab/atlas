@@ -36,7 +36,7 @@ class PolyLine:
     def __str__(self):
         result = "["
         for point in self.points:
-            result += str(point) + ","
+            result += str(point) + ", "
         result += "]"
         return result
 

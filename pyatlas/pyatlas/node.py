@@ -5,8 +5,7 @@ import edge
 
 class Node:
     """
-    An Atlas Node. Logically corresponds to the PackedNode class from the
-    Java implementation.
+    An Atlas Node.
     """
 
     def __init__(self, parent_atlas, index):

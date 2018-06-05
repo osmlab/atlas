@@ -32,7 +32,7 @@ class Location:
         self.longitude = longitude
 
     def __str__(self):
-        return "[" + str(self.latitude) + ", " + str(self.longitude) + "]"
+        return "[" + str(self.latitude) + "," + str(self.longitude) + "]"
 
     def __eq__(self, other):
         return self.latitude == other.latitude and self.longitude == other.longitude

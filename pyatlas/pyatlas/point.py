@@ -3,8 +3,7 @@ import location
 
 class Point:
     """
-    An Atlas Point. Logically corresponds to the PackedPoint class from the
-    Java implementation.
+    An Atlas Point.
     """
 
     def __init__(self, parent_atlas, index):

@@ -3,15 +3,22 @@ import node
 
 class Edge:
     """
-    An Atlas Edge. Logically corresponds to the PackedEdge class from the
-    Java implementation.
+    A unidirectional Atlas Edge. Bidirectional OSM ways are represented with
+    two opposing Edges, where one of them is the master Edge. The master Edge
+    will have a positive identifier and the same traffic direction as OSM.
     """
 
     def __init__(self, parent_atlas, index):
+        """
+        Constuct a new Edge. This should not be called directly.
+        """
         self.parent_atlas = parent_atlas
         self.index = index
 
     def __str__(self):
+        """
+        Transform this Edge into its string representation.
+        """
         result = '['
         result += 'Edge: id=' + str(self.get_identifier())
         result += ', tags=' + str(self.get_tags())
@@ -23,6 +30,8 @@ class Edge:
         string = ""
         string += str(self.end().get_identifier()) + ', '
         result += ', end=[' + string + ']'
+
+        result += ', geom=[' + str(self.as_polyline()) + ']'
 
         result += ']'
         return result
@@ -46,8 +55,7 @@ class Edge:
         """
         Get the PolyLine geometry of this Edge.
         """
-        # TODO implement
-        raise NotImplementedError
+        return self.get_parent_atlas()._get_edgePolyLines()[self.index]
 
     def get_identifier(self):
         """
@@ -99,9 +107,20 @@ class Edge:
         index = edge_end_node_index.elements[self.index]
         return node.Node(self.get_parent_atlas(), index)
 
+    def get_master_edge(self):
+        """
+        Get the master for this Edge. Returns itself if this is the master Edge.
+        If this Edge is not the master, and its master Edge is not in this
+        Atlas, then return None.
+        """
+        if self.is_master_edge():
+            return self
+        else:
+            return self.get_parent_atlas().edge(-1 * self.get_identifier())
+
     def is_master_edge(self):
         """
-        Checks if Edge is a master edge by checking the identifier.
+        Checks if this Edge is a master edge.
         """
         return self.get_identifier() > 0
 
