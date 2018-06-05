@@ -215,8 +215,13 @@ task cleanPyatlas(type: Exec) {
     args 'ranFromGradle'
 }
 
+task createVenvPyatlas(type: Exec) {
+    commandLine './pyatlas/venv.sh'
+    args 'ranFromGradle'
+}
+
 task checkFormatPyatlas(type: Exec) {
-    dependsOn 'cleanPyatlas'
+    dependsOn 'createVenvPyatlas'
     commandLine './pyatlas/format.sh'
     args 'ranFromGradle'
     args 'CHECK'
@@ -241,7 +246,7 @@ task testPyatlas(type: Exec) {
 }
 
 task buildPyatlas() {
-    dependsOn 'cleanPyatlas'
+    dependsOn 'createVenvPyatlas'
     dependsOn 'checkFormatPyatlas'
     dependsOn 'packagePyatlas'
     dependsOn 'testPyatlas'

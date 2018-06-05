@@ -10,7 +10,6 @@ set -o pipefail
 err_shutdown() {
     echo "format.sh: ERROR: $1"
     deactivate
-    rm -rf "$venv_path"
     exit 1
 }
 #################################################################
@@ -30,10 +29,12 @@ format_mode=$2
 
 ### set up variables to store directory names ###
 #################################################
+gradle_project_root_dir="$(pwd)"
 pyatlas_dir="pyatlas"
 pyatlas_srcdir="pyatlas"
-gradle_project_root_dir="$(pwd)"
+pyatlas_testdir="unit_tests"
 pyatlas_root_dir="$gradle_project_root_dir/$pyatlas_dir"
+venv_path="$pyatlas_root_dir/__pyatlas_venv__"
 pyatlas_format_script="yapf_format.py"
 #################################################################
 
@@ -47,25 +48,12 @@ fi
 ####################################################################
 
 
-### determine if virtualenv is installed ###
-############################################
-if command -v virtualenv;
-then
-    virtualenv_command="$(command -v virtualenv)"
-else
-    err_shutdown "'command -v virtualenv' returned non-zero exit status"
-fi
-#################################################################
-
-
 ### format the module source code ###
 #####################################
 # start the venv
-echo "Setting up pyatlas venv..."
-venv_path="$pyatlas_root_dir/__pyatlas_venv__"
-if ! $virtualenv_command --python=python2.7 "$venv_path";
+if [ ! -d "$venv_path" ];
 then
-    err_shutdown "virtualenv command returned non-zero exit status"
+    err_shutdown "missing $venv_path"
 fi
 # shellcheck source=/dev/null
 source "$venv_path/bin/activate"
@@ -79,11 +67,14 @@ then
     err_shutdown "CHECK format step failed: run './gradlew applyFormatPyatlas'"
 fi
 
+if ! python "$pyatlas_format_script" "$pyatlas_testdir" "$format_mode";
+then
+    err_shutdown "CHECK format step failed: run './gradlew applyFormatPyatlas'"
+fi
+
 # get back to gradle project directory
 popd
 
 # shutdown the venv
-echo "Tearing down pyatlas venv..."
 deactivate
-rm -rf "$venv_path"
 #################################################################

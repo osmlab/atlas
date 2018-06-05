@@ -8,7 +8,7 @@ set -o pipefail
 ### define utility functions ###
 ################################
 err_shutdown() {
-    echo "clean.sh: ERROR: $1"
+    echo "venv.sh: ERROR: $1"
     deactivate
     exit 1
 }
@@ -19,10 +19,9 @@ err_shutdown() {
 ################################################################
 if [ "$1" != "ranFromGradle" ];
 then
-    err_shutdown "this script should be run using the atlas gradle task 'cleanPyatlas'"
+    err_shutdown "this script should be run using the atlas gradle task 'formatPyatlas'"
 fi
 #################################################################
-
 
 ### set up variables to store directory names ###
 #################################################
@@ -43,13 +42,33 @@ fi
 ####################################################################
 
 
-### clean up the build artifacts ###
-####################################
-rm -rf "$pyatlas_root_dir/build"
-rm -rf "$pyatlas_root_dir/dist"
-rm -rf "$pyatlas_root_dir/pyatlas.egg-info"
-rm -rf "$venv_path"
-# use 'find' to handle case where filenames contain spaces
-find "$pyatlas_root_dir/$pyatlas_srcdir/autogen" -type f -name "*_pb2.py" -delete
-find "$pyatlas_root_dir/$pyatlas_srcdir" -type f -name "*.pyc" -delete
+### exit the script if the venv folder already exists ###
+#########################################################
+if [ -d "$venv_path" ];
+then
+    echo "INFO: $venv_path exists. './gradlew cleanPyatlas' to remove"
+    exit 0
+fi
+####################################################################
+
+
+### determine if virtualenv is installed ###
+############################################
+if command -v virtualenv;
+then
+    virtualenv_command="$(command -v virtualenv)"
+else
+    err_shutdown "'command -v virtualenv' returned non-zero exit status"
+fi
+#################################################################
+
+
+### set up the virtual environment ###
+######################################
+echo "Setting up pyatlas venv..."
+venv_path="$pyatlas_root_dir/__pyatlas_venv__"
+if ! ${virtualenv_command} --python=python2.7 "$venv_path";
+then
+    err_shutdown "virtualenv command returned non-zero exit status"
+fi
 #################################################################

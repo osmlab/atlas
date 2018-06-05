@@ -10,7 +10,6 @@ set -o pipefail
 err_shutdown() {
     echo "test.sh: ERROR: $1"
     deactivate
-    rm -rf "$venv_path"
     exit 1
 }
 #################################################################
@@ -27,42 +26,30 @@ fi
 
 ### set up variables to store directory names ###
 #################################################
+gradle_project_root_dir="$(pwd)"
 pyatlas_dir="pyatlas"
 pyatlas_srcdir="pyatlas"
 pyatlas_testdir="unit_tests"
-gradle_project_root_dir="$(pwd)"
 pyatlas_root_dir="$gradle_project_root_dir/$pyatlas_dir"
-#################################################################
-
-
-### abort the script if the pyatlas source folder is not present ###
-####################################################################
-if [ ! -d "$pyatlas_root_dir/$pyatlas_srcdir" ];
-then
-    err_shutdown "pyatlas source folder not found"
-fi
-####################################################################
-
-
-### determine if virtualenv is installed ###
-############################################
-if command -v virtualenv;
-then
-    virtualenv_command="$(command -v virtualenv)"
-else
-    err_shutdown "'command -v virtualenv' returned non-zero exit status"
-fi
-#################################################################
-
-
-### test the module ###
-#######################
-# start the venv
-echo "Setting up pyatlas venv..."
 venv_path="$pyatlas_root_dir/__pyatlas_venv__"
-if ! $virtualenv_command --python=python2.7 "$venv_path";
+#################################################################
+
+
+### abort the script if the pyatlas tests folder is not present ###
+###################################################################
+if [ ! -d "$pyatlas_root_dir/$pyatlas_testdir" ];
 then
-    err_shutdown "virtualenv command returned non-zero exit status"
+    err_shutdown "pyatlas tests folder not found"
+fi
+####################################################################
+
+
+### run the tests ###
+#####################
+# start the venv
+if [ ! -d "$venv_path" ];
+then
+    err_shutdown "missing $venv_path"
 fi
 # shellcheck source=/dev/null
 source "$venv_path/bin/activate"
@@ -77,7 +64,5 @@ python -m unittest discover -v -s "$pyatlas_testdir" || err_shutdown "a test fai
 popd
 
 # shutdown the venv
-echo "Tearing down pyatlas venv..."
 deactivate
-rm -rf "$venv_path"
 #################################################################

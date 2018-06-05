@@ -37,6 +37,16 @@ These&nbsp;ZIP&nbsp;entry&nbsp;names&nbsp;come&nbsp;from&nbsp;from&nbsp;the&nbsp
 <td width="100%">Methods defined here:<br>
 <dl><dt><a name="Atlas-__init__"><strong>__init__</strong></a>(self, atlas_file, lazy_loading<font color="#909090">=True</font>)</dt></dl>
 
+<dl><dt><a name="Atlas-edge"><strong>edge</strong></a>(self, identifier)</dt><dd><tt>Get&nbsp;an&nbsp;Edge&nbsp;with&nbsp;a&nbsp;given&nbsp;<a href="#Atlas">Atlas</a>&nbsp;identifier.&nbsp;Returns&nbsp;None&nbsp;if&nbsp;there&nbsp;is&nbsp;no<br>
+Edge&nbsp;with&nbsp;the&nbsp;given&nbsp;identifier.<br>
+:param&nbsp;identifier:&nbsp;the&nbsp;identifier<br>
+:return:&nbsp;the&nbsp;Edge&nbsp;with&nbsp;this&nbsp;identifier,&nbsp;None&nbsp;if&nbsp;it&nbsp;does&nbsp;not&nbsp;exist</tt></dd></dl>
+
+<dl><dt><a name="Atlas-edges"><strong>edges</strong></a>(self, predicate<font color="#909090">=&lt;function &lt;lambda&gt;&gt;</font>)</dt><dd><tt>Get&nbsp;a&nbsp;generator&nbsp;for&nbsp;Edges&nbsp;in&nbsp;this&nbsp;<a href="#Atlas">Atlas</a>.&nbsp;Can&nbsp;optionally&nbsp;also&nbsp;accept&nbsp;a<br>
+predicate&nbsp;to&nbsp;filter&nbsp;the&nbsp;generated&nbsp;Edges.<br>
+:param&nbsp;predicate:&nbsp;a&nbsp;Edges&nbsp;filter&nbsp;predicate<br>
+:return:&nbsp;the&nbsp;Edge&nbsp;generator</tt></dd></dl>
+
 <dl><dt><a name="Atlas-get_metadata"><strong>get_metadata</strong></a>(self)</dt><dd><tt>Get&nbsp;the&nbsp;metadata&nbsp;associated&nbsp;with&nbsp;this&nbsp;<a href="#Atlas">Atlas</a>.&nbsp;See&nbsp;class&nbsp;AtlasMetaData<br>
 for&nbsp;more&nbsp;information.<br>
 :return:&nbsp;the&nbsp;metadata</tt></dd></dl>
