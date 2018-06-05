@@ -8,11 +8,11 @@ class AtlasTest(unittest.TestCase):
         pass
 
     def test_lazy_loading(self):
-        atlas = Atlas("unit_tests/test.atlas")
+        atlas = Atlas("resources/test.atlas")
         _touch_all_atlas_features(atlas)
 
     def test_upfront_loading(self):
-        atlas = Atlas("unit_tests/test.atlas", lazy_loading=False)
+        atlas = Atlas("resources/test.atlas", lazy_loading=False)
         _touch_all_atlas_features(atlas)
 
 

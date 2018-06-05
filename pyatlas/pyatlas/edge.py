@@ -110,8 +110,6 @@ class Edge:
     def get_master_edge(self):
         """
         Get the master for this Edge. Returns itself if this is the master Edge.
-        If this Edge is not the master, and its master Edge is not in this
-        Atlas, then return None.
         """
         if self.is_master_edge():
             return self
