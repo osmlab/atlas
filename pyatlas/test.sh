@@ -28,7 +28,6 @@ fi
 #################################################
 gradle_project_root_dir="$(pwd)"
 pyatlas_dir="pyatlas"
-pyatlas_srcdir="pyatlas"
 pyatlas_testdir="unit_tests"
 pyatlas_root_dir="$gradle_project_root_dir/$pyatlas_dir"
 venv_path="$pyatlas_root_dir/__pyatlas_venv__"
