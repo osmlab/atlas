@@ -46,7 +46,7 @@ fi
 #########################################################
 if [ -d "$venv_path" ];
 then
-    echo "INFO: $venv_path exists. './gradlew cleanPyatlas' to remove"
+    echo "INFO: $venv_path exists. Proceeding. Run './gradlew cleanPyatlas' to refresh."
     exit 0
 fi
 ####################################################################
