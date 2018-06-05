@@ -3,25 +3,32 @@ import identifier_conversion
 
 class AtlasEntity:
     """
-    A tagged, located entity in an Atlas.
+    A tagged, located entity in an Atlas. An AtlasEntity should not be
+    instantiated directly. Use one of the appropriate sub-classes.
     """
 
     def __init__(self):
+        """
+        AtlasEntity should not be instantiated directly.
+        """
         pass
 
     def get_identifier(self):
+        """
+        Get the Atlas identifier of this entity.
+        """
         raise NotImplementedError('subclass must implement')
 
     def get_tags(self):
+        """
+        Get this entity's tags as a dict.
+        """
         raise NotImplementedError('subclass must implement')
 
     def get_osm_identifier(self):
         """
-        Get the OSM identifier from the full Atlas identifier by removing the
-        country code and way sectioned identifiers.
-
-        Example:
-        Atlas ID: 222222001003 would return OSM ID: 222222
+        Convenience wrapper for the same function in the identifier_conversion
+        module.
         """
         atlas_id = self.get_identifier()
         return identifier_conversion.get_osm_identifier(atlas_id)
