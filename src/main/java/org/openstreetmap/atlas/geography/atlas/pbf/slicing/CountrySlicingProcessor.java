@@ -24,6 +24,7 @@ import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
+import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.osmosis.core.domain.v0_6.CommonEntityData;
@@ -864,7 +865,7 @@ public class CountrySlicingProcessor
         final List<Geometry> slices;
         try
         {
-            slices = this.boundaryMap.slice(way.getId(), geometry);
+            slices = this.boundaryMap.slice(way.getId(), geometry, Taggable.with(way.getTags()));
         }
         catch (final TopologyException e)
         {

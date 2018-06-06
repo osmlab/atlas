@@ -21,6 +21,7 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
+import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.test.TestUtility;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.threads.Pool;
@@ -226,6 +227,40 @@ public class CountryBoundaryMapTest
         Assert.assertEquals(pieces.get(1), reversedPieces.get(3).reverse());
         Assert.assertEquals(pieces.get(2), reversedPieces.get(2).reverse());
         Assert.assertEquals(pieces.get(3), reversedPieces.get(1).reverse());
+    }
+
+    @Test
+    public void testForceSlicing()
+    {
+        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
+                CountryBoundaryMapTest.class.getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
+                        .withDecompressor(Decompressor.GZIP));
+        Assert.assertFalse(map.hasGridIndex());
+        final Set<String> countries = new HashSet<>();
+        countries.add("HTI");
+        countries.add("DOM");
+        map.initializeGridIndex(countries);
+        // Crosses HTI only and falls in the international waters
+        final LineString lineString = (LineString) TestUtility.createJtsGeometryFromWKT(
+                "LINESTRING(-72.62310537054378 16.33562831580734,-73.54595693304378 18.890373956748753)");
+        // final LineString lineString = (LineString) TestUtility.createJtsGeometryFromWKT(
+        // "LINESTRING(-70.78838857366878 18.879979032234264,-72.29351552679378
+        // 18.96312034315942)");
+
+        final List<Geometry> sliced1 = map.slice(123, lineString);
+        map.setForceSlicingPredicate(taggable -> taggable.getTag("IShouldBeSliced").isPresent());
+        final List<Geometry> sliced2 = map.slice(123, lineString);
+        final List<Geometry> sliced3 = map.slice(123, lineString,
+                Taggable.with("IShouldBeSliced", "yes"));
+        final List<Geometry> sliced4 = map.slice(123, lineString,
+                Taggable.with("ShouldIBeSliced", "no"));
+
+        System.out.println(map.countryBoundary("DOM").get(0).getBoundary().toWkt());
+
+        Assert.assertEquals(1, sliced1.size());
+        Assert.assertEquals(1, sliced2.size());
+        Assert.assertEquals(2, sliced3.size());
+        Assert.assertEquals(1, sliced4.size());
     }
 
     @Test

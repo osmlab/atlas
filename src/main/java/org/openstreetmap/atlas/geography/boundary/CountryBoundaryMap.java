@@ -52,6 +52,7 @@ import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
+import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
@@ -156,7 +157,7 @@ public class CountryBoundaryMap implements Serializable
     private STRtree gridIndex;
 
     private boolean useExpandedPolygonLimit = false;
-
+    private transient Predicate<Taggable> forceSlicingPredicate = taggable -> false;
     private transient GeometryPrecisionReducer reducer;
     private final CountryListTwoWayStringConverter countryListConverter = new CountryListTwoWayStringConverter();
 
@@ -1089,6 +1090,11 @@ public class CountryBoundaryMap implements Serializable
         }
     }
 
+    public void setForceSlicingPredicate(final Predicate<Taggable> forceSlicingPredicate)
+    {
+        this.forceSlicingPredicate = forceSlicingPredicate;
+    }
+
     /**
      * @return the number of countries represented by this {@link CountryBoundaryMap}
      */
@@ -1105,6 +1111,9 @@ public class CountryBoundaryMap implements Serializable
      *            id of object being sliced.
      * @param geometry
      *            The object to be sliced.
+     * @param sources
+     *            An optional list of {@link Taggable} objects representing the tags of the sources
+     *            for that geometry
      * @return a list of geometry objects. If target doesn't cross any border then it contains only
      *         one item with country code assigned. If target cross border then slice it by the
      *         border line and assign country code for each piece. If a feature is not contained by
@@ -1112,8 +1121,8 @@ public class CountryBoundaryMap implements Serializable
      * @throws TopologyException
      *             When the slicing could not be made.
      */
-    public List<Geometry> slice(final long identifier, final Geometry geometry)
-            throws TopologyException
+    public List<Geometry> slice(final long identifier, final Geometry geometry,
+            final Taggable... sources) throws TopologyException
     {
         if (Objects.isNull(geometry))
         {
@@ -1125,8 +1134,10 @@ public class CountryBoundaryMap implements Serializable
         List<Polygon> candidates = this.query(target.getEnvelopeInternal());
 
         // Performance improvement, if only one polygon returned no need to do any further
-        // evaluation.
-        if (isSameCountry(candidates))
+        // evaluation (except when geometry has to be sliced at all costs)
+        if (isSameCountry(candidates)
+                && (sources == null || sources.length == 0 || this.forceSlicingPredicate == null
+                        || !this.forceSlicingPredicate.test(sources[0])))
         {
             final String countryCode = getGeometryProperty(candidates.get(0), ISOCountryTag.KEY);
             setGeometryProperty(target, ISOCountryTag.KEY, countryCode);
