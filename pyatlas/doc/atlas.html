@@ -10,7 +10,7 @@
 <font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>atlas</strong></big></big></font></td
 ><td align=right valign=bottom
 ><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/Users/lucascram/Projects/atlas/pyatlas/pyatlas/atlas.py">/Users/lucascram/Projects/atlas/pyatlas/pyatlas/atlas.py</a></font></td></tr></table>
-    <p><tt>The&nbsp;<a href="#Atlas">Atlas</a>&nbsp;class&nbsp;definition</tt></p>
+    <p><tt>The&nbsp;pyatlas&nbsp;<a href="#Atlas">Atlas</a>&nbsp;implementation</tt></p>
 <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
@@ -36,41 +36,40 @@ These&nbsp;ZIP&nbsp;entry&nbsp;names&nbsp;come&nbsp;from&nbsp;from&nbsp;the&nbsp
 <td width="100%">Methods defined here:<br>
 <dl><dt><a name="Atlas-__init__"><strong>__init__</strong></a>(self, atlas_file, lazy_loading<font color="#909090">=True</font>)</dt></dl>
 
+<dl><dt><a name="Atlas-area"><strong>area</strong></a>(self, identifier)</dt><dd><tt>Get&nbsp;a&nbsp;Area&nbsp;with&nbsp;a&nbsp;given&nbsp;<a href="#Atlas">Atlas</a>&nbsp;identifier.&nbsp;Returns&nbsp;None&nbsp;if&nbsp;there&nbsp;is&nbsp;no<br>
+Area&nbsp;with&nbsp;the&nbsp;given&nbsp;identifier.</tt></dd></dl>
+
+<dl><dt><a name="Atlas-areas"><strong>areas</strong></a>(self, predicate<font color="#909090">=&lt;function &lt;lambda&gt;&gt;</font>)</dt><dd><tt>Get&nbsp;a&nbsp;generator&nbsp;for&nbsp;Areas&nbsp;in&nbsp;this&nbsp;<a href="#Atlas">Atlas</a>.&nbsp;Can&nbsp;optionally&nbsp;also&nbsp;accept&nbsp;a<br>
+predicate&nbsp;to&nbsp;filter&nbsp;the&nbsp;generated&nbsp;Areas.</tt></dd></dl>
+
 <dl><dt><a name="Atlas-edge"><strong>edge</strong></a>(self, identifier)</dt><dd><tt>Get&nbsp;an&nbsp;Edge&nbsp;with&nbsp;a&nbsp;given&nbsp;<a href="#Atlas">Atlas</a>&nbsp;identifier.&nbsp;Returns&nbsp;None&nbsp;if&nbsp;there&nbsp;is&nbsp;no<br>
-Edge&nbsp;with&nbsp;the&nbsp;given&nbsp;identifier.<br>
-:param&nbsp;identifier:&nbsp;the&nbsp;identifier<br>
-:return:&nbsp;the&nbsp;Edge&nbsp;with&nbsp;this&nbsp;identifier,&nbsp;None&nbsp;if&nbsp;it&nbsp;does&nbsp;not&nbsp;exist</tt></dd></dl>
+Edge&nbsp;with&nbsp;the&nbsp;given&nbsp;identifier.</tt></dd></dl>
 
 <dl><dt><a name="Atlas-edges"><strong>edges</strong></a>(self, predicate<font color="#909090">=&lt;function &lt;lambda&gt;&gt;</font>)</dt><dd><tt>Get&nbsp;a&nbsp;generator&nbsp;for&nbsp;Edges&nbsp;in&nbsp;this&nbsp;<a href="#Atlas">Atlas</a>.&nbsp;Can&nbsp;optionally&nbsp;also&nbsp;accept&nbsp;a<br>
-predicate&nbsp;to&nbsp;filter&nbsp;the&nbsp;generated&nbsp;Edges.<br>
-:param&nbsp;predicate:&nbsp;a&nbsp;Edges&nbsp;filter&nbsp;predicate<br>
-:return:&nbsp;the&nbsp;Edge&nbsp;generator</tt></dd></dl>
+predicate&nbsp;to&nbsp;filter&nbsp;the&nbsp;generated&nbsp;Edges.</tt></dd></dl>
 
 <dl><dt><a name="Atlas-get_metadata"><strong>get_metadata</strong></a>(self)</dt><dd><tt>Get&nbsp;the&nbsp;metadata&nbsp;associated&nbsp;with&nbsp;this&nbsp;<a href="#Atlas">Atlas</a>.&nbsp;See&nbsp;class&nbsp;AtlasMetaData<br>
-for&nbsp;more&nbsp;information.<br>
-:return:&nbsp;the&nbsp;metadata</tt></dd></dl>
+for&nbsp;more&nbsp;information&nbsp;on&nbsp;the&nbsp;metadata&nbsp;format.</tt></dd></dl>
+
+<dl><dt><a name="Atlas-line"><strong>line</strong></a>(self, identifier)</dt><dd><tt>Get&nbsp;a&nbsp;Line&nbsp;with&nbsp;a&nbsp;given&nbsp;<a href="#Atlas">Atlas</a>&nbsp;identifier.&nbsp;Returns&nbsp;None&nbsp;if&nbsp;there&nbsp;is&nbsp;no<br>
+Line&nbsp;with&nbsp;the&nbsp;given&nbsp;identifier.</tt></dd></dl>
+
+<dl><dt><a name="Atlas-lines"><strong>lines</strong></a>(self, predicate<font color="#909090">=&lt;function &lt;lambda&gt;&gt;</font>)</dt><dd><tt>Get&nbsp;a&nbsp;generator&nbsp;for&nbsp;Lines&nbsp;in&nbsp;this&nbsp;<a href="#Atlas">Atlas</a>.&nbsp;Can&nbsp;optionally&nbsp;also&nbsp;accept&nbsp;a<br>
+predicate&nbsp;to&nbsp;filter&nbsp;the&nbsp;generated&nbsp;Lines.</tt></dd></dl>
 
 <dl><dt><a name="Atlas-load_all_fields"><strong>load_all_fields</strong></a>(self)</dt><dd><tt>Force&nbsp;this&nbsp;<a href="#Atlas">Atlas</a>&nbsp;to&nbsp;load&nbsp;all&nbsp;its&nbsp;fields&nbsp;from&nbsp;its&nbsp;backing&nbsp;store.</tt></dd></dl>
 
 <dl><dt><a name="Atlas-node"><strong>node</strong></a>(self, identifier)</dt><dd><tt>Get&nbsp;a&nbsp;Node&nbsp;with&nbsp;a&nbsp;given&nbsp;<a href="#Atlas">Atlas</a>&nbsp;identifier.&nbsp;Returns&nbsp;None&nbsp;if&nbsp;there&nbsp;is&nbsp;no<br>
-Node&nbsp;with&nbsp;the&nbsp;given&nbsp;identifier.<br>
-:param&nbsp;identifier:&nbsp;the&nbsp;identifier<br>
-:return:&nbsp;the&nbsp;Node&nbsp;with&nbsp;this&nbsp;identifier,&nbsp;None&nbsp;if&nbsp;it&nbsp;does&nbsp;not&nbsp;exist</tt></dd></dl>
+Node&nbsp;with&nbsp;the&nbsp;given&nbsp;identifier.</tt></dd></dl>
 
 <dl><dt><a name="Atlas-nodes"><strong>nodes</strong></a>(self, predicate<font color="#909090">=&lt;function &lt;lambda&gt;&gt;</font>)</dt><dd><tt>Get&nbsp;a&nbsp;generator&nbsp;for&nbsp;Nodes&nbsp;in&nbsp;this&nbsp;<a href="#Atlas">Atlas</a>.&nbsp;Can&nbsp;optionally&nbsp;also&nbsp;accept&nbsp;a<br>
-predicate&nbsp;to&nbsp;filter&nbsp;the&nbsp;generated&nbsp;Nodes.<br>
-:param&nbsp;predicate:&nbsp;a&nbsp;Node&nbsp;filter&nbsp;predicate<br>
-:return:&nbsp;the&nbsp;Node&nbsp;generator</tt></dd></dl>
+predicate&nbsp;to&nbsp;filter&nbsp;the&nbsp;generated&nbsp;Nodes.</tt></dd></dl>
 
 <dl><dt><a name="Atlas-point"><strong>point</strong></a>(self, identifier)</dt><dd><tt>Get&nbsp;a&nbsp;Point&nbsp;with&nbsp;a&nbsp;given&nbsp;<a href="#Atlas">Atlas</a>&nbsp;identifier.&nbsp;Returns&nbsp;None&nbsp;if&nbsp;there&nbsp;is&nbsp;no<br>
-Point&nbsp;with&nbsp;the&nbsp;given&nbsp;identifier.<br>
-:param&nbsp;identifier:&nbsp;the&nbsp;identifier<br>
-:return:&nbsp;the&nbsp;point&nbsp;with&nbsp;this&nbsp;identifier,&nbsp;None&nbsp;if&nbsp;it&nbsp;does&nbsp;not&nbsp;exist</tt></dd></dl>
+Point&nbsp;with&nbsp;the&nbsp;given&nbsp;identifier.</tt></dd></dl>
 
 <dl><dt><a name="Atlas-points"><strong>points</strong></a>(self, predicate<font color="#909090">=&lt;function &lt;lambda&gt;&gt;</font>)</dt><dd><tt>Get&nbsp;a&nbsp;generator&nbsp;for&nbsp;Points&nbsp;in&nbsp;this&nbsp;<a href="#Atlas">Atlas</a>.&nbsp;Can&nbsp;optionally&nbsp;also&nbsp;accept&nbsp;a<br>
-predicate&nbsp;to&nbsp;filter&nbsp;the&nbsp;generated&nbsp;Points.<br>
-:param&nbsp;predicate:&nbsp;a&nbsp;Point&nbsp;filter&nbsp;predicate<br>
-:return:&nbsp;the&nbsp;Point&nbsp;generator</tt></dd></dl>
+predicate&nbsp;to&nbsp;filter&nbsp;the&nbsp;generated&nbsp;Points.</tt></dd></dl>
 
 </td></tr></table></td></tr></table>
 </body></html>

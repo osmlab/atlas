@@ -29,22 +29,21 @@ class Line(atlas_entity.AtlasEntity):
         """
         Get the Atlas identifier of this Line.
         """
-        # TODO implement
-        raise NotImplementedError
+        return self.get_parent_atlas()._get_lineIdentifiers().elements[
+            self.index]
 
     def as_polyline(self):
         """
-        Get the PolyLine geometry of this Edge.
+        Get the PolyLine geometry of this Line.
         """
-        # TODO implement
-        raise NotImplementedError
+        return self.get_parent_atlas()._get_linePolyLines()[self.index]
 
     def get_tags(self):
         """
         Get a dictionary of this Line's tags.
         """
-        # TODO implement
-        raise NotImplementedError
+        line_tag_store = self.get_parent_atlas()._get_lineTags()
+        return line_tag_store.to_key_value_dict(self.index)
 
     def get_relations(self):
         """

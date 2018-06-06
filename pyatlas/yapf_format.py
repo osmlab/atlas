@@ -34,7 +34,7 @@ def main(argv):
 
     if mode == 'CHECK' and violation_detected:
         exit(1)
-    elif mode == 'APPLY' and not violation_detected:
+    elif not violation_detected:
         print str(argv[0]) + " INFO: all formatting for targets in " + str(argv[1]) + " OK!"
 
 def detect_formatting_violation(filepath):

@@ -9,6 +9,7 @@ import autogen.ProtoIntegerStringDictionary_pb2
 import autogen.ProtoPackedTagStore_pb2
 import autogen.ProtoLongToLongMap_pb2
 import autogen.ProtoPolyLineArray_pb2
+import autogen.ProtoPolygonArray_pb2
 import atlas_metadata
 import integer_dictionary
 import packed_tag_store
@@ -25,6 +26,16 @@ class AtlasSerializer:
     _FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX = 'pointIdentifierToPointArrayIndex'
     _FIELD_POINT_LOCATIONS = 'pointLocations'
     _FIELD_POINT_TAGS = 'pointTags'
+
+    _FIELD_LINE_IDENTIFIERS = 'lineIdentifiers'
+    _FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX = 'lineIdentifierToLineArrayIndex'
+    _FIELD_LINE_POLYLINES = 'linePolyLines'
+    _FIELD_LINE_TAGS = 'lineTags'
+
+    _FIELD_AREA_IDENTIFIERS = 'areaIdentifiers'
+    _FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX = 'areaIdentifierToAreaArrayIndex'
+    _FIELD_AREA_POLYGONS = 'areaPolygons'
+    _FIELD_AREA_TAGS = 'areaTags'
 
     _FIELD_NODE_IDENTIFIERS = 'nodeIdentifiers'
     _FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX = 'nodeIdentifierToNodeArrayIndex'
@@ -55,6 +66,24 @@ class AtlasSerializer:
         'load_point_locations',
         _FIELD_POINT_TAGS:
         'load_point_tags',
+
+        _FIELD_LINE_IDENTIFIERS:
+        'load_line_identifiers',
+        _FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX:
+        'load_line_identifier_to_line_array_index',
+        _FIELD_LINE_POLYLINES:
+        'load_line_polylines',
+        _FIELD_LINE_TAGS:
+        'load_line_tags',
+
+        _FIELD_AREA_IDENTIFIERS:
+        'load_area_identifiers',
+        _FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX:
+        'load_area_identifier_to_area_array_index',
+        _FIELD_AREA_POLYGONS:
+        'load_area_polygons',
+        _FIELD_AREA_TAGS:
+        'load_area_tags',
 
         _FIELD_NODE_IDENTIFIERS:
         'load_node_identifiers',
@@ -138,6 +167,74 @@ class AtlasSerializer:
         proto_point_tags.ParseFromString(zip_entry_data)
         self.atlas.pointTags = packed_tag_store.get_packed_tag_store_from_proto(
             proto_point_tags)
+
+    def load_line_identifiers(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_LINE_IDENTIFIERS)
+        self.atlas.lineIdentifiers = autogen.ProtoLongArray_pb2.ProtoLongArray(
+        )
+        self.atlas.lineIdentifiers.ParseFromString(zip_entry_data)
+
+    def load_line_identifier_to_line_array_index(self):
+        zip_entry_data = _read_zipentry(
+            self.atlas_file, self._FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX)
+        proto_map = autogen.ProtoLongToLongMap_pb2.ProtoLongToLongMap()
+        proto_map.ParseFromString(zip_entry_data)
+
+        self.atlas.lineIdentifierToLineArrayIndex = _convert_protolongtolongmap(
+            proto_map)
+
+    def load_line_polylines(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_LINE_POLYLINES)
+        proto_array = autogen.ProtoPolyLineArray_pb2.ProtoPolyLineArray()
+        proto_array.ParseFromString(zip_entry_data)
+        result = []
+        for encoding in proto_array.encodings:
+            poly_line = polyline.decompress_polyline(encoding)
+            result.append(poly_line)
+        self.atlas.linePolyLines = result
+
+    def load_line_tags(self):
+        zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_LINE_TAGS)
+        proto_line_tags = autogen.ProtoPackedTagStore_pb2.ProtoPackedTagStore()
+        proto_line_tags.ParseFromString(zip_entry_data)
+        self.atlas.lineTags = packed_tag_store.get_packed_tag_store_from_proto(
+            proto_line_tags)
+
+    def load_area_identifiers(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_AREA_IDENTIFIERS)
+        self.atlas.areaIdentifiers = autogen.ProtoLongArray_pb2.ProtoLongArray(
+        )
+        self.atlas.areaIdentifiers.ParseFromString(zip_entry_data)
+
+    def load_area_identifier_to_area_array_index(self):
+        zip_entry_data = _read_zipentry(
+            self.atlas_file, self._FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX)
+        proto_map = autogen.ProtoLongToLongMap_pb2.ProtoLongToLongMap()
+        proto_map.ParseFromString(zip_entry_data)
+
+        self.atlas.areaIdentifierToAreaArrayIndex = _convert_protolongtolongmap(
+            proto_map)
+
+    def load_area_polygons(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_AREA_POLYGONS)
+        proto_array = autogen.ProtoPolygonArray_pb2.ProtoPolygonArray()
+        proto_array.ParseFromString(zip_entry_data)
+        result = []
+        for encoding in proto_array.encodings:
+            poly_line = polyline.decompress_polyline(encoding)
+            result.append(poly_line)
+        self.atlas.areaPolygons = result
+
+    def load_area_tags(self):
+        zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_AREA_TAGS)
+        proto_area_tags = autogen.ProtoPackedTagStore_pb2.ProtoPackedTagStore()
+        proto_area_tags.ParseFromString(zip_entry_data)
+        self.atlas.areaTags = packed_tag_store.get_packed_tag_store_from_proto(
+            proto_area_tags)
 
     def load_node_identifiers(self):
         zip_entry_data = _read_zipentry(self.atlas_file,

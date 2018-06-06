@@ -20,6 +20,12 @@ def _touch_all_atlas_features(atlas):
     for point in atlas.points():
         string = point.__str__()
 
+    for line in atlas.lines():
+        string = line.__str__()
+
+    for area in atlas.areas():
+        string = area.__str__()
+
     for node in atlas.nodes():
         string = node.__str__()
 

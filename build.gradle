@@ -228,6 +228,7 @@ task checkFormatPyatlas(type: Exec) {
 }
 
 task applyFormatPyatlas(type: Exec) {
+    dependsOn 'createVenvPyatlas'
     commandLine './pyatlas/format.sh'
     args 'ranFromGradle'
     args 'APPLY'
