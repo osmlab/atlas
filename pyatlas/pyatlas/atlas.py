@@ -185,7 +185,8 @@ class Atlas(object):
         Get a Relation with a given Atlas identifier. Returns None if there is no
         Relation with the given identifier.
         """
-        identifier_to_index = self._get_relationIdentifierToRelationArrayIndex()
+        identifier_to_index = self._get_relationIdentifierToRelationArrayIndex(
+        )
         if identifier in identifier_to_index:
             return Relation(self, identifier_to_index[identifier])
         return None
@@ -317,7 +318,7 @@ class Atlas(object):
                 self.serializer._FIELD_EDGE_IDENTIFIERS)
         return self.edgeIdentifiers
 
-    def _get_edgeIdentifierToNodeArrayIndex(self):
+    def _get_edgeIdentifierToEdgeArrayIndex(self):
         if self.edgeIdentifierToEdgeArrayIndex is None:
             self.serializer._load_field(
                 self.serializer._FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX)
