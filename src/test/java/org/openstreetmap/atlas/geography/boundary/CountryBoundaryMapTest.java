@@ -240,12 +240,9 @@ public class CountryBoundaryMapTest
         countries.add("HTI");
         countries.add("DOM");
         map.initializeGridIndex(countries);
-        // Crosses HTI only and falls in the international waters
+        // Crosses HTI only and falls in the international waters on both sides
         final LineString lineString = (LineString) TestUtility.createJtsGeometryFromWKT(
                 "LINESTRING(-72.62310537054378 16.33562831580734,-73.54595693304378 18.890373956748753)");
-        // final LineString lineString = (LineString) TestUtility.createJtsGeometryFromWKT(
-        // "LINESTRING(-70.78838857366878 18.879979032234264,-72.29351552679378
-        // 18.96312034315942)");
 
         final List<Geometry> sliced1 = map.slice(123, lineString);
         map.setForceSlicingPredicate(taggable -> taggable.getTag("IShouldBeSliced").isPresent());
@@ -257,7 +254,7 @@ public class CountryBoundaryMapTest
 
         Assert.assertEquals(1, sliced1.size());
         Assert.assertEquals(1, sliced2.size());
-        Assert.assertEquals(2, sliced3.size());
+        Assert.assertEquals(3, sliced3.size());
         Assert.assertEquals(1, sliced4.size());
     }
 
