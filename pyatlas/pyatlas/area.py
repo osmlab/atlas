@@ -3,19 +3,19 @@ import atlas_entity
 
 class Area(atlas_entity.AtlasEntity):
     """
-    An Atlas Area.
+    An Atlas Area. Effectively a Polygon with some tags.
     """
 
     def __init__(self, parent_atlas, index):
         """
         Constuct a new Area. This should not be called directly.
         """
-        self.parent_atlas = parent_atlas
+        super(Area, self).__init__(parent_atlas)
         self.index = index
 
     def __str__(self):
         """
-        Transform this Area into its string representation.
+        Get a string representation of this Area.
         """
         result = '[ '
         result += 'Area: id=' + str(self.get_identifier())
@@ -50,9 +50,3 @@ class Area(atlas_entity.AtlasEntity):
         """
         # TODO implement
         raise NotImplementedError
-
-    def get_parent_atlas(self):
-        """
-        Get the Atlas that contains this Area.
-        """
-        return self.parent_atlas

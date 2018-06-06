@@ -3,19 +3,19 @@ import atlas_entity
 
 class Line(atlas_entity.AtlasEntity):
     """
-    An Atlas Line.
+    An Atlas Line. Effectively a PolyLine with some tags.
     """
 
     def __init__(self, parent_atlas, index):
         """
         Constuct a new Line. This should not be called directly.
         """
-        self.parent_atlas = parent_atlas
+        super(Line, self).__init__(parent_atlas)
         self.index = index
 
     def __str__(self):
         """
-        Transform this Line into its string representation.
+        Get a string representation of this Line.
         """
         result = '[ '
         result += 'Line: id=' + str(self.get_identifier())
@@ -50,9 +50,3 @@ class Line(atlas_entity.AtlasEntity):
         """
         # TODO implement
         raise NotImplementedError
-
-    def get_parent_atlas(self):
-        """
-        Get the Atlas that contains this Line.
-        """
-        return self.parent_atlas

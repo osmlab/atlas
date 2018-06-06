@@ -29,6 +29,7 @@ fi
 gradle_project_root_dir="$(pwd)"
 pyatlas_dir="pyatlas"
 pyatlas_srcdir="pyatlas"
+pyatlas_testdir="unit_tests"
 pyatlas_root_dir="$gradle_project_root_dir/$pyatlas_dir"
 venv_path="$pyatlas_root_dir/__pyatlas_venv__"
 protoc_path="$pyatlas_root_dir/protoc"
@@ -46,6 +47,7 @@ fi
 
 ### clean up the build artifacts ###
 ####################################
+echo "Cleaning build artifacts if present..."
 rm -rf "$pyatlas_root_dir/build"
 rm -rf "$pyatlas_root_dir/dist"
 rm -rf "$pyatlas_root_dir/pyatlas.egg-info"
@@ -54,4 +56,6 @@ rm -f "$protoc_path"
 # use 'find' to handle case where filenames contain spaces
 find "$pyatlas_root_dir/$pyatlas_srcdir/autogen" -type f -name "*_pb2.py" -delete
 find "$pyatlas_root_dir/$pyatlas_srcdir" -type f -name "*.pyc" -delete
+find "$pyatlas_root_dir/$pyatlas_srcdir/autogen" -type f -name "*.pyc" -delete
+find "$pyatlas_root_dir/$pyatlas_testdir" -type f -name "*.pyc" -delete
 #################################################################

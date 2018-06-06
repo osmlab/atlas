@@ -13,12 +13,12 @@ class Edge(atlas_entity.AtlasEntity):
         """
         Constuct a new Edge. This should not be called directly.
         """
-        self.parent_atlas = parent_atlas
+        super(Edge, self).__init__(parent_atlas)
         self.index = index
 
     def __str__(self):
         """
-        Transform this Edge into its string representation.
+        Get a string representation of this Edge.
         """
         result = '[ '
         result += 'Edge: id=' + str(self.get_identifier())
@@ -121,10 +121,3 @@ class Edge(atlas_entity.AtlasEntity):
         Checks if this Edge is a master edge.
         """
         return self.get_identifier() > 0
-
-    def get_parent_atlas(self):
-        """
-        Get the Atlas that contains this Edge.
-        :return: the parent atlas
-        """
-        return self.parent_atlas

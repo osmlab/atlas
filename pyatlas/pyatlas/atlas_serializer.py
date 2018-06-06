@@ -6,6 +6,7 @@ import autogen.ProtoLongArrayOfArrays_pb2
 import autogen.ProtoIntegerStringDictionary_pb2
 import autogen.ProtoPackedTagStore_pb2
 import autogen.ProtoLongToLongMap_pb2
+import autogen.ProtoLongToLongMultiMap_pb2
 import autogen.ProtoPolyLineArray_pb2
 import autogen.ProtoPolygonArray_pb2
 import atlas_metadata
@@ -27,6 +28,7 @@ class AtlasSerializer(object):
     _FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX = 'pointIdentifierToPointArrayIndex'
     _FIELD_POINT_LOCATIONS = 'pointLocations'
     _FIELD_POINT_TAGS = 'pointTags'
+    _FIELD_POINT_INDEX_TO_RELATION_INDICES = 'pointIndexToRelationIndices'
 
     _FIELD_LINE_IDENTIFIERS = 'lineIdentifiers'
     _FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX = 'lineIdentifierToLineArrayIndex'
@@ -52,6 +54,9 @@ class AtlasSerializer(object):
     _FIELD_EDGE_POLYLINES = 'edgePolyLines'
     _FIELD_EDGE_TAGS = 'edgeTags'
 
+    _FIELD_RELATION_IDENTIFIERS = 'relationIdentifiers'
+    _FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX = 'relationIdentifierToRelationArrayIndex'
+
     # yapf: disable
     _FIELD_NAMES_TO_LOAD_METHODS = {
         _FIELD_METADATA:
@@ -67,6 +72,8 @@ class AtlasSerializer(object):
         '_load_point_locations',
         _FIELD_POINT_TAGS:
         '_load_point_tags',
+        _FIELD_POINT_INDEX_TO_RELATION_INDICES:
+        '_load_point_index_to_relation_indices',
 
         _FIELD_LINE_IDENTIFIERS:
         '_load_line_identifiers',
@@ -110,7 +117,12 @@ class AtlasSerializer(object):
         _FIELD_EDGE_POLYLINES:
         '_load_edge_polylines',
         _FIELD_EDGE_TAGS:
-        '_load_edge_tags'
+        '_load_edge_tags',
+
+        _FIELD_RELATION_IDENTIFIERS:
+        '_load_relation_identifiers',
+        _FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX:
+        '_load_relation_identifier_to_relation_array_index'
     }
     # yapf: enable
 
@@ -150,7 +162,6 @@ class AtlasSerializer(object):
             self.atlas_file, self._FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX)
         proto_map = autogen.ProtoLongToLongMap_pb2.ProtoLongToLongMap()
         proto_map.ParseFromString(zip_entry_data)
-
         self.atlas.pointIdentifierToPointArrayIndex = _convert_protolongtolongmap(
             proto_map)
 
@@ -169,6 +180,15 @@ class AtlasSerializer(object):
         self.atlas.pointTags = packed_tag_store.get_packed_tag_store_from_proto(
             proto_point_tags)
 
+    def _load_point_index_to_relation_indices(self):
+        zip_entry_data = _read_zipentry(
+            self.atlas_file, self._FIELD_POINT_INDEX_TO_RELATION_INDICES)
+        proto_multimap = autogen.ProtoLongToLongMultiMap_pb2.ProtoLongToLongMultiMap(
+        )
+        proto_multimap.ParseFromString(zip_entry_data)
+        self.atlas.pointIndexToRelationIndices = _convert_protolongtolongmultimap(
+            proto_multimap)
+
     def _load_line_identifiers(self):
         zip_entry_data = _read_zipentry(self.atlas_file,
                                         self._FIELD_LINE_IDENTIFIERS)
@@ -181,7 +201,6 @@ class AtlasSerializer(object):
             self.atlas_file, self._FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX)
         proto_map = autogen.ProtoLongToLongMap_pb2.ProtoLongToLongMap()
         proto_map.ParseFromString(zip_entry_data)
-
         self.atlas.lineIdentifierToLineArrayIndex = _convert_protolongtolongmap(
             proto_map)
 
@@ -215,7 +234,6 @@ class AtlasSerializer(object):
             self.atlas_file, self._FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX)
         proto_map = autogen.ProtoLongToLongMap_pb2.ProtoLongToLongMap()
         proto_map.ParseFromString(zip_entry_data)
-
         self.atlas.areaIdentifierToAreaArrayIndex = _convert_protolongtolongmap(
             proto_map)
 
@@ -249,7 +267,6 @@ class AtlasSerializer(object):
             self.atlas_file, self._FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX)
         proto_map = autogen.ProtoLongToLongMap_pb2.ProtoLongToLongMap()
         proto_map.ParseFromString(zip_entry_data)
-
         self.atlas.nodeIdentifierToNodeArrayIndex = _convert_protolongtolongmap(
             proto_map)
 
@@ -278,7 +295,6 @@ class AtlasSerializer(object):
             self.atlas_file, self._FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX)
         proto_map = autogen.ProtoLongToLongMap_pb2.ProtoLongToLongMap()
         proto_map.ParseFromString(zip_entry_data)
-
         self.atlas.edgeIdentifierToEdgeArrayIndex = _convert_protolongtolongmap(
             proto_map)
 
@@ -328,6 +344,22 @@ class AtlasSerializer(object):
         self.atlas.edgeTags = packed_tag_store.get_packed_tag_store_from_proto(
             proto_edge_tags)
 
+    def _load_relation_identifiers(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_RELATION_IDENTIFIERS)
+        self.atlas.relationIdentifiers = autogen.ProtoLongArray_pb2.ProtoLongArray(
+        )
+        self.atlas.relationIdentifiers.ParseFromString(zip_entry_data)
+
+    def _load_relation_identifier_to_relation_array_index(self):
+        zip_entry_data = _read_zipentry(
+            self.atlas_file,
+            self._FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX)
+        proto_map = autogen.ProtoLongToLongMap_pb2.ProtoLongToLongMap()
+        proto_map.ParseFromString(zip_entry_data)
+        self.atlas.relationIdentifierToRelationArrayIndex = _convert_protolongtolongmap(
+            proto_map)
+
     def _load_field(self, field_name):
         if field_name not in self._FIELD_NAMES_TO_LOAD_METHODS:
             raise KeyError('unrecognized field {}'.format(field_name))
@@ -338,15 +370,31 @@ class AtlasSerializer(object):
         load_method_to_call()
 
 
-def _read_zipentry(protofile, entry):
-    with zipfile.ZipFile(protofile, 'r') as myzip:
+def _read_zipentry(zip_file, entry):
+    # read a zip entry named 'entry' from a given 'zip_file'
+    with zipfile.ZipFile(zip_file, 'r') as myzip:
         return myzip.read(entry)
 
 
 def _convert_protolongtolongmap(proto_map):
+    # convert the ProtoLongToLongMap_pb2 type to a simple dict
     if len(proto_map.keys.elements) != len(proto_map.values.elements):
         raise ValueError('array length mismatch')
     new_dict = {}
     for key, value in zip(proto_map.keys.elements, proto_map.values.elements):
         new_dict[key] = value
+    return new_dict
+
+
+def _convert_protolongtolongmultimap(proto_map):
+    # convert the ProtoLongToLongMultiMap_pb2 type to a simple dict
+    if len(proto_map.keys.elements) != len(proto_map.values):
+        raise ValueError('array length mismatch')
+    new_dict = {}
+    for key, array_value in zip(proto_map.keys.elements, proto_map.values):
+        value_list = []
+        for value in array_value.elements:
+            value_list.append(value)
+        new_dict[key] = value_list
+
     return new_dict

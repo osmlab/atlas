@@ -36,7 +36,7 @@ class PolyLine(object):
 
     def __str__(self):
         """
-        Convert this PolyLine to its string representation.
+        Get a string representation of this PolyLine.
         """
         result = "["
         for point in self.points():
@@ -58,7 +58,10 @@ class PolyLine(object):
 
     def compress(self):
         """
-        Transform a PolyLine into its compressed representation.
+        Transform this PolyLine into its compressed representation. The
+        compression is based on the MapQuestion compressed lat/lon encoding
+        found here:
+        https://developer.mapquest.com/documentation/common/encode-decode/
         """
         old_latitude = 0
         old_longitude = 0
@@ -111,8 +114,8 @@ class Polygon(PolyLine):
 
     def __str__(self):
         """
-        Convert this Polygon to its string representation. Will display the
-        first Location repeated as the last Location to simulate closedness.
+        Get a string representation of this Polygon. Include the first Location
+        repeated as the last Location to simulate closedness.
         """
         result = "["
         for point in self.closed_loop():
@@ -130,7 +133,26 @@ class Polygon(PolyLine):
         yield self.points_list[0]
 
 
+def decompress_polygon(bytestring):
+    """
+    Given a PolyLine bytestring compressed using PolyLine.compress(),
+    decompress it and return it as a Polygon.
+    """
+    locations = _decompress_bytestring(bytestring)
+    return Polygon(locations)
+
+
+def decompress_polyline(bytestring):
+    """
+    Given a PolyLine bytestring compressed using PolyLine.compress(),
+    decompress it and return it as a PolyLine.
+    """
+    locations = _decompress_bytestring(bytestring)
+    return PolyLine(locations)
+
+
 def _encode_number(number):
+    # encode a number as a unicode character
     number = number << 1
     if number < 0:
         number = ~number
@@ -144,23 +166,8 @@ def _encode_number(number):
     return encoded
 
 
-def decompress_polygon(bytestring):
-    """
-    Given a compressed bytestring, decompress it and return it as a Polygon.
-    """
-    locations = _decompress_bytestring(bytestring)
-    return Polygon(locations)
-
-
-def decompress_polyline(bytestring):
-    """
-    Given a compressed bytestring, decompress it and return it as a PolyLine.
-    """
-    locations = _decompress_bytestring(bytestring)
-    return PolyLine(locations)
-
-
 def _decompress_bytestring(bytestring):
+    # reverse the compression algorithm in PolyLine.compress()
     precision = pow(10, -1 * _PRECISION)
     length = len(bytestring)
     index = 0

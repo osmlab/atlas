@@ -5,32 +5,33 @@ import edge
 
 class Node(atlas_entity.AtlasEntity):
     """
-    An Atlas Node.
+    An Atlas Node. A Node is like a Point, except it is part of a navigable
+    structure. It supports the notion of incoming and outgoing edges.
     """
 
     def __init__(self, parent_atlas, index):
         """
         Constuct a new Node. This should not be called directly.
         """
-        self.parent_atlas = parent_atlas
+        super(Node, self).__init__(parent_atlas)
         self.index = index
 
     def __str__(self):
         """
-        Transform this Node into its string representation.
+        Get a string representation of this Node.
         """
         result = '[ '
         result += 'Node: id=' + str(self.get_identifier())
         result += ', location_latlon=' + str(self.get_location())
 
         string = ""
-        for edge in self.in_edges():
-            string += str(edge.get_identifier()) + ', '
+        for edge0 in self.in_edges():
+            string += str(edge0.get_identifier()) + ', '
         result += ', inEdges=[' + string + ']'
 
         string = ""
-        for edge in self.out_edges():
-            string += str(edge.get_identifier()) + ', '
+        for edge0 in self.out_edges():
+            string += str(edge0.get_identifier()) + ', '
         result += ', outEdges=[' + string + ']'
 
         result += ', tags=' + str(self.get_tags())
@@ -102,9 +103,3 @@ class Node(atlas_entity.AtlasEntity):
         """
         # TODO implement
         raise NotImplementedError
-
-    def get_parent_atlas(self):
-        """
-        Get the Atlas that contains this Node.
-        """
-        return self.parent_atlas

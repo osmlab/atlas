@@ -32,6 +32,9 @@ class Location(object):
         self.longitude = longitude
 
     def __str__(self):
+        """
+        Get a string representation of this Location.
+        """
         return "[" + str(self.latitude) + "," + str(self.longitude) + "]"
 
     def __eq__(self, other):

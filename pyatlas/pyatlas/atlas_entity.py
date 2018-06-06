@@ -7,11 +7,11 @@ class AtlasEntity(object):
     instantiated directly. Use one of the appropriate sub-classes.
     """
 
-    def __init__(self):
+    def __init__(self, parent_atlas):
         """
         AtlasEntity should not be instantiated directly.
         """
-        pass
+        self.parent_atlas = parent_atlas
 
     def get_identifier(self):
         """
@@ -32,3 +32,9 @@ class AtlasEntity(object):
         """
         atlas_id = self.get_identifier()
         return identifier_conversion.get_osm_identifier(atlas_id)
+
+    def get_parent_atlas(self):
+        """
+        Get the Atlas that contains this AtlasEntity.
+        """
+        return self.parent_atlas

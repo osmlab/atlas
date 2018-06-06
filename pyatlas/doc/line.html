@@ -41,7 +41,7 @@
 <font color="#000000" face="helvetica, arial"><a name="Line">class <strong>Line</strong></a>(<a href="atlas_entity.html#AtlasEntity">atlas_entity.AtlasEntity</a>)</font></td></tr>
     
 <tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
-<td colspan=2><tt>An&nbsp;Atlas&nbsp;<a href="#Line">Line</a>.<br>&nbsp;</tt></td></tr>
+<td colspan=2><tt>An&nbsp;Atlas&nbsp;<a href="#Line">Line</a>.&nbsp;Effectively&nbsp;a&nbsp;PolyLine&nbsp;with&nbsp;some&nbsp;tags.<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%"><dl><dt>Method resolution order:</dt>
 <dd><a href="line.html#Line">Line</a></dd>
@@ -52,13 +52,11 @@
 Methods defined here:<br>
 <dl><dt><a name="Line-__init__"><strong>__init__</strong></a>(self, parent_atlas, index)</dt><dd><tt>Constuct&nbsp;a&nbsp;new&nbsp;<a href="#Line">Line</a>.&nbsp;This&nbsp;should&nbsp;not&nbsp;be&nbsp;called&nbsp;directly.</tt></dd></dl>
 
-<dl><dt><a name="Line-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Transform&nbsp;this&nbsp;<a href="#Line">Line</a>&nbsp;into&nbsp;its&nbsp;string&nbsp;representation.</tt></dd></dl>
+<dl><dt><a name="Line-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Get&nbsp;a&nbsp;string&nbsp;representation&nbsp;of&nbsp;this&nbsp;<a href="#Line">Line</a>.</tt></dd></dl>
 
 <dl><dt><a name="Line-as_polyline"><strong>as_polyline</strong></a>(self)</dt><dd><tt>Get&nbsp;the&nbsp;PolyLine&nbsp;geometry&nbsp;of&nbsp;this&nbsp;<a href="#Line">Line</a>.</tt></dd></dl>
 
 <dl><dt><a name="Line-get_identifier"><strong>get_identifier</strong></a>(self)</dt><dd><tt>Get&nbsp;the&nbsp;Atlas&nbsp;identifier&nbsp;of&nbsp;this&nbsp;<a href="#Line">Line</a>.</tt></dd></dl>
-
-<dl><dt><a name="Line-get_parent_atlas"><strong>get_parent_atlas</strong></a>(self)</dt><dd><tt>Get&nbsp;the&nbsp;Atlas&nbsp;that&nbsp;contains&nbsp;this&nbsp;<a href="#Line">Line</a>.</tt></dd></dl>
 
 <dl><dt><a name="Line-get_relations"><strong>get_relations</strong></a>(self)</dt><dd><tt>Get&nbsp;the&nbsp;set&nbsp;of&nbsp;relations&nbsp;of&nbsp;which&nbsp;this&nbsp;<a href="#Line">Line</a>&nbsp;is&nbsp;a&nbsp;member.</tt></dd></dl>
 
@@ -68,6 +66,8 @@ Methods defined here:<br>
 Methods inherited from <a href="atlas_entity.html#AtlasEntity">atlas_entity.AtlasEntity</a>:<br>
 <dl><dt><a name="Line-get_osm_identifier"><strong>get_osm_identifier</strong></a>(self)</dt><dd><tt>Convenience&nbsp;wrapper&nbsp;for&nbsp;the&nbsp;same&nbsp;function&nbsp;in&nbsp;the&nbsp;identifier_conversion<br>
 module.</tt></dd></dl>
+
+<dl><dt><a name="Line-get_parent_atlas"><strong>get_parent_atlas</strong></a>(self)</dt><dd><tt>Get&nbsp;the&nbsp;Atlas&nbsp;that&nbsp;contains&nbsp;this&nbsp;<a href="atlas_entity.html#AtlasEntity">AtlasEntity</a>.</tt></dd></dl>
 
 <hr>
 Data descriptors inherited from <a href="atlas_entity.html#AtlasEntity">atlas_entity.AtlasEntity</a>:<br>

@@ -32,6 +32,9 @@ def _touch_all_atlas_features(atlas):
     for edge in atlas.edges():
         string = edge.__str__()
 
+    for relation in atlas.relations():
+        string = relation.__str__()
+
 
 if __name__ == "__main__":
     unittest.main()

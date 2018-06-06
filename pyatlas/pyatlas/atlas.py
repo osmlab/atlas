@@ -6,6 +6,7 @@ from line import Line
 from area import Area
 from node import Node
 from edge import Edge
+from relation import Relation
 
 
 class Atlas(object):
@@ -28,6 +29,7 @@ class Atlas(object):
         self.pointIdentifierToPointArrayIndex = None
         self.pointLocations = None
         self.pointTags = None
+        self.pointIndexToRelationIndices = None
 
         self.lineIdentifiers = None
         self.lineIdentifierToLineArrayIndex = None
@@ -52,6 +54,9 @@ class Atlas(object):
         self.edgeEndNodeIndex = None
         self.edgePolyLines = None
         self.edgeTags = None
+
+        self.relationIdentifiers = None
+        self.relationIdentifierToRelationArrayIndex = None
 
         if not self.lazy_loading:
             self.load_all_fields()
@@ -117,10 +122,10 @@ class Atlas(object):
 
     def area(self, identifier):
         """
-        Get a Area with a given Atlas identifier. Returns None if there is no
+        Get an Area with a given Atlas identifier. Returns None if there is no
         Area with the given identifier.
         """
-        identifier_to_index = self._get_areaIdentifierToLineArrayIndex()
+        identifier_to_index = self._get_areaIdentifierToAreaArrayIndex()
         if identifier in identifier_to_index:
             return Area(self, identifier_to_index[identifier])
         return None
@@ -160,9 +165,29 @@ class Atlas(object):
         Get an Edge with a given Atlas identifier. Returns None if there is no
         Edge with the given identifier.
         """
-        identifier_to_index = self._get_edgeIdentifierToNodeArrayIndex()
+        identifier_to_index = self._get_edgeIdentifierToEdgeArrayIndex()
         if identifier in identifier_to_index:
             return Edge(self, identifier_to_index[identifier])
+        return None
+
+    def relations(self, predicate=lambda relation: True):
+        """
+        Get a generator for Relations in this Atlas. Can optionally also accept a
+        predicate to filter the generated Relations.
+        """
+        for i, element in enumerate(self._get_relationIdentifiers().elements):
+            relation = Relation(self, i)
+            if predicate(relation):
+                yield relation
+
+    def relation(self, identifier):
+        """
+        Get a Relation with a given Atlas identifier. Returns None if there is no
+        Relation with the given identifier.
+        """
+        identifier_to_index = self._get_relationIdentifierToRelationArrayIndex()
+        if identifier in identifier_to_index:
+            return Relation(self, identifier_to_index[identifier])
         return None
 
     def load_all_fields(self):
@@ -198,6 +223,12 @@ class Atlas(object):
             self.serializer._load_field(self.serializer._FIELD_POINT_TAGS)
         self.pointTags.set_dictionary(self._get_dictionary())
         return self.pointTags
+
+    def _get_pointIndexToRelationIndices(self):
+        if self.pointIndexToRelationIndices is None:
+            self.serializer._load_field(
+                self.serializer._FIELD_POINT_INDEX_TO_RELATION_INDICES)
+        return self.pointIndexToRelationIndices
 
     def _get_lineIdentifiers(self):
         if self.lineIdentifiers is None:
@@ -314,3 +345,16 @@ class Atlas(object):
             self.serializer._load_field(self.serializer._FIELD_EDGE_TAGS)
         self.edgeTags.set_dictionary(self._get_dictionary())
         return self.edgeTags
+
+    def _get_relationIdentifiers(self):
+        if self.relationIdentifiers is None:
+            self.serializer._load_field(
+                self.serializer._FIELD_RELATION_IDENTIFIERS)
+        return self.relationIdentifiers
+
+    def _get_relationIdentifierToRelationArrayIndex(self):
+        if self.relationIdentifierToRelationArrayIndex is None:
+            self.serializer._load_field(
+                self.serializer.
+                _FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX)
+        return self.relationIdentifierToRelationArrayIndex

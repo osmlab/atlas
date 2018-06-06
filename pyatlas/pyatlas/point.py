@@ -1,27 +1,34 @@
 import location
 import atlas_entity
+import relation
 
 
 class Point(atlas_entity.AtlasEntity):
     """
-    An Atlas Point.
+    An Atlas Point. Effectively a simple Location with some tags.
     """
 
     def __init__(self, parent_atlas, index):
         """
         Constuct a new Point. This should not be called directly.
         """
-        self.parent_atlas = parent_atlas
+        super(Point, self).__init__(parent_atlas)
         self.index = index
 
     def __str__(self):
         """
-        Transform this Point into its string representation.
+        Get a string representation of this Point.
         """
         result = '[ '
         result += 'Point: id=' + str(self.get_identifier())
         result += ', location_latlon=' + str(self.get_location())
         result += ', tags=' + str(self.get_tags())
+
+        string = ''
+        for relation0 in self.get_relations():
+            string += str(relation0.get_identifier()) + ','
+        result += ', relations=[' + string + ']'
+
         result += ' ]'
         return result
 
@@ -50,13 +57,19 @@ class Point(atlas_entity.AtlasEntity):
 
     def get_relations(self):
         """
-        Get the set of relations of which this point is a member.
+        Get the set of Relations of which this Point is a member. Returns an
+        empty set if this Point is not a member of any Relations.
         """
-        # TODO implement
-        raise NotImplementedError
+        relation_map = self.get_parent_atlas(
+        )._get_pointIndexToRelationIndices()
+        relation_set = set()
 
-    def get_parent_atlas(self):
-        """
-        Get the Atlas that contains this point.
-        """
-        return self.parent_atlas
+        if self.index not in relation_map:
+            return relation_set
+
+        for relation_index in relation_map[self.index]:
+            relation0 = relation.Relation(self.get_parent_atlas(),
+                                          relation_index)
+            relation_set.add(relation0)
+
+        return relation_set
