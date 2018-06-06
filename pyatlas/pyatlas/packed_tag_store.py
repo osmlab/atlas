@@ -1,4 +1,4 @@
-class PackedTagStore:
+class PackedTagStore(object):
     """
     Store indexes into the global tag dictionary.
     """
@@ -39,10 +39,8 @@ class PackedTagStore:
 
 def get_packed_tag_store_from_proto(proto_store):
     """
-    Takes a decoded ProtoPackedTagStore object and turns
+    Take a decoded ProtoPackedTagStore object and turn
     it into a more user friendly PackedTagStore object.
-    :param proto_store: the proto store
-    :return: the converted PackedTagStore
     """
     new_store = PackedTagStore(None)
 

@@ -1,7 +1,4 @@
-import autogen.Tag_pb2
-
-
-class AtlasMetaData:
+class AtlasMetaData(object):
     """Atlas metadata"""
 
     def __init__(self):
@@ -21,7 +18,7 @@ class AtlasMetaData:
 
 def get_atlas_metadata_from_proto(proto_atlas_metadata):
     """
-    Takes a decoded ProtoAtlasMetaData object and turns
+    Take a decoded ProtoAtlasMetaData object and turn
     it into a more user friendly AtlasMetaData object.
     """
     new_atlas_metadata = AtlasMetaData()

@@ -28,6 +28,21 @@ class PolyLineTest(unittest.TestCase):
             correct_polyline.compress())
         self.assertEqual(correct_polyline, test_polyline)
 
+    def test_polygon_closedness(self):
+        loclist = [
+            Location(382117269, -1193153616),
+            Location(382117927, -1193152951),
+            Location(382116912, -1193151049),
+            Location(382116546, -1193151382),
+            Location(382116134, -1193150734),
+            Location(382115440, -1193151494)
+        ]
+        correct_polygon = polyline.Polygon(loclist, deep=True)
+        closed_list = []
+        for point in correct_polygon.closed_loop():
+            closed_list.append(point)
+        self.assertEqual(closed_list[0], closed_list[len(closed_list) - 1])
+
 
 if __name__ == "__main__":
     unittest.main()

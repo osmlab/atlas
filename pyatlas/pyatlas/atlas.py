@@ -8,7 +8,7 @@ from node import Node
 from edge import Edge
 
 
-class Atlas:
+class Atlas(object):
     """
     The Atlas - current implementation is not threadsafe.
 
@@ -62,7 +62,7 @@ class Atlas:
         for more information on the metadata format.
         """
         if self.metaData is None:
-            self.serializer.load_field(self.serializer._FIELD_METADATA)
+            self.serializer._load_field(self.serializer._FIELD_METADATA)
         return self.metaData
 
     def points(self, predicate=lambda point: True):
@@ -169,144 +169,148 @@ class Atlas:
         """
         Force this Atlas to load all its fields from its backing store.
         """
-        self.serializer.load_all_fields()
+        self.serializer._load_all_fields()
 
     def _get_dictionary(self):
         if self.dictionary is None:
-            self.serializer.load_field(self.serializer._FIELD_DICTIONARY)
+            self.serializer._load_field(self.serializer._FIELD_DICTIONARY)
         return self.dictionary
 
     def _get_pointIdentifiers(self):
         if self.pointIdentifiers is None:
-            self.serializer.load_field(
+            self.serializer._load_field(
                 self.serializer._FIELD_POINT_IDENTIFIERS)
         return self.pointIdentifiers
 
     def _get_pointIdentifierToPointArrayIndex(self):
         if self.pointIdentifierToPointArrayIndex is None:
-            self.serializer.load_field(
+            self.serializer._load_field(
                 self.serializer._FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX)
         return self.pointIdentifierToPointArrayIndex
 
     def _get_pointLocations(self):
         if self.pointLocations is None:
-            self.serializer.load_field(self.serializer._FIELD_POINT_LOCATIONS)
+            self.serializer._load_field(self.serializer._FIELD_POINT_LOCATIONS)
         return self.pointLocations
 
     def _get_pointTags(self):
         if self.pointTags is None:
-            self.serializer.load_field(self.serializer._FIELD_POINT_TAGS)
+            self.serializer._load_field(self.serializer._FIELD_POINT_TAGS)
         self.pointTags.set_dictionary(self._get_dictionary())
         return self.pointTags
 
     def _get_lineIdentifiers(self):
         if self.lineIdentifiers is None:
-            self.serializer.load_field(self.serializer._FIELD_LINE_IDENTIFIERS)
+            self.serializer._load_field(
+                self.serializer._FIELD_LINE_IDENTIFIERS)
         return self.lineIdentifiers
 
     def _get_lineIdentifierToLineArrayIndex(self):
         if self.lineIdentifierToLineArrayIndex is None:
-            self.serializer.load_field(
+            self.serializer._load_field(
                 self.serializer._FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX)
         return self.lineIdentifierToLineArrayIndex
 
     def _get_linePolyLines(self):
         if self.linePolyLines is None:
-            self.serializer.load_field(self.serializer._FIELD_LINE_POLYLINES)
+            self.serializer._load_field(self.serializer._FIELD_LINE_POLYLINES)
         return self.linePolyLines
 
     def _get_lineTags(self):
         if self.lineTags is None:
-            self.serializer.load_field(self.serializer._FIELD_LINE_TAGS)
+            self.serializer._load_field(self.serializer._FIELD_LINE_TAGS)
         self.lineTags.set_dictionary(self._get_dictionary())
         return self.lineTags
 
     def _get_areaIdentifiers(self):
         if self.areaIdentifiers is None:
-            self.serializer.load_field(self.serializer._FIELD_AREA_IDENTIFIERS)
+            self.serializer._load_field(
+                self.serializer._FIELD_AREA_IDENTIFIERS)
         return self.areaIdentifiers
 
     def _get_areaIdentifierToAreaArrayIndex(self):
         if self.areaIdentifierToAreaArrayIndex is None:
-            self.serializer.load_field(
+            self.serializer._load_field(
                 self.serializer._FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX)
         return self.areaIdentifierToAreaArrayIndex
 
     def _get_areaPolygons(self):
         if self.areaPolygons is None:
-            self.serializer.load_field(self.serializer._FIELD_AREA_POLYGONS)
+            self.serializer._load_field(self.serializer._FIELD_AREA_POLYGONS)
         return self.areaPolygons
 
     def _get_areaTags(self):
         if self.areaTags is None:
-            self.serializer.load_field(self.serializer._FIELD_AREA_TAGS)
+            self.serializer._load_field(self.serializer._FIELD_AREA_TAGS)
         self.areaTags.set_dictionary(self._get_dictionary())
         return self.areaTags
 
     def _get_nodeIdentifiers(self):
         if self.nodeIdentifiers is None:
-            self.serializer.load_field(self.serializer._FIELD_NODE_IDENTIFIERS)
+            self.serializer._load_field(
+                self.serializer._FIELD_NODE_IDENTIFIERS)
         return self.nodeIdentifiers
 
     def _get_nodeIdentifierToNodeArrayIndex(self):
         if self.nodeIdentifierToNodeArrayIndex is None:
-            self.serializer.load_field(
+            self.serializer._load_field(
                 self.serializer._FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX)
         return self.nodeIdentifierToNodeArrayIndex
 
     def _get_nodeLocations(self):
         if self.nodeLocations is None:
-            self.serializer.load_field(self.serializer._FIELD_NODE_LOCATIONS)
+            self.serializer._load_field(self.serializer._FIELD_NODE_LOCATIONS)
         return self.nodeLocations
 
     def _get_nodeTags(self):
         if self.nodeTags is None:
-            self.serializer.load_field(self.serializer._FIELD_NODE_TAGS)
+            self.serializer._load_field(self.serializer._FIELD_NODE_TAGS)
         self.nodeTags.set_dictionary(self._get_dictionary())
         return self.nodeTags
 
     def _get_nodeInEdgesIndices(self):
         if self.nodeInEdgesIndices is None:
-            self.serializer.load_field(
+            self.serializer._load_field(
                 self.serializer._FIELD_NODE_IN_EDGES_INDICES)
         return self.nodeInEdgesIndices
 
     def _get_nodeOutEdgesIndices(self):
         if self.nodeOutEdgesIndices is None:
-            self.serializer.load_field(
+            self.serializer._load_field(
                 self.serializer._FIELD_NODE_OUT_EDGES_INDICES)
         return self.nodeOutEdgesIndices
 
     def _get_edgeIdentifiers(self):
         if self.edgeIdentifiers is None:
-            self.serializer.load_field(self.serializer._FIELD_EDGE_IDENTIFIERS)
+            self.serializer._load_field(
+                self.serializer._FIELD_EDGE_IDENTIFIERS)
         return self.edgeIdentifiers
 
     def _get_edgeIdentifierToNodeArrayIndex(self):
         if self.edgeIdentifierToEdgeArrayIndex is None:
-            self.serializer.load_field(
+            self.serializer._load_field(
                 self.serializer._FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX)
         return self.edgeIdentifierToEdgeArrayIndex
 
     def _get_edgeStartNodeIndex(self):
         if self.edgeStartNodeIndex is None:
-            self.serializer.load_field(
+            self.serializer._load_field(
                 self.serializer._FIELD_EDGE_START_NODE_INDEX)
         return self.edgeStartNodeIndex
 
     def _get_edgeEndNodeIndex(self):
         if self.edgeEndNodeIndex is None:
-            self.serializer.load_field(
+            self.serializer._load_field(
                 self.serializer._FIELD_EDGE_END_NODE_INDEX)
         return self.edgeEndNodeIndex
 
     def _get_edgePolyLines(self):
         if self.edgePolyLines is None:
-            self.serializer.load_field(self.serializer._FIELD_EDGE_POLYLINES)
+            self.serializer._load_field(self.serializer._FIELD_EDGE_POLYLINES)
         return self.edgePolyLines
 
     def _get_edgeTags(self):
         if self.edgeTags is None:
-            self.serializer.load_field(self.serializer._FIELD_EDGE_TAGS)
+            self.serializer._load_field(self.serializer._FIELD_EDGE_TAGS)
         self.edgeTags.set_dictionary(self._get_dictionary())
         return self.edgeTags

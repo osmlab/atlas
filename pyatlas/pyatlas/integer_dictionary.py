@@ -1,8 +1,9 @@
-class IntegerDictionary:
+class IntegerDictionary(object):
     """
     Integer string two-way dictionary.
-    TODO do we even need this class?
     """
+
+    # TODO do we even need this class?
 
     def __init__(self):
         self.word_to_index = {}

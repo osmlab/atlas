@@ -1,5 +1,6 @@
 """
-PolyLine module.
+Module that defines PolyLines and their subtypes (Polygons). Contains helper
+methods for decoding PolyLines from string compression.
 """
 
 import location
@@ -13,7 +14,7 @@ _BIT_SHIFT = 5
 _MAXIMUM_DELTA_LONGITUDE = 180 * pow(10, _PRECISION)
 
 
-class PolyLine:
+class PolyLine(object):
     """
     A PolyLine is a set of Locations in a specific order.
     """
@@ -23,34 +24,41 @@ class PolyLine:
         Create a new PolyLine given a Location list. By default, it will perform
         a shallow copy of the parameter list. Can optionally perform a deep copy
         of the list.
-        :param location_list: the points for this PolyLine
-        :param deep: decide to perform a deep copy
         """
+        if len(location_list) == 0:
+            raise ValueError('cannot have an empty PolyLine')
         if deep:
-            self.points = []
+            self.points_list = []
             for point in location_list:
-                self.points.append(point)
+                self.points_list.append(point)
         else:
-            self.points = location_list
+            self.points_list = location_list
 
     def __str__(self):
+        """
+        Convert this PolyLine to its string representation.
+        """
         result = "["
-        for point in self.points:
+        for point in self.points():
             result += str(point) + ", "
         result += "]"
         return result
 
     def __eq__(self, other):
-        if len(self.points) != len(other.points):
+        """
+        Check if this PolyLine is the same as another PolyLine. Compares their
+        internal Location list.
+        """
+        if len(self.points_list) != len(other.points_list):
             return False
-        for point, other_point in zip(self.points, other.points):
+        for point, other_point in zip(self.points(), other.points()):
             if not point == other_point:
                 return False
         return True
 
     def compress(self):
         """
-        Transform a PolyLine into its string compressed representation.
+        Transform a PolyLine into its compressed representation.
         """
         old_latitude = 0
         old_longitude = 0
@@ -58,7 +66,7 @@ class PolyLine:
         precision = pow(10, _PRECISION)
         last = location.Location(0, 0)
 
-        for point in self.points:
+        for point in self.points():
             latitude = int(
                 round(location.dm7_as_degree(point.latitude) * precision))
             longitude = int(
@@ -78,6 +86,49 @@ class PolyLine:
 
         return encoded
 
+    def points(self):
+        """
+        Get a generator for the Locations in this PolyLine.
+        """
+        for point in self.points_list:
+            yield point
+
+
+class Polygon(PolyLine):
+    """
+    A special case of PolyLine that has an extra segment between the last and
+    first point - effectively a closed PolyLine. The Polygon does not actually
+    re-store the last (first) Location. Instead, the API simulates its presence.
+    """
+
+    def __init__(self, location_list, deep=False):
+        """
+        Create a new Polygon given a Location list. By default, it will perform
+        a shallow copy of the parameter list. Can optionally perform a deep copy
+        of the list.
+        """
+        super(Polygon, self).__init__(location_list, deep)
+
+    def __str__(self):
+        """
+        Convert this Polygon to its string representation. Will display the
+        first Location repeated as the last Location to simulate closedness.
+        """
+        result = "["
+        for point in self.closed_loop():
+            result += str(point) + ", "
+        result += "]"
+        return result
+
+    def closed_loop(self):
+        """
+        Get a generator for the Locations in this Polygon. Will generate the
+        first item again at the end, simulating the closedness of the Polygon.
+        """
+        for point in self.points():
+            yield point
+        yield self.points_list[0]
+
 
 def _encode_number(number):
     number = number << 1
@@ -93,7 +144,23 @@ def _encode_number(number):
     return encoded
 
 
+def decompress_polygon(bytestring):
+    """
+    Given a compressed bytestring, decompress it and return it as a Polygon.
+    """
+    locations = _decompress_bytestring(bytestring)
+    return Polygon(locations)
+
+
 def decompress_polyline(bytestring):
+    """
+    Given a compressed bytestring, decompress it and return it as a PolyLine.
+    """
+    locations = _decompress_bytestring(bytestring)
+    return PolyLine(locations)
+
+
+def _decompress_bytestring(bytestring):
     precision = pow(10, -1 * _PRECISION)
     length = len(bytestring)
     index = 0
@@ -143,11 +210,9 @@ def decompress_polyline(bytestring):
 
         locations.append(location.Location(latitude, longitude))
 
-    return PolyLine(locations)
+    return locations
 
 
 def _urshift32(to_shift, shift_amount):
-    """
-     Perform a 32 bit unsigned right shift.
-    """
+    # Perform a 32 bit unsigned right shift (drag in leading 0s)
     return (to_shift % 0x100000000) >> shift_amount

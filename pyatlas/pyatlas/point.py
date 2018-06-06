@@ -28,7 +28,6 @@ class Point(atlas_entity.AtlasEntity):
     def get_identifier(self):
         """
         Get the Atlas identifier of this point.
-        :return: the Atlas id
         """
         return self.get_parent_atlas()._get_pointIdentifiers().elements[
             self.index]
@@ -37,7 +36,6 @@ class Point(atlas_entity.AtlasEntity):
         """
         Get the Location of this point. Check the Location class for more
         information.
-        :return: the location
         """
         long_location = self.get_parent_atlas()._get_pointLocations().elements[
             self.index]
@@ -46,7 +44,6 @@ class Point(atlas_entity.AtlasEntity):
     def get_tags(self):
         """
         Get a dictionary of this Point's tags.
-        :return: the dictionary
         """
         point_tag_store = self.get_parent_atlas()._get_pointTags()
         return point_tag_store.to_key_value_dict(self.index)
@@ -54,7 +51,6 @@ class Point(atlas_entity.AtlasEntity):
     def get_relations(self):
         """
         Get the set of relations of which this point is a member.
-        :return: the set of relations
         """
         # TODO implement
         raise NotImplementedError
@@ -62,6 +58,5 @@ class Point(atlas_entity.AtlasEntity):
     def get_parent_atlas(self):
         """
         Get the Atlas that contains this point.
-        :return: the parent atlas
         """
         return self.parent_atlas

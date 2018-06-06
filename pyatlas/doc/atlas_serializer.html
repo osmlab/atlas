@@ -10,7 +10,7 @@
 <font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>atlas_serializer</strong></big></big></font></td
 ><td align=right valign=bottom
 ><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/Users/lucascram/Projects/atlas/pyatlas/pyatlas/atlas_serializer.py">/Users/lucascram/Projects/atlas/pyatlas/pyatlas/atlas_serializer.py</a></font></td></tr></table>
-    <p><tt>The&nbsp;Atlas&nbsp;serialization&nbsp;code</tt></p>
+    <p></p>
 <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#aa55cc">
@@ -32,75 +32,33 @@
     
 <tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="__builtin__.html#object">__builtin__.object</a>
+</font></dt><dd>
+<dl>
 <dt><font face="helvetica, arial"><a href="atlas_serializer.html#AtlasSerializer">AtlasSerializer</a>
 </font></dt></dl>
+</dd>
+</dl>
  <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ffc8d8">
 <td colspan=3 valign=bottom>&nbsp;<br>
-<font color="#000000" face="helvetica, arial"><a name="AtlasSerializer">class <strong>AtlasSerializer</strong></a></font></td></tr>
+<font color="#000000" face="helvetica, arial"><a name="AtlasSerializer">class <strong>AtlasSerializer</strong></a>(<a href="__builtin__.html#object">__builtin__.object</a>)</font></td></tr>
     
 <tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
-<td colspan=2><tt>Atlas&nbsp;serializer<br>&nbsp;</tt></td></tr>
+<td colspan=2><tt>The&nbsp;Atlas&nbsp;serializer.&nbsp;Used&nbsp;by&nbsp;Atlas&nbsp;to&nbsp;read&nbsp;ZIP&nbsp;entries&nbsp;from&nbsp;the<br>
+backing&nbsp;store.&nbsp;This&nbsp;class&nbsp;should&nbsp;not&nbsp;be&nbsp;used&nbsp;directly.<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%">Methods defined here:<br>
 <dl><dt><a name="AtlasSerializer-__init__"><strong>__init__</strong></a>(self, atlas_file, atlas)</dt></dl>
 
-<dl><dt><a name="AtlasSerializer-load_all_fields"><strong>load_all_fields</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_area_identifier_to_area_array_index"><strong>load_area_identifier_to_area_array_index</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_area_identifiers"><strong>load_area_identifiers</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_area_polygons"><strong>load_area_polygons</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_area_tags"><strong>load_area_tags</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_dictionary"><strong>load_dictionary</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_edge_end_node_index"><strong>load_edge_end_node_index</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_edge_identifier_to_edge_array_index"><strong>load_edge_identifier_to_edge_array_index</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_edge_identifiers"><strong>load_edge_identifiers</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_edge_polylines"><strong>load_edge_polylines</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_edge_start_node_index"><strong>load_edge_start_node_index</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_edge_tags"><strong>load_edge_tags</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_field"><strong>load_field</strong></a>(self, field_name)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_line_identifier_to_line_array_index"><strong>load_line_identifier_to_line_array_index</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_line_identifiers"><strong>load_line_identifiers</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_line_polylines"><strong>load_line_polylines</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_line_tags"><strong>load_line_tags</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_metadata"><strong>load_metadata</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_node_identifier_to_node_array_index"><strong>load_node_identifier_to_node_array_index</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_node_identifiers"><strong>load_node_identifiers</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_node_in_edges_indices"><strong>load_node_in_edges_indices</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_node_locations"><strong>load_node_locations</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_node_out_edges_indices"><strong>load_node_out_edges_indices</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_node_tags"><strong>load_node_tags</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_point_identifier_to_point_array_index"><strong>load_point_identifier_to_point_array_index</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_point_identifiers"><strong>load_point_identifiers</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_point_locations"><strong>load_point_locations</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="AtlasSerializer-load_point_tags"><strong>load_point_tags</strong></a>(self)</dt></dl>
-
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
 </td></tr></table></td></tr></table>
 </body></html>

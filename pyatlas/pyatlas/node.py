@@ -40,7 +40,6 @@ class Node(atlas_entity.AtlasEntity):
     def get_identifier(self):
         """
         Get the Atlas identifier of this node.
-        :return: the Atlas id
         """
         return self.get_parent_atlas()._get_nodeIdentifiers().elements[
             self.index]
@@ -49,7 +48,6 @@ class Node(atlas_entity.AtlasEntity):
         """
         Get the Location of this Node. Check the Location class for more
         information.
-        :return: the location
         """
         long_location = self.get_parent_atlas()._get_nodeLocations().elements[
             self.index]
@@ -58,7 +56,6 @@ class Node(atlas_entity.AtlasEntity):
     def get_tags(self):
         """
         Get a dictionary of this Node's tags.
-        :return: the dictionary
         """
         node_tag_store = self.get_parent_atlas()._get_nodeTags()
         return node_tag_store.to_key_value_dict(self.index)
@@ -67,7 +64,6 @@ class Node(atlas_entity.AtlasEntity):
         """
         Get a list of incoming Edges to this Node. The list is sorted by the
         Edges' Atlas IDs.
-        :return:
         """
         result = []
         node_in_edges_indices = self.get_parent_atlas(
@@ -80,7 +76,6 @@ class Node(atlas_entity.AtlasEntity):
         """
         Get a list of outgoing Edges from this Node. The list is sorted by the
         Edges' Atlas IDs.
-        :return:
         """
         result = []
         node_out_edges_indices = self.get_parent_atlas(
@@ -93,7 +88,6 @@ class Node(atlas_entity.AtlasEntity):
         """
         Get a list of all Edges connected to this Node. The list is sorted by
         the Edges' Atlas IDs.
-        :return:
         """
         result = []
         for edge in self.in_edges():
@@ -105,7 +99,6 @@ class Node(atlas_entity.AtlasEntity):
     def get_relations(self):
         """
         Get the set of relations of which this Node is a member.
-        :return: the set of relations
         """
         # TODO implement
         raise NotImplementedError
@@ -113,6 +106,5 @@ class Node(atlas_entity.AtlasEntity):
     def get_parent_atlas(self):
         """
         Get the Atlas that contains this Node.
-        :return: the parent atlas
         """
         return self.parent_atlas

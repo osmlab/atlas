@@ -1,7 +1,7 @@
 import identifier_conversion
 
 
-class AtlasEntity:
+class AtlasEntity(object):
     """
     A tagged, located entity in an Atlas. An AtlasEntity should not be
     instantiated directly. Use one of the appropriate sub-classes.

@@ -7,7 +7,7 @@ _DM7_PER_DEGREE = 10000000
 """There are 10 million dm7 in a degree"""
 
 
-class Location:
+class Location(object):
     """
     A latitude-longitude location. Uses the dm7 type to represent coordinates.
     dm7 is an integral representation of a decimal degree fixed to 7 places of
@@ -41,7 +41,6 @@ class Location:
         """
         Pack this Location into a 64 bit integer. The higher order 32 bits are
         the latitude, the lower order bits are the longitude.
-        :return: the packed Location
         """
         packed = self.latitude
         packed = packed << 32
@@ -68,8 +67,6 @@ def get_location_from_packed_int(packed_location):
     """
     Decode a Location object from a 64 bit integer with the latitude and
     longitude packed in.
-    :param packed_location: a packed 64 bit integer
-    :return: a new Location with unpacked latitude and longitude
     """
     longitude = packed_location & 0xFFFFFFFF
     if longitude & 0x80000000 > 0:

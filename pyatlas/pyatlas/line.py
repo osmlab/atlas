@@ -1,4 +1,3 @@
-import location
 import atlas_entity
 
 
