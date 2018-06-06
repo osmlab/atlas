@@ -1223,7 +1223,10 @@ public class CountryBoundaryMap implements Serializable
         }
 
         // Performance: short circuit, if all intersected polygons in same country, skip cutting.
-        if (isSameCountry(candidates))
+        // (except when geometry has to be sliced at all costs)
+        if (isSameCountry(candidates)
+                && (sources == null || sources.length == 0 || this.forceSlicingPredicate == null
+                        || !this.forceSlicingPredicate.test(sources[0])))
         {
             final String countryCode = getGeometryProperty(candidates.get(0), ISOCountryTag.KEY);
             setGeometryProperty(target, ISOCountryTag.KEY, countryCode);

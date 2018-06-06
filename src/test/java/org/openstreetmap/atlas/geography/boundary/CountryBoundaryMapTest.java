@@ -255,8 +255,6 @@ public class CountryBoundaryMapTest
         final List<Geometry> sliced4 = map.slice(123, lineString,
                 Taggable.with("ShouldIBeSliced", "no"));
 
-        System.out.println(map.countryBoundary("DOM").get(0).getBoundary().toWkt());
-
         Assert.assertEquals(1, sliced1.size());
         Assert.assertEquals(1, sliced2.size());
         Assert.assertEquals(2, sliced3.size());
