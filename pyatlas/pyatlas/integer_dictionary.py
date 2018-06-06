@@ -1,6 +1,7 @@
 class IntegerDictionary:
     """
-    Integer string dictionary.
+    Integer string two-way dictionary.
+    TODO do we even need this class?
     """
 
     def __init__(self):

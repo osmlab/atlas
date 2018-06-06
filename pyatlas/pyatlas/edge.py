@@ -20,9 +20,8 @@ class Edge(atlas_entity.AtlasEntity):
         """
         Transform this Edge into its string representation.
         """
-        result = '['
+        result = '[ '
         result += 'Edge: id=' + str(self.get_identifier())
-        result += ', tags=' + str(self.get_tags())
 
         string = ""
         string += str(self.start().get_identifier()) + ', '
@@ -32,9 +31,9 @@ class Edge(atlas_entity.AtlasEntity):
         string += str(self.end().get_identifier()) + ', '
         result += ', end=[' + string + ']'
 
-        result += ', geom=[' + str(self.as_polyline()) + ']'
-
-        result += ']'
+        result += ', geom=' + str(self.as_polyline())
+        result += ', tags=' + str(self.get_tags())
+        result += ' ]'
         return result
 
     def __eq__(self, other):

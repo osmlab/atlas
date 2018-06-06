@@ -8,15 +8,21 @@ class Point(atlas_entity.AtlasEntity):
     """
 
     def __init__(self, parent_atlas, index):
+        """
+        Constuct a new Point. This should not be called directly.
+        """
         self.parent_atlas = parent_atlas
         self.index = index
 
     def __str__(self):
-        result = '['
+        """
+        Transform this Point into its string representation.
+        """
+        result = '[ '
         result += 'Point: id=' + str(self.get_identifier())
         result += ', location_latlon=' + str(self.get_location())
         result += ', tags=' + str(self.get_tags())
-        result += ']'
+        result += ' ]'
         return result
 
     def get_identifier(self):
@@ -39,7 +45,7 @@ class Point(atlas_entity.AtlasEntity):
 
     def get_tags(self):
         """
-        Get a dictionary of this point's tags.
+        Get a dictionary of this Point's tags.
         :return: the dictionary
         """
         point_tag_store = self.get_parent_atlas()._get_pointTags()

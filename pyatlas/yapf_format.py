@@ -3,6 +3,11 @@ import os
 from yapf.yapflib.yapf_api import FormatFile
 from yapf.yapflib.yapf_api import FormatCode
 
+# FIXME
+# If a source file does not end with a newline, the formatter will
+# complain, but fail to actually fix the issue. To resolve, manually
+# insert a newline at the end of the file.
+
 def main(argv):
     srcdir = argv[1]
     mode = argv[2]

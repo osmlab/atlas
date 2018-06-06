@@ -9,11 +9,17 @@ class Node(atlas_entity.AtlasEntity):
     """
 
     def __init__(self, parent_atlas, index):
+        """
+        Constuct a new Node. This should not be called directly.
+        """
         self.parent_atlas = parent_atlas
         self.index = index
 
     def __str__(self):
-        result = '['
+        """
+        Transform this Node into its string representation.
+        """
+        result = '[ '
         result += 'Node: id=' + str(self.get_identifier())
         result += ', location_latlon=' + str(self.get_location())
 
@@ -28,7 +34,7 @@ class Node(atlas_entity.AtlasEntity):
         result += ', outEdges=[' + string + ']'
 
         result += ', tags=' + str(self.get_tags())
-        result += ']'
+        result += ' ]'
         return result
 
     def get_identifier(self):

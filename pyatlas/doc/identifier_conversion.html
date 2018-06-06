@@ -18,10 +18,18 @@
 <font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
     
 <tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><dl><dt><a name="-get_osm_identifier"><strong>get_osm_identifier</strong></a>(full_atlas_identifier)</dt><dd><tt>Get&nbsp;the&nbsp;OSM&nbsp;identifier&nbsp;from&nbsp;the&nbsp;full&nbsp;Atlas&nbsp;identifier&nbsp;by&nbsp;removing&nbsp;the<br>
-country&nbsp;code&nbsp;and&nbsp;way&nbsp;sectioned&nbsp;identifiers.<br>
+<td width="100%"><dl><dt><a name="-get_country_code"><strong>get_country_code</strong></a>(full_atlas_identifier)</dt><dd><tt>Get&nbsp;the&nbsp;country&nbsp;code&nbsp;from&nbsp;the&nbsp;full&nbsp;Atlas&nbsp;identifier.<br>
+&nbsp;<br>
+Example:<br>
+Atlas&nbsp;ID:&nbsp;222222001003&nbsp;would&nbsp;return&nbsp;country&nbsp;code:&nbsp;1</tt></dd></dl>
+ <dl><dt><a name="-get_osm_identifier"><strong>get_osm_identifier</strong></a>(full_atlas_identifier)</dt><dd><tt>Get&nbsp;the&nbsp;OSM&nbsp;identifier&nbsp;from&nbsp;the&nbsp;full&nbsp;Atlas&nbsp;identifier&nbsp;by&nbsp;removing&nbsp;the<br>
+country&nbsp;code&nbsp;and&nbsp;way&nbsp;section&nbsp;index.<br>
 &nbsp;<br>
 Example:<br>
 Atlas&nbsp;ID:&nbsp;222222001003&nbsp;would&nbsp;return&nbsp;OSM&nbsp;ID:&nbsp;222222</tt></dd></dl>
+ <dl><dt><a name="-get_way_section_index"><strong>get_way_section_index</strong></a>(full_atlas_identifier)</dt><dd><tt>Get&nbsp;the&nbsp;way&nbsp;section&nbsp;index&nbsp;from&nbsp;the&nbsp;full&nbsp;Atlas&nbsp;identifier.<br>
+&nbsp;<br>
+Example:<br>
+Atlas&nbsp;ID:&nbsp;222222001003&nbsp;would&nbsp;return&nbsp;index:&nbsp;3</tt></dd></dl>
 </td></tr></table>
 </body></html>

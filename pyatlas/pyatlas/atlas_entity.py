@@ -21,7 +21,7 @@ class AtlasEntity:
 
     def get_tags(self):
         """
-        Get this entity's tags as a dict.
+        Get a dictionary of this entity's tags.
         """
         raise NotImplementedError('subclass must implement')
 
