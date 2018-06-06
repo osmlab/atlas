@@ -19,12 +19,12 @@ public class MultiPolyLineTest
 {
     private static final Logger logger = LoggerFactory.getLogger(MultiPolyLineTest.class);
 
-    @Test public void testCreateMultiPolyLineFromWKT()
+    @Test
+    public void testCreateMultiPolyLineFromWKT()
     {
-        final String wkt =
-                "MULTILINESTRING ((107.68471354246141 2.2346191319821231, 107.68471354246141 2.2345360028045156), "
-                        + "(107.68454724550249 2.2345601370821555, 107.68453115224835 2.2345601370821555, "
-                        + "107.68449419872607 2.2344243539043736))";
+        final String wkt = "MULTILINESTRING ((107.68471354246141 2.2346191319821231, 107.68471354246141 2.2345360028045156), "
+                + "(107.68454724550249 2.2345601370821555, 107.68453115224835 2.2345601370821555, "
+                + "107.68449419872607 2.2344243539043736))";
 
         final MultiPolyLine multiPolyLine = MultiPolyLine.wkt(wkt);
         logger.info("Create MultiPolyLine from wkt {}", multiPolyLine.toString());
@@ -40,7 +40,8 @@ public class MultiPolyLineTest
         Assert.assertTrue(polyLines.contains(polyLine2));
     }
 
-    @Test public void testCreateMultiPolyLineFromPolyLine()
+    @Test
+    public void testCreateMultiPolyLineFromPolyLine()
     {
         final PolyLine polyLine1 = PolyLine
                 .wkt("LINESTRING (10.5553105 48.3419094, 10.5552096 48.3417501, 10.5551312 48.3416583, "
@@ -60,11 +61,11 @@ public class MultiPolyLineTest
         Assert.assertTrue(polyLines.contains(polyLine2));
     }
 
-    @Test public void testBounds()
+    @Test
+    public void testBounds()
     {
-        final String wkt =
-                "MULTILINESTRING ((113.9980787038803 7.3216002915048872, 113.99803847074506 7.3215225281339456), "
-                        + "(113.99799555540086 7.3218335816030984, 113.99808806341453 7.3217805876994444))";
+        final String wkt = "MULTILINESTRING ((113.9980787038803 7.3216002915048872, 113.99803847074506 7.3215225281339456), "
+                + "(113.99799555540086 7.3218335816030984, 113.99808806341453 7.3217805876994444))";
         final MultiPolyLine multiPolyLine = MultiPolyLine.wkt(wkt);
         final Rectangle bound = multiPolyLine.bounds();
 
@@ -77,7 +78,8 @@ public class MultiPolyLineTest
         Assert.assertTrue(rectangle.equals(bound));
     }
 
-    @Test public void testConvertMultiPloyLineToJson()
+    @Test
+    public void testConvertMultiPloyLineToJson()
     {
         final String wkt = "MULTILINESTRING ((113.9980787038803 7.3216002915048872, "
                 + "113.99803847074506 7.3215225281339456))";
