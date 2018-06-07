@@ -1,4 +1,5 @@
 import atlas_entity
+import entity_type
 
 
 class Area(atlas_entity.AtlasEntity):
@@ -58,3 +59,9 @@ class Area(atlas_entity.AtlasEntity):
         relation_map = self.get_parent_atlas()._get_areaIndexToRelationIndices(
         )
         return self._get_relations_helper(relation_map, self.index)
+
+    def get_type(self):
+        """
+        Implement superclass get_type(). Always returns AREA.
+        """
+        return entity_type.EntityType.AREA

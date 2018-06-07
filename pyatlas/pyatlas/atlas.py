@@ -3,10 +3,10 @@ import zipfile
 
 import point
 import line
-from area import Area
-from node import Node
-from edge import Edge
-from relation import Relation
+import area
+import node
+import edge
+import relation
 
 import autogen.ProtoAtlasMetaData_pb2
 import autogen.ProtoLongArray_pb2
@@ -17,6 +17,8 @@ import autogen.ProtoLongToLongMap_pb2
 import autogen.ProtoLongToLongMultiMap_pb2
 import autogen.ProtoPolyLineArray_pb2
 import autogen.ProtoPolygonArray_pb2
+import autogen.ProtoByteArrayOfArrays_pb2
+import autogen.ProtoIntegerArrayOfArrays_pb2
 import atlas_metadata
 import integer_dictionary
 import packed_tag_store
@@ -84,6 +86,10 @@ class Atlas(object):
 
         self.relationIdentifiers = None
         self.relationIdentifierToRelationArrayIndex = None
+        self.relationMemberTypes = None
+        self.relationMemberIndices = None
+        self.relationMemberRoles = None
+        self.relationTags = None
         self.relationIndexToRelationIndices = None
 
         if not self.lazy_loading:
@@ -138,15 +144,15 @@ class Atlas(object):
             return line.Line(self, identifier_to_index[identifier])
         return None
 
-    def areas(self, predicate=lambda area: True):
+    def areas(self, predicate=lambda a: True):
         """
         Get a generator for Areas in this Atlas. Can optionally also accept a
         predicate to filter the generated Areas.
         """
         for i, element in enumerate(self._get_areaIdentifiers().elements):
-            area = Area(self, i)
-            if predicate(area):
-                yield area
+            area0 = area.Area(self, i)
+            if predicate(area0):
+                yield area0
 
     def area(self, identifier):
         """
@@ -155,18 +161,18 @@ class Atlas(object):
         """
         identifier_to_index = self._get_areaIdentifierToAreaArrayIndex()
         if identifier in identifier_to_index:
-            return Area(self, identifier_to_index[identifier])
+            return area.Area(self, identifier_to_index[identifier])
         return None
 
-    def nodes(self, predicate=lambda node: True):
+    def nodes(self, predicate=lambda n: True):
         """
         Get a generator for Nodes in this Atlas. Can optionally also accept a
         predicate to filter the generated Nodes.
         """
         for i, element in enumerate(self._get_nodeIdentifiers().elements):
-            node = Node(self, i)
-            if predicate(node):
-                yield node
+            node0 = node.Node(self, i)
+            if predicate(node0):
+                yield node0
 
     def node(self, identifier):
         """
@@ -175,18 +181,18 @@ class Atlas(object):
         """
         identifier_to_index = self._get_nodeIdentifierToNodeArrayIndex()
         if identifier in identifier_to_index:
-            return Node(self, identifier_to_index[identifier])
+            return node.Node(self, identifier_to_index[identifier])
         return None
 
-    def edges(self, predicate=lambda edge: True):
+    def edges(self, predicate=lambda e: True):
         """
         Get a generator for Edges in this Atlas. Can optionally also accept a
         predicate to filter the generated Edges.
         """
         for i, element in enumerate(self._get_edgeIdentifiers().elements):
-            edge = Edge(self, i)
-            if predicate(edge):
-                yield edge
+            edge0 = edge.Edge(self, i)
+            if predicate(edge0):
+                yield edge0
 
     def edge(self, identifier):
         """
@@ -195,18 +201,18 @@ class Atlas(object):
         """
         identifier_to_index = self._get_edgeIdentifierToEdgeArrayIndex()
         if identifier in identifier_to_index:
-            return Edge(self, identifier_to_index[identifier])
+            return edge.Edge(self, identifier_to_index[identifier])
         return None
 
-    def relations(self, predicate=lambda relation: True):
+    def relations(self, predicate=lambda r: True):
         """
         Get a generator for Relations in this Atlas. Can optionally also accept a
         predicate to filter the generated Relations.
         """
         for i, element in enumerate(self._get_relationIdentifiers().elements):
-            relation = Relation(self, i)
-            if predicate(relation):
-                yield relation
+            relation0 = relation.Relation(self, i)
+            if predicate(relation0):
+                yield relation0
 
     def relation(self, identifier):
         """
@@ -216,7 +222,7 @@ class Atlas(object):
         identifier_to_index = self._get_relationIdentifierToRelationArrayIndex(
         )
         if identifier in identifier_to_index:
-            return Relation(self, identifier_to_index[identifier])
+            return relation.Relation(self, identifier_to_index[identifier])
         return None
 
     def load_all_fields(self):
@@ -412,6 +418,30 @@ class Atlas(object):
                 _FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX)
         return self.relationIdentifierToRelationArrayIndex
 
+    def _get_relationMemberTypes(self):
+        if self.relationMemberTypes is None:
+            self.serializer._load_field(
+                self.serializer._FIELD_RELATION_MEMBER_TYPES)
+        return self.relationMemberTypes
+
+    def _get_relationMemberIndices(self):
+        if self.relationMemberIndices is None:
+            self.serializer._load_field(
+                self.serializer._FIELD_RELATION_MEMBER_INDICES)
+        return self.relationMemberIndices
+
+    def _get_relationMemberRoles(self):
+        if self.relationMemberRoles is None:
+            self.serializer._load_field(
+                self.serializer._FIELD_RELATION_MEMBER_ROLES)
+        return self.relationMemberRoles
+
+    def _get_relationTags(self):
+        if self.relationTags is None:
+            self.serializer._load_field(self.serializer._FIELD_RELATION_TAGS)
+        self.relationTags.set_dictionary(self._get_dictionary())
+        return self.relationTags
+
     def _get_relationIndexToRelationIndices(self):
         if self.relationIndexToRelationIndices is None:
             self.serializer._load_field(
@@ -464,6 +494,10 @@ class _AtlasSerializer(object):
 
     _FIELD_RELATION_IDENTIFIERS = 'relationIdentifiers'
     _FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX = 'relationIdentifierToRelationArrayIndex'
+    _FIELD_RELATION_MEMBER_TYPES = 'relationMemberTypes'
+    _FIELD_RELATION_MEMBER_INDICES = 'relationMemberIndices'
+    _FIELD_RELATION_MEMBER_ROLES = 'relationMemberRoles'
+    _FIELD_RELATION_TAGS = 'relationTags'
     _FIELD_RELATION_INDEX_TO_RELATION_INDICES = 'relationIndexToRelationIndices'
 
     # yapf: disable
@@ -540,6 +574,14 @@ class _AtlasSerializer(object):
         '_load_relationIdentifiers',
         _FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX:
         '_load_relationIdentifierToRelationArrayIndex',
+        _FIELD_RELATION_MEMBER_TYPES:
+        '_load_relationMemberTypes',
+        _FIELD_RELATION_MEMBER_INDICES:
+        '_load_relationMemberIndices',
+        _FIELD_RELATION_MEMBER_ROLES:
+        '_load_relationMemberRoles',
+        _FIELD_RELATION_TAGS:
+        '_load_relationTags',
         _FIELD_RELATION_INDEX_TO_RELATION_INDICES:
         '_load_relationIndexToRelationIndices'
     }
@@ -815,6 +857,36 @@ class _AtlasSerializer(object):
         self.atlas.relationIdentifierToRelationArrayIndex = _convert_protolongtolongmap(
             proto_map)
 
+    def _load_relationMemberTypes(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_RELATION_MEMBER_TYPES)
+        self.atlas.relationMemberTypes = autogen.ProtoByteArrayOfArrays_pb2.ProtoByteArrayOfArrays(
+        )
+        self.atlas.relationMemberTypes.ParseFromString(zip_entry_data)
+
+    def _load_relationMemberIndices(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_RELATION_MEMBER_INDICES)
+        self.atlas.relationMemberIndices = autogen.ProtoLongArrayOfArrays_pb2.ProtoLongArrayOfArrays(
+        )
+        self.atlas.relationMemberIndices.ParseFromString(zip_entry_data)
+
+    def _load_relationMemberRoles(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_RELATION_MEMBER_ROLES)
+        self.atlas.relationMemberRoles = autogen.ProtoIntegerArrayOfArrays_pb2.ProtoIntegerArrayOfArrays(
+        )
+        self.atlas.relationMemberRoles.ParseFromString(zip_entry_data)
+
+    def _load_relationTags(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_RELATION_TAGS)
+        proto_relation_tags = autogen.ProtoPackedTagStore_pb2.ProtoPackedTagStore(
+        )
+        proto_relation_tags.ParseFromString(zip_entry_data)
+        self.atlas.relationTags = packed_tag_store.get_packed_tag_store_from_proto(
+            proto_relation_tags)
+
     def _load_relationIndexToRelationIndices(self):
         zip_entry_data = _read_zipentry(
             self.atlas_file, self._FIELD_RELATION_INDEX_TO_RELATION_INDICES)
@@ -863,5 +935,4 @@ def _convert_protolongtolongmultimap(proto_map):
         for value in array_value.elements:
             value_list.append(value)
         new_dict[key] = value_list
-
     return new_dict

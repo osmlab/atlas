@@ -1,5 +1,6 @@
 import location
 import atlas_entity
+import entity_type
 
 
 class Point(atlas_entity.AtlasEntity):
@@ -62,3 +63,9 @@ class Point(atlas_entity.AtlasEntity):
         relation_map = self.get_parent_atlas(
         )._get_pointIndexToRelationIndices()
         return self._get_relations_helper(relation_map, self.index)
+
+    def get_type(self):
+        """
+        Implement superclass get_type(). Always returns POINT.
+        """
+        return entity_type.EntityType.POINT

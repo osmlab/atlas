@@ -13,6 +13,14 @@ class AtlasEntity(object):
         """
         self.parent_atlas = parent_atlas
 
+    def __eq__(self, other):
+        """
+        Determine if this AtlasEntity is equal to another. Two entities are
+        considered equal if they have the same identifier and the same type.
+        """
+        return self.get_identifier() == other.get_identifier(
+        ) and self.get_type() == other.get_type()
+
     def get_identifier(self):
         """
         Get the Atlas identifier of this entity.
@@ -28,6 +36,12 @@ class AtlasEntity(object):
     def get_relations(self):
         """
         Get the set of Relations of which this AtlasEntity is a member.
+        """
+        raise NotImplementedError('subclass must implement')
+
+    def get_type(self):
+        """
+        Get the EntityType of this AtlasEntity
         """
         raise NotImplementedError('subclass must implement')
 

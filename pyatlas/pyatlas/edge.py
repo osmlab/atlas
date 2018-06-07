@@ -1,5 +1,6 @@
 import node
 import atlas_entity
+import entity_type
 
 
 class Edge(atlas_entity.AtlasEntity):
@@ -24,11 +25,11 @@ class Edge(atlas_entity.AtlasEntity):
         result += 'Edge: id=' + str(self.get_identifier())
 
         string = ""
-        string += str(self.start().get_identifier()) + ', '
+        string += str(self.get_start().get_identifier()) + ','
         result += ', start=[' + string + ']'
 
         string = ""
-        string += str(self.end().get_identifier()) + ', '
+        string += str(self.get_end().get_identifier()) + ','
         result += ', end=[' + string + ']'
 
         result += ', geom=' + str(self.as_polyline())
@@ -87,16 +88,16 @@ class Edge(atlas_entity.AtlasEntity):
         )
         return self._get_relations_helper(relation_map, self.index)
 
-    def connected_nodes(self):
+    def get_connected_nodes(self):
         """
         Get a frozenset of the Nodes connected to this Edge.
         """
         result = set()
-        result.add(self.start())
-        result.add(self.end())
+        result.add(self.get_start())
+        result.add(self.get_end())
         return frozenset(result)
 
-    def start(self):
+    def get_start(self):
         """
         Get the starting Node of this Edge.
         """
@@ -105,7 +106,7 @@ class Edge(atlas_entity.AtlasEntity):
         index = edge_start_node_index.elements[self.index]
         return node.Node(self.get_parent_atlas(), index)
 
-    def end(self):
+    def get_end(self):
         """
         Get the ending Node of this Edge.
         """
@@ -127,3 +128,9 @@ class Edge(atlas_entity.AtlasEntity):
         Checks if this Edge is a master edge.
         """
         return self.get_identifier() > 0
+
+    def get_type(self):
+        """
+        Implement superclass get_type(). Always returns EDGE.
+        """
+        return entity_type.EntityType.EDGE

@@ -89,6 +89,12 @@ class PolyLine(object):
 
         return encoded
 
+    def get_points_list(self):
+        """
+        Get the underlying Location list for this PolyLine.
+        """
+        return self.points_list
+
     def points(self):
         """
         Get a generator for the Locations in this PolyLine.

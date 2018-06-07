@@ -1,6 +1,7 @@
 import location
 import atlas_entity
 import edge
+import entity_type
 
 
 class Node(atlas_entity.AtlasEntity):
@@ -26,13 +27,13 @@ class Node(atlas_entity.AtlasEntity):
         result += ', tags=' + str(self.get_tags())
 
         string = ""
-        for edge0 in self.in_edges():
-            string += str(edge0.get_identifier()) + ', '
+        for edge0 in self.get_in_edges():
+            string += str(edge0.get_identifier()) + ','
         result += ', inEdges=[' + string + ']'
 
         string = ""
-        for edge0 in self.out_edges():
-            string += str(edge0.get_identifier()) + ', '
+        for edge0 in self.get_out_edges():
+            string += str(edge0.get_identifier()) + ','
         result += ', outEdges=[' + string + ']'
 
         string = ''
@@ -66,7 +67,7 @@ class Node(atlas_entity.AtlasEntity):
         node_tag_store = self.get_parent_atlas()._get_nodeTags()
         return node_tag_store.to_key_value_dict(self.index)
 
-    def in_edges(self):
+    def get_in_edges(self):
         """
         Get a list of incoming Edges to this Node. The list is sorted by the
         Edges' Atlas IDs.
@@ -78,7 +79,7 @@ class Node(atlas_entity.AtlasEntity):
             result.append(edge.Edge(self.get_parent_atlas(), index))
         return sorted(result)
 
-    def out_edges(self):
+    def get_out_edges(self):
         """
         Get a list of outgoing Edges from this Node. The list is sorted by the
         Edges' Atlas IDs.
@@ -90,15 +91,15 @@ class Node(atlas_entity.AtlasEntity):
             result.append(edge.Edge(self.get_parent_atlas(), index))
         return sorted(result)
 
-    def connected_edges(self):
+    def get_connected_edges(self):
         """
         Get a list of all Edges connected to this Node. The list is sorted by
         the Edges' Atlas IDs.
         """
         result = []
-        for edge0 in self.in_edges():
+        for edge0 in self.get_in_edges():
             result.append(edge0)
-        for edge0 in self.out_edges():
+        for edge0 in self.get_out_edges():
             result.append(edge0)
         return sorted(result)
 
@@ -110,3 +111,9 @@ class Node(atlas_entity.AtlasEntity):
         relation_map = self.get_parent_atlas()._get_nodeIndexToRelationIndices(
         )
         return self._get_relations_helper(relation_map, self.index)
+
+    def get_type(self):
+        """
+        Implement superclass get_type(). Always returns NODE.
+        """
+        return entity_type.EntityType.NODE
