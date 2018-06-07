@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.command;
+package org.openstreetmap.atlas.proto.command;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -7,7 +7,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.atlas.builder.proto.ProtoAtlasBuilder;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
+import org.openstreetmap.atlas.proto.builder.ProtoAtlasBuilder;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.runtime.Command.Optionality;
 import org.openstreetmap.atlas.utilities.runtime.Command.Switch;
@@ -16,7 +17,7 @@ import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 import org.openstreetmap.atlas.utilities.runtime.FlexibleSubCommand;
 
 /**
- * Command for converting a serialized ProtoAtlas to a serialized PackedAtlas
+ * Command for converting a serialized ProtoAtlas to a serialized {@link PackedAtlas}
  *
  * @author lcram
  */

@@ -13,6 +13,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
+import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +55,9 @@ public class SimpleChangeSetHandler extends ChangeSetHandler
     @Override
     public Atlas applyChanges()
     {
+        final Time time = Time.now();
+        logger.info("Started Applying Point and Line Changes for {}", getShardOrAtlasName());
+
         // Log original Atlas statistics
         logger.info(atlasStatistics(this.getAtlas()));
 
@@ -74,6 +78,9 @@ public class SimpleChangeSetHandler extends ChangeSetHandler
         // Build and log
         final Atlas atlasWithUpdates = this.getBuilder().get();
         logger.info(atlasStatistics(atlasWithUpdates));
+
+        logger.info("Finished Applying Point and Line Changes for {} in {}", getShardOrAtlasName(),
+                time.untilNow());
 
         return atlasWithUpdates;
     }

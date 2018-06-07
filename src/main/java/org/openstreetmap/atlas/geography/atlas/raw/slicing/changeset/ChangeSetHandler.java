@@ -65,6 +65,11 @@ public abstract class ChangeSetHandler
         return this.builder;
     }
 
+    protected String getShardOrAtlasName()
+    {
+        return this.atlas.metaData().getShardName().orElse(this.atlas.getName());
+    }
+
     /**
      * Constructs a {@link PolyLine} for the given {@link TemporaryLine}.
      *

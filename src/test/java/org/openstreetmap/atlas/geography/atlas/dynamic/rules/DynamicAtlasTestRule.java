@@ -15,7 +15,7 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation.Member;
 /**
  * The Geojson representation of the below test atlas files is saved in the test/resources folder,
  * same package
- * 
+ *
  * @author matthieun
  */
 public class DynamicAtlasTestRule extends CoreTestRule
@@ -66,7 +66,7 @@ public class DynamicAtlasTestRule extends CoreTestRule
                             @Loc(value = FIVE) }, tags = { "highway=secondary" }),
                     @Edge(id = "5000000", coordinates = { @Loc(value = FIVE),
                             @Loc(value = SIX) }, tags = { "highway=secondary" }),
-                    @Edge(id = "6000000", coordinates = { @Loc(value = SIX),
+                    @Edge(id = "6000001", coordinates = { @Loc(value = SIX),
                             @Loc(value = SEVEN) }, tags = { "highway=secondary" }),
                     @Edge(id = "7000000", coordinates = { @Loc(value = SEVEN),
                             @Loc(value = EIGHT) }, tags = { "highway=secondary" }),
@@ -125,7 +125,7 @@ public class DynamicAtlasTestRule extends CoreTestRule
                     @Relation(id = "3", tags = { "type=relation" }, members = {
 
                             @Member(id = "5000000", role = "a", type = "edge"),
-                            @Member(id = "6000000", role = "b", type = "edge")
+                            @Member(id = "6000001", role = "b", type = "edge")
 
                     })
 

@@ -38,11 +38,13 @@ import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.converters.jts.JtsUtility;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
+import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticRelationMemberAdded;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
+import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,8 +115,8 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
     @Override
     public Atlas slice()
     {
-        logger.info("Starting Relation slicing for Raw Atlas {}",
-                this.partiallySlicedRawAtlas.getName());
+        final Time time = Time.now();
+        logger.info("Started Relation Slicing for {}", getShardOrAtlasName());
 
         // Slice all relations
         sliceRelations();
@@ -127,8 +129,8 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 this.partiallySlicedRawAtlas, this.slicedRelationChanges);
 
         final Atlas fullySlicedAtlas = relationChangeBuilder.applyChanges();
-        logger.info("Finished Relation slicing for Raw Atlas {}",
-                this.partiallySlicedRawAtlas.getName());
+        logger.info("Finished Relation Slicing for {} in {}", getShardOrAtlasName(),
+                time.untilNow());
 
         getStatistics().summary();
         return fullySlicedAtlas;
@@ -256,9 +258,12 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 {
                     // Point doesn't exist in the raw Atlas, create a new one
                     final Map<String, String> newPointTags = createPointTags(pointLocation, false);
-
-                    final TemporaryPoint newPoint = createNewPoint(pointCoordinate,
-                            pointIdentifierGenerator, newPointTags);
+                    newPointTags.put(SyntheticBoundaryNodeTag.KEY,
+                            SyntheticBoundaryNodeTag.YES.toString());
+                    final long newPointIdentifier = createNewPointIdentifier(
+                            pointIdentifierGenerator, pointCoordinate);
+                    final TemporaryPoint newPoint = new TemporaryPoint(newPointIdentifier,
+                            JTS_LOCATION_CONVERTER.backwardConvert(pointCoordinate), newPointTags);
 
                     // Store coordinate to avoid creating duplicate points
                     getCoordinateToPointMapping().storeMapping(pointCoordinate,
@@ -298,6 +303,24 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
 
         // Update synthetic tags
         updateSyntheticRelationMemberTag(relationIdentifier, newLineIdentifier);
+    }
+
+    private long createNewPointIdentifier(
+            final CountrySlicingIdentifierFactory pointIdentifierFactory,
+            final Coordinate coordinate)
+    {
+        if (!pointIdentifierFactory.hasMore())
+        {
+            throw new CoreException(
+                    "Country Slicing exceeded maximum number {} of supported new points at Coordinate {}",
+                    AbstractIdentifierFactory.IDENTIFIER_SCALE, coordinate);
+        }
+        else
+        {
+            final long identifier = pointIdentifierFactory.nextIdentifier();
+            return this.partiallySlicedRawAtlas.point(identifier) == null ? identifier
+                    : createNewPointIdentifier(pointIdentifierFactory, coordinate);
+        }
     }
 
     /**
@@ -412,6 +435,12 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         {
             return Collections.emptyList();
         }
+    }
+
+    private String getShardOrAtlasName()
+    {
+        return this.partiallySlicedRawAtlas.metaData().getShardName()
+                .orElse(this.partiallySlicedRawAtlas.getName());
     }
 
     /**

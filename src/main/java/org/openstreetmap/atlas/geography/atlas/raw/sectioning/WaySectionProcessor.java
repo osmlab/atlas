@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.StreamSupport;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
@@ -58,11 +59,11 @@ public class WaySectionProcessor
 {
     private static final Logger logger = LoggerFactory.getLogger(WaySectionProcessor.class);
 
+    private static final int MINIMUM_NUMBER_OF_SELF_INTERSECTIONS_FOR_A_NODE = 3;
     private static final int MINIMUM_SHAPE_POINTS_TO_QUALIFY_AS_AREA = 3;
     private static final int MINIMUM_POINTS_TO_QUALIFY_AS_A_LINE = 2;
 
-    // This is used to expand the initial shard boundary to capture any edges that are crossing the
-    // shard boundary
+    // Expand the initial shard boundary to capture any edges that are crossing the shard boundary
     private static final Distance SHARD_EXPANSION_DISTANCE = Distance.meters(20);
 
     private final Atlas rawAtlas;
@@ -500,8 +501,8 @@ public class WaySectionProcessor
         final Time time = Time.now();
         logger.info("Started Shape Point Detection for Shard {}", getShardOrAtlasName());
 
-        Iterables.stream(this.rawAtlas.points()).filter(point -> isAtlasPoint(changeSet, point))
-                .forEach(changeSet::recordPoint);
+        StreamSupport.stream(this.rawAtlas.points().spliterator(), true)
+                .filter(point -> isAtlasPoint(changeSet, point)).forEach(changeSet::recordPoint);
 
         logger.info("Finished Shape Point Detection for Shard {} in {}", getShardOrAtlasName(),
                 time.untilNow());
@@ -536,7 +537,7 @@ public class WaySectionProcessor
         final Time time = Time.now();
         logger.info("Started Atlas Feature Detection for Shard {}", getShardOrAtlasName());
 
-        this.rawAtlas.lines().forEach(line ->
+        StreamSupport.stream(this.rawAtlas.lines().spliterator(), true).forEach(line ->
         {
             if (isAtlasEdge(line))
             {
@@ -544,10 +545,13 @@ public class WaySectionProcessor
                 final PolyLine polyLine = line.asPolyLine();
                 final Set<Location> selfIntersections = polyLine.selfIntersections();
 
-                // A ring will have a self-intersection at the start/end - ignore it
-                if (line.isClosed())
+                // Ignoring repeated consecutive points, identify all rings - they will have a
+                // self-intersection at the start/end - ignore it.
+                if (line.isClosed()
+                        && polyLine.withoutDuplicateConsecutiveShapePoints().occurrences(
+                                polyLine.first()) < MINIMUM_NUMBER_OF_SELF_INTERSECTIONS_FOR_A_NODE)
                 {
-                    selfIntersections.remove(line.asPolyLine().first());
+                    selfIntersections.remove(polyLine.first());
                 }
 
                 // Identify all nodes. We care about three cases: 1. sectioning based on tagging
@@ -572,7 +576,7 @@ public class WaySectionProcessor
                     }
 
                     // TODO - Getting non-intersecting lines from the spatial query results.
-                    // So purposefully specifying "contains shapePoint". Need to resolve this!
+                    // So explicitly specifying "contains shapePoint". Need to resolve this!
 
                     // Check if there is an edge intersection at this location
                     if (locationHasIntersectingLinesMatchingPredicate(shapePoint,
@@ -619,8 +623,7 @@ public class WaySectionProcessor
             else if (isAtlasLine(line))
             {
                 // No-op. Unless a line becomes an area, edge or is excluded from the Atlas, it will
-                // stay a line. It is easier to keep track of exclusions than lines that stay as
-                // lines.
+                // stay a line. It's easier to track of exclusions than lines that stay as lines
             }
             else
             {

@@ -19,6 +19,8 @@ import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
+
 /**
  * {@link Node} made from a {@link MultiAtlas}
  *
@@ -82,7 +84,15 @@ public class MultiNode extends Node
     @Override
     public Set<Relation> relations()
     {
-        return multiAtlas().multifyRelations(getSubNodes().getSubNodes().get(0));
+        Set<Relation> unionOfAllParentRelations = new HashSet<>();
+        for (final Node subNode : getSubNodes().getSubNodes())
+        {
+            final Set<Relation> currentSubNodeParentRelations = multiAtlas()
+                    .multifyRelations(subNode);
+            unionOfAllParentRelations = Sets.union(unionOfAllParentRelations,
+                    currentSubNodeParentRelations);
+        }
+        return unionOfAllParentRelations;
     }
 
     /**

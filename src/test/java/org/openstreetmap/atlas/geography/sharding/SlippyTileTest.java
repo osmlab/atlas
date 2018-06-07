@@ -1,6 +1,8 @@
 package org.openstreetmap.atlas.geography.sharding;
 
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -66,9 +68,9 @@ public class SlippyTileTest extends Command
                 .wkt("MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),"
                         + "((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),"
                         + "(30 20, 20 15, 20 25, 30 20)))");
-        @SuppressWarnings("unchecked")
-        final Set<Shard> coveredShards = (Set<Shard>) new SlippyTileSharding(8)
-                .shards(multiPolygon);
+        final Set<Shard> coveredShards = StreamSupport
+                .stream(new SlippyTileSharding(8).shards(multiPolygon).spliterator(), false)
+                .collect(Collectors.toSet());
         Assert.assertFalse(coveredShards.contains(SlippyTile.forName("8-145-113")));
         Assert.assertTrue(coveredShards.contains(SlippyTile.forName("8-146-111")));
         Assert.assertFalse(coveredShards.contains(SlippyTile.forName("8-167-108")));
