@@ -1,8 +1,8 @@
 """The pyatlas Atlas implementation"""
 import zipfile
 
-from point import Point
-from line import Line
+import point
+import line
 from area import Area
 from node import Node
 from edge import Edge
@@ -32,6 +32,15 @@ class Atlas(object):
     """
 
     def __init__(self, atlas_file, lazy_loading=True):
+        """
+        Create a new Atlas backed by a specified atlas file.
+
+        Args:
+            atlas_file (str): The path to the atlas file.
+            lazy_loading (bool, optional): Specify if this Atlas should use
+                lazy deserialization. Defaults to True. Setting this to False
+                causes all the deserialization to happen upfront.
+        """
         self.serializer = _AtlasSerializer(atlas_file, self)
         self.lazy_loading = lazy_loading
 
@@ -49,11 +58,13 @@ class Atlas(object):
         self.lineIdentifierToLineArrayIndex = None
         self.linePolyLines = None
         self.lineTags = None
+        self.lineIndexToRelationIndices = None
 
         self.areaIdentifiers = None
         self.areaIdentifierToAreaArrayIndex = None
         self.areaPolygons = None
         self.areaTags = None
+        self.areaIndexToRelationIndices = None
 
         self.nodeIdentifiers = None
         self.nodeIdentifierToNodeArrayIndex = None
@@ -61,6 +72,7 @@ class Atlas(object):
         self.nodeTags = None
         self.nodeInEdgesIndices = None
         self.nodeOutEdgesIndices = None
+        self.nodeIndexToRelationIndices = None
 
         self.edgeIdentifiers = None
         self.edgeIdentifierToEdgeArrayIndex = None
@@ -68,9 +80,11 @@ class Atlas(object):
         self.edgeEndNodeIndex = None
         self.edgePolyLines = None
         self.edgeTags = None
+        self.edgeIndexToRelationIndices = None
 
         self.relationIdentifiers = None
         self.relationIdentifierToRelationArrayIndex = None
+        self.relationIndexToRelationIndices = None
 
         if not self.lazy_loading:
             self.load_all_fields()
@@ -84,15 +98,15 @@ class Atlas(object):
             self.serializer._load_field(self.serializer._FIELD_METADATA)
         return self.metaData
 
-    def points(self, predicate=lambda point: True):
+    def points(self, predicate=lambda p: True):
         """
         Get a generator for Points in this Atlas. Can optionally also accept a
         predicate to filter the generated Points.
         """
         for i, element in enumerate(self._get_pointIdentifiers().elements):
-            point = Point(self, i)
-            if predicate(point):
-                yield point
+            point0 = point.Point(self, i)
+            if predicate(point0):
+                yield point0
 
     def point(self, identifier):
         """
@@ -101,18 +115,18 @@ class Atlas(object):
         """
         identifier_to_index = self._get_pointIdentifierToPointArrayIndex()
         if identifier in identifier_to_index:
-            return Point(self, identifier_to_index[identifier])
+            return point.Point(self, identifier_to_index[identifier])
         return None
 
-    def lines(self, predicate=lambda line: True):
+    def lines(self, predicate=lambda l: True):
         """
         Get a generator for Lines in this Atlas. Can optionally also accept a
         predicate to filter the generated Lines.
         """
         for i, element in enumerate(self._get_lineIdentifiers().elements):
-            line = Line(self, i)
-            if predicate(line):
-                yield line
+            line0 = line.Line(self, i)
+            if predicate(line0):
+                yield line0
 
     def line(self, identifier):
         """
@@ -121,7 +135,7 @@ class Atlas(object):
         """
         identifier_to_index = self._get_lineIdentifierToLineArrayIndex()
         if identifier in identifier_to_index:
-            return Line(self, identifier_to_index[identifier])
+            return line.Line(self, identifier_to_index[identifier])
         return None
 
     def areas(self, predicate=lambda area: True):
@@ -268,6 +282,12 @@ class Atlas(object):
         self.lineTags.set_dictionary(self._get_dictionary())
         return self.lineTags
 
+    def _get_lineIndexToRelationIndices(self):
+        if self.lineIndexToRelationIndices is None:
+            self.serializer._load_field(
+                self.serializer._FIELD_LINE_INDEX_TO_RELATION_INDICES)
+        return self.lineIndexToRelationIndices
+
     def _get_areaIdentifiers(self):
         if self.areaIdentifiers is None:
             self.serializer._load_field(
@@ -290,6 +310,12 @@ class Atlas(object):
             self.serializer._load_field(self.serializer._FIELD_AREA_TAGS)
         self.areaTags.set_dictionary(self._get_dictionary())
         return self.areaTags
+
+    def _get_areaIndexToRelationIndices(self):
+        if self.areaIndexToRelationIndices is None:
+            self.serializer._load_field(
+                self.serializer._FIELD_AREA_INDEX_TO_RELATION_INDICES)
+        return self.areaIndexToRelationIndices
 
     def _get_nodeIdentifiers(self):
         if self.nodeIdentifiers is None:
@@ -326,6 +352,12 @@ class Atlas(object):
                 self.serializer._FIELD_NODE_OUT_EDGES_INDICES)
         return self.nodeOutEdgesIndices
 
+    def _get_nodeIndexToRelationIndices(self):
+        if self.nodeIndexToRelationIndices is None:
+            self.serializer._load_field(
+                self.serializer._FIELD_NODE_INDEX_TO_RELATION_INDICES)
+        return self.nodeIndexToRelationIndices
+
     def _get_edgeIdentifiers(self):
         if self.edgeIdentifiers is None:
             self.serializer._load_field(
@@ -361,6 +393,12 @@ class Atlas(object):
         self.edgeTags.set_dictionary(self._get_dictionary())
         return self.edgeTags
 
+    def _get_edgeIndexToRelationIndices(self):
+        if self.edgeIndexToRelationIndices is None:
+            self.serializer._load_field(
+                self.serializer._FIELD_EDGE_INDEX_TO_RELATION_INDICES)
+        return self.edgeIndexToRelationIndices
+
     def _get_relationIdentifiers(self):
         if self.relationIdentifiers is None:
             self.serializer._load_field(
@@ -373,6 +411,12 @@ class Atlas(object):
                 self.serializer.
                 _FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX)
         return self.relationIdentifierToRelationArrayIndex
+
+    def _get_relationIndexToRelationIndices(self):
+        if self.relationIndexToRelationIndices is None:
+            self.serializer._load_field(
+                self.serializer._FIELD_RELATION_INDEX_TO_RELATION_INDICES)
+        return self.relationIndexToRelationIndices
 
 
 class _AtlasSerializer(object):
@@ -394,11 +438,13 @@ class _AtlasSerializer(object):
     _FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX = 'lineIdentifierToLineArrayIndex'
     _FIELD_LINE_POLYLINES = 'linePolyLines'
     _FIELD_LINE_TAGS = 'lineTags'
+    _FIELD_LINE_INDEX_TO_RELATION_INDICES = 'lineIndexToRelationIndices'
 
     _FIELD_AREA_IDENTIFIERS = 'areaIdentifiers'
     _FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX = 'areaIdentifierToAreaArrayIndex'
     _FIELD_AREA_POLYGONS = 'areaPolygons'
     _FIELD_AREA_TAGS = 'areaTags'
+    _FIELD_AREA_INDEX_TO_RELATION_INDICES = 'areaIndexToRelationIndices'
 
     _FIELD_NODE_IDENTIFIERS = 'nodeIdentifiers'
     _FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX = 'nodeIdentifierToNodeArrayIndex'
@@ -406,6 +452,7 @@ class _AtlasSerializer(object):
     _FIELD_NODE_TAGS = 'nodeTags'
     _FIELD_NODE_IN_EDGES_INDICES = 'nodeInEdgesIndices'
     _FIELD_NODE_OUT_EDGES_INDICES = 'nodeOutEdgesIndices'
+    _FIELD_NODE_INDEX_TO_RELATION_INDICES = 'nodeIndexToRelationIndices'
 
     _FIELD_EDGE_IDENTIFIERS = 'edgeIdentifiers'
     _FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX = 'edgeIdentifierToEdgeArrayIndex'
@@ -413,78 +460,89 @@ class _AtlasSerializer(object):
     _FIELD_EDGE_END_NODE_INDEX = 'edgeEndNodeIndex'
     _FIELD_EDGE_POLYLINES = 'edgePolyLines'
     _FIELD_EDGE_TAGS = 'edgeTags'
+    _FIELD_EDGE_INDEX_TO_RELATION_INDICES = 'edgeIndexToRelationIndices'
 
     _FIELD_RELATION_IDENTIFIERS = 'relationIdentifiers'
     _FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX = 'relationIdentifierToRelationArrayIndex'
+    _FIELD_RELATION_INDEX_TO_RELATION_INDICES = 'relationIndexToRelationIndices'
 
     # yapf: disable
     _FIELD_NAMES_TO_LOAD_METHODS = {
         _FIELD_METADATA:
-            '_load_metadata',
+        '_load_metadata',
         _FIELD_DICTIONARY:
-            '_load_dictionary',
+        '_load_dictionary',
 
         _FIELD_POINT_IDENTIFIERS:
-            '_load_pointIdentifiers',
+        '_load_pointIdentifiers',
         _FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX:
-            '_load_pointIdentifierToPointArrayIndex',
+        '_load_pointIdentifierToPointArrayIndex',
         _FIELD_POINT_LOCATIONS:
-            '_load_pointLocations',
+        '_load_pointLocations',
         _FIELD_POINT_TAGS:
-            '_load_pointTags',
+        '_load_pointTags',
         _FIELD_POINT_INDEX_TO_RELATION_INDICES:
-            '_load_pointIndexToRelationIndices',
+        '_load_pointIndexToRelationIndices',
 
         _FIELD_LINE_IDENTIFIERS:
-            '_load_lineIdentifiers',
+        '_load_lineIdentifiers',
         _FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX:
-            '_load_lineIdentifierToLineArrayIndex',
+        '_load_lineIdentifierToLineArrayIndex',
         _FIELD_LINE_POLYLINES:
-            '_load_linePolylines',
+        '_load_linePolylines',
         _FIELD_LINE_TAGS:
-            '_load_lineTags',
+        '_load_lineTags',
+        _FIELD_LINE_INDEX_TO_RELATION_INDICES:
+        '_load_lineIndexToRelationIndices',
 
         _FIELD_AREA_IDENTIFIERS:
-            '_load_areaIdentifiers',
+        '_load_areaIdentifiers',
         _FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX:
-            '_load_areaIdentifierToAreaArrayIndex',
+        '_load_areaIdentifierToAreaArrayIndex',
         _FIELD_AREA_POLYGONS:
-            '_load_areaPolygons',
+        '_load_areaPolygons',
         _FIELD_AREA_TAGS:
-            '_load_areaTags',
+        '_load_areaTags',
+        _FIELD_AREA_INDEX_TO_RELATION_INDICES:
+        '_load_areaIndexToRelationIndices',
 
         _FIELD_NODE_IDENTIFIERS:
-            '_load_nodeIdentifiers',
+        '_load_nodeIdentifiers',
         _FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX:
-            '_load_nodeIdentifierToNodeArrayIndex',
+        '_load_nodeIdentifierToNodeArrayIndex',
         _FIELD_NODE_LOCATIONS:
-            '_load_nodeLocations',
+        '_load_nodeLocations',
         _FIELD_NODE_TAGS:
-            '_load_nodeTags',
+        '_load_nodeTags',
         _FIELD_NODE_IN_EDGES_INDICES:
-            '_load_nodeInEdgesIndices',
+        '_load_nodeInEdgesIndices',
         _FIELD_NODE_OUT_EDGES_INDICES:
-            '_load_nodeOutEdgesIndices',
+        '_load_nodeOutEdgesIndices',
+        _FIELD_NODE_INDEX_TO_RELATION_INDICES:
+        '_load_nodeIndexToRelationIndices',
 
         _FIELD_EDGE_IDENTIFIERS:
-            '_load_edgeIdentifiers',
+        '_load_edgeIdentifiers',
         _FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX:
-            '_load_edgeIdentifierToEdgeArrayIndex',
+        '_load_edgeIdentifierToEdgeArrayIndex',
         _FIELD_EDGE_START_NODE_INDEX:
-            '_load_edgeStartNodeIndex',
+        '_load_edgeStartNodeIndex',
         _FIELD_EDGE_END_NODE_INDEX:
-            '_load_edgeEndNodeIndex',
+        '_load_edgeEndNodeIndex',
         _FIELD_EDGE_POLYLINES:
-            '_load_edgePolylines',
+        '_load_edgePolylines',
         _FIELD_EDGE_TAGS:
-            '_load_edgeTags',
+        '_load_edgeTags',
+        _FIELD_EDGE_INDEX_TO_RELATION_INDICES:
+        '_load_edgeIndexToRelationIndices',
 
         _FIELD_RELATION_IDENTIFIERS:
-            '_load_relationIdentifiers',
+        '_load_relationIdentifiers',
         _FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX:
-            '_load_relationIdentifierToRelationArrayIndex'
+        '_load_relationIdentifierToRelationArrayIndex',
+        _FIELD_RELATION_INDEX_TO_RELATION_INDICES:
+        '_load_relationIndexToRelationIndices'
     }
-
     # yapf: enable
 
     def __init__(self, atlas_file, atlas):
@@ -583,6 +641,15 @@ class _AtlasSerializer(object):
         self.atlas.lineTags = packed_tag_store.get_packed_tag_store_from_proto(
             proto_line_tags)
 
+    def _load_lineIndexToRelationIndices(self):
+        zip_entry_data = _read_zipentry(
+            self.atlas_file, self._FIELD_LINE_INDEX_TO_RELATION_INDICES)
+        proto_multimap = autogen.ProtoLongToLongMultiMap_pb2.ProtoLongToLongMultiMap(
+        )
+        proto_multimap.ParseFromString(zip_entry_data)
+        self.atlas.lineIndexToRelationIndices = _convert_protolongtolongmultimap(
+            proto_multimap)
+
     def _load_areaIdentifiers(self):
         zip_entry_data = _read_zipentry(self.atlas_file,
                                         self._FIELD_AREA_IDENTIFIERS)
@@ -616,6 +683,15 @@ class _AtlasSerializer(object):
         self.atlas.areaTags = packed_tag_store.get_packed_tag_store_from_proto(
             proto_area_tags)
 
+    def _load_areaIndexToRelationIndices(self):
+        zip_entry_data = _read_zipentry(
+            self.atlas_file, self._FIELD_AREA_INDEX_TO_RELATION_INDICES)
+        proto_multimap = autogen.ProtoLongToLongMultiMap_pb2.ProtoLongToLongMultiMap(
+        )
+        proto_multimap.ParseFromString(zip_entry_data)
+        self.atlas.areaIndexToRelationIndices = _convert_protolongtolongmultimap(
+            proto_multimap)
+
     def _load_nodeIdentifiers(self):
         zip_entry_data = _read_zipentry(self.atlas_file,
                                         self._FIELD_NODE_IDENTIFIERS)
@@ -643,6 +719,29 @@ class _AtlasSerializer(object):
         proto_node_tags.ParseFromString(zip_entry_data)
         self.atlas.nodeTags = packed_tag_store.get_packed_tag_store_from_proto(
             proto_node_tags)
+
+    def _load_nodeInEdgesIndices(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_NODE_IN_EDGES_INDICES)
+        self.atlas.nodeInEdgesIndices = autogen.ProtoLongArrayOfArrays_pb2.ProtoLongArrayOfArrays(
+        )
+        self.atlas.nodeInEdgesIndices.ParseFromString(zip_entry_data)
+
+    def _load_nodeOutEdgesIndices(self):
+        zip_entry_data = _read_zipentry(self.atlas_file,
+                                        self._FIELD_NODE_OUT_EDGES_INDICES)
+        self.atlas.nodeOutEdgesIndices = autogen.ProtoLongArrayOfArrays_pb2.ProtoLongArrayOfArrays(
+        )
+        self.atlas.nodeOutEdgesIndices.ParseFromString(zip_entry_data)
+
+    def _load_nodeIndexToRelationIndices(self):
+        zip_entry_data = _read_zipentry(
+            self.atlas_file, self._FIELD_NODE_INDEX_TO_RELATION_INDICES)
+        proto_multimap = autogen.ProtoLongToLongMultiMap_pb2.ProtoLongToLongMultiMap(
+        )
+        proto_multimap.ParseFromString(zip_entry_data)
+        self.atlas.nodeIndexToRelationIndices = _convert_protolongtolongmultimap(
+            proto_multimap)
 
     def _load_edgeIdentifiers(self):
         zip_entry_data = _read_zipentry(self.atlas_file,
@@ -673,20 +772,6 @@ class _AtlasSerializer(object):
         )
         self.atlas.edgeEndNodeIndex.ParseFromString(zip_entry_data)
 
-    def _load_nodeInEdgesIndices(self):
-        zip_entry_data = _read_zipentry(self.atlas_file,
-                                        self._FIELD_NODE_IN_EDGES_INDICES)
-        self.atlas.nodeInEdgesIndices = autogen.ProtoLongArrayOfArrays_pb2.ProtoLongArrayOfArrays(
-        )
-        self.atlas.nodeInEdgesIndices.ParseFromString(zip_entry_data)
-
-    def _load_nodeOutEdgesIndices(self):
-        zip_entry_data = _read_zipentry(self.atlas_file,
-                                        self._FIELD_NODE_OUT_EDGES_INDICES)
-        self.atlas.nodeOutEdgesIndices = autogen.ProtoLongArrayOfArrays_pb2.ProtoLongArrayOfArrays(
-        )
-        self.atlas.nodeOutEdgesIndices.ParseFromString(zip_entry_data)
-
     def _load_edgePolylines(self):
         zip_entry_data = _read_zipentry(self.atlas_file,
                                         self._FIELD_EDGE_POLYLINES)
@@ -705,6 +790,15 @@ class _AtlasSerializer(object):
         self.atlas.edgeTags = packed_tag_store.get_packed_tag_store_from_proto(
             proto_edge_tags)
 
+    def _load_edgeIndexToRelationIndices(self):
+        zip_entry_data = _read_zipentry(
+            self.atlas_file, self._FIELD_EDGE_INDEX_TO_RELATION_INDICES)
+        proto_multimap = autogen.ProtoLongToLongMultiMap_pb2.ProtoLongToLongMultiMap(
+        )
+        proto_multimap.ParseFromString(zip_entry_data)
+        self.atlas.edgeIndexToRelationIndices = _convert_protolongtolongmultimap(
+            proto_multimap)
+
     def _load_relationIdentifiers(self):
         zip_entry_data = _read_zipentry(self.atlas_file,
                                         self._FIELD_RELATION_IDENTIFIERS)
@@ -720,6 +814,15 @@ class _AtlasSerializer(object):
         proto_map.ParseFromString(zip_entry_data)
         self.atlas.relationIdentifierToRelationArrayIndex = _convert_protolongtolongmap(
             proto_map)
+
+    def _load_relationIndexToRelationIndices(self):
+        zip_entry_data = _read_zipentry(
+            self.atlas_file, self._FIELD_RELATION_INDEX_TO_RELATION_INDICES)
+        proto_multimap = autogen.ProtoLongToLongMultiMap_pb2.ProtoLongToLongMultiMap(
+        )
+        proto_multimap.ParseFromString(zip_entry_data)
+        self.atlas.relationIndexToRelationIndices = _convert_protolongtolongmultimap(
+            proto_multimap)
 
     def _load_field(self, field_name):
         if field_name not in self._FIELD_NAMES_TO_LOAD_METHODS:

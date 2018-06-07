@@ -20,6 +20,12 @@ class Relation(atlas_entity.AtlasEntity):
         """
         result = '[ '
         result += 'Relation: id=' + str(self.get_identifier())
+
+        string = ''
+        for relation in self.get_relations():
+            string += str(relation.get_identifier()) + ','
+        result += ', relations=[' + string + ']'
+
         result += ' ]'
         return result
 
@@ -39,7 +45,9 @@ class Relation(atlas_entity.AtlasEntity):
 
     def get_relations(self):
         """
-        Get the set of relations of which this Relation is a member.
+        Get the frozenset of Relations of which this Relation is a member.
+        Returns an empty set if this Relation is not a member of any Relations.
         """
-        # TODO implement
-        raise NotImplementedError
+        relation_map = self.get_parent_atlas(
+        )._get_relationIndexToRelationIndices()
+        return self._get_relations_helper(relation_map, self.index)

@@ -33,6 +33,12 @@ class Edge(atlas_entity.AtlasEntity):
 
         result += ', geom=' + str(self.as_polyline())
         result += ', tags=' + str(self.get_tags())
+
+        string = ''
+        for relation in self.get_relations():
+            string += str(relation.get_identifier()) + ','
+        result += ', relations=[' + string + ']'
+
         result += ' ]'
         return result
 
@@ -68,18 +74,18 @@ class Edge(atlas_entity.AtlasEntity):
     def get_tags(self):
         """
         Get a dictionary of this Edge's tags.
-        :return: the dictionary
         """
         edge_tag_store = self.get_parent_atlas()._get_edgeTags()
         return edge_tag_store.to_key_value_dict(self.index)
 
     def get_relations(self):
         """
-        Get the set of relations of which this Edge is a member.
-        :return: the set of relations
+        Get the frozenset of Relations of which this Edge is a member.
+        Returns an empty set if this Edge is not a member of any Relations.
         """
-        # TODO implement
-        raise NotImplementedError
+        relation_map = self.get_parent_atlas()._get_edgeIndexToRelationIndices(
+        )
+        return self._get_relations_helper(relation_map, self.index)
 
     def connected_nodes(self):
         """

@@ -21,6 +21,12 @@ class Area(atlas_entity.AtlasEntity):
         result += 'Area: id=' + str(self.get_identifier())
         result += ', geom=' + str(self.as_polygon())
         result += ', tags=' + str(self.get_tags())
+
+        string = ''
+        for relation in self.get_relations():
+            string += str(relation.get_identifier()) + ','
+        result += ', relations=[' + string + ']'
+
         result += ' ]'
         return result
 
@@ -46,7 +52,9 @@ class Area(atlas_entity.AtlasEntity):
 
     def get_relations(self):
         """
-        Get the set of relations of which this Area is a member.
+        Get the frozenset of Relations of which this Area is a member.
+        Returns an empty set if this Area is not a member of any Relations.
         """
-        # TODO implement
-        raise NotImplementedError
+        relation_map = self.get_parent_atlas()._get_areaIndexToRelationIndices(
+        )
+        return self._get_relations_helper(relation_map, self.index)

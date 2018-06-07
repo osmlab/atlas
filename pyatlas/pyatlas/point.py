@@ -1,6 +1,5 @@
 import location
 import atlas_entity
-import relation
 
 
 class Point(atlas_entity.AtlasEntity):
@@ -25,8 +24,8 @@ class Point(atlas_entity.AtlasEntity):
         result += ', tags=' + str(self.get_tags())
 
         string = ''
-        for relation0 in self.get_relations():
-            string += str(relation0.get_identifier()) + ','
+        for relation in self.get_relations():
+            string += str(relation.get_identifier()) + ','
         result += ', relations=[' + string + ']'
 
         result += ' ]'
@@ -57,19 +56,9 @@ class Point(atlas_entity.AtlasEntity):
 
     def get_relations(self):
         """
-        Get the set of Relations of which this Point is a member. Returns an
-        empty set if this Point is not a member of any Relations.
+        Get the frozenset of Relations of which this Point is a member.
+        Returns an empty set if this Point is not a member of any Relations.
         """
         relation_map = self.get_parent_atlas(
         )._get_pointIndexToRelationIndices()
-        relation_set = set()
-
-        if self.index not in relation_map:
-            return relation_set
-
-        for relation_index in relation_map[self.index]:
-            relation0 = relation.Relation(self.get_parent_atlas(),
-                                          relation_index)
-            relation_set.add(relation0)
-
-        return relation_set
+        return self._get_relations_helper(relation_map, self.index)

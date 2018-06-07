@@ -23,6 +23,7 @@ class Node(atlas_entity.AtlasEntity):
         result = '[ '
         result += 'Node: id=' + str(self.get_identifier())
         result += ', location_latlon=' + str(self.get_location())
+        result += ', tags=' + str(self.get_tags())
 
         string = ""
         for edge0 in self.in_edges():
@@ -34,7 +35,11 @@ class Node(atlas_entity.AtlasEntity):
             string += str(edge0.get_identifier()) + ', '
         result += ', outEdges=[' + string + ']'
 
-        result += ', tags=' + str(self.get_tags())
+        string = ''
+        for relation in self.get_relations():
+            string += str(relation.get_identifier()) + ','
+        result += ', relations=[' + string + ']'
+
         result += ' ]'
         return result
 
@@ -91,15 +96,17 @@ class Node(atlas_entity.AtlasEntity):
         the Edges' Atlas IDs.
         """
         result = []
-        for edge in self.in_edges():
-            result.append(edge)
-        for edge in self.out_edges():
-            result.append(edge)
+        for edge0 in self.in_edges():
+            result.append(edge0)
+        for edge0 in self.out_edges():
+            result.append(edge0)
         return sorted(result)
 
     def get_relations(self):
         """
-        Get the set of relations of which this Node is a member.
+        Get the frozenset of Relations of which this Node is a member.
+        Returns an empty set if this Node is not a member of any Relations.
         """
-        # TODO implement
-        raise NotImplementedError
+        relation_map = self.get_parent_atlas()._get_nodeIndexToRelationIndices(
+        )
+        return self._get_relations_helper(relation_map, self.index)

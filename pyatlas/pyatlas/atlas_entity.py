@@ -25,6 +25,12 @@ class AtlasEntity(object):
         """
         raise NotImplementedError('subclass must implement')
 
+    def get_relations(self):
+        """
+        Get the set of Relations of which this AtlasEntity is a member.
+        """
+        raise NotImplementedError('subclass must implement')
+
     def get_osm_identifier(self):
         """
         Convenience wrapper for the same function in the identifier_conversion
@@ -38,3 +44,19 @@ class AtlasEntity(object):
         Get the Atlas that contains this AtlasEntity.
         """
         return self.parent_atlas
+
+    def _get_relations_helper(self, relation_map, index):
+        # subclasses of AtlasEntity can use this helper function to
+        # avoid code duplication in their get_relations() implementations
+        import relation
+        relation_set = set()
+
+        if index not in relation_map:
+            return relation_set
+
+        for relation_index in relation_map[index]:
+            relation0 = relation.Relation(self.get_parent_atlas(),
+                                          relation_index)
+            relation_set.add(relation0)
+
+        return frozenset(relation_set)
