@@ -245,7 +245,8 @@ public class CountryBoundaryMapTest
                 "LINESTRING(-72.62310537054378 16.33562831580734,-73.54595693304378 18.890373956748753)");
 
         final List<Geometry> sliced1 = map.slice(123, lineString);
-        map.setShouldAlwaysSlicePredicate(taggable -> taggable.getTag("IShouldBeSliced").isPresent());
+        map.setShouldAlwaysSlicePredicate(
+                taggable -> taggable.getTag("IShouldBeSliced").isPresent());
         final List<Geometry> sliced2 = map.slice(123, lineString);
         final List<Geometry> sliced3 = map.slice(123, lineString,
                 Taggable.with("IShouldBeSliced", "yes"));
