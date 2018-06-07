@@ -157,7 +157,7 @@ public class CountryBoundaryMap implements Serializable
     private STRtree gridIndex;
 
     private boolean useExpandedPolygonLimit = false;
-    private transient Predicate<Taggable> forceSlicingPredicate = taggable -> false;
+    private transient Predicate<Taggable> shouldAlwaysSlicePredicate = taggable -> false;
     private transient GeometryPrecisionReducer reducer;
     private final CountryListTwoWayStringConverter countryListConverter = new CountryListTwoWayStringConverter();
 
@@ -1090,9 +1090,9 @@ public class CountryBoundaryMap implements Serializable
         }
     }
 
-    public void setForceSlicingPredicate(final Predicate<Taggable> forceSlicingPredicate)
+    public void setShouldAlwaysSlicePredicate(final Predicate<Taggable> shouldAlwaysSlicePredicate)
     {
-        this.forceSlicingPredicate = forceSlicingPredicate;
+        this.shouldAlwaysSlicePredicate = shouldAlwaysSlicePredicate;
     }
 
     /**
@@ -1111,9 +1111,9 @@ public class CountryBoundaryMap implements Serializable
      *            id of object being sliced.
      * @param geometry
      *            The object to be sliced.
-     * @param sources
-     *            An optional list of {@link Taggable} objects representing the tags of the sources
-     *            for that geometry
+     * @param source
+     *            An optional {@link Taggable} object representing the tags of the source for that
+     *            geometry.
      * @return a list of geometry objects. If target doesn't cross any border then it contains only
      *         one item with country code assigned. If target cross border then slice it by the
      *         border line and assign country code for each piece. If a feature is not contained by
@@ -1122,7 +1122,7 @@ public class CountryBoundaryMap implements Serializable
      *             When the slicing could not be made.
      */
     public List<Geometry> slice(final long identifier, final Geometry geometry,
-            final Taggable... sources) throws TopologyException
+            final Taggable... source) throws TopologyException
     {
         if (Objects.isNull(geometry))
         {
@@ -1135,9 +1135,8 @@ public class CountryBoundaryMap implements Serializable
 
         // Performance improvement, if only one polygon returned no need to do any further
         // evaluation (except when geometry has to be sliced at all costs)
-        if (isSameCountry(candidates)
-                && (sources == null || sources.length == 0 || this.forceSlicingPredicate == null
-                        || !this.forceSlicingPredicate.test(sources[0])))
+        // In this method, source contains only one element.
+        if (shouldSkipSlicing(candidates, source))
         {
             final String countryCode = getGeometryProperty(candidates.get(0), ISOCountryTag.KEY);
             setGeometryProperty(target, ISOCountryTag.KEY, countryCode);
@@ -1224,9 +1223,7 @@ public class CountryBoundaryMap implements Serializable
 
         // Performance: short circuit, if all intersected polygons in same country, skip cutting.
         // (except when geometry has to be sliced at all costs)
-        if (isSameCountry(candidates)
-                && (sources == null || sources.length == 0 || this.forceSlicingPredicate == null
-                        || !this.forceSlicingPredicate.test(sources[0])))
+        if (shouldSkipSlicing(candidates, source))
         {
             final String countryCode = getGeometryProperty(candidates.get(0), ISOCountryTag.KEY);
             setGeometryProperty(target, ISOCountryTag.KEY, countryCode);
@@ -1479,6 +1476,13 @@ public class CountryBoundaryMap implements Serializable
         }
 
         return result;
+    }
+
+    private boolean shouldSkipSlicing(final List<Polygon> candidates, final Taggable[] source)
+    {
+        return isSameCountry(candidates)
+                && (source == null || source.length == 0 || this.shouldAlwaysSlicePredicate == null
+                        || !this.shouldAlwaysSlicePredicate.test(source[0]));
     }
 
     private List<CountryBoundary> toCountryBoundaryList(final MultiMap<String, Polygon> map)
