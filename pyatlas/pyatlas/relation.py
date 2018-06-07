@@ -66,14 +66,15 @@ class Relation(atlas_entity.AtlasEntity):
         dictionary = self.get_parent_atlas()._get_dictionary()
 
         array_index = 0
-        # the relationMemberTypes field is a byte array, so the Python protobuf
-        # implementation treats it as a string. We need to convert.
+        # the relationMemberTypes field is a byte array, so the Python treats
+        # it as a string. We need to convert it to a true byte array.
         for type_value in bytearray(
                 relation_member_types.arrays[self.index].elements):
             member_index = relation_member_indices.arrays[self.index].elements[
                 array_index]
             role = dictionary.word(
                 relation_member_roles.arrays[self.index].elements[array_index])
+
             if type_value == entity_type.EntityType.NODE:
                 entity = node.Node(self.get_parent_atlas(), member_index)
             elif type_value == entity_type.EntityType.EDGE:
@@ -158,7 +159,7 @@ class RelationMember(object):
         Get a string representation of this RelationMember.
         """
         result = '[ '
-        result += 'id=' + str(self.get_identifier())
+        result += 'id=' + str(self.get_entity().get_identifier())
         result += ', type=' + entity_type.to_str(self.entity.get_type())
         result += ', role=' + str(self.get_role())
         result += ' ]'
@@ -170,9 +171,9 @@ class RelationMember(object):
         """
         return self.entity
 
-    def get_identifier(self):
+    def get_relation_identifier(self):
         """
-        Get the identifier of the Relation this RelationMember is a member of.
+        Get the identifier of the Relation of which this RelationMember is a member.
         """
         return self.identifier
 
