@@ -2,10 +2,6 @@
 #### A simplified Atlas API for Python
 
 ----
-## Dependency Information
-This project is developed with Python 2.7 and Protocol Buffers 2.6.1.
-
-----
 ## Getting Started
 To get setup in a new project folder, run:
 
@@ -13,7 +9,8 @@ To get setup in a new project folder, run:
     $ virtualenv venv --python=python2.7
     $ source venv/bin/activate
 
-NOTE: `pyatlas` will automatically install the dependencies it needs, including the Protocol Buffers Python runtime - `protobuf-2.6.1`. Therefore, it is highly recommended that you develop `pyatlas` based projects in a Python virtual environment - you may need to install `virtualenv` if you have not already. 
+NOTE: `pyatlas` will automatically install the dependencies it needs, including the Protocol Buffers Python runtime - `protobuf-2.6.1`. 
+Therefore, it is highly recommended that you develop `pyatlas` based projects in a Python virtual environment - you may need to install `virtualenv` if you have not already. 
 (If you want to create a `pyatlas` distribution that does not automatically pull in dependencies, see the next section.)
 
 Now that you have your virtual environment set up, you can install `pyatlas` with:
@@ -67,7 +64,7 @@ Then re-run the `./gradlew buildPyatlas` command from above and reinstall using 
 
 Now `pyatlas` should make it past the `CHECK` format step!
 
-Note there is an bug that causes the formatting script to goof if a source file does not end with a newline (\n) character.
+Note there is a bug that causes the formatter to goof if a source file does not end with a newline (\n) character.
 If the `CHECK` format step is consistently failing after repeated `APPLY` steps, and you are seeing a message like the following:
 
     atlas.py: found issue, reformatting...
