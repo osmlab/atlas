@@ -35,8 +35,7 @@ class Line(atlas_entity.AtlasEntity):
         """
         Get the Atlas identifier of this Line.
         """
-        return self.get_parent_atlas()._get_lineIdentifiers().elements[
-            self.index]
+        return self.get_parent_atlas()._get_lineIdentifiers().elements[self.index]
 
     def as_polyline(self):
         """
@@ -56,8 +55,7 @@ class Line(atlas_entity.AtlasEntity):
         Get the frozenset of Relations of which this Line is a member.
         Returns an empty set if this Line is not a member of any Relations.
         """
-        relation_map = self.get_parent_atlas()._get_lineIndexToRelationIndices(
-        )
+        relation_map = self.get_parent_atlas()._get_lineIndexToRelationIndices()
         return self._get_relations_helper(relation_map, self.index)
 
     def get_type(self):

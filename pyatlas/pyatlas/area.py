@@ -35,8 +35,7 @@ class Area(atlas_entity.AtlasEntity):
         """
         Get the Atlas identifier of this Area.
         """
-        return self.get_parent_atlas()._get_areaIdentifiers().elements[
-            self.index]
+        return self.get_parent_atlas()._get_areaIdentifiers().elements[self.index]
 
     def as_polygon(self):
         """
@@ -56,8 +55,7 @@ class Area(atlas_entity.AtlasEntity):
         Get the frozenset of Relations of which this Area is a member.
         Returns an empty set if this Area is not a member of any Relations.
         """
-        relation_map = self.get_parent_atlas()._get_areaIndexToRelationIndices(
-        )
+        relation_map = self.get_parent_atlas()._get_areaIndexToRelationIndices()
         return self._get_relations_helper(relation_map, self.index)
 
     def get_type(self):

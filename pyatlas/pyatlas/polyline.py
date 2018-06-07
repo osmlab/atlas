@@ -70,17 +70,15 @@ class PolyLine(object):
         last = location.Location(0, 0)
 
         for point in self.points():
-            latitude = int(
-                round(location.dm7_as_degree(point.latitude) * precision))
-            longitude = int(
-                round(location.dm7_as_degree(point.longitude) * precision))
+            latitude = int(round(location.dm7_as_degree(point.latitude) * precision))
+            longitude = int(round(location.dm7_as_degree(point.longitude) * precision))
 
             encoded += _encode_number(latitude - old_latitude)
             delta_longitude = longitude - old_longitude
             if delta_longitude > _MAXIMUM_DELTA_LONGITUDE:
                 raise ValueError(
-                    'unable to compress polyline, consecutive points {} and {} too far apart',
-                    last, point)
+                    'unable to compress polyline, consecutive points {} and {} too far apart', last,
+                    point)
             encoded += _encode_number(delta_longitude)
 
             old_latitude = latitude
@@ -164,8 +162,7 @@ def _encode_number(number):
         number = ~number
     encoded = ""
     while number >= _SIXTH_BIT_MASK:
-        code_point = (_SIXTH_BIT_MASK
-                      | number & _FIVE_BIT_MASK) + _ENCODING_OFFSET_MINUS_ONE
+        code_point = (_SIXTH_BIT_MASK | number & _FIVE_BIT_MASK) + _ENCODING_OFFSET_MINUS_ONE
         encoded += unichr(code_point)
         number = _urshift32(number, _BIT_SHIFT)
     encoded += unichr(number + _ENCODING_OFFSET_MINUS_ONE)

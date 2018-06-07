@@ -48,8 +48,8 @@ class Edge(atlas_entity.AtlasEntity):
         Check if Edges are equal. Edges are considered equal if they have the
         same identifiers and the same parent Atlas.
         """
-        return self.get_identifier() == other.get_identifier(
-        ) and self.get_parent_atlas() == other.get_parent_atlas()
+        return self.get_identifier() == other.get_identifier() and self.get_parent_atlas(
+        ) == other.get_parent_atlas()
 
     def __lt__(self, other):
         """
@@ -69,8 +69,7 @@ class Edge(atlas_entity.AtlasEntity):
         Get the Atlas identifier of this Edge.
         :return: the Atlas id
         """
-        return self.get_parent_atlas()._get_edgeIdentifiers().elements[
-            self.index]
+        return self.get_parent_atlas()._get_edgeIdentifiers().elements[self.index]
 
     def get_tags(self):
         """
@@ -84,8 +83,7 @@ class Edge(atlas_entity.AtlasEntity):
         Get the frozenset of Relations of which this Edge is a member.
         Returns an empty set if this Edge is not a member of any Relations.
         """
-        relation_map = self.get_parent_atlas()._get_edgeIndexToRelationIndices(
-        )
+        relation_map = self.get_parent_atlas()._get_edgeIndexToRelationIndices()
         return self._get_relations_helper(relation_map, self.index)
 
     def get_connected_nodes(self):
@@ -101,8 +99,7 @@ class Edge(atlas_entity.AtlasEntity):
         """
         Get the starting Node of this Edge.
         """
-        edge_start_node_index = self.get_parent_atlas(
-        )._get_edgeStartNodeIndex()
+        edge_start_node_index = self.get_parent_atlas()._get_edgeStartNodeIndex()
         index = edge_start_node_index.elements[self.index]
         return node.Node(self.get_parent_atlas(), index)
 

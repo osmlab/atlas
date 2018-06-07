@@ -36,16 +36,14 @@ class Point(atlas_entity.AtlasEntity):
         """
         Get the Atlas identifier of this point.
         """
-        return self.get_parent_atlas()._get_pointIdentifiers().elements[
-            self.index]
+        return self.get_parent_atlas()._get_pointIdentifiers().elements[self.index]
 
     def get_location(self):
         """
         Get the Location of this point. Check the Location class for more
         information.
         """
-        long_location = self.get_parent_atlas()._get_pointLocations().elements[
-            self.index]
+        long_location = self.get_parent_atlas()._get_pointLocations().elements[self.index]
         return location.get_location_from_packed_int(long_location)
 
     def get_tags(self):
@@ -60,8 +58,7 @@ class Point(atlas_entity.AtlasEntity):
         Get the frozenset of Relations of which this Point is a member.
         Returns an empty set if this Point is not a member of any Relations.
         """
-        relation_map = self.get_parent_atlas(
-        )._get_pointIndexToRelationIndices()
+        relation_map = self.get_parent_atlas()._get_pointIndexToRelationIndices()
         return self._get_relations_helper(relation_map, self.index)
 
     def get_type(self):

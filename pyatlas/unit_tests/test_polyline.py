@@ -11,8 +11,7 @@ class PolyLineTest(unittest.TestCase):
     def test_polyline_compression(self):
         loclist = [Location(1, 1), Location(2, 2), Location(5, 5)]
         correct_polyline = polyline.PolyLine(loclist, deep=True)
-        test_polyline = polyline.decompress_polyline(
-            correct_polyline.compress())
+        test_polyline = polyline.decompress_polyline(correct_polyline.compress())
         self.assertEqual(correct_polyline, test_polyline)
 
         loclist = [
@@ -24,8 +23,7 @@ class PolyLineTest(unittest.TestCase):
             Location(382115440, -1193151494)
         ]
         correct_polyline = polyline.PolyLine(loclist, deep=True)
-        test_polyline = polyline.decompress_polyline(
-            correct_polyline.compress())
+        test_polyline = polyline.decompress_polyline(correct_polyline.compress())
         self.assertEqual(correct_polyline, test_polyline)
 
     def test_polygon_closedness(self):

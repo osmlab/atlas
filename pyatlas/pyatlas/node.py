@@ -48,16 +48,14 @@ class Node(atlas_entity.AtlasEntity):
         """
         Get the Atlas identifier of this node.
         """
-        return self.get_parent_atlas()._get_nodeIdentifiers().elements[
-            self.index]
+        return self.get_parent_atlas()._get_nodeIdentifiers().elements[self.index]
 
     def get_location(self):
         """
         Get the Location of this Node. Check the Location class for more
         information.
         """
-        long_location = self.get_parent_atlas()._get_nodeLocations().elements[
-            self.index]
+        long_location = self.get_parent_atlas()._get_nodeLocations().elements[self.index]
         return location.get_location_from_packed_int(long_location)
 
     def get_tags(self):
@@ -73,8 +71,7 @@ class Node(atlas_entity.AtlasEntity):
         Edges' Atlas IDs.
         """
         result = []
-        node_in_edges_indices = self.get_parent_atlas(
-        )._get_nodeInEdgesIndices()
+        node_in_edges_indices = self.get_parent_atlas()._get_nodeInEdgesIndices()
         for index in node_in_edges_indices.arrays[self.index].elements:
             result.append(edge.Edge(self.get_parent_atlas(), index))
         return sorted(result)
@@ -85,8 +82,7 @@ class Node(atlas_entity.AtlasEntity):
         Edges' Atlas IDs.
         """
         result = []
-        node_out_edges_indices = self.get_parent_atlas(
-        )._get_nodeOutEdgesIndices()
+        node_out_edges_indices = self.get_parent_atlas()._get_nodeOutEdgesIndices()
         for index in node_out_edges_indices.arrays[self.index].elements:
             result.append(edge.Edge(self.get_parent_atlas(), index))
         return sorted(result)
@@ -108,8 +104,7 @@ class Node(atlas_entity.AtlasEntity):
         Get the frozenset of Relations of which this Node is a member.
         Returns an empty set if this Node is not a member of any Relations.
         """
-        relation_map = self.get_parent_atlas()._get_nodeIndexToRelationIndices(
-        )
+        relation_map = self.get_parent_atlas()._get_nodeIndexToRelationIndices()
         return self._get_relations_helper(relation_map, self.index)
 
     def get_type(self):

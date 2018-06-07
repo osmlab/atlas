@@ -26,8 +26,7 @@ class Location(object):
         if latitude > _LATITUDE_MAX_DM7 or latitude < _LATITUDE_MIN_DM7:
             raise ValueError('latitude {} out of range'.format(str(latitude)))
         if longitude > _LONGITUDE_MAX_DM7 or longitude < _LONGITUDE_MIN_DM7:
-            raise ValueError('longitude {} out of range'.format(
-                str(longitude)))
+            raise ValueError('longitude {} out of range'.format(str(longitude)))
         self.latitude = latitude
         self.longitude = longitude
 

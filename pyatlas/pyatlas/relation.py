@@ -46,8 +46,7 @@ class Relation(atlas_entity.AtlasEntity):
         """
         Get the Atlas identifier of this Relation.
         """
-        return self.get_parent_atlas()._get_relationIdentifiers().elements[
-            self.index]
+        return self.get_parent_atlas()._get_relationIdentifiers().elements[self.index]
 
     def get_members(self):
         """
@@ -55,25 +54,18 @@ class Relation(atlas_entity.AtlasEntity):
         RelationMember form.
         """
         result = []
-        relation_identifiers = self.get_parent_atlas(
-        )._get_relationIdentifiers()
-        relation_member_types = self.get_parent_atlas(
-        )._get_relationMemberTypes()
-        relation_member_indices = self.get_parent_atlas(
-        )._get_relationMemberIndices()
-        relation_member_roles = self.get_parent_atlas(
-        )._get_relationMemberRoles()
+        relation_identifiers = self.get_parent_atlas()._get_relationIdentifiers()
+        relation_member_types = self.get_parent_atlas()._get_relationMemberTypes()
+        relation_member_indices = self.get_parent_atlas()._get_relationMemberIndices()
+        relation_member_roles = self.get_parent_atlas()._get_relationMemberRoles()
         dictionary = self.get_parent_atlas()._get_dictionary()
 
         array_index = 0
         # the relationMemberTypes field is a byte array, so the Python treats
         # it as a string. We need to convert it to a true byte array.
-        for type_value in bytearray(
-                relation_member_types.arrays[self.index].elements):
-            member_index = relation_member_indices.arrays[self.index].elements[
-                array_index]
-            role = dictionary.word(
-                relation_member_roles.arrays[self.index].elements[array_index])
+        for type_value in bytearray(relation_member_types.arrays[self.index].elements):
+            member_index = relation_member_indices.arrays[self.index].elements[array_index]
+            role = dictionary.word(relation_member_roles.arrays[self.index].elements[array_index])
 
             if type_value == entity_type.EntityType.NODE:
                 entity = node.Node(self.get_parent_atlas(), member_index)
@@ -86,13 +78,10 @@ class Relation(atlas_entity.AtlasEntity):
             elif type_value == entity_type.EntityType.POINT:
                 entity = point.Point(self.get_parent_atlas(), member_index)
             elif type_value == entity_type.EntityType.RELATION:
-                entity = relation.Relation(self.get_parent_atlas(),
-                                           member_index)
+                entity = relation.Relation(self.get_parent_atlas(), member_index)
             else:
                 raise ValueError('invalid EntityType value ' + str(type_value))
-            result.append(
-                RelationMember(role, entity,
-                               relation_identifiers.elements[self.index]))
+            result.append(RelationMember(role, entity, relation_identifiers.elements[self.index]))
             array_index += 1
 
         return sorted(result)
@@ -109,8 +98,7 @@ class Relation(atlas_entity.AtlasEntity):
         Get the frozenset of Relations of which this Relation is a member.
         Returns an empty set if this Relation is not a member of any Relations.
         """
-        relation_map = self.get_parent_atlas(
-        )._get_relationIndexToRelationIndices()
+        relation_map = self.get_parent_atlas()._get_relationIndexToRelationIndices()
         return self._get_relations_helper(relation_map, self.index)
 
     def get_type(self):

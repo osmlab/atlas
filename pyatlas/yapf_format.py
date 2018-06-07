@@ -25,7 +25,7 @@ def main(argv):
             elif mode == "APPLY":
                 if detect_formatting_violation(filepath):
                     print str(file_to_style) + ": found issue, reformatting..."
-                    FormatFile(filepath, in_place=True, style_config='pep8')
+                    FormatFile(filepath, in_place=True, style_config='style.yapf')
                     violation_detected = True
 
             else:
@@ -39,9 +39,9 @@ def main(argv):
 
 def detect_formatting_violation(filepath):
     original = read_file_contents(filepath)
-    reformatted = FormatFile(filepath, style_config='pep8')
+    reformatted = FormatFile(filepath, style_config='style.yapf')
     if original != reformatted[0]:
-        print(FormatCode(original, filename=filepath, print_diff=True, style_config='pep8')[0])
+        print(FormatCode(original, filename=filepath, print_diff=True, style_config='style.yapf')[0])
         return True
     return False
 

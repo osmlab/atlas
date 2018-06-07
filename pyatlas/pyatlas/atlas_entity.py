@@ -18,8 +18,8 @@ class AtlasEntity(object):
         Determine if this AtlasEntity is equal to another. Two entities are
         considered equal if they have the same identifier and the same type.
         """
-        return self.get_identifier() == other.get_identifier(
-        ) and self.get_type() == other.get_type()
+        return self.get_identifier() == other.get_identifier() and self.get_type(
+        ) == other.get_type()
 
     def get_identifier(self):
         """
@@ -69,8 +69,7 @@ class AtlasEntity(object):
             return relation_set
 
         for relation_index in relation_map[index]:
-            relation0 = relation.Relation(self.get_parent_atlas(),
-                                          relation_index)
+            relation0 = relation.Relation(self.get_parent_atlas(), relation_index)
             relation_set.add(relation0)
 
         return frozenset(relation_set)
