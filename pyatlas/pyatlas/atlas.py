@@ -230,6 +230,42 @@ class Atlas(object):
         """
         self.serializer._load_all_fields()
 
+    def number_of_points(self):
+        """
+        Get the number of Points in this Atlas
+        """
+        return len(self._get_pointIdentifiers().elements)
+
+    def number_of_lines(self):
+        """
+        Get the number of Lines in this Atlas
+        """
+        return len(self._get_lineIdentifiers().elements)
+
+    def number_of_areas(self):
+        """
+        Get the number of Areas in this Atlas
+        """
+        return len(self._get_areaIdentifiers().elements)
+
+    def number_of_nodes(self):
+        """
+        Get the number of Nodes in this Atlas
+        """
+        return len(self._get_nodeIdentifiers().elements)
+
+    def number_of_edges(self):
+        """
+        Get the number of Edges in this Atlas
+        """
+        return len(self._get_edgeIdentifiers().elements)
+
+    def number_of_relations(self):
+        """
+        Get the number of Relations in this Atlas
+        """
+        return len(self._get_relationIdentifiers().elements)
+
     def _get_dictionary(self):
         if self.dictionary is None:
             self.serializer._load_field(self.serializer._FIELD_DICTIONARY)
