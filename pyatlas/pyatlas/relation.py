@@ -101,6 +101,9 @@ class Relation(atlas_entity.AtlasEntity):
         # FIXME this fails if Relations have self-referencing members
         # this should never happen in a PackedAtlas so it should be OK for now
 
+        # FIXME this also fails if a RelationMember entity is null
+        # will this ever happen? slicing? See comment in RelationMember.java
+
         members = self.get_members()
         if len(members) == 0:
             return rectangle.Rectangle(0, 0)
