@@ -1,6 +1,7 @@
 import unittest
 
 from pyatlas import location
+from pyatlas import rectangle
 
 
 class LocationTest(unittest.TestCase):
@@ -57,6 +58,12 @@ class LocationTest(unittest.TestCase):
         loc_dm7 = 1799999000
         self.assertEqual(loc_deg, location.dm7_as_degree(loc_dm7))
         self.assertEqual(loc_dm7, location.degree_as_dm7(loc_deg))
+
+    def test_location_bounds(self):
+        testlocation = location.Location(450000000, 450000000)
+        testlocationbounds = rectangle.Rectangle(testlocation, testlocation)
+        bound = testlocation.get_bounds()
+        self.assertEqual(bound, testlocationbounds)
 
 
 if __name__ == "__main__":

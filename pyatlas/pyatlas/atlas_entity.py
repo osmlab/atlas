@@ -33,6 +33,12 @@ class AtlasEntity(object):
         """
         raise NotImplementedError('subclass must implement')
 
+    def get_bounds(self):
+        """
+        Get the bounding Rectangle of this AtlasEntity.
+        """
+        raise NotImplementedError('subclass must implement')
+
     def get_relations(self):
         """
         Get the set of Relations of which this AtlasEntity is a member.

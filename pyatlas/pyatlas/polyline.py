@@ -22,15 +22,16 @@ class PolyLine(object):
     def __init__(self, location_list, deep=False):
         """
         Create a new PolyLine given a Location list. By default, it will perform
-        a shallow copy of the parameter list. Can optionally perform a deep copy
-        of the list.
+        a refernece copy of the Location list. Can optionally perform a deep copy
+        of the list instead.
         """
         if len(location_list) == 0:
             raise ValueError('cannot have an empty PolyLine')
         if deep:
             self.points_list = []
             for point in location_list:
-                self.points_list.append(point)
+                new_point = location.Location(point.get_latitude(), point.get_longitude())
+                self.points_list.append(new_point)
         else:
             self.points_list = location_list
 

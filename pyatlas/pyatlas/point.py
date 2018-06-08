@@ -53,6 +53,12 @@ class Point(atlas_entity.AtlasEntity):
         point_tag_store = self.get_parent_atlas()._get_pointTags()
         return point_tag_store.to_key_value_dict(self.index)
 
+    def get_bounds(self):
+        """
+        Get the bounding Rectangle of this Point.
+        """
+        return self.get_location().get_bounds()
+
     def get_relations(self):
         """
         Get the frozenset of Relations of which this Point is a member.

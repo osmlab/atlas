@@ -1,6 +1,8 @@
 import unittest
 
 from pyatlas import polyline
+from pyatlas.polyline import PolyLine
+from pyatlas.polyline import Polygon
 from pyatlas.location import Location
 
 
@@ -10,7 +12,7 @@ class PolyLineTest(unittest.TestCase):
 
     def test_polyline_compression(self):
         loclist = [Location(1, 1), Location(2, 2), Location(5, 5)]
-        correct_polyline = polyline.PolyLine(loclist, deep=True)
+        correct_polyline = PolyLine(loclist, deep=True)
         test_polyline = polyline.decompress_polyline(correct_polyline.compress())
         self.assertEqual(correct_polyline, test_polyline)
 
@@ -22,7 +24,7 @@ class PolyLineTest(unittest.TestCase):
             Location(382116134, -1193150734),
             Location(382115440, -1193151494)
         ]
-        correct_polyline = polyline.PolyLine(loclist, deep=True)
+        correct_polyline = PolyLine(loclist, deep=True)
         test_polyline = polyline.decompress_polyline(correct_polyline.compress())
         self.assertEqual(correct_polyline, test_polyline)
 
@@ -35,7 +37,7 @@ class PolyLineTest(unittest.TestCase):
             Location(382116134, -1193150734),
             Location(382115440, -1193151494)
         ]
-        correct_polygon = polyline.Polygon(loclist, deep=True)
+        correct_polygon = Polygon(loclist, deep=True)
         closed_list = []
         for point in correct_polygon.closed_loop():
             closed_list.append(point)

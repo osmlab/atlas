@@ -65,6 +65,12 @@ class Node(atlas_entity.AtlasEntity):
         node_tag_store = self.get_parent_atlas()._get_nodeTags()
         return node_tag_store.to_key_value_dict(self.index)
 
+    def get_bounds(self):
+        """
+        Get the bounding Rectangle of this Point.
+        """
+        return self.get_location().get_bounds()
+
     def get_in_edges(self):
         """
         Get a list of incoming Edges to this Node. The list is sorted by the

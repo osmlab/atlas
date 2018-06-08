@@ -1,13 +1,6 @@
 """The pyatlas Atlas implementation"""
 import zipfile
 
-import point
-import line
-import area
-import node
-import edge
-import relation
-
 import autogen.ProtoAtlasMetaData_pb2
 import autogen.ProtoLongArray_pb2
 import autogen.ProtoLongArrayOfArrays_pb2
@@ -19,6 +12,13 @@ import autogen.ProtoPolyLineArray_pb2
 import autogen.ProtoPolygonArray_pb2
 import autogen.ProtoByteArrayOfArrays_pb2
 import autogen.ProtoIntegerArrayOfArrays_pb2
+
+import point
+import line
+import area
+import node
+import edge
+import relation
 import atlas_metadata
 import integer_dictionary
 import packed_tag_store
@@ -223,6 +223,50 @@ class Atlas(object):
         if identifier in identifier_to_index:
             return relation.Relation(self, identifier_to_index[identifier])
         return None
+
+    def entities(self, predicate=lambda e: True):
+        """
+        Get a generator for all AtlasEntities in this Atlas. Can optionally also
+        accept a predicate to filter the generated entities.
+        """
+        for point0 in self.points():
+            if predicate(point0):
+                yield point0
+        for line0 in self.lines():
+            if predicate(line0):
+                yield line0
+        for area0 in self.areas():
+            if predicate(area0):
+                yield area0
+        for node0 in self.nodes():
+            if predicate(node0):
+                yield node0
+        for edge0 in self.edges():
+            if predicate(edge0):
+                yield edge0
+        for relation0 in self.relations():
+            if predicate(relation0):
+                yield relation0
+
+    def entity(self, identifier, entity_type):
+        """
+        Get an AtlasEntity with a given Atlas identifier and EntityType.
+        Returns None if there is no entity with the given identifier and type.
+        """
+        if entity_type == entity_type.EntityType.POINT:
+            return self.point(identifier)
+        elif entity_type == entity_type.EntityType.LINE:
+            return self.line(identifier)
+        elif entity_type == entity_type.EntityType.AREA:
+            return self.area(identifier)
+        elif entity_type == entity_type.EntityType.NODE:
+            return self.node(identifier)
+        elif entity_type == entity_type.EntityType.EDGE:
+            return self.edge(identifier)
+        elif entity_type == entity_type.EntityType.RELATION:
+            return self.relation(identifier)
+        else:
+            raise ValueError('invalid EntityType value ' + str(entity_type))
 
     def load_all_fields(self):
         """

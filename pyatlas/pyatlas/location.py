@@ -1,3 +1,5 @@
+import rectangle
+
 _LATITUDE_MIN_DM7 = -900000000
 _LATITUDE_MAX_DM7 = 900000000
 _LONGITUDE_MIN_DM7 = -1800000000
@@ -48,6 +50,36 @@ class Location(object):
         packed = packed << 32
         packed = packed | (self.longitude & 0xFFFFFFFF)
         return packed
+
+    def get_bounds(self):
+        """
+        Get the bounding Rectangle of this Location.
+        """
+        return rectangle.Rectangle(self, self)
+
+    def get_latitude(self):
+        """
+        Get the latitude of this Location as a dm7.
+        """
+        return self.latitude
+
+    def get_latitude_deg(self):
+        """
+        Get the latitude of this Location as a degree.
+        """
+        return dm7_as_degree(self.get_latitude())
+
+    def get_longitude(self):
+        """
+        Get the longitude of this Location as a dm7.
+        """
+        return self.longitude
+
+    def get_longitude_deg(self):
+        """
+        Get the latitude of this Location as a degree.
+        """
+        return dm7_as_degree(self.get_longitude())
 
 
 def degree_as_dm7(degree):
