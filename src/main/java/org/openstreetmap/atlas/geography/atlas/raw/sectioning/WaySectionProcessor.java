@@ -928,7 +928,8 @@ public class WaySectionProcessor
                     final TemporaryNode end = endNode.get();
 
                     // Avoid sectioning at consecutive repeated points
-                    if (end.equals(startNode.get()) && index - 1 == startIndex)
+                    if (end.equals(startNode.get())
+                            && polyline.get(index).equals(polyline.get(index - 1)))
                     {
                         // Found a duplicate point, update the map and skip over it
                         final long startIdentifier = startNode.get().getIdentifier();
@@ -1068,10 +1069,13 @@ public class WaySectionProcessor
                     // Check to see if this location is a node
                     if (endNode.isPresent())
                     {
+                        final TemporaryNode end = endNode.get();
+
                         if (!isFirstNode)
                         {
                             // Avoid sectioning at consecutive repeated points
-                            if (endNode.get().equals(startNode.get()) && index - 1 == startIndex)
+                            if (end.equals(startNode.get())
+                                    && polyline.get(index).equals(polyline.get(index - 1)))
                             {
                                 // Found a duplicate point, update the map and skip over it
                                 final int duplicateCount = duplicateLocations
@@ -1087,7 +1091,7 @@ public class WaySectionProcessor
                             {
                                 for (int duplicate = 0; duplicate < duplicates; duplicate++)
                                 {
-                                    nodesToSectionAt.incrementOccurrence(endNode.get());
+                                    nodesToSectionAt.incrementOccurrence(end);
                                 }
                             }
 
@@ -1095,8 +1099,7 @@ public class WaySectionProcessor
                             // started from a shape point, we've just encountered our first node.
                             final PolyLine rawPolyline = polyline.between(polyline.get(startIndex),
                                     nodesToSectionAt.getOccurrence(startNode.get()) - 1,
-                                    polyline.get(index),
-                                    nodesToSectionAt.getOccurrence(endNode.get()) - 1);
+                                    polyline.get(index), nodesToSectionAt.getOccurrence(end) - 1);
                             final PolyLine edgePolyline = isReversed ? rawPolyline.reversed()
                                     : rawPolyline;
 
