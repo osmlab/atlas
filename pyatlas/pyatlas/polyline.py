@@ -4,6 +4,7 @@ methods for decoding PolyLines from string compression.
 """
 
 import location
+import rectangle
 
 # Do not change the precision. It matches the default in the Java implementation.
 _PRECISION = 7
@@ -28,19 +29,19 @@ class PolyLine(object):
         if len(location_list) == 0:
             raise ValueError('cannot have an empty PolyLine')
         if deep:
-            self.points_list = []
+            self.location_list = []
             for point in location_list:
                 new_point = location.Location(point.get_latitude(), point.get_longitude())
-                self.points_list.append(new_point)
+                self.location_list.append(new_point)
         else:
-            self.points_list = location_list
+            self.location_list = location_list
 
     def __str__(self):
         """
         Get a string representation of this PolyLine.
         """
         result = "["
-        for point in self.points():
+        for point in self.locations():
             result += str(point) + ", "
         result += "]"
         return result
@@ -50,9 +51,9 @@ class PolyLine(object):
         Check if this PolyLine is the same as another PolyLine. Compares their
         internal Location list.
         """
-        if len(self.points_list) != len(other.points_list):
+        if len(self.location_list) != len(other.location_list):
             return False
-        for point, other_point in zip(self.points(), other.points()):
+        for point, other_point in zip(self.locations(), other.locations()):
             if not point == other_point:
                 return False
         return True
@@ -70,7 +71,7 @@ class PolyLine(object):
         precision = pow(10, _PRECISION)
         last = location.Location(0, 0)
 
-        for point in self.points():
+        for point in self.locations():
             latitude = int(round(location.dm7_as_degree(point.latitude) * precision))
             longitude = int(round(location.dm7_as_degree(point.longitude) * precision))
 
@@ -88,17 +89,23 @@ class PolyLine(object):
 
         return encoded
 
-    def get_points_list(self):
+    def get_bounds(self):
+        """
+        Get the bounding Rectangle of this PolyLine.
+        """
+        return rectangle.bounds_locations(self.locations())
+
+    def get_locations_list(self):
         """
         Get the underlying Location list for this PolyLine.
         """
-        return self.points_list
+        return self.location_list
 
-    def points(self):
+    def locations(self):
         """
         Get a generator for the Locations in this PolyLine.
         """
-        for point in self.points_list:
+        for point in self.location_list:
             yield point
 
 
@@ -133,9 +140,9 @@ class Polygon(PolyLine):
         Get a generator for the Locations in this Polygon. Will generate the
         first item again at the end, simulating the closedness of the Polygon.
         """
-        for point in self.points():
+        for point in self.locations():
             yield point
-        yield self.points_list[0]
+        yield self.location_list[0]
 
 
 def decompress_polygon(bytestring):

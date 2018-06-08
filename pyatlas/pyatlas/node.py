@@ -115,6 +115,6 @@ class Node(atlas_entity.AtlasEntity):
 
     def get_type(self):
         """
-        Implement superclass get_type(). Always returns NODE.
+        Implement superclass get_type(). Always returns EntityType.NODE.
         """
         return entity_type.EntityType.NODE

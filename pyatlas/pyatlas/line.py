@@ -31,17 +31,17 @@ class Line(atlas_entity.AtlasEntity):
         result += ' ]'
         return result
 
-    def get_identifier(self):
-        """
-        Get the Atlas identifier of this Line.
-        """
-        return self.get_parent_atlas()._get_lineIdentifiers().elements[self.index]
-
     def as_polyline(self):
         """
         Get the PolyLine geometry of this Line.
         """
         return self.get_parent_atlas()._get_linePolyLines()[self.index]
+
+    def get_identifier(self):
+        """
+        Get the Atlas identifier of this Line.
+        """
+        return self.get_parent_atlas()._get_lineIdentifiers().elements[self.index]
 
     def get_tags(self):
         """
@@ -49,6 +49,12 @@ class Line(atlas_entity.AtlasEntity):
         """
         line_tag_store = self.get_parent_atlas()._get_lineTags()
         return line_tag_store.to_key_value_dict(self.index)
+
+    def get_bounds(self):
+        """
+        Get the bounding Rectangle of this Line.
+        """
+        return self.as_polyline().get_bounds()
 
     def get_relations(self):
         """
@@ -60,6 +66,6 @@ class Line(atlas_entity.AtlasEntity):
 
     def get_type(self):
         """
-        Implement superclass get_type(). Always returns LINE.
+        Implement superclass get_type(). Always returns EntityType.LINE.
         """
         return entity_type.EntityType.LINE

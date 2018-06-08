@@ -69,6 +69,6 @@ class Point(atlas_entity.AtlasEntity):
 
     def get_type(self):
         """
-        Implement superclass get_type(). Always returns POINT.
+        Implement superclass get_type(). Always returns EntityType.POINT.
         """
         return entity_type.EntityType.POINT

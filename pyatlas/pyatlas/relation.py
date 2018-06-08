@@ -5,7 +5,7 @@ import edge
 import area
 import line
 import point
-import relation
+import rectangle
 
 
 class Relation(atlas_entity.AtlasEntity):
@@ -53,6 +53,7 @@ class Relation(atlas_entity.AtlasEntity):
         Get a sorted list of this Relation's members. The members are in
         RelationMember form.
         """
+        # FIXME Can I assume all members will have non-null entities? How does slicing play into this?
         result = []
         relation_identifiers = self.get_parent_atlas()._get_relationIdentifiers()
         relation_member_types = self.get_parent_atlas()._get_relationMemberTypes()
@@ -78,7 +79,7 @@ class Relation(atlas_entity.AtlasEntity):
             elif type_value == entity_type.EntityType.POINT:
                 entity = point.Point(self.get_parent_atlas(), member_index)
             elif type_value == entity_type.EntityType.RELATION:
-                entity = relation.Relation(self.get_parent_atlas(), member_index)
+                entity = Relation(self.get_parent_atlas(), member_index)
             else:
                 raise ValueError('invalid EntityType value ' + str(type_value))
             result.append(RelationMember(role, entity, relation_identifiers.elements[self.index]))
@@ -93,6 +94,26 @@ class Relation(atlas_entity.AtlasEntity):
         relation_tag_store = self.get_parent_atlas()._get_relationTags()
         return relation_tag_store.to_key_value_dict(self.index)
 
+    def get_bounds(self):
+        """
+        Get the bounding Rectangle of this Relation's members.
+        """
+        # FIXME this fails if Relations have self-referencing members
+        # this should never happen in a PackedAtlas so it should be OK for now
+
+        members = self.get_members()
+        if len(members) == 0:
+            return rectangle.Rectangle(0, 0)
+
+        entities_to_consider = []
+        for member in self.get_members():
+            entity = member.get_entity()
+            if entity is None:
+                raise ValueError('entity was None, how did this happen?')
+            entities_to_consider.append(entity)
+
+        return rectangle.bounds_atlasentities(entities_to_consider)
+
     def get_relations(self):
         """
         Get the frozenset of Relations of which this Relation is a member.
@@ -103,7 +124,7 @@ class Relation(atlas_entity.AtlasEntity):
 
     def get_type(self):
         """
-        Implement superclass get_type(). Always returns RELATION.
+        Implement superclass get_type(). Always returns EntityType.RELATION.
         """
         return entity_type.EntityType.RELATION
 

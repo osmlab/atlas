@@ -4,6 +4,7 @@ from pyatlas import polyline
 from pyatlas.polyline import PolyLine
 from pyatlas.polyline import Polygon
 from pyatlas.location import Location
+from pyatlas.rectangle import Rectangle
 
 
 class PolyLineTest(unittest.TestCase):
@@ -42,6 +43,31 @@ class PolyLineTest(unittest.TestCase):
         for point in correct_polygon.closed_loop():
             closed_list.append(point)
         self.assertEqual(closed_list[0], closed_list[len(closed_list) - 1])
+
+    def test_poly_bounds(self):
+        # create a lopsided PolyLine to test bounding box
+        loclist = [
+            Location(0, 0),
+            Location(400000000, 0),
+            Location(350000000, 300000000),
+            Location(450000000, 450000000),
+            Location(1000, 450000000)
+        ]
+        expected_rect = Rectangle(Location(0, 0), Location(450000000, 450000000))
+        computed_rect = PolyLine(loclist).get_bounds()
+        self.assertEqual(expected_rect, computed_rect)
+
+        # now test again but with a Polygon
+        loclist = [
+            Location(0, 0),
+            Location(400000000, 0),
+            Location(350000000, 300000000),
+            Location(450000000, 450000000),
+            Location(1000, 450000000)
+        ]
+        expected_rect = Rectangle(Location(0, 0), Location(450000000, 450000000))
+        computed_rect = Polygon(loclist).get_bounds()
+        self.assertEqual(expected_rect, computed_rect)
 
 
 if __name__ == "__main__":

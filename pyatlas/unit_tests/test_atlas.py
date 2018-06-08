@@ -1,6 +1,6 @@
 import unittest
 
-import pyatlas.atlas
+from pyatlas.atlas import Atlas
 
 
 class AtlasTest(unittest.TestCase):
@@ -8,7 +8,7 @@ class AtlasTest(unittest.TestCase):
         pass
 
     def test_lazy_loading(self):
-        atlas = pyatlas.atlas.Atlas("resources/test.atlas")
+        atlas = Atlas("resources/test.atlas")
         _touch_all_atlas_features(atlas)
         self.assertEqual(atlas.number_of_points(), 5)
         self.assertEqual(atlas.number_of_lines(), 2)
@@ -18,7 +18,7 @@ class AtlasTest(unittest.TestCase):
         self.assertEqual(atlas.number_of_relations(), 2)
 
     def test_upfront_loading(self):
-        atlas = pyatlas.atlas.Atlas("resources/test.atlas", lazy_loading=False)
+        atlas = Atlas("resources/test.atlas", lazy_loading=False)
         _touch_all_atlas_features(atlas)
         self.assertEqual(atlas.number_of_points(), 5)
         self.assertEqual(atlas.number_of_lines(), 2)

@@ -50,6 +50,12 @@ class Area(atlas_entity.AtlasEntity):
         area_tag_store = self.get_parent_atlas()._get_areaTags()
         return area_tag_store.to_key_value_dict(self.index)
 
+    def get_bounds(self):
+        """
+        Get the bounding Rectangle of this Area.
+        """
+        return self.as_polygon().get_bounds()
+
     def get_relations(self):
         """
         Get the frozenset of Relations of which this Area is a member.
@@ -60,6 +66,6 @@ class Area(atlas_entity.AtlasEntity):
 
     def get_type(self):
         """
-        Implement superclass get_type(). Always returns AREA.
+        Implement superclass get_type(). Always returns EntityType.AREA.
         """
         return entity_type.EntityType.AREA
