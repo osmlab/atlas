@@ -507,7 +507,7 @@ class Atlas(object):
             self.serializer._load_field(self.serializer._FIELD_RELATION_INDEX_TO_RELATION_INDICES)
         return self.relationIndexToRelationIndices
 
-    # spatial index loading functions
+    ### spatial index loading functions ###
     def _get_node_spatial_index(self):
         # TODO implement
         if self.node_spatial_index is None:

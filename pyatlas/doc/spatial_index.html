@@ -13,6 +13,14 @@
     <p></p>
 <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="rtree.html">rtree</a><br>
+</td><td width="25%" valign=top></td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
 <td colspan=3 valign=bottom>&nbsp;<br>
 <font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
@@ -33,10 +41,25 @@
 <font color="#000000" face="helvetica, arial"><a name="SpatialIndex">class <strong>SpatialIndex</strong></a>(<a href="__builtin__.html#object">__builtin__.object</a>)</font></td></tr>
     
 <tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
-<td colspan=2><tt>An&nbsp;optimized&nbsp;container&nbsp;class&nbsp;for&nbsp;making&nbsp;spatial&nbsp;queries&nbsp;on&nbsp;AtlasEntities.<br>&nbsp;</tt></td></tr>
+<td colspan=2><tt>An&nbsp;optimized&nbsp;container&nbsp;class&nbsp;for&nbsp;making&nbsp;spatial&nbsp;queries&nbsp;on&nbsp;AtlasEntities.<br>
+The&nbsp;Atlas&nbsp;will&nbsp;automatically&nbsp;construct&nbsp;the&nbsp;SpatialIndices&nbsp;it&nbsp;needs&nbsp;as&nbsp;it<br>
+receives&nbsp;queries,&nbsp;so&nbsp;it&nbsp;is&nbsp;unlikely&nbsp;you&nbsp;will&nbsp;ever&nbsp;need&nbsp;to&nbsp;create&nbsp;instances<br>
+of&nbsp;this&nbsp;class&nbsp;manually.<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%">Methods defined here:<br>
-<dl><dt><a name="SpatialIndex-__init__"><strong>__init__</strong></a>(self)</dt></dl>
+<dl><dt><a name="SpatialIndex-__init__"><strong>__init__</strong></a>(self, parent_atlas, entity_type, initial_boundables<font color="#909090">=None</font>)</dt><dd><tt>Create&nbsp;a&nbsp;new&nbsp;<a href="#SpatialIndex">SpatialIndex</a>.&nbsp;Requires&nbsp;a&nbsp;reference&nbsp;to&nbsp;the&nbsp;parent&nbsp;Atlas&nbsp;of<br>
+this&nbsp;index,&nbsp;as&nbsp;well&nbsp;as&nbsp;the&nbsp;EntityType&nbsp;of&nbsp;the&nbsp;entities&nbsp;it&nbsp;will&nbsp;store.&nbsp;Can<br>
+optionally&nbsp;accept&nbsp;a&nbsp;list&nbsp;of&nbsp;Boundables&nbsp;to&nbsp;initialize&nbsp;the&nbsp;tree&nbsp;with.<br>
+&nbsp;<br>
+In&nbsp;order&nbsp;to&nbsp;start&nbsp;using&nbsp;the&nbsp;tree,&nbsp;one&nbsp;must&nbsp;specify&nbsp;which&nbsp;backing<br>
+implementation&nbsp;to&nbsp;use.</tt></dd></dl>
+
+<dl><dt><a name="SpatialIndex-add"><strong>add</strong></a>(self, entity)</dt><dd><tt>Insert&nbsp;an&nbsp;AtlasEntity&nbsp;into&nbsp;the&nbsp;index.</tt></dd></dl>
+
+<dl><dt><a name="SpatialIndex-get"><strong>get</strong></a>(self, bound, predicate<font color="#909090">=&lt;function &lt;lambda&gt;&gt;</font>)</dt><dd><tt>Get&nbsp;a&nbsp;list&nbsp;of&nbsp;the&nbsp;features&nbsp;that&nbsp;are&nbsp;within&nbsp;or&nbsp;intersecting&nbsp;some&nbsp;bounds.<br>
+Can&nbsp;optionally&nbsp;accept&nbsp;a&nbsp;matching&nbsp;predicate&nbsp;function.</tt></dd></dl>
+
+<dl><dt><a name="SpatialIndex-use_rtree"><strong>use_rtree</strong></a>(self)</dt></dl>
 
 <hr>
 Data descriptors defined here:<br>

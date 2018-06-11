@@ -8,6 +8,8 @@ class AtlasEntity(boundable.Boundable):
     instantiated directly. Use one of the appropriate sub-classes.
     """
 
+    # FIXME this class overrides __eq__ and __ne__, but not __hash__.
+
     def __init__(self, parent_atlas):
         """
         AtlasEntity should not be instantiated directly.

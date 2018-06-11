@@ -1,3 +1,7 @@
+"""
+Module for a special type of Polygon: the Rectangle.
+"""
+
 import polyline
 import location
 
@@ -19,6 +23,18 @@ class Rectangle(polyline.Polygon):
         super(Rectangle, self).__init__(locations, deep=True)
         self.lower_left = lower_left
         self.upper_right = upper_right
+
+    def get_lower_left(self):
+        """
+        Get the lower left corner Location of this Rectangle.
+        """
+        return self.lower_left
+
+    def get_upper_right(self):
+        """
+        Get the upper right corner Location of this Rectangle.
+        """
+        return self.upper_right
 
 
 def bounds_locations(locations):

@@ -83,6 +83,15 @@ class Location(boundable.Boundable):
         return dm7_as_degree(self.get_longitude())
 
 
+def with_degrees(latitude, longitude):
+    """
+    Get a new Location with the given latitude and longitude in degree values.
+    """
+    latitude = degree_as_dm7(latitude)
+    longitude = degree_as_dm7(longitude)
+    return Location(latitude, longitude)
+
+
 def degree_as_dm7(degree):
     """
     Given a degree, return the equivalent dm7. Does not perform range validation.

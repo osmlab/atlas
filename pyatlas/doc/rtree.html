@@ -1,0 +1,79 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module rtree</title>
+<meta charset="utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>rtree</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/Users/lucascram/Projects/atlas/pyatlas/pyatlas/rtree.py">/Users/lucascram/Projects/atlas/pyatlas/pyatlas/rtree.py</a></font></td></tr></table>
+    <p></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="ctypes.html">ctypes</a><br>
+</td><td width="25%" valign=top><a href="shapely.html">shapely</a><br>
+</td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="__builtin__.html#object">__builtin__.object</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="rtree.html#RTree">RTree</a>
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="RTree">class <strong>RTree</strong></a>(<a href="__builtin__.html#object">__builtin__.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>A&nbsp;wrapper&nbsp;class&nbsp;for&nbsp;the&nbsp;Shapely&nbsp;STRtree&nbsp;implementation.&nbsp;The&nbsp;underlying<br>
+STRtree&nbsp;is&nbsp;immutable,&nbsp;but&nbsp;this&nbsp;class&nbsp;simulates&nbsp;mutability&nbsp;by&nbsp;maintaining&nbsp;a<br>
+parallel&nbsp;list&nbsp;of&nbsp;elements,&nbsp;and&nbsp;rebuilding&nbsp;the&nbsp;STRtree&nbsp;on&nbsp;each&nbsp;add.&nbsp;For&nbsp;this<br>
+reason,&nbsp;extensive&nbsp;use&nbsp;of&nbsp;the&nbsp;<a href="#RTree-add">add</a>()&nbsp;method&nbsp;is&nbsp;not&nbsp;recommended.<br>
+&nbsp;<br>
+Note&nbsp;also,&nbsp;this&nbsp;class&nbsp;stores&nbsp;raw&nbsp;AtlasEntity&nbsp;identifiers&nbsp;without&nbsp;any<br>
+EntityType&nbsp;information.&nbsp;For&nbsp;this&nbsp;reason,&nbsp;users&nbsp;of&nbsp;<a href="#RTree">RTree</a>&nbsp;should&nbsp;avoid&nbsp;adding<br>
+AtlasEntities&nbsp;with&nbsp;different&nbsp;EntityTypes&nbsp;in&nbsp;the&nbsp;same&nbsp;tree.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="RTree-__init__"><strong>__init__</strong></a>(self, initial_boundables)</dt><dd><tt>Create&nbsp;a&nbsp;new&nbsp;<a href="#RTree">RTree</a>&nbsp;with&nbsp;a&nbsp;list&nbsp;of&nbsp;initial&nbsp;items.</tt></dd></dl>
+
+<dl><dt><a name="RTree-add"><strong>add</strong></a>(self, bounds, identifier)</dt><dd><tt>Insert&nbsp;an&nbsp;AtlasEntity&nbsp;with&nbsp;a&nbsp;given&nbsp;identifier&nbsp;into&nbsp;the&nbsp;<a href="#RTree">RTree</a>&nbsp;with&nbsp;a<br>
+spatial&nbsp;extent&nbsp;given&nbsp;by&nbsp;the&nbsp;bounds&nbsp;parameter.</tt></dd></dl>
+
+<dl><dt><a name="RTree-get"><strong>get</strong></a>(self, boundable)</dt><dd><tt>Given&nbsp;a&nbsp;Boundable&nbsp;<a href="__builtin__.html#object">object</a>,&nbsp;get&nbsp;the&nbsp;identifiers&nbsp;of&nbsp;all&nbsp;AtlasEntities&nbsp;within<br>
+the&nbsp;bounds&nbsp;of&nbsp;the&nbsp;Boundable.</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>lgeos</strong> = &lt;shapely.geos.LGEOS340 object&gt;</td></tr></table>
+</body></html>
