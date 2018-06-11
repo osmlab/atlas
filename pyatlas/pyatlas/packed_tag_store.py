@@ -29,7 +29,7 @@ class PackedTagStore(object):
         value_array = self.values[index]
 
         if len(key_array) != len(value_array):
-            raise ValueError('array length mismatch')
+            raise IndexError('array length mismatch')
 
         for key, value in zip(key_array, value_array):
             result[self.dictionary.word(key)] = self.dictionary.word(value)

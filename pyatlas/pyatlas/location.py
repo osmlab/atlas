@@ -6,8 +6,8 @@ _LATITUDE_MAX_DM7 = 900000000
 _LONGITUDE_MIN_DM7 = -1800000000
 _LONGITUDE_MAX_DM7 = 1800000000 - 1
 
+# There are 10 million dm7 in a degree
 _DM7_PER_DEGREE = 10000000
-"""There are 10 million dm7 in a degree"""
 
 
 class Location(boundable.Boundable):

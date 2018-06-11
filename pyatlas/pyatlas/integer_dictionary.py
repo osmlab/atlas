@@ -34,7 +34,7 @@ def get_integer_dictionary_from_proto(proto_integer_dictionary):
     size_indexes = len(proto_integer_dictionary.indexes)
     size_words = len(proto_integer_dictionary.words)
     if size_words != size_indexes:
-        raise ValueError('proto array sizes do not match')
+        raise IndexError('proto array sizes do not match')
 
     for index, word in zip(proto_integer_dictionary.indexes, proto_integer_dictionary.words):
         new_dict.add(index, word)

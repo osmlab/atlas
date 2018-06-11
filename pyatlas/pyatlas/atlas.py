@@ -909,7 +909,7 @@ def _read_zipentry(zip_file, entry):
 def _convert_protolongtolongmap(proto_map):
     # convert the ProtoLongToLongMap_pb2 type to a simple dict
     if len(proto_map.keys.elements) != len(proto_map.values.elements):
-        raise ValueError('array length mismatch')
+        raise IndexError('array length mismatch')
     new_dict = {}
     for key, value in zip(proto_map.keys.elements, proto_map.values.elements):
         new_dict[key] = value
@@ -919,7 +919,7 @@ def _convert_protolongtolongmap(proto_map):
 def _convert_protolongtolongmultimap(proto_map):
     # convert the ProtoLongToLongMultiMap_pb2 type to a simple dict
     if len(proto_map.keys.elements) != len(proto_map.values):
-        raise ValueError('array length mismatch')
+        raise IndexError('array length mismatch')
     new_dict = {}
     for key, array_value in zip(proto_map.keys.elements, proto_map.values):
         value_list = []
