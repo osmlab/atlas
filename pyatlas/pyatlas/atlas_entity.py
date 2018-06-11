@@ -1,7 +1,8 @@
 import identifier_conversion
+import boundable
 
 
-class AtlasEntity(object):
+class AtlasEntity(boundable.Boundable):
     """
     A tagged, located entity in an Atlas. An AtlasEntity should not be
     instantiated directly. Use one of the appropriate sub-classes.

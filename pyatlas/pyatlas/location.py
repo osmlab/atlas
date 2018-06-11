@@ -1,4 +1,5 @@
 import rectangle
+import boundable
 
 _LATITUDE_MIN_DM7 = -900000000
 _LATITUDE_MAX_DM7 = 900000000
@@ -9,7 +10,7 @@ _DM7_PER_DEGREE = 10000000
 """There are 10 million dm7 in a degree"""
 
 
-class Location(object):
+class Location(boundable.Boundable):
     """
     A latitude-longitude location. Uses the dm7 type to represent coordinates.
     dm7 is an integral representation of a decimal degree fixed to 7 places of

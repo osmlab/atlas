@@ -5,6 +5,7 @@ methods for decoding PolyLines from string compression.
 
 import location
 import rectangle
+import boundable
 
 # Do not change the precision. It matches the default in the Java implementation.
 _PRECISION = 7
@@ -15,7 +16,7 @@ _BIT_SHIFT = 5
 _MAXIMUM_DELTA_LONGITUDE = 180 * pow(10, _PRECISION)
 
 
-class PolyLine(object):
+class PolyLine(boundable.Boundable):
     """
     A PolyLine is a set of Locations in a specific order.
     """
