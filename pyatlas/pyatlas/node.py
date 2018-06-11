@@ -105,6 +105,25 @@ class Node(atlas_entity.AtlasEntity):
             result.append(edge0)
         return sorted(result)
 
+    def get_absolute_valence(self):
+        """
+        Get the number of Edges connected to this node. Considers all Edges, not
+        just master Edges.
+        """
+        return len(self.get_connected_edges())
+
+    def get_valence(self):
+        """
+        Get the number of Edges connected to this node. Only considers the
+        master Edges.
+        """
+        connected_edges = self.get_connected_edges()
+        valence = 0
+        for edge0 in connected_edges:
+            if edge0.is_master_edge():
+                valence += 1
+        return valence
+
     def get_relations(self):
         """
         Get the frozenset of Relations of which this Node is a member.

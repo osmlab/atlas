@@ -92,6 +92,9 @@ class Atlas(object):
         self.relationTags = None
         self.relationIndexToRelationIndices = None
 
+        ### spatial indices ###
+        self.node_spatial_index = None
+
         if not self.lazy_loading:
             self.load_all_fields()
 
@@ -273,6 +276,7 @@ class Atlas(object):
         Force this Atlas to load all its fields from its backing store.
         """
         self.serializer._load_all_fields()
+        self._get_node_spatial_index()
 
     def number_of_points(self):
         """
@@ -502,6 +506,12 @@ class Atlas(object):
         if self.relationIndexToRelationIndices is None:
             self.serializer._load_field(self.serializer._FIELD_RELATION_INDEX_TO_RELATION_INDICES)
         return self.relationIndexToRelationIndices
+
+    # spatial index loading functions
+    def _get_node_spatial_index(self):
+        # TODO implement
+        if self.node_spatial_index is None:
+            self.node_spatial_index = None
 
 
 class _AtlasSerializer(object):

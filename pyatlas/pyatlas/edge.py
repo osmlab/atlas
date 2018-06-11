@@ -1,6 +1,7 @@
 import node
 import atlas_entity
 import entity_type
+import identifier_conversion
 
 
 class Edge(atlas_entity.AtlasEntity):
@@ -42,14 +43,6 @@ class Edge(atlas_entity.AtlasEntity):
 
         result += ' ]'
         return result
-
-    def __eq__(self, other):
-        """
-        Check if Edges are equal. Edges are considered equal if they have the
-        same identifiers and the same parent Atlas.
-        """
-        return self.get_identifier() == other.get_identifier() and self.get_parent_atlas(
-        ) == other.get_parent_atlas()
 
     def __lt__(self, other):
         """
@@ -101,6 +94,21 @@ class Edge(atlas_entity.AtlasEntity):
         result.add(self.get_end())
         return frozenset(result)
 
+    def get_connected_edges(self):
+        """
+        Get a frozenset of the Edges connected at the ends of the Nodes of this
+        Edge. The set will not contain the Edge this is method called on, but
+        will contain the reversed Edge if this Edge is part of a two-way road.
+        """
+        result = set()
+        for edge0 in self.get_end().get_connected_edges():
+            if self != edge0:
+                result.add(edge0)
+        for edge0 in self.get_start().get_connected_edges():
+            if self != edge0:
+                result.add(edge0)
+        return result
+
     def get_start(self):
         """
         Get the starting Node of this Edge.
@@ -131,6 +139,74 @@ class Edge(atlas_entity.AtlasEntity):
         Checks if this Edge is a master edge.
         """
         return self.get_identifier() > 0
+
+    def has_reversed_edge(self):
+        """
+        Checks if this Edge is a member of a bidirectional Edge pairing.
+        """
+        return self.get_parent_atlas().edge(-1 * self.get_identifier()) is not None
+
+    def is_reversed_edge(self, candidate):
+        """
+        Check if the candidate Edge is the bidirectional reverse of this Edge.
+        """
+        if candidate.get_type() != entity_type.EntityType.EDGE:
+            return False
+        return self.get_identifier() == -1 * candidate.get_identifier()
+
+    def get_reversed_edge(self):
+        """
+        Get the bidirectional pair Edge to this Edge, if it exists. Returns None
+        if it does not.
+        """
+        if not self.has_reversed_edge():
+            return None
+        return self.get_parent_atlas().edge(-1 * self.get_identifier())
+
+    def get_highway_tag_value(self):
+        """
+        Get the value of the "highway" tag of this Edge, if present. Returns
+        None if there is no "highway" tag.
+        """
+        tags = self.get_tags()
+        if 'highway' in tags:
+            return tags['highway']
+        else:
+            return None
+
+    def is_connected_at_end_to(self, candidates):
+        """
+        Given a set of AtlasEntity candidates, test if this edge is directly
+        connected at its end to at least one of the candidates.
+        """
+        for entity in candidates:
+            if entity.get_type() == entity_type.EntityType.NODE:
+                if self.get_end() == entity:
+                    return True
+            if entity.get_type() == entity_type.EntityType.EDGE:
+                if self.get_end() == entity.get_start():
+                    return True
+        return False
+
+    def is_connected_at_start_to(self, candidates):
+        """
+        Given a set of AtlasEntity candidates, test if this edge is directly
+        connected at its start to at least one of the candidates.
+        """
+        for entity in candidates:
+            if entity.get_type() == entity_type.EntityType.NODE:
+                if self.get_start() == entity:
+                    return True
+            if entity.get_type() == entity_type.EntityType.EDGE:
+                if self.get_start() == entity.get_end():
+                    return True
+        return False
+
+    def is_way_sectioned(self):
+        """
+        Determine if this Edge is a way-sectioned road.
+        """
+        return identifier_conversion.get_way_section_index(self.get_identifier()) != 0
 
     def get_type(self):
         """
