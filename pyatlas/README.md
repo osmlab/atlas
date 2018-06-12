@@ -64,7 +64,7 @@ Then re-run the `./gradlew buildPyatlas` command from above and reinstall using 
 
 Now `pyatlas` should make it past the `CHECK` format step!
 
-Note there is a bug that causes the formatter to goof if a source file does not end with a newline (\n) character.
+Note there is an issue that causes the formatter to goof if a source file does not end with a newline (\n) character.
 If the `CHECK` format step is consistently failing after repeated `APPLY` steps, and you are seeing a message like the following:
 
     atlas.py: found issue, reformatting...
