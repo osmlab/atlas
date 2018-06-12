@@ -1,9 +1,7 @@
 import shapely.strtree
 import shapely.geometry
-from shapely.geos import lgeos
 import ctypes
-
-# TODO this class does not handle any edgecases, ie. initial_boundables is empty, etc.
+from shapely.geos import lgeos as _lgeos
 
 
 class RTree(object):
@@ -18,45 +16,52 @@ class RTree(object):
     AtlasEntities with different EntityTypes in the same tree.
     """
 
-    def __init__(self, initial_boundables):
+    def __init__(self, initial_entities=None):
         """
-        Create a new RTree with a list of initial items.
+        Create a new RTree, optionally with an iterable of initial AtlasEntities.
         """
         self.contents = []
-        for boundable in initial_boundables:
-            self.contents.append(boundable)
-        self.contents_shapely_format = [
-            _convert_to_shapely(boundable) for boundable in self.contents
-        ]
+        self.tree = None
+
+        if initial_entities is not None:
+            for entity in initial_entities:
+                self.contents.append(entity)
+            self._construct_tree_from_contents()
+
+    def _construct_tree_from_contents(self):
+        contents_shapely_format = [_convert_to_shapely(entity) for entity in self.contents]
 
         # pack the arguments in format expected by the _HackSTRtree
-        self.hacktree_arguments = []
-        for boundable, cont in zip(self.contents, self.contents_shapely_format):
-            self.hacktree_arguments.append((boundable.get_identifier(), cont))
+        hacktree_arguments = []
+        for entity, cont in zip(self.contents, contents_shapely_format):
+            hacktree_arguments.append((entity.get_identifier(), cont))
 
-        self.internal_tree = _HackSTRtree(self.hacktree_arguments)
+        self.tree = _CustomSTRtree(hacktree_arguments)
 
-    def add(self, bounds, identifier):
+    def add(self, entity):
         """
-        Insert an AtlasEntity with a given identifier into the RTree with a
-        spatial extent given by the bounds parameter.
+        Insert an AtlasEntity into the RTree. The underlying STRtree is
+        immutable, so this method forces a rebuild of the entire tree.
         """
-        # TODO implement
-        raise NotImplementedError
+        self.contents.append(entity)
+        self._construct_tree_from_contents()
 
     def get(self, boundable):
         """
-        Given a Boundable object, get the identifiers of all AtlasEntities within
-        the bounds of the Boundable.
+        Given a Boundable object, get a list of the identifiers of all
+        AtlasEntities within the bounds of the Boundable.
         """
-        boundable = _convert_to_shapely(boundable)
-        return self.internal_tree.query(boundable)
+        if self.tree is not None:
+            boundable = _convert_to_shapely(boundable)
+            return self.tree.get(boundable)
+        else:
+            raise ValueError('RTree is empty')
 
 
-class _HackSTRtree(shapely.strtree.STRtree):
+class _CustomSTRtree(object):
     """
-    Hack subclass of the shapely STRtree. Overrides the behaviour of strtree to
-    allow for insertion of the entity atlas identifier (of type long).
+    Hack re-implementation of the shapely STRtree. Changes the behaviour of the
+    strtree to allow for insertion of the entity atlas identifier (type long).
     """
 
     def __init__(self, items):
@@ -68,18 +73,21 @@ class _HackSTRtree(shapely.strtree.STRtree):
 
         self._tree_handle = shapely.geos.lgeos.GEOSSTRtree_create(max(2, len(items)))
         for item in items:
-            lgeos.GEOSSTRtree_insert(self._tree_handle, item[1]._geom,
-                                     ctypes.py_object(long(item[0])))
+            _lgeos.GEOSSTRtree_insert(self._tree_handle, item[1]._geom,
+                                      ctypes.py_object(long(item[0])))
 
         geoms = [item[1] for item in items]
         self._geoms = list(geoms)
 
-    def query(self, geom):
-        """
-        A query with a given geometry returns an identifier. This identifier is
-        then used by the pyatlas RTree to look up the entity using the atlas
-        idToArrayIndex maps.
+    def __del__(self):
+        if self._tree_handle is not None:
+            _lgeos.GEOSSTRtree_destroy(self._tree_handle)
+            self._tree_handle = None
 
+    def get(self, geom):
+        """
+        Get a list of identifiers of AtlasEntities whose bounds intersect the
+        bounds defined by the geom parameter.
         """
         if self._n_geoms == 0:
             return []
@@ -90,8 +98,8 @@ class _HackSTRtree(shapely.strtree.STRtree):
             identifier = ctypes.cast(item, ctypes.py_object).value
             result.append(identifier)
 
-        lgeos.GEOSSTRtree_query(self._tree_handle, geom._geom, lgeos.GEOSQueryCallback(callback),
-                                None)
+        _lgeos.GEOSSTRtree_query(self._tree_handle, geom._geom, _lgeos.GEOSQueryCallback(callback),
+                                 None)
 
         return result
 

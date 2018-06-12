@@ -52,13 +52,13 @@ EntityType&nbsp;information.&nbsp;For&nbsp;this&nbsp;reason,&nbsp;users&nbsp;of&
 AtlasEntities&nbsp;with&nbsp;different&nbsp;EntityTypes&nbsp;in&nbsp;the&nbsp;same&nbsp;tree.<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%">Methods defined here:<br>
-<dl><dt><a name="RTree-__init__"><strong>__init__</strong></a>(self, initial_boundables)</dt><dd><tt>Create&nbsp;a&nbsp;new&nbsp;<a href="#RTree">RTree</a>&nbsp;with&nbsp;a&nbsp;list&nbsp;of&nbsp;initial&nbsp;items.</tt></dd></dl>
+<dl><dt><a name="RTree-__init__"><strong>__init__</strong></a>(self, initial_entities<font color="#909090">=None</font>)</dt><dd><tt>Create&nbsp;a&nbsp;new&nbsp;<a href="#RTree">RTree</a>,&nbsp;optionally&nbsp;with&nbsp;an&nbsp;iterable&nbsp;of&nbsp;initial&nbsp;AtlasEntities.</tt></dd></dl>
 
-<dl><dt><a name="RTree-add"><strong>add</strong></a>(self, bounds, identifier)</dt><dd><tt>Insert&nbsp;an&nbsp;AtlasEntity&nbsp;with&nbsp;a&nbsp;given&nbsp;identifier&nbsp;into&nbsp;the&nbsp;<a href="#RTree">RTree</a>&nbsp;with&nbsp;a<br>
-spatial&nbsp;extent&nbsp;given&nbsp;by&nbsp;the&nbsp;bounds&nbsp;parameter.</tt></dd></dl>
+<dl><dt><a name="RTree-add"><strong>add</strong></a>(self, entity)</dt><dd><tt>Insert&nbsp;an&nbsp;AtlasEntity&nbsp;into&nbsp;the&nbsp;<a href="#RTree">RTree</a>.&nbsp;The&nbsp;underlying&nbsp;STRtree&nbsp;is<br>
+immutable,&nbsp;so&nbsp;this&nbsp;method&nbsp;forces&nbsp;a&nbsp;rebuild&nbsp;of&nbsp;the&nbsp;entire&nbsp;tree.</tt></dd></dl>
 
-<dl><dt><a name="RTree-get"><strong>get</strong></a>(self, boundable)</dt><dd><tt>Given&nbsp;a&nbsp;Boundable&nbsp;<a href="__builtin__.html#object">object</a>,&nbsp;get&nbsp;the&nbsp;identifiers&nbsp;of&nbsp;all&nbsp;AtlasEntities&nbsp;within<br>
-the&nbsp;bounds&nbsp;of&nbsp;the&nbsp;Boundable.</tt></dd></dl>
+<dl><dt><a name="RTree-get"><strong>get</strong></a>(self, boundable)</dt><dd><tt>Given&nbsp;a&nbsp;Boundable&nbsp;<a href="__builtin__.html#object">object</a>,&nbsp;get&nbsp;a&nbsp;list&nbsp;of&nbsp;the&nbsp;identifiers&nbsp;of&nbsp;all<br>
+AtlasEntities&nbsp;within&nbsp;the&nbsp;bounds&nbsp;of&nbsp;the&nbsp;Boundable.</tt></dd></dl>
 
 <hr>
 Data descriptors defined here:<br>
@@ -68,12 +68,5 @@ Data descriptors defined here:<br>
 <dl><dt><strong>__weakref__</strong></dt>
 <dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
 </dl>
-</td></tr></table></td></tr></table><p>
-<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
-<tr bgcolor="#55aa55">
-<td colspan=3 valign=bottom>&nbsp;<br>
-<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
-    
-<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><strong>lgeos</strong> = &lt;shapely.geos.LGEOS340 object&gt;</td></tr></table>
+</td></tr></table></td></tr></table>
 </body></html>

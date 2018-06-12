@@ -4,6 +4,8 @@ from pyatlas.rtree import RTree
 from pyatlas import location
 from pyatlas.rectangle import Rectangle
 from pyatlas.atlas import Atlas
+from pyatlas.spatial_index import SpatialIndex
+from pyatlas.entity_type import EntityType
 
 
 class SpatialIndexTest(unittest.TestCase):
@@ -25,3 +27,23 @@ class SpatialIndexTest(unittest.TestCase):
             test_results.append(element)
 
         self.assertEquals([1, 2, 3], test_results)
+
+    def test_spatial_index_rtree(self):
+        atlas = Atlas("resources/test.atlas")
+
+        index = SpatialIndex(atlas, EntityType.POINT, atlas.points())
+        index.initialize_rtree()
+
+        lower_left = location.with_degrees(37, -118.02)
+        upper_right = location.with_degrees(39, -118)
+
+        test_results = []
+        for element in index.get(Rectangle(lower_left, upper_right)):
+            test_results.append(element)
+        self.assertEquals([atlas.point(1), atlas.point(2), atlas.point(3)], test_results)
+
+        test_results = []
+        for element in index.get(
+                Rectangle(lower_left, upper_right), lambda p: p.get_identifier() == 2):
+            test_results.append(element)
+        self.assertEquals([atlas.point(2)], test_results)

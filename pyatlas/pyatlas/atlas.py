@@ -24,6 +24,7 @@ import integer_dictionary
 import packed_tag_store
 import polyline
 import polygon
+import entity_type
 
 
 class Atlas(object):
@@ -252,25 +253,25 @@ class Atlas(object):
             if predicate(relation0):
                 yield relation0
 
-    def entity(self, identifier, entity_type):
+    def entity(self, identifier, entity_type0):
         """
         Get an AtlasEntity with a given Atlas identifier and EntityType.
         Returns None if there is no entity with the given identifier and type.
         """
-        if entity_type == entity_type.EntityType.POINT:
+        if entity_type0 == entity_type.EntityType.POINT:
             return self.point(identifier)
-        elif entity_type == entity_type.EntityType.LINE:
+        elif entity_type0 == entity_type.EntityType.LINE:
             return self.line(identifier)
-        elif entity_type == entity_type.EntityType.AREA:
+        elif entity_type0 == entity_type.EntityType.AREA:
             return self.area(identifier)
-        elif entity_type == entity_type.EntityType.NODE:
+        elif entity_type0 == entity_type.EntityType.NODE:
             return self.node(identifier)
-        elif entity_type == entity_type.EntityType.EDGE:
+        elif entity_type0 == entity_type.EntityType.EDGE:
             return self.edge(identifier)
-        elif entity_type == entity_type.EntityType.RELATION:
+        elif entity_type0 == entity_type.EntityType.RELATION:
             return self.relation(identifier)
         else:
-            raise ValueError('invalid EntityType value ' + str(entity_type))
+            raise ValueError('invalid EntityType value ' + str(entity_type0))
 
     def load_all_fields(self):
         """

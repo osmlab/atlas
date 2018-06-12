@@ -47,19 +47,22 @@ receives&nbsp;queries,&nbsp;so&nbsp;it&nbsp;is&nbsp;unlikely&nbsp;you&nbsp;will&
 of&nbsp;this&nbsp;class&nbsp;manually.<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%">Methods defined here:<br>
-<dl><dt><a name="SpatialIndex-__init__"><strong>__init__</strong></a>(self, parent_atlas, entity_type, initial_boundables<font color="#909090">=None</font>)</dt><dd><tt>Create&nbsp;a&nbsp;new&nbsp;<a href="#SpatialIndex">SpatialIndex</a>.&nbsp;Requires&nbsp;a&nbsp;reference&nbsp;to&nbsp;the&nbsp;parent&nbsp;Atlas&nbsp;of<br>
+<dl><dt><a name="SpatialIndex-__init__"><strong>__init__</strong></a>(self, parent_atlas, entity_type, initial_entities<font color="#909090">=None</font>)</dt><dd><tt>Create&nbsp;a&nbsp;new&nbsp;<a href="#SpatialIndex">SpatialIndex</a>.&nbsp;Requires&nbsp;a&nbsp;reference&nbsp;to&nbsp;the&nbsp;parent&nbsp;Atlas&nbsp;of<br>
 this&nbsp;index,&nbsp;as&nbsp;well&nbsp;as&nbsp;the&nbsp;EntityType&nbsp;of&nbsp;the&nbsp;entities&nbsp;it&nbsp;will&nbsp;store.&nbsp;Can<br>
-optionally&nbsp;accept&nbsp;a&nbsp;list&nbsp;of&nbsp;Boundables&nbsp;to&nbsp;initialize&nbsp;the&nbsp;tree&nbsp;with.<br>
+optionally&nbsp;accept&nbsp;an&nbsp;iterable&nbsp;of&nbsp;AtlasEntities&nbsp;with&nbsp;which&nbsp;to&nbsp;initialize<br>
+the&nbsp;index.<br>
 &nbsp;<br>
 In&nbsp;order&nbsp;to&nbsp;start&nbsp;using&nbsp;the&nbsp;tree,&nbsp;one&nbsp;must&nbsp;specify&nbsp;which&nbsp;backing<br>
 implementation&nbsp;to&nbsp;use.</tt></dd></dl>
 
 <dl><dt><a name="SpatialIndex-add"><strong>add</strong></a>(self, entity)</dt><dd><tt>Insert&nbsp;an&nbsp;AtlasEntity&nbsp;into&nbsp;the&nbsp;index.</tt></dd></dl>
 
-<dl><dt><a name="SpatialIndex-get"><strong>get</strong></a>(self, bound, predicate<font color="#909090">=&lt;function &lt;lambda&gt;&gt;</font>)</dt><dd><tt>Get&nbsp;a&nbsp;list&nbsp;of&nbsp;the&nbsp;features&nbsp;that&nbsp;are&nbsp;within&nbsp;or&nbsp;intersecting&nbsp;some&nbsp;bounds.<br>
+<dl><dt><a name="SpatialIndex-get"><strong>get</strong></a>(self, bound, predicate<font color="#909090">=&lt;function &lt;lambda&gt;&gt;</font>)</dt><dd><tt>Get&nbsp;a&nbsp;list&nbsp;of&nbsp;AtlasEntities&nbsp;that&nbsp;are&nbsp;within&nbsp;or&nbsp;intersecting&nbsp;some&nbsp;bounds.<br>
 Can&nbsp;optionally&nbsp;accept&nbsp;a&nbsp;matching&nbsp;predicate&nbsp;function.</tt></dd></dl>
 
-<dl><dt><a name="SpatialIndex-use_rtree"><strong>use_rtree</strong></a>(self)</dt></dl>
+<dl><dt><a name="SpatialIndex-initialize_quadtree"><strong>initialize_quadtree</strong></a>(self)</dt><dd><tt>Intitialize&nbsp;a&nbsp;quadtree&nbsp;to&nbsp;back&nbsp;this&nbsp;<a href="#SpatialIndex">SpatialIndex</a>.</tt></dd></dl>
+
+<dl><dt><a name="SpatialIndex-initialize_rtree"><strong>initialize_rtree</strong></a>(self)</dt><dd><tt>Initialize&nbsp;an&nbsp;rtree&nbsp;to&nbsp;back&nbsp;this&nbsp;<a href="#SpatialIndex">SpatialIndex</a>.</tt></dd></dl>
 
 <hr>
 Data descriptors defined here:<br>
