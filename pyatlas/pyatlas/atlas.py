@@ -30,10 +30,7 @@ import spatial_index
 
 class Atlas(object):
     """
-    The Atlas - current implementation is not threadsafe.
-
-    The field names match up with the name of their corresponding ZIP entry.
-    These ZIP entry names come from from the PackedAtlas Java implementation.
+    The Atlas - current implementation is *not* threadsafe.
     """
 
     def __init__(self, atlas_file, lazy_loading=True):
@@ -49,7 +46,9 @@ class Atlas(object):
         self.serializer = _AtlasSerializer(atlas_file, self)
         self.lazy_loading = lazy_loading
 
-        ### PackedAtlas fields ###
+        # --- PackedAtlas fields ---
+        # The field names match up with the name of their corresponding ZIP entry.
+        # These ZIP entry names come from from the PackedAtlas Java implementation.
         self.metaData = None
         self.dictionary = None
 
@@ -95,8 +94,9 @@ class Atlas(object):
         self.relationTags = None
         self.relationIndexToRelationIndices = None
 
-        ### spatial indices ###
+        # --- spatial indices ---
         self.point_spatial_index = None
+        self.node_spatial_index = None
 
         if not self.lazy_loading:
             self.load_all_fields()
@@ -291,6 +291,22 @@ class Atlas(object):
             polygon0.get_bounds(), predicate=predicate)
         return points_list
 
+    def nodes_at(self, location0):
+        """
+        Get a list of all Nodes at some Location.
+        """
+        nodes_list = self._get_node_spatial_index().get(location0.get_bounds())
+        return nodes_list
+
+    def nodes_within(self, polygon0, predicate=lambda n: True):
+        """
+        Get a list of all Nodes within some polygon. Can optionally also accept
+        a preducate to further filter the Nodes.
+        """
+        # TODO this method should perform a fully_geometrically_encloses operation before returning the nodes
+        nodes_list = self._get_node_spatial_index().get(polygon0.get_bounds(), predicate=predicate)
+        return nodes_list
+
     def load_all_fields(self):
         """
         Force this Atlas to load all its fields from its backing store.
@@ -334,6 +350,7 @@ class Atlas(object):
         """
         return len(self._get_relationIdentifiers().elements)
 
+    # --- PackedAtlas field loading functions ---
     def _get_dictionary(self):
         if self.dictionary is None:
             self.serializer._load_field(self.serializer._FIELD_DICTIONARY)
@@ -527,7 +544,7 @@ class Atlas(object):
             self.serializer._load_field(self.serializer._FIELD_RELATION_INDEX_TO_RELATION_INDICES)
         return self.relationIndexToRelationIndices
 
-    ### spatial index loading functions ###
+        # --- spatial index loading functions ---
     def _get_point_spatial_index(self):
         if self.point_spatial_index is None:
             self.point_spatial_index = spatial_index.SpatialIndex(self,
@@ -535,6 +552,13 @@ class Atlas(object):
                                                                   self.points())
             self.point_spatial_index.initialize_rtree()
         return self.point_spatial_index
+
+    def _get_node_spatial_index(self):
+        if self.node_spatial_index is None:
+            self.node_spatial_index = spatial_index.SpatialIndex(self, entity_type.EntityType.NODE,
+                                                                 self.nodes())
+            self.node_spatial_index.initialize_rtree()
+        return self.node_spatial_index
 
 
 class _AtlasSerializer(object):
@@ -930,17 +954,19 @@ class _AtlasSerializer(object):
         load_method_to_call()
 
 
-## some private static utility functions ##
-
-
+# --- static utility functions ---
 def _read_zipentry(zip_file, entry):
-    # read a zip entry named 'entry' from a given 'zip_file'
+    """
+    Read a zip entry from a given zip file.
+    """
     with zipfile.ZipFile(zip_file, 'r') as myzip:
         return myzip.read(entry)
 
 
 def _convert_protolongtolongmap(proto_map):
-    # convert the ProtoLongToLongMap_pb2 type to a simple dict
+    """
+    Convert the ProtoLongToLongMap_pb2 type to a simple dict.
+    """
     if len(proto_map.keys.elements) != len(proto_map.values.elements):
         raise IndexError('array length mismatch')
     new_dict = {}
@@ -950,7 +976,9 @@ def _convert_protolongtolongmap(proto_map):
 
 
 def _convert_protolongtolongmultimap(proto_map):
-    # convert the ProtoLongToLongMultiMap_pb2 type to a simple dict
+    """
+    Convert the ProtoLongToLongMultiMap_pb2 type to a simple dict.
+    """
     if len(proto_map.keys.elements) != len(proto_map.values):
         raise IndexError('array length mismatch')
     new_dict = {}
