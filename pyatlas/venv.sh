@@ -12,7 +12,6 @@ err_shutdown() {
     deactivate
     exit 1
 }
-#################################################################
 
 
 ### check to prevent users from running this script directly ###
@@ -21,7 +20,7 @@ if [ "$1" != "ranFromGradle" ];
 then
     err_shutdown "this script should be run using the atlas gradle task 'formatPyatlas'"
 fi
-#################################################################
+
 
 ### set up variables to store directory names ###
 #################################################
@@ -30,7 +29,6 @@ pyatlas_dir="pyatlas"
 pyatlas_srcdir="pyatlas"
 pyatlas_root_dir="$gradle_project_root_dir/$pyatlas_dir"
 venv_path="$pyatlas_root_dir/__pyatlas_venv__"
-#################################################################
 
 
 ### abort the script if the pyatlas source folder is not present ###
@@ -39,7 +37,6 @@ if [ ! -d "$pyatlas_root_dir/$pyatlas_srcdir" ];
 then
     err_shutdown "pyatlas source folder not found"
 fi
-####################################################################
 
 
 ### exit the script if the venv folder already exists ###
@@ -49,7 +46,6 @@ then
     echo "INFO: $venv_path exists. Proceeding. Run './gradlew cleanPyatlas' to refresh."
     exit 0
 fi
-####################################################################
 
 
 ### determine if virtualenv is installed ###
@@ -60,7 +56,6 @@ then
 else
     err_shutdown "'command -v virtualenv' returned non-zero exit status"
 fi
-#################################################################
 
 
 ### set up the virtual environment ###
@@ -71,4 +66,3 @@ if ! ${virtualenv_command} --python=python2.7 "$venv_path";
 then
     err_shutdown "virtualenv command returned non-zero exit status"
 fi
-#################################################################

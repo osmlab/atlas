@@ -7,9 +7,11 @@ from shapely.geos import lgeos as _lgeos
 class RTree(object):
     """
     A wrapper class for the Shapely STRtree implementation. The underlying
-    STRtree is immutable, but this class simulates mutability by maintaining a
-    parallel list of elements, and rebuilding the STRtree on each add. For this
-    reason, extensive use of the add() method is not recommended.
+    _CustomSTRtree is immutable, but this class simulates mutability by
+    maintaining a parallel list of elements, and rebuilding the STRtree on each
+    add. For this reason, extensive use of the add() method is not recommended.
+
+    TODO make the _CustomSTRtree implementation mutable
 
     Note also, this class stores raw AtlasEntity identifiers without any
     EntityType information. For this reason, users of RTree should avoid adding

@@ -12,7 +12,6 @@ err_shutdown() {
     deactivate
     exit 1
 }
-#################################################################
 
 
 ### check to prevent users from running this script directly ###
@@ -21,7 +20,6 @@ if [ "$1" != "ranFromGradle" ];
 then
     err_shutdown "this script should be run using the atlas gradle task 'testPyatlas'"
 fi
-#################################################################
 
 
 ### set up variables to store directory names ###
@@ -31,7 +29,6 @@ pyatlas_dir="pyatlas"
 pyatlas_testdir="unit_tests"
 pyatlas_root_dir="$gradle_project_root_dir/$pyatlas_dir"
 venv_path="$pyatlas_root_dir/__pyatlas_venv__"
-#################################################################
 
 
 ### abort the script if the pyatlas tests folder is not present ###
@@ -40,7 +37,6 @@ if [ ! -d "$pyatlas_root_dir/$pyatlas_testdir" ];
 then
     err_shutdown "pyatlas tests folder not found"
 fi
-####################################################################
 
 
 ### run the tests ###
@@ -64,4 +60,3 @@ popd
 
 # shutdown the venv
 deactivate
-#################################################################

@@ -15,7 +15,6 @@ err_shutdown() {
     deactivate
     exit 1
 }
-#################################################################
 
 
 ### check to prevent users from running this script directly ###
@@ -24,7 +23,6 @@ if [ "$1" != "ranFromGradle" ];
 then
     err_shutdown "this script should be run using the atlas gradle task 'packagePyatlas'"
 fi
-#################################################################
 
 
 ### set up variables to store directory names ###
@@ -36,7 +34,6 @@ doc_dir="doc"
 pyatlas_root_dir="$gradle_project_root_dir/$pyatlas_dir"
 venv_path="$pyatlas_root_dir/__pyatlas_venv__"
 protofiles_dir="$gradle_project_root_dir/src/main/proto"
-#################################################################
 
 
 ### abort the script if the pyatlas source folder is not present ###
@@ -45,7 +42,6 @@ if [ ! -d "$pyatlas_root_dir/$pyatlas_srcdir" ];
 then
     err_shutdown "pyatlas source folder not found"
 fi
-####################################################################
 
 
 ### determine if wget is installed ###
@@ -56,7 +52,6 @@ then
 else
     err_shutdown "'command -v wget' returned non-zero exit status: install wget to run this script"
 fi
-####################################################################
 
 
 ### download protoc and compile the atlas proto files into python ###
@@ -89,7 +84,6 @@ while IFS= read -r -d '' protofile
 do
     $protoc_path "$protofile" --proto_path="$protofiles_dir" --python_out="$pyatlas_root_dir/$pyatlas_srcdir/autogen" || err_shutdown "protoc invocation failed"
 done < <(find "$protofiles_dir" -type f -name "*.proto" -print0)
-#################################################################
 
 
 ### build the module and documentation ###
@@ -120,4 +114,3 @@ popd
 
 # shutdown the venv
 deactivate
-#################################################################

@@ -43,9 +43,11 @@
     
 <tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
 <td colspan=2><tt>A&nbsp;wrapper&nbsp;class&nbsp;for&nbsp;the&nbsp;Shapely&nbsp;STRtree&nbsp;implementation.&nbsp;The&nbsp;underlying<br>
-STRtree&nbsp;is&nbsp;immutable,&nbsp;but&nbsp;this&nbsp;class&nbsp;simulates&nbsp;mutability&nbsp;by&nbsp;maintaining&nbsp;a<br>
-parallel&nbsp;list&nbsp;of&nbsp;elements,&nbsp;and&nbsp;rebuilding&nbsp;the&nbsp;STRtree&nbsp;on&nbsp;each&nbsp;add.&nbsp;For&nbsp;this<br>
-reason,&nbsp;extensive&nbsp;use&nbsp;of&nbsp;the&nbsp;<a href="#RTree-add">add</a>()&nbsp;method&nbsp;is&nbsp;not&nbsp;recommended.<br>
+_CustomSTRtree&nbsp;is&nbsp;immutable,&nbsp;but&nbsp;this&nbsp;class&nbsp;simulates&nbsp;mutability&nbsp;by<br>
+maintaining&nbsp;a&nbsp;parallel&nbsp;list&nbsp;of&nbsp;elements,&nbsp;and&nbsp;rebuilding&nbsp;the&nbsp;STRtree&nbsp;on&nbsp;each<br>
+add.&nbsp;For&nbsp;this&nbsp;reason,&nbsp;extensive&nbsp;use&nbsp;of&nbsp;the&nbsp;<a href="#RTree-add">add</a>()&nbsp;method&nbsp;is&nbsp;not&nbsp;recommended.<br>
+&nbsp;<br>
+TODO&nbsp;make&nbsp;the&nbsp;_CustomSTRtree&nbsp;implementation&nbsp;mutable<br>
 &nbsp;<br>
 Note&nbsp;also,&nbsp;this&nbsp;class&nbsp;stores&nbsp;raw&nbsp;AtlasEntity&nbsp;identifiers&nbsp;without&nbsp;any<br>
 EntityType&nbsp;information.&nbsp;For&nbsp;this&nbsp;reason,&nbsp;users&nbsp;of&nbsp;<a href="#RTree">RTree</a>&nbsp;should&nbsp;avoid&nbsp;adding<br>
