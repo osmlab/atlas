@@ -23,6 +23,7 @@ import atlas_metadata
 import integer_dictionary
 import packed_tag_store
 import polyline
+import polygon
 
 
 class Atlas(object):
@@ -755,8 +756,8 @@ class _AtlasSerializer(object):
         proto_array.ParseFromString(zip_entry_data)
         result = []
         for encoding in proto_array.encodings:
-            polygon = polyline.decompress_polygon(encoding)
-            result.append(polygon)
+            polygon0 = polygon.decompress_polygon(encoding)
+            result.append(polygon0)
         self.atlas.areaPolygons = result
 
     def _load_areaTags(self):

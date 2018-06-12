@@ -1,8 +1,3 @@
-"""
-Module that defines PolyLines and their subtypes (Polygons). Contains helper
-methods for decoding PolyLines from string compression.
-"""
-
 import location
 import rectangle
 import boundable
@@ -24,7 +19,7 @@ class PolyLine(boundable.Boundable):
     def __init__(self, location_list, deep=False):
         """
         Create a new PolyLine given a Location list. By default, it will perform
-        a refernece copy of the Location list. Can optionally perform a deep copy
+        a reference copy of the Location list. Can optionally perform a deep copy
         of the list instead.
         """
         if len(location_list) == 0:
@@ -108,51 +103,6 @@ class PolyLine(boundable.Boundable):
         """
         for point in self.location_list:
             yield point
-
-
-class Polygon(PolyLine):
-    """
-    A special case of PolyLine that has an extra segment between the last and
-    first point - effectively a closed PolyLine. The Polygon does not actually
-    re-store the last (first) Location. Instead, the API simulates its presence.
-    """
-
-    def __init__(self, location_list, deep=False):
-        """
-        Create a new Polygon given a Location list. By default, it will perform
-        a shallow copy of the parameter list. Can optionally perform a deep copy
-        of the list.
-        """
-        super(Polygon, self).__init__(location_list, deep)
-
-    def __str__(self):
-        """
-        Get a string representation of this Polygon. Include the first Location
-        repeated as the last Location to simulate closedness.
-        """
-        result = "["
-        for point in self.closed_loop():
-            result += str(point) + ", "
-        result += "]"
-        return result
-
-    def closed_loop(self):
-        """
-        Get a generator for the Locations in this Polygon. Will generate the
-        first item again at the end, simulating the closedness of the Polygon.
-        """
-        for point in self.locations():
-            yield point
-        yield self.location_list[0]
-
-
-def decompress_polygon(bytestring):
-    """
-    Given a PolyLine bytestring compressed using PolyLine.compress(),
-    decompress it and return it as a Polygon.
-    """
-    locations = _decompress_bytestring(bytestring)
-    return Polygon(locations)
 
 
 def decompress_polyline(bytestring):

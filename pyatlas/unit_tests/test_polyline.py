@@ -2,7 +2,7 @@ import unittest
 
 from pyatlas import polyline
 from pyatlas.polyline import PolyLine
-from pyatlas.polyline import Polygon
+from pyatlas.polygon import Polygon
 from pyatlas.location import Location
 from pyatlas.rectangle import Rectangle
 

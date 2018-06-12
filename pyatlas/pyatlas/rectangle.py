@@ -2,11 +2,11 @@
 Module for a special type of Polygon: the Rectangle.
 """
 
-import polyline
+import polygon
 import location
 
 
-class Rectangle(polyline.Polygon):
+class Rectangle(polygon.Polygon):
     """
     A rectangle on the surface of earth. It cannot span the date change
     line (longitude -180).
