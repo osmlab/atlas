@@ -1,7 +1,7 @@
 import node
 import atlas_entity
 import entity_type
-import identifier_conversion
+import identifier_converters
 
 
 class Edge(atlas_entity.AtlasEntity):
@@ -206,7 +206,7 @@ class Edge(atlas_entity.AtlasEntity):
         """
         Determine if this Edge is a way-sectioned road.
         """
-        return identifier_conversion.get_way_section_index(self.get_identifier()) != 0
+        return identifier_converters.get_way_section_index(self.get_identifier()) != 0
 
     def get_type(self):
         """

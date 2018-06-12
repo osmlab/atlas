@@ -1,4 +1,4 @@
-import identifier_conversion
+import identifier_converters
 import boundable
 
 
@@ -67,7 +67,7 @@ class AtlasEntity(boundable.Boundable):
         module.
         """
         atlas_id = self.get_identifier()
-        return identifier_conversion.get_osm_identifier(atlas_id)
+        return identifier_converters.get_osm_identifier(atlas_id)
 
     def get_parent_atlas(self):
         """

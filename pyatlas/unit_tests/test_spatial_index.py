@@ -1,10 +1,10 @@
 import unittest
 
-from pyatlas.rtree import RTree
 from pyatlas import location
 from pyatlas.rectangle import Rectangle
 from pyatlas.atlas import Atlas
 from pyatlas.spatial_index import SpatialIndex
+from pyatlas.spatial_index import _RTree
 from pyatlas.entity_type import EntityType
 
 
@@ -17,7 +17,7 @@ class SpatialIndexTest(unittest.TestCase):
         # test Points 1, 2, and 3 from the test atlas
 
         atlas = Atlas("resources/test.atlas")
-        tree = RTree(atlas.points())
+        tree = _RTree(atlas.points())
 
         lower_left = location.with_degrees(37, -118.02)
         upper_right = location.with_degrees(39, -118)

@@ -7,7 +7,7 @@ from pyatlas.location import Location
 from pyatlas.rectangle import Rectangle
 
 
-class PolyLineTest(unittest.TestCase):
+class PolyLinePolygonTest(unittest.TestCase):
     def setUp(self):
         pass
 

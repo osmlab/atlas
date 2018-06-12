@@ -18,8 +18,10 @@
 <font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="rtree.html">rtree</a><br>
-</td><td width="25%" valign=top></td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="ctypes.html">ctypes</a><br>
+</td><td width="25%" valign=top><a href="polygon_converters.html">polygon_converters</a><br>
+</td><td width="25%" valign=top><a href="shapely.html">shapely</a><br>
+</td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
 <td colspan=3 valign=bottom>&nbsp;<br>
@@ -62,7 +64,10 @@ Can&nbsp;optionally&nbsp;accept&nbsp;a&nbsp;matching&nbsp;predicate&nbsp;functio
 
 <dl><dt><a name="SpatialIndex-initialize_quadtree"><strong>initialize_quadtree</strong></a>(self)</dt><dd><tt>Intitialize&nbsp;a&nbsp;quadtree&nbsp;to&nbsp;back&nbsp;this&nbsp;<a href="#SpatialIndex">SpatialIndex</a>.</tt></dd></dl>
 
-<dl><dt><a name="SpatialIndex-initialize_rtree"><strong>initialize_rtree</strong></a>(self)</dt><dd><tt>Initialize&nbsp;an&nbsp;rtree&nbsp;to&nbsp;back&nbsp;this&nbsp;<a href="#SpatialIndex">SpatialIndex</a>.</tt></dd></dl>
+<dl><dt><a name="SpatialIndex-initialize_rtree"><strong>initialize_rtree</strong></a>(self)</dt><dd><tt>Initialize&nbsp;an&nbsp;rtree&nbsp;to&nbsp;back&nbsp;this&nbsp;<a href="#SpatialIndex">SpatialIndex</a>.&nbsp;The&nbsp;underlying&nbsp;rtree<br>
+implementation&nbsp;is&nbsp;immutable,&nbsp;so&nbsp;repeated&nbsp;calls&nbsp;to&nbsp;<a href="#SpatialIndex-add">add</a>()&nbsp;will&nbsp;degrade<br>
+performance.&nbsp;It&nbsp;is&nbsp;recommended&nbsp;that&nbsp;an&nbsp;rtree-backed&nbsp;<a href="#SpatialIndex">SpatialIndex</a>&nbsp;initialize<br>
+its&nbsp;backing&nbsp;tree&nbsp;upfront.</tt></dd></dl>
 
 <hr>
 Data descriptors defined here:<br>
