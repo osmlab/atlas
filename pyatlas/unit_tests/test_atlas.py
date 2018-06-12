@@ -1,6 +1,8 @@
 import unittest
 
 from pyatlas.atlas import Atlas
+from pyatlas.rectangle import Rectangle
+from pyatlas import location
 
 
 class AtlasTest(unittest.TestCase):
@@ -26,6 +28,22 @@ class AtlasTest(unittest.TestCase):
         self.assertEqual(atlas.number_of_nodes(), 4)
         self.assertEqual(atlas.number_of_edges(), 3)
         self.assertEqual(atlas.number_of_relations(), 2)
+
+    def test_point_spatial_index(self):
+        atlas = Atlas("resources/test.atlas")
+
+        lower_left = location.with_degrees(37, -118.02)
+        upper_right = location.with_degrees(39, -118)
+
+        test_results = atlas.points_within(Rectangle(lower_left, upper_right))
+        self.assertEquals([atlas.point(1), atlas.point(2), atlas.point(3)], test_results)
+
+        test_results = atlas.points_within(
+            Rectangle(lower_left, upper_right), lambda p: p.get_identifier() % 2 != 0)
+        self.assertEquals([atlas.point(1), atlas.point(3)], test_results)
+
+        test_results = atlas.points_at(location.with_degrees(38, -118))
+        self.assertEquals([atlas.point(1)], test_results)
 
 
 def _touch_all_atlas_features(atlas):

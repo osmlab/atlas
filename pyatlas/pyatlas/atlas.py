@@ -25,6 +25,7 @@ import packed_tag_store
 import polyline
 import polygon
 import entity_type
+import spatial_index
 
 
 class Atlas(object):
@@ -95,7 +96,7 @@ class Atlas(object):
         self.relationIndexToRelationIndices = None
 
         ### spatial indices ###
-        self.node_spatial_index = None
+        self.point_spatial_index = None
 
         if not self.lazy_loading:
             self.load_all_fields()
@@ -273,12 +274,29 @@ class Atlas(object):
         else:
             raise ValueError('invalid EntityType value ' + str(entity_type0))
 
+    def points_at(self, location0):
+        """
+        Get a list of all Points at some Location.
+        """
+        points_list = self._get_point_spatial_index().get(location0.get_bounds())
+        return points_list
+
+    def points_within(self, polygon0, predicate=lambda p: True):
+        """
+        Get a list of all Points within some polygon. Can optionally also accept
+        a preducate to further filter the Points.
+        """
+        # TODO this method should perform a fully_geometrically_encloses operation before returning the points
+        points_list = self._get_point_spatial_index().get(
+            polygon0.get_bounds(), predicate=predicate)
+        return points_list
+
     def load_all_fields(self):
         """
         Force this Atlas to load all its fields from its backing store.
         """
         self.serializer._load_all_fields()
-        self._get_node_spatial_index()
+        self._get_point_spatial_index()
 
     def number_of_points(self):
         """
@@ -510,10 +528,13 @@ class Atlas(object):
         return self.relationIndexToRelationIndices
 
     ### spatial index loading functions ###
-    def _get_node_spatial_index(self):
-        # TODO implement
-        if self.node_spatial_index is None:
-            self.node_spatial_index = None
+    def _get_point_spatial_index(self):
+        if self.point_spatial_index is None:
+            self.point_spatial_index = spatial_index.SpatialIndex(self,
+                                                                  entity_type.EntityType.POINT,
+                                                                  self.points())
+            self.point_spatial_index.initialize_rtree()
+        return self.point_spatial_index
 
 
 class _AtlasSerializer(object):

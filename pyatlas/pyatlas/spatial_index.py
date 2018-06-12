@@ -34,7 +34,7 @@ class SpatialIndex(object):
         """
         Intitialize a quadtree to back this SpatialIndex.
         """
-        # TODO implement
+        # TODO implement the quadtree
         raise NotImplementedError('quadtree currently not implemented')
 
     def add(self, entity):
@@ -49,7 +49,7 @@ class SpatialIndex(object):
         else:
             raise ValueError('bounds cannot be None')
 
-    def get(self, bound, predicate=lambda e: True):
+    def get(self, bounds, predicate=lambda e: True):
         """
         Get a list of AtlasEntities that are within or intersecting some bounds.
         Can optionally accept a matching predicate function.
@@ -58,7 +58,7 @@ class SpatialIndex(object):
             raise ValueError('must select a tree implementation before using')
 
         results = []
-        for item_index in self.tree.get(bound):
+        for item_index in self.tree.get(bounds):
             result = self.atlas.entity(item_index, self.entity_type)
             if predicate(result):
                 results.append(result)

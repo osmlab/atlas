@@ -53,7 +53,7 @@ class Relation(atlas_entity.AtlasEntity):
         Get a sorted list of this Relation's members. The members are in
         RelationMember form.
         """
-        # FIXME Can I assume all members will have non-null entities? How does slicing play into this?
+        # FIXME Can I assume all members will have non-null entities? See doc in RelationMember.java
         result = []
         relation_identifiers = self.get_parent_atlas()._get_relationIdentifiers()
         relation_member_types = self.get_parent_atlas()._get_relationMemberTypes()
@@ -101,8 +101,7 @@ class Relation(atlas_entity.AtlasEntity):
         # FIXME this fails if Relations have self-referencing members
         # this should never happen in a PackedAtlas so it should be OK for now
 
-        # FIXME this also fails if a RelationMember entity is null
-        # will this ever happen? slicing? See comment in RelationMember.java
+        # FIXME this also fails if a RelationMember entity is null, see note in get_members()
 
         members = self.get_members()
         if len(members) == 0:

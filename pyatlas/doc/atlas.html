@@ -31,6 +31,7 @@
 <a href="polygon.html">polygon</a><br>
 <a href="polyline.html">polyline</a><br>
 </td><td width="25%" valign=top><a href="relation.html">relation</a><br>
+<a href="spatial_index.html">spatial_index</a><br>
 <a href="zipfile.html">zipfile</a><br>
 </td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
@@ -120,6 +121,11 @@ Point&nbsp;with&nbsp;the&nbsp;given&nbsp;identifier.</tt></dd></dl>
 
 <dl><dt><a name="Atlas-points"><strong>points</strong></a>(self, predicate<font color="#909090">=&lt;function &lt;lambda&gt;&gt;</font>)</dt><dd><tt>Get&nbsp;a&nbsp;generator&nbsp;for&nbsp;Points&nbsp;in&nbsp;this&nbsp;<a href="#Atlas">Atlas</a>.&nbsp;Can&nbsp;optionally&nbsp;also&nbsp;accept&nbsp;a<br>
 predicate&nbsp;to&nbsp;filter&nbsp;the&nbsp;generated&nbsp;Points.</tt></dd></dl>
+
+<dl><dt><a name="Atlas-points_at"><strong>points_at</strong></a>(self, location0)</dt><dd><tt>Get&nbsp;a&nbsp;list&nbsp;of&nbsp;all&nbsp;Points&nbsp;at&nbsp;some&nbsp;Location.</tt></dd></dl>
+
+<dl><dt><a name="Atlas-points_within"><strong>points_within</strong></a>(self, polygon0, predicate<font color="#909090">=&lt;function &lt;lambda&gt;&gt;</font>)</dt><dd><tt>Get&nbsp;a&nbsp;list&nbsp;of&nbsp;all&nbsp;Points&nbsp;within&nbsp;some&nbsp;polygon.&nbsp;Can&nbsp;optionally&nbsp;also&nbsp;accept<br>
+a&nbsp;preducate&nbsp;to&nbsp;further&nbsp;filter&nbsp;the&nbsp;Points.</tt></dd></dl>
 
 <dl><dt><a name="Atlas-relation"><strong>relation</strong></a>(self, identifier)</dt><dd><tt>Get&nbsp;a&nbsp;Relation&nbsp;with&nbsp;a&nbsp;given&nbsp;<a href="#Atlas">Atlas</a>&nbsp;identifier.&nbsp;Returns&nbsp;None&nbsp;if&nbsp;there&nbsp;is&nbsp;no<br>
 Relation&nbsp;with&nbsp;the&nbsp;given&nbsp;identifier.</tt></dd></dl>
