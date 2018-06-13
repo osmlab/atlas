@@ -27,6 +27,13 @@ class Polygon(polyline.PolyLine):
         result += "]"
         return result
 
+    def fully_geometrically_encloses_location(self, location0):
+        """
+        Test if this Polygon fully geometrically encloses a given Location.
+        """
+        # TODO implement
+        raise NotImplementedError
+
     def closed_loop(self):
         """
         Get a generator for the Locations in this Polygon. Will generate the

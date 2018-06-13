@@ -18,7 +18,17 @@ def polygon_to_shapely_polygon(polygon):
     Convert a pyatlas Polygon to its Shapely Polygon representation.
     """
     shapely_points = []
-    for point in polygon.locations():
-        shapely_points.append(shapely.geometry.Point(point.get_latitude(), point.get_longitude()))
+    for location in polygon.locations():
+        shapely_points.append(location_to_shapely_point(location))
 
     return shapely.geometry.Polygon(shapely.geometry.LineString(shapely_points))
+
+
+def location_to_shapely_point(location):
+    """
+    Convert a Location to its Shapely Point representation.
+    """
+    latitude = location.get_latitude()
+    longitude = location.get_longitude()
+
+    return shapely.geometry.Point(latitude, longitude)
