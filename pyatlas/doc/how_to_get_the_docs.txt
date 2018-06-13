@@ -1,0 +1,2 @@
+Run the 'buildPyatlas' target to generate the docs!
+

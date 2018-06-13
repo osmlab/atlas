@@ -28,6 +28,7 @@ gradle_project_root_dir="$(pwd)"
 pyatlas_dir="pyatlas"
 pyatlas_srcdir="pyatlas"
 pyatlas_testdir="unit_tests"
+pyatlas_docdir="doc"
 pyatlas_root_dir="$gradle_project_root_dir/$pyatlas_dir"
 venv_path="$pyatlas_root_dir/__pyatlas_venv__"
 protoc_path="$pyatlas_root_dir/protoc"
@@ -54,3 +55,4 @@ find "$pyatlas_root_dir/$pyatlas_srcdir/autogen" -type f -name "*_pb2.py" -delet
 find "$pyatlas_root_dir/$pyatlas_srcdir" -type f -name "*.pyc" -delete
 find "$pyatlas_root_dir/$pyatlas_srcdir/autogen" -type f -name "*.pyc" -delete
 find "$pyatlas_root_dir/$pyatlas_testdir" -type f -name "*.pyc" -delete
+find "$pyatlas_root_dir/$pyatlas_docdir" -type f -name "*.html" -delete
