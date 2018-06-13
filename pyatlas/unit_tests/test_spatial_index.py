@@ -26,7 +26,7 @@ class SpatialIndexTest(unittest.TestCase):
         for element in tree.get(Rectangle(lower_left, upper_right)):
             test_results.append(element)
 
-        self.assertEquals([1, 2, 3], test_results)
+        self.assertEquals({1, 2, 3}, set(test_results))
 
     def test_spatial_index_rtree(self):
         atlas = Atlas("resources/test.atlas")
@@ -37,13 +37,9 @@ class SpatialIndexTest(unittest.TestCase):
         lower_left = location.with_degrees(37, -118.02)
         upper_right = location.with_degrees(39, -118)
 
-        test_results = []
-        for element in index.get(Rectangle(lower_left, upper_right)):
-            test_results.append(element)
-        self.assertEquals([atlas.point(1), atlas.point(2), atlas.point(3)], test_results)
+        test_results = index.get(Rectangle(lower_left, upper_right))
+        self.assertEquals({atlas.point(2), atlas.point(3), atlas.point(1)}, test_results)
 
-        test_results = []
-        for element in index.get(
-                Rectangle(lower_left, upper_right), lambda p: p.get_identifier() == 2):
-            test_results.append(element)
-        self.assertEquals([atlas.point(2)], test_results)
+        test_results = index.get(
+            Rectangle(lower_left, upper_right), lambda p: p.get_identifier() == 2)
+        self.assertEquals({atlas.point(2)}, test_results)

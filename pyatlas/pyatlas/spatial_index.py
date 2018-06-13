@@ -58,7 +58,7 @@ class SpatialIndex(object):
 
     def get(self, bounds, predicate=lambda e: True):
         """
-        Get a list of AtlasEntities that are within or intersecting some bounds.
+        Get a frozenset of AtlasEntities that are within or intersecting some bounds.
         Can optionally accept a matching predicate function.
         """
         if self.tree is None:
@@ -70,7 +70,7 @@ class SpatialIndex(object):
             if predicate(result):
                 results.append(result)
 
-        return results
+        return frozenset(results)
 
 
 class _RTree(object):

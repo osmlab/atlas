@@ -24,12 +24,16 @@ class Location(boundable.Boundable):
     """
 
     def __init__(self, latitude, longitude):
-        latitude = int(latitude)
-        longitude = int(longitude)
+        if not isinstance(latitude, (int, long)):
+            raise TypeError('latitude must be an integer')
+        if not isinstance(longitude, (int, long)):
+            raise TypeError('longitude must be an integer')
+
         if latitude > _LATITUDE_MAX_DM7 or latitude < _LATITUDE_MIN_DM7:
             raise ValueError('latitude {} out of range'.format(str(latitude)))
         if longitude > _LONGITUDE_MAX_DM7 or longitude < _LONGITUDE_MIN_DM7:
             raise ValueError('longitude {} out of range'.format(str(longitude)))
+
         self.latitude = latitude
         self.longitude = longitude
 
@@ -85,7 +89,7 @@ class Location(boundable.Boundable):
 
 def with_degrees(latitude, longitude):
     """
-    Get a new Location with the given latitude and longitude in degree values.
+    Get a new Location with a latitude and longitude specified in degree values.
     """
     latitude = degree_as_dm7(latitude)
     longitude = degree_as_dm7(longitude)

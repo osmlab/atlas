@@ -31,6 +31,12 @@ class AtlasEntity(boundable.Boundable):
         """
         return not self.__eq__(other)
 
+    def __hash__(self):
+        """
+        Compute a hashcode for this AtlasEntity.
+        """
+        return self.get_identifier() * 31 + self.get_type()
+
     def get_identifier(self):
         """
         Get the Atlas identifier of this entity.

@@ -36,14 +36,14 @@ class AtlasTest(unittest.TestCase):
         upper_right = location.with_degrees(39, -118)
 
         test_results = atlas.points_within(Rectangle(lower_left, upper_right))
-        self.assertEquals([atlas.point(1), atlas.point(2), atlas.point(3)], test_results)
+        self.assertEquals({atlas.point(1), atlas.point(2), atlas.point(3)}, test_results)
 
         test_results = atlas.points_within(
             Rectangle(lower_left, upper_right), lambda p: p.get_identifier() % 2 != 0)
-        self.assertEquals([atlas.point(1), atlas.point(3)], test_results)
+        self.assertEquals({atlas.point(1), atlas.point(3)}, test_results)
 
         test_results = atlas.points_at(location.with_degrees(38, -118))
-        self.assertEquals([atlas.point(1)], test_results)
+        self.assertEquals({atlas.point(1)}, test_results)
 
     def test_node_spatial_index(self):
         atlas = Atlas("resources/test.atlas")
@@ -52,14 +52,14 @@ class AtlasTest(unittest.TestCase):
         upper_right = location.with_degrees(39.05, -119)
 
         test_results = atlas.nodes_within(Rectangle(lower_left, upper_right))
-        self.assertEquals([atlas.node(2), atlas.node(4)], test_results)
+        self.assertEquals({atlas.node(2), atlas.node(4)}, test_results)
 
         test_results = atlas.nodes_within(
             Rectangle(lower_left, upper_right), lambda n: n.get_identifier() == 3)
-        self.assertEquals([], test_results)
+        self.assertEquals(frozenset(), test_results)
 
         test_results = atlas.nodes_at(location.with_degrees(39, -119.05))
-        self.assertEquals([atlas.node(3)], test_results)
+        self.assertEquals({atlas.node(3)}, test_results)
 
 
 def _touch_all_atlas_features(atlas):

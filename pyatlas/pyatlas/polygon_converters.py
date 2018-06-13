@@ -10,18 +10,7 @@ def boundable_to_shapely_box(boundable):
     Convert a pyatlas Boundable type to its Shapely Polygon representation.
     The Shapely Polygon will always be a rectangle.
     """
-    # TODO make this implementation look like polygon_to_shapely_polygon
-    bounds = boundable.get_bounds()
-    lower_left = bounds.get_lower_left()
-    upper_right = bounds.get_upper_right()
-    shapely_box = shapely.geometry.box(
-        lower_left.get_longitude(),
-        lower_left.get_latitude(),
-        upper_right.get_longitude(),
-        upper_right.get_latitude(),
-        ccw=False)
-
-    return shapely.geometry.polygon.orient(shapely_box)
+    return polygon_to_shapely_polygon(boundable.get_bounds())
 
 
 def polygon_to_shapely_polygon(polygon):

@@ -276,14 +276,14 @@ class Atlas(object):
 
     def points_at(self, location0):
         """
-        Get a list of all Points at some Location.
+        Get a frozenset of all Points at some Location.
         """
         points_list = self._get_point_spatial_index().get(location0.get_bounds())
         return points_list
 
     def points_within(self, polygon0, predicate=lambda p: True):
         """
-        Get a list of all Points within some polygon. Can optionally accept
+        Get a frozenset of all Points within some polygon. Can optionally accept
         a predicate to further filter the Points.
         """
         # TODO this method should perform a fully_geometrically_encloses operation before returning the points
@@ -293,7 +293,7 @@ class Atlas(object):
 
     def lines_containing(self, location0, predicate=lambda l: True):
         """
-        Get a list of all Lines containing some Location. Can optionally accept
+        Get a frozenset of all Lines containing some Location. Can optionally accept
         a predicate to further filter the Lines.
         NOT IMPLEMENTED
         """
@@ -302,7 +302,7 @@ class Atlas(object):
 
     def lines_intersecting(self, polygon0, predicate=lambda l: True):
         """
-        Get a list of all Lines within or intersecting some Polygon. Can
+        Get a frozenset of all Lines within or intersecting some Polygon. Can
         optionally accept a predicate to further filter the Lines.
         NOT IMPLEMENTED
         """
@@ -311,7 +311,7 @@ class Atlas(object):
 
     def areas_covering(self, area0, predicate=lambda a: True):
         """
-        Get a list of all Areas covering some Location. Can optionally accept
+        Get a frozenset of all Areas covering some Location. Can optionally accept
         a predicate to further filter the Areas.
         NOT IMPLEMENTED
         """
@@ -320,7 +320,7 @@ class Atlas(object):
 
     def areas_intersecting(self, polygon0, predicate=lambda a: True):
         """
-        Get a list of all Areas within or intersecting some Polygon. Can
+        Get a frozenset of all Areas within or intersecting some Polygon. Can
         optionally accept a predicate to further filter the Areas.
         NOT IMPLEMENTED
         """
@@ -329,14 +329,14 @@ class Atlas(object):
 
     def nodes_at(self, location0):
         """
-        Get a list of all Nodes at some Location.
+        Get a frozenset of all Nodes at some Location.
         """
         nodes_list = self._get_node_spatial_index().get(location0.get_bounds())
         return nodes_list
 
     def nodes_within(self, polygon0, predicate=lambda n: True):
         """
-        Get a list of all Nodes within some polygon. Can optionally also accept
+        Get a frozenset of all Nodes within some polygon. Can optionally also accept
         a preducate to further filter the Nodes.
         """
         # TODO this method should perform a fully_geometrically_encloses operation before returning the nodes
@@ -345,7 +345,7 @@ class Atlas(object):
 
     def edges_containing(self, edge0, predicate=lambda e: True):
         """
-        Get a list of all Edges containing some Location. Can optionally accept
+        Get a frozenset of all Edges containing some Location. Can optionally accept
         a predicate to further filter the Edges.
         NOT IMPLEMENTED
         """
@@ -354,7 +354,7 @@ class Atlas(object):
 
     def edges_intersecting(self, edge0, predicate=lambda e: True):
         """
-        Get a list of all Edges within or intersecting some Polygon. Can
+        Get a frozenset of all Edges within or intersecting some Polygon. Can
         optionally accept a predicate to further filter the Edges.
         NOT IMPLEMENTED
         """
@@ -363,7 +363,7 @@ class Atlas(object):
 
     def relations_with_entities_intersecting(self, polygon0, predicate=lambda r: True):
         """
-        Return all Relations which have at least one feature intersecting some
+        Return a frozenset of Relations which have at least one feature intersecting some
         Polygon. Can optionally accept a predicate to further filter the Relations.
         NOT IMPLEMENTED
         """
