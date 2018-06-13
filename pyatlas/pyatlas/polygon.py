@@ -1,4 +1,5 @@
 import polyline
+import polygon_converters
 
 
 class Polygon(polyline.PolyLine):
@@ -29,10 +30,12 @@ class Polygon(polyline.PolyLine):
 
     def fully_geometrically_encloses_location(self, location0):
         """
-        Test if this Polygon fully geometrically encloses a given Location.
+        Test if this Polygon fully geometrically encloses a given Location. Will
+        return False if the Location lies perfectly on the Polygon's boundary.
         """
-        # TODO implement
-        raise NotImplementedError
+        point = polygon_converters.location_to_shapely_point(location0)
+        poly = polygon_converters.polygon_to_shapely_polygon(self)
+        return poly.contains(point)
 
     def closed_loop(self):
         """

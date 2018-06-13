@@ -57,7 +57,7 @@ class PolyLine(boundable.Boundable):
     def compress(self):
         """
         Transform this PolyLine into its compressed representation. The
-        compression is based on the MapQuestion compressed lat/lon encoding
+        compression is based on the MapQuest compressed lat/lon encoding
         found here:
         https://developer.mapquest.com/documentation/common/encode-decode/
         """

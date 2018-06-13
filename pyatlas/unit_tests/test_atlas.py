@@ -35,12 +35,13 @@ class AtlasTest(unittest.TestCase):
         lower_left = location.with_degrees(37, -118.02)
         upper_right = location.with_degrees(39, -118)
 
+        # NOTE point 1 does not show up in the results because it lies on the polygon border
         test_results = atlas.points_within(Rectangle(lower_left, upper_right))
-        self.assertEquals({atlas.point(1), atlas.point(2), atlas.point(3)}, test_results)
+        self.assertEquals({atlas.point(2), atlas.point(3)}, test_results)
 
         test_results = atlas.points_within(
             Rectangle(lower_left, upper_right), lambda p: p.get_identifier() % 2 != 0)
-        self.assertEquals({atlas.point(1), atlas.point(3)}, test_results)
+        self.assertEquals({atlas.point(3)}, test_results)
 
         test_results = atlas.points_at(location.with_degrees(38, -118))
         self.assertEquals({atlas.point(1)}, test_results)
@@ -51,8 +52,9 @@ class AtlasTest(unittest.TestCase):
         lower_left = location.with_degrees(39, -119.04)
         upper_right = location.with_degrees(39.05, -119)
 
+        # NOTE node 4 does not show up in results because it lies on the the polygon border
         test_results = atlas.nodes_within(Rectangle(lower_left, upper_right))
-        self.assertEquals({atlas.node(2), atlas.node(4)}, test_results)
+        self.assertEquals({atlas.node(2)}, test_results)
 
         test_results = atlas.nodes_within(
             Rectangle(lower_left, upper_right), lambda n: n.get_identifier() == 3)

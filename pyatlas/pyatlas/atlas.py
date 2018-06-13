@@ -286,10 +286,13 @@ class Atlas(object):
         Get a frozenset of all Points within some polygon. Can optionally accept
         a predicate to further filter the Points.
         """
-        # TODO this method should perform a fully_geometrically_encloses operation before returning the points
-        points_list = self._get_point_spatial_index().get(
-            polygon0.get_bounds(), predicate=predicate)
-        return points_list
+        points = self._get_point_spatial_index().get(polygon0.get_bounds(), predicate=predicate)
+        points_set = set()
+        for point0 in points:
+            if polygon0.fully_geometrically_encloses_location(point0.get_location()):
+                points_set.add(point0)
+
+        return frozenset(points_set)
 
     def lines_containing(self, location0, predicate=lambda l: True):
         """
@@ -339,9 +342,13 @@ class Atlas(object):
         Get a frozenset of all Nodes within some polygon. Can optionally also accept
         a preducate to further filter the Nodes.
         """
-        # TODO this method should perform a fully_geometrically_encloses operation before returning the nodes
-        nodes_list = self._get_node_spatial_index().get(polygon0.get_bounds(), predicate=predicate)
-        return nodes_list
+        nodes = self._get_node_spatial_index().get(polygon0.get_bounds(), predicate=predicate)
+        nodes_set = set()
+        for node0 in nodes:
+            if polygon0.fully_geometrically_encloses_location(node0.get_location()):
+                nodes_set.add(node0)
+
+        return frozenset(nodes_set)
 
     def edges_containing(self, edge0, predicate=lambda e: True):
         """
