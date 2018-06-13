@@ -283,13 +283,49 @@ class Atlas(object):
 
     def points_within(self, polygon0, predicate=lambda p: True):
         """
-        Get a list of all Points within some polygon. Can optionally also accept
-        a preducate to further filter the Points.
+        Get a list of all Points within some polygon. Can optionally accept
+        a predicate to further filter the Points.
         """
         # TODO this method should perform a fully_geometrically_encloses operation before returning the points
         points_list = self._get_point_spatial_index().get(
             polygon0.get_bounds(), predicate=predicate)
         return points_list
+
+    def lines_containing(self, location0, predicate=lambda l: True):
+        """
+        Get a list of all Lines containing some Location. Can optionally accept
+        a predicate to further filter the Lines.
+        NOT IMPLEMENTED
+        """
+        # TODO implement
+        raise NotImplementedError
+
+    def lines_intersecting(self, polygon0, predicate=lambda l: True):
+        """
+        Get a list of all Lines within or intersecting some Polygon. Can
+        optionally accept a predicate to further filter the Lines.
+        NOT IMPLEMENTED
+        """
+        # TODO implement
+        raise NotImplementedError
+
+    def areas_covering(self, area0, predicate=lambda a: True):
+        """
+        Get a list of all Areas covering some Location. Can optionally accept
+        a predicate to further filter the Areas.
+        NOT IMPLEMENTED
+        """
+        # TODO implement
+        raise NotImplementedError
+
+    def areas_intersecting(self, polygon0, predicate=lambda a: True):
+        """
+        Get a list of all Areas within or intersecting some Polygon. Can
+        optionally accept a predicate to further filter the Areas.
+        NOT IMPLEMENTED
+        """
+        # TODO implement
+        raise NotImplementedError
 
     def nodes_at(self, location0):
         """
@@ -306,6 +342,33 @@ class Atlas(object):
         # TODO this method should perform a fully_geometrically_encloses operation before returning the nodes
         nodes_list = self._get_node_spatial_index().get(polygon0.get_bounds(), predicate=predicate)
         return nodes_list
+
+    def edges_containing(self, edge0, predicate=lambda e: True):
+        """
+        Get a list of all Edges containing some Location. Can optionally accept
+        a predicate to further filter the Edges.
+        NOT IMPLEMENTED
+        """
+        # TODO implement
+        raise NotImplementedError
+
+    def edges_intersecting(self, edge0, predicate=lambda e: True):
+        """
+        Get a list of all Edges within or intersecting some Polygon. Can
+        optionally accept a predicate to further filter the Edges.
+        NOT IMPLEMENTED
+        """
+        # TODO implement
+        raise NotImplementedError
+
+    def relations_with_entities_intersecting(self, polygon0, predicate=lambda r: True):
+        """
+        Return all Relations which have at least one feature intersecting some
+        Polygon. Can optionally accept a predicate to further filter the Relations.
+        NOT IMPLEMENTED
+        """
+        # TODO implement
+        raise NotImplementedError
 
     def load_all_fields(self):
         """
