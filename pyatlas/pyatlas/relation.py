@@ -53,7 +53,7 @@ class Relation(atlas_entity.AtlasEntity):
         Get a sorted list of this Relation's members. The members are in
         RelationMember form.
         """
-        # FIXME Can I assume all members will have non-null entities? See doc in RelationMember.java
+        # FIXME Can we assume all members will have non-null entities? See doc in RelationMember.java
         result = []
         relation_identifiers = self.get_parent_atlas()._get_relationIdentifiers()
         relation_member_types = self.get_parent_atlas()._get_relationMemberTypes()

@@ -35,13 +35,10 @@ class Atlas(object):
 
     def __init__(self, atlas_file, lazy_loading=True):
         """
-        Create a new Atlas backed by a specified atlas file.
-
-        Args:
-            atlas_file (str): The path to the atlas file.
-            lazy_loading (bool, optional): Specify if this Atlas should use
-                lazy deserialization. Defaults to True. Setting this to False
-                causes all the deserialization to happen upfront.
+        Create a new Atlas backed by a specified atlas file. Disabling lazy
+        loading will force the full Atlas into memory. This will incur a
+        significant perfomance penalty at creation time, but will make subsequent
+        queries as fast as possible.
         """
         self.serializer = _AtlasSerializer(atlas_file, self)
         self.lazy_loading = lazy_loading
@@ -96,7 +93,11 @@ class Atlas(object):
 
         # --- spatial indices ---
         self.point_spatial_index = None
+        self.line_spatial_index = None
+        self.area_spatial_index = None
         self.node_spatial_index = None
+        self.edge_spatial_index = None
+        self.relation_spatial_index = None
 
         if not self.lazy_loading:
             self.load_all_fields()
@@ -614,7 +615,7 @@ class Atlas(object):
             self.serializer._load_field(self.serializer._FIELD_RELATION_INDEX_TO_RELATION_INDICES)
         return self.relationIndexToRelationIndices
 
-        # --- spatial index loading functions ---
+    # --- spatial index loading functions ---
     def _get_point_spatial_index(self):
         if self.point_spatial_index is None:
             self.point_spatial_index = spatial_index.SpatialIndex(self,
@@ -623,12 +624,40 @@ class Atlas(object):
             self.point_spatial_index.initialize_rtree()
         return self.point_spatial_index
 
+    def _get_line_spatial_index(self):
+        if self.line_spatial_index is None:
+            self.line_spatial_index = spatial_index.SpatialIndex(self, entity_type.EntityType.LINE,
+                                                                 self.lines())
+            self.line_spatial_index.initialize_rtree()
+        return self.line_spatial_index
+
+    def _get_area_spatial_index(self):
+        if self.area_spatial_index is None:
+            self.area_spatial_index = spatial_index.SpatialIndex(self, entity_type.EntityType.AREA,
+                                                                 self.areas())
+            self.area_spatial_index.initialize_rtree()
+        return self.area_spatial_index
+
     def _get_node_spatial_index(self):
         if self.node_spatial_index is None:
             self.node_spatial_index = spatial_index.SpatialIndex(self, entity_type.EntityType.NODE,
                                                                  self.nodes())
             self.node_spatial_index.initialize_rtree()
         return self.node_spatial_index
+
+    def _get_edge_spatial_index(self):
+        if self.edge_spatial_index is None:
+            self.edge_spatial_index = spatial_index.SpatialIndex(self, entity_type.EntityType.EDGE,
+                                                                 self.edges())
+            self.edge_spatial_index.initialize_rtree()
+        return self.edge_spatial_index
+
+    def _get_relation_spatial_index(self):
+        if self.relation_spatial_index is None:
+            self.relation_spatial_index = spatial_index.SpatialIndex(
+                self, entity_type.EntityType.RELATION, self.relations())
+            self.relation_spatial_index.initialize_rtree()
+        return self.relation_spatial_index
 
 
 class _AtlasSerializer(object):
