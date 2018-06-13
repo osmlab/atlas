@@ -193,6 +193,18 @@ public class CountryBoundaryMap implements Serializable
     }
 
     /**
+     * @param countryGeometries
+     *            A list of {@link Geometry}s to check
+     * @return The set of country codes represented
+     */
+    public static Set<String> countryCodesIn(final List<? extends Geometry> countryGeometries)
+    {
+        return countryGeometries.stream()
+                .map(geometry -> getGeometryProperty(geometry, ISOCountryTag.KEY))
+                .collect(Collectors.toSet());
+    }
+
+    /**
      * @param atlas
      *            {@link Atlas} to read boundaries
      * @return {@link CountryBoundaryMap} created from {@link Atlas}
@@ -278,21 +290,26 @@ public class CountryBoundaryMap implements Serializable
      */
     public static boolean isSameCountry(final List<? extends Geometry> countryGeometries)
     {
+        return numberCountries(countryGeometries) == 1;
+    }
+
+    /**
+     * @param countryGeometries
+     *            A list of {@link Geometry}s to check
+     * @return The number of distinct countries represented
+     */
+    public static long numberCountries(final List<? extends Geometry> countryGeometries)
+    {
         if (countryGeometries.isEmpty())
         {
-            return false;
+            return 0;
         }
 
         if (countryGeometries.size() == 1)
         {
-            return true;
+            return 1;
         }
-
-        // Use first element as reference, then skip first and compare against the reference
-        final String referenceCountryCode = getGeometryProperty(countryGeometries.get(0),
-                ISOCountryTag.KEY);
-        return countryGeometries.stream().skip(1).allMatch(geometry -> Objects
-                .equals(referenceCountryCode, getGeometryProperty(geometry, ISOCountryTag.KEY)));
+        return countryCodesIn(countryGeometries).size();
     }
 
     /**
@@ -1095,6 +1112,17 @@ public class CountryBoundaryMap implements Serializable
         this.shouldAlwaysSlicePredicate = shouldAlwaysSlicePredicate;
     }
 
+    public boolean shouldForceSlicing(final Taggable... source)
+    {
+        return source != null && source.length > 0 && this.shouldAlwaysSlicePredicate != null
+                && this.shouldAlwaysSlicePredicate.test(source[0]);
+    }
+
+    public boolean shouldSkipSlicing(final List<Polygon> candidates, final Taggable... source)
+    {
+        return isSameCountry(candidates) && !shouldForceSlicing(source);
+    }
+
     /**
      * @return the number of countries represented by this {@link CountryBoundaryMap}
      */
@@ -1146,6 +1174,7 @@ public class CountryBoundaryMap implements Serializable
 
         // Remove duplicates
         candidates = candidates.stream().distinct().collect(Collectors.toList());
+        final long numberCountries = numberCountries(candidates);
 
         // Avoid slicing across too many polygons for performance reasons
         if (candidates.size() > this.getPolygonSliceLimit())
@@ -1161,9 +1190,10 @@ public class CountryBoundaryMap implements Serializable
         boolean isWarned = false;
         final Time time = Time.now();
 
-        if (candidates.size() > MAXIMUM_EXPECTED_COUNTRIES_TO_SLICE_WITH)
+        if (numberCountries > MAXIMUM_EXPECTED_COUNTRIES_TO_SLICE_WITH)
         {
-            logger.warn("Slicing way {} with {} polygons.", identifier, candidates.size());
+            logger.warn("Skipping slicing for way {} with {} countries ( > {} ).", identifier,
+                    numberCountries, MAXIMUM_EXPECTED_COUNTRIES_TO_SLICE_WITH);
             if (logger.isTraceEnabled())
             {
                 final Map<String, List<Polygon>> countries = candidates.stream().collect(Collectors
@@ -1476,13 +1506,6 @@ public class CountryBoundaryMap implements Serializable
         }
 
         return result;
-    }
-
-    private boolean shouldSkipSlicing(final List<Polygon> candidates, final Taggable[] source)
-    {
-        return isSameCountry(candidates)
-                && (source == null || source.length == 0 || this.shouldAlwaysSlicePredicate == null
-                        || !this.shouldAlwaysSlicePredicate.test(source[0]));
     }
 
     private List<CountryBoundary> toCountryBoundaryList(final MultiMap<String, Polygon> map)

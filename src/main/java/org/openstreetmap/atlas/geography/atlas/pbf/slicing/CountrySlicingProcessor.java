@@ -878,7 +878,12 @@ public class CountrySlicingProcessor
             way.getTags().add(new Tag(ISOCountryTag.KEY, ISOCountryTag.COUNTRY_MISSING));
             return Optional.empty();
         }
-        else if (slices.size() == 1 || CountryBoundaryMap.isSameCountry(slices))
+        else if (slices.size() == 1 || CountryBoundaryMap.isSameCountry(slices)
+                // In case a way is "force-sliced", when it shoots into international waters, the
+                // slice number can be >1 and the country might be the same. In that case, we still
+                // want to include both slices always. This last check is to skip the coming block
+                // in that case.
+                && !this.boundaryMap.shouldForceSlicing(Taggable.with(way.getTags())))
         {
             // If a geometry goes slightly over the border, the tiny slice could be dropped and
             // number of slices is still 1. We should create a new geometry for this case, but
