@@ -316,7 +316,7 @@ public class CountrySlicingProcessorTest
             final double longitude = Double.parseDouble(split[i + 1]);
             locations.add(new Location(Latitude.degrees(latitude), Longitude.degrees(longitude)));
         }
-        PolyLine result;
+        final PolyLine result;
         if (isArea)
         {
             result = new Polygon(locations);
