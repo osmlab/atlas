@@ -1,5 +1,6 @@
 import location
 import boundable
+import polygon_converters
 
 # Do not change the precision. It matches the default in the Java implementation.
 _PRECISION = 7
@@ -33,13 +34,10 @@ class PolyLine(boundable.Boundable):
 
     def __str__(self):
         """
-        Get a string representation of this PolyLine.
+        Get the wkt string representation of this PolyLine.
         """
-        result = "["
-        for point in self.locations():
-            result += str(point) + ", "
-        result += "]"
-        return result
+        shapely_poly = polygon_converters.polyline_to_shapely_linestring(self)
+        return shapely_poly.wkt
 
     def __eq__(self, other):
         """

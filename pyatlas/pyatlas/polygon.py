@@ -19,14 +19,10 @@ class Polygon(polyline.PolyLine):
 
     def __str__(self):
         """
-        Get a string representation of this Polygon. Include the first Location
-        repeated as the last Location to simulate closedness.
+        Get the wkt string representation of this Polygon.
         """
-        result = "["
-        for point in self.closed_loop():
-            result += str(point) + ", "
-        result += "]"
-        return result
+        shapely_poly = polygon_converters.polygon_to_shapely_polygon(self)
+        return shapely_poly.wkt
 
     def fully_geometrically_encloses_location(self, location0):
         """

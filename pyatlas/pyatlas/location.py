@@ -1,4 +1,5 @@
 import boundable
+import polygon_converters
 
 _LATITUDE_MIN_DM7 = -900000000
 _LATITUDE_MAX_DM7 = 900000000
@@ -38,9 +39,10 @@ class Location(boundable.Boundable):
 
     def __str__(self):
         """
-        Get a string representation of this Location.
+        Get the wkt string representation of this Location.
         """
-        return "[" + str(self.latitude) + "," + str(self.longitude) + "]"
+        shapely_point = polygon_converters.location_to_shapely_point(self)
+        return shapely_point.wkt
 
     def __eq__(self, other):
         return self.latitude == other.latitude and self.longitude == other.longitude
