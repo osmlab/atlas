@@ -156,7 +156,7 @@ public class CountryBoundaryMap implements Serializable
     // store the quad tree cells into a R-Tree, which is the grid index.
     private STRtree gridIndex;
 
-    private boolean useExpandedPolygonLimit = false;
+    private boolean useExpandedPolygonLimit = true;
     private transient Predicate<Taggable> shouldAlwaysSlicePredicate = taggable -> false;
     private transient GeometryPrecisionReducer reducer;
     private final CountryListTwoWayStringConverter countryListConverter = new CountryListTwoWayStringConverter();
@@ -1192,8 +1192,7 @@ public class CountryBoundaryMap implements Serializable
 
         if (numberCountries > MAXIMUM_EXPECTED_COUNTRIES_TO_SLICE_WITH)
         {
-            logger.warn("Skipping slicing for way {} with {} countries ( > {} ).", identifier,
-                    numberCountries, MAXIMUM_EXPECTED_COUNTRIES_TO_SLICE_WITH);
+            logger.warn("Slicing way {} with {} countries.", identifier, numberCountries);
             if (logger.isTraceEnabled())
             {
                 final Map<String, List<Polygon>> countries = candidates.stream().collect(Collectors
