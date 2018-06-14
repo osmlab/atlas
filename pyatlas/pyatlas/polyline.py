@@ -1,5 +1,4 @@
 import location
-import rectangle
 import boundable
 
 # Do not change the precision. It matches the default in the Java implementation.
@@ -89,6 +88,7 @@ class PolyLine(boundable.Boundable):
         """
         Get the bounding Rectangle of this PolyLine.
         """
+        import rectangle
         return rectangle.bounds_locations(self.locations())
 
     def get_locations_list(self):

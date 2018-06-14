@@ -87,6 +87,32 @@ class PolyLinePolygonTest(unittest.TestCase):
         point = Location(-34, -1)
         self.assertFalse(polygon.fully_geometrically_encloses_location(point))
 
+    def test_overlaps_polyline(self):
+        loclist = [
+            Location(0, 0),
+            Location(400000000, 0),
+            Location(350000000, 300000000),
+            Location(450000000, 450000000),
+            Location(1000, 450000000)
+        ]
+        loclist2 = [Location(1, 1), Location(2000, 3000)]
+        polygon = Polygon(loclist)
+        polyline0 = PolyLine(loclist2)
+        self.assertTrue(polygon.overlaps_polyline(polyline0))
+
+    def test_overlaps_polygon(self):
+        loclist = [
+            Location(0, 0),
+            Location(400000000, 0),
+            Location(350000000, 300000000),
+            Location(450000000, 450000000),
+            Location(1000, 450000000)
+        ]
+        loclist2 = [Location(1, 1), Location(10, 10), Location(2000, 3000)]
+        polygon = Polygon(loclist)
+        polygon2 = Polygon(loclist2)
+        self.assertTrue(polygon.overlaps_polygon(polygon2))
+
 
 if __name__ == "__main__":
     unittest.main()

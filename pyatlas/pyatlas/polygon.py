@@ -37,6 +37,30 @@ class Polygon(polyline.PolyLine):
         poly = polygon_converters.polygon_to_shapely_polygon(self)
         return poly.contains(point)
 
+    def overlaps_polygon(self, polygon0):
+        """
+        Test if this Polygon overlaps a given Polygon at any point.
+        """
+        # TODO Shapely differentiates between overlaps and intersects
+        # Shapely intersects() allows one to contain the other
+        # Shapely overlaps() means they intersect, but neither contains the other
+        # which is the right choice here?
+        polyg = polygon_converters.polygon_to_shapely_polygon(self)
+        polyg0 = polygon_converters.polygon_to_shapely_polygon(polygon0)
+        return polyg.intersects(polyg0)
+
+    def overlaps_polyline(self, polyline0):
+        """
+        Test if this Polygon overlaps a given PolyLine at any point.
+        """
+        # TODO Shapely differentiates between overlaps and intersects
+        # Shapely intersects() allows one to contain the other
+        # Shapely overlaps() means they intersect, but neither contains the other
+        # which is the right choice here?
+        polyl = polygon_converters.polyline_to_shapely_linestring(polyline0)
+        polyg = polygon_converters.polygon_to_shapely_polygon(self)
+        return polyg.intersects(polyl)
+
     def closed_loop(self):
         """
         Get a generator for the Locations in this Polygon. Will generate the

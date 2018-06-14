@@ -2,6 +2,7 @@ import unittest
 
 from pyatlas.location import Location
 from pyatlas.polygon import Polygon
+from pyatlas.polyline import PolyLine
 from pyatlas import polygon_converters
 import shapely.geometry
 
@@ -43,3 +44,22 @@ class PolygonConvertersTest(unittest.TestCase):
         test_against = shapely.geometry.Polygon(test_against)
 
         self.assertTrue(shapely_poly, test_against)
+
+    def test_location_to_shapely_point(self):
+        l1 = Location(0, 0)
+        l2 = Location(1000, 2000)
+        l3 = Location(50000, -1000000)
+
+        p1 = polygon_converters.location_to_shapely_point(l1)
+        p2 = polygon_converters.location_to_shapely_point(l2)
+        p3 = polygon_converters.location_to_shapely_point(l3)
+
+        self.assertEquals(shapely.geometry.Point(0, 0), p1)
+        self.assertEquals(shapely.geometry.Point(1000, 2000), p2)
+        self.assertEquals(shapely.geometry.Point(50000, -1000000), p3)
+
+    def test_polyline_to_shapely_linestring(self):
+        polyline1 = PolyLine([Location(-1000, -1000), Location(0, 0), Location(5000, 8000)])
+        linestring1 = polygon_converters.polyline_to_shapely_linestring(polyline1)
+        test_against = shapely.geometry.LineString([(-1000, -1000), (0, 0), (5000, 8000)])
+        self.assertEquals(linestring1, test_against)

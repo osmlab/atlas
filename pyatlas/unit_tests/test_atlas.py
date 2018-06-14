@@ -46,6 +46,27 @@ class AtlasTest(unittest.TestCase):
         test_results = atlas.points_at(location.with_degrees(38, -118))
         self.assertEquals({atlas.point(1)}, test_results)
 
+    def test_line_spatial_index(self):
+        atlas = Atlas("resources/test.atlas")
+
+        test_location = location.with_degrees(38.02, -118.02)
+        test_results = atlas.lines_containing(test_location)
+        self.assertEquals({atlas.line(1)}, test_results)
+
+        poly = Rectangle(location.with_degrees(38, -118), location.with_degrees(39, -119))
+        test_results = atlas.lines_intersecting(poly)
+        self.assertEquals({atlas.line(1), atlas.line(2)}, test_results)
+
+    def test_area_spatial_index(self):
+        atlas = Atlas("resources/test.atlas")
+
+        test_location = location.with_degrees(38.15, -118.03)
+        test_results = atlas.areas_covering(test_location)
+        self.assertEquals({atlas.area(2)}, test_results)
+
+        test_results = atlas.areas_intersecting(atlas.area(2).as_polygon())
+        self.assertEquals({atlas.area(1), atlas.area(2)}, test_results)
+
     def test_node_spatial_index(self):
         atlas = Atlas("resources/test.atlas")
 
@@ -62,6 +83,21 @@ class AtlasTest(unittest.TestCase):
 
         test_results = atlas.nodes_at(location.with_degrees(39, -119.05))
         self.assertEquals({atlas.node(3)}, test_results)
+
+    def test_edge_spatial_index(self):
+        atlas = Atlas("resources/test.atlas")
+
+        test_location = location.with_degrees(39, -119.05)
+        test_results = atlas.edges_containing(test_location)
+        self.assertEquals({atlas.edge(1), atlas.edge(3)}, test_results)
+
+        poly = Rectangle(location.with_degrees(38, -120), location.with_degrees(40, -117))
+        test_results = atlas.edges_intersecting(poly)
+        self.assertEquals({atlas.edge(1), atlas.edge(2), atlas.edge(3)}, test_results)
+
+    def test_relation_spatial_index(self):
+        # TODO implement
+        self.fail('implement this test')
 
 
 def _touch_all_atlas_features(atlas):

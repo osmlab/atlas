@@ -1,4 +1,3 @@
-import rectangle
 import boundable
 
 _LATITUDE_MIN_DM7 = -900000000
@@ -60,6 +59,7 @@ class Location(boundable.Boundable):
         """
         Get the bounding Rectangle of this Location.
         """
+        import rectangle
         return rectangle.Rectangle(self, self)
 
     def get_latitude(self):

@@ -32,3 +32,14 @@ def location_to_shapely_point(location):
     longitude = location.get_longitude()
 
     return shapely.geometry.Point(latitude, longitude)
+
+
+def polyline_to_shapely_linestring(polyline):
+    """
+    Convert a PolyLine to its Shapely LineString representation.
+    """
+    shapely_points = []
+    for location in polyline.locations():
+        shapely_points.append(location_to_shapely_point(location))
+
+    return shapely.geometry.LineString(shapely_points)

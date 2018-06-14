@@ -28,7 +28,7 @@ class SpatialIndexTest(unittest.TestCase):
 
         self.assertEquals({1, 2, 3}, set(test_results))
 
-    def test_spatial_index_rtree(self):
+    def test_basic_spatial_index_operations(self):
         atlas = Atlas("resources/test.atlas")
 
         index = SpatialIndex(atlas, EntityType.POINT, atlas.points())

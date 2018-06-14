@@ -275,11 +275,13 @@ class Atlas(object):
         else:
             raise ValueError('invalid EntityType value ' + str(entity_type0))
 
-    def points_at(self, location0):
+    def points_at(self, location0, predicate=lambda p: True):
         """
-        Get a frozenset of all Points at some Location.
+        Get a frozenset of all Points at some Location. Can optionally accept
+        a predicate to further filter the Points.
         """
-        points_list = self._get_point_spatial_index().get(location0.get_bounds())
+        points_list = self._get_point_spatial_index().get(
+            location0.get_bounds(), predicate=predicate)
         return points_list
 
     def points_within(self, polygon0, predicate=lambda p: True):
@@ -299,49 +301,68 @@ class Atlas(object):
         """
         Get a frozenset of all Lines containing some Location. Can optionally accept
         a predicate to further filter the Lines.
-        NOT IMPLEMENTED
         """
-        # TODO implement
-        raise NotImplementedError
+        lines = self._get_line_spatial_index().get(location0.get_bounds(), predicate=predicate)
+        lines_set = set()
+        for line0 in lines:
+            polyline0 = line0.as_polyline()
+            if location0.get_bounds().overlaps_polyline(polyline0):
+                lines_set.add(line0)
+
+        return frozenset(lines_set)
 
     def lines_intersecting(self, polygon0, predicate=lambda l: True):
         """
         Get a frozenset of all Lines within or intersecting some Polygon. Can
         optionally accept a predicate to further filter the Lines.
-        NOT IMPLEMENTED
         """
-        # TODO implement
-        raise NotImplementedError
+        lines = self._get_line_spatial_index().get(polygon0.get_bounds(), predicate=predicate)
+        lines_set = set()
+        for line0 in lines:
+            polyline0 = line0.as_polyline()
+            if polygon0.overlaps_polyline(polyline0):
+                lines_set.add(line0)
 
-    def areas_covering(self, area0, predicate=lambda a: True):
+        return frozenset(lines_set)
+
+    def areas_covering(self, location0, predicate=lambda a: True):
         """
         Get a frozenset of all Areas covering some Location. Can optionally accept
         a predicate to further filter the Areas.
-        NOT IMPLEMENTED
         """
-        # TODO implement
-        raise NotImplementedError
+        areas = self._get_area_spatial_index().get(location0.get_bounds(), predicate=predicate)
+        areas_set = set()
+        for area0 in areas:
+            if area0.as_polygon().fully_geometrically_encloses_location(location0):
+                areas_set.add(area0)
+
+        return frozenset(areas_set)
 
     def areas_intersecting(self, polygon0, predicate=lambda a: True):
         """
         Get a frozenset of all Areas within or intersecting some Polygon. Can
         optionally accept a predicate to further filter the Areas.
-        NOT IMPLEMENTED
         """
-        # TODO implement
-        raise NotImplementedError
+        areas = self._get_area_spatial_index().get(polygon0.get_bounds(), predicate=predicate)
+        areas_set = set()
+        for area0 in areas:
+            if polygon0.overlaps_polygon(area0.as_polygon()):
+                areas_set.add(area0)
 
-    def nodes_at(self, location0):
+        return frozenset(areas_set)
+
+    def nodes_at(self, location0, predicate=lambda n: True):
         """
-        Get a frozenset of all Nodes at some Location.
+        Get a frozenset of all Nodes at some Location. Can optionally accept a
+        predicate to further filter the Nodes.
         """
-        nodes_list = self._get_node_spatial_index().get(location0.get_bounds())
+        nodes_list = self._get_node_spatial_index().get(location0.get_bounds(), predicate=predicate)
         return nodes_list
 
     def nodes_within(self, polygon0, predicate=lambda n: True):
         """
-        Get a frozenset of all Nodes within some polygon. Can optionally also accept
-        a preducate to further filter the Nodes.
+        Get a frozenset of all Nodes within some polygon. Can optionally accept
+        a predicate to further filter the Nodes.
         """
         nodes = self._get_node_spatial_index().get(polygon0.get_bounds(), predicate=predicate)
         nodes_set = set()
@@ -351,23 +372,33 @@ class Atlas(object):
 
         return frozenset(nodes_set)
 
-    def edges_containing(self, edge0, predicate=lambda e: True):
+    def edges_containing(self, location0, predicate=lambda e: True):
         """
         Get a frozenset of all Edges containing some Location. Can optionally accept
         a predicate to further filter the Edges.
-        NOT IMPLEMENTED
         """
-        # TODO implement
-        raise NotImplementedError
+        edges = self._get_edge_spatial_index().get(location0.get_bounds(), predicate=predicate)
+        edges_set = set()
+        for edge0 in edges:
+            polyline0 = edge0.as_polyline()
+            if location0.get_bounds().overlaps_polyline(polyline0):
+                edges_set.add(edge0)
 
-    def edges_intersecting(self, edge0, predicate=lambda e: True):
+        return frozenset(edges_set)
+
+    def edges_intersecting(self, polygon0, predicate=lambda e: True):
         """
         Get a frozenset of all Edges within or intersecting some Polygon. Can
         optionally accept a predicate to further filter the Edges.
-        NOT IMPLEMENTED
         """
-        # TODO implement
-        raise NotImplementedError
+        edges = self._get_edge_spatial_index().get(polygon0.get_bounds(), predicate=predicate)
+        edges_set = set()
+        for edge0 in edges:
+            polyline0 = edge0.as_polyline()
+            if polygon0.overlaps_polyline(polyline0):
+                edges_set.add(edge0)
+
+        return frozenset(edges_set)
 
     def relations_with_entities_intersecting(self, polygon0, predicate=lambda r: True):
         """
