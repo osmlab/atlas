@@ -261,16 +261,16 @@ class Polygon(PolyLine):
         shapely_poly = polygon_to_shapely_polygon(self)
         return shapely_poly.wkt
 
-    def fully_geometrically_encloses_location(self, location0):
+    def fully_geometrically_encloses_location(self, location):
         """
         Test if this Polygon fully geometrically encloses a given Location. Will
         return False if the Location lies perfectly on the Polygon's boundary.
         """
-        point = location_to_shapely_point(location0)
-        poly = polygon_to_shapely_polygon(self)
-        return poly.contains(point)
+        shapely_point = location_to_shapely_point(location)
+        shapely_poly_self = polygon_to_shapely_polygon(self)
+        return shapely_poly_self.contains(shapely_point)
 
-    def overlaps_polygon(self, polygon0):
+    def overlaps_polygon(self, polygon):
         """
         Test if this Polygon overlaps a given Polygon at any point.
         """
@@ -278,11 +278,11 @@ class Polygon(PolyLine):
         # Shapely intersects() allows one to contain the other
         # Shapely overlaps() means they intersect, but neither contains the other
         # which is the right choice here?
-        polyg = polygon_to_shapely_polygon(self)
-        polyg0 = polygon_to_shapely_polygon(polygon0)
-        return polyg.intersects(polyg0)
+        shapely_polyg_self = polygon_to_shapely_polygon(self)
+        shapely_polyg_other = polygon_to_shapely_polygon(polygon)
+        return shapely_polyg_self.intersects(shapely_polyg_other)
 
-    def overlaps_polyline(self, polyline0):
+    def overlaps_polyline(self, polyline):
         """
         Test if this Polygon overlaps a given PolyLine at any point.
         """
@@ -290,9 +290,9 @@ class Polygon(PolyLine):
         # Shapely intersects() allows one to contain the other
         # Shapely overlaps() means they intersect, but neither contains the other
         # which is the right choice here?
-        polyl = polyline_to_shapely_linestring(polyline0)
-        polyg = polygon_to_shapely_polygon(self)
-        return polyg.intersects(polyl)
+        shapely_polyline = polyline_to_shapely_linestring(polyline)
+        shapely_poly_self = polygon_to_shapely_polygon(self)
+        return shapely_poly_self.intersects(shapely_polyline)
 
     def closed_loop(self):
         """
@@ -409,10 +409,10 @@ def bounds_locations(locations):
     left_lon = None
     right_lon = None
 
-    for location0 in locations:
+    for location in locations:
         yielded_at_least_one = True
-        latitude = location0.get_latitude()
-        longitude = location0.get_longitude()
+        latitude = location.get_latitude()
+        longitude = location.get_longitude()
         if lower_lat is None or latitude < lower_lat:
             lower_lat = latitude
         if upper_lat is None or latitude > upper_lat:
@@ -440,9 +440,9 @@ def bounds_atlasentities(entities):
 
     for entity in entities:
         yielded_at_least_one = True
-        for location0 in entity.get_bounds().locations():
-            latitude = location0.get_latitude()
-            longitude = location0.get_longitude()
+        for location in entity.get_bounds().locations():
+            latitude = location.get_latitude()
+            longitude = location.get_longitude()
             if lower_lat is None or latitude < lower_lat:
                 lower_lat = latitude
             if upper_lat is None or latitude > upper_lat:

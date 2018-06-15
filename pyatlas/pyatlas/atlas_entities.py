@@ -134,8 +134,8 @@ class AtlasEntity(geometry.Boundable):
             return relation_set
 
         for relation_index in relation_map[index]:
-            relation0 = Relation(self.get_parent_atlas(), relation_index)
-            relation_set.add(relation0)
+            relation = Relation(self.get_parent_atlas(), relation_index)
+            relation_set.add(relation)
 
         return frozenset(relation_set)
 
@@ -389,13 +389,13 @@ class Node(AtlasEntity):
         result += ', tags=' + str(self.get_tags())
 
         string = ""
-        for edge0 in self.get_in_edges():
-            string += str(edge0.get_identifier()) + ','
+        for edge in self.get_in_edges():
+            string += str(edge.get_identifier()) + ','
         result += ', inEdges=[' + string + ']'
 
         string = ""
-        for edge0 in self.get_out_edges():
-            string += str(edge0.get_identifier()) + ','
+        for edge in self.get_out_edges():
+            string += str(edge.get_identifier()) + ','
         result += ', outEdges=[' + string + ']'
 
         string = ''
@@ -466,10 +466,10 @@ class Node(AtlasEntity):
         the Edges' Atlas IDs.
         """
         result = []
-        for edge0 in self.get_in_edges():
-            result.append(edge0)
-        for edge0 in self.get_out_edges():
-            result.append(edge0)
+        for edge in self.get_in_edges():
+            result.append(edge)
+        for edge in self.get_out_edges():
+            result.append(edge)
         return sorted(result)
 
     def get_absolute_valence(self):
@@ -486,8 +486,8 @@ class Node(AtlasEntity):
         """
         connected_edges = self.get_connected_edges()
         valence = 0
-        for edge0 in connected_edges:
-            if edge0.is_master_edge():
+        for edge in connected_edges:
+            if edge.is_master_edge():
                 valence += 1
         return valence
 
@@ -612,12 +612,12 @@ class Edge(AtlasEntity):
         will contain the reversed Edge if this Edge is part of a two-way road.
         """
         result = set()
-        for edge0 in self.get_end().get_connected_edges():
-            if self != edge0:
-                result.add(edge0)
-        for edge0 in self.get_start().get_connected_edges():
-            if self != edge0:
-                result.add(edge0)
+        for edge in self.get_end().get_connected_edges():
+            if self != edge:
+                result.add(edge)
+        for edge in self.get_start().get_connected_edges():
+            if self != edge:
+                result.add(edge)
         return result
 
     def get_start(self):

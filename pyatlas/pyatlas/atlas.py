@@ -117,9 +117,9 @@ class Atlas(object):
         predicate to filter the generated Points.
         """
         for i, element in enumerate(self._get_pointIdentifiers().elements):
-            point0 = atlas_entities.Point(self, i)
-            if predicate(point0):
-                yield point0
+            point = atlas_entities.Point(self, i)
+            if predicate(point):
+                yield point
 
     def point(self, identifier):
         """
@@ -137,9 +137,9 @@ class Atlas(object):
         predicate to filter the generated Lines.
         """
         for i, element in enumerate(self._get_lineIdentifiers().elements):
-            line0 = atlas_entities.Line(self, i)
-            if predicate(line0):
-                yield line0
+            line = atlas_entities.Line(self, i)
+            if predicate(line):
+                yield line
 
     def line(self, identifier):
         """
@@ -157,9 +157,9 @@ class Atlas(object):
         predicate to filter the generated Areas.
         """
         for i, element in enumerate(self._get_areaIdentifiers().elements):
-            area0 = atlas_entities.Area(self, i)
-            if predicate(area0):
-                yield area0
+            area = atlas_entities.Area(self, i)
+            if predicate(area):
+                yield area
 
     def area(self, identifier):
         """
@@ -177,9 +177,9 @@ class Atlas(object):
         predicate to filter the generated Nodes.
         """
         for i, element in enumerate(self._get_nodeIdentifiers().elements):
-            node0 = atlas_entities.Node(self, i)
-            if predicate(node0):
-                yield node0
+            node = atlas_entities.Node(self, i)
+            if predicate(node):
+                yield node
 
     def node(self, identifier):
         """
@@ -197,9 +197,9 @@ class Atlas(object):
         predicate to filter the generated Edges.
         """
         for i, element in enumerate(self._get_edgeIdentifiers().elements):
-            edge0 = atlas_entities.Edge(self, i)
-            if predicate(edge0):
-                yield edge0
+            edge = atlas_entities.Edge(self, i)
+            if predicate(edge):
+                yield edge
 
     def edge(self, identifier):
         """
@@ -217,9 +217,9 @@ class Atlas(object):
         predicate to filter the generated Relations.
         """
         for i, element in enumerate(self._get_relationIdentifiers().elements):
-            relation0 = atlas_entities.Relation(self, i)
-            if predicate(relation0):
-                yield relation0
+            relation = atlas_entities.Relation(self, i)
+            if predicate(relation):
+                yield relation
 
     def relation(self, identifier):
         """
@@ -236,166 +236,166 @@ class Atlas(object):
         Get a generator for all AtlasEntities in this Atlas. Can optionally also
         accept a predicate to filter the generated entities.
         """
-        for point0 in self.points():
-            if predicate(point0):
-                yield point0
-        for line0 in self.lines():
-            if predicate(line0):
-                yield line0
-        for area0 in self.areas():
-            if predicate(area0):
-                yield area0
-        for node0 in self.nodes():
-            if predicate(node0):
-                yield node0
-        for edge0 in self.edges():
-            if predicate(edge0):
-                yield edge0
-        for relation0 in self.relations():
-            if predicate(relation0):
-                yield relation0
+        for point in self.points():
+            if predicate(point):
+                yield point
+        for line in self.lines():
+            if predicate(line):
+                yield line
+        for area in self.areas():
+            if predicate(area):
+                yield area
+        for node in self.nodes():
+            if predicate(node):
+                yield node
+        for edge in self.edges():
+            if predicate(edge):
+                yield edge
+        for relation in self.relations():
+            if predicate(relation):
+                yield relation
 
-    def entity(self, identifier, entity_type0):
+    def entity(self, identifier, entity_type):
         """
         Get an AtlasEntity with a given Atlas identifier and EntityType.
         Returns None if there is no entity with the given identifier and type.
         """
-        if entity_type0 == atlas_entities.EntityType.POINT:
+        if entity_type == atlas_entities.EntityType.POINT:
             return self.point(identifier)
-        elif entity_type0 == atlas_entities.EntityType.LINE:
+        elif entity_type == atlas_entities.EntityType.LINE:
             return self.line(identifier)
-        elif entity_type0 == atlas_entities.EntityType.AREA:
+        elif entity_type == atlas_entities.EntityType.AREA:
             return self.area(identifier)
-        elif entity_type0 == atlas_entities.EntityType.NODE:
+        elif entity_type == atlas_entities.EntityType.NODE:
             return self.node(identifier)
-        elif entity_type0 == atlas_entities.EntityType.EDGE:
+        elif entity_type == atlas_entities.EntityType.EDGE:
             return self.edge(identifier)
-        elif entity_type0 == atlas_entities.EntityType.RELATION:
+        elif entity_type == atlas_entities.EntityType.RELATION:
             return self.relation(identifier)
         else:
-            raise ValueError('invalid EntityType value ' + str(entity_type0))
+            raise ValueError('invalid EntityType value ' + str(entity_type))
 
-    def points_at(self, location0, predicate=lambda p: True):
+    def points_at(self, location, predicate=lambda p: True):
         """
         Get a frozenset of all Points at some Location. Can optionally accept
         a predicate to further filter the Points.
         """
         points_list = self._get_point_spatial_index().get(
-            location0.get_bounds(), predicate=predicate)
+            location.get_bounds(), predicate=predicate)
         return points_list
 
-    def points_within(self, polygon0, predicate=lambda p: True):
+    def points_within(self, polygon, predicate=lambda p: True):
         """
         Get a frozenset of all Points within some polygon. Can optionally accept
         a predicate to further filter the Points.
         """
-        points = self._get_point_spatial_index().get(polygon0.get_bounds(), predicate=predicate)
+        points = self._get_point_spatial_index().get(polygon.get_bounds(), predicate=predicate)
         points_set = set()
         for point0 in points:
-            if polygon0.fully_geometrically_encloses_location(point0.get_location()):
+            if polygon.fully_geometrically_encloses_location(point0.get_location()):
                 points_set.add(point0)
 
         return frozenset(points_set)
 
-    def lines_containing(self, location0, predicate=lambda l: True):
+    def lines_containing(self, location, predicate=lambda l: True):
         """
         Get a frozenset of all Lines containing some Location. Can optionally accept
         a predicate to further filter the Lines.
         """
-        lines = self._get_line_spatial_index().get(location0.get_bounds(), predicate=predicate)
+        lines = self._get_line_spatial_index().get(location.get_bounds(), predicate=predicate)
         lines_set = set()
         for line0 in lines:
             polyline0 = line0.as_polyline()
-            if location0.get_bounds().overlaps_polyline(polyline0):
+            if location.get_bounds().overlaps_polyline(polyline0):
                 lines_set.add(line0)
 
         return frozenset(lines_set)
 
-    def lines_intersecting(self, polygon0, predicate=lambda l: True):
+    def lines_intersecting(self, polygon, predicate=lambda l: True):
         """
         Get a frozenset of all Lines within or intersecting some Polygon. Can
         optionally accept a predicate to further filter the Lines.
         """
-        lines = self._get_line_spatial_index().get(polygon0.get_bounds(), predicate=predicate)
+        lines = self._get_line_spatial_index().get(polygon.get_bounds(), predicate=predicate)
         lines_set = set()
         for line0 in lines:
             polyline0 = line0.as_polyline()
-            if polygon0.overlaps_polyline(polyline0):
+            if polygon.overlaps_polyline(polyline0):
                 lines_set.add(line0)
 
         return frozenset(lines_set)
 
-    def areas_covering(self, location0, predicate=lambda a: True):
+    def areas_covering(self, location, predicate=lambda a: True):
         """
         Get a frozenset of all Areas covering some Location. Can optionally accept
         a predicate to further filter the Areas.
         """
-        areas = self._get_area_spatial_index().get(location0.get_bounds(), predicate=predicate)
+        areas = self._get_area_spatial_index().get(location.get_bounds(), predicate=predicate)
         areas_set = set()
         for area0 in areas:
-            if area0.as_polygon().fully_geometrically_encloses_location(location0):
+            if area0.as_polygon().fully_geometrically_encloses_location(location):
                 areas_set.add(area0)
 
         return frozenset(areas_set)
 
-    def areas_intersecting(self, polygon0, predicate=lambda a: True):
+    def areas_intersecting(self, polygon, predicate=lambda a: True):
         """
         Get a frozenset of all Areas within or intersecting some Polygon. Can
         optionally accept a predicate to further filter the Areas.
         """
-        areas = self._get_area_spatial_index().get(polygon0.get_bounds(), predicate=predicate)
+        areas = self._get_area_spatial_index().get(polygon.get_bounds(), predicate=predicate)
         areas_set = set()
         for area0 in areas:
-            if polygon0.overlaps_polygon(area0.as_polygon()):
+            if polygon.overlaps_polygon(area0.as_polygon()):
                 areas_set.add(area0)
 
         return frozenset(areas_set)
 
-    def nodes_at(self, location0, predicate=lambda n: True):
+    def nodes_at(self, location, predicate=lambda n: True):
         """
         Get a frozenset of all Nodes at some Location. Can optionally accept a
         predicate to further filter the Nodes.
         """
-        nodes_list = self._get_node_spatial_index().get(location0.get_bounds(), predicate=predicate)
+        nodes_list = self._get_node_spatial_index().get(location.get_bounds(), predicate=predicate)
         return nodes_list
 
-    def nodes_within(self, polygon0, predicate=lambda n: True):
+    def nodes_within(self, polygon, predicate=lambda n: True):
         """
         Get a frozenset of all Nodes within some polygon. Can optionally accept
         a predicate to further filter the Nodes.
         """
-        nodes = self._get_node_spatial_index().get(polygon0.get_bounds(), predicate=predicate)
+        nodes = self._get_node_spatial_index().get(polygon.get_bounds(), predicate=predicate)
         nodes_set = set()
         for node0 in nodes:
-            if polygon0.fully_geometrically_encloses_location(node0.get_location()):
+            if polygon.fully_geometrically_encloses_location(node0.get_location()):
                 nodes_set.add(node0)
 
         return frozenset(nodes_set)
 
-    def edges_containing(self, location0, predicate=lambda e: True):
+    def edges_containing(self, location, predicate=lambda e: True):
         """
         Get a frozenset of all Edges containing some Location. Can optionally accept
         a predicate to further filter the Edges.
         """
-        edges = self._get_edge_spatial_index().get(location0.get_bounds(), predicate=predicate)
+        edges = self._get_edge_spatial_index().get(location.get_bounds(), predicate=predicate)
         edges_set = set()
         for edge0 in edges:
             polyline0 = edge0.as_polyline()
-            if location0.get_bounds().overlaps_polyline(polyline0):
+            if location.get_bounds().overlaps_polyline(polyline0):
                 edges_set.add(edge0)
 
         return frozenset(edges_set)
 
-    def edges_intersecting(self, polygon0, predicate=lambda e: True):
+    def edges_intersecting(self, polygon, predicate=lambda e: True):
         """
         Get a frozenset of all Edges within or intersecting some Polygon. Can
         optionally accept a predicate to further filter the Edges.
         """
-        edges = self._get_edge_spatial_index().get(polygon0.get_bounds(), predicate=predicate)
+        edges = self._get_edge_spatial_index().get(polygon.get_bounds(), predicate=predicate)
         edges_set = set()
         for edge0 in edges:
             polyline0 = edge0.as_polyline()
-            if polygon0.overlaps_polyline(polyline0):
+            if polygon.overlaps_polyline(polyline0):
                 edges_set.add(edge0)
 
         return frozenset(edges_set)
@@ -420,6 +420,11 @@ class Atlas(object):
         """
         self.serializer._load_all_fields()
         self._get_point_spatial_index()
+        self._get_line_spatial_index()
+        self._get_area_spatial_index()
+        self._get_node_spatial_index()
+        self._get_edge_spatial_index()
+        self._get_relation_spatial_index()
 
     def number_of_points(self):
         """
@@ -1140,8 +1145,6 @@ class _IntegerDictionary(object):
     """
     Integer string two-way dictionary.
     """
-
-    # TODO do we even need this class?
 
     def __init__(self):
         self.word_to_index = {}
