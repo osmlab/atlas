@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pyatlas",
-    version="0.0.1",
+    version="1.0.0",
     author="lucaspcram",
     author_email="lucaspcram@gmail.com",
     description="A simplified Python API for Atlas",

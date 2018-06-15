@@ -9,15 +9,19 @@ To get setup in a new project folder, run:
     $ virtualenv venv --python=python2.7
     $ source venv/bin/activate
 
-NOTE: `pyatlas` will automatically install the dependencies it needs, including the Protocol Buffers Python runtime - `protobuf-2.6.1`. 
-Therefore, it is highly recommended that you develop `pyatlas` based projects in a Python virtual environment - you may need to install `virtualenv` if you have not already. 
-(If you want to create a `pyatlas` distribution that does not automatically pull in dependencies, see the next section.)
+NOTE: `pyatlas` will automatically install the dependencies it needs, including
+the Protocol Buffers Python runtime - `protobuf-2.6.1`. 
+Therefore, it is highly recommended that you develop `pyatlas` based projects in
+a Python virtual environment - you may need to install `virtualenv` if you have not already. 
+(If you want to create a `pyatlas` distribution that does not automatically pull
+in dependencies, see the next section.)
 
 Now that you have your virtual environment set up, you can install `pyatlas` with:
 
-    (venv) $ pip install pyatlas
+    (venv) $ pip install /path/to/pyatlas/wheel
 
-If `pip` can not find the `pyatlas` module, you may need to build it from source yourself. Check the next section for more info.
+If you do not have a `pyatlas` wheel available, you may need to build it from
+source yourself. Check the next section for more info.
 
 To test that everything went smoothly, create a file `helloatlas.py` with the following code:
 ```python
@@ -38,16 +42,21 @@ then you're good to go!
 ## Building the `pyatlas` module
 To build the `pyatlas` module from source, run:
 
-    $ cd /path/to/atlas
+    $ git clone https://github.com/osmlab/atlas.git
+    $ cd atlas
     $ ./gradlew buildPyatlas
 
 This will generate a wheel file at `pyatlas/dist`. You can now install this with `pip` like
 
+    $ cd /path/to/project/that/uses/pyatlas
+    $ virtualenv venv --python=python2.7
+    $ source venv/bin/activate
     $ pip install /path/to/atlas/pyatlas/dist/pyatlas-VERSION.whl
 
 Again, it is recommended that you do this in the desired virtual environment.
 
-If you want to build a `pyatlas` wheel file that does not automatically pull dependencies, open up `setup.py` and remove the lines that say
+If you want to build a `pyatlas` wheel file that does not automatically pull dependencies,
+open up `setup.py` and remove the lines that say
     
     install_requires=[
     .
@@ -55,18 +64,160 @@ If you want to build a `pyatlas` wheel file that does not automatically pull dep
     .
     ],
 
-Then re-run the `./gradlew buildPyatlas` command from above and reinstall using `pip`. Note that you will now need to manage the required dependencies manually.
+Then re-run the `./gradlew buildPyatlas` command from above and reinstall
+using `pip`. Note that you will now need to manage the required dependencies manually.
 
 ### Note on the formatter
-`pyatlas` uses the `yapf` formatting library to check for code format issues when building. If you are running into issues after modifying `pyatlas`, try running
+`pyatlas` uses the `yapf` formatting library to check for code format issues when building.
+If you are running into issues after modifying `pyatlas`, try running
 
     ./gradlew applyFormatPyatlas
 
 Now `pyatlas` should make it past the `CHECK` format step!
 
-Note there is an issue that causes the formatter to goof if a source file does not end with a newline (\n) character.
-If the `CHECK` format step is consistently failing after repeated `APPLY` steps, and you are seeing a message like the following:
+Note there is an issue that causes the formatter to goof if a source file does not
+end with a newline (\n) character.
+If the `CHECK` format step is consistently failing after repeated `APPLY` steps,
+and you are seeing a message like the following:
 
     atlas.py: found issue, reformatting...
 
 with no formatter diff being displayed, check to make sure that the file has an ending newline. 
+
+----
+## Documentation
+`pyatlas` documentation is automatically generated using the `pydoc` tool and
+stored in the `doc` folder. To build
+the documentation, run the gradle build command:
+
+    $ ./gradlew buildPyatlas
+
+This will generate HTML files detailing the functions and classes available in each module.
+
+----
+## Some sample use cases
+`pyatlas` is a highly capable subset of the API provided by the Java `Atlas`. Here are some examples
+to get you started. Note that all of these examples were ran using the `test.atlas`
+provided in the `resources` folder, and assume that you have an atlas variable defined like:
+
+```python
+from pyatlas.atlas import Atlas
+atlas = Atlas('/path/to/atlas/pyatlas/resources/test.atlas')
+```
+
+#### Getting features and metadata
+You can get filtered iterables over an `Atlas`'s features using the methods provided in the `Atlas` class.
+
+```python
+# print all Nodes
+for node in atlas.nodes()
+    print node
+
+# print all Edges that have 'key1' as a tag key
+for edge in atlas.edges(predicate=lambda e: 'key1' in e.get_tags().keys()):
+    print edge
+```
+
+You can also get a feature with a specific identifier (eg. a `Relation` with ID 2) like:
+
+```python
+print atlas.relation(2)
+```
+
+Metadata about the `Atlas` is also available. For a quick sample, try something like:
+
+```python
+metadata = atlas.metadata()
+print metadata.number_of_points
+print metadata.country
+```
+
+Check out `doc/atlas_metadata.html` for more information.
+
+#### Operating on features
+The `Atlas` features themselves support a set of operations defined in their respective classes.
+
+Here is an example that prints out the tags of a feature, as well as data relating to some
+relations and their members:
+
+```python
+print atlas.point(3).get_tags()
+for relation in atlas.node(1).relations():
+    print relation
+
+for member in atlas.relation(1).get_members():
+    # print the RelationMember object
+    print member
+    # print the actual AtlasEntity contained in the RelationMember
+    print member.get_entity()
+```
+
+`Node`s and `Edge`s, in particular, support traversal through their connectivity API:
+
+```python
+# print Edges connected to Node with ID 3
+for edge in atlas.node(3).in_edges():
+    print edge
+for edge in atlas.node(3).out_edges():
+    print edge
+for edge in atlas.node(3).connected_edges():
+    print edge
+
+# print the start and end Nodes of Edge 1
+print atlas.edge(1).start()
+print atlas.edge(1).end()
+```
+
+Many more methods are provided. See the classes in `doc/atlas_entities.html` for more information.
+
+#### Geometry
+`pyatlas` features some really simple geometry primitives for working with locations and shapes on the
+surface of the Earth. Here is a simple example that uses these primitives:
+
+```python
+from pyatlas import geometry
+from pyatlas.geometry import Location, PolyLine, Polygon, Rectangle
+
+# Location constructor uses dm7 by default, see Location docs for info on dm7
+loc1 = Location(385000000, -1160200000)
+# create the same Location but with degree values instead
+loc2 = geometry.location_with_degrees(38.5, -116.02)
+print loc1.get_latitude_deg()
+print loc2.get_latitude()
+
+# create a new PolyLine with two shape points
+polyline1 = PolyLine([Location(385000000, -1160200000), Location(395000000, -116300000)])
+for loc in polyline1.locations():
+    print loc
+print polyline1.bounds()
+
+# create a new Polygon with specified vertices
+polygon1 = Polygon([geometry.location_with_degrees(0, 0),
+                    geometry.location_with_degrees(10, 0),
+                    geometry.location_with_degrees(5, 10)])
+print polygon1
+# print the vertices, will print the first again at the end to simulate closedness
+for loc in polygon1.closed_loop():
+    print loc
+print polygon1.bounds()
+# will print True, since the point lies inside the triangle
+print polygon1.fully_geometrically_encloses_location(geometry.location_with_degrees(5, 5))
+
+# create a new Rectangle with given lower left and upper right corners
+rect = Rectangle(geometry.location_with_degrees(0, 0), geometry.location_with_degrees(20, 20))
+print rect
+# this Rectangle overlaps polygon1
+print rect.overlaps_polygon(polygon1)
+```
+
+See the class definitions in `doc/geometry.html` for more information.
+
+#### Spatial queries
+`pyatlas` supports some simple spatial queries over its feature space. The queries use the geometry
+primitives provided by the `geometry` module, but convert to [Shapely](https://github.com/Toblerity/Shapely)
+primitives under the hood to make queries into a native [libgeos](https://github.com/OSGeo/geos) backed RTree.
+Below are some examples of spatial queries the `Atlas` supports:
+
+
+See `doc/atlas.html` for more information on the available spatial queries.
+
