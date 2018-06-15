@@ -26,8 +26,7 @@ _MAXIMUM_DELTA_LONGITUDE = 180 * pow(10, _PRECISION)
 
 class Boundable(object):
     """
-    A Boundable is a geometric object that can be bounded by Rectangle. This
-    class is abstract, and only exists to establish a boundable interface.
+    A Boundable is any geometric object that can be bounded by Rectangle.
     """
 
     def __init__(self):
@@ -36,6 +35,12 @@ class Boundable(object):
     def get_bounds(self):
         """
         Get the bounding Rectangle of this object.
+        """
+        raise NotImplementedError('subclass must implement')
+
+    def intersects(self, polygon):
+        """
+        Check if this Boundable intersects some Polygon.
         """
         raise NotImplementedError('subclass must implement')
 
@@ -105,6 +110,12 @@ class Location(Boundable):
         Get the bounding Rectangle of this Location.
         """
         return Rectangle(self, self)
+
+    def intersects(self, polygon):
+        """
+        Check if this Location intersects some Polygon.
+        """
+        return polygon.fully_geometrically_encloses_location(self)
 
     def get_latitude(self):
         """
@@ -208,6 +219,12 @@ class PolyLine(Boundable):
         """
         return bounds_locations(self.locations())
 
+    def intersects(self, polygon):
+        """
+        Check if this PolyLine intersects some Polygon.
+        """
+        return polygon.overlaps_polyline(self)
+
     def get_locations_list(self):
         """
         Get the underlying Location list for this PolyLine.
@@ -285,6 +302,12 @@ class Polygon(PolyLine):
         for point in self.locations():
             yield point
         yield self.location_list[0]
+
+    def intersects(self, polygon):
+        """
+        Check if this Polygon intersects some Polygon.
+        """
+        return polygon.overlaps_polygon(self)
 
 
 class Rectangle(Polygon):

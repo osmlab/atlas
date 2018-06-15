@@ -76,19 +76,25 @@ class AtlasEntity(geometry.Boundable):
 
     def get_identifier(self):
         """
-        Get the Atlas identifier of this entity.
+        Get the Atlas identifier of this AtlasEntity.
         """
         raise NotImplementedError('subclass must implement')
 
     def get_tags(self):
         """
-        Get a dictionary of this entity's tags.
+        Get a dictionary of this AtlasEntity's tags.
         """
         raise NotImplementedError('subclass must implement')
 
     def get_bounds(self):
         """
         Get the bounding Rectangle of this AtlasEntity.
+        """
+        raise NotImplementedError('subclass must implement')
+
+    def intersects(self, polygon):
+        """
+        Check if this AtlasEntity intersects some Polygon.
         """
         raise NotImplementedError('subclass must implement')
 
@@ -106,8 +112,7 @@ class AtlasEntity(geometry.Boundable):
 
     def get_osm_identifier(self):
         """
-        Convenience wrapper for the same function in the identifier_conversion
-        module.
+        Get the OSM identifier of the AtlasEntity.
         """
         atlas_id = self.get_identifier()
         return identifier_converters.get_osm_identifier(atlas_id)
@@ -166,13 +171,13 @@ class Point(AtlasEntity):
 
     def get_identifier(self):
         """
-        Get the Atlas identifier of this point.
+        Get the Atlas identifier of this Point.
         """
         return self.get_parent_atlas()._get_pointIdentifiers().elements[self.index]
 
     def get_location(self):
         """
-        Get the Location of this point.
+        Get the Location of this Point.
         """
         long_location = self.get_parent_atlas()._get_pointLocations().elements[self.index]
         return geometry.location_from_packed_int(long_location)
@@ -189,6 +194,12 @@ class Point(AtlasEntity):
         Get the bounding Rectangle of this Point.
         """
         return self.get_location().get_bounds()
+
+    def intersects(self, polygon):
+        """
+        Check if this Point intersects some Polygon.
+        """
+        return self.get_location().intersects(polygon)
 
     def get_relations(self):
         """
@@ -259,6 +270,12 @@ class Line(AtlasEntity):
         """
         return self.as_polyline().get_bounds()
 
+    def intersects(self, polygon):
+        """
+        Check if this Line intersects some Polygon.
+        """
+        return self.as_polyline().intersects(polygon)
+
     def get_relations(self):
         """
         Get the frozenset of Relations of which this Line is a member.
@@ -327,6 +344,12 @@ class Area(AtlasEntity):
         Get the bounding Rectangle of this Area.
         """
         return self.as_polygon().get_bounds()
+
+    def intersects(self, polygon):
+        """
+        Check if this Area intersects some Polygon.
+        """
+        return self.as_polygon().intersects(polygon)
 
     def get_relations(self):
         """
@@ -408,6 +431,12 @@ class Node(AtlasEntity):
         Get the bounding Rectangle of this Point.
         """
         return self.get_location().get_bounds()
+
+    def intersects(self, polygon):
+        """
+        Check if this Node intersects some Polygon.
+        """
+        return self.get_location().intersects(polygon)
 
     def get_in_edges(self):
         """
@@ -552,6 +581,12 @@ class Edge(AtlasEntity):
         Get the bounding Rectangle of this Edge.
         """
         return self.as_polyline().get_bounds()
+
+    def intersects(self, polygon):
+        """
+        Check if this Edge intersects some Polygon.
+        """
+        return self.as_polyline().intersects(polygon)
 
     def get_relations(self):
         """
@@ -736,7 +771,6 @@ class Relation(AtlasEntity):
         Get a sorted list of this Relation's members. The members are in
         RelationMember form.
         """
-        # FIXME Can we assume all members will have non-null entities? See doc in RelationMember.java
         result = []
         relation_identifiers = self.get_parent_atlas()._get_relationIdentifiers()
         relation_member_types = self.get_parent_atlas()._get_relationMemberTypes()
@@ -782,9 +816,8 @@ class Relation(AtlasEntity):
         Get the bounding Rectangle of this Relation's members.
         """
         # FIXME this fails if Relations have self-referencing members
-        # this should never happen in a PackedAtlas so it should be OK for now
-
-        # FIXME this also fails if a RelationMember entity is null, see note in get_members()
+        # this will never happen in a PackedAtlas so it should be OK for now
+        # if pyatlas ever supports MultiAtlas then this will be a concern
 
         members = self.get_members()
         if len(members) == 0:
@@ -798,6 +831,21 @@ class Relation(AtlasEntity):
             entities_to_consider.append(entity)
 
         return geometry.bounds_atlasentities(entities_to_consider)
+
+    def intersects(self, polygon):
+        """
+        Check if any member of this Relation intersects some Polygon.
+        """
+        # FIXME this fails if Relations have self-referencing members
+        # this will never happen in a PackedAtlas so it should be OK for now
+        # if pyatlas ever supports MultiAtlas then this will be a concern
+
+        for member in self.get_members():
+            entity = member.get_entity()
+            if entity.intersects(polygon):
+                return True
+
+        return False
 
     def get_relations(self):
         """

@@ -400,14 +400,19 @@ class Atlas(object):
 
         return frozenset(edges_set)
 
-    def relations_with_entities_intersecting(self, polygon0, predicate=lambda r: True):
+    def relations_with_entities_intersecting(self, polygon, predicate=lambda r: True):
         """
         Return a frozenset of Relations which have at least one feature intersecting some
         Polygon. Can optionally accept a predicate to further filter the Relations.
-        NOT IMPLEMENTED
         """
-        # TODO implement
-        raise NotImplementedError
+        relations = self._get_relation_spatial_index().get(
+            polygon.get_bounds(), predicate=predicate)
+        relations_set = set()
+        for relation in relations:
+            if relation.intersects(polygon):
+                relations_set.add(relation)
+
+        return frozenset(relations_set)
 
     def load_all_fields(self):
         """

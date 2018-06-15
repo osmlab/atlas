@@ -98,8 +98,14 @@ class AtlasTest(unittest.TestCase):
         self.assertEquals({atlas.edge(1), atlas.edge(2), atlas.edge(3)}, test_results)
 
     def test_relation_spatial_index(self):
-        # TODO implement
-        self.fail('implement this test')
+        atlas = Atlas("resources/test.atlas")
+
+        lower_left = geometry.location_with_degrees(37.999, -118.001)
+        upper_right = geometry.location_with_degrees(38.001, -117.999)
+
+        test_results = atlas.relations_with_entities_intersecting(
+            Rectangle(lower_left, upper_right))
+        self.assertEquals({atlas.relation(2)}, test_results)
 
 
 def _touch_all_atlas_features(atlas):
