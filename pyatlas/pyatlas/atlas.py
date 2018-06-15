@@ -33,14 +33,14 @@ class Atlas(object):
     The Atlas - current implementation is *not* threadsafe.
     """
 
-    def __init__(self, atlas_file, lazy_loading=True):
+    def __init__(self, atlas_file_path, lazy_loading=True):
         """
-        Create a new Atlas backed by a specified atlas file. Disabling lazy
-        loading will force the full Atlas into memory. This will incur a
-        significant perfomance penalty at creation time, but will make subsequent
-        queries as fast as possible.
+        Create a new Atlas. The Atlas will be backed by the atlas file at the
+        provided path (string). Disabling lazy loading will force the full Atlas
+        into memory. This will incur a significant perfomance penalty at creation
+        time, but will make subsequent queries as fast as possible.
         """
-        self.serializer = _AtlasSerializer(atlas_file, self)
+        self.serializer = _AtlasSerializer(atlas_file_path, self)
         self.lazy_loading = lazy_loading
 
         # --- PackedAtlas fields ---

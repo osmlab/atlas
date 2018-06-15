@@ -36,14 +36,14 @@ class SpatialIndex(object):
         """
         Initialize an rtree to back this SpatialIndex. The underlying rtree
         implementation is immutable, so repeated calls to add() will degrade
-        performance. It is recommended that an rtree-backed SpatialIndex initialize
-        its backing tree upfront.
+        performance.
         """
         self.tree = _RTree(self.initial_entities)
 
     def initialize_quadtree(self):
         """
         Intitialize a quadtree to back this SpatialIndex.
+        CURRENTLY UNIMPLEMENTED
         """
         # TODO implement the quadtree
         raise NotImplementedError('quadtree currently not implemented')

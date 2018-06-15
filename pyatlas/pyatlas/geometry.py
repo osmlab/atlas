@@ -305,15 +305,14 @@ class Polygon(PolyLine):
 
     def intersects(self, polygon):
         """
-        Check if this Polygon intersects some Polygon.
+        Check if this Polygon intersects some other Polygon.
         """
         return polygon.overlaps_polygon(self)
 
 
 class Rectangle(Polygon):
     """
-    A rectangle on the surface of earth. It cannot span the date change
-    line (longitude -180).
+    A special case of Polygon.
     """
 
     def __init__(self, lower_left, upper_right):
@@ -383,7 +382,7 @@ def dm7_as_degree(dm7):
 
 def decompress_polyline(bytestring):
     """
-    Given a PolyLine bytestring compressed using PolyLine.compress(),
+    Given a PolyLine bytestring obtained using PolyLine.compress(),
     decompress it and return it as a PolyLine.
     """
     locations = _decompress_bytestring(bytestring)
@@ -392,7 +391,7 @@ def decompress_polyline(bytestring):
 
 def decompress_polygon(bytestring):
     """
-    Given a PolyLine bytestring compressed using PolyLine.compress(),
+    Given a PolyLine bytestring obtained using PolyLine.compress(),
     decompress it and return it as a Polygon.
     """
     locations = _decompress_bytestring(bytestring)
