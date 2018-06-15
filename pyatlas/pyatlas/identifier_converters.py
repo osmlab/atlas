@@ -1,5 +1,5 @@
 """
-Helpful functions to extract information from Atlas identifiers.
+This module defines helpful functions to extract information from Atlas identifiers.
 """
 
 # Country code and way sectioned identifiers are 3 decimal digits

@@ -1,8 +1,12 @@
+"""
+This module defines the spatial index class for use by the Atlas.
+"""
+
 import ctypes
 import shapely.geometry
 from shapely.geos import lgeos as _lgeos
 
-import polygon_converters
+import geometry
 
 
 class SpatialIndex(object):
@@ -106,7 +110,7 @@ class _RTree(object):
         _CustomSTRtree.
         """
         contents_shapely_format = [
-            polygon_converters.boundable_to_shapely_box(entity) for entity in self.contents
+            geometry.boundable_to_shapely_box(entity) for entity in self.contents
         ]
 
         # pack the arguments in format expected by the _HackSTRtree
@@ -130,7 +134,7 @@ class _RTree(object):
         AtlasEntities within the bounds of the Boundable.
         """
         if self.tree is not None:
-            boundable = polygon_converters.boundable_to_shapely_box(boundable)
+            boundable = geometry.boundable_to_shapely_box(boundable)
             return self.tree.get(boundable)
         else:
             raise ValueError('RTree is empty')

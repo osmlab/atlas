@@ -1,5 +1,26 @@
+"""
+This module defines the AtlasMetaData container type.
+"""
+
+
 class AtlasMetaData(object):
-    """Atlas metadata"""
+    """
+    Container class for an Atlas's metadata.
+
+    Readable metadata fields:
+    number_of_points (long)
+    number_of_lines (long)
+    number_of_areas (long)
+    number_of_nodes (long)
+    number_of_edges (long)
+    number_of_relations (long)
+    original (bool)
+    code_version (string)
+    data_version (string)
+    country (string)
+    shard_name (string)
+    tags (dict)
+    """
 
     def __init__(self):
         self.number_of_edges = 0

@@ -1,10 +1,7 @@
 import unittest
 
-from pyatlas import polyline
-from pyatlas.polyline import PolyLine
-from pyatlas.polygon import Polygon
-from pyatlas.location import Location
-from pyatlas.rectangle import Rectangle
+from pyatlas import geometry
+from pyatlas.geometry import Location, PolyLine, Polygon, Rectangle
 
 
 class PolyLinePolygonTest(unittest.TestCase):
@@ -14,7 +11,7 @@ class PolyLinePolygonTest(unittest.TestCase):
     def test_polyline_compression(self):
         loclist = [Location(1, 1), Location(2, 2), Location(5, 5)]
         correct_polyline = PolyLine(loclist, deep=True)
-        test_polyline = polyline.decompress_polyline(correct_polyline.compress())
+        test_polyline = geometry.decompress_polyline(correct_polyline.compress())
         self.assertEqual(correct_polyline, test_polyline)
 
         loclist = [
@@ -26,7 +23,7 @@ class PolyLinePolygonTest(unittest.TestCase):
             Location(382115440, -1193151494)
         ]
         correct_polyline = PolyLine(loclist, deep=True)
-        test_polyline = polyline.decompress_polyline(correct_polyline.compress())
+        test_polyline = geometry.decompress_polyline(correct_polyline.compress())
         self.assertEqual(correct_polyline, test_polyline)
 
     def test_polygon_closedness(self):

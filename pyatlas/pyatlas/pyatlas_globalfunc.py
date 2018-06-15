@@ -1,4 +1,6 @@
-"""Global utility functions for pyatlas"""
+"""
+This module contains global utility functions for pyatlas.
+"""
 
 
 def hello_atlas():

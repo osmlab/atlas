@@ -1,9 +1,8 @@
 import unittest
 
 from pyatlas.atlas import Atlas
-from pyatlas.location import Location
-from pyatlas import rectangle
-from pyatlas.rectangle import Rectangle
+from pyatlas import geometry
+from pyatlas.geometry import Location, Rectangle
 
 
 class RectangleTest(unittest.TestCase):
@@ -32,7 +31,7 @@ class RectangleTest(unittest.TestCase):
             Location(0, 450000000)
         ]
         expected_rect = Rectangle(Location(0, 0), Location(450000000, 450000000))
-        computed_rect = rectangle.bounds_locations(loclist)
+        computed_rect = geometry.bounds_locations(loclist)
         self.assertEqual(expected_rect, computed_rect)
 
         # create a lopsided polygon to test bounding box
@@ -44,7 +43,7 @@ class RectangleTest(unittest.TestCase):
             Location(1000, 450000000)
         ]
         expected_rect = Rectangle(Location(0, 0), Location(450000000, 450000000))
-        computed_rect = rectangle.bounds_locations(loclist)
+        computed_rect = geometry.bounds_locations(loclist)
         self.assertEqual(expected_rect, computed_rect)
 
     def test_entity_bounding_calculation_on_relations(self):
@@ -53,13 +52,13 @@ class RectangleTest(unittest.TestCase):
         relation = atlas.relation(1)
         expected_rect = Rectangle(
             Location(390000000, -1190300000), Location(390500000, -1180000000))
-        computed_rect = rectangle.bounds_atlasentities([relation])
+        computed_rect = geometry.bounds_atlasentities([relation])
         self.assertEqual(expected_rect, computed_rect)
 
         relation = atlas.relation(2)
         expected_rect = Rectangle(
             Location(380000000, -1180100000), Location(380100000, -1180000000))
-        computed_rect = rectangle.bounds_atlasentities([relation])
+        computed_rect = geometry.bounds_atlasentities([relation])
         self.assertEqual(expected_rect, computed_rect)
 
 

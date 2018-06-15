@@ -1,8 +1,8 @@
 import unittest
 
 from pyatlas.atlas import Atlas
-from pyatlas.rectangle import Rectangle
-from pyatlas import location
+from pyatlas import geometry
+from pyatlas.geometry import Rectangle
 
 
 class AtlasTest(unittest.TestCase):
@@ -32,8 +32,8 @@ class AtlasTest(unittest.TestCase):
     def test_point_spatial_index(self):
         atlas = Atlas("resources/test.atlas")
 
-        lower_left = location.with_degrees(37, -118.02)
-        upper_right = location.with_degrees(39, -118)
+        lower_left = geometry.location_with_degrees(37, -118.02)
+        upper_right = geometry.location_with_degrees(39, -118)
 
         # NOTE point 1 does not show up in the results because it lies on the polygon border
         test_results = atlas.points_within(Rectangle(lower_left, upper_right))
@@ -43,24 +43,25 @@ class AtlasTest(unittest.TestCase):
             Rectangle(lower_left, upper_right), lambda p: p.get_identifier() % 2 != 0)
         self.assertEquals({atlas.point(3)}, test_results)
 
-        test_results = atlas.points_at(location.with_degrees(38, -118))
+        test_results = atlas.points_at(geometry.location_with_degrees(38, -118))
         self.assertEquals({atlas.point(1)}, test_results)
 
     def test_line_spatial_index(self):
         atlas = Atlas("resources/test.atlas")
 
-        test_location = location.with_degrees(38.02, -118.02)
+        test_location = geometry.location_with_degrees(38.02, -118.02)
         test_results = atlas.lines_containing(test_location)
         self.assertEquals({atlas.line(1)}, test_results)
 
-        poly = Rectangle(location.with_degrees(38, -118), location.with_degrees(39, -119))
+        poly = Rectangle(
+            geometry.location_with_degrees(38, -118), geometry.location_with_degrees(39, -119))
         test_results = atlas.lines_intersecting(poly)
         self.assertEquals({atlas.line(1), atlas.line(2)}, test_results)
 
     def test_area_spatial_index(self):
         atlas = Atlas("resources/test.atlas")
 
-        test_location = location.with_degrees(38.15, -118.03)
+        test_location = geometry.location_with_degrees(38.15, -118.03)
         test_results = atlas.areas_covering(test_location)
         self.assertEquals({atlas.area(2)}, test_results)
 
@@ -70,8 +71,8 @@ class AtlasTest(unittest.TestCase):
     def test_node_spatial_index(self):
         atlas = Atlas("resources/test.atlas")
 
-        lower_left = location.with_degrees(39, -119.04)
-        upper_right = location.with_degrees(39.05, -119)
+        lower_left = geometry.location_with_degrees(39, -119.04)
+        upper_right = geometry.location_with_degrees(39.05, -119)
 
         # NOTE node 4 does not show up in results because it lies on the the polygon border
         test_results = atlas.nodes_within(Rectangle(lower_left, upper_right))
@@ -81,17 +82,18 @@ class AtlasTest(unittest.TestCase):
             Rectangle(lower_left, upper_right), lambda n: n.get_identifier() == 3)
         self.assertEquals(frozenset(), test_results)
 
-        test_results = atlas.nodes_at(location.with_degrees(39, -119.05))
+        test_results = atlas.nodes_at(geometry.location_with_degrees(39, -119.05))
         self.assertEquals({atlas.node(3)}, test_results)
 
     def test_edge_spatial_index(self):
         atlas = Atlas("resources/test.atlas")
 
-        test_location = location.with_degrees(39, -119.05)
+        test_location = geometry.location_with_degrees(39, -119.05)
         test_results = atlas.edges_containing(test_location)
         self.assertEquals({atlas.edge(1), atlas.edge(3)}, test_results)
 
-        poly = Rectangle(location.with_degrees(38, -120), location.with_degrees(40, -117))
+        poly = Rectangle(
+            geometry.location_with_degrees(38, -120), geometry.location_with_degrees(40, -117))
         test_results = atlas.edges_intersecting(poly)
         self.assertEquals({atlas.edge(1), atlas.edge(2), atlas.edge(3)}, test_results)
 

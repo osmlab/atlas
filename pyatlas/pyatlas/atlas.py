@@ -1,4 +1,13 @@
-"""The pyatlas Atlas implementation"""
+"""
+This module defines the Atlas and the various helper types it needs to operate.
+
+Atlas is a representation of an OpenStreetMap region in memory. It is a
+navigable collection of unidirectional Edges and Nodes. It is designed to
+be close to the OpenStreetMap model. It also contains a collection of
+non-navigable geolocated items that can be Points, Lines or Areas. All can
+be members of Relations.
+"""
+
 import zipfile
 
 import autogen.ProtoAtlasMetaData_pb2
@@ -13,18 +22,9 @@ import autogen.ProtoPolygonArray_pb2
 import autogen.ProtoByteArrayOfArrays_pb2
 import autogen.ProtoIntegerArrayOfArrays_pb2
 
-import point
-import line
-import area
-import node
-import edge
-import relation
+import atlas_entities
+import geometry
 import atlas_metadata
-import integer_dictionary
-import packed_tag_store
-import polyline
-import polygon
-import entity_type
 import spatial_index
 
 
@@ -117,7 +117,7 @@ class Atlas(object):
         predicate to filter the generated Points.
         """
         for i, element in enumerate(self._get_pointIdentifiers().elements):
-            point0 = point.Point(self, i)
+            point0 = atlas_entities.Point(self, i)
             if predicate(point0):
                 yield point0
 
@@ -128,7 +128,7 @@ class Atlas(object):
         """
         identifier_to_index = self._get_pointIdentifierToPointArrayIndex()
         if identifier in identifier_to_index:
-            return point.Point(self, identifier_to_index[identifier])
+            return atlas_entities.Point(self, identifier_to_index[identifier])
         return None
 
     def lines(self, predicate=lambda l: True):
@@ -137,7 +137,7 @@ class Atlas(object):
         predicate to filter the generated Lines.
         """
         for i, element in enumerate(self._get_lineIdentifiers().elements):
-            line0 = line.Line(self, i)
+            line0 = atlas_entities.Line(self, i)
             if predicate(line0):
                 yield line0
 
@@ -148,7 +148,7 @@ class Atlas(object):
         """
         identifier_to_index = self._get_lineIdentifierToLineArrayIndex()
         if identifier in identifier_to_index:
-            return line.Line(self, identifier_to_index[identifier])
+            return atlas_entities.Line(self, identifier_to_index[identifier])
         return None
 
     def areas(self, predicate=lambda a: True):
@@ -157,7 +157,7 @@ class Atlas(object):
         predicate to filter the generated Areas.
         """
         for i, element in enumerate(self._get_areaIdentifiers().elements):
-            area0 = area.Area(self, i)
+            area0 = atlas_entities.Area(self, i)
             if predicate(area0):
                 yield area0
 
@@ -168,7 +168,7 @@ class Atlas(object):
         """
         identifier_to_index = self._get_areaIdentifierToAreaArrayIndex()
         if identifier in identifier_to_index:
-            return area.Area(self, identifier_to_index[identifier])
+            return atlas_entities.Area(self, identifier_to_index[identifier])
         return None
 
     def nodes(self, predicate=lambda n: True):
@@ -177,7 +177,7 @@ class Atlas(object):
         predicate to filter the generated Nodes.
         """
         for i, element in enumerate(self._get_nodeIdentifiers().elements):
-            node0 = node.Node(self, i)
+            node0 = atlas_entities.Node(self, i)
             if predicate(node0):
                 yield node0
 
@@ -188,7 +188,7 @@ class Atlas(object):
         """
         identifier_to_index = self._get_nodeIdentifierToNodeArrayIndex()
         if identifier in identifier_to_index:
-            return node.Node(self, identifier_to_index[identifier])
+            return atlas_entities.Node(self, identifier_to_index[identifier])
         return None
 
     def edges(self, predicate=lambda e: True):
@@ -197,7 +197,7 @@ class Atlas(object):
         predicate to filter the generated Edges.
         """
         for i, element in enumerate(self._get_edgeIdentifiers().elements):
-            edge0 = edge.Edge(self, i)
+            edge0 = atlas_entities.Edge(self, i)
             if predicate(edge0):
                 yield edge0
 
@@ -208,7 +208,7 @@ class Atlas(object):
         """
         identifier_to_index = self._get_edgeIdentifierToEdgeArrayIndex()
         if identifier in identifier_to_index:
-            return edge.Edge(self, identifier_to_index[identifier])
+            return atlas_entities.Edge(self, identifier_to_index[identifier])
         return None
 
     def relations(self, predicate=lambda r: True):
@@ -217,7 +217,7 @@ class Atlas(object):
         predicate to filter the generated Relations.
         """
         for i, element in enumerate(self._get_relationIdentifiers().elements):
-            relation0 = relation.Relation(self, i)
+            relation0 = atlas_entities.Relation(self, i)
             if predicate(relation0):
                 yield relation0
 
@@ -228,7 +228,7 @@ class Atlas(object):
         """
         identifier_to_index = self._get_relationIdentifierToRelationArrayIndex()
         if identifier in identifier_to_index:
-            return relation.Relation(self, identifier_to_index[identifier])
+            return atlas_entities.Relation(self, identifier_to_index[identifier])
         return None
 
     def entities(self, predicate=lambda e: True):
@@ -260,17 +260,17 @@ class Atlas(object):
         Get an AtlasEntity with a given Atlas identifier and EntityType.
         Returns None if there is no entity with the given identifier and type.
         """
-        if entity_type0 == entity_type.EntityType.POINT:
+        if entity_type0 == atlas_entities.EntityType.POINT:
             return self.point(identifier)
-        elif entity_type0 == entity_type.EntityType.LINE:
+        elif entity_type0 == atlas_entities.EntityType.LINE:
             return self.line(identifier)
-        elif entity_type0 == entity_type.EntityType.AREA:
+        elif entity_type0 == atlas_entities.EntityType.AREA:
             return self.area(identifier)
-        elif entity_type0 == entity_type.EntityType.NODE:
+        elif entity_type0 == atlas_entities.EntityType.NODE:
             return self.node(identifier)
-        elif entity_type0 == entity_type.EntityType.EDGE:
+        elif entity_type0 == atlas_entities.EntityType.EDGE:
             return self.edge(identifier)
-        elif entity_type0 == entity_type.EntityType.RELATION:
+        elif entity_type0 == atlas_entities.EntityType.RELATION:
             return self.relation(identifier)
         else:
             raise ValueError('invalid EntityType value ' + str(entity_type0))
@@ -650,35 +650,39 @@ class Atlas(object):
     def _get_point_spatial_index(self):
         if self.point_spatial_index is None:
             self.point_spatial_index = spatial_index.SpatialIndex(self,
-                                                                  entity_type.EntityType.POINT,
+                                                                  atlas_entities.EntityType.POINT,
                                                                   self.points())
             self.point_spatial_index.initialize_rtree()
         return self.point_spatial_index
 
     def _get_line_spatial_index(self):
         if self.line_spatial_index is None:
-            self.line_spatial_index = spatial_index.SpatialIndex(self, entity_type.EntityType.LINE,
+            self.line_spatial_index = spatial_index.SpatialIndex(self,
+                                                                 atlas_entities.EntityType.LINE,
                                                                  self.lines())
             self.line_spatial_index.initialize_rtree()
         return self.line_spatial_index
 
     def _get_area_spatial_index(self):
         if self.area_spatial_index is None:
-            self.area_spatial_index = spatial_index.SpatialIndex(self, entity_type.EntityType.AREA,
+            self.area_spatial_index = spatial_index.SpatialIndex(self,
+                                                                 atlas_entities.EntityType.AREA,
                                                                  self.areas())
             self.area_spatial_index.initialize_rtree()
         return self.area_spatial_index
 
     def _get_node_spatial_index(self):
         if self.node_spatial_index is None:
-            self.node_spatial_index = spatial_index.SpatialIndex(self, entity_type.EntityType.NODE,
+            self.node_spatial_index = spatial_index.SpatialIndex(self,
+                                                                 atlas_entities.EntityType.NODE,
                                                                  self.nodes())
             self.node_spatial_index.initialize_rtree()
         return self.node_spatial_index
 
     def _get_edge_spatial_index(self):
         if self.edge_spatial_index is None:
-            self.edge_spatial_index = spatial_index.SpatialIndex(self, entity_type.EntityType.EDGE,
+            self.edge_spatial_index = spatial_index.SpatialIndex(self,
+                                                                 atlas_entities.EntityType.EDGE,
                                                                  self.edges())
             self.edge_spatial_index.initialize_rtree()
         return self.edge_spatial_index
@@ -686,7 +690,7 @@ class Atlas(object):
     def _get_relation_spatial_index(self):
         if self.relation_spatial_index is None:
             self.relation_spatial_index = spatial_index.SpatialIndex(
-                self, entity_type.EntityType.RELATION, self.relations())
+                self, atlas_entities.EntityType.RELATION, self.relations())
             self.relation_spatial_index.initialize_rtree()
         return self.relation_spatial_index
 
@@ -847,8 +851,7 @@ class _AtlasSerializer(object):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_DICTIONARY)
         proto_dictionary = autogen.ProtoIntegerStringDictionary_pb2.ProtoIntegerStringDictionary()
         proto_dictionary.ParseFromString(zip_entry_data)
-        self.atlas.dictionary = integer_dictionary.get_integer_dictionary_from_proto(
-            proto_dictionary)
+        self.atlas.dictionary = _get_integer_dictionary_from_proto(proto_dictionary)
 
     def _load_pointIdentifiers(self):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_POINT_IDENTIFIERS)
@@ -860,7 +863,7 @@ class _AtlasSerializer(object):
                                         self._FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX)
         proto_map = autogen.ProtoLongToLongMap_pb2.ProtoLongToLongMap()
         proto_map.ParseFromString(zip_entry_data)
-        self.atlas.pointIdentifierToPointArrayIndex = _convert_protolongtolongmap(proto_map)
+        self.atlas.pointIdentifierToPointArrayIndex = _get_dict_from_longtolongmap(proto_map)
 
     def _load_pointLocations(self):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_POINT_LOCATIONS)
@@ -871,14 +874,15 @@ class _AtlasSerializer(object):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_POINT_TAGS)
         proto_point_tags = autogen.ProtoPackedTagStore_pb2.ProtoPackedTagStore()
         proto_point_tags.ParseFromString(zip_entry_data)
-        self.atlas.pointTags = packed_tag_store.get_packed_tag_store_from_proto(proto_point_tags)
+        self.atlas.pointTags = _get_packed_tag_store_from_proto(proto_point_tags)
 
     def _load_pointIndexToRelationIndices(self):
         zip_entry_data = _read_zipentry(self.atlas_file,
                                         self._FIELD_POINT_INDEX_TO_RELATION_INDICES)
         proto_multimap = autogen.ProtoLongToLongMultiMap_pb2.ProtoLongToLongMultiMap()
         proto_multimap.ParseFromString(zip_entry_data)
-        self.atlas.pointIndexToRelationIndices = _convert_protolongtolongmultimap(proto_multimap)
+        self.atlas.pointIndexToRelationIndices = _get_dict_from_protolongtolongmultimap(
+            proto_multimap)
 
     def _load_lineIdentifiers(self):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_LINE_IDENTIFIERS)
@@ -890,7 +894,7 @@ class _AtlasSerializer(object):
                                         self._FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX)
         proto_map = autogen.ProtoLongToLongMap_pb2.ProtoLongToLongMap()
         proto_map.ParseFromString(zip_entry_data)
-        self.atlas.lineIdentifierToLineArrayIndex = _convert_protolongtolongmap(proto_map)
+        self.atlas.lineIdentifierToLineArrayIndex = _get_dict_from_longtolongmap(proto_map)
 
     def _load_linePolylines(self):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_LINE_POLYLINES)
@@ -898,7 +902,7 @@ class _AtlasSerializer(object):
         proto_array.ParseFromString(zip_entry_data)
         result = []
         for encoding in proto_array.encodings:
-            poly_line = polyline.decompress_polyline(encoding)
+            poly_line = geometry.decompress_polyline(encoding)
             result.append(poly_line)
         self.atlas.linePolyLines = result
 
@@ -906,13 +910,14 @@ class _AtlasSerializer(object):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_LINE_TAGS)
         proto_line_tags = autogen.ProtoPackedTagStore_pb2.ProtoPackedTagStore()
         proto_line_tags.ParseFromString(zip_entry_data)
-        self.atlas.lineTags = packed_tag_store.get_packed_tag_store_from_proto(proto_line_tags)
+        self.atlas.lineTags = _get_packed_tag_store_from_proto(proto_line_tags)
 
     def _load_lineIndexToRelationIndices(self):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_LINE_INDEX_TO_RELATION_INDICES)
         proto_multimap = autogen.ProtoLongToLongMultiMap_pb2.ProtoLongToLongMultiMap()
         proto_multimap.ParseFromString(zip_entry_data)
-        self.atlas.lineIndexToRelationIndices = _convert_protolongtolongmultimap(proto_multimap)
+        self.atlas.lineIndexToRelationIndices = _get_dict_from_protolongtolongmultimap(
+            proto_multimap)
 
     def _load_areaIdentifiers(self):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_AREA_IDENTIFIERS)
@@ -924,7 +929,7 @@ class _AtlasSerializer(object):
                                         self._FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX)
         proto_map = autogen.ProtoLongToLongMap_pb2.ProtoLongToLongMap()
         proto_map.ParseFromString(zip_entry_data)
-        self.atlas.areaIdentifierToAreaArrayIndex = _convert_protolongtolongmap(proto_map)
+        self.atlas.areaIdentifierToAreaArrayIndex = _get_dict_from_longtolongmap(proto_map)
 
     def _load_areaPolygons(self):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_AREA_POLYGONS)
@@ -932,7 +937,7 @@ class _AtlasSerializer(object):
         proto_array.ParseFromString(zip_entry_data)
         result = []
         for encoding in proto_array.encodings:
-            polygon0 = polygon.decompress_polygon(encoding)
+            polygon0 = geometry.decompress_polygon(encoding)
             result.append(polygon0)
         self.atlas.areaPolygons = result
 
@@ -940,13 +945,14 @@ class _AtlasSerializer(object):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_AREA_TAGS)
         proto_area_tags = autogen.ProtoPackedTagStore_pb2.ProtoPackedTagStore()
         proto_area_tags.ParseFromString(zip_entry_data)
-        self.atlas.areaTags = packed_tag_store.get_packed_tag_store_from_proto(proto_area_tags)
+        self.atlas.areaTags = _get_packed_tag_store_from_proto(proto_area_tags)
 
     def _load_areaIndexToRelationIndices(self):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_AREA_INDEX_TO_RELATION_INDICES)
         proto_multimap = autogen.ProtoLongToLongMultiMap_pb2.ProtoLongToLongMultiMap()
         proto_multimap.ParseFromString(zip_entry_data)
-        self.atlas.areaIndexToRelationIndices = _convert_protolongtolongmultimap(proto_multimap)
+        self.atlas.areaIndexToRelationIndices = _get_dict_from_protolongtolongmultimap(
+            proto_multimap)
 
     def _load_nodeIdentifiers(self):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_NODE_IDENTIFIERS)
@@ -958,7 +964,7 @@ class _AtlasSerializer(object):
                                         self._FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX)
         proto_map = autogen.ProtoLongToLongMap_pb2.ProtoLongToLongMap()
         proto_map.ParseFromString(zip_entry_data)
-        self.atlas.nodeIdentifierToNodeArrayIndex = _convert_protolongtolongmap(proto_map)
+        self.atlas.nodeIdentifierToNodeArrayIndex = _get_dict_from_longtolongmap(proto_map)
 
     def _load_nodeLocations(self):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_NODE_LOCATIONS)
@@ -969,7 +975,7 @@ class _AtlasSerializer(object):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_NODE_TAGS)
         proto_node_tags = autogen.ProtoPackedTagStore_pb2.ProtoPackedTagStore()
         proto_node_tags.ParseFromString(zip_entry_data)
-        self.atlas.nodeTags = packed_tag_store.get_packed_tag_store_from_proto(proto_node_tags)
+        self.atlas.nodeTags = _get_packed_tag_store_from_proto(proto_node_tags)
 
     def _load_nodeInEdgesIndices(self):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_NODE_IN_EDGES_INDICES)
@@ -985,7 +991,8 @@ class _AtlasSerializer(object):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_NODE_INDEX_TO_RELATION_INDICES)
         proto_multimap = autogen.ProtoLongToLongMultiMap_pb2.ProtoLongToLongMultiMap()
         proto_multimap.ParseFromString(zip_entry_data)
-        self.atlas.nodeIndexToRelationIndices = _convert_protolongtolongmultimap(proto_multimap)
+        self.atlas.nodeIndexToRelationIndices = _get_dict_from_protolongtolongmultimap(
+            proto_multimap)
 
     def _load_edgeIdentifiers(self):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_EDGE_IDENTIFIERS)
@@ -997,7 +1004,7 @@ class _AtlasSerializer(object):
                                         self._FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX)
         proto_map = autogen.ProtoLongToLongMap_pb2.ProtoLongToLongMap()
         proto_map.ParseFromString(zip_entry_data)
-        self.atlas.edgeIdentifierToEdgeArrayIndex = _convert_protolongtolongmap(proto_map)
+        self.atlas.edgeIdentifierToEdgeArrayIndex = _get_dict_from_longtolongmap(proto_map)
 
     def _load_edgeStartNodeIndex(self):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_EDGE_START_NODE_INDEX)
@@ -1015,7 +1022,7 @@ class _AtlasSerializer(object):
         proto_array.ParseFromString(zip_entry_data)
         result = []
         for encoding in proto_array.encodings:
-            poly_line = polyline.decompress_polyline(encoding)
+            poly_line = geometry.decompress_polyline(encoding)
             result.append(poly_line)
         self.atlas.edgePolyLines = result
 
@@ -1023,13 +1030,14 @@ class _AtlasSerializer(object):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_EDGE_TAGS)
         proto_edge_tags = autogen.ProtoPackedTagStore_pb2.ProtoPackedTagStore()
         proto_edge_tags.ParseFromString(zip_entry_data)
-        self.atlas.edgeTags = packed_tag_store.get_packed_tag_store_from_proto(proto_edge_tags)
+        self.atlas.edgeTags = _get_packed_tag_store_from_proto(proto_edge_tags)
 
     def _load_edgeIndexToRelationIndices(self):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_EDGE_INDEX_TO_RELATION_INDICES)
         proto_multimap = autogen.ProtoLongToLongMultiMap_pb2.ProtoLongToLongMultiMap()
         proto_multimap.ParseFromString(zip_entry_data)
-        self.atlas.edgeIndexToRelationIndices = _convert_protolongtolongmultimap(proto_multimap)
+        self.atlas.edgeIndexToRelationIndices = _get_dict_from_protolongtolongmultimap(
+            proto_multimap)
 
     def _load_relationIdentifiers(self):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_RELATION_IDENTIFIERS)
@@ -1041,7 +1049,7 @@ class _AtlasSerializer(object):
                                         self._FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX)
         proto_map = autogen.ProtoLongToLongMap_pb2.ProtoLongToLongMap()
         proto_map.ParseFromString(zip_entry_data)
-        self.atlas.relationIdentifierToRelationArrayIndex = _convert_protolongtolongmap(proto_map)
+        self.atlas.relationIdentifierToRelationArrayIndex = _get_dict_from_longtolongmap(proto_map)
 
     def _load_relationMemberTypes(self):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_RELATION_MEMBER_TYPES)
@@ -1064,15 +1072,15 @@ class _AtlasSerializer(object):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_RELATION_TAGS)
         proto_relation_tags = autogen.ProtoPackedTagStore_pb2.ProtoPackedTagStore()
         proto_relation_tags.ParseFromString(zip_entry_data)
-        self.atlas.relationTags = packed_tag_store.get_packed_tag_store_from_proto(
-            proto_relation_tags)
+        self.atlas.relationTags = _get_packed_tag_store_from_proto(proto_relation_tags)
 
     def _load_relationIndexToRelationIndices(self):
         zip_entry_data = _read_zipentry(self.atlas_file,
                                         self._FIELD_RELATION_INDEX_TO_RELATION_INDICES)
         proto_multimap = autogen.ProtoLongToLongMultiMap_pb2.ProtoLongToLongMultiMap()
         proto_multimap.ParseFromString(zip_entry_data)
-        self.atlas.relationIndexToRelationIndices = _convert_protolongtolongmultimap(proto_multimap)
+        self.atlas.relationIndexToRelationIndices = _get_dict_from_protolongtolongmultimap(
+            proto_multimap)
 
     def _load_field(self, field_name):
         if field_name not in self._FIELD_NAMES_TO_LOAD_METHODS:
@@ -1084,7 +1092,73 @@ class _AtlasSerializer(object):
         load_method_to_call()
 
 
+class _PackedTagStore(object):
+    """
+    Stores indexes into the global tag dictionary.
+    """
+
+    def __init__(self, dictionary):
+        self.keys = []
+        self.values = []
+        self.dictionary = dictionary
+
+    def set_dictionary(self, dictionary):
+        self.dictionary = dictionary
+
+    def __str__(self):
+        string = "KEYS:\n"
+        string += str(self.keys)
+        string += "\nVALUES:\n"
+        string += str(self.values)
+        return string
+
+    def to_key_value_dict(self, index):
+        if self.dictionary is None:
+            raise ValueError('dictionary is not set')
+
+        result = {}
+        if len(self.keys) == 0:
+            return result
+        key_array = self.keys[index]
+        value_array = self.values[index]
+
+        if len(key_array) != len(value_array):
+            raise IndexError('array length mismatch')
+
+        for key, value in zip(key_array, value_array):
+            result[self.dictionary.word(key)] = self.dictionary.word(value)
+
+        return result
+
+
+class _IntegerDictionary(object):
+    """
+    Integer string two-way dictionary.
+    """
+
+    # TODO do we even need this class?
+
+    def __init__(self):
+        self.word_to_index = {}
+        self.index_to_word = {}
+
+    def add(self, index, word):
+        if word in self.word_to_index:
+            return self.word_to_index[word]
+        self.word_to_index[word] = index
+        self.index_to_word[index] = word
+
+    def size(self):
+        return len(self.word_to_index)
+
+    def word(self, index):
+        # TODO this could throw a KeyError, how to handle?
+        return self.index_to_word[index]
+
+
 # --- static utility functions ---
+
+
 def _read_zipentry(zip_file, entry):
     """
     Read a zip entry from a given zip file.
@@ -1093,7 +1167,46 @@ def _read_zipentry(zip_file, entry):
         return myzip.read(entry)
 
 
-def _convert_protolongtolongmap(proto_map):
+def _get_packed_tag_store_from_proto(proto_store):
+    """
+    Take a decoded ProtoPackedTagStore object and turn
+    it into a more user friendly PackedTagStore object.
+    """
+    new_store = _PackedTagStore(None)
+
+    for key_array in proto_store.keys.arrays:
+        new_sub_array = []
+        for element in key_array.elements:
+            new_sub_array.append(element)
+        new_store.keys.append(new_sub_array)
+
+    for value_array in proto_store.values.arrays:
+        new_sub_array = []
+        for element in value_array.elements:
+            new_sub_array.append(element)
+        new_store.values.append(new_sub_array)
+
+    return new_store
+
+
+def _get_integer_dictionary_from_proto(proto_integer_dictionary):
+    """
+    Takes a decoded ProtoIntegerStringDictionary object and turns
+    it into a more user friendly IntegerDictionary object.
+    """
+    new_dict = _IntegerDictionary()
+    size_indexes = len(proto_integer_dictionary.indexes)
+    size_words = len(proto_integer_dictionary.words)
+    if size_words != size_indexes:
+        raise IndexError('proto array sizes do not match')
+
+    for index, word in zip(proto_integer_dictionary.indexes, proto_integer_dictionary.words):
+        new_dict.add(index, word)
+
+    return new_dict
+
+
+def _get_dict_from_longtolongmap(proto_map):
     """
     Convert the ProtoLongToLongMap_pb2 type to a simple dict.
     """
@@ -1105,7 +1218,7 @@ def _convert_protolongtolongmap(proto_map):
     return new_dict
 
 
-def _convert_protolongtolongmultimap(proto_map):
+def _get_dict_from_protolongtolongmultimap(proto_map):
     """
     Convert the ProtoLongToLongMultiMap_pb2 type to a simple dict.
     """
