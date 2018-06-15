@@ -853,7 +853,7 @@ class _AtlasSerializer(object):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_METADATA)
         proto_metadata = autogen.ProtoAtlasMetaData_pb2.ProtoAtlasMetaData()
         proto_metadata.ParseFromString(zip_entry_data)
-        self.atlas.metaData = atlas_metadata.get_atlas_metadata_from_proto(proto_metadata)
+        self.atlas.metaData = atlas_metadata._get_atlas_metadata_from_proto(proto_metadata)
 
     def _load_dictionary(self):
         zip_entry_data = _read_zipentry(self.atlas_file, self._FIELD_DICTIONARY)
