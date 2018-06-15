@@ -102,9 +102,9 @@ class Atlas(object):
         if not self.lazy_loading:
             self.load_all_fields()
 
-    def get_metadata(self):
+    def metadata(self):
         """
-        Get the metadata associated with this Atlas. See class AtlasMetaData
+        Get the metadata associated with this Atlas. See the AtlasMetaData class
         for more information on the metadata format.
         """
         if self.metaData is None:
@@ -280,8 +280,7 @@ class Atlas(object):
         Get a frozenset of all Points at some Location. Can optionally accept
         a predicate to further filter the Points.
         """
-        points_list = self._get_point_spatial_index().get(
-            location.get_bounds(), predicate=predicate)
+        points_list = self._get_point_spatial_index().get(location.bounds(), predicate=predicate)
         return points_list
 
     def points_within(self, polygon, predicate=lambda p: True):
@@ -289,11 +288,11 @@ class Atlas(object):
         Get a frozenset of all Points within some polygon. Can optionally accept
         a predicate to further filter the Points.
         """
-        points = self._get_point_spatial_index().get(polygon.get_bounds(), predicate=predicate)
+        points = self._get_point_spatial_index().get(polygon.bounds(), predicate=predicate)
         points_set = set()
-        for point0 in points:
-            if polygon.fully_geometrically_encloses_location(point0.get_location()):
-                points_set.add(point0)
+        for point in points:
+            if polygon.fully_geometrically_encloses_location(point.as_location()):
+                points_set.add(point)
 
         return frozenset(points_set)
 
@@ -302,12 +301,12 @@ class Atlas(object):
         Get a frozenset of all Lines containing some Location. Can optionally accept
         a predicate to further filter the Lines.
         """
-        lines = self._get_line_spatial_index().get(location.get_bounds(), predicate=predicate)
+        lines = self._get_line_spatial_index().get(location.bounds(), predicate=predicate)
         lines_set = set()
-        for line0 in lines:
-            polyline0 = line0.as_polyline()
-            if location.get_bounds().overlaps_polyline(polyline0):
-                lines_set.add(line0)
+        for line in lines:
+            polyline = line.as_polyline()
+            if location.bounds().overlaps_polyline(polyline):
+                lines_set.add(line)
 
         return frozenset(lines_set)
 
@@ -316,12 +315,12 @@ class Atlas(object):
         Get a frozenset of all Lines within or intersecting some Polygon. Can
         optionally accept a predicate to further filter the Lines.
         """
-        lines = self._get_line_spatial_index().get(polygon.get_bounds(), predicate=predicate)
+        lines = self._get_line_spatial_index().get(polygon.bounds(), predicate=predicate)
         lines_set = set()
-        for line0 in lines:
-            polyline0 = line0.as_polyline()
-            if polygon.overlaps_polyline(polyline0):
-                lines_set.add(line0)
+        for line in lines:
+            polyline = line.as_polyline()
+            if polygon.overlaps_polyline(polyline):
+                lines_set.add(line)
 
         return frozenset(lines_set)
 
@@ -330,11 +329,11 @@ class Atlas(object):
         Get a frozenset of all Areas covering some Location. Can optionally accept
         a predicate to further filter the Areas.
         """
-        areas = self._get_area_spatial_index().get(location.get_bounds(), predicate=predicate)
+        areas = self._get_area_spatial_index().get(location.bounds(), predicate=predicate)
         areas_set = set()
-        for area0 in areas:
-            if area0.as_polygon().fully_geometrically_encloses_location(location):
-                areas_set.add(area0)
+        for area in areas:
+            if area.as_polygon().fully_geometrically_encloses_location(location):
+                areas_set.add(area)
 
         return frozenset(areas_set)
 
@@ -343,11 +342,11 @@ class Atlas(object):
         Get a frozenset of all Areas within or intersecting some Polygon. Can
         optionally accept a predicate to further filter the Areas.
         """
-        areas = self._get_area_spatial_index().get(polygon.get_bounds(), predicate=predicate)
+        areas = self._get_area_spatial_index().get(polygon.bounds(), predicate=predicate)
         areas_set = set()
-        for area0 in areas:
-            if polygon.overlaps_polygon(area0.as_polygon()):
-                areas_set.add(area0)
+        for area in areas:
+            if polygon.overlaps_polygon(area.as_polygon()):
+                areas_set.add(area)
 
         return frozenset(areas_set)
 
@@ -356,7 +355,7 @@ class Atlas(object):
         Get a frozenset of all Nodes at some Location. Can optionally accept a
         predicate to further filter the Nodes.
         """
-        nodes_list = self._get_node_spatial_index().get(location.get_bounds(), predicate=predicate)
+        nodes_list = self._get_node_spatial_index().get(location.bounds(), predicate=predicate)
         return nodes_list
 
     def nodes_within(self, polygon, predicate=lambda n: True):
@@ -364,11 +363,11 @@ class Atlas(object):
         Get a frozenset of all Nodes within some polygon. Can optionally accept
         a predicate to further filter the Nodes.
         """
-        nodes = self._get_node_spatial_index().get(polygon.get_bounds(), predicate=predicate)
+        nodes = self._get_node_spatial_index().get(polygon.bounds(), predicate=predicate)
         nodes_set = set()
-        for node0 in nodes:
-            if polygon.fully_geometrically_encloses_location(node0.get_location()):
-                nodes_set.add(node0)
+        for node in nodes:
+            if polygon.fully_geometrically_encloses_location(node.as_location()):
+                nodes_set.add(node)
 
         return frozenset(nodes_set)
 
@@ -377,12 +376,12 @@ class Atlas(object):
         Get a frozenset of all Edges containing some Location. Can optionally accept
         a predicate to further filter the Edges.
         """
-        edges = self._get_edge_spatial_index().get(location.get_bounds(), predicate=predicate)
+        edges = self._get_edge_spatial_index().get(location.bounds(), predicate=predicate)
         edges_set = set()
-        for edge0 in edges:
-            polyline0 = edge0.as_polyline()
-            if location.get_bounds().overlaps_polyline(polyline0):
-                edges_set.add(edge0)
+        for edge in edges:
+            polyline = edge.as_polyline()
+            if location.bounds().overlaps_polyline(polyline):
+                edges_set.add(edge)
 
         return frozenset(edges_set)
 
@@ -391,12 +390,12 @@ class Atlas(object):
         Get a frozenset of all Edges within or intersecting some Polygon. Can
         optionally accept a predicate to further filter the Edges.
         """
-        edges = self._get_edge_spatial_index().get(polygon.get_bounds(), predicate=predicate)
+        edges = self._get_edge_spatial_index().get(polygon.bounds(), predicate=predicate)
         edges_set = set()
-        for edge0 in edges:
-            polyline0 = edge0.as_polyline()
-            if polygon.overlaps_polyline(polyline0):
-                edges_set.add(edge0)
+        for edge in edges:
+            polyline = edge.as_polyline()
+            if polygon.overlaps_polyline(polyline):
+                edges_set.add(edge)
 
         return frozenset(edges_set)
 
@@ -405,8 +404,7 @@ class Atlas(object):
         Return a frozenset of Relations which have at least one feature intersecting some
         Polygon. Can optionally accept a predicate to further filter the Relations.
         """
-        relations = self._get_relation_spatial_index().get(
-            polygon.get_bounds(), predicate=predicate)
+        relations = self._get_relation_spatial_index().get(polygon.bounds(), predicate=predicate)
         relations_set = set()
         for relation in relations:
             if relation.intersects(polygon):

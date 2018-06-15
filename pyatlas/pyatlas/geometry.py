@@ -32,7 +32,7 @@ class Boundable(object):
     def __init__(self):
         raise NotImplementedError('Boundable should not be instantiated')
 
-    def get_bounds(self):
+    def bounds(self):
         """
         Get the bounding Rectangle of this object.
         """
@@ -105,7 +105,7 @@ class Location(Boundable):
         packed = packed | (self.longitude & 0xFFFFFFFF)
         return packed
 
-    def get_bounds(self):
+    def bounds(self):
         """
         Get the bounding Rectangle of this Location.
         """
@@ -213,7 +213,7 @@ class PolyLine(Boundable):
 
         return encoded
 
-    def get_bounds(self):
+    def bounds(self):
         """
         Get the bounding Rectangle of this PolyLine.
         """
@@ -439,7 +439,7 @@ def bounds_atlasentities(entities):
 
     for entity in entities:
         yielded_at_least_one = True
-        for location in entity.get_bounds().locations():
+        for location in entity.bounds().locations():
             latitude = location.get_latitude()
             longitude = location.get_longitude()
             if lower_lat is None or latitude < lower_lat:
@@ -462,7 +462,7 @@ def boundable_to_shapely_box(boundable):
     Convert a pyatlas Boundable type to its Shapely Polygon representation.
     The Shapely Polygon will always be a rectangle.
     """
-    return polygon_to_shapely_polygon(boundable.get_bounds())
+    return polygon_to_shapely_polygon(boundable.bounds())
 
 
 def polygon_to_shapely_polygon(polygon):

@@ -86,9 +86,9 @@ class AtlasEntity(geometry.Boundable):
         """
         raise NotImplementedError('subclass must implement')
 
-    def get_bounds(self):
+    def bounds(self):
         """
-        Get the bounding Rectangle of this AtlasEntity.
+        Compute the bounding Rectangle of this AtlasEntity.
         """
         raise NotImplementedError('subclass must implement')
 
@@ -98,7 +98,7 @@ class AtlasEntity(geometry.Boundable):
         """
         raise NotImplementedError('subclass must implement')
 
-    def get_relations(self):
+    def relations(self):
         """
         Get the set of Relations of which this AtlasEntity is a member.
         """
@@ -126,7 +126,7 @@ class AtlasEntity(geometry.Boundable):
     def _get_relations_helper(self, relation_map, index):
         """
         Subclasses of AtlasEntity can use this helper function to
-        avoid code duplication in their get_relations() implementations.
+        avoid code duplication in their relations() implementations.
         """
         relation_set = set()
 
@@ -158,11 +158,11 @@ class Point(AtlasEntity):
         """
         result = '[ '
         result += 'Point: id=' + str(self.get_identifier())
-        result += ', geom=' + str(self.get_location())
+        result += ', geom=' + str(self.as_location())
         result += ', tags=' + str(self.get_tags())
 
         string = ''
-        for relation in self.get_relations():
+        for relation in self.relations():
             string += str(relation.get_identifier()) + ','
         result += ', relations=[' + string + ']'
 
@@ -175,7 +175,7 @@ class Point(AtlasEntity):
         """
         return self.get_parent_atlas()._get_pointIdentifiers().elements[self.index]
 
-    def get_location(self):
+    def as_location(self):
         """
         Get the Location of this Point.
         """
@@ -189,19 +189,19 @@ class Point(AtlasEntity):
         point_tag_store = self.get_parent_atlas()._get_pointTags()
         return point_tag_store.to_key_value_dict(self.index)
 
-    def get_bounds(self):
+    def bounds(self):
         """
-        Get the bounding Rectangle of this Point.
+        Compute the bounding Rectangle of this Point.
         """
-        return self.get_location().get_bounds()
+        return self.as_location().bounds()
 
     def intersects(self, polygon):
         """
         Check if this Point intersects some Polygon.
         """
-        return self.get_location().intersects(polygon)
+        return self.as_location().intersects(polygon)
 
-    def get_relations(self):
+    def relations(self):
         """
         Get the frozenset of Relations of which this Point is a member.
         Returns an empty set if this Point is not a member of any Relations.
@@ -238,7 +238,7 @@ class Line(AtlasEntity):
         result += ', tags=' + str(self.get_tags())
 
         string = ''
-        for relation in self.get_relations():
+        for relation in self.relations():
             string += str(relation.get_identifier()) + ','
         result += ', relations=[' + string + ']'
 
@@ -264,11 +264,11 @@ class Line(AtlasEntity):
         line_tag_store = self.get_parent_atlas()._get_lineTags()
         return line_tag_store.to_key_value_dict(self.index)
 
-    def get_bounds(self):
+    def bounds(self):
         """
-        Get the bounding Rectangle of this Line.
+        Compute the bounding Rectangle of this Line.
         """
-        return self.as_polyline().get_bounds()
+        return self.as_polyline().bounds()
 
     def intersects(self, polygon):
         """
@@ -276,7 +276,7 @@ class Line(AtlasEntity):
         """
         return self.as_polyline().intersects(polygon)
 
-    def get_relations(self):
+    def relations(self):
         """
         Get the frozenset of Relations of which this Line is a member.
         Returns an empty set if this Line is not a member of any Relations.
@@ -313,7 +313,7 @@ class Area(AtlasEntity):
         result += ', tags=' + str(self.get_tags())
 
         string = ''
-        for relation in self.get_relations():
+        for relation in self.relations():
             string += str(relation.get_identifier()) + ','
         result += ', relations=[' + string + ']'
 
@@ -339,11 +339,11 @@ class Area(AtlasEntity):
         area_tag_store = self.get_parent_atlas()._get_areaTags()
         return area_tag_store.to_key_value_dict(self.index)
 
-    def get_bounds(self):
+    def bounds(self):
         """
-        Get the bounding Rectangle of this Area.
+        Compute the bounding Rectangle of this Area.
         """
-        return self.as_polygon().get_bounds()
+        return self.as_polygon().bounds()
 
     def intersects(self, polygon):
         """
@@ -351,7 +351,7 @@ class Area(AtlasEntity):
         """
         return self.as_polygon().intersects(polygon)
 
-    def get_relations(self):
+    def relations(self):
         """
         Get the frozenset of Relations of which this Area is a member.
         Returns an empty set if this Area is not a member of any Relations.
@@ -385,21 +385,21 @@ class Node(AtlasEntity):
         """
         result = '[ '
         result += 'Node: id=' + str(self.get_identifier())
-        result += ', geom=' + str(self.get_location())
+        result += ', geom=' + str(self.as_location())
         result += ', tags=' + str(self.get_tags())
 
         string = ""
-        for edge in self.get_in_edges():
+        for edge in self.in_edges():
             string += str(edge.get_identifier()) + ','
         result += ', inEdges=[' + string + ']'
 
         string = ""
-        for edge in self.get_out_edges():
+        for edge in self.out_edges():
             string += str(edge.get_identifier()) + ','
         result += ', outEdges=[' + string + ']'
 
         string = ''
-        for relation in self.get_relations():
+        for relation in self.relations():
             string += str(relation.get_identifier()) + ','
         result += ', relations=[' + string + ']'
 
@@ -412,7 +412,7 @@ class Node(AtlasEntity):
         """
         return self.get_parent_atlas()._get_nodeIdentifiers().elements[self.index]
 
-    def get_location(self):
+    def as_location(self):
         """
         Get the Location of this Node.
         """
@@ -426,19 +426,19 @@ class Node(AtlasEntity):
         node_tag_store = self.get_parent_atlas()._get_nodeTags()
         return node_tag_store.to_key_value_dict(self.index)
 
-    def get_bounds(self):
+    def bounds(self):
         """
-        Get the bounding Rectangle of this Point.
+        Compute the bounding Rectangle of this Point.
         """
-        return self.get_location().get_bounds()
+        return self.as_location().bounds()
 
     def intersects(self, polygon):
         """
         Check if this Node intersects some Polygon.
         """
-        return self.get_location().intersects(polygon)
+        return self.as_location().intersects(polygon)
 
-    def get_in_edges(self):
+    def in_edges(self):
         """
         Get a list of incoming Edges to this Node. The list is sorted by the
         Edges' Atlas IDs.
@@ -449,7 +449,7 @@ class Node(AtlasEntity):
             result.append(Edge(self.get_parent_atlas(), index))
         return sorted(result)
 
-    def get_out_edges(self):
+    def out_edges(self):
         """
         Get a list of outgoing Edges from this Node. The list is sorted by the
         Edges' Atlas IDs.
@@ -460,15 +460,15 @@ class Node(AtlasEntity):
             result.append(Edge(self.get_parent_atlas(), index))
         return sorted(result)
 
-    def get_connected_edges(self):
+    def connected_edges(self):
         """
         Get a list of all Edges connected to this Node. The list is sorted by
         the Edges' Atlas IDs.
         """
         result = []
-        for edge in self.get_in_edges():
+        for edge in self.in_edges():
             result.append(edge)
-        for edge in self.get_out_edges():
+        for edge in self.out_edges():
             result.append(edge)
         return sorted(result)
 
@@ -477,21 +477,21 @@ class Node(AtlasEntity):
         Get the number of Edges connected to this node. Considers all Edges, not
         just master Edges.
         """
-        return len(self.get_connected_edges())
+        return len(self.connected_edges())
 
     def get_valence(self):
         """
         Get the number of Edges connected to this node. Only considers the
         master Edges.
         """
-        connected_edges = self.get_connected_edges()
+        connected_edges = self.connected_edges()
         valence = 0
         for edge in connected_edges:
             if edge.is_master_edge():
                 valence += 1
         return valence
 
-    def get_relations(self):
+    def relations(self):
         """
         Get the frozenset of Relations of which this Node is a member.
         Returns an empty set if this Node is not a member of any Relations.
@@ -531,18 +531,18 @@ class Edge(AtlasEntity):
         result += 'Edge: id=' + str(self.get_identifier())
 
         string = ""
-        string += str(self.get_start().get_identifier()) + ','
+        string += str(self.start().get_identifier()) + ','
         result += ', start=[' + string + ']'
 
         string = ""
-        string += str(self.get_end().get_identifier()) + ','
+        string += str(self.end().get_identifier()) + ','
         result += ', end=[' + string + ']'
 
         result += ', geom=' + str(self.as_polyline())
         result += ', tags=' + str(self.get_tags())
 
         string = ''
-        for relation in self.get_relations():
+        for relation in self.relations():
             string += str(relation.get_identifier()) + ','
         result += ', relations=[' + string + ']'
 
@@ -576,11 +576,11 @@ class Edge(AtlasEntity):
         edge_tag_store = self.get_parent_atlas()._get_edgeTags()
         return edge_tag_store.to_key_value_dict(self.index)
 
-    def get_bounds(self):
+    def bounds(self):
         """
-        Get the bounding Rectangle of this Edge.
+        Compute the bounding Rectangle of this Edge.
         """
-        return self.as_polyline().get_bounds()
+        return self.as_polyline().bounds()
 
     def intersects(self, polygon):
         """
@@ -588,7 +588,7 @@ class Edge(AtlasEntity):
         """
         return self.as_polyline().intersects(polygon)
 
-    def get_relations(self):
+    def relations(self):
         """
         Get the frozenset of Relations of which this Edge is a member.
         Returns an empty set if this Edge is not a member of any Relations.
@@ -596,31 +596,31 @@ class Edge(AtlasEntity):
         relation_map = self.get_parent_atlas()._get_edgeIndexToRelationIndices()
         return self._get_relations_helper(relation_map, self.index)
 
-    def get_connected_nodes(self):
+    def connected_nodes(self):
         """
         Get a frozenset of the Nodes connected to this Edge.
         """
         result = set()
-        result.add(self.get_start())
-        result.add(self.get_end())
+        result.add(self.start())
+        result.add(self.end())
         return frozenset(result)
 
-    def get_connected_edges(self):
+    def connected_edges(self):
         """
         Get a frozenset of the Edges connected at the ends of the Nodes of this
         Edge. The set will not contain the Edge this is method called on, but
         will contain the reversed Edge if this Edge is part of a two-way road.
         """
         result = set()
-        for edge in self.get_end().get_connected_edges():
+        for edge in self.end().connected_edges():
             if self != edge:
                 result.add(edge)
-        for edge in self.get_start().get_connected_edges():
+        for edge in self.start().connected_edges():
             if self != edge:
                 result.add(edge)
         return result
 
-    def get_start(self):
+    def start(self):
         """
         Get the starting Node of this Edge.
         """
@@ -628,7 +628,7 @@ class Edge(AtlasEntity):
         index = edge_start_node_index.elements[self.index]
         return Node(self.get_parent_atlas(), index)
 
-    def get_end(self):
+    def end(self):
         """
         Get the ending Node of this Edge.
         """
@@ -692,10 +692,10 @@ class Edge(AtlasEntity):
         """
         for entity in candidates:
             if entity.get_type() == EntityType.NODE:
-                if self.get_end() == entity:
+                if self.end() == entity:
                     return True
             if entity.get_type() == EntityType.EDGE:
-                if self.get_end() == entity.get_start():
+                if self.end() == entity.start():
                     return True
         return False
 
@@ -706,10 +706,10 @@ class Edge(AtlasEntity):
         """
         for entity in candidates:
             if entity.get_type() == EntityType.NODE:
-                if self.get_start() == entity:
+                if self.start() == entity:
                     return True
             if entity.get_type() == EntityType.EDGE:
-                if self.get_start() == entity.get_end():
+                if self.start() == entity.end():
                     return True
         return False
 
@@ -752,7 +752,7 @@ class Relation(AtlasEntity):
         result += ', members=[' + string + ']'
 
         string = ''
-        for relation in self.get_relations():
+        for relation in self.relations():
             string += str(relation.get_identifier()) + ','
         result += ', relations=[' + string + ']'
 
@@ -811,9 +811,9 @@ class Relation(AtlasEntity):
         relation_tag_store = self.get_parent_atlas()._get_relationTags()
         return relation_tag_store.to_key_value_dict(self.index)
 
-    def get_bounds(self):
+    def bounds(self):
         """
-        Get the bounding Rectangle of this Relation's members.
+        Compute the bounding Rectangle of this Relation's members.
         """
         # FIXME this fails if Relations have self-referencing members
         # this will never happen in a PackedAtlas so it should be OK for now
@@ -847,7 +847,7 @@ class Relation(AtlasEntity):
 
         return False
 
-    def get_relations(self):
+    def relations(self):
         """
         Get the frozenset of Relations of which this Relation is a member.
         Returns an empty set if this Relation is not a member of any Relations.

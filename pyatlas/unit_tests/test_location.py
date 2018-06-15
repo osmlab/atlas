@@ -62,7 +62,7 @@ class LocationTest(unittest.TestCase):
     def test_location_bounds(self):
         testlocation = Location(450000000, 450000000)
         testlocationbounds = Rectangle(testlocation, testlocation)
-        bound = testlocation.get_bounds()
+        bound = testlocation.bounds()
         self.assertEqual(bound, testlocationbounds)
 
 

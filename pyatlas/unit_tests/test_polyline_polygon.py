@@ -51,7 +51,7 @@ class PolyLinePolygonTest(unittest.TestCase):
             Location(1000, 450000000)
         ]
         expected_rect = Rectangle(Location(0, 0), Location(450000000, 450000000))
-        computed_rect = PolyLine(loclist).get_bounds()
+        computed_rect = PolyLine(loclist).bounds()
         self.assertEqual(expected_rect, computed_rect)
 
         # now test again but with a Polygon
@@ -63,7 +63,7 @@ class PolyLinePolygonTest(unittest.TestCase):
             Location(1000, 450000000)
         ]
         expected_rect = Rectangle(Location(0, 0), Location(450000000, 450000000))
-        computed_rect = Polygon(loclist).get_bounds()
+        computed_rect = Polygon(loclist).bounds()
         self.assertEqual(expected_rect, computed_rect)
 
     def test_fully_geometrically_encloses_location(self):

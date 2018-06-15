@@ -19,7 +19,7 @@ class PolygonConvertersTest(unittest.TestCase):
             Location(450000000, 450000000),
             Location(1000, 450000000)
         ]
-        bounds = Polygon(loclist).get_bounds()
+        bounds = Polygon(loclist).bounds()
 
         shapely_box = geometry.boundable_to_shapely_box(bounds)
         test_against = shapely.geometry.LineString([(0, 0), (450000000, 0), (450000000, 450000000),
