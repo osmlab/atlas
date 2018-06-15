@@ -62,7 +62,8 @@ public enum BuildingTag
     HANGAR,
     STABLE,
     TRANSFORMER_TOWER,
-    RUINS;
+    RUINS,
+    ENTRANCE;
 
     private static EnumSet<BuildingTag> VALID_BUILDINGS = EnumSet.of(YES, RESIDENTIAL, COMMERCIAL,
             SHOP, HOUSE, GARAGE, APARTMENTS, HUT, INDUSTRIAL, DETACHED, ROOF, SHED, TERRACE, SCHOOL,
