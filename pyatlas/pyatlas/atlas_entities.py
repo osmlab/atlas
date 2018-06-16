@@ -608,7 +608,7 @@ class Edge(AtlasEntity):
     def connected_edges(self):
         """
         Get a frozenset of the Edges connected at the ends of the Nodes of this
-        Edge. The set will not contain the Edge this is method called on, but
+        Edge. The set will not contain the Edge this method is called on, but
         will contain the reversed Edge if this Edge is part of a two-way road.
         """
         result = set()

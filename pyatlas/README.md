@@ -215,7 +215,7 @@ See the class definitions in `doc/geometry.html` for more information.
 #### Spatial queries
 `pyatlas` supports some simple spatial queries over its feature space. The queries use the geometry
 primitives provided by the `geometry` module, but convert to [Shapely](https://github.com/Toblerity/Shapely)
-primitives under the hood to make queries into a native [libgeos](https://github.com/OSGeo/geos) backed RTree.
+primitives under the hood to make queries into a native [libgeos-backed](https://github.com/OSGeo/geos) RTree.
 Below are some examples of spatial queries the `Atlas` supports:
 
 

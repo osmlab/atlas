@@ -360,7 +360,7 @@ class Atlas(object):
 
     def nodes_within(self, polygon, predicate=lambda n: True):
         """
-        Get a frozenset of all Nodes within some polygon. Can optionally accept
+        Get a frozenset of all Nodes within some Polygon. Can optionally accept
         a predicate to further filter the Nodes.
         """
         nodes = self._get_node_spatial_index().get(polygon.bounds(), predicate=predicate)
