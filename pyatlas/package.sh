@@ -82,7 +82,7 @@ chmod 700 "$protoc_path"
 # read -r -d '' reads raw input delimited by NUL characters
 while IFS= read -r -d '' protofile
 do
-    $protoc_path "$protofile" --proto_path="$protofiles_dir" --python_out="$pyatlas_root_dir/$pyatlas_srcdir/autogen" || err_shutdown "protoc invocation failed"
+    "$protoc_path" "$protofile" --proto_path="$protofiles_dir" --python_out="$pyatlas_root_dir/$pyatlas_srcdir/autogen" || err_shutdown "protoc invocation failed"
 done < <(find "$protofiles_dir" -type f -name "*.proto" -print0)
 
 
