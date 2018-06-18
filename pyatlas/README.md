@@ -20,7 +20,7 @@ Now that you have your virtual environment set up, you can install `pyatlas` wit
 
     (venv) $ pip install pyatlas
 
-If pip is unable to find the `pyatlas` module, you may need to build it from
+If pip is unable to find the `pyatlas` package, you may need to build it from
 source yourself. Check the next section for more info.
 
 To test that everything went smoothly, create a file `helloatlas.py` with the following code:
