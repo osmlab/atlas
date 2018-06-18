@@ -56,4 +56,3 @@ find "$pyatlas_root_dir/$pyatlas_srcdir/autogen" -type f -name "*_pb2.py" -delet
 find "$pyatlas_root_dir/$pyatlas_srcdir" -type f -name "*.pyc" -delete
 find "$pyatlas_root_dir/$pyatlas_srcdir/autogen" -type f -name "*.pyc" -delete
 find "$pyatlas_root_dir/$pyatlas_testdir" -type f -name "*.pyc" -delete
-find "$pyatlas_root_dir/$pyatlas_docdir" -type f -name "*.html" -delete

@@ -86,13 +86,12 @@ with no formatter diff being displayed, check to make sure that the file has an 
 
 ----
 ## Documentation
-`pyatlas` documentation is automatically generated using the `pydoc` tool and
-stored in the `doc` folder. To build
-the documentation, run the gradle build command:
+`pyatlas` includes its documentation in the repository for convenience. However,
+if you would like to rebuild the documentation, you can run:
 
     $ ./gradlew buildPyatlas
 
-This will generate HTML files detailing the functions and classes available in each module.
+This will generate fresh pydoc HTML files detailing the functions and classes available in each module.
 
 ----
 ## Some sample use cases
