@@ -51,7 +51,16 @@ source "$venv_path/bin/activate"
 
 # grab the build version from gradle.properties and inject it into setup.py
 atlas_version=$(grep "version=" "$gradle_project_root_dir/gradle.properties" | cut -f2 -d "=")
-sed -i "" "s/version=.*/version=\"$atlas_version\",/" "$pyatlas_root_dir/setup.py"
+# GNU and BSD sed have different "in-place" flag syntax
+if [ "$(uname)" == "Darwin" ];
+then
+    sed -i "" "s/version=.*/version=\"$atlas_version\",/" "$pyatlas_root_dir/setup.py"
+elif [ "$(uname)" == "Linux" ];
+then
+    sed --in-place="" "s/version=.*/version=\"$atlas_version\",/" "$pyatlas_root_dir/setup.py"
+else
+    err_shutdown "unrecognized platform $(uname)"
+fi
 
 # enter the pyatlas project directory so the unittest code can discover tests
 pushd "$pyatlas_root_dir"
@@ -63,7 +72,16 @@ python -m unittest discover -v -s "$pyatlas_testdir" || err_shutdown "a test fai
 popd
 
 # reset version field in setup.py
-sed -i "" "s/version=.*/version=/" "$pyatlas_root_dir/setup.py"
+# GNU and BSD sed have different "in-place" flag syntax
+if [ "$(uname)" == "Darwin" ];
+then
+    sed -i "" "s/version=.*/version=/" "$pyatlas_root_dir/setup.py"
+elif [ "$(uname)" == "Linux" ];
+then
+    sed --in-place="" "s/version=.*/version=/" "$pyatlas_root_dir/setup.py"
+else
+    err_shutdown "unrecognized platform $(uname)"
+fi
 
 # shutdown the venv
 deactivate
