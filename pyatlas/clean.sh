@@ -48,6 +48,7 @@ echo "Cleaning build artifacts if present..."
 rm -rf "$pyatlas_root_dir/build"
 rm -rf "$pyatlas_root_dir/dist"
 rm -rf "$pyatlas_root_dir/pyatlas.egg-info"
+rm -f "$pyatlas_root_dir/LICENSE"
 rm -rf "$venv_path"
 rm -f "$protoc_path"
 # use 'find' to handle case where filenames contain spaces

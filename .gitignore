@@ -29,4 +29,5 @@ pyatlas/pyatlas.egg-info/
 __*venv__
 pyatlas/protoc
 pyatlas/doc/*.html
+pyatlas/LICENSE
 

@@ -5,7 +5,8 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pyatlas",
-    version="1.0.0",
+    version="5.0.17",
+    data_files=[("", ["LICENSE"])],
     author="lucaspcram",
     author_email="lucaspcram@gmail.com",
     description="A simplified Python API for Atlas",
@@ -18,7 +19,8 @@ setuptools.setup(
         'shapely==1.6.4'
     ],
     classifiers=(
-        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.7",
         "Operating System :: OS Independent",
+        "License :: OSI Approved :: 3-Clause BSD License"
     ),
 )

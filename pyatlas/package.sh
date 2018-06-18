@@ -96,6 +96,9 @@ fi
 # shellcheck source=/dev/null
 source "$venv_path/bin/activate"
 
+# copy the LICENSE to the pyatlas folder
+cp "$gradle_project_root_dir/LICENSE" "$pyatlas_root_dir"
+
 # enter the pyatlas project directory so module metadata is generated correctly
 pushd "$pyatlas_root_dir"
 echo "Building and packaging pyatlas module..."
