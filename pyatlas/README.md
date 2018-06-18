@@ -110,7 +110,7 @@ You can get filtered iterables over an `Atlas`'s features using the methods prov
 
 ```python
 # print all Nodes
-for node in atlas.nodes()
+for node in atlas.nodes():
     print node
 
 # print all Edges that have 'key1' as a tag key
@@ -211,8 +211,8 @@ print polygon1.fully_geometrically_encloses_location(geometry.location_with_degr
 # create a new Rectangle with given lower left and upper right corners
 rect = Rectangle(geometry.location_with_degrees(0, 0), geometry.location_with_degrees(20, 20))
 print rect
-# this Rectangle overlaps polygon1
-print rect.overlaps_polygon(polygon1)
+# this Rectangle intersects (overlaps at any point) polygon1
+print rect.intersects(polygon1)
 ```
 
 See the classes in `doc/geometry.html` for more information.

@@ -270,7 +270,7 @@ class Polygon(PolyLine):
         shapely_poly_self = polygon_to_shapely_polygon(self)
         return shapely_poly_self.contains(shapely_point)
 
-    def overlaps_polygon(self, polygon):
+    def _overlaps_polygon(self, polygon):
         """
         Test if this Polygon overlaps a given Polygon at any point.
         """
@@ -305,9 +305,10 @@ class Polygon(PolyLine):
 
     def intersects(self, polygon):
         """
-        Check if this Polygon intersects some other Polygon.
+        Check if this Polygon intersects some other Polygon (ie. overlaps it
+        at any point).
         """
-        return polygon.overlaps_polygon(self)
+        return self._overlaps_polygon(polygon)
 
 
 class Rectangle(Polygon):

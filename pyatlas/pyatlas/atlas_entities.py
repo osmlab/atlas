@@ -112,7 +112,7 @@ class AtlasEntity(geometry.Boundable):
 
     def get_osm_identifier(self):
         """
-        Get the OSM identifier of the AtlasEntity.
+        Get the OSM identifier of this AtlasEntity.
         """
         atlas_id = self.get_identifier()
         return identifier_converters.get_osm_identifier(atlas_id)

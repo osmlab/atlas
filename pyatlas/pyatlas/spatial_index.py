@@ -20,11 +20,11 @@ class SpatialIndex(object):
     def __init__(self, parent_atlas, entity_type, initial_entities=None):
         """
         Create a new SpatialIndex. Requires a reference to the parent Atlas of
-        this index, as well as the EntityType of the entities it will store. Can
-        optionally accept an iterable of AtlasEntities with which to initialize
+        this index, as well as the EntityType of the AtlasEntities it will store.
+        Can optionally accept an iterable of AtlasEntities with which to initialize
         the index.
 
-        In order to start using the tree, one must specify which backing
+        In order to start using the index, one must specify which backing tree
         implementation to use.
         """
         self.tree = None
@@ -34,7 +34,7 @@ class SpatialIndex(object):
 
     def initialize_rtree(self):
         """
-        Initialize an rtree to back this SpatialIndex. The underlying rtree
+        Initialize an R-tree to back this SpatialIndex. The underlying R-tree
         implementation is immutable, so repeated calls to add() will degrade
         performance.
         """
@@ -85,16 +85,14 @@ class _RTree(object):
     elements, and rebuilding the _CustomSTRtree on each add. For this reason,
     extensive use of the add() method is not recommended.
 
-    TODO make the _CustomSTRtree implementation mutable
-
     Note also, this class stores raw AtlasEntity identifiers without any
-    EntityType information. For this reason, users of RTree should avoid adding
+    EntityType information. For this reason, users of _RTree should avoid adding
     AtlasEntities with different EntityTypes in the same tree.
     """
 
     def __init__(self, initial_entities=None):
         """
-        Create a new RTree, optionally with an iterable of initial AtlasEntities.
+        Create a new _RTree, optionally with an iterable of initial AtlasEntities.
         """
         self.contents = []
         self.tree = None
@@ -113,7 +111,7 @@ class _RTree(object):
             geometry.boundable_to_shapely_box(entity) for entity in self.contents
         ]
 
-        # pack the arguments in format expected by the _HackSTRtree
+        # pack the arguments in format expected by the _CustomSTRtree
         hacktree_arguments = []
         for entity, cont in zip(self.contents, contents_shapely_format):
             hacktree_arguments.append((entity.get_identifier(), cont))
@@ -122,7 +120,7 @@ class _RTree(object):
 
     def add(self, entity):
         """
-        Insert an AtlasEntity into the RTree. The underlying STRtree is
+        Insert an AtlasEntity into the _RTree. The underlying STRtree is
         immutable, so this method forces a rebuild of the entire tree.
         """
         self.contents.append(entity)
@@ -137,13 +135,13 @@ class _RTree(object):
             boundable = geometry.boundable_to_shapely_box(boundable)
             return self.tree.get(boundable)
         else:
-            raise ValueError('RTree is empty')
+            raise ValueError('R-tree is empty')
 
 
 class _CustomSTRtree(object):
     """
     Hack re-implementation of the shapely STRtree. Changes the behaviour of the
-    strtree to allow for insertion of the entity atlas identifier (type long).
+    STRtree to allow for insertion of the entity atlas identifier (type long).
     """
 
     def __init__(self, items):

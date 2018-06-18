@@ -35,10 +35,10 @@ class Atlas(object):
 
     def __init__(self, atlas_file_path, lazy_loading=True):
         """
-        Create a new Atlas. The Atlas will be backed by the atlas file at the
-        provided path (string). Disabling lazy loading will force the full Atlas
-        into memory. This will incur a significant perfomance penalty at creation
-        time, but will make subsequent queries as fast as possible.
+        Create a new Atlas backed by the atlas file at the provided path (string).
+        Disabling lazy loading will force the full Atlas into memory. This will
+        incur a significant perfomance penalty at creation time, but will make
+        subsequent queries as fast as possible.
         """
         self.serializer = _AtlasSerializer(atlas_file_path, self)
         self.lazy_loading = lazy_loading
@@ -345,7 +345,7 @@ class Atlas(object):
         areas = self._get_area_spatial_index().get(polygon.bounds(), predicate=predicate)
         areas_set = set()
         for area in areas:
-            if polygon.overlaps_polygon(area.as_polygon()):
+            if polygon.intersects(area.as_polygon()):
                 areas_set.add(area)
 
         return frozenset(areas_set)
