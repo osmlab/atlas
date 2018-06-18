@@ -122,8 +122,12 @@ python "setup.py" sdist -d "dist" bdist_wheel -d "dist"
 pip install -e .
 # hack to make pydoc work
 export PYTHONPATH="$PYTHONPATH:$pyatlas_root_dir/$pyatlas_srcdir:$pyatlas_root_dir/$pyatlas_srcdir/autogen"
-find "$pyatlas_srcdir/"*.py -exec pydoc -w {} +
-find "$pyatlas_root_dir/"*.html -exec mv {} "$doc_dir" \;
+# FIXME this will fail if source file has a space
+pydoc -w "$pyatlas_srcdir"/*.py
+mv ./*.html "$doc_dir"
+# this would be the correct way, but for some reason the 'find exec' fails on atlas.py
+#find "$pyatlas_srcdir"/*.py -exec pydoc -w {} \;
+#find "$pyatlas_root_dir/"*.html -exec mv {} "$doc_dir" \;
 
 # get back to gradle project directory
 popd
