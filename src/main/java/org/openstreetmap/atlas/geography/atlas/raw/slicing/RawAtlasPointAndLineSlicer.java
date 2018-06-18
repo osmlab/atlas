@@ -208,7 +208,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             this.slicedPointAndLineChanges.updateLineTags(line.getIdentifier(), tags);
             updateLineShapePoints(line);
         }
-        else if (slicesBelongToSingleCountry(slices))
+        else if (slicesBelongToSingleCountry(slices)
+                && !getCountryBoundaryMap().shouldForceSlicing(line))
         {
             // This line belongs to a single country, check to make sure it's the right one
             if (isOutsideWorkingBound(slices.get(0)))
