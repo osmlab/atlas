@@ -49,6 +49,10 @@ fi
 # shellcheck source=/dev/null
 source "$venv_path/bin/activate"
 
+# grab the build version from gradle.properties and inject it into setup.py
+atlas_version=$(grep "version=" "$gradle_project_root_dir/gradle.properties" | cut -f2 -d "=")
+sed -i "" "s/version=.*/version=\"$atlas_version\",/" "$pyatlas_root_dir/setup.py"
+
 # enter the pyatlas project directory so the unittest code can discover tests
 pushd "$pyatlas_root_dir"
 pip install -e "$pyatlas_root_dir"
@@ -57,6 +61,9 @@ echo "----------------------------------------------------------------------"
 python -m unittest discover -v -s "$pyatlas_testdir" || err_shutdown "a test failed, aborting early..."
 # get back to gradle project directory
 popd
+
+# reset version field in setup.py
+sed -i "" "s/version=.*/version=/" "$pyatlas_root_dir/setup.py"
 
 # shutdown the venv
 deactivate

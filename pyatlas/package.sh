@@ -99,8 +99,13 @@ source "$venv_path/bin/activate"
 # copy the LICENSE to the pyatlas folder
 cp "$gradle_project_root_dir/LICENSE" "$pyatlas_root_dir"
 
+# grab the build version from gradle.properties and inject it into setup.py
+atlas_version=$(grep "version=" "$gradle_project_root_dir/gradle.properties" | cut -f2 -d "=")
+sed -i "" "s/version=.*/version=\"$atlas_version\",/" "$pyatlas_root_dir/setup.py"
+
 # enter the pyatlas project directory so module metadata is generated correctly
 pushd "$pyatlas_root_dir"
+
 echo "Building and packaging pyatlas module..."
 python "setup.py" sdist -d "dist" bdist_wheel -d "dist"
 
@@ -108,12 +113,14 @@ python "setup.py" sdist -d "dist" bdist_wheel -d "dist"
 pip install -e .
 # hack to make pydoc work
 export PYTHONPATH="$PYTHONPATH:$pyatlas_root_dir/$pyatlas_srcdir:$pyatlas_root_dir/$pyatlas_srcdir/autogen"
-# FIXME this fails to glob files with a space
-pydoc -w "$pyatlas_srcdir"/*.py
-mv ./*.html "$doc_dir"
+find "$pyatlas_srcdir/"*.py -exec pydoc -w {} +
+find "$pyatlas_root_dir/"*.html -exec mv {} "$doc_dir" \;
 
 # get back to gradle project directory
 popd
+
+# reset version field in setup.py
+sed -i "" "s/version=.*/version=/" "$pyatlas_root_dir/setup.py"
 
 # shutdown the venv
 deactivate

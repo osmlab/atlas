@@ -3,12 +3,16 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+# The version field is left blank, and is populated automatically by
+# the 'buildPyatlas' gradle target at build time. The target then resets
+# the field to blank before completing.
 setuptools.setup(
     name="pyatlas",
-    version="5.0.17",
+    version=
     data_files=[("", ["LICENSE"])],
     author="lucaspcram",
     author_email="lucaspcram@gmail.com",
+    license="3-Clause BSD License",
     description="A simplified Python API for Atlas",
     long_description=long_description,
     long_description_content_type="text/markdown",
