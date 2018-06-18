@@ -18,9 +18,9 @@ in dependencies, see the next section.)
 
 Now that you have your virtual environment set up, you can install `pyatlas` with:
 
-    (venv) $ pip install /path/to/pyatlas/wheel
+    (venv) $ pip install pyatlas
 
-If you do not have a `pyatlas` wheel available, you may need to build it from
+If pip is unable to find the `pyatlas` module, you may need to build it from
 source yourself. Check the next section for more info.
 
 To test that everything went smoothly, create a file `helloatlas.py` with the following code:
