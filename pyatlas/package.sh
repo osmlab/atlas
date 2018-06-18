@@ -119,7 +119,6 @@ echo "Building and packaging pyatlas module..."
 python "setup.py" sdist -d "dist" bdist_wheel -d "dist"
 
 # self-install and create the docs
-find "$pyatlas_root_dir/$doc_dir" -type f -name "*.html" -delete
 pip install -e .
 # hack to make pydoc work
 export PYTHONPATH="$PYTHONPATH:$pyatlas_root_dir/$pyatlas_srcdir:$pyatlas_root_dir/$pyatlas_srcdir/autogen"
