@@ -118,9 +118,10 @@ for edge in atlas.edges(predicate=lambda e: 'key1' in e.get_tags().keys()):
     print edge
 ```
 
-You can also get a feature with a specific identifier (eg. a `Relation` with ID 2) like:
+You can also get a feature with a specific identifier like:
 
 ```python
+# print the Relation with Atlas ID 2
 print atlas.relation(2)
 ```
 
@@ -132,19 +133,22 @@ print metadata.number_of_points
 print metadata.country
 ```
 
-Check out `doc/atlas_metadata.html` for more information.
+Check out `doc/atlas.html` and `doc/atlas_metadata.html` for more information.
 
 #### Operating on features
 The `Atlas` features themselves support a set of operations defined in their respective classes.
 
-Here is an example that prints out the tags of a feature, as well as data relating to some
-relations and their members:
+Here is a quick example:
 
 ```python
+# print the tag dict for Point with Atlas ID 3
 print atlas.point(3).get_tags()
+
+# print all Relations of which the Node with Atlas ID 1 is a member
 for relation in atlas.node(1).relations():
     print relation
 
+# print all the members of Relation with Atlas ID 1
 for member in atlas.relation(1).get_members():
     # print the RelationMember object
     print member
@@ -152,7 +156,8 @@ for member in atlas.relation(1).get_members():
     print member.get_entity()
 ```
 
-`Node`s and `Edge`s, in particular, support traversal through their connectivity API:
+`Node`s and `Edge`s, in particular, support traversal through their connectivity API.
+Here are just the basics of what you can do with the connectivity interface:
 
 ```python
 # print Edges connected to Node with ID 3
@@ -178,9 +183,9 @@ surface of the Earth. Here is a simple example that uses these primitives:
 from pyatlas import geometry
 from pyatlas.geometry import Location, PolyLine, Polygon, Rectangle
 
-# Location constructor uses dm7 by default, see Location docs for info on dm7
+# Location constructor (lat/lon ordering) uses dm7 by default, see Location docs for info on dm7
 loc1 = Location(385000000, -1160200000)
-# create the same Location but with degree values instead
+# create the same Location but with degree values instead (lat/lon ordering)
 loc2 = geometry.location_with_degrees(38.5, -116.02)
 print loc1.get_latitude_deg()
 print loc2.get_latitude()
@@ -210,14 +215,37 @@ print rect
 print rect.overlaps_polygon(polygon1)
 ```
 
-See the class definitions in `doc/geometry.html` for more information.
+See the classes in `doc/geometry.html` for more information.
 
 #### Spatial queries
 `pyatlas` supports some simple spatial queries over its feature space. The queries use the geometry
 primitives provided by the `geometry` module, but convert to [Shapely](https://github.com/Toblerity/Shapely)
-primitives under the hood to make queries into a native [libgeos-backed](https://github.com/OSGeo/geos) RTree.
+primitives under the hood to make queries into a native [libgeos-backed](https://github.com/OSGeo/geos) R-tree.
 Below are some examples of spatial queries the `Atlas` supports:
 
+```python
+from pyatlas import geometry
+from pyatlas.geometry import Rectangle
+
+# print all Points intersecting a given Polygon that also have "key1" as a tag key
+lower_left = geometry.location_with_degrees(37, -118.02)
+upper_right = geometry.location_with_degrees(39, -118)
+for point in atlas.points_within(Rectangle(lower_left, upper_right),
+                                 predicate=lambda e: 'key1' in e.get_tags().keys()):
+    print point
+
+# print all Relations with at least one member intersecting a given Polygon
+lower_left = geometry.location_with_degrees(37.999, -118.001)
+upper_right = geometry.location_with_degrees(38.001, -117.999)
+for relation in atlas.relations_with_entities_intersecting(Rectangle(lower_left, upper_right)):
+    print relation
+
+# print all Edges that intersect a given Polygon
+lower_left = geometry.location_with_degrees(38, -120)
+upper_right = geometry.location_with_degrees(40, -117)
+for edge in atlas.edges_intersecting(Rectangle(lower_left, upper_right)):
+    print edge
+```
 
 See `doc/atlas.html` for more information on the available spatial queries.
 
