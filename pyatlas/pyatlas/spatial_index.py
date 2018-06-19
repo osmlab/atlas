@@ -36,7 +36,7 @@ class SpatialIndex(object):
         """
         Initialize an R-tree to back this SpatialIndex. The underlying R-tree
         implementation is immutable, so repeated calls to add() will degrade
-        performance.
+        performance. For more information, see the documentation in the _RTree class.
         """
         self.tree = _RTree(self.initial_entities)
 
@@ -80,14 +80,18 @@ class SpatialIndex(object):
 class _RTree(object):
     """
     A wrapper class for the _CustomSTRtree implementation, which calls into the
-    GEOS C library using machinery from Shapely. _CustomSTRtree is immutable,
-    but this class simulates mutability by maintaining a parallel list of
-    elements, and rebuilding the _CustomSTRtree on each add. For this reason,
-    extensive use of the add() method is not recommended.
-
-    Note also, this class stores raw AtlasEntity identifiers without any
+    native GEOS library using machinery from Shapely.
+    
+    This class stores raw AtlasEntity identifiers without any
     EntityType information. For this reason, users of _RTree should avoid adding
-    AtlasEntities with different EntityTypes in the same tree.
+    AtlasEntities with different EntityTypes to the same tree.
+    
+    Note also that the underlying tree implementation (GEOS R-tree) this class uses
+    is immutable. _RTree simulates mutability by maintaining a parallel list of
+    elements, and rebuilding the underlying tree on each add. For this reason,
+    extensive use of the add() method is not recommended. For more information on
+    the immutability of the GEOS R-tree, check out this class in the GEOS codebase:
+    https://github.com/OSGeo/geos/blob/master/src/index/strtree/AbstractSTRtree.cpp
     """
 
     def __init__(self, initial_entities=None):
@@ -120,8 +124,10 @@ class _RTree(object):
 
     def add(self, entity):
         """
-        Insert an AtlasEntity into the _RTree. The underlying STRtree is
-        immutable, so this method forces a rebuild of the entire tree.
+        Insert an AtlasEntity into the _RTree. The underlying _CustomSTRtree
+        (which trivially wraps the GEOS STRtree) is immutable once "built", so
+        this method forces a rebuild of the entire tree. The STRtree is "built"
+        once any type of query has been made on it.
         """
         self.contents.append(entity)
         self._construct_tree_from_contents()
