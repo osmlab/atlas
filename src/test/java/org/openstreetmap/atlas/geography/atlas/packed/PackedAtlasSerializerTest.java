@@ -46,8 +46,8 @@ public class PackedAtlasSerializerTest
     public void testDeserializedSpatialIndex()
     {
         final Atlas deserialized = deserialized();
-        Assert.assertEquals(1, Iterables.size(
-                deserialized.areasIntersecting(Location.TEST_3.boxAround(Distance.ONE_METER))));
+        Assert.assertEquals(2, Iterables.size(
+                deserialized.areasIntersecting(Location.TEST_8.boxAround(Distance.ONE_METER))));
     }
 
     @Test
