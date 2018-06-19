@@ -162,7 +162,7 @@ new PackedAtlasCloner().cloneFrom(new MultiAtlas(atlas1, atlas2)).save(new File(
 
 # PyAtlas
 
-`Atlas` features a lightweight Python version of the core functionality. The `pyatlas` is available as a Python package from PyPI, but can also be built and installed locally. Check out the `pyatlas` subfolder and the `pyatlas/README.md` file for more information!
+`Atlas` features a lightweight Python version of the core functionality. The `pyatlas` is available as a Python package from PyPI, but can also be built and installed locally. Check out the [pyatlas](pyatlas) subfolder and the [pyatlas/README.md](pyatlas/README.md) file for more information!
 
 # Implementation Details
 
