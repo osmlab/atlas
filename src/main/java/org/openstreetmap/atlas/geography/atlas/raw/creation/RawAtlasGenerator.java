@@ -491,7 +491,7 @@ public class RawAtlasGenerator
      * and remove the rest of the duplicate points. Two notes: 1. We keep Nodes if they have
      * different layer tagging. This way, we aren't creating a false connection between an overpass
      * and a road beneath it, which happened to have a way node at the identical location. 2. We are
-     * potentially be tossing out OSM Nodes with non-empty tags. However, this is the most
+     * potentially tossing out OSM Nodes with non-empty tags. However, this is the most
      * deterministic and simple way to handle this. The presence of the synthetic tag will make it
      * easy to write an Atlas Check to resolve the data error.
      * </ul>
