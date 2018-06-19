@@ -107,6 +107,9 @@ public class PackedAtlasTest
         area2Tags.put("leisure", "swimming_pool");
         area2Tags.put("sport", "swimming");
 
+        final Map<String, String> area3Tags = new HashMap<>();
+        area2Tags.put("hello", "world");
+
         // Line tags
         final Map<String, String> line1Tags = new HashMap<>();
         line1Tags.put("power", "line");
@@ -153,6 +156,8 @@ public class PackedAtlasTest
         builder.addArea(54,
                 new Polygon(Location.TEST_5, Location.TEST_1, Location.TEST_4, Location.TEST_6),
                 area2Tags);
+        builder.addArea(4554, new Polygon(Location.TEST_1, Location.TEST_2, Location.TEST_3),
+                area3Tags);
 
         // Add Lines
         builder.addLine(32, new Segment(Location.TEST_5, Location.TEST_1), line1Tags);
@@ -373,9 +378,11 @@ public class PackedAtlasTest
                 Iterables.size(this.atlas.lineItemsContaining(Location.TEST_6)) == Iterables
                         .size(this.atlas.edgesContaining(Location.TEST_6))
                         + Iterables.size(this.atlas.linesContaining(Location.TEST_6)));
-        Assert.assertTrue(Iterables.size(this.atlas.areasCovering(Location.TEST_6)) == 2);
         Assert.assertTrue(Iterables.size(this.atlas.nodesAt(Location.TEST_6)) == 1);
         Assert.assertTrue(Iterables.size(this.atlas.pointsAt(Location.TEST_6)) == 1);
+
+        // check areasCovering, which uses fullyGeometricallyEncloses to check the covering property
+        Assert.assertTrue(Iterables.size(this.atlas.areasCovering(Location.TEST_8)) == 2);
 
         // Total number of AtlasItems = sum of the edges, areas, lines, nodes and points
         Assert.assertTrue(Iterables.size(this.atlas.itemsContaining(Location.TEST_6)) == Iterables
