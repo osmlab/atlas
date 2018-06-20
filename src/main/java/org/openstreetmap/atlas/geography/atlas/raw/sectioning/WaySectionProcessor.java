@@ -739,16 +739,7 @@ public class WaySectionProcessor
     private boolean locationIsPartOfAnIntersectingEdgeOfTheSameLayer(final Location location,
             final Line line)
     {
-        final long targetLayerValue;
-        final Optional<Long> possibleLayerValue = LayerTag.getTaggedOrImpliedValue(line, 0L);
-        if (possibleLayerValue.isPresent())
-        {
-            targetLayerValue = possibleLayerValue.get();
-        }
-        else
-        {
-            targetLayerValue = 0L;
-        }
+        final long targetLayerValue = LayerTag.getTaggedOrImpliedValue(line, 0L);
 
         // TODO - Getting non-intersecting lines from the spatial query results.
         // So explicitly specifying "contains shapePoint". Need to resolve this!
@@ -760,16 +751,8 @@ public class WaySectionProcessor
                 // Check whether that edge has the same layer value as the line we're looking at
                 .anyMatch(candidate ->
                 {
-                    final Optional<Long> layerValue = LayerTag.getTaggedOrImpliedValue(candidate,
-                            0L);
-                    if (layerValue.isPresent())
-                    {
-                        return targetLayerValue == layerValue.get();
-                    }
-                    else
-                    {
-                        return targetLayerValue == 0L;
-                    }
+                    final long layerValue = LayerTag.getTaggedOrImpliedValue(candidate, 0L);
+                    return targetLayerValue == layerValue;
                 });
     }
 

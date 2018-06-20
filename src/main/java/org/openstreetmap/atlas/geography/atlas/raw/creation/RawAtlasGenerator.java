@@ -3,7 +3,6 @@ package org.openstreetmap.atlas.geography.atlas.raw.creation;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -283,17 +282,7 @@ public class RawAtlasGenerator
 
     private long getLayerTagValueForPoint(final Atlas atlas, final long identifier)
     {
-        final Optional<Long> layerValue = LayerTag.getTaggedOrImpliedValue(atlas.point(identifier),
-                0L);
-        if (layerValue.isPresent())
-        {
-            return layerValue.get();
-        }
-        else
-        {
-            // Assume it's layer 0
-            return 0L;
-        }
+        return LayerTag.getTaggedOrImpliedValue(atlas.point(identifier), 0L);
     }
 
     /**
@@ -351,17 +340,7 @@ public class RawAtlasGenerator
         final long distinctLayerTagValues = StreamSupport
                 .stream(atlas.linesContaining(location).spliterator(), false).map(line ->
                 {
-                    // Get the layer value of each line
-                    final Optional<Long> layerValue = LayerTag
-                            .getTaggedOrImpliedValue(atlas.line(line.getIdentifier()), 0L);
-                    if (layerValue.isPresent())
-                    {
-                        return layerValue.get();
-                    }
-                    else
-                    {
-                        return 0L;
-                    }
+                    return LayerTag.getTaggedOrImpliedValue(atlas.line(line.getIdentifier()), 0L);
                 }).distinct().count();
 
         return distinctLayerTagValues > 1;
