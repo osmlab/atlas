@@ -100,7 +100,8 @@ source "$venv_path/bin/activate"
 cp "$gradle_project_root_dir/LICENSE" "$pyatlas_root_dir"
 
 # grab the build version from gradle.properties and inject it into setup.py
-atlas_version=$(grep "version=" "$gradle_project_root_dir/gradle.properties" | cut -f2 -d "=")
+# remove the -SNAPSHOT text if present
+atlas_version=$(grep "version=" "$gradle_project_root_dir/gradle.properties" | cut -f2 -d "=" | sed 's/-SNAPSHOT//g')
 # GNU and BSD sed have different "in-place" flag syntax
 if [ "$(uname)" == "Darwin" ];
 then
