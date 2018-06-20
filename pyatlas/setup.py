@@ -12,7 +12,7 @@ setuptools.setup(
     data_files=[("", ["LICENSE"])],
     author="lucaspcram",
     author_email="lucaspcram@gmail.com",
-    license="3-Clause BSD License",
+    license="BSD License",
     description="A simplified Python API for Atlas",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -25,6 +25,6 @@ setuptools.setup(
     classifiers=(
         "Programming Language :: Python :: 2.7",
         "Operating System :: OS Independent",
-        "License :: OSI Approved :: 3-Clause BSD License"
+        "License :: OSI Approved :: BSD License"
     ),
 )
