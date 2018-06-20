@@ -4,12 +4,11 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 # The version field is left blank, and is populated automatically by
-# the 'buildPyatlas' gradle target at build time. The target then resets
+# the 'packagePyatlas' gradle target at build time. The target then resets
 # the field to blank before completing.
 setuptools.setup(
     name="pyatlas",
     version=
-    data_files=[("", ["LICENSE"])],
     author="lucaspcram",
     author_email="lucaspcram@gmail.com",
     license="BSD License",
