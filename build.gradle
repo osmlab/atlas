@@ -165,6 +165,7 @@ dependencies
     compile packages.jackson.core
     compile packages.jackson.databind
     compile packages.protobuf_java
+    compile packages.protoc
 
     shaded project.configurations.getByName('compile')
     shaded packages.slf4j.log4j12
@@ -205,6 +206,53 @@ integrationTest.mustRunAfter test
 tasks.withType(Test) {
     reports.html.destination = file("${reporting.baseDir}/${name}")
 }
+
+/**
+ * pyatlas tasks
+ */
+task cleanPyatlas(type: Exec) {
+    commandLine './pyatlas/clean.sh'
+    args 'ranFromGradle'
+}
+
+task createVenvPyatlas(type: Exec) {
+    commandLine './pyatlas/venv.sh'
+    args 'ranFromGradle'
+}
+
+task checkFormatPyatlas(type: Exec) {
+    dependsOn 'createVenvPyatlas'
+    commandLine './pyatlas/format.sh'
+    args 'ranFromGradle'
+    args 'CHECK'
+}
+
+task applyFormatPyatlas(type: Exec) {
+    dependsOn 'createVenvPyatlas'
+    commandLine './pyatlas/format.sh'
+    args 'ranFromGradle'
+    args 'APPLY'
+}
+
+task packagePyatlas(type: Exec) {
+    dependsOn 'checkFormatPyatlas'
+    commandLine './pyatlas/package.sh'
+    args 'ranFromGradle'
+}
+
+task testPyatlas(type: Exec) {
+    dependsOn 'packagePyatlas'
+    commandLine './pyatlas/test.sh'
+    args 'ranFromGradle'
+}
+
+task buildPyatlas() {
+    dependsOn 'createVenvPyatlas'
+    dependsOn 'checkFormatPyatlas'
+    dependsOn 'packagePyatlas'
+    dependsOn 'testPyatlas'
+}
+
 
 /**
  * Artifact related items

@@ -10,5 +10,6 @@ then
 	then
 		echo "Promote repository"
 		./gradlew closeAndReleaseRepository
+		twine upload ./pyatlas/dist/*
 	fi
 fi
