@@ -85,7 +85,7 @@ class Location(Boundable):
         Get the wkt string representation of this Location. The pair ordering
         of Locations is always (LATITUDE, LONGITUDE)
         """
-        shapely_point = location_to_shapely_point(self)
+        shapely_point = location_to_shapely_point_wkt_compat(self)
         return shapely_point.wkt
 
     def __eq__(self, other):
@@ -167,7 +167,7 @@ class PolyLine(Boundable):
         """
         Get the wkt string representation of this PolyLine.
         """
-        shapely_poly = polyline_to_shapely_linestring(self)
+        shapely_poly = polyline_to_shapely_linestring_wkt_compat(self)
         return shapely_poly.wkt
 
     def __eq__(self, other):
@@ -258,7 +258,7 @@ class Polygon(PolyLine):
         """
         Get the wkt string representation of this Polygon.
         """
-        shapely_poly = polygon_to_shapely_polygon(self)
+        shapely_poly = polygon_to_shapely_polygon_wkt_compat(self)
         return shapely_poly.wkt
 
     def fully_geometrically_encloses_location(self, location):
@@ -468,11 +468,23 @@ def boundable_to_shapely_box(boundable):
 
 def polygon_to_shapely_polygon(polygon):
     """
-    Convert a pyatlas Polygon to its Shapely Polygon representation.
+    Convert a Polygon to its Shapely Polygon representation.
     """
     shapely_points = []
     for location in polygon.locations():
         shapely_points.append(location_to_shapely_point(location))
+
+    return shapely.geometry.Polygon(shapely.geometry.LineString(shapely_points))
+
+
+def polygon_to_shapely_polygon_wkt_compat(polygon):
+    """
+    Convert a Polygon to its Shapely Polygon representation but with WKT
+    compatible coordinates.
+    """
+    shapely_points = []
+    for location in polygon.locations():
+        shapely_points.append(location_to_shapely_point_wkt_compat(location))
 
     return shapely.geometry.Polygon(shapely.geometry.LineString(shapely_points))
 
@@ -487,6 +499,17 @@ def location_to_shapely_point(location):
     return shapely.geometry.Point(latitude, longitude)
 
 
+def location_to_shapely_point_wkt_compat(location):
+    """
+    Convert a Location to its Shapely Point representation but with WKT
+    compatible coordinates.
+    """
+    latitude = location.get_latitude_deg()
+    longitude = location.get_longitude_deg()
+
+    return shapely.geometry.Point(longitude, latitude)
+
+
 def polyline_to_shapely_linestring(polyline):
     """
     Convert a PolyLine to its Shapely LineString representation.
@@ -494,6 +517,18 @@ def polyline_to_shapely_linestring(polyline):
     shapely_points = []
     for location in polyline.locations():
         shapely_points.append(location_to_shapely_point(location))
+
+    return shapely.geometry.LineString(shapely_points)
+
+
+def polyline_to_shapely_linestring_wkt_compat(polyline):
+    """
+    Convert a PolyLine to its Shapely LineString representation but with
+    WKT compatible coordinates.
+    """
+    shapely_points = []
+    for location in polyline.locations():
+        shapely_points.append(location_to_shapely_point_wkt_compat(location))
 
     return shapely.geometry.LineString(shapely_points)
 
