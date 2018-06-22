@@ -47,6 +47,8 @@ cd <my clone location>
 ./gradlew build
 ```
 
+Atlas is serialized using protobuf. The proto-generated sources are not checked-in to the repository, so any IDE setup requires to run `./gradlew build` to generate the proto-generated sources in the project. At that point, the IDE of your choice will be able to resolve all the necessary classes.
+
 To start contributing to your fork, the best way is to make sure that your IDE is setup to follow the [code formatting template](config/format/code_format.xml).
 
 Once you have fixed an issue or added a new feature, it is time to submit [a pull request](#pull-request-guidelines)!
