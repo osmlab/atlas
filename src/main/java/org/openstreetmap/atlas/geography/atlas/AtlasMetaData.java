@@ -3,9 +3,13 @@ package org.openstreetmap.atlas.geography.atlas;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
+import org.openstreetmap.atlas.proto.ProtoSerializable;
+import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
+import org.openstreetmap.atlas.proto.adapters.ProtoAtlasMetaDataAdapter;
 import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 
@@ -13,8 +17,9 @@ import org.openstreetmap.atlas.utilities.collections.Maps;
  * Meta data for an {@link Atlas}
  *
  * @author matthieun
+ * @author lcram
  */
-public final class AtlasMetaData implements Serializable, Taggable
+public final class AtlasMetaData implements Serializable, Taggable, ProtoSerializable
 {
     private static final long serialVersionUID = -285346019736489425L;
 
@@ -68,6 +73,49 @@ public final class AtlasMetaData implements Serializable, Taggable
                 this.country, this.shardName, this.tags);
     }
 
+    @Override
+    public boolean equals(final Object other)
+    {
+        if (other instanceof AtlasMetaData)
+        {
+            if (this == other)
+            {
+                return true;
+            }
+            final AtlasMetaData that = (AtlasMetaData) other;
+            if (!Objects.equals(this.getSize(), that.getSize()))
+            {
+                return false;
+            }
+            if (this.isOriginal() != that.isOriginal())
+            {
+                return false;
+            }
+            if (!Objects.equals(this.getCodeVersion(), that.getCodeVersion()))
+            {
+                return false;
+            }
+            if (!Objects.equals(this.getDataVersion(), that.getDataVersion()))
+            {
+                return false;
+            }
+            if (!Objects.equals(this.getCountry(), that.getCountry()))
+            {
+                return false;
+            }
+            if (!Objects.equals(this.getShardName(), that.getShardName()))
+            {
+                return false;
+            }
+            if (!Objects.equals(this.getTags(), that.getTags()))
+            {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
     public Optional<String> getCodeVersion()
     {
         return Optional.ofNullable(this.codeVersion);
@@ -81,6 +129,12 @@ public final class AtlasMetaData implements Serializable, Taggable
     public Optional<String> getDataVersion()
     {
         return Optional.ofNullable(this.dataVersion);
+    }
+
+    @Override
+    public ProtoAdapter getProtoAdapter()
+    {
+        return new ProtoAtlasMetaDataAdapter();
     }
 
     public Optional<String> getShardName()
@@ -102,7 +156,19 @@ public final class AtlasMetaData implements Serializable, Taggable
     @Override
     public Map<String, String> getTags()
     {
+        if (this.tags == null)
+        {
+            return new HashMap<String, String>();
+        }
         return new HashMap<>(this.tags);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int sizeHash = this.getSize().hashCode();
+        return Objects.hash(Integer.valueOf(sizeHash), Boolean.valueOf(this.original),
+                this.codeVersion, this.dataVersion, this.country, this.shardName, this.tags);
     }
 
     public boolean isOriginal()

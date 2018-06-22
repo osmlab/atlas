@@ -9,8 +9,7 @@ import org.openstreetmap.atlas.geography.atlas.raw.slicing.LineAndPointSlicingTe
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
-
-import com.google.common.collect.Iterables;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * {@link WaySectionProcessor} unit tests
@@ -82,6 +81,39 @@ public class WaySectionProcessorTest
     }
 
     @Test
+    public void testLineWithLoopInMiddle()
+    {
+        // Loosely based on https://www.openstreetmap.org/way/460419987 - with a new added node
+        final Atlas slicedRawAtlas = this.setup.getLineWithLoopInMiddleAtlas();
+
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
+
+        Assert.assertEquals("Four edges, each having a reverse counterpart", 8,
+                finalAtlas.numberOfEdges());
+        Assert.assertEquals("Four nodes", 4, finalAtlas.numberOfNodes());
+        Assert.assertEquals(2, finalAtlas.node(4560902695000000L).connectedEdges().size());
+        Assert.assertEquals(4, finalAtlas.node(4560902693000000L).connectedEdges().size());
+        Assert.assertEquals(2, finalAtlas.node(4560902612000000L).connectedEdges().size());
+        Assert.assertEquals(6, finalAtlas.node(4560902689000000L).connectedEdges().size());
+    }
+
+    @Test
+    public void testLineWithRepeatedLocation()
+    {
+        // Based on a prior version of https://www.openstreetmap.org/way/488453376
+        final Atlas slicedRawAtlas = this.setup.getLineWithRepeatedLocationAtlas();
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
+
+        Assert.assertEquals("Four edges, each having a reverse counterpart", 4,
+                finalAtlas.numberOfEdges());
+        Assert.assertEquals("Two nodes", 2, finalAtlas.numberOfNodes());
+        Assert.assertTrue("This way got sectioned 4 times, with reverse edges", Iterables
+                .size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 488453376L)) == 4);
+    }
+
+    @Test
     public void testLoopingWayWithIntersection()
     {
         // Based on https://www.openstreetmap.org/way/310540517 and partial excerpt of
@@ -97,6 +129,22 @@ public class WaySectionProcessorTest
                 .size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 310540517L)) == 6);
         Assert.assertTrue("This edge got sectioned once, with reverse edges", Iterables
                 .size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 310540519L)) == 2);
+    }
+
+    @Test
+    public void testLoopWithRepeatedLocation()
+    {
+        // Based on a prior version of https://www.openstreetmap.org/way/488453376 with a piece of
+        // https://www.openstreetmap.org/way/386313688
+        final Atlas slicedRawAtlas = this.setup.getLoopWithRepeatedLocationAtlas();
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
+
+        Assert.assertEquals("Four edges, each having a reverse counterpart", 4,
+                finalAtlas.numberOfEdges());
+        Assert.assertEquals("Two nodes", 2, finalAtlas.numberOfNodes());
+        Assert.assertTrue("This way got sectioned once, with a reverse edge", Iterables
+                .size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 488453376L)) == 2);
     }
 
     @Test
@@ -140,7 +188,7 @@ public class WaySectionProcessorTest
         Assert.assertEquals("Two nodes", 2, finalAtlas.numberOfNodes());
         Assert.assertEquals("Verify that the direction of the original line was reversed",
                 slicedRawAtlas.line(333112568000000L).asPolyLine(),
-                finalAtlas.edge(333112568000001L).asPolyLine().reversed());
+                finalAtlas.edge(333112568000000L).asPolyLine().reversed());
     }
 
     @Test
@@ -191,6 +239,19 @@ public class WaySectionProcessorTest
                 finalAtlas.numberOfNodes());
         Assert.assertEquals("Make sure that the two barriers are also represented as Points", 2,
                 finalAtlas.numberOfPoints());
+    }
+
+    @Test
+    public void testSelfIntersectingLoop()
+    {
+        // Based on https://www.openstreetmap.org/way/373705334 and surrounding edge network
+        final Atlas slicedRawAtlas = this.setup.getSelfIntersectingLoopAtlas();
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
+
+        Assert.assertEquals("Ten edges, each having a reverse counterpart", 20,
+                finalAtlas.numberOfEdges());
+        Assert.assertEquals("Nine nodes", 9, finalAtlas.numberOfNodes());
     }
 
     @Test

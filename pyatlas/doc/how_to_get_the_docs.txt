@@ -1,0 +1,6 @@
+Use the 'buildPyatlas' gradle target to generate the docs!
+
+From the root atlas project directory run:
+
+$ ./gradlew buildPyatlas
+

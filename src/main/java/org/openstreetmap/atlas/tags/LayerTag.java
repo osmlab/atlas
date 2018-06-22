@@ -31,7 +31,13 @@ public interface LayerTag
         return LayerTag.class.getDeclaredAnnotation(Tag.class).range().min();
     }
 
-    static Optional<Long> getTaggedOrImpliedValue(final Taggable taggable, final Long impliedValue)
+    static Long getTaggedOrImpliedValue(final Taggable taggable, final Long impliedValue)
+    {
+        final Optional<Long> taggedValue = getTaggedValue(taggable);
+        return taggedValue.isPresent() ? taggedValue.get() : impliedValue;
+    }
+
+    static Optional<Long> getTaggedValue(final Taggable taggable)
     {
         final Optional<String> tagValue = taggable.getTag(KEY);
         if (tagValue.isPresent())
@@ -40,11 +46,6 @@ public interface LayerTag
             return extractor.validateAndExtract(tagValue.get(),
                     LayerTag.class.getDeclaredAnnotation(Tag.class));
         }
-        return Optional.ofNullable(impliedValue);
-    }
-
-    static Optional<Long> getTaggedValue(final Taggable taggable)
-    {
-        return LayerTag.getTaggedOrImpliedValue(taggable, null);
+        return Optional.empty();
     }
 }

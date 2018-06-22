@@ -16,6 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveLineI
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveLocationItem;
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveObjectStore;
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveRelation;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader;
@@ -23,10 +24,9 @@ import org.openstreetmap.atlas.geography.atlas.pbf.OsmosisReaderMock;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.tags.SyntheticDuplicateOsmNodeTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
-
-import com.google.common.collect.Iterables;
 
 /**
  * Tests {@link RawAtlasGenerator} Raw Atlas creation. These tests include basic parity check on
@@ -123,7 +123,7 @@ public class RawAtlasGeneratorTest
 
         Assert.assertEquals(
                 "The original Atlas counts of (Lines + Master Edges + Areas) should equal the total number of all Lines in the Raw Atlas, let's verify this",
-                Iterables.size(Iterables.filter(oldAtlas.edges(), edge -> edge.isMasterEdge()))
+                Iterables.size(Iterables.filter(oldAtlas.edges(), Edge::isMasterEdge))
                         + oldAtlas.numberOfAreas() + oldAtlas.numberOfLines(),
                 rawAtlas.numberOfLines());
 
@@ -146,10 +146,10 @@ public class RawAtlasGeneratorTest
 
         // Verify Atlas Entities
         assertBasicRawAtlasPrinciples(atlas);
-        Assert.assertEquals(457833, atlas.numberOfPoints());
+        Assert.assertEquals(457837, atlas.numberOfPoints());
         Assert.assertEquals(45839, atlas.numberOfLines());
         Assert.assertEquals(347, atlas.numberOfRelations());
-        Assert.assertEquals(45, Iterables.size(atlas.points(
+        Assert.assertEquals(49, Iterables.size(atlas.points(
                 point -> Validators.hasValuesFor(point, SyntheticDuplicateOsmNodeTag.class))));
     }
 

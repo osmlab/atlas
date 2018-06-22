@@ -4,8 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 
 /**
- * A {@link Relation} member. It has a role and an {@link AtlasEntity}. The {@link AtlasEntity} may
- * be null in case the {@link Atlas} that created it has a sliced {@link Relation}.
+ * A {@link Relation} member. It has a role and an {@link AtlasEntity}.
  *
  * @author matthieun
  */

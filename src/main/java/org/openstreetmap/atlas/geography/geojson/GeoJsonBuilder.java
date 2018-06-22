@@ -26,6 +26,44 @@ import com.google.gson.JsonPrimitive;
 public class GeoJsonBuilder
 {
     /**
+     * @author matthieun
+     * @author mgostintsev
+     */
+    public enum GeoJsonType
+    {
+        POINT("Point"),
+        LINESTRING("LineString"),
+        POLYGON("Polygon"),
+        MULTI_POINT("MultiPoint"),
+        MULTI_LINESTRING("MultiLineString"),
+        MULTI_POLYGON("MultiPolygon");
+
+        private final String type;
+
+        public static GeoJsonType forType(final String type)
+        {
+            for (final GeoJsonType value : values())
+            {
+                if (value.getType().equals(type))
+                {
+                    return value;
+                }
+            }
+            throw new CoreException("Invalid geoJson type: {}", type);
+        }
+
+        GeoJsonType(final String type)
+        {
+            this.type = type;
+        }
+
+        public String getType()
+        {
+            return this.type;
+        }
+    }
+
+    /**
      * Java bean to store the geometry (as an {@link Iterable} of {@link Location}s) and all the
      * tags as a {@link String} to {@link String} {@link Map}
      *
@@ -264,6 +302,31 @@ public class GeoJsonBuilder
     }
 
     /**
+     * Creates a GeoJson FeatureCollection from an iterable of GeoJsonObject
+     *
+     * @param geoJsonObjects
+     *            a iterable of GeoJsonObject
+     * @return a GeoJson FeatureCollection
+     */
+    public GeoJsonObject createFromGeoJson(final Iterable<GeoJsonObject> geoJsonObjects)
+    {
+        final JsonObject result = new JsonObject();
+        result.addProperty(TYPE, FEATURE_COLLECTION);
+        final JsonArray features = new JsonArray();
+        int counter = 0;
+        for (final GeoJsonObject object : geoJsonObjects)
+        {
+            if (this.logFrequency > 0 && ++counter % this.logFrequency == 0)
+            {
+                logger.info("Processed {} features.", counter);
+            }
+            features.add(object.jsonObject());
+        }
+        result.add(FEATURES, features);
+        return new GeoJsonObject(result);
+    }
+
+    /**
      * Creates a GeometryCollection type Feature containing geometries derived from a collection of
      * {@link LocationIterableProperties}. <strong>Note:</strong> feature parameters are not present
      * in the resulting GeometryCollection and must be handled separately to avoid data loss.
@@ -404,7 +467,7 @@ public class GeoJsonBuilder
 
     /**
      * Creates a MultiPolygon type GeoJson Feature
-     * 
+     *
      * @param polygons
      *            geometries
      * @return a GeoJson Feature
@@ -441,7 +504,7 @@ public class GeoJsonBuilder
     /**
      * Creates multipolygon from {@link Iterable} of {@link Polygon}s where first polygon is assumed
      * to be the outer ring and the rest are inner.
-     * 
+     *
      * @param polygons
      *            an iterable of polygons where the first is assumed to be the outer polygon in a
      *            multipolygon
@@ -476,43 +539,5 @@ public class GeoJsonBuilder
         result.add(GEOMETRY, geometry);
         result.add(PROPERTIES, new JsonObject());
         return new GeoJsonObject(result);
-    }
-
-    /**
-     * @author matthieun
-     * @author mgostintsev
-     */
-    public enum GeoJsonType
-    {
-        POINT("Point"),
-        LINESTRING("LineString"),
-        POLYGON("Polygon"),
-        MULTI_POINT("MultiPoint"),
-        MULTI_LINESTRING("MultiLineString"),
-        MULTI_POLYGON("MultiPolygon");
-
-        private final String type;
-
-        public static GeoJsonType forType(final String type)
-        {
-            for (final GeoJsonType value : values())
-            {
-                if (value.getType().equals(type))
-                {
-                    return value;
-                }
-            }
-            throw new CoreException("Invalid geoJson type: {}", type);
-        }
-
-        GeoJsonType(final String type)
-        {
-            this.type = type;
-        }
-
-        public String getType()
-        {
-            return this.type;
-        }
     }
 }

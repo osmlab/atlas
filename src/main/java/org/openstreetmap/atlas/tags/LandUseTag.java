@@ -12,6 +12,7 @@ import org.openstreetmap.atlas.tags.annotations.TagKey;
 public enum LandUseTag
 {
     ALLOTMENTS,
+    AQUACULTURE,
     BASIN,
     BROWNFIELD,
     CEMETERY,

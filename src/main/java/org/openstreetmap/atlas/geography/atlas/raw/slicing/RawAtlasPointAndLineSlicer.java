@@ -3,12 +3,13 @@ package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
@@ -24,11 +25,11 @@ import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.SimpleChang
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryLine;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryPoint;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
-import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +54,10 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
     // Keeps track of all changes made during slicing
     private final SimpleChangeSet slicedPointAndLineChanges;
 
-    public RawAtlasPointAndLineSlicer(final Set<IsoCountry> countries,
+    // Keeps track of points marked for removal
+    private final Set<Long> pointsMarkedForRemoval = new HashSet<>();
+
+    public RawAtlasPointAndLineSlicer(final Set<String> countries,
             final CountryBoundaryMap countryBoundaryMap, final Atlas atlas,
             final SimpleChangeSet changeSet, final CoordinateToNewPointMapping newPointCoordinates)
     {
@@ -70,7 +74,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
     @Override
     public Atlas slice()
     {
-        logger.info("Starting slicing Lines and Points for Raw Atlas {}", this.rawAtlas.getName());
+        final Time time = Time.now();
+        logger.info("Starting Point and Line Slicing for {}", getShardOrAtlasName());
 
         // Slice lines and points
         sliceLines();
@@ -81,8 +86,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                 this.slicedPointAndLineChanges);
         final Atlas atlasWithSlicedWaysAndPoints = simpleChangeBuilder.applyChanges();
 
-        logger.info("Finished slicing Lines and Points for Raw Atlas {}", this.rawAtlas.getName());
-
+        logger.info("Finished Point and Line Slicing for {} in {}", getShardOrAtlasName(),
+                time.untilNow());
         getStatistics().summary();
         return atlasWithSlicedWaysAndPoints;
     }
@@ -115,7 +120,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
 
         // Slice the JTS Geometry
         result = sliceGeometry(geometry, lineIdentifier);
-        if (result.isEmpty() && line.isClosed())
+
+        if ((result == null || result.isEmpty()) && line.isClosed())
         {
             // If we failed to slice an invalid Polygon (self-intersecting for example), let's try
             // to slice it as a PolyLine. Only if we cannot do that, then return an empty list.
@@ -123,12 +129,17 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             result = sliceGeometry(geometry, lineIdentifier);
         }
 
-        if (result.isEmpty())
+        if (result == null || result.isEmpty())
         {
             logger.error("Invalid Geometry for line {}", lineIdentifier);
         }
 
         return result;
+    }
+
+    private String getShardOrAtlasName()
+    {
+        return this.rawAtlas.metaData().getShardName().orElse(this.rawAtlas.getName());
     }
 
     /**
@@ -140,12 +151,13 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      */
     private boolean isOutsideWorkingBound(final Geometry geometry)
     {
-        final Optional<IsoCountry> countryCode = IsoCountry.forCountryCode(
-                CountryBoundaryMap.getGeometryProperty(geometry, ISOCountryTag.KEY));
-        if (countryCode.isPresent())
+        final String countryCode = CountryBoundaryMap.getGeometryProperty(geometry,
+                ISOCountryTag.KEY);
+
+        if (countryCode != null)
         {
             return getCountries() != null && !getCountries().isEmpty()
-                    && !getCountries().contains(countryCode.get());
+                    && !getCountries().contains(countryCode);
         }
 
         // Assume it's inside the bound
@@ -161,7 +173,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             for (final String countryCode : countryCodes)
             {
                 // Break if any one the countries is inside the bound
-                if (getCountries().contains(IsoCountry.forCountryCode(countryCode).get()))
+                if (getCountries().contains(countryCode))
                 {
                     return false;
                 }
@@ -196,7 +208,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             this.slicedPointAndLineChanges.updateLineTags(line.getIdentifier(), tags);
             updateLineShapePoints(line);
         }
-        else if (slicesBelongToSingleCountry(slices))
+        else if (slicesBelongToSingleCountry(slices)
+                && !getCountryBoundaryMap().shouldForceSlicing(line))
         {
             // This line belongs to a single country, check to make sure it's the right one
             if (isOutsideWorkingBound(slices.get(0)))
@@ -228,6 +241,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                     // Check if the slice is within the working bound
                     if (isOutsideWorkingBound(slice))
                     {
+                        // Mark all existing points from this slice for removal and continue
+                        removeShapePointsFromFilteredSliced(slice);
                         continue;
                     }
 
@@ -286,6 +301,10 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                                 // Update all existing points to have the country code.
                                 for (final Point rawAtlasPoint : rawAtlasPointsAtSliceVertex)
                                 {
+                                    // Make sure to keep this point
+                                    this.pointsMarkedForRemoval
+                                            .remove(rawAtlasPoint.getIdentifier());
+
                                     // Update the country codes
                                     this.slicedPointAndLineChanges.updatePointTags(
                                             rawAtlasPoint.getIdentifier(), pointTags);
@@ -342,6 +361,26 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
     }
 
     /**
+     * Given a slice, that is outside the working bound, mark all shape points for this slice for
+     * removal from the final atlas. Since we are removing the slice, we don't need its shape
+     * points.
+     *
+     * @param slice
+     *            The {@link Geometry} slice being filtered
+     */
+    private void removeShapePointsFromFilteredSliced(final Geometry slice)
+    {
+        final Coordinate[] jtsSliceCoordinates = slice.getCoordinates();
+        for (final Coordinate coordinate : jtsSliceCoordinates)
+        {
+            final Location location = JTS_LOCATION_CONVERTER.backwardConvert(coordinate);
+            final Iterable<Point> existingRawAtlasPoints = this.rawAtlas.pointsAt(location);
+            existingRawAtlasPoints
+                    .forEach(point -> this.pointsMarkedForRemoval.add(point.getIdentifier()));
+        }
+    }
+
+    /**
      * Slices the given {@link Geometry} into multiple geometries and returns them as a list.
      *
      * @param geometry
@@ -382,7 +421,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      */
     private void sliceLines()
     {
-        this.rawAtlas.lines().forEach(this::sliceLine);
+        StreamSupport.stream(this.rawAtlas.lines().spliterator(), true).forEach(this::sliceLine);
     }
 
     /**
@@ -392,12 +431,14 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      */
     private void slicePoints()
     {
-        this.rawAtlas.points().forEach(point ->
+        StreamSupport.stream(this.rawAtlas.points().spliterator(), true).forEach(point ->
         {
             final long pointIdentifier = point.getIdentifier();
 
-            // Only update points that haven't been assigned a country code after way slicing
-            if (!this.slicedPointAndLineChanges.getUpdatedPointTags().containsKey(pointIdentifier))
+            // Only update points that haven't been assigned a country code after way slicing or
+            // those marked for removal
+            if (!this.slicedPointAndLineChanges.getUpdatedPointTags().containsKey(pointIdentifier)
+                    && !this.pointsMarkedForRemoval.contains(pointIdentifier))
             {
                 getStatistics().recordProcessedPoint();
                 final Map<String, String> updatedTags = createPointTags(point.getLocation(), true);
@@ -413,6 +454,9 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                 }
             }
         });
+
+        // Update all removed points
+        this.pointsMarkedForRemoval.forEach(this.slicedPointAndLineChanges::deletePoint);
     }
 
     /**

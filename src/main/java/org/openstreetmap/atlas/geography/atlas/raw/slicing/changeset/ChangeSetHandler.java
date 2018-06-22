@@ -7,7 +7,6 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
@@ -42,7 +41,7 @@ public abstract class ChangeSetHandler
      *
      * @param atlas
      *            The {@link Atlas} whose statistics to log
-     * @return the statastics string
+     * @return the statistics string
      */
     protected String atlasStatistics(final Atlas atlas)
     {
@@ -64,6 +63,11 @@ public abstract class ChangeSetHandler
     protected PackedAtlasBuilder getBuilder()
     {
         return this.builder;
+    }
+
+    protected String getShardOrAtlasName()
+    {
+        return this.atlas.metaData().getShardName().orElse(this.atlas.getName());
     }
 
     /**
@@ -105,7 +109,7 @@ public abstract class ChangeSetHandler
                 Math.round(this.getAtlas().numberOfPoints() * ENTITY_SCALING_FACTOR),
                 this.getAtlas().numberOfRelations());
         this.getBuilder().setSizeEstimates(size);
-        this.getBuilder().setMetaData(new AtlasMetaData());
+        this.getBuilder().setMetaData(this.atlas.metaData());
     }
 
 }

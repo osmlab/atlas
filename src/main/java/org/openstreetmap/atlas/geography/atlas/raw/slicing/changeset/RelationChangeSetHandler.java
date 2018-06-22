@@ -16,6 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIde
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRelation;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRelationMember;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
+import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +55,9 @@ public class RelationChangeSetHandler extends ChangeSetHandler
     @Override
     public Atlas applyChanges()
     {
+        final Time time = Time.now();
+        logger.info("Started Applying Relation Changes for {}", getShardOrAtlasName());
+
         // Log original Atlas statistics
         if (logger.isInfoEnabled())
         {
@@ -83,16 +87,27 @@ public class RelationChangeSetHandler extends ChangeSetHandler
             logger.info("After Slicing Relations: " + atlasStatistics(atlasWithUpdates));
         }
 
+        logger.info("Finished Applying Relation Changes for {} in {}", getShardOrAtlasName(),
+                time.untilNow());
+
         return atlasWithUpdates;
     }
 
     private void addExistingPointsAndLines()
     {
-        this.getAtlas().points().forEach(point -> this.getBuilder().addPoint(point.getIdentifier(),
-                point.getLocation(), point.getTags()));
+        this.getAtlas().points().forEach(point ->
+        {
+            // Add the point, if it hasn't been deleted
+            if (!this.changeSet.getDeletedPoints().contains(point.getIdentifier()))
+            {
+                this.getBuilder().addPoint(point.getIdentifier(), point.getLocation(),
+                        point.getTags());
+            }
+        });
+
         this.getAtlas().lines().forEach(line ->
         {
-            // Add the line, if it hasn't been removed
+            // Add the line, if it hasn't been deleted
             if (!this.changeSet.getDeletedLines().contains(line.getIdentifier()))
             {
                 this.getBuilder().addLine(line.getIdentifier(), line.asPolyLine(), line.getTags());
@@ -113,6 +128,21 @@ public class RelationChangeSetHandler extends ChangeSetHandler
     {
         this.changeSet.getCreatedPoints().values().forEach(point -> this.getBuilder()
                 .addPoint(point.getIdentifier(), point.getLocation(), point.getTags()));
+    }
+
+    private void addRelation(final Relation relation, final Map<String, String> tags)
+    {
+        final long identifier = relation.getIdentifier();
+        final RelationBean bean = constructRelationBean(relation);
+        if (!bean.isEmpty())
+        {
+            this.getBuilder().addRelation(identifier, getOsmIdentifier(identifier), bean, tags);
+        }
+        else
+        {
+            logger.error("Could not add Relation {} to atlas - it contains an empty Relation bean",
+                    identifier);
+        }
     }
 
     /**
@@ -151,10 +181,7 @@ public class RelationChangeSetHandler extends ChangeSetHandler
                     // Update the tags
                     final Map<String, String> updatedTags = originalRelation.getTags();
                     updatedTags.putAll(this.changeSet.getUpdatedRelationTags().get(identifier));
-
-                    // Add the modified Relation
-                    this.getBuilder().addRelation(identifier, getOsmIdentifier(identifier),
-                            constructRelationBean(relation), updatedTags);
+                    addRelation(relation, updatedTags);
                 }
                 else
                 {
@@ -167,8 +194,7 @@ public class RelationChangeSetHandler extends ChangeSetHandler
 
                     final Map<String, String> updatedTags = relation.getTags();
                     updatedTags.put(ISOCountryTag.KEY, ISOCountryTag.COUNTRY_MISSING);
-                    this.getBuilder().addRelation(identifier, getOsmIdentifier(identifier),
-                            constructRelationBean(relation), updatedTags);
+                    addRelation(relation, updatedTags);
                 }
             }
         });

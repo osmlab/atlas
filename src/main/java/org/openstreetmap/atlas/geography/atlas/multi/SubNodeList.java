@@ -5,9 +5,15 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
 /**
+ * Used by the {@link MultiNode} to hold multiple versions of identical {@link Node}s. This is in
+ * case one of the {@link Node}s has a parent {@link Relation} that was not contained in one of the
+ * sub-{@link Atlas}es of the containing {@link MultiAtlas}.
+ *
  * @author matthieun
  */
 public class SubNodeList implements Iterable<Node>, Serializable

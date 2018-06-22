@@ -1,5 +1,9 @@
 package org.openstreetmap.atlas.utilities.maps;
 
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasSerializer;
+import org.openstreetmap.atlas.proto.ProtoSerializable;
+import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
+import org.openstreetmap.atlas.proto.adapters.ProtoLongToLongMapAdapter;
 import org.openstreetmap.atlas.utilities.arrays.LargeArray;
 import org.openstreetmap.atlas.utilities.arrays.LongArray;
 
@@ -7,8 +11,9 @@ import org.openstreetmap.atlas.utilities.arrays.LongArray;
  * {@link LargeMap} from {@link Long} to {@link Long}
  *
  * @author matthieun
+ * @author lcram
  */
-public class LongToLongMap extends LargeMap<Long, Long>
+public class LongToLongMap extends LargeMap<Long, Long> implements ProtoSerializable
 {
     private static final long serialVersionUID = -3488197516341341480L;
 
@@ -78,6 +83,24 @@ public class LongToLongMap extends LargeMap<Long, Long>
     {
         super(name, maximumSize, hashSize, keyMemoryBlockSize, keySubArraySize,
                 valueMemoryBlockSize, valueSubArraySize);
+    }
+
+    /**
+     * This nullary constructor is solely for use by the {@link PackedAtlasSerializer}, which calls
+     * it using reflection. It allows the serializer code to obtain a handle on a
+     * {@link LongToLongMap} that it can use to grab the correct {@link ProtoAdapter}. The object
+     * initialized with this constructor will be corrupted for general use and should be discarded.
+     */
+    @SuppressWarnings("unused")
+    private LongToLongMap()
+    {
+        super();
+    }
+
+    @Override
+    public ProtoAdapter getProtoAdapter()
+    {
+        return new ProtoLongToLongMapAdapter();
     }
 
     @Override

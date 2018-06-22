@@ -29,6 +29,9 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     @TestAtlas(loadFromTextResource = "lineWithLoopAtEnd.atlas.txt")
     private Atlas lineWithLoopAtEnd;
 
+    @TestAtlas(loadFromTextResource = "lineWithLoopInMiddle.atlas.txt")
+    private Atlas lineWithLoopInMiddle;
+
     @TestAtlas(loadFromTextResource = "lineWithLoopAtStart.atlas.txt")
     private Atlas lineWithLoopAtStart;
 
@@ -43,6 +46,15 @@ public class WaySectionProcessorTestRule extends CoreTestRule
 
     @TestAtlas(loadFromTextResource = "roundAbout.atlas.txt")
     private Atlas roundAbout;
+
+    @TestAtlas(loadFromTextResource = "lineWithRepeatedLocation.atlas.txt")
+    private Atlas lineWithRepeatedLocation;
+
+    @TestAtlas(loadFromTextResource = "loopWithRepeatedLocation.atlas.txt")
+    private Atlas loopWithRepeatedLocation;
+
+    @TestAtlas(loadFromTextResource = "selfIntersectingLoop.atlas.txt")
+    private Atlas selfIntersectingLoop;
 
     public Atlas getBidirectionalRingAtlas()
     {
@@ -64,9 +76,24 @@ public class WaySectionProcessorTestRule extends CoreTestRule
         return this.lineWithLoopAtStart;
     }
 
+    public Atlas getLineWithLoopInMiddleAtlas()
+    {
+        return this.lineWithLoopInMiddle;
+    }
+
+    public Atlas getLineWithRepeatedLocationAtlas()
+    {
+        return this.lineWithRepeatedLocation;
+    }
+
     public Atlas getLoopingWayWithIntersectionAtlas()
     {
         return this.loopingWayWithIntersection;
+    }
+
+    public Atlas getLoopWithRepeatedLocationAtlas()
+    {
+        return this.loopWithRepeatedLocation;
     }
 
     public Atlas getOneWayRingAtlas()
@@ -92,6 +119,11 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     public Atlas getRoundAboutAtlas()
     {
         return this.roundAbout;
+    }
+
+    public Atlas getSelfIntersectingLoopAtlas()
+    {
+        return this.selfIntersectingLoop;
     }
 
     public Atlas getSimpleBiDirectionalLineAtlas()

@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -20,7 +21,6 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsLinearRingConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
-import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
@@ -52,7 +52,7 @@ public abstract class RawAtlasSlicer
     protected static final MultiplePolyLineToPolygonsConverter MULTIPLE_POLY_LINE_TO_POLYGON_CONVERTER = new MultiplePolyLineToPolygonsConverter();
 
     // The countries we're interested in slicing against
-    private final Set<IsoCountry> countries;
+    private final Set<String> countries;
 
     // Contains boundary MultiPolygons
     private final CountryBoundaryMap countryBoundaryMap;
@@ -135,11 +135,17 @@ public abstract class RawAtlasSlicer
      */
     protected static boolean fromSameCountry(final Line one, final Line two)
     {
-        final Optional<IsoCountry> countryOne = ISOCountryTag.first(one);
-        final Optional<IsoCountry> countryTwo = ISOCountryTag.first(two);
-        if (countryOne.isPresent() && countryTwo.isPresent())
+        final Optional<String> firstTagValue = one.getTag(ISOCountryTag.KEY);
+        final Optional<String> secondTagValue = two.getTag(ISOCountryTag.KEY);
+        if (firstTagValue.isPresent() && secondTagValue.isPresent())
         {
-            return countryOne.get().equals(countryTwo.get());
+            final Set<String> firstCountries = new HashSet<>(
+                    Arrays.asList(firstTagValue.get().split(ISOCountryTag.COUNTRY_DELIMITER)));
+            final Set<String> secondCountries = new HashSet<>(
+                    Arrays.asList(secondTagValue.get().split(ISOCountryTag.COUNTRY_DELIMITER)));
+
+            firstCountries.retainAll(new HashSet<>(secondCountries));
+            return !firstCountries.isEmpty();
         }
 
         throw new CoreException(
@@ -163,8 +169,7 @@ public abstract class RawAtlasSlicer
                 / SEVEN_DIGIT_PRECISION_SCALE;
     }
 
-    public RawAtlasSlicer(final Set<IsoCountry> countries,
-            final CountryBoundaryMap countryBoundaryMap,
+    public RawAtlasSlicer(final Set<String> countries, final CountryBoundaryMap countryBoundaryMap,
             final CoordinateToNewPointMapping newPointCoordinates)
     {
         this.countries = countries;
@@ -245,7 +250,7 @@ public abstract class RawAtlasSlicer
         return this.newPointCoordinates;
     }
 
-    protected Set<IsoCountry> getCountries()
+    protected Set<String> getCountries()
     {
         return this.countries;
     }

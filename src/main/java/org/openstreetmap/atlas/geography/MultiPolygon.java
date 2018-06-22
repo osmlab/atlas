@@ -221,18 +221,30 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
     @Override
     public boolean fullyGeometricallyEncloses(final Location location)
     {
-        for (final Polygon inner : inners())
-        {
-            if (inner.fullyGeometricallyEncloses(location))
-            {
-                return false;
-            }
-        }
         for (final Polygon outer : outers())
         {
             if (outer.fullyGeometricallyEncloses(location))
             {
-                return true;
+                boolean result = true;
+                // Checking the inners only when a location is within the outer saves the expensive
+                // general inners() call.
+                for (final Polygon inner : innersOf(outer))
+                {
+                    if (inner.fullyGeometricallyEncloses(location))
+                    {
+                        // If the inner is overlapping the location, we skip that outer and continue
+                        result = false;
+                        break;
+                    }
+                }
+                if (result)
+                {
+                    return true;
+                }
+                else
+                {
+                    continue;
+                }
             }
         }
         return false;

@@ -20,3 +20,14 @@
 /bin/
 **/ignored/
 src/generated/
+
+# pyatlas stuff
+*_pb2.py
+*.pyc
+pyatlas/dist/
+pyatlas/pyatlas.egg-info/
+__*venv__
+pyatlas/protoc
+pyatlas/doc/*.html
+pyatlas/LICENSE
+
