@@ -32,7 +32,7 @@ As well as other handy tools:
 * [Sharding](/src/main/java/org/openstreetmap/atlas/geography/sharding#sharding)
 * [Shard Stitching](/src/main/java/org/openstreetmap/atlas/geography/atlas/multi#multiatlas)
 * [Shard Exploration](/src/main/java/org/openstreetmap/atlas/geography/atlas/dynamic#dynamicatlas)
-* Filtering
+* [Filtering](/src/main/java/org/openstreetmap/atlas/geography/atlas#filtering-an-atlas)
 * [Cutting](/src/main/java/org/openstreetmap/atlas/geography/atlas#country-slicing)
 * [Routing](/src/main/java/org/openstreetmap/atlas/geography/atlas/routing#routing)
 * [Higher-level entities](/src/main/java/org/openstreetmap/atlas/geography/atlas/items/complex#complex-entities)
