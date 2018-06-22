@@ -17,8 +17,8 @@ For build instructions and to contribute, please see the [contributing guideline
 
 Language | Level
 ---------|------
-Java     | Full feature
-Python   | Basic
+[Java](/src/main/java/org/openstreetmap/atlas/geography/atlas/)     | Full feature
+[Python](/pyatlas)   | Basic
 
 # What's in it?
 
