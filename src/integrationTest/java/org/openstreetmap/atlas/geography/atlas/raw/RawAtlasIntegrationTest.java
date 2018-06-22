@@ -65,6 +65,45 @@ public class RawAtlasIntegrationTest
     public DynamicRawAtlasSectioningTestRule setup = new DynamicRawAtlasSectioningTestRule();
 
     @Test
+    public void testOverlappingNodesWithUniqueLayerTags()
+    {
+        // Based on https://www.openstreetmap.org/way/467880095 and
+        // https://www.openstreetmap.org/way/28247094 having two different layer tag values and
+        // having overlapping nodes (https://www.openstreetmap.org/node/4661272336 and
+        // https://www.openstreetmap.org/node/5501637097) that should not be merged.
+        final Location overlappingLocation = Location.forString("1.3248985,103.6452864");
+        final String path = RawAtlasIntegrationTest.class.getResource("layerTagTestCase.pbf")
+                .getPath();
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
+        final Atlas rawAtlas = rawAtlasGenerator.build();
+
+        // Verify both points made it into the raw atlas
+        Assert.assertTrue(Iterables.size(rawAtlas.pointsAt(overlappingLocation)) == 2);
+
+        // Prepare the country and boundary
+        final Set<String> singaporeCountry = new HashSet<>();
+        singaporeCountry.add("SGP");
+        final CountryBoundaryMap boundaryMap = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
+                        .getResourceAsStream("testNodesWithDifferentLayerTagsBoundaryMap.txt")));
+
+        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(singaporeCountry, boundaryMap)
+                .slice(rawAtlas);
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
+
+        // Make sure there is no sectioning happening between the two ways with different layer tag
+        // values. There is a one-way overpass and a bi-directional residential street, resulting in
+        // 3 total edges and 4 nodes (one on both ends of the two segments)
+        Assert.assertEquals(3, finalAtlas.numberOfEdges());
+        Assert.assertEquals(4, finalAtlas.numberOfNodes());
+
+        // Again, verify there is no node at the duplicated location
+        Assert.assertTrue(Iterables.size(finalAtlas.nodesAt(overlappingLocation)) == 0);
+        Assert.assertEquals(0, finalAtlas.numberOfPoints());
+    }
+
+    @Test
     public void testPbfToSlicedAtlasWithExpansion()
     {
         // Create a simple store, populated with 3 shards and the corresponding atlases

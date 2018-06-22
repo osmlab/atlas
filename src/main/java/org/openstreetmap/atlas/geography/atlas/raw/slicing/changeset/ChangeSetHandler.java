@@ -41,7 +41,7 @@ public abstract class ChangeSetHandler
      *
      * @param atlas
      *            The {@link Atlas} whose statistics to log
-     * @return the statastics string
+     * @return the statistics string
      */
     protected String atlasStatistics(final Atlas atlas)
     {

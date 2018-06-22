@@ -36,6 +36,7 @@ import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryNo
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.tags.AtlasTag;
+import org.openstreetmap.atlas.tags.LayerTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.time.Time;
@@ -554,46 +555,31 @@ public class WaySectionProcessor
                     selfIntersections.remove(polyLine.first());
                 }
 
-                // Identify all nodes. We care about three cases: 1. sectioning based on tagging
-                // (ex. at a barrier) 2. self-intersections, if the way loops over itself 3. at an
-                // intersection with another edge
+                // Identify all nodes. We care about three cases: 1. self-intersections, if the way
+                // contains a repeated location 2. sectioning based on tagging (ex. at a barrier) 3.
+                // at an intersection with another edge
                 for (int index = 0; index < polyLine.size(); index++)
                 {
                     final Location shapePoint = polyLine.get(index);
 
-                    // We found a repeated location, mark it as a node
+                    // 1. We found a repeated location, mark it as a node
                     if (selfIntersections.contains(shapePoint))
                     {
                         addPointToNodeList(shapePoint, nodesForEdge);
                         continue;
                     }
 
-                    // Check if we need to section based on tagging
+                    // 2. Check if we need to section based on tagging
                     if (shouldSectionAtLocation(shapePoint))
                     {
                         addPointToNodeList(shapePoint, nodesForEdge);
                         continue;
                     }
 
-                    // TODO - Getting non-intersecting lines from the spatial query results.
-                    // So explicitly specifying "contains shapePoint". Need to resolve this!
-
-                    // Check if there is an edge intersection at this location
-                    if (locationHasIntersectingLinesMatchingPredicate(shapePoint,
-                            target -> target.getIdentifier() != line.getIdentifier()
-                                    && isAtlasEdge(target)
-                                    && target.asPolyLine().contains(shapePoint)))
+                    // 3. Check if there is an edge intersection of the same layer at this location
+                    if (locationIsPartOfAnIntersectingEdgeOfTheSameLayer(shapePoint, line))
                     {
-                        final Iterable<Point> pointsAtLocation = this.rawAtlas.pointsAt(shapePoint);
-                        if (Iterables.size(pointsAtLocation) > 1)
-                        {
-                            // This shouldn't happen, so let's log and section at all points. By
-                            // definition, all stacked (same location) OSM nodes will be collapsed
-                            // to a single atlas point during raw atlas creation.
-                            logger.error("Detected more than one point at {}", shapePoint);
-                        }
                         addPointToNodeList(shapePoint, nodesForEdge);
-                        continue;
                     }
                 }
 
@@ -739,20 +725,35 @@ public class WaySectionProcessor
     }
 
     /**
-     * Determines whether the given {@link Location} has any {@link Line}s that run through it and
-     * match the given {@link Predicate}.
+     * Determines whether the given {@link Line} has any intersecting {@link Line}s, with the same
+     * layer tag value that meet the definition of an {@link Edge}, running through it at the given
+     * {@link Location}.
      *
      * @param location
      *            The {@link Location} to use
-     * @param matcher
-     *            The {@link Predicate} to use when looking for intersecting lines
-     * @return {@code true} if the given {@link Location} has any {@link Line}s, that match the
-     *         given {@link Predicate}, running through it
+     * @param line
+     *            The {@link Line} to use
+     * @return {@code true} if there is at least one {@link Edge} with the same layer tag value
+     *         intersecting the given line at the given location
      */
-    private boolean locationHasIntersectingLinesMatchingPredicate(final Location location,
-            final Predicate<Line> matcher)
+    private boolean locationIsPartOfAnIntersectingEdgeOfTheSameLayer(final Location location,
+            final Line line)
     {
-        return Iterables.size(this.rawAtlas.linesContaining(location, matcher)) > 0;
+        final long targetLayerValue = LayerTag.getTaggedOrImpliedValue(line, 0L);
+
+        // TODO - Getting non-intersecting lines from the spatial query results.
+        // So explicitly specifying "contains shapePoint". Need to resolve this!
+        return Iterables
+                // Find all intersecting edges
+                .stream(this.rawAtlas.linesContaining(location,
+                        target -> target.getIdentifier() != line.getIdentifier()
+                                && isAtlasEdge(target) && target.asPolyLine().contains(location)))
+                // Check whether that edge has the same layer value as the line we're looking at
+                .anyMatch(candidate ->
+                {
+                    final long layerValue = LayerTag.getTaggedOrImpliedValue(candidate, 0L);
+                    return targetLayerValue == layerValue;
+                });
     }
 
     /**
@@ -928,7 +929,8 @@ public class WaySectionProcessor
                     final TemporaryNode end = endNode.get();
 
                     // Avoid sectioning at consecutive repeated points
-                    if (end.equals(startNode.get()) && index - 1 == startIndex)
+                    if (end.equals(startNode.get())
+                            && polyline.get(index).equals(polyline.get(index - 1)))
                     {
                         // Found a duplicate point, update the map and skip over it
                         final long startIdentifier = startNode.get().getIdentifier();
@@ -1068,10 +1070,13 @@ public class WaySectionProcessor
                     // Check to see if this location is a node
                     if (endNode.isPresent())
                     {
+                        final TemporaryNode end = endNode.get();
+
                         if (!isFirstNode)
                         {
                             // Avoid sectioning at consecutive repeated points
-                            if (endNode.get().equals(startNode.get()) && index - 1 == startIndex)
+                            if (end.equals(startNode.get())
+                                    && polyline.get(index).equals(polyline.get(index - 1)))
                             {
                                 // Found a duplicate point, update the map and skip over it
                                 final int duplicateCount = duplicateLocations
@@ -1087,7 +1092,7 @@ public class WaySectionProcessor
                             {
                                 for (int duplicate = 0; duplicate < duplicates; duplicate++)
                                 {
-                                    nodesToSectionAt.incrementOccurrence(endNode.get());
+                                    nodesToSectionAt.incrementOccurrence(end);
                                 }
                             }
 
@@ -1095,8 +1100,7 @@ public class WaySectionProcessor
                             // started from a shape point, we've just encountered our first node.
                             final PolyLine rawPolyline = polyline.between(polyline.get(startIndex),
                                     nodesToSectionAt.getOccurrence(startNode.get()) - 1,
-                                    polyline.get(index),
-                                    nodesToSectionAt.getOccurrence(endNode.get()) - 1);
+                                    polyline.get(index), nodesToSectionAt.getOccurrence(end) - 1);
                             final PolyLine edgePolyline = isReversed ? rawPolyline.reversed()
                                     : rawPolyline;
 

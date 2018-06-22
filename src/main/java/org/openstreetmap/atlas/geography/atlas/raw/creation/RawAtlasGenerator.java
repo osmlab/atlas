@@ -1,13 +1,16 @@
 package org.openstreetmap.atlas.geography.atlas.raw.creation;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
@@ -25,6 +28,7 @@ import org.openstreetmap.atlas.geography.atlas.pbf.CloseableOsmosisReader;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.AtlasTag;
+import org.openstreetmap.atlas.tags.LayerTag;
 import org.openstreetmap.atlas.tags.SyntheticDuplicateOsmNodeTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.time.Time;
@@ -276,6 +280,11 @@ public class RawAtlasGenerator
         logger.info("Counted PBF Entities in {}", countTime.elapsedSince());
     }
 
+    private long getLayerTagValueForPoint(final Atlas atlas, final long identifier)
+    {
+        return LayerTag.getTaggedOrImpliedValue(atlas.point(identifier), 0L);
+    }
+
     /**
      * Check if the {@link Point} with the given identifier is a {@link Relation} member in the
      * given {@link Atlas}.
@@ -323,6 +332,18 @@ public class RawAtlasGenerator
     private boolean isSimplePoint(final Atlas atlas, final long pointIdentifier)
     {
         return atlas.point(pointIdentifier).getTags().size() == AtlasTag.TAGS_FROM_OSM.size();
+    }
+
+    private boolean locationPartOfMultipleWaysWithDifferentLayerTags(final Atlas atlas,
+            final Location location)
+    {
+        final long distinctLayerTagValues = StreamSupport
+                .stream(atlas.linesContaining(location).spliterator(), false).map(line ->
+                {
+                    return LayerTag.getTaggedOrImpliedValue(atlas.line(line.getIdentifier()), 0L);
+                }).distinct().count();
+
+        return distinctLayerTagValues > 1;
     }
 
     /**
@@ -446,10 +467,12 @@ public class RawAtlasGenerator
      * other features in the Atlas.
      * <li>2. There are multiple {@link Point}s at a {@link Location}. In this case, we sort all the
      * points, keep the one with the smallest identifier, add a {@link SyntheticDuplicateOsmNodeTag}
-     * and remove the rest of the duplicate points. Note: we can potentially be tossing out OSM
-     * Nodes with non-empty tags. However, this is the most deterministic and simple way to handle
-     * this. The presence of the synthetic tag will make it easy to write an Atlas Check to resolve
-     * the data error.
+     * and remove the rest of the duplicate points. Two notes: 1. We keep Nodes if they have
+     * different layer tagging. This way, we aren't creating a false connection between an overpass
+     * and a road beneath it, which happened to have a way node at the identical location. 2. We are
+     * potentially tossing out OSM Nodes with non-empty tags. However, this is the most
+     * deterministic and simple way to handle this. The presence of the synthetic tag will make it
+     * easy to write an Atlas Check to resolve the data error.
      * </ul>
      *
      * @param atlas
@@ -464,20 +487,55 @@ public class RawAtlasGenerator
 
         for (final Point point : atlas.points())
         {
-            final Set<Long> duplicatePoints = Iterables.stream(atlas.pointsAt(point.getLocation()))
-                    .map(Point::getIdentifier).collectToSet();
-            if (!duplicatePoints.isEmpty() && duplicatePoints.size() > 1)
+            // Don't try to de-duplicate points we've already handled
+            if (!pointsToRemove.contains(point.getIdentifier())
+                    && !duplicatePointsToKeep.contains(point.getIdentifier()))
             {
-                // Sort the points
-                final Set<Long> sortedDuplicates = Iterables.asSortedSet(duplicatePoints);
+                final Set<Long> duplicatePoints = Iterables
+                        .stream(atlas.pointsAt(point.getLocation())).map(Point::getIdentifier)
+                        .collectToSet();
+                if (!duplicatePoints.isEmpty() && duplicatePoints.size() > 1)
+                {
+                    // Factor in ways that pass through these points. If these points are part of
+                    // ways that have a different layer tag value, then
+                    // keep all of them to avoid merging ways that shouldn't be merged.
+                    if (locationPartOfMultipleWaysWithDifferentLayerTags(atlas,
+                            point.getLocation()))
+                    {
+                        duplicatePointsToKeep.addAll(duplicatePoints);
+                        continue;
+                    }
 
-                // Grab the one with smallest identifier (deterministic)
-                final long duplicatePointToKeep = sortedDuplicates.iterator().next();
-                duplicatePointsToKeep.add(duplicatePointToKeep);
+                    // Sort the points
+                    final Set<Long> sortedDuplicates = Iterables.asSortedSet(duplicatePoints);
+                    final Set<Long> uniqueLayerValues = new HashSet<>();
 
-                // Add the rest to the to-be-removed collection
-                sortedDuplicates.remove(duplicatePointToKeep);
-                pointsToRemove.addAll(sortedDuplicates);
+                    // Keep the point with the smallest identifier (deterministic) for each layer
+                    final Iterator<Long> duplicateIterator = sortedDuplicates.iterator();
+                    final long duplicatePointToKeep = duplicateIterator.next();
+                    final long layerValue = getLayerTagValueForPoint(atlas, duplicatePointToKeep);
+
+                    duplicatePointsToKeep.add(duplicatePointToKeep);
+                    duplicateIterator.remove();
+                    uniqueLayerValues.add(layerValue);
+
+                    while (duplicateIterator.hasNext())
+                    {
+                        final long candidateToKeep = duplicateIterator.next();
+                        final long candidateLayerValue = getLayerTagValueForPoint(atlas,
+                                candidateToKeep);
+
+                        if (!uniqueLayerValues.contains(candidateLayerValue))
+                        {
+                            // Keep the point if it has a unique layer value
+                            duplicatePointsToKeep.add(candidateToKeep);
+                            duplicateIterator.remove();
+                        }
+                    }
+
+                    // Remove all remaining (non-kept) points
+                    pointsToRemove.addAll(sortedDuplicates);
+                }
             }
         }
 
