@@ -183,15 +183,3 @@ When a user asks for the incoming edges to a `PackedNode`, then the `PackedNode`
 A `PackedAtlas` can be serialized to a `WritableResource` using the `PackedAtlasSerializer`. During that process, all the arrays are pushed to a non-compressed zip stream in which each array is a zip entry with the same name. Each array is serialized in its zip entry using standard Java serialization.
 
 In case the `Resource` is a file, then the user has random access to each zip entry. That means that all the arrays are lazily de-serialized only when needed. This is extremely useful when  opening an Atlas file just to check `Node` connectivity for example. Only the arrays relative with `Node`s and `Edge`s will be loaded.
-
-# [`MultiAtlas`](src/main/java/org/openstreetmap/atlas/geography/atlas/multi/MultiAtlas.java)
-
-This is a stitched `Atlas`. It is made of multiple sub-`Atlas` (which themselves can be `PackedAtlas` or `MultiAtlas`) and takes care of conflating and stitching at the intersection points.
-
-## Flyweight [`MultiAtlas`](src/main/java/org/openstreetmap/atlas/geography/atlas/multi/MultiAtlas.java)
-
-When creating a `MultiAtlas` from multiple other `Atlas` objects, no data is copied. The `MultiAtlas` builds array references to remember for example where each available `Edge` is relative to the sub `Atlas`, but does not copy the `Edge` data. When an `Edge` is requested, it creates a `MultiEdge` that contains only its identifier and the `MultiAtlas` it belongs to. When a user asks for the `Node`s connected to that `Edge` for example, the `MultiEdge` relays the query to its `MultiAtlas` that relays the query to the appropriate sub-`Atlas` which returns the result to be relayed back to the user.
-
-## Way Sectioning Related Border Fixes
-
-Way sectioning assumes knowledge of the surrounding geometries to be able to know where to make a cut. In some cases, for a specific way, a shard will have knowledge of an intersection at a point we can call P1. Another shard that contains the same way has knowledge of an intersection at another point P2. But both shards do not have knowledge of the other shard's intersection point. The first shard would then have a split way at P1, and the other shard the same way split at P2. To prevent from showing discrepancies, the `MultiAtlas` identifies those issues and would present a way that is split at P1 and P2, with the related fixes to `Edge` identifiers, and `Node` connectivity.

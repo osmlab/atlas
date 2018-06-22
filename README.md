@@ -28,14 +28,14 @@ Python   | Basic
 
 As well as other handy tools:
 
-* [Create it from .osm.pbf](src/main/java/org/openstreetmap/atlas/geography/atlas#building-an-atlas-from-an-osmpbf-file)
+* [Create it from `.osm.pbf`](src/main/java/org/openstreetmap/atlas/geography/atlas#building-an-atlas-from-an-osmpbf-file)
 * Sharding
 * Stitching
 * Filtering
 * Cutting
 * Routing
 * Higher-level entities
-* Saving / Loading
+* [Saving](src/main/java/org/openstreetmap/atlas/geography/atlas#saving-an-atlas) / [Loading](src/main/java/org/openstreetmap/atlas/geography/atlas#using-atlas)
 
 # Community
 
