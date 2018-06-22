@@ -48,7 +48,7 @@ int numberOfConnectedEdges = atlas.nodeForIdentifier(identifier).absoluteValence
 
 # Building an `Atlas` from an `.osm.pbf` file
 
-## Generate an Atlas with everything that is in a pbf file
+## Generate an Atlas with everything that is in an `.osm.pbf` file
 
 ```
 final File pbfFile;

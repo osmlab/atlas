@@ -28,7 +28,7 @@ Python   | Basic
 
 As well as other handy tools:
 
-* Create it from OSM PBF
+* [Create it from .osm.pbf](src/main/java/org/openstreetmap/atlas/geography/atlas#building-an-atlas-from-an-osmpbf-file)
 * Sharding
 * Stitching
 * Filtering
