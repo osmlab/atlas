@@ -117,3 +117,17 @@ final Atlas atlas1;
 final Atlas atlas2;
 new PackedAtlasCloner().cloneFrom(new MultiAtlas(atlas1, atlas2)).save(new File("/path/to/file.atlas"));
 ```
+
+# Filtering an `Atlas`
+
+Atlas objects can be soft-filtered based on a `Predicate` or a `Polygon`.
+
+```
+final Atlas atlas;
+
+final Predicate<AtlasEntity> predicate;
+final Atlas predicateAtlas = atlas.subAtlas(predicate);
+
+final Polygon polygon;
+final Atlas polygonAtlas = atlas.subAtlas(polygon);
+```

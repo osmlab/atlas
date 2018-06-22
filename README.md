@@ -33,8 +33,8 @@ As well as other handy tools:
 * [Shard Stitching](/src/main/java/org/openstreetmap/atlas/geography/atlas/multi#multiatlas)
 * [Shard Exploration](/src/main/java/org/openstreetmap/atlas/geography/atlas/dynamic#dynamicatlas)
 * Filtering
-* Cutting
-* Routing
+* [Cutting](/src/main/java/org/openstreetmap/atlas/geography/atlas#country-slicing)
+* [Routing](/src/main/java/org/openstreetmap/atlas/geography/atlas/routing#routing)
 * [Higher-level entities](/src/main/java/org/openstreetmap/atlas/geography/atlas/items/complex#complex-entities)
 * [Saving](/src/main/java/org/openstreetmap/atlas/geography/atlas#saving-an-atlas) / [Loading](/src/main/java/org/openstreetmap/atlas/geography/atlas#using-atlas)
 
