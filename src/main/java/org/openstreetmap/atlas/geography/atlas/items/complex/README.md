@@ -1,6 +1,6 @@
 # Complex Entities
 
-Complex entities are higher level features made of relationships between Atlas features. Those complex entities are never stored in the Atlas directly, but rather built on demand using Finders
+Complex entities are higher level features made of relationships between Atlas features. Those complex entities are never stored in the Atlas directly, but rather built on demand using Finders.
 
 ## Some examples
 

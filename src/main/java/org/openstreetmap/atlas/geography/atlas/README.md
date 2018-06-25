@@ -82,7 +82,7 @@ final Atlas atlas = loader.read();
 
 ## Way Sectioning
 
-OSM ways usually span multiple intersections in the case of roads. To make the road network a navigable network, the process of loading an `.osm.pbf` file runs "way sectioning". It will follow a set of rules to break ways at intersections, and create `Atlas` `Edge`s. For that, it pads the OSM feature identifiers with six digits starting from 1 to the number of sections. For example, way 123 would become `Edge`s 123000001, 123000002 and 123000003 if it has to be broken twice.
+OSM ways usually span multiple intersections in the case of roads. To make the road network a navigable network, the process of loading an `.osm.pbf` file runs "way sectioning". It will follow a set of rules to break ways at intersections, and create `Atlas` `Edge`s. For that, it pads the OSM feature identifiers with six digits starting from 1 to the number of sections. For example, way 123 would become `Edge`s 123000001, 123000002 and 123000003 if it has to be broken twice. If no sectioning takes place, the edge identifier would end in `000`.
 
 ## Country Slicing
 
