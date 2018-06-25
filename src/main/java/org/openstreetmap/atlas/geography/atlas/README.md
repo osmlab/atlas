@@ -48,36 +48,27 @@ int numberOfConnectedEdges = atlas.nodeForIdentifier(identifier).absoluteValence
 
 # Building an `Atlas` from an `.osm.pbf` file
 
-## Generate an Atlas with everything that is in an `.osm.pbf` file
+Building an `Atlas` from an `.osm.pbf` file involves multiple steps, described below. First create a "Raw Atlas" that is a simple copy of all the items in the PBF file into the Atlas format. Then (optionally) apply country slicing, and finally call the way-sectioning algorithm to create the "navigable network" part of the Atlas.
+
+Without country slicing:
 
 ```
 final File pbfFile;
-final OsmPbfLoader loader = new OsmPbfLoader(pbfFile, MultiPolygon.MAXIMUM,
-    AtlasLoadingOption.withNoFilter());
-final Atlas atlas = loader.read();
+
+final Atlas rawAtlas = new RawAtlasGenerator(pbfFile).build();
+final Atlas atlas = new WaySectionProcessor(rawAtlas, AtlasLoadingOption.createOptionWithAllEnabled()).run();
 ```
 
-## Generate an Atlas without boundaries and coastlines
-
-Usually OSM boundaries and coastlines do not work well with JTS and country-slicing with themselves. The default `osmPbfWayFilter` in the `AtlasLoadingOption` will filter those out:
+With country slicing:
 
 ```
 final File pbfFile;
-final OsmPbfLoader loader = new OsmPbfLoader(pbfFile, MultiPolygon.MAXIMUM,
-    AtlasLoadingOption.createOptionWithAllEnabled());
-final Atlas atlas = loader.read();
-```
-
-## Generate an Atlas for a specific shard
-
-When specifying a shard for building an `Atlas` from an `.osm.pbf` file, the generator will do a soft cut along the borders of the shard:
-
-```
-final File pbfFile;
-final Rectangle shard;
-final OsmPbfLoader loader = new OsmPbfLoader(pbfFile, MultiPolygon.forPolygon(shard),
-    AtlasLoadingOption.createOptionWithAllEnabled());
-final Atlas atlas = loader.read();
+final Set<String> countries;
+final CountryBoundaryMap boundaries;
+        
+final Atlas rawAtlas = new RawAtlasGenerator(pbfFile).build();
+final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(countries, boundaries).slice(rawAtlas);
+final Atlas atlas = new WaySectionProcessor(slicedRawAtlas, AtlasLoadingOption.createOptionWithAllEnabled(boundaries)).run();
 ```
 
 ## Way Sectioning
