@@ -1,0 +1,25 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_outer_classname = "ProtoAtlasMetaDataWrapper";
+
+package org.openstreetmap.atlas.proto;
+
+import "Tag.proto";
+
+message ProtoAtlasMetaData {
+    optional int64 edgeNumber = 1;
+    optional int64 nodeNumber = 2;
+    optional int64 areaNumber = 3;
+    optional int64 lineNumber = 4;
+    optional int64 pointNumber = 5;
+    optional int64 relationNumber = 6;
+
+    optional bool original = 7;
+    optional string codeVersion = 8;
+    optional string dataVersion = 9;
+    optional string country = 10;
+    optional string shardName = 11;
+
+    repeated ProtoTag tags = 12;
+}

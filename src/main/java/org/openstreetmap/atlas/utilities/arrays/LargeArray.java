@@ -4,8 +4,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasSerializer;
+import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
 import org.openstreetmap.atlas.utilities.scalars.Ratio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +20,7 @@ import org.slf4j.LoggerFactory;
  * @param <T>
  *            The type of items in the array
  * @author matthieun
+ * @author lcram
  */
 public abstract class LargeArray<T> implements Iterable<T>, Serializable
 {
@@ -56,10 +60,34 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
      */
     public LargeArray(final long maximumSize, final int memoryBlockSize, final int subArraySize)
     {
+        if (memoryBlockSize < 0)
+        {
+            throw new CoreException("memoryBlockSize ({}) cannot be negative", memoryBlockSize);
+        }
+        if (subArraySize < 0)
+        {
+            throw new CoreException("subArraySize ({}) cannot be negative", subArraySize);
+        }
+
         this.maximumSize = maximumSize;
         this.arrays = new ArrayList<>();
         this.memoryBlockSize = memoryBlockSize;
         this.subArraySize = subArraySize;
+    }
+
+    /**
+     * This nullary constructor exists solely for subclasses of {@link LargeArray} that wish to
+     * implement their own nullary constructor. These nullary constructors should only be used by
+     * serialization code in {@link PackedAtlasSerializer} that needs to obtain
+     * {@link ProtoAdapter}s. The objects they initialize are corrupted for general use and should
+     * be discarded.
+     */
+    protected LargeArray()
+    {
+        this.arrays = null;
+        this.maximumSize = 0;
+        this.memoryBlockSize = 0;
+        this.subArraySize = 0;
     }
 
     /**
@@ -101,6 +129,43 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
     }
 
     /**
+     * A basic equals() implementation. Note that if this class is parameterized with an array type,
+     * this method may not work as expected (due to array equals() performing a reference
+     * comparison). Child classes of LargeArray may want to override this method to improve its
+     * behavior in special cases.
+     */
+    @Override
+    public boolean equals(final Object other)
+    {
+        if (other instanceof LargeArray)
+        {
+            if (this == other)
+            {
+                return true;
+            }
+            @SuppressWarnings("unchecked")
+            final LargeArray<T> that = (LargeArray<T>) other;
+            if (!Objects.equals(this.getName(), that.getName()))
+            {
+                return false;
+            }
+            if (this.size() != that.size())
+            {
+                return false;
+            }
+            for (long index = 0; index < this.size(); index++)
+            {
+                if (!this.get(index).equals(that.get(index)))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Get an item from the array
      *
      * @param index
@@ -124,6 +189,24 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
     public String getName()
     {
         return this.name;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int initialPrime = 31;
+        final int hashSeed = 37;
+
+        final int nameHash = this.getName() == null ? 0 : this.getName().hashCode();
+        int hash = hashSeed * initialPrime + nameHash;
+        hash = hashSeed * hash + Long.valueOf(this.size()).hashCode();
+
+        for (long index = 0; index < this.size(); index++)
+        {
+            hash = hashSeed * hash + this.get(index).hashCode();
+        }
+
+        return hash;
     }
 
     public boolean isEmpty()
@@ -228,12 +311,23 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
             return;
         }
         final int arrayIndex = this.arrays.size() - 1;
-        final PrimitiveArray<T> last = this.arrays.get(arrayIndex);
+        final PrimitiveArray<T> rightmost = this.arrays.get(arrayIndex);
+
+        /*
+         * Exit early in the case that the rightmost subarray is full - there is nothing to trim. In
+         * fact, the trim logic below breaks in this case, and will wipe out the rightmost subarray
+         * instead of trimming it.
+         */
+        if (rightmostSubarrayIsFull())
+        {
+            return;
+        }
+
         // Here nextIndex is actually the size, and not size-1
         final int indexInside = indexInside(this.nextIndex);
-        if (Ratio.ratio((double) indexInside / last.size()).isLessThan(ratio))
+        if (Ratio.ratio((double) indexInside / rightmost.size()).isLessThan(ratio))
         {
-            this.arrays.set(arrayIndex, last.trimmed(indexInside));
+            this.arrays.set(arrayIndex, rightmost.trimmed(indexInside));
         }
     }
 
@@ -282,5 +376,10 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
     private int indexInside(final long index)
     {
         return (int) (index % this.subArraySize);
+    }
+
+    private boolean rightmostSubarrayIsFull()
+    {
+        return this.nextIndex > 0 && indexInside(this.nextIndex) == 0;
     }
 }

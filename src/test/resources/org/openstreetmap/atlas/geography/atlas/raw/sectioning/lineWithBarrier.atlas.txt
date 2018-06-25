@@ -1,0 +1,15 @@
+# Nodes
+# Edges
+# Areas
+# Lines
+460419996000000 && 7.4125734,-7.5718219:7.4133357,-7.5718406:7.4133995,-7.5718191:7.4135218,-7.5717253:7.4135804,-7.5717065:7.4137548,-7.5717122:7.4144075,-7.5717337:7.4145614,-7.5717365 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44503315 || access -> private || surface -> asphalt || last_edit_time -> 1482104309000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || highway -> service || last_edit_version -> 2
+# Points
+4560902555000000 && 7.4145614,-7.5717365 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44553998 || last_edit_time -> 1482277549000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 2
+4560902556000000 && 7.4135804,-7.5717065 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44503236 || last_edit_time -> 1482103964000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 1
+4560902557000000 && 7.4135218,-7.5717253 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44503236 || last_edit_time -> 1482103964000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 1
+4560902558000000 && 7.4133995,-7.5718191 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44503236 || last_edit_time -> 1482103964000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 1
+4560902559000000 && 7.4133357,-7.5718406 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44503236 || last_edit_time -> 1482103964000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 1
+4560902615000000 && 7.4125734,-7.5718219 && motorcycle -> yes || last_edit_user_name -> ulrichm || last_edit_changeset -> 44503236 || access -> private || barrier -> gate || bicycle -> yes || last_edit_time -> 1482103960000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || motorcar -> yes || last_edit_version -> 1 || foot -> yes
+4560902695000000 && 7.4137548,-7.5717122 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44503236 || last_edit_time -> 1482103959000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 1
+4560902697000000 && 7.4144075,-7.5717337 && motorcycle -> yes || last_edit_user_name -> ulrichm || last_edit_changeset -> 44503236 || access -> permissive || barrier -> gate || bicycle -> yes || last_edit_time -> 1482103959000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || motorcar -> yes || last_edit_version -> 1 || foot -> yes
+# Relations

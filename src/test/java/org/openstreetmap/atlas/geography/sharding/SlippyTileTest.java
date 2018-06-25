@@ -1,6 +1,8 @@
 package org.openstreetmap.atlas.geography.sharding;
 
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -14,6 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * {@link SlippyTile} unit tests.
+ *
  * @author matthieun
  * @author mgostintsev
  */
@@ -40,15 +44,33 @@ public class SlippyTileTest extends Command
     }
 
     @Test
+    public void testCompareTo()
+    {
+        final SlippyTile tile = new SlippyTile(10, 10, 17);
+        final SlippyTile identical = new SlippyTile(10, 10, 17);
+        final SlippyTile sameZ = new SlippyTile(5, 5, 17);
+        final SlippyTile sameZAndX = new SlippyTile(10, 5, 17);
+        final SlippyTile sameZAndY = new SlippyTile(5, 10, 17);
+
+        Assert.assertTrue("Identical tiles", tile.compareTo(identical) == 0);
+        Assert.assertTrue("Same z levels, original tile should be preferred with higher X-value",
+                tile.compareTo(sameZ) == 1);
+        Assert.assertTrue("Same z levels, original tile should be preferred with higher y value",
+                tile.compareTo(sameZAndX) == 1);
+        Assert.assertTrue("Same z levels, original tile should be preferred with higher x value",
+                tile.compareTo(sameZAndY) == 1);
+    }
+
+    @Test
     public void testMultiPolygonShards()
     {
         final MultiPolygon multiPolygon = MultiPolygon
                 .wkt("MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),"
                         + "((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),"
                         + "(30 20, 20 15, 20 25, 30 20)))");
-        @SuppressWarnings("unchecked")
-        final Set<Shard> coveredShards = (Set<Shard>) new SlippyTileSharding(8)
-                .shards(multiPolygon);
+        final Set<Shard> coveredShards = StreamSupport
+                .stream(new SlippyTileSharding(8).shards(multiPolygon).spliterator(), false)
+                .collect(Collectors.toSet());
         Assert.assertFalse(coveredShards.contains(SlippyTile.forName("8-145-113")));
         Assert.assertTrue(coveredShards.contains(SlippyTile.forName("8-146-111")));
         Assert.assertFalse(coveredShards.contains(SlippyTile.forName("8-167-108")));

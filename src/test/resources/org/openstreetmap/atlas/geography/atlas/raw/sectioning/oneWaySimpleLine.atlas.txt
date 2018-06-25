@@ -1,0 +1,12 @@
+# Nodes
+# Edges
+# Areas
+# Lines
+109486264000000 && 7.4040186,-7.5556377:7.4040214,-7.5558108:7.4040139,-7.5558868:7.4040034,-7.5559234:7.403982,-7.5559575 && last_edit_changeset -> 56335930 || surface -> asphalt || iso_country_code -> CIV || maxspeed -> 55 || motorroad -> yes || oneway -> yes || last_edit_user_name -> whatmeinfallible || ref -> A8 || last_edit_time -> 1518559734000 || last_edit_user_id -> 7150022 || lit -> yes || lanes -> 2 || highway -> primary || last_edit_version -> 3
+# Points
+1253114487000000 && 7.4040186,-7.5556377 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44482187 || last_edit_time -> 1482025782000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 3
+4559338263000000 && 7.4040214,-7.5558108 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44482187 || last_edit_time -> 1482025745000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 1
+4559344069000000 && 7.4040139,-7.5558868 && last_edit_user_name -> whatmeinfallible || last_edit_changeset -> 56335930 || last_edit_time -> 1518559734000 || last_edit_user_id -> 7150022 || iso_country_code -> CIV || last_edit_version -> 2
+4559344074000000 && 7.4040034,-7.5559234 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44482187 || last_edit_time -> 1482025743000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 1
+4559344427000000 && 7.403982,-7.5559575 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44482187 || last_edit_time -> 1482025744000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 1
+# Relations

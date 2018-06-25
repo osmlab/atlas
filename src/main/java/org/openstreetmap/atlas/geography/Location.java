@@ -34,6 +34,7 @@ public class Location implements Located, Iterable<Location>, Serializable
     public static final Location TEST_5 = Location.forString("37.390535,-122.031007");
     public static final Location TEST_6 = Location.forString("37.325440,-122.033948");
     public static final Location TEST_7 = Location.forString("37.3314171,-122.0304871");
+    public static final Location TEST_8 = Location.forString("37.3214159,-122.0303831");
     public static final Location STEVENS_CREEK = Location.forString("37.324233,-122.003467");
     public static final Location CROSSING_85_280 = Location.forString("37.332439,-122.055760");
     public static final Location CROSSING_85_17 = Location.forString("37.255731,-121.955918");

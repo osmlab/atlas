@@ -1,0 +1,30 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_outer_classname = "ProtoRelationWrapper";
+
+package org.openstreetmap.atlas.proto;
+
+import "Tag.proto";
+
+message ProtoRelation {
+    optional int64 id = 1;
+    repeated ProtoTag tags = 2;
+
+    enum ProtoItemType {
+        NODE = 0;
+        EDGE = 1;
+        AREA = 2;
+        LINE = 3;
+        POINT = 4;
+        RELATION = 5;
+    }
+
+    message RelationBean {
+        optional int64 memberId = 1;
+        optional string memberRole = 2;
+        optional ProtoItemType memberType = 3;
+    }
+
+    repeated RelationBean beans = 3;
+}

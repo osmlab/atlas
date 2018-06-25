@@ -12,6 +12,8 @@ import org.openstreetmap.atlas.tags.annotations.TagKey;
 public enum AmenityTag
 {
     PARKING,
+    PARKING_ENTRANCE,
+    MOTORCYCLE_PARKING,
     PLACE_OF_WORSHIP,
     SCHOOL,
     BENCH,

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
@@ -24,6 +25,44 @@ import com.google.gson.JsonPrimitive;
  */
 public class GeoJsonBuilder
 {
+    /**
+     * @author matthieun
+     * @author mgostintsev
+     */
+    public enum GeoJsonType
+    {
+        POINT("Point"),
+        LINESTRING("LineString"),
+        POLYGON("Polygon"),
+        MULTI_POINT("MultiPoint"),
+        MULTI_LINESTRING("MultiLineString"),
+        MULTI_POLYGON("MultiPolygon");
+
+        private final String type;
+
+        public static GeoJsonType forType(final String type)
+        {
+            for (final GeoJsonType value : values())
+            {
+                if (value.getType().equals(type))
+                {
+                    return value;
+                }
+            }
+            throw new CoreException("Invalid geoJson type: {}", type);
+        }
+
+        GeoJsonType(final String type)
+        {
+            this.type = type;
+        }
+
+        public String getType()
+        {
+            return this.type;
+        }
+    }
+
     /**
      * Java bean to store the geometry (as an {@link Iterable} of {@link Location}s) and all the
      * tags as a {@link String} to {@link String} {@link Map}
@@ -53,14 +92,15 @@ public class GeoJsonBuilder
         }
     }
 
-    public static final String FEATURES = "features";
-    public static final String GEOMETRY = "geometry";
     public static final String COORDINATES = "coordinates";
-    public static final String TYPE = "type";
     public static final String FEATURE = "Feature";
+    public static final String FEATURES = "features";
     public static final String FEATURE_COLLECTION = "FeatureCollection";
-    public static final String GEOMETRY_COLLECTION = "GeometryCollection";
     public static final String GEOMETRIES = "geometries";
+    public static final String GEOMETRY = "geometry";
+    public static final String GEOMETRY_COLLECTION = "GeometryCollection";
+    public static final String PROPERTIES = "properties";
+    public static final String TYPE = "type";
     private static final Logger logger = LoggerFactory.getLogger(GeoJsonBuilder.class);
     private final int logFrequency;
 
@@ -216,7 +256,7 @@ public class GeoJsonBuilder
      */
     public GeoJsonObject create(final Polygon polygon)
     {
-        return this.create(polygon, GeoJsonType.POLYGON);
+        return this.create(polygon.closedLoop(), GeoJsonType.POLYGON);
     }
 
     /**
@@ -229,6 +269,61 @@ public class GeoJsonBuilder
     public GeoJsonObject create(final PolyLine polyLine)
     {
         return this.create(polyLine, GeoJsonType.LINESTRING);
+    }
+
+    /**
+     * Creates a GeoJson FeatureCollection containing a list of GeoJsonObject Features
+     *
+     * @param objects
+     *            the features
+     * @return a GeoJson FeatureCollection
+     */
+    public GeoJsonObject createFeatureCollection(final Iterable<GeoJsonObject> objects)
+    {
+        final JsonObject result = new JsonObject();
+        result.addProperty(TYPE, FEATURE_COLLECTION);
+        final JsonArray features = new JsonArray();
+        int counter = 0;
+        for (final GeoJsonObject object : objects)
+        {
+            if (this.logFrequency > 0 && ++counter % this.logFrequency == 0)
+            {
+                logger.info("Processed {} features.", counter);
+            }
+            if (!Optional.ofNullable(object.jsonObject().get(TYPE))
+                    .filter(jsonObject -> jsonObject.getAsString().equals(FEATURE)).isPresent())
+            {
+                throw new CoreException("Illegal GeoJson Type for Feature collection");
+            }
+            features.add(object.jsonObject());
+        }
+        result.add(FEATURES, features);
+        return new GeoJsonObject(result);
+    }
+
+    /**
+     * Creates a GeoJson FeatureCollection from an iterable of GeoJsonObject
+     *
+     * @param geoJsonObjects
+     *            a iterable of GeoJsonObject
+     * @return a GeoJson FeatureCollection
+     */
+    public GeoJsonObject createFromGeoJson(final Iterable<GeoJsonObject> geoJsonObjects)
+    {
+        final JsonObject result = new JsonObject();
+        result.addProperty(TYPE, FEATURE_COLLECTION);
+        final JsonArray features = new JsonArray();
+        int counter = 0;
+        for (final GeoJsonObject object : geoJsonObjects)
+        {
+            if (this.logFrequency > 0 && ++counter % this.logFrequency == 0)
+            {
+                logger.info("Processed {} features.", counter);
+            }
+            features.add(object.jsonObject());
+        }
+        result.add(FEATURES, features);
+        return new GeoJsonObject(result);
     }
 
     /**
@@ -372,7 +467,7 @@ public class GeoJsonBuilder
 
     /**
      * Creates a MultiPolygon type GeoJson Feature
-     * 
+     *
      * @param polygons
      *            geometries
      * @return a GeoJson Feature
@@ -383,7 +478,7 @@ public class GeoJsonBuilder
         final List<GeoJsonObject> objects = new ArrayList<>();
         for (final Polygon polygon : polygons)
         {
-            objects.add(this.create(polygon, GeoJsonType.MULTI_POLYGON));
+            objects.add(this.create(polygon.closedLoop(), GeoJsonType.MULTI_POLYGON));
         }
 
         final JsonObject result = new JsonObject();
@@ -407,40 +502,42 @@ public class GeoJsonBuilder
     }
 
     /**
-     * @author matthieun
-     * @author mgostintsev
+     * Creates multipolygon from {@link Iterable} of {@link Polygon}s where first polygon is assumed
+     * to be the outer ring and the rest are inner.
+     *
+     * @param polygons
+     *            an iterable of polygons where the first is assumed to be the outer polygon in a
+     *            multipolygon
+     * @return a MultiPolygon geojson feature with one polygon that geometrically represents a
+     *         single outer Atlas Multipolygon
      */
-    public enum GeoJsonType
+    public GeoJsonObject createOneOuterMultiPolygon(final Iterable<Polygon> polygons)
     {
-        POINT("Point"),
-        LINESTRING("LineString"),
-        POLYGON("Polygon"),
-        MULTI_POINT("MultiPoint"),
-        MULTI_LINESTRING("MultiLineString"),
-        MULTI_POLYGON("MultiPolygon");
-
-        private final String type;
-
-        public static GeoJsonType forType(final String type)
+        // Create the coordinates for each polygon
+        final List<GeoJsonObject> objects = new ArrayList<>();
+        for (final Polygon polygon : polygons)
         {
-            for (final GeoJsonType value : values())
-            {
-                if (value.getType().equals(type))
-                {
-                    return value;
-                }
-            }
-            throw new CoreException("Invalid geoJson type: {}", type);
+            objects.add(this.create(polygon.closedLoop(), GeoJsonType.MULTI_POLYGON));
         }
 
-        GeoJsonType(final String type)
+        final JsonObject result = new JsonObject();
+        result.addProperty(TYPE, FEATURE);
+        final JsonArray coordinates = new JsonArray();
+
+        // Add the coordinates back for the entire object
+        for (final GeoJsonObject object : objects)
         {
-            this.type = type;
+            coordinates
+                    .add(object.jsonObject().getAsJsonObject(GEOMETRY).getAsJsonArray(COORDINATES));
         }
 
-        public String getType()
-        {
-            return this.type;
-        }
+        final JsonArray newCoordinates = new JsonArray();
+        newCoordinates.add(coordinates);
+        final JsonObject geometry = new JsonObject();
+        geometry.addProperty(TYPE, GeoJsonType.MULTI_POLYGON.getType());
+        geometry.add(COORDINATES, newCoordinates);
+        result.add(GEOMETRY, geometry);
+        result.add(PROPERTIES, new JsonObject());
+        return new GeoJsonObject(result);
     }
 }

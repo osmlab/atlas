@@ -7,12 +7,11 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
+import org.openstreetmap.atlas.streaming.Streams;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import crosby.binary.osmosis.OsmosisReader;
 
 /**
  * An {@link OsmPbfLoader} loads from one OSM protobuf file with a polygon or bounding box and
@@ -27,8 +26,8 @@ public class OsmPbfLoader
     private static final Logger logger = LoggerFactory.getLogger(OsmPbfLoader.class);
     private final PackedAtlasBuilder builder = new PackedAtlasBuilder();
     private final OsmPbfProcessor processor;
-    private final Supplier<OsmosisReader> osmosisReaderSupplier;
-    private OsmosisReader reader;
+    private final Supplier<CloseableOsmosisReader> osmosisReaderSupplier;
+    private CloseableOsmosisReader reader;
     private Atlas atlas;
     private AtlasMetaData metaData = new AtlasMetaData();
     private final AtlasLoadingOption atlasLoadingOption;
@@ -51,10 +50,10 @@ public class OsmPbfLoader
     public OsmPbfLoader(final Resource resource, final MultiPolygon polygon,
             final AtlasLoadingOption loadingOption)
     {
-        this(() -> new OsmosisReader(resource.read()), polygon, loadingOption);
+        this(() -> new CloseableOsmosisReader(resource.read()), polygon, loadingOption);
     }
 
-    protected OsmPbfLoader(final Supplier<OsmosisReader> osmosisReaderSupplier,
+    protected OsmPbfLoader(final Supplier<CloseableOsmosisReader> osmosisReaderSupplier,
             final MultiPolygon polygon, final AtlasLoadingOption loadingOption)
     {
         this.osmosisReaderSupplier = osmosisReaderSupplier;
@@ -97,8 +96,8 @@ public class OsmPbfLoader
                 logger.info("No Atlas (empty) for shard {}",
                         this.metaData.getShardName().orElse("unknown"));
             }
-
         }
+        this.closeReader();
         return this.atlas;
     }
 
@@ -120,8 +119,17 @@ public class OsmPbfLoader
         return this;
     }
 
+    private void closeReader()
+    {
+        if (this.reader != null)
+        {
+            Streams.close(this.reader);
+        }
+    }
+
     private void makeNewReader()
     {
+        closeReader();
         this.reader = this.osmosisReaderSupplier.get();
         // set processor which define how to process OSM entities
         this.reader.setSink(this.processor);

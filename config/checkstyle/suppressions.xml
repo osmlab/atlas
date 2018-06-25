@@ -4,10 +4,11 @@
     "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 
 <suppressions>
-	<suppress checks="MagicNumberCheck" files="src/test/*" />
-	<suppress checks="MagicNumberCheck" files="src/integrationTest/*" />
-	<suppress checks="MultipleStringLiterals" files="src/test/*" />
-	<suppress checks="MultipleStringLiterals" files="src/integrationTest/*" />
-	<suppress checks="InnerAssignment" files="src/test/*" />
-	<suppress checks="InnerAssignment" files="src/integrationTest/*" />
+    <suppress checks="MagicNumberCheck" files="src/test/*" />
+    <suppress checks="MagicNumberCheck" files="src/integrationTest/*" />
+    <suppress checks="MultipleStringLiterals" files="src/test/*" />
+    <suppress checks="MultipleStringLiterals" files="src/integrationTest/*" />
+    <suppress checks="InnerAssignment" files="src/test/*" />
+    <suppress checks="InnerAssignment" files="src/integrationTest/*" />
+    <suppress checks="." files="src/generated/*" />
 </suppressions>

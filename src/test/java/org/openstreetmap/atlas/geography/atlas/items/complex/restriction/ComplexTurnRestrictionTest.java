@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.text.TextAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.items.Route;
+import org.openstreetmap.atlas.geography.atlas.items.TurnRestriction;
 import org.openstreetmap.atlas.geography.atlas.items.TurnRestriction.TurnRestrictionType;
 import org.openstreetmap.atlas.geography.atlas.items.complex.Finder;
 import org.openstreetmap.atlas.geography.atlas.items.complex.bignode.BigNode;
@@ -193,5 +194,17 @@ public class ComplexTurnRestrictionTest
                 expectedCountOfRestrictedRoutes, restrictedRoutes.size());
         Assert.assertTrue("Verify that this explicit restricted path is returned", restrictedRoutes
                 .stream().anyMatch(route -> route.toString().equals(expectedRestrictedRoute)));
+    }
+
+    @Test
+    public void testTurnRestrictionWithTwoViaNodesInRelation()
+    {
+        final Atlas testAtlas = this.rule.getRelationWithTwoViaNodes();
+        logger.trace("Atlas relation with 2 via nodes: {}", testAtlas);
+        // For more than 1 via nodes in relation for restriction, TurnRestriction will always
+        // return an empty optional
+        final Optional<TurnRestriction> possibleTurnRestriction = TurnRestriction
+                .from(testAtlas.relation(1L));
+        Assert.assertEquals(Optional.empty(), possibleTurnRestriction);
     }
 }

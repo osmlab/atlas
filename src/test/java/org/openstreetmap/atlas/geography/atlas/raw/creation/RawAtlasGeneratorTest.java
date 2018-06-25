@@ -5,8 +5,8 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.Segment;
@@ -16,14 +16,17 @@ import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveLineI
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveLocationItem;
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveObjectStore;
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveRelation;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader;
 import org.openstreetmap.atlas.geography.atlas.pbf.OsmosisReaderMock;
 import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.tags.SyntheticDuplicateOsmNodeTag;
+import org.openstreetmap.atlas.tags.annotations.validation.Validators;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.Maps;
-
-import com.google.common.collect.Iterables;
+import org.openstreetmap.atlas.utilities.scalars.Distance;
 
 /**
  * Tests {@link RawAtlasGenerator} Raw Atlas creation. These tests include basic parity check on
@@ -61,20 +64,20 @@ public class RawAtlasGeneratorTest
         store.addRelation(new AtlasPrimitiveRelation(123, 123, relationBean, Maps.stringMap(),
                 Rectangle.forLocated(line1, line2)));
 
+        @SuppressWarnings("resource")
         final OsmosisReaderMock osmosis = new OsmosisReaderMock(store);
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(() -> osmosis,
-                AtlasLoadingOption.createOptionWithNoSlicing());
+                AtlasLoadingOption.createOptionWithNoSlicing(), MultiPolygon.MAXIMUM);
         final Atlas atlas = rawAtlasGenerator.build();
 
+        // Verify Atlas Entities
+        assertBasicRawAtlasPrinciples(atlas);
         Assert.assertEquals(2, atlas.numberOfLines());
         Assert.assertEquals(2, atlas.numberOfPoints());
         Assert.assertEquals(1, atlas.numberOfRelations());
-        Assert.assertEquals(0, atlas.numberOfNodes());
-        Assert.assertEquals(0, atlas.numberOfEdges());
-        Assert.assertEquals(0, atlas.numberOfAreas());
     }
 
-    @Test(expected = CoreException.class)
+    @Test
     public void testLoadingPbfWithWayThatReferencesMissingNode()
     {
         final AtlasPrimitiveObjectStore store = new AtlasPrimitiveObjectStore();
@@ -89,13 +92,19 @@ public class RawAtlasGeneratorTest
         store.addLine(new AtlasPrimitiveLineItem(4, new Segment(Location.TEST_3, Location.TEST_4),
                 EMPTY));
 
+        @SuppressWarnings("resource")
         final OsmosisReaderMock osmosis = new OsmosisReaderMock(store);
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(() -> osmosis,
-                AtlasLoadingOption.createOptionWithNoSlicing());
+                AtlasLoadingOption.createOptionWithNoSlicing(), MultiPolygon.MAXIMUM);
 
         // The raw Atlas should not get built, as one of the nodes referenced by the PBF is missing.
-        @SuppressWarnings("unused")
         final Atlas atlas = rawAtlasGenerator.build();
+
+        // Verify Atlas Entities
+        assertBasicRawAtlasPrinciples(atlas);
+        Assert.assertEquals(1, atlas.numberOfLines());
+        Assert.assertEquals(2, atlas.numberOfPoints());
+        Assert.assertEquals(0, atlas.numberOfRelations());
     }
 
     @Test
@@ -114,7 +123,7 @@ public class RawAtlasGeneratorTest
 
         Assert.assertEquals(
                 "The original Atlas counts of (Lines + Master Edges + Areas) should equal the total number of all Lines in the Raw Atlas, let's verify this",
-                Iterables.size(Iterables.filter(oldAtlas.edges(), edge -> edge.isMasterEdge()))
+                Iterables.size(Iterables.filter(oldAtlas.edges(), Edge::isMasterEdge))
                         + oldAtlas.numberOfAreas() + oldAtlas.numberOfLines(),
                 rawAtlas.numberOfLines());
 
@@ -135,15 +144,13 @@ public class RawAtlasGeneratorTest
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
         final Atlas atlas = rawAtlasGenerator.build();
 
-        // The Raw Atlas should never contain Nodes, Edges or Areas
-        Assert.assertEquals(0, atlas.numberOfNodes());
-        Assert.assertEquals(0, atlas.numberOfEdges());
-        Assert.assertEquals(0, atlas.numberOfAreas());
-
-        // Only Points, Lines and Relations
-        Assert.assertEquals(457884, atlas.numberOfPoints());
+        // Verify Atlas Entities
+        assertBasicRawAtlasPrinciples(atlas);
+        Assert.assertEquals(457837, atlas.numberOfPoints());
         Assert.assertEquals(45839, atlas.numberOfLines());
         Assert.assertEquals(347, atlas.numberOfRelations());
+        Assert.assertEquals(49, Iterables.size(atlas.points(
+                point -> Validators.hasValuesFor(point, SyntheticDuplicateOsmNodeTag.class))));
     }
 
     @Test
@@ -153,14 +160,34 @@ public class RawAtlasGeneratorTest
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
         final Atlas atlas = rawAtlasGenerator.build();
 
+        // Verify Atlas Entities
+        assertBasicRawAtlasPrinciples(atlas);
+        Assert.assertEquals(52188, atlas.numberOfPoints());
+        Assert.assertEquals(6080, atlas.numberOfLines());
+        Assert.assertEquals(3, atlas.numberOfRelations());
+    }
+
+    @Test
+    public void testRawAtlasCreationWithBoundingBox()
+    {
+        final String path = RawAtlasGeneratorTest.class.getResource("9-433-268.osm.pbf").getPath();
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path),
+                MultiPolygon.forPolygon(Location.forWkt("POINT (124.9721500 -8.9466200)").bounds()
+                        .expand(Distance.meters(100))));
+        final Atlas atlas = rawAtlasGenerator.build();
+
+        // Verify Atlas Entities
+        assertBasicRawAtlasPrinciples(atlas);
+        Assert.assertEquals(1361, atlas.numberOfPoints());
+        Assert.assertEquals(25, atlas.numberOfLines());
+        Assert.assertEquals(0, atlas.numberOfRelations());
+    }
+
+    private void assertBasicRawAtlasPrinciples(final Atlas atlas)
+    {
         // The Raw Atlas should never contain Nodes, Edges or Areas
         Assert.assertEquals(0, atlas.numberOfNodes());
         Assert.assertEquals(0, atlas.numberOfEdges());
         Assert.assertEquals(0, atlas.numberOfAreas());
-
-        // Only Points, Lines and Relations
-        Assert.assertEquals(52203, atlas.numberOfPoints());
-        Assert.assertEquals(6080, atlas.numberOfLines());
-        Assert.assertEquals(3, atlas.numberOfRelations());
     }
 }

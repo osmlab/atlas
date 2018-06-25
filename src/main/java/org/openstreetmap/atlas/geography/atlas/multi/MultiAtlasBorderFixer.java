@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
@@ -137,7 +138,8 @@ public class MultiAtlasBorderFixer implements Serializable
             // If there are no inconsistent identifiers AND there are no inconsistent edges,
             // mark the edge identifier as "processed" and continue to the next one
             if (!hasInconsistentIdentifier(countryOsmIdentifier, identifierToEdgeList)
-                    && !hasInconsistentEdges(identifierToEdgeList))
+                    && !hasInconsistentEdges(identifierToEdgeList)
+                    && !hasInconsistentRelations(identifierToEdgeList))
             {
                 processedCountryOsmIdentifiers.add(countryOsmIdentifier);
                 continue;
@@ -264,7 +266,16 @@ public class MultiAtlasBorderFixer implements Serializable
 
                 // Persist relations
                 relationsToUpdate.addAll(candidateRelations);
-                relationMembersToUpdate.putAll(candidateRelationMembers);
+
+                // perform a set union instead of wiping out the set that is already mapped at the
+                // current identifier
+                candidateRelationMembers.forEach((identifier, temporaryRelationMember) ->
+                {
+                    temporaryRelationMember.forEach(member ->
+                    {
+                        relationMembersToUpdate.add(identifier, member);
+                    });
+                });
 
                 // Mark old edge nodes/relations to be ignored
                 markItemsToBeIgnored(roads, hasReverseEdges);
@@ -833,6 +844,38 @@ public class MultiAtlasBorderFixer implements Serializable
             }
         }
 
+        return false;
+    }
+
+    /**
+     * Check if identical edges in the new {@link MultiAtlas} have consistent parent relations. It
+     * is possible the the same {@link Edge} may have a different set of parent relations depending
+     * on which subatlas is was pulled from. In this case, we want to detect this so we can unify
+     * the sets.
+     *
+     * @param identifierToEdgeList
+     *            A mapping from edge identifiers to list of edges with that identifier
+     * @return Indicator whether relations are consistent across identical edges
+     */
+    private boolean hasInconsistentRelations(final MultiMap<Long, Edge> identifierToEdgeList)
+    {
+        for (final Long edgeListForSameIdentifier : identifierToEdgeList.keySet())
+        {
+            final List<Edge> valuesForCurrentKey = identifierToEdgeList
+                    .get(edgeListForSameIdentifier);
+            final Edge firstEdge = valuesForCurrentKey.get(0);
+            final Set<Relation> masterRelations = firstEdge.relations();
+
+            for (int index = 1; index < valuesForCurrentKey.size(); index++)
+            {
+                final Edge comparisonEdge = valuesForCurrentKey.get(index);
+                final Set<Relation> candidateRelations = comparisonEdge.relations();
+                if (!Objects.equals(masterRelations, candidateRelations))
+                {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 

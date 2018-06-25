@@ -41,6 +41,21 @@ public final class TemporaryRelationMember
                 .hashCode();
     }
 
+    @Override
+    public String toString()
+    {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("[");
+        builder.append(getIdentifier());
+        builder.append(", ");
+        builder.append(getRole());
+        builder.append(", ");
+        builder.append(getType());
+        builder.append("]");
+
+        return builder.toString();
+    }
+
     protected long getIdentifier()
     {
         return this.identifier;

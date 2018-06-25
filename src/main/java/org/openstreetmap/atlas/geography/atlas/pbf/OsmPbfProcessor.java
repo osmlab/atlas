@@ -33,7 +33,6 @@ import org.openstreetmap.atlas.geography.atlas.pbf.store.PbfMemoryStore;
 import org.openstreetmap.atlas.geography.atlas.pbf.store.PbfOneWay;
 import org.openstreetmap.atlas.geography.atlas.pbf.store.TagMap;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.CountryCodeProperties;
-import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
@@ -79,7 +78,6 @@ public class OsmPbfProcessor implements Sink
 {
     private static final Logger logger = LoggerFactory.getLogger(OsmPbfProcessor.class);
 
-    private static final JtsMultiPolygonToMultiPolygonConverter JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
     private static final JtsPointConverter JTS_POINT_CONVERTER = new JtsPointConverter();
     private static final int MAXIMUM_NETWORK_EXTENSION = 100;
     private static final TagMapToTagCollectionConverter TAG_MAP_TO_TAG_COLLECTION_CONVERTER = new TagMapToTagCollectionConverter();
@@ -121,14 +119,6 @@ public class OsmPbfProcessor implements Sink
             logger.trace("Start loading atlas with polygon or bound {}", this.multiPolygon);
             logger.trace("With country code {}",
                     String.join(",", this.loadingOption.getCountryCodes()));
-
-            if (this.multiPolygon != null && this.loadingOption.getCountryBoundaryMap() != null)
-            {
-                logger.trace("Building grid index...");
-                this.loadingOption.getCountryBoundaryMap()
-                        .createGridIndex(JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER
-                                .backwardConvert(this.multiPolygon));
-            }
         }
     }
 

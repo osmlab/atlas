@@ -42,6 +42,7 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
+import org.openstreetmap.atlas.proto.builder.ProtoAtlasBuilder;
 import org.openstreetmap.atlas.streaming.Streams;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.streaming.writers.JsonWriter;
@@ -65,7 +66,6 @@ public abstract class BareAtlas implements Atlas
     private static final int MAXIMUM_RELATION_DEPTH = 500;
     private static NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
     private static final AtomicInteger ATLAS_IDENTIFIER_FACTORY = new AtomicInteger();
-
     static
     {
         NUMBER_FORMAT.setGroupingUsed(true);
@@ -73,6 +73,7 @@ public abstract class BareAtlas implements Atlas
 
     // Transient name
     private transient String name;
+
     private final transient int identifier;
 
     protected BareAtlas()
@@ -467,6 +468,12 @@ public abstract class BareAtlas implements Atlas
             Streams.close(writer);
             throw new CoreException("Could not save atlas as list", e);
         }
+    }
+
+    @Override
+    public void saveAsProto(final WritableResource resource)
+    {
+        new ProtoAtlasBuilder().write(this, resource);
     }
 
     @Override

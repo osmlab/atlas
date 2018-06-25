@@ -108,7 +108,12 @@ public abstract class AbstractAtlas extends BareAtlas
     @Override
     public Iterable<Area> areasCovering(final Location location)
     {
-        return this.getAreaSpatialIndex().get(location.bounds());
+        final Iterable<Area> areas = this.getAreaSpatialIndex().get(location.bounds());
+        return Iterables.stream(areas).filter(area ->
+        {
+            final Polygon areaPolygon = area.asPolygon();
+            return areaPolygon.fullyGeometricallyEncloses(location);
+        });
     }
 
     @Override

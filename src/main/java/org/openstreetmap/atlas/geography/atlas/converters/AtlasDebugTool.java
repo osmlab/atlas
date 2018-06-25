@@ -84,7 +84,8 @@ public class AtlasDebugTool extends Command
             MultiPolygon multiPolygon = MultiPolygon.forPolygon(Rectangle.MAXIMUM);
             if (boundaryFile != null)
             {
-                final CountryBoundaryMap boundaryMap = new CountryBoundaryMap(boundaryFile);
+                final CountryBoundaryMap boundaryMap = CountryBoundaryMap
+                        .fromShapeFile(boundaryFile);
                 option = AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap);
                 if (country != null)
                 {

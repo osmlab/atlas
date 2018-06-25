@@ -24,6 +24,7 @@ import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
+import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.osmosis.core.domain.v0_6.CommonEntityData;
@@ -864,7 +865,7 @@ public class CountrySlicingProcessor
         final List<Geometry> slices;
         try
         {
-            slices = this.boundaryMap.slice(way.getId(), geometry);
+            slices = this.boundaryMap.slice(way.getId(), geometry, Taggable.with(way.getTags()));
         }
         catch (final TopologyException e)
         {
@@ -877,7 +878,12 @@ public class CountrySlicingProcessor
             way.getTags().add(new Tag(ISOCountryTag.KEY, ISOCountryTag.COUNTRY_MISSING));
             return Optional.empty();
         }
-        else if (slices.size() == 1 || CountryBoundaryMap.isSameCountry(slices))
+        else if (slices.size() == 1 || CountryBoundaryMap.isSameCountry(slices)
+                // In case a way is "force-sliced", when it shoots into international waters, the
+                // slice number can be >1 and the country might be the same. In that case, we still
+                // want to include both slices always. This last check is to skip the coming block
+                // in that case.
+                && !this.boundaryMap.shouldForceSlicing(Taggable.with(way.getTags())))
         {
             // If a geometry goes slightly over the border, the tiny slice could be dropped and
             // number of slices is still 1. We should create a new geometry for this case, but

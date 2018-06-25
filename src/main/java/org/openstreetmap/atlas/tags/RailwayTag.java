@@ -20,6 +20,7 @@ public enum RailwayTag
     LEVEL_CROSSING,
     ABANDONED,
     SWITCH,
+    TRAVERSER,
     BUFFER_STOP,
     STATION,
     PLATFORM,

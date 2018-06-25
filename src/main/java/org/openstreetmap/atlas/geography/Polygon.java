@@ -12,6 +12,7 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.converters.WktPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.GeometryStreamer;
 import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -32,7 +33,7 @@ import com.vividsolutions.jts.triangulate.ConformingDelaunayTriangulationBuilder
  *
  * @author matthieun
  */
-public class Polygon extends PolyLine
+public class Polygon extends PolyLine implements GeometricSurface
 {
     public static final Polygon SILICON_VALLEY = new Polygon(Location.TEST_3, Location.TEST_7,
             Location.TEST_4, Location.TEST_1, Location.TEST_5);
@@ -58,9 +59,9 @@ public class Polygon extends PolyLine
 
     // Calculate sides starting from triangles
     private static final int MINIMUM_N_FOR_SIDE_CALCULATION = 3;
-
     private Area awtArea;
     private java.awt.Polygon awtPolygon;
+    private transient Boolean awtOverflows;
 
     /**
      * Generate a random polygon within bounds.
@@ -164,14 +165,37 @@ public class Polygon extends PolyLine
      * immediately adjacent to the point in the increasing X direction is entirely inside the
      * boundary or it lies exactly on a horizontal boundary segment and the space immediately
      * adjacent to the point in the increasing Y direction is inside the boundary.
+     * <p>
+     * In the case of a massive polygon (larger than 75% of the earth's width) the JTS definition of
+     * covers is used instead, which will return true if the location lies within the polygon or
+     * anywhere on the boundary.
+     * <p>
      *
      * @param location
      *            The {@link Location} to test
      * @return True if the {@link Polygon} contains the {@link Location}
      */
+    @Override
     public boolean fullyGeometricallyEncloses(final Location location)
     {
-        return awtPolygon().contains(location.asAwtPoint());
+        // if this value overflows, use JTS to correctly calculate covers
+        if (awtOverflows())
+        {
+            final com.vividsolutions.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
+            final Point point = new JtsPointConverter().convert(location);
+            return polygon.covers(point);
+        }
+        // for most cases use the faster awt covers
+        else
+        {
+            return awtPolygon().contains(location.asAwtPoint());
+        }
+    }
+
+    @Override
+    public boolean fullyGeometricallyEncloses(final MultiPolygon multiPolygon)
+    {
+        return multiPolygon.outers().stream().allMatch(this::fullyGeometricallyEncloses);
     }
 
     /**
@@ -184,6 +208,7 @@ public class Polygon extends PolyLine
      * @return True if this {@link Polygon} wraps (geometrically contains) the provided
      *         {@link PolyLine}
      */
+    @Override
     public boolean fullyGeometricallyEncloses(final PolyLine polyLine)
     {
         final List<Segment> segments = polyLine.segments();
@@ -216,7 +241,17 @@ public class Polygon extends PolyLine
             return false;
         }
         // The item is within the bounds of this Polygon
-        return awtArea().contains(rectangle.asAwtRectangle());
+        // if this value overflows, use JTS to correctly calculate covers
+        if (awtOverflows())
+        {
+            final com.vividsolutions.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
+            return polygon.covers(JTS_POLYGON_CONVERTER.convert(rectangle));
+        }
+        // for most cases use the faster awt covers
+        else
+        {
+            return awtArea().contains(rectangle.asAwtRectangle());
+        }
     }
 
     /**
@@ -367,6 +402,7 @@ public class Polygon extends PolyLine
         }
     }
 
+    @Override
     public boolean overlaps(final MultiPolygon multiPolygon)
     {
         for (final Polygon outer : multiPolygon.outers())
@@ -402,6 +438,7 @@ public class Polygon extends PolyLine
      *            The {@link PolyLine} to test
      * @return True if this {@link Polygon} intersects/overlaps the given {@link PolyLine}.
      */
+    @Override
     public boolean overlaps(final PolyLine polyline)
     {
         return overlapsInternal(polyline, true);
@@ -455,6 +492,7 @@ public class Polygon extends PolyLine
      *         overlaps itself
      * @see "http://www.mathopenref.com/coordpolygonarea2.html"
      */
+    @Override
     public Surface surface()
     {
         long dm7Squared = 0L;
@@ -481,6 +519,7 @@ public class Polygon extends PolyLine
      *         for Polygons on a Sphere" paper as reference.
      * @see "https://trs.jpl.nasa.gov/bitstream/handle/2014/41271/07-0286.pdf"
      */
+    @Override
     public Surface surfaceOnSphere()
     {
         double dm7 = 0L;
@@ -580,6 +619,16 @@ public class Polygon extends PolyLine
             this.awtArea = new Area(awtPolygon());
         }
         return this.awtArea;
+    }
+
+    private boolean awtOverflows()
+    {
+        if (this.awtOverflows == null)
+        {
+            final Rectangle bounds = bounds();
+            this.awtOverflows = bounds.width().asDm7() < 0 || bounds.height().asDm7() < 0;
+        }
+        return this.awtOverflows;
     }
 
     private java.awt.Polygon awtPolygon()

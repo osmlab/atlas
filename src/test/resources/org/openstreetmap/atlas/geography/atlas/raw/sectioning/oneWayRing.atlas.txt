@@ -1,0 +1,19 @@
+# Nodes
+# Edges
+# Areas
+# Lines
+460257372000000 && 7.4056228,-7.544423:7.4054606,-7.5440298:7.4054581,-7.5439855:7.4054698,-7.5439414:7.4055053,-7.5438961:7.4055438,-7.5438649:7.4055868,-7.5438658:7.4056928,-7.5439353:7.4057793,-7.5440219:7.4057738,-7.5440787:7.4056629,-7.5442744:7.405644,-7.5443205:7.4056228,-7.544423 && last_edit_changeset -> 44482187 || access -> customers || surface -> asphalt || iso_country_code -> CIV || source -> Cnes / Spot Image || oneway -> yes || last_edit_user_name -> ulrichm || last_edit_time -> 1482025768000 || last_edit_user_id -> 192829 || service -> driveway || lanes -> 1 || incline -> up || highway -> service || last_edit_version -> 1
+# Points
+1253867987000000 && 7.4056228,-7.544423 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44482187 || last_edit_time -> 1482025782000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 4
+3847137297000000 && 7.4054606,-7.5440298 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44482187 || last_edit_time -> 1482025831000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 2
+3847137302000000 && 7.4054698,-7.5439414 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44482187 || last_edit_time -> 1482025831000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 2
+3847137303000000 && 7.4054581,-7.5439855 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44482187 || last_edit_time -> 1482025831000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 2
+3847137304000000 && 7.4055053,-7.5438961 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44482187 || last_edit_time -> 1482025831000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 2
+3847137305000000 && 7.4055868,-7.5438658 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44482187 || last_edit_time -> 1482025831000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 2
+3847137310000000 && 7.4057738,-7.5440787 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44482187 || last_edit_time -> 1482025831000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 2
+3847137311000000 && 7.4056928,-7.5439353 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44482187 || last_edit_time -> 1482025831000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 2
+3847137312000000 && 7.405644,-7.5443205 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44482187 || last_edit_time -> 1482025831000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 2
+3847137314000000 && 7.4056629,-7.5442744 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44482187 || last_edit_time -> 1482025831000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 2
+4559344028000000 && 7.4055438,-7.5438649 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44482187 || last_edit_time -> 1482025736000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 1
+4559344273000000 && 7.4057793,-7.5440219 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44482187 || last_edit_time -> 1482025735000 || last_edit_user_id -> 192829 || iso_country_code -> CIV || last_edit_version -> 1
+# Relations

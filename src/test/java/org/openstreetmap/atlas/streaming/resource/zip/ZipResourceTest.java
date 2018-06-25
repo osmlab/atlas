@@ -1,8 +1,11 @@
 package org.openstreetmap.atlas.streaming.resource.zip;
 
+import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -70,6 +73,63 @@ public class ZipResourceTest
         // final ZipWritableResource writable = new ZipWritableResource(new File(args[0]));
         // writable.writeAndClose(new StringResource(CONTENTS_1).withName(NAME_1),
         // new StringResource(CONTENTS_2).withName(NAME_2));
+    }
+
+    @Test
+    public void testHighCompressionLevel() throws IOException
+    {
+        final File source = File.temporary();
+        logger.info("testCompressionLevel using {}", source);
+        try
+        {
+            final ZipFileWritableResource zipFile = new ZipFileWritableResource(source);
+            zipFile.writeAndClose(
+                    new StringResource("HereIsSomeTextThatRepeatsHereIsSomeTextThatRepeats")
+                            .withName(NAME_1),
+                    new StringResource("HereIsSomeTextThatDoesn'tRepeat").withName(NAME_2));
+            final ZipFile file = new ZipFile(source.getFile());
+            final ZipEntry name1 = file.getEntry(NAME_1);
+            Assert.assertNotEquals(-1, name1.getCompressedSize());
+            Assert.assertTrue(name1.getCompressedSize() < name1.getSize());
+            final ZipEntry name2 = file.getEntry(NAME_2);
+            Assert.assertNotEquals(-1, name2.getCompressedSize());
+            Assert.assertTrue(name2.getCompressedSize() >= name2.getSize());
+            file.close();
+        }
+        finally
+        {
+            source.delete();
+            logger.info("testZipFile deleted {}", source);
+        }
+    }
+
+    @Test
+    public void testNoCompressionLevel() throws IOException
+    {
+        final File source = File.temporary();
+        logger.info("testCompressionLevel using {}", source);
+        try
+        {
+            final ZipFileWritableResource zipFile = new ZipFileWritableResource(source);
+            zipFile.setWriteCompression(false);
+            zipFile.writeAndClose(
+                    new StringResource("HereIsSomeTextThatRepeatsHereIsSomeTextThatRepeats")
+                            .withName(NAME_1),
+                    new StringResource("HereIsSomeTextThatDoesn'tRepeat").withName(NAME_2));
+            final ZipFile file = new ZipFile(source.getFile());
+            final ZipEntry name1 = file.getEntry(NAME_1);
+            Assert.assertNotEquals(-1, name1.getCompressedSize());
+            Assert.assertTrue(name1.getCompressedSize() >= name1.getSize());
+            final ZipEntry name2 = file.getEntry(NAME_2);
+            Assert.assertNotEquals(-1, name2.getCompressedSize());
+            Assert.assertTrue(name2.getCompressedSize() >= name2.getSize());
+            file.close();
+        }
+        finally
+        {
+            source.delete();
+            logger.info("testZipFile deleted {}", source);
+        }
     }
 
     public void testSizes() throws Exception

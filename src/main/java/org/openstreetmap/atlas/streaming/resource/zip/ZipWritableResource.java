@@ -20,7 +20,9 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
  */
 public class ZipWritableResource extends ZipResource
 {
-    private boolean compression = false;
+    private static final int ZIP_MAXIMUM_COMPRESSION_LEVEL = 9;
+
+    private boolean compression = true;
 
     public ZipWritableResource(final WritableResource source)
     {
@@ -58,12 +60,8 @@ public class ZipWritableResource extends ZipResource
         try (ZipOutputStream output = new ZipOutputStream(
                 new BufferedOutputStream(getWritableSource().write())))
         {
-            if (!this.compression)
-            {
-                // Do not compress the entries.
-                output.setMethod(ZipOutputStream.DEFLATED);
-                output.setLevel(Deflater.NO_COMPRESSION);
-            }
+            output.setLevel(
+                    this.compression ? ZIP_MAXIMUM_COMPRESSION_LEVEL : Deflater.NO_COMPRESSION);
             int counter = 0;
             for (final Resource resource : entries)
             {

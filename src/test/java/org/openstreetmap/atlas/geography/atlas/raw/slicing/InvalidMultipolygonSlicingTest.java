@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.complex.buildings.ComplexBuildingFinder;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
-import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 
@@ -21,19 +20,19 @@ import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 public class InvalidMultipolygonSlicingTest
 {
     private static CountryBoundaryMap COUNTRY_BOUNDARY_MAP;
-    private static Set<IsoCountry> COUNTRIES;
+    private static Set<String> COUNTRIES;
     private static RawAtlasCountrySlicer RAW_ATLAS_SLICER;
 
     static
     {
         COUNTRIES = new HashSet<>();
-        COUNTRIES.add(IsoCountry.forCountryCode("CIV").get());
-        COUNTRIES.add(IsoCountry.forCountryCode("GIN").get());
-        COUNTRIES.add(IsoCountry.forCountryCode("LBR").get());
+        COUNTRIES.add("CIV");
+        COUNTRIES.add("GIN");
+        COUNTRIES.add("LBR");
 
-        COUNTRY_BOUNDARY_MAP = new CountryBoundaryMap(
-                new InputStreamResource(() -> InvalidMultipolygonSlicingTest.class
-                        .getResourceAsStream("CIV_GIN_LBR_osm_boundaries.txt.gz"))
+        COUNTRY_BOUNDARY_MAP = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> InvalidMultipolygonSlicingTest.class
+                        .getResourceAsStream("CIV_GIN_LBR_osm_boundaries_with_grid_index.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
 
         RAW_ATLAS_SLICER = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP);

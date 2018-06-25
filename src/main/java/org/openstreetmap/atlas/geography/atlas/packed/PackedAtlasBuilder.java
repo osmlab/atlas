@@ -54,7 +54,7 @@ public final class PackedAtlasBuilder implements AtlasBuilder
         }
         catch (final Exception e)
         {
-            logger.error("Error adding Area", e.getMessage(), e);
+            logger.error("Error adding Area ({}): {}", identifier, geometry.toWkt(), e);
         }
     }
 
@@ -106,7 +106,7 @@ public final class PackedAtlasBuilder implements AtlasBuilder
         }
         catch (final Exception e)
         {
-            logger.error("Error adding Edge", e.getMessage(), e);
+            logger.error("Error adding Edge ({}): {}", identifier, geometry.toWkt(), e);
         }
     }
 
@@ -125,7 +125,7 @@ public final class PackedAtlasBuilder implements AtlasBuilder
         }
         catch (final Exception e)
         {
-            logger.error("Error adding Line", e.getMessage(), e);
+            logger.error("Error adding Line ({}): {}", identifier, geometry.toWkt(), e);
         }
     }
 
@@ -144,7 +144,7 @@ public final class PackedAtlasBuilder implements AtlasBuilder
         }
         catch (final Exception e)
         {
-            logger.error("Error adding Node", e.getMessage(), e);
+            logger.error("Error adding Node ({}): {}", identifier, geometry.toWkt(), e);
         }
     }
 
@@ -163,7 +163,7 @@ public final class PackedAtlasBuilder implements AtlasBuilder
         }
         catch (final Exception e)
         {
-            logger.error("Error adding Point", e.getMessage(), e);
+            logger.error("Error adding Point ({}): {}", identifier, geometry.toWkt(), e);
         }
     }
 
@@ -188,7 +188,7 @@ public final class PackedAtlasBuilder implements AtlasBuilder
         }
         catch (final Exception e)
         {
-            logger.error("Error adding Relation", e.getMessage(), e);
+            logger.error("Error adding Relation ({}): {}", identifier, structure.toString(), e);
         }
     }
 

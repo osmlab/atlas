@@ -13,6 +13,13 @@ Projects using Atlas:
 
 To contribute to the project, please see the [contributing guidelines](CONTRIBUTING.md).
 
+After initially cloning the project, first perform
+```
+$ cd /path/to/local/atlas/repo
+$ ./gradlew clean build -x check -x javadoc -x sources
+```
+The '-x' options are not required but will make this initial build much faster. Once the build is complete, you will need to import the project into Eclipse. Go to 'File' -> 'Import' -> 'Existing Gradle Project' and select 'Finish'. Now that your project shows up in Eclipse, right click the project and select 'Refresh'. Then, right click it again, scroll down to 'Gradle', and select 'Refresh Gradle Project'. The project should now be ready!
+
 ## What's in it?
 
 * [`Edge`](src/main/java/org/openstreetmap/atlas/geography/atlas/items/Edge.java)s and [`Node`](src/main/java/org/openstreetmap/atlas/geography/atlas/items/Node.java)s for navigable items (Roads, Ferries)
@@ -152,6 +159,10 @@ final Atlas atlas1;
 final Atlas atlas2;
 new PackedAtlasCloner().cloneFrom(new MultiAtlas(atlas1, atlas2)).save(new File("/path/to/file.atlas"));
 ```
+
+# PyAtlas
+
+`Atlas` features a lightweight Python version of the core functionality. The `pyatlas` is available as a Python package from PyPI, but can also be built and installed locally. Check out the [pyatlas](pyatlas) subfolder and the [pyatlas/README.md](pyatlas/README.md) file for more information!
 
 # Implementation Details
 

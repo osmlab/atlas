@@ -1,6 +1,7 @@
 buildscript {
     dependencies {
         classpath 'com.diffplug.spotless:spotless-plugin-gradle:3.4.0'
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.1'
     }
 }
 
@@ -10,6 +11,7 @@ buildscript {
 plugins
 {
     id "io.codearte.nexus-staging" version "0.8.0"
+    id "com.google.protobuf" version "0.8.1"
 }
 
 apply from: 'dependencies.gradle'
@@ -19,6 +21,7 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: "com.diffplug.gradle.spotless"
 apply plugin: 'idea'
+apply plugin: 'com.google.protobuf'
 
 sourceCompatibility=1.8
 targetCompatibility=1.8
@@ -37,11 +40,15 @@ idea {
 }
 
 spotless {
-   java {
-      importOrder(['static java', 'static javax', 'static org', 'static com', 'static scala', 'java', 'javax', 'org', 'com', 'scala'])
-      removeUnusedImports()
-      eclipse().configFile 'config/format/code_format.xml'
-   }
+    java {
+        target project.fileTree(project.rootDir) {
+            include '**/*.java'
+            exclude 'src/generated/**/*.java'
+        }
+        importOrder(['static java', 'static javax', 'static org', 'static com', 'static scala', 'java', 'javax', 'org', 'com', 'scala'])
+        removeUnusedImports()
+        eclipse().configFile 'config/format/code_format.xml'
+    }
 }
 
 // corresponds to POM description
@@ -71,6 +78,13 @@ sourceSets
         }
         resources.srcDir file('src/integrationTest/resources')
     }
+    main
+    {
+        java
+        {
+            srcDirs 'src/main/java', 'src/generated/main/java'
+        }
+    }
 }
 
 test
@@ -78,6 +92,7 @@ test
     testLogging
     {
         events "passed", "skipped", "failed"
+        exceptionFormat = 'full'
     }
 }
 
@@ -86,6 +101,39 @@ configurations
     shaded
     integrationTestCompile.extendsFrom testCompile
     integrationTestRuntime.extendsFrom testRuntime
+}
+
+protobuf {
+
+    generatedFilesBaseDir = 'src/generated/'
+
+    protoc {
+        artifact = "${packages.protoc}"
+    }
+
+    generateProtoTasks {
+        all().each { task ->
+            if (task.name == "generateProto") {
+                task.outputs.upToDateWhen {
+                    new File(generatedFilesBaseDir).exists()
+                }
+            }
+        }
+
+        task deleteGeneratedProto {
+            doLast{
+                println "Deleting generated protos"
+                delete generatedFilesBaseDir
+            }
+        }
+
+        task recompileProto {}
+        recompileProto.dependsOn(deleteGeneratedProto)
+        recompileProto.dependsOn(generateProto)
+
+        compileJava.dependsOn(generateProto)
+        clean.dependsOn(deleteGeneratedProto)
+    }
 }
 
 dependencies
@@ -116,7 +164,9 @@ dependencies
     compile packages.jsonassert
     compile packages.jackson.core
     compile packages.jackson.databind
-    
+    compile packages.protobuf_java
+    compile packages.protoc
+
     shaded project.configurations.getByName('compile')
     shaded packages.slf4j.log4j12
     shaded packages.log4j
@@ -124,6 +174,7 @@ dependencies
 
 task shaded(type: Jar){
     baseName = project.name
+    classifier = 'shaded'
     from
     {
         configurations.shaded.collect
@@ -155,6 +206,53 @@ integrationTest.mustRunAfter test
 tasks.withType(Test) {
     reports.html.destination = file("${reporting.baseDir}/${name}")
 }
+
+/**
+ * pyatlas tasks
+ */
+task cleanPyatlas(type: Exec) {
+    commandLine './pyatlas/clean.sh'
+    args 'ranFromGradle'
+}
+
+task createVenvPyatlas(type: Exec) {
+    commandLine './pyatlas/venv.sh'
+    args 'ranFromGradle'
+}
+
+task checkFormatPyatlas(type: Exec) {
+    dependsOn 'createVenvPyatlas'
+    commandLine './pyatlas/format.sh'
+    args 'ranFromGradle'
+    args 'CHECK'
+}
+
+task applyFormatPyatlas(type: Exec) {
+    dependsOn 'createVenvPyatlas'
+    commandLine './pyatlas/format.sh'
+    args 'ranFromGradle'
+    args 'APPLY'
+}
+
+task packagePyatlas(type: Exec) {
+    dependsOn 'checkFormatPyatlas'
+    commandLine './pyatlas/package.sh'
+    args 'ranFromGradle'
+}
+
+task testPyatlas(type: Exec) {
+    dependsOn 'packagePyatlas'
+    commandLine './pyatlas/test.sh'
+    args 'ranFromGradle'
+}
+
+task buildPyatlas() {
+    dependsOn 'createVenvPyatlas'
+    dependsOn 'checkFormatPyatlas'
+    dependsOn 'packagePyatlas'
+    dependsOn 'testPyatlas'
+}
+
 
 /**
  * Artifact related items

@@ -242,8 +242,8 @@ public class OsmPbfLoaderIntegrationTest extends AtlasIntegrationTest
     {
         final Resource pbf = new InputStreamResource(
                 () -> OsmPbfLoaderIntegrationTest.class.getResourceAsStream("CUB_72-111.pbf"));
-        final CountryBoundaryMap map = new CountryBoundaryMap(
-                new InputStreamResource(() -> OsmPbfLoaderIntegrationTest.class
+        final CountryBoundaryMap map = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> OsmPbfLoaderIntegrationTest.class
                         .getResourceAsStream("CUB_osm_boundaries.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
         final SlippyTile tile = SlippyTile.forName("8-72-111");

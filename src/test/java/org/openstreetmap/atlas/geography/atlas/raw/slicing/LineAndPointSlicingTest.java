@@ -11,7 +11,6 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.CountrySlicingIdentifierFactory;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
-import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
@@ -27,18 +26,18 @@ public class LineAndPointSlicingTest
 {
     private static RawAtlasCountrySlicer RAW_ATLAS_SLICER;
     private static CountryBoundaryMap COUNTRY_BOUNDARY_MAP;
-    private static Set<IsoCountry> COUNTRIES;
+    private static Set<String> COUNTRIES;
 
     static
     {
         COUNTRIES = new HashSet<>();
-        COUNTRIES.add(IsoCountry.forCountryCode("CIV").get());
-        COUNTRIES.add(IsoCountry.forCountryCode("GIN").get());
-        COUNTRIES.add(IsoCountry.forCountryCode("LBR").get());
+        COUNTRIES.add("CIV");
+        COUNTRIES.add("GIN");
+        COUNTRIES.add("LBR");
 
-        COUNTRY_BOUNDARY_MAP = new CountryBoundaryMap(
-                new InputStreamResource(() -> LineAndPointSlicingTest.class
-                        .getResourceAsStream("CIV_GIN_LBR_osm_boundaries.txt.gz"))
+        COUNTRY_BOUNDARY_MAP = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> LineAndPointSlicingTest.class
+                        .getResourceAsStream("CIV_GIN_LBR_osm_boundaries_with_grid_index.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
 
         RAW_ATLAS_SLICER = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP);
@@ -92,10 +91,10 @@ public class LineAndPointSlicingTest
         final CountrySlicingIdentifierFactory lineIdentifierFactory = new CountrySlicingIdentifierFactory(
                 1);
 
-        Assert.assertEquals("Expect the first segment to have Liberia country code", "LBR",
+        Assert.assertEquals("Expect the first segment to have Ivory Coast country code", "CIV",
                 slicedAtlas.line(lineIdentifierFactory.nextIdentifier()).getTag(ISOCountryTag.KEY)
                         .get());
-        Assert.assertEquals("Expect the second segment to have Ivory Coast country code", "CIV",
+        Assert.assertEquals("Expect the second segment to have Liberia country code", "LBR",
                 slicedAtlas.line(lineIdentifierFactory.nextIdentifier()).getTag(ISOCountryTag.KEY)
                         .get());
 
@@ -148,12 +147,12 @@ public class LineAndPointSlicingTest
 
         final Line firstCreatedLine = slicedAtlas.line(lineIdentifierFactory.nextIdentifier());
         Assert.assertNotNull("Check first segment exists", firstCreatedLine);
-        Assert.assertEquals("Expect the first segment to be on the Liberia side", "LBR",
+        Assert.assertEquals("Expect the first segment to be on the Ivory Coast side", "CIV",
                 firstCreatedLine.getTag(ISOCountryTag.KEY).get());
 
         final Line secondCreatedLine = slicedAtlas.line(lineIdentifierFactory.nextIdentifier());
         Assert.assertNotNull("Check second segment exists", secondCreatedLine);
-        Assert.assertEquals("Expect the second segment to be on the Ivory Coast side", "CIV",
+        Assert.assertEquals("Expect the second segment to be on the Liberia side", "LBR",
                 secondCreatedLine.getTag(ISOCountryTag.KEY).get());
 
         // Check Point correctness
@@ -203,12 +202,12 @@ public class LineAndPointSlicingTest
 
         final Line firstCreatedLine = slicedAtlas.line(lineIdentifierFactory.nextIdentifier());
         Assert.assertNotNull("Check new way addition", firstCreatedLine);
-        Assert.assertEquals("Expect the first segment to be on the Liberia side", "LBR",
+        Assert.assertEquals("Expect the first segment to be on the Ivory Coast side", "CIV",
                 firstCreatedLine.getTag(ISOCountryTag.KEY).get());
 
         final Line secondCreatedLine = slicedAtlas.line(lineIdentifierFactory.nextIdentifier());
         Assert.assertNotNull("Check new way addition", secondCreatedLine);
-        Assert.assertEquals("Expect the second segment to be on the Ivory Coast side", "CIV",
+        Assert.assertEquals("Expect the second segment to be on the Liberia side", "LBR",
                 secondCreatedLine.getTag(ISOCountryTag.KEY).get());
 
         // Check Point correctness

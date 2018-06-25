@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
@@ -56,11 +57,31 @@ import org.slf4j.LoggerFactory;
  */
 public final class PackedAtlas extends AbstractAtlas
 {
+    /**
+     * Serialization format settings for an {@link Atlas}. While the serialization interface for
+     * saving is well-defined by the {@link Atlas}, the actual serialization mechanics - as well as
+     * the interface for loading - are left up to the discretion of the implementing {@link Atlas}
+     * subclass.
+     *
+     * @author lcram
+     */
+    public enum AtlasSerializationFormat
+    {
+        JAVA,
+        PROTOBUF,
+    }
+
     private static final long serialVersionUID = -7582554057580336684L;
     private static final Logger logger = LoggerFactory.getLogger(PackedAtlas.class);
 
     // Keep track of the field names for reflection code in the Serializer.
+    protected static final String FIELD_PREFIX = "FIELD_";
+    protected static final String FIELD_BOUNDS = "bounds";
+    protected static final String FIELD_LOGGER = "logger";
+    protected static final String FIELD_SERIAL_VERSION_UID = "serialVersionUID";
     protected static final String FIELD_SERIALIZER = "serializer";
+    protected static final String FIELD_SAVE_SERIALIZATION_FORMAT = "saveSerializationFormat";
+    protected static final String FIELD_LOAD_SERIALIZATION_FORMAT = "loadSerializationFormat";
     protected static final String FIELD_META_DATA = "metaData";
     protected static final String FIELD_DICTIONARY = "dictionary";
     protected static final String FIELD_EDGE_IDENTIFIERS = "edgeIdentifiers";
@@ -105,11 +126,16 @@ public final class PackedAtlas extends AbstractAtlas
     // Serializer.
     private transient PackedAtlasSerializer serializer;
 
+    // Serialization formats for saving/loading this PackedAtlas
+    private AtlasSerializationFormat saveSerializationFormat = AtlasSerializationFormat.JAVA;
+    private AtlasSerializationFormat loadSerializationFormat = AtlasSerializationFormat.JAVA;
+
     // Meta-Data
     private AtlasMetaData metaData = new AtlasMetaData();
 
     // Dictionary
     private final IntegerDictionary<String> dictionary;
+
     // The OSM (and way-sectioned) edge and node indices
     private final LongArray edgeIdentifiers;
     private final LongArray nodeIdentifiers;
@@ -154,15 +180,16 @@ public final class PackedAtlas extends AbstractAtlas
     private final LongArray pointLocations;
     private final PackedTagStore pointTags;
     private final LongToLongMultiMap pointIndexToRelationIndices;
+
     // Relation attributes
     private final LongArrayOfArrays relationMemberIndices;
-
     private final ByteArrayOfArrays relationMemberTypes;
     private final IntegerArrayOfArrays relationMemberRoles;
     private final PackedTagStore relationTags;
     private final LongToLongMultiMap relationIndexToRelationIndices;
     private final LongToLongMultiMap relationOsmIdentifierToRelationIdentifiers;
     private final LongArray relationOsmIdentifiers;
+
     // Bounds of the Atlas
     private Rectangle bounds;
 
@@ -472,6 +499,17 @@ public final class PackedAtlas extends AbstractAtlas
         };
     }
 
+    /**
+     * Get the serialization format used for saving this {@link PackedAtlas}. By default use Java
+     * serialization.
+     *
+     * @return The serialization format setting
+     */
+    public AtlasSerializationFormat getSaveSerializationFormat()
+    {
+        return this.saveSerializationFormat;
+    }
+
     @Override
     public Line line(final long identifier)
     {
@@ -647,6 +685,17 @@ public final class PackedAtlas extends AbstractAtlas
     public void save(final WritableResource writableResource)
     {
         new PackedAtlasSerializer(this, writableResource).save();
+    }
+
+    /**
+     * Set the serialization format for saving this {@link PackedAtlas}.
+     *
+     * @param format
+     *            The format to use
+     */
+    public void setSaveSerializationFormat(final AtlasSerializationFormat format)
+    {
+        this.saveSerializationFormat = format;
     }
 
     /**
@@ -924,16 +973,7 @@ public final class PackedAtlas extends AbstractAtlas
                     relationIdentifier);
         }
         // Do not allow relations with some null members.
-        boolean someNull = false;
-        for (final Long identifier : identifiers)
-        {
-            if (identifier == null)
-            {
-                someNull = true;
-                break;
-            }
-        }
-        if (someNull)
+        if (identifiers.stream().anyMatch(Objects::isNull))
         {
             throw new AtlasIntegrityException("Cannot have a relation with null members.");
         }
@@ -1064,6 +1104,16 @@ public final class PackedAtlas extends AbstractAtlas
     protected Map<String, String> edgeTags(final long index)
     {
         return this.edgeTags().keyValuePairs(index);
+    }
+
+    /**
+     * Get the serialization format used for loading this {@link PackedAtlas}.
+     *
+     * @return The load serialization format setting
+     */
+    protected AtlasSerializationFormat getLoadSerializationFormat()
+    {
+        return this.loadSerializationFormat;
     }
 
     @Override
@@ -1329,6 +1379,17 @@ public final class PackedAtlas extends AbstractAtlas
     protected Map<String, String> relationTags(final long index)
     {
         return this.relationTags().keyValuePairs(index);
+    }
+
+    /**
+     * Set the serialization format for loading this {@link PackedAtlas}.
+     *
+     * @param loadFormat
+     *            The format to use
+     */
+    protected void setLoadSerializationFormat(final AtlasSerializationFormat loadFormat)
+    {
+        this.loadSerializationFormat = loadFormat;
     }
 
     /**

@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-38979' action='modify' lat='0.00547972322' lon='-0.02569181713' />
+  <node id='-38982' action='modify' lat='0.01203742472' lon='-0.02209855599' />
+  <node id='-38986' action='modify' lat='0.01212725625' lon='-0.01194759328' />
+  <node id='-38988' action='modify' lat='0.00691702767' lon='-0.00547972323' />
+  <node id='-38990' action='modify' lat='-0.01284590846' lon='-0.00799500603' />
+  <node id='-38992' action='modify' lat='-0.01949344129' lon='-0.00071865223' />
+  <node id='-38994' action='modify' lat='-0.01868495758' lon='0.01033062577' />
+  <node id='-38996' action='modify' lat='-0.00988146808' lon='0.01257641398' />
+  <node id='-38998' action='modify' lat='-0.00485090253' lon='0.00260511432' />
+  <node id='-39000' action='modify' lat='-0.00503056558' lon='-0.01383405538' />
+  <node id='-39002' action='modify' lat='-0.00089831528' lon='-0.02425451267' />
+  <way id='-38983' action='modify'>
+    <nd ref='-38979' />
+    <nd ref='-38982' />
+    <nd ref='-38986' />
+    <nd ref='-38988' />
+    <nd ref='-38990' />
+    <nd ref='-38992' />
+    <nd ref='-38994' />
+    <nd ref='-38996' />
+    <nd ref='-38998' />
+    <nd ref='-39000' />
+    <nd ref='-39002' />
+    <nd ref='-38979' />
+    <tag k='area' v='yes' />
+    <tag k='building' v='yes' />
+  </way>
+</osm>

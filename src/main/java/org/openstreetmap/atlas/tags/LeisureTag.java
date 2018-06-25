@@ -50,7 +50,8 @@ public enum LeisureTag
     OUTDOOR_SEATING,
     TANNING_SALON,
     BANDSTAND,
-    SOCIAL_CLUB;
+    SOCIAL_CLUB,
+    FESTIVAL_GROUNDS;
 
     @TagKey
     public static final String KEY = "leisure";

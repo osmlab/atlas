@@ -13,11 +13,9 @@ import org.openstreetmap.atlas.geography.atlas.items.complex.buildings.ComplexBu
 import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWaterEntity;
 import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWaterEntityFinder;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
-import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
-
-import com.google.common.collect.Iterables;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * {@link RawAtlasRelationSlicer} unit tests for slicing {@link Relation}s.
@@ -28,18 +26,18 @@ public class RelationSlicingTest
 {
     private static RawAtlasCountrySlicer RAW_ATLAS_SLICER;
     private static CountryBoundaryMap COUNTRY_BOUNDARY_MAP;
-    private static Set<IsoCountry> COUNTRIES;
+    private static Set<String> COUNTRIES;
 
     static
     {
         COUNTRIES = new HashSet<>();
-        COUNTRIES.add(IsoCountry.forCountryCode("CIV").get());
-        COUNTRIES.add(IsoCountry.forCountryCode("GIN").get());
-        COUNTRIES.add(IsoCountry.forCountryCode("LBR").get());
+        COUNTRIES.add("CIV");
+        COUNTRIES.add("GIN");
+        COUNTRIES.add("LBR");
 
-        COUNTRY_BOUNDARY_MAP = new CountryBoundaryMap(
-                new InputStreamResource(() -> LineAndPointSlicingTest.class
-                        .getResourceAsStream("CIV_GIN_LBR_osm_boundaries.txt.gz"))
+        COUNTRY_BOUNDARY_MAP = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> LineAndPointSlicingTest.class
+                        .getResourceAsStream("CIV_GIN_LBR_osm_boundaries_with_grid_index.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
 
         RAW_ATLAS_SLICER = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP);
@@ -124,15 +122,15 @@ public class RelationSlicingTest
         // This relation is made up of two closed lines, forming a multi-polygon with one inner and
         // one outer, both spanning the boundary of two countries.
         final Atlas rawAtlas = this.setup.getSimpleMultiPolygonWithHoleAtlas();
+
         Assert.assertEquals(2, rawAtlas.numberOfLines());
         Assert.assertEquals(8, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
         final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
-
         new ComplexBuildingFinder().find(slicedAtlas).forEach(System.out::println);
 
-        Assert.assertEquals(29, slicedAtlas.numberOfPoints());
+        Assert.assertEquals(23, slicedAtlas.numberOfPoints());
         Assert.assertEquals(2, slicedAtlas.numberOfLines());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());
     }
