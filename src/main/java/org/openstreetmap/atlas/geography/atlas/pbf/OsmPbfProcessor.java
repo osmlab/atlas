@@ -710,7 +710,7 @@ public class OsmPbfProcessor implements Sink
                 lastAddedRoads.set(0, false);
                 this.allWays.values().stream().filter(this::isHighwayOrFerry).forEach(way ->
                 {
-                    if (!this.store.containsWay(way.getId()))
+                    if (!this.store.containsWay(way.getId()) || !partialInside(way))
                     {
                         final List<WayNode> wayNodes = way.getWayNodes();
                         for (final WayNode wayNode : wayNodes)
