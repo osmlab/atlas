@@ -1,6 +1,6 @@
 # Sharding
 
-Sharding is a way to split the world in small units of work.
+Sharding is a way to split the world in small units of work, with the goal of having each unit be roughly the same effort.
 
 ## SlippyTileSharding
 
