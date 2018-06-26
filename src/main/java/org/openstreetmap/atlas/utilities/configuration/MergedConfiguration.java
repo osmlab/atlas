@@ -106,6 +106,11 @@ public class MergedConfiguration implements Configuration
         this(first, Iterables.iterable(configurations));
     }
 
+    /**
+     * Note that the implementation of {@link Configuration#configurationDataKeySet()} for
+     * {@link MergedConfiguration} will perform a set merge operation on the keysets of the
+     * underlying {@link StandardConfiguration}s. Keep this in mind when using this method.
+     */
     @Override
     public Set<String> configurationDataKeySet()
     {
