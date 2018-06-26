@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
  * @author cstaylor
  * @author mgostintsev
  * @author matthieun
+ * @author remegraw
  */
 public class AtlasResourceLoader
 {
@@ -70,9 +72,13 @@ public class AtlasResourceLoader
         final long size = resources.size();
         if (size == 1)
         {
-            final Atlas result = PackedAtlas.load(resources.get(0));
-            return this.atlasEntityFilter == null ? result
-                    : result.subAtlas(this.atlasEntityFilter).get();
+            Atlas result = PackedAtlas.load(resources.get(0));
+            if (this.atlasEntityFilter != null)
+            {
+                final Optional<Atlas> subAtlas = result.subAtlas(this.atlasEntityFilter);
+                result = subAtlas.isPresent() ? subAtlas.get() : null;
+            }
+            return result;
         }
         else if (size > 1)
         {

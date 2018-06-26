@@ -10,19 +10,22 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader.AtlasFileSelector;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
-
-import com.google.common.collect.Iterables;
+import org.openstreetmap.atlas.tags.HighwayTag;
+import org.openstreetmap.atlas.tags.annotations.validation.Validators;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * {@link AtlasResourceLoader} tests
  *
  * @author cstaylor
  * @author mgostintsev
+ * @author remegraw
  */
 public class AtlasResourceLoaderTest
 {
@@ -141,5 +144,22 @@ public class AtlasResourceLoaderTest
         // Only Node size should be equal
         Assert.assertEquals(Iterables.size(atlasWithAllEntityFilter.nodes()),
                 Iterables.size(onlyNodesAtlas.nodes()));
+    }
+
+    @Test
+    public void testNullSubAtlasAfterFiltering()
+    {
+        // Filter that brings in only Edges with highway tag tertiary or greater
+        final Predicate<AtlasEntity> edgesTertiaryOrGreater = entity -> entity instanceof Edge
+                && Validators.from(HighwayTag.class, (Edge) entity).isPresent()
+                && Validators.from(HighwayTag.class, (Edge) entity).get()
+                        .isMoreImportantThan(HighwayTag.TERTIARY);
+
+        // Load atlas with only edges tertiary or greater and check that it is null as expected
+        final Atlas atlasWithEdgesTertiaryOrGreater = new AtlasResourceLoader()
+                .withAtlasEntityFilter(edgesTertiaryOrGreater)
+                .load(new InputStreamResource(() -> AtlasResourceLoaderTest.class
+                        .getResourceAsStream("ECU_6-16-31.atlas")).withName("ECU_6-16-31.atlas"));
+        Assert.assertEquals(null, atlasWithEdgesTertiaryOrGreater);
     }
 }
