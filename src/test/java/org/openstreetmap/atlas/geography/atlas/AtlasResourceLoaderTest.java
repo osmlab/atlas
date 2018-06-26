@@ -18,8 +18,7 @@ import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
-
-import com.google.common.collect.Iterables;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * {@link AtlasResourceLoader} tests
