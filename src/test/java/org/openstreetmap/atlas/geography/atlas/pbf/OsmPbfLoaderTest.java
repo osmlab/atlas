@@ -24,10 +24,18 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
+import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.streaming.resource.Resource;
+import org.openstreetmap.atlas.streaming.resource.StringResource;
+import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
+import org.openstreetmap.atlas.tags.filters.ConfiguredTaggableFilter;
 import org.openstreetmap.atlas.utilities.collections.Maps;
+import org.openstreetmap.atlas.utilities.configuration.StandardConfiguration;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
+import org.openstreetmap.atlas.utilities.testing.OsmFileParser;
+import org.openstreetmap.atlas.utilities.testing.OsmFileToPbf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -151,6 +159,39 @@ public class OsmPbfLoaderTest
             final Node nodeIn = edgeIn.end();
             Assert.assertNull(nodeIn.tag(SyntheticBoundaryNodeTag.KEY));
         }
+    }
+
+    @Test
+    public void testDifferentEdgeFilterIncludingAccessNo()
+    {
+        final Resource osmFromJosm = new InputStreamResource(
+                () -> OsmPbfLoaderTest.class.getResourceAsStream("one_way_roads_in_AIA.osm"));
+        final WritableResource osmFile = new StringResource();
+        final WritableResource pbfFile = new StringResource();
+        final Resource boundaries = new InputStreamResource(
+                () -> OsmPbfLoaderTest.class.getResourceAsStream("AIA_boundary.txt"));
+        new OsmFileParser().update(osmFromJosm, osmFile);
+        new OsmFileToPbf().update(osmFile, pbfFile);
+        final CountryBoundaryMap countryBoundaryMap = CountryBoundaryMap.fromPlainText(boundaries);
+        final MultiPolygon boundary = countryBoundaryMap.countryBoundary("AIA").get(0)
+                .getBoundary();
+        logger.debug("Boundary: {}", boundary.toWkt());
+        final AtlasLoadingOption option = AtlasLoadingOption
+                .createOptionWithAllEnabled(countryBoundaryMap);
+        option.setEdgeFilter(
+                new ConfiguredTaggableFilter(new StandardConfiguration(new InputStreamResource(
+                        () -> OsmPbfLoaderTest.class.getResourceAsStream("edge-filter.json")))));
+        final OsmPbfLoader loader = new OsmPbfLoader(pbfFile, boundary, option);
+        final Atlas atlas = loader.read();
+        logger.debug("Atlas: {}", atlas);
+
+        // Edges with access=no that need to be included
+        Assert.assertNotNull(atlas.edge(205527844000002L));
+        Assert.assertNotNull(atlas.edge(205527844000001L));
+        Assert.assertNotNull(atlas.edge(205527857000000L));
+        // Edge without access=no but that needs to be way-sectioned
+        Assert.assertNotNull(atlas.edge(200693734000003L));
+        Assert.assertNotNull(atlas.edge(200693734000004L));
     }
 
     @Test

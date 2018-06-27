@@ -1,14 +1,10 @@
 package org.openstreetmap.atlas.geography.atlas.pbf.store;
 
-import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
-import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.JunctionTag;
 import org.openstreetmap.atlas.tags.OneWayTag;
 import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
-import org.openstreetmap.atlas.tags.filters.ConfiguredTaggableFilter;
-import org.openstreetmap.atlas.utilities.configuration.StandardConfiguration;
 
 /**
  * One way attribute of an OSM Way
@@ -20,12 +16,7 @@ public enum PbfOneWay
 {
     YES,
     NO,
-    REVERSED,
-    CLOSED;
-
-    private static final ConfiguredTaggableFilter EDGE_FILTER = new ConfiguredTaggableFilter(
-            new StandardConfiguration(new InputStreamResource(
-                    () -> AtlasLoadingOption.class.getResourceAsStream("atlas-edge.json"))));
+    REVERSED;
 
     /**
      * Determines the whether the given {@link Taggable} is a one-way, non-one-way, reversed or
@@ -37,12 +28,7 @@ public enum PbfOneWay
      */
     public static PbfOneWay forTag(final Taggable taggable)
     {
-        if (!EDGE_FILTER.test(taggable))
-        {
-            // Anything not an edge should be closed
-            return CLOSED;
-        }
-        else if (OneWayTag.isExplicitlyTwoWay(taggable))
+        if (OneWayTag.isExplicitlyTwoWay(taggable))
         {
             return NO;
         }
@@ -65,10 +51,6 @@ public enum PbfOneWay
         else if (OneWayTag.isOneWayReversed(taggable))
         {
             return REVERSED;
-        }
-        else if (OneWayTag.isOneWayReversible(taggable))
-        {
-            return CLOSED;
         }
         else
         {
