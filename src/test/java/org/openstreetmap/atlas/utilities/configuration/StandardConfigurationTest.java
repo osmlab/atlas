@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -24,6 +26,22 @@ public class StandardConfigurationTest
 {
     public static final String CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/application.json";
     public static final String KEYWORD_OVERRIDDEN_CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/keywordOverridingApplication.json";
+
+    @Test
+    public void testConfigurationDataKeySet() throws IOException
+    {
+        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+
+        try (InputStream stream = loader.getResourceAsStream(CONFIGURATION))
+        {
+            final StandardConfiguration configuration = new StandardConfiguration(
+                    new InputStreamResource(stream));
+
+            final Set<String> compareTo = new HashSet<>();
+            compareTo.add("feature");
+            Assert.assertEquals(configuration.configurationDataKeySet(), compareTo);
+        }
+    }
 
     @Test
     public void testDefaults() throws IOException

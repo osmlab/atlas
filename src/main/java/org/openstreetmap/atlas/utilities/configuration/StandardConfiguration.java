@@ -3,10 +3,12 @@ package org.openstreetmap.atlas.utilities.configuration;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
@@ -109,6 +111,12 @@ public class StandardConfiguration implements Configuration
     {
         this.name = name;
         this.configurationData = configurationData;
+    }
+
+    public Set<String> configurationDataKeySet()
+    {
+        final Set<String> keySet = new HashSet<>(this.configurationData.keySet());
+        return keySet;
     }
 
     @Override
