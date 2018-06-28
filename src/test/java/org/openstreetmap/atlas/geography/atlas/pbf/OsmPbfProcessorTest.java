@@ -5,7 +5,6 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
-import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
@@ -44,8 +43,6 @@ public class OsmPbfProcessorTest
         final OsmPbfLoader loader = new OsmPbfLoader(pbfFile, boundary, option);
         final Atlas atlas = loader.read();
         logger.debug("Atlas: {}", atlas);
-
-        atlas.save(new File("/Users/matthieun/Desktop/test.atlas"));
 
         // Nodes outside, totally at the end of the network
         // 39018000000
