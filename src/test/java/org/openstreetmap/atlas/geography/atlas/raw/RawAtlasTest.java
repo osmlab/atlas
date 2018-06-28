@@ -12,6 +12,7 @@ import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
+import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
 import org.openstreetmap.atlas.utilities.testing.OsmFileParser;
 import org.openstreetmap.atlas.utilities.testing.OsmFileToPbf;
 import org.slf4j.Logger;
@@ -68,5 +69,16 @@ public class RawAtlasTest
         Assert.assertNotNull(slicedAtlas.line(39002000000L));
         // 39019000000
         Assert.assertNotNull(slicedAtlas.line(39019000000L));
+
+        Assert.assertEquals(SyntheticNearestNeighborCountryCodeTag.YES.name(),
+                slicedAtlas.point(38991000000L).tag(SyntheticNearestNeighborCountryCodeTag.KEY));
+        Assert.assertEquals(SyntheticNearestNeighborCountryCodeTag.YES.name(),
+                slicedAtlas.point(39001000000L).tag(SyntheticNearestNeighborCountryCodeTag.KEY));
+        Assert.assertEquals(SyntheticNearestNeighborCountryCodeTag.YES.name(),
+                slicedAtlas.point(39020000000L).tag(SyntheticNearestNeighborCountryCodeTag.KEY));
+        Assert.assertEquals(SyntheticNearestNeighborCountryCodeTag.YES.name(),
+                slicedAtlas.point(39018000000L).tag(SyntheticNearestNeighborCountryCodeTag.KEY));
+        Assert.assertEquals(SyntheticNearestNeighborCountryCodeTag.YES.name(),
+                slicedAtlas.point(39000000000L).tag(SyntheticNearestNeighborCountryCodeTag.KEY));
     }
 }
