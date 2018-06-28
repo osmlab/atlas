@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
+import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
@@ -44,6 +45,8 @@ public class OsmPbfProcessorTest
         final Atlas atlas = loader.read();
         logger.debug("Atlas: {}", atlas);
 
+        atlas.save(new File("/Users/matthieun/Desktop/test.atlas"));
+
         // Nodes outside, totally at the end of the network
         // 39018000000
         Assert.assertEquals(SyntheticNearestNeighborCountryCodeTag.YES.name(),
@@ -68,10 +71,9 @@ public class OsmPbfProcessorTest
         Assert.assertFalse(
                 atlas.node(39001000000L).getTag(SyntheticBoundaryNodeTag.KEY).isPresent());
         // 38991000000
-        Assert.assertFalse(atlas.node(38991000000L)
+        Assert.assertTrue(atlas.node(38991000000L)
                 .getTag(SyntheticNearestNeighborCountryCodeTag.KEY).isPresent());
         Assert.assertFalse(
                 atlas.node(38991000000L).getTag(SyntheticBoundaryNodeTag.KEY).isPresent());
-
     }
 }
