@@ -1,8 +1,7 @@
-package org.openstreetmap.atlas.geography.atlas.pbf;
+package org.openstreetmap.atlas.geography.atlas.pbf.store;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.openstreetmap.atlas.geography.atlas.pbf.store.PbfOneWay;
 import org.openstreetmap.atlas.tags.AccessTag;
 import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.JunctionTag;
@@ -25,15 +24,6 @@ public class PbfOneWayTest
     {
         final Taggable primary = Taggable.with(HighwayTag.KEY,
                 HighwayTag.PRIMARY.name().toLowerCase());
-        final Taggable primaryAccessNo = Taggable.with(HighwayTag.KEY,
-                HighwayTag.PRIMARY.name().toLowerCase(), AccessTag.KEY,
-                AccessTag.NO.name().toLowerCase());
-        final Taggable primaryAccessNoForVehicles = Taggable.with(HighwayTag.KEY,
-                HighwayTag.PRIMARY.name().toLowerCase(), AccessTag.KEY,
-                AccessTag.NO.name().toLowerCase(), MotorVehicleTag.KEY,
-                MotorVehicleTag.NO.name().toLowerCase(), MotorcarTag.KEY,
-                MotorcarTag.NO.name().toLowerCase(), VehicleTag.KEY,
-                VehicleTag.NO.name().toLowerCase());
         final Taggable primaryAccessNoMotorVehicleYes = Taggable.with(HighwayTag.KEY,
                 HighwayTag.PRIMARY.name().toLowerCase(), AccessTag.KEY,
                 AccessTag.NO.name().toLowerCase(), MotorVehicleTag.KEY,
@@ -97,9 +87,6 @@ public class PbfOneWayTest
                 OneWayTag.TRUE.name().toLowerCase());
         final Taggable explicitlyOneWayUsingOne = Taggable.with(HighwayTag.KEY,
                 HighwayTag.PRIMARY.name().toLowerCase(), OneWayTag.KEY, "1");
-        final Taggable oneWayReversible = Taggable.with(HighwayTag.KEY,
-                HighwayTag.PRIMARY.name().toLowerCase(), OneWayTag.KEY,
-                OneWayTag.REVERSIBLE.name().toLowerCase());
         final Taggable oneWayReversed = Taggable.with(HighwayTag.KEY,
                 HighwayTag.PRIMARY.name().toLowerCase(), OneWayTag.KEY,
                 OneWayTag.REVERSE.name().toLowerCase());
@@ -132,10 +119,6 @@ public class PbfOneWayTest
                 PbfOneWay.forTag(primaryAccessNoMotorVehicleYesOneWayTrue));
         Assert.assertEquals(PbfOneWay.YES, PbfOneWay.forTag(primaryAccessNoMotorCarYesOneWayTrue));
         Assert.assertEquals(PbfOneWay.YES, PbfOneWay.forTag(primaryAccessNoVehicleYesOneWayTrue));
-
-        Assert.assertEquals(PbfOneWay.CLOSED, PbfOneWay.forTag(primaryAccessNo));
-        Assert.assertEquals(PbfOneWay.CLOSED, PbfOneWay.forTag(primaryAccessNoForVehicles));
-        Assert.assertEquals(PbfOneWay.CLOSED, PbfOneWay.forTag(oneWayReversible));
 
         Assert.assertEquals(PbfOneWay.REVERSED, PbfOneWay.forTag(oneWayReversed));
         Assert.assertEquals(PbfOneWay.REVERSED, PbfOneWay.forTag(oneWayReversedUsingNegativeOne));

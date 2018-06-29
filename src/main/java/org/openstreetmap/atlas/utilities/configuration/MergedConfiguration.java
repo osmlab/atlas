@@ -5,11 +5,13 @@ import static org.openstreetmap.atlas.utilities.collections.Iterables.join;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -81,6 +83,16 @@ public class MergedConfiguration implements Configuration
 
     private final List<Configuration> configurations;
 
+    public MergedConfiguration(final Configuration... configurations)
+    {
+        this(Arrays.asList(configurations));
+    }
+
+    public MergedConfiguration(final List<Configuration> configurations)
+    {
+        this.configurations = Collections.unmodifiableList(configurations);
+    }
+
     public MergedConfiguration(final Resource first, final Iterable<Resource> configurations)
     {
         final LinkedList<Configuration> mergedConfigurations = new LinkedList<>();
@@ -89,21 +101,29 @@ public class MergedConfiguration implements Configuration
         this.configurations = Collections.unmodifiableList(mergedConfigurations);
     }
 
-    public MergedConfiguration(final List<Configuration> configurations)
-    {
-        this.configurations = Collections.unmodifiableList(configurations);
-    }
-
-    public MergedConfiguration(final Configuration... configurations)
-    {
-        this(Arrays.asList(configurations));
-    }
-
     public MergedConfiguration(final Resource first, final Resource... configurations)
     {
         this(first, Iterables.iterable(configurations));
     }
 
+    /**
+     * Note that the implementation of {@link Configuration#configurationDataKeySet()} for
+     * {@link MergedConfiguration} will perform a set merge operation on the keysets of the
+     * underlying {@link StandardConfiguration}s. Keep this in mind when using this method.
+     */
+    @Override
+    public Set<String> configurationDataKeySet()
+    {
+        // merge the keysets of the underlying StandardConfigurations
+        final Set<String> keySet = new HashSet<>();
+        this.configurations.forEach(configuration ->
+        {
+            keySet.addAll(configuration.configurationDataKeySet());
+        });
+        return keySet;
+    }
+
+    @Override
     public Configuration configurationForKeyword(final String keyword)
     {
         final List<Configuration> configurationsByKeyword = this.configurations.stream()
