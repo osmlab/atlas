@@ -1,0 +1,537 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <bounds minlat='18.2047296' minlon='-63.0553436' maxlat='18.2071553' maxlon='-63.0527043' origin='CGImap 0.6.0 (17980 thorn-02.openstreetmap.org)' />
+  <node id='242846762' timestamp='2013-02-14T19:39:32Z' uid='496606' user='scottyc' version='2' changeset='15033051' lat='18.2062964' lon='-63.05042' />
+  <node id='242846763' timestamp='2013-02-14T19:39:32Z' uid='496606' user='scottyc' version='2' changeset='15033051' lat='18.2055737' lon='-63.0504124' />
+  <node id='242846764' timestamp='2013-02-14T19:39:32Z' uid='496606' user='scottyc' version='2' changeset='15033051' lat='18.205594' lon='-63.0533361' />
+  <node id='242846765' timestamp='2013-02-14T19:39:32Z' uid='496606' user='scottyc' version='2' changeset='15033051' lat='18.2062942' lon='-63.0533548' />
+  <node id='242846808' timestamp='2014-03-13T03:29:14Z' uid='114310' user='Joe E' version='4' changeset='21076368' lat='18.2048681' lon='-63.060274'>
+    <tag k='aeroway' v='threshold' />
+    <tag k='ref' v='10' />
+  </node>
+  <node id='242846809' timestamp='2014-03-13T03:29:14Z' uid='114310' user='Joe E' version='4' changeset='21076368' lat='18.2047355' lon='-63.0474112' />
+  <node id='242846935' timestamp='2014-03-13T03:29:14Z' uid='114310' user='Joe E' version='4' changeset='21076368' lat='18.2047957' lon='-63.0532526' />
+  <node id='269059403' timestamp='2013-02-14T19:39:32Z' uid='496606' user='scottyc' version='3' changeset='15033051' lat='18.206841' lon='-63.0516415' />
+  <node id='2106583694' timestamp='2013-01-12T03:23:53Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2053456' lon='-63.0494928' />
+  <node id='2106583701' timestamp='2013-01-12T03:23:53Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2038525' lon='-63.0458987' />
+  <node id='2106583702' timestamp='2014-03-13T03:29:13Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2054026' lon='-63.0503836' />
+  <node id='2106583704' timestamp='2013-01-12T03:23:53Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2059112' lon='-63.0578077' />
+  <node id='2106583705' timestamp='2013-01-12T03:23:53Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2040207' lon='-63.0457914' />
+  <node id='2106583706' timestamp='2015-07-16T16:09:58Z' uid='2957617' user='vespax' version='2' changeset='32678142' lat='18.2081292' lon='-63.0514341' />
+  <node id='2106583707' timestamp='2015-07-16T16:09:58Z' uid='2957617' user='vespax' version='2' changeset='32678142' lat='18.2069488' lon='-63.0517022' />
+  <node id='2106583722' timestamp='2013-01-12T03:23:53Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2055036' lon='-63.0486453' />
+  <node id='2106583732' timestamp='2013-01-12T03:23:53Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2068311' lon='-63.0538005' />
+  <node id='2106583745' timestamp='2013-01-12T03:23:54Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2057635' lon='-63.0602914' />
+  <node id='2106583746' timestamp='2013-01-12T03:23:54Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2082044' lon='-63.0529422' />
+  <node id='2106583759' timestamp='2013-01-12T03:23:54Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2053558' lon='-63.045845' />
+  <node id='2106583787' timestamp='2013-01-12T03:23:55Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2035264' lon='-63.0534786' />
+  <node id='2106583788' timestamp='2013-01-12T03:23:55Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2040309' lon='-63.0505228' />
+  <node id='2106583792' timestamp='2013-01-12T03:23:55Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2055342' lon='-63.0471647' />
+  <node id='2106583793' timestamp='2013-01-12T03:23:55Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2055647' lon='-63.0610853' />
+  <node id='2106583794' timestamp='2013-01-12T03:23:55Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2040818' lon='-63.0563164' />
+  <node id='2106583801' timestamp='2013-01-12T03:23:55Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2049277' lon='-63.0620778' />
+  <node id='2106583802' timestamp='2013-01-12T03:23:55Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2039952' lon='-63.0563217' />
+  <node id='2106583808' timestamp='2013-01-12T03:23:55Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2054628' lon='-63.0619651' />
+  <node id='2106583811' timestamp='2013-01-12T03:23:55Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2055392' lon='-63.049466' />
+  <node id='2106583818' timestamp='2013-02-14T19:39:32Z' uid='496606' user='scottyc' version='3' changeset='15033051' lat='18.2082201' lon='-63.054505' />
+  <node id='2106583823' timestamp='2013-01-12T03:23:55Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2049481' lon='-63.0619705' />
+  <node id='2106583836' timestamp='2013-01-12T03:23:56Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2032563' lon='-63.0510914' />
+  <node id='2106583851' timestamp='2013-01-12T03:23:56Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2068387' lon='-63.051542' />
+  <node id='2106583854' timestamp='2013-02-14T19:39:32Z' uid='496606' user='scottyc' version='2' changeset='15033051' lat='18.2068312' lon='-63.0530663' />
+  <node id='2106583856' timestamp='2013-01-12T03:23:56Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2038627' lon='-63.0478728' />
+  <node id='2106583869' timestamp='2013-01-12T03:23:56Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2040258' lon='-63.0499435' />
+  <node id='2106583873' timestamp='2013-01-12T03:23:57Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2037863' lon='-63.048259' />
+  <node id='2106583882' timestamp='2013-01-12T03:23:57Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2057431' lon='-63.0552006' />
+  <node id='2106583883' timestamp='2013-02-14T19:39:32Z' uid='496606' user='scottyc' version='2' changeset='15033051' lat='18.2068393' lon='-63.0517226' />
+  <node id='2106583890' timestamp='2013-01-12T03:23:57Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.203878' lon='-63.053425' />
+  <node id='2106583896' timestamp='2014-03-13T03:29:13Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2067834' lon='-63.050288' />
+  <node id='2106583928' timestamp='2013-01-12T03:23:58Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.205366' lon='-63.0477655' />
+  <node id='2106583929' timestamp='2013-01-12T03:23:58Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2055087' lon='-63.0460435' />
+  <node id='2106583934' timestamp='2013-01-12T03:23:58Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2033072' lon='-63.0505818' />
+  <node id='2106583935' timestamp='2013-01-12T03:23:58Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2056666' lon='-63.0580652' />
+  <node id='2106583936' timestamp='2013-01-12T03:23:58Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2038525' lon='-63.0619597' />
+  <node id='2106583942' timestamp='2015-07-16T16:09:58Z' uid='2957617' user='vespax' version='3' changeset='32678142' lat='18.2081647' lon='-63.0530509' />
+  <node id='2106583953' timestamp='2013-01-12T03:23:58Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2038525' lon='-63.0546105' />
+  <node id='2106583959' timestamp='2013-01-12T03:23:59Z' uid='496606' user='scottyc' version='1' changeset='14617791' lat='18.2081432' lon='-63.0548465' />
+  <node id='2154893996' timestamp='2013-02-14T19:39:25Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2082077' lon='-63.0547008' />
+  <node id='2154893997' timestamp='2013-02-14T19:39:25Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2051348' lon='-63.0524684' />
+  <node id='2154894000' timestamp='2013-02-14T19:39:25Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2068263' lon='-63.0538442' />
+  <node id='2154894001' timestamp='2014-03-13T03:29:13Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2064104' lon='-63.0524456' />
+  <node id='2154894003' timestamp='2014-03-13T03:29:13Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2064123' lon='-63.0527697' />
+  <node id='2154894004' timestamp='2013-02-14T19:39:25Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2049412' lon='-63.0534903' />
+  <node id='2154894005' timestamp='2013-02-14T19:39:25Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2049667' lon='-63.053139' />
+  <node id='2154894006' timestamp='2013-02-14T19:39:25Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2047728' lon='-63.051205' />
+  <node id='2154894010' timestamp='2013-02-14T19:39:25Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2062945' lon='-63.0529886' />
+  <node id='2154894011' timestamp='2013-02-14T19:39:25Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2081781' lon='-63.0547676' />
+  <node id='2154894012' timestamp='2013-02-14T19:39:25Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2062708' lon='-63.054952' />
+  <node id='2154894014' timestamp='2013-02-14T19:39:25Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2062958' lon='-63.0513149' />
+  <node id='2154894017' timestamp='2013-02-14T19:39:25Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2055818' lon='-63.0515349' />
+  <node id='2154894018' timestamp='2013-02-14T19:39:25Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2067426' lon='-63.0550056' />
+  <node id='2154894019' timestamp='2013-02-14T19:39:25Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2068421' lon='-63.0522216' />
+  <node id='2154894020' timestamp='2013-02-14T19:39:25Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2067069' lon='-63.0550164' />
+  <node id='2154894022' timestamp='2013-02-14T19:39:25Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2049233' lon='-63.0519346' />
+  <node id='2154894023' timestamp='2014-03-13T03:29:13Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2064107' lon='-63.0525004' />
+  <node id='2154894025' timestamp='2013-02-14T19:39:25Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2055803' lon='-63.0518004' />
+  <node id='2154894031' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2072186' lon='-63.0530313' />
+  <node id='2154894033' timestamp='2014-03-13T03:29:13Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2064103' lon='-63.0524337' />
+  <node id='2154894038' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2071451' lon='-63.052219' />
+  <node id='2154894039' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2051756' lon='-63.0523853' />
+  <node id='2154894041' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.205537' lon='-63.0517682' />
+  <node id='2154894042' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.20687' lon='-63.0538363' />
+  <node id='2154894043' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.206898' lon='-63.0537371' />
+  <node id='2154894045' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2077868' lon='-63.0548313' />
+  <node id='2154894046' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2049667' lon='-63.0535708' />
+  <node id='2154894047' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2055807' lon='-63.0585193' />
+  <node id='2154894048' timestamp='2014-03-13T03:29:13Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2068001' lon='-63.0524923' />
+  <node id='2154894050' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.206174' lon='-63.0533516' />
+  <node id='2154894052' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2068371' lon='-63.0526105' />
+  <node id='2154894054' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2069769' lon='-63.0526077' />
+  <node id='2154894058' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2051166' lon='-63.0531737' />
+  <node id='2154894061' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2068327' lon='-63.0529537' />
+  <node id='2154894062' timestamp='2014-03-13T03:29:13Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2065129' lon='-63.0523822' />
+  <node id='2154894063' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2058763' lon='-63.0577227' />
+  <node id='2154894064' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2049437' lon='-63.0536244' />
+  <node id='2154894067' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2062949' lon='-63.0524468' />
+  <node id='2154894069' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2049335' lon='-63.0524014' />
+  <node id='2154894070' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2071502' lon='-63.0529458' />
+  <node id='2154894071' timestamp='2013-02-14T19:39:26Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2049361' lon='-63.0530156' />
+  <node id='2154894076' timestamp='2013-02-14T19:39:27Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2055574' lon='-63.0580687' />
+  <node id='2154894077' timestamp='2013-02-14T19:39:27Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2049463' lon='-63.0518139' />
+  <node id='2154894088' timestamp='2013-02-14T19:39:27Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2067757' lon='-63.0528922' />
+  <node id='2154894089' timestamp='2014-03-13T03:29:13Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2047992' lon='-63.0535948' />
+  <node id='2154894090' timestamp='2013-02-14T19:39:27Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2049386' lon='-63.0535467' />
+  <node id='2154894094' timestamp='2014-03-13T03:29:13Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2067435' lon='-63.0523807' />
+  <node id='2154894096' timestamp='2013-02-14T19:39:27Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2051879' lon='-63.0519345' />
+  <node id='2154894098' timestamp='2014-03-13T03:29:13Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2064629' lon='-63.0527694' />
+  <node id='2154894100' timestamp='2013-02-14T19:39:27Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2081183' lon='-63.0529807' />
+  <node id='2154894102' timestamp='2013-02-14T19:39:27Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.206295' lon='-63.0522832' />
+  <node id='2154894103' timestamp='2013-02-14T19:39:27Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2063196' lon='-63.0550137' />
+  <node id='2154894104' timestamp='2013-02-14T19:39:27Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2049565' lon='-63.053383' />
+  <node id='2154894105' timestamp='2014-03-13T03:29:13Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2064632' lon='-63.0528249' />
+  <node id='2154894106' timestamp='2013-02-14T19:39:27Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2055374' lon='-63.05864' />
+  <node id='2154894108' timestamp='2014-03-13T03:29:13Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2067404' lon='-63.0527072' />
+  <node id='2154894111' timestamp='2013-02-14T19:39:27Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2069795' lon='-63.0529673' />
+  <node id='2154894112' timestamp='2013-02-14T19:39:27Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.206974' lon='-63.0522204' />
+  <node id='2154894114' timestamp='2013-02-14T19:39:28Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.206768' lon='-63.0538041' />
+  <node id='2154894116' timestamp='2014-03-13T03:29:13Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2064643' lon='-63.0523825' />
+  <node id='2154894118' timestamp='2013-02-14T19:39:28Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2050202' lon='-63.0617058' />
+  <node id='2154894122' timestamp='2013-02-14T19:39:28Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2058275' lon='-63.0578381' />
+  <node id='2154894124' timestamp='2013-02-14T19:39:28Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2050686' lon='-63.0533321' />
+  <node id='2154894125' timestamp='2014-03-13T03:29:14Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2047797' lon='-63.0516959' />
+  <node id='2154894127' timestamp='2013-02-14T19:39:28Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2067477' lon='-63.0531711' />
+  <node id='2154894128' timestamp='2013-02-14T19:39:28Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2055211' lon='-63.0490484' />
+  <node id='2154894130' timestamp='2013-02-14T19:39:28Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2050227' lon='-63.0517684' />
+  <node id='2154894133' timestamp='2013-02-14T19:39:28Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2055574' lon='-63.0531737' />
+  <node id='2154894134' timestamp='2013-02-14T19:39:28Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2057056' lon='-63.0551478' />
+  <node id='2154894135' timestamp='2013-02-14T19:39:28Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2065184' lon='-63.0529834' />
+  <node id='2154894137' timestamp='2014-03-13T03:29:14Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2068014' lon='-63.0527068' />
+  <node id='2154894144' timestamp='2013-02-14T19:39:28Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2062504' lon='-63.0538764' />
+  <node id='2154894147' timestamp='2013-02-14T19:39:28Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2055943' lon='-63.0531362' />
+  <node id='2154894148' timestamp='2013-02-14T19:39:28Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2050813' lon='-63.0523584' />
+  <node id='2154894152' timestamp='2013-02-14T19:39:28Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2062508' lon='-63.05507' />
+  <node id='2154894153' timestamp='2013-02-14T19:39:28Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2061795' lon='-63.0535601' />
+  <node id='2154894154' timestamp='2013-02-14T19:39:28Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.208169' lon='-63.0530128' />
+  <node id='2154894157' timestamp='2013-02-14T19:39:28Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2049768' lon='-63.0533562' />
+  <node id='2154894158' timestamp='2013-02-14T19:39:29Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2075626' lon='-63.0548447' />
+  <node id='2154894160' timestamp='2014-03-13T03:29:14Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2062948' lon='-63.0524992' />
+  <node id='2154894161' timestamp='2013-02-14T19:39:29Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2055319' lon='-63.0604452' />
+  <node id='2154894163' timestamp='2013-02-14T19:39:29Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2067447' lon='-63.0537557' />
+  <node id='2154894164' timestamp='2013-02-14T19:39:29Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2068496' lon='-63.0531095' />
+  <node id='2154894167' timestamp='2013-02-14T19:39:29Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2061362' lon='-63.0536137' />
+  <node id='2154894168' timestamp='2013-02-14T19:39:29Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2068312' lon='-63.0531442' />
+  <node id='2154894170' timestamp='2013-02-14T19:39:29Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2062381' lon='-63.0535037' />
+  <node id='2154894176' timestamp='2013-02-14T19:39:29Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2050941' lon='-63.0519239' />
+  <node id='2154894178' timestamp='2013-02-14T19:39:29Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2055192' lon='-63.0591094' />
+  <node id='2154894179' timestamp='2013-02-14T19:39:29Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.206281' lon='-63.053855' />
+  <node id='2154894188' timestamp='2013-02-14T19:39:29Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2062046' lon='-63.0535868' />
+  <node id='2154894190' timestamp='2013-02-14T19:39:29Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2061922' lon='-63.0536432' />
+  <node id='2154894192' timestamp='2013-02-14T19:39:29Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2062951' lon='-63.0522001' />
+  <node id='2154894193' timestamp='2013-02-14T19:39:29Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2062957' lon='-63.0513498' />
+  <node id='2154894194' timestamp='2014-03-13T03:29:14Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2064646' lon='-63.0524333' />
+  <node id='2154894201' timestamp='2014-03-13T03:29:14Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2067411' lon='-63.0528231' />
+  <node id='2154894202' timestamp='2013-02-14T19:39:30Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2062402' lon='-63.0534044' />
+  <node id='2154894203' timestamp='2013-02-14T19:39:30Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2052058' lon='-63.0616897' />
+  <node id='2154894205' timestamp='2014-03-13T03:29:14Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2067441' lon='-63.0524926' />
+  <node id='2154894209' timestamp='2014-03-13T03:29:14Z' uid='114310' user='Joe E' version='2' changeset='21076368' lat='18.2065154' lon='-63.0528246' />
+  <node id='2154894211' timestamp='2013-02-14T19:39:30Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2074254' lon='-63.0548957' />
+  <node id='2154894213' timestamp='2013-02-14T19:39:30Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2052899' lon='-63.0615663' />
+  <node id='2154894214' timestamp='2013-02-14T19:39:30Z' uid='496606' user='scottyc' version='1' changeset='15033051' lat='18.2049386' lon='-63.0525757' />
+  <node id='2715021830' timestamp='2017-09-07T17:43:44Z' uid='6521966' user='Paul David baron Von Weenraid' version='2' changeset='51819749' lat='18.2054194' lon='-63.0532493'>
+    <tag k='aeroway' v='holding_position' />
+    <tag k='source' v='Bing' />
+  </node>
+  <node id='2715021831' timestamp='2014-03-13T03:29:11Z' uid='114310' user='Joe E' version='1' changeset='21076368' lat='18.2058114' lon='-63.0525103' />
+  <node id='2715021832' timestamp='2014-03-13T03:29:11Z' uid='114310' user='Joe E' version='1' changeset='21076368' lat='18.205813' lon='-63.0532565' />
+  <node id='2715021833' timestamp='2014-03-13T03:29:11Z' uid='114310' user='Joe E' version='1' changeset='21076368' lat='18.205961' lon='-63.0516722' />
+  <node id='2715021834' timestamp='2014-03-13T03:29:11Z' uid='114310' user='Joe E' version='1' changeset='21076368' lat='18.2059663' lon='-63.0524661' />
+  <node id='2715021835' timestamp='2014-03-13T03:29:11Z' uid='114310' user='Joe E' version='1' changeset='21076368' lat='18.2059707' lon='-63.0504831' />
+  <node id='2715021836' timestamp='2014-03-13T03:29:11Z' uid='114310' user='Joe E' version='1' changeset='21076368' lat='18.2066774' lon='-63.0502191' />
+  <node id='4332630357' timestamp='2016-08-02T17:11:54Z' uid='3693002' user='GeoCrazy' version='1' changeset='41197040' lat='18.2067731' lon='-63.0524858' />
+  <node id='4332630358' timestamp='2016-08-02T17:11:54Z' uid='3693002' user='GeoCrazy' version='1' changeset='41197040' lat='18.206775' lon='-63.0527124' />
+  <node id='4893786320' timestamp='2017-06-03T13:22:48Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='49220538' lat='18.20648' lon='-63.0540103' />
+  <node id='4893787021' timestamp='2017-06-03T13:22:48Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='49220538' lat='18.2064855' lon='-63.0538388' />
+  <node id='4893787022' timestamp='2017-06-03T13:22:48Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='49220538' lat='18.2063823' lon='-63.0538388' />
+  <node id='4893787023' timestamp='2017-06-03T13:22:48Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='49220538' lat='18.2063877' lon='-63.054016' />
+  <node id='4893787024' timestamp='2017-06-03T13:22:48Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='49220538' lat='18.2065181' lon='-63.0536101' />
+  <node id='4893787025' timestamp='2017-06-03T13:22:48Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='49220538' lat='18.2065235' lon='-63.0534728' />
+  <node id='4893787026' timestamp='2017-06-03T13:22:48Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='49220538' lat='18.2063973' lon='-63.0534726' />
+  <node id='4893787027' timestamp='2017-06-03T13:22:48Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='49220538' lat='18.2064022' lon='-63.0536097' />
+  <node id='4893787366' timestamp='2017-06-03T13:22:51Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='49220538' lat='18.2064519' lon='-63.0530691' />
+  <node id='4893787367' timestamp='2017-06-03T13:22:51Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='49220538' lat='18.2064264' lon='-63.0530835' />
+  <node id='4893787368' timestamp='2017-06-03T13:22:51Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='49220538' lat='18.2064033' lon='-63.0530682' />
+  <node id='4893787369' timestamp='2017-06-03T13:22:51Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='49220538' lat='18.2064042' lon='-63.0530404' />
+  <node id='4893787370' timestamp='2017-06-03T13:22:51Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='49220538' lat='18.2064289' lon='-63.0530296' />
+  <node id='4893787371' timestamp='2017-06-03T13:22:51Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='49220538' lat='18.2064511' lon='-63.0530413' />
+  <node id='5086672770' timestamp='2017-09-07T17:43:43Z' uid='6521966' user='Paul David baron Von Weenraid' version='1' changeset='51819749' lat='18.2072335' lon='-63.0562536' />
+  <node id='5086672771' timestamp='2017-09-07T17:43:43Z' uid='6521966' user='Paul David baron Von Weenraid' version='1' changeset='51819749' lat='18.205878' lon='-63.0562322' />
+  <node id='5086672772' timestamp='2017-09-07T17:43:43Z' uid='6521966' user='Paul David baron Von Weenraid' version='1' changeset='51819749' lat='18.2058321' lon='-63.0552451' />
+  <node id='5086672773' timestamp='2017-09-07T17:43:43Z' uid='6521966' user='Paul David baron Von Weenraid' version='1' changeset='51819749' lat='18.207197' lon='-63.0549861' />
+  <node id='5086672774' timestamp='2017-09-07T17:43:43Z' uid='6521966' user='Paul David baron Von Weenraid' version='1' changeset='51819749' lat='18.2072182' lon='-63.0555187' />
+  <node id='5086672775' timestamp='2017-09-07T17:43:43Z' uid='6521966' user='Paul David baron Von Weenraid' version='1' changeset='51819749' lat='18.2076147' lon='-63.055527' />
+  <node id='5086672776' timestamp='2017-09-07T17:43:43Z' uid='6521966' user='Paul David baron Von Weenraid' version='1' changeset='51819749' lat='18.2058364' lon='-63.0553364' />
+  <node id='5086672777' timestamp='2017-09-07T17:43:43Z' uid='6521966' user='Paul David baron Von Weenraid' version='1' changeset='51819749' lat='18.2048171' lon='-63.0553258' />
+  <node id='5092804357' timestamp='2017-09-09T20:12:55Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='51890902' lat='18.2056857' lon='-63.058504' />
+  <node id='5092804358' timestamp='2017-09-09T20:12:55Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='51890902' lat='18.205743' lon='-63.0598208' />
+  <node id='5092804414' timestamp='2017-09-09T20:12:56Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='51890902' lat='18.2040243' lon='-63.0577326' />
+  <node id='5092804415' timestamp='2017-09-09T20:12:56Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='51890902' lat='18.2057528' lon='-63.0600466' />
+  <way id='22640986' timestamp='2014-03-13T03:29:13Z' uid='114310' user='Joe E' version='5' changeset='21076368'>
+    <nd ref='242846762' />
+    <nd ref='242846763' />
+    <nd ref='2154894017' />
+    <nd ref='2154894147' />
+    <nd ref='242846764' />
+    <nd ref='2154894050' />
+    <nd ref='242846765' />
+    <nd ref='2154894010' />
+    <nd ref='2154894160' />
+    <nd ref='2154894067' />
+    <nd ref='2154894102' />
+    <nd ref='2154894192' />
+    <nd ref='2154894193' />
+    <nd ref='2154894014' />
+    <nd ref='242846762' />
+    <tag k='aeroway' v='apron' />
+    <tag k='source' v='Yahoo' />
+    <tag k='surface' v='paved' />
+  </way>
+  <way id='22641216' timestamp='2017-09-07T17:43:45Z' uid='6521966' user='Paul David baron Von Weenraid' version='9' changeset='51819749'>
+    <nd ref='242846808' />
+    <nd ref='5086672777' />
+    <nd ref='2154894089' />
+    <nd ref='242846935' />
+    <nd ref='2154894125' />
+    <nd ref='2154894006' />
+    <nd ref='242846809' />
+    <tag k='aeroway' v='runway' />
+    <tag k='ref' v='10 / 28' />
+    <tag k='source' v='Bing' />
+    <tag k='surface' v='asphalt' />
+    <tag k='width' v='30' />
+  </way>
+  <way id='200693727' timestamp='2013-02-14T20:09:21Z' uid='496606' user='scottyc' version='3' changeset='15033051'>
+    <nd ref='2106583854' />
+    <nd ref='2154894061' />
+    <nd ref='2154894052' />
+    <nd ref='2154894019' />
+    <nd ref='2106583883' />
+    <nd ref='269059403' />
+    <tag k='highway' v='service' />
+  </way>
+  <way id='200693728' timestamp='2018-06-18T00:00:56Z' uid='8249717' user='mandanf' version='7' changeset='59925980'>
+    <nd ref='2106583936' />
+    <nd ref='2106583801' />
+    <nd ref='2106583823' />
+    <nd ref='2106583808' />
+    <nd ref='2106583793' />
+    <nd ref='2106583745' />
+    <nd ref='5092804415' />
+    <nd ref='5092804358' />
+    <nd ref='5092804357' />
+    <nd ref='2106583935' />
+    <nd ref='2106583704' />
+    <nd ref='2106583882' />
+    <nd ref='5086672773' />
+    <nd ref='2106583959' />
+    <nd ref='2154894011' />
+    <nd ref='2154893996' />
+    <nd ref='2106583818' />
+    <nd ref='2106583942' />
+    <nd ref='2106583706' />
+    <nd ref='2106583707' />
+    <nd ref='2106583851' />
+    <nd ref='2106583896' />
+    <nd ref='2715021836' />
+    <nd ref='2106583702' />
+    <nd ref='2106583694' />
+    <nd ref='2106583811' />
+    <nd ref='2154894128' />
+    <nd ref='2106583722' />
+    <nd ref='2106583928' />
+    <nd ref='2106583792' />
+    <nd ref='2106583929' />
+    <nd ref='2106583759' />
+    <nd ref='2106583705' />
+    <nd ref='2106583701' />
+    <nd ref='2106583856' />
+    <nd ref='2106583873' />
+    <nd ref='2106583869' />
+    <nd ref='2106583788' />
+    <nd ref='2106583934' />
+    <nd ref='2106583836' />
+    <nd ref='2106583787' />
+    <nd ref='2106583890' />
+    <nd ref='2106583953' />
+    <nd ref='2106583802' />
+    <nd ref='2106583794' />
+    <nd ref='5092804414' />
+    <nd ref='2106583936' />
+    <tag k='aeroway' v='aerodrome' />
+    <tag k='ele' v='38.7' />
+    <tag k='iata' v='AXA' />
+    <tag k='icao' v='TQPF' />
+    <tag k='is_in' v='The Valley, Anguilla' />
+    <tag k='name' v='Clayton J. Lloyd International Airport' />
+    <tag k='name:el' v='Διεθνές Αεροδρόμιο Κλέιτον Τζ. Λόιντ' />
+    <tag k='name:en' v='Clayton J. Lloyd International Airport' />
+    <tag k='old_name' v='Anguilla Wallblake Airport' />
+    <tag k='ref' v='AXA' />
+    <tag k='source' v='Bing' />
+    <tag k='type' v='public' />
+    <tag k='vfr' v='yes' />
+    <tag k='wikidata' v='Q1657604' />
+    <tag k='wikipedia' v='en:Clayton J. Lloyd International Airport' />
+  </way>
+  <way id='200693734' timestamp='2013-02-14T20:09:21Z' uid='496606' user='scottyc' version='3' changeset='15033051'>
+    <nd ref='2106583746' />
+    <nd ref='2154894031' />
+    <nd ref='2106583854' />
+    <nd ref='2154894168' />
+    <nd ref='2106583732' />
+    <tag k='highway' v='service' />
+  </way>
+  <way id='205527843' timestamp='2013-02-14T19:39:30Z' uid='496606' user='scottyc' version='1' changeset='15033051'>
+    <nd ref='2154894118' />
+    <nd ref='2154894203' />
+    <nd ref='2154894213' />
+    <nd ref='2154894161' />
+    <nd ref='2154894178' />
+    <nd ref='2154894106' />
+    <nd ref='2154894047' />
+    <nd ref='2154894076' />
+    <nd ref='2154894122' />
+    <nd ref='2154894063' />
+    <nd ref='2154894134' />
+    <nd ref='2154894152' />
+    <nd ref='2154894144' />
+    <nd ref='2154894190' />
+    <nd ref='2154894167' />
+    <nd ref='2154894064' />
+    <nd ref='2154894118' />
+    <tag k='landuse' v='grass' />
+  </way>
+  <way id='205527844' timestamp='2018-01-20T00:15:57Z' uid='6172866' user='CapAhab' version='2' changeset='55592392'>
+    <nd ref='2154894020' />
+    <nd ref='2154894103' />
+    <nd ref='2154894012' />
+    <nd ref='2154894179' />
+    <nd ref='2154894188' />
+    <nd ref='2154894127' />
+    <nd ref='2154894168' />
+    <tag k='access' v='no' />
+    <tag k='highway' v='service' />
+    <tag k='service' v='driveway' />
+  </way>
+  <way id='205527845' timestamp='2013-02-14T19:39:30Z' uid='496606' user='scottyc' version='1' changeset='15033051'>
+    <nd ref='2154894019' />
+    <nd ref='2154894112' />
+    <nd ref='2154894038' />
+    <nd ref='2154894070' />
+    <nd ref='2154894031' />
+    <tag k='highway' v='service' />
+    <tag k='service' v='parking_aisle' />
+  </way>
+  <way id='205527847' timestamp='2016-08-02T17:11:54Z' uid='3693002' user='GeoCrazy' version='2' changeset='41197040'>
+    <nd ref='2154894061' />
+    <nd ref='2154894088' />
+    <nd ref='4332630358' />
+    <tag k='highway' v='service' />
+    <tag k='oneway' v='yes' />
+    <tag k='service' v='driveway' />
+  </way>
+  <way id='205527849' timestamp='2017-09-07T17:43:45Z' uid='6521966' user='Paul David baron Von Weenraid' version='2' changeset='51819749'>
+    <nd ref='2154894104' />
+    <nd ref='2154894004' />
+    <nd ref='2154894090' />
+    <nd ref='2154894046' />
+    <nd ref='2154894153' />
+    <nd ref='2154894170' />
+    <nd ref='2154894202' />
+    <nd ref='2154894050' />
+    <nd ref='242846764' />
+    <nd ref='2715021830' />
+    <nd ref='2154894124' />
+    <nd ref='2154894157' />
+    <nd ref='2154894104' />
+    <tag k='landuse' v='grass' />
+  </way>
+  <way id='205527851' timestamp='2017-09-07T17:43:45Z' uid='6521966' user='Paul David baron Von Weenraid' version='3' changeset='51819749'>
+    <nd ref='2154894005' />
+    <nd ref='2154894058' />
+    <nd ref='2715021830' />
+    <nd ref='2154894133' />
+    <nd ref='2154894147' />
+    <nd ref='2154894025' />
+    <nd ref='2154894041' />
+    <nd ref='2154894130' />
+    <nd ref='2154894077' />
+    <nd ref='2154894022' />
+    <nd ref='2154894069' />
+    <nd ref='2154894148' />
+    <nd ref='2154894176' />
+    <nd ref='2154894096' />
+    <nd ref='2154894039' />
+    <nd ref='2154893997' />
+    <nd ref='2154894214' />
+    <nd ref='2154894071' />
+    <nd ref='2154894005' />
+    <tag k='landuse' v='grass' />
+  </way>
+  <way id='205527852' timestamp='2013-02-14T19:39:31Z' uid='496606' user='scottyc' version='1' changeset='15033051'>
+    <nd ref='2106583818' />
+    <nd ref='2154894154' />
+    <nd ref='2154894100' />
+    <nd ref='2154894164' />
+    <nd ref='2154894043' />
+    <nd ref='2154894042' />
+    <nd ref='2154894000' />
+    <nd ref='2154894114' />
+    <nd ref='2154894163' />
+    <nd ref='2154894018' />
+    <nd ref='2154894211' />
+    <nd ref='2154894158' />
+    <nd ref='2154894045' />
+    <nd ref='2154894011' />
+    <nd ref='2154893996' />
+    <nd ref='2106583818' />
+    <tag k='landuse' v='grass' />
+  </way>
+  <way id='205527855' timestamp='2015-04-05T18:23:54Z' uid='402624' user='bdiscoe' version='3' changeset='29998195'>
+    <nd ref='2154894201' />
+    <nd ref='2154894108' />
+    <nd ref='2154894137' />
+    <nd ref='2154894048' />
+    <nd ref='2154894205' />
+    <nd ref='2154894094' />
+    <nd ref='2154894062' />
+    <nd ref='2154894116' />
+    <nd ref='2154894194' />
+    <nd ref='2154894033' />
+    <nd ref='2154894001' />
+    <nd ref='2154894023' />
+    <nd ref='2154894003' />
+    <nd ref='2154894098' />
+    <nd ref='2154894105' />
+    <nd ref='2154894209' />
+    <nd ref='2154894201' />
+    <tag k='aeroway' v='terminal' />
+    <tag k='building' v='yes' />
+    <tag k='layer' v='1' />
+  </way>
+  <way id='205527857' timestamp='2018-01-20T00:15:57Z' uid='6172866' user='CapAhab' version='2' changeset='55592392'>
+    <nd ref='2154894188' />
+    <nd ref='2154894089' />
+    <tag k='access' v='no' />
+    <tag k='highway' v='service' />
+    <tag k='service' v='driveway' />
+  </way>
+  <way id='205527858' timestamp='2013-02-14T19:39:31Z' uid='496606' user='scottyc' version='1' changeset='15033051'>
+    <nd ref='2154894160' />
+    <nd ref='2154894010' />
+    <nd ref='2154894135' />
+    <nd ref='2154894209' />
+    <nd ref='2154894105' />
+    <nd ref='2154894098' />
+    <nd ref='2154894003' />
+    <nd ref='2154894023' />
+    <nd ref='2154894160' />
+    <tag k='landuse' v='grass' />
+  </way>
+  <way id='205527859' timestamp='2013-02-14T19:39:31Z' uid='496606' user='scottyc' version='1' changeset='15033051'>
+    <nd ref='2154894070' />
+    <nd ref='2154894111' />
+    <nd ref='2154894054' />
+    <nd ref='2154894112' />
+    <tag k='highway' v='service' />
+    <tag k='service' v='parking_aisle' />
+  </way>
+  <way id='265894966' timestamp='2014-03-13T03:29:12Z' uid='114310' user='Joe E' version='1' changeset='21076368'>
+    <nd ref='2715021832' />
+    <nd ref='2715021830' />
+    <nd ref='242846935' />
+    <tag k='aeroway' v='taxiway' />
+    <tag k='est_width' v='17' />
+    <tag k='source' v='Bing' />
+    <tag k='surface' v='paved' />
+  </way>
+  <way id='265894967' timestamp='2014-03-13T03:29:12Z' uid='114310' user='Joe E' version='1' changeset='21076368'>
+    <nd ref='2715021835' />
+    <nd ref='2715021833' />
+    <nd ref='2715021834' />
+    <nd ref='2715021831' />
+    <nd ref='2715021832' />
+    <tag k='aeroway' v='taxiway' />
+    <tag k='est_width' v='17' />
+    <tag k='source' v='Bing' />
+    <tag k='surface' v='paved' />
+  </way>
+  <way id='435341562' timestamp='2016-08-02T17:11:54Z' uid='3693002' user='GeoCrazy' version='1' changeset='41197040'>
+    <nd ref='4332630358' />
+    <nd ref='4332630357' />
+    <tag k='covered' v='yes' />
+    <tag k='highway' v='service' />
+    <tag k='oneway' v='yes' />
+    <tag k='service' v='driveway' />
+  </way>
+  <way id='497876888' timestamp='2017-06-03T13:22:52Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='49220538'>
+    <nd ref='4893786320' />
+    <nd ref='4893787021' />
+    <nd ref='4893787022' />
+    <nd ref='4893787023' />
+    <nd ref='4893786320' />
+    <tag k='building' v='yes' />
+  </way>
+  <way id='497876890' timestamp='2017-06-03T13:22:52Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='49220538'>
+    <nd ref='4893787024' />
+    <nd ref='4893787025' />
+    <nd ref='4893787026' />
+    <nd ref='4893787027' />
+    <nd ref='4893787024' />
+    <tag k='building' v='yes' />
+  </way>
+  <way id='497876951' timestamp='2017-06-03T13:22:54Z' uid='6116601' user='Shaequan Hanley' version='1' changeset='49220538'>
+    <nd ref='4893787366' />
+    <nd ref='4893787367' />
+    <nd ref='4893787368' />
+    <nd ref='4893787369' />
+    <nd ref='4893787370' />
+    <nd ref='4893787371' />
+    <nd ref='4893787366' />
+    <tag k='man_made' v='tower' />
+  </way>
+  <way id='522204044' timestamp='2017-09-07T17:43:44Z' uid='6521966' user='Paul David baron Von Weenraid' version='1' changeset='51819749'>
+    <nd ref='5086672770' />
+    <nd ref='5086672771' />
+    <nd ref='5086672776' />
+    <nd ref='5086672772' />
+    <nd ref='5086672773' />
+    <nd ref='5086672774' />
+    <nd ref='5086672775' />
+    <nd ref='5086672770' />
+    <tag k='aeroway' v='aerodrome' />
+  </way>
+  <way id='522204045' timestamp='2017-09-07T17:43:44Z' uid='6521966' user='Paul David baron Von Weenraid' version='1' changeset='51819749'>
+    <nd ref='5086672776' />
+    <nd ref='5086672777' />
+    <tag k='aeroway' v='taxiway' />
+  </way>
+</osm>
