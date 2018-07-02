@@ -225,48 +225,34 @@ public class OsmPbfCounter implements Sink
         if (this.loadingOption.isLoadWaysSpanningCountryBoundaries())
         {
             int extensionCounter = 0;
+            final Set<Long> alreadyAddedWays = new HashSet<>();
             final AtomicBoolean addedNewEdge = new AtomicBoolean(true);
             while (extensionCounter < MAXIMUM_NETWORK_EXTENSION && addedNewEdge.get())
             {
                 logger.trace("Adding connected ways outside boundary pass {}", extensionCounter);
                 addedNewEdge.set(false);
-                this.waysToExclude.values().stream().filter(this::isHighwayOrFerry).forEach(way ->
-                {
-                    final List<WayNode> wayNodes = way.getWayNodes();
-                    for (final WayNode wayNode : wayNodes)
-                    {
-                        final long identifier = wayNode.getNodeId();
-                        if (this.nodeIdentifiersBroughtInByWaysOrRelations.contains(identifier))
+                this.waysToExclude.values().stream().filter(this::isHighwayOrFerry)
+                        .filter(way -> !alreadyAddedWays.contains(way.getId())).forEach(way ->
                         {
-                            final Long startNodeIdentifier = wayNodes.get(0).getNodeId();
-                            final Long endNodeIdentifier = wayNodes.get(wayNodes.size() - 1)
-                                    .getNodeId();
-
-                            // Look at the start point
-                            if (startNodeIdentifier != identifier)
+                            final List<WayNode> wayNodes = way.getWayNodes();
+                            for (final WayNode wayNode : wayNodes)
                             {
-                                // The start node is a new node outside of the network
-                                this.nodeIdentifiersBroughtInByWaysOrRelations
-                                        .add(startNodeIdentifier);
+                                final long identifier = wayNode.getNodeId();
+                                if (this.nodeIdentifiersBroughtInByWaysOrRelations
+                                        .contains(identifier))
+                                {
+                                    // Add way and its members
+                                    logger.trace("Adding connected way with identifier {}",
+                                            way.getId());
+                                    this.wayIdentifiersToInclude.add(way.getId());
+                                    addWayNodes(this.nodeIdentifiersBroughtInByWaysOrRelations,
+                                            way);
+                                    addedNewEdge.set(true);
+                                    alreadyAddedWays.add(way.getId());
+                                    break;
+                                }
                             }
-
-                            // Look at the end point
-                            if (endNodeIdentifier != identifier)
-                            {
-                                // The end node is a new node outside of the network
-                                this.nodeIdentifiersBroughtInByWaysOrRelations
-                                        .add(endNodeIdentifier);
-                            }
-
-                            // Add way and its members
-                            logger.trace("Adding connected way with identifier {}", way.getId());
-                            this.wayIdentifiersToInclude.add(way.getId());
-                            addWayNodes(this.nodeIdentifiersBroughtInByWaysOrRelations, way);
-                            addedNewEdge.set(true);
-                            break;
-                        }
-                    }
-                });
+                        });
                 extensionCounter++;
             }
         }
