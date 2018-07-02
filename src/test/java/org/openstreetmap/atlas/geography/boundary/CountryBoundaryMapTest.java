@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.boundary;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -456,6 +458,16 @@ public class CountryBoundaryMapTest
         Assert.assertEquals("AIA", firstCountryName(partialAIAMap));
         Assert.assertNotNull(partialAIAMap.countryBoundary("AIA"));
         Assert.assertNull(partialAIAMap.countryBoundary("MAF"));
+    }
+
+    @Test
+    public void testWithinBoundingBoxButNotWithinBoundary()
+    {
+        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
+                CountryBoundaryMapTest.class.getResourceAsStream("DMA_boundary.txt")));
+        final Location location = Location.forWkt("POINT (-61.6678538 15.2957509)");
+        final CountryCodeProperties countryCodeProperties = map.getCountryCodeISO3(location);
+        assertTrue(countryCodeProperties.usingNearestNeighbor());
     }
 
     private String firstCountryName(final CountryBoundaryMap map)

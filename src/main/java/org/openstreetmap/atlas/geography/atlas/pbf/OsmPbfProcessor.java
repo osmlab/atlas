@@ -575,6 +575,7 @@ public class OsmPbfProcessor implements Sink
             /* Store end nodes of edge to identify atlas node in second pass */
             if (this.store.isAtlasEdge(wayIdentifier))
             {
+                wayNodes.stream().map(WayNode::getNodeId).forEach(this.store::addNodeInEdge);
                 this.store.addNodeAtEndOfEdge(wayNodes.get(0).getNodeId());
                 this.store.addNodeAtEndOfEdge(wayNodes.get(wayNodes.size() - 1).getNodeId());
                 final PbfOneWay oneWay = tags.getOneWay();
@@ -703,59 +704,44 @@ public class OsmPbfProcessor implements Sink
         {
             int counter = 0;
             final List<Boolean> lastAddedRoads = new ArrayList<>();
+            final Set<Long> alreadyAddedWays = new HashSet<>();
             lastAddedRoads.add(true);
             while (counter++ < MAXIMUM_NETWORK_EXTENSION && lastAddedRoads.get(0))
             {
-                logger.trace("Adding connected ways pass {}", counter);
+                logger.trace("keepOutsideWaysThatAreConnected while loop iteration {}", counter);
                 lastAddedRoads.set(0, false);
                 this.allWays.values().stream().filter(this::isHighwayOrFerry).forEach(way ->
                 {
-                    if (!this.store.containsWay(way.getId()))
+                    if (!this.store.containsWay(way.getId())
+                            || !partialInside(way) && !alreadyAddedWays.contains(way.getId()))
                     {
                         final List<WayNode> wayNodes = way.getWayNodes();
                         for (final WayNode wayNode : wayNodes)
                         {
                             final long identifier = wayNode.getNodeId();
-                            if (this.store.containsNodeAtEndOfEdges(identifier))
+                            if (this.store.containsNodeInEdges(identifier))
                             {
-                                final Long startNodeIdentifier = wayNodes.get(0).getNodeId();
-                                final Long endNodeIdentifier = wayNodes.get(wayNodes.size() - 1)
-                                        .getNodeId();
-                                if (startNodeIdentifier != identifier)
-                                {
-                                    // The start node is a new node outside of the network
-                                    this.nodeIdentifiersAtNetworkBoundary.add(startNodeIdentifier);
-                                }
-                                else
-                                {
-                                    // The start node has been used to connect a new way outside the
-                                    // network. It is not a boundary node anymore.
-                                    this.nodeIdentifiersAtNetworkBoundary
-                                            .remove(new Long(startNodeIdentifier));
-                                }
-                                if (endNodeIdentifier != identifier)
-                                {
-                                    // The end node is a new node outside of the network
-                                    this.nodeIdentifiersAtNetworkBoundary.add(endNodeIdentifier);
-                                }
-                                else
-                                {
-                                    // The end node has been used to connect a new way outside the
-                                    // network. It is not a boundary node anymore.
-                                    this.nodeIdentifiersAtNetworkBoundary
-                                            .remove(new Long(endNodeIdentifier));
-                                }
                                 this.store.addWay(way);
-                                logger.trace("Adding connected road with identifier {}",
-                                        identifier);
+                                logger.info("Adding outside way {} connected at node {}",
+                                        way.getId(), identifier);
                                 lastAddedRoads.set(0, true);
-                                way.getWayNodes().forEach(subWayNode ->
+                                alreadyAddedWays.add(way.getId());
+                                this.nodeIdentifiersAtNetworkBoundary.remove(new Long(identifier));
+                                for (final WayNode subWayNode : wayNodes)
                                 {
+                                    this.store.addNodeInEdge(subWayNode.getNodeId());
                                     if (!this.store.containsNode(subWayNode.getNodeId()))
                                     {
+                                        final long subWayNodeIdentifier = subWayNode.getNodeId();
+                                        if (subWayNodeIdentifier != identifier)
+                                        {
+                                            // The node is a new node outside of the network
+                                            this.nodeIdentifiersAtNetworkBoundary
+                                                    .add(subWayNodeIdentifier);
+                                        }
                                         this.nodesOutsideOfPolygon.add(subWayNode.getNodeId());
                                     }
-                                });
+                                }
                                 break;
                             }
                         }

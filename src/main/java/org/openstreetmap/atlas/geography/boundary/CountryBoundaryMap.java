@@ -958,7 +958,8 @@ public class CountryBoundaryMap implements Serializable
             target = geometry.buffer(buffer);
         }
 
-        final List<Polygon> polygons = this.query(target.getEnvelopeInternal());
+        final List<Polygon> polygons = this.query(target.getEnvelopeInternal()).stream()
+                .filter(polygon -> polygon.intersects(target)).collect(Collectors.toList());
         boolean usingNearestNeighbor = false;
         if (polygons.size() == 1 || isSameCountry(polygons))
         {
