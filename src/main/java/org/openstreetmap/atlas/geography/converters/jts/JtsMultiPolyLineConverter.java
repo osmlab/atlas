@@ -4,9 +4,9 @@ import java.util.List;
 
 import org.openstreetmap.atlas.geography.MultiPolyLine;
 import org.openstreetmap.atlas.geography.PolyLine;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
@@ -20,6 +20,7 @@ import com.vividsolutions.jts.geom.MultiLineString;
 public class JtsMultiPolyLineConverter implements TwoWayConverter<MultiPolyLine, MultiLineString>
 {
     private static final JtsCoordinateArrayConverter COORDINATE_ARRAY_CONVERTER = new JtsCoordinateArrayConverter();
+    private static final JtsPolyLineConverter POLYLINE_CONVERTER = new JtsPolyLineConverter();
     private static final GeometryFactory FACTORY = JtsPrecisionManager.getGeometryFactory();
 
     @Override
@@ -38,8 +39,9 @@ public class JtsMultiPolyLineConverter implements TwoWayConverter<MultiPolyLine,
     @Override
     public MultiLineString convert(final MultiPolyLine multiPolyLine)
     {
-        final LineString[] lineStrings = (LineString[]) ImmutableList
-                .copyOf(multiPolyLine.iterator()).toArray();
-        return new MultiLineString(lineStrings, FACTORY);
+        final List<LineString> lineStringList = Iterables.stream(multiPolyLine)
+                .map(POLYLINE_CONVERTER::convert).collectToList();
+        return new MultiLineString(lineStringList.toArray(new LineString[lineStringList.size()]),
+                FACTORY);
     }
 }
