@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.AbstractIdentifierFactory;
-import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.WaySectionIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.store.PbfMemoryStore;
 import org.openstreetmap.atlas.geography.atlas.pbf.store.PbfOneWay;
@@ -35,14 +34,12 @@ public class WaySectionProcessor
 
     // Both splitWay and splitRing will share this identifier factory
     private AbstractIdentifierFactory identifierFactory;
-    private final ReverseIdentifierFactory reverseIdentifierFactory;
 
     public WaySectionProcessor(final PbfMemoryStore store)
     {
         this.countForNode = new SectionCounter();
         this.store = store;
         this.identifierFactory = null;
-        this.reverseIdentifierFactory = new ReverseIdentifierFactory();
     }
 
     public void run()
@@ -65,19 +62,13 @@ public class WaySectionProcessor
         {
             if (numberOfSlicingPoints(way) + 1 < AbstractIdentifierFactory.IDENTIFIER_SCALE)
             {
-                // Split the ways, and the rings within at the same time.
+                // Split the ways.
                 final List<Way> sectionedWays = splitWay(way);
 
                 // If way get splits
                 if (sectionedWays.size() != 0)
                 {
                     waysNeedingUpdate.put(way.getId(), sectionedWays);
-                }
-                // Catch the rings that might have been missed
-                else if (this.store.isRing(way))
-                {
-                    final List<Way> sectionedRings = splitRing(way);
-                    waysNeedingUpdate.put(way.getId(), sectionedRings);
                 }
             }
         });
@@ -111,17 +102,9 @@ public class WaySectionProcessor
         });
     }
 
-    private void addSplitWayAndGenerateSplitRingIfNeeded(final List<Way> splitWays,
-            final Way splitWay)
+    private void addSplitWay(final List<Way> splitWays, final Way splitWay)
     {
-        if (this.store.isRing(splitWay))
-        {
-            splitRing(splitWay).forEach(splitWays::add);
-        }
-        else
-        {
-            splitWays.add(splitWay);
-        }
+        splitWays.add(splitWay);
     }
 
     private Set<Long> checkRelation(final Map<Long, List<Way>> splitWays, final Relation relation)
@@ -183,36 +166,6 @@ public class WaySectionProcessor
     }
 
     /**
-     * Split ring at middle shape point and increment the count of split point
-     *
-     * @param way
-     *            OSM {@link Way} that has more than two shape points
-     * @return Two split {@link Way}s in a list
-     */
-    private List<Way> splitRing(final Way way)
-    {
-        final List<Way> list = new ArrayList<>();
-        final List<WayNode> wayNodes = way.getWayNodes();
-        final long identifier = way.getId();
-
-        // The way hasn't been split before, create a new identifier factory, otherwise reuse the
-        // old one
-        if (this.reverseIdentifierFactory.getWaySectionIndex(identifier) == 0)
-        {
-            this.identifierFactory = new WaySectionIdentifierFactory(identifier);
-        }
-
-        list.add(this.store.createWay(way, this.identifierFactory.nextIdentifier(),
-                wayNodes.subList(0, wayNodes.size() / 2 + 1)));
-        list.add(this.store.createWay(way, this.identifierFactory.nextIdentifier(),
-                wayNodes.subList(wayNodes.size() / 2, wayNodes.size())));
-        // Increment the count of split point, so that it will be treated as an
-        // intersection
-        this.countForNode.increment(list.get(1).getWayNodes().get(0));
-        return list;
-    }
-
-    /**
      * Split {@link Way}s based on this.countForNode, if the way is not splitable, add 000 at the
      * end of identifier, otherwise the identifier will start from 001
      *
@@ -240,7 +193,7 @@ public class WaySectionProcessor
                     final Way splitWay = this.store.createWay(way,
                             this.identifierFactory.nextIdentifier(),
                             wayNodes.subList(lastIndex, currentIndex + 1));
-                    addSplitWayAndGenerateSplitRingIfNeeded(splitWays, splitWay);
+                    addSplitWay(splitWays, splitWay);
                     lastIndex = currentIndex;
                 }
             }
@@ -250,7 +203,7 @@ public class WaySectionProcessor
                 final Way splitWay = this.store.createWay(way,
                         this.identifierFactory.nextIdentifier(),
                         wayNodes.subList(lastIndex, wayNodes.size()));
-                addSplitWayAndGenerateSplitRingIfNeeded(splitWays, splitWay);
+                addSplitWay(splitWays, splitWay);
             }
         }
         else
@@ -264,7 +217,7 @@ public class WaySectionProcessor
                     final Way splitWay = this.store.createWay(way,
                             this.identifierFactory.nextIdentifier(),
                             wayNodes.subList(currentIndex, lastIndex));
-                    addSplitWayAndGenerateSplitRingIfNeeded(splitWays, splitWay);
+                    addSplitWay(splitWays, splitWay);
                     lastIndex = currentIndex + 1;
                 }
             }
@@ -273,7 +226,7 @@ public class WaySectionProcessor
                 // Add last segment
                 final Way splitWay = this.store.createWay(way,
                         this.identifierFactory.nextIdentifier(), wayNodes.subList(0, lastIndex));
-                addSplitWayAndGenerateSplitRingIfNeeded(splitWays, splitWay);
+                addSplitWay(splitWays, splitWay);
             }
         }
         return splitWays;
