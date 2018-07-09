@@ -262,13 +262,12 @@ public class CountryBoundaryMap implements Serializable
      *
      * @param geometry
      *            The {@link Geometry} whose userData we're interested in
-     * @param key
-     *            The metadata lookup key to use
-     * @return the string value of the given key, {@code null} if it doesn't exist
+     * @return The property map for the geometry, {@code null} if it doesn't exist
      */
     @SuppressWarnings("unchecked")
-    public static String getGeometryProperty(final Geometry geometry, final String key)
+    public static Map<String, String> getGeometryProperties(final Geometry geometry)
     {
+        final Map<String, String> result = new HashMap<>();
         // Grab the existing key/value map from the object
         final Map<String, String> propertyMap = (Map<String, String>) geometry.getUserData();
 
@@ -279,8 +278,26 @@ public class CountryBoundaryMap implements Serializable
         }
         else
         {
-            return propertyMap.get(key);
+            result.putAll(propertyMap);
         }
+        return result;
+    }
+
+    /**
+     * Follows the same concept as {@link #setGeometryProperty(Geometry, String, String)}. Because
+     * we're working with JTS {@link Polygon}s instead of {@link AtlasEntity}s, we don't have access
+     * to a tag map and can't explicitly set tags. This wraps the {@link Polygon#getUserData} call
+     * and is the single entry point that should be used for setting {@link Geometry} properties.
+     *
+     * @param geometry
+     *            The {@link Geometry} whose userData we're interested in
+     * @param key
+     *            The metadata lookup key to use
+     * @return the string value of the given key, {@code null} if it doesn't exist
+     */
+    public static String getGeometryProperty(final Geometry geometry, final String key)
+    {
+        return getGeometryProperties(geometry).get(key);
     }
 
     /**
@@ -1373,8 +1390,10 @@ public class CountryBoundaryMap implements Serializable
             final GeometryCollection collection = (GeometryCollection) geometry;
             geometries(collection).forEach(part ->
             {
-                final String countryCode = getGeometryProperty(geometry, ISOCountryTag.KEY);
-                setGeometryProperty(part, ISOCountryTag.KEY, countryCode);
+                getGeometryProperties(geometry).forEach((key, value) ->
+                {
+                    setGeometryProperty(part, key, value);
+                });
                 this.addResult(part, results);
             });
         }
