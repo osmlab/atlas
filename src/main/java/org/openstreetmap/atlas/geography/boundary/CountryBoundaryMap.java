@@ -271,12 +271,7 @@ public class CountryBoundaryMap implements Serializable
         // Grab the existing key/value map from the object
         final Map<String, String> propertyMap = (Map<String, String>) geometry.getUserData();
 
-        if (propertyMap == null)
-        {
-            // No user data exists
-            return null;
-        }
-        else
+        if (propertyMap != null)
         {
             result.putAll(propertyMap);
         }
