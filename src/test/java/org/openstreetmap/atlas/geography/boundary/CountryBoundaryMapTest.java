@@ -1,7 +1,5 @@
 package org.openstreetmap.atlas.geography.boundary;
 
-import static org.junit.Assert.assertTrue;
-
 import java.io.File;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -20,9 +18,11 @@ import org.openstreetmap.atlas.geography.atlas.raw.slicing.CountryCodeProperties
 import org.openstreetmap.atlas.geography.converters.WktPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
+import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
 import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.test.TestUtility;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
@@ -377,6 +377,31 @@ public class CountryBoundaryMapTest
     }
 
     @Test
+    public void testNearestNeighborCountryCodeOnMultiLineStringOutsideBoundary()
+    {
+        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
+                CountryBoundaryMapTest.class.getResourceAsStream("DMA_boundary.txt")));
+        map.setShouldAlwaysSlicePredicate(taggable -> true);
+        final PolyLine polyLine = PolyLine.wkt(new InputStreamResource(
+                () -> CountryBoundaryMapTest.class.getResourceAsStream("DMA_snake_polyline.wkt"))
+                        .firstLine());
+        final List<Geometry> sliced = map.slice(123000000L,
+                new JtsPolyLineConverter().convert(polyLine),
+                Taggable.with("force-slice", "please"));
+        int withNearestNeighborTag = 0;
+        for (final Geometry slicedGeometry : sliced)
+        {
+            if (SyntheticNearestNeighborCountryCodeTag.YES.name()
+                    .equals(CountryBoundaryMap.getGeometryProperty(slicedGeometry,
+                            SyntheticNearestNeighborCountryCodeTag.KEY)))
+            {
+                withNearestNeighborTag++;
+            }
+        }
+        Assert.assertEquals(3, withNearestNeighborTag);
+    }
+
+    @Test
     public void testOnDemandIndexAndIndexFromFileViaArea()
     {
         // Generate grid index for the first time
@@ -467,7 +492,7 @@ public class CountryBoundaryMapTest
                 CountryBoundaryMapTest.class.getResourceAsStream("DMA_boundary.txt")));
         final Location location = Location.forWkt("POINT (-61.6678538 15.2957509)");
         final CountryCodeProperties countryCodeProperties = map.getCountryCodeISO3(location);
-        assertTrue(countryCodeProperties.usingNearestNeighbor());
+        Assert.assertTrue(countryCodeProperties.usingNearestNeighbor());
     }
 
     private String firstCountryName(final CountryBoundaryMap map)
