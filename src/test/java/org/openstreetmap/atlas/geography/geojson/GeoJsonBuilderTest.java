@@ -22,8 +22,6 @@ import org.openstreetmap.atlas.streaming.resource.StringResource;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import junit.framework.TestCase;
-
 /**
  * @author matthieun
  * @author mgostintsev
@@ -300,7 +298,7 @@ public class GeoJsonBuilderTest
         final GeometryWithProperties geometryWithProperties = new GeometryWithProperties(
                 PolyLine.TEST_POLYLINE, properties);
         final JsonObject jsonObject = new GeoJsonBuilder().create(geometryWithProperties);
-        TestCase.assertEquals(1,
+        Assert.assertEquals(1,
                 jsonObject.get("properties").getAsJsonObject().get("prop1").getAsInt());
         final List<Integer> resultList = new ArrayList<>();
         for (final JsonElement element : jsonObject.get("properties").getAsJsonObject().get("prop2")
@@ -308,8 +306,8 @@ public class GeoJsonBuilderTest
         {
             resultList.add(element.getAsInt());
         }
-        TestCase.assertEquals(list, resultList);
-        TestCase.assertEquals("mystring",
+        Assert.assertEquals(list, resultList);
+        Assert.assertEquals("mystring",
                 jsonObject.get("properties").getAsJsonObject().get("prop3").getAsString());
     }
 
@@ -323,10 +321,10 @@ public class GeoJsonBuilderTest
                 PolyLine.TEST_POLYLINE, stringProperties);
         final GeometryWithProperties geometryWithProperties = GeoJsonBuilder
                 .toGeometryWithProperties(locationIterableProperties);
-        TestCase.assertEquals(PolyLine.TEST_POLYLINE, geometryWithProperties.getGeometry());
+        Assert.assertEquals(PolyLine.TEST_POLYLINE, geometryWithProperties.getGeometry());
         for (final Entry<String, String> stringPropertiesEntry : stringProperties.entrySet())
         {
-            TestCase.assertEquals(stringPropertiesEntry.getValue(),
+            Assert.assertEquals(stringPropertiesEntry.getValue(),
                     geometryWithProperties.getProperties().get(stringPropertiesEntry.getKey()));
         }
     }
