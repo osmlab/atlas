@@ -160,6 +160,11 @@ public class LocationTest extends Command
         final Location location2 = Location.forWkt("POINT(-180 -25)");
         Assert.assertEquals(Location.forWkt("POINT(-180 0)"), location1.midPoint(location2));
         Assert.assertEquals(Location.forWkt("POINT(-180 0)"), location2.midPoint(location1));
+
+        final Location location3 = Location.forWkt("POINT(180 25)");
+        final Location location4 = Location.forWkt("POINT(180 -25)");
+        Assert.assertEquals(Location.forWkt("POINT(180 0)"), location3.midPoint(location4));
+        Assert.assertEquals(Location.forWkt("POINT(180 0)"), location4.midPoint(location3));
     }
 
     @Override
