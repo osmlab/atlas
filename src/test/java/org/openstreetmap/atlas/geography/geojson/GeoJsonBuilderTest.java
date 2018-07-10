@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import junit.framework.TestCase;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
@@ -23,6 +21,8 @@ import org.openstreetmap.atlas.streaming.resource.StringResource;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
+import junit.framework.TestCase;
 
 /**
  * @author matthieun
