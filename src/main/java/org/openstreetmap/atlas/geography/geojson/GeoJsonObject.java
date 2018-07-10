@@ -10,6 +10,7 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.Streams;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -29,9 +30,9 @@ public class GeoJsonObject
         this.jsonObject = jsonObject;
     }
 
-    public Map<String, String> getProperties()
+    public Map<String, Object> getProperties()
     {
-        final Map<String, String> result = new HashMap<>();
+        final Map<String, Object> result = new HashMap<>();
         if (this.jsonObject.get("properties") != null)
         {
             final JsonObject propertiesObject = (JsonObject) this.jsonObject.get("properties");
@@ -88,6 +89,32 @@ public class GeoJsonObject
         return this.jsonObject.toString();
     }
 
+    public GeoJsonObject withNewProperties(final Map<String, ? extends Object> properties)
+    {
+        final JsonObject propertiesObject;
+        if (this.jsonObject.get("properties") != null)
+        {
+            propertiesObject = (JsonObject) this.jsonObject.get("properties");
+            this.jsonObject.remove("properties");
+        }
+        else
+        {
+            propertiesObject = new JsonObject();
+        }
+        final Gson gson = new Gson();
+        properties.forEach((key, value) -> propertiesObject.add(key, gson.toJsonTree(value)));
+        this.jsonObject.add("properties", propertiesObject);
+        return this;
+    }
+
+    public GeoJsonObject withNewProperty(final String key, final Object value)
+    {
+        final Map<String, Object> properties = new HashMap<>();
+        properties.put(key, value);
+        return this.withNewProperties(properties);
+    }
+
+    /*-
     public GeoJsonObject withNewProperties(final Map<String, String> properties)
     {
         final JsonObject propertiesObject;
@@ -104,11 +131,14 @@ public class GeoJsonObject
         this.jsonObject.add("properties", propertiesObject);
         return this;
     }
+    */
 
+    /*-
     public GeoJsonObject withNewProperty(final String key, final String value)
     {
         final Map<String, String> properties = new HashMap<>();
         properties.put(key, value);
         return this.withNewProperties(properties);
     }
+    */
 }
