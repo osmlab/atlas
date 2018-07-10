@@ -60,7 +60,7 @@ public class GeoJsonBuilderTest
                 new Polygon(Location.TEST_5, Location.TEST_2, Location.TEST_6), properties));
         items.add(new GeometryWithProperties(new PolyLine(Location.TEST_5, Location.TEST_2),
                 properties));
-        final GeoJsonObject object = new GeoJsonBuilder().createFromGeometries(items);
+        final GeoJsonObject object = new GeoJsonBuilder().createFromGeometriesWithProperties(items);
         Assert.assertEquals(
                 "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\""
                         + ":[-122.009566,37.33531]},\"properties\":{\"property2\":\"value2\",\"property\":\"value\"}},{\"type\":\"Feature\",\"geometry\""

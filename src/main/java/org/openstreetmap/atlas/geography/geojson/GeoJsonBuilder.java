@@ -285,12 +285,12 @@ public class GeoJsonBuilder
      * @param objects
      *            used to build each Feature
      * @return a GeoJson FeatureCollection
-     * @deprecated use {@link #createGeoJson(Iterable)} instead
+     * @deprecated use {@link #createFromGeometriesWithProperties(Iterable)} instead
      */
     @Deprecated
     public GeoJsonObject create(final Iterable<LocationIterableProperties> objects)
     {
-        return createFromGeometries(toGeometriesWithProperties(objects));
+        return createFromGeometriesWithProperties(toGeometriesWithProperties(objects));
     }
 
     /**
@@ -406,7 +406,7 @@ public class GeoJsonBuilder
      *            associated geometries and properties used to build each Feature
      * @return a GeoJson FeatureCollection
      */
-    public GeoJsonObject createFromGeometries(
+    public GeoJsonObject createFromGeometriesWithProperties(
             final Iterable<GeometryWithProperties> geometriesWithProperties)
     {
         final JsonObject result = new JsonObject();
@@ -430,7 +430,7 @@ public class GeoJsonBuilder
      * {@link LocationIterableProperties}. <strong>Note:</strong> feature parameters are not present
      * in the resulting GeometryCollection and must be handled separately to avoid data loss.
      *
-     * @deprecated use {@link #} instead
+     * @deprecated use {@link #createGeometryCollectionFeature(Iterable)} instead
      * @param objects
      *            used to build each geometry
      * @return a GeoJson Feature
