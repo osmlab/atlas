@@ -82,13 +82,13 @@ public class MultiPolyLineTest
     @Test
     public void testCreateMultiPolyLineFromPolyLine()
     {
-        final PolyLine polyLine1 = PolyLine.wkt(
-                "LINESTRING (10.5553105 48.3419094, 10.5552096 48.3417501, 10.5551312 48.3416583, "
+        final PolyLine polyLine1 = PolyLine
+                .wkt("LINESTRING (10.5553105 48.3419094, 10.5552096 48.3417501, 10.5551312 48.3416583, "
                         + "10.5551027 48.341611, 10.5550183 48.3415143, 10.5549357 48.3414668, "
                         + "10.5548325 48.3414164, 10.5548105 48.3415201, 10.5548015 48.3415686, "
                         + "10.5548925 48.3416166, 10.5550334 48.3416375, 10.5551312 48.3416583)");
-        final PolyLine polyLine2 = PolyLine.wkt(
-                "LINESTRING (10.5551312 48.3416583, 10.5551027 48.341611, 10.5550183 48.3415143, "
+        final PolyLine polyLine2 = PolyLine
+                .wkt("LINESTRING (10.5551312 48.3416583, 10.5551027 48.341611, 10.5550183 48.3415143, "
                         + "10.5549357 48.3414668, 10.5548325 48.3414164, 10.5548105 48.3415201, "
                         + "10.5548015 48.3415686, 10.5548925 48.3416166, 10.5550334 48.3416375)");
         final MultiPolyLine multiPolyLine = new MultiPolyLine(Arrays.asList(polyLine1, polyLine2));
