@@ -153,6 +153,15 @@ public class LocationTest extends Command
         System.out.println(calculatedLoxodromicMidPoint.toString() + "\n");
     }
 
+    @Test
+    public void testAntiMeridianMidPoint()
+    {
+        final Location location1 = Location.forWkt("POINT(-180 25)");
+        final Location location2 = Location.forWkt("POINT(-180 -25)");
+        Assert.assertEquals(Location.forWkt("POINT(-180 0)"), location1.midPoint(location2));
+        Assert.assertEquals(Location.forWkt("POINT(-180 0)"), location2.midPoint(location1));
+    }
+
     @Override
     protected int onRun(final CommandMap command)
     {

@@ -606,7 +606,7 @@ public class PolygonTest
     {
         Assert.assertEquals(Location.TEST_3, this.quadrant.offsetFromStart(Ratio.MINIMUM));
         Assert.assertEquals(Location.TEST_3, this.quadrant.offsetFromStart(Ratio.MAXIMUM));
-        Assert.assertEquals(Location.forString("37.3352356,-122.0096688"), this.quadrant.middle());
+        Assert.assertEquals(Location.forString("37.3352356,-122.0096687"), this.quadrant.middle());
     }
 
     @Test

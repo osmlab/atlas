@@ -21,6 +21,8 @@ public class Angle implements Serializable
     protected static final int DM7_PER_DEGREE = 10_000_000;
     // There are approximately 57 degrees per radian
     public static final int DM7_PER_RADIAN = 572_957_795;
+    // When precision is needed
+    public static final double DM7_PER_RADIAN_DOUBLE = Double.valueOf(1_800_000_000) / Math.PI;
     // An angle is >= -180 degrees
     protected static final int MINIMUM_DM7 = -1_800_000_000;
     // An angle is < 180 degrees
@@ -160,7 +162,7 @@ public class Angle implements Serializable
      */
     public double asRadians()
     {
-        return (double) this.asDm7() / DM7_PER_RADIAN;
+        return (double) this.asDm7() / DM7_PER_RADIAN_DOUBLE;
     }
 
     /**
