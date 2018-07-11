@@ -63,20 +63,6 @@ public class WaySectionProcessorIntegrationTest extends AtlasIntegrationTest
     }
 
     @Test
-    public void testRing()
-    {
-        // Ring should be sliced into two ways
-        final long ring = 295699806L;
-        Assert.assertNotNull(unSlicedAtlas.edge(ring));
-        final AbstractIdentifierFactory factory = new WaySectionIdentifierFactory(
-                PaddingIdentifierFactory.pad(ring));
-        Assert.assertNull(slicedAtlas.edge(factory.getReferenceIdentifier()));
-        Assert.assertNotNull(slicedAtlas.edge(factory.nextIdentifier()));
-        Assert.assertNotNull(slicedAtlas.edge(factory.nextIdentifier()));
-        Assert.assertNull(slicedAtlas.edge(factory.nextIdentifier()));
-    }
-
-    @Test
     public void testSelfIntersectionRing()
     {
         // Way 295734091 will be sliced into 295734091000001 and 295734091000002. However because
@@ -87,8 +73,6 @@ public class WaySectionProcessorIntegrationTest extends AtlasIntegrationTest
         final AbstractIdentifierFactory factory = new WaySectionIdentifierFactory(
                 PaddingIdentifierFactory.pad(selfIntersectionWay));
         Assert.assertNull(slicedAtlas.edge(factory.getReferenceIdentifier()));
-        Assert.assertNotNull(slicedAtlas.edge(factory.nextIdentifier()));
-        Assert.assertNull(slicedAtlas.edge(factory.nextIdentifier()));
         Assert.assertNotNull(slicedAtlas.edge(factory.nextIdentifier()));
         Assert.assertNotNull(slicedAtlas.edge(factory.nextIdentifier()));
     }
@@ -117,13 +101,13 @@ public class WaySectionProcessorIntegrationTest extends AtlasIntegrationTest
     {
         // Total Numbers
         Assert.assertEquals(1020, unSlicedAtlas.numberOfEdges());
-        Assert.assertEquals(2850, slicedAtlas.numberOfEdges());
+        Assert.assertEquals(2843, slicedAtlas.numberOfEdges());
 
         Assert.assertEquals(8, unSlicedAtlas.numberOfLines());
         Assert.assertEquals(8, slicedAtlas.numberOfLines());
 
         Assert.assertEquals(959, unSlicedAtlas.numberOfNodes());
-        Assert.assertEquals(1171, slicedAtlas.numberOfNodes());
+        Assert.assertEquals(1167, slicedAtlas.numberOfNodes());
 
         Assert.assertEquals(336, unSlicedAtlas.numberOfAreas());
         Assert.assertEquals(336, slicedAtlas.numberOfAreas());
