@@ -113,32 +113,4 @@ public class GeoJsonObject
         properties.put(key, value);
         return this.withNewProperties(properties);
     }
-
-    /*-
-    public GeoJsonObject withNewProperties(final Map<String, String> properties)
-    {
-        final JsonObject propertiesObject;
-        if (this.jsonObject.get("properties") != null)
-        {
-            propertiesObject = (JsonObject) this.jsonObject.get("properties");
-            this.jsonObject.remove("properties");
-        }
-        else
-        {
-            propertiesObject = new JsonObject();
-        }
-        properties.forEach((key, value) -> propertiesObject.addProperty(key, value));
-        this.jsonObject.add("properties", propertiesObject);
-        return this;
-    }
-    */
-
-    /*-
-    public GeoJsonObject withNewProperty(final String key, final String value)
-    {
-        final Map<String, String> properties = new HashMap<>();
-        properties.put(key, value);
-        return this.withNewProperties(properties);
-    }
-    */
 }
