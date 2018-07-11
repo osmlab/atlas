@@ -164,7 +164,7 @@ public class WaySectionProcessor
 
         final Atlas atlas = buildSectionedAtlas(changeSet);
         logger.info("Finished Way-Sectioning for Shard {} in {}", getShardOrAtlasName(),
-                time.untilNow());
+                time.elapsedSince());
 
         return cutSubAtlasForOriginalShard(atlas);
     }
@@ -240,7 +240,7 @@ public class WaySectionProcessor
         atlas.preemptiveLoad();
 
         logger.info("Finished Dynamic Atlas Construction for Way-Sectioning Shard {} in {}",
-                initialShard.getName(), time.untilNow());
+                initialShard.getName(), time.elapsedSince());
         return atlas;
     }
 
@@ -400,7 +400,7 @@ public class WaySectionProcessor
         });
 
         logger.info("Finished Final Atlas Build for Shard {} in {}", getShardOrAtlasName(),
-                time.untilNow());
+                time.elapsedSince());
         return builder.get();
     }
 
@@ -506,7 +506,7 @@ public class WaySectionProcessor
                 .filter(point -> isAtlasPoint(changeSet, point)).forEach(changeSet::recordPoint);
 
         logger.info("Finished Shape Point Detection for Shard {} in {}", getShardOrAtlasName(),
-                time.untilNow());
+                time.elapsedSince());
     }
 
     private String getShardOrAtlasName()
@@ -621,7 +621,7 @@ public class WaySectionProcessor
         });
 
         logger.info("Finished Atlas Feature Detection for Shard {} in {}", getShardOrAtlasName(),
-                time.untilNow());
+                time.elapsedSince());
     }
 
     /**
@@ -844,7 +844,7 @@ public class WaySectionProcessor
         });
 
         logger.info("Finished Edge Sectioning for Shard {} in {}", getShardOrAtlasName(),
-                time.untilNow());
+                time.elapsedSince());
     }
 
     /**

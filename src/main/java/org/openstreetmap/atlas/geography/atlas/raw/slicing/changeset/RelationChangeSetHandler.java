@@ -88,7 +88,7 @@ public class RelationChangeSetHandler extends ChangeSetHandler
         }
 
         logger.info("Finished Applying Relation Changes for {} in {}", getShardOrAtlasName(),
-                time.untilNow());
+                time.elapsedSince());
 
         return atlasWithUpdates;
     }
