@@ -10,6 +10,7 @@ import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.slf4j.Logger;
@@ -53,6 +54,9 @@ public class AtlasResourceLoader
         }
     }
 
+    public static final Predicate<Resource> IS_ATLAS = FileSuffix.resourceFilter(FileSuffix.ATLAS)
+            .or(FileSuffix.resourceFilter(FileSuffix.ATLAS, FileSuffix.GZIP));
+
     private static final Logger logger = LoggerFactory.getLogger(AtlasResourceLoader.class);
 
     private Predicate<Resource> resourceFilter;
@@ -68,7 +72,7 @@ public class AtlasResourceLoader
     public Atlas load(final Iterable<? extends Resource> input)
     {
         final List<Resource> resources = Iterables.stream(input).flatMap(this::resourcesIn)
-                .filter(Atlas::isAtlas).filter(this.resourceFilter).collectToList();
+                .filter(IS_ATLAS).filter(this.resourceFilter).collectToList();
         final long size = resources.size();
         if (size == 1)
         {

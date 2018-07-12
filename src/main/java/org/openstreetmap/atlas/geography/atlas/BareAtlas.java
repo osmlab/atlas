@@ -40,6 +40,7 @@ import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.geography.atlas.items.SnappedEdge;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
 import org.openstreetmap.atlas.proto.builder.ProtoAtlasBuilder;
@@ -64,7 +65,7 @@ public abstract class BareAtlas implements Atlas
     private static final long serialVersionUID = 4733707438968864018L;
     private static final Logger logger = LoggerFactory.getLogger(BareAtlas.class);
     private static final int MAXIMUM_RELATION_DEPTH = 500;
-    private static NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
+    private static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
     private static final AtomicInteger ATLAS_IDENTIFIER_FACTORY = new AtomicInteger();
     static
     {
@@ -98,6 +99,12 @@ public abstract class BareAtlas implements Atlas
     {
         return new GeoJsonBuilder().create(Iterables.filterTranslate(entities(),
                 atlasEntity -> atlasEntity.toGeoJsonBuildingBlock(), matcher));
+    }
+
+    @Override
+    public Atlas cloned()
+    {
+        return new PackedAtlasCloner().cloneFrom(this);
     }
 
     @Override
