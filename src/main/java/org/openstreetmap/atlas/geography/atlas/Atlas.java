@@ -114,13 +114,6 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     GeoJsonObject asGeoJson(Predicate<AtlasEntity> matcher);
 
     /**
-     * Clone this Atlas to another object.
-     *
-     * @return The clone of this Atlas
-     */
-    Atlas cloned();
-
-    /**
      * @param identifier
      *            The {@link Edge}'s identifier
      * @return The {@link Edge} that corresponds to the provided identifier

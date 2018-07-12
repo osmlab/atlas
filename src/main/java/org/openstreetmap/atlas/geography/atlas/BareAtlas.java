@@ -40,7 +40,6 @@ import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.geography.atlas.items.SnappedEdge;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
-import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
 import org.openstreetmap.atlas.proto.builder.ProtoAtlasBuilder;
@@ -99,12 +98,6 @@ public abstract class BareAtlas implements Atlas
     {
         return new GeoJsonBuilder().create(Iterables.filterTranslate(entities(),
                 atlasEntity -> atlasEntity.toGeoJsonBuildingBlock(), matcher));
-    }
-
-    @Override
-    public Atlas cloned()
-    {
-        return new PackedAtlasCloner().cloneFrom(this);
     }
 
     @Override
