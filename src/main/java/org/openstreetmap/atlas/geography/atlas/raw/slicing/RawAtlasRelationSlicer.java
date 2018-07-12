@@ -130,7 +130,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
 
         final Atlas fullySlicedAtlas = relationChangeBuilder.applyChanges();
         logger.info("Finished Relation Slicing for {} in {}", getShardOrAtlasName(),
-                time.untilNow());
+                time.elapsedSince());
 
         getStatistics().summary();
         return fullySlicedAtlas;

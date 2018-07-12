@@ -87,7 +87,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         final Atlas atlasWithSlicedWaysAndPoints = simpleChangeBuilder.applyChanges();
 
         logger.info("Finished Point and Line Slicing for {} in {}", getShardOrAtlasName(),
-                time.untilNow());
+                time.elapsedSince());
         getStatistics().summary();
         return atlasWithSlicedWaysAndPoints;
     }
