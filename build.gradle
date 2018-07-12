@@ -12,6 +12,7 @@ plugins
 {
     id "io.codearte.nexus-staging" version "0.8.0"
     id "com.google.protobuf" version "0.8.1"
+    id "org.sonarqube" version "2.6"
 }
 
 apply from: 'dependencies.gradle'
@@ -48,6 +49,12 @@ spotless {
         importOrder(['static java', 'static javax', 'static org', 'static com', 'static scala', 'java', 'javax', 'org', 'com', 'scala'])
         removeUnusedImports()
         eclipse().configFile 'config/format/code_format.xml'
+    }
+}
+
+sonarqube {
+    properties {
+        property "sonar.exclusions", "src/generated/**/*.java"
     }
 }
 
