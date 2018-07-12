@@ -52,6 +52,12 @@ spotless {
     }
 }
 
+sonarqube {
+    properties {
+        property "sonar.exclusions", "src/generated/**/*.java"
+    }
+}
+
 // corresponds to POM description
 description = "Atlas Library"
 
