@@ -194,6 +194,12 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         return configurableString("", "");
     }
 
+    @Override
+    public String toHumanReaderFriendlyString()
+    {
+        return toSimpleString();
+    }
+
     /**
      * Avoid stack overflows in case a relation has looping members. This should never happen with a
      * {@link PackedAtlas} but could happen when two {@link Atlas} are combined into a

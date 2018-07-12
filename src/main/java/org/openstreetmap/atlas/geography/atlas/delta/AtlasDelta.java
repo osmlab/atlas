@@ -210,6 +210,17 @@ public class AtlasDelta implements Serializable
         return Diff.toString(this.differences);
     }
 
+    /**
+     * Similar to the regular {@link AtlasDelta#toString}, but attempts to make the string more
+     * friendly to human readers.
+     *
+     * @return the diff string
+     */
+    public String toHumanReaderFriendlyString()
+    {
+        return Diff.toHumanReaderFriendlyString(this.differences);
+    }
+
     private boolean differentAreas(final Area baseArea, final Area alterArea)
     {
         try

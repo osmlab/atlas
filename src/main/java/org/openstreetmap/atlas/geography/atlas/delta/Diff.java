@@ -156,6 +156,29 @@ public class Diff implements Comparable<Diff>, Serializable
         return builder.toString();
     }
 
+    /**
+     * Similar to the regular toString, but attempts to make the diff string more friendly to human
+     * readers.
+     *
+     * @param diffs
+     *            An {@link Iterable} of {@link Diff}
+     * @return the human readable diff string
+     */
+    public static String toHumanReaderFriendlyString(final Iterable<Diff> diffs)
+    {
+        final String newLine = System.getProperty("line.separator");
+        final StringBuilder builder = new StringBuilder();
+        builder.append("[Diffs: ");
+        final StringList list = new StringList();
+        for (final Diff diff : diffs)
+        {
+            list.add(newLine + diff.toHumanReaderFriendlyString());
+        }
+        builder.append(list.join(newLine));
+        builder.append(newLine + "]");
+        return builder.toString();
+    }
+
     private static List<LocationIterableProperties> processRelationForGeoJson(
             final Relation relation, final Map<String, String> parentTags)
     {
@@ -332,6 +355,35 @@ public class Diff implements Comparable<Diff>, Serializable
         builder.append(" -> ");
         builder.append(this.getAlterEntity());
         builder.append("}]");
+        return builder.toString();
+    }
+
+    /**
+     * Similar to the regular toString method. However, this version returns the {@link Diff} with
+     * an attempt at being more friendly to human readers.
+     *
+     * @return the string
+     */
+    public String toHumanReaderFriendlyString()
+    {
+        final String newLine = System.getProperty("line.separator");
+        final StringBuilder builder = new StringBuilder();
+        builder.append("[Diff: ");
+        builder.append(this.diffType);
+        builder.append(newLine);
+        builder.append("Entity = ");
+        builder.append(this.itemType);
+        builder.append(newLine);
+        builder.append("ID = ");
+        builder.append(this.identifier);
+        builder.append(newLine);
+        builder.append(this.getBaseEntity().toHumanReaderFriendlyString());
+        builder.append(newLine);
+        builder.append(" -> ");
+        builder.append(newLine);
+        builder.append(this.getAlterEntity().toHumanReaderFriendlyString());
+        builder.append(newLine);
+        builder.append("]");
         return builder.toString();
     }
 }

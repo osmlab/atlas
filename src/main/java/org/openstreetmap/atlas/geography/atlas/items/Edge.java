@@ -267,4 +267,10 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
                 + ", endNode=" + end().getIdentifier() + ", polyLine=" + this.asPolyLine().toWkt()
                 + ", " + tagString() + "]";
     }
+
+    @Override
+    public String toHumanReaderFriendlyString()
+    {
+        return this.toString();
+    }
 }

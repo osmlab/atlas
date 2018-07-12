@@ -61,6 +61,12 @@ public abstract class Node extends LocationItem
                 + connectedEdgesIdentifiers(() -> outEdges()) + ", " + tagString() + "]";
     }
 
+    @Override
+    public String toHumanReaderFriendlyString()
+    {
+        return this.toString();
+    }
+
     /**
      * @return The valence considering only the master {@link Edge}s
      */

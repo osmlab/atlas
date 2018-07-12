@@ -46,7 +46,8 @@ public class AtlasDeltaRelationsTest
         final SortedSet<Diff> diffs = new AtlasDelta(base, alter).generate().getDifferences();
 
         Assert.assertEquals(2, diffs.size());
-        logger.debug("testDifferentRelations(): {}", Diff.toString(diffs));
+        logger.info("testDifferentRelations(): {}", Diff.toString(diffs));
+        logger.info("testDifferentRelationsHumanFriendly(): {}", Diff.toHumanReaderFriendlyString(diffs));
 
         boolean foundRelation = false;
         for (final Diff diff : diffs)

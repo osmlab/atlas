@@ -22,7 +22,7 @@ import org.openstreetmap.atlas.utilities.time.Time;
  * @author mgostintsev
  * @author Sid
  */
-public abstract class AtlasEntity implements AtlasObject
+public abstract class AtlasEntity implements AtlasObject, HumanReaderFriendlyItem
 {
     private static final long serialVersionUID = -6072525057489468736L;
 
@@ -185,6 +185,13 @@ public abstract class AtlasEntity implements AtlasObject
      * @return The {@link LocationIterableProperties} for this {@link AtlasEntity}
      */
     public abstract LocationIterableProperties toGeoJsonBuildingBlock();
+
+    @Override
+    public String toHumanReaderFriendlyString()
+    {
+        throw new UnsupportedOperationException(
+                "This operation is not supported for type " + this.getClass().getName());
+    }
 
     protected String tagString()
     {

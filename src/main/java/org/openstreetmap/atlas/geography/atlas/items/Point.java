@@ -28,4 +28,10 @@ public abstract class Point extends LocationItem
         return "[Point: id=" + this.getIdentifier() + ", location=" + this.getLocation() + ", "
                 + tagString() + "]";
     }
+
+    @Override
+    public String toHumanReaderFriendlyString()
+    {
+        return this.toString();
+    }
 }

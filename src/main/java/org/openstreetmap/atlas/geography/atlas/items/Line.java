@@ -28,4 +28,10 @@ public abstract class Line extends LineItem
         return "[Line: id=" + this.getIdentifier() + ", polyLine=" + this.asPolyLine() + ", "
                 + tagString() + "]";
     }
+
+    @Override
+    public String toHumanReaderFriendlyString()
+    {
+        return this.toString();
+    }
 }

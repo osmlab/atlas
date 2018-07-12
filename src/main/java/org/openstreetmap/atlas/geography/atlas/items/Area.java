@@ -97,4 +97,10 @@ public abstract class Area extends AtlasItem
         return "[Area: id=" + this.getIdentifier() + ", polygon=" + this.asPolygon() + ", "
                 + tagString() + "]";
     }
+
+    @Override
+    public String toHumanReaderFriendlyString()
+    {
+        return this.toString();
+    }
 }
