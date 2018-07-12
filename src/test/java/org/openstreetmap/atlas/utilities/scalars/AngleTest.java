@@ -37,7 +37,7 @@ public class AngleTest
     {
         final Angle value = Angle.dm7(325_000_020);
         Assert.assertEquals(32.500002, value.asDegrees(), 0);
-        Assert.assertEquals(0.567232042, value.asRadians(), 1e-10);
+        Assert.assertEquals(0.5672320418047421, value.asRadians(), 1e-10);
     }
 
     @Test

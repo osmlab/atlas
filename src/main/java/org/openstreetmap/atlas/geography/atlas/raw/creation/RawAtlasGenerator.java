@@ -241,7 +241,7 @@ public class RawAtlasGenerator
             final Time trimTime = Time.now();
             final Atlas trimmedAtlas = removeDuplicateAndExtraneousPointsFromAtlas(atlas);
             logger.info("Trimmed Raw Atlas for {} in {}", shardName, atlas.getName(),
-                    trimTime.untilNow());
+                    trimTime.elapsedSince());
 
             if (trimmedAtlas == null)
             {
