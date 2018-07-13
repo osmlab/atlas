@@ -13,17 +13,17 @@ import crosby.binary.osmosis.OsmosisReader;
  */
 public class CloseableOsmosisReader extends OsmosisReader implements Closeable
 {
-    private final InputStream input;
+    private final InputStream inputStream;
 
     public CloseableOsmosisReader(final InputStream input)
     {
         super(input);
-        this.input = input;
+        this.inputStream = input;
     }
 
     @Override
     public void close() throws IOException
     {
-        this.input.close();
+        this.inputStream.close();
     }
 }

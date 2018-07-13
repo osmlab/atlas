@@ -64,7 +64,7 @@ public abstract class BareAtlas implements Atlas
     private static final long serialVersionUID = 4733707438968864018L;
     private static final Logger logger = LoggerFactory.getLogger(BareAtlas.class);
     private static final int MAXIMUM_RELATION_DEPTH = 500;
-    private static NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
+    private static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
     private static final AtomicInteger ATLAS_IDENTIFIER_FACTORY = new AtomicInteger();
     static
     {
