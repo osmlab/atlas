@@ -1,0 +1,46 @@
+sourceSets
+{
+    main
+    {
+        java
+        {
+            srcDirs 'src/main/java', 'src/generated/main/java'
+        }
+    }
+}
+
+protobuf {
+    generatedFilesBaseDir = 'src/generated/'
+
+    protoc {
+        artifact = "${packages.protoc}"
+    }
+
+    generateProtoTasks {
+        all().each { task ->
+            if (task.name == "generateProto") {
+                task.outputs.upToDateWhen {
+                    new File(generatedFilesBaseDir).exists()
+                }
+            }
+        }
+
+        task deleteGeneratedProto {
+            doLast{
+                println "Deleting generated protos"
+                delete generatedFilesBaseDir
+            }
+        }
+
+        task recompileProto {}
+        recompileProto.dependsOn(deleteGeneratedProto)
+        recompileProto.dependsOn(generateProto)
+
+        compileJava.dependsOn(generateProto)
+        clean.dependsOn(deleteGeneratedProto)
+    }
+}
+
+javadoc {
+    exclude 'org/openstreetmap/atlas/proto/**'
+}
