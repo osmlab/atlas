@@ -29,5 +29,7 @@ then
 	./gradlew sonarqube \
 		-Dsonar.organization=osmlab \
 		-Dsonar.host.url=https://sonarcloud.io \
-		-Dsonar.login=$SONAR_TOKEN
+		-Dsonar.login=$SONAR_TOKEN \
+		-Dsonar.junit.reportPaths=build/test-results/test \
+		-Dsonar.jacoco.reportPaths=build/jacoco/test.exec
 fi

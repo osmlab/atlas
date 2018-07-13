@@ -71,7 +71,8 @@ public final class PackedAtlasSerializer
     private static final StringList EXCLUDED_FIELDS = new StringList(PackedAtlas.FIELD_BOUNDS,
             PackedAtlas.FIELD_SERIAL_VERSION_UID, PackedAtlas.FIELD_LOGGER, "$SWITCH_TABLE$",
             PackedAtlas.FIELD_SERIALIZER, PackedAtlas.FIELD_SAVE_SERIALIZATION_FORMAT,
-            PackedAtlas.FIELD_LOAD_SERIALIZATION_FORMAT, PackedAtlas.FIELD_PREFIX);
+            PackedAtlas.FIELD_LOAD_SERIALIZATION_FORMAT, PackedAtlas.FIELD_PREFIX,
+            /* https://stackoverflow.com/a/39037512/1558687 */"$jacocoData");
 
     public static final String META_DATA_ERROR_MESSAGE = "MetaData not here!";
 
