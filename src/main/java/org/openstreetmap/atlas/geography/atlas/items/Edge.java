@@ -7,6 +7,7 @@ import java.util.Set;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
 import org.openstreetmap.atlas.tags.HighwayTag;
+import org.openstreetmap.atlas.utilities.collections.StringList;
 
 /**
  * A unidirectional edge that belongs to an Atlas.
@@ -261,16 +262,26 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
     public abstract Node start();
 
     @Override
+    public String toDiffViewFriendlyString()
+    {
+        final Set<Relation> relations = this.relations();
+        final StringList relationIds = new StringList();
+        for (final Relation relation : relations)
+        {
+            relationIds.add(relation.getIdentifier());
+        }
+        final String relationStrings = relationIds.join(",");
+
+        return "[Edge" + ": id=" + this.getIdentifier() + ", startNode=" + start().getIdentifier()
+                + ", endNode=" + end().getIdentifier() + ", polyLine=" + this.asPolyLine().toWkt()
+                + ", relations=(" + relationStrings + "), " + tagString() + "]";
+    }
+
+    @Override
     public String toString()
     {
         return "[Edge" + ": id=" + this.getIdentifier() + ", startNode=" + start().getIdentifier()
                 + ", endNode=" + end().getIdentifier() + ", polyLine=" + this.asPolyLine().toWkt()
                 + ", " + tagString() + "]";
-    }
-
-    @Override
-    public String toHumanReaderFriendlyString()
-    {
-        return this.toString();
     }
 }

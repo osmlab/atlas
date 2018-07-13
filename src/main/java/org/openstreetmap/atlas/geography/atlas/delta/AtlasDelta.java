@@ -184,6 +184,17 @@ public class AtlasDelta implements Serializable
         return this.differences;
     }
 
+    /**
+     * Similar to the regular {@link AtlasDelta#toString}, but attempts to make the string more
+     * friendly to diff viewing.
+     *
+     * @return the diff string
+     */
+    public String toDiffViewFriendlyString()
+    {
+        return Diff.toDiffViewFriendlyString(this.differences);
+    }
+
     public String toGeoJson()
     {
         return Diff.toGeoJson(this.differences);
@@ -208,17 +219,6 @@ public class AtlasDelta implements Serializable
     public String toString()
     {
         return Diff.toString(this.differences);
-    }
-
-    /**
-     * Similar to the regular {@link AtlasDelta#toString}, but attempts to make the string more
-     * friendly to human readers.
-     *
-     * @return the diff string
-     */
-    public String toHumanReaderFriendlyString()
-    {
-        return Diff.toHumanReaderFriendlyString(this.differences);
     }
 
     private boolean differentAreas(final Area baseArea, final Area alterArea)

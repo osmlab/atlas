@@ -101,6 +101,7 @@ public class AtlasDeltaRelationTest
 
         Assert.assertEquals(2, diffs.size());
         logger.debug("testDifferentMembersRoles(): {}", Diff.toString(diffs));
+        logger.debug("testDifferentMembersRoles(): {}", Diff.toDiffViewFriendlyString(diffs));
 
         boolean foundRelation = false;
         for (final Diff diff : diffs)

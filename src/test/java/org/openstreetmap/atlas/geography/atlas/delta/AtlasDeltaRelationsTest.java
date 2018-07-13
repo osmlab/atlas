@@ -46,8 +46,9 @@ public class AtlasDeltaRelationsTest
         final SortedSet<Diff> diffs = new AtlasDelta(base, alter).generate().getDifferences();
 
         Assert.assertEquals(2, diffs.size());
-        logger.info("testDifferentRelations(): {}", Diff.toString(diffs));
-        logger.info("testDifferentRelationsHumanFriendly(): {}", Diff.toHumanReaderFriendlyString(diffs));
+        logger.debug("testDifferentRelations(): {}", Diff.toString(diffs));
+        logger.debug("testDifferentRelationsHumanFriendly(): {}",
+                Diff.toDiffViewFriendlyString(diffs));
 
         boolean foundRelation = false;
         for (final Diff diff : diffs)
@@ -62,6 +63,28 @@ public class AtlasDeltaRelationsTest
         {
             Assert.fail("Did not find the changed relation");
         }
+    }
+
+    @Test
+    public void testReportedParentRelations()
+    {
+        final PackedAtlasBuilder baseBuilder = new PackedAtlasBuilder();
+        final PackedAtlasBuilder alterBuilder = new PackedAtlasBuilder();
+        final Map<String, String> tags = RandomTagsSupplier.randomTags(5);
+        baseBuilder.addArea(1, Polygon.SILICON_VALLEY, tags);
+        alterBuilder.addArea(1, Polygon.SILICON_VALLEY, tags);
+
+        final RelationBean baseRelationBean = new RelationBean();
+        baseRelationBean.addItem(1L, "inner", ItemType.AREA);
+
+        baseBuilder.addRelation(5, 5, baseRelationBean, tags);
+
+        final Atlas base = baseBuilder.get();
+        final Atlas alter = alterBuilder.get();
+
+        final SortedSet<Diff> diffs = new AtlasDelta(base, alter).generate().getDifferences();
+        logger.info("testDifferentRelationsHumanFriendly(): {}",
+                Diff.toDiffViewFriendlyString(diffs));
     }
 
     @Test
