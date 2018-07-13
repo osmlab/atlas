@@ -5,11 +5,9 @@ buildscript {
     }
 }
 
-// Used to promote a staging release build
-// https://github.com/Codearte/gradle-nexus-staging-plugin
-// gradle closeAndReleaseRepository
 plugins
 {
+	// Used to promote a staging release build
     id "io.codearte.nexus-staging" version "0.8.0"
     id "com.google.protobuf" version "0.8.1"
     id "org.sonarqube" version "2.6"
@@ -20,9 +18,10 @@ apply plugin: 'java'
 apply plugin: 'checkstyle'
 apply plugin: 'maven'
 apply plugin: 'signing'
-apply plugin: "com.diffplug.gradle.spotless"
+apply plugin: 'com.diffplug.gradle.spotless'
 apply plugin: 'idea'
 apply plugin: 'com.google.protobuf'
+apply plugin: 'jacoco'
 
 sourceCompatibility=1.8
 targetCompatibility=1.8
@@ -49,6 +48,18 @@ spotless {
         importOrder(['static java', 'static javax', 'static org', 'static com', 'static scala', 'java', 'javax', 'org', 'com', 'scala'])
         removeUnusedImports()
         eclipse().configFile 'config/format/code_format.xml'
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.1"
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled true
+        html.destination file("${buildDir}/reports/jacoco")
     }
 }
 
@@ -98,8 +109,11 @@ test
 {
     testLogging
     {
-        events "passed", "skipped", "failed"
+        events "failed"
         exceptionFormat = 'full'
+    }
+    jacoco {
+        excludes += ['org.openstreetmap.atlas.proto/**']
     }
 }
 
@@ -203,7 +217,7 @@ task integrationTest(type: Test) {
     classpath = sourceSets.integrationTest.runtimeClasspath
     testLogging
     {
-        events "passed", "skipped", "failed"
+        events "failed"
     }
 }
 
