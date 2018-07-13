@@ -85,6 +85,11 @@ public class AtlasDeltaRelationsTest
         final SortedSet<Diff> diffs = new AtlasDelta(base, alter).generate().getDifferences();
         logger.info("testDifferentRelationsHumanFriendly(): {}",
                 Diff.toDiffViewFriendlyString(diffs));
+
+        // Diff size should be 2:
+        // 1. The Area reports different parent relations across atlases
+        // 2. The Relation with ID 5 is not present in the alter atlas
+        Assert.assertEquals(2, diffs.size());
     }
 
     @Test
