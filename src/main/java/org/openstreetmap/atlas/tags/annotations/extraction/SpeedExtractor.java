@@ -25,17 +25,17 @@ public final class SpeedExtractor
         {
             try
             {
-                if (value.endsWith(Speed.MPH))
+                if (value.endsWith(Speed.MILES_PER_HOUR))
                 {
                     return Optional.of(Speed.milesPerHour(Double
                             .valueOf(StringList.split(value, SINGLE_SPACE).iterator().next())));
                 }
-                if (value.endsWith(Speed.KNOTS))
+                if (value.endsWith(Speed.NAUTICAL_MILES_PER_HOUR))
                 {
                     return Optional.of(Speed.knots(Double
                             .valueOf(StringList.split(value, SINGLE_SPACE).iterator().next())));
                 }
-                if (value.endsWith(Speed.KPH))
+                if (value.endsWith(Speed.KILOMETERS_PER_HOUR))
                 {
                     return Optional.of(Speed.kilometersPerHour(Double
                             .valueOf(StringList.split(value, SINGLE_SPACE).iterator().next())));
