@@ -164,7 +164,7 @@ public class DynamicAtlas extends BareAtlas
         {
             throw new CoreException("Cannot load shards with no data!");
         }
-        logger.trace("Built underlying MultiAtlas for {} in {}", this.getName(),
+        logger.trace("{}: Built underlying MultiAtlas in {}", this.getName(),
                 buildTime.elapsedSince());
     }
 

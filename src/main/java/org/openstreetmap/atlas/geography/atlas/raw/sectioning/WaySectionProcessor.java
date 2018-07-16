@@ -158,8 +158,7 @@ public class WaySectionProcessor
      */
     public Atlas run()
     {
-        final Time time = Time.now();
-        logTaskStartedAsInfo(WAY_SECTIONING_TASK, getShardOrAtlasName());
+        final Time time = logTaskStartedAsInfo(WAY_SECTIONING_TASK, getShardOrAtlasName());
 
         // Create a changeset to keep track of any intermediate state transitions (points becomes
         // nodes, lines becoming areas, etc.)
@@ -214,8 +213,8 @@ public class WaySectionProcessor
     private Atlas buildExpandedAtlas(final Shard initialShard, final Sharding sharding,
             final Function<Shard, Optional<Atlas>> rawAtlasFetcher)
     {
-        final Time dynamicAtlasTime = Time.now();
-        logTaskStartedAsInfo(DYNAMIC_ATLAS_CREATION_TASK, initialShard.getName());
+        final Time dynamicAtlasTime = logTaskStartedAsInfo(DYNAMIC_ATLAS_CREATION_TASK,
+                initialShard.getName());
 
         // Keep track of all loaded shards. This will be used to cut the sub-atlas for the shard
         // we're processing after all sectioning is completed. Initial shard will always be first!
@@ -281,8 +280,8 @@ public class WaySectionProcessor
      */
     private Atlas buildSectionedAtlas(final WaySectionChangeSet changeSet)
     {
-        final Time buildTime = Time.now();
-        logTaskStartedAsInfo(SECTIONED_ATLAS_CREATION_TASK, getShardOrAtlasName());
+        final Time buildTime = logTaskStartedAsInfo(SECTIONED_ATLAS_CREATION_TASK,
+                getShardOrAtlasName());
 
         // Create builder and set properties
         final PackedAtlasBuilder builder = new PackedAtlasBuilder();
@@ -523,8 +522,7 @@ public class WaySectionProcessor
      */
     private void distinguishPointsFromShapePoints(final WaySectionChangeSet changeSet)
     {
-        final Time time = Time.now();
-        logTaskStartedAsInfo(SHAPE_POINT_DETECTION_TASK, getShardOrAtlasName());
+        final Time time = logTaskStartedAsInfo(SHAPE_POINT_DETECTION_TASK, getShardOrAtlasName());
         StreamSupport.stream(this.rawAtlas.points().spliterator(), true)
                 .filter(point -> isAtlasPoint(changeSet, point)).forEach(changeSet::recordPoint);
         logTaskCompletionAsInfo(SHAPE_POINT_DETECTION_TASK, getShardOrAtlasName(),
@@ -557,8 +555,7 @@ public class WaySectionProcessor
      */
     private void identifyEdgesNodesAndAreasFromLines(final WaySectionChangeSet changeSet)
     {
-        final Time time = Time.now();
-        logTaskStartedAsInfo(ATLAS_FEATURE_DETECTION_TASK, getShardOrAtlasName());
+        final Time time = logTaskStartedAsInfo(ATLAS_FEATURE_DETECTION_TASK, getShardOrAtlasName());
 
         StreamSupport.stream(this.rawAtlas.lines().spliterator(), true).forEach(line ->
         {
@@ -790,9 +787,11 @@ public class WaySectionProcessor
         logger.trace(COMPLETED_TASK_MESSAGE, taskName, shardName, duration);
     }
 
-    private void logTaskStartedAsInfo(final String taskname, final String shardName)
+    private Time logTaskStartedAsInfo(final String taskname, final String shardName)
     {
+        final Time time = Time.now();
         logger.info(STARTED_TASK_MESSAGE, taskname, shardName);
+        return time;
     }
 
     /**
@@ -864,8 +863,7 @@ public class WaySectionProcessor
      */
     private void sectionEdges(final WaySectionChangeSet changeSet)
     {
-        final Time time = Time.now();
-        logTaskStartedAsInfo(EDGE_SECTIONING_TASK, getShardOrAtlasName());
+        final Time sectionTime = logTaskStartedAsInfo(EDGE_SECTIONING_TASK, getShardOrAtlasName());
 
         changeSet.getLinesThatBecomeEdges().forEach(lineIdentifier ->
         {
@@ -882,7 +880,8 @@ public class WaySectionProcessor
             changeSet.createLineToEdgeMapping(line, edges);
         });
 
-        logTaskCompletionAsInfo(EDGE_SECTIONING_TASK, getShardOrAtlasName(), time.elapsedSince());
+        logTaskCompletionAsInfo(EDGE_SECTIONING_TASK, getShardOrAtlasName(),
+                sectionTime.elapsedSince());
     }
 
     /**
