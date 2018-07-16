@@ -215,16 +215,28 @@ public class WaySectionProcessor
         {
             if (shard.equals(initialShard))
             {
-                return rawAtlasFetcher.apply(initialShard);
+                final Time fetchTime = Time.now();
+                final Optional<Atlas> fetchedAtlas = rawAtlasFetcher.apply(initialShard);
+                logger.trace("Finished Fetching Atlas for Initial Shard {} in {}",
+                        initialShard.getName(), fetchTime.elapsedSince());
+                return fetchedAtlas;
             }
             else
             {
+                final Time fetchTime = Time.now();
                 final Optional<Atlas> possibleAtlas = rawAtlasFetcher.apply(shard);
+                logger.trace("Finished Fetching Atlas for Initial Shard {} in {}",
+                        initialShard.getName(), fetchTime.elapsedSince());
                 if (possibleAtlas.isPresent())
                 {
                     this.loadedShards.add(shard);
                     final Atlas atlas = possibleAtlas.get();
-                    return atlas.subAtlas(this.dynamicAtlasExpansionFilter);
+                    final Time subAtlasTime = Time.now();
+                    final Optional<Atlas> subAtlas = atlas
+                            .subAtlas(this.dynamicAtlasExpansionFilter);
+                    logger.trace("Finished Sub Atlas Cut for Initial Shard {} in {}",
+                            initialShard.getName(), subAtlasTime.elapsedSince());
+                    return subAtlas;
                 }
                 return Optional.empty();
             }
