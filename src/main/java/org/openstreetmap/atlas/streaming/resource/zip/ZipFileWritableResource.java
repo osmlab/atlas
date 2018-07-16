@@ -28,10 +28,8 @@ public class ZipFileWritableResource extends ZipWritableResource
     @Override
     public Iterable<Resource> entries()
     {
-        ZipFile file = null;
-        try
+        try (final ZipFile file = new ZipFile(getFileSource().getFile()))
         {
-            file = new ZipFile(getFileSource().getFile());
             final ZipFile fileCopy = file;
             return Iterables.translate(Iterables.from(file.entries()), entry ->
             {
@@ -50,7 +48,6 @@ public class ZipFileWritableResource extends ZipWritableResource
         }
         catch (final IOException e)
         {
-            Streams.close(file);
             throw new CoreException("Cannot get entries from the Zipfile {}.",
                     this.getFileSource().getName(), e);
         }
@@ -66,10 +63,8 @@ public class ZipFileWritableResource extends ZipWritableResource
      */
     public Resource entryForName(final String name)
     {
-        ZipFile file = null;
-        try
+        try (final ZipFile file = new ZipFile(getFileSource().getFile()))
         {
-            file = new ZipFile(getFileSource().getFile());
             final ZipEntry entry = file.getEntry(name);
             if (entry != null)
             {
@@ -84,7 +79,6 @@ public class ZipFileWritableResource extends ZipWritableResource
         }
         catch (final IOException e)
         {
-            Streams.close(file);
             throw new CoreException("Cannot get the entry {} from the Zipfile {}.", name,
                     this.getFileSource().getName(), e);
         }

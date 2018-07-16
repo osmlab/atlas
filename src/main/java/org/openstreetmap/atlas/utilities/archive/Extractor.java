@@ -182,44 +182,48 @@ public final class Extractor extends AbstractArchiverOrExtractor<Extractor>
         }
 
         fireArchiveStarted();
-        final ZipFile file = new ZipFile(inputFile);
-        for (final ZipArchiveEntry current : Collections.list(file.getEntries()))
+        try (final ZipFile file = new ZipFile(inputFile))
         {
-            final File outputFile = new File(this.outputDirectory, current.getName());
+            for (final ZipArchiveEntry current : Collections.list(file.getEntries()))
+            {
+                final File outputFile = new File(this.outputDirectory, current.getName());
 
-            if (shouldSkip(outputFile))
-            {
-                fireItemSkipped(outputFile);
+                if (shouldSkip(outputFile))
+                {
+                    fireItemSkipped(outputFile);
+                }
+                else if (outputFile.exists() && this.skipExisting)
+                {
+                    fireItemSkipped(outputFile);
+                }
+                else if (current.isDirectory())
+                {
+                    continue;
+                }
+                else
+                {
+                    try (final BufferedOutputStream bos = new BufferedOutputStream(
+                            new FileOutputStream(outputFile));
+                            final InputStream inputStream = file.getInputStream(current))
+                    {
+                        outputFile.getParentFile().mkdirs();
+                        NotifyingIOUtils.copy(inputStream, bos,
+                                new Progress(outputFile, current.getSize()));
+                        IOUtils.closeQuietly(inputStream);
+                        IOUtils.closeQuietly(bos);
+                    }
+                }
+
             }
-            else if (outputFile.exists() && this.skipExisting)
+            if (this.errorCount > 0)
             {
-                fireItemSkipped(outputFile);
-            }
-            else if (current.isDirectory())
-            {
-                continue;
+                fireArchiveFailed();
             }
             else
             {
-                outputFile.getParentFile().mkdirs();
-                final BufferedOutputStream bos = new BufferedOutputStream(
-                        new FileOutputStream(outputFile));
-                final InputStream inputStream = file.getInputStream(current);
-                NotifyingIOUtils.copy(inputStream, bos,
-                        new Progress(outputFile, current.getSize()));
-                IOUtils.closeQuietly(inputStream);
-                IOUtils.closeQuietly(bos);
+                fireArchiveCompleted();
             }
         }
-        if (this.errorCount > 0)
-        {
-            fireArchiveFailed();
-        }
-        else
-        {
-            fireArchiveCompleted();
-        }
-        file.close();
         return this;
     }
 
