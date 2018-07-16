@@ -23,6 +23,15 @@ public abstract class Line extends LineItem
     }
 
     @Override
+    public String toDiffViewFriendlyString()
+    {
+        final String relationsString = this.parentRelationsAsDiffViewFriendlyString();
+
+        return "[Line: id=" + this.getIdentifier() + ", polyLine=" + this.asPolyLine()
+                + ", relations=(" + relationsString + "), " + tagString() + "]";
+    }
+
+    @Override
     public String toString()
     {
         return "[Line: id=" + this.getIdentifier() + ", polyLine=" + this.asPolyLine() + ", "

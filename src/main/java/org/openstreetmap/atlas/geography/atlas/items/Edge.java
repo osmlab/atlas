@@ -261,6 +261,16 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
     public abstract Node start();
 
     @Override
+    public String toDiffViewFriendlyString()
+    {
+        final String relationsString = this.parentRelationsAsDiffViewFriendlyString();
+
+        return "[Edge" + ": id=" + this.getIdentifier() + ", startNode=" + start().getIdentifier()
+                + ", endNode=" + end().getIdentifier() + ", polyLine=" + this.asPolyLine().toWkt()
+                + ", relations=(" + relationsString + "), " + tagString() + "]";
+    }
+
+    @Override
     public String toString()
     {
         return "[Edge" + ": id=" + this.getIdentifier() + ", startNode=" + start().getIdentifier()

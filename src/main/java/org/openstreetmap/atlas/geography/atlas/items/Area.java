@@ -69,6 +69,15 @@ public abstract class Area extends AtlasItem
     }
 
     @Override
+    public String toDiffViewFriendlyString()
+    {
+        final String relationsString = this.parentRelationsAsDiffViewFriendlyString();
+
+        return "[Area: id=" + this.getIdentifier() + ", polygon=" + this.asPolygon()
+                + ", relations=(" + relationsString + "), " + tagString() + "]";
+    }
+
+    @Override
     public LocationIterableProperties toGeoJsonBuildingBlock()
     {
         final Map<String, String> tags = getTags();

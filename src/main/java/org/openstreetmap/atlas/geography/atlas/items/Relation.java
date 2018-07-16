@@ -159,6 +159,29 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     public abstract long osmRelationIdentifier();
 
     @Override
+    public String toDiffViewFriendlyString()
+    {
+        final String relationsString = this.parentRelationsAsDiffViewFriendlyString();
+
+        final StringBuilder builder = new StringBuilder();
+        builder.append("[Relation: id=");
+        builder.append(getIdentifier());
+        builder.append(", [Members: ");
+        final StringList list = new StringList();
+        for (final RelationMember member : this)
+        {
+            list.add(member.toString());
+        }
+        builder.append(list.join(", "));
+        builder.append("], ");
+        builder.append("relations=(" + relationsString + "), ");
+        builder.append(tagString());
+        builder.append("]");
+
+        return builder.toString();
+    }
+
+    @Override
     public LocationIterableProperties toGeoJsonBuildingBlock()
     {
         final Map<String, String> tags = getTags();

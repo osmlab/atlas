@@ -54,6 +54,17 @@ public abstract class Node extends LocationItem
     public abstract SortedSet<Edge> outEdges();
 
     @Override
+    public String toDiffViewFriendlyString()
+    {
+        final String relationsString = this.parentRelationsAsDiffViewFriendlyString();
+
+        return "[Node: id=" + this.getIdentifier() + ", location=" + this.getLocation()
+                + ", inEdges=" + connectedEdgesIdentifiers(() -> inEdges()) + ", outEdges="
+                + connectedEdgesIdentifiers(() -> outEdges()) + ", relations=(" + relationsString
+                + "), " + tagString() + "]";
+    }
+
+    @Override
     public String toString()
     {
         return "[Node: id=" + this.getIdentifier() + ", location=" + this.getLocation()
