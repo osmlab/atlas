@@ -38,8 +38,8 @@ public class AtlasDeltaEdgeTest
         final Atlas alter = alterBuilder.get();
 
         final SortedSet<Diff> diffs = new AtlasDelta(base, alter).generate().getDifferences();
-        logger.info("testAdded(): {}", Diff.toString(diffs));
-        logger.info("testAdded(): {}", Diff.toDiffViewFriendlyString(diffs));
+        logger.debug("testAdded(): {}", Diff.toString(diffs));
+        logger.debug("testAdded(): {}", Diff.toDiffViewFriendlyString(diffs));
         Assert.assertEquals(3, diffs.size());
 
         boolean foundEdge = false;

@@ -94,7 +94,7 @@ public class AtlasDeltaRelationsTest
         final Atlas alter = alterBuilder.get();
 
         final SortedSet<Diff> diffs = new AtlasDelta(base, alter).generate().getDifferences();
-        logger.info("testDifferentRelationsHumanFriendly(): {}",
+        logger.debug("testDifferentRelationsHumanFriendly(): {}",
                 Diff.toDiffViewFriendlyString(diffs));
 
         // Diff size should be 5:
