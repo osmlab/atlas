@@ -161,13 +161,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     @Override
     public String toDiffViewFriendlyString()
     {
-        final Set<Relation> relations = this.relations();
-        final StringList relationIds = new StringList();
-        for (final Relation relation : relations)
-        {
-            relationIds.add(relation.getIdentifier());
-        }
-        final String relationStrings = relationIds.join(",");
+        final String relationsString = this.parentRelationsAsDiffViewFriendlyString();
 
         final StringBuilder builder = new StringBuilder();
         builder.append("[Relation: id=");
@@ -180,7 +174,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         }
         builder.append(list.join(", "));
         builder.append("], ");
-        builder.append("relations=(" + relationStrings + "), ");
+        builder.append("relations=(" + relationsString + "), ");
         builder.append(tagString());
         builder.append("]");
 

@@ -1,12 +1,10 @@
 package org.openstreetmap.atlas.geography.atlas.items;
 
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.utilities.collections.StringList;
 
 /**
  * Navigable Node
@@ -58,17 +56,11 @@ public abstract class Node extends LocationItem
     @Override
     public String toDiffViewFriendlyString()
     {
-        final Set<Relation> relations = this.relations();
-        final StringList relationIds = new StringList();
-        for (final Relation relation : relations)
-        {
-            relationIds.add(relation.getIdentifier());
-        }
-        final String relationStrings = relationIds.join(",");
+        final String relationsString = this.parentRelationsAsDiffViewFriendlyString();
 
         return "[Node: id=" + this.getIdentifier() + ", location=" + this.getLocation()
                 + ", inEdges=" + connectedEdgesIdentifiers(() -> inEdges()) + ", outEdges="
-                + connectedEdgesIdentifiers(() -> outEdges()) + ", relations=(" + relationStrings
+                + connectedEdgesIdentifiers(() -> outEdges()) + ", relations=(" + relationsString
                 + "), " + tagString() + "]";
     }
 

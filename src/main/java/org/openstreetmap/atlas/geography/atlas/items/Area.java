@@ -1,7 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.items;
 
 import java.util.Map;
-import java.util.Set;
 
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
@@ -72,16 +71,10 @@ public abstract class Area extends AtlasItem
     @Override
     public String toDiffViewFriendlyString()
     {
-        final Set<Relation> relations = this.relations();
-        final StringList relationIds = new StringList();
-        for (final Relation relation : relations)
-        {
-            relationIds.add(relation.getIdentifier());
-        }
-        final String relationStrings = relationIds.join(",");
+        final String relationsString = this.parentRelationsAsDiffViewFriendlyString();
 
         return "[Area: id=" + this.getIdentifier() + ", polygon=" + this.asPolygon()
-                + ", relations=(" + relationStrings + "), " + tagString() + "]";
+                + ", relations=(" + relationsString + "), " + tagString() + "]";
     }
 
     @Override

@@ -1,9 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.items;
 
-import java.util.Set;
-
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.utilities.collections.StringList;
 
 /**
  * A line that is not navigable
@@ -28,16 +25,10 @@ public abstract class Line extends LineItem
     @Override
     public String toDiffViewFriendlyString()
     {
-        final Set<Relation> relations = this.relations();
-        final StringList relationIds = new StringList();
-        for (final Relation relation : relations)
-        {
-            relationIds.add(relation.getIdentifier());
-        }
-        final String relationStrings = relationIds.join(",");
+        final String relationsString = this.parentRelationsAsDiffViewFriendlyString();
 
         return "[Line: id=" + this.getIdentifier() + ", polyLine=" + this.asPolyLine()
-                + ", relations=(" + relationStrings + "), " + tagString() + "]";
+                + ", relations=(" + relationsString + "), " + tagString() + "]";
     }
 
     @Override
