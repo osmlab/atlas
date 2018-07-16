@@ -30,6 +30,8 @@ public final class AtlasMetaData implements Serializable, Taggable, ProtoSeriali
     public static final String OSM_PBF_NODE_CONFIGURATION = "osmPbfNodeConfiguration";
     public static final String OSM_PBF_RELATION_CONFIGURATION = "osmPbfRelationConfiguration";
 
+    private static final String UNKNOWN_VALUE = "unknown";
+
     private final AtlasSize size;
     private final boolean original;
     private final String codeVersion;
@@ -45,7 +47,8 @@ public final class AtlasMetaData implements Serializable, Taggable, ProtoSeriali
 
     public AtlasMetaData(final AtlasSize size)
     {
-        this(size, true, "unknown", "unknown", "unknown", "unknown", Maps.hashMap());
+        this(size, true, UNKNOWN_VALUE, UNKNOWN_VALUE, UNKNOWN_VALUE, UNKNOWN_VALUE,
+                Maps.hashMap());
     }
 
     public AtlasMetaData(final AtlasSize size, final boolean original, final String codeVersion,
@@ -158,7 +161,7 @@ public final class AtlasMetaData implements Serializable, Taggable, ProtoSeriali
     {
         if (this.tags == null)
         {
-            return new HashMap<String, String>();
+            return new HashMap<>();
         }
         return new HashMap<>(this.tags);
     }

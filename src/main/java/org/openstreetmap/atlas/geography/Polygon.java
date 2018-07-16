@@ -59,7 +59,7 @@ public class Polygon extends PolyLine implements GeometricSurface
 
     // Calculate sides starting from triangles
     private static final int MINIMUM_N_FOR_SIDE_CALCULATION = 3;
-    private Area awtArea;
+    private transient Area awtArea;
     private java.awt.Polygon awtPolygon;
     private transient Boolean awtOverflows;
 

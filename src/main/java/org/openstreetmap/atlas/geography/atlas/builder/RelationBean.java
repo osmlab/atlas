@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.builder;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,8 +9,10 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 /**
  * @author matthieun
  */
-public class RelationBean
+public class RelationBean implements Serializable
 {
+    private static final long serialVersionUID = 8511830231633569713L;
+
     private final List<Long> memberIdentifiers;
     private final List<String> memberRoles;
     private final List<ItemType> memberTypes;
