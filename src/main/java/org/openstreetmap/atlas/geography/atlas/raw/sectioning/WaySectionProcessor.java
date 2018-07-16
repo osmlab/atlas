@@ -39,6 +39,7 @@ import org.openstreetmap.atlas.tags.AtlasTag;
 import org.openstreetmap.atlas.tags.LayerTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
+import org.openstreetmap.atlas.utilities.scalars.Duration;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
 import org.slf4j.Logger;
@@ -63,6 +64,18 @@ public class WaySectionProcessor
     private static final int MINIMUM_NUMBER_OF_SELF_INTERSECTIONS_FOR_A_NODE = 3;
     private static final int MINIMUM_SHAPE_POINTS_TO_QUALIFY_AS_AREA = 3;
     private static final int MINIMUM_POINTS_TO_QUALIFY_AS_A_LINE = 2;
+
+    // Logging constants
+    private static final String STARTED_TASK_MESSAGE = "Started {} for Shard {}";
+    private static final String COMPLETED_TASK_MESSAGE = "Finished {} for Shard {} in {}";
+    private static final String WAY_SECTIONING_TASK = "Way-Sectioning";
+    private static final String ATLAS_FETCHING_TASK = "Atlas-Fetching";
+    private static final String SUB_ATLAS_CUTTING_TASK = "Sub-Atlas Cutting";
+    private static final String EDGE_SECTIONING_TASK = "Edge Sectioning";
+    private static final String SHAPE_POINT_DETECTION_TASK = "Shape Point Detection";
+    private static final String DYNAMIC_ATLAS_CREATION_TASK = "Dynamic Atlas Creation";
+    private static final String ATLAS_FEATURE_DETECTION_TASK = "Atlas Feature Detection";
+    private static final String SECTIONED_ATLAS_CREATION_TASK = "Sectioned Atlas Creation";
 
     // Expand the initial shard boundary to capture any edges that are crossing the shard boundary
     private static final Distance SHARD_EXPANSION_DISTANCE = Distance.meters(20);
@@ -146,7 +159,7 @@ public class WaySectionProcessor
     public Atlas run()
     {
         final Time time = Time.now();
-        logger.info("Started Way-Sectioning for Shard {}", getShardOrAtlasName());
+        logTaskStartedAsInfo(WAY_SECTIONING_TASK, getShardOrAtlasName());
 
         // Create a changeset to keep track of any intermediate state transitions (points becomes
         // nodes, lines becoming areas, etc.)
@@ -163,8 +176,7 @@ public class WaySectionProcessor
         sectionEdges(changeSet);
 
         final Atlas atlas = buildSectionedAtlas(changeSet);
-        logger.info("Finished Way-Sectioning for Shard {} in {}", getShardOrAtlasName(),
-                time.elapsedSince());
+        logTaskCompletionAsInfo(WAY_SECTIONING_TASK, getShardOrAtlasName(), time.elapsedSince());
 
         return cutSubAtlasForOriginalShard(atlas);
     }
@@ -202,9 +214,8 @@ public class WaySectionProcessor
     private Atlas buildExpandedAtlas(final Shard initialShard, final Sharding sharding,
             final Function<Shard, Optional<Atlas>> rawAtlasFetcher)
     {
-        final Time time = Time.now();
-        logger.info("Started Dynamic Atlas Construction for Way-Sectioning Shard {}",
-                initialShard.getName());
+        final Time dynamicAtlasTime = Time.now();
+        logTaskStartedAsInfo(DYNAMIC_ATLAS_CREATION_TASK, initialShard.getName());
 
         // Keep track of all loaded shards. This will be used to cut the sub-atlas for the shard
         // we're processing after all sectioning is completed. Initial shard will always be first!
@@ -217,16 +228,17 @@ public class WaySectionProcessor
             {
                 final Time fetchTime = Time.now();
                 final Optional<Atlas> fetchedAtlas = rawAtlasFetcher.apply(initialShard);
-                logger.trace("Finished Fetching Atlas for Initial Shard {} in {}",
-                        initialShard.getName(), fetchTime.elapsedSince());
+                logTaskCompletionAsTrace(ATLAS_FETCHING_TASK, getShardOrAtlasName(),
+                        fetchTime.elapsedSince());
                 return fetchedAtlas;
             }
             else
             {
                 final Time fetchTime = Time.now();
                 final Optional<Atlas> possibleAtlas = rawAtlasFetcher.apply(shard);
-                logger.trace("Finished Fetching Atlas for Initial Shard {} in {}",
-                        initialShard.getName(), fetchTime.elapsedSince());
+                logTaskCompletionAsTrace(ATLAS_FETCHING_TASK, getShardOrAtlasName(),
+                        fetchTime.elapsedSince());
+
                 if (possibleAtlas.isPresent())
                 {
                     this.loadedShards.add(shard);
@@ -234,8 +246,8 @@ public class WaySectionProcessor
                     final Time subAtlasTime = Time.now();
                     final Optional<Atlas> subAtlas = atlas
                             .subAtlas(this.dynamicAtlasExpansionFilter);
-                    logger.trace("Finished Sub Atlas Cut for Initial Shard {} in {}",
-                            initialShard.getName(), subAtlasTime.elapsedSince());
+                    logTaskCompletionAsTrace(SUB_ATLAS_CUTTING_TASK, getShardOrAtlasName(),
+                            subAtlasTime.elapsedSince());
                     return subAtlas;
                 }
                 return Optional.empty();
@@ -251,8 +263,8 @@ public class WaySectionProcessor
         final DynamicAtlas atlas = new DynamicAtlas(policy);
         atlas.preemptiveLoad();
 
-        logger.info("Finished Dynamic Atlas Construction for Way-Sectioning Shard {} in {}",
-                initialShard.getName(), time.elapsedSince());
+        logTaskCompletionAsInfo(DYNAMIC_ATLAS_CREATION_TASK, getShardOrAtlasName(),
+                dynamicAtlasTime.elapsedSince());
         return atlas;
     }
 
@@ -269,8 +281,8 @@ public class WaySectionProcessor
      */
     private Atlas buildSectionedAtlas(final WaySectionChangeSet changeSet)
     {
-        final Time time = Time.now();
-        logger.info("Started Final Atlas Build for Shard {}", getShardOrAtlasName());
+        final Time buildTime = Time.now();
+        logTaskStartedAsInfo(SECTIONED_ATLAS_CREATION_TASK, getShardOrAtlasName());
 
         // Create builder and set properties
         final PackedAtlasBuilder builder = new PackedAtlasBuilder();
@@ -411,8 +423,8 @@ public class WaySectionProcessor
             }
         });
 
-        logger.info("Finished Final Atlas Build for Shard {} in {}", getShardOrAtlasName(),
-                time.elapsedSince());
+        logTaskCompletionAsInfo(SECTIONED_ATLAS_CREATION_TASK, getShardOrAtlasName(),
+                buildTime.elapsedSince());
         return builder.get();
     }
 
@@ -512,12 +524,10 @@ public class WaySectionProcessor
     private void distinguishPointsFromShapePoints(final WaySectionChangeSet changeSet)
     {
         final Time time = Time.now();
-        logger.info("Started Shape Point Detection for Shard {}", getShardOrAtlasName());
-
+        logTaskStartedAsInfo(SHAPE_POINT_DETECTION_TASK, getShardOrAtlasName());
         StreamSupport.stream(this.rawAtlas.points().spliterator(), true)
                 .filter(point -> isAtlasPoint(changeSet, point)).forEach(changeSet::recordPoint);
-
-        logger.info("Finished Shape Point Detection for Shard {} in {}", getShardOrAtlasName(),
+        logTaskCompletionAsInfo(SHAPE_POINT_DETECTION_TASK, getShardOrAtlasName(),
                 time.elapsedSince());
     }
 
@@ -548,7 +558,7 @@ public class WaySectionProcessor
     private void identifyEdgesNodesAndAreasFromLines(final WaySectionChangeSet changeSet)
     {
         final Time time = Time.now();
-        logger.info("Started Atlas Feature Detection for Shard {}", getShardOrAtlasName());
+        logTaskStartedAsInfo(ATLAS_FEATURE_DETECTION_TASK, getShardOrAtlasName());
 
         StreamSupport.stream(this.rawAtlas.lines().spliterator(), true).forEach(line ->
         {
@@ -632,7 +642,7 @@ public class WaySectionProcessor
             }
         });
 
-        logger.info("Finished Atlas Feature Detection for Shard {} in {}", getShardOrAtlasName(),
+        logTaskCompletionAsInfo(ATLAS_FEATURE_DETECTION_TASK, getShardOrAtlasName(),
                 time.elapsedSince());
     }
 
@@ -768,6 +778,23 @@ public class WaySectionProcessor
                 });
     }
 
+    private void logTaskCompletionAsInfo(final String taskName, final String shardName,
+            final Duration duration)
+    {
+        logger.info(COMPLETED_TASK_MESSAGE, taskName, shardName, duration);
+    }
+
+    private void logTaskCompletionAsTrace(final String taskName, final String shardName,
+            final Duration duration)
+    {
+        logger.trace(COMPLETED_TASK_MESSAGE, taskName, shardName, duration);
+    }
+
+    private void logTaskStartedAsInfo(final String taskname, final String shardName)
+    {
+        logger.info(STARTED_TASK_MESSAGE, taskname, shardName);
+    }
+
     /**
      * Each Atlas entity will have a base set of tags added by Atlas generation (see
      * {@link AtlasTag#TAGS_FROM_OSM}). Each entity can also have additional synthetic tags (see
@@ -838,7 +865,7 @@ public class WaySectionProcessor
     private void sectionEdges(final WaySectionChangeSet changeSet)
     {
         final Time time = Time.now();
-        logger.info("Started Edge Sectioning for Shard {}", getShardOrAtlasName());
+        logTaskStartedAsInfo(EDGE_SECTIONING_TASK, getShardOrAtlasName());
 
         changeSet.getLinesThatBecomeEdges().forEach(lineIdentifier ->
         {
@@ -855,8 +882,7 @@ public class WaySectionProcessor
             changeSet.createLineToEdgeMapping(line, edges);
         });
 
-        logger.info("Finished Edge Sectioning for Shard {} in {}", getShardOrAtlasName(),
-                time.elapsedSince());
+        logTaskCompletionAsInfo(EDGE_SECTIONING_TASK, getShardOrAtlasName(), time.elapsedSince());
     }
 
     /**
