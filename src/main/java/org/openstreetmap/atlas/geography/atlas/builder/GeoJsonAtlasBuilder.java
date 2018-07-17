@@ -15,6 +15,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.streaming.readers.GeoJsonReader;
 import org.openstreetmap.atlas.streaming.resource.Resource;
+import org.openstreetmap.atlas.tags.OneWayTag;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 
 import com.google.gson.JsonElement;
@@ -109,10 +110,11 @@ public class GeoJsonAtlasBuilder
         {
             // Edge
 
-            if (edge.getTags().containsKey("oneway") && !"no".equals(edge.getTags().get("oneway")))
+            if (edge.getTags().containsKey(OneWayTag.KEY)
+                    && !OneWayTag.NO.name().equalsIgnoreCase(edge.getTags().get(OneWayTag.KEY)))
             {
-                final String onewayTag = edge.getTags().get("oneway");
-                if ("yes".equals(onewayTag) || "1".equals(onewayTag))
+                final String onewayTag = edge.getTags().get(OneWayTag.KEY);
+                if (OneWayTag.YES.name().equalsIgnoreCase(onewayTag) || "1".equals(onewayTag))
                 {
                     builder.addEdge(edge.getIdentifier(), edge.getPolyLine(), edge.getTags());
                 }

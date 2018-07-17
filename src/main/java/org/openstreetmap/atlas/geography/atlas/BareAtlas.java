@@ -755,17 +755,18 @@ public abstract class BareAtlas implements Atlas
     @Override
     public String toString()
     {
+        final String newLineAfterFeature = ",\n\t\t";
         final StringBuilder builder = new StringBuilder();
         builder.append("[Atlas <");
         builder.append(getName());
         builder.append(">: ");
         final StringList list = new StringList();
-        list.add(Iterables.toString(this.nodes(), "Nodes", ",\n\t\t"));
-        list.add(Iterables.toString(this.edges(), "Edges", ",\n\t\t"));
-        list.add(Iterables.toString(this.areas(), "Areas", ",\n\t\t"));
-        list.add(Iterables.toString(this.lines(), "Lines", ",\n\t\t"));
-        list.add(Iterables.toString(this.points(), "Points", ",\n\t\t"));
-        list.add(Iterables.toString(this.relations(), "Relations", ",\n\t\t"));
+        list.add(Iterables.toString(this.nodes(), "Nodes", newLineAfterFeature));
+        list.add(Iterables.toString(this.edges(), "Edges", newLineAfterFeature));
+        list.add(Iterables.toString(this.areas(), "Areas", newLineAfterFeature));
+        list.add(Iterables.toString(this.lines(), "Lines", newLineAfterFeature));
+        list.add(Iterables.toString(this.points(), "Points", newLineAfterFeature));
+        list.add(Iterables.toString(this.relations(), "Relations", newLineAfterFeature));
         builder.append(list.join(",\n\t"));
         builder.append("]");
         return builder.toString();

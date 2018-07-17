@@ -12,7 +12,7 @@ public class LoadAtlasFromResourceException extends CoreException
 {
     private static final long serialVersionUID = 65439602944966080L;
 
-    private final Resource resource;
+    private final transient Resource resource;
 
     public LoadAtlasFromResourceException(final Resource resource, final String message)
     {
