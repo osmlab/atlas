@@ -181,7 +181,7 @@ public final class Extractor extends AbstractArchiverOrExtractor<Extractor>
         }
 
         fireArchiveStarted();
-        try (final ZipFile file = new ZipFile(inputFile))
+        try (ZipFile file = new ZipFile(inputFile))
         {
             for (final ZipArchiveEntry current : Collections.list(file.getEntries()))
             {
@@ -201,9 +201,9 @@ public final class Extractor extends AbstractArchiverOrExtractor<Extractor>
                 }
                 else
                 {
-                    try (final BufferedOutputStream bos = new BufferedOutputStream(
+                    try (BufferedOutputStream bos = new BufferedOutputStream(
                             new FileOutputStream(outputFile));
-                            final InputStream inputStream = file.getInputStream(current))
+                            InputStream inputStream = file.getInputStream(current))
                     {
                         outputFile.getParentFile().mkdirs();
                         NotifyingIOUtils.copy(inputStream, bos,
