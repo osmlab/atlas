@@ -12,9 +12,9 @@ public final class Speed implements Serializable
 {
     private static final long serialVersionUID = 3268649594426387264L;
 
-    public static final String MPH = "mph";
-    public static final String KPH = "kph";
-    public static final String KNOTS = "knots";
+    public static final String MILES_PER_HOUR = "mph";
+    public static final String KILOMETERS_PER_HOUR = "kph";
+    public static final String NAUTICAL_MILES_PER_HOUR = "knots";
 
     private final Distance distance;
     private final Duration duration;

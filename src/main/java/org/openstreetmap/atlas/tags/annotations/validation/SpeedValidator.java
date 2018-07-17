@@ -25,20 +25,20 @@ public class SpeedValidator implements TagValidator
     @Override
     public boolean isValid(final String value)
     {
-        if (value.endsWith(Speed.MPH))
+        if (value.endsWith(Speed.MILES_PER_HOUR))
         {
-            return DOUBLE_VALIDATOR
-                    .isValid(value.substring(0, value.length() - Speed.MPH.length()).trim());
+            return DOUBLE_VALIDATOR.isValid(
+                    value.substring(0, value.length() - Speed.MILES_PER_HOUR.length()).trim());
         }
-        else if (value.endsWith(Speed.KNOTS))
+        else if (value.endsWith(Speed.NAUTICAL_MILES_PER_HOUR))
         {
-            return DOUBLE_VALIDATOR
-                    .isValid(value.substring(0, value.length() - Speed.KNOTS.length()).trim());
+            return DOUBLE_VALIDATOR.isValid(value
+                    .substring(0, value.length() - Speed.NAUTICAL_MILES_PER_HOUR.length()).trim());
         }
-        else if (value.endsWith(Speed.KPH))
+        else if (value.endsWith(Speed.KILOMETERS_PER_HOUR))
         {
-            return DOUBLE_VALIDATOR
-                    .isValid(value.substring(0, value.length() - Speed.KPH.length()).trim());
+            return DOUBLE_VALIDATOR.isValid(
+                    value.substring(0, value.length() - Speed.KILOMETERS_PER_HOUR.length()).trim());
         }
         else
         {

@@ -14,9 +14,9 @@ import org.slf4j.LoggerFactory;
 /**
  * @author matthieun
  */
-public class MultiAtlasLoaderTest extends Command
+public class MultiAtlasLoaderCommand extends Command
 {
-    private static final Logger logger = LoggerFactory.getLogger(MultiAtlasLoaderTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(MultiAtlasLoaderCommand.class);
 
     private static final Switch<Atlas> FOLDER = new Switch<>("folder",
             "Folder containing the atlas files",
@@ -26,7 +26,7 @@ public class MultiAtlasLoaderTest extends Command
 
     public static void main(final String[] args)
     {
-        new MultiAtlasLoaderTest().run(args);
+        new MultiAtlasLoaderCommand().run(args);
     }
 
     @Override
