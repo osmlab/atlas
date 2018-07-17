@@ -12,7 +12,6 @@ import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.openstreetmap.atlas.streaming.NotifyingIOUtils;
 import org.openstreetmap.atlas.streaming.NotifyingIOUtils.IOProgressListener;
 
@@ -209,8 +208,6 @@ public final class Extractor extends AbstractArchiverOrExtractor<Extractor>
                         outputFile.getParentFile().mkdirs();
                         NotifyingIOUtils.copy(inputStream, bos,
                                 new Progress(outputFile, current.getSize()));
-                        IOUtils.closeQuietly(inputStream);
-                        IOUtils.closeQuietly(bos);
                     }
                 }
 
