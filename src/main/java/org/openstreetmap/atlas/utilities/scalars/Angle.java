@@ -208,7 +208,7 @@ public class Angle implements Serializable
      *            Another {@link Angle} to compare against
      * @return true if this {@link Angle} is greater than other {@link Angle}
      */
-    public boolean isGreaterThan(final Angle other)
+    public final boolean isGreaterThan(final Angle other)
     {
         if (other.getClass() == this.getClass())
         {
