@@ -34,6 +34,8 @@ script:
   - shellcheck pyatlas/*.sh
   - set +e
   - .travis/build.sh
+  - .travis/build-pyatlas-gate.sh
+  - .travis/sonar-gate.sh
   - .travis/merge-dev-to-master-gate.sh
   - .travis/deploy-gate.sh
   - .travis/tag-master-gate.sh

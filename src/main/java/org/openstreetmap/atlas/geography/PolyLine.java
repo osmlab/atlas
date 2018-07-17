@@ -81,7 +81,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     public static void saveAsGeoJson(final Iterable<? extends Iterable<Location>> geometries,
             final WritableResource resource)
     {
-        try (final JsonWriter writer = new JsonWriter(resource))
+        try (JsonWriter writer = new JsonWriter(resource))
         {
             writer.write(asGeoJson(geometries).jsonObject());
         }
