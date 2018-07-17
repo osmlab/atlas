@@ -1,3 +1,5 @@
+#!/usr/bin/env sh
+
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ];
 then
 	echo "Running sonarqube in a CRON build"
