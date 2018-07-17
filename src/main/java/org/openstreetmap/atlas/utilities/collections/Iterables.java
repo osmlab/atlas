@@ -291,7 +291,7 @@ public final class Iterables
         final boolean otherIsNull = other == null;
         if (thatIsNull || otherIsNull)
         {
-            return thatIsNull & thatIsNull;
+            return thatIsNull && otherIsNull;
         }
 
         // Iterables are not null, let's check for size first

@@ -26,7 +26,7 @@ public class TilePrinter extends Command
 
     private static final Switch<File> OUTPUT_FOLDER = new Switch<>("output", "The output folder",
             value -> new File(value));
-    private static final Switch<Integer> ZOOM = new Switch<>("zoom", "The zoom",
+    private static final Switch<Integer> ZOOM_SWITCH = new Switch<>("zoom", "The zoom",
             value -> Integer.valueOf(value));
 
     private int index;
@@ -42,7 +42,7 @@ public class TilePrinter extends Command
     protected int onRun(final CommandMap command)
     {
         this.index = 0;
-        this.zoom = (int) command.get(ZOOM);
+        this.zoom = (int) command.get(ZOOM_SWITCH);
         this.folder = (File) command.get(OUTPUT_FOLDER);
         this.folder.mkdirs();
         SafeBufferedWriter writer = getNextFile().writer();
@@ -111,7 +111,7 @@ public class TilePrinter extends Command
     @Override
     protected SwitchList switches()
     {
-        return new SwitchList().with(ZOOM, OUTPUT_FOLDER);
+        return new SwitchList().with(ZOOM_SWITCH, OUTPUT_FOLDER);
     }
 
     private File getNextFile()
