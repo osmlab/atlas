@@ -210,7 +210,11 @@ public class Angle implements Serializable
      */
     public boolean isGreaterThan(final Angle other)
     {
-        return this.asDm7() > other.asDm7();
+        if (other.getClass() == this.getClass())
+        {
+            return this.asDm7() > other.asDm7();
+        }
+        return this.getDm7() > other.getDm7();
     }
 
     /**
@@ -222,7 +226,11 @@ public class Angle implements Serializable
      */
     public final boolean isGreaterThanOrEqualTo(final Angle other)
     {
-        return this.asDm7() >= other.asDm7();
+        if (other.getClass() == this.getClass())
+        {
+            return this.asDm7() >= other.asDm7();
+        }
+        return this.getDm7() >= other.getDm7();
     }
 
     /**
@@ -234,7 +242,11 @@ public class Angle implements Serializable
      */
     public final boolean isLessThan(final Angle other)
     {
-        return this.asDm7() < other.asDm7();
+        if (other.getClass() == this.getClass())
+        {
+            return this.asDm7() < other.asDm7();
+        }
+        return this.getDm7() < other.getDm7();
     }
 
     /**
@@ -246,7 +258,11 @@ public class Angle implements Serializable
      */
     public final boolean isLessThanOrEqualTo(final Angle other)
     {
-        return this.asDm7() <= other.asDm7();
+        if (other.getClass() == this.getClass())
+        {
+            return this.asDm7() <= other.asDm7();
+        }
+        return this.getDm7() <= other.getDm7();
     }
 
     /**
