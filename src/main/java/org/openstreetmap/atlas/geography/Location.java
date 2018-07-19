@@ -63,8 +63,8 @@ public class Location implements Located, Iterable<Location>, Serializable
         {
             throw new CoreException("Invalid Location String: {}", locationString);
         }
-        final double latitude = Double.valueOf(split.get(0));
-        final double longitude = Double.valueOf(split.get(1));
+        final double latitude = Double.parseDouble(split.get(0));
+        final double longitude = Double.parseDouble(split.get(1));
         return new Location(Latitude.degrees(latitude), Longitude.degrees(longitude));
     }
 
@@ -81,8 +81,8 @@ public class Location implements Located, Iterable<Location>, Serializable
         {
             throw new CoreException("Invalid Location String: {}", locationString);
         }
-        final double latitude = Double.valueOf(split.get(1));
-        final double longitude = Double.valueOf(split.get(0));
+        final double latitude = Double.parseDouble(split.get(1));
+        final double longitude = Double.parseDouble(split.get(0));
         return new Location(Latitude.degrees(latitude), Longitude.degrees(longitude));
     }
 
@@ -508,12 +508,13 @@ public class Location implements Located, Iterable<Location>, Serializable
                         * Math.sin((double) distance.asMillimeters()
                                 / Distance.AVERAGE_EARTH_RADIUS.asMillimeters())
                         * Math.cos(bearing));
-        final double longitude2 = longitude1 + Math.atan2(Math.sin(bearing)
-                * Math.sin((double) distance.asMillimeters()
-                        / Distance.AVERAGE_EARTH_RADIUS.asMillimeters())
-                * Math.cos(latitude1), Math
-                        .cos((double) distance.asMillimeters()
+        final double longitude2 = longitude1 + Math.atan2(
+                Math.sin(bearing)
+                        * Math.sin((double) distance.asMillimeters()
                                 / Distance.AVERAGE_EARTH_RADIUS.asMillimeters())
+                        * Math.cos(latitude1),
+                Math.cos((double) distance.asMillimeters()
+                        / Distance.AVERAGE_EARTH_RADIUS.asMillimeters())
                         - Math.sin(latitude1) * Math.sin(latitude2));
         return new Location(Latitude.radiansBounded(latitude2),
                 Longitude.radiansBounded(longitude2));
