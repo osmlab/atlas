@@ -99,11 +99,10 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
     public GeoJsonObject asGeoJsonFeatureCollection()
     {
         final GeoJsonBuilder builder = new GeoJsonBuilder();
-        return builder.createFeatureCollection(Iterables.translate(outers(), outerPolygon ->
-        {
-            return builder.createOneOuterMultiPolygon(new MultiIterable<>(
-                    Collections.singleton(outerPolygon), this.outerToInners.get(outerPolygon)));
-        }));
+        return builder.createFeatureCollection(Iterables.translate(outers(),
+                outerPolygon -> builder.createOneOuterMultiPolygon(
+                        new MultiIterable<>(Collections.singleton(outerPolygon),
+                                this.outerToInners.get(outerPolygon)))));
     }
 
     public Iterable<LocationIterableProperties> asLocationIterableProperties()
