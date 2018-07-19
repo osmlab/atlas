@@ -508,13 +508,12 @@ public class Location implements Located, Iterable<Location>, Serializable
                         * Math.sin((double) distance.asMillimeters()
                                 / Distance.AVERAGE_EARTH_RADIUS.asMillimeters())
                         * Math.cos(bearing));
-        final double longitude2 = longitude1 + Math.atan2(
-                Math.sin(bearing)
-                        * Math.sin((double) distance.asMillimeters()
-                                / Distance.AVERAGE_EARTH_RADIUS.asMillimeters())
-                        * Math.cos(latitude1),
-                Math.cos((double) distance.asMillimeters()
+        final double longitude2 = longitude1 + Math.atan2(Math.sin(bearing)
+                * Math.sin((double) distance.asMillimeters()
                         / Distance.AVERAGE_EARTH_RADIUS.asMillimeters())
+                * Math.cos(latitude1), Math
+                        .cos((double) distance.asMillimeters()
+                                / Distance.AVERAGE_EARTH_RADIUS.asMillimeters())
                         - Math.sin(latitude1) * Math.sin(latitude2));
         return new Location(Latitude.radiansBounded(latitude2),
                 Longitude.radiansBounded(longitude2));
