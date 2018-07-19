@@ -141,7 +141,7 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
         if (this.bounds == null && !this.isEmpty())
         {
             final Set<Location> locations = new HashSet<>();
-            forEach(polygon -> polygon.forEach(location -> locations.add(location)));
+            forEach(polygon -> polygon.forEach(locations::add));
             this.bounds = Rectangle.forLocations(locations);
         }
         return this.bounds;
