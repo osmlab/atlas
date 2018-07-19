@@ -683,12 +683,10 @@ public class Polygon extends PolyLine implements GeometricSurface
                 return true;
             }
         }
-        if (runReverseCheck && polyline instanceof Polygon)
+        if (runReverseCheck && polyline instanceof Polygon
+                && ((Polygon) polyline).overlapsInternal(this, false))
         {
-            if (((Polygon) polyline).overlapsInternal(this, false))
-            {
-                return true;
-            }
+            return true;
         }
         return this.intersects(polyline);
     }
