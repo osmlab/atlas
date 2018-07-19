@@ -240,10 +240,6 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
                 {
                     return true;
                 }
-                else
-                {
-                    continue;
-                }
             }
         }
         return false;
