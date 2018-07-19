@@ -346,15 +346,14 @@ public class Polygon extends PolyLine implements GeometricSurface
         while (segmentIndex < segmentSize && headingChangeCount <= expectedHeadingChangeCount)
         {
             final Optional<Heading> nextHeading = segments.get(segmentIndex++).heading();
-            if (nextHeading.isPresent())
+
+            // If heading difference is greater than threshold, then increment heading change
+            // counter and update previous heading, which is used as reference
+            if (nextHeading.isPresent()
+                    && previousHeading.get().difference(nextHeading.get()).isGreaterThan(threshold))
             {
-                // If heading difference is greater than threshold, then increment heading change
-                // counter and update previous heading, which is used as reference
-                if (previousHeading.get().difference(nextHeading.get()).isGreaterThan(threshold))
-                {
-                    headingChangeCount++;
-                    previousHeading = nextHeading;
-                }
+                headingChangeCount++;
+                previousHeading = nextHeading;
             }
         }
 
