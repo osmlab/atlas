@@ -55,8 +55,10 @@ public class Location implements Located, Iterable<Location>, Serializable
      *            The {@link Location} as a {@link String} in "latitude(degrees),longitude(degrees)"
      *            format
      * @return The corresponding {@link Location}
+     * @throws NumberFormatException
+     *             if the latitude or longitude in the string is not a valid Double
      */
-    public static Location forString(final String locationString)
+    public static Location forString(final String locationString) throws NumberFormatException
     {
         final StringList split = StringList.split(locationString, ",");
         if (split.size() != 2)
@@ -73,8 +75,11 @@ public class Location implements Located, Iterable<Location>, Serializable
      *            The {@link Location} as a {@link String} in "longitude(degrees),latitude(degrees)"
      *            format
      * @return The corresponding {@link Location}
+     * @throws NumberFormatException
+     *             if the latitude or longitude in the string is not a valid Double
      */
     public static Location forStringLongitudeLatitude(final String locationString)
+            throws NumberFormatException
     {
         final StringList split = StringList.split(locationString, ",");
         if (split.size() != 2)
