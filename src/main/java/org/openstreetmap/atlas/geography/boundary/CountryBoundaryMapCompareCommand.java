@@ -74,11 +74,9 @@ public class CountryBoundaryMapCompareCommand extends Command
             logger.debug("Comparing {} envelopes.", baselineEnvelopes.size());
 
             // Go over each envelope and try to find it in the other tree
-            boolean foundEqual = baselineEnvelopes.stream().parallel().allMatch(baselineEnvelope ->
-            {
-                return newEnvelopes.stream()
-                        .anyMatch(envelope -> envelope.equals(baselineEnvelope));
-            });
+            boolean foundEqual = baselineEnvelopes.stream().parallel()
+                    .allMatch(baselineEnvelope -> newEnvelopes.stream()
+                            .anyMatch(envelope -> envelope.equals(baselineEnvelope)));
 
             if (!foundEqual)
             {
@@ -88,11 +86,8 @@ public class CountryBoundaryMapCompareCommand extends Command
                 return false;
             }
 
-            foundEqual = newEnvelopes.stream().parallel().allMatch(newEnvelope ->
-            {
-                return baselineEnvelopes.stream()
-                        .anyMatch(envelope -> envelope.equals(newEnvelope));
-            });
+            foundEqual = newEnvelopes.stream().parallel().allMatch(newEnvelope -> baselineEnvelopes
+                    .stream().anyMatch(envelope -> envelope.equals(newEnvelope)));
 
             if (!foundEqual)
             {
@@ -129,27 +124,27 @@ public class CountryBoundaryMapCompareCommand extends Command
         Assert.assertEquals("Map sizes are not equal.", baselineMap.size(), newMap.size());
 
         // Compare country boundaries
-        baselineMap.getLoadedCountries().forEach(country ->
-        {
-            baselineMap.countryBoundary(country).forEach(countryBoundary ->
-            {
-                final List<MultiPolygon> newBoundaries = newMap.countryBoundary(country).stream()
-                        .map(CountryBoundary::getBoundary).collect(Collectors.toList());
-                Assert.assertTrue(String.format("New map is missing a boundary for %s.", country),
-                        newBoundaries.contains(countryBoundary.getBoundary()));
-            });
-        });
+        baselineMap.getLoadedCountries()
+                .forEach(country -> baselineMap.countryBoundary(country).forEach(countryBoundary ->
+                {
+                    final List<MultiPolygon> newBoundaries = newMap.countryBoundary(country)
+                            .stream().map(CountryBoundary::getBoundary)
+                            .collect(Collectors.toList());
+                    Assert.assertTrue(
+                            String.format("New map is missing a boundary for %s.", country),
+                            newBoundaries.contains(countryBoundary.getBoundary()));
+                }));
 
-        newMap.getLoadedCountries().forEach(country ->
-        {
-            newMap.countryBoundary(country).forEach(countryBoundary ->
-            {
-                final List<MultiPolygon> baselineBoundaries = baselineMap.countryBoundary(country)
-                        .stream().map(CountryBoundary::getBoundary).collect(Collectors.toList());
-                Assert.assertTrue(String.format("New map has additional boundary for %s.", country),
-                        baselineBoundaries.contains(countryBoundary.getBoundary()));
-            });
-        });
+        newMap.getLoadedCountries()
+                .forEach(country -> newMap.countryBoundary(country).forEach(countryBoundary ->
+                {
+                    final List<MultiPolygon> baselineBoundaries = baselineMap
+                            .countryBoundary(country).stream().map(CountryBoundary::getBoundary)
+                            .collect(Collectors.toList());
+                    Assert.assertTrue(
+                            String.format("New map has additional boundary for %s.", country),
+                            baselineBoundaries.contains(countryBoundary.getBoundary()));
+                }));
 
         // Compare raw index
         Assert.assertFalse("One of the maps is missing raw index.",
