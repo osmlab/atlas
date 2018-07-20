@@ -22,10 +22,7 @@ public class PolyLineCoordinateConverter implements Converter<Iterable<Location>
     public JsonArray convert(final Iterable<Location> object)
     {
         final JsonArray result = new JsonArray();
-        object.forEach(location ->
-        {
-            result.add(this.coordinateConverter.convert(location));
-        });
+        object.forEach(location -> result.add(this.coordinateConverter.convert(location)));
         return result;
     }
 

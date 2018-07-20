@@ -24,10 +24,7 @@ public class PolygonCoordinateConverter implements Converter<Iterable<Location>,
     {
         final JsonArray result = new JsonArray();
         final JsonArray inner = new JsonArray();
-        object.forEach(location ->
-        {
-            inner.add(this.coordinateConverter.convert(location));
-        });
+        object.forEach(location -> inner.add(this.coordinateConverter.convert(location)));
         result.add(inner);
         return result;
     }
