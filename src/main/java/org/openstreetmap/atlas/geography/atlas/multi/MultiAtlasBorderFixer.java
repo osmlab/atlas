@@ -45,6 +45,8 @@ public class MultiAtlasBorderFixer implements Serializable
     private static final long serialVersionUID = -3774372864489402091L;
     private static final Logger logger = LoggerFactory.getLogger(MultiAtlasBorderFixer.class);
 
+    private static final String MISSING_FIX_ATLAS = "Fix Atlas is not present.";
+
     // Keeps track of whether border fix process is completed or not
     private boolean isCompleted;
 
@@ -57,7 +59,7 @@ public class MultiAtlasBorderFixer implements Serializable
 
     // Set of fixed country OSM identifiers
     private final Set<Long> fixedCountryOsmIdentifiers;
-    private Optional<Atlas> fixAtlas;
+    private transient Optional<Atlas> fixAtlas;
     private final List<Atlas> subAtlases;
     private final HashSet<Long> countryOsmIdentifierWithReverseEdges;
     private final MultiMap<Long, Long> countryOsmIdentifierToEdgeIdentifiers;
@@ -269,13 +271,9 @@ public class MultiAtlasBorderFixer implements Serializable
 
                 // perform a set union instead of wiping out the set that is already mapped at the
                 // current identifier
-                candidateRelationMembers.forEach((identifier, temporaryRelationMember) ->
-                {
-                    temporaryRelationMember.forEach(member ->
-                    {
-                        relationMembersToUpdate.add(identifier, member);
-                    });
-                });
+                candidateRelationMembers.forEach(
+                        (identifier, temporaryRelationMember) -> temporaryRelationMember.forEach(
+                                member -> relationMembersToUpdate.add(identifier, member)));
 
                 // Mark old edge nodes/relations to be ignored
                 markItemsToBeIgnored(roads, hasReverseEdges);
@@ -303,7 +301,7 @@ public class MultiAtlasBorderFixer implements Serializable
                         .get(relation.getIdentifier());
                 if (members != null && !members.isEmpty())
                 {
-                    members.forEach(member -> relation.addMember(member));
+                    members.forEach(relation::addMember);
                 }
                 else
                 {
@@ -328,25 +326,25 @@ public class MultiAtlasBorderFixer implements Serializable
 
     protected Edge fixEdge(final long identifier)
     {
-        return this.fixAtlas.orElseThrow(() -> new CoreException("Fix Atlas is not present."))
+        return this.fixAtlas.orElseThrow(() -> new CoreException(MISSING_FIX_ATLAS))
                 .edge(identifier);
     }
 
     protected Node fixNode(final long identifier)
     {
-        return this.fixAtlas.orElseThrow(() -> new CoreException("Fix Atlas is not present."))
+        return this.fixAtlas.orElseThrow(() -> new CoreException(MISSING_FIX_ATLAS))
                 .node(identifier);
     }
 
     protected Relation fixRelation(final Long identifier)
     {
-        return this.fixAtlas.orElseThrow(() -> new CoreException("Fix Atlas is not present."))
+        return this.fixAtlas.orElseThrow(() -> new CoreException(MISSING_FIX_ATLAS))
                 .relation(identifier);
     }
 
     protected Atlas getFixAtlas()
     {
-        return this.fixAtlas.orElseThrow(() -> new CoreException("Fix Atlas is not present."));
+        return this.fixAtlas.orElseThrow(() -> new CoreException(MISSING_FIX_ATLAS));
     }
 
     protected MultiMapWithSet<Long, Long> getNodeIdentifiersToRemovedInEdges()
@@ -468,10 +466,10 @@ public class MultiAtlasBorderFixer implements Serializable
         }
 
         // Get fixed atlas
-        final Atlas fixAtlas = fixBuilder.get();
-        logger.debug("Fix atlas meta data: {}", fixAtlas.metaData());
+        final Atlas fixedAtlas = fixBuilder.get();
+        logger.debug("Fix atlas meta data: {}", fixedAtlas.metaData());
 
-        return Optional.of(fixAtlas);
+        return Optional.of(fixedAtlas);
     }
 
     /**
@@ -542,7 +540,7 @@ public class MultiAtlasBorderFixer implements Serializable
                         final String role = member.getRole();
                         roles.add(relationIdentifier, role);
                     }
-                    catch (final Throwable error)
+                    catch (final Exception error)
                     {
                         throw new CoreException("Error adding in roles: {}", relation, error);
                     }
