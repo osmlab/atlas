@@ -35,7 +35,7 @@ public abstract class Crawler extends AtlasLoadingCommand
         initialize(command);
         if (inputFolder != null)
         {
-            this.logger.info("Loading Atlas from " + inputFolder);
+            this.logger.info("Loading Atlas from {}", inputFolder);
             final Atlas atlas = loadAtlas(command);
             processAtlas(atlasName, atlas, outputFolder.getPath());
         }
