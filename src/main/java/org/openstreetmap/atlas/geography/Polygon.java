@@ -346,15 +346,13 @@ public class Polygon extends PolyLine implements GeometricSurface
         while (segmentIndex < segmentSize && headingChangeCount <= expectedHeadingChangeCount)
         {
             final Optional<Heading> nextHeading = segments.get(segmentIndex++).heading();
-            if (nextHeading.isPresent())
+            if (nextHeading.isPresent()
+                    && previousHeading.get().difference(nextHeading.get()).isGreaterThan(threshold))
             {
                 // If heading difference is greater than threshold, then increment heading change
                 // counter and update previous heading, which is used as reference
-                if (previousHeading.get().difference(nextHeading.get()).isGreaterThan(threshold))
-                {
-                    headingChangeCount++;
-                    previousHeading = nextHeading;
-                }
+                headingChangeCount++;
+                previousHeading = nextHeading;
             }
         }
 
@@ -562,7 +560,6 @@ public class Polygon extends PolyLine implements GeometricSurface
     {
         final ConformingDelaunayTriangulationBuilder trianguler = new ConformingDelaunayTriangulationBuilder();
         // Populate the delaunay triangulation builder
-        // trianguler.setSites(Iterables.asList(JTS_POLYGON_CONVERTER.convert(this).getCoordinates()));
         trianguler.setSites(JTS_POLYGON_CONVERTER.convert(this));
         final GeometryCollection triangleCollection = (GeometryCollection) trianguler
                 .getTriangles(JtsPrecisionManager.getGeometryFactory());
@@ -684,12 +681,10 @@ public class Polygon extends PolyLine implements GeometricSurface
                 return true;
             }
         }
-        if (runReverseCheck && polyline instanceof Polygon)
+        if (runReverseCheck && polyline instanceof Polygon
+                && ((Polygon) polyline).overlapsInternal(this, false))
         {
-            if (((Polygon) polyline).overlapsInternal(this, false))
-            {
-                return true;
-            }
+            return true;
         }
         return this.intersects(polyline);
     }
