@@ -353,6 +353,8 @@ public class Diff implements Comparable<Diff>, Serializable
         builder.append("[Diff: ");
         builder.append(this.diffType);
         builder.append(newLine);
+        builder.append(this.diffReason);
+        builder.append(newLine);
         builder.append("Entity = ");
         builder.append(this.itemType);
         builder.append(newLine);
