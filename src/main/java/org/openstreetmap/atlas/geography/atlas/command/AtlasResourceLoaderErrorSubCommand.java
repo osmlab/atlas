@@ -36,10 +36,7 @@ public class AtlasResourceLoaderErrorSubCommand implements FlexibleSubCommand
         {
             oops.printStackTrace();
             ExceptionSearch.find(StreamCorruptedException.class).within(oops)
-                    .ifPresent(poorlyFormattedFile ->
-                    {
-                        poorlyFormattedFile.printStackTrace();
-                    });
+                    .ifPresent(StreamCorruptedException::printStackTrace);
         }
         return 0;
     }
