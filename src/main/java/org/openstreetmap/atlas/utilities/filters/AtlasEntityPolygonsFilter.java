@@ -144,24 +144,6 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
                 .collect(Collectors.toList());
     }
 
-    private static Predicate<GeometricSurface> surfaceOverlappingPredicate(
-            final GeometricSurface geometricSurface)
-    {
-        if (geometricSurface instanceof MultiPolygon)
-        {
-            return surface -> surface.overlaps((MultiPolygon) geometricSurface);
-        }
-        else if (geometricSurface instanceof Polygon)
-        {
-            return surface -> surface.overlaps((Polygon) geometricSurface);
-        }
-        else
-        {
-            logger.warn("Unrecognized GeometricSurface {}", geometricSurface);
-            return surface -> false;
-        }
-    }
-
     private AtlasEntityPolygonsFilter(final Type filterType,
             final Collection<? extends GeometricSurface> geometricSurfaces)
     {
