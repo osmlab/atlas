@@ -9,6 +9,7 @@ import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.GeometricSurface;
@@ -430,7 +431,13 @@ public class AtlasEntityPolygonsFilterTest
                 3, 1, -1, -1);
     }
 
+    /**
+     * Ignored because of changed functionality. Functionality a legacy of first version of filter.
+     * Originally overlapping polygons were not allowed in the case of both include polygons. Now,
+     * only one type of polygon exists in the filter at once.
+     */
     @Test
+    @Ignore
     public void testOverlappingPolygons()
     {
         final Atlas testOverlappingPolygonsAtlas = this.setup.getOverlappingPolygons();
