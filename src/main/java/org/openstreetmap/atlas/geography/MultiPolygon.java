@@ -99,11 +99,10 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
     public GeoJsonObject asGeoJsonFeatureCollection()
     {
         final GeoJsonBuilder builder = new GeoJsonBuilder();
-        return builder.createFeatureCollection(Iterables.translate(outers(), outerPolygon ->
-        {
-            return builder.createOneOuterMultiPolygon(new MultiIterable<>(
-                    Collections.singleton(outerPolygon), this.outerToInners.get(outerPolygon)));
-        }));
+        return builder.createFeatureCollection(Iterables.translate(outers(),
+                outerPolygon -> builder.createOneOuterMultiPolygon(
+                        new MultiIterable<>(Collections.singleton(outerPolygon),
+                                this.outerToInners.get(outerPolygon)))));
     }
 
     public Iterable<LocationIterableProperties> asLocationIterableProperties()
@@ -142,7 +141,7 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
         if (this.bounds == null && !this.isEmpty())
         {
             final Set<Location> locations = new HashSet<>();
-            forEach(polygon -> polygon.forEach(location -> locations.add(location)));
+            forEach(polygon -> polygon.forEach(locations::add));
             this.bounds = Rectangle.forLocations(locations);
         }
         return this.bounds;
@@ -240,10 +239,6 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
                 if (result)
                 {
                     return true;
-                }
-                else
-                {
-                    continue;
                 }
             }
         }

@@ -43,8 +43,8 @@ public class AtlasFindEntitiesByIdSubCommand extends AbstractAtlasOutputTestSubC
     public void usage(final PrintStream writer)
     {
         super.usage(writer);
-        writer.printf(
-                "-osmid=OSM identifier : comma-separated numeric osm identifiers of the items we're trying to locate\n");
+        writer.println(
+                "-osmid=OSM identifier : comma-separated numeric osm identifiers of the items we're trying to locate");
     }
 
     @Override
