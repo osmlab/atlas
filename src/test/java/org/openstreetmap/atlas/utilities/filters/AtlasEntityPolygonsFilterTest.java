@@ -9,7 +9,6 @@ import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.GeometricSurface;
@@ -429,46 +428,6 @@ public class AtlasEntityPolygonsFilterTest
                 this.constructConfiguredFilter(geojsonConfigurationStringFormat, multiPolygon1
                         .asGeoJsonFeatureCollection().toString().replaceAll("\"", "\\\\\"")),
                 3, 1, -1, -1);
-    }
-
-    /**
-     * Ignored because of changed functionality. Functionality a legacy of first version of filter.
-     * Originally overlapping polygons were not allowed in the case of both include polygons. Now,
-     * only one type of polygon exists in the filter at once.
-     */
-    @Test
-    @Ignore
-    public void testOverlappingPolygons()
-    {
-        final Atlas testOverlappingPolygonsAtlas = this.setup.getOverlappingPolygons();
-        final Polygon polygon1 = this.getPolygonWithName(testOverlappingPolygonsAtlas, "polygon1");
-        final Polygon polygon2 = this.getPolygonWithName(testOverlappingPolygonsAtlas, "polygon2");
-        final Polygon polygon3 = this.getPolygonWithName(testOverlappingPolygonsAtlas, "polygon3");
-        final Polygon polygon4 = this.getPolygonWithName(testOverlappingPolygonsAtlas, "polygon4");
-        final Polygon polygon5 = this.getPolygonWithName(testOverlappingPolygonsAtlas, "polygon5");
-        final MultiMap<Polygon, Polygon> multiPolygonMap1 = new MultiMap<>();
-        final MultiMap<Polygon, Polygon> multiPolygonMap2 = new MultiMap<>();
-        multiPolygonMap1.add(polygon3, polygon4);
-        multiPolygonMap2.add(polygon5, polygon2);
-
-        final MultiPolygon multiPolygon1 = new MultiPolygon(multiPolygonMap1);
-        final MultiPolygon multiPolygon2 = new MultiPolygon(multiPolygonMap2);
-
-        // Test overlapping polygons
-        this.assertCounts(testOverlappingPolygonsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
-                .polygons(Arrays.asList(polygon1, polygon2, polygon3)), 2, 4, -1, -1);
-        this.assertCounts(testOverlappingPolygonsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
-                .polygons(Arrays.asList(polygon2, polygon1, polygon3)), 4, 5, -1, -1);
-        this.assertCounts(testOverlappingPolygonsAtlas,
-                AtlasEntityPolygonsFilter.Type.INCLUDE.polygonsAndMultiPolygons(
-                        Arrays.asList(polygon1, polygon2), Collections.singleton(multiPolygon1)),
-                2, 4, -1, -1);
-
-        // Test overlapping multipolygons
-        this.assertCounts(testOverlappingPolygonsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
-                .multiPolygons(Arrays.asList(multiPolygon1, multiPolygon2)), 0, 3, -1, -1);
-        this.assertCounts(testOverlappingPolygonsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
-                .multiPolygons(Arrays.asList(multiPolygon2, multiPolygon1)), 1, 6, -1, -1);
     }
 
     private void assertCounts(final Atlas atlas, final Predicate<AtlasEntity> filter,
