@@ -25,8 +25,6 @@ public class ComplexIslandFinder implements Finder<ComplexIsland>
         final Iterable<Relation> relations = atlas.relations(
                 relation -> relation.isMultiPolygon() && relation.hasMultiPolygonMembers(Ring.INNER)
                         && (isLake(relation) || isRiver(relation) || isReservoir(relation)));
-        final Iterable<ComplexIsland> complexEntities = Iterables.translate(relations,
-                ComplexIsland::new);
-        return complexEntities;
+        return Iterables.translate(relations, ComplexIsland::new);
     }
 }

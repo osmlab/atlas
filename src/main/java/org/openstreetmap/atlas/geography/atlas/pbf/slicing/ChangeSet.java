@@ -12,6 +12,8 @@ import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
 import org.openstreetmap.osmosis.core.domain.v0_6.Relation;
 import org.openstreetmap.osmosis.core.domain.v0_6.Way;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class stores all changes made during data processing. Until now all changes falls into the
@@ -21,6 +23,8 @@ import org.openstreetmap.osmosis.core.domain.v0_6.Way;
  */
 public class ChangeSet
 {
+    private static final Logger logger = LoggerFactory.getLogger(ChangeSet.class);
+
     private final List<Node> createdNodes;
     private final List<Node> deletedNodes;
     private final List<Way> createdWays;
@@ -194,7 +198,7 @@ public class ChangeSet
         }
         catch (final IOException e)
         {
-            e.printStackTrace();
+            logger.error("Could not save ChangeSet", e);
         }
     }
 

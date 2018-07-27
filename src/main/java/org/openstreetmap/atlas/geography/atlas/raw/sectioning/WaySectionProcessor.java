@@ -311,11 +311,8 @@ public class WaySectionProcessor
                     && !changeSet.getLinesThatBecomeEdges().contains(lineIdentifier)
                     && !changeSet.getExcludedLines().contains(lineIdentifier);
         }).forEach(lineToKeep ->
-        {
-            // Add any line that didn't become an edge or area
-            builder.addLine(lineToKeep.getIdentifier(), lineToKeep.asPolyLine(),
-                    lineToKeep.getTags());
-        });
+        // Add any line that didn't become an edge or area
+        builder.addLine(lineToKeep.getIdentifier(), lineToKeep.asPolyLine(), lineToKeep.getTags()));
 
         // Edges
         changeSet.getCreatedEdges().forEach(temporaryEdge ->

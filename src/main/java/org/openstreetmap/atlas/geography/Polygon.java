@@ -347,8 +347,8 @@ public class Polygon extends PolyLine implements GeometricSurface
         {
             final Optional<Heading> nextHeading = segments.get(segmentIndex++).heading();
 
-            // If heading difference is greater than threshold, then increment heading change
-            // counter and update previous heading, which is used as reference
+            // If heading difference is greater than threshold, then increment heading
+            // change counter and update previous heading, which is used as reference
             if (nextHeading.isPresent()
                     && previousHeading.get().difference(nextHeading.get()).isGreaterThan(threshold))
             {
@@ -561,7 +561,6 @@ public class Polygon extends PolyLine implements GeometricSurface
     {
         final ConformingDelaunayTriangulationBuilder trianguler = new ConformingDelaunayTriangulationBuilder();
         // Populate the delaunay triangulation builder
-        // trianguler.setSites(Iterables.asList(JTS_POLYGON_CONVERTER.convert(this).getCoordinates()));
         trianguler.setSites(JTS_POLYGON_CONVERTER.convert(this));
         final GeometryCollection triangleCollection = (GeometryCollection) trianguler
                 .getTriangles(JtsPrecisionManager.getGeometryFactory());
