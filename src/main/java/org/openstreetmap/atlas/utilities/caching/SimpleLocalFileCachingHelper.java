@@ -22,10 +22,14 @@ public class SimpleLocalFileCachingHelper extends AbstractResourceCachingHelper
         return new File(this.getPathToResource());
     }
 
+    /**
+     * This simple implementation of getResource simply leverages the caching strategy with a local
+     * default fetcher.
+     */
     @Override
     public Optional<Resource> getResource()
     {
-        return this.withFetcher(this::fetchLocalFile).getResource();
+        return this.withFetcher(this::fetchLocalFile).getResourceWithCachingStrategy();
     }
 
     /**

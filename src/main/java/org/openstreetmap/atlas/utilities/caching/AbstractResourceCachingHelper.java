@@ -17,9 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The abstract caching helper implementation. This resource caching helper loads a resource using a
- * default {@link ResourceFetchFunction}. It will then cache a resource locally upon fetch, so that
- * a subsequent fetches will leverage the local cache instead of using the default fetcher.
+ * The abstract resource caching helper implementation. This resource caching helper loads a
+ * resource using a default {@link ResourceFetchFunction}. It will then cache the resource locally
+ * upon fetch, so that a subsequent fetches will leverage the local cache instead of using the
+ * default fetcher.
  *
  * @author lcram
  */
