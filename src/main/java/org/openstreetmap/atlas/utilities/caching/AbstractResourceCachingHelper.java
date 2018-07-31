@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.resource.File;
@@ -18,9 +19,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * The abstract resource caching helper implementation. This resource caching helper loads a
- * resource using a default {@link ResourceFetchFunction}. It will then cache the resource locally
- * upon fetch, so that a subsequent fetches will leverage the local cache instead of using the
- * default fetcher.
+ * resource using a default {@link Resource} {@link Supplier}. It will then cache the resource
+ * locally upon fetch, so that a subsequent fetches will leverage the local cache instead of using
+ * the default fetcher.
  *
  * @author lcram
  */
@@ -31,7 +32,7 @@ public abstract class AbstractResourceCachingHelper
             .getLogger(AbstractResourceCachingHelper.class);
 
     private boolean cachingEnabled;
-    private ResourceFetchFunction defaultFetcher;
+    private Supplier<Resource> defaultFetcher;
     private String pathToResource;
 
     /*
@@ -54,7 +55,7 @@ public abstract class AbstractResourceCachingHelper
      * @param fetcher
      *            the default fetcher
      */
-    public AbstractResourceCachingHelper(final ResourceFetchFunction fetcher)
+    public AbstractResourceCachingHelper(final Supplier<Resource> fetcher)
     {
         this.cachingEnabled = true;
         this.defaultFetcher = fetcher;
@@ -103,7 +104,7 @@ public abstract class AbstractResourceCachingHelper
      *            the desired resource fetcher
      * @return the configured {@link AbstractResourceCachingHelper}
      */
-    public AbstractResourceCachingHelper withFetcher(final ResourceFetchFunction fetcher)
+    public AbstractResourceCachingHelper withFetcher(final Supplier<Resource> fetcher)
     {
         this.defaultFetcher = fetcher;
         return this;
@@ -154,6 +155,8 @@ public abstract class AbstractResourceCachingHelper
         if (cachedFile.exists())
         {
             logger.info("Cache hit on resource {}, returning local copy", this.pathToResource);
+            final Optional<Integer> a = Optional.of(2);
+            a.i
             return Optional.of(cachedFile);
         }
         else
@@ -164,13 +167,18 @@ public abstract class AbstractResourceCachingHelper
         }
     }
 
+    protected void setPathToResource(final String newPath)
+    {
+        this.pathToResource = newPath;
+    }
+
     private void attemptToCacheFileLocally(final File cachedFile)
     {
         if (!cachedFile.exists())
         {
             logger.info("Attempting to write cache file {}", cachedFile.toString());
 
-            final Resource resourceFromDefaultFetcher = this.defaultFetcher.fetch();
+            final Resource resourceFromDefaultFetcher = this.defaultFetcher.get();
             final File temporaryLocalFile = File.temporary();
             try
             {
@@ -215,9 +223,10 @@ public abstract class AbstractResourceCachingHelper
     {
         if (this.defaultFetcher == null)
         {
-            throw new CoreException("Cannot fetch resource without a default fetcher.");
+            throw new CoreException(
+                    "Default fetcher was null. Cannot fetch resource without a default fetcher.");
         }
-        return this.defaultFetcher.fetch();
+        return this.defaultFetcher.get();
     }
 
     private UUID getResourceUUID(final String pathToResource)

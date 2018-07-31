@@ -33,7 +33,7 @@ public class SimpleLocalFileCachingHelper extends AbstractResourceCachingHelper
     }
 
     /**
-     * A simple extension that allows users to specify path to a resource relative to their home
+     * A simple extension that allows users to specify a path to a resource relative to their home
      * directory.
      *
      * @param relativePathToResource
@@ -50,7 +50,8 @@ public class SimpleLocalFileCachingHelper extends AbstractResourceCachingHelper
         }
         final Path homePath = Paths.get(home);
         final Path pathToResource = Paths.get(homePath.toString(), relativePathToResource);
+        this.setPathToResource(pathToResource.toString());
 
-        return (SimpleLocalFileCachingHelper) this.withPathToResource(pathToResource.toString());
+        return this;
     }
 }
