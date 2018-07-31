@@ -28,41 +28,10 @@ public class CachingTests
     private static final URI LOCAL_TEST_FILE_URI = LOCAL_TEST_FILE.toUri();
 
     @Test
-    public void testLocalFileCacherWithByteArrayStrategy()
+    public void testLocalFileInMemoryCache()
     {
-        testLocalFileCacheWithGivenStrategy(new ByteArrayCachingStrategy());
-    }
-
-    @Test
-    public void testSimpleCacherWithByteArrayStrategy()
-    {
-        testSimpleCacheWithGivenStrategy(new ByteArrayCachingStrategy());
-    }
-
-    @Test
-    public void testSimpleCacherWithLocalTemporaryStrategy()
-    {
-        testSimpleCacheWithGivenStrategy(new SystemTemporaryFileCachingStrategy());
-    }
-
-    @Test
-    public void testSimpleCacherWithNoStrategy()
-    {
-        testSimpleCacheWithGivenStrategy(new NoCachingStrategy());
-    }
-
-    private Resource fetchLocalFileResource(final URI resourceURI)
-    {
-        final String filePath = resourceURI.getPath();
-        return new File(filePath);
-    }
-
-    private void testLocalFileCacheWithGivenStrategy(final CachingStrategy strategy)
-    {
-        logger.info("Testing with caching strategy {}", strategy.getName());
-
-        final LocalFileCache resourceCache = new LocalFileCache().withCachingStrategy(strategy)
-                .withFetcher(this::fetchLocalFileResource);
+        final LocalFileInMemoryCache resourceCache = new LocalFileInMemoryCache()
+                .withFetcher(this::fetchLocalFileResource).withPath(LOCAL_TEST_FILE.toString());
 
         // read the contents of the file
         final ByteArrayResource originalFileBytes = new ByteArrayResource();
@@ -71,25 +40,47 @@ public class CachingTests
 
         // read contents of the file with cache, this will incur a cache miss
         final ByteArrayResource fileBytesCacheMiss = new ByteArrayResource();
-        fileBytesCacheMiss
-                .copyFrom(resourceCache.withPath(LOCAL_TEST_FILE.toString()).getResource().get());
+        fileBytesCacheMiss.copyFrom(resourceCache.getResource().get());
         final byte[] fileBytesCacheMissArray = fileBytesCacheMiss.readBytesAndClose();
         Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheMissArray);
 
         // read contents again, this time with a cache hit
         final ByteArrayResource fileBytesCacheHit = new ByteArrayResource();
-        fileBytesCacheHit
-                .copyFrom(resourceCache.withPath(LOCAL_TEST_FILE.toString()).getResource().get());
+        fileBytesCacheHit.copyFrom(resourceCache.getResource().get());
         final byte[] fileBytesCacheHitArray = fileBytesCacheHit.readBytesAndClose();
         Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheHitArray);
     }
 
-    private void testSimpleCacheWithGivenStrategy(final CachingStrategy strategy)
+    @Test
+    public void testSimpleCacherWithByteArrayStrategy()
+    {
+        testBaseCacheWithGivenStrategy(new ByteArrayCachingStrategy());
+    }
+
+    @Test
+    public void testSimpleCacherWithLocalTemporaryStrategy()
+    {
+        testBaseCacheWithGivenStrategy(new SystemTemporaryFileCachingStrategy());
+    }
+
+    @Test
+    public void testSimpleCacherWithNoStrategy()
+    {
+        testBaseCacheWithGivenStrategy(new NoCachingStrategy());
+    }
+
+    private Resource fetchLocalFileResource(final URI resourceURI)
+    {
+        final String filePath = resourceURI.getPath();
+        return new File(filePath);
+    }
+
+    private void testBaseCacheWithGivenStrategy(final CachingStrategy strategy)
     {
         logger.info("Testing with caching strategy {}", strategy.getName());
 
-        final SimpleResourceCache resourceCache = new SimpleResourceCache()
-                .withCachingStrategy(strategy).withFetcher(this::fetchLocalFileResource);
+        final ResourceCache resourceCache = new ResourceCache().withCachingStrategy(strategy)
+                .withFetcher(this::fetchLocalFileResource);
 
         // read the contents of the file
         final ByteArrayResource originalFileBytes = new ByteArrayResource();
