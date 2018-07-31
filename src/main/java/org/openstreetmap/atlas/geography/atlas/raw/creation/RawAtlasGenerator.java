@@ -240,8 +240,7 @@ public class RawAtlasGenerator
         {
             final Time trimTime = Time.now();
             final Atlas trimmedAtlas = removeDuplicateAndExtraneousPointsFromAtlas(atlas);
-            logger.info("Trimmed Raw Atlas for {} in {}", shardName, atlas.getName(),
-                    trimTime.elapsedSince());
+            logger.info("Trimmed Raw Atlas for {} in {}", shardName, trimTime.elapsedSince());
 
             if (trimmedAtlas == null)
             {
@@ -338,10 +337,9 @@ public class RawAtlasGenerator
             final Location location)
     {
         final long distinctLayerTagValues = StreamSupport
-                .stream(atlas.linesContaining(location).spliterator(), false).map(line ->
-                {
-                    return LayerTag.getTaggedOrImpliedValue(atlas.line(line.getIdentifier()), 0L);
-                }).distinct().count();
+                .stream(atlas.linesContaining(location).spliterator(), false)
+                .map(line -> LayerTag.getTaggedOrImpliedValue(atlas.line(line.getIdentifier()), 0L))
+                .distinct().count();
 
         return distinctLayerTagValues > 1;
     }
@@ -386,13 +384,13 @@ public class RawAtlasGenerator
     private Atlas rebuildAtlas(final Atlas atlas, final Set<Long> pointsToRemove,
             final Set<Long> pointsNeedingSyntheticTag)
     {
-        final PackedAtlasBuilder builder = new PackedAtlasBuilder();
+        final PackedAtlasBuilder rebuilder = new PackedAtlasBuilder();
 
         // Set the metadata and size. Use existing Atlas as estimate.
-        builder.setMetaData(this.metaData);
+        rebuilder.setMetaData(this.metaData);
         final AtlasSize size = new AtlasSize(0, 0, 0, atlas.numberOfLines(), atlas.numberOfPoints(),
                 atlas.numberOfRelations());
-        builder.setSizeEstimates(size);
+        rebuilder.setSizeEstimates(size);
 
         // Add Points
         atlas.points().forEach(point ->
@@ -410,15 +408,13 @@ public class RawAtlasGenerator
                 }
 
                 // Add the Point
-                builder.addPoint(identifier, point.getLocation(), tags);
+                rebuilder.addPoint(identifier, point.getLocation(), tags);
             }
         });
 
         // Add Lines
-        atlas.lines().forEach(line ->
-        {
-            builder.addLine(line.getIdentifier(), line.asPolyLine(), line.getTags());
-        });
+        atlas.lines().forEach(
+                line -> rebuilder.addLine(line.getIdentifier(), line.asPolyLine(), line.getTags()));
 
         // Add Relations
         atlas.relationsLowerOrderFirst().forEach(relation ->
@@ -443,7 +439,7 @@ public class RawAtlasGenerator
 
             if (!bean.isEmpty())
             {
-                builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(), bean,
+                rebuilder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(), bean,
                         relation.getTags());
             }
             else
@@ -454,7 +450,7 @@ public class RawAtlasGenerator
         });
 
         // Build and return the new Atlas
-        return builder.get();
+        return rebuilder.get();
     }
 
     /**

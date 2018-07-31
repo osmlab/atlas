@@ -430,40 +430,6 @@ public class AtlasEntityPolygonsFilterTest
                 3, 1, -1, -1);
     }
 
-    @Test
-    public void testOverlappingPolygons()
-    {
-        final Atlas testOverlappingPolygonsAtlas = this.setup.getOverlappingPolygons();
-        final Polygon polygon1 = this.getPolygonWithName(testOverlappingPolygonsAtlas, "polygon1");
-        final Polygon polygon2 = this.getPolygonWithName(testOverlappingPolygonsAtlas, "polygon2");
-        final Polygon polygon3 = this.getPolygonWithName(testOverlappingPolygonsAtlas, "polygon3");
-        final Polygon polygon4 = this.getPolygonWithName(testOverlappingPolygonsAtlas, "polygon4");
-        final Polygon polygon5 = this.getPolygonWithName(testOverlappingPolygonsAtlas, "polygon5");
-        final MultiMap<Polygon, Polygon> multiPolygonMap1 = new MultiMap<>();
-        final MultiMap<Polygon, Polygon> multiPolygonMap2 = new MultiMap<>();
-        multiPolygonMap1.add(polygon3, polygon4);
-        multiPolygonMap2.add(polygon5, polygon2);
-
-        final MultiPolygon multiPolygon1 = new MultiPolygon(multiPolygonMap1);
-        final MultiPolygon multiPolygon2 = new MultiPolygon(multiPolygonMap2);
-
-        // Test overlapping polygons
-        this.assertCounts(testOverlappingPolygonsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
-                .polygons(Arrays.asList(polygon1, polygon2, polygon3)), 2, 4, -1, -1);
-        this.assertCounts(testOverlappingPolygonsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
-                .polygons(Arrays.asList(polygon2, polygon1, polygon3)), 4, 5, -1, -1);
-        this.assertCounts(testOverlappingPolygonsAtlas,
-                AtlasEntityPolygonsFilter.Type.INCLUDE.polygonsAndMultiPolygons(
-                        Arrays.asList(polygon1, polygon2), Collections.singleton(multiPolygon1)),
-                2, 4, -1, -1);
-
-        // Test overlapping multipolygons
-        this.assertCounts(testOverlappingPolygonsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
-                .multiPolygons(Arrays.asList(multiPolygon1, multiPolygon2)), 0, 3, -1, -1);
-        this.assertCounts(testOverlappingPolygonsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
-                .multiPolygons(Arrays.asList(multiPolygon2, multiPolygon1)), 1, 6, -1, -1);
-    }
-
     private void assertCounts(final Atlas atlas, final Predicate<AtlasEntity> filter,
             final long expectedPointCount, final long expectedLineCount,
             final long expectedAreaCount, final long expectedRelationCount)

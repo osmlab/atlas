@@ -559,13 +559,9 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         {
             // Delete Line and all of its points
             this.slicedRelationChanges.deleteLine(line.getIdentifier());
-            this.partiallySlicedRawAtlas.line(line.getIdentifier()).asPolyLine().forEach(location ->
-            {
-                this.partiallySlicedRawAtlas.pointsAt(location).forEach(point ->
-                {
-                    this.pointCandidatesForRemoval.add(point.getIdentifier());
-                });
-            });
+            this.partiallySlicedRawAtlas.line(line.getIdentifier()).asPolyLine()
+                    .forEach(location -> this.partiallySlicedRawAtlas.pointsAt(location).forEach(
+                            point -> this.pointCandidatesForRemoval.add(point.getIdentifier())));
         }
     }
 
@@ -1087,8 +1083,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         {
             // No updated tags exist for this relation, create new ones and insert synthetic value
             final Map<String, String> newTags = new HashMap<>();
-            newTags.put(SyntheticRelationMemberAdded.KEY.toString(),
-                    String.valueOf(newLineIdentifier));
+            newTags.put(SyntheticRelationMemberAdded.KEY, String.valueOf(newLineIdentifier));
             this.slicedRelationChanges.updateRelationTags(relationIdentifier, newTags);
         }
         else
@@ -1100,12 +1095,12 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 final String newValue = updatedTags.get(SyntheticRelationMemberAdded.KEY)
                         + SyntheticRelationMemberAdded.MEMBER_DELIMITER
                         + String.valueOf(newLineIdentifier);
-                updatedTags.put(SyntheticRelationMemberAdded.KEY.toString(), newValue);
+                updatedTags.put(SyntheticRelationMemberAdded.KEY, newValue);
             }
             else
             {
                 // Synthetic key doesn't exist, need to insert a new value
-                updatedTags.put(SyntheticRelationMemberAdded.KEY.toString(),
+                updatedTags.put(SyntheticRelationMemberAdded.KEY,
                         String.valueOf(newLineIdentifier));
             }
             this.slicedRelationChanges.updateRelationTags(relationIdentifier, updatedTags);

@@ -175,10 +175,8 @@ public class CountryBoundaryMap implements Serializable
     {
         if (node.getLevel() > 0)
         {
-            node.getChildBoundables().stream().forEach(childNode ->
-            {
-                collectCells((AbstractNode) childNode, cells);
-            });
+            node.getChildBoundables().stream()
+                    .forEach(childNode -> collectCells((AbstractNode) childNode, cells));
         }
         else if (node.getLevel() == 0)
         {
@@ -1541,24 +1539,22 @@ public class CountryBoundaryMap implements Serializable
     {
         logger.info("Writing country boundaries to output");
         this.countryNameToBoundaryMap.forEach((country, polygons) ->
-        {
-            polygons.forEach(polygon ->
-            {
-                try
-                {
-                    output.write(country);
-                    output.write(COUNTRY_BOUNDARY_DELIMITER);
-                    output.write(WKT_WRITER.write(polygon));
-                    output.write(LIST_SEPARATOR);
-                    output.write(System.lineSeparator());
-                }
-                catch (final IOException e)
-                {
-                    throw new CoreException("Failed to write country boundaries.", e);
-                }
-            });
 
-        });
+        polygons.forEach(polygon ->
+        {
+            try
+            {
+                output.write(country);
+                output.write(COUNTRY_BOUNDARY_DELIMITER);
+                output.write(WKT_WRITER.write(polygon));
+                output.write(LIST_SEPARATOR);
+                output.write(System.lineSeparator());
+            }
+            catch (final IOException e)
+            {
+                throw new CoreException("Failed to write country boundaries.", e);
+            }
+        }));
     }
 
     private void writeGridIndex(final BufferedWriter writer)
