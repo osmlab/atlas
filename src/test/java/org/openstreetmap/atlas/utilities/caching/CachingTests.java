@@ -25,6 +25,12 @@ public class CachingTests
     private static final URI LOCAL_TEST_FILE_URI = LOCAL_TEST_FILE.toUri();
 
     @Test
+    public void testLocalFileCacherWithByteArrayStrategy()
+    {
+        testLocalFileCacheWithGivenStrategy(new ByteArrayCachingStrategy());
+    }
+
+    @Test
     public void testSimpleCacherWithByteArrayStrategy()
     {
         testSimpleCacheWithGivenStrategy(new ByteArrayCachingStrategy());
@@ -46,6 +52,33 @@ public class CachingTests
     {
         final String filePath = resourceURI.getPath();
         return new File(filePath);
+    }
+
+    private void testLocalFileCacheWithGivenStrategy(final CachingStrategy strategy)
+    {
+        logger.info("Testing with caching strategy {}", strategy.getName());
+
+        final LocalFileCache resourceCache = new LocalFileCache().withCachingStrategy(strategy)
+                .withFetcher(this::fetchLocalFileResource);
+
+        // read the contents of the file
+        final ByteArrayResource originalFileBytes = new ByteArrayResource();
+        originalFileBytes.copyFrom(new File(LOCAL_TEST_FILE.toString()));
+        final byte[] originalFileBytesArray = originalFileBytes.readBytesAndClose();
+
+        // read contents of the file with cache, this will incur a cache miss
+        final ByteArrayResource fileBytesCacheMiss = new ByteArrayResource();
+        fileBytesCacheMiss
+                .copyFrom(resourceCache.withPath(LOCAL_TEST_FILE.toString()).getResource().get());
+        final byte[] fileBytesCacheMissArray = fileBytesCacheMiss.readBytesAndClose();
+        Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheMissArray);
+
+        // read contents again, this time with a cache hit
+        final ByteArrayResource fileBytesCacheHit = new ByteArrayResource();
+        fileBytesCacheHit
+                .copyFrom(resourceCache.withPath(LOCAL_TEST_FILE.toString()).getResource().get());
+        final byte[] fileBytesCacheHitArray = fileBytesCacheHit.readBytesAndClose();
+        Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheHitArray);
     }
 
     private void testSimpleCacheWithGivenStrategy(final CachingStrategy strategy)

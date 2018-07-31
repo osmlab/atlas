@@ -143,9 +143,26 @@ public class SimpleResourceCache
     }
 
     /*
-     * This method can be used by subclasses to set the resource URI. This is useful if a subclass
-     * wants to present a different interface to the user, and then construct the URI
-     * programmatically.
+     * This method can be used by subclasses to provide their own custom implementations of the
+     * "with" builder functions.
+     */
+    protected void setCachingStrategy(final CachingStrategy strategy)
+    {
+        this.cachingStrategy = strategy;
+    }
+
+    /*
+     * This method can be used by subclasses to provide their own custom implementations of the
+     * "with" builder functions.
+     */
+    protected void setDefaultFetcher(final ResourceFetchFunction fetcher)
+    {
+        this.defaultFetcher = fetcher;
+    }
+
+    /*
+     * This method can be used by subclasses to provide their own custom implementations of the
+     * "with" builder functions.
      */
     protected void setResourceURI(final URI newURI)
     {
