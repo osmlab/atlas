@@ -75,4 +75,18 @@ public class RectangleTest
         Assert.assertTrue(this.rectangle1.surface().add(this.rectangle2.surface())
                 .isLessThan(this.rectangle3.surface()));
     }
+
+
+    @Test
+    public void testAntiMeridianEastRectangle()
+    {
+        final Location antiMeridian = new Location(Latitude.ZERO, Longitude.degrees(180));
+        final Location lowerLeftAntiMeridianRectangle = new Location(Latitude.degrees(-10), Longitude.degrees(170));
+        final Location upperRightTestRectangle = new Location(Latitude.ZERO, Longitude.degrees(160));
+        final Location lowerLeftTestRectangle = new Location(Latitude.degrees(-10), Longitude.degrees(150));
+        final Rectangle antiMerdidianRectangle = Rectangle.forCorners(lowerLeftAntiMeridianRectangle, antiMeridian);
+        final Rectangle testRectangle = Rectangle.forCorners(lowerLeftTestRectangle, upperRightTestRectangle);
+        Assert.assertFalse(testRectangle.overlaps(antiMerdidianRectangle));
+        Assert.assertFalse(antiMerdidianRectangle.overlaps(testRectangle));
+    }
 }
