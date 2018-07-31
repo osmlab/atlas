@@ -4,6 +4,8 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.utilities.caching.strategies.ByteArrayCachingStrategy;
 import org.openstreetmap.atlas.utilities.caching.strategies.CachingStrategy;
 
@@ -13,7 +15,7 @@ import org.openstreetmap.atlas.utilities.caching.strategies.CachingStrategy;
  * {@link LocalFileInMemoryCache#withPath(String)} interface. Note that it still must override the
  * other "with" builder methods, so that the builder pattern does not throw up type errors. The
  * {@link LocalFileInMemoryCache} forces the caching strategy to be
- * {@link ByteArrayCachingStrategy}.
+ * {@link ByteArrayCachingStrategy}, and forces the default fetcher to simply load a local file.
  *
  * @author lcram
  */
@@ -25,19 +27,19 @@ public class LocalFileInMemoryCache extends ResourceCache
     public LocalFileInMemoryCache()
     {
         super(null, new ByteArrayCachingStrategy(), null);
+        this.setDefaultFetcher(this::fetchFile);
     }
 
     /**
-     * Create a new {@link LocalFileInMemoryCache} with a given resource URI and fetcher.
+     * Create a new {@link LocalFileInMemoryCache} with a given resource URI.
      *
      * @param resourceURI
      *            the default resource {@link URI}
-     * @param fetcher
-     *            the default {@link ResourceFetchFunction}
      */
-    public LocalFileInMemoryCache(final URI resourceURI, final ResourceFetchFunction fetcher)
+    public LocalFileInMemoryCache(final URI resourceURI)
     {
-        super(resourceURI, new ByteArrayCachingStrategy(), fetcher);
+        super(resourceURI, new ByteArrayCachingStrategy(), null);
+        this.setDefaultFetcher(this::fetchFile);
     }
 
     @Override
@@ -50,8 +52,8 @@ public class LocalFileInMemoryCache extends ResourceCache
     @Override
     public LocalFileInMemoryCache withFetcher(final ResourceFetchFunction fetcher)
     {
-        this.setDefaultFetcher(fetcher);
-        return this;
+        throw new UnsupportedOperationException(
+                "This cache does not support alternate default fetchers.");
     }
 
     /**
@@ -71,7 +73,13 @@ public class LocalFileInMemoryCache extends ResourceCache
     @Override
     public LocalFileInMemoryCache withResourceURI(final URI resourceURI)
     {
-        this.setResourceURI(resourceURI);
-        return this;
+        throw new UnsupportedOperationException(
+                "This cache does not support setting the resource URI directly.");
+    }
+
+    private Resource fetchFile(final URI fileURI)
+    {
+        final String filePath = fileURI.getPath();
+        return new File(filePath);
     }
 }

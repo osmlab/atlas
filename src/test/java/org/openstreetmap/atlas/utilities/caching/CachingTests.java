@@ -31,7 +31,7 @@ public class CachingTests
     public void testLocalFileInMemoryCache()
     {
         final LocalFileInMemoryCache resourceCache = new LocalFileInMemoryCache()
-                .withFetcher(this::fetchLocalFileResource).withPath(LOCAL_TEST_FILE.toString());
+                .withPath(LOCAL_TEST_FILE.toString());
 
         // read the contents of the file
         final ByteArrayResource originalFileBytes = new ByteArrayResource();
