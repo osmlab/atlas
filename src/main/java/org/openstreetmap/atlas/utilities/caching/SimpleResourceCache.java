@@ -36,10 +36,12 @@ public class SimpleResourceCache
     /**
      * Create a new helper with the given fetcher and strategy.
      *
-     * @param fetcher
-     *            the default fetcher
+     * @param resourceURI
+     *            the {@link URI} of the desired {@link Resource}
      * @param cachingStrategy
      *            the caching strategy
+     * @param fetcher
+     *            the default fetcher
      */
     public SimpleResourceCache(final URI resourceURI, final CachingStrategy cachingStrategy,
             final ResourceFetchFunction fetcher)

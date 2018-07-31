@@ -27,7 +27,7 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
 
     private final Map<UUID, ByteArrayResource> resourceCache;
     private long initialArraySize;
-    public boolean useExactResourceSize;
+    private boolean useExactResourceSize;
 
     public ByteArrayCachingStrategy()
     {
