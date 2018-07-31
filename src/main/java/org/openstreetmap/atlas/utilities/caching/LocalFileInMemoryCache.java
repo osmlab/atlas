@@ -5,7 +5,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.openstreetmap.atlas.streaming.resource.File;
-import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.utilities.caching.strategies.ByteArrayCachingStrategy;
 import org.openstreetmap.atlas.utilities.caching.strategies.CachingStrategy;
 
@@ -26,8 +25,7 @@ public class LocalFileInMemoryCache extends ResourceCache
      */
     public LocalFileInMemoryCache()
     {
-        super(null, new ByteArrayCachingStrategy(), null);
-        this.setDefaultFetcher(this::fetchFile);
+        this(null);
     }
 
     /**
@@ -39,7 +37,7 @@ public class LocalFileInMemoryCache extends ResourceCache
     public LocalFileInMemoryCache(final URI resourceURI)
     {
         super(resourceURI, new ByteArrayCachingStrategy(), null);
-        this.setDefaultFetcher(this::fetchFile);
+        this.setDefaultFetcher(uri -> new File(uri.getPath()));
     }
 
     @Override
@@ -74,12 +72,6 @@ public class LocalFileInMemoryCache extends ResourceCache
     public LocalFileInMemoryCache withResourceURI(final URI resourceURI)
     {
         throw new UnsupportedOperationException(
-                "This cache does not support setting the resource URI directly.");
-    }
-
-    private Resource fetchFile(final URI fileURI)
-    {
-        final String filePath = fileURI.getPath();
-        return new File(filePath);
+                "This cache does not support setting the resource URI directly. Use the withPath method instead.");
     }
 }
