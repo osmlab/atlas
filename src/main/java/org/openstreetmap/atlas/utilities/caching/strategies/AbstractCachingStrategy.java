@@ -33,6 +33,9 @@ public abstract class AbstractCachingStrategy implements CachingStrategy
     public abstract Optional<Resource> attemptFetch(URI resourceURI,
             ResourceFetchFunction defaultFetcher);
 
+    @Override
+    public abstract String getName();
+
     /**
      * Given a URI, get a universally unique identifier ({@link UUID}) for that URI. This method
      * uses the {@link String} representation of a URI to compute the UUID. It will also cache

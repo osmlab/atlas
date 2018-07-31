@@ -24,4 +24,11 @@ public interface CachingStrategy
      * @return the {@link Resource} wrapped in an {@link Optional}
      */
     Optional<Resource> attemptFetch(URI resourceURI, ResourceFetchFunction defaultFetcher);
+
+    /**
+     * Get a strategy name for logging purposes.
+     *
+     * @return the strategy name
+     */
+    String getName();
 }

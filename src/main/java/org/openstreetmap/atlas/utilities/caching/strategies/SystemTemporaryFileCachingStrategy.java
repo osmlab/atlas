@@ -36,13 +36,13 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
         {
             logger.error("Failed to read property {}, skipping cache fetch...",
                     PROPERTY_LOCAL_TEMPORARY_DIRECTORY);
-            return Optional.of(null);
+            return Optional.empty();
         }
 
         if (resourceURI == null)
         {
             logger.warn("resourceURI was null, skipping cache fetch...");
-            return Optional.of(null);
+            return Optional.empty();
         }
 
         final Path temporaryDirectory = Paths.get(TEMPORARY_DIRECTORY_STRING);
@@ -60,9 +60,15 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
         }
         else
         {
-            logger.info("Cache miss on resource {}", resourceURI);
-            return Optional.of(null);
+            logger.warn("Unexpected cache miss on resource {}", resourceURI);
+            return Optional.empty();
         }
+    }
+
+    @Override
+    public String getName()
+    {
+        return "SystemTemporaryFileCachingStrategy";
     }
 
     private void attemptToCacheFileLocally(final File cachedFile,
@@ -70,7 +76,8 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
     {
         if (!cachedFile.exists())
         {
-            logger.info("Attempting to write cache file {}", cachedFile.toString());
+            logger.info("Attempting to cache resource {} in temporary file {}", resourceURI,
+                    cachedFile.toString());
 
             final Resource resourceFromDefaultFetcher = defaultFetcher.fetch(resourceURI);
             final File temporaryLocalFile = File.temporary();

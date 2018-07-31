@@ -10,14 +10,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The simple resource caching helper implementation. This resource caching helper loads a resource
- * using a given {@link ResourceFetchFunction} and {@link CachingStrategy}.
+ * The simple resource cache implementation. This resource caching helper loads a resource using a
+ * given {@link ResourceFetchFunction} and {@link CachingStrategy}. Using raw URIs can often be
+ * cumbersome. Therefore, users of this class are encouraged to extend it, and encapsulate URI
+ * construction in appropriate subclass helpers.
  *
  * @author lcram
  */
-public class SimpleResourceCachingHelper
+public class SimpleResourceCache
 {
-    private static final Logger logger = LoggerFactory.getLogger(SimpleResourceCachingHelper.class);
+    private static final Logger logger = LoggerFactory.getLogger(SimpleResourceCache.class);
 
     private URI resourceURI;
     private CachingStrategy cachingStrategy;
@@ -26,7 +28,7 @@ public class SimpleResourceCachingHelper
     /**
      * Create a new helper. Caching is enabled by default.
      */
-    public SimpleResourceCachingHelper()
+    public SimpleResourceCache()
     {
         this(null, null, null);
     }
@@ -39,7 +41,7 @@ public class SimpleResourceCachingHelper
      * @param cachingStrategy
      *            the caching strategy
      */
-    public SimpleResourceCachingHelper(final URI resourceURI, final CachingStrategy cachingStrategy,
+    public SimpleResourceCache(final URI resourceURI, final CachingStrategy cachingStrategy,
             final ResourceFetchFunction fetcher)
     {
         this.resourceURI = resourceURI;
@@ -106,9 +108,9 @@ public class SimpleResourceCachingHelper
      *
      * @param strategy
      *            the caching strategy
-     * @return the configured {@link SimpleResourceCachingHelper}
+     * @return the configured {@link SimpleResourceCache}
      */
-    public SimpleResourceCachingHelper withCachingStrategy(final CachingStrategy strategy)
+    public SimpleResourceCache withCachingStrategy(final CachingStrategy strategy)
     {
         this.cachingStrategy = strategy;
         return this;
@@ -119,9 +121,9 @@ public class SimpleResourceCachingHelper
      *
      * @param fetcher
      *            the desired resource fetcher
-     * @return the configured {@link SimpleResourceCachingHelper}
+     * @return the configured {@link SimpleResourceCache}
      */
-    public SimpleResourceCachingHelper withFetcher(final ResourceFetchFunction fetcher)
+    public SimpleResourceCache withFetcher(final ResourceFetchFunction fetcher)
     {
         this.defaultFetcher = fetcher;
         return this;
@@ -132,9 +134,9 @@ public class SimpleResourceCachingHelper
      *
      * @param resourceURI
      *            the URI of the desired resource
-     * @return the configured {@link SimpleResourceCachingHelper}
+     * @return the configured {@link SimpleResourceCache}
      */
-    public SimpleResourceCachingHelper withResourceURI(final URI resourceURI)
+    public SimpleResourceCache withResourceURI(final URI resourceURI)
     {
         this.resourceURI = resourceURI;
         return this;

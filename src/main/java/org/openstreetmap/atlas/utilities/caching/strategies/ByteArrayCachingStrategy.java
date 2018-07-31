@@ -17,6 +17,11 @@ import org.openstreetmap.atlas.utilities.caching.ResourceFetchFunction;
  */
 public class ByteArrayCachingStrategy extends AbstractCachingStrategy
 {
+    /*
+     * Default size is arbitrarily set to 2 MiB
+     */
+    private static final long DEFAULT_BYTE_ARRAY_SIZE = 1024 * 1024 * 2;
+
     private final Map<UUID, ByteArrayResource> resourceCache;
     private long initialArraySize;
     public boolean useExactResourceSize;
@@ -24,7 +29,7 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
     public ByteArrayCachingStrategy()
     {
         this.resourceCache = new HashMap<>();
-        this.initialArraySize = Long.MAX_VALUE;
+        this.initialArraySize = DEFAULT_BYTE_ARRAY_SIZE;
         this.useExactResourceSize = false;
     }
 
@@ -51,6 +56,12 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
         }
 
         return Optional.of(this.resourceCache.get(resourceUUID));
+    }
+
+    @Override
+    public String getName()
+    {
+        return "ByteArrayCachingStrategy";
     }
 
     /**
