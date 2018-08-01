@@ -12,9 +12,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * The basic resource cache implementation. This cache loads a resource using a given {@link URI},
- * {@link CachingStrategy}, and default {@link ResourceFetchFunction}. Since using raw URIs can
- * often be cumbersome, users of this class are encouraged to extend it and encapsulate URI
- * construction in appropriate subclass helpers.
+ * {@link CachingStrategy}, and default fetching {@link Function}. Since using raw URIs can often be
+ * cumbersome, users of this class are encouraged to extend it and encapsulate URI construction in
+ * appropriate subclass helpers.
  *
  * @author lcram
  */
@@ -24,7 +24,7 @@ public class ResourceCache
 
     private URI resourceURI;
     private CachingStrategy cachingStrategy;
-    private Function<URI, Resource> defaultFetcher;
+    private Function<URI, Resource> fetcher;
 
     /**
      * Create a new helper. Caching is enabled by default.
@@ -49,7 +49,7 @@ public class ResourceCache
     {
         this.resourceURI = resourceURI;
         this.cachingStrategy = cachingStrategy;
-        this.defaultFetcher = fetcher;
+        this.fetcher = fetcher;
     }
 
     /**
@@ -60,19 +60,11 @@ public class ResourceCache
     public Optional<Resource> getResource()
     {
         throwCoreExceptionIfResourceURIWasNull();
-
-        if (this.cachingStrategy == null)
-        {
-            throw new CoreException("Could not get resource. cachingStrategy was null");
-        }
-
-        if (this.defaultFetcher == null)
-        {
-            throw new CoreException("Could not get resource. defaultFetcher was null");
-        }
+        throwCoreExceptionIfStrategyWasNull();
+        throwCoreExceptionIfFetcherWasNull();
 
         Optional<Resource> cachedResource = this.cachingStrategy.attemptFetch(this.resourceURI,
-                this.defaultFetcher);
+                this.fetcher);
 
         if (!cachedResource.isPresent())
         {
@@ -128,7 +120,7 @@ public class ResourceCache
      */
     public ResourceCache withFetcher(final Function<URI, Resource> fetcher)
     {
-        this.defaultFetcher = fetcher;
+        this.fetcher = fetcher;
         return this;
     }
 
@@ -173,7 +165,7 @@ public class ResourceCache
      */
     protected void setDefaultFetcher(final Function<URI, Resource> fetcher)
     {
-        this.defaultFetcher = fetcher;
+        this.fetcher = fetcher;
     }
 
     /*
@@ -190,13 +182,18 @@ public class ResourceCache
      */
     private Resource getResourceDirectly()
     {
-        if (this.defaultFetcher == null)
+        throwCoreExceptionIfFetcherWasNull();
+        throwCoreExceptionIfResourceURIWasNull();
+        return this.fetcher.apply(this.resourceURI);
+    }
+
+    private void throwCoreExceptionIfFetcherWasNull()
+    {
+        if (this.fetcher == null)
         {
             throw new CoreException(
                     "defaultFetcher was null. Cannot fetch resource without a default fetcher.");
         }
-        throwCoreExceptionIfResourceURIWasNull();
-        return this.defaultFetcher.apply(this.resourceURI);
     }
 
     private void throwCoreExceptionIfResourceURIWasNull()
@@ -204,6 +201,15 @@ public class ResourceCache
         if (this.resourceURI == null)
         {
             throw new CoreException("resourceURI was null. Cannot fetch resource without a URI.");
+        }
+    }
+
+    private void throwCoreExceptionIfStrategyWasNull()
+    {
+        if (this.cachingStrategy == null)
+        {
+            throw new CoreException(
+                    "cachingStrategy was null. Cannot fetch resource without a strategy.");
         }
     }
 }

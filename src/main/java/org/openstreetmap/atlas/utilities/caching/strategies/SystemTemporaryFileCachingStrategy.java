@@ -58,11 +58,9 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
             logger.trace("Cache hit on resource {}, returning local copy", resourceURI);
             return Optional.of(cachedFile);
         }
-        else
-        {
-            logger.warn("Unexpected cache miss on resource {}", resourceURI);
-            return Optional.empty();
-        }
+
+        logger.warn("Unexpected cache miss on resource {}", resourceURI);
+        return Optional.empty();
     }
 
     @Override
