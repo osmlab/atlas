@@ -132,6 +132,19 @@ public class ResourceCache
     }
 
     /**
+     * Set the URI by passing in a URI string.
+     *
+     * @param stringURI
+     *            the {@link URI} in string format
+     * @return the configured {@link ResourceCache}
+     */
+    public ResourceCache withResourceString(final String stringURI)
+    {
+        this.resourceURI = URI.create(stringURI);
+        return this;
+    }
+
+    /**
      * Set the URI of the desired resource.
      *
      * @param resourceURI
