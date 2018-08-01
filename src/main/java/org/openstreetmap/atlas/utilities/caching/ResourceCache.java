@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.utilities.caching;
 
 import java.net.URI;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.resource.Resource;
@@ -23,7 +24,7 @@ public class ResourceCache
 
     private URI resourceURI;
     private CachingStrategy cachingStrategy;
-    private ResourceFetchFunction defaultFetcher;
+    private Function<URI, Resource> defaultFetcher;
 
     /**
      * Create a new helper. Caching is enabled by default.
@@ -44,7 +45,7 @@ public class ResourceCache
      *            the default fetcher
      */
     public ResourceCache(final URI resourceURI, final CachingStrategy cachingStrategy,
-            final ResourceFetchFunction fetcher)
+            final Function<URI, Resource> fetcher)
     {
         this.resourceURI = resourceURI;
         this.cachingStrategy = cachingStrategy;
@@ -125,7 +126,7 @@ public class ResourceCache
      *            the desired resource fetcher
      * @return the configured {@link ResourceCache}
      */
-    public ResourceCache withFetcher(final ResourceFetchFunction fetcher)
+    public ResourceCache withFetcher(final Function<URI, Resource> fetcher)
     {
         this.defaultFetcher = fetcher;
         return this;
@@ -170,7 +171,7 @@ public class ResourceCache
      * This method can be used by subclasses to provide their own custom implementations of the
      * "with" builder functions.
      */
-    protected void setDefaultFetcher(final ResourceFetchFunction fetcher)
+    protected void setDefaultFetcher(final Function<URI, Resource> fetcher)
     {
         this.defaultFetcher = fetcher;
     }
@@ -195,7 +196,7 @@ public class ResourceCache
                     "defaultFetcher was null. Cannot fetch resource without a default fetcher.");
         }
         throwCoreExceptionIfResourceURIWasNull();
-        return this.defaultFetcher.fetch(this.resourceURI);
+        return this.defaultFetcher.apply(this.resourceURI);
     }
 
     private void throwCoreExceptionIfResourceURIWasNull()

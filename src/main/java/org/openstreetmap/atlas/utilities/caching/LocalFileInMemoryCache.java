@@ -3,8 +3,10 @@ package org.openstreetmap.atlas.utilities.caching;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.function.Function;
 
 import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.utilities.caching.strategies.ByteArrayCachingStrategy;
 import org.openstreetmap.atlas.utilities.caching.strategies.CachingStrategy;
 
@@ -36,8 +38,7 @@ public class LocalFileInMemoryCache extends ResourceCache
      */
     public LocalFileInMemoryCache(final URI resourceURI)
     {
-        super(resourceURI, new ByteArrayCachingStrategy(), null);
-        this.setDefaultFetcher(uri -> new File(uri.getPath()));
+        super(resourceURI, new ByteArrayCachingStrategy(), uri -> new File(uri.getPath()));
     }
 
     @Override
@@ -48,7 +49,7 @@ public class LocalFileInMemoryCache extends ResourceCache
     }
 
     @Override
-    public LocalFileInMemoryCache withFetcher(final ResourceFetchFunction fetcher)
+    public LocalFileInMemoryCache withFetcher(final Function<URI, Resource> fetcher)
     {
         throw new UnsupportedOperationException(
                 "This cache does not support alternate default fetchers.");

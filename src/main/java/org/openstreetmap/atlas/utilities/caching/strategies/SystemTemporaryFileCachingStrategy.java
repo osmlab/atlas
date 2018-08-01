@@ -7,10 +7,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.Resource;
-import org.openstreetmap.atlas.utilities.caching.ResourceFetchFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +30,7 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
 
     @Override
     public Optional<Resource> attemptFetch(final URI resourceURI,
-            final ResourceFetchFunction defaultFetcher)
+            final Function<URI, Resource> defaultFetcher)
     {
         if (TEMPORARY_DIRECTORY_STRING == null)
         {
@@ -55,7 +55,7 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
         // cache hit!
         if (cachedFile.exists())
         {
-            logger.info("Cache hit on resource {}, returning local copy", resourceURI);
+            logger.trace("Cache hit on resource {}, returning local copy", resourceURI);
             return Optional.of(cachedFile);
         }
         else
@@ -72,14 +72,14 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
     }
 
     private void attemptToCacheFileLocally(final File cachedFile,
-            final ResourceFetchFunction defaultFetcher, final URI resourceURI)
+            final Function<URI, Resource> defaultFetcher, final URI resourceURI)
     {
         if (!cachedFile.exists())
         {
-            logger.info("Attempting to cache resource {} in temporary file {}", resourceURI,
+            logger.trace("Attempting to cache resource {} in temporary file {}", resourceURI,
                     cachedFile.toString());
 
-            final Resource resourceFromDefaultFetcher = defaultFetcher.fetch(resourceURI);
+            final Resource resourceFromDefaultFetcher = defaultFetcher.apply(resourceURI);
             final File temporaryLocalFile = File.temporary();
             try
             {
@@ -105,7 +105,7 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
                 }
                 catch (final FileAlreadyExistsException exception)
                 {
-                    logger.info("File {} is already cached", cachedFile.toString());
+                    logger.trace("File {} is already cached", cachedFile.toString());
                     return;
                 }
                 catch (final Exception exception)

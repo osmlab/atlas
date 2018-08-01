@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 
 import org.openstreetmap.atlas.streaming.resource.Resource;
-import org.openstreetmap.atlas.utilities.caching.ResourceFetchFunction;
 
 /**
  * Base implementation of the {@link CachingStrategy} interface. Provides some additional
@@ -31,7 +31,7 @@ public abstract class AbstractCachingStrategy implements CachingStrategy
 
     @Override
     public abstract Optional<Resource> attemptFetch(URI resourceURI,
-            ResourceFetchFunction defaultFetcher);
+            Function<URI, Resource> defaultFetcher);
 
     @Override
     public abstract String getName();

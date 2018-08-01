@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
-import org.openstreetmap.atlas.utilities.caching.ResourceFetchFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +38,7 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
 
     @Override
     public Optional<Resource> attemptFetch(final URI resourceURI,
-            final ResourceFetchFunction defaultFetcher)
+            final Function<URI, Resource> defaultFetcher)
     {
         final UUID resourceUUID = this.getUUIDForResourceURI(resourceURI);
 
@@ -46,7 +46,7 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
         {
             logger.info("Attempting to cache resource {} in byte array keyed on UUID {}",
                     resourceURI, resourceUUID.toString());
-            final Resource resource = defaultFetcher.fetch(resourceURI);
+            final Resource resource = defaultFetcher.apply(resourceURI);
             final ByteArrayResource resourceBytes;
             if (this.useExactResourceSize)
             {

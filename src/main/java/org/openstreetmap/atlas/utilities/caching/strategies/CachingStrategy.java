@@ -2,9 +2,9 @@ package org.openstreetmap.atlas.utilities.caching.strategies;
 
 import java.net.URI;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.openstreetmap.atlas.streaming.resource.Resource;
-import org.openstreetmap.atlas.utilities.caching.ResourceFetchFunction;
 
 /**
  * Interface definition for a caching strategy. A caching strategy must provide a method for
@@ -20,10 +20,10 @@ public interface CachingStrategy
      * @param resourceURI
      *            the {@link URI} if the desired {@link Resource}
      * @param defaultFetcher
-     *            the initial {@link ResourceFetchFunction} used to populate the cache
+     *            the initial {@link Function} used to populate the cache
      * @return the {@link Resource} wrapped in an {@link Optional}
      */
-    Optional<Resource> attemptFetch(URI resourceURI, ResourceFetchFunction defaultFetcher);
+    Optional<Resource> attemptFetch(URI resourceURI, Function<URI, Resource> defaultFetcher);
 
     /**
      * Get a strategy name for logging purposes.
