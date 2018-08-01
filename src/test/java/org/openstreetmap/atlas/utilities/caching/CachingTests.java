@@ -28,6 +28,24 @@ public class CachingTests
     private static final URI LOCAL_TEST_FILE_URI = LOCAL_TEST_FILE.toUri();
 
     @Test
+    public void testBaseCacheWithByteArrayStrategy()
+    {
+        testBaseCacheWithGivenStrategy(new ByteArrayCachingStrategy());
+    }
+
+    @Test
+    public void testBaseCacheWithLocalTemporaryStrategy()
+    {
+        testBaseCacheWithGivenStrategy(new SystemTemporaryFileCachingStrategy());
+    }
+
+    @Test
+    public void testBaseCacheWithNoStrategy()
+    {
+        testBaseCacheWithGivenStrategy(new NoCachingStrategy());
+    }
+
+    @Test
     public void testLocalFileInMemoryCache()
     {
         final LocalFileInMemoryCache resourceCache = new LocalFileInMemoryCache()
@@ -49,24 +67,6 @@ public class CachingTests
         fileBytesCacheHit.copyFrom(resourceCache.getResource().get());
         final byte[] fileBytesCacheHitArray = fileBytesCacheHit.readBytesAndClose();
         Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheHitArray);
-    }
-
-    @Test
-    public void testSimpleCacherWithByteArrayStrategy()
-    {
-        testBaseCacheWithGivenStrategy(new ByteArrayCachingStrategy());
-    }
-
-    @Test
-    public void testSimpleCacherWithLocalTemporaryStrategy()
-    {
-        testBaseCacheWithGivenStrategy(new SystemTemporaryFileCachingStrategy());
-    }
-
-    @Test
-    public void testSimpleCacherWithNoStrategy()
-    {
-        testBaseCacheWithGivenStrategy(new NoCachingStrategy());
     }
 
     private Resource fetchLocalFileResource(final URI resourceURI)
