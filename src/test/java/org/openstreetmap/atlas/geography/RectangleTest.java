@@ -2,6 +2,8 @@ package org.openstreetmap.atlas.geography;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
 
 /**
@@ -36,6 +38,54 @@ public class RectangleTest
                 this.rectangle2.overlaps(this.rectangle4));
         Assert.assertFalse("But does not fully contain it",
                 this.rectangle2.fullyGeometricallyEncloses(this.rectangle4));
+    }
+
+    @Test
+    public void testContract()
+    {
+        // Test over contract
+        final Distance rectangle1CornerToCorner = this.rectangle1.lowerLeft()
+                .distanceTo(this.rectangle1.upperRight());
+        final Rectangle collapsedRectangle1 = this.rectangle1.contract(rectangle1CornerToCorner);
+        Assert.assertEquals(collapsedRectangle1.center().bounds(), collapsedRectangle1);
+        Assert.assertEquals(Surface.forDm7Squared(0), collapsedRectangle1.surface());
+
+        // test compatibility with expand
+        final Rectangle expanded = this.rectangle1.expand(Distance.ONE_METER);
+        Assert.assertEquals(this.rectangle1, expanded.contract(Distance.ONE_METER));
+
+        // test collapse horizontally
+        final Location rectangle1UpperLeft = Iterables.asList(this.rectangle1).get(1);
+        final Distance contractRectangle1Distance = rectangle1UpperLeft
+                .distanceTo(this.rectangle1.upperRight()).scaleBy(.51);
+        final Rectangle collapsedHorizontally = this.rectangle1
+                .contract(contractRectangle1Distance);
+        Assert.assertEquals(Surface.forDm7Squared(0), collapsedHorizontally.surface());
+        Assert.assertEquals(collapsedHorizontally.surface(),
+                this.rectangle1.contract(contractRectangle1Distance.scaleBy(10)).surface());
+        Assert.assertEquals(Math.round(contractRectangle1Distance.asMeters()),
+                Math.round(new Location(this.rectangle1.lowerLeft().getLatitude(),
+                        collapsedHorizontally.middle().getLongitude())
+                                .distanceTo(collapsedHorizontally.lowerLeft()).asMeters()));
+
+        // test collapse vertically
+        final Location rectangle2UpperLeft = Iterables.asList(this.rectangle2).get(1);
+        final Distance contractRectangle2Distance = rectangle2UpperLeft
+                .distanceTo(this.rectangle2.lowerLeft()).scaleBy(.51);
+        final Rectangle collapsedVertically = this.rectangle2.contract(contractRectangle2Distance);
+        Assert.assertEquals(Surface.forDm7Squared(0), collapsedVertically.surface());
+        Assert.assertEquals(collapsedVertically.surface(),
+                this.rectangle2.contract(contractRectangle2Distance.scaleBy(10)).surface());
+        Assert.assertEquals(Math.round(contractRectangle2Distance.asMeters()),
+                Math.round(new Location(collapsedVertically.middle().getLatitude(),
+                        this.rectangle2.lowerLeft().getLongitude())
+                                .distanceTo(collapsedVertically.lowerLeft()).asMeters()));
+
+        // Test fully collapse Collapsed
+        Assert.assertEquals(this.rectangle1.center().bounds(),
+                collapsedHorizontally.contract(Distance.TEN_MILES));
+        Assert.assertEquals(this.rectangle2.center().bounds(),
+                collapsedVertically.contract(Distance.TEN_MILES));
     }
 
     @Test

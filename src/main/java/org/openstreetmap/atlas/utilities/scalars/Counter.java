@@ -29,6 +29,13 @@ public class Counter
         return this.value;
     }
 
+    public long getValueAndIncrement()
+    {
+        final long toReturn = this.value;
+        this.increment();
+        return toReturn;
+    }
+
     public void increment()
     {
         this.add(1L);
