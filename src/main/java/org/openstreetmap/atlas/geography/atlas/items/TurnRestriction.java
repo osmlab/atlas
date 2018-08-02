@@ -329,7 +329,7 @@ public final class TurnRestriction implements Located, Serializable
                 // being put into the route, build a route using all unique edges once. This method
                 // attempts to build a route from from the end of from to start of too.
                 viaMember = Route.buildFullRouteIgnoringReverseEdges(viaEdges,
-                        this.from.end().end(), this.too.start().start());
+                        fromMember.end().end(), toMember.start().start());
             }
         }
         catch (final CoreException e)
