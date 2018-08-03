@@ -30,10 +30,10 @@ public class CachingTests
      */
     private class CacheTask implements Runnable
     {
-        final ConcurrentResourceCache cache;
+        private final ConcurrentResourceCache cache;
         private final int size;
 
-        public CacheTask(final ConcurrentResourceCache cache, final int size)
+        CacheTask(final ConcurrentResourceCache cache, final int size)
         {
             this.cache = cache;
             this.size = size;
@@ -47,7 +47,7 @@ public class CachingTests
             final Random random = new Random();
             for (int i = 0; i < this.size; i++)
             {
-                Resource resource;
+                final Resource resource;
                 if (random.nextBoolean())
                 {
                     resource = this.cache.get(LOCAL_TEST_FILE_URI).get();

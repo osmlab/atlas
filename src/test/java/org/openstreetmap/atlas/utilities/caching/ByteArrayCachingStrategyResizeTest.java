@@ -11,6 +11,9 @@ import org.openstreetmap.atlas.utilities.caching.strategies.ByteArrayCachingStra
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @author lcram
+ */
 public class ByteArrayCachingStrategyResizeTest
 {
     private static final Logger logger = LoggerFactory
