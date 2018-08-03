@@ -13,6 +13,7 @@ import org.openstreetmap.atlas.utilities.caching.strategies.ByteArrayCachingStra
 import org.openstreetmap.atlas.utilities.caching.strategies.CachingStrategy;
 import org.openstreetmap.atlas.utilities.caching.strategies.NoCachingStrategy;
 import org.openstreetmap.atlas.utilities.caching.strategies.SystemTemporaryFileCachingStrategy;
+import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,10 +22,24 @@ import org.slf4j.LoggerFactory;
  */
 public class CachingTests
 {
-    private static final Logger logger = LoggerFactory.getLogger(CachingTests.class);
+    private class Task implements Runnable
+    {
+        @Override
+        public void run()
+        {
+            final int testSize = 10000;
+            final LocalFileInMemoryCache cache = new LocalFileInMemoryCache();
+            for (int i = 0; i < testSize; i++)
+            {
+                cache.get(LOCAL_TEST_FILE.toString());
+            }
+        }
+    }
 
+    private static final Logger logger = LoggerFactory.getLogger(CachingTests.class);
     private static final Path LOCAL_TEST_FILE = Paths.get("src/test/resources/log4j.properties")
             .toAbsolutePath();
+
     private static final URI LOCAL_TEST_FILE_URI = LOCAL_TEST_FILE.toUri();
 
     @Test
@@ -48,8 +63,7 @@ public class CachingTests
     @Test
     public void testLocalFileInMemoryCache()
     {
-        final LocalFileInMemoryCache resourceCache = new LocalFileInMemoryCache()
-                .withPath(LOCAL_TEST_FILE.toString());
+        final LocalFileInMemoryCache cache = new LocalFileInMemoryCache();
 
         // read the contents of the file
         final ByteArrayResource originalFileBytes = new ByteArrayResource();
@@ -58,15 +72,32 @@ public class CachingTests
 
         // read contents of the file with cache, this will incur a cache miss
         final ByteArrayResource fileBytesCacheMiss = new ByteArrayResource();
-        fileBytesCacheMiss.copyFrom(resourceCache.getResource().get());
+        fileBytesCacheMiss.copyFrom(cache.get(LOCAL_TEST_FILE.toString()).get());
         final byte[] fileBytesCacheMissArray = fileBytesCacheMiss.readBytesAndClose();
         Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheMissArray);
 
         // read contents again, this time with a cache hit
         final ByteArrayResource fileBytesCacheHit = new ByteArrayResource();
-        fileBytesCacheHit.copyFrom(resourceCache.getResource().get());
+        fileBytesCacheHit.copyFrom(cache.get(LOCAL_TEST_FILE.toString()).get());
         final byte[] fileBytesCacheHitArray = fileBytesCacheHit.readBytesAndClose();
         Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheHitArray);
+    }
+
+    @Test
+    public void testRepeatedCacheReads() throws InterruptedException
+    {
+        final Thread thread1 = new Thread(new Task());
+        final Thread thread2 = new Thread(new Task());
+
+        final Time time = Time.now();
+
+        thread1.start();
+        thread2.start();
+
+        thread1.join();
+        thread2.join();
+
+        logger.info("ELAPSED: {}", time.elapsedSince());
     }
 
     private Resource fetchLocalFileResource(final URI resourceURI)
@@ -79,8 +110,8 @@ public class CachingTests
     {
         logger.info("Testing with caching strategy {}", strategy.getName());
 
-        final ResourceCache resourceCache = new ResourceCache().withCachingStrategy(strategy)
-                .withFetcher(this::fetchLocalFileResource);
+        final ConcurrentResourceCache resourceCache = new ConcurrentResourceCache(strategy,
+                this::fetchLocalFileResource);
 
         // read the contents of the file
         final ByteArrayResource originalFileBytes = new ByteArrayResource();
@@ -89,15 +120,13 @@ public class CachingTests
 
         // read contents of the file with cache, this will incur a cache miss
         final ByteArrayResource fileBytesCacheMiss = new ByteArrayResource();
-        fileBytesCacheMiss
-                .copyFrom(resourceCache.withResourceURI(LOCAL_TEST_FILE_URI).getResource().get());
+        fileBytesCacheMiss.copyFrom(resourceCache.get(LOCAL_TEST_FILE_URI).get());
         final byte[] fileBytesCacheMissArray = fileBytesCacheMiss.readBytesAndClose();
         Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheMissArray);
 
         // read contents again, this time with a cache hit
         final ByteArrayResource fileBytesCacheHit = new ByteArrayResource();
-        fileBytesCacheHit
-                .copyFrom(resourceCache.withResourceURI(LOCAL_TEST_FILE_URI).getResource().get());
+        fileBytesCacheHit.copyFrom(resourceCache.get(LOCAL_TEST_FILE_URI).get());
         final byte[] fileBytesCacheHitArray = fileBytesCacheHit.readBytesAndClose();
         Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheHitArray);
     }
