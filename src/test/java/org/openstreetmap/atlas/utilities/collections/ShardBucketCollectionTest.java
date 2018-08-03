@@ -226,7 +226,7 @@ public class ShardBucketCollectionTest
         Assert.assertEquals(maxBounds, polylineBuckets1.getMaximumBounds());
     }
 
-    @Test
+    @Test(expected = UnsupportedOperationException.class)
     public void testUnimplemented()
     {
         final Rectangle maxBounds = SlippyTile.forName("1-0-0").bounds()
@@ -237,18 +237,7 @@ public class ShardBucketCollectionTest
                 maxBounds, 3);
         // a polyline that will intersect with multiple buckets
         final PolyLine testPolyLine1 = this.polylineForShards(SlippyTile.allTiles(3, maxBounds));
-
-        boolean caught = false;
-        try
-        {
-            unsupportedOperation.add(testPolyLine1);
-        }
-        catch (final UnsupportedOperationException exception)
-        {
-            caught = true;
-        }
-
-        Assert.assertTrue("Resolve shard default method is an unsupported operation", caught);
+        unsupportedOperation.add(testPolyLine1);
     }
 
     /**

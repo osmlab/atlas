@@ -21,7 +21,7 @@ import org.openstreetmap.atlas.utilities.maps.MultiMap;
 public class ShardBucketCollectionTestClasses
 {
     /**
-     * Collection that will handle splitting multipolygons into buckets by overrideing the add
+     * Collection that will handle splitting multipolygons into buckets by overriding the add
      * function
      */
     public static class MultiPolygonSort

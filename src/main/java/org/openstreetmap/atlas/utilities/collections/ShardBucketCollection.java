@@ -89,7 +89,7 @@ public abstract class ShardBucketCollection<LocatedType extends Located & Serial
     }
 
     /**
-     * Construct the collection by allocation space for a collection for each of the shards and
+     * Construct the collection by allocating space for a collection for each of the shards and
      * assigning the index back.
      * 
      * @param maximumBounds
@@ -364,7 +364,7 @@ public abstract class ShardBucketCollection<LocatedType extends Located & Serial
      *            to add to
      * @param shard
      *            shard associated with the collection
-     * @return true if the collection has been added to successful and changed as a result, false
+     * @return true if the collection has been added to successfully and changed as a result, false
      *         otherwise
      */
     protected boolean addFunction(final LocatedType item, final CollectionType collection,
