@@ -3,10 +3,11 @@ package org.openstreetmap.atlas.utilities.caching;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.function.Function;
+import java.util.Random;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.Resource;
@@ -29,26 +30,40 @@ public class CachingTests
      */
     private class CacheTask implements Runnable
     {
-        private final CachingStrategy strategy;
-        private final Function<URI, Resource> fetcher;
+        final ConcurrentResourceCache cache;
         private final int size;
 
-        public CacheTask(final CachingStrategy strategy, final Function<URI, Resource> fetcher,
-                final int size)
+        public CacheTask(final ConcurrentResourceCache cache, final int size)
         {
-            this.strategy = strategy;
-            this.fetcher = fetcher;
+            this.cache = cache;
             this.size = size;
         }
 
         @Override
         public void run()
         {
-            final ConcurrentResourceCache cache = new ConcurrentResourceCache(this.strategy,
-                    this.fetcher);
+            final Resource resource1 = new File(LOCAL_TEST_FILE.toString());
+            final Resource resource2 = new File(LOCAL_TEST_FILE_2.toString());
+            final Random random = new Random();
             for (int i = 0; i < this.size; i++)
             {
-                cache.get(LOCAL_TEST_FILE_URI);
+                Resource resource;
+                if (random.nextBoolean())
+                {
+                    resource = this.cache.get(LOCAL_TEST_FILE_URI).get();
+                    if (!resource.readAndClose().equals(resource1.readAndClose()))
+                    {
+                        throw new CoreException("Unexpected resource discrepancy");
+                    }
+                }
+                else
+                {
+                    resource = this.cache.get(LOCAL_TEST_FILE_2_URI).get();
+                    if (!resource.readAndClose().equals(resource2.readAndClose()))
+                    {
+                        throw new CoreException("Unexpected resource discrepancy");
+                    }
+                }
             }
         }
     }
@@ -58,8 +73,11 @@ public class CachingTests
     private static final Logger logger = LoggerFactory.getLogger(CachingTests.class);
     private static final Path LOCAL_TEST_FILE = Paths.get("src/test/resources/log4j.properties")
             .toAbsolutePath();
-
     private static final URI LOCAL_TEST_FILE_URI = LOCAL_TEST_FILE.toUri();
+    private static final Path LOCAL_TEST_FILE_2 = Paths
+            .get("src/test/resources/org/openstreetmap/atlas/utilities/configuration/feature.json")
+            .toAbsolutePath();
+    private static final URI LOCAL_TEST_FILE_2_URI = LOCAL_TEST_FILE_2.toUri();
 
     @Test
     public void testBaseCacheWithByteArrayStrategy()
@@ -105,42 +123,61 @@ public class CachingTests
     @Test
     public void testRepeatedCacheReads() throws InterruptedException
     {
-        final Thread thread1 = new Thread(new CacheTask(new ByteArrayCachingStrategy(),
-                this::fetchLocalFileResource, TASK_SIZE));
-        final Thread thread2 = new Thread(new CacheTask(new ByteArrayCachingStrategy(),
-                this::fetchLocalFileResource, TASK_SIZE));
-        final Time time1 = Time.now();
-        thread1.start();
-        thread2.start();
-        thread1.join();
-        thread2.join();
-        final Duration duration1 = time1.elapsedSince();
+        try
+        {
+            final ConcurrentResourceCache sharedCache1 = new ConcurrentResourceCache(
+                    new ByteArrayCachingStrategy(), this::fetchLocalFileResource);
+            final Thread thread1 = new Thread(new CacheTask(sharedCache1, TASK_SIZE));
+            final Thread thread2 = new Thread(new CacheTask(sharedCache1, TASK_SIZE));
+            final Thread thread3 = new Thread(new CacheTask(sharedCache1, TASK_SIZE));
+            final Thread thread4 = new Thread(new CacheTask(sharedCache1, TASK_SIZE));
+            final Thread thread5 = new Thread(new CacheTask(sharedCache1, TASK_SIZE));
+            final Thread thread6 = new Thread(new CacheTask(sharedCache1, TASK_SIZE));
+            final Time time1 = Time.now();
+            thread1.start();
+            thread2.start();
+            thread3.start();
+            thread4.start();
+            thread5.start();
+            thread6.start();
+            thread1.join();
+            thread2.join();
+            thread3.join();
+            thread4.join();
+            thread5.join();
+            thread6.join();
+            final Duration duration1 = time1.elapsedSince();
 
-        final Thread thread3 = new Thread(new CacheTask(new SystemTemporaryFileCachingStrategy(),
-                this::fetchLocalFileResource, TASK_SIZE));
-        final Thread thread4 = new Thread(new CacheTask(new SystemTemporaryFileCachingStrategy(),
-                this::fetchLocalFileResource, TASK_SIZE));
-        final Time time2 = Time.now();
-        thread3.start();
-        thread4.start();
-        thread3.join();
-        thread4.join();
-        final Duration duration2 = time2.elapsedSince();
+            final ConcurrentResourceCache sharedCache2 = new ConcurrentResourceCache(
+                    new NoCachingStrategy(), this::fetchLocalFileResource);
+            final Thread thread7 = new Thread(new CacheTask(sharedCache2, TASK_SIZE));
+            final Thread thread8 = new Thread(new CacheTask(sharedCache2, TASK_SIZE));
+            final Thread thread9 = new Thread(new CacheTask(sharedCache2, TASK_SIZE));
+            final Thread thread10 = new Thread(new CacheTask(sharedCache2, TASK_SIZE));
+            final Thread thread11 = new Thread(new CacheTask(sharedCache2, TASK_SIZE));
+            final Thread thread12 = new Thread(new CacheTask(sharedCache2, TASK_SIZE));
+            final Time time2 = Time.now();
+            thread7.start();
+            thread8.start();
+            thread9.start();
+            thread10.start();
+            thread11.start();
+            thread12.start();
+            thread7.join();
+            thread8.join();
+            thread9.join();
+            thread10.join();
+            thread11.join();
+            thread12.join();
+            final Duration duration2 = time2.elapsedSince();
 
-        final Thread thread5 = new Thread(
-                new CacheTask(new NoCachingStrategy(), this::fetchLocalFileResource, TASK_SIZE));
-        final Thread thread6 = new Thread(
-                new CacheTask(new NoCachingStrategy(), this::fetchLocalFileResource, TASK_SIZE));
-        final Time time3 = Time.now();
-        thread5.start();
-        thread6.start();
-        thread5.join();
-        thread6.join();
-        final Duration duration3 = time3.elapsedSince();
-
-        logger.info("File in memory ELAPSED: {}", duration1);
-        logger.info("System temp file ELAPSED: {}", duration2);
-        logger.info("No strategy ELAPSED: {}", duration3);
+            logger.info("File in memory ELAPSED: {}", duration1);
+            logger.info("No strategy ELAPSED: {}", duration2);
+        }
+        catch (final CoreException exception)
+        {
+            Assert.fail("A multithreaded discrepancy test failed");
+        }
     }
 
     private Resource fetchLocalFileResource(final URI resourceURI)
