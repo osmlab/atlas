@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography;
 
+import java.util.Arrays;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
@@ -74,5 +76,35 @@ public class RectangleTest
         Assert.assertTrue(surface.isLessThan(this.rectangle3.surface()));
         Assert.assertTrue(this.rectangle1.surface().add(this.rectangle2.surface())
                 .isLessThan(this.rectangle3.surface()));
+    }
+
+    @Test
+    public void testAntiMeridianEastRectangle()
+    {
+        final Location antiMeridian = new Location(Latitude.ZERO, Longitude.degrees(180));
+        final Location lowerLeftAntiMeridianRectangle = new Location(Latitude.degrees(-10),
+                Longitude.degrees(170));
+        final Location lowerLeftTestRectangle = new Location(Latitude.degrees(-10),
+                Longitude.degrees(150));
+        final Location upperRightTestRectangle1 = new Location(Latitude.ZERO,
+                Longitude.degrees(160));
+        final Location upperRightTestRectangle2 = new Location(Latitude.ZERO,
+                Longitude.degrees(175));
+
+        // List construction
+        final Rectangle antiMeridianRectangle1 = Rectangle
+                .forLocations(Arrays.asList(antiMeridian, lowerLeftAntiMeridianRectangle));
+        final Rectangle testRectangle1 = Rectangle
+                .forLocations(Arrays.asList(upperRightTestRectangle1, lowerLeftTestRectangle));
+        Assert.assertFalse(testRectangle1.overlaps(antiMeridianRectangle1));
+        Assert.assertFalse(antiMeridianRectangle1.overlaps(testRectangle1));
+
+        // Corners construction
+        final Rectangle antiMeridianRectangle2 = Rectangle
+                .forCorners(lowerLeftAntiMeridianRectangle, antiMeridian);
+        final Rectangle testRectangle2 = Rectangle.forCorners(lowerLeftTestRectangle,
+                upperRightTestRectangle2);
+        Assert.assertTrue(testRectangle2.overlaps(antiMeridianRectangle2));
+        Assert.assertTrue(antiMeridianRectangle2.overlaps(testRectangle2));
     }
 }
