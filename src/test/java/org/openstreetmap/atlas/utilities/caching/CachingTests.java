@@ -63,7 +63,7 @@ public class CachingTests
     @Test
     public void testLocalFileInMemoryCache()
     {
-        final LocalFileInMemoryCache cache = new LocalFileInMemoryCache();
+        final Cache<URI, Resource> cache = new LocalFileInMemoryCache();
 
         // read the contents of the file
         final ByteArrayResource originalFileBytes = new ByteArrayResource();
@@ -110,7 +110,7 @@ public class CachingTests
     {
         logger.info("Testing with caching strategy {}", strategy.getName());
 
-        final ConcurrentResourceCache resourceCache = new ConcurrentResourceCache(strategy,
+        final Cache<URI, Resource> resourceCache = new ConcurrentResourceCache(strategy,
                 this::fetchLocalFileResource);
 
         // read the contents of the file
