@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.utilities.caching;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.function.Function;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -13,6 +14,7 @@ import org.openstreetmap.atlas.utilities.caching.strategies.ByteArrayCachingStra
 import org.openstreetmap.atlas.utilities.caching.strategies.CachingStrategy;
 import org.openstreetmap.atlas.utilities.caching.strategies.NoCachingStrategy;
 import org.openstreetmap.atlas.utilities.caching.strategies.SystemTemporaryFileCachingStrategy;
+import org.openstreetmap.atlas.utilities.scalars.Duration;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,19 +27,33 @@ public class CachingTests
     /**
      * @author lcram
      */
-    private class Task implements Runnable
+    private class CacheTask implements Runnable
     {
+        private final CachingStrategy strategy;
+        private final Function<URI, Resource> fetcher;
+        private final int size;
+
+        public CacheTask(final CachingStrategy strategy, final Function<URI, Resource> fetcher,
+                final int size)
+        {
+            this.strategy = strategy;
+            this.fetcher = fetcher;
+            this.size = size;
+        }
+
         @Override
         public void run()
         {
-            final int testSize = 10000;
-            final LocalFileInMemoryCache cache = new LocalFileInMemoryCache();
-            for (int i = 0; i < testSize; i++)
+            final ConcurrentResourceCache cache = new ConcurrentResourceCache(this.strategy,
+                    this.fetcher);
+            for (int i = 0; i < this.size; i++)
             {
-                cache.get(LOCAL_TEST_FILE.toString());
+                cache.get(LOCAL_TEST_FILE_URI);
             }
         }
     }
+
+    private static final int TASK_SIZE = 10000;
 
     private static final Logger logger = LoggerFactory.getLogger(CachingTests.class);
     private static final Path LOCAL_TEST_FILE = Paths.get("src/test/resources/log4j.properties")
@@ -89,18 +105,42 @@ public class CachingTests
     @Test
     public void testRepeatedCacheReads() throws InterruptedException
     {
-        final Thread thread1 = new Thread(new Task());
-        final Thread thread2 = new Thread(new Task());
-
-        final Time time = Time.now();
-
+        final Thread thread1 = new Thread(new CacheTask(new ByteArrayCachingStrategy(),
+                this::fetchLocalFileResource, TASK_SIZE));
+        final Thread thread2 = new Thread(new CacheTask(new ByteArrayCachingStrategy(),
+                this::fetchLocalFileResource, TASK_SIZE));
+        final Time time1 = Time.now();
         thread1.start();
         thread2.start();
-
         thread1.join();
         thread2.join();
+        final Duration duration1 = time1.elapsedSince();
 
-        logger.info("ELAPSED: {}", time.elapsedSince());
+        final Thread thread3 = new Thread(new CacheTask(new SystemTemporaryFileCachingStrategy(),
+                this::fetchLocalFileResource, TASK_SIZE));
+        final Thread thread4 = new Thread(new CacheTask(new SystemTemporaryFileCachingStrategy(),
+                this::fetchLocalFileResource, TASK_SIZE));
+        final Time time2 = Time.now();
+        thread3.start();
+        thread4.start();
+        thread3.join();
+        thread4.join();
+        final Duration duration2 = time2.elapsedSince();
+
+        final Thread thread5 = new Thread(
+                new CacheTask(new NoCachingStrategy(), this::fetchLocalFileResource, TASK_SIZE));
+        final Thread thread6 = new Thread(
+                new CacheTask(new NoCachingStrategy(), this::fetchLocalFileResource, TASK_SIZE));
+        final Time time3 = Time.now();
+        thread5.start();
+        thread6.start();
+        thread5.join();
+        thread6.join();
+        final Duration duration3 = time3.elapsedSince();
+
+        logger.info("File in memory ELAPSED: {}", duration1);
+        logger.info("System temp file ELAPSED: {}", duration2);
+        logger.info("No strategy ELAPSED: {}", duration3);
     }
 
     private Resource fetchLocalFileResource(final URI resourceURI)
