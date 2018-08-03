@@ -43,6 +43,7 @@ public class WaySectionProcessorTest
                 finalAtlas.numberOfEdges());
         Assert.assertEquals("Two nodes", 2, finalAtlas.numberOfNodes());
 
+        // Explicit check for expected identifiers
         Assert.assertTrue(finalAtlas.edge(317579533000001L) != null);
         Assert.assertTrue(finalAtlas.edge(-317579533000001L) != null);
         Assert.assertTrue(finalAtlas.edge(317579533000002L) != null);
@@ -62,6 +63,12 @@ public class WaySectionProcessorTest
         Assert.assertEquals("Two nodes", 2, finalAtlas.numberOfNodes());
         Assert.assertEquals(4, finalAtlas.node(4566499618000000L).connectedEdges().size());
         Assert.assertEquals(2, finalAtlas.node(4566499619000000L).connectedEdges().size());
+
+        // Explicit check for expected identifiers
+        Assert.assertTrue(finalAtlas.edge(461101743000001L) != null);
+        Assert.assertTrue(finalAtlas.edge(-461101743000001L) != null);
+        Assert.assertTrue(finalAtlas.edge(461101743000002L) != null);
+        Assert.assertTrue(finalAtlas.edge(-461101743000002L) != null);
     }
 
     @Test
@@ -78,6 +85,14 @@ public class WaySectionProcessorTest
         Assert.assertEquals(4, finalAtlas.node(4560902689000000L).connectedEdges().size());
         Assert.assertEquals(2, finalAtlas.node(4560902695000000L).connectedEdges().size());
         Assert.assertEquals(4, finalAtlas.node(4560902693000000L).connectedEdges().size());
+
+        // Explicit check for expected identifiers
+        Assert.assertTrue(finalAtlas.edge(460419987000001L) != null);
+        Assert.assertTrue(finalAtlas.edge(-460419987000001L) != null);
+        Assert.assertTrue(finalAtlas.edge(460419987000002L) != null);
+        Assert.assertTrue(finalAtlas.edge(-460419987000002L) != null);
+        Assert.assertTrue(finalAtlas.edge(460419987000003L) != null);
+        Assert.assertTrue(finalAtlas.edge(-460419987000003L) != null);
     }
 
     @Test
@@ -96,6 +111,16 @@ public class WaySectionProcessorTest
         Assert.assertEquals(4, finalAtlas.node(4560902693000000L).connectedEdges().size());
         Assert.assertEquals(2, finalAtlas.node(4560902612000000L).connectedEdges().size());
         Assert.assertEquals(6, finalAtlas.node(4560902689000000L).connectedEdges().size());
+
+        // Explicit check for expected identifiers
+        Assert.assertTrue(finalAtlas.edge(460419987000001L) != null);
+        Assert.assertTrue(finalAtlas.edge(-460419987000001L) != null);
+        Assert.assertTrue(finalAtlas.edge(460419987000002L) != null);
+        Assert.assertTrue(finalAtlas.edge(-460419987000003L) != null);
+        Assert.assertTrue(finalAtlas.edge(460419987000003L) != null);
+        Assert.assertTrue(finalAtlas.edge(-460419987000003L) != null);
+        Assert.assertTrue(finalAtlas.edge(460419987000004L) != null);
+        Assert.assertTrue(finalAtlas.edge(-460419987000004L) != null);
     }
 
     @Test
