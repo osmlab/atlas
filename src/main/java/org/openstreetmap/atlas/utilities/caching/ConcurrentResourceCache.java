@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author lcram
  */
-public class ConcurrentResourceCache implements Cache<URI, Resource>
+public class ConcurrentResourceCache
 {
     private static final Logger logger = LoggerFactory.getLogger(ConcurrentResourceCache.class);
 
@@ -59,7 +59,6 @@ public class ConcurrentResourceCache implements Cache<URI, Resource>
      *            the resource {@link URI}
      * @return an {@link Optional} wrapping the {@link Resource}
      */
-    @Override
     public Optional<Resource> get(final URI resourceURI)
     {
         Optional<Resource> cachedResource;

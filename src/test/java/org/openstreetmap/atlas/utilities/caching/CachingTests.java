@@ -22,6 +22,9 @@ import org.slf4j.LoggerFactory;
  */
 public class CachingTests
 {
+    /**
+     * @author lcram
+     */
     private class Task implements Runnable
     {
         @Override
@@ -63,7 +66,7 @@ public class CachingTests
     @Test
     public void testLocalFileInMemoryCache()
     {
-        final Cache<URI, Resource> cache = new LocalFileInMemoryCache();
+        final LocalFileInMemoryCache cache = new LocalFileInMemoryCache();
 
         // read the contents of the file
         final ByteArrayResource originalFileBytes = new ByteArrayResource();
@@ -110,7 +113,7 @@ public class CachingTests
     {
         logger.info("Testing with caching strategy {}", strategy.getName());
 
-        final Cache<URI, Resource> resourceCache = new ConcurrentResourceCache(strategy,
+        final ConcurrentResourceCache resourceCache = new ConcurrentResourceCache(strategy,
                 this::fetchLocalFileResource);
 
         // read the contents of the file
