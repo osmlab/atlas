@@ -47,23 +47,23 @@ public class CachingTests
             final Random random = new Random();
             for (int i = 0; i < this.size; i++)
             {
-                final Resource resource;
                 if (random.nextBoolean())
                 {
-                    resource = this.cache.get(LOCAL_TEST_FILE_URI).get();
-                    if (!resource.readAndClose().equals(resource1.readAndClose()))
-                    {
-                        throw new CoreException("Unexpected resource discrepancy");
-                    }
+                    compareFetchedResource(LOCAL_TEST_FILE_URI, resource1);
                 }
                 else
                 {
-                    resource = this.cache.get(LOCAL_TEST_FILE_2_URI).get();
-                    if (!resource.readAndClose().equals(resource2.readAndClose()))
-                    {
-                        throw new CoreException("Unexpected resource discrepancy");
-                    }
+                    compareFetchedResource(LOCAL_TEST_FILE_2_URI, resource2);
                 }
+            }
+        }
+
+        private void compareFetchedResource(final URI resourceURI, final Resource goldenResource)
+        {
+            final Resource resource = this.cache.get(resourceURI).get();
+            if (!resource.readAndClose().equals(goldenResource.readAndClose()))
+            {
+                throw new CoreException("Unexpected resource discrepancy");
             }
         }
     }
