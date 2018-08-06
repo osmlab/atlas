@@ -42,7 +42,7 @@ public abstract class ShardBucketCollection<LocatedType extends Located & Serial
      * A helper class that associates a shard with the index that its collection is at in the
      * collectionBuckets array.
      */
-    private static class ShardToCollectionIndex implements Located
+    private static class ShardToCollectionIndex implements Located, Serializable
     {
         private static final long serialVersionUID = 4050100671815503794L;
         private final int index;
