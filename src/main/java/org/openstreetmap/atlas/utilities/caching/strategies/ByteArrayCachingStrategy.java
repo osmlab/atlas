@@ -74,6 +74,12 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
         return "ByteArrayCachingStrategy";
     }
 
+    @Override
+    public void invalidate()
+    {
+        this.resourceCache.clear();
+    }
+
     /**
      * Use the exact resource size of the byte arrays of the cache. This may cause performance
      * degradation on cache misses, since some resources do not store their length as metadata.

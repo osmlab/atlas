@@ -25,4 +25,10 @@ public class NoCachingStrategy extends AbstractCachingStrategy
     {
         return "NoCachingStrategy";
     }
+
+    @Override
+    public void invalidate()
+    {
+        return;
+    }
 }
