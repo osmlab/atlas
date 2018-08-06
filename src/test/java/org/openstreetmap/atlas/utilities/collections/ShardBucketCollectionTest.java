@@ -16,6 +16,7 @@ import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
+import org.openstreetmap.atlas.utilities.testing.FreezeDryFunction;
 
 /**
  * Test for example {@link ShardBucketCollection}s
@@ -31,7 +32,7 @@ public class ShardBucketCollectionTest
         final Rectangle maxBounds = SlippyTile.forName("1-0-0").bounds()
                 .contract(Distance.ONE_METER);
 
-        final ShardBucketCollectionTestClasses.MultiPolygonSort multiPolygonSort = new ShardBucketCollectionTestClasses.MultiPolygonSort(
+        ShardBucketCollectionTestClasses.MultiPolygonSort multiPolygonSort = new ShardBucketCollectionTestClasses.MultiPolygonSort(
                 maxBounds, 4);
 
         final MultiPolygon firstShardMultiPolygon = this
@@ -44,6 +45,12 @@ public class ShardBucketCollectionTest
         // the combined multipolygon will be sorted into the two different buckets as the original
         // multipolygons
         multiPolygonSort.add(combinedMultiPolygon);
+        Assert.assertTrue(multiPolygonSort.contains(firstShardMultiPolygon));
+        Assert.assertTrue(multiPolygonSort.contains(secondShardMultiPolygon));
+
+        // test serialization
+        multiPolygonSort = new FreezeDryFunction<ShardBucketCollectionTestClasses.MultiPolygonSort>()
+                .apply(multiPolygonSort);
         Assert.assertTrue(multiPolygonSort.contains(firstShardMultiPolygon));
         Assert.assertTrue(multiPolygonSort.contains(secondShardMultiPolygon));
 
