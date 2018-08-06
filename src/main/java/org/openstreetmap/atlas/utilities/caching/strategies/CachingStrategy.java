@@ -33,7 +33,7 @@ public interface CachingStrategy
     String getName();
 
     /**
-     * Invalidate the contents of this cache. The contract of this method is the following: a
+     * Invalidate the contents of this strategy. The contract of this method is the following: a
      * {@link URI} that produces a cache hit on an {@link CachingStrategy#attemptFetch} before an
      * {@link CachingStrategy#invalidate} call must produce a cache miss on the first
      * {@link CachingStrategy#attemptFetch} after an {@link CachingStrategy#invalidate} call.
