@@ -1001,10 +1001,11 @@ public class WaySectionProcessor
                     // identifier will start at 000.
                     final long edgeIdentifier;
                     if (!line.isClosed() && nodesToSectionAt.size() == 2
-                            && polyline.size() - 1 == index)
+                            && polyline.size() - 1 == index && newEdgesForLine.isEmpty())
                     {
                         // The only time we want to do this is if there are two nodes, the line
-                        // isn't a ring and the last node is the end of the polyline
+                        // isn't a ring, the last node is the end of the polyline and if we haven't
+                        // split this line previously
                         edgeIdentifier = line.getIdentifier();
                     }
                     else
