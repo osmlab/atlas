@@ -236,8 +236,8 @@ public class PolygonTest
     {
         // Shape represents a square with an additional smaller square on each corner, formed by 4
         // self intersections
-        final Polygon polygon = Polygon.wkt(
-                "POLYGON ((-0.0380885 0.0238053, -0.0381783 0.0334173, -0.0255121 0.0337766, -0.0247036 -0.0263206, "
+        final Polygon polygon = Polygon
+                .wkt("POLYGON ((-0.0380885 0.0238053, -0.0381783 0.0334173, -0.0255121 0.0337766, -0.0247036 -0.0263206, "
                         + "-0.0368309 -0.0268596, -0.03728 -0.0141933, 0.0270392 -0.0132052, 0.0273986 -0.0246138,"
                         + " 0.0171578 -0.0248833, 0.0153611 0.0342258, 0.0253324 0.0344953, 0.0257816 0.0256918, "
                         + "-0.0380885 0.0238053))");
@@ -670,8 +670,8 @@ public class PolygonTest
     public void testSelfIntersectingPolygon()
     {
         // shape is a figure 8, self intersecting in the middle
-        final Polygon polygon = Polygon.wkt(
-                "POLYGON ((-0.0256918 0.0054797, -0.0220985 0.0120374, -0.0119475 0.0121272, -0.0054797 0.006917,"
+        final Polygon polygon = Polygon
+                .wkt("POLYGON ((-0.0256918 0.0054797, -0.0220985 0.0120374, -0.0119475 0.0121272, -0.0054797 0.006917,"
                         + " -0.007995 -0.0128459, -0.0007186 -0.0194934, 0.0103306 -0.0186849, 0.0125764 -0.0098814, "
                         + "0.0026051 -0.0048509, -0.013834 -0.0050305, -0.0242545 -0.0008983, -0.0256918 0.0054797))");
         final Location area1 = Location.forString("0.0034136, -0.016529");
