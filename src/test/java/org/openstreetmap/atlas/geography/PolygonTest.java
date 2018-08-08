@@ -590,6 +590,16 @@ public class PolygonTest
     }
 
     @Test
+    public void testMaxWdithPolygonCausesAwtOverflow()
+    {
+        final Polygon maxWidthPolygon = Polygon.wkt(
+                "POLYGON ((-180 -89.9999, -180 -62.8442818, 180 -62.8442818, 180 -89.9999, -180 -89.9999))");
+        final Rectangle innerRectangle = Rectangle.forString("-80,-160:-70, 170");
+        final Boolean encloses = maxWidthPolygon.fullyGeometricallyEncloses(innerRectangle);
+        Assert.assertEquals(true, encloses);
+    }
+
+    @Test
     public void testNoAnglesMatchingOurCriteria()
     {
         final PolyLine polyLine = new PolyLine(this.quadrant);
