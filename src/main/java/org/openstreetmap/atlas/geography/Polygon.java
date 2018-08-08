@@ -624,7 +624,7 @@ public class Polygon extends PolyLine implements GeometricSurface
         if (this.awtOverflows == null)
         {
             final Rectangle bounds = bounds();
-            this.awtOverflows = bounds.width().asDm7() < 0 || bounds.height().asDm7() < 0;
+            this.awtOverflows = bounds.width().asDm7() <= 0 || bounds.height().asDm7() <= 0;
         }
         return this.awtOverflows;
     }
