@@ -69,14 +69,15 @@ public class Diff implements Comparable<Diff>, Serializable
     {
         final String newLine = System.getProperty("line.separator");
         final StringBuilder builder = new StringBuilder();
-        builder.append("[Diffs: ");
+        builder.append(newLine);
+        builder.append("Diffset {");
         final StringList list = new StringList();
         for (final Diff diff : diffs)
         {
             list.add(newLine + diff.toDiffViewFriendlyString());
         }
         builder.append(list.join(newLine));
-        builder.append(newLine + "]");
+        builder.append(newLine + "}");
         return builder.toString();
     }
 
@@ -350,16 +351,15 @@ public class Diff implements Comparable<Diff>, Serializable
     {
         final String newLine = System.getProperty("line.separator");
         final StringBuilder builder = new StringBuilder();
-        builder.append("[Diff: ");
-        builder.append(this.diffType);
+        builder.append("Diff [");
         builder.append(newLine);
-        builder.append(this.diffReason);
+        builder.append("diffType: " + this.diffType);
         builder.append(newLine);
-        builder.append("Entity = ");
-        builder.append(this.itemType);
+        builder.append("diffReason: " + this.diffReason);
         builder.append(newLine);
-        builder.append("ID = ");
-        builder.append(this.identifier);
+        builder.append("Entity = " + this.itemType);
+        builder.append(newLine);
+        builder.append("ID = " + this.identifier);
         builder.append(newLine);
         if (this.getBaseEntity() != null)
         {

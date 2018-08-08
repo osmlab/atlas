@@ -38,7 +38,7 @@ public class AtlasDeltaLineTest
         final SortedSet<Diff> diffs = new AtlasDelta(base, alter).generate().getDifferences();
 
         Assert.assertEquals(1, diffs.size());
-        logger.debug("testDifferentGeometry(): {}", Diff.toString(diffs));
+        logger.debug("testDifferentGeometry(): {}", Diff.toDiffViewFriendlyString(diffs));
     }
 
     @Test
