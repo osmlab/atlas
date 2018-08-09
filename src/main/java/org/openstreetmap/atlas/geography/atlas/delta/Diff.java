@@ -350,7 +350,7 @@ public class Diff implements Comparable<Diff>, Serializable
     {
         final String newLine = System.getProperty("line.separator");
         final StringBuilder builder = new StringBuilder();
-        builder.append("Diff [");
+        builder.append("Diff {");
         builder.append(newLine);
         builder.append("diffType: " + this.diffType);
         builder.append(newLine);
@@ -380,7 +380,7 @@ public class Diff implements Comparable<Diff>, Serializable
             builder.append("null");
         }
         builder.append(newLine);
-        builder.append("]");
+        builder.append("}");
         return builder.toString();
     }
 
