@@ -69,7 +69,6 @@ public class Diff implements Comparable<Diff>, Serializable
     {
         final String newLine = System.getProperty("line.separator");
         final StringBuilder builder = new StringBuilder();
-        builder.append(newLine);
         builder.append("Diffset {");
         final StringList list = new StringList();
         for (final Diff diff : diffs)
