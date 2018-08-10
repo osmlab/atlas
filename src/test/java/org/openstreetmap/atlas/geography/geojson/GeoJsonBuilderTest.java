@@ -18,7 +18,9 @@ import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterable
 import org.openstreetmap.atlas.streaming.readers.GeoJsonReader;
 import org.openstreetmap.atlas.streaming.readers.json.serializers.PropertiesLocated;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -44,6 +46,68 @@ public class GeoJsonBuilderTest
         final GeoJsonReader reader = new GeoJsonReader(new StringResource(object.toString()));
         final PropertiesLocated item = reader.next();
         Assert.assertEquals(polygon, item.getItem());
+    }
+
+    @Test
+    public void testCreateFeatureCollectionFromPropertiesLocated()
+    {
+        final Map<String, Object> properties = new HashMap<>();
+        properties.put("prop1", "foo");
+        properties.put("prop2", new Float[] { 1.0F, 2.0F, 3.0F });
+        properties.put("prop3", 0);
+
+        final JsonObject propertiesObject = new JsonObject();
+        final Gson gson = new Gson();
+        properties.forEach((key, value) -> propertiesObject.add(key, gson.toJsonTree(value)));
+        propertiesObject.add("properties", propertiesObject);
+
+        final PropertiesLocated propertiesLocated1 = new PropertiesLocated(PolyLine.TEST_POLYLINE,
+                propertiesObject);
+        final PropertiesLocated propertiesLocated2 = new PropertiesLocated(PolyLine.TEST_POLYLINE,
+                propertiesObject);
+
+        final GeoJsonObject featureCollection = new GeoJsonBuilder()
+                .createFeatureCollectionFromPropertiesLocated(
+                        Iterables.from(propertiesLocated1, propertiesLocated2));
+
+        Assert.assertEquals("FeatureCollection",
+                featureCollection.jsonObject().get("type").getAsString());
+        Assert.assertEquals(2,
+                featureCollection.jsonObject().get("features").getAsJsonArray().size());
+        for (int i = 0; i < 2; i++)
+        {
+            Assert.assertEquals("Feature", featureCollection.jsonObject().get("features")
+                    .getAsJsonArray().get(i).getAsJsonObject().get("type").getAsString());
+            Assert.assertEquals("LineString",
+                    featureCollection.jsonObject().get("features").getAsJsonArray().get(i)
+                            .getAsJsonObject().get("geometry").getAsJsonObject().get("type")
+                            .getAsString());
+            Assert.assertEquals(
+                    PolyLine.TEST_POLYLINE.asGeoJson().jsonObject().get("features").getAsJsonArray()
+                            .get(0).getAsJsonObject().get("geometry"),
+                    featureCollection.jsonObject().get("features").getAsJsonArray().get(i)
+                            .getAsJsonObject().get("geometry").getAsJsonObject());
+            Assert.assertEquals(properties.get("prop1"),
+                    featureCollection.jsonObject().get("features").getAsJsonArray().get(i)
+                            .getAsJsonObject().get("properties").getAsJsonObject().get("prop1")
+                            .getAsString());
+            Assert.assertEquals(((Float[]) properties.get("prop2")).length,
+                    featureCollection.jsonObject().get("features").getAsJsonArray().get(i)
+                            .getAsJsonObject().get("properties").getAsJsonObject().get("prop2")
+                            .getAsJsonArray().size());
+            for (int j = i; j < 3; j++)
+            {
+                Assert.assertEquals(((Float[]) properties.get("prop2"))[j],
+                        featureCollection.jsonObject().get("features").getAsJsonArray().get(i)
+                                .getAsJsonObject().get("properties").getAsJsonObject().get("prop2")
+                                .getAsJsonArray().get(j).getAsFloat(),
+                        0D);
+            }
+            Assert.assertEquals(properties.get("prop3"),
+                    featureCollection.jsonObject().get("features").getAsJsonArray().get(i)
+                            .getAsJsonObject().get("properties").getAsJsonObject().get("prop3")
+                            .getAsInt());
+        }
     }
 
     @Test

@@ -397,7 +397,7 @@ public class GeoJsonBuilder
             {
                 logger.info("Processed {} features.", counter);
             }
-            GeoJsonObject feature;
+            final GeoJsonObject feature;
             final Located located = propertiesLocated.getItem();
             if (located instanceof Location)
             {
