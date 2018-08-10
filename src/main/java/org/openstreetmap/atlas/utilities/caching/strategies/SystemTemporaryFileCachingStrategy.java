@@ -19,6 +19,8 @@ import org.slf4j.LoggerFactory;
  * location.
  *
  * @author lcram
+ * @author matthieun
+ * @author mgostintsev
  */
 public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
 {
@@ -91,8 +93,9 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
             }
             catch (final Exception exception)
             {
-                logger.error("Something went wrong copying {} to temporary local file {}",
-                        resourceFromDefaultFetcher.toString(), temporaryLocalFile.toString());
+                logger.error("Something went wrong copying {} to temporary local file {}, trace {}",
+                        resourceFromDefaultFetcher.toString(), temporaryLocalFile.toString(),
+                        exception);
                 return;
             }
 
@@ -114,8 +117,8 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
                 }
                 catch (final Exception exception)
                 {
-                    logger.error("Something went wrong moving {} to {}",
-                            temporaryLocalFile.toString(), cachedFile.toString());
+                    logger.error("Something went wrong moving {} to {}, trace {}",
+                            temporaryLocalFile.toString(), cachedFile.toString(), exception);
                 }
             }
         }
