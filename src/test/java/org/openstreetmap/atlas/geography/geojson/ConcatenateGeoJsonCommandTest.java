@@ -14,7 +14,6 @@ import org.junit.rules.TemporaryFolder;
  * Test cases for ConcatenateGeoJsonFiles.
  * 
  * @author rmegraw
- *
  */
 public class ConcatenateGeoJsonCommandTest
 {
@@ -34,13 +33,11 @@ public class ConcatenateGeoJsonCommandTest
         final File outputFile = new File(outputPath);
         Assert.assertTrue(outputFile.exists());
 
-        Assert.assertTrue(
-                FileUtils.readFileToString(new File(
-                        this.getClass().getResource("concatenated_geojson_files_expected")
-                                .getPath()),
+        Assert.assertTrue(FileUtils
+                .readFileToString(new File(this.getClass()
+                        .getResource("concatenated_geojson_files_expected").getPath()),
                         Charset.defaultCharset())
-                        .equals(
-                        FileUtils.readFileToString(outputFile, Charset.defaultCharset())));
+                .equals(FileUtils.readFileToString(outputFile, Charset.defaultCharset())));
 
     }
 
@@ -58,9 +55,8 @@ public class ConcatenateGeoJsonCommandTest
         Assert.assertTrue(outputFile.exists());
 
         Assert.assertTrue(FileUtils
-                .readFileToString(
-                        new File(this.getClass().getResource("concatenated_geojson_files_expected")
-                                .getPath()),
+                .readFileToString(new File(this.getClass()
+                        .getResource("concatenated_geojson_files_expected").getPath()),
                         Charset.defaultCharset())
                 .equals(FileUtils.readFileToString(outputFile, Charset.defaultCharset())));
 
