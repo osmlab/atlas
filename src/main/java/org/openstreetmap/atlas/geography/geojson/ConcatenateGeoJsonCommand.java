@@ -1,5 +1,8 @@
 package org.openstreetmap.atlas.geography.geojson;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.readers.GeoJsonReader;
 import org.openstreetmap.atlas.streaming.readers.json.serializers.PropertiesLocated;
@@ -60,8 +63,10 @@ public class ConcatenateGeoJsonCommand extends Command
         final Mode mode = (Mode) command.get(MODE);
         final String filePrefix = (String) command.get(FILE_PREFIX);
 
-        final Iterable<PropertiesLocated> jsonItems = readGeoJsonItems(mode,
-                folder.listFilesRecursively(), filePrefix);
+        // processing the files in sorted order makes testing easier
+        final List<File> files = folder.listFilesRecursively();
+        Collections.sort(files);
+        final Iterable<PropertiesLocated> jsonItems = readGeoJsonItems(mode, files, filePrefix);
         final GeoJsonObject result = new GeoJsonBuilder()
                 .createFeatureCollectionFromPropertiesLocated(jsonItems);
         final JsonWriter writer = new JsonWriter(output);

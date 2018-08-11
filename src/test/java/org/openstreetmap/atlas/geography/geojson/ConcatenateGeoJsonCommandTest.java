@@ -12,8 +12,9 @@ import org.junit.rules.TemporaryFolder;
 
 /**
  * Test cases for ConcatenateGeoJsonFiles.
- *
+ * 
  * @author rmegraw
+ *
  */
 public class ConcatenateGeoJsonCommandTest
 {

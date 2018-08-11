@@ -26,7 +26,7 @@ import org.openstreetmap.atlas.streaming.compression.Decompressor;
  *
  * @author matthieun
  */
-public class File extends AbstractWritableResource
+public class File extends AbstractWritableResource implements Comparable<File>
 {
     private final java.io.File file;
     private String name = null;
@@ -127,6 +127,12 @@ public class File extends AbstractWritableResource
         }
         this.file.mkdirs();
         return new File(getAbsolutePath() + "/" + name);
+    }
+
+    @Override
+    public int compareTo(final File other)
+    {
+        return this.getFile().compareTo(other.getFile());
     }
 
     public void delete()
