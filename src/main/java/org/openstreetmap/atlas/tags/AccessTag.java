@@ -31,6 +31,7 @@ public enum AccessTag
     DESTINATION,
     CUSTOMERS,
     PROHIBITED,
+    PUBLIC,
     RESTRICTED,
     UNKNOWN;
 
