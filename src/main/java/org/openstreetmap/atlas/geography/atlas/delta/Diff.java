@@ -117,7 +117,7 @@ public class Diff implements Comparable<Diff>, Serializable
             final Map<String, String> beforeTags = beforeEntity.getTags();
             beforeTags.put("diff", "BEFORE");
             beforeTags.put("diff:type", diff.getDiffType().name());
-            beforeTags.put("dif:reason", diff.getDiffReason().name());
+            beforeTags.put("diff:reason", diff.getDiffReason().name());
             if (diff.getItemType() == ItemType.RELATION)
             {
                 items.addAll(processRelationForGeoJson((Relation) beforeEntity, beforeTags));
@@ -136,7 +136,7 @@ public class Diff implements Comparable<Diff>, Serializable
             final Map<String, String> afterTags = afterEntity.getTags();
             afterTags.put("diff", "AFTER");
             afterTags.put("diff:type", diff.getDiffType().name());
-            afterTags.put("dif:reason", diff.getDiffReason().name());
+            afterTags.put("diff:reason", diff.getDiffReason().name());
             if (diff.getItemType() == ItemType.RELATION)
             {
                 items.addAll(processRelationForGeoJson((Relation) afterEntity, afterTags));
