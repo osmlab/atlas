@@ -59,6 +59,10 @@ public class AtlasDeltaGeoJsonIntegrationTest
         Assert.assertEquals(454484, len);
     }
 
+    /**
+     * Tries parsing the GeoJSON string. We then check a few things about it, such as if it has the
+     * applicable diff properties. Also, we count the number of features.
+     */
     @Test
     public void parseGeoJson()
     {
