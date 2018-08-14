@@ -1,30 +1,31 @@
 package org.openstreetmap.atlas.geography.atlas.delta;
 
-import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.atlas.AbstractAtlas;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
-import org.openstreetmap.atlas.utilities.conversion.StringConverter;
 import org.openstreetmap.atlas.utilities.runtime.Command;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 /**
  * @author matthieun
+ * @author nhallahan
  */
 public class AtlasDeltaGenerator extends Command
 {
-    private static final Switch<String> BASE_SWITCH = new Switch<>("base",
-            "The name of the base Atlas", StringConverter.IDENTITY, Optionality.REQUIRED);
+    private static final Switch<Path> BEFORE_SWITCH = new Switch<>("before",
+            "The before atlas from which to delta.", Paths::get, Optionality.REQUIRED);
 
-    private static final Switch<String> ALTER_SWITCH = new Switch<>("alter",
-            "The name of the alter Atlas", StringConverter.IDENTITY, Optionality.REQUIRED);
+    private static final Switch<Path> AFTER_SWITCH = new Switch<>("after",
+            "The after atlas that the before atlas deltas to.", Paths::get, Optionality.REQUIRED);
 
-    private static final Switch<File> OUTPUT_FOLDER_SWITCH = new Switch<>("outputFolder",
-            "The path of the output folder", string -> new File(string), Optionality.REQUIRED);
+    private static final Switch<Path> OUTPUT_DIR_SWITCH = new Switch<>("outputDir",
+            "The path of the output directory.", Paths::get, Optionality.REQUIRED);
 
     private final Logger logger;
 
@@ -41,69 +42,53 @@ public class AtlasDeltaGenerator extends Command
     @Override
     protected int onRun(final CommandMap command)
     {
-        final String baseName = (String) command.get("base");
-        final String alterName = (String) command.get("alter");
-        final File outputFolder = (File) command.get("outputFolder");
-        run(baseName, alterName, outputFolder);
+        final Path before = (Path) command.get("before");
+        final Path after = (Path) command.get("after");
+        final Path outputDir = (Path) command.get("outputDir");
+        run(before, after, outputDir);
         return 0;
     }
 
     @Override
     protected SwitchList switches()
     {
-        return new SwitchList().with(BASE_SWITCH, ALTER_SWITCH, OUTPUT_FOLDER_SWITCH);
+        return new SwitchList().with(BEFORE_SWITCH, AFTER_SWITCH, OUTPUT_DIR_SWITCH);
     }
 
-    private void compare(final String baseName, final Atlas base, final String alterName,
-            final Atlas alter, final String folder)
+    private void compare(final Atlas beforeAtlas, final Atlas afterAtlas, final Path outputDir)
     {
-        final AtlasDelta delta = new AtlasDelta(base, alter).generate();
-        final File diffFile = new File(folder)
-                .child(baseName + "_vs_" + alterName + FileSuffix.TEXT.toString());
-        diffFile.writeAndClose(delta.toString());
-        this.logger.info("Saved diff file {}", diffFile);
-        final File geoJsonFile = new File(folder)
-                .child(baseName + "_vs_" + alterName + FileSuffix.GEO_JSON.toString());
-        geoJsonFile.writeAndClose(delta.toGeoJson());
-        this.logger.info("Saved geoJson file {}", geoJsonFile);
-        final File relationsGeoJsonFile = new File(folder)
-                .child(baseName + "_vs_" + alterName + "_relations.geojson");
-        relationsGeoJsonFile.writeAndClose(delta.toRelationsGeoJson());
-        this.logger.info("Saved relationsGeoJsonFile file {}", relationsGeoJsonFile);
+        final String name = beforeAtlas.getName().split(".atlas")[0];
+
+        final AtlasDelta delta = new AtlasDelta(beforeAtlas, afterAtlas).generate();
+
+        final String txt = delta.toDiffViewFriendlyString();
+        final File txtFile = new File(outputDir.resolve(name + FileSuffix.TEXT.toString()).toFile());
+        txtFile.writeAndClose(txt);
+        this.logger.info("Saved txt file {}", txtFile);
+
+        final String geoJson = delta.toGeoJson();
+        final File geoJsonFile = new File(outputDir.resolve(name + FileSuffix.GEO_JSON.toString()).toFile());
+        geoJsonFile.writeAndClose(geoJson);
+        this.logger.info("Saved GeoJSON file {}", geoJsonFile);
+
+        final String relationsGeoJson = delta.toRelationsGeoJson();
+        final String relationsGeoJsonFileName = name + "_relations" + FileSuffix.GEO_JSON.toString();
+        final File relationsGeoJsonFile = new File(outputDir.resolve(relationsGeoJsonFileName).toFile());
+        relationsGeoJsonFile.writeAndClose(relationsGeoJson);
+        this.logger.info("Saved Relations GeoJSON file {}", relationsGeoJsonFile);
     }
 
-    private Atlas load(final String atlasName, final File outputFolder)
+    private Atlas load(final Path path)
     {
-        final Atlas atlas;
-        final File file = outputFolder.child(atlasName + FileSuffix.ATLAS.toString());
-        if (file.getFile().exists())
-        {
-            atlas = new AtlasResourceLoader().load(file);
-        }
-        else
-        {
-            final File pbfFile = outputFolder.child(atlasName + FileSuffix.PBF.toString());
-            final File geoJsonFile = outputFolder.child(atlasName + FileSuffix.GEO_JSON.toString());
-            final File listFile = outputFolder.child(atlasName + FileSuffix.TEXT.toString());
-            if (pbfFile.getFile().exists())
-            {
-                atlas = AbstractAtlas.createAndSaveOsmPbf(pbfFile, file);
-                atlas.saveAsGeoJson(geoJsonFile);
-                atlas.saveAsList(listFile);
-            }
-            else
-            {
-                throw new CoreException("Neither " + file + " nor " + pbfFile + " exist.");
-            }
-        }
-        return atlas;
+        final File file = new File(path.toFile());
+        return new AtlasResourceLoader().load(file);
     }
 
-    private void run(final String baseName, final String alterName, final File outputFolder)
+    private void run(final Path before, final Path after, final Path outputDir)
     {
-        this.logger.info("Comparing {} and {}", baseName, alterName);
-        final Atlas base = load(baseName, outputFolder);
-        final Atlas alter = load(alterName, outputFolder);
-        compare(baseName, base, alterName, alter, outputFolder.getPath());
+        this.logger.info("Comparing {} and {}", before, after);
+        final Atlas beforeAtlas = load(before);
+        final Atlas afterAtlas = load(after);
+        compare(beforeAtlas, afterAtlas, outputDir);
     }
 }

@@ -53,8 +53,8 @@ public class Diff implements Comparable<Diff>, Serializable
     private final ItemType itemType;
     private final DiffType diffType;
     private final DiffReason diffReason;
-    private final Atlas base;
-    private final Atlas alter;
+    private final Atlas before;
+    private final Atlas after;
     private final long identifier;
 
     /**
@@ -101,22 +101,55 @@ public class Diff implements Comparable<Diff>, Serializable
     public static String toGeoJson(final Iterable<Diff> diffs, final Predicate<Diff> filter)
     {
         return new GeoJsonBuilder().create(Iterables.stream(diffs)
-                .filter(diff -> diff.getItemType() != ItemType.RELATION).filter(filter).map(diff ->
-                {
-                    final AtlasItem item;
-                    if (diff.getDiffType() == DiffType.REMOVED)
-                    {
-                        item = (AtlasItem) diff.getBaseEntity();
-                    }
-                    else
-                    {
-                        item = (AtlasItem) diff.getAlterEntity();
-                    }
-                    final Map<String, String> tags = item.getTags();
-                    tags.put("DIFF_TYPE", diff.getDiffType().name());
-                    tags.put("DIFF_REASON", diff.getDiffReason().name());
-                    return new LocationIterableProperties(item.getRawGeometry(), tags);
-                }).collect()).jsonObject().toString();
+                .filter(diff -> diff.getItemType() != ItemType.RELATION)
+                .filter(filter)
+                .flatMap(Diff::processDiff)
+                .collect())
+                .jsonObject()
+                .toString();
+    }
+
+    private static List<LocationIterableProperties> processDiff(final Diff diff)
+    {
+        final List<LocationIterableProperties> items = new ArrayList<>();
+
+        final AtlasEntity beforeEntity = diff.getBeforeEntity();
+        // null if it is ADDED
+        if (beforeEntity != null)
+        {
+            final Map<String, String> beforeTags = beforeEntity.getTags();
+            beforeTags.put("diff", "BEFORE");
+            beforeTags.put("diff:type", diff.getDiffType().name());
+            beforeTags.put("dif:reason", diff.getDiffReason().name());
+            if (diff.getItemType() == ItemType.RELATION)
+            {
+                items.addAll(processRelationForGeoJson((Relation) beforeEntity, beforeTags));
+            }
+            else
+            {
+                items.add(new LocationIterableProperties(((AtlasItem) beforeEntity).getRawGeometry(), beforeTags));
+            }
+        }
+
+        final AtlasEntity afterEntity = diff.getAfterEntity();
+        // null iff it is REMOVED
+        if (afterEntity != null)
+        {
+            final Map<String, String> afterTags = afterEntity.getTags();
+            afterTags.put("diff", "AFTER");
+            afterTags.put("diff:type", diff.getDiffType().name());
+            afterTags.put("dif:reason", diff.getDiffReason().name());
+            if (diff.getItemType() == ItemType.RELATION)
+            {
+                items.addAll(processRelationForGeoJson((Relation) afterEntity, afterTags));
+            }
+            else
+            {
+                items.add(new LocationIterableProperties(((AtlasItem) afterEntity).getRawGeometry(), afterTags));
+            }
+        }
+
+        return items;
     }
 
     /**
@@ -141,23 +174,13 @@ public class Diff implements Comparable<Diff>, Serializable
     public static String toRelationsGeoJson(final Iterable<Diff> diffs,
             final Predicate<Diff> filter)
     {
-        return new GeoJsonBuilder().create(
-                Iterables.stream(diffs).filter(diff -> diff.getItemType() == ItemType.RELATION)
-                        .filter(filter).flatMap(diff ->
-                        {
-                            final Relation relation;
-                            if (diff.getDiffType() == DiffType.REMOVED)
-                            {
-                                relation = (Relation) diff.getBaseEntity();
-                            }
-                            else
-                            {
-                                relation = (Relation) diff.getAlterEntity();
-                            }
-                            return processRelationForGeoJson(relation, new HashMap<>());
-                        })//
-                        .collect())
-                .jsonObject().toString();
+        return new GeoJsonBuilder().create(Iterables.stream(diffs)
+                .filter(diff -> diff.getItemType() == ItemType.RELATION)
+                .filter(filter)
+                .flatMap(Diff::processDiff)
+                .collect())
+                .jsonObject()
+                .toString();
     }
 
     /**
@@ -217,21 +240,21 @@ public class Diff implements Comparable<Diff>, Serializable
      *            The type of this {@link Diff}, among "ADDED", "REMOVED" and "CHANGED"
      * @param diffReason
      *            The reason of this {@link Diff}
-     * @param base
-     *            The base {@link Atlas}, i.e. the older one
-     * @param alter
-     *            The alter {@link Atlas}, i.e. the newer one
+     * @param before
+     *            The before {@link Atlas}, i.e. the older one
+     * @param after
+     *            The after {@link Atlas}, i.e. the newer one
      * @param identifier
      *            The identifier if the entity that this {@link Diff} represents.
      */
     public Diff(final ItemType itemType, final DiffType diffType, final DiffReason diffReason,
-            final Atlas base, final Atlas alter, final long identifier)
+                final Atlas before, final Atlas after, final long identifier)
     {
         this.itemType = itemType;
         this.diffType = diffType;
         this.diffReason = diffReason;
-        this.base = base;
-        this.alter = alter;
+        this.before = before;
+        this.after = after;
         this.identifier = identifier;
     }
 
@@ -251,37 +274,37 @@ public class Diff implements Comparable<Diff>, Serializable
     }
 
     /**
-     * @return The alter {@link Atlas}, i.e. the newer one
+     * @return The after {@link Atlas}, i.e. the newer one
      */
-    public Atlas getAlter()
+    public Atlas getAfter()
     {
-        return this.alter;
+        return this.after;
     }
 
     /**
      * @return The entity this {@link Diff} represents in the newer Atlas. null if this Diff is of
      *         type "REMOVED"
      */
-    public AtlasEntity getAlterEntity()
+    public AtlasEntity getAfterEntity()
     {
-        return this.itemType.entityForIdentifier(this.alter, this.identifier);
+        return this.itemType.entityForIdentifier(this.after, this.identifier);
     }
 
     /**
-     * @return The base {@link Atlas}, i.e. the older one
+     * @return The before {@link Atlas}, i.e. the older one
      */
-    public Atlas getBase()
+    public Atlas getBefore()
     {
-        return this.base;
+        return this.before;
     }
 
     /**
      * @return The entity this {@link Diff} represents in the older Atlas. null if this Diff is of
      *         type "ADDED"
      */
-    public AtlasEntity getBaseEntity()
+    public AtlasEntity getBeforeEntity()
     {
-        return this.itemType.entityForIdentifier(this.base, this.identifier);
+        return this.itemType.entityForIdentifier(this.before, this.identifier);
     }
 
     /**
@@ -360,9 +383,9 @@ public class Diff implements Comparable<Diff>, Serializable
         builder.append(newLine);
         builder.append("ID = " + this.identifier);
         builder.append(newLine);
-        if (this.getBaseEntity() != null)
+        if (this.getBeforeEntity() != null)
         {
-            builder.append(this.getBaseEntity().toDiffViewFriendlyString());
+            builder.append(this.getBeforeEntity().toDiffViewFriendlyString());
         }
         else
         {
@@ -371,9 +394,9 @@ public class Diff implements Comparable<Diff>, Serializable
         builder.append(newLine);
         builder.append(" -> ");
         builder.append(newLine);
-        if (this.getAlterEntity() != null)
+        if (this.getAfterEntity() != null)
         {
-            builder.append(this.getAlterEntity().toDiffViewFriendlyString());
+            builder.append(this.getAfterEntity().toDiffViewFriendlyString());
         }
         else
         {
@@ -395,9 +418,9 @@ public class Diff implements Comparable<Diff>, Serializable
         builder.append(", ID = ");
         builder.append(this.identifier);
         builder.append(", ");
-        builder.append(this.getBaseEntity());
+        builder.append(this.getBeforeEntity());
         builder.append(" -> ");
-        builder.append(this.getAlterEntity());
+        builder.append(this.getAfterEntity());
         builder.append("}]");
         return builder.toString();
     }

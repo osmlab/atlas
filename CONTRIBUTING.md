@@ -53,6 +53,27 @@ To start contributing to your fork, the best way is to make sure that your IDE i
 
 Once you have fixed an issue or added a new feature, it is time to submit [a pull request](#pull-request-guidelines)!
 
+### Building
+
+You can build a shaded JAR that will allow you to execute atlas. Make sure you first have a `log4j.properties` file in `src/main/resources`.
+
+https://github.com/osmlab/atlas-checks/blob/dev/config/log4j/log4j.properties
+
+Then, you can build it with:
+
+``` 
+./gradlew shaded
+```
+
+From there, you can run command line tools in atlas, like the following:
+
+``` 
+java -cp atlas-5.1.8-SNAPSHOT-shaded.jar org.openstreetmap.atlas.geography.atlas.delta.AtlasDeltaGenerator <args...>
+```
+
+Also note that you will need a `log4j.properties` to run properly in IntelliJ IDEA.
+
+
 ### Code formatting
 
 The project's code is checked by Checkstyle as part of the `gradle check` step.
