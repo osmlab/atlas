@@ -1,5 +1,8 @@
 package org.openstreetmap.atlas.geography.atlas.delta;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.streaming.resource.File;
@@ -9,12 +12,9 @@ import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 /**
  * @author matthieun
- * @author nhallahan
+ * @author hallahan
  */
 public class AtlasDeltaGenerator extends Command
 {
@@ -62,18 +62,22 @@ public class AtlasDeltaGenerator extends Command
         final AtlasDelta delta = new AtlasDelta(beforeAtlas, afterAtlas).generate();
 
         final String txt = delta.toDiffViewFriendlyString();
-        final File txtFile = new File(outputDir.resolve(name + FileSuffix.TEXT.toString()).toFile());
+        final File txtFile = new File(
+                outputDir.resolve(name + FileSuffix.TEXT.toString()).toFile());
         txtFile.writeAndClose(txt);
         this.logger.info("Saved txt file {}", txtFile);
 
         final String geoJson = delta.toGeoJson();
-        final File geoJsonFile = new File(outputDir.resolve(name + FileSuffix.GEO_JSON.toString()).toFile());
+        final File geoJsonFile = new File(
+                outputDir.resolve(name + FileSuffix.GEO_JSON.toString()).toFile());
         geoJsonFile.writeAndClose(geoJson);
         this.logger.info("Saved GeoJSON file {}", geoJsonFile);
 
         final String relationsGeoJson = delta.toRelationsGeoJson();
-        final String relationsGeoJsonFileName = name + "_relations" + FileSuffix.GEO_JSON.toString();
-        final File relationsGeoJsonFile = new File(outputDir.resolve(relationsGeoJsonFileName).toFile());
+        final String relationsGeoJsonFileName = name + "_relations"
+                + FileSuffix.GEO_JSON.toString();
+        final File relationsGeoJsonFile = new File(
+                outputDir.resolve(relationsGeoJsonFileName).toFile());
         relationsGeoJsonFile.writeAndClose(relationsGeoJson);
         this.logger.info("Saved Relations GeoJSON file {}", relationsGeoJsonFile);
     }

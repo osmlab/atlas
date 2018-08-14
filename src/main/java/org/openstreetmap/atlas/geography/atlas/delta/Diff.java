@@ -100,13 +100,10 @@ public class Diff implements Comparable<Diff>, Serializable
      */
     public static String toGeoJson(final Iterable<Diff> diffs, final Predicate<Diff> filter)
     {
-        return new GeoJsonBuilder().create(Iterables.stream(diffs)
-                .filter(diff -> diff.getItemType() != ItemType.RELATION)
-                .filter(filter)
-                .flatMap(Diff::processDiff)
-                .collect())
-                .jsonObject()
-                .toString();
+        return new GeoJsonBuilder().create(
+                Iterables.stream(diffs).filter(diff -> diff.getItemType() != ItemType.RELATION)
+                        .filter(filter).flatMap(Diff::processDiff).collect())
+                .jsonObject().toString();
     }
 
     private static List<LocationIterableProperties> processDiff(final Diff diff)
@@ -127,7 +124,8 @@ public class Diff implements Comparable<Diff>, Serializable
             }
             else
             {
-                items.add(new LocationIterableProperties(((AtlasItem) beforeEntity).getRawGeometry(), beforeTags));
+                items.add(new LocationIterableProperties(
+                        ((AtlasItem) beforeEntity).getRawGeometry(), beforeTags));
             }
         }
 
@@ -145,7 +143,8 @@ public class Diff implements Comparable<Diff>, Serializable
             }
             else
             {
-                items.add(new LocationIterableProperties(((AtlasItem) afterEntity).getRawGeometry(), afterTags));
+                items.add(new LocationIterableProperties(((AtlasItem) afterEntity).getRawGeometry(),
+                        afterTags));
             }
         }
 
@@ -174,13 +173,10 @@ public class Diff implements Comparable<Diff>, Serializable
     public static String toRelationsGeoJson(final Iterable<Diff> diffs,
             final Predicate<Diff> filter)
     {
-        return new GeoJsonBuilder().create(Iterables.stream(diffs)
-                .filter(diff -> diff.getItemType() == ItemType.RELATION)
-                .filter(filter)
-                .flatMap(Diff::processDiff)
-                .collect())
-                .jsonObject()
-                .toString();
+        return new GeoJsonBuilder().create(
+                Iterables.stream(diffs).filter(diff -> diff.getItemType() == ItemType.RELATION)
+                        .filter(filter).flatMap(Diff::processDiff).collect())
+                .jsonObject().toString();
     }
 
     /**
@@ -248,7 +244,7 @@ public class Diff implements Comparable<Diff>, Serializable
      *            The identifier if the entity that this {@link Diff} represents.
      */
     public Diff(final ItemType itemType, final DiffType diffType, final DiffReason diffReason,
-                final Atlas before, final Atlas after, final long identifier)
+            final Atlas before, final Atlas after, final long identifier)
     {
         this.itemType = itemType;
         this.diffType = diffType;

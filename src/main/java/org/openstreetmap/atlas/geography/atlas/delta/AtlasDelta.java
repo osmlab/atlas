@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
  * Difference between two {@link Atlas}.
  *
  * @author matthieun
+ * @author hallahan
  */
 public class AtlasDelta implements Serializable
 {
