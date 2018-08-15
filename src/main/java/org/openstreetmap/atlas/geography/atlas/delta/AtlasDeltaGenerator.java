@@ -25,6 +25,11 @@ import org.slf4j.LoggerFactory;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
 
 /**
+ * This CLI will allow you to point to two atlases and generate a diff of the two.
+ *
+ * You can point to single atlas files or directories of atlas shards. If you are diffing shards for both your input
+ * and your output, we will process diffs for each shard individually in parallel.
+ *
  * @author matthieun
  * @author hallahan
  */
@@ -91,7 +96,8 @@ public class AtlasDeltaGenerator extends Command
 
             // Execute in a pool of threads so we limit how many atlases get loaded in parallel.
             final ForkJoinPool customThreadPool = new ForkJoinPool(THREADS);
-            try {
+            try
+            {
                 customThreadPool.submit(() -> this.compareShardByShard(before, after)).get();
             }
             catch (final InterruptedException interrupt)
