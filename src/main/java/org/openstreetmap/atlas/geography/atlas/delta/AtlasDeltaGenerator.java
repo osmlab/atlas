@@ -24,7 +24,7 @@ public class AtlasDeltaGenerator extends Command
     private static final Switch<Path> AFTER_SWITCH = new Switch<>("after",
             "The after atlas that the before atlas deltas to.", Paths::get, Optionality.REQUIRED);
 
-    private static final Switch<Path> OUTPUT_DIR_SWITCH = new Switch<>("outputDir",
+    private static final Switch<Path> OUTPUT_DIRECTORY_SWITCH = new Switch<>("outputDirectory",
             "The path of the output directory.", Paths::get, Optionality.REQUIRED);
 
     private final Logger logger;
@@ -52,7 +52,7 @@ public class AtlasDeltaGenerator extends Command
     @Override
     protected SwitchList switches()
     {
-        return new SwitchList().with(BEFORE_SWITCH, AFTER_SWITCH, OUTPUT_DIR_SWITCH);
+        return new SwitchList().with(BEFORE_SWITCH, AFTER_SWITCH, OUTPUT_DIRECTORY_SWITCH);
     }
 
     private void compare(final Atlas beforeAtlas, final Atlas afterAtlas, final Path outputDir)
