@@ -22,7 +22,7 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
     /*
      * Default size is arbitrarily set to 2 MiB
      */
-    private static final long DEFAULT_BYTE_ARRAY_SIZE = 1024 * 1024 * 2;
+    private static final long DEFAULT_BYTE_ARRAY_SIZE = 1024L * 1024 * 2;
     private static final Logger logger = LoggerFactory.getLogger(ByteArrayCachingStrategy.class);
 
     private final Map<UUID, ByteArrayResource> resourceCache;
