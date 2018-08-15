@@ -61,11 +61,11 @@ public class AtlasDeltaGenerator extends Command
 
         final AtlasDelta delta = new AtlasDelta(beforeAtlas, afterAtlas).generate();
 
-        final String txt = delta.toDiffViewFriendlyString();
-        final File txtFile = new File(
+        final String text = delta.toDiffViewFriendlyString();
+        final File textFile = new File(
                 outputDir.resolve(name + FileSuffix.TEXT.toString()).toFile());
-        txtFile.writeAndClose(txt);
-        this.logger.info("Saved txt file {}", txtFile);
+        textFile.writeAndClose(text);
+        this.logger.info("Saved txt file {}", textFile);
 
         final String geoJson = delta.toGeoJson();
         final File geoJsonFile = new File(
