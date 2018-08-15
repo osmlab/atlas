@@ -7,16 +7,22 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FilenameUtils;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.utilities.runtime.Command;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
+import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.apache.commons.io.FilenameUtils.removeExtension;
 
 /**
  * @author matthieun
@@ -24,6 +30,8 @@ import org.slf4j.LoggerFactory;
  */
 public class AtlasDeltaGenerator extends Command
 {
+    private static final int THREADS = 8; // Tweak this if desired.
+
     private static final Switch<Path> BEFORE_SWITCH = new Switch<>("before",
             "The before atlas directory or file from which to delta.", Paths::get, Optionality.REQUIRED);
 
@@ -66,12 +74,34 @@ public class AtlasDeltaGenerator extends Command
 
     private void run(final Path before, final Path after, final Path outputDir)
     {
+        final Time time = Time.now();
+
         this.logger.info("Comparing {} and {}", before, after);
 
         // If the after is a directory, we want to diff the individual shards in parallel.
         if (Files.isDirectory(after))
         {
+            // You need to have the before dir be a dir of shards too for this to work.
+            if (!Files.isDirectory(before))
+            {
 
+                logger.error("Your -before parameter must point to a directory of atlas shards if you want to compare shard by shard with an -after directory also of shards!");
+                System.exit(64);
+            }
+
+            // Execute in a pool of threads so we limit how many atlases get loaded in parallel.
+            final ForkJoinPool customThreadPool = new ForkJoinPool(THREADS);
+            try {
+                customThreadPool.submit(() -> this.compareShardByShard(before, after)).get();
+            }
+            catch (final InterruptedException interrupt)
+            {
+                logger.error("The shard diff workers were interrupted.", interrupt);
+            }
+            catch (final ExecutionException exec)
+            {
+                logger.error("There was an execution exception on the shard diff workers.", exec);
+            }
         }
         // Otherwise, we can do a normal compare where we look at 2 atlases or input shards with a single output.
         else
@@ -87,6 +117,8 @@ public class AtlasDeltaGenerator extends Command
                 logger.error("Problem loading atlas files.", ioex);
             }
         }
+
+        logger.info("AtlasDeltaGenerator complete. Total time: {}.", time.elapsedSince());
     }
 
     private Atlas load(final Path path) throws IOException {
@@ -106,9 +138,25 @@ public class AtlasDeltaGenerator extends Command
         return atlas;
     }
 
+    private void compareShardByShard(final Path before, final Path after)
+    {
+        try
+        {
+            fetchAtlasFilesInDir(after).parallelStream().forEach(afterFilePath ->
+            {
+
+
+            });
+        }
+        catch (IOException ioex)
+        {
+            logger.error("Problem fetching the atlas files in the after dir.", ioex);
+        }
+    }
+
     private void compare(final Atlas beforeAtlas, final Atlas afterAtlas, final Path outputDir)
     {
-        final String name = beforeAtlas.getName().split(".atlas")[0];
+        final String name = FilenameUtils.removeExtension(beforeAtlas.getName());
 
         final AtlasDelta delta = new AtlasDelta(beforeAtlas, afterAtlas).generate();
 
