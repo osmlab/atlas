@@ -1,6 +1,7 @@
 # Atlas
 
-[![Build Status](https://travis-ci.org/osmlab/atlas.svg?branch=master)](https://travis-ci.org/osmlab/atlas) -  [Sonar](https://sonarcloud.io/dashboard?id=org.openstreetmap.atlas%3Aatlas)
+[![Build Status](https://travis-ci.org/osmlab/atlas.svg?branch=master)](https://travis-ci.org/osmlab/atlas)
+[![quality gate](https://sonarcloud.io/api/project_badges/measure?project=org.openstreetmap.atlas%3Aatlas&metric=alert_status)](https://sonarcloud.io/dashboard?id=org.openstreetmap.atlas%3Aatlas)
 
 ---
 
