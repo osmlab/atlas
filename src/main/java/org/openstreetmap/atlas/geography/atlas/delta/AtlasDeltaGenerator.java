@@ -89,7 +89,6 @@ public class AtlasDeltaGenerator extends Command
             // You need to have the before dir be a dir of shards too for this to work.
             if (!Files.isDirectory(before))
             {
-
                 logger.error("Your -before parameter must point to a directory of atlas shards if you want to compare shard by shard with an -after directory also of shards!");
                 System.exit(64);
             }
@@ -98,7 +97,7 @@ public class AtlasDeltaGenerator extends Command
             final ForkJoinPool customThreadPool = new ForkJoinPool(THREADS);
             try
             {
-                customThreadPool.submit(() -> this.compareShardByShard(before, after)).get();
+                customThreadPool.submit(() -> this.compareShardByShard(before, after, outputDir)).get();
             }
             catch (final InterruptedException interrupt)
             {
@@ -127,36 +126,45 @@ public class AtlasDeltaGenerator extends Command
         logger.info("AtlasDeltaGenerator complete. Total time: {}.", time.elapsedSince());
     }
 
+    /**
+     * Load a multi atlas if directory, otherwise load single atlas.
+     *
+     * @param path
+     *          An atlas shard directory or a single atlas.
+     * @return
+     *          An atlas object.
+     * @throws IOException
+     *          Exception if loading the atlas directory does not work.
+     */
     private Atlas load(final Path path) throws IOException {
-        final Atlas atlas;
-
-        // Make a MultiAtlas
-        if (Files.isDirectory(path))
-        {
-            atlas = new AtlasResourceLoader().load(fetchAtlasFilesInDir(path));
-        }
-        // Just load the atlas
-        else
-        {
-            atlas = new AtlasResourceLoader().load(new File(path.toFile()));
-        }
-
-        return atlas;
+        return Files.isDirectory(path) ? loadAtlasDirectory(path) : loadSingleAtlas(path);
     }
 
-    private void compareShardByShard(final Path before, final Path after)
+    private Atlas loadSingleAtlas(final Path path)
+    {
+        return new AtlasResourceLoader().load(new File(path.toFile()));
+    }
+
+    private Atlas loadAtlasDirectory(final Path path) throws IOException
+    {
+        return new AtlasResourceLoader().load(fetchAtlasFilesInDir(path));
+    }
+
+    private void compareShardByShard(final Path before, final Path after, final Path outputDir)
     {
         try
         {
-            fetchAtlasFilesInDir(after).parallelStream().forEach(afterFilePath ->
+            fetchAtlasFilesInDir(after).parallelStream().forEach(afterShardFile ->
             {
-
-
+                final Path beforeShardPath = before.resolve(afterShardFile.getName());
+                final Atlas beforeAtlas = loadSingleAtlas(beforeShardPath);
+                final Atlas afterAtlas = new AtlasResourceLoader().load(afterShardFile);
+                compare(beforeAtlas, afterAtlas, outputDir);
             });
         }
         catch (IOException ioex)
         {
-            logger.error("Problem fetching the atlas files in the after dir.", ioex);
+            logger.error("Problem fetching the sharded atlas files.", ioex);
         }
     }
 
@@ -170,7 +178,7 @@ public class AtlasDeltaGenerator extends Command
         final File textFile = new File(
                 outputDir.resolve(name + FileSuffix.TEXT.toString()).toFile());
         textFile.writeAndClose(text);
-        this.logger.info("Saved txt file {}", textFile);
+        this.logger.info("Saved text file {}", textFile);
 
         final String geoJson = delta.toGeoJson();
         final File geoJsonFile = new File(
