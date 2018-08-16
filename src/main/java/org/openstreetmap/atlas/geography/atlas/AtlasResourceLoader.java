@@ -54,22 +54,15 @@ public class AtlasResourceLoader
         }
     }
 
-    /**
-     * @author lcram
-     */
-    private class AlwaysTrueAtlasFilter implements Predicate<Resource>
-    {
-        @Override
-        public boolean test(final Resource resource)
-        {
-            return true;
-        }
-    }
-
     public static final Predicate<Resource> IS_ATLAS = FileSuffix.resourceFilter(FileSuffix.ATLAS)
             .or(FileSuffix.resourceFilter(FileSuffix.ATLAS, FileSuffix.GZIP));
 
     private static final Logger logger = LoggerFactory.getLogger(AtlasResourceLoader.class);
+
+    private final Predicate<Resource> alwaysTrueAtlasFilter = resource ->
+    {
+        return true;
+    };
 
     private Predicate<Resource> resourceFilter;
     private Predicate<AtlasEntity> atlasEntityFilter;
@@ -85,7 +78,7 @@ public class AtlasResourceLoader
     public Atlas load(final Iterable<? extends Resource> input)
     {
         final Predicate<Resource> toggleableAtlasFileFilter = this.filterForAtlasFileExtension
-                ? IS_ATLAS : new AlwaysTrueAtlasFilter();
+                ? IS_ATLAS : this.alwaysTrueAtlasFilter;
 
         final List<Resource> resources = Iterables.stream(input).flatMap(this::resourcesIn)
                 .filter(toggleableAtlasFileFilter).filter(this.resourceFilter).collectToList();
