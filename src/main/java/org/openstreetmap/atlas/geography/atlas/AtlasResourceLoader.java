@@ -59,10 +59,7 @@ public class AtlasResourceLoader
 
     private static final Logger logger = LoggerFactory.getLogger(AtlasResourceLoader.class);
 
-    private final Predicate<Resource> alwaysTrueAtlasFilter = resource ->
-    {
-        return true;
-    };
+    private final Predicate<Resource> alwaysTrueAtlasFilter = resource -> true;
 
     private Predicate<Resource> resourceFilter;
     private Predicate<AtlasEntity> atlasEntityFilter;
