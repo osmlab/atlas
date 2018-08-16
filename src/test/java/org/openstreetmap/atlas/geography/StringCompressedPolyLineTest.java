@@ -24,6 +24,17 @@ public class StringCompressedPolyLineTest
         Assert.assertEquals(polyLine, decompressed);
     }
 
+    @Test
+    public void testCompressionError()
+    {
+        final Location location1 = new Location(Latitude.degrees(-85.0546157),
+                Longitude.degrees(-179.9982464));
+        final Location location2 = new Location(Latitude.degrees(-85.0545539),
+                Longitude.degrees(179.9996629));
+        final PolyLine line = new PolyLine(location1, location2);
+        final StringCompressedPolyLine compressedLine = new StringCompressedPolyLine(line);
+    }
+
     /**
      * Here the delta longitude between loc2 and loc3 is more than 180 degrees, hence the
      * compression exception.
