@@ -18,7 +18,12 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Load an {@link Atlas} from a {@link Resource} or an {@link Iterable} of {@link Resource}s.
- * Supports also loading based on a resource name filter.
+ * Supports also loading based on a resource name filter. Note that by default, this class will
+ * filter the provided {@link Iterable} and remove any {@link Resource} that does not have a valid
+ * atlas file extension (defined in the {@link FileSuffix} enum). This funtionality can be disabled
+ * by calling {@link AtlasResourceLoader#withAtlasFileExtensionFilterSetTo(boolean)} with
+ * {@code false}. Disabling this functionality is useful if combining this class with atlases
+ * fetched from a cache that does not respect the .atlas file extension convention.
  *
  * @author cstaylor
  * @author mgostintsev
