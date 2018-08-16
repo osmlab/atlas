@@ -54,6 +54,9 @@ public class AtlasResourceLoader
         }
     }
 
+    /**
+     * @author lcram
+     */
     private class AlwaysTrueAtlasFilter implements Predicate<Resource>
     {
         @Override
