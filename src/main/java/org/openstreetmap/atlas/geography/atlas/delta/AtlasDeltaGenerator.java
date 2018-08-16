@@ -43,7 +43,7 @@ public class AtlasDeltaGenerator extends Command
     private static final Switch<Path> AFTER_SWITCH = new Switch<>("after",
             "The after atlas directory or file that the before atlas deltas to.", Paths::get, Optionality.REQUIRED);
 
-    private static final Switch<Path> OUTPUT_DIR_SWITCH = new Switch<>("outputDir",
+    private static final Switch<Path> OUTPUT_DIRECTORY_SWITCH = new Switch<>("outputDirectory",
             "The path of the output directory.", Paths::get, Optionality.REQUIRED);
 
     private static final PathMatcher ATLAS_MATCHER = FileSystems.getDefault().getPathMatcher("glob:*.atlas");
@@ -74,7 +74,7 @@ public class AtlasDeltaGenerator extends Command
     @Override
     protected SwitchList switches()
     {
-        return new SwitchList().with(BEFORE_SWITCH, AFTER_SWITCH, OUTPUT_DIR_SWITCH);
+        return new SwitchList().with(BEFORE_SWITCH, AFTER_SWITCH, OUTPUT_DIRECTORY_SWITCH);
     }
 
     private void run(final Path before, final Path after, final Path outputDir)
@@ -166,11 +166,11 @@ public class AtlasDeltaGenerator extends Command
 
         final AtlasDelta delta = new AtlasDelta(beforeAtlas, afterAtlas).generate();
 
-        final String txt = delta.toDiffViewFriendlyString();
-        final File txtFile = new File(
+        final String text = delta.toDiffViewFriendlyString();
+        final File textFile = new File(
                 outputDir.resolve(name + FileSuffix.TEXT.toString()).toFile());
-        txtFile.writeAndClose(txt);
-        this.logger.info("Saved txt file {}", txtFile);
+        textFile.writeAndClose(text);
+        this.logger.info("Saved txt file {}", textFile);
 
         final String geoJson = delta.toGeoJson();
         final File geoJsonFile = new File(

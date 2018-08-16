@@ -47,16 +47,14 @@ public class AtlasDeltaGeoJsonIntegrationTest
     public void testGeoJson()
     {
         final String geoJson = delta.toGeoJson();
-        final int len = geoJson.length();
-        Assert.assertEquals(22424431, len);
+        Assert.assertEquals(22424431, geoJson.length());
     }
 
     @Test
     public void testRelationsGeoJson()
     {
         final String relationsGeoJson = delta.toRelationsGeoJson();
-        final int len = relationsGeoJson.length();
-        Assert.assertEquals(454484, len);
+        Assert.assertEquals(454484, relationsGeoJson.length());
     }
 
     /**
