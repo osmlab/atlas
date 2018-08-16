@@ -54,6 +54,15 @@ public class AtlasResourceLoader
         }
     }
 
+    private class AlwaysTrueAtlasFilter implements Predicate<Resource>
+    {
+        @Override
+        public boolean test(final Resource t)
+        {
+            return true;
+        }
+    }
+
     public static final Predicate<Resource> IS_ATLAS = FileSuffix.resourceFilter(FileSuffix.ATLAS)
             .or(FileSuffix.resourceFilter(FileSuffix.ATLAS, FileSuffix.GZIP));
 
@@ -62,6 +71,7 @@ public class AtlasResourceLoader
     private Predicate<Resource> resourceFilter;
     private Predicate<AtlasEntity> atlasEntityFilter;
     private String multiAtlasName;
+    private boolean filterForAtlasFileExtension = true;
 
     public AtlasResourceLoader()
     {
@@ -71,8 +81,11 @@ public class AtlasResourceLoader
 
     public Atlas load(final Iterable<? extends Resource> input)
     {
+        final Predicate<Resource> toggleableAtlasFileFilter = this.filterForAtlasFileExtension
+                ? IS_ATLAS : new AlwaysTrueAtlasFilter();
+
         final List<Resource> resources = Iterables.stream(input).flatMap(this::resourcesIn)
-                .filter(IS_ATLAS).filter(this.resourceFilter).collectToList();
+                .filter(toggleableAtlasFileFilter).filter(this.resourceFilter).collectToList();
         final long size = resources.size();
         if (size == 1)
         {
@@ -138,6 +151,19 @@ public class AtlasResourceLoader
     public AtlasResourceLoader withAtlasEntityFilter(final Predicate<AtlasEntity> filter)
     {
         setAtlasEntityFilter(filter);
+        return this;
+    }
+
+    /**
+     * Enable or disable atlas file extension filtering on this loader.
+     *
+     * @param value
+     *            whether to enable or disable
+     * @return the modified {@link AtlasResourceLoader}
+     */
+    public AtlasResourceLoader withAtlasFileExtensionFilterSetTo(final boolean value)
+    {
+        this.filterForAtlasFileExtension = value;
         return this;
     }
 
