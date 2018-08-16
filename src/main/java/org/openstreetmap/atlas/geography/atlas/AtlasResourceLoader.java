@@ -57,7 +57,7 @@ public class AtlasResourceLoader
     private class AlwaysTrueAtlasFilter implements Predicate<Resource>
     {
         @Override
-        public boolean test(final Resource t)
+        public boolean test(final Resource resource)
         {
             return true;
         }
