@@ -60,8 +60,8 @@ public class AtlasDeltaGenerator extends Command
     {
         final Path before = (Path) command.get("before");
         final Path after = (Path) command.get("after");
-        final Path outputDir = (Path) command.get("outputDir");
-        run(before, after, outputDir);
+        final Path outputDirectory = (Path) command.get("outputDirectory");
+        run(before, after, outputDirectory);
         return 0;
     }
 
@@ -71,7 +71,7 @@ public class AtlasDeltaGenerator extends Command
         return new SwitchList().with(BEFORE_SWITCH, AFTER_SWITCH, OUTPUT_DIRECTORY_SWITCH);
     }
 
-    private void run(final Path before, final Path after, final Path outputDir)
+    private void run(final Path before, final Path after, final Path outputDirectory)
     {
         final Time time = Time.now();
 
@@ -92,7 +92,7 @@ public class AtlasDeltaGenerator extends Command
             final ForkJoinPool customThreadPool = new ForkJoinPool(THREADS);
             try
             {
-                customThreadPool.submit(() -> this.compareShardByShard(before, after, outputDir))
+                customThreadPool.submit(() -> this.compareShardByShard(before, after, outputDirectory))
                         .get();
             }
             catch (final InterruptedException interrupt)
@@ -110,7 +110,7 @@ public class AtlasDeltaGenerator extends Command
         {
             final Atlas beforeAtlas = load(before);
             final Atlas afterAtlas = load(after);
-            compare(beforeAtlas, afterAtlas, outputDir);
+            compare(beforeAtlas, afterAtlas, outputDirectory);
         }
 
         logger.info("AtlasDeltaGenerator complete. Total time: {}.", time.elapsedSince());
@@ -137,22 +137,22 @@ public class AtlasDeltaGenerator extends Command
 
     private Atlas loadAtlasDirectory(final Path path)
     {
-        return new AtlasResourceLoader().load(fetchAtlasFilesInDir(path));
+        return new AtlasResourceLoader().load(fetchAtlasFilesInDirectory(path));
     }
 
-    private void compareShardByShard(final Path before, final Path after, final Path outputDir)
+    private void compareShardByShard(final Path before, final Path after, final Path outputDirectory)
     {
-        final List<File> afterShardFiles = fetchAtlasFilesInDir(after);
+        final List<File> afterShardFiles = fetchAtlasFilesInDirectory(after);
         afterShardFiles.parallelStream().forEach(afterShardFile ->
         {
             final Path beforeShardPath = before.resolve(afterShardFile.getName());
             final Atlas beforeAtlas = loadSingleAtlas(beforeShardPath);
             final Atlas afterAtlas = new AtlasResourceLoader().load(afterShardFile);
-            compare(beforeAtlas, afterAtlas, outputDir);
+            compare(beforeAtlas, afterAtlas, outputDirectory);
         });
     }
 
-    private void compare(final Atlas beforeAtlas, final Atlas afterAtlas, final Path outputDir)
+    private void compare(final Atlas beforeAtlas, final Atlas afterAtlas, final Path outputDirectory)
     {
         final String name = FilenameUtils.removeExtension(beforeAtlas.getName());
 
@@ -160,13 +160,13 @@ public class AtlasDeltaGenerator extends Command
 
         final String text = delta.toDiffViewFriendlyString();
         final File textFile = new File(
-                outputDir.resolve(name + FileSuffix.TEXT.toString()).toFile());
+                outputDirectory.resolve(name + FileSuffix.TEXT.toString()).toFile());
         textFile.writeAndClose(text);
         this.logger.info("Saved text file {}", textFile);
 
         final String geoJson = delta.toGeoJson();
         final File geoJsonFile = new File(
-                outputDir.resolve(name + FileSuffix.GEO_JSON.toString()).toFile());
+                outputDirectory.resolve(name + FileSuffix.GEO_JSON.toString()).toFile());
         geoJsonFile.writeAndClose(geoJson);
         this.logger.info("Saved GeoJSON file {}", geoJsonFile);
 
@@ -174,14 +174,14 @@ public class AtlasDeltaGenerator extends Command
         final String relationsGeoJsonFileName = name + "_relations"
                 + FileSuffix.GEO_JSON.toString();
         final File relationsGeoJsonFile = new File(
-                outputDir.resolve(relationsGeoJsonFileName).toFile());
+                outputDirectory.resolve(relationsGeoJsonFileName).toFile());
         relationsGeoJsonFile.writeAndClose(relationsGeoJson);
         this.logger.info("Saved Relations GeoJSON file {}", relationsGeoJsonFile);
     }
 
-    private static List<File> fetchAtlasFilesInDir(final Path dir)
+    private static List<File> fetchAtlasFilesInDirectory(final Path directory)
     {
-        return new File(dir.toFile()).listFilesRecursively().stream()
+        return new File(directory.toFile()).listFilesRecursively().stream()
                 .filter(file -> "atlas".equals(FilenameUtils.getExtension(file.getName())))
                 .collect(Collectors.toList());
     }
