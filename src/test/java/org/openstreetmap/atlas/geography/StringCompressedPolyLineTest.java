@@ -24,7 +24,7 @@ public class StringCompressedPolyLineTest
         Assert.assertEquals(polyLine, decompressed);
     }
 
-    @Test
+    @Test(expected = PolyLineCompressionException.class)
     public void testCompressionError1()
     {
         final Location location1 = new Location(Latitude.degrees(45.0), Longitude.degrees(-179.0));
@@ -33,7 +33,7 @@ public class StringCompressedPolyLineTest
         final StringCompressedPolyLine compressedLine = new StringCompressedPolyLine(line);
     }
 
-    @Test
+    @Test(expected = PolyLineCompressionException.class)
     public void testCompressionError2()
     {
         final Location location1 = new Location(Latitude.degrees(45.0), Longitude.degrees(179.0));
