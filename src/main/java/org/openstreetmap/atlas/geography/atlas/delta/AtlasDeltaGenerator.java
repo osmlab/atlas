@@ -41,7 +41,9 @@ public class AtlasDeltaGenerator extends Command
     private static final Switch<Path> OUTPUT_DIRECTORY_SWITCH = new Switch<>("outputDirectory",
             "The path of the output directory.", Paths::get, Optionality.REQUIRED);
 
-    private static final Switch<Integer> THREADS_SWITCH = new Switch<>("threads", "The number of threads to work on processing atlas shards.", Integer::valueOf, Optionality.OPTIONAL, "8");
+    private static final Switch<Integer> THREADS_SWITCH = new Switch<>("threads",
+            "The number of threads to work on processing atlas shards.", Integer::valueOf,
+            Optionality.OPTIONAL, "8");
 
     private final Logger logger;
 
@@ -49,7 +51,6 @@ public class AtlasDeltaGenerator extends Command
      * The size of the thread pool for shard-by-shard parallel processing.
      */
     private int threads = 8;
-
 
     public static void main(final String[] args)
     {
@@ -75,7 +76,8 @@ public class AtlasDeltaGenerator extends Command
     @Override
     protected SwitchList switches()
     {
-        return new SwitchList().with(BEFORE_SWITCH, AFTER_SWITCH, OUTPUT_DIRECTORY_SWITCH, THREADS_SWITCH);
+        return new SwitchList().with(BEFORE_SWITCH, AFTER_SWITCH, OUTPUT_DIRECTORY_SWITCH,
+                THREADS_SWITCH);
     }
 
     private void run(final Path before, final Path after, final Path outputDirectory)
@@ -99,7 +101,8 @@ public class AtlasDeltaGenerator extends Command
             final ForkJoinPool customThreadPool = new ForkJoinPool(threads);
             try
             {
-                customThreadPool.submit(() -> this.compareShardByShard(before, after, outputDirectory))
+                customThreadPool
+                        .submit(() -> this.compareShardByShard(before, after, outputDirectory))
                         .get();
             }
             catch (final InterruptedException interrupt)
@@ -147,7 +150,8 @@ public class AtlasDeltaGenerator extends Command
         return new AtlasResourceLoader().load(fetchAtlasFilesInDirectory(path));
     }
 
-    private void compareShardByShard(final Path before, final Path after, final Path outputDirectory)
+    private void compareShardByShard(final Path before, final Path after,
+            final Path outputDirectory)
     {
         final List<File> afterShardFiles = fetchAtlasFilesInDirectory(after);
         afterShardFiles.parallelStream().forEach(afterShardFile ->
@@ -159,7 +163,8 @@ public class AtlasDeltaGenerator extends Command
         });
     }
 
-    private void compare(final Atlas beforeAtlas, final Atlas afterAtlas, final Path outputDirectory)
+    private void compare(final Atlas beforeAtlas, final Atlas afterAtlas,
+            final Path outputDirectory)
     {
         final String name = FilenameUtils.removeExtension(beforeAtlas.getName());
 
