@@ -30,8 +30,6 @@ import org.slf4j.LoggerFactory;
  */
 public class AtlasDeltaGenerator extends Command
 {
-    private static final int THREADS = 8; // Tweak this if desired.
-
     private static final Switch<Path> BEFORE_SWITCH = new Switch<>("before",
             "The before atlas directory or file from which to delta.", Paths::get,
             Optionality.REQUIRED);
@@ -43,7 +41,15 @@ public class AtlasDeltaGenerator extends Command
     private static final Switch<Path> OUTPUT_DIRECTORY_SWITCH = new Switch<>("outputDirectory",
             "The path of the output directory.", Paths::get, Optionality.REQUIRED);
 
+    private static final Switch<Integer> THREADS_SWITCH = new Switch<>("threads", "The number of threads to work on processing atlas shards.", Integer::valueOf, Optionality.OPTIONAL, "8");
+
     private final Logger logger;
+
+    /**
+     * The size of the thread pool for shard-by-shard parallel processing.
+     */
+    private int threads = 8;
+
 
     public static void main(final String[] args)
     {
@@ -61,6 +67,7 @@ public class AtlasDeltaGenerator extends Command
         final Path before = (Path) command.get("before");
         final Path after = (Path) command.get("after");
         final Path outputDirectory = (Path) command.get("outputDirectory");
+        threads = (Integer) command.get("threads");
         run(before, after, outputDirectory);
         return 0;
     }
@@ -68,7 +75,7 @@ public class AtlasDeltaGenerator extends Command
     @Override
     protected SwitchList switches()
     {
-        return new SwitchList().with(BEFORE_SWITCH, AFTER_SWITCH, OUTPUT_DIRECTORY_SWITCH);
+        return new SwitchList().with(BEFORE_SWITCH, AFTER_SWITCH, OUTPUT_DIRECTORY_SWITCH, THREADS_SWITCH);
     }
 
     private void run(final Path before, final Path after, final Path outputDirectory)
@@ -89,7 +96,7 @@ public class AtlasDeltaGenerator extends Command
             }
 
             // Execute in a pool of threads so we limit how many atlases get loaded in parallel.
-            final ForkJoinPool customThreadPool = new ForkJoinPool(THREADS);
+            final ForkJoinPool customThreadPool = new ForkJoinPool(threads);
             try
             {
                 customThreadPool.submit(() -> this.compareShardByShard(before, after, outputDirectory))
@@ -127,7 +134,7 @@ public class AtlasDeltaGenerator extends Command
      */
     private Atlas load(final Path path)
     {
-        return Files.isDirectory(path) ? loadAtlasDirectory(path) : loadSingleAtlas(path);
+        return Files.isDirectory(path) ? this.loadAtlasDirectory(path) : this.loadSingleAtlas(path);
     }
 
     private Atlas loadSingleAtlas(final Path path)
