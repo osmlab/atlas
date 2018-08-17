@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.delta;
 
-import java.io.IOException;
+import static org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader.IS_ATLAS;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -49,6 +50,8 @@ public class AtlasDeltaGenerator extends Command
             Optionality.OPTIONAL, String.valueOf(DEFAULT_THREADS));
 
     private final Logger logger;
+
+    private static final AtlasResourceLoader ATLAS_RESOURCE_LOADER = new AtlasResourceLoader();
 
     /**
      * The size of the thread pool for shard-by-shard parallel processing.
@@ -101,20 +104,23 @@ public class AtlasDeltaGenerator extends Command
             }
 
             // Execute in a pool of threads so we limit how many atlases get loaded in parallel.
-            final ForkJoinPool customThreadPool = new ForkJoinPool(threads);
+            final ForkJoinPool pool = new ForkJoinPool(threads);
             try
             {
-                customThreadPool
-                        .submit(() -> this.compareShardByShard(before, after, outputDirectory))
-                        .get();
+                pool.submit(() -> this.compareShardByShard(before, after, outputDirectory)).get();
             }
             catch (final InterruptedException interrupt)
             {
                 logger.error("The shard diff workers were interrupted.", interrupt);
             }
-            catch (final ExecutionException exec)
+            catch (final ExecutionException execution)
             {
-                logger.error("There was an execution exception on the shard diff workers.", exec);
+                logger.error("There was an execution exception on the shard diff workers.",
+                        execution);
+            }
+            finally
+            {
+                pool.shutdown();
             }
         }
         // Otherwise, we can do a normal compare where we look at 2 atlases or input shards with a
@@ -135,22 +141,10 @@ public class AtlasDeltaGenerator extends Command
      * @param path
      *            An atlas shard directory or a single atlas.
      * @return An atlas object.
-     * @throws IOException
-     *             Exception if loading the atlas directory does not work.
      */
     private Atlas load(final Path path)
     {
-        return Files.isDirectory(path) ? this.loadAtlasDirectory(path) : this.loadSingleAtlas(path);
-    }
-
-    private Atlas loadSingleAtlas(final Path path)
-    {
-        return new AtlasResourceLoader().load(new File(path.toFile()));
-    }
-
-    private Atlas loadAtlasDirectory(final Path path)
-    {
-        return new AtlasResourceLoader().load(fetchAtlasFilesInDirectory(path));
+        return ATLAS_RESOURCE_LOADER.load(new File(path.toFile()));
     }
 
     private void compareShardByShard(final Path before, final Path after,
@@ -160,8 +154,8 @@ public class AtlasDeltaGenerator extends Command
         afterShardFiles.parallelStream().forEach(afterShardFile ->
         {
             final Path beforeShardPath = before.resolve(afterShardFile.getName());
-            final Atlas beforeAtlas = loadSingleAtlas(beforeShardPath);
-            final Atlas afterAtlas = new AtlasResourceLoader().load(afterShardFile);
+            final Atlas beforeAtlas = load(beforeShardPath);
+            final Atlas afterAtlas = ATLAS_RESOURCE_LOADER.load(afterShardFile);
             compare(beforeAtlas, afterAtlas, outputDirectory);
         });
     }
@@ -196,8 +190,7 @@ public class AtlasDeltaGenerator extends Command
 
     private static List<File> fetchAtlasFilesInDirectory(final Path directory)
     {
-        return new File(directory.toFile()).listFilesRecursively().stream()
-                .filter(file -> "atlas".equals(FilenameUtils.getExtension(file.getName())))
+        return new File(directory.toFile()).listFilesRecursively().stream().filter(IS_ATLAS)
                 .collect(Collectors.toList());
     }
 }
