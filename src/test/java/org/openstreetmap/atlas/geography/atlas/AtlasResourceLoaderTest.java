@@ -92,7 +92,7 @@ public class AtlasResourceLoaderTest
         final File parent = File.temporaryFolder();
         try
         {
-            final File atlas1 = parent.child("iAmNotAnAtlas.txt");
+            final File atlas1 = parent.child("iAmNotAnAtlas2.txt");
             atlas1.writeAndClose("1");
             Assert.assertNull(new AtlasResourceLoader().load(atlas1));
             Assert.assertNotNull(new AtlasResourceLoader().withAtlasFileExtensionFilterSetTo(false)
