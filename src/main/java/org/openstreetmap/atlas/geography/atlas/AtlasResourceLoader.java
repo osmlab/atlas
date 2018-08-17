@@ -18,7 +18,12 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Load an {@link Atlas} from a {@link Resource} or an {@link Iterable} of {@link Resource}s.
- * Supports also loading based on a resource name filter.
+ * Supports also loading based on a resource name filter. Note that by default, this class will
+ * filter the provided {@link Iterable} and remove any {@link Resource} that does not have a valid
+ * atlas file extension (defined in the {@link FileSuffix} enum). This funtionality can be disabled
+ * by calling {@link AtlasResourceLoader#withAtlasFileExtensionFilterSetTo(boolean)} with
+ * {@code false}. Disabling this functionality is useful if combining this class with atlases
+ * fetched from a cache that does not respect the .atlas file extension convention.
  *
  * @author cstaylor
  * @author mgostintsev
@@ -59,9 +64,12 @@ public class AtlasResourceLoader
 
     private static final Logger logger = LoggerFactory.getLogger(AtlasResourceLoader.class);
 
+    private final Predicate<Resource> alwaysTrueAtlasFilter = resource -> true;
+
     private Predicate<Resource> resourceFilter;
     private Predicate<AtlasEntity> atlasEntityFilter;
     private String multiAtlasName;
+    private boolean filterForAtlasFileExtension = true;
 
     public AtlasResourceLoader()
     {
@@ -71,8 +79,11 @@ public class AtlasResourceLoader
 
     public Atlas load(final Iterable<? extends Resource> input)
     {
+        final Predicate<Resource> toggleableAtlasFileFilter = this.filterForAtlasFileExtension
+                ? IS_ATLAS : this.alwaysTrueAtlasFilter;
+
         final List<Resource> resources = Iterables.stream(input).flatMap(this::resourcesIn)
-                .filter(IS_ATLAS).filter(this.resourceFilter).collectToList();
+                .filter(toggleableAtlasFileFilter).filter(this.resourceFilter).collectToList();
         final long size = resources.size();
         if (size == 1)
         {
@@ -138,6 +149,19 @@ public class AtlasResourceLoader
     public AtlasResourceLoader withAtlasEntityFilter(final Predicate<AtlasEntity> filter)
     {
         setAtlasEntityFilter(filter);
+        return this;
+    }
+
+    /**
+     * Enable or disable atlas file extension filtering on this loader.
+     *
+     * @param value
+     *            whether to enable or disable
+     * @return the modified {@link AtlasResourceLoader}
+     */
+    public AtlasResourceLoader withAtlasFileExtensionFilterSetTo(final boolean value)
+    {
+        this.filterForAtlasFileExtension = value;
         return this;
     }
 
