@@ -7,6 +7,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -30,6 +34,11 @@ public class AtlasJoinerSubCommand extends AbstractAtlasSubCommand
     private static final Switch<Path> OUTPUT_PARAMETER = new Switch<>("output",
             "The Atlas file to save to", Paths::get, Optionality.REQUIRED);
 
+    private static final Switch<Set<String>> ATLAS_NAMES_PARAMETER = new Switch<>("atlases",
+            "A comma separated list of Atlas files to join",
+            atlasNames -> Stream.of(atlasNames.split(",")).collect(Collectors.toSet()),
+            Optionality.OPTIONAL);
+
     private final List<Atlas> atlases = new ArrayList<>();
 
     public AtlasJoinerSubCommand()
@@ -40,7 +49,7 @@ public class AtlasJoinerSubCommand extends AbstractAtlasSubCommand
     @Override
     public SwitchList switches()
     {
-        return super.switches().with(OUTPUT_PARAMETER);
+        return super.switches().with(OUTPUT_PARAMETER, ATLAS_NAMES_PARAMETER);
     }
 
     @Override
@@ -49,6 +58,7 @@ public class AtlasJoinerSubCommand extends AbstractAtlasSubCommand
         writer.printf(AtlasCommandConstants.INPUT_PARAMETER_DESCRIPTION);
         writer.printf(
                 "-output=/path/to/atlas/output/to/save : the path to the output atlas file\n");
+        writer.printf("-atlases=example.atlas,example2.atlas : comma separated list of atlas file names\n");
     }
 
     @Override
@@ -72,7 +82,15 @@ public class AtlasJoinerSubCommand extends AbstractAtlasSubCommand
     @Override
     protected void handle(final Atlas atlas, final CommandMap command)
     {
-        this.atlases.add(atlas);
+        final Optional atlasNames = command.getOption(ATLAS_NAMES_PARAMETER);
+        if (atlasNames.isPresent() && ((Set<String>) atlasNames.get()).contains(atlas.getName()))
+        {
+            this.atlases.add(atlas);
+        }
+        else if (!atlasNames.isPresent())
+        {
+            this.atlases.add(atlas);
+        }
     }
 
 }
