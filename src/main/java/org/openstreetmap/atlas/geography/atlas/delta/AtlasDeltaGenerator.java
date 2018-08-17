@@ -30,6 +30,9 @@ import org.slf4j.LoggerFactory;
  */
 public class AtlasDeltaGenerator extends Command
 {
+    private static final int DEFAULT_THREADS = 8;
+    private static final int COMMAND_LINE_USAGE_ERROR_EXIT = 64;
+
     private static final Switch<Path> BEFORE_SWITCH = new Switch<>("before",
             "The before atlas directory or file from which to delta.", Paths::get,
             Optionality.REQUIRED);
@@ -43,14 +46,14 @@ public class AtlasDeltaGenerator extends Command
 
     private static final Switch<Integer> THREADS_SWITCH = new Switch<>("threads",
             "The number of threads to work on processing atlas shards.", Integer::valueOf,
-            Optionality.OPTIONAL, "8");
+            Optionality.OPTIONAL, String.valueOf(DEFAULT_THREADS));
 
     private final Logger logger;
 
     /**
      * The size of the thread pool for shard-by-shard parallel processing.
      */
-    private int threads = 8;
+    private int threads = DEFAULT_THREADS;
 
     public static void main(final String[] args)
     {
@@ -94,7 +97,7 @@ public class AtlasDeltaGenerator extends Command
             {
                 logger.error("Your -before parameter must point to a directory of atlas shards if "
                         + "you want to compare shard by shard with an -after directory also of shards!");
-                System.exit(64);
+                System.exit(COMMAND_LINE_USAGE_ERROR_EXIT);
             }
 
             // Execute in a pool of threads so we limit how many atlases get loaded in parallel.
