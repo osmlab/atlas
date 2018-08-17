@@ -80,7 +80,7 @@ public class AtlasFindByIdSubCommand extends AbstractAtlasSubCommand
     @Override
     protected int finish(final CommandMap command)
     {
-        Optional output = command.getOption(JOINED_OUTPUT_PARAMETER);
+        final Optional output = command.getOption(JOINED_OUTPUT_PARAMETER);
         // If joining is requested and there are shards to join...
         if (output.isPresent() && !this.shardNames.isEmpty())
         {
