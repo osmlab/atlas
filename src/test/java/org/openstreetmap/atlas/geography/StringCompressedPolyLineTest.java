@@ -27,8 +27,8 @@ public class StringCompressedPolyLineTest
     @Test
     public void testCompressionError1()
     {
-        final Location location1 = new Location(Latitude.degrees(0.0), Longitude.degrees(-179.0));
-        final Location location2 = new Location(Latitude.degrees(0.0), Longitude.degrees(179.0));
+        final Location location1 = new Location(Latitude.degrees(45.0), Longitude.degrees(-179.0));
+        final Location location2 = new Location(Latitude.degrees(45.0), Longitude.degrees(179.0));
         final PolyLine line = new PolyLine(location1, location2);
         final StringCompressedPolyLine compressedLine = new StringCompressedPolyLine(line);
     }
@@ -36,8 +36,8 @@ public class StringCompressedPolyLineTest
     @Test
     public void testCompressionError2()
     {
-        final Location location1 = new Location(Latitude.degrees(0.0), Longitude.degrees(179.0));
-        final Location location2 = new Location(Latitude.degrees(0.0), Longitude.degrees(-179.0));
+        final Location location1 = new Location(Latitude.degrees(45.0), Longitude.degrees(179.0));
+        final Location location2 = new Location(Latitude.degrees(45.0), Longitude.degrees(-179.0));
         final PolyLine line = new PolyLine(location1, location2);
         final StringCompressedPolyLine compressedLine = new StringCompressedPolyLine(line);
     }
