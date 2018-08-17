@@ -90,12 +90,18 @@ public class AtlasResourceLoaderTest
     public void testAtlasFileExtensionFilter()
     {
         final File parent = File.temporaryFolder();
-        final File atlas1 = parent.child("iAmNotAnAtlas.txt");
-        atlas1.writeAndClose("1");
-
-        Assert.assertNull(new AtlasResourceLoader().load(atlas1));
-        Assert.assertNotNull(
-                new AtlasResourceLoader().withAtlasFileExtensionFilterSetTo(false).load(atlas1));
+        try
+        {
+            final File atlas1 = parent.child("iAmNotAnAtlas.txt");
+            atlas1.writeAndClose("1");
+            Assert.assertNull(new AtlasResourceLoader().load(atlas1));
+            Assert.assertNotNull(new AtlasResourceLoader().withAtlasFileExtensionFilterSetTo(false)
+                    .load(atlas1));
+        }
+        finally
+        {
+            parent.deleteRecursively();
+        }
     }
 
     @Test
