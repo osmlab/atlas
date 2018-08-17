@@ -150,7 +150,7 @@ public class StringCompressedPolyLine implements Serializable
             // Encode the differences between the points
             encoded += encodeNumber(latitude - oldLatitude);
             final long deltaLongitude = longitude - oldLongitude;
-            if (deltaLongitude > MAXIMUM_DELTA_LONGITUDE)
+            if (Math.abs(deltaLongitude) > MAXIMUM_DELTA_LONGITUDE)
             {
                 throw new PolyLineCompressionException(
                         "Unable to compress the polyLine, two consecutive points ({} and {}) are too far apart in longitude: {} degrees.",
