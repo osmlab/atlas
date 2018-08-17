@@ -58,7 +58,8 @@ public class AtlasJoinerSubCommand extends AbstractAtlasSubCommand
         writer.printf(AtlasCommandConstants.INPUT_PARAMETER_DESCRIPTION);
         writer.printf(
                 "-output=/path/to/atlas/output/to/save : the path to the output atlas file\n");
-        writer.printf("-atlases=example.atlas,example2.atlas : comma separated list of atlas file names\n");
+        writer.printf(
+                "-atlases=example.atlas,example2.atlas : comma separated list of atlas file names\n");
     }
 
     @Override
