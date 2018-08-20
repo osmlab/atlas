@@ -17,11 +17,48 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * {@link OsmPbfProcessor} tests
+ *
  * @author matthieun
+ * @author mgostintsev
  */
 public class OsmPbfProcessorTest
 {
     private static final Logger logger = LoggerFactory.getLogger(OsmPbfProcessorTest.class);
+
+    @Test
+    public void testKeepOutsideWaysConnectedOneWays()
+    {
+        final Resource osmFromJosm = new InputStreamResource(() -> OsmPbfProcessorTest.class
+                .getResourceAsStream("outsideConnectedOneWayWays.osm"));
+        final WritableResource osmFile = new StringResource();
+        final WritableResource pbfFile = new StringResource();
+        final Resource boundaries = new InputStreamResource(
+                () -> OsmPbfProcessorTest.class.getResourceAsStream("DNK_SWE_boundary.txt"));
+        new OsmFileParser().update(osmFromJosm, osmFile);
+        new OsmFileToPbf().update(osmFile, pbfFile);
+        final CountryBoundaryMap countryBoundaryMap = CountryBoundaryMap.fromPlainText(boundaries);
+        final MultiPolygon boundary = countryBoundaryMap.countryBoundary("DNK").get(0)
+                .getBoundary();
+        logger.debug("Boundary: {}", boundary.toWkt());
+        final AtlasLoadingOption option = AtlasLoadingOption
+                .createOptionWithAllEnabled(countryBoundaryMap);
+        final OsmPbfLoader loader = new OsmPbfLoader(pbfFile, boundary, option);
+        final Atlas atlas = loader.read();
+        logger.debug("Atlas: {}", atlas.toString());
+
+        // Check top node has proper tag
+        Assert.assertEquals(SyntheticNearestNeighborCountryCodeTag.YES.name(),
+                atlas.node(3089123457000000L).tag(SyntheticNearestNeighborCountryCodeTag.KEY));
+        Assert.assertEquals(SyntheticBoundaryNodeTag.EXISTING.name().toLowerCase(),
+                atlas.node(3089123457000000L).tag(SyntheticBoundaryNodeTag.KEY));
+
+        // Check bottom node has proper tag
+        Assert.assertEquals(SyntheticNearestNeighborCountryCodeTag.YES.name(),
+                atlas.node(3089123458000000L).tag(SyntheticNearestNeighborCountryCodeTag.KEY));
+        Assert.assertEquals(SyntheticBoundaryNodeTag.EXISTING.name().toLowerCase(),
+                atlas.node(3089123458000000L).tag(SyntheticBoundaryNodeTag.KEY));
+    }
 
     @Test
     public void testKeepOutsideWaysThatAreConnected()
