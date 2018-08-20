@@ -43,21 +43,21 @@ public class AtlasDelta implements Serializable
     private static final Logger logger = LoggerFactory.getLogger(AtlasDelta.class);
     private static final int COUNTER_REPORT = 100_000;
 
-    private final Atlas base;
-    private final Atlas alter;
+    private final Atlas before;
+    private final Atlas after;
     private final SortedSet<Diff> differences;
     private final boolean withGeometryMatching;
     private final transient CounterWithStatistic counter;
 
-    public AtlasDelta(final Atlas base, final Atlas alter)
+    public AtlasDelta(final Atlas before, final Atlas after)
     {
-        this(base, alter, false);
+        this(before, after, false);
     }
 
-    public AtlasDelta(final Atlas base, final Atlas alter, final boolean withGeometryMatching)
+    public AtlasDelta(final Atlas before, final Atlas after, final boolean withGeometryMatching)
     {
-        this.base = base;
-        this.alter = alter;
+        this.before = before;
+        this.after = after;
         this.differences = new TreeSet<>();
         this.counter = new CounterWithStatistic(logger, COUNTER_REPORT, "Processed");
         this.withGeometryMatching = withGeometryMatching;
@@ -67,34 +67,34 @@ public class AtlasDelta implements Serializable
     {
         // Check for removed identifiers
         logger.info("Looking for removed items.");
-        for (final AtlasEntity entity : this.base)
+        for (final AtlasEntity entity : this.before)
         {
             this.counter.increment();
-            if (entity.getType().entityForIdentifier(this.alter, entity.getIdentifier()) == null
-                    && (!(entity instanceof Edge) || !hasGoodMatch((Edge) entity, this.alter)))
+            if (entity.getType().entityForIdentifier(this.after, entity.getIdentifier()) == null
+                    && (!(entity instanceof Edge) || !hasGoodMatch((Edge) entity, this.after)))
             {
                 this.differences.add(new Diff(entity.getType(), DiffType.REMOVED,
-                        DiffReason.REMOVED, this.base, this.alter, entity.getIdentifier()));
+                        DiffReason.REMOVED, this.before, this.after, entity.getIdentifier()));
             }
         }
         // Check for added identifiers
         logger.info("Looking for added items.");
-        for (final AtlasEntity entity : this.alter)
+        for (final AtlasEntity entity : this.after)
         {
             this.counter.increment();
-            if (entity.getType().entityForIdentifier(this.base, entity.getIdentifier()) == null
-                    && (!(entity instanceof Edge) || !hasGoodMatch((Edge) entity, this.base)))
+            if (entity.getType().entityForIdentifier(this.before, entity.getIdentifier()) == null
+                    && (!(entity instanceof Edge) || !hasGoodMatch((Edge) entity, this.before)))
             {
                 this.differences.add(new Diff(entity.getType(), DiffType.ADDED, DiffReason.ADDED,
-                        this.base, this.alter, entity.getIdentifier()));
+                        this.before, this.after, entity.getIdentifier()));
             }
         }
         logger.info("Looking for changed items.");
-        for (final AtlasEntity baseEntity : this.base)
+        for (final AtlasEntity baseEntity : this.before)
         {
             this.counter.increment();
             final long identifier = baseEntity.getIdentifier();
-            final AtlasEntity alterEntity = baseEntity.getType().entityForIdentifier(this.alter,
+            final AtlasEntity alterEntity = baseEntity.getType().entityForIdentifier(this.after,
                     baseEntity.getIdentifier());
             // Look only at entities that are in both Atlas.
             if (alterEntity != null)
@@ -103,19 +103,19 @@ public class AtlasDelta implements Serializable
                 if (!baseEntity.getTags().equals(alterEntity.getTags()))
                 {
                     this.differences.add(new Diff(baseEntity.getType(), DiffType.CHANGED,
-                            DiffReason.TAGS, this.base, this.alter, identifier));
+                            DiffReason.TAGS, this.before, this.after, identifier));
                 }
                 else if (differentInRelation(baseEntity, alterEntity))
                 {
                     this.differences.add(new Diff(baseEntity.getType(), DiffType.CHANGED,
-                            DiffReason.RELATION_MEMBER, this.base, this.alter, identifier));
+                            DiffReason.RELATION_MEMBER, this.before, this.after, identifier));
                 }
                 else if (baseEntity instanceof Node)
                 {
                     if (differentNodes((Node) baseEntity, (Node) alterEntity))
                     {
                         this.differences.add(new Diff(ItemType.NODE, DiffType.CHANGED,
-                                DiffReason.GEOMETRY_OR_TOPOLOGY, this.base, this.alter,
+                                DiffReason.GEOMETRY_OR_TOPOLOGY, this.before, this.after,
                                 identifier));
                     }
                 }
@@ -124,7 +124,7 @@ public class AtlasDelta implements Serializable
                     if (differentEdges((Edge) baseEntity, (Edge) alterEntity))
                     {
                         this.differences.add(new Diff(ItemType.EDGE, DiffType.CHANGED,
-                                DiffReason.GEOMETRY_OR_TOPOLOGY, this.base, this.alter,
+                                DiffReason.GEOMETRY_OR_TOPOLOGY, this.before, this.after,
                                 identifier));
                     }
                 }
@@ -133,7 +133,7 @@ public class AtlasDelta implements Serializable
                     if (differentAreas((Area) baseEntity, (Area) alterEntity))
                     {
                         this.differences.add(new Diff(ItemType.AREA, DiffType.CHANGED,
-                                DiffReason.GEOMETRY_OR_TOPOLOGY, this.base, this.alter,
+                                DiffReason.GEOMETRY_OR_TOPOLOGY, this.before, this.after,
                                 identifier));
                     }
                 }
@@ -142,7 +142,7 @@ public class AtlasDelta implements Serializable
                     if (differentLines((Line) baseEntity, (Line) alterEntity))
                     {
                         this.differences.add(new Diff(ItemType.LINE, DiffType.CHANGED,
-                                DiffReason.GEOMETRY_OR_TOPOLOGY, this.base, this.alter,
+                                DiffReason.GEOMETRY_OR_TOPOLOGY, this.before, this.after,
                                 identifier));
                     }
                 }
@@ -151,7 +151,7 @@ public class AtlasDelta implements Serializable
                     if (differentPoints((Point) baseEntity, (Point) alterEntity))
                     {
                         this.differences.add(new Diff(ItemType.POINT, DiffType.CHANGED,
-                                DiffReason.GEOMETRY_OR_TOPOLOGY, this.base, this.alter,
+                                DiffReason.GEOMETRY_OR_TOPOLOGY, this.before, this.after,
                                 identifier));
                     }
                 }
@@ -160,7 +160,7 @@ public class AtlasDelta implements Serializable
                     if (differentRelations((Relation) baseEntity, (Relation) alterEntity))
                     {
                         this.differences.add(new Diff(ItemType.RELATION, DiffType.CHANGED,
-                                DiffReason.RELATION_TOPOLOGY, this.base, this.alter, identifier));
+                                DiffReason.RELATION_TOPOLOGY, this.before, this.after, identifier));
                     }
                 }
             }
@@ -169,14 +169,14 @@ public class AtlasDelta implements Serializable
         return this;
     }
 
-    public Atlas getAlter()
+    public Atlas getAfter()
     {
-        return this.alter;
+        return this.after;
     }
 
-    public Atlas getBase()
+    public Atlas getBefore()
     {
-        return this.base;
+        return this.before;
     }
 
     public SortedSet<Diff> getDifferences()

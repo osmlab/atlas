@@ -229,7 +229,7 @@ public class AtlasDeltaEdgeTest
             if (diff.getItemType() == ItemType.NODE)
             {
                 Assert.assertEquals(DiffType.ADDED, diff.getDiffType());
-                final long nodeIdentifier = diff.getAlterEntity().getIdentifier();
+                final long nodeIdentifier = diff.getAfterEntity().getIdentifier();
                 if (nodeIdentifier != 2 && nodeIdentifier != 4)
                 {
                     Assert.fail("Found an unexpected node added: " + nodeIdentifier);
