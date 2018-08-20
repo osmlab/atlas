@@ -51,8 +51,12 @@ public class StringCompressedPolyLine implements Serializable
     private static final long MAXIMUM_DELTA_LONGITUDE = (long) (MAXIMUM_DELTA_LONGITUDE_IN_DEGREES
             * Math.pow(10, PRECISION));
 
-    // if the first byte of the encoding array is this sentinel value, then the following encoding
-    // is WKB and not string compressed
+    /*
+     * If the first byte of the encoding array is this sentinel value, then the following encoding
+     * is WKB and not string-compressed. We use '0' as the sentinel value since the string
+     * compression algorithm will always use printable ASCII characters. There will never be a 0
+     * byte in a valid string-compressed polyline.
+     */
     private static final byte WKB_SENTINEL = 0;
 
     private static final Logger logger = LoggerFactory.getLogger(StringCompressedPolyLine.class);
