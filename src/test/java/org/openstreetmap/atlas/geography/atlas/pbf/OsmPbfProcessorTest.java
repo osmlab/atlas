@@ -45,19 +45,18 @@ public class OsmPbfProcessorTest
                 .createOptionWithAllEnabled(countryBoundaryMap);
         final OsmPbfLoader loader = new OsmPbfLoader(pbfFile, boundary, option);
         final Atlas atlas = loader.read();
-        logger.debug("Atlas: {}", atlas.toString());
+        logger.info("Atlas: {}", atlas.toString());
 
-        // Check top node has proper tag
+        // Check top bridge node has proper tag
         Assert.assertEquals(SyntheticNearestNeighborCountryCodeTag.YES.name(),
                 atlas.node(3089123457000000L).tag(SyntheticNearestNeighborCountryCodeTag.KEY));
         Assert.assertEquals(SyntheticBoundaryNodeTag.EXISTING.name().toLowerCase(),
                 atlas.node(3089123457000000L).tag(SyntheticBoundaryNodeTag.KEY));
 
-        // Check bottom node has proper tag
+        // Check bottom bridge node has invalid tagging
         Assert.assertEquals(SyntheticNearestNeighborCountryCodeTag.YES.name(),
                 atlas.node(3089123458000000L).tag(SyntheticNearestNeighborCountryCodeTag.KEY));
-        Assert.assertEquals(SyntheticBoundaryNodeTag.EXISTING.name().toLowerCase(),
-                atlas.node(3089123458000000L).tag(SyntheticBoundaryNodeTag.KEY));
+        Assert.assertNull(atlas.node(3089123458000000L).tag(SyntheticBoundaryNodeTag.KEY));
     }
 
     @Test
