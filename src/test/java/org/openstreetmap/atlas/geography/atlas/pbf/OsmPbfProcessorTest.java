@@ -27,7 +27,7 @@ public class OsmPbfProcessorTest
     private static final Logger logger = LoggerFactory.getLogger(OsmPbfProcessorTest.class);
 
     @Test
-    public void testKeepOutsideWaysConnectedOneWays()
+    public void testBringInConnectedBridgeNodesOutsideCountryBoundaries()
     {
         final Resource osmFromJosm = new InputStreamResource(() -> OsmPbfProcessorTest.class
                 .getResourceAsStream("outsideConnectedOneWayWays.osm"));
