@@ -729,17 +729,17 @@ public class OsmPbfProcessor implements Sink
                                 this.nodeIdentifiersAtNetworkBoundary.remove(new Long(identifier));
                                 for (final WayNode subWayNode : wayNodes)
                                 {
-                                    this.store.addNodeInEdge(subWayNode.getNodeId());
-                                    if (!this.store.containsNode(subWayNode.getNodeId()))
+                                    final long subWayNodeIdentifier = subWayNode.getNodeId();
+                                    this.store.addNodeInEdge(subWayNodeIdentifier);
+                                    if (!this.store.containsNode(subWayNodeIdentifier))
                                     {
-                                        final long subWayNodeIdentifier = subWayNode.getNodeId();
                                         if (subWayNodeIdentifier != identifier)
                                         {
                                             // The node is a new node outside of the network
                                             this.nodeIdentifiersAtNetworkBoundary
                                                     .add(subWayNodeIdentifier);
                                         }
-                                        this.nodesOutsideOfPolygon.add(subWayNode.getNodeId());
+                                        this.nodesOutsideOfPolygon.add(subWayNodeIdentifier);
                                     }
                                 }
                                 break;
