@@ -76,6 +76,7 @@ public class StringCompressedPolyLine implements Serializable
         }
         catch (final PolyLineCompressionException exception)
         {
+            logger.warn("Unable to use string compression", exception);
             this.encoding = getWkbFallback(polyLine);
         }
         catch (final Exception exception)
@@ -189,7 +190,6 @@ public class StringCompressedPolyLine implements Serializable
             final long deltaLongitude = longitude - oldLongitude;
             if (Math.abs(deltaLongitude) > MAXIMUM_DELTA_LONGITUDE)
             {
-                logger.warn("Unable to use string compression for {}", points.toWkt());
                 throw new PolyLineCompressionException(
                         "Unable to compress the polyLine, two consecutive points ({} and {}) are too far apart in longitude: {} degrees.",
                         last, location, deltaLongitude / precision);
