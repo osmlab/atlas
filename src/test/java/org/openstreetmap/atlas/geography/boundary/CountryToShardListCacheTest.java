@@ -9,7 +9,7 @@ import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 
 /**
- * @author jamesgage
+ * @author james-gage
  */
 public class CountryToShardListCacheTest
 {

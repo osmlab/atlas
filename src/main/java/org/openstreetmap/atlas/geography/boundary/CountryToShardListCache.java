@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  * Country to shard list that is read from a .txt file. Useful for when using dense shard trees to
  * reduce overhead of recalculating country/shard intersection.
  *
- * @author jamesgage
+ * @author james-gage
  */
 public final class CountryToShardListCache
 {

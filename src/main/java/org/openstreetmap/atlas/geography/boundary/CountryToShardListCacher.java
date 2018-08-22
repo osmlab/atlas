@@ -14,7 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Command that writes to file the shards intersecting each country boundary
+ * Command that writes to file the shards intersecting each country boundary. The format is a three
+ * digit country code, followed by ||, followed by a comma-separated list of shard names.
  *
  * @author james-gage
  */
@@ -60,8 +61,8 @@ public class CountryToShardListCacher extends Command
                     {
                         final ArrayList<String> shardNames = new ArrayList<>();
                         shardSet.forEach(shard -> shardNames.add(shard.getName()));
-                        writer.writeLine(country + "||"
-                                + shardNames.toString().replace("[", "").replace("]", ""));
+                        writer.writeLine(String.format("%s||%s", country, shardNames)
+                                .replace("[", "").replace("]", ""));
                     });
         }
         catch (final Exception e)
