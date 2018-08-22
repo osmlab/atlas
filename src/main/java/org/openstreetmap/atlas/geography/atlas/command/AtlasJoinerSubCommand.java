@@ -25,9 +25,12 @@ import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 
 /**
  * Create a multiatlas from the set of input atlas files, creates a packed atlas from the
- * multiatlas, and then writes that packed atlas to the specified output file.
+ * multiatlas, and then writes that packed atlas to the specified output file. Input files are
+ * defined through the -input parameter as directory of atlas shards. All shards are joined by
+ * default. Only select shards can be joined by using the -atlases parameter.
  *
  * @author cstaylor
+ * @author bbreithaupt
  */
 public class AtlasJoinerSubCommand extends AbstractAtlasSubCommand
 {

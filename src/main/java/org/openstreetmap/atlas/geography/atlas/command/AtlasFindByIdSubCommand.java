@@ -22,15 +22,15 @@ import org.openstreetmap.atlas.utilities.runtime.CommandMap;
  */
 public class AtlasFindByIdSubCommand extends AbstractAtlasSubCommand
 {
-    private static final Command.Switch<Set<String>> FEATURE_ID_PARAMETER = new Command.Switch<>(
-            "id", "list of comma-delimited Atlas extended feature identifier",
-            possibleMultipleOSMIdentifier -> Stream.of(possibleMultipleOSMIdentifier.split(","))
-                    .collect(Collectors.toSet()),
+    private static final Command.Switch<Set<String>> ATLAS_ID_PARAMETER = new Command.Switch<>("id",
+            "list of comma-delimited Atlas identifiers", possibleMultipleOSMIdentifier -> Stream
+                    .of(possibleMultipleOSMIdentifier.split(",")).collect(Collectors.toSet()),
             Command.Optionality.REQUIRED);
 
     private static final Command.Switch<String> JOINED_OUTPUT_PARAMETER = new Command.Switch<>(
-            "joinedOutput", "The Atlas file to save the joined output to", String::toString,
-            Command.Optionality.OPTIONAL);
+            "joinedOutput",
+            "The Atlas file to save the joined output to (optional). If not passed the found shards will not be joined and only appear in the console.",
+            String::toString, Command.Optionality.OPTIONAL);
 
     private final Set<Long> ids = new HashSet<>();
 
@@ -45,15 +45,14 @@ public class AtlasFindByIdSubCommand extends AbstractAtlasSubCommand
     @Override
     public Command.SwitchList switches()
     {
-        return super.switches().with(FEATURE_ID_PARAMETER, JOINED_OUTPUT_PARAMETER);
+        return super.switches().with(ATLAS_ID_PARAMETER, JOINED_OUTPUT_PARAMETER);
     }
 
     @Override
     public void usage(final PrintStream writer)
     {
         writer.printf(AtlasCommandConstants.INPUT_PARAMETER_DESCRIPTION);
-        writer.printf(
-                "-id=1000000,2000000 : comma separated Atlas feature identifiers to search for\n");
+        writer.printf("-id=1000000,2000000 : comma separated Atlas identifiers to search for\n");
         writer.printf("-joinedOutput=path/to/joined.atlas : the path to the output atlas file\n");
     }
 
@@ -61,7 +60,7 @@ public class AtlasFindByIdSubCommand extends AbstractAtlasSubCommand
     protected void start(final CommandMap command)
     {
         // Collect ids
-        this.ids.addAll((Set) command.get(FEATURE_ID_PARAMETER));
+        this.ids.addAll((Set) command.get(ATLAS_ID_PARAMETER));
     }
 
     @Override
