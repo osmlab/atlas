@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.boundary;
 
-import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
@@ -59,8 +60,8 @@ public class CountryToShardListCacher extends Command
             CountryShardListing.countryToShardList(countries, boundaries, sharding)
                     .forEach((country, shardSet) ->
                     {
-                        final ArrayList<String> shardNames = new ArrayList<>();
-                        shardSet.forEach(shard -> shardNames.add(shard.getName()));
+                        final List<String> shardNames = shardSet.stream()
+                                .map(shard -> shard.getName()).collect(Collectors.toList());
                         writer.writeLine(String.format("%s||%s", country, shardNames)
                                 .replace("[", "").replace("]", ""));
                     });
