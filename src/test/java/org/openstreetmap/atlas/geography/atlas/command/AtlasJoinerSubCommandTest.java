@@ -25,5 +25,6 @@ public class AtlasJoinerSubCommandTest
         new AtlasReader(args).runWithoutQuitting(args);
 
         Assert.assertEquals(63459, temp.length());
+        temp.delete();
     }
 }

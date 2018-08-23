@@ -49,5 +49,6 @@ public class AtlasFindByAtlasIdentifierSubCommandTest
         new AtlasReader(args).runWithoutQuitting(args);
 
         Assert.assertEquals(50466, temp.length());
+        temp.delete();
     }
 }
