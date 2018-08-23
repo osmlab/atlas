@@ -5,11 +5,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Derived from MapQuest's developer portal:
- * https://developer.mapquest.com/documentation/common/encode-decode/
+ * Encode a {@link PolyLine} using an algorithm derived from the MapQuest variant of the Google
+ * Polyline Encoding Format. The encoding scheme falls back on WKB in edge cases when the algorithm
+ * fails (such as when two consecutive points in the polyline have a longitude difference of greater
+ * than 180 degrees).
  *
+ * @see <a href="https://developer.mapquest.com/documentation/common/encode-decode">The MapQuest
+ *      algorithm</a>
+ * @see <a href=
+ *      "https://developers.google.com/maps/documentation/utilities/polylinealgorithm?csw=1">Google
+ *      Polyline Encoding Format</a>
  * @author matthieun
  */
 public class StringCompressedPolyLine implements Serializable
@@ -42,7 +51,17 @@ public class StringCompressedPolyLine implements Serializable
     private static final long MAXIMUM_DELTA_LONGITUDE = (long) (MAXIMUM_DELTA_LONGITUDE_IN_DEGREES
             * Math.pow(10, PRECISION));
 
-    private final byte[] encoding;
+    /*
+     * If the first byte of the encoding array is this sentinel value, then the following encoding
+     * is WKB and not string-compressed. We use '0' as the sentinel value since the string
+     * compression algorithm will always use printable ASCII characters. There will never be a 0
+     * byte in a valid string-compressed polyline.
+     */
+    private static final byte WKB_SENTINEL = 0;
+
+    private static final Logger logger = LoggerFactory.getLogger(StringCompressedPolyLine.class);
+
+    private byte[] encoding;
 
     public StringCompressedPolyLine(final byte[] encoding)
     {
@@ -55,25 +74,35 @@ public class StringCompressedPolyLine implements Serializable
         {
             this.encoding = compress(polyLine, PRECISION).getBytes(ENCODING_NAME);
         }
-        catch (final PolyLineCompressionException e)
+        catch (final PolyLineCompressionException exception)
         {
-            throw e;
+            logger.warn("Unable to use string compression", exception);
+            this.encoding = getWkbFallback(polyLine);
         }
-        catch (final Exception e)
+        catch (final Exception exception)
         {
-            throw new CoreException("Could not compress polyline.", e);
+            throw new CoreException("Could not compress polyline.", exception);
         }
     }
 
     public PolyLine asPolyLine()
     {
-        try
+        if (this.encoding[0] == WKB_SENTINEL)
         {
-            return asPolyLine(new String(this.encoding, ENCODING_NAME), PRECISION);
+            final byte[] strippedEncoding = new byte[this.encoding.length - 1];
+            System.arraycopy(this.encoding, 1, strippedEncoding, 0, strippedEncoding.length);
+            return PolyLine.wkb(strippedEncoding);
         }
-        catch (final Exception e)
+        else
         {
-            throw new CoreException("Could not decompress polyline.", e);
+            try
+            {
+                return asPolyLine(new String(this.encoding, ENCODING_NAME), PRECISION);
+            }
+            catch (final Exception exception)
+            {
+                throw new CoreException("Could not decompress polyline.", exception);
+            }
         }
     }
 
@@ -85,13 +114,22 @@ public class StringCompressedPolyLine implements Serializable
     @Override
     public String toString()
     {
-        try
+        if (this.encoding[0] == WKB_SENTINEL)
         {
-            return new String(this.encoding, ENCODING_NAME);
+            final byte[] strippedEncoding = new byte[this.encoding.length - 1];
+            System.arraycopy(this.encoding, 1, strippedEncoding, 0, strippedEncoding.length);
+            return PolyLine.wkb(strippedEncoding).toWkt();
         }
-        catch (final Exception e)
+        else
         {
-            throw new CoreException("Could not stringify byte array.", e);
+            try
+            {
+                return new String(this.encoding, ENCODING_NAME);
+            }
+            catch (final Exception e)
+            {
+                throw new CoreException("Could not stringify byte array.", e);
+            }
         }
     }
 
@@ -150,7 +188,7 @@ public class StringCompressedPolyLine implements Serializable
             // Encode the differences between the points
             encoded += encodeNumber(latitude - oldLatitude);
             final long deltaLongitude = longitude - oldLongitude;
-            if (deltaLongitude > MAXIMUM_DELTA_LONGITUDE)
+            if (Math.abs(deltaLongitude) > MAXIMUM_DELTA_LONGITUDE)
             {
                 throw new PolyLineCompressionException(
                         "Unable to compress the polyLine, two consecutive points ({} and {}) are too far apart in longitude: {} degrees.",
@@ -181,5 +219,14 @@ public class StringCompressedPolyLine implements Serializable
         }
         encoded += String.valueOf(Character.toChars((int) number + ENCODING_OFFSET_MINUS_ONE));
         return encoded;
+    }
+
+    private byte[] getWkbFallback(final PolyLine polyLine)
+    {
+        final byte[] wkbEncoding = polyLine.toWkb();
+        final byte[] finalEncoding = new byte[1 + wkbEncoding.length];
+        finalEncoding[0] = WKB_SENTINEL;
+        System.arraycopy(wkbEncoding, 0, finalEncoding, 1, wkbEncoding.length);
+        return finalEncoding;
     }
 }

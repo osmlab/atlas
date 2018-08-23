@@ -17,6 +17,8 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Snapper.SnappedLocation;
 import org.openstreetmap.atlas.geography.clipping.Clip;
 import org.openstreetmap.atlas.geography.clipping.Clip.ClipType;
+import org.openstreetmap.atlas.geography.converters.WkbLocationConverter;
+import org.openstreetmap.atlas.geography.converters.WkbPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.WktLocationConverter;
 import org.openstreetmap.atlas.geography.converters.WktPolyLineConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
@@ -85,6 +87,18 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         {
             writer.write(asGeoJson(geometries).jsonObject());
         }
+    }
+
+    /**
+     * Create a {@link PolyLine} from Well Known Binary
+     *
+     * @param wkb
+     *            The Well Known Binary
+     * @return The {@link PolyLine}
+     */
+    public static PolyLine wkb(final byte[] wkb)
+    {
+        return new WkbPolyLineConverter().backwardConvert(wkb);
     }
 
     /**
@@ -1104,6 +1118,19 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     public String toString()
     {
         return toWkt();
+    }
+
+    /**
+     * @return This {@link PolyLine} as Well Known Binary
+     */
+    public byte[] toWkb()
+    {
+        if (this.size() == 1)
+        {
+            // Handle a single location polyLine
+            return new WkbLocationConverter().convert(this.first());
+        }
+        return new WkbPolyLineConverter().convert(this);
     }
 
     /**
