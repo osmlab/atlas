@@ -20,7 +20,7 @@ import org.openstreetmap.atlas.utilities.runtime.CommandMap;
  *
  * @author bbreithaupt
  */
-public class AtlasFindByIdSubCommand extends AbstractAtlasSubCommand
+public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubCommand
 {
     private static final Command.Switch<Set<String>> ATLAS_ID_PARAMETER = new Command.Switch<>("id",
             "list of comma-delimited Atlas identifiers", possibleMultipleOSMIdentifier -> Stream
@@ -36,9 +36,9 @@ public class AtlasFindByIdSubCommand extends AbstractAtlasSubCommand
 
     private final Set<String> shardNames = new HashSet<>();
 
-    public AtlasFindByIdSubCommand()
+    public AtlasFindByAtlasIdentifierSubCommand()
     {
-        super("find-id",
+        super("find-atlas-id",
                 "find which atlas files contain particular Atlas features using a given set of Atlas identifiers");
     }
 
