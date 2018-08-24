@@ -98,6 +98,14 @@ public final class CountryToShardListCache extends Command
 
     }
 
+    /**
+     * Takes a country code, and returns a List of all {@link SlippyTile}s that cover the country
+     * boundary. If an invalid country code is passed, an empty list is returned.
+     *
+     * @param country
+     *            The three digit country code
+     * @return A List of {@link SlippyTile}s
+     */
     public List<SlippyTile> getShardsForCountry(final String country)
     {
         if (this.countryToShards.containsKey(country))
@@ -110,6 +118,13 @@ public final class CountryToShardListCache extends Command
         }
     }
 
+    /**
+     * Writes to a {@link WritableResource} the CountryShardListCache. The resulting resource can be
+     * used to initialize another CountryShardListCache.
+     *
+     * @param output
+     *            The {@link WritableResource} where the CountryToShardListCache will be written.
+     */
     public void save(final WritableResource output)
     {
         try (SafeBufferedWriter writer = output.writer())
