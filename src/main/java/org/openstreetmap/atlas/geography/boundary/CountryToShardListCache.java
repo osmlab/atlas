@@ -1,18 +1,22 @@
 package org.openstreetmap.atlas.geography.boundary;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
+import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.streaming.writers.SafeBufferedWriter;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
+import org.openstreetmap.atlas.utilities.runtime.Command;
+import org.openstreetmap.atlas.utilities.runtime.CommandMap;
+import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,11 +27,41 @@ import org.slf4j.LoggerFactory;
  *
  * @author james-gage
  */
-public final class CountryToShardListCache
+public final class CountryToShardListCache extends Command
 {
     private static final Logger logger = LoggerFactory.getLogger(CountryToShardListCache.class);
+    private static final Switch<CountryBoundaryMap> BOUNDARIES = new Switch<>("boundaries",
+            "The country boundaries.", value -> initializeCountryBoundaryMap(value),
+            Optionality.REQUIRED);
+    private static final Switch<StringList> COUNTRIES = new Switch<>("countries",
+            "CSV list of the country iso3 codes", value -> StringList.split(value, ","),
+            Optionality.OPTIONAL);
+    private static final Switch<Sharding> SHARDING = new Switch<>("sharding",
+            "File containing the sharding definition (Works with files only)", Sharding::forString,
+            Optionality.REQUIRED);
+    private static final Switch<File> OUTPUT = new Switch<>("output", "The output file", File::new,
+            Optionality.REQUIRED);
     private static final String DELIMITER = "||";
     private final MultiMap<String, SlippyTile> countryToShards = new MultiMap<>();
+
+    public static void main(final String[] args)
+    {
+        new CountryToShardListCache().run(args);
+    }
+
+    private static CountryBoundaryMap initializeCountryBoundaryMap(final String value)
+    {
+        final Time start = Time.now();
+        logger.info("Loading boundaries");
+        final CountryBoundaryMap result = CountryBoundaryMap.fromPlainText(new File(value));
+        logger.info("Loaded boundaries in {}", start.elapsedSince());
+        return result;
+    }
+
+    public CountryToShardListCache(final CountryBoundaryMap boundaries, final Sharding sharding)
+    {
+        this(boundaries, new StringList(boundaries.allCountryNames()), sharding);
+    }
 
     public CountryToShardListCache(final CountryBoundaryMap boundaries, final StringList countries,
             final Sharding sharding)
@@ -40,11 +74,11 @@ public final class CountryToShardListCache
                 });
     }
 
-    public CountryToShardListCache(final Resource file)
+    public CountryToShardListCache(final Resource resource)
     {
         try
         {
-            file.lines().forEach(line ->
+            resource.lines().forEach(line ->
             {
                 final String[] countryAndShardList = line.split(Pattern.quote(DELIMITER));
                 final String country = countryAndShardList[0];
@@ -59,33 +93,65 @@ public final class CountryToShardListCache
         }
     }
 
-    public Optional<List<SlippyTile>> getShardsForCountry(final String country)
+    private CountryToShardListCache()
+    {
+
+    }
+
+    public List<SlippyTile> getShardsForCountry(final String country)
     {
         if (this.countryToShards.containsKey(country))
         {
-            return Optional.of(this.countryToShards.get(country));
+            return this.countryToShards.get(country);
         }
         else
         {
-            return Optional.empty();
+            return Collections.<SlippyTile> emptyList();
         }
     }
 
     public void save(final WritableResource output)
     {
-        this.countryToShards.forEach((country, shardList) ->
+        try (SafeBufferedWriter writer = output.writer())
         {
-            try (SafeBufferedWriter writer = output.writer())
+            this.countryToShards.forEach((country, shardList) ->
             {
                 final List<String> shardNames = shardList.stream()
                         .map(slippyTile -> slippyTile.getName()).collect(Collectors.toList());
                 writer.writeLine(String.format("%s%s%s", country, DELIMITER, shardNames)
                         .replace("[", "").replace("]", ""));
-            }
-            catch (final Exception e)
-            {
-                logger.error("Error while writing CountryToShardListCache to file!", e);
-            }
-        });
+            });
+        }
+        catch (final Exception e)
+        {
+            logger.error("Error while writing CountryToShardListCache to file!", e);
+        }
+    }
+
+    @Override
+    protected int onRun(final CommandMap command)
+    {
+        final StringList countries = (StringList) command.get(COUNTRIES);
+        final CountryBoundaryMap boundaries = (CountryBoundaryMap) command.get(BOUNDARIES);
+        final File output = (File) command.get(OUTPUT);
+        final Sharding sharding = (Sharding) command.get(SHARDING);
+        CountryToShardListCache cache = null;
+        if (countries != null)
+        {
+            cache = new CountryToShardListCache(boundaries, countries, sharding);
+        }
+        else
+        {
+            cache = new CountryToShardListCache(boundaries, sharding);
+        }
+        logger.info("Saving file to {}", output);
+        cache.save(output);
+        return 0;
+    }
+
+    @Override
+    protected SwitchList switches()
+    {
+        return new SwitchList().with(COUNTRIES, BOUNDARIES, OUTPUT, SHARDING);
     }
 }

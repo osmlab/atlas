@@ -1,7 +1,6 @@
 package org.openstreetmap.atlas.geography.boundary;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,14 +24,14 @@ public class CountryToShardListCacheTest
     {
         final CountryToShardListCache cache = new CountryToShardListCache(this.countryToShardList);
         // test that the right DMA shards are returned
-        final List<SlippyTile> dMAShards = cache.getShardsForCountry("DMA").get();
+        final List<SlippyTile> dMAShards = cache.getShardsForCountry("DMA");
         Assert.assertEquals(
                 "[[SlippyTile: zoom = 9, x = 168, y = 233], [SlippyTile: zoom = 9, x = 169, y = 233], "
                         + "[SlippyTile: zoom = 9, x = 168, y = 234], [SlippyTile: zoom = 10, x = 338, y = 468]]",
                 dMAShards.toString());
         // test that asking for an invalid country code doesn't break anything
-        final Optional<List<SlippyTile>> noShards = cache.getShardsForCountry("XXX");
-        Assert.assertFalse(noShards.isPresent());
+        final List<SlippyTile> noShards = cache.getShardsForCountry("XXX");
+        Assert.assertTrue(noShards.isEmpty());
     }
 
     @Test
