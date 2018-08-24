@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.streaming.resource.File;
@@ -89,7 +90,7 @@ public final class CountryToShardListCache extends Command
         }
         catch (final Exception e)
         {
-            logger.error("Error while reading CountryToShardListCache file!", e);
+            throw new CoreException("Error while reading CountryToShardListCache resource", e);
         }
     }
 
@@ -139,7 +140,7 @@ public final class CountryToShardListCache extends Command
         }
         catch (final Exception e)
         {
-            logger.error("Error while writing CountryToShardListCache to file!", e);
+            throw new CoreException("Error while writing CountryToShardListCache to file!", e);
         }
     }
 
