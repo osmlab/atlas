@@ -1,14 +1,23 @@
 package org.openstreetmap.atlas.geography.atlas.raw.sectioning;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.MultiPolygon;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.LineAndPointSlicingTest;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.tags.SyntheticInvalidWaySectionTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
@@ -289,5 +298,44 @@ public class WaySectionProcessorTest
 
         Assert.assertEquals("single edge and its counter part", 2, finalAtlas.numberOfEdges());
         Assert.assertEquals("Two nodes - one at the start and end", 2, finalAtlas.numberOfNodes());
+    }
+
+    @Test
+    public void testWayExceedingSectioningLimit()
+    {
+        // Based on https://www.openstreetmap.org/way/608903805 and
+        // https://www.openstreetmap.org/way/608901269. These are stacked, duplicated ways that
+        // extend for a long time, causing sectioning to occur more than the allowed 999 times
+        final Atlas slicedRawAtlas = this.setup.getWayExceedingSectioningLimitAtlas();
+
+        // Create a dummy country boundary map that contains these ways and call it Afghanistan
+        final Set<String> countries = new HashSet<>();
+        final String afghanistan = "AFG";
+        countries.add(afghanistan);
+        final Map<String, MultiPolygon> boundaries = new HashMap<>();
+        final Polygon fakePolygon = new Polygon(Location.forString("34.15102284294,66.22764518738"),
+                Location.forString("34.1515910819,66.53388908386"),
+                Location.forString("33.99802783162,66.53045585632"),
+                Location.forString("33.99632001003,66.22558525085"),
+                Location.forString("34.15102284294,66.22764518738"));
+        final MultiPolygon boundary = MultiPolygon.forPolygon(fakePolygon);
+        boundaries.put(afghanistan, boundary);
+        final CountryBoundaryMap countryBoundaryMap = CountryBoundaryMap
+                .fromBoundaryMap(boundaries);
+
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(countryBoundaryMap)).run();
+
+        // Verify maximum number of sections for each edge
+        Assert.assertEquals(999,
+                Iterables.size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 608901269)));
+        Assert.assertEquals(999,
+                Iterables.size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 608903805)));
+
+        // Verify tag presence
+        Assert.assertEquals(SyntheticInvalidWaySectionTag.YES.name(),
+                finalAtlas.edge(608901269000999L).tag(SyntheticInvalidWaySectionTag.KEY));
+        Assert.assertEquals(SyntheticInvalidWaySectionTag.YES.name(),
+                finalAtlas.edge(608903805000999L).tag(SyntheticInvalidWaySectionTag.KEY));
     }
 }
