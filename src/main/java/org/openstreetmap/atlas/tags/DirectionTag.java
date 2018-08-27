@@ -14,8 +14,8 @@ public enum DirectionTag
     FORWARD,
     BACKWARD,
     CLOCKWISE,
-    BOTH,
-    ANTICLOCKWISE;
+    ANTICLOCKWISE,
+    BOTH;
 
     @TagKey
     public static final String KEY = "direction";
