@@ -80,7 +80,7 @@ public class SimpleChangeSetHandler extends ChangeSetHandler
         logger.info(atlasStatistics(atlasWithUpdates));
 
         logger.info("Finished Applying Point and Line Changes for {} in {}", getShardOrAtlasName(),
-                time.untilNow());
+                time.elapsedSince());
 
         return atlasWithUpdates;
     }

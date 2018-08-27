@@ -207,4 +207,14 @@ public class ComplexTurnRestrictionTest
                 .from(testAtlas.relation(1L));
         Assert.assertEquals(Optional.empty(), possibleTurnRestriction);
     }
+
+    @Test
+    public void testTurnRestrictionNoUTurn()
+    {
+        // Test edge as via member
+        final Atlas testAtlas = this.rule.getAtlasNoUTurn();
+        final Optional<TurnRestriction> possibleTurnRestriction = TurnRestriction
+                .from(testAtlas.relation(1L));
+        Assert.assertTrue(possibleTurnRestriction.isPresent());
+    }
 }

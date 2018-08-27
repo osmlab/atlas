@@ -56,11 +56,9 @@ public final class CountryShardListing
         try (Pool processPool = new Pool(threadCount, "CountryShardListing"))
         {
             // Generate processors
-            IntStream.range(0, threadCount).forEach(index ->
-            {
-                processPool.queue(new CountryShardListingProcessor(queue, sharding, boundaries,
-                        countryToShardMap));
-            });
+            IntStream.range(0, threadCount)
+                    .forEach(index -> processPool.queue(new CountryShardListingProcessor(queue,
+                            sharding, boundaries, countryToShardMap)));
         }
         return countryToShardMap;
     }

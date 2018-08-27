@@ -22,8 +22,6 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.SnappedEdge;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
-import org.openstreetmap.atlas.streaming.resource.FileSuffix;
-import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 
@@ -38,19 +36,6 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
  */
 public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
 {
-    Predicate<Resource> IS_ATLAS = FileSuffix.resourceFilter(FileSuffix.ATLAS)
-            .or(FileSuffix.resourceFilter(FileSuffix.ATLAS, FileSuffix.GZIP));
-
-    /**
-     * @param resource
-     *            The resource to test
-     * @return True if the resource has a valid Atlas extension
-     */
-    static boolean isAtlas(final Resource resource)
-    {
-        return IS_ATLAS.test(resource);
-    }
-
     /**
      * @param identifier
      *            The {@link Area}'s identifier

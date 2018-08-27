@@ -56,6 +56,9 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     @TestAtlas(loadFromTextResource = "selfIntersectingLoop.atlas.txt")
     private Atlas selfIntersectingLoop;
 
+    @TestAtlas(loadFromTextResource = "wayExceedingSectioningLimit.atlas.txt")
+    private Atlas wayExceedingSectioningLimit;
+
     public Atlas getBidirectionalRingAtlas()
     {
         return this.bidirectioalRingAtlas;
@@ -129,5 +132,10 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     public Atlas getSimpleBiDirectionalLineAtlas()
     {
         return this.simpleBiDirectionalLine;
+    }
+
+    public Atlas getWayExceedingSectioningLimitAtlas()
+    {
+        return this.wayExceedingSectioningLimit;
     }
 }

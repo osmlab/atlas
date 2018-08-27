@@ -7,6 +7,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.geography.atlas.items.Route;
 import org.openstreetmap.atlas.geography.atlas.routing.AStarRouter;
 import org.openstreetmap.atlas.geography.atlas.routing.Router;
@@ -96,7 +97,7 @@ public class MultiAtlasOverlappingNodesFixerTest extends Command
     {
         final MultiAtlas atlas = MultiAtlas
                 .loadFromPackedAtlas(((File) command.get(FOLDER)).listFilesRecursively().stream()
-                        .filter(Atlas::isAtlas).collect(Collectors.toList()));
+                        .filter(AtlasResourceLoader.IS_ATLAS).collect(Collectors.toList()));
         final Route route = AStarRouter.dijkstra(atlas, Distance.meters(100))
                 .route((Location) command.get(START), (Location) command.get(END));
         logger.info("Route found: {}", route);

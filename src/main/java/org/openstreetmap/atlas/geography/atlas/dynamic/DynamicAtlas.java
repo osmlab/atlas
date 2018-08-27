@@ -41,6 +41,7 @@ import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.StreamIterable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
+import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -136,6 +137,7 @@ public class DynamicAtlas extends BareAtlas
 
     public void buildUnderlyingMultiAtlas()
     {
+        final Time buildTime = Time.now();
         if (logger.isDebugEnabled())
         {
             logger.debug("{}: Loading MultiAtlas with {}", this.getName(),
@@ -162,6 +164,8 @@ public class DynamicAtlas extends BareAtlas
         {
             throw new CoreException("Cannot load shards with no data!");
         }
+        logger.trace("{}: Built underlying MultiAtlas in {}", this.getName(),
+                buildTime.elapsedSince());
     }
 
     @Override

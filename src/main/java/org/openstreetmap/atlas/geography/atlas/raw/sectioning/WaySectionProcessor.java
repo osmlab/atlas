@@ -37,12 +37,14 @@ import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.tags.AtlasTag;
 import org.openstreetmap.atlas.tags.LayerTag;
+import org.openstreetmap.atlas.tags.SyntheticInvalidWaySectionTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
 
 /**
  * Way-section processor that runs on raw atlases. Its main purpose is to split raw atlas points
@@ -63,12 +65,27 @@ public class WaySectionProcessor
     private static final int MINIMUM_NUMBER_OF_SELF_INTERSECTIONS_FOR_A_NODE = 3;
     private static final int MINIMUM_SHAPE_POINTS_TO_QUALIFY_AS_AREA = 3;
     private static final int MINIMUM_POINTS_TO_QUALIFY_AS_A_LINE = 2;
+    private static final int SINGLE_SECTIONING_IDENTIFIER_REMAINING_DELTA = 998;
+
+    // Logging constants
+    private static final String STARTED_TASK_MESSAGE = "Started {} for Shard {}";
+    private static final String COMPLETED_TASK_MESSAGE = "Finished {} for Shard {} in {}";
+    private static final String SHARD_SPECIFIC_COMPLETED_TASK_MESSAGE = "While processing shard {}, finished {} for shard {} in {}";
+    private static final String WAY_SECTIONING_TASK = "Way-Sectioning";
+    private static final String ATLAS_FETCHING_TASK = "Atlas-Fetching";
+    private static final String SUB_ATLAS_CUTTING_TASK = "Sub-Atlas Cutting";
+    private static final String EDGE_SECTIONING_TASK = "Edge Sectioning";
+    private static final String SHAPE_POINT_DETECTION_TASK = "Shape Point Detection";
+    private static final String DYNAMIC_ATLAS_CREATION_TASK = "Dynamic Atlas Creation";
+    private static final String ATLAS_FEATURE_DETECTION_TASK = "Atlas Feature Detection";
+    private static final String SECTIONED_ATLAS_CREATION_TASK = "Sectioned Atlas Creation";
 
     // Expand the initial shard boundary to capture any edges that are crossing the shard boundary
     private static final Distance SHARD_EXPANSION_DISTANCE = Distance.meters(20);
 
     private final Atlas rawAtlas;
     private final AtlasLoadingOption loadingOption;
+
     private final List<Shard> loadedShards = new ArrayList<>();
 
     // Bring in all points that are part of any line that will become an edge
@@ -76,13 +93,13 @@ public class WaySectionProcessor
             && Iterables.stream(entity.getAtlas().linesContaining(((Point) entity).getLocation()))
                     .anyMatch(this::isAtlasEdge);
 
-    // Bring in all lines that will become edges
-    private final Predicate<AtlasEntity> linePredicate = entity -> entity instanceof Line
-            && isAtlasEdge((Line) entity);
-
     // TODO - we are pulling in all edges and their contained points in the shard. We can optimize
     // this further by only considering the edges crossing the shard boundary and their intersecting
     // edges to reduce the memory overhead on each slave.
+
+    // Bring in all lines that will become edges
+    private final Predicate<AtlasEntity> linePredicate = entity -> entity instanceof Line
+            && isAtlasEdge((Line) entity);
 
     // Dynamic expansion filter will be a combination of points and lines
     private final Predicate<AtlasEntity> dynamicAtlasExpansionFilter = entity -> this.pointPredicate
@@ -145,8 +162,7 @@ public class WaySectionProcessor
      */
     public Atlas run()
     {
-        final Time time = Time.now();
-        logger.info("Started Way-Sectioning for Shard {}", getShardOrAtlasName());
+        final Time time = logTaskStartedAsInfo(WAY_SECTIONING_TASK, getShardOrAtlasName());
 
         // Create a changeset to keep track of any intermediate state transitions (points becomes
         // nodes, lines becoming areas, etc.)
@@ -163,8 +179,8 @@ public class WaySectionProcessor
         sectionEdges(changeSet);
 
         final Atlas atlas = buildSectionedAtlas(changeSet);
-        logger.info("Finished Way-Sectioning for Shard {} in {}", getShardOrAtlasName(),
-                time.untilNow());
+        logTaskAsInfo(COMPLETED_TASK_MESSAGE, WAY_SECTIONING_TASK, getShardOrAtlasName(),
+                time.elapsedSince());
 
         return cutSubAtlasForOriginalShard(atlas);
     }
@@ -186,6 +202,8 @@ public class WaySectionProcessor
                 .addNode(new TemporaryNode(point.getIdentifier(), point.getLocation())));
     }
 
+    // TODO add statistics
+
     /**
      * Grabs the atlas for the initial shard, in its entirety. Then proceeds to expand out to
      * surrounding shards if there are any edges bleeding over the shard bounds plus
@@ -202,8 +220,7 @@ public class WaySectionProcessor
     private Atlas buildExpandedAtlas(final Shard initialShard, final Sharding sharding,
             final Function<Shard, Optional<Atlas>> rawAtlasFetcher)
     {
-        final Time time = Time.now();
-        logger.info("Started Dynamic Atlas Construction for Way-Sectioning Shard {}",
+        final Time dynamicAtlasTime = logTaskStartedAsInfo(DYNAMIC_ATLAS_CREATION_TASK,
                 initialShard.getName());
 
         // Keep track of all loaded shards. This will be used to cut the sub-atlas for the shard
@@ -215,16 +232,29 @@ public class WaySectionProcessor
         {
             if (shard.equals(initialShard))
             {
-                return rawAtlasFetcher.apply(initialShard);
+                final Time fetchTime = Time.now();
+                final Optional<Atlas> fetchedAtlas = rawAtlasFetcher.apply(initialShard);
+                logTaskAsTrace(COMPLETED_TASK_MESSAGE, ATLAS_FETCHING_TASK, getShardOrAtlasName(),
+                        fetchTime.elapsedSince());
+                return fetchedAtlas;
             }
             else
             {
+                final Time fetchTime = Time.now();
                 final Optional<Atlas> possibleAtlas = rawAtlasFetcher.apply(shard);
+                logTaskAsInfo(SHARD_SPECIFIC_COMPLETED_TASK_MESSAGE, getShardOrAtlasName(),
+                        ATLAS_FETCHING_TASK, shard.getName(), fetchTime.elapsedSince());
+
                 if (possibleAtlas.isPresent())
                 {
                     this.loadedShards.add(shard);
                     final Atlas atlas = possibleAtlas.get();
-                    return atlas.subAtlas(this.dynamicAtlasExpansionFilter);
+                    final Time subAtlasTime = Time.now();
+                    final Optional<Atlas> subAtlas = atlas
+                            .subAtlas(this.dynamicAtlasExpansionFilter);
+                    logTaskAsInfo(SHARD_SPECIFIC_COMPLETED_TASK_MESSAGE, getShardOrAtlasName(),
+                            SUB_ATLAS_CUTTING_TASK, shard.getName(), subAtlasTime.elapsedSince());
+                    return subAtlas;
                 }
                 return Optional.empty();
             }
@@ -239,12 +269,10 @@ public class WaySectionProcessor
         final DynamicAtlas atlas = new DynamicAtlas(policy);
         atlas.preemptiveLoad();
 
-        logger.info("Finished Dynamic Atlas Construction for Way-Sectioning Shard {} in {}",
-                initialShard.getName(), time.untilNow());
+        logTaskAsInfo(COMPLETED_TASK_MESSAGE, DYNAMIC_ATLAS_CREATION_TASK, getShardOrAtlasName(),
+                dynamicAtlasTime.elapsedSince());
         return atlas;
     }
-
-    // TODO add statistics
 
     /**
      * Final step of way-sectioning. Use the {@link WaySectionChangeSet} to build an {@link Atlas}
@@ -257,8 +285,8 @@ public class WaySectionProcessor
      */
     private Atlas buildSectionedAtlas(final WaySectionChangeSet changeSet)
     {
-        final Time time = Time.now();
-        logger.info("Started Final Atlas Build for Shard {}", getShardOrAtlasName());
+        final Time buildTime = logTaskStartedAsInfo(SECTIONED_ATLAS_CREATION_TASK,
+                getShardOrAtlasName());
 
         // Create builder and set properties
         final PackedAtlasBuilder builder = new PackedAtlasBuilder();
@@ -288,11 +316,8 @@ public class WaySectionProcessor
                     && !changeSet.getLinesThatBecomeEdges().contains(lineIdentifier)
                     && !changeSet.getExcludedLines().contains(lineIdentifier);
         }).forEach(lineToKeep ->
-        {
-            // Add any line that didn't become an edge or area
-            builder.addLine(lineToKeep.getIdentifier(), lineToKeep.asPolyLine(),
-                    lineToKeep.getTags());
-        });
+        // Add any line that didn't become an edge or area
+        builder.addLine(lineToKeep.getIdentifier(), lineToKeep.asPolyLine(), lineToKeep.getTags()));
 
         // Edges
         changeSet.getCreatedEdges().forEach(temporaryEdge ->
@@ -399,8 +424,8 @@ public class WaySectionProcessor
             }
         });
 
-        logger.info("Finished Final Atlas Build for Shard {} in {}", getShardOrAtlasName(),
-                time.untilNow());
+        logTaskAsInfo(COMPLETED_TASK_MESSAGE, SECTIONED_ATLAS_CREATION_TASK, getShardOrAtlasName(),
+                buildTime.elapsedSince());
         return builder.get();
     }
 
@@ -454,6 +479,27 @@ public class WaySectionProcessor
                 this.rawAtlas.numberOfRelations());
     }
 
+    private void createEdgeFromRemainingPolyline(final Line line, final int startIndex,
+            final boolean isReversed, final boolean hasReverseEdge,
+            final WaySectionIdentifierFactory identifierFactory,
+            final List<TemporaryEdge> newEdgesForLine)
+    {
+        // If we have a single way-section identifier left to use, we're going to run out
+        // identifiers if we continue sectioning. At this point, take the rest of the
+        // un-sectioned polyline and add it as the 999th edge.
+        final PolyLine polyline = line.asPolyLine();
+        final PolyLine rawPolyLine = new PolyLine(polyline.truncate(startIndex, 0));
+        final PolyLine edgePolyLine = isReversed ? rawPolyLine.reversed() : rawPolyLine;
+        final long edgeIdentifier = identifierFactory.nextIdentifier();
+
+        // Update the tags to indicate this edge wasn't way-sectioned
+        final Map<String, String> tags = line.getTags();
+        tags.put(SyntheticInvalidWaySectionTag.KEY, SyntheticInvalidWaySectionTag.YES.toString());
+
+        // Add the edge
+        newEdgesForLine.add(new TemporaryEdge(edgeIdentifier, edgePolyLine, tags, hasReverseEdge));
+    }
+
     /**
      * Up to this point, we've constructed the {@link DynamicAtlas} and way-sectioned it. Since
      * we're only responsible for returning an Atlas for the provided shard, we now need to cut a
@@ -499,14 +545,11 @@ public class WaySectionProcessor
      */
     private void distinguishPointsFromShapePoints(final WaySectionChangeSet changeSet)
     {
-        final Time time = Time.now();
-        logger.info("Started Shape Point Detection for Shard {}", getShardOrAtlasName());
-
+        final Time time = logTaskStartedAsInfo(SHAPE_POINT_DETECTION_TASK, getShardOrAtlasName());
         StreamSupport.stream(this.rawAtlas.points().spliterator(), true)
                 .filter(point -> isAtlasPoint(changeSet, point)).forEach(changeSet::recordPoint);
-
-        logger.info("Finished Shape Point Detection for Shard {} in {}", getShardOrAtlasName(),
-                time.untilNow());
+        logTaskAsInfo(COMPLETED_TASK_MESSAGE, SHAPE_POINT_DETECTION_TASK, getShardOrAtlasName(),
+                time.elapsedSince());
     }
 
     private String getShardOrAtlasName()
@@ -535,8 +578,7 @@ public class WaySectionProcessor
      */
     private void identifyEdgesNodesAndAreasFromLines(final WaySectionChangeSet changeSet)
     {
-        final Time time = Time.now();
-        logger.info("Started Atlas Feature Detection for Shard {}", getShardOrAtlasName());
+        final Time time = logTaskStartedAsInfo(ATLAS_FEATURE_DETECTION_TASK, getShardOrAtlasName());
 
         StreamSupport.stream(this.rawAtlas.lines().spliterator(), true).forEach(line ->
         {
@@ -620,8 +662,8 @@ public class WaySectionProcessor
             }
         });
 
-        logger.info("Finished Atlas Feature Detection for Shard {} in {}", getShardOrAtlasName(),
-                time.untilNow());
+        logTaskAsInfo(COMPLETED_TASK_MESSAGE, ATLAS_FEATURE_DETECTION_TASK, getShardOrAtlasName(),
+                time.elapsedSince());
     }
 
     /**
@@ -756,6 +798,23 @@ public class WaySectionProcessor
                 });
     }
 
+    private void logTaskAsInfo(final String message, final Object... arguments)
+    {
+        logger.info(MessageFormatter.arrayFormat(message, arguments).getMessage());
+    }
+
+    private void logTaskAsTrace(final String message, final Object... arguments)
+    {
+        logger.trace(MessageFormatter.arrayFormat(message, arguments).getMessage());
+    }
+
+    private Time logTaskStartedAsInfo(final String taskname, final String shardName)
+    {
+        final Time time = Time.now();
+        logger.info(STARTED_TASK_MESSAGE, taskname, shardName);
+        return time;
+    }
+
     /**
      * Each Atlas entity will have a base set of tags added by Atlas generation (see
      * {@link AtlasTag#TAGS_FROM_OSM}). Each entity can also have additional synthetic tags (see
@@ -825,8 +884,7 @@ public class WaySectionProcessor
      */
     private void sectionEdges(final WaySectionChangeSet changeSet)
     {
-        final Time time = Time.now();
-        logger.info("Started Edge Sectioning for Shard {}", getShardOrAtlasName());
+        final Time sectionTime = logTaskStartedAsInfo(EDGE_SECTIONING_TASK, getShardOrAtlasName());
 
         changeSet.getLinesThatBecomeEdges().forEach(lineIdentifier ->
         {
@@ -843,8 +901,8 @@ public class WaySectionProcessor
             changeSet.createLineToEdgeMapping(line, edges);
         });
 
-        logger.info("Finished Edge Sectioning for Shard {} in {}", getShardOrAtlasName(),
-                time.untilNow());
+        logTaskAsInfo(COMPLETED_TASK_MESSAGE, EDGE_SECTIONING_TASK, getShardOrAtlasName(),
+                sectionTime.elapsedSince());
     }
 
     /**
@@ -922,6 +980,15 @@ public class WaySectionProcessor
             // We've already processed the starting node, so start with the first index
             for (int index = 1; index < polyline.size(); index++)
             {
+                // Handle the case of exceeding the sectioning limit
+                if (identifierFactory.getDelta() == SINGLE_SECTIONING_IDENTIFIER_REMAINING_DELTA)
+                {
+                    // Add the remaining polyline as an edge and stop sectioning
+                    createEdgeFromRemainingPolyline(line, startIndex, isReversed, hasReverseEdge,
+                            identifierFactory, newEdgesForLine);
+                    break;
+                }
+
                 // Check to see if this location is a node
                 endNode = nodesToSectionAt.getNode(polyline.get(index));
                 if (endNode.isPresent())
@@ -967,10 +1034,11 @@ public class WaySectionProcessor
                     // identifier will start at 000.
                     final long edgeIdentifier;
                     if (!line.isClosed() && nodesToSectionAt.size() == 2
-                            && polyline.size() - 1 == index)
+                            && polyline.size() - 1 == index && newEdgesForLine.isEmpty())
                     {
                         // The only time we want to do this is if there are two nodes, the line
-                        // isn't a ring and the last node is the end of the polyline
+                        // isn't a ring, the last node is the end of the polyline and if we haven't
+                        // split this line previously
                         edgeIdentifier = line.getIdentifier();
                     }
                     else
@@ -999,7 +1067,7 @@ public class WaySectionProcessor
      * iterating through all the line shape points, trying to match each one to a
      * {@link TemporaryNode} for this {@link Line}. If we find a match, then we create a
      * corresponding {@link TemporaryEdge}, making sure to reverse the polyline if the original line
-     * was reversed and to note whether we need to create a corresponding reverse edge. This main
+     * was reversed and to note whether we need to create a corresponding reverse edge. The main
      * difference between this and the non-ring split method is that this one looks specifically for
      * rings and avoid splitting at the first polyline location, since it is not guaranteed to be a
      * node.
@@ -1065,6 +1133,16 @@ public class WaySectionProcessor
                         final int duplicateCount = duplicateLocations.containsKey(currentLocation)
                                 ? duplicateLocations.get(currentLocation) : 0;
                         duplicateLocations.put(currentLocation, duplicateCount + 1);
+                    }
+
+                    // Handle the case of exceeding the sectioning limit
+                    if (identifierFactory
+                            .getDelta() == SINGLE_SECTIONING_IDENTIFIER_REMAINING_DELTA)
+                    {
+                        // Add the remaining polyline as an edge and stop sectioning
+                        createEdgeFromRemainingPolyline(line, startIndex, isReversed,
+                                hasReverseEdge, identifierFactory, newEdgesForLine);
+                        break;
                     }
 
                     // Check to see if this location is a node

@@ -229,6 +229,7 @@ public abstract class RawAtlasSlicer
         {
             tags.put(SyntheticNearestNeighborCountryCodeTag.KEY,
                     SyntheticNearestNeighborCountryCodeTag.YES.toString());
+            tags.put(SyntheticBoundaryNodeTag.KEY, SyntheticBoundaryNodeTag.EXISTING.toString());
         }
 
         // For any border nodes, add the existing tag

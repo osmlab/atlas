@@ -1,0 +1,95 @@
+jacoco {
+    toolVersion = "0.8.1"
+}
+
+sourceSets
+{
+    integrationTest
+    {
+        java
+        {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integrationTest/java')
+        }
+        resources.srcDir file('src/integrationTest/resources')
+    }
+}
+
+test
+{
+    testLogging
+    {
+        events "failed"
+        exceptionFormat = 'full'
+    }
+    jacoco {
+        excludes += ['org.openstreetmap.atlas.proto/**']
+    }
+}
+
+task integrationTest(type: Test) {
+    testClassesDir = sourceSets.integrationTest.output.classesDir
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    testLogging
+    {
+        events "failed"
+    }
+}
+
+check.dependsOn integrationTest
+integrationTest.mustRunAfter test
+
+tasks.withType(Test) {
+    reports.html.destination = file("${reporting.baseDir}/${name}")
+}
+
+configurations
+{
+    integrationTestCompile.extendsFrom testCompile
+    integrationTestRuntime.extendsFrom testRuntime
+}
+
+dependencies
+{
+    testCompile packages.slf4j.log4j12
+    testCompile packages.log4j
+    testCompile packages.junit
+    integrationTestCompile packages.junit
+}
+
+spotless {
+    java {
+        target project.fileTree(project.rootDir) {
+            include '**/*.java'
+            exclude 'src/generated/**/*.java'
+        }
+        importOrder(['static java', 'static javax', 'static org', 'static com', 'static scala', 'java', 'javax', 'org', 'com', 'scala'])
+        removeUnusedImports()
+        eclipse().configFile 'config/format/code_format.xml'
+    }
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled true
+        html.destination file("${buildDir}/reports/jacoco")
+    }
+    afterEvaluate {
+        classDirectories = files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: 'org/openstreetmap/atlas/proto/**')
+        })
+    }
+}
+
+sonarqube {
+    properties {
+        property "sonar.exclusions", "src/generated/**/*.java"
+    }
+}
+
+checkstyle
+{
+    toolVersion = versions.checkstyle
+}

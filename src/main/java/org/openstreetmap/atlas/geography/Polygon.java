@@ -59,7 +59,7 @@ public class Polygon extends PolyLine implements GeometricSurface
 
     // Calculate sides starting from triangles
     private static final int MINIMUM_N_FOR_SIDE_CALCULATION = 3;
-    private Area awtArea;
+    private transient Area awtArea;
     private java.awt.Polygon awtPolygon;
     private transient Boolean awtOverflows;
 
@@ -346,15 +346,14 @@ public class Polygon extends PolyLine implements GeometricSurface
         while (segmentIndex < segmentSize && headingChangeCount <= expectedHeadingChangeCount)
         {
             final Optional<Heading> nextHeading = segments.get(segmentIndex++).heading();
-            if (nextHeading.isPresent())
+
+            // If heading difference is greater than threshold, then increment heading
+            // change counter and update previous heading, which is used as reference
+            if (nextHeading.isPresent()
+                    && previousHeading.get().difference(nextHeading.get()).isGreaterThan(threshold))
             {
-                // If heading difference is greater than threshold, then increment heading change
-                // counter and update previous heading, which is used as reference
-                if (previousHeading.get().difference(nextHeading.get()).isGreaterThan(threshold))
-                {
-                    headingChangeCount++;
-                    previousHeading = nextHeading;
-                }
+                headingChangeCount++;
+                previousHeading = nextHeading;
             }
         }
 
@@ -562,7 +561,6 @@ public class Polygon extends PolyLine implements GeometricSurface
     {
         final ConformingDelaunayTriangulationBuilder trianguler = new ConformingDelaunayTriangulationBuilder();
         // Populate the delaunay triangulation builder
-        // trianguler.setSites(Iterables.asList(JTS_POLYGON_CONVERTER.convert(this).getCoordinates()));
         trianguler.setSites(JTS_POLYGON_CONVERTER.convert(this));
         final GeometryCollection triangleCollection = (GeometryCollection) trianguler
                 .getTriangles(JtsPrecisionManager.getGeometryFactory());
@@ -626,7 +624,7 @@ public class Polygon extends PolyLine implements GeometricSurface
         if (this.awtOverflows == null)
         {
             final Rectangle bounds = bounds();
-            this.awtOverflows = bounds.width().asDm7() < 0 || bounds.height().asDm7() < 0;
+            this.awtOverflows = bounds.width().asDm7() <= 0 || bounds.height().asDm7() <= 0;
         }
         return this.awtOverflows;
     }
@@ -684,12 +682,10 @@ public class Polygon extends PolyLine implements GeometricSurface
                 return true;
             }
         }
-        if (runReverseCheck && polyline instanceof Polygon)
+        if (runReverseCheck && polyline instanceof Polygon
+                && ((Polygon) polyline).overlapsInternal(this, false))
         {
-            if (((Polygon) polyline).overlapsInternal(this, false))
-            {
-                return true;
-            }
+            return true;
         }
         return this.intersects(polyline);
     }

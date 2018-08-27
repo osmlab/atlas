@@ -72,6 +72,7 @@ public class PbfMemoryStore implements SinkRunnableSource
     private final Map<Long, Way> ways;
     private final Map<Long, Relation> relations;
     private final Set<Long> nodesAtEndOfEdges;
+    private final Set<Long> nodesInEdges;
     private final Set<Long> nodesInRelations;
     private final CountryBoundaryMap countryBoundaryMap;
     private final Set<String> defaultCountries;
@@ -85,6 +86,7 @@ public class PbfMemoryStore implements SinkRunnableSource
         this.ways = new HashMap<>();
         this.relations = new HashMap<>();
         this.nodesAtEndOfEdges = new HashSet<>();
+        this.nodesInEdges = new HashSet<>();
         this.nodesInRelations = new HashSet<>();
         this.countryBoundaryMap = atlasLoadingOption.getCountryBoundaryMap();
         this.defaultCountries = atlasLoadingOption.getCountryCodes();
@@ -99,6 +101,11 @@ public class PbfMemoryStore implements SinkRunnableSource
     public void addNodeAtEndOfEdge(final long identifier)
     {
         this.nodesAtEndOfEdges.add(identifier);
+    }
+
+    public void addNodeInEdge(final long identifier)
+    {
+        this.nodesInEdges.add(identifier);
     }
 
     public void addNodeInRelations(final long identifier)
@@ -246,6 +253,11 @@ public class PbfMemoryStore implements SinkRunnableSource
     public boolean containsNodeAtEndOfEdges(final long identifier)
     {
         return this.nodesAtEndOfEdges.contains(identifier);
+    }
+
+    public boolean containsNodeInEdges(final long identifier)
+    {
+        return this.nodesInEdges.contains(identifier);
     }
 
     public boolean containsNodeInRelations(final long identifier)

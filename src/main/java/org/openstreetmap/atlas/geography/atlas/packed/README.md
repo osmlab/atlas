@@ -1,6 +1,6 @@
 # `PackedAtlas`
 
-This is the base `Atlas`. It is immutable, and stores all its items in large arrays in memory.
+This is the before `Atlas`. It is immutable, and stores all its items in large arrays in memory.
 
 ## Array Storage
 
