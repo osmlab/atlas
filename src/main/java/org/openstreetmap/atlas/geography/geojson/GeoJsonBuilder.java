@@ -7,9 +7,11 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.streaming.readers.json.serializers.PropertiesLocated;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -369,6 +371,54 @@ public class GeoJsonBuilder
                 throw new CoreException("Illegal GeoJson Type for Feature collection");
             }
             features.add(object.jsonObject());
+        }
+        result.add(FEATURES, features);
+        return new GeoJsonObject(result);
+    }
+
+    /**
+     * Creates a GeoJson FeatureCollection containing a list of Features from an iterable of
+     * PropertiesLocated.
+     *
+     * @param iterableOfPropertiesLocated
+     *            iterable of PropertiesLocated
+     * @return a GeoJson FeatureCollection
+     */
+    public GeoJsonObject createFeatureCollectionFromPropertiesLocated(
+            final Iterable<PropertiesLocated> iterableOfPropertiesLocated)
+    {
+        final JsonObject result = new JsonObject();
+        result.addProperty(TYPE, FEATURE_COLLECTION);
+        final JsonArray features = new JsonArray();
+        int counter = 0;
+        for (final PropertiesLocated propertiesLocated : iterableOfPropertiesLocated)
+        {
+            if (this.logFrequency > 0 && ++counter % this.logFrequency == 0)
+            {
+                logger.info("Processed {} features.", counter);
+            }
+            final GeoJsonObject feature;
+            final Located located = propertiesLocated.getItem();
+            if (located instanceof Location)
+            {
+                feature = create((Location) located);
+            }
+            else if (located instanceof PolyLine)
+            {
+                feature = create((PolyLine) located);
+            }
+            else if (located instanceof Polygon)
+            {
+                feature = create((Polygon) located);
+            }
+            else
+            {
+                throw new CoreException("Unrecognized object type {}",
+                        located.getClass().getName());
+            }
+            final JsonObject featureJsonObj = feature.jsonObject();
+            featureJsonObj.add(PROPERTIES, propertiesLocated.getProperties());
+            features.add(feature.jsonObject());
         }
         result.add(FEATURES, features);
         return new GeoJsonObject(result);
