@@ -60,6 +60,7 @@ public class DynamicAtlas extends BareAtlas
 
     // The current Atlas that will be swapped during expansion.
     private Atlas current;
+    private Set<Shard> shardsUsedForCurrent;
 
     private final Map<Shard, Atlas> loadedShards;
     private final Function<Shard, Optional<Atlas>> atlasFetcher;
@@ -81,6 +82,7 @@ public class DynamicAtlas extends BareAtlas
                 .map(Shard::getName).collect(Collectors.toSet()) + ")");
         this.sharding = dynamicAtlasExpansionPolicy.getSharding();
         this.loadedShards = new HashMap<>();
+        this.shardsUsedForCurrent = new HashSet<>();
         this.atlasFetcher = dynamicAtlasExpansionPolicy.getAtlasFetcher();
         // Still keep the policy
         this.policy = dynamicAtlasExpansionPolicy;
@@ -138,15 +140,21 @@ public class DynamicAtlas extends BareAtlas
     public void buildUnderlyingMultiAtlas()
     {
         final Time buildTime = Time.now();
-        if (logger.isDebugEnabled())
+        final Set<Shard> nonNullShards = nonNullShards();
+        if (this.shardsUsedForCurrent.equals(nonNullShards))
         {
-            logger.debug("{}: Loading MultiAtlas with {}", this.getName(),
-                    nonNullShards().stream().map(Shard::getName).collect(Collectors.toList()));
+            // Same Multi-Atlas, let's not reload.
+            return;
         }
-        this.policy.getShardSetChecker().accept(nonNullShards());
         final List<Atlas> nonNullAtlasShards = getNonNullAtlasShards();
         if (!nonNullAtlasShards.isEmpty())
         {
+            this.policy.getShardSetChecker().accept(nonNullShards());
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("{}: Loading MultiAtlas with {}", this.getName(),
+                        nonNullShards().stream().map(Shard::getName).collect(Collectors.toList()));
+            }
             if (nonNullAtlasShards.size() == 1)
             {
                 this.current = nonNullAtlasShards.get(0);
@@ -155,6 +163,7 @@ public class DynamicAtlas extends BareAtlas
             {
                 this.current = new MultiAtlas(nonNullAtlasShards);
             }
+            this.shardsUsedForCurrent = nonNullShards;
             if (this.initialized)
             {
                 this.isAlreadyLoaded = true;
