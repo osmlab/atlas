@@ -24,10 +24,10 @@ import org.openstreetmap.atlas.utilities.runtime.Command.SwitchList;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 
 /**
- * Create a multiatlas from the set of input atlas files, creates a packed atlas from the
- * multiatlas, and then writes that packed atlas to the specified output file. Input files are
- * defined through the -input parameter as directory of atlas shards. All shards are joined by
- * default. Only select shards can be joined by using the -atlases parameter.
+ * Create a MultiAtlas from the set of input Atlas files, creates a PackedAtlas from the MultiAtlas,
+ * and then writes that PackedAtlas to the specified output file. Input files are defined through
+ * the -input parameter as directory of Atlas shards. All shards are joined by default. Only select
+ * shards can be joined by using the -atlases parameter.
  *
  * @author cstaylor
  * @author bbreithaupt
@@ -38,7 +38,7 @@ public class AtlasJoinerSubCommand extends AbstractAtlasSubCommand
             "The Atlas file to save to", Paths::get, Optionality.REQUIRED);
 
     private static final Switch<Set<String>> ATLAS_NAMES_PARAMETER = new Switch<>("atlases",
-            "A comma separated list of Atlas files to join",
+            "A comma separated List of Atlas files to join",
             atlasNames -> Stream.of(atlasNames.split(",")).collect(Collectors.toSet()),
             Optionality.OPTIONAL);
 

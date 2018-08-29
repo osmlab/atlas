@@ -15,15 +15,15 @@ import org.openstreetmap.atlas.utilities.runtime.Command;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 
 /**
- * Searches a collection of atlases for a set of ids. The atlases containing each id are reported.
- * Optionally, all atlases that contain one of the ids are joined and output to a single atlas file.
+ * Searches a collection of Atlases for a set of ids. The Atlases containing each id are reported.
+ * Optionally, all Atlases that contain one of the ids are joined and output to a single Atlas file.
  *
  * @author bbreithaupt
  */
 public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubCommand
 {
     private static final Command.Switch<Set<String>> ATLAS_ID_PARAMETER = new Command.Switch<>("id",
-            "list of comma-delimited Atlas identifiers", possibleMultipleOSMIdentifier -> Stream
+            "List of comma-delimited Atlas identifiers", possibleMultipleOSMIdentifier -> Stream
                     .of(possibleMultipleOSMIdentifier.split(",")).collect(Collectors.toSet()),
             Command.Optionality.REQUIRED);
 
@@ -39,7 +39,7 @@ public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubComman
     public AtlasFindByAtlasIdentifierSubCommand()
     {
         super("find-atlas-id",
-                "find which atlas files contain particular Atlas features using a given set of Atlas identifiers");
+                "Find which atlas files contain particular Atlas features using a given set of Atlas identifiers");
     }
 
     @Override
@@ -53,7 +53,7 @@ public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubComman
     {
         writer.printf(AtlasCommandConstants.INPUT_PARAMETER_DESCRIPTION);
         writer.printf("-id=1000000,2000000 : comma separated Atlas identifiers to search for\n");
-        writer.printf("-joinedOutput=path/to/joined.atlas : the path to the output atlas file\n");
+        writer.printf("-joinedOutput=path/to/joined.atlas : the path to the output Atlas file\n");
     }
 
     @Override
