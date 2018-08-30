@@ -994,8 +994,7 @@ public class WaySectionProcessor
                         // Found a duplicate point, update the map and skip over it
                         final long startIdentifier = startNode.get().getIdentifier();
                         final int duplicateCount = duplicateLocations.containsKey(startIdentifier)
-                                ? duplicateLocations.get(startIdentifier)
-                                : 0;
+                                ? duplicateLocations.get(startIdentifier) : 0;
                         duplicateLocations.put(startIdentifier, duplicateCount + 1);
                         continue;
                     }
@@ -1124,8 +1123,7 @@ public class WaySectionProcessor
                     if (!endNode.isPresent() && !startNode.isPresent())
                     {
                         final int duplicateCount = duplicateLocations.containsKey(currentLocation)
-                                ? duplicateLocations.get(currentLocation)
-                                : 0;
+                                ? duplicateLocations.get(currentLocation) : 0;
                         duplicateLocations.put(currentLocation, duplicateCount + 1);
                     }
 
@@ -1151,9 +1149,9 @@ public class WaySectionProcessor
                                     && polyline.get(index).equals(polyline.get(index - 1)))
                             {
                                 // Found a duplicate point, update the map and skip over it
-                                final int duplicateCount = duplicateLocations.containsKey(
-                                        currentLocation) ? duplicateLocations.get(currentLocation)
-                                                : 0;
+                                final int duplicateCount = duplicateLocations
+                                        .containsKey(currentLocation)
+                                                ? duplicateLocations.get(currentLocation) : 0;
                                 duplicateLocations.put(currentLocation, duplicateCount + 1);
                                 continue;
                             }
@@ -1214,8 +1212,7 @@ public class WaySectionProcessor
 
                         // Get the raw polyline from the last node to the last(first) location
                         final int endOccurence = duplicateLocations.containsKey(currentLocation)
-                                ? duplicateLocations.get(currentLocation)
-                                : 1;
+                                ? duplicateLocations.get(currentLocation) : 1;
                         final PolyLine rawPolylineFromLastNodeToLastLocation = polyline.between(
                                 polyline.get(startIndex),
                                 nodesToSectionAt.getOccurrence(startNode.get()) - 1,
