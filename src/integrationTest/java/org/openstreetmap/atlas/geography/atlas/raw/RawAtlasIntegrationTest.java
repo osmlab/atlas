@@ -142,9 +142,9 @@ public class RawAtlasIntegrationTest
                 .edges(edge -> edge.getOsmIdentifier() == LINE_OSM_IDENTIFIER_CROSSING_3_SHARDS);
 
         // First look at absolute counts. Each shard will have two forward and reverse edges
-        Assert.assertEquals(8, Iterables.size(firstGroupOfEdges));
-        Assert.assertEquals(8, Iterables.size(secondGroupOfEdges));
-        Assert.assertEquals(8, Iterables.size(thirdGroupOfEdges));
+        Assert.assertEquals(4, Iterables.size(firstGroupOfEdges));
+        Assert.assertEquals(4, Iterables.size(secondGroupOfEdges));
+        Assert.assertEquals(4, Iterables.size(thirdGroupOfEdges));
 
         // Next, let's check identifier consistency
         final Set<Long> uniqueIdentifiers = new HashSet<>();
@@ -168,9 +168,9 @@ public class RawAtlasIntegrationTest
         Assert.assertTrue(piece3from123.asPolyLine().equals(piece3from62.asPolyLine()));
 
         // Let's validate absolute number of edges in each shard
-        Assert.assertEquals(38, atlasFromz8x123y122.numberOfEdges());
-        Assert.assertEquals(38, atlasFromz8x123y123.numberOfEdges());
-        Assert.assertEquals(38, atlasFromz7x62y61.numberOfEdges());
+        Assert.assertEquals(12, atlasFromz8x123y122.numberOfEdges());
+        Assert.assertEquals(16, atlasFromz8x123y123.numberOfEdges());
+        Assert.assertEquals(20, atlasFromz7x62y61.numberOfEdges());
     }
 
     @Test
@@ -276,9 +276,8 @@ public class RawAtlasIntegrationTest
 
         final Atlas finalAtlas = new WaySectionProcessor(new SlippyTile(122, 122, 8),
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP),
-                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class
-                        .getResource(
-                                "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
+                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class.getResource(
+                        "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
                         .getFile())),
                 rawAtlasFetcher).run();
 
@@ -353,9 +352,8 @@ public class RawAtlasIntegrationTest
     {
         return new WaySectionProcessor(shard,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP),
-                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class
-                        .getResource(
-                                "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
+                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class.getResource(
+                        "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
                         .getFile())),
                 rawAtlasFetcher).run();
     }
