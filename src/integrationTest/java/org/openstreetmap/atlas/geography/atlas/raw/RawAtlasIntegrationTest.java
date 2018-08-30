@@ -282,11 +282,11 @@ public class RawAtlasIntegrationTest
                         .getFile())),
                 rawAtlasFetcher).run();
 
-        Assert.assertEquals(5011, finalAtlas.numberOfNodes());
-        Assert.assertEquals(9764, finalAtlas.numberOfEdges());
-        Assert.assertEquals(5128, finalAtlas.numberOfAreas());
+        Assert.assertEquals(5009, finalAtlas.numberOfNodes());
+        Assert.assertEquals(9760, finalAtlas.numberOfEdges());
+        Assert.assertEquals(5126, finalAtlas.numberOfAreas());
         Assert.assertEquals(184, finalAtlas.numberOfPoints());
-        Assert.assertEquals(326, finalAtlas.numberOfLines());
+        Assert.assertEquals(271, finalAtlas.numberOfLines());
         Assert.assertEquals(14, finalAtlas.numberOfRelations());
     }
 
