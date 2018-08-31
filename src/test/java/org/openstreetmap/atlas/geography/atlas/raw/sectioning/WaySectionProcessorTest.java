@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.raw.sectioning;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.junit.Assert;
@@ -15,6 +16,8 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.LineAndPointSlicingTest;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
+import org.openstreetmap.atlas.geography.sharding.SlippyTile;
+import org.openstreetmap.atlas.geography.sharding.SlippyTileSharding;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.SyntheticInvalidWaySectionTag;
@@ -57,6 +60,30 @@ public class WaySectionProcessorTest
         Assert.assertTrue(finalAtlas.edge(-317579533000001L) != null);
         Assert.assertTrue(finalAtlas.edge(317579533000002L) != null);
         Assert.assertTrue(finalAtlas.edge(-317579533000002L) != null);
+    }
+
+    @Test
+    public void testCutAtShardBoundary()
+    {
+        final Atlas slicedRawAtlas = this.setup.getRawAtlasSpanningOutsideBoundary();
+        final Atlas finalAtlas = new WaySectionProcessor(SlippyTile.forName("8-123-123"),
+                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP),
+                new SlippyTileSharding(8), shard -> Optional.of(slicedRawAtlas)).run();
+
+        // Assert the number to make sure the edges outside the shard have been excluded
+        Assert.assertEquals(4, finalAtlas.numberOfNodes());
+        Assert.assertEquals(3, finalAtlas.numberOfEdges());
+
+        // Nodes
+        Assert.assertNotNull(finalAtlas.node(112428000000L));
+        Assert.assertNotNull(finalAtlas.node(112430000000L));
+        Assert.assertNotNull(finalAtlas.node(112441000000L));
+        Assert.assertNotNull(finalAtlas.node(112427000000L));
+
+        // Edges
+        Assert.assertNotNull(finalAtlas.edge(112429000001L));
+        Assert.assertNotNull(finalAtlas.edge(112429000002L));
+        Assert.assertNotNull(finalAtlas.edge(112440000001L));
     }
 
     @Test

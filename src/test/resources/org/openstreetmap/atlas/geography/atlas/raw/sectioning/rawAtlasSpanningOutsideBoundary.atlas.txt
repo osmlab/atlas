@@ -1,0 +1,18 @@
+# Nodes
+# Edges
+# Areas
+# Lines
+112429000000 && 7.0133271,-7.0304936:7.0128905,-7.0306545:7.0123688,-7.0304453 && last_edit_user_name -> myself || last_edit_changeset -> 1 || last_edit_time -> 1513719782000 || last_edit_user_id -> 1 || highway -> motorway || last_edit_version -> 1 || oneway -> yes
+112440000000 && 7.0128905,-7.0306545:7.0131088,-7.0316684:7.012832,-7.0324623:7.0130236,-7.0330041 && last_edit_user_name -> myself || last_edit_changeset -> 1 || last_edit_time -> 1513719782000 || last_edit_user_id -> 1 || highway -> motorway || last_edit_version -> 1 || oneway -> yes
+112452000000 && 7.0133697,-7.0323443:7.012832,-7.0324623:7.0122357,-7.0323121 && last_edit_user_name -> myself || last_edit_changeset -> 1 || last_edit_time -> 1513719782000 || last_edit_user_id -> 1 || highway -> motorway || last_edit_version -> 1 || oneway -> yes
+# Points
+112404000000 && 6.9272056,-6.7232943 && last_edit_user_name -> myself || last_edit_changeset -> 1 || last_edit_time -> 1513719782000 || last_edit_user_id -> 1 || last_edit_version -> 1
+112427000000 && 7.0133271,-7.0304936 && last_edit_user_name -> myself || last_edit_changeset -> 1 || last_edit_time -> 1513719782000 || last_edit_user_id -> 1 || last_edit_version -> 1
+112428000000 && 7.0128905,-7.0306545 && last_edit_user_name -> myself || last_edit_changeset -> 1 || last_edit_time -> 1513719782000 || last_edit_user_id -> 1 || last_edit_version -> 1
+112430000000 && 7.0123688,-7.0304453 && last_edit_user_name -> myself || last_edit_changeset -> 1 || last_edit_time -> 1513719782000 || last_edit_user_id -> 1 || last_edit_version -> 1
+112439000000 && 7.0131088,-7.0316684 && last_edit_user_name -> myself || last_edit_changeset -> 1 || last_edit_time -> 1513719782000 || last_edit_user_id -> 1 || last_edit_version -> 1
+112441000000 && 7.012832,-7.0324623 && last_edit_user_name -> myself || last_edit_changeset -> 1 || last_edit_time -> 1513719782000 || last_edit_user_id -> 1 || last_edit_version -> 1
+112449000000 && 7.0130236,-7.0330041 && last_edit_user_name -> myself || last_edit_changeset -> 1 || last_edit_time -> 1513719782000 || last_edit_user_id -> 1 || last_edit_version -> 1
+112451000000 && 7.0133697,-7.0323443 && last_edit_user_name -> myself || last_edit_changeset -> 1 || last_edit_time -> 1513719782000 || last_edit_user_id -> 1 || last_edit_version -> 1
+112453000000 && 7.0122357,-7.0323121 && last_edit_user_name -> myself || last_edit_changeset -> 1 || last_edit_time -> 1513719782000 || last_edit_user_id -> 1 || last_edit_version -> 1
+# Relations
