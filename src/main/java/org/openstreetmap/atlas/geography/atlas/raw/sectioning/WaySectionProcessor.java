@@ -82,6 +82,7 @@ public class WaySectionProcessor
 
     // Expand the initial shard boundary to capture any edges that are crossing the shard boundary
     private static final Distance SHARD_EXPANSION_DISTANCE = Distance.meters(20);
+    private static final boolean USE_SUB_ATLAS = false;
 
     private final Atlas rawAtlas;
     private final AtlasLoadingOption loadingOption;
@@ -242,19 +243,26 @@ public class WaySectionProcessor
                 final Optional<Atlas> possibleAtlas = rawAtlasFetcher.apply(shard);
                 logTaskAsInfo(SHARD_SPECIFIC_COMPLETED_TASK_MESSAGE, getShardOrAtlasName(),
                         ATLAS_FETCHING_TASK, shard.getName(), fetchTime.elapsedSince());
-                return possibleAtlas;
-                // if (possibleAtlas.isPresent())
-                // {
-                // this.loadedShards.add(shard);
-                // final Atlas atlas = possibleAtlas.get();
-                // final Time subAtlasTime = Time.now();
-                // final Optional<Atlas> subAtlas = atlas
-                // .subAtlas(this.dynamicAtlasExpansionFilter);
-                // logTaskAsInfo(SHARD_SPECIFIC_COMPLETED_TASK_MESSAGE, getShardOrAtlasName(),
-                // SUB_ATLAS_CUTTING_TASK, shard.getName(), subAtlasTime.elapsedSince());
-                // return subAtlas;
-                // }
-                // return Optional.empty();
+                if (USE_SUB_ATLAS)
+                {
+                    if (possibleAtlas.isPresent())
+                    {
+                        this.loadedShards.add(shard);
+                        final Atlas atlas = possibleAtlas.get();
+                        final Time subAtlasTime = Time.now();
+                        final Optional<Atlas> subAtlas = atlas
+                                .subAtlas(this.dynamicAtlasExpansionFilter);
+                        logTaskAsInfo(SHARD_SPECIFIC_COMPLETED_TASK_MESSAGE, getShardOrAtlasName(),
+                                SUB_ATLAS_CUTTING_TASK, shard.getName(),
+                                subAtlasTime.elapsedSince());
+                        return subAtlas;
+                    }
+                    return Optional.empty();
+                }
+                else
+                {
+                    return possibleAtlas;
+                }
             }
         };
 
@@ -1007,7 +1015,8 @@ public class WaySectionProcessor
                         // Found a duplicate point, update the map and skip over it
                         final long startIdentifier = startNode.get().getIdentifier();
                         final int duplicateCount = duplicateLocations.containsKey(startIdentifier)
-                                ? duplicateLocations.get(startIdentifier) : 0;
+                                ? duplicateLocations.get(startIdentifier)
+                                : 0;
                         duplicateLocations.put(startIdentifier, duplicateCount + 1);
                         continue;
                     }
@@ -1136,7 +1145,8 @@ public class WaySectionProcessor
                     if (!endNode.isPresent() && !startNode.isPresent())
                     {
                         final int duplicateCount = duplicateLocations.containsKey(currentLocation)
-                                ? duplicateLocations.get(currentLocation) : 0;
+                                ? duplicateLocations.get(currentLocation)
+                                : 0;
                         duplicateLocations.put(currentLocation, duplicateCount + 1);
                     }
 
@@ -1162,9 +1172,9 @@ public class WaySectionProcessor
                                     && polyline.get(index).equals(polyline.get(index - 1)))
                             {
                                 // Found a duplicate point, update the map and skip over it
-                                final int duplicateCount = duplicateLocations
-                                        .containsKey(currentLocation)
-                                                ? duplicateLocations.get(currentLocation) : 0;
+                                final int duplicateCount = duplicateLocations.containsKey(
+                                        currentLocation) ? duplicateLocations.get(currentLocation)
+                                                : 0;
                                 duplicateLocations.put(currentLocation, duplicateCount + 1);
                                 continue;
                             }
@@ -1225,7 +1235,8 @@ public class WaySectionProcessor
 
                         // Get the raw polyline from the last node to the last(first) location
                         final int endOccurence = duplicateLocations.containsKey(currentLocation)
-                                ? duplicateLocations.get(currentLocation) : 1;
+                                ? duplicateLocations.get(currentLocation)
+                                : 1;
                         final PolyLine rawPolylineFromLastNodeToLastLocation = polyline.between(
                                 polyline.get(startIndex),
                                 nodesToSectionAt.getOccurrence(startNode.get()) - 1,
