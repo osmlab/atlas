@@ -696,9 +696,23 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                         markRemovedMemberLineForDeletion(inner, relationIdentifier);
                     }
 
-                    // Set the proper country code
+                    // Get the proper country code
+                    final String countryCode;
+                    final Optional<String> possibleCountryCode = outer.getTag(ISOCountryTag.KEY);
+                    if (possibleCountryCode.isPresent())
+                    {
+                        countryCode = possibleCountryCode.get();
+                    }
+                    else
+                    {
+                        // At this point, all members are sliced and must have a country code
+                        throw new CoreException(
+                                "Relation {} contains member {} that is missing a country code",
+                                relationIdentifier, outer);
+                    }
+
                     CountryBoundaryMap.setGeometryProperty(exteriorRing, ISOCountryTag.KEY,
-                            ISOCountryTag.first(outer).get().getIso3CountryCode());
+                            countryCode);
 
                     // Create points, lines and update members
                     createNewLineMemberForRelation(exteriorRing, relationIdentifier,
