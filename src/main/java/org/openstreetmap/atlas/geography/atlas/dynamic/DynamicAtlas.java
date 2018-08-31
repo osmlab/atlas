@@ -72,6 +72,8 @@ public class DynamicAtlas extends BareAtlas
     // (unlocking further automatic loading later)
     private boolean isAlreadyLoaded = false;
     private boolean preemptiveLoadDone = false;
+    // Number of times the udnerlying Multi-Atlas has been built.
+    private int timesMultiAtlasWasBuiltUnderneath;
 
     /**
      * @param dynamicAtlasExpansionPolicy
@@ -81,6 +83,7 @@ public class DynamicAtlas extends BareAtlas
     {
         this.setName("DynamicAtlas(" + dynamicAtlasExpansionPolicy.getInitialShards().stream()
                 .map(Shard::getName).collect(Collectors.toSet()) + ")");
+        this.timesMultiAtlasWasBuiltUnderneath = 0;
         this.sharding = dynamicAtlasExpansionPolicy.getSharding();
         this.loadedShards = new HashMap<>();
         this.shardsUsedForCurrent = new HashSet<>();
@@ -151,18 +154,19 @@ public class DynamicAtlas extends BareAtlas
         if (!nonNullAtlasShards.isEmpty())
         {
             this.policy.getShardSetChecker().accept(nonNullShards());
-            if (logger.isDebugEnabled())
-            {
-                logger.debug("{}: Loading MultiAtlas with {}", this.getName(),
-                        nonNullShards().stream().map(Shard::getName).collect(Collectors.toList()));
-            }
             if (nonNullAtlasShards.size() == 1)
             {
                 this.current = nonNullAtlasShards.get(0);
             }
             else
             {
+                if (logger.isDebugEnabled())
+                {
+                    logger.debug("{}: Loading MultiAtlas with {}", this.getName(), nonNullShards()
+                            .stream().map(Shard::getName).collect(Collectors.toList()));
+                }
                 this.current = new MultiAtlas(nonNullAtlasShards);
+                this.timesMultiAtlasWasBuiltUnderneath++;
             }
             this.shardsUsedForCurrent = nonNullShards;
             if (this.initialized)
@@ -218,6 +222,15 @@ public class DynamicAtlas extends BareAtlas
     {
         return expand(() -> this.current.edgesIntersecting(polygon, matcher), this::lineItemCovered,
                 this::newEdge);
+    }
+
+    /**
+     * @return The number of times that {@link DynamicAtlas} has (re-)built its {@link MultiAtlas}
+     *         underneath.
+     */
+    public int getTimesMultiAtlasWasBuiltUnderneath()
+    {
+        return this.timesMultiAtlasWasBuiltUnderneath;
     }
 
     @Override
