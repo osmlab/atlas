@@ -216,7 +216,7 @@ public abstract class AbstractAtlas extends BareAtlas
         return Iterables.filter(lines, line ->
         {
             final PolyLine polyline = line.asPolyLine();
-            return location.bounds().overlaps(polyline);
+            return polyline.contains(location);
         });
     }
 

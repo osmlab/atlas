@@ -71,6 +71,7 @@ public class DynamicAtlas extends BareAtlas
     // This is true when, in case of deferred loading, the loading of the shards has been called
     // (unlocking further automatic loading later)
     private boolean isAlreadyLoaded = false;
+    private boolean preemptiveLoadDone = false;
 
     /**
      * @param dynamicAtlasExpansionPolicy
@@ -426,6 +427,7 @@ public class DynamicAtlas extends BareAtlas
             // Loop through the entities again to find potential shards to add.
             this.entities();
         }
+        this.preemptiveLoadDone = true;
     }
 
     @Override
@@ -602,7 +604,9 @@ public class DynamicAtlas extends BareAtlas
     {
         StreamIterable<V> result = Iterables.stream(entitiesSupplier.get())
                 .filter(Objects::nonNull);
-        while (!entitiesCovered(result, entityCoveredPredicate))
+        final boolean shouldStopExploring = this.policy.isDeferLoading()
+                && !this.policy.isExtendIndefinitely() && this.preemptiveLoadDone;
+        while (!shouldStopExploring && !entitiesCovered(result, entityCoveredPredicate))
         {
             result = Iterables.stream(entitiesSupplier.get()).filter(Objects::nonNull);
         }
