@@ -741,9 +741,16 @@ public class WaySectionProcessor
     private boolean isAtlasPoint(final WaySectionChangeSet changeSet, final Point point)
     {
         final boolean hasExplicitOsmTags = pointHasExplicitOsmTags(point);
+
+        // We use the presence of explicit OSM tagging to determine if it's a point
+        if (hasExplicitOsmTags)
+        {
+            return true;
+        }
+
         final boolean isRelationMember = !point.relations().isEmpty();
 
-        if (isRelationMember && !hasExplicitOsmTags && !isAtlasNode(changeSet, point))
+        if (isRelationMember && !isAtlasNode(changeSet, point))
         {
             // When the OSM node is part of a relation, doesn't have explicit OSM tagging and is not
             // at an intersection (not an atlas node), then we want to create an atlas point so we
@@ -753,7 +760,7 @@ public class WaySectionProcessor
 
         final boolean isIsolatedNode = Iterables
                 .isEmpty(this.rawAtlas.linesContaining(point.getLocation()));
-        if (!isRelationMember && !hasExplicitOsmTags && isIsolatedNode)
+        if (!isRelationMember && isIsolatedNode)
         {
             // This is a special case - when an OSM node is not part of a relation, doesn't have
             // explicit OSM tagging and is not a part of an OSM way, then we want to bring it in as
@@ -761,8 +768,7 @@ public class WaySectionProcessor
             return true;
         }
 
-        // All other times, we use the presence of explicit OSM tagging to determine if it's a point
-        return hasExplicitOsmTags;
+        return false;
     }
 
     /**
