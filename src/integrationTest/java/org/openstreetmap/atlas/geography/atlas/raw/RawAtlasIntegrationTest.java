@@ -142,9 +142,9 @@ public class RawAtlasIntegrationTest
                 .edges(edge -> edge.getOsmIdentifier() == LINE_OSM_IDENTIFIER_CROSSING_3_SHARDS);
 
         // First look at absolute counts. Each shard will have two forward and reverse edges
-        Assert.assertTrue(Iterables.size(firstGroupOfEdges) == 4);
-        Assert.assertTrue(Iterables.size(secondGroupOfEdges) == 4);
-        Assert.assertTrue(Iterables.size(thirdGroupOfEdges) == 4);
+        Assert.assertEquals(4, Iterables.size(firstGroupOfEdges));
+        Assert.assertEquals(4, Iterables.size(secondGroupOfEdges));
+        Assert.assertEquals(4, Iterables.size(thirdGroupOfEdges));
 
         // Next, let's check identifier consistency
         final Set<Long> uniqueIdentifiers = new HashSet<>();
@@ -168,9 +168,9 @@ public class RawAtlasIntegrationTest
         Assert.assertTrue(piece3from123.asPolyLine().equals(piece3from62.asPolyLine()));
 
         // Let's validate absolute number of edges in each shard
-        Assert.assertTrue(atlasFromz8x123y122.numberOfEdges() == 12);
-        Assert.assertTrue(atlasFromz8x123y123.numberOfEdges() == 16);
-        Assert.assertTrue(atlasFromz7x62y61.numberOfEdges() == 20);
+        Assert.assertEquals(12, atlasFromz8x123y122.numberOfEdges());
+        Assert.assertEquals(16, atlasFromz8x123y123.numberOfEdges());
+        Assert.assertEquals(20, atlasFromz7x62y61.numberOfEdges());
     }
 
     @Test
@@ -282,11 +282,11 @@ public class RawAtlasIntegrationTest
                         .getFile())),
                 rawAtlasFetcher).run();
 
-        Assert.assertEquals(5011, finalAtlas.numberOfNodes());
-        Assert.assertEquals(9764, finalAtlas.numberOfEdges());
-        Assert.assertEquals(5128, finalAtlas.numberOfAreas());
+        Assert.assertEquals(5009, finalAtlas.numberOfNodes());
+        Assert.assertEquals(9760, finalAtlas.numberOfEdges());
+        Assert.assertEquals(5126, finalAtlas.numberOfAreas());
         Assert.assertEquals(184, finalAtlas.numberOfPoints());
-        Assert.assertEquals(326, finalAtlas.numberOfLines());
+        Assert.assertEquals(271, finalAtlas.numberOfLines());
         Assert.assertEquals(14, finalAtlas.numberOfRelations());
     }
 

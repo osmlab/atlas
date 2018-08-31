@@ -82,6 +82,7 @@ public class WaySectionProcessor
 
     // Expand the initial shard boundary to capture any edges that are crossing the shard boundary
     private static final Distance SHARD_EXPANSION_DISTANCE = Distance.meters(20);
+    private static final boolean USE_SUB_ATLAS = false;
 
     private final Atlas rawAtlas;
     private final AtlasLoadingOption loadingOption;
@@ -89,9 +90,7 @@ public class WaySectionProcessor
     private final List<Shard> loadedShards = new ArrayList<>();
 
     // Bring in all points that are part of any line that will become an edge
-    private final Predicate<AtlasEntity> pointPredicate = entity -> entity instanceof Point
-            && Iterables.stream(entity.getAtlas().linesContaining(((Point) entity).getLocation()))
-                    .anyMatch(this::isAtlasEdge);
+    private final Predicate<AtlasEntity> pointPredicate = entity -> entity instanceof Point;
 
     // TODO - we are pulling in all edges and their contained points in the shard. We can optimize
     // this further by only considering the edges crossing the shard boundary and their intersecting
@@ -244,19 +243,26 @@ public class WaySectionProcessor
                 final Optional<Atlas> possibleAtlas = rawAtlasFetcher.apply(shard);
                 logTaskAsInfo(SHARD_SPECIFIC_COMPLETED_TASK_MESSAGE, getShardOrAtlasName(),
                         ATLAS_FETCHING_TASK, shard.getName(), fetchTime.elapsedSince());
-
-                if (possibleAtlas.isPresent())
+                if (USE_SUB_ATLAS)
                 {
-                    this.loadedShards.add(shard);
-                    final Atlas atlas = possibleAtlas.get();
-                    final Time subAtlasTime = Time.now();
-                    final Optional<Atlas> subAtlas = atlas
-                            .subAtlas(this.dynamicAtlasExpansionFilter);
-                    logTaskAsInfo(SHARD_SPECIFIC_COMPLETED_TASK_MESSAGE, getShardOrAtlasName(),
-                            SUB_ATLAS_CUTTING_TASK, shard.getName(), subAtlasTime.elapsedSince());
-                    return subAtlas;
+                    if (possibleAtlas.isPresent())
+                    {
+                        this.loadedShards.add(shard);
+                        final Atlas atlas = possibleAtlas.get();
+                        final Time subAtlasTime = Time.now();
+                        final Optional<Atlas> subAtlas = atlas
+                                .subAtlas(this.dynamicAtlasExpansionFilter);
+                        logTaskAsInfo(SHARD_SPECIFIC_COMPLETED_TASK_MESSAGE, getShardOrAtlasName(),
+                                SUB_ATLAS_CUTTING_TASK, shard.getName(),
+                                subAtlasTime.elapsedSince());
+                        return subAtlas;
+                    }
+                    return Optional.empty();
                 }
-                return Optional.empty();
+                else
+                {
+                    return possibleAtlas;
+                }
             }
         };
 
@@ -515,22 +521,23 @@ public class WaySectionProcessor
     {
         try
         {
-            if (this.loadedShards.size() > 1)
+            if (!this.loadedShards.isEmpty())
             {
                 // The first shard is always the initial one. Use its bounds to build the atlas.
                 final Rectangle originalShardBounds = this.loadedShards.get(0).bounds();
-                return atlas.subAtlas(originalShardBounds).get();
+                return atlas.subAtlas(originalShardBounds)
+                        .orElseThrow(() -> new CoreException(
+                                "Cannot have an empty atlas after way sectioning {}",
+                                this.loadedShards.get(0).getName()));
             }
             else
             {
-                // We don't need to cut anything away, since no other shards were loaded
                 return atlas;
             }
         }
         catch (final Exception e)
         {
-            logger.error("Error creating sub-atlas for original shard bounds", e);
-            return null;
+            throw new CoreException("Error creating sub-atlas for original shard bounds", e);
         }
     }
 
@@ -742,9 +749,16 @@ public class WaySectionProcessor
     private boolean isAtlasPoint(final WaySectionChangeSet changeSet, final Point point)
     {
         final boolean hasExplicitOsmTags = pointHasExplicitOsmTags(point);
+
+        // We use the presence of explicit OSM tagging to determine if it's a point
+        if (hasExplicitOsmTags)
+        {
+            return true;
+        }
+
         final boolean isRelationMember = !point.relations().isEmpty();
 
-        if (isRelationMember && !hasExplicitOsmTags && !isAtlasNode(changeSet, point))
+        if (isRelationMember && !isAtlasNode(changeSet, point))
         {
             // When the OSM node is part of a relation, doesn't have explicit OSM tagging and is not
             // at an intersection (not an atlas node), then we want to create an atlas point so we
@@ -754,7 +768,7 @@ public class WaySectionProcessor
 
         final boolean isIsolatedNode = Iterables
                 .isEmpty(this.rawAtlas.linesContaining(point.getLocation()));
-        if (!isRelationMember && !hasExplicitOsmTags && isIsolatedNode)
+        if (!isRelationMember && isIsolatedNode)
         {
             // This is a special case - when an OSM node is not part of a relation, doesn't have
             // explicit OSM tagging and is not a part of an OSM way, then we want to bring it in as
@@ -762,8 +776,7 @@ public class WaySectionProcessor
             return true;
         }
 
-        // All other times, we use the presence of explicit OSM tagging to determine if it's a point
-        return hasExplicitOsmTags;
+        return false;
     }
 
     /**

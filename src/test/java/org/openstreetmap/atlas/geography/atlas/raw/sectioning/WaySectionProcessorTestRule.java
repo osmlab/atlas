@@ -59,6 +59,9 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     @TestAtlas(loadFromTextResource = "wayExceedingSectioningLimit.atlas.txt")
     private Atlas wayExceedingSectioningLimit;
 
+    @TestAtlas(loadFromTextResource = "rawAtlasSpanningOutsideBoundary.atlas.txt")
+    private Atlas rawAtlasSpanningOutsideBoundary;
+
     public Atlas getBidirectionalRingAtlas()
     {
         return this.bidirectioalRingAtlas;
@@ -107,6 +110,11 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     public Atlas getOneWaySimpleLineAtlas()
     {
         return this.oneWaySimpleLine;
+    }
+
+    public Atlas getRawAtlasSpanningOutsideBoundary()
+    {
+        return this.rawAtlasSpanningOutsideBoundary;
     }
 
     public Atlas getReversedOneWayLineAtlas()
