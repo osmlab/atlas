@@ -22,9 +22,10 @@ import org.openstreetmap.atlas.utilities.runtime.CommandMap;
  */
 public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubCommand
 {
-    private static final Command.Switch<Set<String>> ATLAS_ID_PARAMETER = new Command.Switch<>("id",
-            "List of comma-delimited Atlas identifiers", possibleMultipleOSMIdentifier -> Stream
-                    .of(possibleMultipleOSMIdentifier.split(",")).collect(Collectors.toSet()),
+    private static final Command.Switch<Set<Long>> ATLAS_ID_PARAMETER = new Command.Switch<>("id",
+            "List of comma-delimited Atlas identifiers",
+            possibleMultipleOSMIdentifier -> Stream.of(possibleMultipleOSMIdentifier.split(","))
+                    .map(Long::parseLong).collect(Collectors.toSet()),
             Command.Optionality.REQUIRED);
 
     private static final Command.Switch<String> JOINED_OUTPUT_PARAMETER = new Command.Switch<>(
@@ -67,10 +68,10 @@ public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubComman
     protected void handle(final Atlas atlas, final CommandMap command)
     {
         // Get all atlas entities with ids matching the input list
-        atlas.entities(idCheck()).forEach(item ->
+        atlas.entities(identifierCheck()).forEach(item ->
         {
             // Print atlas and item information
-            System.out.printf(formatAtlasObject(atlas, item));
+            System.out.printf(formatAtlasObject(item));
             // Record shard name
             this.shardNames.add(atlas.getName());
         });
@@ -83,7 +84,7 @@ public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubComman
         // If joining is requested and there are shards to join...
         if (output.isPresent() && !this.shardNames.isEmpty())
         {
-            System.out.printf("Joining...");
+            System.out.printf("Stitching shards and saving to output %s\n", output.get());
             // Use AtlasJoinerSubCommand to join found atlases
             AtlasReader.main("join",
                     String.format("-input=%s", command.get(super.switches().get(0))),
@@ -100,26 +101,24 @@ public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubComman
      *            Object type
      * @return {@link Predicate}
      */
-    private <T extends AtlasObject> Predicate<T> idCheck()
+    private <T extends AtlasObject> Predicate<T> identifierCheck()
     {
-        return object -> this.ids.contains(((Long) object.getIdentifier()).toString());
+        return object -> this.ids.contains(object.getIdentifier());
     }
 
     /**
-     * Creates an informative {@link String} for an atlas {@link AtlasEntity} and the {@link Atlas}
-     * that contains it.
+     * Creates an informative {@link String} for an {@link AtlasEntity} and the {@link Atlas} that
+     * contains it.
      *
-     * @param atlas
-     *            Containing {@link Atlas}
      * @param entity
      *            {@link AtlasEntity} to create the string for
      * @return formatted string
      */
-    private String formatAtlasObject(final Atlas atlas, final AtlasEntity entity)
+    private String formatAtlasObject(final AtlasEntity entity)
     {
-        final String shardName = atlas.metaData().getShardName().orElse("UNKNOWN");
+        final String shardName = entity.getAtlas().metaData().getShardName().orElse("UNKNOWN");
         return String.format("[%s] [%d] [%d] --> [%s:%s] Tags: [%s]\n", entity.getType(),
-                entity.getOsmIdentifier(), entity.getIdentifier(), shardName, atlas.getName(),
-                entity.getTags());
+                entity.getOsmIdentifier(), entity.getIdentifier(), shardName,
+                entity.getAtlas().getName(), entity.getTags());
     }
 }

@@ -25,13 +25,18 @@ public class AtlasFindByAtlasIdentifierSubCommandTest
         final CaptureOutputStream captureStream = new CaptureOutputStream(originalOut);
         System.setOut(captureStream);
 
-        // Run AtlasFindByAtlasIdentifierSubCommand
-        final String[] args = { "find-atlas-id", String.format("-input=%1$s", shardPath),
-                "-id=546649246000001,575954012000000" };
-        new AtlasReader(args).runWithoutQuitting(args);
-
-        // Reset System.out
-        System.setOut(originalOut);
+        try
+        {
+            // Run AtlasFindByAtlasIdentifierSubCommand
+            final String[] args = { "find-atlas-id", String.format("-input=%1$s", shardPath),
+                    "-id=546649246000001,575954012000000" };
+            new AtlasReader(args).runWithoutQuitting(args);
+        }
+        finally
+        {
+            // Reset System.out
+            System.setOut(originalOut);
+        }
 
         Arrays.stream(captureStream.getLog().split("\n")).forEach(line -> Assert
                 .assertTrue(line.contains("DNK_2.atlas") || line.contains("DNK_3.atlas")));
