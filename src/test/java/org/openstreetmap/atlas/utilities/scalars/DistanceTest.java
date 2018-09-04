@@ -22,7 +22,7 @@ public class DistanceTest
     public void testConversion()
     {
         final Distance tenMiles = Distance.miles(10);
-        Assert.assertEquals(16093440, tenMiles.asMillimeters());
+        Assert.assertEquals(16093440.0, tenMiles.asMillimeters(), 5);
         Assert.assertEquals(52800.0, tenMiles.asFeet(), 0);
         Assert.assertEquals(16.09344, tenMiles.asKilometers(), 0);
         Assert.assertEquals(8.6897624, tenMiles.asNauticalMiles(), 1e-7);
