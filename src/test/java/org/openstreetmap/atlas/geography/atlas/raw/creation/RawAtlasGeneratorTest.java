@@ -22,6 +22,7 @@ import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader;
 import org.openstreetmap.atlas.geography.atlas.pbf.OsmosisReaderMock;
 import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.SyntheticDuplicateOsmNodeTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -105,6 +106,21 @@ public class RawAtlasGeneratorTest
         Assert.assertEquals(1, atlas.numberOfLines());
         Assert.assertEquals(2, atlas.numberOfPoints());
         Assert.assertEquals(0, atlas.numberOfRelations());
+    }
+
+    @Test
+    public void testNestedSingleRelations()
+    {
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(
+                new InputStreamResource(() -> RawAtlasGeneratorTest.class
+                        .getResourceAsStream("nestedSingleRelations.osm.pbf")));
+        final Atlas atlas = rawAtlasGenerator.build();
+
+        // Verify Atlas Entities
+        assertBasicRawAtlasPrinciples(atlas);
+        Assert.assertEquals(5, atlas.numberOfPoints());
+        Assert.assertEquals(1, atlas.numberOfLines());
+        Assert.assertEquals(2, atlas.numberOfRelations());
     }
 
     @Test

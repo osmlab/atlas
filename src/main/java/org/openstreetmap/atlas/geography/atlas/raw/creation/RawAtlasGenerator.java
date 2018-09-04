@@ -417,6 +417,9 @@ public class RawAtlasGenerator
                 line -> rebuilder.addLine(line.getIdentifier(), line.asPolyLine(), line.getTags()));
 
         // Add Relations
+        // Keep a set of all relations that have members that have been removed, so if that member
+        // is the only member, we do not add the parent relation either.
+        final Set<Long> relationsToCheckForRemoval = new HashSet<>();
         atlas.relationsLowerOrderFirst().forEach(relation ->
         {
             final RelationBean bean = new RelationBean();
@@ -429,6 +432,14 @@ public class RawAtlasGenerator
                     // Make sure not to add any removed points
                     logger.debug(
                             "Excluding point {} from relation {} since point was removed from Atlas",
+                            memberIdentifier, relation.getIdentifier());
+                }
+                else if (entity.getType() == ItemType.RELATION
+                        && relationsToCheckForRemoval.contains(memberIdentifier))
+                {
+                    // Make sure not to add any removed relations
+                    logger.debug(
+                            "Excluding relation member {} from parent relation {} since that relation member became empty",
                             memberIdentifier, relation.getIdentifier());
                 }
                 else
@@ -444,8 +455,9 @@ public class RawAtlasGenerator
             }
             else
             {
-                logger.debug("Relation {} bean is empty, dropping from Atlas",
-                        relation.getIdentifier());
+                final long relationIdentifier = relation.getIdentifier();
+                logger.debug("Relation {} bean is empty, dropping from Atlas", relationIdentifier);
+                relationsToCheckForRemoval.add(relationIdentifier);
             }
         });
 
