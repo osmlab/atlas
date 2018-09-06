@@ -85,17 +85,17 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
     @Override
     public boolean equals(final Object other)
     {
-        if (this == other)
+        final AtlasEntity otherEntity = (AtlasEntity) other;
+        if (this == otherEntity)
         {
             return true;
         }
-        if (other != null && this.getClass() == other.getClass())
+        if (otherEntity != null && this.getType() == otherEntity.getType())
         {
-            final AtlasEntity that = (AtlasEntity) other;
             // Do not call atlas.equals() which would browse all the items and create a stack
             // overflow
-            return this.getAtlas() == that.getAtlas()
-                    && this.getIdentifier() == that.getIdentifier();
+            return this.getAtlas() == otherEntity.getAtlas()
+                    && this.getIdentifier() == otherEntity.getIdentifier();
         }
         return false;
     }
@@ -123,7 +123,7 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
     @Override
     public int hashCode()
     {
-        return new HashCodeBuilder().append(getIdentifier()).append(getClass()).hashCode();
+        return new HashCodeBuilder().append(getIdentifier()).append(getType()).hashCode();
     }
 
     /**
