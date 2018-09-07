@@ -6,9 +6,9 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -385,7 +385,7 @@ public abstract class BareAtlas implements Atlas
     public Iterable<Relation> relationsLowerOrderFirst()
     {
         List<Relation> relationsRemainingToProcess = new ArrayList<>();
-        final Map<Long, Relation> processedRelationsMap = new HashMap<>();
+        final Map<Long, Relation> processedRelationsMap = new LinkedHashMap<>();
         // First pass
         for (final Relation relation : relations())
         {
