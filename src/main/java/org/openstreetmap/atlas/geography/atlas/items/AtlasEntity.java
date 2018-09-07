@@ -94,6 +94,10 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
         {
             return true;
         }
+        /*
+         * Here we check the ItemType, not the class. This is because if the AtlasEntities being
+         * compared are coming from a DynamicAtlas, they are not guaranteed to have the same class.
+         */
         if (otherEntity != null && this.getType() == otherEntity.getType())
         {
             // Do not call atlas.equals() which would browse all the items and create a stack
@@ -127,6 +131,10 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
     @Override
     public int hashCode()
     {
+        /*
+         * Here we hash the ItemType, not the class. This is because if the AtlasEntities being
+         * compared are coming from a DynamicAtlas, they are not guaranteed to have the same class.
+         */
         return new HashCodeBuilder().append(getIdentifier()).append(getType()).hashCode();
     }
 
