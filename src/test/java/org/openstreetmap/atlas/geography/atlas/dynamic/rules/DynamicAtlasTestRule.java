@@ -349,9 +349,80 @@ public class DynamicAtlasTestRule extends CoreTestRule
     )
     private Atlas atlasz12x1349y1870;
 
+    @TestAtlas(
+
+            nodes = {
+
+                    @Node(id = "10", coordinates = @Loc(value = ONE)),
+                    @Node(id = "11", coordinates = @Loc(value = SIX)),
+                    @Node(id = "12", coordinates = @Loc(value = SEVEN)),
+                    @Node(id = "13", coordinates = @Loc(value = EIGHT))
+
+            },
+
+            relations = {
+
+                    @Relation(id = "31", tags = { "type=relation" }, members = {
+
+                            @Member(id = "11", role = "a", type = "node")
+
+                    }),
+
+                    @Relation(id = "32", tags = { "type=relation" }, members = {
+
+                            @Member(id = "12", role = "a", type = "node"),
+
+                            @Member(id = "13", role = "a", type = "node")
+
+                    }),
+
+                    @Relation(id = "33", tags = { "type=relation" }, members = {
+
+                            @Member(id = "10", role = "a", type = "node"),
+
+                            @Member(id = "11", role = "a", type = "node"),
+
+                            @Member(id = "31", role = "b", type = "relation")
+
+                    }),
+
+                    @Relation(id = "34", tags = { "type=relation" }, members = {
+
+                            @Member(id = "10", role = "a", type = "node"),
+
+                            @Member(id = "13", role = "a", type = "node")
+
+                    }),
+
+                    @Relation(id = "35", tags = { "type=relation" }, members = {
+
+                            @Member(id = "11", role = "a", type = "node"),
+
+                            @Member(id = "12", role = "a", type = "node")
+
+                    }),
+
+                    @Relation(id = "36", tags = { "type=relation" }, members = {
+
+                            @Member(id = "12", role = "a", type = "node"),
+
+                            @Member(id = "34", role = "a", type = "relation")
+
+                    }),
+
+            }
+
+    )
+    private Atlas atlasForRelationsTest;
+
     public Atlas getAtlas()
     {
         return this.atlas;
+    }
+
+    public Atlas getAtlasForRelationsTest()
+    {
+        return this.atlasForRelationsTest;
     }
 
     public Atlas getAtlasz12x1349y1869()

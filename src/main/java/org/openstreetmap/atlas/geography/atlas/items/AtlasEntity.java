@@ -15,6 +15,8 @@ import org.openstreetmap.atlas.tags.LastEditUserNameTag;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Duration;
 import org.openstreetmap.atlas.utilities.time.Time;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A located entity with tags
@@ -25,6 +27,8 @@ import org.openstreetmap.atlas.utilities.time.Time;
  */
 public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
 {
+    private static final Logger logger = LoggerFactory.getLogger(AtlasEntity.class);
+
     private static final long serialVersionUID = -6072525057489468736L;
 
     // The atlas this item belongs to
@@ -85,17 +89,21 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
     @Override
     public boolean equals(final Object other)
     {
-        if (this == other)
+        final AtlasEntity otherEntity = (AtlasEntity) other;
+        if (this == otherEntity)
         {
             return true;
         }
-        if (other != null && this.getClass() == other.getClass())
+        /*
+         * Here we check the ItemType, not the class. This is because if the AtlasEntities being
+         * compared are coming from a DynamicAtlas, they are not guaranteed to have the same class.
+         */
+        if (otherEntity != null && this.getType() == otherEntity.getType())
         {
-            final AtlasEntity that = (AtlasEntity) other;
             // Do not call atlas.equals() which would browse all the items and create a stack
             // overflow
-            return this.getAtlas() == that.getAtlas()
-                    && this.getIdentifier() == that.getIdentifier();
+            return this.getAtlas() == otherEntity.getAtlas()
+                    && this.getIdentifier() == otherEntity.getIdentifier();
         }
         return false;
     }
@@ -123,7 +131,10 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
     @Override
     public int hashCode()
     {
-        return new HashCodeBuilder().append(getIdentifier()).append(getClass()).hashCode();
+        /*
+         * Here we hash the ItemType, not the class. See the notes in equals() for details.
+         */
+        return new HashCodeBuilder().append(getIdentifier()).append(getType()).hashCode();
     }
 
     /**
@@ -137,6 +148,30 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
      * @return True if it intersects
      */
     public abstract boolean intersects(GeometricSurface surface);
+
+    /**
+     * Check if this {@link AtlasEntity} is congruent with another {@link AtlasEntity}. Two
+     * {@link AtlasEntity} are considered congruent if and only if they have the same identifier and
+     * the same {@link ItemType}. This differs from the equality check, which also takes into
+     * account the parent {@link Atlas} of the entity.
+     *
+     * @param otherEntity
+     *            the {@link AtlasEntity} with which to compare
+     * @return if the two entities are congruent
+     */
+    public boolean isCongruentWith(final AtlasEntity otherEntity)
+    {
+        if (this == otherEntity)
+        {
+            return true;
+        }
+        if (otherEntity != null)
+        {
+            return this.getType() == otherEntity.getType()
+                    && this.getIdentifier() == otherEntity.getIdentifier();
+        }
+        return false;
+    }
 
     /**
      * @return If available, the {@link Time} at which the entity was last edited.

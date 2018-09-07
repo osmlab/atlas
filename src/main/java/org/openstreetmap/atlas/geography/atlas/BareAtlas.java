@@ -8,8 +8,10 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
@@ -382,61 +384,109 @@ public abstract class BareAtlas implements Atlas
     @Override
     public Iterable<Relation> relationsLowerOrderFirst()
     {
-        List<Relation> stagedRelations = new ArrayList<>();
-        final Set<Relation> result = new LinkedHashSet<>();
-        // First pass
+        List<Relation> relationsRemainingToProcess = new ArrayList<>();
+        final Map<Long, Relation> processedRelationsMap = new LinkedHashMap<>();
+
+        /*
+         * First pass processing. This pass will process all relations which do not have any
+         * relations as members.
+         */
         for (final Relation relation : relations())
         {
-            boolean stageable = false;
-            final RelationMemberList members = relation.members();
-            for (final RelationMember member : members)
+            boolean hasUnprocessedMemberRelations = false;
+            for (final RelationMember member : relation.members())
             {
+                /*
+                 * We cannot process this relation in the first pass, since it has some member
+                 * relations which possibly have not yet been processed.
+                 */
                 if (member.getEntity() instanceof Relation)
                 {
-                    stageable = true;
+                    hasUnprocessedMemberRelations = true;
                 }
             }
-            if (stageable)
+            if (hasUnprocessedMemberRelations)
             {
-                stagedRelations.add(relation);
+                relationsRemainingToProcess.add(relation);
             }
             else
             {
-                result.add(relation);
+                processedRelationsMap.put(relation.getIdentifier(), relation);
             }
         }
-        // Second pass
+
+        /*
+         * Second pass processing. This pass will attempt to process relations that have other
+         * relations as members. It will terminate at a maximum depth to prevent an infinite loop in
+         * the case of non-terminating relation chain.
+         */
         int depth = 0;
-        while (!stagedRelations.isEmpty() && depth < MAXIMUM_RELATION_DEPTH)
+        while (!relationsRemainingToProcess.isEmpty() && depth < MAXIMUM_RELATION_DEPTH)
         {
-            final List<Relation> newStagedRelations = new ArrayList<>();
-            for (final Relation relation : stagedRelations)
+            final List<Relation> updatedRelationsRemainingToProcess = new ArrayList<>();
+            for (final Relation relationA : relationsRemainingToProcess)
             {
-                boolean stageable = false;
-                final RelationMemberList members = relation.members();
-                for (final RelationMember member : members)
+                /*
+                 * By default, we assume that a relation (relation A) does not have unprocessed
+                 * member relations. The rest of the code in this loop will attempt to disprove this
+                 * assumption.
+                 */
+                boolean hasUnprocessedMemberRelations = false;
+                for (final RelationMember member : relationA.members())
                 {
                     if (member.getEntity() instanceof Relation)
                     {
-                        if (!result.contains(member.getEntity()))
+                        /*
+                         * Here we found that one of our unprocessed relations (relation A) has
+                         * another relation (relation B) as a member. We check our processed map to
+                         * see if we already processed relation B.
+                         */
+                        final Relation relationB = (Relation) member.getEntity();
+                        final Relation processedRelationWithEquivalentIdentifierToRelationB = processedRelationsMap
+                                .get(relationB.getIdentifier());
+
+                        /*
+                         * If we found relation B's ID in our processed map, we now just check to
+                         * ensure that relation B is congruent with the relation we already
+                         * processed (ie. it has the same ID and the same ItemType). Note that we do
+                         * not want to check AtlasEntity equality, since this will also check parent
+                         * atlas references. In the case that we are operating on a DynamicAtlas, it
+                         * is not guaranteed that these parent atlases will be equivalent.
+                         */
+                        final boolean memberRelationWasAlreadyProcessed = processedRelationWithEquivalentIdentifierToRelationB != null
+                                ? processedRelationWithEquivalentIdentifierToRelationB
+                                        .isCongruentWith(relationB)
+                                : false;
+                        if (!memberRelationWasAlreadyProcessed)
                         {
-                            stageable = true;
+                            /*
+                             * If we get here, we must re-stage relation A for processing, since it
+                             * has at least one member (namely relation B) that has not yet been
+                             * processed.
+                             */
+                            hasUnprocessedMemberRelations = true;
+                            /*
+                             * We don't need to check any more members, since we know relation A
+                             * cannot be processed (since its member relation B has not been
+                             * processed).
+                             */
+                            break;
                         }
                     }
                 }
-                if (stageable)
+                if (hasUnprocessedMemberRelations)
                 {
-                    newStagedRelations.add(relation);
+                    updatedRelationsRemainingToProcess.add(relationA);
                 }
                 else
                 {
-                    result.add(relation);
+                    processedRelationsMap.put(relationA.getIdentifier(), relationA);
                 }
             }
-            stagedRelations = newStagedRelations;
+            relationsRemainingToProcess = updatedRelationsRemainingToProcess;
             depth++;
         }
-        return result;
+        return new LinkedHashSet<>(processedRelationsMap.values());
     }
 
     @Override
