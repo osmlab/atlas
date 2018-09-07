@@ -15,6 +15,8 @@ import org.openstreetmap.atlas.tags.LastEditUserNameTag;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Duration;
 import org.openstreetmap.atlas.utilities.time.Time;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A located entity with tags
@@ -25,6 +27,8 @@ import org.openstreetmap.atlas.utilities.time.Time;
  */
 public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
 {
+    private static final Logger logger = LoggerFactory.getLogger(AtlasEntity.class);
+
     private static final long serialVersionUID = -6072525057489468736L;
 
     // The atlas this item belongs to
