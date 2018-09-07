@@ -420,55 +420,6 @@ public abstract class BareAtlas implements Atlas
                     {
                         if (!result.contains(member.getEntity()))
                         {
-                            if (relation.getIdentifier() == 33L
-                                    && member.getEntity().getIdentifier() == 31L)
-                            {
-                                Relation fromResult = null;
-                                Relation fromMember = null;
-                                for (final AtlasEntity relationInResult : result)
-                                {
-                                    if (relationInResult.getIdentifier() == 31L)
-                                    {
-                                        fromResult = (Relation) relationInResult;
-                                    }
-                                }
-                                fromMember = (Relation) member.getEntity();
-                                if (fromResult != null && fromMember != null)
-                                {
-                                    logger.error(
-                                            "----------------------------------------------------------------------------------------------------");
-                                    logger.error(
-                                            "BAREATLAS relationsLowerOrderFirst DIAGNOSTIC DEBUG MESSAGE SECTION");
-                                    logger.error("fromResult:\n{}",
-                                            fromResult.toDiffViewFriendlyString());
-                                    logger.error("fromMember:\n{}",
-                                            fromMember.toDiffViewFriendlyString());
-                                    logger.error("fromResult hashCode: {}, fromMember hashCode: {}",
-                                            fromResult.hashCode(), fromMember.hashCode());
-                                    logger.error("fromResult class: {}, fromMember class: {}",
-                                            fromResult.getClass(), fromMember.getClass());
-                                    logger.error("fromResult.equals(fromMember): {}",
-                                            fromResult.equals(fromMember));
-                                    logger.error(
-                                            "fromResult.parentAtlas == fromMember.parentAtlas: {}",
-                                            fromResult.getAtlas() == fromMember.getAtlas());
-                                    logger.error(
-                                            "fromResult.parentAtlas class: {}, fromMember.parentAtlas class: {}",
-                                            fromResult.getAtlas().getClass(),
-                                            fromMember.getAtlas().getClass());
-                                    logger.error(
-                                            "fromResult.parentAtlas hashcode: {}, fromMember.parentAtlas hashcode: {}",
-                                            fromResult.getAtlas().hashCode(),
-                                            fromMember.getAtlas().hashCode());
-                                    logger.error(
-                                            "fromResult.getIdentifier: {}, fromMember.getIdentifier: {}",
-                                            fromResult.getIdentifier(), fromMember.getIdentifier());
-                                    logger.error("fromResult.getType: {}, fromMember.getType: {}",
-                                            fromResult.getType(), fromMember.getType());
-                                    logger.error(
-                                            "----------------------------------------------------------------------------------------------------");
-                                }
-                            }
                             stageable = true;
                         }
                     }
