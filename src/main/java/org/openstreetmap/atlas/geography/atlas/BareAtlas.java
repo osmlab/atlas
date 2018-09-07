@@ -394,12 +394,11 @@ public abstract class BareAtlas implements Atlas
         for (final Relation relation : relations())
         {
             boolean hasUnprocessedMemberRelations = false;
-            final RelationMemberList members = relation.members();
-            for (final RelationMember member : members)
+            for (final RelationMember member : relation.members())
             {
                 /*
                  * We cannot process this relation in the first pass, since it has some member
-                 * relations which have not yet been processed.
+                 * relations which possibly have not yet been processed.
                  */
                 if (member.getEntity() instanceof Relation)
                 {
@@ -428,8 +427,9 @@ public abstract class BareAtlas implements Atlas
             for (final Relation relationA : relationsRemainingToProcess)
             {
                 /*
-                 * By default, we assume that a relation does not have unprocessed member relations.
-                 * The rest of the code in this loop will attempt to disprove this assumption.
+                 * By default, we assume that a relation (relation A) does not have unprocessed
+                 * member relations. The rest of the code in this loop will attempt to disprove this
+                 * assumption.
                  */
                 boolean hasUnprocessedMemberRelations = false;
                 for (final RelationMember member : relationA.members())

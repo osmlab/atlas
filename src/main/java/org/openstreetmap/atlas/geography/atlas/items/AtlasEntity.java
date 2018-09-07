@@ -132,8 +132,7 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
     public int hashCode()
     {
         /*
-         * Here we hash the ItemType, not the class. This is because if the AtlasEntities being
-         * compared are coming from a DynamicAtlas, they are not guaranteed to have the same class.
+         * Here we hash the ItemType, not the class. See the notes in equals() for details.
          */
         return new HashCodeBuilder().append(getIdentifier()).append(getType()).hashCode();
     }
