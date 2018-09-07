@@ -143,6 +143,30 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
     public abstract boolean intersects(GeometricSurface surface);
 
     /**
+     * Check if this {@link AtlasEntity} is congruent with another {@link AtlasEntity}. Two
+     * {@link AtlasEntity} are considered congruent if and only if they have the same identifier and
+     * the same {@link ItemType}. This differs from the equality check, which also takes into
+     * account the parent {@link Atlas} of the entity.
+     *
+     * @param otherEntity
+     *            the {@link AtlasEntity} with which to compare
+     * @return if the two entities are congruent
+     */
+    public boolean isCongruentWith(final AtlasEntity otherEntity)
+    {
+        if (this == otherEntity)
+        {
+            return true;
+        }
+        if (otherEntity != null)
+        {
+            return this.getType() == otherEntity.getType()
+                    && this.getIdentifier() == otherEntity.getIdentifier();
+        }
+        return false;
+    }
+
+    /**
      * @return If available, the {@link Time} at which the entity was last edited.
      */
     public Optional<Time> lastEdit()
