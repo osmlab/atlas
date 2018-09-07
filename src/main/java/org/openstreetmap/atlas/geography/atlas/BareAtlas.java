@@ -386,23 +386,27 @@ public abstract class BareAtlas implements Atlas
     {
         List<Relation> relationsRemainingToProcess = new ArrayList<>();
         final Map<Long, Relation> processedRelationsMap = new LinkedHashMap<>();
-        // First pass
+
+        /*
+         * First pass processing. This pass will process all relations which do not have any
+         * relations as members.
+         */
         for (final Relation relation : relations())
         {
-            boolean needToProcess = false;
+            boolean hasUnprocessedMemberRelations = false;
             final RelationMemberList members = relation.members();
             for (final RelationMember member : members)
             {
+                /*
+                 * We cannot process this relation in the first pass, since it has some member
+                 * relations which have not yet been processed.
+                 */
                 if (member.getEntity() instanceof Relation)
                 {
-                    /*
-                     * We say a relation is "needToProcess" if it has at least one member that is
-                     * also a relation. In this case, we cannot process it in the first pass.
-                     */
-                    needToProcess = true;
+                    hasUnprocessedMemberRelations = true;
                 }
             }
-            if (needToProcess)
+            if (hasUnprocessedMemberRelations)
             {
                 relationsRemainingToProcess.add(relation);
             }
@@ -411,7 +415,12 @@ public abstract class BareAtlas implements Atlas
                 processedRelationsMap.put(relation.getIdentifier(), relation);
             }
         }
-        // Second pass
+
+        /*
+         * Second pass processing. This pass will attempt to process relations that have other
+         * relations as members. It will terminate at a maximum depth to prevent an infinite loop in
+         * the case of non-terminating relation chain.
+         */
         int depth = 0;
         while (!relationsRemainingToProcess.isEmpty() && depth < MAXIMUM_RELATION_DEPTH)
         {
@@ -419,16 +428,16 @@ public abstract class BareAtlas implements Atlas
             for (final Relation relationA : relationsRemainingToProcess)
             {
                 /*
-                 * By default, we assume that a relation does not need to be processed. The rest of
-                 * the code in this loop will attempt to disprove this assumption.
+                 * By default, we assume that a relation does not have unprocessed member relations.
+                 * The rest of the code in this loop will attempt to disprove this assumption.
                  */
-                boolean needToProcess = false;
+                boolean hasUnprocessedMemberRelations = false;
                 for (final RelationMember member : relationA.members())
                 {
                     if (member.getEntity() instanceof Relation)
                     {
                         /*
-                         * Here we found that one of our "needToProcess" relations (relation A) has
+                         * Here we found that one of our unprocessed relations (relation A) has
                          * another relation (relation B) as a member. We check our processed map to
                          * see if we already processed relation B.
                          */
@@ -455,7 +464,7 @@ public abstract class BareAtlas implements Atlas
                              * has at least one member (namely relation B) that has not yet been
                              * processed.
                              */
-                            needToProcess = true;
+                            hasUnprocessedMemberRelations = true;
                             /*
                              * We don't need to check any more members, since we know relation A
                              * cannot be processed (since its member relation B has not been
@@ -465,7 +474,7 @@ public abstract class BareAtlas implements Atlas
                         }
                     }
                 }
-                if (needToProcess)
+                if (hasUnprocessedMemberRelations)
                 {
                     updatedRelationsRemainingToProcess.add(relationA);
                 }
