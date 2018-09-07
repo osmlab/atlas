@@ -416,11 +416,14 @@ public abstract class BareAtlas implements Atlas
         while (!relationsRemainingToProcess.isEmpty() && depth < MAXIMUM_RELATION_DEPTH)
         {
             final List<Relation> updatedRelationsRemainingToProcess = new ArrayList<>();
-            for (final Relation relation : relationsRemainingToProcess)
+            for (final Relation relationA : relationsRemainingToProcess)
             {
+                /*
+                 * By default, we assume that a relation does not need to be processed. The rest of
+                 * the code in this loop will attempt to disprove this assumption.
+                 */
                 boolean needToProcess = false;
-                final RelationMemberList members = relation.members();
-                for (final RelationMember member : members)
+                for (final RelationMember member : relationA.members())
                 {
                     if (member.getEntity() instanceof Relation)
                     {
@@ -429,8 +432,9 @@ public abstract class BareAtlas implements Atlas
                          * another relation (relation B) as a member. We check our processed map to
                          * see if we already processed relation B.
                          */
-                        final Relation processedRelationWithEquivalentIdentifierToMember = processedRelationsMap
-                                .get(member.getEntity().getIdentifier());
+                        final Relation relationB = (Relation) member.getEntity();
+                        final Relation processedRelationWithEquivalentIdentifierToRelationB = processedRelationsMap
+                                .get(relationB.getIdentifier());
 
                         /*
                          * If we found relation B's ID in our processed map, we now just check to
@@ -440,9 +444,9 @@ public abstract class BareAtlas implements Atlas
                          * atlas references. In the case that we are operating on a DynamicAtlas, it
                          * is not guaranteed that these parent atlases will be equivalent.
                          */
-                        final boolean memberRelationWasAlreadyProcessed = processedRelationWithEquivalentIdentifierToMember != null
-                                ? processedRelationWithEquivalentIdentifierToMember
-                                        .isCongruentWith(member.getEntity())
+                        final boolean memberRelationWasAlreadyProcessed = processedRelationWithEquivalentIdentifierToRelationB != null
+                                ? processedRelationWithEquivalentIdentifierToRelationB
+                                        .isCongruentWith(relationB)
                                 : false;
                         if (!memberRelationWasAlreadyProcessed)
                         {
@@ -463,11 +467,11 @@ public abstract class BareAtlas implements Atlas
                 }
                 if (needToProcess)
                 {
-                    updatedRelationsRemainingToProcess.add(relation);
+                    updatedRelationsRemainingToProcess.add(relationA);
                 }
                 else
                 {
-                    processedRelationsMap.put(relation.getIdentifier(), relation);
+                    processedRelationsMap.put(relationA.getIdentifier(), relationA);
                 }
             }
             relationsRemainingToProcess = updatedRelationsRemainingToProcess;
