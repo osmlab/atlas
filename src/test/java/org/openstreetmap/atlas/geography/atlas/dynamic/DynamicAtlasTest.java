@@ -21,6 +21,7 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiRelation;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedRelation;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.geography.sharding.SlippyTileSharding;
@@ -261,8 +262,8 @@ public class DynamicAtlasTest
      * relations in the main {@link DynamicAtlas} and their equivalent representation as a member
      * {@link AtlasEntity} of another relation in the same {@link DynamicAtlas} were of consistent
      * types. However, this was not the case. (The former representation would be of type
-     * {@link DynamicRelation} and the latter would be of type {@link MultiRelation}). This has now
-     * been fixed, so this test should always pass.
+     * {@link DynamicRelation} and the latter would be of type {@link MultiRelation} or
+     * {@link PackedRelation}). This has now been fixed, so this test should always pass.
      */
     @Test
     public void testRelationsLowerOrderFirstConsistency()
@@ -298,12 +299,10 @@ public class DynamicAtlasTest
         }
 
         // Assert that their sizes equal, if not then we can fail fast
-        Assert.assertEquals(returnedByRelations.size(),
-                returnedByRelationsLowerOrderFirst.size());
+        Assert.assertEquals(returnedByRelations.size(), returnedByRelationsLowerOrderFirst.size());
 
         // Now that we know they have equal sizes, check member equality
-        Assert.assertEquals(returnedByRelations,
-                returnedByRelationsLowerOrderFirst);
+        Assert.assertEquals(returnedByRelations, returnedByRelationsLowerOrderFirst);
     }
 
     @Test
