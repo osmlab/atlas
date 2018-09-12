@@ -8,17 +8,23 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.openstreetmap.atlas.geography.Latitude;
+import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.Longitude;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader.AtlasFileSelector;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
+import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.openstreetmap.atlas.utilities.collections.Maps;
 
 /**
  * {@link AtlasResourceLoader} tests
@@ -89,19 +95,16 @@ public class AtlasResourceLoaderTest
     @Test
     public void testAtlasFileExtensionFilter()
     {
-        final File parent = File.temporaryFolder();
-        try
-        {
-            final File atlas1 = parent.child("iAmNotAnAtlas2.txt");
-            atlas1.writeAndClose("1");
-            Assert.assertNull(new AtlasResourceLoader().load(atlas1));
-            Assert.assertNotNull(new AtlasResourceLoader().withAtlasFileExtensionFilterSetTo(false)
-                    .load(atlas1));
-        }
-        finally
-        {
-            parent.deleteRecursively();
-        }
+        final PackedAtlasBuilder builder = new PackedAtlasBuilder();
+        builder.addPoint(1, new Location(Latitude.degrees(0), Longitude.degrees(0)),
+                Maps.hashMap());
+        final Atlas atlas = builder.get();
+        final ByteArrayResource atlasResource = new ByteArrayResource()
+                .withName("iDoNotHaveAnAtlasExt.txt");
+        atlas.save(atlasResource);
+        Assert.assertNull(new AtlasResourceLoader().load(atlasResource));
+        Assert.assertNotNull(new AtlasResourceLoader().withAtlasFileExtensionFilterSetTo(false)
+                .load(atlasResource));
     }
 
     @Test
