@@ -41,17 +41,20 @@ import org.slf4j.LoggerFactory;
  */
 public class PackedAtlasSerializerTest
 {
+    /**
+     * @author lcram
+     */
     private static class TraceableByteArrayResource extends AbstractWritableResource
     {
         private static final Logger logger = LoggerFactory.getLogger(ByteArrayResource.class);
 
         private static final int BYTE_MASK = 0xFF;
 
-        public int numberStreamsClosed = 0;
+        private int numberStreamsClosed = 0;
 
         private final ByteArray array;
 
-        public TraceableByteArrayResource()
+        TraceableByteArrayResource()
         {
             this.array = new ByteArray(Long.MAX_VALUE);
             this.array.setName("ByteArrayResource");
@@ -61,12 +64,17 @@ public class PackedAtlasSerializerTest
          * @param initialSize
          *            An initial size to help avoiding resizings.
          */
-        public TraceableByteArrayResource(final long initialSize)
+        TraceableByteArrayResource(final long initialSize)
         {
             final int blockSize = (int) (initialSize <= Integer.MAX_VALUE ? initialSize
                     : Integer.MAX_VALUE);
             this.array = new ByteArray(Long.MAX_VALUE, blockSize, Integer.MAX_VALUE);
             this.array.setName("ByteArrayResource");
+        }
+
+        public int getNumberStreamsClosed()
+        {
+            return this.numberStreamsClosed;
         }
 
         @Override
@@ -278,8 +286,8 @@ public class PackedAtlasSerializerTest
         final Atlas protoAtlas = new AtlasResourceLoader().withAtlasFileExtensionFilterSetTo(false)
                 .load(protoResource);
 
-        Assert.assertEquals(1, javaResource.numberStreamsClosed);
-        Assert.assertEquals(2, protoResource.numberStreamsClosed);
+        Assert.assertEquals(1, javaResource.getNumberStreamsClosed());
+        Assert.assertEquals(2, protoResource.getNumberStreamsClosed());
     }
 
     @Test
