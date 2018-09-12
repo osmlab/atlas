@@ -1181,12 +1181,12 @@ public final class PackedAtlas extends AbstractAtlas
         {
             final Distance distance1 = location.distanceTo(node1.getLocation());
             final Distance distance2 = location.distanceTo(node2.getLocation());
-            final long difference = distance2.asMillimeters() - distance1.asMillimeters();
-            if (difference > 0)
+            final double difference = distance2.asMillimeters() - distance1.asMillimeters();
+            if (difference > 0.0)
             {
                 return 1;
             }
-            else if (difference < 0)
+            else if (difference < 0.0)
             {
                 return -1;
             }

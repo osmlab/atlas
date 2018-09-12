@@ -30,7 +30,7 @@ public class SpeedTest
         // initialization methods you choose
         Assert.assertFalse(
                 Speed.kilometersPerHour(1.000009).isSlowerThan(Speed.kilometersPerHour(1.000008)));
-        Assert.assertTrue(Speed.kilometersPerHour(1.000009)
+        Assert.assertFalse(Speed.kilometersPerHour(1.000009)
                 .isSlowerThanOrEqualTo(Speed.kilometersPerHour(1.000008)));
     }
 
@@ -43,11 +43,20 @@ public class SpeedTest
     }
 
     @Test
+    public void testDuration()
+    {
+        final Speed speed = Speed.metersPerSecond(3.0);
+        final Distance distance = Distance.meters(6.0);
+        Assert.assertEquals(Duration.seconds(2.0), speed.asDuration(distance));
+    }
+
+    @Test
     public void testEquals()
     {
         Assert.assertEquals(Speed.kilometersPerHour(9.999999), Speed.kilometersPerHour(9.999999));
         Assert.assertNotEquals(Speed.kilometersPerHour(9.99999), Speed.kilometersPerHour(9.99998));
-        Assert.assertEquals(Speed.kilometersPerHour(9.9999999), Speed.kilometersPerHour(9.9999998));
+        Assert.assertNotEquals(Speed.kilometersPerHour(9.9999999),
+                Speed.kilometersPerHour(9.9999998));
     }
 
     @Test
@@ -61,13 +70,5 @@ public class SpeedTest
                 Speed.kilometersPerHour(50));
         Assert.assertEquals(Speed.kilometersPerHour(50).subtract(Speed.kilometersPerHour(100)),
                 Speed.kilometersPerHour(0));
-    }
-
-    @Test
-    public void testDuration()
-    {
-        final Speed speed = Speed.metersPerSecond(3.0);
-        final Distance distance = Distance.meters(6.0);
-        Assert.assertEquals(Duration.seconds(2.0), speed.asDuration(distance));
     }
 }
