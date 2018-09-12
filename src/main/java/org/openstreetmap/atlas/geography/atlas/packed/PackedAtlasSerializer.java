@@ -119,13 +119,15 @@ public final class PackedAtlasSerializer
             }
             catch (final CoreException exception)
             {
-                logger.error("Load format {} invalid", candidateFormat);
+                logger.debug("Load format {} invalid", candidateFormat);
                 continue;
             }
             // If we make it here, then we found the appropriate format and we can bail out
             logger.debug("Using load format {}", candidateFormat);
-            break;
+            return;
         }
+
+        throw new CoreException("Could not determine a valid load format for atlas");
     }
 
     /**
