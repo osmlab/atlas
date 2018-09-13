@@ -111,7 +111,7 @@ public final class PackedAtlasSerializer
         final AtlasSerializationFormat[] possibleFormats = AtlasSerializationFormat.values();
         for (final AtlasSerializationFormat candidateFormat : possibleFormats)
         {
-            logger.debug("Trying load format {}", candidateFormat);
+            logger.info("Trying load format {}", candidateFormat);
             atlas.setLoadSerializationFormat(candidateFormat);
             try
             {
@@ -119,13 +119,15 @@ public final class PackedAtlasSerializer
             }
             catch (final CoreException exception)
             {
-                logger.error("Load format {} invalid", candidateFormat);
+                logger.info("Load format {} invalid", candidateFormat);
                 continue;
             }
             // If we make it here, then we found the appropriate format and we can bail out
-            logger.debug("Using load format {}", candidateFormat);
-            break;
+            logger.info("Using load format {}", candidateFormat);
+            return;
         }
+
+        throw new CoreException("Could not determine a valid load format for atlas");
     }
 
     /**
@@ -372,14 +374,15 @@ public final class PackedAtlasSerializer
         {
             // The metaData field is always the first.
             final Iterable<Resource> resources = this.source.entries();
-            final ZipIterator iterator = (ZipIterator) resources.iterator();
-            final Resource resource = iterator.next();
-            if (resource == null)
+            try (ZipIterator iterator = (ZipIterator) resources.iterator())
             {
-                throw new CoreException(META_DATA_ERROR_MESSAGE);
+                final Resource resource = iterator.next();
+                if (resource == null)
+                {
+                    throw new CoreException(META_DATA_ERROR_MESSAGE);
+                }
+                result = deserializeResource(resource, name);
             }
-            result = deserializeResource(resource, name);
-            iterator.close();
         }
         else
         {
