@@ -287,7 +287,15 @@ public class RawAtlasIntegrationTest
         Assert.assertEquals(5126, finalAtlas.numberOfAreas());
         Assert.assertEquals(184, finalAtlas.numberOfPoints());
         Assert.assertEquals(271, finalAtlas.numberOfLines());
-        Assert.assertEquals(14, finalAtlas.numberOfRelations());
+
+        /*
+         * This has been updated to 16 instead of 14. This is because two of the relations in
+         * 8-122-122-trimmed.osm.pbf have subrelations, and so the WaySectionProcessor was simply
+         * dropping them when using the old BareAtlas.relationsLowerOrderFirstCode (We have now
+         * fixed BareAtlas.relationsLowerOrderFirst to not drop relations when the BareAtlas is a
+         * DynamicAtlas). In reality, we should process them and include then in the final atlas.
+         */
+        Assert.assertEquals(16, finalAtlas.numberOfRelations());
     }
 
     @Test
