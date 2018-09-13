@@ -1,12 +1,20 @@
 package org.openstreetmap.atlas.geography.atlas.dynamic;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.items.Area;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.Line;
+import org.openstreetmap.atlas.geography.atlas.items.Node;
+import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 
 /**
@@ -28,6 +36,10 @@ public class DynamicRelation extends Relation
     @Override
     public RelationMemberList allKnownOsmMembers()
     {
+        /*
+         * TODO this will return AtlasEntities which are not of type DynamicX. Ideally, we should be
+         * recreating returned entities as DynamicX instead of the underlying PackedX or MultiX.
+         */
         return subRelation().allKnownOsmMembers();
     }
 
@@ -54,7 +66,46 @@ public class DynamicRelation extends Relation
     @Override
     public RelationMemberList members()
     {
-        return subRelation().members();
+        final RelationMemberList subRelationMemberList = subRelation().members();
+        final List<RelationMember> newMemberList = new ArrayList<>();
+
+        for (final RelationMember member : subRelationMemberList)
+        {
+            final AtlasEntity entity = member.getEntity();
+            AtlasEntity dynamicEntity = null;
+            if (entity instanceof Node)
+            {
+                dynamicEntity = new DynamicNode(dynamicAtlas(), entity.getIdentifier());
+            }
+            else if (entity instanceof Edge)
+            {
+                dynamicEntity = new DynamicEdge(dynamicAtlas(), entity.getIdentifier());
+            }
+            else if (entity instanceof Point)
+            {
+                dynamicEntity = new DynamicPoint(dynamicAtlas(), entity.getIdentifier());
+            }
+            else if (entity instanceof Line)
+            {
+                dynamicEntity = new DynamicLine(dynamicAtlas(), entity.getIdentifier());
+            }
+            else if (entity instanceof Area)
+            {
+                dynamicEntity = new DynamicArea(dynamicAtlas(), entity.getIdentifier());
+            }
+            else if (entity instanceof Relation)
+            {
+                dynamicEntity = new DynamicRelation(dynamicAtlas(), entity.getIdentifier());
+            }
+            else
+            {
+                throw new CoreException("Invalid entity type {}", entity.getClass().getName());
+            }
+            newMemberList.add(new RelationMember(member.getRole(), dynamicEntity,
+                    member.getRelationIdentifier()));
+        }
+
+        return new RelationMemberList(newMemberList);
     }
 
     @Override
