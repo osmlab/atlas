@@ -46,7 +46,8 @@ public class PackedAtlasSerializerTest
      */
     private static class TraceableByteArrayResource extends AbstractWritableResource
     {
-        private static final Logger logger = LoggerFactory.getLogger(ByteArrayResource.class);
+        private static final Logger logger = LoggerFactory
+                .getLogger(TraceableByteArrayResource.class);
 
         private static final int BYTE_MASK = 0xFF;
 
@@ -57,7 +58,7 @@ public class PackedAtlasSerializerTest
         TraceableByteArrayResource()
         {
             this.array = new ByteArray(Long.MAX_VALUE);
-            this.array.setName("ByteArrayResource");
+            this.array.setName("TraceableByteArrayResource");
         }
 
         /**
@@ -69,7 +70,7 @@ public class PackedAtlasSerializerTest
             final int blockSize = (int) (initialSize <= Integer.MAX_VALUE ? initialSize
                     : Integer.MAX_VALUE);
             this.array = new ByteArray(Long.MAX_VALUE, blockSize, Integer.MAX_VALUE);
-            this.array.setName("ByteArrayResource");
+            this.array.setName("TraceableByteArrayResource");
         }
 
         public int getNumberStreamsClosed()
