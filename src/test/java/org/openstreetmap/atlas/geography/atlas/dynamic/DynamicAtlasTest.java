@@ -1,8 +1,10 @@
 package org.openstreetmap.atlas.geography.atlas.dynamic;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import org.junit.Assert;
@@ -11,21 +13,29 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.BareAtlas;
 import org.openstreetmap.atlas.geography.atlas.delta.AtlasDelta;
 import org.openstreetmap.atlas.geography.atlas.dynamic.policy.DynamicAtlasPolicy;
 import org.openstreetmap.atlas.geography.atlas.dynamic.rules.DynamicAtlasTestRule;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
+import org.openstreetmap.atlas.geography.atlas.multi.MultiRelation;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedRelation;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.geography.sharding.SlippyTileSharding;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author matthieun
  */
 public class DynamicAtlasTest
 {
+    private static final Logger logger = LoggerFactory.getLogger(DynamicAtlasTest.class);
+
     @Rule
     public DynamicAtlasTestRule rule = new DynamicAtlasTestRule();
 
@@ -241,6 +251,58 @@ public class DynamicAtlasTest
         Assert.assertEquals(2, relation3.members().size());
         Assert.assertEquals(8, this.dynamicAtlas.numberOfEdges());
 
+    }
+
+    /**
+     * Check to make sure that {@link Atlas#relationsLowerOrderFirst()} works when the {@link Atlas}
+     * is a {@link DynamicAtlas}. In older versions of the code, any relations that had members
+     * which were also relations would be dropped from the set returned by
+     * {@link BareAtlas#relationsLowerOrderFirst()}. This was due to a flaw in the membership
+     * assumptions made by {@link BareAtlas#relationsLowerOrderFirst()}, which assumed that
+     * relations in the main {@link DynamicAtlas} and their equivalent representation as a member
+     * {@link AtlasEntity} of another relation in the same {@link DynamicAtlas} were of consistent
+     * types. However, this was not the case. (The former representation would be of type
+     * {@link DynamicRelation} and the latter would be of type {@link MultiRelation} or
+     * {@link PackedRelation}). This has now been fixed, so this test should always pass.
+     */
+    @Test
+    public void testRelationsLowerOrderFirstConsistency()
+    {
+        final DynamicAtlas localDynamicAtlas;
+        final Map<Shard, Atlas> localStore = new HashMap<>();
+        localStore.put(new SlippyTile(0, 0, 0), this.rule.getAtlasForRelationsTest());
+        final Supplier<DynamicAtlasPolicy> localPolicySupplier = () -> new DynamicAtlasPolicy(
+                shard ->
+                {
+                    if (localStore.containsKey(shard))
+                    {
+                        return Optional.of(localStore.get(shard));
+                    }
+                    else
+                    {
+                        return Optional.empty();
+                    }
+                }, new SlippyTileSharding(0), new SlippyTile(0, 0, 0), Rectangle.MAXIMUM);
+        localDynamicAtlas = new DynamicAtlas(localPolicySupplier.get());
+
+        final Set<Relation> returnedByRelations = new HashSet<>();
+        final Set<Relation> returnedByRelationsLowerOrderFirst = new HashSet<>();
+
+        for (final Relation relation : localDynamicAtlas.relations())
+        {
+            returnedByRelations.add(relation);
+        }
+
+        for (final Relation relation : localDynamicAtlas.relationsLowerOrderFirst())
+        {
+            returnedByRelationsLowerOrderFirst.add(relation);
+        }
+
+        // Assert that their sizes equal, if not then we can fail fast
+        Assert.assertEquals(returnedByRelations.size(), returnedByRelationsLowerOrderFirst.size());
+
+        // Now that we know they have equal sizes, check member equality
+        Assert.assertEquals(returnedByRelations, returnedByRelationsLowerOrderFirst);
     }
 
     @Test
