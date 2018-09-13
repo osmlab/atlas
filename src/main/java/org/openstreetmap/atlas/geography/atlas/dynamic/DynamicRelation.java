@@ -7,12 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
-import org.openstreetmap.atlas.geography.atlas.items.Edge;
-import org.openstreetmap.atlas.geography.atlas.items.Line;
-import org.openstreetmap.atlas.geography.atlas.items.Node;
-import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
@@ -73,33 +68,28 @@ public class DynamicRelation extends Relation
         {
             final AtlasEntity entity = member.getEntity();
             AtlasEntity dynamicEntity = null;
-            if (entity instanceof Node)
+            switch (entity.getType())
             {
-                dynamicEntity = new DynamicNode(dynamicAtlas(), entity.getIdentifier());
-            }
-            else if (entity instanceof Edge)
-            {
-                dynamicEntity = new DynamicEdge(dynamicAtlas(), entity.getIdentifier());
-            }
-            else if (entity instanceof Point)
-            {
-                dynamicEntity = new DynamicPoint(dynamicAtlas(), entity.getIdentifier());
-            }
-            else if (entity instanceof Line)
-            {
-                dynamicEntity = new DynamicLine(dynamicAtlas(), entity.getIdentifier());
-            }
-            else if (entity instanceof Area)
-            {
-                dynamicEntity = new DynamicArea(dynamicAtlas(), entity.getIdentifier());
-            }
-            else if (entity instanceof Relation)
-            {
-                dynamicEntity = new DynamicRelation(dynamicAtlas(), entity.getIdentifier());
-            }
-            else
-            {
-                throw new CoreException("Invalid entity type {}", entity.getClass().getName());
+                case NODE:
+                    dynamicEntity = new DynamicNode(dynamicAtlas(), entity.getIdentifier());
+                    break;
+                case EDGE:
+                    dynamicEntity = new DynamicEdge(dynamicAtlas(), entity.getIdentifier());
+                    break;
+                case POINT:
+                    dynamicEntity = new DynamicPoint(dynamicAtlas(), entity.getIdentifier());
+                    break;
+                case LINE:
+                    dynamicEntity = new DynamicLine(dynamicAtlas(), entity.getIdentifier());
+                    break;
+                case AREA:
+                    dynamicEntity = new DynamicArea(dynamicAtlas(), entity.getIdentifier());
+                    break;
+                case RELATION:
+                    dynamicEntity = new DynamicRelation(dynamicAtlas(), entity.getIdentifier());
+                    break;
+                default:
+                    throw new CoreException("Invalid entity type {}", entity.getType());
             }
             newMemberList.add(new RelationMember(member.getRole(), dynamicEntity,
                     member.getRelationIdentifier()));
