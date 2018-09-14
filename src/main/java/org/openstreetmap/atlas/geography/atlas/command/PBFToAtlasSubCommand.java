@@ -36,9 +36,6 @@ public class PBFToAtlasSubCommand implements FlexibleSubCommand
             "Output Atlas file path", File::new, Command.Optionality.REQUIRED);
 
     // Filter parameters
-    private static final Command.Switch<File> AREA_FILTER_PARAMETER = new Command.Switch<>(
-            "area-filter", "Path to a json filter for determining Areas", File::new,
-            Command.Optionality.OPTIONAL);
     private static final Command.Switch<File> EDGE_FILTER_PARAMETER = new Command.Switch<>(
             "edge-filter", "Path to a json filter for determining Edges", File::new,
             Command.Optionality.OPTIONAL);
@@ -113,12 +110,12 @@ public class PBFToAtlasSubCommand implements FlexibleSubCommand
     public Command.SwitchList switches()
     {
         return new Command.SwitchList().with(INPUT_PARAMETER, OUTPUT_PARAMETER,
-                AREA_FILTER_PARAMETER, EDGE_FILTER_PARAMETER, NODE_FILTER_PARAMETER,
-                RELATION_FILTER_PARAMETER, WAY_FILTER_PARAMETER, WAY_SECTION_FILTER_PARAMETER,
-                LOAD_AREAS_PARAMETER, LOAD_EDGES_PARAMETER, LOAD_LINES_PARAMETER,
-                LOAD_NODES_PARAMETER, LOAD_POINTS_PARAMETER, LOAD_RELATIONS_PARAMETER,
-                LOAD_CONNECTED_WAYS_PARAMETER, COUNTRY_CODES_PARAMETER, COUNTRY_MAP_PARAMETER,
-                COUNTRY_SLICING_PARAMETER, WAY_SECTION_PARAMETER);
+                EDGE_FILTER_PARAMETER, NODE_FILTER_PARAMETER, RELATION_FILTER_PARAMETER,
+                WAY_FILTER_PARAMETER, WAY_SECTION_FILTER_PARAMETER, LOAD_AREAS_PARAMETER,
+                LOAD_EDGES_PARAMETER, LOAD_LINES_PARAMETER, LOAD_NODES_PARAMETER,
+                LOAD_POINTS_PARAMETER, LOAD_RELATIONS_PARAMETER, LOAD_CONNECTED_WAYS_PARAMETER,
+                COUNTRY_CODES_PARAMETER, COUNTRY_MAP_PARAMETER, COUNTRY_SLICING_PARAMETER,
+                WAY_SECTION_PARAMETER);
     }
 
     @Override
@@ -126,7 +123,6 @@ public class PBFToAtlasSubCommand implements FlexibleSubCommand
     {
         writer.println("-pbf=/path/to/pbf : pbf to convert");
         writer.println("-output=/path/to/output/atlas : Atlas file to output to");
-        writer.println("-area-filter=/path/to/json/area/filter : json filter to determine Areas");
         writer.println("-edge-filter=/path/to/json/edge/filter : json filter to determine Edges");
         writer.println("-node-filter=/path/to/json/node/filter : json filter for OSM nodes");
         writer.println(
@@ -201,18 +197,17 @@ public class PBFToAtlasSubCommand implements FlexibleSubCommand
                 .createOptionWithAllEnabled(countryMap);
 
         // Set filters
-        map.getOption(AREA_FILTER_PARAMETER).ifPresent(
-                filter -> new ConfiguredTaggableFilter(new StandardConfiguration((File) filter)));
-        map.getOption(EDGE_FILTER_PARAMETER).ifPresent(
-                filter -> new ConfiguredTaggableFilter(new StandardConfiguration((File) filter)));
-        map.getOption(NODE_FILTER_PARAMETER).ifPresent(
-                filter -> new ConfiguredTaggableFilter(new StandardConfiguration((File) filter)));
-        map.getOption(RELATION_FILTER_PARAMETER).ifPresent(
-                filter -> new ConfiguredTaggableFilter(new StandardConfiguration((File) filter)));
-        map.getOption(WAY_FILTER_PARAMETER).ifPresent(
-                filter -> new ConfiguredTaggableFilter(new StandardConfiguration((File) filter)));
-        map.getOption(WAY_SECTION_FILTER_PARAMETER).ifPresent(
-                filter -> new ConfiguredTaggableFilter(new StandardConfiguration((File) filter)));
+        map.getOption(EDGE_FILTER_PARAMETER).ifPresent(filter -> options.setEdgeFilter(
+                new ConfiguredTaggableFilter(new StandardConfiguration((File) filter))));
+        map.getOption(NODE_FILTER_PARAMETER).ifPresent(filter -> options.setOsmPbfNodeFilter(
+                new ConfiguredTaggableFilter(new StandardConfiguration((File) filter))));
+        map.getOption(RELATION_FILTER_PARAMETER)
+                .ifPresent(filter -> options.setOsmPbfRelationFilter(
+                        new ConfiguredTaggableFilter(new StandardConfiguration((File) filter))));
+        map.getOption(WAY_FILTER_PARAMETER).ifPresent(filter -> options.setOsmPbfWayFilter(
+                new ConfiguredTaggableFilter(new StandardConfiguration((File) filter))));
+        map.getOption(WAY_SECTION_FILTER_PARAMETER).ifPresent(filter -> options.setWaySectionFilter(
+                new ConfiguredTaggableFilter(new StandardConfiguration((File) filter))));
 
         // Set loading options
         ((Optional<Boolean>) map.getOption(LOAD_AREAS_PARAMETER))
