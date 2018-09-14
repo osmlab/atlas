@@ -74,9 +74,6 @@ public class PBFToAtlasSubCommand implements FlexibleSubCommand
     private static final Command.Switch<Boolean> LOAD_RELATIONS_PARAMETER = new Command.Switch<>(
             "load-relations", "Whether to load Relations (boolean)", Boolean::new,
             Command.Optionality.OPTIONAL);
-    private static final Command.Switch<Boolean> LOAD_BOUNDS_PARAMETER = new Command.Switch<>(
-            "load-bounds", "Whether to load OSM bounds (boolean)", Boolean::new,
-            Command.Optionality.OPTIONAL);
     private static final Command.Switch<Boolean> LOAD_CONNECTED_WAYS_PARAMETER = new Command.Switch<>(
             "load-connected-ways",
             "Whether to load connected ways that are outside country boundaries (boolean)",
@@ -120,8 +117,8 @@ public class PBFToAtlasSubCommand implements FlexibleSubCommand
                 RELATION_FILTER_PARAMETER, WAY_FILTER_PARAMETER, WAY_SECTION_FILTER_PARAMETER,
                 LOAD_AREAS_PARAMETER, LOAD_EDGES_PARAMETER, LOAD_LINES_PARAMETER,
                 LOAD_NODES_PARAMETER, LOAD_POINTS_PARAMETER, LOAD_RELATIONS_PARAMETER,
-                LOAD_BOUNDS_PARAMETER, LOAD_CONNECTED_WAYS_PARAMETER, COUNTRY_CODES_PARAMETER,
-                COUNTRY_MAP_PARAMETER, COUNTRY_SLICING_PARAMETER, WAY_SECTION_PARAMETER);
+                LOAD_CONNECTED_WAYS_PARAMETER, COUNTRY_CODES_PARAMETER, COUNTRY_MAP_PARAMETER,
+                COUNTRY_SLICING_PARAMETER, WAY_SECTION_PARAMETER);
     }
 
     @Override
@@ -141,7 +138,6 @@ public class PBFToAtlasSubCommand implements FlexibleSubCommand
         writer.println("-load-nodes=boolean : whether to load Nodes; defaults to true");
         writer.println("-load-points=boolean : whether to load Points; defaults to true");
         writer.println("-load-relations=boolean : whether to load Relations; defaults to true");
-        writer.println("-load-bounds=boolean : whether to load OSM bounds; defaults to false");
         writer.println(
                 "-load-connected-ways=boolean : whether to load connected ways that are outside country boundaries; defaults to false");
         writer.println(
@@ -231,8 +227,6 @@ public class PBFToAtlasSubCommand implements FlexibleSubCommand
                 .ifPresent(options::setLoadAtlasPoint);
         ((Optional<Boolean>) map.getOption(LOAD_RELATIONS_PARAMETER))
                 .ifPresent(options::setLoadAtlasRelation);
-        ((Optional<Boolean>) map.getOption(LOAD_BOUNDS_PARAMETER))
-                .ifPresent(options::setLoadOsmBound);
         ((Optional<Boolean>) map.getOption(LOAD_CONNECTED_WAYS_PARAMETER))
                 .ifPresent(options::setLoadWaysSpanningCountryBoundaries);
 
