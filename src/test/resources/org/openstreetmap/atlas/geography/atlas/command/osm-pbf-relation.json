@@ -1,0 +1,5 @@
+{
+    "filters": [
+    	"boundary->!|natural->water"
+    ]
+}
