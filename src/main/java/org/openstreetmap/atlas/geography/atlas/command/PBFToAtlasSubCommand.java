@@ -20,7 +20,8 @@ import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 import org.openstreetmap.atlas.utilities.runtime.FlexibleSubCommand;
 
 /**
- * This command converts an OSM PBF file to an Atlas file.
+ * This command converts an OSM PBF file to an Atlas file. It requires the path to a pbf and an
+ * output file. It also takes a number of optional parameters.
  *
  * @author bbreithaupt
  */
@@ -133,11 +134,13 @@ public class PBFToAtlasSubCommand implements FlexibleSubCommand
     }
 
     /**
-     * Get or create a {@link CountryBoundaryMap}.
+     * Get or create a {@link CountryBoundaryMap}. If the country-boundary-map parameter is set,
+     * this will attempt to load the text or shape file from that parameter. Else, this will load
+     * using the entire world as the country UNK (unknown).
      *
      * @param map
-     *            {@link CommandMap}
-     * @return {@link CountryBoundaryMap}
+     *            {@link CommandMap} containing the {@code COUNTRY_MAP_PARAMETER}
+     * @return {@link CountryBoundaryMap} loaded from a file or default
      */
     private CountryBoundaryMap getCountryBoundaryMap(final CommandMap map)
     {
@@ -160,7 +163,8 @@ public class PBFToAtlasSubCommand implements FlexibleSubCommand
     }
 
     /**
-     * Creates an {@link AtlasLoadingOption} using configurable parameters.
+     * Creates an {@link AtlasLoadingOption} using configurable parameters. If any of the parameters
+     * are not set the defaults from {@link AtlasLoadingOption} are used.
      *
      * @param map
      *            {@link CommandMap}
