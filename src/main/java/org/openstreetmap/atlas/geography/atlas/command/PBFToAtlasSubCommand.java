@@ -53,28 +53,12 @@ public class PBFToAtlasSubCommand implements FlexibleSubCommand
             File::new, Command.Optionality.OPTIONAL);
 
     // Load Parameters
-    private static final Command.Switch<Boolean> LOAD_AREAS_PARAMETER = new Command.Switch<>(
-            "load-areas", "Whether to load Areas (boolean)", Boolean::new,
-            Command.Optionality.OPTIONAL);
-    private static final Command.Switch<Boolean> LOAD_EDGES_PARAMETER = new Command.Switch<>(
-            "load-edges", "Whether to load Edges (boolean)", Boolean::new,
-            Command.Optionality.OPTIONAL);
-    private static final Command.Switch<Boolean> LOAD_LINES_PARAMETER = new Command.Switch<>(
-            "load-lines", "Whether to load Lines (boolean)", Boolean::new,
-            Command.Optionality.OPTIONAL);
-    private static final Command.Switch<Boolean> LOAD_NODES_PARAMETER = new Command.Switch<>(
-            "load-nodes", "Whether to load Nodes (boolean)", Boolean::new,
-            Command.Optionality.OPTIONAL);
-    private static final Command.Switch<Boolean> LOAD_POINTS_PARAMETER = new Command.Switch<>(
-            "load-points", "Whether to load Points (boolean)", Boolean::new,
-            Command.Optionality.OPTIONAL);
     private static final Command.Switch<Boolean> LOAD_RELATIONS_PARAMETER = new Command.Switch<>(
             "load-relations", "Whether to load Relations (boolean)", Boolean::new,
             Command.Optionality.OPTIONAL);
-    private static final Command.Switch<Boolean> LOAD_CONNECTED_WAYS_PARAMETER = new Command.Switch<>(
-            "load-connected-ways",
-            "Whether to load connected ways that are outside country boundaries (boolean)",
-            Boolean::new, Command.Optionality.OPTIONAL);
+    private static final Command.Switch<Boolean> LOAD_WAYS_PARAMETER = new Command.Switch<>(
+            "load-ways", "Whether to load ways (boolean)", Boolean::new,
+            Command.Optionality.OPTIONAL);
 
     // Country parameters
     private static final Command.Switch<Set<String>> COUNTRY_CODES_PARAMETER = new Command.Switch<>(
@@ -111,11 +95,9 @@ public class PBFToAtlasSubCommand implements FlexibleSubCommand
     {
         return new Command.SwitchList().with(INPUT_PARAMETER, OUTPUT_PARAMETER,
                 EDGE_FILTER_PARAMETER, NODE_FILTER_PARAMETER, RELATION_FILTER_PARAMETER,
-                WAY_FILTER_PARAMETER, WAY_SECTION_FILTER_PARAMETER, LOAD_AREAS_PARAMETER,
-                LOAD_EDGES_PARAMETER, LOAD_LINES_PARAMETER, LOAD_NODES_PARAMETER,
-                LOAD_POINTS_PARAMETER, LOAD_RELATIONS_PARAMETER, LOAD_CONNECTED_WAYS_PARAMETER,
-                COUNTRY_CODES_PARAMETER, COUNTRY_MAP_PARAMETER, COUNTRY_SLICING_PARAMETER,
-                WAY_SECTION_PARAMETER);
+                WAY_FILTER_PARAMETER, WAY_SECTION_FILTER_PARAMETER, LOAD_RELATIONS_PARAMETER,
+                LOAD_WAYS_PARAMETER, COUNTRY_CODES_PARAMETER, COUNTRY_MAP_PARAMETER,
+                COUNTRY_SLICING_PARAMETER, WAY_SECTION_PARAMETER);
     }
 
     @Override
@@ -128,14 +110,8 @@ public class PBFToAtlasSubCommand implements FlexibleSubCommand
         writer.println(
                 "-relation-filter=/path/to/json/relation/filter : json filter for OSM relations");
         writer.println("-way-filter=/path/to/json/way/filter : json filter for OSM ways");
-        writer.println("-load-areas=boolean : whether to load Areas; defaults to true");
-        writer.println("-load-edges=boolean : whether to load Edges; defaults to true");
-        writer.println("-load-lines=boolean : whether to load Lines; defaults to true");
-        writer.println("-load-nodes=boolean : whether to load Nodes; defaults to true");
-        writer.println("-load-points=boolean : whether to load Points; defaults to true");
         writer.println("-load-relations=boolean : whether to load Relations; defaults to true");
-        writer.println(
-                "-load-connected-ways=boolean : whether to load connected ways that are outside country boundaries; defaults to false");
+        writer.println("-load-ways=boolean : whether to load ways; defaults to true");
         writer.println(
                 "-country-codes=list,of,ISO3,codes : countries from the country map to convert");
         writer.println(
@@ -210,20 +186,13 @@ public class PBFToAtlasSubCommand implements FlexibleSubCommand
                 new ConfiguredTaggableFilter(new StandardConfiguration((File) filter))));
 
         // Set loading options
-        ((Optional<Boolean>) map.getOption(LOAD_AREAS_PARAMETER))
-                .ifPresent(options::setLoadAtlasArea);
-        ((Optional<Boolean>) map.getOption(LOAD_EDGES_PARAMETER))
-                .ifPresent(options::setLoadAtlasEdge);
-        ((Optional<Boolean>) map.getOption(LOAD_LINES_PARAMETER))
-                .ifPresent(options::setLoadAtlasLine);
-        ((Optional<Boolean>) map.getOption(LOAD_NODES_PARAMETER))
-                .ifPresent(options::setLoadAtlasNode);
-        ((Optional<Boolean>) map.getOption(LOAD_POINTS_PARAMETER))
-                .ifPresent(options::setLoadAtlasPoint);
         ((Optional<Boolean>) map.getOption(LOAD_RELATIONS_PARAMETER))
                 .ifPresent(options::setLoadAtlasRelation);
-        ((Optional<Boolean>) map.getOption(LOAD_CONNECTED_WAYS_PARAMETER))
-                .ifPresent(options::setLoadWaysSpanningCountryBoundaries);
+        ((Optional<Boolean>) map.getOption(LOAD_WAYS_PARAMETER)).ifPresent(bool ->
+        {
+            options.setLoadAtlasLine(bool);
+            options.setLoadAtlasEdge(bool);
+        });
 
         // Set country options
         ((Optional<Set>) map.getOption(COUNTRY_CODES_PARAMETER))
