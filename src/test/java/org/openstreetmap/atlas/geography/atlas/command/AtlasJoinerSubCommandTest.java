@@ -32,7 +32,7 @@ public class AtlasJoinerSubCommandTest
     }
 
     @AfterClass
-    public static void deleteBianaryAtlases()
+    public static void deleteBinaryAtlases()
     {
         SHARD_PATH.deleteRecursively();
     }

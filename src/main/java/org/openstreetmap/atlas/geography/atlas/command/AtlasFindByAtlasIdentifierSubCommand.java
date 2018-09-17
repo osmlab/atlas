@@ -33,7 +33,7 @@ public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubComman
             "The Atlas file to save the joined output to (optional). If not passed the found shards will not be joined and only appear in the console.",
             String::toString, Command.Optionality.OPTIONAL);
 
-    private final Set<Long> ids = new HashSet<>();
+    private final Set<Long> identifiers = new HashSet<>();
 
     private final Set<String> shardNames = new HashSet<>();
 
@@ -61,7 +61,7 @@ public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubComman
     protected void start(final CommandMap command)
     {
         // Collect ids
-        this.ids.addAll((Set) command.get(ATLAS_ID_PARAMETER));
+        this.identifiers.addAll((Set) command.get(ATLAS_ID_PARAMETER));
     }
 
     @Override
@@ -103,7 +103,7 @@ public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubComman
      */
     private <T extends AtlasObject> Predicate<T> identifierCheck()
     {
-        return object -> this.ids.contains(object.getIdentifier());
+        return object -> this.identifiers.contains(object.getIdentifier());
     }
 
     /**
