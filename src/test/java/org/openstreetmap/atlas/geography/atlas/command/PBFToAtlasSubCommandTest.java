@@ -75,7 +75,7 @@ public class PBFToAtlasSubCommandTest
     }
 
     @Test
-    public void testFiltersTextMapCodesNoEdgesConversion()
+    public void testFiltersTextMapCountryCodesConversion()
     {
         final File temp = File.temporaryFolder();
 
