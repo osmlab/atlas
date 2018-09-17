@@ -1,0 +1,9 @@
+# Nodes
+30219770000000 && 55.7612485,12.5333169 && last_edit_user_name -> Hjart || last_edit_changeset -> 14497130 || last_edit_time -> 1357121587000 || last_edit_user_id -> 207581 || iso_country_code -> DNK || last_edit_version -> 4
+5282518816000000 && 55.7611777,12.5338608 && last_edit_user_name -> Hjart || last_edit_changeset -> 54603963 || last_edit_time -> 1513189938000 || last_edit_user_id -> 207581 || iso_country_code -> DNK || last_edit_version -> 1
+# Edges
+546649246000001 && 55.7612485,12.5333169:55.7611777,12.5338608 && last_edit_user_name -> Hjart || last_edit_changeset -> 54603963 || last_edit_time -> 1513189939000 || last_edit_user_id -> 207581 || iso_country_code -> DNK || highway -> service || last_edit_version -> 1
+# Areas
+# Lines
+# Points
+# Relations

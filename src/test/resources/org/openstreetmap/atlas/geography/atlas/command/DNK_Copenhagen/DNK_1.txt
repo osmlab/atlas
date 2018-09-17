@@ -1,0 +1,7 @@
+# Nodes
+# Edges
+# Areas
+# Lines
+# Points
+5057300880000000 && 55.666602,12.503904 && last_edit_user_name -> Niels Elgaard Larsen || last_edit_changeset -> 51420369 || last_edit_time -> 1503613687000 || last_edit_user_id -> 1288 || iso_country_code -> DNK || amenity -> fast_food || name -> Limdim || cuisine -> thai || last_edit_version -> 1 || fvst:navnelbnr -> 711461
+# Relations

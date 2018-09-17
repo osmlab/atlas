@@ -1,0 +1,7 @@
+# Nodes
+# Edges
+# Areas
+575954012000000 && 55.6000372,12.591551:55.6000642,12.5917118:55.6000212,12.5917343:55.600006,12.5916436:55.5999627,12.5916663:55.5999531,12.5916091:55.5999826,12.5915937:55.5999815,12.5915871:55.5999953,12.5915799:55.5999943,12.5915735 && last_edit_user_name -> osmviborg || last_edit_changeset -> 57771646 || last_edit_time -> 1522759697000 || last_edit_user_id -> 379467 || iso_country_code -> DNK || last_edit_version -> 1 || building -> yes
+# Lines
+# Points
+# Relations
