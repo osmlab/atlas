@@ -817,9 +817,10 @@ public class WaySectionProcessor
                     final long layerValue = LayerTag.getTaggedOrImpliedValue(candidate, 0L);
                     final boolean edgesOnDifferentLayers = targetLayerValue != layerValue;
                     final PolyLine candidatePolyline = candidate.asPolyLine();
+                    final boolean intersectionIsAtEndPoint = candidatePolyline.first()
+                            .equals(location) || candidatePolyline.last().equals(location);
 
-                    return edgesOnDifferentLayers && candidatePolyline.first().equals(location)
-                            || candidatePolyline.last().equals(location);
+                    return edgesOnDifferentLayers && intersectionIsAtEndPoint;
                 });
     }
 
