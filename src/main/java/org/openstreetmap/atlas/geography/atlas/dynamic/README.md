@@ -150,6 +150,8 @@ By default, the expansion can be triggered by any feature requested that falls o
 
 Discriminate expansion can be enabled by using a `DynamicAtlasPolicy` that contains `final Predicate<AtlasEntity> atlasEntitiesToConsiderForExpansion`. When this is provided, every time the `DynamicAtlas` needs to check if a feature needs to trigger a shard expansion, it will do so only if that feature passes the `atlasEntitiesToConsiderForExpansion` predicate. For example, this is useful when a user is interested only in a certain type of roads, and expanding based on parks or lakes does not provide any more context.
 
-### Preemptive Loading
+### Deferred and Preemptive Loading
 
-When finite expansion is enabled (or indefinite expansion disabled), there is an option to toggle preemptive loading: `DynamicAtlas.preemptiveLoad();`. This will ensure that all the shards needed will be pre-loaded once and for all. It also disables the "interception" of queries for features by the user, as the `DynamicAtlas` is already sure everything is properly loaded. This is the same as having an "intelligent" MultiAtlas that knows what shards the user needs based on each area of interest.
+When _finite expansion is enabled_ (or indefinite expansion disabled), and deferred loading is true (`DynamicAtlasPolicy.withDeferredLocaing(true);`), there is an option to toggle preemptive loading: `DynamicAtlas.preemptiveLoad();`. No shard load will be triggered until `preemptiveLoad` is called.
+
+This will ensure that all the shards needed will be pre-loaded once and for all. It also disables the "interception" of queries for features by the user, as the `DynamicAtlas` is already sure everything is properly loaded. This is the same as having an "intelligent" MultiAtlas that knows what shards the user needs based on each area of interest.
