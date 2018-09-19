@@ -16,7 +16,7 @@ All the user has to provide to create a `DynamicAtlas` is:
 
 The most simple use case is where the user has a local folder `myFolder` with all the Dominica (DMA) Atlas shards saved using `PackedAtlas`, and the file names are equal to the shard names. For example, a shard at zoom 8, x index 2345 and y index 4567 would correspond to a file called `myFolder/DMA_8-2345-4567.atlas`. Then a simple atlas fetcher function is as follows:
 
-```
+```java
 Function<Shard, Optional<Atlas>> fetcher = shard -> {
     File folder = new File("myFolder");
     File atlasFile = folder.child("DMA_" + shard.getName() + ".atlas");
@@ -44,7 +44,7 @@ As the user controls the fetcher, it also controls the whole loading process fro
 
 Here is the same example but with a user interested only in motorways:
 
-```
+```java
 Predicate<AtlasEntity> filter = entity -> entity.getType()
     HighwayTag.tag(entity).orElse(null) == HighwayTag.MOTORWAY;
 
@@ -74,7 +74,7 @@ When loading shards from a remote location (network drive, object storage servic
 
 Remote without caching:
 
-```
+```java
 // For the example, we assume this Hadoop FileSystem is already
 // initialized.
 FileSystem fileSystem;
@@ -101,7 +101,7 @@ Function<Shard, Optional<Atlas>> fetcher = shard -> {
 
 Here is the same example with caching enabled (Uses [`HadoopAtlasFileCache`](https://github.com/osmlab/atlas-generator/blob/4.0.9/src/main/java/org/openstreetmap/atlas/generator/tools/caching/HadoopAtlasFileCache.java) from the [atlas-generator](https://github.com/osmlab/atlas-generator) project):
 
-```
+```java
 // Here are the Hadoop configuration strings, that can contain the
 // credentials to connect to the remote storage.
 Map<String, String> hadoopConfiguration;
