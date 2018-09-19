@@ -150,13 +150,14 @@ public class PBFToAtlasSubCommand implements FlexibleSubCommand
                 .fromBoundaryMap(Collections.singletonMap("UNK", MultiPolygon.MAXIMUM));
         if (countryMapOption.isPresent())
         {
-            if (FilenameUtils.isExtension(countryMapOption.get().getName(), "txt"))
+            final File countryMapFile = countryMapOption.get();
+            if (FilenameUtils.isExtension(countryMapFile.getName(), "txt"))
             {
-                countryMap = CountryBoundaryMap.fromPlainText(countryMapOption.get());
+                countryMap = CountryBoundaryMap.fromPlainText(countryMapFile);
             }
-            else if (FilenameUtils.isExtension(countryMapOption.get().getName(), "shp"))
+            else if (FilenameUtils.isExtension(countryMapFile.getName(), "shp"))
             {
-                countryMap = CountryBoundaryMap.fromShapeFile(countryMapOption.get().getFile());
+                countryMap = CountryBoundaryMap.fromShapeFile(countryMapFile.getFile());
             }
         }
         return countryMap;
