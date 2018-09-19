@@ -128,7 +128,7 @@ Function<Shard, Optional<Atlas>> fetcher = shard -> {
 
 ## Expansion Policy
 
-The expansion policy ([`DynamicAtlasPolicy`](src/main/java/org/openstreetmap/atlas/geography/atlas/dynamic/policy/DynamicAtlasPolicy.java)) determines the behavior of the expansion steps of the `DynamicAtlas`, and can have vast impact on performance and ease of use. It also contains the sharding tree, initial shard(s) and fetcher function.
+The expansion policy ([`DynamicAtlasPolicy`](policy/DynamicAtlasPolicy.java)) determines the behavior of the expansion steps of the `DynamicAtlas`, and can have vast impact on performance and ease of use. It also contains the sharding tree, initial shard(s) and fetcher function.
 
 ### Expansion
 
