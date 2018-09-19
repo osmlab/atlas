@@ -627,14 +627,14 @@ public class WaySectionProcessor
                         continue;
                     }
 
-                    // 3. Check if there is an intersecting edge, of the same layer at this location
+                    // 3a. Check for an intersecting edge, of the same layer at this location
                     if (locationIsPartOfAnIntersectingEdgeOfTheSameLayer(shapePoint, line))
                     {
                         addPointToNodeList(shapePoint, nodesForEdge);
                     }
 
-                    // 4. Check if there is an intersecting edge, of a different layer at this
-                    // location - the intersecting edge must start or end here
+                    // 3b. Check for an intersecting edge, of a different layer at this location -
+                    // the intersecting edge must start or end here
                     if (locationIsAnEndPointOfAnIntersectingEdgeOfDifferentLayer(shapePoint, line))
                     {
                         addPointToNodeList(shapePoint, nodesForEdge);
@@ -816,11 +816,10 @@ public class WaySectionProcessor
                 {
                     final long layerValue = LayerTag.getTaggedOrImpliedValue(candidate, 0L);
                     final boolean edgesOnDifferentLayers = targetLayerValue != layerValue;
-
                     final PolyLine candidatePolyline = candidate.asPolyLine();
-                    final boolean intersectionIsAtEndPoint = candidatePolyline.first()
-                            .equals(location) || candidatePolyline.last().equals(location);
-                    return edgesOnDifferentLayers && intersectionIsAtEndPoint;
+
+                    return edgesOnDifferentLayers && candidatePolyline.first().equals(location)
+                            || candidatePolyline.last().equals(location);
                 });
     }
 
