@@ -606,7 +606,9 @@ public class WaySectionProcessor
 
                 // Identify all nodes. We care about three cases: 1. self-intersections, if the way
                 // contains a repeated location 2. sectioning based on tagging (ex. at a barrier) 3.
-                // at an intersection with another edge
+                // at an intersection with another edge. Case 3 breaks down into pieces: a. An
+                // intersection with another edge of the same layer. b. An intersection at the start
+                // or end of an edge of a different layer
                 for (int index = 0; index < polyLine.size(); index++)
                 {
                     final Location shapePoint = polyLine.get(index);
@@ -625,8 +627,15 @@ public class WaySectionProcessor
                         continue;
                     }
 
-                    // 3. Check if there is an edge intersection of the same layer at this location
+                    // 3. Check if there is an intersecting edge, of the same layer at this location
                     if (locationIsPartOfAnIntersectingEdgeOfTheSameLayer(shapePoint, line))
+                    {
+                        addPointToNodeList(shapePoint, nodesForEdge);
+                    }
+
+                    // 4. Check if there is an intersecting edge, of a different layer at this
+                    // location - the intersecting edge must start or end here
+                    if (locationIsAnEndPointOfAnIntersectingEdgeOfDifferentLayer(shapePoint, line))
                     {
                         addPointToNodeList(shapePoint, nodesForEdge);
                     }
@@ -780,6 +789,42 @@ public class WaySectionProcessor
     }
 
     /**
+     * Determines whether the given {@link Line} has any intersecting {@link Line}s, with a
+     * different layer tag value that meet the definition of an {@link Edge}, starting or ending at
+     * the given {@link Location}.
+     *
+     * @param location
+     *            The {@link Location} to use
+     * @param line
+     *            The {@link Line} to use
+     * @return {@code true} if there is at least one {@link Edge} with a different layer tag value
+     *         intersecting the given line and having an end point at the given location
+     */
+    private boolean locationIsAnEndPointOfAnIntersectingEdgeOfDifferentLayer(
+            final Location location, final Line line)
+    {
+        final long targetLayerValue = LayerTag.getTaggedOrImpliedValue(line, 0L);
+
+        return Iterables
+                // Find all intersecting edges
+                .stream(this.rawAtlas.linesContaining(location,
+                        target -> target.getIdentifier() != line.getIdentifier()
+                                && isAtlasEdge(target) && target.asPolyLine().contains(location)))
+                // Check whether that edge has a different layer value as the line we're looking at
+                // and that our point is its start or end node
+                .anyMatch(candidate ->
+                {
+                    final long layerValue = LayerTag.getTaggedOrImpliedValue(candidate, 0L);
+                    final boolean edgesOnDifferentLayers = targetLayerValue != layerValue;
+
+                    final PolyLine candidatePolyline = candidate.asPolyLine();
+                    final boolean intersectionIsAtEndPoint = candidatePolyline.first()
+                            .equals(location) || candidatePolyline.last().equals(location);
+                    return edgesOnDifferentLayers && intersectionIsAtEndPoint;
+                });
+    }
+
+    /**
      * Determines whether the given {@link Line} has any intersecting {@link Line}s, with the same
      * layer tag value that meet the definition of an {@link Edge}, running through it at the given
      * {@link Location}.
@@ -796,8 +841,6 @@ public class WaySectionProcessor
     {
         final long targetLayerValue = LayerTag.getTaggedOrImpliedValue(line, 0L);
 
-        // TODO - Getting non-intersecting lines from the spatial query results.
-        // So explicitly specifying "contains shapePoint". Need to resolve this!
         return Iterables
                 // Find all intersecting edges
                 .stream(this.rawAtlas.linesContaining(location,
