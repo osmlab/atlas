@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.converters.PolygonStringFormat;
 import org.openstreetmap.atlas.geography.index.RTree;
@@ -159,6 +160,8 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
         this.intersectionPolicy = intersectionPolicy;
         this.geometricSurfaces = (RTree<GeometricSurface>) RTree
                 .forLocated(geometricSurfaces == null ? Collections.EMPTY_SET : geometricSurfaces);
+        // initialize underlying STR tree
+        this.geometricSurfaces.get(Rectangle.MAXIMUM);
     }
 
     @Override
