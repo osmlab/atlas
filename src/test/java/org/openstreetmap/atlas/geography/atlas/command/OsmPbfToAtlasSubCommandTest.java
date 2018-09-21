@@ -9,27 +9,27 @@ import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.streaming.resource.File;
 
 /**
- * Unit tests for {@link PBFToAtlasSubCommand}.
+ * Unit tests for {@link OsmPbfToAtlasSubCommand}.
  *
  * @author bbreithaupt
  */
-public class PBFToAtlasSubCommandTest
+public class OsmPbfToAtlasSubCommandTest
 {
-    private static String PBF = PBFToAtlasSubCommandTest.class.getResource("world_islands.osm.pbf")
+    private static String PBF = OsmPbfToAtlasSubCommandTest.class.getResource("world_islands.osm.pbf")
             .getPath();
-    private static String COUNTRY_BOUNDARY_MAP_TEXT = PBFToAtlasSubCommandTest.class
+    private static String COUNTRY_BOUNDARY_MAP_TEXT = OsmPbfToAtlasSubCommandTest.class
             .getResource("continent_map.txt").getPath();
-    private static String COUNTRY_BOUNDARY_MAP_SHAPE = PBFToAtlasSubCommandTest.class
+    private static String COUNTRY_BOUNDARY_MAP_SHAPE = OsmPbfToAtlasSubCommandTest.class
             .getResource("continent_map.shp").getPath();
-    private static String EDGE_FILTER = PBFToAtlasSubCommandTest.class
+    private static String EDGE_FILTER = OsmPbfToAtlasSubCommandTest.class
             .getResource("atlas-edge.json").getPath();
-    private static String WAY_SECTIONING_FILTER = PBFToAtlasSubCommandTest.class
+    private static String WAY_SECTIONING_FILTER = OsmPbfToAtlasSubCommandTest.class
             .getResource("atlas-way-section.json").getPath();
-    private static String NODE_FILTER = PBFToAtlasSubCommandTest.class
+    private static String NODE_FILTER = OsmPbfToAtlasSubCommandTest.class
             .getResource("osm-pbf-node.json").getPath();
-    private static String RELATION_FILTER = PBFToAtlasSubCommandTest.class
+    private static String RELATION_FILTER = OsmPbfToAtlasSubCommandTest.class
             .getResource("osm-pbf-relation.json").getPath();
-    private static String WAY_FILTER = PBFToAtlasSubCommandTest.class
+    private static String WAY_FILTER = OsmPbfToAtlasSubCommandTest.class
             .getResource("osm-pbf-way.json").getPath();
 
     private static String ATLAS_NAME = "test_temp.atlas";
@@ -41,7 +41,7 @@ public class PBFToAtlasSubCommandTest
 
         try
         {
-            // Run PBFToAtlasSubCommand
+            // Run OsmPbfToAtlasSubCommand
             final String[] args = { "pbf-to-atlas", String.format("-pbf=%s", PBF),
                     String.format("-output=%s/%s", temp, ATLAS_NAME) };
             new AtlasReader(args).runWithoutQuitting(args);
@@ -81,7 +81,7 @@ public class PBFToAtlasSubCommandTest
 
         try
         {
-            // Run PBFToAtlasSubCommand
+            // Run OsmPbfToAtlasSubCommand
             final String[] args = { "pbf-to-atlas", String.format("-pbf=%s", PBF),
                     String.format("-output=%s/%s", temp, ATLAS_NAME),
                     String.format("-country-boundary-map=%s", COUNTRY_BOUNDARY_MAP_TEXT),
@@ -127,7 +127,7 @@ public class PBFToAtlasSubCommandTest
 
         try
         {
-            // Run PBFToAtlasSubCommand
+            // Run OsmPbfToAtlasSubCommand
             final String[] args = { "pbf-to-atlas", String.format("-pbf=%s", PBF),
                     String.format("-output=%s/%s", temp, ATLAS_NAME),
                     String.format("-country-boundary-map=%s", COUNTRY_BOUNDARY_MAP_SHAPE),
@@ -163,7 +163,7 @@ public class PBFToAtlasSubCommandTest
 
         try
         {
-            // Run PBFToAtlasSubCommand
+            // Run OsmPbfToAtlasSubCommand
             final String[] args = { "pbf-to-atlas", String.format("-pbf=%s", PBF),
                     String.format("-output=%s/%s", temp, ATLAS_NAME), "-load-ways=false" };
             new AtlasReader(args).runWithoutQuitting(args);

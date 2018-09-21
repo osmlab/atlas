@@ -25,7 +25,7 @@ import org.openstreetmap.atlas.utilities.runtime.FlexibleSubCommand;
  *
  * @author bbreithaupt
  */
-public class PBFToAtlasSubCommand implements FlexibleSubCommand
+public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
 {
     private static final String NAME = "pbf-to-atlas";
     private static final String DESCRIPTION = "Converts a PBF to an Atlas file.";
