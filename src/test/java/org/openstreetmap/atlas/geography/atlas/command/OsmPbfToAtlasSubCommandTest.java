@@ -15,8 +15,8 @@ import org.openstreetmap.atlas.streaming.resource.File;
  */
 public class OsmPbfToAtlasSubCommandTest
 {
-    private static String PBF = OsmPbfToAtlasSubCommandTest.class.getResource("world_islands.osm.pbf")
-            .getPath();
+    private static String PBF = OsmPbfToAtlasSubCommandTest.class
+            .getResource("world_islands.osm.pbf").getPath();
     private static String COUNTRY_BOUNDARY_MAP_TEXT = OsmPbfToAtlasSubCommandTest.class
             .getResource("continent_map.txt").getPath();
     private static String COUNTRY_BOUNDARY_MAP_SHAPE = OsmPbfToAtlasSubCommandTest.class

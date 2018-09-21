@@ -15,7 +15,9 @@ import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.tags.filters.ConfiguredTaggableFilter;
 import org.openstreetmap.atlas.utilities.configuration.StandardConfiguration;
-import org.openstreetmap.atlas.utilities.runtime.Command;
+import org.openstreetmap.atlas.utilities.runtime.Command.Optionality;
+import org.openstreetmap.atlas.utilities.runtime.Command.Switch;
+import org.openstreetmap.atlas.utilities.runtime.Command.SwitchList;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 import org.openstreetmap.atlas.utilities.runtime.FlexibleSubCommand;
 
@@ -31,53 +33,44 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
     private static final String DESCRIPTION = "Converts a PBF to an Atlas file.";
 
     // Required parameters
-    private static final Command.Switch<File> INPUT_PARAMETER = new Command.Switch<>("pbf",
-            "Input PBF path", File::new, Command.Optionality.REQUIRED);
-    private static final Command.Switch<File> OUTPUT_PARAMETER = new Command.Switch<>("output",
-            "Output Atlas file path", File::new, Command.Optionality.REQUIRED);
+    private static final Switch<File> INPUT_PARAMETER = new Switch<>("pbf", "Input PBF path",
+            File::new, Optionality.REQUIRED);
+    private static final Switch<File> OUTPUT_PARAMETER = new Switch<>("output",
+            "Output Atlas file path", File::new, Optionality.REQUIRED);
 
     // Filter parameters
-    private static final Command.Switch<File> EDGE_FILTER_PARAMETER = new Command.Switch<>(
-            "edge-filter", "Path to a json filter for determining Edges", File::new,
-            Command.Optionality.OPTIONAL);
-    private static final Command.Switch<File> NODE_FILTER_PARAMETER = new Command.Switch<>(
-            "node-filter", "Path to a json filter for OSM nodes", File::new,
-            Command.Optionality.OPTIONAL);
-    private static final Command.Switch<File> RELATION_FILTER_PARAMETER = new Command.Switch<>(
-            "relation-filter", "Path to a json filter for OSM relations", File::new,
-            Command.Optionality.OPTIONAL);
-    private static final Command.Switch<File> WAY_FILTER_PARAMETER = new Command.Switch<>(
-            "way-filter", "Path to a json filter for OSM ways", File::new,
-            Command.Optionality.OPTIONAL);
-    private static final Command.Switch<File> WAY_SECTION_FILTER_PARAMETER = new Command.Switch<>(
+    private static final Switch<File> EDGE_FILTER_PARAMETER = new Switch<>("edge-filter",
+            "Path to a json filter for determining Edges", File::new, Optionality.OPTIONAL);
+    private static final Switch<File> NODE_FILTER_PARAMETER = new Switch<>("node-filter",
+            "Path to a json filter for OSM nodes", File::new, Optionality.OPTIONAL);
+    private static final Switch<File> RELATION_FILTER_PARAMETER = new Switch<>("relation-filter",
+            "Path to a json filter for OSM relations", File::new, Optionality.OPTIONAL);
+    private static final Switch<File> WAY_FILTER_PARAMETER = new Switch<>("way-filter",
+            "Path to a json filter for OSM ways", File::new, Optionality.OPTIONAL);
+    private static final Switch<File> WAY_SECTION_FILTER_PARAMETER = new Switch<>(
             "way-section-filter", "Path to a json filter for determining where to way section",
-            File::new, Command.Optionality.OPTIONAL);
+            File::new, Optionality.OPTIONAL);
 
     // Load Parameters
-    private static final Command.Switch<Boolean> LOAD_RELATIONS_PARAMETER = new Command.Switch<>(
-            "load-relations", "Whether to load Relations (boolean)", Boolean::new,
-            Command.Optionality.OPTIONAL);
-    private static final Command.Switch<Boolean> LOAD_WAYS_PARAMETER = new Command.Switch<>(
-            "load-ways", "Whether to load ways (boolean)", Boolean::new,
-            Command.Optionality.OPTIONAL);
+    private static final Switch<Boolean> LOAD_RELATIONS_PARAMETER = new Switch<>("load-relations",
+            "Whether to load Relations (boolean)", Boolean::new, Optionality.OPTIONAL);
+    private static final Switch<Boolean> LOAD_WAYS_PARAMETER = new Switch<>("load-ways",
+            "Whether to load ways (boolean)", Boolean::new, Optionality.OPTIONAL);
 
     // Country parameters
-    private static final Command.Switch<Set<String>> COUNTRY_CODES_PARAMETER = new Command.Switch<>(
-            "country-codes",
+    private static final Switch<Set<String>> COUNTRY_CODES_PARAMETER = new Switch<>("country-codes",
             "Countries from the country map to convert (comma separated ISO3 codes)",
             code -> Arrays.stream(code.split(",")).collect(Collectors.toSet()),
-            Command.Optionality.OPTIONAL);
-    private static final Command.Switch<File> COUNTRY_MAP_PARAMETER = new Command.Switch<>(
-            "country-boundary-map", "Path to a WKT or shp file containing a country boundary map",
-            File::new, Command.Optionality.OPTIONAL);
-    private static final Command.Switch<Boolean> COUNTRY_SLICING_PARAMETER = new Command.Switch<>(
-            "country-slicing", "Whether to perform country slicing (boolean)", Boolean::new,
-            Command.Optionality.OPTIONAL);
+            Optionality.OPTIONAL);
+    private static final Switch<File> COUNTRY_MAP_PARAMETER = new Switch<>("country-boundary-map",
+            "Path to a WKT or shp file containing a country boundary map", File::new,
+            Optionality.OPTIONAL);
+    private static final Switch<Boolean> COUNTRY_SLICING_PARAMETER = new Switch<>("country-slicing",
+            "Whether to perform country slicing (boolean)", Boolean::new, Optionality.OPTIONAL);
 
     // Way Sectioning Parameter
-    private static final Command.Switch<Boolean> WAY_SECTION_PARAMETER = new Command.Switch<>(
-            "way-section", "Whether to perform way sectioning (boolean)", Boolean::new,
-            Command.Optionality.OPTIONAL);
+    private static final Switch<Boolean> WAY_SECTION_PARAMETER = new Switch<>("way-section",
+            "Whether to perform way sectioning (boolean)", Boolean::new, Optionality.OPTIONAL);
 
     @Override
     public String getDescription()
@@ -92,13 +85,13 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
     }
 
     @Override
-    public Command.SwitchList switches()
+    public SwitchList switches()
     {
-        return new Command.SwitchList().with(INPUT_PARAMETER, OUTPUT_PARAMETER,
-                EDGE_FILTER_PARAMETER, NODE_FILTER_PARAMETER, RELATION_FILTER_PARAMETER,
-                WAY_FILTER_PARAMETER, WAY_SECTION_FILTER_PARAMETER, LOAD_RELATIONS_PARAMETER,
-                LOAD_WAYS_PARAMETER, COUNTRY_CODES_PARAMETER, COUNTRY_MAP_PARAMETER,
-                COUNTRY_SLICING_PARAMETER, WAY_SECTION_PARAMETER);
+        return new SwitchList().with(INPUT_PARAMETER, OUTPUT_PARAMETER, EDGE_FILTER_PARAMETER,
+                NODE_FILTER_PARAMETER, RELATION_FILTER_PARAMETER, WAY_FILTER_PARAMETER,
+                WAY_SECTION_FILTER_PARAMETER, LOAD_RELATIONS_PARAMETER, LOAD_WAYS_PARAMETER,
+                COUNTRY_CODES_PARAMETER, COUNTRY_MAP_PARAMETER, COUNTRY_SLICING_PARAMETER,
+                WAY_SECTION_PARAMETER);
     }
 
     @Override
