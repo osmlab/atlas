@@ -65,45 +65,6 @@ public class RawAtlasIntegrationTest
     public DynamicRawAtlasSectioningTestRule setup = new DynamicRawAtlasSectioningTestRule();
 
     @Test
-    public void testOverlappingNodesWithUniqueLayerTags()
-    {
-        // Based on https://www.openstreetmap.org/way/467880095 and
-        // https://www.openstreetmap.org/way/28247094 having two different layer tag values and
-        // having overlapping nodes (https://www.openstreetmap.org/node/4661272336 and
-        // https://www.openstreetmap.org/node/5501637097) that should not be merged.
-        final Location overlappingLocation = Location.forString("1.3248985,103.6452864");
-        final String path = RawAtlasIntegrationTest.class.getResource("layerTagTestCase.pbf")
-                .getPath();
-        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
-        final Atlas rawAtlas = rawAtlasGenerator.build();
-
-        // Verify both points made it into the raw atlas
-        Assert.assertTrue(Iterables.size(rawAtlas.pointsAt(overlappingLocation)) == 2);
-
-        // Prepare the country and boundary
-        final Set<String> singaporeCountry = new HashSet<>();
-        singaporeCountry.add("SGP");
-        final CountryBoundaryMap boundaryMap = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
-                        .getResourceAsStream("testNodesWithDifferentLayerTagsBoundaryMap.txt")));
-
-        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(singaporeCountry, boundaryMap)
-                .slice(rawAtlas);
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
-                AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
-
-        // Make sure there is no sectioning happening between the two ways with different layer tag
-        // values. There is a one-way overpass and a bi-directional residential street, resulting in
-        // 3 total edges and 4 nodes (one on both ends of the two segments)
-        Assert.assertEquals(3, finalAtlas.numberOfEdges());
-        Assert.assertEquals(4, finalAtlas.numberOfNodes());
-
-        // Again, verify there is no node at the duplicated location
-        Assert.assertTrue(Iterables.size(finalAtlas.nodesAt(overlappingLocation)) == 0);
-        Assert.assertEquals(0, finalAtlas.numberOfPoints());
-    }
-
-    @Test
     public void testPbfToSlicedAtlasWithExpansion()
     {
         // Create a simple store, populated with 3 shards and the corresponding atlases
@@ -338,6 +299,130 @@ public class RawAtlasIntegrationTest
         Assert.assertEquals(1, finalAtlas.numberOfPoints());
         Assert.assertEquals(0, finalAtlas.numberOfLines());
         Assert.assertEquals(0, finalAtlas.numberOfRelations());
+    }
+
+    @Test
+    public void testTwoWaysWithDifferentLayersIntersectingAtEnd()
+    {
+        // Based on https://www.openstreetmap.org/way/26071941 and
+        // https://www.openstreetmap.org/way/405246856 having two different layer tag values and
+        // having a shared node (https://www.openstreetmap.org/node/281526976) at which one of the
+        // ways ends. This is a fairly common OSM use-case, where two roads (often ramps or links)
+        // having different layer tags should be connected.
+        final Location intersection = Location.forString("55.0480165, 82.9406646");
+        final String path = RawAtlasIntegrationTest.class
+                .getResource("twoWaysWithDifferentLayersIntersectingAtEnd.pbf").getPath();
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
+        final Atlas rawAtlas = rawAtlasGenerator.build();
+
+        // Prepare the country and boundary
+        final Set<String> countries = new HashSet<>();
+        countries.add("RUS");
+        final CountryBoundaryMap boundaryMap = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
+                        .getResourceAsStream("layerIntersectionAtEndBoundaryMap.txt")));
+
+        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(countries, boundaryMap)
+                .slice(rawAtlas);
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
+
+        // Make sure there are exactly three edges created. Both ways are one-way and one of them
+        // gets way-sectioned into two edges.
+        Assert.assertEquals(3, finalAtlas.numberOfEdges());
+
+        // Make sure there are exactly 4 nodes
+        Assert.assertEquals(4, finalAtlas.numberOfNodes());
+
+        // Explicitly check for a single node at the intersection location
+        Assert.assertEquals(1, Iterables.size(finalAtlas.nodesAt(intersection)));
+
+        // Explicitly check that the layer=0 link is connected to both the layer=-1 trunk edges
+        Assert.assertEquals(2, finalAtlas.edge(26071941000000L).connectedEdges().size());
+    }
+
+    @Test
+    public void testTwoWaysWithDifferentLayersIntersectingAtStart()
+    {
+        // Based on https://www.openstreetmap.org/way/551411163 and partial piece of
+        // https://www.openstreetmap.org/way/67803311 having two different layer tag values and
+        // having a shared node (https://www.openstreetmap.org/node/5325270497) at which one of the
+        // ways ends. This is a fairly common OSM use-case, where two roads (often ramps or links)
+        // having different layer tags should be connected. In this case, we also check that the
+        // trunk link is connected to the trunk at both the start and end nodes.
+        final Location intersection = Location.forString("52.4819691, 38.7603042");
+        final String path = RawAtlasIntegrationTest.class
+                .getResource("twoWaysWithDifferentLayersIntersectingAtStart.pbf").getPath();
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
+        final Atlas rawAtlas = rawAtlasGenerator.build();
+
+        // Prepare the country and boundary
+        final Set<String> countries = new HashSet<>();
+        countries.add("RUS");
+        final CountryBoundaryMap boundaryMap = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
+                        .getResourceAsStream("layerIntersectionAtStartBoundaryMap.txt")));
+
+        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(countries, boundaryMap)
+                .slice(rawAtlas);
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
+
+        // Make sure there are exactly six edges created. The trunk link (551411163) is
+        // way-sectioned into 2 pieces - at an intermediate crossing, while the trunk (67803311) is
+        // sectioned into 4 pieces - once at the start of the link, once at an intermediate crossing
+        // and again at the end of the link.
+        Assert.assertEquals(6, finalAtlas.numberOfEdges());
+
+        // Make sure there are exactly 6 nodes
+        Assert.assertEquals(6, finalAtlas.numberOfNodes());
+
+        // Explicitly check for a single node at the intersection location
+        Assert.assertEquals(1, Iterables.size(finalAtlas.nodesAt(intersection)));
+
+        // Explicitly check that the layer=0 link is connected to both the layer=1 trunk edges and
+        // its own sectioned edge
+        Assert.assertEquals(3, finalAtlas.edge(551411163000001L).connectedEdges().size());
+        Assert.assertEquals(3, finalAtlas.edge(551411163000002L).connectedEdges().size());
+    }
+
+    @Test
+    public void testTwoWaysWithDifferentLayersIntersectingInMiddle()
+    {
+        // Based on https://www.openstreetmap.org/way/467880095 and
+        // https://www.openstreetmap.org/way/28247094 having two different layer tag values and
+        // having overlapping nodes (https://www.openstreetmap.org/node/4661272336 and
+        // https://www.openstreetmap.org/node/5501637097) that should not be merged.
+        final Location overlappingLocation = Location.forString("1.3248985,103.6452864");
+        final String path = RawAtlasIntegrationTest.class
+                .getResource("twoWaysWithDifferentLayersIntersectingInMiddle.pbf").getPath();
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
+        final Atlas rawAtlas = rawAtlasGenerator.build();
+
+        // Verify both points made it into the raw atlas
+        Assert.assertTrue(Iterables.size(rawAtlas.pointsAt(overlappingLocation)) == 2);
+
+        // Prepare the country and boundary
+        final Set<String> singaporeCountry = new HashSet<>();
+        singaporeCountry.add("SGP");
+        final CountryBoundaryMap boundaryMap = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
+                        .getResourceAsStream("layerIntersectionInMiddleBoundaryMap.txt")));
+
+        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(singaporeCountry, boundaryMap)
+                .slice(rawAtlas);
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
+
+        // Make sure there is no sectioning happening between the two ways with different layer tag
+        // values. There is a one-way overpass and a bi-directional residential street, resulting in
+        // 3 total edges and 4 nodes (one on both ends of the two segments)
+        Assert.assertEquals(3, finalAtlas.numberOfEdges());
+        Assert.assertEquals(4, finalAtlas.numberOfNodes());
+
+        // Again, verify there is no node at the duplicated location
+        Assert.assertTrue(Iterables.size(finalAtlas.nodesAt(overlappingLocation)) == 0);
+        Assert.assertEquals(0, finalAtlas.numberOfPoints());
     }
 
     private void assertAllEntitiesHaveCountryCode(final Atlas atlas)
