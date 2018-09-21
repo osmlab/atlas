@@ -121,7 +121,7 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
     @Override
     public int execute(final CommandMap map)
     {
-        new OsmPbfLoader((File) map.get(INPUT_PARAMETER), getAtlasLoadingOption(map))
+        new OsmPbfLoader((File) map.get(INPUT_PARAMETER), this.getAtlasLoadingOption(map))
                 .saveAtlas((File) map.get(OUTPUT_PARAMETER));
         return 0;
     }
