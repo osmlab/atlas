@@ -132,6 +132,7 @@ public class CachingTests
      * that this test will actually reveal a data race on any given test run.
      *
      * @throws InterruptedException
+     *             if the task is interrupted
      */
     @Test
     public void testRepeatedCacheReads() throws InterruptedException
