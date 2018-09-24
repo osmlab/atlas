@@ -19,6 +19,7 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
@@ -134,6 +135,20 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
             }
         }
         return relationMembers;
+    }
+    
+    /**
+     * @return the {@link RelationBean} representation of the Relation
+     */
+    public RelationBean getBean()
+    {
+        final RelationBean bean = new RelationBean();
+        for (final RelationMember member : this)
+        {
+            bean.addItem(member.getEntity().getIdentifier(), member.getRole(),
+                    member.getEntity().getType());
+        }
+        return bean;
     }
 
     @Override
