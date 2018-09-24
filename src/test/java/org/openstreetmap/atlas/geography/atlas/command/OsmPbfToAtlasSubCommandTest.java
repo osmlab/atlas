@@ -19,8 +19,6 @@ public class OsmPbfToAtlasSubCommandTest
             .getResource("world_islands.osm.pbf").getPath();
     private static String COUNTRY_BOUNDARY_MAP_TEXT = OsmPbfToAtlasSubCommandTest.class
             .getResource("continent_map.txt").getPath();
-    private static String COUNTRY_BOUNDARY_MAP_SHAPE = OsmPbfToAtlasSubCommandTest.class
-            .getResource("continent_map.shp").getPath();
     private static String EDGE_FILTER = OsmPbfToAtlasSubCommandTest.class
             .getResource("atlas-edge.json").getPath();
     private static String WAY_SECTIONING_FILTER = OsmPbfToAtlasSubCommandTest.class
@@ -130,7 +128,7 @@ public class OsmPbfToAtlasSubCommandTest
             // Run OsmPbfToAtlasSubCommand
             final String[] args = { "pbf-to-atlas", String.format("-pbf=%s", PBF),
                     String.format("-output=%s/%s", temp, ATLAS_NAME),
-                    String.format("-country-boundary-map=%s", COUNTRY_BOUNDARY_MAP_SHAPE),
+                    String.format("-country-boundary-map=%s", COUNTRY_BOUNDARY_MAP_TEXT),
                     "-country-codes=NAM,EUR", "-country-slicing=false", "-way-section=false",
                     "-load-relations=false" };
             new AtlasReader(args).runWithoutQuitting(args);
@@ -141,9 +139,6 @@ public class OsmPbfToAtlasSubCommandTest
 
             // Test for way sectioning
             Assert.assertNull(atlas.edge(87185620000002L));
-            // Test for country map
-            Assert.assertFalse(atlas.edge(87185620L).containsValue("iso_country_code",
-                    Collections.singleton("NAM")));
             // Test for country slicing
             Assert.assertFalse(
                     atlas.edge(87185039L).containsKey(Collections.singleton("iso_country_code")));
