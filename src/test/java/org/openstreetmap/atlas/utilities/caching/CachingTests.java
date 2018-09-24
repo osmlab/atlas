@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 public class CachingTests
 {
     /**
+     * See notes on {@link CachingTests#testRepeatedCacheReads}.
+     *
      * @author lcram
      */
     private class CacheTask implements Runnable
@@ -78,6 +80,10 @@ public class CachingTests
             .get("src/test/resources/org/openstreetmap/atlas/utilities/configuration/feature.json")
             .toAbsolutePath();
     private static final URI LOCAL_TEST_FILE_2_URI = LOCAL_TEST_FILE_2.toUri();
+    private static final Path LOCAL_TEST_FILE_3 = Paths
+            .get("src/test/resources/org/openstreetmap/atlas/utilities/caching/fileNoExt")
+            .toAbsolutePath();
+    private static final URI LOCAL_TEST_FILE_3_URI = LOCAL_TEST_FILE_3.toUri();
 
     @Test
     public void testBaseCacheWithByteArrayStrategy()
@@ -120,6 +126,13 @@ public class CachingTests
         Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheHitArray);
     }
 
+    /**
+     * This test attempts to check the validity of synchronization in the
+     * {@link ConcurrentResourceCache}. Due to the nature of threading bugs, there is no guarantee
+     * that this test will actually reveal a data race on any given test run.
+     *
+     * @throws InterruptedException
+     */
     @Test
     public void testRepeatedCacheReads() throws InterruptedException
     {
@@ -194,20 +207,37 @@ public class CachingTests
                 this::fetchLocalFileResource);
 
         // read the contents of the file
-        final ByteArrayResource originalFileBytes = new ByteArrayResource();
+        ByteArrayResource originalFileBytes = new ByteArrayResource();
         originalFileBytes.copyFrom(new File(LOCAL_TEST_FILE.toString()));
-        final byte[] originalFileBytesArray = originalFileBytes.readBytesAndClose();
+        byte[] originalFileBytesArray = originalFileBytes.readBytesAndClose();
 
         // read contents of the file with cache, this will incur a cache miss
-        final ByteArrayResource fileBytesCacheMiss = new ByteArrayResource();
+        ByteArrayResource fileBytesCacheMiss = new ByteArrayResource();
         fileBytesCacheMiss.copyFrom(resourceCache.get(LOCAL_TEST_FILE_URI).get());
-        final byte[] fileBytesCacheMissArray = fileBytesCacheMiss.readBytesAndClose();
+        byte[] fileBytesCacheMissArray = fileBytesCacheMiss.readBytesAndClose();
         Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheMissArray);
 
         // read contents again, this time with a cache hit
-        final ByteArrayResource fileBytesCacheHit = new ByteArrayResource();
+        ByteArrayResource fileBytesCacheHit = new ByteArrayResource();
         fileBytesCacheHit.copyFrom(resourceCache.get(LOCAL_TEST_FILE_URI).get());
-        final byte[] fileBytesCacheHitArray = fileBytesCacheHit.readBytesAndClose();
+        byte[] fileBytesCacheHitArray = fileBytesCacheHit.readBytesAndClose();
+        Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheHitArray);
+
+        // read the contents of the file
+        originalFileBytes = new ByteArrayResource();
+        originalFileBytes.copyFrom(new File(LOCAL_TEST_FILE_3.toString()));
+        originalFileBytesArray = originalFileBytes.readBytesAndClose();
+
+        // read contents of the file with cache, this will incur a cache miss
+        fileBytesCacheMiss = new ByteArrayResource();
+        fileBytesCacheMiss.copyFrom(resourceCache.get(LOCAL_TEST_FILE_3_URI).get());
+        fileBytesCacheMissArray = fileBytesCacheMiss.readBytesAndClose();
+        Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheMissArray);
+
+        // read contents again, this time with a cache hit
+        fileBytesCacheHit = new ByteArrayResource();
+        fileBytesCacheHit.copyFrom(resourceCache.get(LOCAL_TEST_FILE_3_URI).get());
+        fileBytesCacheHitArray = fileBytesCacheHit.readBytesAndClose();
         Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheHitArray);
     }
 }

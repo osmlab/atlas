@@ -26,6 +26,7 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
 {
     private static final Logger logger = LoggerFactory
             .getLogger(SystemTemporaryFileCachingStrategy.class);
+    private static final String FILE_EXTENSION_DOT = ".";
     private static final String PROPERTY_LOCAL_TEMPORARY_DIRECTORY = "java.io.tmpdir";
     private static final String TEMPORARY_DIRECTORY_STRING = System
             .getProperty(PROPERTY_LOCAL_TEMPORARY_DIRECTORY);
@@ -48,7 +49,17 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
         }
 
         final Path temporaryDirectory = Paths.get(TEMPORARY_DIRECTORY_STRING);
-        final String cachedFileName = this.getUUIDForResourceURI(resourceURI).toString();
+        final Optional<String> resourceExtension = getFileExtensionFromURI(resourceURI);
+        final String cachedFileName;
+        if (resourceExtension.isPresent())
+        {
+            cachedFileName = this.getUUIDForResourceURI(resourceURI).toString() + FILE_EXTENSION_DOT
+                    + resourceExtension.get();
+        }
+        else
+        {
+            cachedFileName = this.getUUIDForResourceURI(resourceURI).toString();
+        }
         final Path cachedFilePath = Paths.get(temporaryDirectory.toString(), cachedFileName);
 
         final File cachedFile = new File(cachedFilePath.toString());
@@ -121,6 +132,27 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
                             temporaryLocalFile.toString(), cachedFile.toString(), exception);
                 }
             }
+        }
+    }
+
+    private Optional<String> getFileExtensionFromURI(final URI resourceURI)
+    {
+        final String asciiString = resourceURI.toASCIIString();
+        final int lastIndexOfDot = asciiString.lastIndexOf(FILE_EXTENSION_DOT);
+
+        if (lastIndexOfDot < 0)
+        {
+            return Optional.empty();
+        }
+
+        final String extension = asciiString.substring(lastIndexOfDot + 1);
+        if (extension.isEmpty())
+        {
+            return Optional.empty();
+        }
+        else
+        {
+            return Optional.of(extension);
         }
     }
 }
