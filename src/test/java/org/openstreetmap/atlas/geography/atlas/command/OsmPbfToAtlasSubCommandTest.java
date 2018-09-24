@@ -119,7 +119,7 @@ public class OsmPbfToAtlasSubCommandTest
     }
 
     @Test
-    public void testNoSectioningNoSlicingNoRelationsShapeMapConversion()
+    public void testNoSlicingNoRelationsConversion()
     {
         final File temp = File.temporaryFolder();
 
@@ -129,19 +129,15 @@ public class OsmPbfToAtlasSubCommandTest
             final String[] args = { "pbf-to-atlas", String.format("-pbf=%s", PBF),
                     String.format("-output=%s/%s", temp, ATLAS_NAME),
                     String.format("-country-boundary-map=%s", COUNTRY_BOUNDARY_MAP_TEXT),
-                    "-country-codes=NAM,EUR", "-country-slicing=false", "-way-section=false",
-                    "-load-relations=false" };
+                    "-country-codes=NAM,EUR", "-country-slicing=false", "-load-relations=false" };
             new AtlasReader(args).runWithoutQuitting(args);
 
             // Load new atlas
             final Atlas atlas = new AtlasResourceLoader()
                     .load(new File(String.format("%s/%s", temp, ATLAS_NAME)));
-
-            // Test for way sectioning
-            Assert.assertNull(atlas.edge(87185620000002L));
             // Test for country slicing
-            Assert.assertFalse(
-                    atlas.edge(87185039L).containsKey(Collections.singleton("iso_country_code")));
+            Assert.assertFalse(atlas.edge(87185039000000L)
+                    .containsKey(Collections.singleton("iso_country_code")));
             // Test no load relation
             Assert.assertFalse(atlas.relations().iterator().hasNext());
         }

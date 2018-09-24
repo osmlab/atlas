@@ -9,8 +9,11 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
 import org.openstreetmap.atlas.geography.MultiPolygon;
+import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
-import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader;
+import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.tags.filters.ConfiguredTaggableFilter;
@@ -71,11 +74,6 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
             "Whether to perform country slicing (boolean)", Boolean::parseBoolean,
             Optionality.OPTIONAL, "true");
 
-    // Way Sectioning Parameter
-    private static final Switch<Boolean> WAY_SECTION_PARAMETER = new Switch<>("way-section",
-            "Whether to perform way sectioning (boolean)", Boolean::parseBoolean,
-            Optionality.OPTIONAL, "true");
-
     @Override
     public String getDescription()
     {
@@ -94,8 +92,7 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
         return new SwitchList().with(INPUT_PARAMETER, OUTPUT_PARAMETER, EDGE_FILTER_PARAMETER,
                 NODE_FILTER_PARAMETER, RELATION_FILTER_PARAMETER, WAY_FILTER_PARAMETER,
                 WAY_SECTION_FILTER_PARAMETER, LOAD_RELATIONS_PARAMETER, LOAD_WAYS_PARAMETER,
-                COUNTRY_CODES_PARAMETER, COUNTRY_MAP_PARAMETER, COUNTRY_SLICING_PARAMETER,
-                WAY_SECTION_PARAMETER);
+                COUNTRY_CODES_PARAMETER, COUNTRY_MAP_PARAMETER, COUNTRY_SLICING_PARAMETER);
     }
 
     @Override
@@ -117,16 +114,22 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
         writer.println(
                 "-country-slicing=boolean : whether to perform country slicing; defaults to true");
         writer.println(
-                "-way-sectioning=boolean : whether to perform way sectioning; defaults to true");
-        writer.println(
                 "-way-section-filter=/path/to/json/way/section/filter : json filter to determine where to way section");
     }
 
     @Override
     public int execute(final CommandMap map)
     {
-        new OsmPbfLoader((File) map.get(INPUT_PARAMETER), this.getAtlasLoadingOption(map))
-                .saveAtlas((File) map.get(OUTPUT_PARAMETER));
+        final AtlasLoadingOption options = this.getAtlasLoadingOption(map);
+        Atlas atlas = new RawAtlasGenerator((File) map.get(INPUT_PARAMETER), options,
+                MultiPolygon.MAXIMUM).build();
+        if (options.isCountrySlicing())
+        {
+            atlas = new RawAtlasCountrySlicer(options.getCountryCodes(),
+                    options.getCountryBoundaryMap()).slice(atlas);
+        }
+        atlas = new WaySectionProcessor(atlas, options).run();
+        atlas.save((File) map.get(OUTPUT_PARAMETER));
         return 0;
     }
 
@@ -201,10 +204,6 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
                 .ifPresent(options::setAdditionalCountryCodes);
         ((Optional<Boolean>) map.getOption(COUNTRY_SLICING_PARAMETER))
                 .ifPresent(options::setCountrySlicing);
-
-        // Set way sectioning
-        ((Optional<Boolean>) map.getOption(WAY_SECTION_PARAMETER))
-                .ifPresent(options::setWaySectioning);
 
         return options;
     }
