@@ -23,7 +23,6 @@ public class CachingTests
 {
     private static final Logger logger = LoggerFactory.getLogger(CachingTests.class);
 
-    private static final String LOG4J_PROPERTIES = "log4j.properties";
     private static final String FEATURE_JSON = "feature.json";
     private static final String FILE_NO_EXTENSION = "fileNoExt";
 
@@ -52,7 +51,7 @@ public class CachingTests
         URI resourceUri;
         try
         {
-            resourceUri = CachingTests.class.getResource(LOG4J_PROPERTIES).toURI();
+            resourceUri = CachingTests.class.getResource(FEATURE_JSON).toURI();
         }
         catch (final URISyntaxException exception)
         {
@@ -64,7 +63,7 @@ public class CachingTests
         // read the contents of the file
         final ByteArrayResource originalFileBytes = new ByteArrayResource();
         originalFileBytes.copyFrom(new InputStreamResource(
-                () -> CachingTests.class.getResourceAsStream(LOG4J_PROPERTIES)));
+                () -> CachingTests.class.getResourceAsStream(FEATURE_JSON)));
         final byte[] originalFileBytesArray = originalFileBytes.readBytesAndClose();
 
         // read contents of the file with cache, this will incur a cache miss
@@ -96,7 +95,7 @@ public class CachingTests
         URI resourceUri;
         try
         {
-            resourceUri = CachingTests.class.getResource(LOG4J_PROPERTIES).toURI();
+            resourceUri = CachingTests.class.getResource(FEATURE_JSON).toURI();
         }
         catch (final URISyntaxException exception)
         {
@@ -120,7 +119,7 @@ public class CachingTests
         // read the contents of the file
         ByteArrayResource originalFileBytes = new ByteArrayResource();
         originalFileBytes.copyFrom(new InputStreamResource(
-                () -> CachingTests.class.getResourceAsStream(LOG4J_PROPERTIES)));
+                () -> CachingTests.class.getResourceAsStream(FEATURE_JSON)));
         byte[] originalFileBytesArray = originalFileBytes.readBytesAndClose();
 
         // read contents of the file with cache, this will incur a cache miss
