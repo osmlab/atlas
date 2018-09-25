@@ -1,0 +1,6 @@
+{
+    "filters": [
+    	"boundary->!|natural->water",
+    	"place->island"
+    ]
+}
