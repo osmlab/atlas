@@ -31,11 +31,7 @@ public class DynamicRelation extends Relation
     @Override
     public RelationMemberList allKnownOsmMembers()
     {
-        /*
-         * TODO this will return AtlasEntities which are not of type DynamicX. Ideally, we should be
-         * recreating returned entities as DynamicX instead of the underlying PackedX or MultiX.
-         */
-        return subRelation().allKnownOsmMembers();
+        return getRelationMembersAsDynamicEntities(subRelation().allKnownOsmMembers());
     }
 
     @Override
@@ -61,10 +57,34 @@ public class DynamicRelation extends Relation
     @Override
     public RelationMemberList members()
     {
-        final RelationMemberList subRelationMemberList = subRelation().members();
+        return getRelationMembersAsDynamicEntities(subRelation().members());
+    }
+
+    @Override
+    public long osmRelationIdentifier()
+    {
+        return subRelation().osmRelationIdentifier();
+    }
+
+    @Override
+    public Set<Relation> relations()
+    {
+        return subRelation().relations().stream()
+                .map(relation -> new DynamicRelation(dynamicAtlas(), relation.getIdentifier()))
+                .collect(Collectors.toSet());
+    }
+
+    private DynamicAtlas dynamicAtlas()
+    {
+        return (DynamicAtlas) this.getAtlas();
+    }
+
+    private RelationMemberList getRelationMembersAsDynamicEntities(
+            final RelationMemberList memberList)
+    {
         final List<RelationMember> newMemberList = new ArrayList<>();
 
-        for (final RelationMember member : subRelationMemberList)
+        for (final RelationMember member : memberList)
         {
             final AtlasEntity entity = member.getEntity();
             AtlasEntity dynamicEntity = null;
@@ -96,25 +116,6 @@ public class DynamicRelation extends Relation
         }
 
         return new RelationMemberList(newMemberList);
-    }
-
-    @Override
-    public long osmRelationIdentifier()
-    {
-        return subRelation().osmRelationIdentifier();
-    }
-
-    @Override
-    public Set<Relation> relations()
-    {
-        return subRelation().relations().stream()
-                .map(relation -> new DynamicRelation(dynamicAtlas(), relation.getIdentifier()))
-                .collect(Collectors.toSet());
-    }
-
-    private DynamicAtlas dynamicAtlas()
-    {
-        return (DynamicAtlas) this.getAtlas();
     }
 
     private Relation subRelation()
