@@ -152,7 +152,11 @@ public class Polygon extends PolyLine implements GeometricSurface
      */
     public Iterable<Location> closedLoop()
     {
-        return new MultiIterable<>(this, Iterables.from(this.first()));
+        if (!this.first().equals(this.last()))
+        {
+            return new MultiIterable<>(this, Iterables.from(this.first()));
+        }
+        return this;
     }
 
     /**

@@ -730,4 +730,17 @@ public class PolygonTest
             Assert.assertEquals(3, triangle.size());
         }
     }
+
+    @Test
+    public void testClosedLoop()
+    {
+        final Polygon polygon = Polygon.SILICON_VALLEY;
+        final Polygon initialClosedLoop = new Polygon(polygon.closedLoop());
+        Assert.assertNotEquals(
+                "Last and Last - 1 locations for the polygon should not be duplicate.",
+                initialClosedLoop.last(), initialClosedLoop.get(initialClosedLoop.size() - 2));
+        final Polygon doubleClosedLoop = new Polygon(initialClosedLoop.closedLoop());
+        Assert.assertNotEquals("Last and Last - 1 locations for polygon should not be duplicate.",
+                doubleClosedLoop.last(), doubleClosedLoop.get(doubleClosedLoop.size() - 2));
+    }
 }
