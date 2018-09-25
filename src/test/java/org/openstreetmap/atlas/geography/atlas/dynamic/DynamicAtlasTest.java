@@ -19,6 +19,7 @@ import org.openstreetmap.atlas.geography.atlas.dynamic.policy.DynamicAtlasPolicy
 import org.openstreetmap.atlas.geography.atlas.dynamic.rules.DynamicAtlasTestRule;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiRelation;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedRelation;
@@ -317,5 +318,51 @@ public class DynamicAtlasTest
                 atlasz12x1349y1869, atlasz12x1349y1870);
         Assert.assertEquals("Found differences: " + new AtlasDelta(atlas, multiAtlas).toString(),
                 atlas, multiAtlas);
+    }
+
+    @Test
+    public void testTypeOfReturnedRelationMembers()
+    {
+        final DynamicAtlas localDynamicAtlas;
+        final Map<Shard, Atlas> localStore = new HashMap<>();
+        localStore.put(new SlippyTile(0, 0, 0), this.rule.getAtlasForRelationsTest());
+        final Supplier<DynamicAtlasPolicy> localPolicySupplier = () -> new DynamicAtlasPolicy(
+                shard ->
+                {
+                    if (localStore.containsKey(shard))
+                    {
+                        return Optional.of(localStore.get(shard));
+                    }
+                    else
+                    {
+                        return Optional.empty();
+                    }
+                }, new SlippyTileSharding(0), new SlippyTile(0, 0, 0), Rectangle.MAXIMUM);
+        localDynamicAtlas = new DynamicAtlas(localPolicySupplier.get());
+
+        for (final Relation relation : localDynamicAtlas.relations())
+        {
+            for (final RelationMember member : relation.allKnownOsmMembers())
+            {
+                Assert.assertTrue(atlasEntityIsADynamicEntity(member.getEntity()));
+            }
+            for (final RelationMember member : relation.members())
+            {
+                Assert.assertTrue(atlasEntityIsADynamicEntity(member.getEntity()));
+            }
+        }
+    }
+
+    private boolean atlasEntityIsADynamicEntity(final AtlasEntity entity)
+    {
+        final boolean isDynamicPoint = entity instanceof DynamicPoint;
+        final boolean isDynamicLine = entity instanceof DynamicLine;
+        final boolean isDynamicArea = entity instanceof DynamicArea;
+        final boolean isDynamicNode = entity instanceof DynamicNode;
+        final boolean isDynamicEdge = entity instanceof DynamicEdge;
+        final boolean isDynamicRelation = entity instanceof DynamicRelation;
+
+        return isDynamicPoint || isDynamicLine || isDynamicArea || isDynamicNode || isDynamicEdge
+                || isDynamicRelation;
     }
 }
