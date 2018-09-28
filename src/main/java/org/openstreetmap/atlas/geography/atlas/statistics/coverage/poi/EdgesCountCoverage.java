@@ -13,28 +13,28 @@ import org.slf4j.LoggerFactory;
  *
  * @author matthieun
  */
-public class EdgesCountCoverage extends CountCoverage<Edge>
+public class EdgesCountCoverage extends SimpleCoverage<Edge>
 {
     private static final Logger logger = LoggerFactory.getLogger(EdgesCountCoverage.class);
 
     public EdgesCountCoverage(final Atlas atlas)
     {
-        super(logger, atlas);
+        super(logger, atlas, CoverageType.COUNT);
     }
 
     public EdgesCountCoverage(final Atlas atlas, final Predicate<Edge> filter)
     {
-        super(logger, atlas, filter);
+        super(logger, atlas, filter, CoverageType.COUNT);
     }
 
     public EdgesCountCoverage(final Logger logger, final Atlas atlas)
     {
-        super(logger, atlas);
+        super(logger, atlas, CoverageType.COUNT);
     }
 
     public EdgesCountCoverage(final Logger logger, final Atlas atlas, final Predicate<Edge> filter)
     {
-        super(logger, atlas, filter);
+        super(logger, atlas, filter, CoverageType.COUNT);
     }
 
     @Override

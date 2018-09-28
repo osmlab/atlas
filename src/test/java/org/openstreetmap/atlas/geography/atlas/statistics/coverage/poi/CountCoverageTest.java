@@ -38,11 +38,11 @@ public class CountCoverageTest
     private void testCount(final String type, final int count)
     {
         final Atlas atlas = this.rule.getAtlas();
-        final List<CountCoverage<AtlasEntity>> coverages = new ArrayList<>();
-        CountCoverage.parseCountCoverages(atlas, Iterables.filter(
+        final List<SimpleCoverage<AtlasEntity>> coverages = new ArrayList<>();
+        SimpleCoverage.parseSimpleCoverages(atlas, Iterables.filter(
                 Counter.POI_COUNTS_DEFINITION.getDefault().lines(), line -> line.startsWith(type)))
                 .forEach(coverages::add);
-        final CountCoverage<AtlasEntity> result = coverages.get(0);
+        final SimpleCoverage<AtlasEntity> result = coverages.get(0);
         result.run();
         logger.info("{}", result.getStatistic());
         Assert.assertEquals(count, result.getStatistic().values().iterator().next().getCount(),

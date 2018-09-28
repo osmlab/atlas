@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author matthieun
  */
-public class LastUserNameCountCoverage extends CountCoverage<AtlasEntity>
+public class LastUserNameCountCoverage extends SimpleCoverage<AtlasEntity>
 {
     private static final Logger logger = LoggerFactory.getLogger(LastUserNameCountCoverage.class);
 
@@ -37,7 +37,7 @@ public class LastUserNameCountCoverage extends CountCoverage<AtlasEntity>
      */
     public LastUserNameCountCoverage(final Atlas atlas, final long cutoff)
     {
-        super(logger, atlas);
+        super(logger, atlas, CoverageType.COUNT);
         this.cutoff = cutoff;
     }
 

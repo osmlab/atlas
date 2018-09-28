@@ -6,7 +6,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -28,7 +30,7 @@ import org.slf4j.LoggerFactory;
  * @param <T>
  *            The type of {@link AtlasEntity} to count.
  */
-public abstract class CountCoverage<T extends AtlasEntity> extends Coverage<T>
+public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
 {
     /**
      * A tag group is a set of tags that are sufficient for an entity to have to be counted. It can
@@ -67,6 +69,7 @@ public abstract class CountCoverage<T extends AtlasEntity> extends Coverage<T>
     private static final String COUPLED_KEYS_GROUP = "^";
 
     private final Set<TagGroup> tagGroups;
+    private final CoverageType coverageType;
 
     /**
      * Parse a count configuration file
@@ -75,12 +78,12 @@ public abstract class CountCoverage<T extends AtlasEntity> extends Coverage<T>
      *            The Atlas to crawl
      * @param coverages
      *            The configuration file
-     * @return All the {@link CountCoverage}s defined in the file
+     * @return All the {@link SimpleCoverage}s defined in the file
      */
-    public static Iterable<CountCoverage<AtlasEntity>> parseCountCoverages(final Atlas atlas,
+    public static Iterable<SimpleCoverage<AtlasEntity>> parseSimpleCoverages(final Atlas atlas,
             final Iterable<String> coverages)
     {
-        final List<CountCoverage<AtlasEntity>> result = new ArrayList<>();
+        final List<SimpleCoverage<AtlasEntity>> result = new ArrayList<>();
         final Iterable<String> filteredCoverages = Iterables.filter(coverages,
                 line -> !(line.startsWith("#") || "".equals(line)));
         filteredCoverages.forEach(definition ->
@@ -91,6 +94,11 @@ public abstract class CountCoverage<T extends AtlasEntity> extends Coverage<T>
                 final StringList split = StringList.split(definition, TYPE_SEPARATOR);
                 final StringList sources = StringList.split(split.get(1), VALUES_SEPARATOR);
                 final String type = split.get(0);
+                final String coverageTypes = split.size() >= 3 ? split.get(3)
+                        : CoverageType.COUNT.name();
+                final Set<CoverageType> coverageTypeSet = StringList
+                        .split(coverageTypes, VALUES_SEPARATOR).stream().map(CoverageType::forName)
+                        .collect(Collectors.toSet());
                 final Set<TagGroup> allowedTags = new HashSet<>();
                 final StringList orGroups = StringList.split(split.get(2), KEYS_SEPARATOR);
                 orGroups.forEach(orGroup ->
@@ -109,17 +117,15 @@ public abstract class CountCoverage<T extends AtlasEntity> extends Coverage<T>
                             final String key = keyValue.get(0);
                             final StringList values = StringList.split(keyValue.get(1),
                                     VALUES_SEPARATOR);
-                            values.forEach(value ->
-                            {
-                                // Each "," possible value
-                                tags.add(key, value);
-                            });
+                            // Each "," possible value
+                            values.forEach(value -> tags.add(key, value));
                         });
                         tagGroup.addTags(tags);
                     });
                     allowedTags.add(tagGroup);
                 });
-                result.add(new CountCoverage<AtlasEntity>(LoggerFactory.getLogger(type), atlas)
+                final Function<CoverageType, SimpleCoverage<AtlasEntity>> simpleCoverageFunction = sampleCoverageType -> new SimpleCoverage<AtlasEntity>(
+                        LoggerFactory.getLogger(type), atlas, sampleCoverageType)
                 {
                     @Override
                     protected Iterable<AtlasEntity> getEntities()
@@ -167,7 +173,9 @@ public abstract class CountCoverage<T extends AtlasEntity> extends Coverage<T>
                     {
                         return allowedTags;
                     }
-                });
+                };
+                coverageTypeSet.forEach(localCoverageType -> result
+                        .add(simpleCoverageFunction.apply(localCoverageType)));
             }
             catch (final Exception e)
             {
@@ -177,15 +185,18 @@ public abstract class CountCoverage<T extends AtlasEntity> extends Coverage<T>
         return result;
     }
 
-    public CountCoverage(final Logger logger, final Atlas atlas)
+    public SimpleCoverage(final Logger logger, final Atlas atlas, final CoverageType coverageType)
     {
         super(logger, atlas);
+        this.coverageType = coverageType;
         this.tagGroups = validKeyValuePairs();
     }
 
-    public CountCoverage(final Logger logger, final Atlas atlas, final Predicate<T> filter)
+    public SimpleCoverage(final Logger logger, final Atlas atlas, final Predicate<T> filter,
+            final CoverageType coverageType)
     {
         super(logger, atlas, filter);
+        this.coverageType = coverageType;
         this.tagGroups = validKeyValuePairs();
     }
 

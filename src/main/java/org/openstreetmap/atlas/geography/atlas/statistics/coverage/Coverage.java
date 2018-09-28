@@ -33,8 +33,24 @@ public abstract class Coverage<T extends AtlasEntity>
      */
     public enum CoverageType
     {
-        DISTANCE,
-        COUNT
+    DISTANCE,
+    COUNT;
+
+        public static CoverageType forName(final String name)
+        {
+            if (DISTANCE.name().equalsIgnoreCase(name))
+            {
+                return DISTANCE;
+            }
+            else if (COUNT.name().equalsIgnoreCase(name))
+            {
+                return COUNT;
+            }
+            else
+            {
+                throw new CoreException("Unknown coverage type {}", name);
+            }
+        }
     }
 
     private static final int REPORT_FREQUENCY = 100_000;
