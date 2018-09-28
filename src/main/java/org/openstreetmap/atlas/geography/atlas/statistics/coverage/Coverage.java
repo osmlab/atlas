@@ -34,6 +34,7 @@ public abstract class Coverage<T extends AtlasEntity>
     public enum CoverageType
     {
     DISTANCE,
+    SURFACE,
     COUNT;
 
         public static CoverageType forName(final String name)
@@ -41,6 +42,10 @@ public abstract class Coverage<T extends AtlasEntity>
             if (DISTANCE.name().equalsIgnoreCase(name))
             {
                 return DISTANCE;
+            }
+            else if (SURFACE.name().equalsIgnoreCase(name))
+            {
+                return SURFACE;
             }
             else if (COUNT.name().equalsIgnoreCase(name))
             {
@@ -156,6 +161,7 @@ public abstract class Coverage<T extends AtlasEntity>
             switch (coverageType())
             {
                 case DISTANCE:
+                case SURFACE:
                     count = this.counted.get(key);
                     totalCount = this.total.get(key);
                     break;

@@ -6,18 +6,25 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.LineItem;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
+import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.atlas.statistics.coverage.Coverage;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
+import org.openstreetmap.atlas.utilities.scalars.Distance;
+import org.openstreetmap.atlas.utilities.scalars.Surface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,7 +101,7 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
                 final StringList split = StringList.split(definition, TYPE_SEPARATOR);
                 final StringList sources = StringList.split(split.get(1), VALUES_SEPARATOR);
                 final String type = split.get(0);
-                final String coverageTypes = split.size() >= 3 ? split.get(3)
+                final String coverageTypes = split.size() > 3 ? split.get(3)
                         : CoverageType.COUNT.name();
                 final Set<CoverageType> coverageTypeSet = StringList
                         .split(coverageTypes, VALUES_SEPARATOR).stream().map(CoverageType::forName)
@@ -124,58 +131,64 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
                     });
                     allowedTags.add(tagGroup);
                 });
-                final Function<CoverageType, SimpleCoverage<AtlasEntity>> simpleCoverageFunction = sampleCoverageType -> new SimpleCoverage<AtlasEntity>(
-                        LoggerFactory.getLogger(type), atlas, sampleCoverageType)
+                final BiFunction<String, CoverageType, SimpleCoverage<AtlasEntity>> simpleCoverageFunction = (
+                        metricName, sampleCoverageType) -> new SimpleCoverage<AtlasEntity>(
+                                LoggerFactory.getLogger(metricName), atlas, sampleCoverageType)
+                        {
+                            @Override
+                            protected Iterable<AtlasEntity> getEntities()
+                            {
+                                if (sources.contains("all"))
+                                {
+                                    return getAtlas();
+                                }
+                                final List<Iterable<? extends AtlasEntity>> result = new ArrayList<>();
+                                if (sources.contains("nodes"))
+                                {
+                                    result.add(getAtlas().nodes());
+                                }
+                                if (sources.contains("edges"))
+                                {
+                                    result.add(getAtlas().edges());
+                                }
+                                if (sources.contains("areas"))
+                                {
+                                    result.add(getAtlas().areas());
+                                }
+                                if (sources.contains("lines"))
+                                {
+                                    result.add(getAtlas().lines());
+                                }
+                                if (sources.contains("points"))
+                                {
+                                    result.add(getAtlas().points());
+                                }
+                                if (sources.contains("relations"))
+                                {
+                                    result.add(getAtlas().relations());
+                                }
+                                return new MultiIterable<>(result);
+                            }
+
+                            @Override
+                            protected String type()
+                            {
+                                return metricName;
+                            }
+
+                            @Override
+                            protected Set<TagGroup> validKeyValuePairs()
+                            {
+                                return allowedTags;
+                            }
+                        };
+                coverageTypeSet.forEach(localCoverageType ->
                 {
-                    @Override
-                    protected Iterable<AtlasEntity> getEntities()
-                    {
-                        if (sources.contains("all"))
-                        {
-                            return getAtlas();
-                        }
-                        final List<Iterable<? extends AtlasEntity>> result = new ArrayList<>();
-                        if (sources.contains("nodes"))
-                        {
-                            result.add(getAtlas().nodes());
-                        }
-                        if (sources.contains("edges"))
-                        {
-                            result.add(getAtlas().edges());
-                        }
-                        if (sources.contains("areas"))
-                        {
-                            result.add(getAtlas().areas());
-                        }
-                        if (sources.contains("lines"))
-                        {
-                            result.add(getAtlas().lines());
-                        }
-                        if (sources.contains("points"))
-                        {
-                            result.add(getAtlas().points());
-                        }
-                        if (sources.contains("relations"))
-                        {
-                            result.add(getAtlas().relations());
-                        }
-                        return new MultiIterable<>(result);
-                    }
-
-                    @Override
-                    protected String type()
-                    {
-                        return type;
-                    }
-
-                    @Override
-                    protected Set<TagGroup> validKeyValuePairs()
-                    {
-                        return allowedTags;
-                    }
-                };
-                coverageTypeSet.forEach(localCoverageType -> result
-                        .add(simpleCoverageFunction.apply(localCoverageType)));
+                    final String appendix = CoverageType.COUNT.equals(localCoverageType) ? ""
+                            : "_" + localCoverageType.name().toLowerCase();
+                    final String metricName = type + appendix;
+                    result.add(simpleCoverageFunction.apply(metricName, localCoverageType));
+                });
             }
             catch (final Exception e)
             {
@@ -203,7 +216,7 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
     @Override
     protected CoverageType coverageType()
     {
-        return CoverageType.COUNT;
+        return this.coverageType;
     }
 
     @Override
@@ -216,13 +229,33 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
     @Override
     protected String getUnit()
     {
-        return "count unit";
+        switch (coverageType())
+        {
+            case COUNT:
+                return "count unit";
+            case DISTANCE:
+                return "kilometers";
+            case SURFACE:
+                return "square kilometers";
+            default:
+                throw new CoreException("Unknown coverage type: {}", this.coverageType.name());
+        }
     }
 
     @Override
     protected double getValue(final T item)
     {
-        return 1;
+        switch (coverageType())
+        {
+            case COUNT:
+                return 1;
+            case DISTANCE:
+                return getDistance(item).asKilometers();
+            case SURFACE:
+                return getSurface(item).asKilometerSquared();
+            default:
+                throw new CoreException("Unknown coverage type: {}", this.coverageType.name());
+        }
     }
 
     @Override
@@ -255,6 +288,41 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
      *         counted.
      */
     protected abstract Set<TagGroup> validKeyValuePairs();
+
+    private Distance getDistance(final AtlasEntity item)
+    {
+        Distance result = Distance.ZERO;
+        if (item instanceof LineItem)
+        {
+            return ((LineItem) item).asPolyLine().length();
+        }
+        else if (item instanceof Relation)
+        {
+            for (final RelationMember member : ((Relation) item).members())
+            {
+                result = result.add(getDistance(member.getEntity()));
+            }
+        }
+        return result;
+    }
+
+    private Surface getSurface(final AtlasEntity item)
+    {
+        Surface result = Surface.MINIMUM;
+        if (item instanceof Relation || item instanceof Area)
+        {
+            try
+            {
+                final RelationOrAreaToMultiPolygonConverter converter = new RelationOrAreaToMultiPolygonConverter();
+                result = result.add(converter.apply(item).surface());
+            }
+            catch (final CoreException e)
+            {
+                // Many features will not be multipolygons.
+            }
+        }
+        return result;
+    }
 
     private boolean isCounted(final AtlasEntity item, final MultiMap<String, String> andGroup)
     {

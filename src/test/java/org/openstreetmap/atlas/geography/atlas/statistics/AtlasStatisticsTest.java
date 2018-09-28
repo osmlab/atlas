@@ -61,8 +61,13 @@ public class AtlasStatisticsTest
     {
         final Atlas atlas = this.rule.getWaterAtlas();
         final AtlasStatistics statistics = new Counter().processAtlas(atlas);
+        System.out.println(statistics);
         Assert.assertEquals(6.0, statistics.get(new StatisticKey("", "rivers", "true")).getCount(),
                 0.01);
+        Assert.assertEquals(2.0, statistics.get(new StatisticKey("", "lakes2", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(2.08,
+                statistics.get(new StatisticKey("", "lakes2_surface", "true")).getCount(), 0.01);
     }
 
     @Test

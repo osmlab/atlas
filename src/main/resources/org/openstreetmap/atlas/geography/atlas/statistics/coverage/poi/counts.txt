@@ -39,7 +39,7 @@ lakes;areas,points;natural->water&water->lake,pond,reflecting_pool,reservoir|nat
 
 rivers;areas,lines,relations;natural->stream|water->canal,river,lock,moat,creek,riverbank,stream|waterway->river,riverbank,brook,ditch,stream,canal,derelict_canal,creek|stream->*
 wetland;areas,relations;wetland->swamp,mangrove,bog,fen,string_bog
-lakes2;areas,relations;natural->spring,hot_spring&name->*|natural->lake,pond|water:type->lake|landuse->pond|water->lake,pond,oxbow
+lakes2;areas,relations;natural->spring,hot_spring&name->*|natural->lake,pond|water:type->lake|landuse->pond|water->lake,pond,oxbow;surface,count
 
 amenity;points,areas;amenity->*
 phone;points,areas;contact:phone->*|phone->*
