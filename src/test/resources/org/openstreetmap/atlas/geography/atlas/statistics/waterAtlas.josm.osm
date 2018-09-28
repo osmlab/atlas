@@ -1,0 +1,93 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-39573' action='modify' lat='41.33596669689' lon='9.14987753446' />
+  <node id='-39574' action='modify' lat='41.31775302928' lon='9.14041255168' />
+  <node id='-39576' action='modify' lat='41.29938612965' lon='9.15599033584' />
+  <node id='-39578' action='modify' lat='41.28620024612' lon='9.14711691448' />
+  <node id='-39587' action='modify' lat='41.33433803962' lon='9.18083591565' />
+  <node id='-39588' action='modify' lat='41.31819732565' lon='9.17215968143' />
+  <node id='-39590' action='modify' lat='41.30205261352' lon='9.18241341278' />
+  <node id='-39592' action='modify' lat='41.28723743465' lon='9.17097655858' />
+  <node id='-39609' action='modify' lat='41.3321170777' lon='9.19937150694' />
+  <node id='-39610' action='modify' lat='41.31790112841' lon='9.18951214987' />
+  <node id='-39612' action='modify' lat='41.30234888278' lon='9.20311806262' />
+  <node id='-39614' action='modify' lat='41.28768193898' lon='9.19049808558' />
+  <node id='-39622' action='modify' lat='41.3300441116' lon='9.22145646676' />
+  <node id='-39623' action='modify' lat='41.31849352155' lon='9.2125830454' />
+  <node id='-39625' action='modify' lat='41.31271745875' lon='9.21987896963' />
+  <node id='-39627' action='modify' lat='41.31464286989' lon='9.22855520385' />
+  <node id='-39629' action='modify' lat='41.32249203442' lon='9.23171019811' />
+  <node id='-39638' action='modify' lat='41.30531795966' lon='9.2131196435' />
+  <node id='-39639' action='modify' lat='41.30801213652' lon='9.21625788157' />
+  <node id='-39641' action='modify' lat='41.30599151431' lon='9.22298267745' />
+  <node id='-39643' action='modify' lat='41.30655280454' lon='9.23120187241' />
+  <node id='-39645' action='modify' lat='41.30419535312' lon='9.23583450957' />
+  <node id='-39647' action='modify' lat='41.30312647207' lon='9.22268903429' />
+  <node id='-39648' action='modify' lat='41.30368196667' lon='9.22875253888' />
+  <node id='-39650' action='modify' lat='41.30220063722' lon='9.23151315886' />
+  <node id='-39653' action='modify' lat='41.30446564732' lon='9.21745375567' />
+  <node id='-39655' action='modify' lat='41.30382755884' lon='9.21558506018' />
+  <node id='-39685' action='modify' lat='41.29285594366' lon='9.20654428753' />
+  <node id='-39686' action='modify' lat='41.29431558215' lon='9.21566012194' />
+  <node id='-39688' action='modify' lat='41.29105942067' lon='9.22432763663' />
+  <node id='-39690' action='modify' lat='41.29476469512' lon='9.23777722838' />
+  <way id='-39575' action='modify'>
+    <nd ref='-39573' />
+    <nd ref='-39574' />
+    <nd ref='-39576' />
+    <nd ref='-39578' />
+    <tag k='waterway' v='stream' />
+  </way>
+  <way id='-39589' action='modify'>
+    <nd ref='-39587' />
+    <nd ref='-39588' />
+    <nd ref='-39590' />
+    <nd ref='-39592' />
+    <tag k='natural' v='stream' />
+  </way>
+  <way id='-39611' action='modify'>
+    <nd ref='-39609' />
+    <nd ref='-39610' />
+    <nd ref='-39612' />
+    <nd ref='-39614' />
+    <tag k='stream' v='something' />
+  </way>
+  <way id='-39624' action='modify'>
+    <nd ref='-39622' />
+    <nd ref='-39623' />
+    <nd ref='-39625' />
+    <nd ref='-39627' />
+    <nd ref='-39629' />
+    <nd ref='-39622' />
+    <tag k='waterway' v='riverbank' />
+  </way>
+  <way id='-39640' action='modify'>
+    <nd ref='-39638' />
+    <nd ref='-39639' />
+    <nd ref='-39641' />
+    <nd ref='-39643' />
+    <nd ref='-39645' />
+  </way>
+  <way id='-39649' action='modify'>
+    <nd ref='-39638' />
+    <nd ref='-39655' />
+    <nd ref='-39653' />
+    <nd ref='-39647' />
+    <nd ref='-39648' />
+    <nd ref='-39650' />
+    <nd ref='-39645' />
+  </way>
+  <way id='-39687' action='modify'>
+    <nd ref='-39685' />
+    <nd ref='-39686' />
+    <nd ref='-39688' />
+    <nd ref='-39690' />
+    <tag k='waterway' v='derelict_canal' />
+  </way>
+  <relation id='-39678' action='modify'>
+    <member type='way' ref='-39640' role='outer' />
+    <member type='way' ref='-39649' role='outer' />
+    <tag k='type' v='multipolygon' />
+    <tag k='water' v='moat' />
+  </relation>
+</osm>

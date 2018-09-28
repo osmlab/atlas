@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.statistics;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasTest;
@@ -8,10 +9,15 @@ import org.openstreetmap.atlas.geography.atlas.statistics.AtlasStatistics.Statis
 import org.openstreetmap.atlas.geography.atlas.statistics.AtlasStatistics.StatisticValue;
 
 /**
+ * Test the {@link AtlasStatistics} range of classes.
+ *
  * @author matthieun
  */
 public class AtlasStatisticsTest
 {
+    @Rule
+    public final AtlasStatisticsTestRule rule = new AtlasStatisticsTestRule();
+
     @Test
     public void testCounting()
     {
@@ -20,6 +26,42 @@ public class AtlasStatisticsTest
         final AtlasStatistics statistics = counter.processAtlas(atlas);
         Assert.assertEquals(7.245,
                 statistics.get(new StatisticKey("PRIMARY", "length_named", "true")).getCount(),
+                0.01);
+    }
+
+    @Test
+    public void testCountingAddresses()
+    {
+        final Atlas atlas = this.rule.getAddressAtlas();
+        final AtlasStatistics statistics = new Counter().processAtlas(atlas);
+        Assert.assertEquals(1.0,
+                statistics.get(new StatisticKey("", "associated_street", "true")).getCount(), 0.01);
+        Assert.assertEquals(6.0,
+                statistics.get(new StatisticKey("", "address_housenumber", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(1.0,
+                statistics.get(new StatisticKey("", "address_housename", "true")).getCount(), 0.01);
+        Assert.assertEquals(1.0,
+                statistics.get(new StatisticKey("", "address_street", "true")).getCount(), 0.01);
+        Assert.assertEquals(1.0, statistics
+                .get(new StatisticKey("", "address_housenumber_and_street", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(1.0, statistics
+                .get(new StatisticKey("", "address_housename_and_street", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(2.0,
+                statistics.get(new StatisticKey("", "address_blocknumber", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(1.0,
+                statistics.get(new StatisticKey("", "address_ranges", "true")).getCount(), 0.01);
+    }
+
+    @Test
+    public void testCountingWater()
+    {
+        final Atlas atlas = this.rule.getWaterAtlas();
+        final AtlasStatistics statistics = new Counter().processAtlas(atlas);
+        Assert.assertEquals(6.0, statistics.get(new StatisticKey("", "rivers", "true")).getCount(),
                 0.01);
     }
 

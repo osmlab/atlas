@@ -1,0 +1,91 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-39285' action='modify' lat='41.30731119272' lon='9.12956725891' />
+  <node id='-39288' action='modify' lat='41.31604986514' lon='9.18162466422' />
+  <node id='-39292' action='modify' lat='41.30020090018' lon='9.22106209248' />
+  <node id='-39294' action='modify' lat='41.31486502905' lon='9.2741054335' />
+  <node id='-39302' action='modify' lat='41.3264162622' lon='9.14711691448' />
+  <node id='-39303' action='modify' lat='41.31604986514' lon='9.14987753446' />
+  <node id='-39304' action='modify' lat='41.31908590931' lon='9.17008921645' />
+  <node id='-39305' action='modify' lat='41.32945182345' lon='9.16732859647' />
+  <node id='-39308' action='modify' lat='41.32182563264' lon='9.19976588122' />
+  <node id='-39309' action='modify' lat='41.31560555413' lon='9.19523057697' />
+  <node id='-39310' action='modify' lat='41.31082483702' lon='9.20685335293' />
+  <node id='-39311' action='modify' lat='41.31704537174' lon='9.21138865718' />
+  <node id='-39363' action='modify' lat='41.3163460708' lon='9.23171019811' />
+  <node id='-39364' action='modify' lat='41.30834804561' lon='9.23604831522' />
+  <node id='-39365' action='modify' lat='41.31355785108' lon='9.25307275705' />
+  <node id='-39366' action='modify' lat='41.32155523709' lon='9.24873463994' />
+  <node id='-39431' action='modify' lat='41.30657057342' lon='9.26759825783'>
+    <tag k='addr:blocknumber' v='7' />
+    <tag k='addr:housenumber' v='8' />
+  </node>
+  <node id='-39442' action='modify' lat='41.30834804561' lon='9.26089389503' />
+  <node id='-39443' action='modify' lat='41.30108972914' lon='9.26523201214' />
+  <node id='-39444' action='modify' lat='41.30475305544' lon='9.2760931619' />
+  <node id='-39445' action='modify' lat='41.31201096414' lon='9.27175504479' />
+  <node id='-39539' action='modify' lat='41.3103082413' lon='9.18216688156'>
+    <tag k='addr:housenumber' v='1' />
+  </node>
+  <node id='-39540' action='modify' lat='41.30231330685' lon='9.13290006638'>
+    <tag k='addr:housenumber' v='7' />
+  </node>
+  <way id='-39289' action='modify'>
+    <nd ref='-39294' />
+    <nd ref='-39292' />
+    <nd ref='-39288' />
+    <nd ref='-39285' />
+    <tag k='highway' v='primary' />
+    <tag k='name' v='Main Street' />
+  </way>
+  <way id='-39306' action='modify'>
+    <nd ref='-39302' />
+    <nd ref='-39305' />
+    <nd ref='-39304' />
+    <nd ref='-39303' />
+    <nd ref='-39302' />
+    <tag k='addr:housename' v='Some House' />
+    <tag k='addr:housenumber' v='11' />
+    <tag k='addr:street' v='Main Street' />
+    <tag k='building' v='yes' />
+    <tag k='name' v='Some House' />
+  </way>
+  <way id='-39312' action='modify'>
+    <nd ref='-39308' />
+    <nd ref='-39311' />
+    <nd ref='-39310' />
+    <nd ref='-39309' />
+    <nd ref='-39308' />
+    <tag k='addr:blocknumber' v='7' />
+    <tag k='addr:housenumber' v='10' />
+    <tag k='building' v='yes' />
+  </way>
+  <way id='-39367' action='modify'>
+    <nd ref='-39363' />
+    <nd ref='-39366' />
+    <nd ref='-39365' />
+    <nd ref='-39364' />
+    <nd ref='-39363' />
+    <tag k='addr:housenumber' v='9' />
+    <tag k='building' v='yes' />
+  </way>
+  <way id='-39446' action='modify'>
+    <nd ref='-39442' />
+    <nd ref='-39445' />
+    <nd ref='-39444' />
+    <nd ref='-39443' />
+    <nd ref='-39442' />
+    <tag k='building' v='yes' />
+  </way>
+  <way id='-39541' action='modify'>
+    <nd ref='-39539' />
+    <nd ref='-39540' />
+    <tag k='addr:interpolation' v='odd' />
+  </way>
+  <relation id='-39412' action='modify'>
+    <member type='node' ref='-39431' role='house' />
+    <member type='way' ref='-39289' role='street' />
+    <member type='way' ref='-39367' role='house' />
+    <tag k='type' v='associatedStreet' />
+  </relation>
+</osm>
