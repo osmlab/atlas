@@ -75,6 +75,8 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
     private static final String COUPLED_KEYS_SEPARATOR = "&";
     private static final String COUPLED_KEYS_GROUP = "^";
 
+    private static final int COVERAGE_TYPE_INDEX = 3;
+
     private final Set<TagGroup> tagGroups;
     private final CoverageType coverageType;
 
@@ -101,8 +103,8 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
                 final StringList split = StringList.split(definition, TYPE_SEPARATOR);
                 final StringList sources = StringList.split(split.get(1), VALUES_SEPARATOR);
                 final String type = split.get(0);
-                final String coverageTypes = split.size() > 3 ? split.get(3)
-                        : CoverageType.COUNT.name();
+                final String coverageTypes = split.size() > COVERAGE_TYPE_INDEX
+                        ? split.get(COVERAGE_TYPE_INDEX) : CoverageType.COUNT.name();
                 final Set<CoverageType> coverageTypeSet = StringList
                         .split(coverageTypes, VALUES_SEPARATOR).stream().map(CoverageType::forName)
                         .collect(Collectors.toSet());
