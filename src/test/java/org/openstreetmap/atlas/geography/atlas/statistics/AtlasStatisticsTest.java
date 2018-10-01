@@ -90,6 +90,48 @@ public class AtlasStatisticsTest
     }
 
     @Test
+    public void testCountingRefs()
+    {
+        final Atlas atlas = this.rule.getRefsAtlas();
+        final AtlasStatistics statistics = new Counter().processAtlas(atlas);
+
+        // Refs
+        Assert.assertEquals(1.0, statistics.get(new StatisticKey("", "ref", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(0.53,
+                statistics.get(new StatisticKey("", "ref_distance", "true")).getCount(), 0.01);
+
+        Assert.assertEquals(3.0,
+                statistics.get(new StatisticKey("", "ref_no_relation", "true")).getCount(), 0.01);
+        Assert.assertEquals(0.16,
+                statistics.get(new StatisticKey("", "ref_no_relation_distance", "true")).getCount(),
+                0.01);
+
+        Assert.assertEquals(1.0, statistics.get(new StatisticKey("", "int_ref", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(0.53,
+                statistics.get(new StatisticKey("", "int_ref_distance", "true")).getCount(), 0.01);
+
+        Assert.assertEquals(2.0,
+                statistics.get(new StatisticKey("", "int_ref_no_relation", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(0.21, statistics
+                .get(new StatisticKey("", "int_ref_no_relation_distance", "true")).getCount(),
+                0.01);
+
+        // Lane direction
+        Assert.assertEquals(3.0,
+                statistics.get(new StatisticKey("", "lane_direction", "true")).getCount(), 0.01);
+        Assert.assertEquals(0.31,
+                statistics.get(new StatisticKey("", "lane_direction_distance", "true")).getCount(),
+                0.01);
+
+        // Toll booths
+        Assert.assertEquals(1.0,
+                statistics.get(new StatisticKey("", "toll_booths", "true")).getCount(), 0.01);
+    }
+
+    @Test
     public void testCountingWater()
     {
         final Atlas atlas = this.rule.getWaterAtlas();

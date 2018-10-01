@@ -9,7 +9,8 @@ signposts;points;highway->motorway_junction
 signpost_ways;edges;destination->*
 
 # all barrier values included
-barriers;points,lines;barrier->*
+barriers;points,lines,edges;barrier->*
+barriers_whitelist;points,lines,edges;barrier->toll_booth,sally_port,cattle_grid,entrance,border_control
 
 # Stop signs on nodes will be duplicated as a point because it has a tag. Count points only
 stop_signs;points;highway->stop
@@ -79,3 +80,11 @@ address_blocknumber;areas,points;addr:blocknumber->*
 
 # Ferries
 ferry_route;edges,lines,relations;route->ferry;count,distance
+
+# Ref/Lanes
+ref;relations;ref->*;count,distance
+ref_no_relation;nodes,edges,lines;ref->*;count,distance
+int_ref;relations;int_ref->*;count,distance
+int_ref_no_relation;nodes,edges,lines;int_ref->*;count,distance
+lane_direction;edges;turn:lanes->*;count,distance
+toll_booths;points;barrier->toll_booth
