@@ -1063,23 +1063,16 @@ public class WaySectionProcessor
                         continue;
                     }
 
-                    // Update end point occurrence to factor in duplicates
-                    final Integer duplicates = duplicateLocations.get(end.getIdentifier());
-                    if (duplicates != null)
-                    {
-                        for (int duplicate = 0; duplicate < duplicates; duplicate++)
-                        {
-                            nodesToSectionAt.incrementOccurrence(end);
-                        }
-                    }
-
                     // We found the end node, create the edge. Note: using occurrence minus one
                     // since PolyLine uses zero-based numbering. We are incrementing only the
                     // start node occurrence, since the end node will either be used as a future
                     // start node or be the end of the way, in which case we don't care.
                     final int startOccurrence = nodesToSectionAt.getOccurrence(startNode.get()) - 1;
                     nodesToSectionAt.incrementOccurrence(startNode.get());
-                    final int endOccurrence = nodesToSectionAt.getOccurrence(end) - 1;
+
+                    // Update end point occurrence to factor in any duplicates in the polyline
+                    final int duplicates = duplicateLocations.getOrDefault(end.getIdentifier(), 0);
+                    final int endOccurrence = duplicates + nodesToSectionAt.getOccurrence(end) - 1;
 
                     // Build the underlying polyline and reverse it, if necessary
                     final PolyLine rawPolyline = polyline.between(polyline.get(startIndex),
