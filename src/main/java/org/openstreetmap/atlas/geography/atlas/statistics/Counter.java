@@ -61,7 +61,7 @@ public class Counter extends Crawler
             "file containing all the poi counts definition", value ->
             {
                 final Resource defaultResource = new InputStreamResource(
-                        SimpleCoverage.class.getResourceAsStream("counts.txt"));
+                        () -> SimpleCoverage.class.getResourceAsStream("counts.txt"));
                 if ("".equals(value))
                 {
                     return defaultResource;

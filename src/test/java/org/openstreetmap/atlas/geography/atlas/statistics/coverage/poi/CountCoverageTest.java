@@ -26,7 +26,7 @@ public class CountCoverageTest
     @Test
     public void testPoiCounts()
     {
-        testCount("address_points;", 2);
+        testCount("address_housenumber;", 3);
         testCount("amenity;", 3);
         testCount("fixme;", 3);
         testCount("hospitals;", 1);
