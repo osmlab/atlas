@@ -75,6 +75,14 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
     private static final String COUPLED_KEYS_SEPARATOR = "&";
     private static final String COUPLED_KEYS_GROUP = "^";
 
+    private static final String NODES = "nodes";
+    private static final String EDGES = "edges";
+    private static final String LINES = "lines";
+    private static final String AREAS = "areas";
+    private static final String POINTS = "points";
+    private static final String RELATIONS = "relations";
+
+    private static final String COMMENTED_LINE = "#";
     private static final int COVERAGE_TYPE_INDEX = 3;
 
     private final Set<TagGroup> tagGroups;
@@ -94,7 +102,7 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
     {
         final List<SimpleCoverage<AtlasEntity>> result = new ArrayList<>();
         final Iterable<String> filteredCoverages = Iterables.filter(coverages,
-                line -> !(line.startsWith("#") || "".equals(line)));
+                line -> !(line.startsWith(COMMENTED_LINE) || "".equals(line)));
         filteredCoverages.forEach(definition ->
         {
             try
@@ -145,27 +153,27 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
                                     return getAtlas();
                                 }
                                 final List<Iterable<? extends AtlasEntity>> result = new ArrayList<>();
-                                if (sources.contains("nodes"))
+                                if (sources.contains(NODES))
                                 {
                                     result.add(getAtlas().nodes());
                                 }
-                                if (sources.contains("edges"))
+                                if (sources.contains(EDGES))
                                 {
                                     result.add(getAtlas().edges());
                                 }
-                                if (sources.contains("areas"))
+                                if (sources.contains(AREAS))
                                 {
                                     result.add(getAtlas().areas());
                                 }
-                                if (sources.contains("lines"))
+                                if (sources.contains(LINES))
                                 {
                                     result.add(getAtlas().lines());
                                 }
-                                if (sources.contains("points"))
+                                if (sources.contains(POINTS))
                                 {
                                     result.add(getAtlas().points());
                                 }
-                                if (sources.contains("relations"))
+                                if (sources.contains(RELATIONS))
                                 {
                                     result.add(getAtlas().relations());
                                 }
