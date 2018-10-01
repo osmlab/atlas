@@ -53,8 +53,8 @@ public class FilteredIterableTest
         Assert.assertEquals(2, filtered2.size());
 
         // filter HTTPS -- note that this is the result of choosing such a generic identifier
-        // method,
-        // even though we invoke addToFilteredSet() on the much more specific "http://github.com"
+        // method, even though we invoke addToFilteredSet() on the much more specific
+        // "https://github.com"
         filteredIterable.addToFilteredSet(new URL("https://github.com"));
         final List<URL> filtered3 = Iterables.stream(filteredIterable).collectToList();
         logger.info("{}", filtered3);

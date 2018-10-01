@@ -42,13 +42,14 @@ public class FilteredIterable<Type, IdentifierType> implements Iterable<Type>
     /**
      * Takes an element and uses the identifier function to add its identifier to the filter set.
      *
-     * @param t
+     * @param type
+     *            The element to add to the filter set
      * @return True if an element was added to the filter set, false if it wasn't (likely in the
      *         case it was already present in the set)
      */
-    public boolean addToFilteredSet(final Type t)
+    public boolean addToFilteredSet(final Type type)
     {
-        return this.filterSet.add(this.identifier.apply(t));
+        return this.filterSet.add(this.identifier.apply(type));
     }
 
     @Override

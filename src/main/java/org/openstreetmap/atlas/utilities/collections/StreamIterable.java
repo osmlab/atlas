@@ -104,8 +104,12 @@ public class StreamIterable<T> implements Iterable<T>
     /**
      * Filter an {@link Iterable} using a set of known elements to filter and an idenfitier function
      *
-     * @param filter
-     *            The filter function
+     * @param filterSet
+     *            The set of IdentifierTypes to filter
+     * @param identifier
+     *            The function mapping an element of type T to its identifier of type IdentifierType
+     * @param <IdentifierType>
+     *            The type for the object identifier for elements of the {@link Iterable}
      * @return The filtered {@link Iterable} as a {@link StreamIterable}
      */
     public <IdentifierType> StreamIterable<T> filter(final Set<IdentifierType> filterSet,
