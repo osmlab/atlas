@@ -17,9 +17,17 @@ public class AtlasStatisticsTestRule extends CoreTestRule
     @TestAtlas(loadFromJosmOsmResource = "waterAtlas.josm.osm")
     private Atlas waterAtlas;
 
+    @TestAtlas(loadFromJosmOsmResource = "ferryAtlas.josm.osm")
+    private Atlas ferryAtlas;
+
     public Atlas getAddressAtlas()
     {
         return this.addressAtlas;
+    }
+
+    public Atlas getFerryAtlas()
+    {
+        return this.ferryAtlas;
     }
 
     public Atlas getWaterAtlas()

@@ -34,26 +34,59 @@ public class AtlasStatisticsTest
     {
         final Atlas atlas = this.rule.getAddressAtlas();
         final AtlasStatistics statistics = new Counter().processAtlas(atlas);
+
+        // Associated Street
         Assert.assertEquals(1.0,
                 statistics.get(new StatisticKey("", "associated_street", "true")).getCount(), 0.01);
+
+        // Address Ranges
+        Assert.assertEquals(1.0,
+                statistics.get(new StatisticKey("", "address_ranges", "true")).getCount(), 0.01);
+        Assert.assertEquals(4.21,
+                statistics.get(new StatisticKey("", "address_ranges_distance", "true")).getCount(),
+                0.01);
+
+        // Address Housenumber
         Assert.assertEquals(6.0,
                 statistics.get(new StatisticKey("", "address_housenumber", "true")).getCount(),
                 0.01);
+
+        // Address Housename
         Assert.assertEquals(1.0,
                 statistics.get(new StatisticKey("", "address_housename", "true")).getCount(), 0.01);
+
+        // Address Street
         Assert.assertEquals(1.0,
                 statistics.get(new StatisticKey("", "address_street", "true")).getCount(), 0.01);
+
+        // Address Housenumber and Street
         Assert.assertEquals(1.0, statistics
                 .get(new StatisticKey("", "address_housenumber_and_street", "true")).getCount(),
                 0.01);
+
+        // Address Housename and Street
         Assert.assertEquals(1.0, statistics
                 .get(new StatisticKey("", "address_housename_and_street", "true")).getCount(),
                 0.01);
+
+        // Address Blocknumber
         Assert.assertEquals(2.0,
                 statistics.get(new StatisticKey("", "address_blocknumber", "true")).getCount(),
                 0.01);
-        Assert.assertEquals(1.0,
-                statistics.get(new StatisticKey("", "address_ranges", "true")).getCount(), 0.01);
+    }
+
+    @Test
+    public void testCountingFerries()
+    {
+        final Atlas atlas = this.rule.getFerryAtlas();
+        final AtlasStatistics statistics = new Counter().processAtlas(atlas);
+
+        // Ferries
+        Assert.assertEquals(2.0,
+                statistics.get(new StatisticKey("", "ferry_route", "true")).getCount(), 0.01);
+        Assert.assertEquals(14.05,
+                statistics.get(new StatisticKey("", "ferry_route_distance", "true")).getCount(),
+                0.01);
     }
 
     @Test
@@ -61,13 +94,70 @@ public class AtlasStatisticsTest
     {
         final Atlas atlas = this.rule.getWaterAtlas();
         final AtlasStatistics statistics = new Counter().processAtlas(atlas);
-        System.out.println(statistics);
+
+        // Rivers
         Assert.assertEquals(6.0, statistics.get(new StatisticKey("", "rivers", "true")).getCount(),
                 0.01);
+        Assert.assertEquals(24.92,
+                statistics.get(new StatisticKey("", "rivers_distance", "true")).getCount(), 0.01);
+
+        // Wetland
+        Assert.assertEquals(1.0, statistics.get(new StatisticKey("", "wetland", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(0.84,
+                statistics.get(new StatisticKey("", "wetland_surface", "true")).getCount(), 0.01);
+
+        // Lakes2
         Assert.assertEquals(2.0, statistics.get(new StatisticKey("", "lakes2", "true")).getCount(),
                 0.01);
         Assert.assertEquals(2.08,
                 statistics.get(new StatisticKey("", "lakes2_surface", "true")).getCount(), 0.01);
+
+        // Reservoir
+        Assert.assertEquals(1.0,
+                statistics.get(new StatisticKey("", "reservoir", "true")).getCount(), 0.01);
+        Assert.assertEquals(0.77,
+                statistics.get(new StatisticKey("", "reservoir_surface", "true")).getCount(), 0.01);
+
+        // Coastlines
+        // This needs to be addressed once the defaults allow for coastlines to be ingested
+        Assert.assertEquals(0.00,
+                statistics.get(new StatisticKey("", "coastline_distance", "true")).getCount(),
+                0.01);
+
+        // Harbour
+        Assert.assertEquals(3.0, statistics.get(new StatisticKey("", "harbour", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(0.99,
+                statistics.get(new StatisticKey("", "harbour_distance", "true")).getCount(), 0.01);
+        Assert.assertEquals(2.39,
+                statistics.get(new StatisticKey("", "harbour_surface", "true")).getCount(), 0.01);
+
+        // Bay
+        Assert.assertEquals(2.0, statistics.get(new StatisticKey("", "bay", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(2.39,
+                statistics.get(new StatisticKey("", "harbour_surface", "true")).getCount(), 0.01);
+
+        // Beach
+        Assert.assertEquals(2.0, statistics.get(new StatisticKey("", "beach", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(2.44,
+                statistics.get(new StatisticKey("", "beach_surface", "true")).getCount(), 0.01);
+
+        // Island
+        Assert.assertEquals(2.0, statistics.get(new StatisticKey("", "island", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(0.25,
+                statistics.get(new StatisticKey("", "island_surface", "true")).getCount(), 0.01);
+
+        // Piers
+        Assert.assertEquals(3.0, statistics.get(new StatisticKey("", "pier", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(2.67,
+                statistics.get(new StatisticKey("", "pier_distance", "true")).getCount(), 0.01);
+        Assert.assertEquals(0.11,
+                statistics.get(new StatisticKey("", "pier_surface", "true")).getCount(), 0.01);
     }
 
     @Test

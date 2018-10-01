@@ -33,10 +33,10 @@ import org.openstreetmap.atlas.geography.atlas.statistics.coverage.linear.edge.T
 import org.openstreetmap.atlas.geography.atlas.statistics.coverage.linear.line.RailLineCoverage;
 import org.openstreetmap.atlas.geography.atlas.statistics.coverage.linear.line.RiverLineCoverage;
 import org.openstreetmap.atlas.geography.atlas.statistics.coverage.linear.line.TransitRailLineCoverage;
-import org.openstreetmap.atlas.geography.atlas.statistics.coverage.poi.SimpleCoverage;
 import org.openstreetmap.atlas.geography.atlas.statistics.coverage.poi.EdgesCountCoverage;
 import org.openstreetmap.atlas.geography.atlas.statistics.coverage.poi.LastUserNameCountCoverage;
 import org.openstreetmap.atlas.geography.atlas.statistics.coverage.poi.OneWayEdgesCountCoverage;
+import org.openstreetmap.atlas.geography.atlas.statistics.coverage.poi.SimpleCoverage;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;

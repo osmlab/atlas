@@ -37,9 +37,17 @@ bus_stops;all;amenity->bus_station|highway->bus_stop|bus->*^trolleybus->*&public
 # natural=water AND water=[lake OR pond OR reflecting_pool OR reservoir] OR natural=water AND (NOT water=*) OR landuse=basin
 lakes;areas,points;natural->water&water->lake,pond,reflecting_pool,reservoir|natural->water&water->!|landuse->basin
 
-rivers;areas,lines,relations;natural->stream|water->canal,river,lock,moat,creek,riverbank,stream|waterway->river,riverbank,brook,ditch,stream,canal,derelict_canal,creek|stream->*
-wetland;areas,relations;wetland->swamp,mangrove,bog,fen,string_bog
+# Water queries
+rivers;areas,lines,relations;natural->stream|water->canal,river,lock,moat,creek,riverbank,stream|waterway->river,riverbank,brook,ditch,stream,canal,derelict_canal,creek|stream->*;distance,count
+wetland;areas,relations;wetland->swamp,mangrove,bog,fen,string_bog;surface,count
 lakes2;areas,relations;natural->spring,hot_spring&name->*|natural->lake,pond|water:type->lake|landuse->pond|water->lake,pond,oxbow;surface,count
+reservoir;areas,relations;water->reservoir,dam|waterway->reservoir|landuse->reservoir,basin|natural->reservoir|seamark:type->dam;surface,count
+coastline;edges,lines,relations;natural->coastline;distance
+harbour;all;water->harbour|seamark:type->harbour|water->cove&salt->yes|harbour->yes;count,distance,surface
+bay;areas,relations;natural->bay;count,surface
+beach;areas,relations;natural->beach;count,surface
+island;areas,relations;place->island&natural->*&natural->!coastline|place->island&natural->!;count,surface
+pier;edges,lines,areas,relations;man_made->pier;count,distance,surface
 
 amenity;points,areas;amenity->*
 phone;points,areas;contact:phone->*|phone->*
@@ -61,10 +69,13 @@ city_center;points,areas,relations;place->municipality,city,town,village,hamlet
 
 # Details with addresses
 associated_street;relations;type->associatedstreet
-address_ranges;lines;addr:interpolation->*
+address_ranges;lines;addr:interpolation->*;count,distance
 address_housenumber;areas,points;addr:housenumber->*
 address_housename;areas,points;addr:housename->*
 address_street;areas,points;addr:street->*
 address_housenumber_and_street;areas,points;addr:street->*&addr:housenumber->*
 address_housename_and_street;areas,points;addr:street->*&addr:housename->*
 address_blocknumber;areas,points;addr:blocknumber->*
+
+# Ferries
+ferry_route;edges,lines,relations;route->ferry;count,distance

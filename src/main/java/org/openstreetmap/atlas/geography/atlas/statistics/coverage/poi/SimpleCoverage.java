@@ -289,6 +289,14 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
      */
     protected abstract Set<TagGroup> validKeyValuePairs();
 
+    /**
+     * Gets the length of the item to count
+     *
+     * @param item
+     *            The item to count
+     * @return The length of the item to count. In case this is a {@link Relation}, the length is
+     *         the sum of all the relation's lowest order {@link LineItem}s.
+     */
     private Distance getDistance(final AtlasEntity item)
     {
         Distance result = Distance.ZERO;
@@ -306,6 +314,16 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
         return result;
     }
 
+    /**
+     * Gets the area of the item to count
+     *
+     * @param item
+     *            The item to count
+     * @return The area of the item to count. In case this is a {@link Relation}, and the
+     *         {@link Relation} is type=multipolygon, the area is the area of the multipolygon. In
+     *         case the relation is of another type, the area is the sum of all the lowest order
+     *         areas that make the relation.
+     */
     private Surface getSurface(final AtlasEntity item)
     {
         Surface result = Surface.MINIMUM;
@@ -315,10 +333,19 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
             {
                 final RelationOrAreaToMultiPolygonConverter converter = new RelationOrAreaToMultiPolygonConverter();
                 result = result.add(converter.apply(item).surface());
+                return result;
             }
             catch (final CoreException e)
             {
                 // Many features will not be multipolygons.
+            }
+        }
+        if (item instanceof Relation)
+        {
+            // Relation that is not of type multipolygon
+            for (final RelationMember member : ((Relation) item).members())
+            {
+                result = result.add(getSurface(member.getEntity()));
             }
         }
         return result;
