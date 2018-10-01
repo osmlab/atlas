@@ -33,9 +33,9 @@ public abstract class Coverage<T extends AtlasEntity>
      */
     public enum CoverageType
     {
-    DISTANCE,
-    SURFACE,
-    COUNT;
+        DISTANCE,
+        SURFACE,
+        COUNT;
 
         public static CoverageType forName(final String name)
         {
