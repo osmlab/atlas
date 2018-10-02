@@ -17,10 +17,10 @@ Predicate<Taggable> filter = TaggableFilter.forDefinition(definition);
                 OR
               /    \
             /        \
-         AND          AND
+         AND         Test
        /     \
      /         \
-   OR           OR
+  Test         Test
 ```
 
 Each leaf node is a "simple" filter, based on tags. The taggable filter is a collection of simple filters with AND and OR operands.
