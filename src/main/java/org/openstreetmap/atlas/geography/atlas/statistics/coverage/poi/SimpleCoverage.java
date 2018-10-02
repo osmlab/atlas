@@ -77,8 +77,7 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
                 final StringList sources = StringList.split(split.get(1), VALUES_SEPARATOR);
                 final String type = split.get(0);
                 final String coverageTypes = split.size() > COVERAGE_TYPE_INDEX
-                        ? split.get(COVERAGE_TYPE_INDEX)
-                        : CoverageType.COUNT.name();
+                        ? split.get(COVERAGE_TYPE_INDEX) : CoverageType.COUNT.name();
                 final Set<CoverageType> coverageTypeSet = StringList
                         .split(coverageTypes, VALUES_SEPARATOR).stream().map(CoverageType::forName)
                         .collect(Collectors.toSet());
