@@ -34,7 +34,7 @@ public class LineFilterConverter implements TwoWayConverter<String, TaggableFilt
         return convert(object, TreeBoolean.OR, 0);
     }
 
-    private String backwardConvert(final TaggableFilter object, final int numberOfOccurences)
+    private String backwardConvert(final TaggableFilter object, final int numberOfOccurrences)
     {
         final Optional<String> definition = object.getDefinition();
         if (definition.isPresent())
@@ -43,7 +43,7 @@ public class LineFilterConverter implements TwoWayConverter<String, TaggableFilt
         }
         else
         {
-            final int numberOfSeparators = numberOfSeparators(numberOfOccurences);
+            final int numberOfSeparators = numberOfSeparators(numberOfOccurrences);
             final String separatorCharacter = object.getTreeBoolean().separator();
             final StringList separatorList = new StringList();
             for (int i = 0; i < numberOfSeparators; i++)
@@ -53,15 +53,16 @@ public class LineFilterConverter implements TwoWayConverter<String, TaggableFilt
             final String separator = separatorList.join("");
             final StringList result = new StringList();
             object.getChildren()
-                    .forEach(child -> result.add(backwardConvert(child, numberOfOccurences + 1)));
+                    .forEach(child -> result.add(backwardConvert(child, numberOfOccurrences + 1)));
             return result.join(separator);
         }
     }
 
     private TaggableFilter convert(final String object, final TreeBoolean treeBoolean,
-            final int numberOfOccurences)
+            final int numberOfOccurrences)
     {
-        final String regex = regex(treeBoolean.separator(), numberOfSeparators(numberOfOccurences));
+        final String regex = regex(treeBoolean.separator(),
+                numberOfSeparators(numberOfOccurrences));
         final StringList split = StringList.splitByRegex(object, regex);
         final List<TaggableFilter> children = new ArrayList<>();
         if (split.size() > 1)
@@ -69,14 +70,14 @@ public class LineFilterConverter implements TwoWayConverter<String, TaggableFilt
             // There is a split on the initial operation
             for (final String value : split)
             {
-                children.add(convert(value, treeBoolean.other(), numberOfOccurences + 1));
+                children.add(convert(value, treeBoolean.other(), numberOfOccurrences + 1));
             }
             return new TaggableFilter(children, treeBoolean);
         }
         else if (object.contains(treeBoolean.other().separator()))
         {
             // We need to keep splitting
-            children.add(convert(object, treeBoolean.other(), numberOfOccurences + 1));
+            children.add(convert(object, treeBoolean.other(), numberOfOccurrences + 1));
             return new TaggableFilter(children, treeBoolean);
         }
         else
@@ -96,23 +97,23 @@ public class LineFilterConverter implements TwoWayConverter<String, TaggableFilt
         return value;
     }
 
-    private int numberOfSeparators(final int numberOfOccurences)
+    private int numberOfSeparators(final int numberOfOccurrences)
     {
-        return numberOfOccurences / 2 + 1;
+        return numberOfOccurrences / 2 + 1;
     }
 
-    private String regex(final String character, final int numberOfOccurences)
+    private String regex(final String character, final int numberOfOccurrences)
     {
-        if (numberOfOccurences < 1)
+        if (numberOfOccurrences < 1)
         {
             throw new CoreException("Invalid number of occurences for pattern with {}: {}",
-                    character, numberOfOccurences);
+                    character, numberOfOccurrences);
         }
         // For || an example is "(?<!\|)\|{2}(?!\|)"
         // One look before and one lookahead
         final String escapedCharacter = escaped(character);
         final String negativeLookBefore = "(?<!" + escapedCharacter + ")";
-        String characterTimesNumber = escapedCharacter + "{" + numberOfOccurences + "}";
+        String characterTimesNumber = escapedCharacter + "{" + numberOfOccurrences + "}";
         if ("\\|{2}".equals(characterTimesNumber))
         {
             // For backwards compatibility, use the ^ as a replacement option for ||
