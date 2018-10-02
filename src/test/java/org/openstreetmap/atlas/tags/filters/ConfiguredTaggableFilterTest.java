@@ -1,8 +1,5 @@
 package org.openstreetmap.atlas.tags.filters;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -94,17 +91,5 @@ public class ConfiguredTaggableFilterTest
         Assert.assertTrue(wayFilter.test(railwayBoundary));
         Assert.assertTrue(wayFilter.test(waterwayBoundary));
         Assert.assertFalse(wayFilter.test(boundary));
-    }
-
-    @Test
-    public void testTagValidation()
-    {
-        final List<String> failedValidation = new ArrayList<>();
-        this.filter.getFilters().forEach(taggableFilter ->
-        {
-            failedValidation.addAll(taggableFilter.checkAllowedTags());
-        });
-        Assert.assertEquals(1, failedValidation.size());
-        Assert.assertEquals("reversed", failedValidation.get(0));
     }
 }

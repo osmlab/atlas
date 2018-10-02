@@ -123,6 +123,20 @@
   <node id='-67786' action='modify' lat='41.35584032629' lon='9.14844807558' />
   <node id='-67788' action='modify' lat='41.3552112692' lon='9.14682128166' />
   <node id='-67790' action='modify' lat='41.3552112692' lon='9.14489870704' />
+  <node id='-78349' action='modify' lat='41.31732854172' lon='9.23622692009' />
+  <node id='-78350' action='modify' lat='41.31967148891' lon='9.2385058787' />
+  <node id='-78352' action='modify' lat='41.31631838282' lon='9.24181223667' />
+  <node id='-78354' action='modify' lat='41.31386307022' lon='9.24054199745' />
+  <node id='-78356' action='modify' lat='41.31238983827' lon='9.23701147961' />
+  <node id='-78358' action='modify' lat='41.31491535837' lon='9.23503140083' />
+  <node id='-78367' action='modify' lat='41.33477572311' lon='9.1607309998' />
+  <node id='-78368' action='modify' lat='41.33480220057' lon='9.16460989546' />
+  <node id='-78370' action='modify' lat='41.3330375813' lon='9.1646312599' />
+  <node id='-78372' action='modify' lat='41.33301110313' lon='9.16075236425' />
+  <node id='-78389' action='modify' lat='41.33204380437' lon='9.16077347015' />
+  <node id='-78390' action='modify' lat='41.33207028294' lon='9.16465236581' />
+  <node id='-78391' action='modify' lat='41.33030558967' lon='9.16467373026' />
+  <node id='-78392' action='modify' lat='41.33027911039' lon='9.1607948346' />
   <way id='-39043' action='modify'>
     <nd ref='-38981' />
     <nd ref='-38983' />
@@ -327,9 +341,37 @@
     <nd ref='-67790' />
     <nd ref='-67781' />
   </way>
+  <way id='-78351' action='modify'>
+    <nd ref='-78349' />
+    <nd ref='-78350' />
+    <nd ref='-78352' />
+    <nd ref='-78354' />
+    <nd ref='-78356' />
+    <nd ref='-78358' />
+    <nd ref='-78349' />
+    <tag k='water' v='lagoon' />
+  </way>
+  <way id='-78369' action='modify'>
+    <nd ref='-78367' />
+    <nd ref='-78368' />
+    <nd ref='-78370' />
+    <nd ref='-78372' />
+    <nd ref='-78367' />
+    <tag k='leisure' v='swimming_pool' />
+  </way>
+  <way id='-78388' action='modify'>
+    <nd ref='-78389' />
+    <nd ref='-78390' />
+    <nd ref='-78391' />
+    <nd ref='-78392' />
+    <nd ref='-78389' />
+    <tag k='covered' v='yes' />
+    <tag k='leisure' v='swimming_pool' />
+  </way>
   <relation id='-39057' action='modify'>
     <member type='way' ref='-39051' role='outer' />
     <member type='way' ref='-39053' role='outer' />
+    <tag k='natural' v='water' />
     <tag k='seamark:type' v='dam' />
     <tag k='type' v='multipolygon' />
     <tag k='water' v='moat' />

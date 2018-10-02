@@ -161,6 +161,18 @@ public class AtlasStatisticsTest
         Assert.assertEquals(0.77,
                 statistics.get(new StatisticKey("", "reservoir_surface", "true")).getCount(), 0.01);
 
+        // Lagoon
+        Assert.assertEquals(1.0, statistics.get(new StatisticKey("", "lagoon", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(0.35,
+                statistics.get(new StatisticKey("", "lagoon_surface", "true")).getCount(), 0.01);
+
+        // Pool
+        Assert.assertEquals(1.0, statistics.get(new StatisticKey("", "pool", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(0.084,
+                statistics.get(new StatisticKey("", "pool_surface", "true")).getCount(), 0.01);
+
         // Coastlines
         // This needs to be addressed once the defaults allow for coastlines to be ingested
         Assert.assertEquals(0.00,

@@ -26,7 +26,7 @@ public class ConfiguredTaggableFilter implements Predicate<Taggable>, Serializab
     {
         this.filters = ((List<String>) configuration.get(FILTERS_CONFIGURATION_NAME).valueOption()
                 .orElseThrow(() -> new CoreException("No filters defined in configuration {}",
-                        configuration))).stream().map(TaggableFilter::new)
+                        configuration))).stream().map(TaggableFilter::forDefinition)
                                 .collect(Collectors.toList());
     }
 

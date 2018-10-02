@@ -1,10 +1,10 @@
 package org.openstreetmap.atlas.geography.atlas.statistics.coverage.poi;
 
-import java.util.Set;
 import java.util.function.Predicate;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.tags.Taggable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +56,7 @@ public class EdgesCountCoverage extends SimpleCoverage<Edge>
     }
 
     @Override
-    protected Set<TagGroup> validKeyValuePairs()
+    protected Predicate<Taggable> validKeyValuePairs()
     {
         return null;
     }

@@ -2,19 +2,12 @@ package org.openstreetmap.atlas.tags.filters;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.tags.Taggable;
-import org.openstreetmap.atlas.tags.annotations.validation.Validators;
-import org.openstreetmap.atlas.utilities.collections.StringList;
-import org.openstreetmap.atlas.utilities.maps.MultiMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * {@link Taggable} filter that relies on a String definition
@@ -32,7 +25,7 @@ import org.slf4j.LoggerFactory;
  * <p>
  * amenity=bus_station OR highway=bus_stop OR ( (bus=* OR trolleybus=*) AND
  * public_transport=[stop_position OR platform OR station] ) <br>
- * amenity-&gt;bus_station|highway-&gt;bus_stop|bus-&gt;*^trolleybus-&gt;*&amp;public_transport-&gt;
+ * amenity-&gt;bus_station|highway-&gt;bus_stop|bus-&gt;*||trolleybus-&gt;*&amp;public_transport-&gt;
  * stop_position, platform,station
  *
  * @author matthieun
@@ -40,227 +33,109 @@ import org.slf4j.LoggerFactory;
 public class TaggableFilter implements Predicate<Taggable>, Serializable
 {
     /**
-     * A tag group is a set of tags that are sufficient for an entity to have to be valid. It can be
-     * made of combinations of tags, hence the set of multimaps.
-     *
      * @author matthieun
      */
-    public static class TagGroup implements Iterable<MultiMap<String, String>>, Serializable
+    protected enum TreeBoolean
     {
-        private static final long serialVersionUID = -3963233623607200077L;
-        private final Set<MultiMap<String, String>> valuesWorkingTogether = new HashSet<>();
+        AND,
+        OR;
 
-        public void addTags(final MultiMap<String, String> tags)
+        public TreeBoolean other()
         {
-            this.valuesWorkingTogether.add(tags);
-        }
-
-        @Override
-        public Iterator<MultiMap<String, String>> iterator()
-        {
-            return this.valuesWorkingTogether.iterator();
-        }
-
-        @Override
-        public String toString()
-        {
-            return this.valuesWorkingTogether.toString();
-        }
-    }
-
-    private static final Logger logger = LoggerFactory.getLogger(TaggableFilter.class);
-
-    private static final String KEYS_SEPARATOR = "|";
-    private static final String VALUES_SEPARATOR = ",";
-    private static final String KEY_VALUE_SEPARATOR = "->";
-    private static final String COUPLED_KEYS_SEPARATOR = "&";
-    private static final String COUPLED_KEYS_GROUP = "^";
-    private static final long serialVersionUID = -7554425273207469255L;
-    private transient Validators validators;
-    private final Class<?> childrenOf;
-    private final Set<TagGroup> allowedTags;
-
-    public TaggableFilter(final String definition)
-    {
-        this(definition, Taggable.class);
-    }
-
-    public TaggableFilter(final String definition, final Class<?> childrenOf)
-    {
-        this.childrenOf = childrenOf;
-        try
-        {
-            if (definition.isEmpty())
+            switch (this)
             {
-                this.allowedTags = new HashSet<>();
-            }
-            else
-            {
-                this.allowedTags = setAllowedTags(definition);
-                checkAllowedTags();
+                case AND:
+                    return OR;
+                case OR:
+                    return AND;
+                default:
+                    throw new CoreException(ERROR_MESSAGE, this);
             }
         }
-        catch (final Throwable error)
+
+        public String separator()
         {
-            throw new CoreException("Unable to setup TaggableFilter with definition {}", definition,
-                    error);
+            switch (this)
+            {
+                case AND:
+                    return "&";
+                case OR:
+                    return "|";
+                default:
+                    throw new CoreException(ERROR_MESSAGE, this);
+            }
         }
     }
 
-    public synchronized Validators getValidators()
+    private static final long serialVersionUID = 5697377487014951158L;
+    private static final String ERROR_MESSAGE = "Unknown TreeBoolean {}";
+
+    private final List<TaggableFilter> children;
+    private final TreeBoolean treeBoolean;
+    private final Predicate<Taggable> simple;
+    private final String definition;
+
+    public static TaggableFilter forDefinition(final String definition)
     {
-        if (this.validators == null)
-        {
-            this.validators = new Validators(childrenOf);
-        }
-        return this.validators;
+        return new LineFilterConverter().convert(definition);
+    }
+
+    protected TaggableFilter(final List<TaggableFilter> children, final TreeBoolean treeBoolean)
+    {
+        this.children = children;
+        this.treeBoolean = treeBoolean;
+        this.simple = null;
+        this.definition = null;
+    }
+
+    protected TaggableFilter(final Predicate<Taggable> simple, final String definition)
+    {
+        this.children = new ArrayList<>();
+        this.treeBoolean = TreeBoolean.OR;
+        this.simple = simple;
+        this.definition = definition;
     }
 
     @Override
     public boolean test(final Taggable taggable)
     {
-        if (this.allowedTags.isEmpty())
+        if (this.simple != null)
         {
-            // Assume there is no filter.
-            return true;
+            return this.simple.test(taggable);
         }
-        for (final TagGroup group : this.allowedTags)
+        if (this.children.isEmpty())
         {
-            if (isValid(taggable, group))
-            {
-                return true;
-            }
+            throw new CoreException("Malformed predicate {}", this);
         }
-        return false;
+        switch (this.treeBoolean)
+        {
+            case AND:
+                return this.children.stream().allMatch(tree -> tree.test(taggable));
+            case OR:
+                return this.children.stream().anyMatch(tree -> tree.test(taggable));
+            default:
+                throw new CoreException(ERROR_MESSAGE, this);
+        }
     }
 
     @Override
     public String toString()
     {
-        return this.allowedTags.toString();
+        return new LineFilterConverter().backwardConvert(this);
     }
 
-    protected List<String> checkAllowedTags()
+    protected List<TaggableFilter> getChildren()
     {
-        final List<String> failedValidation = new ArrayList<>();
-        for (final TagGroup tagGroup : this.allowedTags)
-        {
-            for (final MultiMap<String, String> valuesWorkingTogether : tagGroup)
-            {
-                for (final String key : valuesWorkingTogether.keySet())
-                {
-                    // Check the key
-                    if (this.getValidators().findClassDefining(key).isPresent())
-                    {
-                        for (final String value : valuesWorkingTogether.get(key))
-                        {
-                            String parsedValue = value;
-                            if (parsedValue.startsWith("!"))
-                            {
-                                parsedValue = parsedValue.substring(1);
-                                if (parsedValue.isEmpty())
-                                {
-                                    continue;
-                                }
-                            }
-                            if (parsedValue.startsWith("*"))
-                            {
-                                continue;
-                            }
-                            // Check the value
-                            if (!this.getValidators().isValidFor(key, parsedValue))
-                            {
-                                logger.warn(
-                                        "Unable to recognize tag value {} associated with tag key {} in {}",
-                                        parsedValue, key, tagGroup);
-                                failedValidation.add(parsedValue);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        logger.warn("Unable to recognize tag key {} in {}", key, tagGroup);
-                        failedValidation.add(key);
-                    }
-                }
-            }
-        }
-        return failedValidation;
+        return this.children;
     }
 
-    /**
-     * @param taggable
-     *            The taggable to test
-     * @param andGroup
-     *            The group of tags it needs to have
-     * @return True if this {@link Taggable} contains all the tags defined in the tag group
-     */
-    private boolean isValid(final Taggable taggable, final MultiMap<String, String> andGroup)
+    protected Optional<String> getDefinition()
     {
-        for (final String key : andGroup.keySet())
-        {
-            if (taggable.containsValue(key, andGroup.get(key)))
-            {
-                return true;
-            }
-        }
-        return false;
+        return Optional.ofNullable(this.definition);
     }
 
-    /**
-     * @param taggable
-     *            The taggable to test
-     * @param tagGroup
-     *            The collection of groups of tags it needs to have
-     * @return True if this {@link Taggable} contains at least one of the tag groups defined in the
-     *         collection of tag groups.
-     */
-    private boolean isValid(final Taggable taggable, final TagGroup tagGroup)
+    protected TreeBoolean getTreeBoolean()
     {
-        // A tag group is counted only if the and items are all verified
-        for (final MultiMap<String, String> andGroup : tagGroup)
-        {
-            if (!isValid(taggable, andGroup))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * @param definition
-     *            The filter definition
-     * @return The {@link TagGroup} that corresponds to that definition
-     */
-    private Set<TagGroup> setAllowedTags(final String definition)
-    {
-        final Set<TagGroup> allowedTags = new HashSet<>();
-        final StringList orGroups = StringList.split(definition, KEYS_SEPARATOR);
-        orGroups.forEach(orGroup ->
-        {
-            // Each "|" group
-            final TagGroup tagGroup = new TagGroup();
-            final StringList andGroups = StringList.split(orGroup, COUPLED_KEYS_SEPARATOR);
-            andGroups.forEach(andGroup ->
-            {
-                final MultiMap<String, String> tags = new MultiMap<>();
-                final StringList carets = StringList.split(andGroup, COUPLED_KEYS_GROUP);
-                carets.forEach(caret ->
-                {
-                    final StringList keyValue = StringList.split(caret, KEY_VALUE_SEPARATOR);
-                    final String key = keyValue.get(0);
-                    final StringList values = StringList.split(keyValue.get(1), VALUES_SEPARATOR);
-                    values.forEach(value ->
-                    {
-                        // Each "," possible value
-                        tags.add(key.toLowerCase(), value.toLowerCase());
-                    });
-                });
-                tagGroup.addTags(tags);
-            });
-            allowedTags.add(tagGroup);
-        });
-        return allowedTags;
+        return this.treeBoolean;
     }
 }

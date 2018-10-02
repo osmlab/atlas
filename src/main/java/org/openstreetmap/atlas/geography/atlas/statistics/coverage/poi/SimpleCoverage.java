@@ -1,9 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.statistics.coverage.poi;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -19,10 +17,11 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.atlas.statistics.coverage.Coverage;
+import org.openstreetmap.atlas.tags.Taggable;
+import org.openstreetmap.atlas.tags.filters.TaggableFilter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
-import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
 import org.slf4j.Logger;
@@ -39,41 +38,10 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
 {
-    /**
-     * A tag group is a set of tags that are sufficient for an entity to have to be counted. It can
-     * be made of combinaisons of tags, hence the set of multimaps.
-     *
-     * @author matthieun
-     */
-    public static class TagGroup implements Iterable<MultiMap<String, String>>, Serializable
-    {
-        private static final long serialVersionUID = -3963233623607200077L;
-        private final Set<MultiMap<String, String>> valuesWorkingTogether = new HashSet<>();
-
-        public void addTags(final MultiMap<String, String> tags)
-        {
-            this.valuesWorkingTogether.add(tags);
-        }
-
-        @Override
-        public Iterator<MultiMap<String, String>> iterator()
-        {
-            return this.valuesWorkingTogether.iterator();
-        }
-
-        @Override
-        public String toString()
-        {
-            return this.valuesWorkingTogether.toString();
-        }
-    }
-
     private static final String TYPE_SEPARATOR = ";";
-    private static final String KEYS_SEPARATOR = "|";
     private static final String VALUES_SEPARATOR = ",";
-    private static final String KEY_VALUE_SEPARATOR = "->";
-    private static final String COUPLED_KEYS_SEPARATOR = "&";
-    private static final String COUPLED_KEYS_GROUP = "^";
+    private static final String COMMENTED_LINE = "#";
+    private static final int COVERAGE_TYPE_INDEX = 3;
 
     private static final String NODES = "nodes";
     private static final String EDGES = "edges";
@@ -82,10 +50,7 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
     private static final String POINTS = "points";
     private static final String RELATIONS = "relations";
 
-    private static final String COMMENTED_LINE = "#";
-    private static final int COVERAGE_TYPE_INDEX = 3;
-
-    private final Set<TagGroup> tagGroups;
+    private final Predicate<Taggable> filter;
     private final CoverageType coverageType;
 
     /**
@@ -112,35 +77,12 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
                 final StringList sources = StringList.split(split.get(1), VALUES_SEPARATOR);
                 final String type = split.get(0);
                 final String coverageTypes = split.size() > COVERAGE_TYPE_INDEX
-                        ? split.get(COVERAGE_TYPE_INDEX) : CoverageType.COUNT.name();
+                        ? split.get(COVERAGE_TYPE_INDEX)
+                        : CoverageType.COUNT.name();
                 final Set<CoverageType> coverageTypeSet = StringList
                         .split(coverageTypes, VALUES_SEPARATOR).stream().map(CoverageType::forName)
                         .collect(Collectors.toSet());
-                final Set<TagGroup> allowedTags = new HashSet<>();
-                final StringList orGroups = StringList.split(split.get(2), KEYS_SEPARATOR);
-                orGroups.forEach(orGroup ->
-                {
-                    // Each "|" group
-                    final TagGroup tagGroup = new TagGroup();
-                    final StringList andGroups = StringList.split(orGroup, COUPLED_KEYS_SEPARATOR);
-                    andGroups.forEach(andGroup ->
-                    {
-                        final MultiMap<String, String> tags = new MultiMap<>();
-                        final StringList carets = StringList.split(andGroup, COUPLED_KEYS_GROUP);
-                        carets.forEach(caret ->
-                        {
-                            final StringList keyValue = StringList.split(caret,
-                                    KEY_VALUE_SEPARATOR);
-                            final String key = keyValue.get(0);
-                            final StringList values = StringList.split(keyValue.get(1),
-                                    VALUES_SEPARATOR);
-                            // Each "," possible value
-                            values.forEach(value -> tags.add(key, value));
-                        });
-                        tagGroup.addTags(tags);
-                    });
-                    allowedTags.add(tagGroup);
-                });
+                final Predicate<Taggable> allowedTags = TaggableFilter.forDefinition(split.get(2));
                 final BiFunction<String, CoverageType, SimpleCoverage<AtlasEntity>> simpleCoverageFunction = (
                         metricName, sampleCoverageType) -> new SimpleCoverage<AtlasEntity>(
                                 LoggerFactory.getLogger(metricName), atlas, sampleCoverageType)
@@ -187,7 +129,7 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
                             }
 
                             @Override
-                            protected Set<TagGroup> validKeyValuePairs()
+                            protected Predicate<Taggable> validKeyValuePairs()
                             {
                                 return allowedTags;
                             }
@@ -212,7 +154,7 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
     {
         super(logger, atlas);
         this.coverageType = coverageType;
-        this.tagGroups = validKeyValuePairs();
+        this.filter = validKeyValuePairs();
     }
 
     public SimpleCoverage(final Logger logger, final Atlas atlas, final Predicate<T> filter,
@@ -220,7 +162,7 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
     {
         super(logger, atlas, filter);
         this.coverageType = coverageType;
-        this.tagGroups = validKeyValuePairs();
+        this.filter = validKeyValuePairs();
     }
 
     @Override
@@ -271,19 +213,7 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
     @Override
     protected boolean isCounted(final T item)
     {
-        if (this.tagGroups.isEmpty())
-        {
-            // Assume there is no filter.
-            return true;
-        }
-        for (final TagGroup group : this.tagGroups)
-        {
-            if (isCounted(item, group))
-            {
-                return true;
-            }
-        }
-        return false;
+        return this.filter.test(item);
     }
 
     @Override
@@ -297,7 +227,7 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
      *         this definition, if a TagGroup is empty, then all features are valid and will be
      *         counted.
      */
-    protected abstract Set<TagGroup> validKeyValuePairs();
+    protected abstract Predicate<Taggable> validKeyValuePairs();
 
     /**
      * Gets the length of the item to count
@@ -359,30 +289,5 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
             }
         }
         return result;
-    }
-
-    private boolean isCounted(final AtlasEntity item, final MultiMap<String, String> andGroup)
-    {
-        for (final String key : andGroup.keySet())
-        {
-            if (item.containsValue(key, andGroup.get(key)))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean isCounted(final T item, final TagGroup tagGroup)
-    {
-        // A tag group is counted only if the and items are all verified
-        for (final MultiMap<String, String> andGroup : tagGroup)
-        {
-            if (!isCounted(item, andGroup))
-            {
-                return false;
-            }
-        }
-        return true;
     }
 }
