@@ -11,6 +11,9 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas;
  */
 public class WaySectionProcessorTestRule extends CoreTestRule
 {
+    @TestAtlas(loadFromTextResource = "malformedPolyLine.atlas.txt")
+    private Atlas malformedPolyLineAtlas;
+
     @TestAtlas(loadFromTextResource = "bidirectionalRing.atlas.txt")
     private Atlas bidirectioalRingAtlas;
 
@@ -100,6 +103,11 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     public Atlas getLoopWithRepeatedLocationAtlas()
     {
         return this.loopWithRepeatedLocation;
+    }
+
+    public Atlas getMalformedPolyLineAtlas()
+    {
+        return this.malformedPolyLineAtlas;
     }
 
     public Atlas getOneWayRingAtlas()

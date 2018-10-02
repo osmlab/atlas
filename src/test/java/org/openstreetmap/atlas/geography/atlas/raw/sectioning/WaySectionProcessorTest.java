@@ -209,6 +209,22 @@ public class WaySectionProcessorTest
     }
 
     @Test
+    public void testMalformedPolyLine()
+    {
+        // Based on a prior version of https://www.openstreetmap.org/way/621043891
+        final Atlas slicedRawAtlas = this.setup.getMalformedPolyLineAtlas();
+        final CountryBoundaryMap boundaryMap = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> WaySectionProcessorTest.class
+                        .getResourceAsStream("malformedPolyLineBoundaryMap.txt")));
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
+
+        Assert.assertEquals("Six edges, each having a reverse counterpart", 12,
+                finalAtlas.numberOfEdges());
+        Assert.assertEquals("Four nodes", 4, finalAtlas.numberOfNodes());
+    }
+
+    @Test
     public void testOneWayRing()
     {
         // Based on https://www.openstreetmap.org/way/460257372

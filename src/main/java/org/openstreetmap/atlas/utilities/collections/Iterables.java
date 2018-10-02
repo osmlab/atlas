@@ -331,6 +331,29 @@ public final class Iterables
     }
 
     /**
+     * Translate an {@link Iterable} of items into a {@link FilteredIterable}
+     *
+     * @param types
+     *            The {@link Iterable} to translate
+     * @param filterSet
+     *            A set of identifiers for elements to skip (can be empty or have members)
+     * @param identifier
+     *            A function that takes an element of Type for the {@link Iterable} and returns the
+     *            identifier for that element
+     * @param <Type>
+     *            The type of the {@link Iterable}
+     * @param <IdentifierType>
+     *            The type of the Identifier object for the elements in the {@link Iterable}
+     * @return The translated {@link Iterable}
+     */
+    public static <Type, IdentifierType> FilteredIterable<Type, IdentifierType> filter(
+            final Iterable<Type> types, final Set<IdentifierType> filterSet,
+            final Function<Type, IdentifierType> identifier)
+    {
+        return new FilteredIterable<Type, IdentifierType>(types, filterSet, identifier);
+    }
+
+    /**
      * Translate an {@link Iterable} of type TypeIn to an {@link Iterable} of type TypeOut.
      *
      * @param input
