@@ -10,7 +10,6 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.Taggable;
-import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * @author matthieun
@@ -18,12 +17,38 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
 public class TaggableFilterTest
 {
     @Test
+    public void testBackwardsCompatibility()
+    {
+        final String definition = "bus->*|water->*&bus->*^water->!canal";
+        final TaggableFilter filter = TaggableFilter.forDefinition(definition);
+
+        Assert.assertTrue(filter.test(Taggable.with("water", "pond")));
+        Assert.assertFalse(filter.test(Taggable.with("water", "canal")));
+        Assert.assertTrue(filter.test(Taggable.with("water", "canal", "bus", "stop")));
+
+        Assert.assertEquals(definition.replace("^", "||"), filter.toString());
+    }
+
+    @Test
+    public void testDepth()
+    {
+        final String definition = "bus->*|water->*&bus->*||water->!canal&&bus->!|||water->pond,canal&&&bus->*";
+        final TaggableFilter filter = TaggableFilter.forDefinition(definition);
+
+        Assert.assertTrue(filter.test(Taggable.with("water", "pond")));
+        Assert.assertFalse(filter.test(Taggable.with("water", "canal")));
+        Assert.assertTrue(filter.test(Taggable.with("water", "canal", "bus", "stop")));
+
+        Assert.assertEquals(definition, filter.toString());
+    }
+
+    @Test
     public void testParsing()
     {
         // amenity=bus_station OR highway=bus_stop OR ( (bus=* OR trolleybus=*) AND
         // public_transport=[stop_position OR platform OR station] )
-        final String definition = "amenity->bus_station|highway->BUS_STOP|bus->*^trolleybus->*&public_transport->stop_position,platform,station";
-        final TaggableFilter filter = new TaggableFilter(definition);
+        final String definition = "amenity->bus_station|highway->BUS_STOP|bus->*||trolleybus->*&public_transport->stop_position,platform,station";
+        final TaggableFilter filter = TaggableFilter.forDefinition(definition);
 
         final Taggable valid1 = Taggable.with("amenity", "bus_station");
         final Taggable valid2 = Taggable.with("highway", "bus_stop");
@@ -57,10 +82,10 @@ public class TaggableFilterTest
     @Test
     public void testSerialization() throws ClassNotFoundException
     {
-        final String definition = "amenity->bus_station|highway->BUS_STOP|bus->*^trolleybus->*&public_transport->stop_position,platform,station";
-        final TaggableFilter filter = new TaggableFilter(definition);
+        final String definition = "amenity->bus_station|highway->BUS_STOP|bus->*||trolleybus->*&public_transport->stop_position,platform,station";
+        final TaggableFilter filter = TaggableFilter.forDefinition(definition);
 
-        final WritableResource out = new ByteArrayResource();
+        final WritableResource out = new ByteArrayResource(4096);
         try (ObjectOutputStream outStream = new ObjectOutputStream(out.write()))
         {
             outStream.writeObject(filter);
@@ -73,8 +98,7 @@ public class TaggableFilterTest
         try (ObjectInputStream inStream = new ObjectInputStream(out.read()))
         {
             final TaggableFilter result = (TaggableFilter) inStream.readObject();
-            Assert.assertEquals(Iterables.asSortedSet(filter.checkAllowedTags()),
-                    Iterables.asSortedSet(result.checkAllowedTags()));
+            Assert.assertEquals(definition, result.toString());
         }
         catch (final IOException e)
         {

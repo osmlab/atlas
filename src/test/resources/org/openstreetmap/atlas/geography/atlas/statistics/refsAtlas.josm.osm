@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-76095' action='modify' lat='41.32546523825' lon='9.17466918531' />
+  <node id='-76096' action='modify' lat='41.32564296684' lon='9.17662446684'>
+    <tag k='highway' v='motorway_junction' />
+    <tag k='ref' v='55' />
+  </node>
+  <node id='-76098' action='modify' lat='41.32566029685' lon='9.17846109715'>
+    <tag k='highway' v='motorway_junction' />
+    <tag k='int_ref' v='something' />
+    <tag k='ref' v='56' />
+  </node>
+  <node id='-76100' action='modify' lat='41.32556465659' lon='9.17992374965' />
+  <node id='-76102' action='modify' lat='41.32506288673' lon='9.18085255422' />
+  <node id='-78105' action='modify' lat='41.3264366607' lon='9.17762469409' />
+  <node id='-78107' action='modify' lat='41.32668090044' lon='9.17918583405' />
+  <node id='-78109' action='modify' lat='41.32599092083' lon='9.17900695343' />
+  <node id='-78111' action='modify' lat='41.32627179836' lon='9.18067379557' />
+  <node id='-78206' action='modify' lat='41.32568497158' lon='9.17758868094'>
+    <tag k='barrier' v='toll_booth' />
+  </node>
+  <way id='-76097' action='modify'>
+    <nd ref='-76098' />
+    <nd ref='-76100' />
+    <nd ref='-76102' />
+    <tag k='highway' v='motorway' />
+    <tag k='int_ref' v='something' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='-76130' action='modify'>
+    <nd ref='-76095' />
+    <nd ref='-76096' />
+    <tag k='highway' v='motorway' />
+    <tag k='oneway' v='yes' />
+    <tag k='ref' v='110' />
+    <tag k='turn:lanes' v='2' />
+  </way>
+  <way id='-76133' action='modify'>
+    <nd ref='-76096' />
+    <nd ref='-78206' />
+    <nd ref='-76098' />
+    <tag k='highway' v='motorway' />
+    <tag k='oneway' v='yes' />
+    <tag k='turn:lanes' v='1' />
+  </way>
+  <way id='-78106' action='modify'>
+    <nd ref='-76096' />
+    <nd ref='-78105' />
+    <nd ref='-78107' />
+    <tag k='highway' v='motorway' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='-78110' action='modify'>
+    <nd ref='-76098' />
+    <nd ref='-78109' />
+    <nd ref='-78111' />
+    <tag k='highway' v='motorway' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <relation id='-78052' action='modify'>
+    <member type='way' ref='-76130' role='' />
+    <member type='way' ref='-76133' role='' />
+    <member type='way' ref='-76097' role='' />
+    <tag k='int_ref' v='something' />
+    <tag k='ref' v='110' />
+    <tag k='type' v='route' />
+  </relation>
+</osm>

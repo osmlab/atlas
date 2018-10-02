@@ -33,10 +33,10 @@ import org.openstreetmap.atlas.geography.atlas.statistics.coverage.linear.edge.T
 import org.openstreetmap.atlas.geography.atlas.statistics.coverage.linear.line.RailLineCoverage;
 import org.openstreetmap.atlas.geography.atlas.statistics.coverage.linear.line.RiverLineCoverage;
 import org.openstreetmap.atlas.geography.atlas.statistics.coverage.linear.line.TransitRailLineCoverage;
-import org.openstreetmap.atlas.geography.atlas.statistics.coverage.poi.CountCoverage;
 import org.openstreetmap.atlas.geography.atlas.statistics.coverage.poi.EdgesCountCoverage;
 import org.openstreetmap.atlas.geography.atlas.statistics.coverage.poi.LastUserNameCountCoverage;
 import org.openstreetmap.atlas.geography.atlas.statistics.coverage.poi.OneWayEdgesCountCoverage;
+import org.openstreetmap.atlas.geography.atlas.statistics.coverage.poi.SimpleCoverage;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
@@ -61,7 +61,7 @@ public class Counter extends Crawler
             "file containing all the poi counts definition", value ->
             {
                 final Resource defaultResource = new InputStreamResource(
-                        CountCoverage.class.getResourceAsStream("counts.txt"));
+                        () -> SimpleCoverage.class.getResourceAsStream("counts.txt"));
                 if ("".equals(value))
                 {
                     return defaultResource;
@@ -132,7 +132,7 @@ public class Counter extends Crawler
         coverages.add(new TransitRailLineCoverage(atlas));
 
         // POIs
-        CountCoverage.parseCountCoverages(atlas, this.countsDefinition.lines())
+        SimpleCoverage.parseSimpleCoverages(atlas, this.countsDefinition.lines())
                 .forEach(coverages::add);
         coverages.add(new EdgesCountCoverage(atlas, edge -> HighwayTag.isMetricHighway(edge)
                 && edge.length().isGreaterThan(Distance.ZERO) && edge.asPolyLine().size() > 1));
