@@ -454,6 +454,20 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
+    public void saveAsSQLite(final WritableResource resource, final boolean buildIndices)
+    {
+        saveAsSQLite(resource, buildIndices, item -> true);
+    }
+
+    @Override
+    public void saveAsSQLite(final WritableResource resource, final boolean buildIndices,
+            final Predicate<AtlasEntity> matcher)
+    {
+        throw new CoreException("Only {} is supported to be saved as SQLite.",
+                PackedAtlas.class.getName());
+    }
+
+    @Override
     public void saveAsList(final WritableResource resource)
     {
         final BufferedWriter writer = new BufferedWriter(

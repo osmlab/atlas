@@ -114,6 +114,7 @@ public class ProtoPackedTagStoreAdapter implements ProtoAdapter
         Field indexField = null;
         Long index = -1L;
 
+        // Consider using getters, says nick
         try
         {
             keyArrayField = store.getClass().getDeclaredField(PackedTagStore.FIELD_KEYS);

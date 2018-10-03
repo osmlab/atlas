@@ -676,6 +676,29 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     void saveAsGeoJson(WritableResource resource, Predicate<AtlasEntity> matcher);
 
     /**
+     * Save as a SQLite database
+     *
+     * @param resource
+     *            The SQLite file database to write to
+     * @param buildIndices
+     *            Whether the database should have the indices built for you.
+     */
+    void saveAsSQLite(WritableResource resource, boolean buildIndices);
+
+    /**
+     * Save as a SQLite database with matcher
+     *
+     * @param resource
+     *            The SQLite file database to write to
+     * @param buildIndices
+     *            * Whether the database should have the indices built for you.
+     * @param matcher
+     *            The matcher to consider
+     */
+    void saveAsSQLite(WritableResource resource, boolean buildIndices,
+            Predicate<AtlasEntity> matcher);
+
+    /**
      * Save as list of items
      *
      * @param resource
