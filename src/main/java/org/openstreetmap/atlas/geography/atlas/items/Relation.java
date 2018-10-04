@@ -45,8 +45,8 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
      */
     public enum Ring
     {
-    OUTER,
-    INNER
+        OUTER,
+        INNER
     }
 
     private static final Logger logger = LoggerFactory.getLogger(Relation.class);

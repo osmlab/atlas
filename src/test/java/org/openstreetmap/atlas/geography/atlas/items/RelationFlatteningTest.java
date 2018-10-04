@@ -10,6 +10,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @author samuelgass
+ */
 public class RelationFlatteningTest
 {
     private static final Logger logger = LoggerFactory.getLogger(RelationFlatteningTest.class);
@@ -25,15 +28,6 @@ public class RelationFlatteningTest
         final Set<AtlasObject> flattened = complexRelation.flatten();
         logger.info("Flattened: {}", flattened);
         assertEquals(2, flattened.size());
-        final AtlasObject memberNode = flattened.stream().findFirst().get();
-        if (memberNode instanceof Node)
-        {
-            assertEquals(1, ((Node) memberNode).getIdentifier());
-        }
-        else
-        {
-            Assert.fail("Member was not the expected type of 'Node'!");
-        }
     }
 
     @Test
@@ -44,15 +38,6 @@ public class RelationFlatteningTest
         final Set<AtlasObject> flattened = recursiveRelation.flatten();
         logger.info("Flattened: {}", flattened);
         assertEquals(2, flattened.size());
-        final AtlasObject memberNode = flattened.stream().findFirst().get();
-        if (memberNode instanceof Node)
-        {
-            assertEquals(4, ((Node) memberNode).getIdentifier());
-        }
-        else
-        {
-            Assert.fail("Member was not the expected type of 'Node'!");
-        }
     }
 
     @Test
