@@ -21,31 +21,31 @@ public class RelationFlatteningTest
     public final RelationFlatteningRule rule = new RelationFlatteningRule();
 
     @Test
-    public void testComplexRelation()
+    public void testLoopingRelation()
     {
-        final Relation complexRelation = this.rule.getAtlas1().relation(7);
-        logger.info("Relation 7: {}", complexRelation);
-        final Set<AtlasObject> flattened = complexRelation.flatten();
+        final Relation loopingRelation = this.rule.getAtlas().relation(8);
+        logger.info("Looping (self-containing) Relation: {}", loopingRelation);
+        final Set<AtlasObject> flattened = loopingRelation.flatten();
         logger.info("Flattened: {}", flattened);
         assertEquals(2, flattened.size());
     }
 
     @Test
-    public void testRecursiveRelation()
+    public void testNestedRelation()
     {
-        final Relation recursiveRelation = this.rule.getAtlas1().relation(8);
-        logger.info("Relation 8: {}", recursiveRelation);
-        final Set<AtlasObject> flattened = recursiveRelation.flatten();
+        final Relation nestedRelation = this.rule.getAtlas().relation(10);
+        logger.info("Nested Relation: {}", nestedRelation);
+        final Set<AtlasObject> flattened = nestedRelation.flatten();
         logger.info("Flattened: {}", flattened);
-        assertEquals(2, flattened.size());
+        assertEquals(5, flattened.size());
     }
 
     @Test
-    public void testSimpleRelation()
+    public void testShallowRelation()
     {
-        final Relation simpleRelation = this.rule.getAtlas1().relation(6);
-        logger.info("Relation 6: {}", simpleRelation);
-        final Set<AtlasObject> flattened = simpleRelation.flatten();
+        final Relation shallowRelation = this.rule.getAtlas().relation(6);
+        logger.info("Shallow (1-node) relation: {}", shallowRelation);
+        final Set<AtlasObject> flattened = shallowRelation.flatten();
         logger.info("Flattened: {}", flattened);
         assertEquals(1, flattened.size());
         final AtlasObject memberNode = flattened.stream().findFirst().get();

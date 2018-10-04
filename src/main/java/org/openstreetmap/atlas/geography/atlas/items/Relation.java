@@ -127,12 +127,12 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
             {
                 ((Relation) polledMember).members()
                         .forEach(member -> toProcess.add(member.getEntity()));
+                relationsSeen.add(polledMember.getIdentifier());
             }
             else
             {
                 relationMembers.add(polledMember);
             }
-            relationsSeen.add(this.getIdentifier());
         }
         return relationMembers;
     }
