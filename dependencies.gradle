@@ -21,7 +21,8 @@ project.ext.versions = [
     jackson_core:'2.8.8',
     jackson_databind:'2.8.8.1',
     protobuf_java:'2.6.1',
-    protoc:'2.6.1'
+    protoc:'2.6.1',
+    sqlite:'3.23.1'
 ]
 
 project.ext.packages = [
@@ -59,6 +60,7 @@ project.ext.packages = [
             databind: "com.fasterxml.jackson.core:jackson-databind:${versions.jackson_databind}"
     ],
     protobuf_java: "com.google.protobuf:protobuf-java:${versions.protobuf_java}",
-    protoc: "com.google.protobuf:protoc:${versions.protoc}"
+    protoc: "com.google.protobuf:protoc:${versions.protoc}",
+    sqlite: "org.xerial:sqlite-jdbc:${versions.sqlite}"
 ]
 

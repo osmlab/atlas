@@ -26,7 +26,8 @@ public enum FileSuffix
     TEXT(".txt"),
     ZIP(".zip"),
     WKT(".wkt"),
-    WKB(".wkb");
+    WKB(".wkb"),
+    SQLITE(".db");
 
     private String suffix;
 

@@ -190,10 +190,36 @@ public class PackedTagStore implements Serializable, ProtoSerializable
         return null;
     }
 
+    /**
+     * Get the key array at a given index. The key array is in array of integers that index into the
+     * tag dictionary.
+     *
+     * @param index
+     *            the index
+     * @return the key array
+     */
+    public int[] getKeyArrayAtIndex(final long index)
+    {
+        return this.keys.get(index);
+    }
+
     @Override
     public ProtoAdapter getProtoAdapter()
     {
         return new ProtoPackedTagStoreAdapter();
+    }
+
+    /**
+     * Get the value array at a given index. The value array is in array of integers that index into
+     * the tag dictionary.
+     *
+     * @param index
+     *            the index
+     * @return the value array
+     */
+    public int[] getValueArrayAtIndex(final long index)
+    {
+        return this.values.get(index);
     }
 
     @Override

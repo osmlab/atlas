@@ -1,0 +1,16 @@
+CREATE INDEX idx_dictionary_value on dictionary (value);
+CREATE INDEX idx_node_tags_key on node_tags (key);
+CREATE INDEX idx_node_tags_value on node_tags (value);
+CREATE INDEX idx_edge_tags_key on edge_tags (key);
+CREATE INDEX idx_edge_tags_value on edge_tags (value);
+CREATE INDEX idx_point_tags_key on point_tags (key);
+CREATE INDEX idx_point_tags_value on point_tags (value);
+CREATE INDEX idx_line_tags_key on line_tags (key);
+CREATE INDEX idx_line_tags_value on line_tags (value);
+CREATE INDEX idx_area_tags_key on area_tags (key);
+CREATE INDEX idx_area_tags_value on area_tags (value);
+CREATE VIRTUAL TABLE node_rtree using rtree(id, min_lon, max_lon, min_lat, max_lat);
+CREATE VIRTUAL TABLE edge_rtree using rtree(id, min_lon, max_lon, min_lat, max_lat);
+CREATE VIRTUAL TABLE point_rtree using rtree(id, min_lon, max_lon, min_lat, max_lat);
+CREATE VIRTUAL TABLE line_rtree using rtree(id, min_lon, max_lon, min_lat, max_lat);
+CREATE VIRTUAL TABLE area_rtree using rtree(id, min_lon, max_lon, min_lat, max_lat);

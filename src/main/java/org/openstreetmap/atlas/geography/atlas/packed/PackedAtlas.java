@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.packed;
 
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -10,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
@@ -32,6 +35,9 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
+import org.openstreetmap.atlas.geography.atlas.sqlite.PackedAtlasFieldDelegator;
+import org.openstreetmap.atlas.geography.atlas.sqlite.SQLiteWriter;
+import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.arrays.ByteArrayOfArrays;
@@ -685,6 +691,45 @@ public final class PackedAtlas extends AbstractAtlas
     public void save(final WritableResource writableResource)
     {
         new PackedAtlasSerializer(this, writableResource).save();
+    }
+
+    @Override
+    public void saveAsSQLite(final WritableResource resource, final boolean buildIndices,
+            final Predicate<AtlasEntity> matcher)
+    {
+        try
+        {
+            final File file;
+            if (resource instanceof File)
+            {
+                file = (File) resource;
+            }
+            else
+            {
+                file = new File(java.io.File.createTempFile(resource.getName(), ".db"));
+            }
+
+            // TODO see note in the PackedAtlasFieldDelegator class
+            PackedAtlasFieldDelegator delegator = new PackedAtlasFieldDelegator()
+                    .withDictionary(dictionary()).withNodeTags(nodeTags()).withEdgeTags(edgeTags())
+                    .withPointTags(pointTags()).withLineTags(lineTags()).withAreaTags(areaTags());
+            delegator = delegator.withNodeIdentifierMap(nodeIdentifierToNodeArrayIndex())
+                    .withEdgeIdentifierMap(edgeIdentifierToEdgeArrayIndex())
+                    .withPointIdentifierMap(pointIdentifierToPointArrayIndex())
+                    .withLineIdentifierMap(lineIdentifierToLineArrayIndex())
+                    .withAreaIdentifierMap(areaIdentifierToAreaArrayIndex());
+
+            final SQLiteWriter writer = new SQLiteWriter(file, false, delegator);
+            writer.write(this, matcher);
+        }
+        catch (final IOException ioex)
+        {
+            logger.error("Unable to create SQLite database file.", ioex);
+        }
+        catch (final SQLException sqlex)
+        {
+            logger.error("JDBC unable to build Atlas SQLite database.", sqlex);
+        }
     }
 
     /**
