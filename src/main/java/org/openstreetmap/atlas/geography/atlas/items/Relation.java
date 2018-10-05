@@ -118,13 +118,12 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         while (!toProcess.isEmpty())
         {
             polledMember = toProcess.poll();
-            if (relationsSeen.contains(polledMember.getIdentifier()))
-            {
-                continue;
-            }
-
             if (polledMember instanceof Relation)
             {
+                if (relationsSeen.contains(polledMember.getIdentifier()))
+                {
+                    continue;
+                }
                 ((Relation) polledMember).members()
                         .forEach(member -> toProcess.add(member.getEntity()));
                 relationsSeen.add(polledMember.getIdentifier());

@@ -37,6 +37,17 @@ public class RelationFlatteningTest
         logger.info("Nested Relation: {}", nestedRelation);
         final Set<AtlasObject> flattened = nestedRelation.flatten();
         logger.info("Flattened: {}", flattened);
+        assertEquals(6, flattened.size());
+    }
+
+    @Test
+    public void testNodesAndRelationsWithSameId()
+    {
+        final Relation relation = this.rule.getAtlas().relation(1);
+        logger.info("Relation containing nodes and relations with the same numeric id: {}",
+                relation);
+        final Set<AtlasObject> flattened = relation.flatten();
+        logger.info("Flattened: {}", flattened);
         assertEquals(5, flattened.size());
     }
 
