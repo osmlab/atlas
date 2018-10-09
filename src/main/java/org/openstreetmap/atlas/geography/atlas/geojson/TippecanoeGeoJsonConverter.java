@@ -1,5 +1,15 @@
 package org.openstreetmap.atlas.geography.atlas.geojson;
 
+import static org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader.IS_ATLAS;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+import java.util.stream.Collectors;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -12,19 +22,9 @@ import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
-import java.util.stream.Collectors;
-
-import static org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader.IS_ATLAS;
-
-
 /**
- * This CLI takes a directory of atlas files and turns them into GeoJSON, specifically to be consumed by tippecanoe to create MapboxVectorTiles.
+ * This CLI takes a directory of atlas files and turns them into GeoJSON, specifically to be
+ * consumed by tippecanoe to create MapboxVectorTiles.
  *
  * @author hallahan
  */
@@ -50,7 +50,6 @@ public class TippecanoeGeoJsonConverter extends Command
             "The number of threads to work on processing atlas shards.", Integer::valueOf,
             Optionality.OPTIONAL, String.valueOf(DEFAULT_THREADS));
 
-
     public static void main(final String[] args)
     {
         new TippecanoeGeoJsonConverter().run(args);
@@ -63,7 +62,7 @@ public class TippecanoeGeoJsonConverter extends Command
     }
 
     @Override
-    protected int onRun(CommandMap command)
+    protected int onRun(final CommandMap command)
     {
         final Time time = Time.now();
         final Path atlasDirectory = (Path) command.get(ATLAS_DIRECTORY);
@@ -86,7 +85,8 @@ public class TippecanoeGeoJsonConverter extends Command
         }
 
         final List<File> atlases = fetchAtlasFilesInDirectory(atlasDirectory);
-        logger.info("About to convert {} atlas shards into GeoJSON for tippecanoe...", atlases.size());
+        logger.info("About to convert {} atlas shards into GeoJSON for tippecanoe...",
+                atlases.size());
 
         // Execute in a pool of threads so we limit how many atlases get loaded in parallel.
         final ForkJoinPool pool = new ForkJoinPool(threads);
@@ -108,10 +108,11 @@ public class TippecanoeGeoJsonConverter extends Command
             pool.shutdown();
         }
 
-        logger.info("Finished converting directory of atlas shards into GeoJSON for tippecanoe in {}!", time.elapsedSince());
+        logger.info(
+                "Finished converting directory of atlas shards into GeoJSON for tippecanoe in {}!",
+                time.elapsedSince());
         return 0;
     }
-
 
     @Override
     protected SwitchList switches()
@@ -126,7 +127,8 @@ public class TippecanoeGeoJsonConverter extends Command
         {
             final Time time = Time.now();
             final Atlas atlas = ATLAS_RESOURCE_LOADER.load(atlasFile);
-            final String name = FilenameUtils.removeExtension(atlasFile.getName()) + FileSuffix.GEO_JSON.toString();
+            final String name = FilenameUtils.removeExtension(atlasFile.getName())
+                    + FileSuffix.GEO_JSON.toString();
             final File geojsonFile = new File(geojsonDirectory.resolve(name).toFile());
             atlas.saveAsGeoJson(geojsonFile);
             logger.info("Saved {} in {}.", name, time.elapsedSince());
