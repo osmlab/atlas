@@ -632,6 +632,20 @@ public final class Iterables
         return Optional.ofNullable(result);
     }
 
+    /**
+     * Create a {@link StreamIterable} that uses parallelization
+     *
+     * @param source
+     *            The {@link Iterable} to use as source
+     * @param <Type>
+     *            The type of the source {@link Iterable}
+     * @return The corresponding {@link StreamIterable}
+     */
+    public static <Type> StreamIterable<Type> parallelStream(final Iterable<Type> source)
+    {
+        return new StreamIterable<>(source, true);
+    }
+
     public static <T> void print(final Iterable<T> input, final String name)
     {
         System.out.println(toString(input, name));
