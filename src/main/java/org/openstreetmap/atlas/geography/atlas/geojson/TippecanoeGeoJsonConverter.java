@@ -1,6 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.geojson;
 
-import static org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader.IS_ATLAS;
+import static org.openstreetmap.atlas.geography.atlas.geojson.TippecanoeUtils.fetchAtlasFilesInDirectory;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -8,7 +8,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
-import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -53,12 +52,6 @@ public class TippecanoeGeoJsonConverter extends Command
     public static void main(final String[] args)
     {
         new TippecanoeGeoJsonConverter().run(args);
-    }
-
-    private static List<File> fetchAtlasFilesInDirectory(final Path directory)
-    {
-        return new File(directory.toFile()).listFilesRecursively().stream().filter(IS_ATLAS)
-                .collect(Collectors.toList());
     }
 
     @Override
