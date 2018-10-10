@@ -6,9 +6,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -74,35 +76,26 @@ public class TippecanoeDriver extends Command
             }
         }
 
-        final List<File> geojsonFiles = fetchGeoJsonFilesInDirectory(geojsonDirectory);
+        List<File> geojsonFiles = fetchGeoJsonFilesInDirectory(geojsonDirectory);
         logger.info("About to convert {} GeoJSON files into MBTiles with tippecanoe...",
                 geojsonFiles.size());
 
-        final File geojson = geojsonFiles.get(0);
-        final String name = FilenameUtils.removeExtension(geojson.getName());
-        final Path mbtiles = mbtilesDirectory.resolve(name + ".mbtiles");
-
-        final CommandLine commandLine = CommandLine.parse("tippecanoe")
-                .addArgument("-o")
-                .addArgument(mbtiles.toString(), true)
-                .addArgument("-Z10")
-                .addArgument("-z14")
-                .addArgument("--drop-densest-as-needed")
-                .addArgument(geojson.getAbsolutePath(), true);
-        logger.info("Executing: {}", commandLine);
-
-        final DefaultExecutor executor = new DefaultExecutor();
-        try
+        while (true)
         {
-            final int exitCode = executor.execute(commandLine);
-            logger.info("{} exited with code: {}", mbtiles.getFileName(), exitCode);
-        }
-        catch (final IOException ioException)
-        {
-            logger.error("{} failed.", commandLine, ioException);
+            final int size = geojsonFiles.size();
+            if (processes <= size)
+            {
+                process(geojsonFiles.subList(0, processes), mbtilesDirectory);
+                geojsonFiles = geojsonFiles.subList(processes, size);
+            }
+            else
+            {
+                process(geojsonFiles, mbtilesDirectory);
+                break;
+            }
         }
 
-        logger.info("Finished converting directory of GeoJSON to MBTiles.\ngeojson: {}\nmbtiles: {}", geojsonDirectory, mbtilesDirectory);
+        logger.info("Finished converting directory of GeoJSON to MBTiles in {}.\ngeojson: {}\nmbtiles: {}", time.elapsedSince(), geojsonDirectory, mbtilesDirectory);
         return 0;
     }
 
@@ -110,5 +103,51 @@ public class TippecanoeDriver extends Command
     protected SwitchList switches()
     {
         return new SwitchList().with(GEOJSON_DIRECTORY, MBTILES_DIRECTORY, OVERWRITE, PROCESSES);
+    }
+
+    private void process(final List<File> geojsonFiles, final Path mbtilesDirectory)
+    {
+        final List<DefaultExecuteResultHandler> handlers = new ArrayList<>();
+        for(final File geojson : geojsonFiles)
+        {
+            final DefaultExecuteResultHandler handler = new DefaultExecuteResultHandler();
+            handlers.add(handler);
+            final String name = FilenameUtils.removeExtension(geojson.getName());
+            final Path mbtiles = mbtilesDirectory.resolve(name + ".mbtiles");
+
+            final CommandLine commandLine = CommandLine.parse("tippecanoe")
+                    .addArgument("-o")
+                    .addArgument(mbtiles.toString(), true)
+                    .addArgument("-Z10")
+                    .addArgument("-z14")
+                    .addArgument("--drop-densest-as-needed")
+                    .addArgument(geojson.getAbsolutePath(), true);
+            logger.info("Executing: {}", commandLine);
+
+            final DefaultExecutor executor = new DefaultExecutor();
+            try
+            {
+                executor.execute(commandLine, handler);
+                logger.info("Started execution: {}", mbtiles.getFileName());
+            }
+            catch (final IOException ioException)
+            {
+                logger.error("{} failed.", commandLine, ioException);
+            }
+        }
+
+        // Wait for the handlers to all be done before moving on...
+        for(final DefaultExecuteResultHandler handler : handlers)
+        {
+            try
+            {
+                handler.waitFor();
+            }
+            catch (final InterruptedException interruptedException)
+            {
+                logger.error("tippecanoe interrupted", interruptedException);
+            }
+        }
+
     }
 }
