@@ -2,7 +2,7 @@
 
 ## Overview
 
-This package is responsible for the initial OSM PBF file to Atlas file transformation. The result is an intermediate atlas file, that is not country-sliced or way-sectioned. The advantage to this is that we get to leverage the Atlas API layer and most importantly, the spatial index to make slicing and sectioning as straight-forward as possible.
+This package is responsible for the initial OSM PBF file to Atlas file transformation. The result is an intermediate Atlas file, that is not country-sliced or way-sectioned. The advantage to this is that we get to leverage the Atlas API layer and most importantly, the spatial index to make slicing and sectioning as straight-forward as possible.
 
 ## Raw Atlas Terminology
 
@@ -18,31 +18,36 @@ The raw Atlas flow is comprised of three separate stages. They're explained in d
 
 ### Temporary Entities
 
-The concept of a Temporary Entity is present across both slicing and sectioning code. Because each stage results in the creation of new Atlas entities or the manipulation of Relations and their members, there needs to be a very simple way to track changes and apply them when rebuilding the Atlas. The concept of Temporary Entity comes in here. The idea is that a temporary-Atlas Entity contains the bare minimum required to construct some Atlas Entity. At its most basic state, this is an identifier and some tags. Depending on the type of entity, there may also be some geometry or Relation properties. See the org.openstreetmap.atlas.geography.atlas.raw.temporary package for all temporary entities.
+The concept of a Temporary Entity is present across both slicing and sectioning code. Because each stage results in the creation of new Atlas entities or the manipulation of Relations and their members, there needs to be a very simple way to track changes and apply them when rebuilding the Atlas. The concept of Temporary Entity comes in here. The idea is that a temporary Atlas Entity contains the bare minimum required to construct some `AtlasEntity`. At its most basic state, this is an identifier and a collection of tags. Depending on the type of entity, there may also be some geometry or Relation properties. See the [raw temporary package](https://github.com/osmlab/atlas/tree/dev/src/main/java/org/openstreetmap/atlas/geography/atlas/raw/temporary) for all temporary entities.
+
+### General Principles
+
+// TODO 1. add synthetic tags. 2. be as close to OSM as possible, handle bad data only to allow building, rely on synthetic tags and atlas-checks.
+// TOOD mention single node edges
 
 ## Raw Atlas Implementation Details
 
-The PBF ingestion process is configuration driven. This means that the user has full control of what features end up in the final Atlas. The default configuration, found in the org/openstreetmap/atlas/geography/atlas/pbf resource package, attempts full parity with OSM - meaning it ingests almost all features.
+The PBF ingestion process is configuration driven. This means that the user has full control of what features end up in the final Atlas. The default configuration, found in the [pbf resource package](https://github.com/osmlab/atlas/tree/dev/src/main/resources/org/openstreetmap/atlas/geography/atlas/pbf), attempts full parity with OSM - meaning it ingests almost all features.
 
-There are a couple of implementation details to call out for the raw Atlas creation. The input protobuf file is created using the Osmosis library and it's structured with a distinct order - the file contains the Nodes first, then the Ways and lastly the Relations. Each Way references the Node identifiers that are used to construct itself. This is something problematic, because we have no Node location or tag properties of the indiviual Nodes when processing each Way. To solve this, we must either create a Node map or make two passes over the PBF file - once to read the ways and a second time to read the Nodes for the Ways we're interested in. It's a lot faster to read the file twice, rather than resize the underlying PackedAtlas arrays during build time. In the actual implementation, the OsmPbfCounter class is responsible for identifying what to bring in, keeping track of relevant Nodes and counts. The OsmPbfReader will then go through the file a second time and build the raw Atlas using the information from the counter.
+There are a couple of implementation details to call out for the raw Atlas creation. The input protobuf file is created using the [Osmosis library](https://github.com/openstreetmap/osmosis) and it's structured with a distinct order - the file contains the Nodes first, then the Ways and lastly the Relations. Each Way references the Node identifiers that are used to construct itself. This is something problematic, because we have no Node location or tag properties of the individual Nodes when processing each Way. To solve this, we must either create a Node map or make two passes over the PBF file - once to read the ways and a second time to read the Nodes for the Ways we're interested in. It's a lot faster to read the file twice, rather than resize the underlying `PackedAtlas` arrays during build time. In the actual implementation, the `OsmPbfCounter` class is responsible for identifying what to bring in, keeping track of relevant Nodes and counts. The `OsmPbfReader` will then go through the file a second time and build the raw Atlas using the information from the counter.
 
 ## Synthetic Tags
 
-The raw atlas creation process add a new synthetic tag as part of the final Atlas - SyntheticDuplicateOsmNodeTag. This tag signifies that the input OSM data contains two or more stacked Nodes at the same Location. This is almost always a data error, that we are handling graciously and deterministically. The Node with the lowest identifier is kept, while all others are excluded from the final Atlas. There are two caveats to call out here. The first caveat is that if there are Nodes with different Layer tags at the same Location, we will keep the lowest occurring Node for each layer in order to preserve proper connectivity. The second caveat is that we can potentially remove a Node that has rich tagging and keep the Node that has no tagging. This is a potential problem, but the only way to ensure deterministic processing. Ideally, the presence of this synthetic tag will prompt the creation of an atlas-check that will result in data fixes for such cases.  
+The raw Atlas creation process add a new synthetic tag as part of the final Atlas - `SyntheticDuplicateOsmNodeTag`. This tag signifies that the input OSM data contains two or more stacked Nodes at the same Location. This is almost always a data error, that we are handling graciously and deterministically. The Node with the lowest identifier is kept, while all others are excluded from the final Atlas. There are two caveats to call out here. The first caveat is that if there are Nodes with different `LayerTag` values at the same `Location`, we will keep the lowest occurring Node for each layer in order to preserve proper connectivity. The second caveat is that we can potentially remove a Node that has rich tagging and keep the Node that has no tagging. This is a potential problem, but the only way to ensure deterministic processing. Ideally, the presence of this synthetic tag will prompt the creation of an atlas-check that will result in data fixes for such cases.  
 
 ## Raw Atlas Ingestion Logic
 
 The specific logic for what gets ingested into the raw Atlas is as follows:
 
-1. For each OSM Node, if it's inside the Shard boundary that's being processed, bring it in. As a side note, we keep track of all Nodes that were not brought in, in case we have to pull them in later. 
-2. For each OSM Way, if the Way has a Node that was brought in, bring in the entire Way and all other Nodes that are part of this Way (since they may not have been originally brought in as they could be outside the target shard boundary).
+1. For each OSM Node, if it's inside the `Shard` boundary that's being processed, bring it in. As a side note, we keep track of all Nodes that were not brought in, in case we have to pull them in later. 
+2. For each OSM Way, if the Way has a Node that was brought in, bring in the entire Way and all other Nodes that are part of this Way (since they may not have been originally brought in as they could be outside the target `Shard` boundary).
 3. For each OSM Relation, process Relations in a queue structure - where we only look at Relations that have no member Relations or have had their member Relations already processed. For each Relation, if it contains a member that was brought into the Atlas (Node, Way or Relation) then bring in this Relation in to the Atlas. 
 
 ## Code Sample
 
 There are a few ways to create raw Atlas files. Each one is outlined here. 
 
-The first and most simple one is to build a raw Atlas from some PBF resource, irrespective of Shard boundary or any kind of Atlas loading option:
+The first and most simple one is to build a raw Atlas from some PBF resource, irrespective of `Shard` boundary or any kind of `AtlasLoadingOption`:
 
 ```java
 final String pbfPath = "/path/to/pbf/resource";
@@ -63,7 +68,7 @@ final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(pbfPa
 final Atlas rawAtlas = rawAtlasGenerator.build();
 ```
 
-Lastly, we can specify all three fields of interest - the PBF resource, the specific loading option and boundary of interest:
+Lastly, we can specify all three fields of interest - the PBF resource, the specific `AtlasLoadingOption` and boundary of interest:
 
 ```java
 final String pbfPath = "/path/to/pbf/resource";
