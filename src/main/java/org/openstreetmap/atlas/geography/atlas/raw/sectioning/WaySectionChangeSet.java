@@ -13,8 +13,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryEdge;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryNode;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryEdge;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryNode;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 
 /**

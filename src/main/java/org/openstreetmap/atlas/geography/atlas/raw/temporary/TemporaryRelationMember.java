@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary;
+package org.openstreetmap.atlas.geography.atlas.raw.temporary;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
