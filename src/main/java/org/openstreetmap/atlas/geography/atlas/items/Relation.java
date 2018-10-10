@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -232,6 +233,9 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         tags.put("osmIdentifier", String.valueOf(getOsmIdentifier()));
         tags.put("itemType", String.valueOf(getType()));
         tags.put("relation", this.toSimpleString());
+
+        final Optional<String> shardName = getAtlas().metaData().getShardName();
+        shardName.ifPresent(shard -> tags.put("shard", shard));
 
         return new GeoJsonBuilder.LocationIterableProperties(Location.CENTER, tags);
     }

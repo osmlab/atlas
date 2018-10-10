@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.items;
 
 import java.util.Map;
+import java.util.Optional;
 
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
@@ -84,6 +85,9 @@ public abstract class Area extends AtlasItem
         tags.put("identifier", String.valueOf(getIdentifier()));
         tags.put("osmIdentifier", String.valueOf(getOsmIdentifier()));
         tags.put("itemType", String.valueOf(getType()));
+
+        final Optional<String> shardName = getAtlas().metaData().getShardName();
+        shardName.ifPresent(shard -> tags.put("shard", shard));
 
         final StringList parentRelations = new StringList();
         this.relations().forEach(relation ->

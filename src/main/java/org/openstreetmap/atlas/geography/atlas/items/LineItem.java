@@ -105,6 +105,10 @@ public abstract class LineItem extends AtlasItem
         tags.put("osmIdentifier", String.valueOf(getOsmIdentifier()));
         tags.put("itemType", String.valueOf(getType()));
 
+        final Optional<String> shardName = getAtlas().metaData().getShardName();
+        shardName.ifPresent(shard -> tags.put("shard", shard));
+
+
         if (this instanceof Edge)
         {
             tags.put("startNode", String.valueOf(((Edge) this).start().getIdentifier()));
