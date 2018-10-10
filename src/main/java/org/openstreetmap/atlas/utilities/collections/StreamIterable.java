@@ -106,18 +106,24 @@ public class StreamIterable<T> implements Iterable<T>
 
     /**
      * Disable parallelization in streams from this StreamIterator
+     *
+     * @return The StreamIterator with parallelization disabled
      */
-    public void disableParallelization()
+    public StreamIterable<T> disableParallelization()
     {
         this.parallel = false;
+        return this;
     }
 
     /**
      * Enable parallelization in streams from this StreamIterator
+     *
+     * @return The StreamIterator with parallelization enabled
      */
-    public void enableParallelization()
+    public StreamIterable<T> enableParallelization()
     {
         this.parallel = true;
+        return this;
     }
 
     /**
