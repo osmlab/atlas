@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.geojson;
 import static org.openstreetmap.atlas.geography.atlas.geojson.TippecanoeUtils.fetchGeoJsonFilesInDirectory;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.List;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.runtime.Command;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
@@ -62,6 +64,7 @@ public class TippecanoeDriver extends Command
             try
             {
                 FileUtils.deleteDirectory(mbtilesDirectory.toFile());
+                Files.createDirectory(mbtilesDirectory);
             }
             catch (final IOException noDelete)
             {
@@ -75,20 +78,31 @@ public class TippecanoeDriver extends Command
         logger.info("About to convert {} GeoJSON files into MBTiles with tippecanoe...",
                 geojsonFiles.size());
 
-        // OK, now implement the tippecanoe CLI stuff...
-        final CommandLine commandLine = CommandLine.parse("java");
-        commandLine.addArgument("-version");
+        final File geojson = geojsonFiles.get(0);
+        final String name = FilenameUtils.removeExtension(geojson.getName());
+        final Path mbtiles = mbtilesDirectory.resolve(name + ".mbtiles");
+
+        final CommandLine commandLine = CommandLine.parse("tippecanoe")
+                .addArgument("-o")
+                .addArgument(mbtiles.toString(), true)
+                .addArgument("-Z10")
+                .addArgument("-z14")
+                .addArgument("--drop-densest-as-needed")
+                .addArgument(geojson.getAbsolutePath(), true);
+        logger.info("Executing: {}", commandLine);
+
         final DefaultExecutor executor = new DefaultExecutor();
         try
         {
             final int exitCode = executor.execute(commandLine);
-            logger.info("exit code: {}", exitCode);
+            logger.info("{} exited with code: {}", mbtiles.getFileName(), exitCode);
         }
         catch (final IOException ioException)
         {
-            logger.error("Unable to run tippecanoe.", ioException);
+            logger.error("{} failed.", commandLine, ioException);
         }
 
+        logger.info("Finished converting directory of GeoJSON to MBTiles.\ngeojson: {}\nmbtiles: {}", geojsonDirectory, mbtilesDirectory);
         return 0;
     }
 
