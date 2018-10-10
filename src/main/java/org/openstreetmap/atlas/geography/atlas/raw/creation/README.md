@@ -16,14 +16,17 @@ The raw Atlas flow is comprised of three separate stages. They're explained in d
 
 3. Sectioned Raw Atlas - this is the final sliced and sectioned artifact, which is made up of all Atlas entities - Points, Nodes, Edges, Lines, Areas and Relations and is fully ready for processing.
 
+### General Principles
+
+There are a few general principles that are observed throughout the ingest process. 
+
+1. The desired goal is to achieve parity with OSM and get as accurate a representation as possible - including ingesting bad data. The reasoning for this is to be able to leverage the Atlas and write [atlas-checks](https://github.com/osmlab/atlas-checks) to detect bad data, which will lead to OSM data fixes.
+2. Do all complex processing once. If we have access to all the data during the ingest piece and if we're building MultiAtlases to country-slice and section the road network correctly, bundle all similar processing together to save any downstream users the hassle of having to re-build MutliAtlases or make inferences based on impartial Atlas views.  
+3. Rely on synthetic tags. Instead of silently fixing bad data or making data-altering decisions - rely on synthetic tags where possible to identify specific cases that may require additional attention or custom atlas-checks.
+
 ### Temporary Entities
 
 The concept of a Temporary Entity is present across both slicing and sectioning code. Because each stage results in the creation of new Atlas entities or the manipulation of Relations and their members, there needs to be a very simple way to track changes and apply them when rebuilding the Atlas. The concept of Temporary Entity comes in here. The idea is that a temporary Atlas Entity contains the bare minimum required to construct some `AtlasEntity`. At its most basic state, this is an identifier and a collection of tags. Depending on the type of entity, there may also be some geometry or Relation properties. See the [raw temporary package](https://github.com/osmlab/atlas/tree/dev/src/main/java/org/openstreetmap/atlas/geography/atlas/raw/temporary) for all temporary entities.
-
-### General Principles
-
-// TODO 1. add synthetic tags. 2. be as close to OSM as possible, handle bad data only to allow building, rely on synthetic tags and atlas-checks.
-// TOOD mention single node edges
 
 ## Raw Atlas Implementation Details
 

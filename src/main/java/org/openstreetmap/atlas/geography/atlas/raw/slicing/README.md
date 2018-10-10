@@ -21,7 +21,7 @@ The slicing process is comprised of the following steps:
 
 2. Once the line slicing is completed - we need to look at any points that haven't been assigned a country code. These are Points that were not part of a Line feature - examples include stand alone Points such as trees, barriers, etc. This is one of the simpler slicing operations - since it's just a location containment check using the underlying grid index from the `CountryBoundaryMap`. 
 
-3. Once both Points and Lines have been sliced, at intermediate Atlas is built to be able to slice Relations. The intermediate changes are aggregated using a `SimpleChangeSet` and applied with the `SimpleChangeSetHandler`. It's important to note that during the build - we must replace any Lines that were sliced by their corresponding sliced Lines. 
+3. Once both Points and Lines have been sliced, an intermediate Atlas is built to be able to slice Relations. The intermediate changes are aggregated using a `SimpleChangeSet` and applied with the `SimpleChangeSetHandler`. It's important to note that during the build - we must replace any Lines that were sliced by their corresponding sliced Lines. 
 
 4. This next step is to slice all Relations. We care mostly about the `MultiPolygon` and `Boundary` type Relations, since these are the relations that will combine their members to form a specific `Polygon` or enclosed area. All other Relations represent more abstract notions (such as turn restrictions or routes) and can be (for the most part) handled by simple grouping individual members organized by country code. To handle the `MultiPolygon` and `Boundary` type relations, we take the following steps:
     1. We first group together all the inner and outer members so we have fast access to each
