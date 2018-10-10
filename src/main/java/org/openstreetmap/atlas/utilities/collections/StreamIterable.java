@@ -15,7 +15,7 @@ import java.util.stream.StreamSupport;
  * <p>
  * <code>
  * Iterables.stream(someIterable).map(...).filter(...).collect();
- * </code>
+ * </code> Note: StreamIterable is not thread safe with parallelization usage.
  *
  * @author matthieun
  * @param <T>
