@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Integration tests for creating raw atlases, slicing and sectioning sliced raw atlases.
+ * Integration tests for creating, slicing and sectioning with the raw Atlas ingest flow.
  *
  * @author mgostintsev
  */
