@@ -136,7 +136,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         }
         return relationMembers;
     }
-    
+
     /**
      * @return the {@link RelationBean} representation of the Relation
      */
