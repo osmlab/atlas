@@ -145,8 +145,8 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         final RelationBean bean = new RelationBean();
         for (final RelationMember member : this)
         {
-            bean.addItem(member.getEntity().getIdentifier(), member.getRole(),
-                    member.getEntity().getType());
+            final AtlasEntity entity = member.getEntity();
+            bean.addItem(entity.getIdentifier(), member.getRole(), entity.getType());
         }
         return bean;
     }
