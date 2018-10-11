@@ -74,7 +74,7 @@ public class TippecanoeGeoJsonConverter extends Command
         tippecanoe.addProperty("layer", atlasType);
 
         // things will have a min zoom of 10 by default
-        tippecanoe.addProperty("minzoom", 10);
+        int minzoom = 10;
 
         // lets do some more specific zooms
         final Map<String, String> tags = atlasEntity.getTags();
@@ -82,20 +82,25 @@ public class TippecanoeGeoJsonConverter extends Command
         final String highway = tags.get("highway");
         if (tags.get("waterway") != null || "motorway".equals(highway) )
         {
-            tippecanoe.addProperty("minzoom", 6);
+            minzoom = 6;
         }
 
-
-        if ("trunk".equals(highway) || "primary".equals(highway))
+        else if ("trunk".equals(highway) || "primary".equals(highway))
         {
-            tippecanoe.addProperty("minzoom", 8);
+            minzoom = 8;
         }
 
-        if ("secondary".equals(highway))
+        else if ("secondary".equals(highway))
         {
-            tippecanoe.addProperty("minzoom", 9);
+            minzoom = 9;
         }
 
+        else if ("NODE".equals(atlasType))
+        {
+            minzoom = 12;
+        }
+
+        tippecanoe.addProperty("minzoom", minzoom);
         feature.add("tippecanoe", tippecanoe);
     });
 
