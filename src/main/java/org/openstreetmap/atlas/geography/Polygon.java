@@ -23,6 +23,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.triangulate.ConformingDelaunayTriangulationBuilder;
@@ -278,6 +281,27 @@ public class Polygon extends PolyLine implements GeometricSurface
             }
         }
         return this.fullyGeometricallyEncloses(segment.middle());
+    }
+
+    @Override
+    public JsonObject getJsonGeometry()
+    {
+        final JsonObject geometry = new JsonObject();
+        geometry.addProperty("type", "LineString");
+
+        final JsonArray coordinates = new JsonArray();
+        geometry.add("coordinates", coordinates);
+        final JsonArray subCoordinatesArray = new JsonArray();
+        coordinates.add(subCoordinatesArray);
+        for (final Location point : this.closedLoop())
+        {
+            final JsonArray coordinate = new JsonArray();
+            coordinate.add(new JsonPrimitive(point.getLongitude().asDegrees()));
+            coordinate.add(new JsonPrimitive(point.getLatitude().asDegrees()));
+            subCoordinatesArray.add(coordinate);
+        }
+
+        return geometry;
     }
 
     /**

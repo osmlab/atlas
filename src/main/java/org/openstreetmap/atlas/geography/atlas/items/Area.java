@@ -3,7 +3,6 @@ package org.openstreetmap.atlas.geography.atlas.items;
 import java.util.Map;
 import java.util.Optional;
 
-import com.google.gson.JsonObject;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -13,6 +12,8 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.utilities.collections.StringList;
+
+import com.google.gson.JsonObject;
 
 /**
  * Area from an {@link Atlas}
@@ -26,6 +27,29 @@ public abstract class Area extends AtlasItem
     protected Area(final Atlas atlas)
     {
         super(atlas);
+    }
+
+    @Override
+    public JsonObject asGeoJsonFeature()
+    {
+        final JsonObject feature = new JsonObject();
+        feature.addProperty("type", "Feature");
+
+        final JsonObject properties = new JsonObject();
+        getTags().forEach(properties::addProperty);
+        properties.addProperty("identifier", getIdentifier());
+        properties.addProperty("osmIdentifier", getOsmIdentifier());
+        properties.addProperty("itemType", String.valueOf(getType()));
+
+        final Optional<String> shardName = getAtlas().metaData().getShardName();
+        shardName.ifPresent(shard -> properties.addProperty("shard", shard));
+
+        feature.add("properties", properties);
+
+        final JsonObject geometry = asPolygon().getJsonGeometry();
+        feature.add("geometry", geometry);
+
+        return feature;
     }
 
     /**
@@ -103,16 +127,6 @@ public abstract class Area extends AtlasItem
         }
 
         return new GeoJsonBuilder.LocationIterableProperties(getClosedGeometry(), tags);
-    }
-
-    @Override
-    public JsonObject asGeoJsonFeature()
-    {
-        final JsonObject jsonObject = new JsonObject();
-
-        jsonObject.addProperty("area", "helloworld");
-
-        return jsonObject;
     }
 
     @Override

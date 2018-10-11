@@ -3,7 +3,6 @@ package org.openstreetmap.atlas.geography.atlas.items;
 import java.util.Map;
 import java.util.Optional;
 
-import com.google.gson.JsonObject;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
@@ -12,6 +11,8 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.utilities.collections.StringList;
+
+import com.google.gson.JsonObject;
 
 /**
  * An {@link AtlasItem} that is represented by one single location
@@ -25,6 +26,29 @@ public abstract class LocationItem extends AtlasItem
     protected LocationItem(final Atlas atlas)
     {
         super(atlas);
+    }
+
+    @Override
+    public JsonObject asGeoJsonFeature()
+    {
+        final JsonObject feature = new JsonObject();
+        feature.addProperty("type", "Feature");
+
+        final JsonObject properties = new JsonObject();
+        getTags().forEach(properties::addProperty);
+        properties.addProperty("identifier", getIdentifier());
+        properties.addProperty("osmIdentifier", getOsmIdentifier());
+        properties.addProperty("itemType", String.valueOf(getType()));
+
+        final Optional<String> shardName = getAtlas().metaData().getShardName();
+        shardName.ifPresent(shard -> properties.addProperty("shard", shard));
+
+        feature.add("properties", properties);
+
+        final JsonObject geometry = getLocation().getJsonGeometry();
+        feature.add("geometry", geometry);
+
+        return feature;
     }
 
     @Override
@@ -100,15 +124,5 @@ public abstract class LocationItem extends AtlasItem
         }
 
         return new GeoJsonBuilder.LocationIterableProperties(getRawGeometry(), tags);
-    }
-
-    @Override
-    public JsonObject asGeoJsonFeature()
-    {
-        final JsonObject jsonObject = new JsonObject();
-
-        jsonObject.addProperty("locationitem", "helloworld");
-
-        return jsonObject;
     }
 }

@@ -13,9 +13,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Snapper.SnappedLocation;
 import org.openstreetmap.atlas.geography.clipping.Clip;
@@ -39,6 +36,10 @@ import org.openstreetmap.atlas.utilities.scalars.Ratio;
 import org.openstreetmap.atlas.utilities.tuples.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 /**
  * A PolyLine is a set of {@link Location}s in a specific order
@@ -160,7 +161,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     public List<Tuple<Angle, Location>> anglesGreaterThanOrEqualTo(final Angle target)
     {
         final List<Tuple<Angle, Location>> result = new ArrayList<>();
-        final List<Segment> segments = segments();
+        final List<Segment> segments = this.segments();
         if (segments.isEmpty() || segments.size() == 1)
         {
             return result;
@@ -198,7 +199,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     public List<Tuple<Angle, Location>> anglesLessThanOrEqualTo(final Angle target)
     {
         final List<Tuple<Angle, Location>> result = new ArrayList<>();
-        final List<Segment> segments = segments();
+        final List<Segment> segments = this.segments();
         if (segments.isEmpty() || segments.size() == 1)
         {
             return result;
@@ -262,7 +263,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public Distance averageDistanceTo(final PolyLine other)
     {
-        return averageOneWayDistanceTo(other).add(other.averageOneWayDistanceTo(this))
+        return this.averageOneWayDistanceTo(other).add(other.averageOneWayDistanceTo(this))
                 .scaleBy(Ratio.HALF);
     }
 
@@ -400,11 +401,11 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     {
         if (object instanceof Location)
         {
-            return contains((Location) object);
+            return this.contains((Location) object);
         }
         if (object instanceof Segment)
         {
-            return contains((Segment) object);
+            return this.contains((Segment) object);
         }
         throw new IllegalAccessError(
                 "A polyline can contain a Segment or Location only. Maybe you meant \"covers\"?");
@@ -487,7 +488,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public Location first()
     {
-        return size() > 0 ? get(0) : null;
+        return this.size() > 0 ? this.get(0) : null;
     }
 
     /**
@@ -497,12 +498,30 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public Location get(final int index)
     {
-        if (index < 0 || index >= size())
+        if (index < 0 || index >= this.size())
         {
             throw new CoreException("Cannot get a Location with index " + index
-                    + ", which is not between 0 and " + size());
+                    + ", which is not between 0 and " + this.size());
         }
         return this.points.get(index);
+    }
+
+    public JsonObject getJsonGeometry()
+    {
+        final JsonObject geometry = new JsonObject();
+        geometry.addProperty("type", "LineString");
+
+        final JsonArray coordinates = new JsonArray();
+        geometry.add("coordinates", coordinates);
+        for (final Location point : this.points)
+        {
+            final JsonArray coordinate = new JsonArray();
+            coordinate.add(new JsonPrimitive(point.getLongitude().asDegrees()));
+            coordinate.add(new JsonPrimitive(point.getLatitude().asDegrees()));
+            coordinates.add(coordinate);
+        }
+
+        return geometry;
     }
 
     @Override
@@ -661,7 +680,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
 
     public Location last()
     {
-        return this.points.size() > 0 ? get(size() - 1) : null;
+        return this.points.size() > 0 ? this.get(this.size() - 1) : null;
     }
 
     public Distance length()
@@ -680,7 +699,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public Angle maximumAngle()
     {
-        final List<Segment> segments = segments();
+        final List<Segment> segments = this.segments();
         if (segments.isEmpty())
         {
             return null;
@@ -713,7 +732,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public Optional<Location> maximumAngleLocation()
     {
-        final List<Segment> segments = segments();
+        final List<Segment> segments = this.segments();
         if (segments.isEmpty() || segments.size() == 1)
         {
             return Optional.empty();
@@ -743,7 +762,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
 
     public Location middle()
     {
-        return offsetFromStart(Ratio.HALF);
+        return this.offsetFromStart(Ratio.HALF);
     }
 
     /**
@@ -798,7 +817,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
 
     public Location offsetFromStart(final Ratio ratio)
     {
-        final Distance length = length();
+        final Distance length = this.length();
         final Distance stop = length.scaleBy(ratio);
         Distance accumulated = Distance.ZERO;
         final List<Segment> segments = this.segments();
@@ -923,24 +942,6 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         saveAsGeoJson(geometries, resource);
     }
 
-    public JsonObject getJsonGeometry()
-    {
-        final JsonObject geometry = new JsonObject();
-        geometry.addProperty("type", "LineString");
-
-        final JsonArray coordinates = new JsonArray();
-        geometry.add("coordinates", coordinates);
-        for (final Location point : this.points)
-        {
-            final JsonArray coordinate = new JsonArray();
-            coordinate.add(new JsonPrimitive(point.getLongitude().asDegrees()));
-            coordinate.add(new JsonPrimitive(point.getLatitude().asDegrees()));
-            coordinates.add(coordinate);
-        }
-
-        return geometry;
-    }
-
     /**
      * @return All the {@link Segment}s that represent this {@link PolyLine}. If the
      *         {@link PolyLine} is empty, then the {@link Segment} list is empty. If the
@@ -954,9 +955,9 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     public List<Segment> segments()
     {
         final List<Segment> result = new ArrayList<>();
-        if (size() == 1)
+        if (this.size() == 1)
         {
-            result.add(new Segment(get(0), get(0)));
+            result.add(new Segment(this.get(0), this.get(0)));
         }
         else if (this instanceof Segment)
         {
@@ -1060,7 +1061,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public Distance shortestDistanceTo(final PolyLine other)
     {
-        final Distance one = shortestOneWayDistanceTo(other);
+        final Distance one = this.shortestOneWayDistanceTo(other);
         final Distance two = other.shortestOneWayDistanceTo(this);
         return one.isLessThan(two) ? one : two;
     }
@@ -1126,7 +1127,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
 
     public String toSimpleString()
     {
-        final String string = toCompactString();
+        final String string = this.toCompactString();
         if (string.length() > SIMPLE_STRING_LENGTH + 1)
         {
             return string.substring(0, SIMPLE_STRING_LENGTH / 2) + "..."
@@ -1138,7 +1139,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     @Override
     public String toString()
     {
-        return toWkt();
+        return this.toWkt();
     }
 
     /**

@@ -4,8 +4,11 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Supplier;
 
-import com.google.gson.JsonObject;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 /**
  * Navigable Node
@@ -28,6 +31,31 @@ public abstract class Node extends LocationItem
     public long absoluteValence()
     {
         return this.connectedEdges().size();
+    }
+
+    @Override
+    public JsonObject asGeoJsonFeature()
+    {
+        final JsonObject feature = super.asGeoJsonFeature();
+        final JsonObject properties = feature.get("properties").getAsJsonObject();
+
+        final JsonArray inEdgesArray = new JsonArray();
+        final JsonArray outEdgesArray = new JsonArray();
+
+        for (final Edge edge : this.inEdges())
+        {
+            inEdgesArray.add(new JsonPrimitive(edge.getIdentifier()));
+        }
+
+        for (final Edge edge : this.outEdges())
+        {
+            outEdgesArray.add(new JsonPrimitive(edge.getIdentifier()));
+        }
+
+        properties.add("inEdges", inEdgesArray);
+        properties.add("outEdges", outEdgesArray);
+
+        return feature;
     }
 
     public SortedSet<Edge> connectedEdges()
@@ -87,15 +115,5 @@ public abstract class Node extends LocationItem
         final SortedSet<Long> result = new TreeSet<>();
         getConnectedEdges.get().forEach(edge -> result.add(edge.getIdentifier()));
         return result;
-    }
-
-    @Override
-    public JsonObject asGeoJsonFeature()
-    {
-        final JsonObject jsonObject = super.asGeoJsonFeature();
-
-        jsonObject.addProperty("node", "helloworld");
-
-        return jsonObject;
     }
 }
