@@ -13,6 +13,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Snapper.SnappedLocation;
 import org.openstreetmap.atlas.geography.clipping.Clip;
@@ -918,6 +921,24 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         final List<Iterable<Location>> geometries = new ArrayList<>();
         geometries.add(this);
         saveAsGeoJson(geometries, resource);
+    }
+
+    public JsonObject getJsonGeometry()
+    {
+        final JsonObject geometry = new JsonObject();
+        geometry.addProperty("type", "LineString");
+
+        final JsonArray coordinates = new JsonArray();
+        geometry.add("coordinates", coordinates);
+        for (final Location point : this.points)
+        {
+            final JsonArray coordinate = new JsonArray();
+            coordinate.add(new JsonPrimitive(point.getLongitude().asDegrees()));
+            coordinate.add(new JsonPrimitive(point.getLatitude().asDegrees()));
+            coordinates.add(coordinate);
+        }
+
+        return geometry;
     }
 
     /**

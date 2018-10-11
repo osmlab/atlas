@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.items;
 import java.util.Map;
 import java.util.Optional;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Heading;
@@ -138,6 +139,9 @@ public abstract class LineItem extends AtlasItem
     @Override
     public JsonObject asGeoJsonFeature()
     {
+        final JsonObject feature = new JsonObject();
+        feature.addProperty("type", "Feature");
+
         final JsonObject properties = new JsonObject();
         getTags().forEach(properties::addProperty);
         properties.addProperty("identifier", getIdentifier());
@@ -147,11 +151,10 @@ public abstract class LineItem extends AtlasItem
         final Optional<String> shardName = getAtlas().metaData().getShardName();
         shardName.ifPresent(shard -> properties.addProperty("shard", shard));
 
-        final JsonObject feature = new JsonObject();
         feature.add("properties", properties);
 
-        final PolyLine polyLine = asPolyLine();
-
+        final JsonObject geometry = asPolyLine().getJsonGeometry();
+        feature.add("geometry", geometry);
 
         return feature;
     }
