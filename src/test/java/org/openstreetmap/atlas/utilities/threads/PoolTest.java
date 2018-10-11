@@ -60,7 +60,7 @@ public class PoolTest
     {
         runWithTimer(Duration.seconds(5), () ->
         {
-            try (final Pool pool = new Pool(2, "testPoolQueue", Duration.ONE_SECOND))
+            try (Pool pool = new Pool(2, "testPoolQueue", Duration.ONE_SECOND))
             {
                 pool.queue(() -> System.out.println("1"));
                 pool.queue(() -> System.out.println("2"));
@@ -76,7 +76,7 @@ public class PoolTest
     {
         runWithTimer(Duration.seconds(5), () ->
         {
-            try (final Pool pool = new Pool(2, "testTickerCallable", Duration.seconds(10)))
+            try (Pool pool = new Pool(2, "testTickerCallable", Duration.seconds(10)))
             {
                 final List<Result<Boolean>> results = new ArrayList<>();
                 for (int index = 0; index < 5; index++)
@@ -106,8 +106,7 @@ public class PoolTest
     {
         runWithTimer(Duration.seconds(500000), () ->
         {
-            try (final Pool pool = new Pool(2, "testTickerCallableWithErrors",
-                    Duration.seconds(10)))
+            try (Pool pool = new Pool(2, "testTickerCallableWithErrors", Duration.seconds(10)))
             {
                 final List<Result<Boolean>> results = new ArrayList<>();
                 for (int index = 0; index < 5; index++)
@@ -144,7 +143,7 @@ public class PoolTest
     {
         runWithTimer(Duration.seconds(5), () ->
         {
-            try (final Pool pool = new Pool(2, "testTickerRunnable", Duration.seconds(10)))
+            try (Pool pool = new Pool(2, "testTickerRunnable", Duration.seconds(10)))
             {
                 for (int index = 0; index < 5; index++)
                 {
@@ -167,8 +166,7 @@ public class PoolTest
     {
         runWithTimer(Duration.seconds(5), () ->
         {
-            try (final Pool pool = new Pool(2, "testTickerRunnableWithErrors",
-                    Duration.seconds(10)))
+            try (Pool pool = new Pool(2, "testTickerRunnableWithErrors", Duration.seconds(10)))
             {
                 for (int index = 0; index < 5; index++)
                 {
@@ -214,7 +212,7 @@ public class PoolTest
 
     private void runWithTimer(final Duration maximum, final Runnable test)
     {
-        try (final Pool pool = new Pool(1, "RunWithTimer", maximum))
+        try (Pool pool = new Pool(1, "RunWithTimer", maximum))
         {
             pool.queue(() ->
             {
