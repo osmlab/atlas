@@ -13,7 +13,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import com.google.gson.JsonObject;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Located;
@@ -31,6 +30,8 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.JsonObject;
 
 /**
  * An OSM relation

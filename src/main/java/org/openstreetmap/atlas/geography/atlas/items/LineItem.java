@@ -3,8 +3,6 @@ package org.openstreetmap.atlas.geography.atlas.items;
 import java.util.Map;
 import java.util.Optional;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Heading;
 import org.openstreetmap.atlas.geography.Location;
@@ -18,6 +16,8 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonObject;
+
 /**
  * {@link AtlasItem} that is in shape of a {@link PolyLine}
  *
@@ -29,7 +29,6 @@ public abstract class LineItem extends AtlasItem
     private static final long serialVersionUID = -2053566750957119655L;
 
     private static final Logger logger = LoggerFactory.getLogger(LineItem.class);
-
 
     protected LineItem(final Atlas atlas)
     {

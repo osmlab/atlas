@@ -5,6 +5,7 @@
 
 <suppressions>
     <suppress checks="MagicNumberCheck" files="src/test/*" />
+    <suppress checks="MagicNumberCheck" files="src/main/java/org/openstreetmap/atlas/geography/atlas/geojson/*" />
     <suppress checks="MagicNumberCheck" files="src/integrationTest/*" />
     <suppress checks="MultipleStringLiterals" files="src/test/*" />
     <suppress checks="MultipleStringLiterals" files="src/integrationTest/*" />

@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
-import com.google.gson.JsonObject;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -46,7 +45,6 @@ import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
 import org.openstreetmap.atlas.proto.builder.ProtoAtlasBuilder;
 import org.openstreetmap.atlas.streaming.Streams;
-import org.openstreetmap.atlas.streaming.readers.GeoJsonReader;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.streaming.writers.JsonWriter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -56,6 +54,8 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author matthieun
@@ -457,13 +457,16 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public void saveAsLineDelimitedGeoJson(final WritableResource resource, final BiConsumer<AtlasEntity, JsonObject> jsonMutator)
+    public void saveAsLineDelimitedGeoJson(final WritableResource resource,
+            final BiConsumer<AtlasEntity, JsonObject> jsonMutator)
     {
         saveAsLineDelimitedGeoJson(resource, item -> true, jsonMutator);
     }
 
     @Override
-    public void saveAsLineDelimitedGeoJson(final WritableResource resource, final Predicate<AtlasEntity> matcher, final BiConsumer<AtlasEntity, JsonObject> jsonMutator)
+    public void saveAsLineDelimitedGeoJson(final WritableResource resource,
+            final Predicate<AtlasEntity> matcher,
+            final BiConsumer<AtlasEntity, JsonObject> jsonMutator)
     {
         final JsonWriter writer = new JsonWriter(resource);
         for (final AtlasEntity entity : entities())

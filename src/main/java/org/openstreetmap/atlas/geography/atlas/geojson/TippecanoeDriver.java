@@ -95,7 +95,9 @@ public class TippecanoeDriver extends Command
             }
         }
 
-        logger.info("Finished converting directory of GeoJSON to MBTiles in {}.\ngeojson: {}\nmbtiles: {}", time.elapsedSince(), geojsonDirectory, mbtilesDirectory);
+        logger.info(
+                "Finished converting directory of GeoJSON to MBTiles in {}.\ngeojson: {}\nmbtiles: {}",
+                time.elapsedSince(), geojsonDirectory, mbtilesDirectory);
         return 0;
     }
 
@@ -108,18 +110,15 @@ public class TippecanoeDriver extends Command
     private void process(final List<File> geojsonFiles, final Path mbtilesDirectory)
     {
         final List<DefaultExecuteResultHandler> handlers = new ArrayList<>();
-        for(final File geojson : geojsonFiles)
+        for (final File geojson : geojsonFiles)
         {
             final DefaultExecuteResultHandler handler = new DefaultExecuteResultHandler();
             handlers.add(handler);
             final String name = FilenameUtils.removeExtension(geojson.getName());
             final Path mbtiles = mbtilesDirectory.resolve(name + ".mbtiles");
 
-            final CommandLine commandLine = CommandLine.parse("tippecanoe")
-                    .addArgument("-o")
-                    .addArgument(mbtiles.toString(), true)
-                    .addArgument("-Z10")
-                    .addArgument("-z14")
+            final CommandLine commandLine = CommandLine.parse("tippecanoe").addArgument("-o")
+                    .addArgument(mbtiles.toString(), true).addArgument("-Z10").addArgument("-z14")
                     .addArgument("--drop-densest-as-needed")
                     .addArgument(geojson.getAbsolutePath(), true);
             logger.info("Executing: {}", commandLine);
@@ -137,7 +136,7 @@ public class TippecanoeDriver extends Command
         }
 
         // Wait for the handlers to all be done before moving on...
-        for(final DefaultExecuteResultHandler handler : handlers)
+        for (final DefaultExecuteResultHandler handler : handlers)
         {
             try
             {

@@ -12,7 +12,6 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
-import com.google.gson.JsonObject;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.io.FileUtils;
@@ -28,6 +27,8 @@ import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.JsonObject;
 
 /**
  * This CLI takes a directory of atlas files and turns them into GeoJSON, specifically to be
@@ -57,30 +58,30 @@ public class TippecanoeGeoJsonConverter extends Command
             "The number of threads to work on processing atlas shards.", Integer::valueOf,
             Optionality.OPTIONAL, String.valueOf(DEFAULT_THREADS));
 
+    /**
+     * We only want positive edges, because the negative edge can be derived at the application
+     * level, and this encodes extraneous data that can be easily derived by the map viewer. NOTE:
+     * We're temporarily disabling RELATIONS right now here too!!!!
+     */
+    private static final Predicate<AtlasEntity> POSITIVE_ONLY = atlasEntity -> atlasEntity
+            .getIdentifier() >= 0 && !ItemType.RELATION.equals(atlasEntity.getType());
 
     /**
-     * We only want positive edges, because the negative edge can be derived at the application level, and this
-     * encodes extraneous data that can be easily derived by the map viewer.
-     *
-     * NOTE: We're temporarily disabling RELATIONS right now here too!!!!
+     * For the render logic of tippecanoe, we want to examine various tags of a given atlas entity
+     * and make decisions for the layer name, min zoom, and max zoom for the feature. These
+     * properties will be followed by tippecanoe if you put it in a "tippecanoe" object within the
+     * JSON feature.
      */
-    private static final Predicate<AtlasEntity> POSITIVE_ONLY = (atlasEntity -> atlasEntity.getIdentifier() >= 0
-            && !ItemType.RELATION.equals(atlasEntity.getType()));
-
-
-    /**
-     * For the render logic of tippecanoe, we want to examine various tags of a given atlas entity and make decisions
-     * for the layer name, min zoom, and max zoom for the feature. These properties will be followed by tippecanoe
-     * if you put it in a "tippecanoe" object within the JSON feature.
-     */
-    private static final BiConsumer<AtlasEntity, JsonObject> TIPPECANOEIFY = ((atlasEntity, feature) -> {
+    private static final BiConsumer<AtlasEntity, JsonObject> TIPPECANOEIFY = (atlasEntity,
+            feature) ->
+    {
         final JsonObject tippecanoe = new JsonObject();
 
         final String atlasType = atlasEntity.getType().name();
         tippecanoe.addProperty("layer", atlasType);
 
-        // things will have a min zoom of 10 by default
-        int minzoom = 10;
+        // things will have a min zoom of 11 by default
+        int minzoom = 11;
 
         // lets do some more specific zooms
         final Map<String, String> tags = atlasEntity.getTags();
@@ -90,21 +91,21 @@ public class TippecanoeGeoJsonConverter extends Command
 
         if (tags.get("boundary") != null)
         {
-            minzoom = 6;
-        }
-        else if (tags.get("waterway") != null || "motorway".equals(highway) )
-        {
             minzoom = 7;
         }
-
-        else if ("trunk".equals(highway) || "primary".equals(highway))
+        else if (tags.get("waterway") != null || "motorway".equals(highway))
         {
             minzoom = 8;
         }
 
-        else if ("secondary".equals(highway))
+        else if ("trunk".equals(highway) || "primary".equals(highway))
         {
             minzoom = 9;
+        }
+
+        else if ("secondary".equals(highway))
+        {
+            minzoom = 10;
         }
 
         else if ("NODE".equals(atlasType))
@@ -114,8 +115,7 @@ public class TippecanoeGeoJsonConverter extends Command
 
         tippecanoe.addProperty("minzoom", minzoom);
         feature.add("tippecanoe", tippecanoe);
-    });
-
+    };
 
     public static void main(final String[] args)
     {
@@ -154,7 +154,7 @@ public class TippecanoeGeoJsonConverter extends Command
         try
         {
             pool.submit(() -> this.convertAtlases(atlasDirectory, geojsonDirectory)).get();
-//            concatenate(geojsonDirectory);
+            // concatenate(geojsonDirectory);
         }
         catch (final InterruptedException interrupt)
         {
@@ -199,12 +199,12 @@ public class TippecanoeGeoJsonConverter extends Command
 
     private void concatenate(final Path geojsonDirectory)
     {
-        Time time = Time.now();
+        final Time time = Time.now();
         final String directory = geojsonDirectory.toString();
 
-        final CommandLine commandLine = CommandLine.parse("bash")
-                .addArgument("-c")
-                .addArgument("/bin/cat " + directory + "/ECU_10-282-514.geojson > " + directory + "/EVERYTHING.geojson", true);
+        final CommandLine commandLine = CommandLine.parse("bash").addArgument("-c")
+                .addArgument("/bin/cat " + directory + "/ECU_10-282-514.geojson > " + directory
+                        + "/EVERYTHING.geojson", true);
 
         logger.info("cmd: {}", commandLine.toString());
 
@@ -216,7 +216,8 @@ public class TippecanoeGeoJsonConverter extends Command
         }
         catch (final IOException ioException)
         {
-           logger.error("Unable to concatenate the output line-delimited GeoJSON files.", ioException);
+            logger.error("Unable to concatenate the output line-delimited GeoJSON files.",
+                    ioException);
         }
     }
 

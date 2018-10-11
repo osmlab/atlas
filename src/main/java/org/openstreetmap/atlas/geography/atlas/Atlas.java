@@ -4,10 +4,8 @@ import java.io.Serializable;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
-import com.google.gson.JsonObject;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -27,6 +25,8 @@ import org.openstreetmap.atlas.geography.atlas.items.SnappedEdge;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
+
+import com.google.gson.JsonObject;
 
 /**
  * Atlas is a representation of an OpenStreetMap region in memory. It is a navigable collection of
@@ -679,22 +679,30 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     void saveAsGeoJson(WritableResource resource, Predicate<AtlasEntity> matcher);
 
     /**
-     * Save as line-delimited GeoJSON. This is one feature per line, with no wrapping FeatureCollection.
+     * Save as line-delimited GeoJSON. This is one feature per line, with no wrapping
+     * FeatureCollection.
      *
      * @param resource
      *            The resource to write to
+     * @param jsonMutator
+     *            The callback function that will let you change what is in the Feature's JSON.
      */
-    void saveAsLineDelimitedGeoJson(WritableResource resource, BiConsumer<AtlasEntity, JsonObject> jsonMutator);
+    void saveAsLineDelimitedGeoJson(WritableResource resource,
+            BiConsumer<AtlasEntity, JsonObject> jsonMutator);
 
     /**
-     * Save as line-delimited GeoJSON with a matcher. This is one feature per line, with no wrapping FeatureCollection.
+     * Save as line-delimited GeoJSON with a matcher. This is one feature per line, with no wrapping
+     * FeatureCollection.
      *
      * @param resource
      *            The resource to write to
      * @param matcher
      *            The matcher to consider
+     * @param jsonMutator
+     *        The callback function that will let you change what is in the Feature's JSON.
      */
-    void saveAsLineDelimitedGeoJson(WritableResource resource, Predicate<AtlasEntity> matcher, BiConsumer<AtlasEntity, JsonObject> jsonMutator);
+    void saveAsLineDelimitedGeoJson(WritableResource resource, Predicate<AtlasEntity> matcher,
+            BiConsumer<AtlasEntity, JsonObject> jsonMutator);
 
     /**
      * Save as list of items

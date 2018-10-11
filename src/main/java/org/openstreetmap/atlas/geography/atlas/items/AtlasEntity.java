@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import com.google.gson.JsonObject;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -16,6 +15,8 @@ import org.openstreetmap.atlas.tags.LastEditUserNameTag;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Duration;
 import org.openstreetmap.atlas.utilities.time.Time;
+
+import com.google.gson.JsonObject;
 
 /**
  * A located entity with tags
@@ -195,9 +196,7 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
      */
     public abstract LocationIterableProperties toGeoJsonBuildingBlock();
 
-
     public abstract JsonObject asGeoJsonFeature();
-
 
     protected String parentRelationsAsDiffViewFriendlyString()
     {
