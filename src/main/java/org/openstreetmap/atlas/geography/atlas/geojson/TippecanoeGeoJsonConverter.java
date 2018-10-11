@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
@@ -71,6 +72,29 @@ public class TippecanoeGeoJsonConverter extends Command
 
         final String atlasType = atlasEntity.getType().name();
         tippecanoe.addProperty("layer", atlasType);
+
+        // things will have a min zoom of 10 by default
+        tippecanoe.addProperty("minzoom", 10);
+
+        // lets do some more specific zooms
+        final Map<String, String> tags = atlasEntity.getTags();
+
+        final String highway = tags.get("highway");
+        if (tags.get("waterway") != null || "motorway".equals(highway) )
+        {
+            tippecanoe.addProperty("minzoom", 6);
+        }
+
+
+        if ("trunk".equals(highway) || "primary".equals(highway))
+        {
+            tippecanoe.addProperty("minzoom", 8);
+        }
+
+        if ("secondary".equals(highway))
+        {
+            tippecanoe.addProperty("minzoom", 9);
+        }
 
         feature.add("tippecanoe", tippecanoe);
     });
