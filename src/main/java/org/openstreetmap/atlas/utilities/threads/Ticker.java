@@ -53,7 +53,7 @@ public abstract class Ticker implements Runnable, Closeable
         {
             // Sleep small, to check regularly. If the thread is "closed" it will then die fairly
             // soon even if the ticker time is really long.
-            CHECK_TIME.sleep();
+            CHECK_TIME.lowest(this.tickerTime).sleep();
             if (lastCheck.elapsedSince().isMoreThan(this.tickerTime))
             {
                 tickAction(start.elapsedSince());
