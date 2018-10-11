@@ -287,7 +287,7 @@ public class Polygon extends PolyLine implements GeometricSurface
     public JsonObject getJsonGeometry()
     {
         final JsonObject geometry = new JsonObject();
-        geometry.addProperty("type", "LineString");
+        geometry.addProperty("type", "Polygon");
 
         final JsonArray coordinates = new JsonArray();
         geometry.add("coordinates", coordinates);

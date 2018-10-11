@@ -202,16 +202,17 @@ public class TippecanoeGeoJsonConverter extends Command
         Time time = Time.now();
         final String directory = geojsonDirectory.toString();
 
-        final CommandLine commandLine = CommandLine.parse("cat")
-                .addArgument(directory + "/*_*.geojson")
-                .addArgument(">")
-                .addArgument(directory + "/WORLD.geojson");
+        final CommandLine commandLine = CommandLine.parse("bash")
+                .addArgument("-c")
+                .addArgument("/bin/cat " + directory + "/ECU_10-282-514.geojson > " + directory + "/EVERYTHING.geojson", true);
+
+        logger.info("cmd: {}", commandLine.toString());
 
         final DefaultExecutor executor = new DefaultExecutor();
         try
         {
             executor.execute(commandLine);
-            logger.info("Concatenated to WORLD.geojson in {}", time.elapsedSince());
+            logger.info("Concatenated to EVERYTHING.geojson in {}", time.elapsedSince());
         }
         catch (final IOException ioException)
         {
