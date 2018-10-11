@@ -14,6 +14,7 @@ import java.util.function.Predicate;
 
 import com.google.gson.JsonObject;
 import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -85,9 +86,15 @@ public class TippecanoeGeoJsonConverter extends Command
         final Map<String, String> tags = atlasEntity.getTags();
 
         final String highway = tags.get("highway");
-        if (tags.get("waterway") != null || "motorway".equals(highway) )
+        final String boundary = tags.get("boundary");
+
+        if (tags.get("boundary") != null)
         {
             minzoom = 6;
+        }
+        else if (tags.get("waterway") != null || "motorway".equals(highway) )
+        {
+            minzoom = 7;
         }
 
         else if ("trunk".equals(highway) || "primary".equals(highway))
@@ -147,6 +154,7 @@ public class TippecanoeGeoJsonConverter extends Command
         try
         {
             pool.submit(() -> this.convertAtlases(atlasDirectory, geojsonDirectory)).get();
+//            concatenate(geojsonDirectory);
         }
         catch (final InterruptedException interrupt)
         {
@@ -187,6 +195,28 @@ public class TippecanoeGeoJsonConverter extends Command
             atlas.saveAsLineDelimitedGeoJson(geojsonFile, POSITIVE_ONLY, TIPPECANOEIFY);
             logger.info("Saved {} in {}.", name, time.elapsedSince());
         });
+    }
+
+    private void concatenate(final Path geojsonDirectory)
+    {
+        Time time = Time.now();
+        final String directory = geojsonDirectory.toString();
+
+        final CommandLine commandLine = CommandLine.parse("cat")
+                .addArgument(directory + "/*_*.geojson")
+                .addArgument(">")
+                .addArgument(directory + "/WORLD.geojson");
+
+        final DefaultExecutor executor = new DefaultExecutor();
+        try
+        {
+            executor.execute(commandLine);
+            logger.info("Concatenated to WORLD.geojson in {}", time.elapsedSince());
+        }
+        catch (final IOException ioException)
+        {
+           logger.error("Unable to concatenate the output line-delimited GeoJSON files.", ioException);
+        }
     }
 
 }
