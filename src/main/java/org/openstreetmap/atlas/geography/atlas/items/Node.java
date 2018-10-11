@@ -4,6 +4,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Supplier;
 
+import com.google.gson.JsonObject;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 
 /**
@@ -86,5 +87,15 @@ public abstract class Node extends LocationItem
         final SortedSet<Long> result = new TreeSet<>();
         getConnectedEdges.get().forEach(edge -> result.add(edge.getIdentifier()));
         return result;
+    }
+
+    @Override
+    public JsonObject asGeoJsonFeature()
+    {
+        final JsonObject jsonObject = super.asGeoJsonFeature();
+
+        jsonObject.addProperty("node", "helloworld");
+
+        return jsonObject;
     }
 }

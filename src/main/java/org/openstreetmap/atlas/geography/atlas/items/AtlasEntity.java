@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.google.gson.JsonObject;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -193,6 +194,10 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
      * @return The {@link LocationIterableProperties} for this {@link AtlasEntity}
      */
     public abstract LocationIterableProperties toGeoJsonBuildingBlock();
+
+
+    public abstract JsonObject asGeoJsonFeature();
+
 
     protected String parentRelationsAsDiffViewFriendlyString()
     {

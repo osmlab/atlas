@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.items;
 
+import com.google.gson.JsonObject;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 
 /**
@@ -36,5 +37,15 @@ public abstract class Point extends LocationItem
     {
         return "[Point: id=" + this.getIdentifier() + ", location=" + this.getLocation() + ", "
                 + tagString() + "]";
+    }
+
+    @Override
+    public JsonObject asGeoJsonFeature()
+    {
+        final JsonObject jsonObject = super.asGeoJsonFeature();
+
+        jsonObject.addProperty("point", "helloworld");
+
+        return jsonObject;
     }
 }

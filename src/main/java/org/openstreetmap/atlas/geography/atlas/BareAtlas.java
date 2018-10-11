@@ -17,6 +17,7 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
+import com.google.gson.JsonObject;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -44,6 +45,7 @@ import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
 import org.openstreetmap.atlas.proto.builder.ProtoAtlasBuilder;
 import org.openstreetmap.atlas.streaming.Streams;
+import org.openstreetmap.atlas.streaming.readers.GeoJsonReader;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.streaming.writers.JsonWriter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -450,6 +452,20 @@ public abstract class BareAtlas implements Atlas
     {
         final JsonWriter writer = new JsonWriter(resource);
         writer.write(this.asGeoJson(matcher).jsonObject());
+        writer.close();
+    }
+
+    @Override
+    public void saveAsLineDelimitedGeoJson(final WritableResource resource)
+    {
+        saveAsLineDelimitedGeoJson(resource, item -> true);
+    }
+
+    @Override
+    public void saveAsLineDelimitedGeoJson(final WritableResource resource, final Predicate<AtlasEntity> matcher)
+    {
+        final JsonWriter writer = new JsonWriter(resource);
+        entities().forEach(entity -> writer.writeLine(entity.asGeoJsonFeature()));
         writer.close();
     }
 

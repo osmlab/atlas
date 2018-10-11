@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.items;
 import java.util.Map;
 import java.util.Optional;
 
+import com.google.gson.JsonObject;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -102,6 +103,16 @@ public abstract class Area extends AtlasItem
         }
 
         return new GeoJsonBuilder.LocationIterableProperties(getClosedGeometry(), tags);
+    }
+
+    @Override
+    public JsonObject asGeoJsonFeature()
+    {
+        final JsonObject jsonObject = new JsonObject();
+
+        jsonObject.addProperty("area", "helloworld");
+
+        return jsonObject;
     }
 
     @Override

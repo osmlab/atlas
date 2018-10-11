@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.items;
 import java.util.Map;
 import java.util.Optional;
 
+import com.google.gson.JsonObject;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Heading;
 import org.openstreetmap.atlas.geography.Location;
@@ -13,6 +14,8 @@ import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@link AtlasItem} that is in shape of a {@link PolyLine}
@@ -23,6 +26,9 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
 public abstract class LineItem extends AtlasItem
 {
     private static final long serialVersionUID = -2053566750957119655L;
+
+    private static final Logger logger = LoggerFactory.getLogger(LineItem.class);
+
 
     protected LineItem(final Atlas atlas)
     {
@@ -108,7 +114,6 @@ public abstract class LineItem extends AtlasItem
         final Optional<String> shardName = getAtlas().metaData().getShardName();
         shardName.ifPresent(shard -> tags.put("shard", shard));
 
-
         if (this instanceof Edge)
         {
             tags.put("startNode", String.valueOf(((Edge) this).start().getIdentifier()));
@@ -128,5 +133,26 @@ public abstract class LineItem extends AtlasItem
         }
 
         return new GeoJsonBuilder.LocationIterableProperties(getRawGeometry(), tags);
+    }
+
+    @Override
+    public JsonObject asGeoJsonFeature()
+    {
+        final JsonObject properties = new JsonObject();
+        getTags().forEach(properties::addProperty);
+        properties.addProperty("identifier", getIdentifier());
+        properties.addProperty("osmIdentifier", getOsmIdentifier());
+        properties.addProperty("itemType", String.valueOf(getType()));
+
+        final Optional<String> shardName = getAtlas().metaData().getShardName();
+        shardName.ifPresent(shard -> properties.addProperty("shard", shard));
+
+        final JsonObject feature = new JsonObject();
+        feature.add("properties", properties);
+
+        final PolyLine polyLine = asPolyLine();
+
+
+        return feature;
     }
 }

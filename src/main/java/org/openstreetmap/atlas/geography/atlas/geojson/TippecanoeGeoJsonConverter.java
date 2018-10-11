@@ -123,7 +123,7 @@ public class TippecanoeGeoJsonConverter extends Command
             final String name = FilenameUtils.removeExtension(atlasFile.getName())
                     + FileSuffix.GEO_JSON.toString();
             final File geojsonFile = new File(geojsonDirectory.resolve(name).toFile());
-            atlas.saveAsGeoJson(geojsonFile);
+            atlas.saveAsLineDelimitedGeoJson(geojsonFile);
             logger.info("Saved {} in {}.", name, time.elapsedSince());
         });
     }

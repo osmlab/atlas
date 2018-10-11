@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import com.google.gson.JsonObject;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Located;
@@ -238,6 +239,16 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         shardName.ifPresent(shard -> tags.put("shard", shard));
 
         return new GeoJsonBuilder.LocationIterableProperties(Location.CENTER, tags);
+    }
+
+    @Override
+    public JsonObject asGeoJsonFeature()
+    {
+        final JsonObject jsonObject = new JsonObject();
+
+        jsonObject.addProperty("relation", "helloworld");
+
+        return jsonObject;
     }
 
     public String toSimpleString()

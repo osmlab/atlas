@@ -676,6 +676,24 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     void saveAsGeoJson(WritableResource resource, Predicate<AtlasEntity> matcher);
 
     /**
+     * Save as line-delimited GeoJSON. This is one feature per line, with no wrapping FeatureCollection.
+     *
+     * @param resource
+     *            The resource to write to
+     */
+    void saveAsLineDelimitedGeoJson(WritableResource resource);
+
+    /**
+     * Save as line-delimited GeoJSON with a matcher. This is one feature per line, with no wrapping FeatureCollection.
+     *
+     * @param resource
+     *            The resource to write to
+     * @param matcher
+     *            The matcher to consider
+     */
+    void saveAsLineDelimitedGeoJson(WritableResource resource, Predicate<AtlasEntity> matcher);
+
+    /**
      * Save as list of items
      *
      * @param resource
