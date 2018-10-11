@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
 import com.google.gson.JsonObject;
@@ -456,16 +457,25 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public void saveAsLineDelimitedGeoJson(final WritableResource resource)
+    public void saveAsLineDelimitedGeoJson(final WritableResource resource, final BiConsumer<AtlasEntity, JsonObject> jsonMutator)
     {
-        saveAsLineDelimitedGeoJson(resource, item -> true);
+        saveAsLineDelimitedGeoJson(resource, item -> true, jsonMutator);
     }
 
     @Override
-    public void saveAsLineDelimitedGeoJson(final WritableResource resource, final Predicate<AtlasEntity> matcher)
+    public void saveAsLineDelimitedGeoJson(final WritableResource resource, final Predicate<AtlasEntity> matcher, final BiConsumer<AtlasEntity, JsonObject> jsonMutator)
     {
         final JsonWriter writer = new JsonWriter(resource);
-        entities().forEach(entity -> writer.writeLine(entity.asGeoJsonFeature()));
+        for (final AtlasEntity entity : entities())
+        {
+            if (!matcher.test(entity))
+            {
+                continue;
+            }
+            final JsonObject feature = entity.asGeoJsonFeature();
+            jsonMutator.accept(entity, feature);
+            writer.writeLine(feature);
+        }
         writer.close();
     }
 

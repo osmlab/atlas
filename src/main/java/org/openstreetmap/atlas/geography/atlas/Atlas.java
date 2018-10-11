@@ -3,8 +3,11 @@ package org.openstreetmap.atlas.geography.atlas;
 import java.io.Serializable;
 import java.util.Optional;
 import java.util.SortedSet;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
+import com.google.gson.JsonObject;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -681,7 +684,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      * @param resource
      *            The resource to write to
      */
-    void saveAsLineDelimitedGeoJson(WritableResource resource);
+    void saveAsLineDelimitedGeoJson(WritableResource resource, BiConsumer<AtlasEntity, JsonObject> jsonMutator);
 
     /**
      * Save as line-delimited GeoJSON with a matcher. This is one feature per line, with no wrapping FeatureCollection.
@@ -691,7 +694,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      * @param matcher
      *            The matcher to consider
      */
-    void saveAsLineDelimitedGeoJson(WritableResource resource, Predicate<AtlasEntity> matcher);
+    void saveAsLineDelimitedGeoJson(WritableResource resource, Predicate<AtlasEntity> matcher, BiConsumer<AtlasEntity, JsonObject> jsonMutator);
 
     /**
      * Save as list of items

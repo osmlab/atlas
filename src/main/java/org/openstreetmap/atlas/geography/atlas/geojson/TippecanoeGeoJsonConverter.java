@@ -8,11 +8,14 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.function.BiConsumer;
 
+import com.google.gson.JsonObject;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.utilities.runtime.Command;
@@ -48,6 +51,15 @@ public class TippecanoeGeoJsonConverter extends Command
     private static final Switch<Integer> THREADS = new Switch<>("threads",
             "The number of threads to work on processing atlas shards.", Integer::valueOf,
             Optionality.OPTIONAL, String.valueOf(DEFAULT_THREADS));
+
+    private static final BiConsumer<AtlasEntity, JsonObject> TIPPECANOEIFY = ((atlasEntity, feature) -> {
+        final JsonObject tippecanoe = new JsonObject();
+
+        final String atlasType = atlasEntity.getType().name();
+        tippecanoe.addProperty("layer", atlasType);
+
+        feature.add("tippecanoe", tippecanoe);
+    });
 
     public static void main(final String[] args)
     {
@@ -123,7 +135,7 @@ public class TippecanoeGeoJsonConverter extends Command
             final String name = FilenameUtils.removeExtension(atlasFile.getName())
                     + FileSuffix.GEO_JSON.toString();
             final File geojsonFile = new File(geojsonDirectory.resolve(name).toFile());
-            atlas.saveAsLineDelimitedGeoJson(geojsonFile);
+            atlas.saveAsLineDelimitedGeoJson(geojsonFile, TIPPECANOEIFY);
             logger.info("Saved {} in {}.", name, time.elapsedSince());
         });
     }
