@@ -74,5 +74,5 @@ public abstract class Ticker implements Runnable, Closeable
      * @param sinceStart
      *            The duration elapsed since the start of the ticker.
      */
-    protected abstract void tickAction(final Duration sinceStart);
+    protected abstract void tickAction(Duration sinceStart);
 }
