@@ -13,11 +13,13 @@ import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
 import com.google.gson.JsonObject;
+import org.apache.commons.exec.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.utilities.runtime.Command;
@@ -58,8 +60,11 @@ public class TippecanoeGeoJsonConverter extends Command
     /**
      * We only want positive edges, because the negative edge can be derived at the application level, and this
      * encodes extraneous data that can be easily derived by the map viewer.
+     *
+     * NOTE: We're temporarily disabling RELATIONS right now here too!!!!
      */
-    private static final Predicate<AtlasEntity> POSITIVE_ONLY = (atlasEntity -> atlasEntity.getIdentifier() >= 0);
+    private static final Predicate<AtlasEntity> POSITIVE_ONLY = (atlasEntity -> atlasEntity.getIdentifier() >= 0
+            && !ItemType.RELATION.equals(atlasEntity.getType()));
 
 
     /**
