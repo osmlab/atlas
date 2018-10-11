@@ -139,6 +139,48 @@ public class PoolTest
     }
 
     @Test
+    public void testTickerFailureHandling()
+    {
+        runWithTimer(Duration.seconds(5), () ->
+        {
+            try (Pool pool = new Pool(2, "testTickerCallable", Duration.seconds(10)))
+            {
+                final List<Result<Boolean>> results = new ArrayList<>();
+                for (int index = 0; index < 5; index++)
+                {
+                    final int idx = index;
+                    final Callable<Boolean> callable = () ->
+                    {
+                        Duration.milliseconds(100).sleep();
+                        System.out.println("Thread " + idx + " done.");
+                        return true;
+                    };
+                    final Ticker rogueTicker = new Ticker("Ticker " + idx,
+                            Duration.milliseconds(50))
+                    {
+                        @Override
+                        protected void tickAction(final Duration sinceStart)
+                        {
+                            logger.info("{}: {}", getName(), sinceStart);
+                            if ("Ticker 3".equals(getName()))
+                            {
+                                throw new CoreException("I am rogue Ticker 3");
+                            }
+                        }
+                    };
+                    results.add(pool.queue(callable, rogueTicker));
+                }
+                System.out.println("All submitted to pool!");
+                for (final Result<Boolean> result : results)
+                {
+                    Assert.assertTrue(result.get());
+                }
+            }
+            System.out.println("Pool Ended.");
+        });
+    }
+
+    @Test
     public void testTickerRunnable()
     {
         runWithTimer(Duration.seconds(5), () ->

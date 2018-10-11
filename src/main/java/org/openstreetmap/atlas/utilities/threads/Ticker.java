@@ -4,6 +4,8 @@ import java.io.Closeable;
 
 import org.openstreetmap.atlas.utilities.scalars.Duration;
 import org.openstreetmap.atlas.utilities.time.Time;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Ticker companion.
@@ -12,6 +14,7 @@ import org.openstreetmap.atlas.utilities.time.Time;
  */
 public abstract class Ticker implements Runnable, Closeable
 {
+    private static final Logger logger = LoggerFactory.getLogger(Ticker.class);
     private static final Duration CHECK_TIME = Duration.milliseconds(500);
 
     private final String name;
@@ -56,7 +59,17 @@ public abstract class Ticker implements Runnable, Closeable
             CHECK_TIME.lowest(this.tickerTime).sleep();
             if (lastCheck.elapsedSince().isMoreThan(this.tickerTime))
             {
-                tickAction(start.elapsedSince());
+                try
+                {
+                    tickAction(start.elapsedSince());
+                }
+                catch (final Exception e)
+                {
+                    // In case of any error in tickAction, kill the ticker silently, with a nice
+                    // error message.
+                    logger.error("{} tick action failed! Associated job should not be affected.",
+                            getName(), e);
+                }
                 lastCheck = Time.now();
             }
         }
