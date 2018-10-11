@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 
 import com.google.gson.JsonObject;
 import org.apache.commons.io.FileUtils;
@@ -52,6 +53,19 @@ public class TippecanoeGeoJsonConverter extends Command
             "The number of threads to work on processing atlas shards.", Integer::valueOf,
             Optionality.OPTIONAL, String.valueOf(DEFAULT_THREADS));
 
+
+    /**
+     * We only want positive edges, because the negative edge can be derived at the application level, and this
+     * encodes extraneous data that can be easily derived by the map viewer.
+     */
+    private static final Predicate<AtlasEntity> POSITIVE_ONLY = (atlasEntity -> atlasEntity.getIdentifier() >= 0);
+
+
+    /**
+     * For the render logic of tippecanoe, we want to examine various tags of a given atlas entity and make decisions
+     * for the layer name, min zoom, and max zoom for the feature. These properties will be followed by tippecanoe
+     * if you put it in a "tippecanoe" object within the JSON feature.
+     */
     private static final BiConsumer<AtlasEntity, JsonObject> TIPPECANOEIFY = ((atlasEntity, feature) -> {
         final JsonObject tippecanoe = new JsonObject();
 
@@ -60,6 +74,7 @@ public class TippecanoeGeoJsonConverter extends Command
 
         feature.add("tippecanoe", tippecanoe);
     });
+
 
     public static void main(final String[] args)
     {
@@ -135,7 +150,7 @@ public class TippecanoeGeoJsonConverter extends Command
             final String name = FilenameUtils.removeExtension(atlasFile.getName())
                     + FileSuffix.GEO_JSON.toString();
             final File geojsonFile = new File(geojsonDirectory.resolve(name).toFile());
-            atlas.saveAsLineDelimitedGeoJson(geojsonFile, TIPPECANOEIFY);
+            atlas.saveAsLineDelimitedGeoJson(geojsonFile, POSITIVE_ONLY, TIPPECANOEIFY);
             logger.info("Saved {} in {}.", name, time.elapsedSince());
         });
     }
