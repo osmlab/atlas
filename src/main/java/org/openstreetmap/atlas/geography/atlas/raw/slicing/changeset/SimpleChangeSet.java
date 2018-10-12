@@ -5,9 +5,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryEntity;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryLine;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryPoint;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryEntity;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryLine;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryPoint;
 
 /**
  * Records any additions, updates and deletions that occurred during point and way raw Atlas

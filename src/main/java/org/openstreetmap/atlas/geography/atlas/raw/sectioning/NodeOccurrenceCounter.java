@@ -7,7 +7,7 @@ import java.util.Set;
 
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryNode;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryNode;
 
 /**
  * Keeps track of all {@link TemporaryNode}s created for an atlas {@link Edge} and the occurrence of

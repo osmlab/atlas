@@ -6,11 +6,11 @@ import java.util.Map;
 import java.util.Set;
 
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryEntity;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryLine;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryPoint;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRelation;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRelationMember;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryEntity;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryLine;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryPoint;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryRelation;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryRelationMember;
 import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
 
 /**

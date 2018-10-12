@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary;
+package org.openstreetmap.atlas.geography.atlas.raw.temporary;
 
 import java.util.List;
 import java.util.Map;
