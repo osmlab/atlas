@@ -131,7 +131,7 @@ public class ComplexBoundary extends ComplexEntity
             outersToInners.put(outer, innersForThisOuter);
         });
         outersToInners.remove(outerToRemove);
-        this.outline = new MultiPolygon(outersToInners);
+        setOutline(new MultiPolygon(outersToInners));
     }
 
     public void setOutline(final MultiPolygon outline)

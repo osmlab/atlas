@@ -483,9 +483,9 @@ public class CountryBoundaryMap implements Serializable
      */
     void readFromAtlas(final Atlas atlas)
     {
-        final Iterable<ComplexBoundary> dedupedComplexBoundaries = resolveOverlappingBorders(
+        final Iterable<ComplexBoundary> deduplicatedComplexBoundaries = resolveOverlappingBorders(
                 new ComplexBoundaryFinder().find(atlas));
-        for (final ComplexBoundary complexBoundary : dedupedComplexBoundaries)
+        for (final ComplexBoundary complexBoundary : deduplicatedComplexBoundaries)
         {
             if (complexBoundary.hasCountryCode())
             {
@@ -1122,11 +1122,11 @@ public class CountryBoundaryMap implements Serializable
     }
 
     /**
-     * Filters the given iterable of {@link ComplexBoundary}'s to only allow a single country to
+     * Filters the given iterable of {@link ComplexBoundary}s to only allow a single country to
      * claim an outer boundary polygon.
      *
      * @param complexBoundaries
-     *            The {@link ComplexBoundary}'s to filter
+     *            The {@link ComplexBoundary}s to filter duplicate polygons from
      * @return An iterable of {@link ComplexBoundary} with no duplicate outer polygons
      */
     public Iterable<ComplexBoundary> resolveOverlappingBorders(
@@ -1147,7 +1147,7 @@ public class CountryBoundaryMap implements Serializable
             }
             return 0;
         });
-        for (final ComplexBoundary currentComplexBoundary : complexBoundaries)
+        for (final ComplexBoundary currentComplexBoundary : complexBoundariesList)
         {
             final MultiPolygon outline = currentComplexBoundary.getOutline();
             if (outline != null)
