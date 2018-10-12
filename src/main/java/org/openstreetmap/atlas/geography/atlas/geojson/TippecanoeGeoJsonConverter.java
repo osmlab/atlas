@@ -40,6 +40,11 @@ public class TippecanoeGeoJsonConverter extends Command
 {
     private static final int DEFAULT_THREADS = 8;
 
+    /**
+     * After all of your files are converted to LD GeoJSON, it is then concatenated into EVERYTHING.geojson
+     */
+    private static final String EVERYTHING = "EVERYTHING.geojson";
+
     private static final Logger logger = LoggerFactory.getLogger(TippecanoeGeoJsonConverter.class);
 
     private static final AtlasResourceLoader ATLAS_RESOURCE_LOADER = new AtlasResourceLoader();
@@ -154,7 +159,7 @@ public class TippecanoeGeoJsonConverter extends Command
         try
         {
             pool.submit(() -> this.convertAtlases(atlasDirectory, geojsonDirectory)).get();
-            // concatenate(geojsonDirectory);
+             concatenate(geojsonDirectory);
         }
         catch (final InterruptedException interrupt)
         {
@@ -173,6 +178,7 @@ public class TippecanoeGeoJsonConverter extends Command
         logger.info(
                 "Finished converting directory of atlas shards into GeoJSON for tippecanoe in {}!",
                 time.elapsedSince());
+
         return 0;
     }
 
@@ -202,9 +208,12 @@ public class TippecanoeGeoJsonConverter extends Command
         final Time time = Time.now();
         final String directory = geojsonDirectory.toString();
 
-        final CommandLine commandLine = CommandLine.parse("bash").addArgument("-c")
-                .addArgument("/bin/cat " + directory + "/ECU_10-282-514.geojson > " + directory
-                        + "/EVERYTHING.geojson", true);
+        // https://stackoverflow.com/questions/5080109/how-to-execute-bin-sh-with-commons-exec
+        final String cat = String.format("cat '%s/'*_*.geojson > '%s/'%s", directory, directory, EVERYTHING);
+
+        final CommandLine commandLine = CommandLine.parse("bash")
+                .addArgument("-c", false)
+                .addArgument(cat, false);
 
         logger.info("cmd: {}", commandLine.toString());
 
@@ -212,7 +221,7 @@ public class TippecanoeGeoJsonConverter extends Command
         try
         {
             executor.execute(commandLine);
-            logger.info("Concatenated to EVERYTHING.geojson in {}", time.elapsedSince());
+            logger.info("Concatenated {} in {}", EVERYTHING, time.elapsedSince());
         }
         catch (final IOException ioException)
         {
