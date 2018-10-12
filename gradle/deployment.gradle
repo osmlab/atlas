@@ -1,7 +1,7 @@
 import org.gradle.plugins.signing.Sign
 
 nexusStaging {
-    delayBetweenRetriesInMillis = 20000
+    delayBetweenRetriesInMillis = 5000
 }
 
 gradle.taskGraph.whenReady { taskGraph ->
