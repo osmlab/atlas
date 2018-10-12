@@ -27,4 +27,17 @@ public class DurationTest
         Assert.assertTrue(Duration.seconds(3600).equals(Duration.hours(1)));
         Assert.assertFalse(Duration.seconds(1.001).equals(Duration.seconds(1.002)));
     }
+
+    @Test
+    public void testLowestAndHighest()
+    {
+        final Duration lowest = Duration.seconds(5);
+        final Duration highest = Duration.seconds(10);
+        Assert.assertEquals(lowest, lowest.lowest(highest));
+        Assert.assertEquals(lowest, highest.lowest(lowest));
+        Assert.assertEquals(highest, highest.lowest(null));
+        Assert.assertEquals(highest, lowest.highest(highest));
+        Assert.assertEquals(highest, highest.highest(lowest));
+        Assert.assertEquals(lowest, lowest.highest(null));
+    }
 }

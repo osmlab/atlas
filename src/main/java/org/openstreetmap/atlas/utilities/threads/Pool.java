@@ -126,9 +126,43 @@ public class Pool implements Closeable
         return doWithTheOutput.apply(item);
     }
 
+    public <T> Result<T> queue(final Callable<T> task, final Ticker ticker)
+    {
+        final Callable<T> taskWrapper = () ->
+        {
+            try
+            {
+                return task.call();
+            }
+            finally
+            {
+                ticker.close();
+            }
+        };
+        this.queue(ticker);
+        return new Result<>(this.pool.submit(taskWrapper), this, ticker);
+    }
+
     public void queue(final Runnable command)
     {
         this.pool.execute(command);
+    }
+
+    public void queue(final Runnable command, final Ticker ticker)
+    {
+        final Runnable commandWrapper = () ->
+        {
+            try
+            {
+                command.run();
+            }
+            finally
+            {
+                ticker.close();
+            }
+        };
+        this.pool.execute(ticker);
+        this.pool.execute(commandWrapper);
     }
 
     public <T> List<Result<T>> queueAll(final Iterable<Callable<T>> tasks)
