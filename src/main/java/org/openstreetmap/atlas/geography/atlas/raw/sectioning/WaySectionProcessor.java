@@ -71,7 +71,6 @@ public class WaySectionProcessor
     private static final String STARTED_TASK_MESSAGE = "Started {} for Shard {}";
     private static final String COMPLETED_TASK_MESSAGE = "Finished {} for Shard {} in {}";
     private static final String SHARD_SPECIFIC_COMPLETED_TASK_MESSAGE = "While processing shard {}, finished {} for shard {} in {}";
-    private static final String RELATION_MEMBER_EXCLUSION_MESSAGE = "Excluding {} {} from Relation {} since this member is not in the Atlas";
     private static final String WAY_SECTIONING_TASK = "Way-Sectioning";
     private static final String ATLAS_FETCHING_TASK = "Atlas-Fetching";
     private static final String SUB_ATLAS_CUTTING_TASK = "Sub-Atlas Cutting";
@@ -374,7 +373,8 @@ public class WaySectionProcessor
                         }
                         else
                         {
-                            logger.debug(RELATION_MEMBER_EXCLUSION_MESSAGE, ItemType.POINT,
+                            logger.debug(
+                                    "Excluding Point {} from Relation {} since it's no longer in the Atlas",
                                     memberIdentifier, relation.getIdentifier());
                         }
                         break;
@@ -404,20 +404,13 @@ public class WaySectionProcessor
                         }
                         else
                         {
-                            logger.debug(RELATION_MEMBER_EXCLUSION_MESSAGE, ItemType.LINE,
+                            logger.debug(
+                                    "Excluding Line {} from Relation {} since it's no longer in the Atlas",
                                     memberIdentifier, relation.getIdentifier());
                         }
                         break;
                     case RELATION:
-                        if (builder.peek().relation(memberIdentifier) != null)
-                        {
-                            bean.addItem(memberIdentifier, memberRole, ItemType.RELATION);
-                        }
-                        else
-                        {
-                            logger.debug(RELATION_MEMBER_EXCLUSION_MESSAGE, ItemType.RELATION,
-                                    memberIdentifier, relation.getIdentifier());
-                        }
+                        bean.addItem(memberIdentifier, memberRole, ItemType.RELATION);
                         break;
                     default:
                         throw new CoreException("Unsupported relation member type in Raw Atlas, {}",
