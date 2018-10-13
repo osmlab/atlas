@@ -1,6 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.geojson;
 
-import static org.openstreetmap.atlas.geography.atlas.geojson.TippecanoeUtils.fetchAtlasFilesInDirectory;
+import static org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader.IS_ATLAS;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
@@ -31,12 +32,11 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.JsonObject;
 
 /**
- * This CLI takes a directory of atlas files and turns them into GeoJSON, specifically to be
- * consumed by tippecanoe to create MapboxVectorTiles.
+ * This CLI takes a directory of atlas files and turns them into line-delimited GeoJSON.
  *
  * @author hallahan
  */
-public class TippecanoeGeoJsonConverter extends Command
+public class LineDelimitedGeoJsonConverter extends Command
 {
     private static final int DEFAULT_THREADS = 8;
 
@@ -45,7 +45,7 @@ public class TippecanoeGeoJsonConverter extends Command
      */
     private static final String EVERYTHING = "EVERYTHING.geojson";
 
-    private static final Logger logger = LoggerFactory.getLogger(TippecanoeGeoJsonConverter.class);
+    private static final Logger logger = LoggerFactory.getLogger(LineDelimitedGeoJsonConverter.class);
 
     private static final AtlasResourceLoader ATLAS_RESOURCE_LOADER = new AtlasResourceLoader();
 
@@ -53,7 +53,7 @@ public class TippecanoeGeoJsonConverter extends Command
             "The directory of atlases to convert.", Paths::get, Optionality.REQUIRED);
 
     private static final Switch<Path> GEOJSON_DIRECTORY = new Switch<>("geojsonDirectory",
-            "The directory to write tippecanoe GeoJSON.", Paths::get, Optionality.REQUIRED);
+            "The directory to write line-delimited GeoJSON.", Paths::get, Optionality.REQUIRED);
 
     private static final Switch<Boolean> OVERWRITE = new Switch<>("overwrite",
             "Choose to automatically overwrite a GeoJSON file if it exists at the given path.",
@@ -92,7 +92,6 @@ public class TippecanoeGeoJsonConverter extends Command
         final Map<String, String> tags = atlasEntity.getTags();
 
         final String highway = tags.get("highway");
-        final String boundary = tags.get("boundary");
 
         if (tags.get("boundary") != null)
         {
@@ -124,7 +123,7 @@ public class TippecanoeGeoJsonConverter extends Command
 
     public static void main(final String[] args)
     {
-        new TippecanoeGeoJsonConverter().run(args);
+        new LineDelimitedGeoJsonConverter().run(args);
     }
 
     @Override
@@ -151,7 +150,7 @@ public class TippecanoeGeoJsonConverter extends Command
         }
 
         final List<File> atlases = fetchAtlasFilesInDirectory(atlasDirectory);
-        logger.info("About to convert {} atlas shards into GeoJSON for tippecanoe...",
+        logger.info("About to convert {} atlas shards into line-delimited GeoJSON...",
                 atlases.size());
 
         // Execute in a pool of threads so we limit how many atlases get loaded in parallel.
@@ -176,7 +175,7 @@ public class TippecanoeGeoJsonConverter extends Command
         }
 
         logger.info(
-                "Finished converting directory of atlas shards into GeoJSON for tippecanoe in {}!",
+                "Finished converting directory of atlas shards into line-delimited GeoJSON in {}!",
                 time.elapsedSince());
 
         return 0;
@@ -209,7 +208,7 @@ public class TippecanoeGeoJsonConverter extends Command
         final String directory = geojsonDirectory.toString();
 
         // https://stackoverflow.com/questions/5080109/how-to-execute-bin-sh-with-commons-exec
-        final String cat = String.format("cat '%s/'*_*.geojson > '%s/'%s", directory, directory, EVERYTHING);
+        final String cat = String.format("cat '%s/'*.geojson > '%s/'%s", directory, directory, EVERYTHING);
 
         final CommandLine commandLine = CommandLine.parse("bash")
                 .addArgument("-c", false)
@@ -221,7 +220,7 @@ public class TippecanoeGeoJsonConverter extends Command
         try
         {
             executor.execute(commandLine);
-            logger.info("Concatenated {} in {}", EVERYTHING, time.elapsedSince());
+            logger.info("Concatenated to {} in {}", EVERYTHING, time.elapsedSince());
         }
         catch (final IOException ioException)
         {
@@ -230,4 +229,9 @@ public class TippecanoeGeoJsonConverter extends Command
         }
     }
 
+    private static List<File> fetchAtlasFilesInDirectory(final Path directory)
+    {
+        return new File(directory.toFile()).listFilesRecursively().stream().filter(IS_ATLAS)
+                .collect(Collectors.toList());
+    }
 }

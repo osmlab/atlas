@@ -1,13 +1,12 @@
 package org.openstreetmap.atlas.geography.atlas.geojson;
 
-import static org.openstreetmap.atlas.geography.atlas.geojson.TippecanoeUtils.fetchGeoJsonFilesInDirectory;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
@@ -15,6 +14,7 @@ import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.utilities.runtime.Command;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 import org.openstreetmap.atlas.utilities.time.Time;
@@ -148,5 +148,12 @@ public class TippecanoeDriver extends Command
             }
         }
 
+    }
+
+    private static List<File> fetchGeoJsonFilesInDirectory(final Path directory)
+    {
+        return new File(directory.toFile()).listFilesRecursively().stream()
+                .filter(FileSuffix.resourceFilter(FileSuffix.GEO_JSON))
+                .collect(Collectors.toList());
     }
 }
