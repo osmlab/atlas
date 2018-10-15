@@ -21,30 +21,6 @@ public class PoolTest
 {
     private static final Logger logger = LoggerFactory.getLogger(PoolTest.class);
 
-    public static void main(final String[] args)
-    {
-        new PoolTest().mainTest();
-    }
-
-    public void mainTest()
-    {
-        final Pool pool = new Pool(10, "test", Duration.milliseconds(100));
-        for (int index = 0; index < 1000; index++)
-        {
-            final int idx = index;
-            final Callable<Boolean> runnable = () ->
-            {
-                Duration.milliseconds(100).sleep();
-                System.out.println("Thread " + idx + " done.");
-                return true;
-            };
-            pool.queue(runnable);
-        }
-        System.out.println("All submitted to pool!");
-        pool.close();
-        System.out.println("Pool Ended.");
-    }
-
     @Test
     public void testCallable()
     {
@@ -82,16 +58,183 @@ public class PoolTest
     @Test
     public void testQueue()
     {
-        final Pool pool = new Pool(2, "testPoolQueue", Duration.ONE_SECOND);
-        pool.queue(() -> System.out.println("1"));
-        pool.queue(() -> System.out.println("2"));
-        pool.queue(() -> System.out.println("3"));
-        pool.queue(() -> System.out.println("4"));
-        pool.close();
+        runWithTimer(Duration.seconds(5), () ->
+        {
+            try (Pool pool = new Pool(2, "testPoolQueue", Duration.ONE_SECOND))
+            {
+                pool.queue(() -> System.out.println("1"));
+                pool.queue(() -> System.out.println("2"));
+                pool.queue(() -> System.out.println("3"));
+                pool.queue(() -> System.out.println("4"));
+                pool.close();
+            }
+        });
     }
 
     @Test
-    public void testTimeout()
+    public void testTickerCallable()
+    {
+        runWithTimer(Duration.seconds(5), () ->
+        {
+            try (Pool pool = new Pool(2, "testTickerCallable", Duration.seconds(10)))
+            {
+                final List<Result<Boolean>> results = new ArrayList<>();
+                for (int index = 0; index < 5; index++)
+                {
+                    final int idx = index;
+                    final Callable<Boolean> callable = () ->
+                    {
+                        Duration.milliseconds(100).sleep();
+                        System.out.println("Thread " + idx + " done.");
+                        return true;
+                    };
+                    results.add(pool.queue(callable,
+                            new LogTicker("Ticker " + idx, Duration.milliseconds(50))));
+                }
+                System.out.println("All submitted to pool!");
+                for (final Result<Boolean> result : results)
+                {
+                    Assert.assertTrue(result.get());
+                }
+            }
+            System.out.println("Pool Ended.");
+        });
+    }
+
+    @Test(expected = CoreException.class)
+    public void testTickerCallableWithErrors()
+    {
+        runWithTimer(Duration.seconds(500000), () ->
+        {
+            try (Pool pool = new Pool(2, "testTickerCallableWithErrors", Duration.seconds(10)))
+            {
+                final List<Result<Boolean>> results = new ArrayList<>();
+                for (int index = 0; index < 5; index++)
+                {
+                    final int idx = index;
+                    final Callable<Boolean> callable = () ->
+                    {
+                        Duration.milliseconds(100).sleep();
+                        if (idx != 3)
+                        {
+                            System.out.println("Thread " + idx + " done.");
+                        }
+                        else
+                        {
+                            throw new CoreException("Failing task {} on purpose.", idx);
+                        }
+                        return true;
+                    };
+                    results.add(pool.queue(callable,
+                            new LogTicker("Ticker " + idx, Duration.milliseconds(50))));
+                }
+                System.out.println("All submitted to pool!");
+                for (final Result<Boolean> result : results)
+                {
+                    Assert.assertTrue(result.get());
+                }
+            }
+            System.out.println("Pool Ended.");
+        });
+    }
+
+    @Test
+    public void testTickerFailureHandling()
+    {
+        runWithTimer(Duration.seconds(5), () ->
+        {
+            try (Pool pool = new Pool(2, "testTickerCallable", Duration.seconds(10)))
+            {
+                final List<Result<Boolean>> results = new ArrayList<>();
+                for (int index = 0; index < 5; index++)
+                {
+                    final int idx = index;
+                    final Callable<Boolean> callable = () ->
+                    {
+                        Duration.milliseconds(100).sleep();
+                        System.out.println("Thread " + idx + " done.");
+                        return true;
+                    };
+                    final Ticker rogueTicker = new Ticker("Ticker " + idx,
+                            Duration.milliseconds(50))
+                    {
+                        @Override
+                        protected void tickAction(final Duration sinceStart)
+                        {
+                            logger.info("{}: {}", getName(), sinceStart);
+                            if ("Ticker 3".equals(getName()))
+                            {
+                                throw new CoreException("I am rogue Ticker 3");
+                            }
+                        }
+                    };
+                    results.add(pool.queue(callable, rogueTicker));
+                }
+                System.out.println("All submitted to pool!");
+                for (final Result<Boolean> result : results)
+                {
+                    Assert.assertTrue(result.get());
+                }
+            }
+            System.out.println("Pool Ended.");
+        });
+    }
+
+    @Test
+    public void testTickerRunnable()
+    {
+        runWithTimer(Duration.seconds(5), () ->
+        {
+            try (Pool pool = new Pool(2, "testTickerRunnable", Duration.seconds(10)))
+            {
+                for (int index = 0; index < 5; index++)
+                {
+                    final int idx = index;
+                    final Runnable runnable = () ->
+                    {
+                        Duration.milliseconds(100).sleep();
+                        System.out.println("Thread " + idx + " done.");
+                    };
+                    pool.queue(runnable, new LogTicker("Ticker " + idx, Duration.milliseconds(50)));
+                }
+                System.out.println("All submitted to pool!");
+            }
+            System.out.println("Pool Ended.");
+        });
+    }
+
+    @Test(expected = CoreException.class)
+    public void testTickerRunnableWithErrors()
+    {
+        runWithTimer(Duration.seconds(5), () ->
+        {
+            try (Pool pool = new Pool(2, "testTickerRunnableWithErrors", Duration.seconds(10)))
+            {
+                for (int index = 0; index < 5; index++)
+                {
+                    final int idx = index;
+                    final Runnable runnable = () ->
+                    {
+                        Duration.milliseconds(100).sleep();
+                        if (idx != 3)
+                        {
+                            System.out.println("Thread " + idx + " done.");
+                        }
+                        else
+                        {
+                            throw new CoreException("Failing task {} on purpose.", idx);
+                        }
+                    };
+                    pool.queue(runnable, new LogTicker("Ticker " + idx, Duration.milliseconds(50)));
+                }
+                System.out.println("All submitted to pool!");
+            }
+            System.out.println("Pool Ended.");
+        });
+    }
+
+    @Test(expected = TimeoutException.class)
+    public void testTimeout() throws TimeoutException
     {
         try (Pool pool = new Pool(1, "testPoolTimeout", Duration.ONE_SECOND))
         {
@@ -105,7 +248,24 @@ public class PoolTest
         }
         catch (final TimeoutException e)
         {
-            // Normal
+            throw e;
+        }
+    }
+
+    private void runWithTimer(final Duration maximum, final Runnable test)
+    {
+        try (Pool pool = new Pool(1, "RunWithTimer", maximum))
+        {
+            pool.queue(() ->
+            {
+                test.run();
+                return true;
+            }).get(maximum);
+        }
+        catch (final TimeoutException e)
+        {
+            throw new RuntimeException(
+                    "Timeout while running unit test (Max allowed time was " + maximum + ").", e);
         }
     }
 }

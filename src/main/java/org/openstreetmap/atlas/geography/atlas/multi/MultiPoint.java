@@ -1,11 +1,14 @@
 package org.openstreetmap.atlas.geography.atlas.multi;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+
+import com.google.common.collect.Sets;
 
 /**
  * {@link Point} made from a {@link MultiAtlas}.
@@ -19,7 +22,7 @@ public class MultiPoint extends Point
     // Not index!
     private final long identifier;
 
-    private Point subPoint;
+    private SubPointList subPoints;
 
     protected MultiPoint(final MultiAtlas atlas, final long identifier)
     {
@@ -36,28 +39,41 @@ public class MultiPoint extends Point
     @Override
     public Location getLocation()
     {
-        return getSubPoint().getLocation();
+        return getRepresentativeSubPoint().getLocation();
+    }
+
+    public SubPointList getSubPoints()
+    {
+        if (this.subPoints == null)
+        {
+            this.subPoints = multiAtlas().subPoints(this.identifier);
+        }
+        return this.subPoints;
     }
 
     @Override
     public Map<String, String> getTags()
     {
-        return this.getSubPoint().getTags();
+        return this.getRepresentativeSubPoint().getTags();
     }
 
     @Override
     public Set<Relation> relations()
     {
-        return multiAtlas().multifyRelations(getSubPoint());
+        Set<Relation> unionOfAllParentRelations = new HashSet<>();
+        for (final Point subPoint : getSubPoints().getSubPoints())
+        {
+            final Set<Relation> currentSubPointParentRelations = multiAtlas()
+                    .multifyRelations(subPoint);
+            unionOfAllParentRelations = Sets.union(unionOfAllParentRelations,
+                    currentSubPointParentRelations);
+        }
+        return unionOfAllParentRelations;
     }
 
-    private Point getSubPoint()
+    private Point getRepresentativeSubPoint()
     {
-        if (this.subPoint == null)
-        {
-            this.subPoint = this.multiAtlas().subPoint(this.identifier);
-        }
-        return this.subPoint;
+        return getSubPoints().getSubPoints().get(0);
     }
 
     private MultiAtlas multiAtlas()

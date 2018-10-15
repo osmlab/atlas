@@ -2,7 +2,6 @@ package org.openstreetmap.atlas.geography;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.openstreetmap.atlas.geography.StringCompressedPolyLine.PolyLineCompressionException;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 
 /**
@@ -25,20 +24,25 @@ public class StringCompressedPolyLineTest
     }
 
     /**
-     * Here the delta longitude between loc2 and loc3 is more than 180 degrees, hence the
-     * compression exception.
+     * Here the delta longitude between loc1/loc2 and loc3/loc4 is more than 180 degrees, so the
+     * algorithm falls back on WKB.
      */
-    @Test(expected = PolyLineCompressionException.class)
-    public void testJumpyPolyLine()
+    @Test
+    public void testCompressionWkbFallback()
     {
-        final Location loc1 = Location.forString("5.972761,-75.8373644");
-        final Location loc2 = Location.forString("5.9712693,-75.8363875");
-        final Location loc3 = Location.forString("18.6398595,157.7635783");
-        final Location loc4 = Location.forString("15.3405183,13.9936102");
-        final PolyLine polyLine = new PolyLine(loc1, loc2, loc3, loc4);
+        final Location location1 = new Location(Latitude.degrees(45.0), Longitude.degrees(-179.0));
+        final Location location2 = new Location(Latitude.degrees(45.0), Longitude.degrees(179.0));
+        final Location location3 = new Location(Latitude.degrees(45.0), Longitude.degrees(179.0));
+        final Location location4 = new Location(Latitude.degrees(45.0), Longitude.degrees(-179.0));
+        final PolyLine line1 = new PolyLine(location1, location2);
+        final PolyLine line2 = new PolyLine(location3, location4);
+        final StringCompressedPolyLine compressedLine1 = new StringCompressedPolyLine(line1);
+        final StringCompressedPolyLine compressedLine2 = new StringCompressedPolyLine(line2);
 
-        System.out.println(polyLine);
-        new StringCompressedPolyLine(polyLine);
+        // the toString method should return WKT since the compression is WKB instead of MapQuest
+        // string compression
+        Assert.assertEquals(compressedLine1.toString(), compressedLine1.asPolyLine().toWkt());
+        Assert.assertEquals(compressedLine2.toString(), compressedLine2.asPolyLine().toWkt());
     }
 
     @Test

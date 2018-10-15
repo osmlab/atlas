@@ -31,11 +31,12 @@ public enum AccessTag
     DESTINATION,
     CUSTOMERS,
     PROHIBITED,
+    PUBLIC,
     RESTRICTED,
     UNKNOWN;
 
-    private static final EnumSet<AccessTag> PRIVATE_ACCESS = EnumSet.of(NO, PRIVATE, RESTRICTED,
-            PROHIBITED);
+    private static final EnumSet<AccessTag> PRIVATE_ACCESS = EnumSet.of(CUSTOMERS, NO, PRIVATE,
+            RESTRICTED, PROHIBITED);
 
     @TagKey
     public static final String KEY = "access";

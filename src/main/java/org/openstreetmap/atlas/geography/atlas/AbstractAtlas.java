@@ -108,13 +108,18 @@ public abstract class AbstractAtlas extends BareAtlas
     @Override
     public Iterable<Area> areasCovering(final Location location)
     {
-        return this.getAreaSpatialIndex().get(location.bounds());
+        final Iterable<Area> areas = this.getAreaSpatialIndex().get(location.bounds());
+        return Iterables.stream(areas).filter(area ->
+        {
+            final Polygon areaPolygon = area.asPolygon();
+            return areaPolygon.fullyGeometricallyEncloses(location);
+        });
     }
 
     @Override
     public Iterable<Area> areasCovering(final Location location, final Predicate<Area> matcher)
     {
-        return Iterables.filter(this.getAreaSpatialIndex().get(location.bounds()), matcher);
+        return Iterables.filter(areasCovering(location), matcher);
     }
 
     @Override
@@ -141,14 +146,14 @@ public abstract class AbstractAtlas extends BareAtlas
         return Iterables.filter(edges, edge ->
         {
             final PolyLine polyline = edge.asPolyLine();
-            return location.bounds().overlaps(polyline);
+            return polyline.contains(location);
         });
     }
 
     @Override
     public Iterable<Edge> edgesContaining(final Location location, final Predicate<Edge> matcher)
     {
-        return Iterables.filter(this.getEdgeSpatialIndex().get(location.bounds()), matcher);
+        return Iterables.filter(edgesContaining(location), matcher);
     }
 
     @Override
@@ -211,14 +216,14 @@ public abstract class AbstractAtlas extends BareAtlas
         return Iterables.filter(lines, line ->
         {
             final PolyLine polyline = line.asPolyLine();
-            return location.bounds().overlaps(polyline);
+            return polyline.contains(location);
         });
     }
 
     @Override
     public Iterable<Line> linesContaining(final Location location, final Predicate<Line> matcher)
     {
-        return Iterables.filter(this.getLineSpatialIndex().get(location.bounds()), matcher);
+        return Iterables.filter(linesContaining(location), matcher);
     }
 
     @Override

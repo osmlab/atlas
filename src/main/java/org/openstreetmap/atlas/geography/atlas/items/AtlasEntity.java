@@ -12,6 +12,7 @@ import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterable
 import org.openstreetmap.atlas.tags.LastEditTimeTag;
 import org.openstreetmap.atlas.tags.LastEditUserIdentifierTag;
 import org.openstreetmap.atlas.tags.LastEditUserNameTag;
+import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Duration;
 import org.openstreetmap.atlas.utilities.time.Time;
 
@@ -22,7 +23,7 @@ import org.openstreetmap.atlas.utilities.time.Time;
  * @author mgostintsev
  * @author Sid
  */
-public abstract class AtlasEntity implements AtlasObject
+public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
 {
     private static final long serialVersionUID = -6072525057489468736L;
 
@@ -181,10 +182,29 @@ public abstract class AtlasEntity implements AtlasObject
      */
     public abstract Set<Relation> relations();
 
+    @Override
+    public String toDiffViewFriendlyString()
+    {
+        throw new UnsupportedOperationException(
+                "This operation is not supported for type " + this.getClass().getName());
+    }
+
     /**
      * @return The {@link LocationIterableProperties} for this {@link AtlasEntity}
      */
     public abstract LocationIterableProperties toGeoJsonBuildingBlock();
+
+    protected String parentRelationsAsDiffViewFriendlyString()
+    {
+        final StringList relationIds = new StringList();
+        for (final Relation relation : this.relations())
+        {
+            relationIds.add(relation.getIdentifier());
+        }
+        final String relationsString = relationIds.join(",");
+
+        return relationsString;
+    }
 
     protected String tagString()
     {

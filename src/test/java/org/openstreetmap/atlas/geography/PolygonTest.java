@@ -590,6 +590,16 @@ public class PolygonTest
     }
 
     @Test
+    public void testMaxWdithPolygonCausesAwtOverflow()
+    {
+        final Polygon maxWidthPolygon = Polygon.wkt(
+                "POLYGON ((-180 -89.9999, -180 -62.8442818, 180 -62.8442818, 180 -89.9999, -180 -89.9999))");
+        final Rectangle innerRectangle = Rectangle.forString("-80,-160:-70, 170");
+        final Boolean encloses = maxWidthPolygon.fullyGeometricallyEncloses(innerRectangle);
+        Assert.assertEquals(true, encloses);
+    }
+
+    @Test
     public void testNoAnglesMatchingOurCriteria()
     {
         final PolyLine polyLine = new PolyLine(this.quadrant);
@@ -606,7 +616,7 @@ public class PolygonTest
     {
         Assert.assertEquals(Location.TEST_3, this.quadrant.offsetFromStart(Ratio.MINIMUM));
         Assert.assertEquals(Location.TEST_3, this.quadrant.offsetFromStart(Ratio.MAXIMUM));
-        Assert.assertEquals(Location.forString("37.3352356,-122.0096688"), this.quadrant.middle());
+        Assert.assertEquals(Location.forString("37.3352356,-122.0096687"), this.quadrant.middle());
     }
 
     @Test
@@ -719,5 +729,18 @@ public class PolygonTest
         {
             Assert.assertEquals(3, triangle.size());
         }
+    }
+
+    @Test
+    public void testClosedLoop()
+    {
+        final Polygon polygon = Polygon.SILICON_VALLEY;
+        final Polygon initialClosedLoop = new Polygon(polygon.closedLoop());
+        Assert.assertNotEquals(
+                "Last and Last - 1 locations for the polygon should not be duplicate.",
+                initialClosedLoop.last(), initialClosedLoop.get(initialClosedLoop.size() - 2));
+        final Polygon doubleClosedLoop = new Polygon(initialClosedLoop.closedLoop());
+        Assert.assertNotEquals("Last and Last - 1 locations for polygon should not be duplicate.",
+                doubleClosedLoop.last(), doubleClosedLoop.get(doubleClosedLoop.size() - 2));
     }
 }

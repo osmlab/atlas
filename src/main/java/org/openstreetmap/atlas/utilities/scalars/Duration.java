@@ -101,6 +101,15 @@ public final class Duration implements Serializable
         return Long.hashCode(this.milliseconds);
     }
 
+    public Duration highest(final Duration other)
+    {
+        if (other == null || this.isMoreThanOrEqualsTo(other))
+        {
+            return this;
+        }
+        return other;
+    }
+
     public boolean isCloseTo(final Duration that, final Duration safe)
     {
         return difference(that).isLessThanOrEqualsTo(safe);
@@ -124,6 +133,15 @@ public final class Duration implements Serializable
     public boolean isMoreThanOrEqualsTo(final Duration that)
     {
         return this.milliseconds >= that.milliseconds;
+    }
+
+    public Duration lowest(final Duration other)
+    {
+        if (other == null || this.isLessThanOrEqualsTo(other))
+        {
+            return this;
+        }
+        return other;
     }
 
     public long millisecondsOfSecond()

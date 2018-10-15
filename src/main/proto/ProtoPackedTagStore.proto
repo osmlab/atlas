@@ -1,0 +1,14 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_outer_classname = "ProtoPackedTagStoreWrapper";
+
+package org.openstreetmap.atlas.proto;
+
+import "ProtoIntegerArrayOfArrays.proto";
+
+message ProtoPackedTagStore {
+    optional int64 index = 1;
+    optional ProtoIntegerArrayOfArrays keys = 2;
+    optional ProtoIntegerArrayOfArrays values = 3;
+}

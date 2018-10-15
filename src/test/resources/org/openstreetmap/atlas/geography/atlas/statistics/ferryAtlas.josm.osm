@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-53054' action='modify' lat='41.33786514198' lon='9.15603359849' />
+  <node id='-53055' action='modify' lat='41.34190434765' lon='9.16619551226' />
+  <node id='-53057' action='modify' lat='41.34111896616' lon='9.18487550081' />
+  <node id='-53059' action='modify' lat='41.33348905315' lon='9.19249693614' />
+  <node id='-53061' action='modify' lat='41.33079592928' lon='9.20519932835' />
+  <node id='-53094' action='modify' lat='41.315701154' lon='9.12995633447' />
+  <node id='-53095' action='modify' lat='41.31974173394' lon='9.14011824824' />
+  <node id='-53096' action='modify' lat='41.31895608523' lon='9.15879823679' />
+  <node id='-53097' action='modify' lat='41.3113235764' lon='9.16641967212' />
+  <node id='-53098' action='modify' lat='41.30862953637' lon='9.17912206434' />
+  <node id='-53100' action='modify' lat='41.31368077009' lon='9.18644461985' />
+  <node id='-53101' action='modify' lat='41.31772147528' lon='9.19660653362' />
+  <node id='-53102' action='modify' lat='41.31693580222' lon='9.21528652217' />
+  <node id='-53103' action='modify' lat='41.30930305681' lon='9.2229079575' />
+  <node id='-53104' action='modify' lat='41.3066089333' lon='9.23561034971' />
+  <way id='-53056' action='modify'>
+    <nd ref='-53054' />
+    <nd ref='-53055' />
+    <nd ref='-53057' />
+    <nd ref='-53059' />
+    <nd ref='-53061' />
+    <tag k='name' v='ferry1' />
+    <tag k='oneway' v='yes' />
+    <tag k='route' v='ferry' />
+  </way>
+  <way id='-53093' action='modify'>
+    <nd ref='-53094' />
+    <nd ref='-53095' />
+    <nd ref='-53096' />
+    <nd ref='-53097' />
+    <nd ref='-53098' />
+  </way>
+  <way id='-53099' action='modify'>
+    <nd ref='-53100' />
+    <nd ref='-53101' />
+    <nd ref='-53102' />
+    <nd ref='-53103' />
+    <nd ref='-53104' />
+  </way>
+  <relation id='-53117' action='modify'>
+    <member type='way' ref='-53099' role='' />
+    <member type='way' ref='-53093' role='' />
+    <tag k='route' v='ferry' />
+    <tag k='type' v='route' />
+  </relation>
+</osm>

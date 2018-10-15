@@ -34,7 +34,28 @@ public abstract class Coverage<T extends AtlasEntity>
     public enum CoverageType
     {
         DISTANCE,
-        COUNT
+        SURFACE,
+        COUNT;
+
+        public static CoverageType forName(final String name)
+        {
+            if (DISTANCE.name().equalsIgnoreCase(name))
+            {
+                return DISTANCE;
+            }
+            else if (SURFACE.name().equalsIgnoreCase(name))
+            {
+                return SURFACE;
+            }
+            else if (COUNT.name().equalsIgnoreCase(name))
+            {
+                return COUNT;
+            }
+            else
+            {
+                throw new CoreException("Unknown coverage type {}", name);
+            }
+        }
     }
 
     private static final int REPORT_FREQUENCY = 100_000;
@@ -140,6 +161,7 @@ public abstract class Coverage<T extends AtlasEntity>
             switch (coverageType())
             {
                 case DISTANCE:
+                case SURFACE:
                     count = this.counted.get(key);
                     totalCount = this.total.get(key);
                     break;

@@ -52,6 +52,7 @@ import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
+import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
@@ -155,8 +156,8 @@ public class CountryBoundaryMap implements Serializable
     // store the quad tree cells into a R-Tree, which is the grid index.
     private STRtree gridIndex;
 
-    private boolean useExpandedPolygonLimit = false;
-
+    private boolean useExpandedPolygonLimit = true;
+    private transient Predicate<Taggable> shouldAlwaysSlicePredicate = taggable -> false;
     private transient GeometryPrecisionReducer reducer;
     private final CountryListTwoWayStringConverter countryListConverter = new CountryListTwoWayStringConverter();
 
@@ -174,10 +175,8 @@ public class CountryBoundaryMap implements Serializable
     {
         if (node.getLevel() > 0)
         {
-            node.getChildBoundables().stream().forEach(childNode ->
-            {
-                collectCells((AbstractNode) childNode, cells);
-            });
+            node.getChildBoundables().stream()
+                    .forEach(childNode -> collectCells((AbstractNode) childNode, cells));
         }
         else if (node.getLevel() == 0)
         {
@@ -189,6 +188,18 @@ public class CountryBoundaryMap implements Serializable
                 cells.add(polygon, bounds);
             });
         }
+    }
+
+    /**
+     * @param countryGeometries
+     *            A list of {@link Geometry}s to check
+     * @return The set of country codes represented
+     */
+    public static Set<String> countryCodesIn(final List<? extends Geometry> countryGeometries)
+    {
+        return countryGeometries.stream()
+                .map(geometry -> getGeometryProperty(geometry, ISOCountryTag.KEY))
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -249,25 +260,37 @@ public class CountryBoundaryMap implements Serializable
      *
      * @param geometry
      *            The {@link Geometry} whose userData we're interested in
+     * @return The property map for the geometry, {@code null} if it doesn't exist
+     */
+    @SuppressWarnings("unchecked")
+    public static Map<String, String> getGeometryProperties(final Geometry geometry)
+    {
+        final Map<String, String> result = new HashMap<>();
+        // Grab the existing key/value map from the object
+        final Map<String, String> propertyMap = (Map<String, String>) geometry.getUserData();
+
+        if (propertyMap != null)
+        {
+            result.putAll(propertyMap);
+        }
+        return result;
+    }
+
+    /**
+     * Follows the same concept as {@link #setGeometryProperty(Geometry, String, String)}. Because
+     * we're working with JTS {@link Polygon}s instead of {@link AtlasEntity}s, we don't have access
+     * to a tag map and can't explicitly set tags. This wraps the {@link Polygon#getUserData} call
+     * and is the single entry point that should be used for setting {@link Geometry} properties.
+     *
+     * @param geometry
+     *            The {@link Geometry} whose userData we're interested in
      * @param key
      *            The metadata lookup key to use
      * @return the string value of the given key, {@code null} if it doesn't exist
      */
-    @SuppressWarnings("unchecked")
     public static String getGeometryProperty(final Geometry geometry, final String key)
     {
-        // Grab the existing key/value map from the object
-        final Map<String, String> propertyMap = (Map<String, String>) geometry.getUserData();
-
-        if (propertyMap == null)
-        {
-            // No user data exists
-            return null;
-        }
-        else
-        {
-            return propertyMap.get(key);
-        }
+        return getGeometryProperties(geometry).get(key);
     }
 
     /**
@@ -277,21 +300,26 @@ public class CountryBoundaryMap implements Serializable
      */
     public static boolean isSameCountry(final List<? extends Geometry> countryGeometries)
     {
+        return numberCountries(countryGeometries) == 1;
+    }
+
+    /**
+     * @param countryGeometries
+     *            A list of {@link Geometry}s to check
+     * @return The number of distinct countries represented
+     */
+    public static long numberCountries(final List<? extends Geometry> countryGeometries)
+    {
         if (countryGeometries.isEmpty())
         {
-            return false;
+            return 0;
         }
 
         if (countryGeometries.size() == 1)
         {
-            return true;
+            return 1;
         }
-
-        // Use first element as reference, then skip first and compare against the reference
-        final String referenceCountryCode = getGeometryProperty(countryGeometries.get(0),
-                ISOCountryTag.KEY);
-        return countryGeometries.stream().skip(1).allMatch(geometry -> Objects
-                .equals(referenceCountryCode, getGeometryProperty(geometry, ISOCountryTag.KEY)));
+        return countryCodesIn(countryGeometries).size();
     }
 
     /**
@@ -940,7 +968,8 @@ public class CountryBoundaryMap implements Serializable
             target = geometry.buffer(buffer);
         }
 
-        final List<Polygon> polygons = this.query(target.getEnvelopeInternal());
+        final List<Polygon> polygons = this.query(target.getEnvelopeInternal()).stream()
+                .filter(polygon -> polygon.intersects(target)).collect(Collectors.toList());
         boolean usingNearestNeighbor = false;
         if (polygons.size() == 1 || isSameCountry(polygons))
         {
@@ -1089,6 +1118,22 @@ public class CountryBoundaryMap implements Serializable
         }
     }
 
+    public void setShouldAlwaysSlicePredicate(final Predicate<Taggable> shouldAlwaysSlicePredicate)
+    {
+        this.shouldAlwaysSlicePredicate = shouldAlwaysSlicePredicate;
+    }
+
+    public boolean shouldForceSlicing(final Taggable... source)
+    {
+        return source != null && source.length > 0 && this.shouldAlwaysSlicePredicate != null
+                && this.shouldAlwaysSlicePredicate.test(source[0]);
+    }
+
+    public boolean shouldSkipSlicing(final List<Polygon> candidates, final Taggable... source)
+    {
+        return isSameCountry(candidates) && !shouldForceSlicing(source);
+    }
+
     /**
      * @return the number of countries represented by this {@link CountryBoundaryMap}
      */
@@ -1105,6 +1150,9 @@ public class CountryBoundaryMap implements Serializable
      *            id of object being sliced.
      * @param geometry
      *            The object to be sliced.
+     * @param source
+     *            An optional {@link Taggable} object representing the tags of the source for that
+     *            geometry.
      * @return a list of geometry objects. If target doesn't cross any border then it contains only
      *         one item with country code assigned. If target cross border then slice it by the
      *         border line and assign country code for each piece. If a feature is not contained by
@@ -1112,8 +1160,8 @@ public class CountryBoundaryMap implements Serializable
      * @throws TopologyException
      *             When the slicing could not be made.
      */
-    public List<Geometry> slice(final long identifier, final Geometry geometry)
-            throws TopologyException
+    public List<Geometry> slice(final long identifier, final Geometry geometry,
+            final Taggable... source) throws TopologyException
     {
         if (Objects.isNull(geometry))
         {
@@ -1125,8 +1173,9 @@ public class CountryBoundaryMap implements Serializable
         List<Polygon> candidates = this.query(target.getEnvelopeInternal());
 
         // Performance improvement, if only one polygon returned no need to do any further
-        // evaluation.
-        if (isSameCountry(candidates))
+        // evaluation (except when geometry has to be sliced at all costs)
+        // In this method, source contains only one element.
+        if (shouldSkipSlicing(candidates, source))
         {
             final String countryCode = getGeometryProperty(candidates.get(0), ISOCountryTag.KEY);
             setGeometryProperty(target, ISOCountryTag.KEY, countryCode);
@@ -1136,6 +1185,7 @@ public class CountryBoundaryMap implements Serializable
 
         // Remove duplicates
         candidates = candidates.stream().distinct().collect(Collectors.toList());
+        final long numberCountries = numberCountries(candidates);
 
         // Avoid slicing across too many polygons for performance reasons
         if (candidates.size() > this.getPolygonSliceLimit())
@@ -1151,9 +1201,9 @@ public class CountryBoundaryMap implements Serializable
         boolean isWarned = false;
         final Time time = Time.now();
 
-        if (candidates.size() > MAXIMUM_EXPECTED_COUNTRIES_TO_SLICE_WITH)
+        if (numberCountries > MAXIMUM_EXPECTED_COUNTRIES_TO_SLICE_WITH)
         {
-            logger.warn("Slicing way {} with {} polygons.", identifier, candidates.size());
+            logger.warn("Slicing way {} with {} countries.", identifier, numberCountries);
             if (logger.isTraceEnabled())
             {
                 final Map<String, List<Polygon>> countries = candidates.stream().collect(Collectors
@@ -1212,7 +1262,8 @@ public class CountryBoundaryMap implements Serializable
         }
 
         // Performance: short circuit, if all intersected polygons in same country, skip cutting.
-        if (isSameCountry(candidates))
+        // (except when geometry has to be sliced at all costs)
+        if (shouldSkipSlicing(candidates, source))
         {
             final String countryCode = getGeometryProperty(candidates.get(0), ISOCountryTag.KEY);
             setGeometryProperty(target, ISOCountryTag.KEY, countryCode);
@@ -1332,8 +1383,10 @@ public class CountryBoundaryMap implements Serializable
             final GeometryCollection collection = (GeometryCollection) geometry;
             geometries(collection).forEach(part ->
             {
-                final String countryCode = getGeometryProperty(geometry, ISOCountryTag.KEY);
-                setGeometryProperty(part, ISOCountryTag.KEY, countryCode);
+                getGeometryProperties(geometry).forEach((key, value) ->
+                {
+                    setGeometryProperty(part, key, value);
+                });
                 this.addResult(part, results);
             });
         }
@@ -1486,24 +1539,22 @@ public class CountryBoundaryMap implements Serializable
     {
         logger.info("Writing country boundaries to output");
         this.countryNameToBoundaryMap.forEach((country, polygons) ->
-        {
-            polygons.forEach(polygon ->
-            {
-                try
-                {
-                    output.write(country);
-                    output.write(COUNTRY_BOUNDARY_DELIMITER);
-                    output.write(WKT_WRITER.write(polygon));
-                    output.write(LIST_SEPARATOR);
-                    output.write(System.lineSeparator());
-                }
-                catch (final IOException e)
-                {
-                    throw new CoreException("Failed to write country boundaries.", e);
-                }
-            });
 
-        });
+        polygons.forEach(polygon ->
+        {
+            try
+            {
+                output.write(country);
+                output.write(COUNTRY_BOUNDARY_DELIMITER);
+                output.write(WKT_WRITER.write(polygon));
+                output.write(LIST_SEPARATOR);
+                output.write(System.lineSeparator());
+            }
+            catch (final IOException e)
+            {
+                throw new CoreException("Failed to write country boundaries.", e);
+            }
+        }));
     }
 
     private void writeGridIndex(final BufferedWriter writer)

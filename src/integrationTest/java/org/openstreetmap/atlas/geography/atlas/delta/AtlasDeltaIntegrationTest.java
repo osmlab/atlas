@@ -22,17 +22,17 @@ public class AtlasDeltaIntegrationTest
     @Test
     public void testDiff()
     {
-        final Atlas base = new TextAtlasBuilder()
+        final Atlas before = new TextAtlasBuilder()
                 .read(new InputStreamResource(() -> AtlasDeltaIntegrationTest.class
                         .getResourceAsStream("DMA_9-168-233-base.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP)
                                 .withName("DMA_9-168-233-base.txt.gz"));
-        final Atlas alter = new TextAtlasBuilder()
+        final Atlas after = new TextAtlasBuilder()
                 .read(new InputStreamResource(() -> AtlasDeltaIntegrationTest.class
                         .getResourceAsStream("DMA_9-168-233-alter.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP)
                                 .withName("DMA_9-168-233-alter.txt.gz"));
-        final AtlasDelta delta = new AtlasDelta(base, alter, true).generate();
+        final AtlasDelta delta = new AtlasDelta(before, after, true).generate();
         final SortedSet<Diff> differences = delta.getDifferences();
         final long size = differences.size();
         final long sizeNodes = differences.stream()

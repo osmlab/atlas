@@ -15,7 +15,7 @@ import org.openstreetmap.atlas.utilities.collections.Maps;
 /**
  * @author Sid
  */
-public class AbstractWaterIslandTest
+public abstract class AbstractWaterIslandTest
 {
     private AtlasBuilder atlasBuilder;
 

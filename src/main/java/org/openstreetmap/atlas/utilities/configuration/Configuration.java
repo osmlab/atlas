@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.utilities.configuration;
 
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -10,6 +11,13 @@ import java.util.function.Function;
 public interface Configuration
 {
     /**
+     * Returns a set view of all the top level keys in this {@link Configuration}.
+     *
+     * @return the set of top level keys
+     */
+    Set<String> configurationDataKeySet();
+
+    /**
      * Returns a returns a copy Configuration specific to a keyword with overwritten values
      *
      * @param keyword
@@ -17,6 +25,15 @@ public interface Configuration
      * @return Configuration
      */
     Configuration configurationForKeyword(String keyword);
+
+    /**
+     * Returns a {@link Configurable} wrapper around the configured property.
+     *
+     * @param key
+     *            property key
+     * @return a {@link Configurable} wrapper
+     */
+    Configurable get(String key);
 
     /**
      * Returns a {@link Configurable} wrapper around the configured property.
@@ -63,13 +80,4 @@ public interface Configuration
      * @return a {@link Configurable} wrapper
      */
     <Type> Configurable get(String key, Type defaultValue);
-
-    /**
-     * Returns a {@link Configurable} wrapper around the configured property.
-     *
-     * @param key
-     *            property key
-     * @return a {@link Configurable} wrapper
-     */
-    Configurable get(String key);
 }

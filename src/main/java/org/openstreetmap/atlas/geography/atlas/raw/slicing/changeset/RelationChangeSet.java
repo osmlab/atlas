@@ -6,11 +6,11 @@ import java.util.Map;
 import java.util.Set;
 
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryEntity;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryLine;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryPoint;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRelation;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRelationMember;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryEntity;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryLine;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryPoint;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryRelation;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryRelationMember;
 import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
 
 /**
@@ -52,6 +52,7 @@ public class RelationChangeSet
     private final MultiMapWithSet<Long, TemporaryRelationMember> deletedRelationMembers;
 
     // Deleted entities
+    private final Set<Long> deletedPoints;
     private final Set<Long> deletedLines;
     private final Set<Long> deletedRelations;
 
@@ -63,6 +64,7 @@ public class RelationChangeSet
 
     public RelationChangeSet()
     {
+        this.deletedPoints = new HashSet<>();
         this.createdPoints = new HashMap<>();
         this.createdLines = new HashMap<>();
         this.createdRelations = new HashMap<>();
@@ -106,6 +108,11 @@ public class RelationChangeSet
         this.deletedLines.add(identifier);
     }
 
+    public void deletePoint(final Long identifier)
+    {
+        this.deletedPoints.add(identifier);
+    }
+
     public void deleteRelation(final long identifier)
     {
         this.deletedRelations.add(identifier);
@@ -140,6 +147,11 @@ public class RelationChangeSet
     public Set<Long> getDeletedLines()
     {
         return this.deletedLines;
+    }
+
+    public Set<Long> getDeletedPoints()
+    {
+        return this.deletedPoints;
     }
 
     public MultiMapWithSet<Long, TemporaryRelationMember> getDeletedRelationMembers()

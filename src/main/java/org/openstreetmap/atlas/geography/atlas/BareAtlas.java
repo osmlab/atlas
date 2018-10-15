@@ -23,7 +23,6 @@ import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
-import org.openstreetmap.atlas.geography.atlas.builder.proto.ProtoAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.builder.text.TextAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -43,6 +42,7 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
+import org.openstreetmap.atlas.proto.builder.ProtoAtlasBuilder;
 import org.openstreetmap.atlas.streaming.Streams;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.streaming.writers.JsonWriter;
@@ -64,9 +64,8 @@ public abstract class BareAtlas implements Atlas
     private static final long serialVersionUID = 4733707438968864018L;
     private static final Logger logger = LoggerFactory.getLogger(BareAtlas.class);
     private static final int MAXIMUM_RELATION_DEPTH = 500;
-    private static NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
+    private static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
     private static final AtomicInteger ATLAS_IDENTIFIER_FACTORY = new AtomicInteger();
-
     static
     {
         NUMBER_FORMAT.setGroupingUsed(true);
@@ -74,6 +73,7 @@ public abstract class BareAtlas implements Atlas
 
     // Transient name
     private transient String name;
+
     private final transient int identifier;
 
     protected BareAtlas()
@@ -639,19 +639,19 @@ public abstract class BareAtlas implements Atlas
         // would include only edges, but all the nodes would have to be pulled in. In that case, we
         // use the same size as the source Atlas, but we trim it at the end.
         final PackedAtlasBuilder builder = new PackedAtlasBuilder().withSizeEstimates(size())
-                .withMetaData(metaData());
+                .withMetaData(metaData()).withName(this.getName() + "_sub");
 
         // First, index all the nodes contained by relations and all start/stop nodes from edges
         // contained by relations
-        for (final AtlasEntity entity : relations(relation -> matcher.test(relation)))
+        for (final AtlasEntity entity : relations(matcher::test))
         {
             indexAllNodesFromRelation((Relation) entity, builder, 0);
         }
 
         // Next, index all the individual nodes and edge start/stop nodes coming from the predicate
-        final Iterable<AtlasEntity> nodes = Iterables.stream(nodes(item -> matcher.test(item)))
+        final Iterable<AtlasEntity> nodes = Iterables.stream(nodes(matcher::test))
                 .map(item -> (AtlasEntity) item);
-        final Iterable<AtlasEntity> edges = Iterables.stream(edges(item -> matcher.test(item)))
+        final Iterable<AtlasEntity> edges = Iterables.stream(edges(matcher::test))
                 .map(item -> (AtlasEntity) item);
         for (final AtlasEntity entity : new MultiIterable<>(nodes, edges))
         {
@@ -664,19 +664,19 @@ public abstract class BareAtlas implements Atlas
         // Similarly, Relations depend on all other entities to have been added, since they make up
         // the member list. For this pass, add all entities, except Relations, that match the given
         // Predicate to the builder.
-        for (final Edge edge : edges(item -> matcher.test(item)))
+        for (final Edge edge : edges(matcher::test))
         {
             indexEdge(edge, builder);
         }
-        for (final Area area : areas(item -> matcher.test(item)))
+        for (final Area area : areas(matcher::test))
         {
             builder.addArea(area.getIdentifier(), area.asPolygon(), area.getTags());
         }
-        for (final Line line : lines(item -> matcher.test(item)))
+        for (final Line line : lines(matcher::test))
         {
             builder.addLine(line.getIdentifier(), line.asPolyLine(), line.getTags());
         }
-        for (final Point point : points(item -> matcher.test(item)))
+        for (final Point point : points(matcher::test))
         {
             builder.addPoint(point.getIdentifier(), point.getLocation(), point.getTags());
         }
@@ -689,7 +689,7 @@ public abstract class BareAtlas implements Atlas
         // relation has been processed). This guarantees that anything we add to the index has all
         // of its members indexed already.
         Set<Long> stagedRelationIdentifiers = new HashSet<>();
-        final Iterable<Relation> relations = relations(item -> matcher.test(item));
+        final Iterable<Relation> relations = relations(matcher::test);
         for (final Relation relation : relations)
         {
             checkRelationMembersAndIndexRelation(relation, matcher, stagedRelationIdentifiers,
@@ -755,17 +755,18 @@ public abstract class BareAtlas implements Atlas
     @Override
     public String toString()
     {
+        final String newLineAfterFeature = ",\n\t\t";
         final StringBuilder builder = new StringBuilder();
         builder.append("[Atlas <");
         builder.append(getName());
         builder.append(">: ");
         final StringList list = new StringList();
-        list.add(Iterables.toString(this.nodes(), "Nodes", ",\n\t\t"));
-        list.add(Iterables.toString(this.edges(), "Edges", ",\n\t\t"));
-        list.add(Iterables.toString(this.areas(), "Areas", ",\n\t\t"));
-        list.add(Iterables.toString(this.lines(), "Lines", ",\n\t\t"));
-        list.add(Iterables.toString(this.points(), "Points", ",\n\t\t"));
-        list.add(Iterables.toString(this.relations(), "Relations", ",\n\t\t"));
+        list.add(Iterables.toString(this.nodes(), "Nodes", newLineAfterFeature));
+        list.add(Iterables.toString(this.edges(), "Edges", newLineAfterFeature));
+        list.add(Iterables.toString(this.areas(), "Areas", newLineAfterFeature));
+        list.add(Iterables.toString(this.lines(), "Lines", newLineAfterFeature));
+        list.add(Iterables.toString(this.points(), "Points", newLineAfterFeature));
+        list.add(Iterables.toString(this.relations(), "Relations", newLineAfterFeature));
         builder.append(list.join(",\n\t"));
         builder.append("]");
         return builder.toString();

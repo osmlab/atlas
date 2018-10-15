@@ -124,7 +124,9 @@ public class DynamicAtlasFilteredEntitiesTest
         Assert.assertEquals(8, dynamicAtlas.numberOfEdges());
 
         // Prompts load of 12-1349-1870
-        Assert.assertNotNull(dynamicAtlas.edge(6000000));
+        // Fixed by {@link MultiAtlasBorderFixer} due to inconsistent relations
+        Assert.assertNull(dynamicAtlas.edge(6000000));
+        Assert.assertNotNull(dynamicAtlas.edge(6000001));
         Assert.assertEquals(9, dynamicAtlas.numberOfEdges());
         Assert.assertNotNull(dynamicAtlas.edge(7000000));
         Assert.assertEquals(9, dynamicAtlas.numberOfEdges());

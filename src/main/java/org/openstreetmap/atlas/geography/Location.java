@@ -34,6 +34,7 @@ public class Location implements Located, Iterable<Location>, Serializable
     public static final Location TEST_5 = Location.forString("37.390535,-122.031007");
     public static final Location TEST_6 = Location.forString("37.325440,-122.033948");
     public static final Location TEST_7 = Location.forString("37.3314171,-122.0304871");
+    public static final Location TEST_8 = Location.forString("37.3214159,-122.0303831");
     public static final Location STEVENS_CREEK = Location.forString("37.324233,-122.003467");
     public static final Location CROSSING_85_280 = Location.forString("37.332439,-122.055760");
     public static final Location CROSSING_85_17 = Location.forString("37.255731,-121.955918");
@@ -54,16 +55,18 @@ public class Location implements Located, Iterable<Location>, Serializable
      *            The {@link Location} as a {@link String} in "latitude(degrees),longitude(degrees)"
      *            format
      * @return The corresponding {@link Location}
+     * @throws NumberFormatException
+     *             if the latitude or longitude in the string is not a valid Double
      */
-    public static Location forString(final String locationString)
+    public static Location forString(final String locationString) throws NumberFormatException
     {
         final StringList split = StringList.split(locationString, ",");
         if (split.size() != 2)
         {
             throw new CoreException("Invalid Location String: {}", locationString);
         }
-        final double latitude = Double.valueOf(split.get(0));
-        final double longitude = Double.valueOf(split.get(1));
+        final double latitude = Double.parseDouble(split.get(0));
+        final double longitude = Double.parseDouble(split.get(1));
         return new Location(Latitude.degrees(latitude), Longitude.degrees(longitude));
     }
 
@@ -72,16 +75,19 @@ public class Location implements Located, Iterable<Location>, Serializable
      *            The {@link Location} as a {@link String} in "longitude(degrees),latitude(degrees)"
      *            format
      * @return The corresponding {@link Location}
+     * @throws NumberFormatException
+     *             if the latitude or longitude in the string is not a valid Double
      */
     public static Location forStringLongitudeLatitude(final String locationString)
+            throws NumberFormatException
     {
         final StringList split = StringList.split(locationString, ",");
         if (split.size() != 2)
         {
             throw new CoreException("Invalid Location String: {}", locationString);
         }
-        final double latitude = Double.valueOf(split.get(1));
-        final double longitude = Double.valueOf(split.get(0));
+        final double latitude = Double.parseDouble(split.get(1));
+        final double longitude = Double.parseDouble(split.get(0));
         return new Location(Latitude.degrees(latitude), Longitude.degrees(longitude));
     }
 

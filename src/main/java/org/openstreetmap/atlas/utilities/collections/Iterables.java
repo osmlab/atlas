@@ -291,7 +291,7 @@ public final class Iterables
         final boolean otherIsNull = other == null;
         if (thatIsNull || otherIsNull)
         {
-            return thatIsNull & thatIsNull;
+            return thatIsNull && otherIsNull;
         }
 
         // Iterables are not null, let's check for size first
@@ -328,6 +328,29 @@ public final class Iterables
             final Predicate<Type> matcher)
     {
         return filterTranslate(input, item -> item, matcher);
+    }
+
+    /**
+     * Translate an {@link Iterable} of items into a {@link FilteredIterable}
+     *
+     * @param types
+     *            The {@link Iterable} to translate
+     * @param filterSet
+     *            A set of identifiers for elements to skip (can be empty or have members)
+     * @param identifier
+     *            A function that takes an element of Type for the {@link Iterable} and returns the
+     *            identifier for that element
+     * @param <Type>
+     *            The type of the {@link Iterable}
+     * @param <IdentifierType>
+     *            The type of the Identifier object for the elements in the {@link Iterable}
+     * @return The translated {@link Iterable}
+     */
+    public static <Type, IdentifierType> FilteredIterable<Type, IdentifierType> filter(
+            final Iterable<Type> types, final Set<IdentifierType> filterSet,
+            final Function<Type, IdentifierType> identifier)
+    {
+        return new FilteredIterable<Type, IdentifierType>(types, filterSet, identifier);
     }
 
     /**
@@ -607,6 +630,20 @@ public final class Iterables
             }
         }
         return Optional.ofNullable(result);
+    }
+
+    /**
+     * Create a {@link StreamIterable} that uses parallelization
+     *
+     * @param source
+     *            The {@link Iterable} to use as source
+     * @param <Type>
+     *            The type of the source {@link Iterable}
+     * @return The corresponding {@link StreamIterable}
+     */
+    public static <Type> StreamIterable<Type> parallelStream(final Iterable<Type> source)
+    {
+        return new StreamIterable<>(source, true);
     }
 
     public static <T> void print(final Iterable<T> input, final String name)

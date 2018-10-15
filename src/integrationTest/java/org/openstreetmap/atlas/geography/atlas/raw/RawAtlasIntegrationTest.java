@@ -34,8 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Integration tests for creating raw atlases, slicing raw atlases and sectioning sliced raw
- * atlases.
+ * Integration tests for creating, slicing and sectioning with the raw Atlas ingest flow.
  *
  * @author mgostintsev
  */
@@ -103,9 +102,9 @@ public class RawAtlasIntegrationTest
                 .edges(edge -> edge.getOsmIdentifier() == LINE_OSM_IDENTIFIER_CROSSING_3_SHARDS);
 
         // First look at absolute counts. Each shard will have two forward and reverse edges
-        Assert.assertTrue(Iterables.size(firstGroupOfEdges) == 4);
-        Assert.assertTrue(Iterables.size(secondGroupOfEdges) == 4);
-        Assert.assertTrue(Iterables.size(thirdGroupOfEdges) == 4);
+        Assert.assertEquals(4, Iterables.size(firstGroupOfEdges));
+        Assert.assertEquals(4, Iterables.size(secondGroupOfEdges));
+        Assert.assertEquals(4, Iterables.size(thirdGroupOfEdges));
 
         // Next, let's check identifier consistency
         final Set<Long> uniqueIdentifiers = new HashSet<>();
@@ -129,9 +128,9 @@ public class RawAtlasIntegrationTest
         Assert.assertTrue(piece3from123.asPolyLine().equals(piece3from62.asPolyLine()));
 
         // Let's validate absolute number of edges in each shard
-        Assert.assertTrue(atlasFromz8x123y122.numberOfEdges() == 12);
-        Assert.assertTrue(atlasFromz8x123y123.numberOfEdges() == 16);
-        Assert.assertTrue(atlasFromz7x62y61.numberOfEdges() == 20);
+        Assert.assertEquals(12, atlasFromz8x123y122.numberOfEdges());
+        Assert.assertEquals(16, atlasFromz8x123y123.numberOfEdges());
+        Assert.assertEquals(20, atlasFromz7x62y61.numberOfEdges());
     }
 
     @Test
@@ -182,7 +181,7 @@ public class RawAtlasIntegrationTest
         Assert.assertEquals(0, slicedRawAtlas.numberOfNodes());
         Assert.assertEquals(0, slicedRawAtlas.numberOfEdges());
         Assert.assertEquals(0, slicedRawAtlas.numberOfAreas());
-        Assert.assertEquals(34786, slicedRawAtlas.numberOfPoints());
+        Assert.assertEquals(34784, slicedRawAtlas.numberOfPoints());
         Assert.assertEquals(3636, slicedRawAtlas.numberOfLines());
         Assert.assertEquals(6, slicedRawAtlas.numberOfRelations());
 
@@ -203,7 +202,7 @@ public class RawAtlasIntegrationTest
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
         Assert.assertEquals(5011, finalAtlas.numberOfNodes());
-        Assert.assertEquals(9766, finalAtlas.numberOfEdges());
+        Assert.assertEquals(9764, finalAtlas.numberOfEdges());
         Assert.assertEquals(5128, finalAtlas.numberOfAreas());
         Assert.assertEquals(184, finalAtlas.numberOfPoints());
         Assert.assertEquals(326, finalAtlas.numberOfLines());
@@ -243,12 +242,20 @@ public class RawAtlasIntegrationTest
                         .getFile())),
                 rawAtlasFetcher).run();
 
-        Assert.assertEquals(5011, finalAtlas.numberOfNodes());
-        Assert.assertEquals(9766, finalAtlas.numberOfEdges());
-        Assert.assertEquals(5128, finalAtlas.numberOfAreas());
+        Assert.assertEquals(5009, finalAtlas.numberOfNodes());
+        Assert.assertEquals(9760, finalAtlas.numberOfEdges());
+        Assert.assertEquals(5126, finalAtlas.numberOfAreas());
         Assert.assertEquals(184, finalAtlas.numberOfPoints());
-        Assert.assertEquals(326, finalAtlas.numberOfLines());
-        Assert.assertEquals(14, finalAtlas.numberOfRelations());
+        Assert.assertEquals(271, finalAtlas.numberOfLines());
+
+        /*
+         * This has been updated to 16 instead of 14. This is because two of the relations in
+         * 8-122-122-trimmed.osm.pbf have subrelations, and so the WaySectionProcessor was simply
+         * dropping them when using the old BareAtlas.relationsLowerOrderFirstCode (We have now
+         * fixed BareAtlas.relationsLowerOrderFirst to not drop relations when the BareAtlas is a
+         * DynamicAtlas). In reality, we should process them and include then in the final atlas.
+         */
+        Assert.assertEquals(16, finalAtlas.numberOfRelations());
     }
 
     @Test
@@ -256,11 +263,7 @@ public class RawAtlasIntegrationTest
     {
         // This is an OSM node that doesn't have any tags, is not a member of a relation or part of
         // a way. It should end up as a point in the final atlas.
-
-        // Create an Antarctica country
-        final Set<String> countries = new HashSet<>();
         final String antarctica = "ATA";
-        countries.add(antarctica);
 
         // Create a fake boundary as a bounding box around the target point
         final Map<String, MultiPolygon> boundaries = new HashMap<>();
@@ -279,7 +282,7 @@ public class RawAtlasIntegrationTest
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(pbfPath));
         final Atlas rawAtlas = rawAtlasGenerator.build();
 
-        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(countries, countryBoundaryMap)
+        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(antarctica, countryBoundaryMap)
                 .slice(rawAtlas);
         final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(countryBoundaryMap)).run();
@@ -291,6 +294,121 @@ public class RawAtlasIntegrationTest
         Assert.assertEquals(1, finalAtlas.numberOfPoints());
         Assert.assertEquals(0, finalAtlas.numberOfLines());
         Assert.assertEquals(0, finalAtlas.numberOfRelations());
+    }
+
+    @Test
+    public void testTwoWaysWithDifferentLayersIntersectingAtEnd()
+    {
+        // Based on https://www.openstreetmap.org/way/26071941 and
+        // https://www.openstreetmap.org/way/405246856 having two different layer tag values and
+        // having a shared node (https://www.openstreetmap.org/node/281526976) at which one of the
+        // ways ends. This is a fairly common OSM use-case, where two roads (often ramps or links)
+        // having different layer tags should be connected.
+        final Location intersection = Location.forString("55.0480165, 82.9406646");
+        final String path = RawAtlasIntegrationTest.class
+                .getResource("twoWaysWithDifferentLayersIntersectingAtEnd.pbf").getPath();
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
+        final Atlas rawAtlas = rawAtlasGenerator.build();
+
+        // Prepare the boundary
+        final CountryBoundaryMap boundaryMap = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
+                        .getResourceAsStream("layerIntersectionAtEndBoundaryMap.txt")));
+
+        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer("RUS", boundaryMap).slice(rawAtlas);
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
+
+        // Make sure there are exactly three edges created. Both ways are one-way and one of them
+        // gets way-sectioned into two edges.
+        Assert.assertEquals(3, finalAtlas.numberOfEdges());
+
+        // Make sure there are exactly 4 nodes
+        Assert.assertEquals(4, finalAtlas.numberOfNodes());
+
+        // Explicitly check for a single node at the intersection location
+        Assert.assertEquals(1, Iterables.size(finalAtlas.nodesAt(intersection)));
+
+        // Explicitly check that the layer=0 link is connected to both the layer=-1 trunk edges
+        Assert.assertEquals(2, finalAtlas.edge(26071941000000L).connectedEdges().size());
+    }
+
+    @Test
+    public void testTwoWaysWithDifferentLayersIntersectingAtStart()
+    {
+        // Based on https://www.openstreetmap.org/way/551411163 and partial piece of
+        // https://www.openstreetmap.org/way/67803311 having two different layer tag values and
+        // having a shared node (https://www.openstreetmap.org/node/5325270497) at which one of the
+        // ways ends. This is a fairly common OSM use-case, where two roads (often ramps or links)
+        // having different layer tags should be connected. In this case, we also check that the
+        // trunk link is connected to the trunk at both the start and end nodes.
+        final Location intersection = Location.forString("52.4819691, 38.7603042");
+        final String path = RawAtlasIntegrationTest.class
+                .getResource("twoWaysWithDifferentLayersIntersectingAtStart.pbf").getPath();
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
+        final Atlas rawAtlas = rawAtlasGenerator.build();
+
+        // Prepare the boundary
+        final CountryBoundaryMap boundaryMap = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
+                        .getResourceAsStream("layerIntersectionAtStartBoundaryMap.txt")));
+
+        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer("RUS", boundaryMap).slice(rawAtlas);
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
+
+        // Make sure there are exactly six edges created. The trunk link (551411163) is
+        // way-sectioned into 2 pieces - at an intermediate crossing, while the trunk (67803311) is
+        // sectioned into 4 pieces - once at the start of the link, once at an intermediate crossing
+        // and again at the end of the link.
+        Assert.assertEquals(6, finalAtlas.numberOfEdges());
+
+        // Make sure there are exactly 6 nodes
+        Assert.assertEquals(6, finalAtlas.numberOfNodes());
+
+        // Explicitly check for a single node at the intersection location
+        Assert.assertEquals(1, Iterables.size(finalAtlas.nodesAt(intersection)));
+
+        // Explicitly check that the layer=0 link is connected to both the layer=1 trunk edges and
+        // its own sectioned edge
+        Assert.assertEquals(3, finalAtlas.edge(551411163000001L).connectedEdges().size());
+        Assert.assertEquals(3, finalAtlas.edge(551411163000002L).connectedEdges().size());
+    }
+
+    @Test
+    public void testTwoWaysWithDifferentLayersIntersectingInMiddle()
+    {
+        // Based on https://www.openstreetmap.org/way/467880095 and
+        // https://www.openstreetmap.org/way/28247094 having two different layer tag values and
+        // having overlapping nodes (https://www.openstreetmap.org/node/4661272336 and
+        // https://www.openstreetmap.org/node/5501637097) that should not be merged.
+        final Location overlappingLocation = Location.forString("1.3248985,103.6452864");
+        final String path = RawAtlasIntegrationTest.class
+                .getResource("twoWaysWithDifferentLayersIntersectingInMiddle.pbf").getPath();
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
+        final Atlas rawAtlas = rawAtlasGenerator.build();
+
+        // Verify both points made it into the raw atlas
+        Assert.assertTrue(Iterables.size(rawAtlas.pointsAt(overlappingLocation)) == 2);
+
+        // Prepare the boundary
+        final CountryBoundaryMap boundaryMap = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
+                        .getResourceAsStream("layerIntersectionInMiddleBoundaryMap.txt")));
+
+        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer("SGP", boundaryMap).slice(rawAtlas);
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
+
+        // Make sure there is no sectioning happening between the two ways with different layer tag
+        // values. There is a one-way overpass and a bi-directional residential street, resulting in
+        // 3 total edges and 4 nodes (one on both ends of the two segments)
+        Assert.assertEquals(3, finalAtlas.numberOfEdges());
+        Assert.assertEquals(4, finalAtlas.numberOfNodes());
+
+        // Again, verify there is no node at the duplicated location
+        Assert.assertTrue(Iterables.size(finalAtlas.nodesAt(overlappingLocation)) == 0);
+        Assert.assertEquals(0, finalAtlas.numberOfPoints());
     }
 
     private void assertAllEntitiesHaveCountryCode(final Atlas atlas)

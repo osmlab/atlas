@@ -23,11 +23,13 @@ import org.openstreetmap.atlas.geography.atlas.builder.text.TextAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
-import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader;
+import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
 import org.openstreetmap.atlas.streaming.resource.ClassResource;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
+import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.tags.BuildingPartTag;
 import org.openstreetmap.atlas.tags.BuildingTag;
@@ -176,6 +178,25 @@ public class TestAtlasHandler implements FieldHandler
         }
         // Right now we only have a single constant for areas
         return Polygon.SILICON_VALLEY;
+    }
+
+    /**
+     * Builds an {@link Atlas} from the given pbf resource, using the raw atlas flow. This does NOT
+     * country-slice the pbf resource since no corresponding boundary file is supplied and the flow
+     * is not meant to test slicing logic.
+     *
+     * @param pbfResource
+     *            The pbf input resource to use
+     * @return the resulting Atlas
+     */
+    private Atlas buildAtlasFromPbf(final Resource pbfResource)
+    {
+        // Create raw Atlas
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(pbfResource);
+        final Atlas rawAtlas = rawAtlasGenerator.build();
+
+        // Way-section
+        return new WaySectionProcessor(rawAtlas, AtlasLoadingOption.withNoFilter()).run();
     }
 
     private Location convertLoc(final Loc point)
@@ -388,7 +409,7 @@ public class TestAtlasHandler implements FieldHandler
                 new OsmFileToPbf().update(resource, pbfFile);
             }
 
-            field.set(rule, new OsmPbfLoader(pbfFile, AtlasLoadingOption.withNoFilter()).read());
+            field.set(rule, buildAtlasFromPbf(pbfFile));
         }
         catch (IllegalArgumentException | IllegalAccessException e)
         {

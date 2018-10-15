@@ -34,7 +34,7 @@ public final class Distance implements Serializable
 
     private static final int DISTANCE_PRINTING_METERS_THRESHOLD = 1000;
 
-    private final long millimeters;
+    private final double millimeters;
 
     public static Distance feet(final double feet)
     {
@@ -58,7 +58,7 @@ public final class Distance implements Serializable
 
     public static Distance meters(final double meters)
     {
-        return Distance.millimeters((long) (meters * MILLIMETERS_PER_METER));
+        return Distance.millimeters(meters * MILLIMETERS_PER_METER);
     }
 
     public static Distance miles(final double miles)
@@ -66,7 +66,7 @@ public final class Distance implements Serializable
         return Distance.feet(miles * FEET_PER_MILE);
     }
 
-    public static Distance millimeters(final long millimeters)
+    public static Distance millimeters(final double millimeters)
     {
         return new Distance(millimeters);
     }
@@ -76,7 +76,7 @@ public final class Distance implements Serializable
         return Distance.meters(nauticalMiles * METERS_PER_NAUTICAL_MILE);
     }
 
-    private Distance(final long millimeters)
+    private Distance(final double millimeters)
     {
         if (millimeters < 0)
         {
@@ -102,7 +102,7 @@ public final class Distance implements Serializable
 
     public double asMeters()
     {
-        return (double) asMillimeters() / MILLIMETERS_PER_METER;
+        return asMillimeters() / MILLIMETERS_PER_METER;
     }
 
     public double asMiles()
@@ -110,7 +110,7 @@ public final class Distance implements Serializable
         return asFeet() / FEET_PER_MILE;
     }
 
-    public long asMillimeters()
+    public double asMillimeters()
     {
         return this.millimeters;
     }
@@ -138,7 +138,7 @@ public final class Distance implements Serializable
     @Override
     public int hashCode()
     {
-        return Long.hashCode(this.millimeters);
+        return Double.hashCode(this.millimeters);
     }
 
     public boolean isGreaterThan(final Distance that)
@@ -178,7 +178,7 @@ public final class Distance implements Serializable
 
     public Distance substract(final Distance that)
     {
-        final long delta = this.asMillimeters() - that.asMillimeters();
+        final double delta = this.asMillimeters() - that.asMillimeters();
         return Distance.millimeters(Math.max(delta, 0));
     }
 

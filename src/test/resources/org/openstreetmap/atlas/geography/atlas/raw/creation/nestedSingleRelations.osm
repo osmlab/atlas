@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM' timestamp='2017-12-19T21:43:02Z'>
+  <node id='126692' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='4.64106693493' lon='62.20467537641'>
+    <tag k='duplicate' v='1' />
+  </node>
+  <node id='126693' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='4.64106693493' lon='62.20467537641'>
+    <tag k='duplicate' v='2' />
+  </node>
+  <node id='126707' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='5.2548712486' lon='62.26990983733' />
+  <node id='126708' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='5.26930670118' lon='62.55259250132' />
+  <node id='126709' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='5.11700779075' lon='62.56043489553' />
+  <node id='126710' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify' lat='5.10256885516' lon='62.27775223154' />
+  <way id='126711' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify'>
+    <nd ref='126707' />
+    <nd ref='126708' />
+    <nd ref='126709' />
+    <nd ref='126710' />
+    <nd ref='126707' />
+    <tag k='building' v='yes' />
+  </way>
+  <relation id='126699' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify'>
+    <member type='node' ref='126692' role='child' />
+    <tag k='type' v='parent1' />
+  </relation>
+  <relation id='126702' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify'>
+    <member type='relation' ref='126699' role='childrelation' />
+    <tag k='type' v='parent1-1' />
+  </relation>
+  <relation id='126718' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify'>
+    <member type='node' ref='126693' role='child' />
+    <tag k='type' v='parent2' />
+  </relation>
+  <relation id='126725' uid='1' version='1' changeset='1' user='myself' timestamp='2017-12-19T21:43:02Z' action='modify'>
+    <member type='relation' ref='126718' role='childrelation' />
+    <tag k='type' v='parent2-2' />
+  </relation>
+</osm>

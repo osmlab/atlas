@@ -23,6 +23,15 @@ public abstract class Point extends LocationItem
     }
 
     @Override
+    public String toDiffViewFriendlyString()
+    {
+        final String relationsString = this.parentRelationsAsDiffViewFriendlyString();
+
+        return "[Point: id=" + this.getIdentifier() + ", location=" + this.getLocation()
+                + ", relations=(" + relationsString + "), " + tagString() + "]";
+    }
+
+    @Override
     public String toString()
     {
         return "[Point: id=" + this.getIdentifier() + ", location=" + this.getLocation() + ", "

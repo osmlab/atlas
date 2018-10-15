@@ -10,7 +10,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryLine;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryLine;
 
 /**
  * Base class that contains common functionality for applying a given slicing change set to a raw
@@ -41,7 +41,7 @@ public abstract class ChangeSetHandler
      *
      * @param atlas
      *            The {@link Atlas} whose statistics to log
-     * @return the statastics string
+     * @return the statistics string
      */
     protected String atlasStatistics(final Atlas atlas)
     {
@@ -63,6 +63,11 @@ public abstract class ChangeSetHandler
     protected PackedAtlasBuilder getBuilder()
     {
         return this.builder;
+    }
+
+    protected String getShardOrAtlasName()
+    {
+        return this.atlas.metaData().getShardName().orElse(this.atlas.getName());
     }
 
     /**

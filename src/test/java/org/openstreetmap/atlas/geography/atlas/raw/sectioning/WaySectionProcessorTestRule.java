@@ -11,6 +11,9 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas;
  */
 public class WaySectionProcessorTestRule extends CoreTestRule
 {
+    @TestAtlas(loadFromTextResource = "malformedPolyLine.atlas.txt")
+    private Atlas malformedPolyLineAtlas;
+
     @TestAtlas(loadFromTextResource = "bidirectionalRing.atlas.txt")
     private Atlas bidirectioalRingAtlas;
 
@@ -47,6 +50,24 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     @TestAtlas(loadFromTextResource = "roundAbout.atlas.txt")
     private Atlas roundAbout;
 
+    @TestAtlas(loadFromTextResource = "lineWithRepeatedLocation.atlas.txt")
+    private Atlas lineWithRepeatedLocation;
+
+    @TestAtlas(loadFromTextResource = "loopWithRepeatedLocation.atlas.txt")
+    private Atlas loopWithRepeatedLocation;
+
+    @TestAtlas(loadFromTextResource = "selfIntersectingLoop.atlas.txt")
+    private Atlas selfIntersectingLoop;
+
+    @TestAtlas(loadFromTextResource = "wayExceedingSectioningLimit.atlas.txt")
+    private Atlas wayExceedingSectioningLimit;
+
+    @TestAtlas(loadFromTextResource = "rawAtlasSpanningOutsideBoundary.atlas.txt")
+    private Atlas rawAtlasSpanningOutsideBoundary;
+
+    @TestAtlas(loadFromTextResource = "nestedRelationRemoval.atlas.txt")
+    private Atlas nestedRelationRemoval;
+
     public Atlas getBidirectionalRingAtlas()
     {
         return this.bidirectioalRingAtlas;
@@ -72,9 +93,29 @@ public class WaySectionProcessorTestRule extends CoreTestRule
         return this.lineWithLoopInMiddle;
     }
 
+    public Atlas getLineWithRepeatedLocationAtlas()
+    {
+        return this.lineWithRepeatedLocation;
+    }
+
     public Atlas getLoopingWayWithIntersectionAtlas()
     {
         return this.loopingWayWithIntersection;
+    }
+
+    public Atlas getLoopWithRepeatedLocationAtlas()
+    {
+        return this.loopWithRepeatedLocation;
+    }
+
+    public Atlas getMalformedPolyLineAtlas()
+    {
+        return this.malformedPolyLineAtlas;
+    }
+
+    public Atlas getNestedRelationRemovalAtlas()
+    {
+        return this.nestedRelationRemoval;
     }
 
     public Atlas getOneWayRingAtlas()
@@ -85,6 +126,11 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     public Atlas getOneWaySimpleLineAtlas()
     {
         return this.oneWaySimpleLine;
+    }
+
+    public Atlas getRawAtlasSpanningOutsideBoundary()
+    {
+        return this.rawAtlasSpanningOutsideBoundary;
     }
 
     public Atlas getReversedOneWayLineAtlas()
@@ -102,8 +148,18 @@ public class WaySectionProcessorTestRule extends CoreTestRule
         return this.roundAbout;
     }
 
+    public Atlas getSelfIntersectingLoopAtlas()
+    {
+        return this.selfIntersectingLoop;
+    }
+
     public Atlas getSimpleBiDirectionalLineAtlas()
     {
         return this.simpleBiDirectionalLine;
+    }
+
+    public Atlas getWayExceedingSectioningLimitAtlas()
+    {
+        return this.wayExceedingSectioningLimit;
     }
 }

@@ -18,9 +18,12 @@ import org.openstreetmap.atlas.geography.atlas.raw.slicing.CountryCodeProperties
 import org.openstreetmap.atlas.geography.converters.WktPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
+import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
+import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.test.TestUtility;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.threads.Pool;
@@ -229,6 +232,36 @@ public class CountryBoundaryMapTest
     }
 
     @Test
+    public void testForceSlicing()
+    {
+        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
+                CountryBoundaryMapTest.class.getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
+                        .withDecompressor(Decompressor.GZIP));
+        Assert.assertFalse(map.hasGridIndex());
+        final Set<String> countries = new HashSet<>();
+        countries.add("HTI");
+        countries.add("DOM");
+        map.initializeGridIndex(countries);
+        // Crosses HTI only and falls in the international waters on both sides
+        final LineString lineString = (LineString) TestUtility.createJtsGeometryFromWKT(
+                "LINESTRING(-72.62310537054378 16.33562831580734,-73.54595693304378 18.890373956748753)");
+
+        final List<Geometry> sliced1 = map.slice(123, lineString);
+        map.setShouldAlwaysSlicePredicate(
+                taggable -> taggable.getTag("IShouldBeSliced").isPresent());
+        final List<Geometry> sliced2 = map.slice(123, lineString);
+        final List<Geometry> sliced3 = map.slice(123, lineString,
+                Taggable.with("IShouldBeSliced", "yes"));
+        final List<Geometry> sliced4 = map.slice(123, lineString,
+                Taggable.with("ShouldIBeSliced", "no"));
+
+        Assert.assertEquals(1, sliced1.size());
+        Assert.assertEquals(1, sliced2.size());
+        Assert.assertEquals(3, sliced3.size());
+        Assert.assertEquals(1, sliced4.size());
+    }
+
+    @Test
     public void testGetCountryCode()
     {
         final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
@@ -344,6 +377,31 @@ public class CountryBoundaryMapTest
     }
 
     @Test
+    public void testNearestNeighborCountryCodeOnMultiLineStringOutsideBoundary()
+    {
+        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
+                CountryBoundaryMapTest.class.getResourceAsStream("DMA_boundary.txt")));
+        map.setShouldAlwaysSlicePredicate(taggable -> true);
+        final PolyLine polyLine = PolyLine.wkt(new InputStreamResource(
+                () -> CountryBoundaryMapTest.class.getResourceAsStream("DMA_snake_polyline.wkt"))
+                        .firstLine());
+        final List<Geometry> sliced = map.slice(123000000L,
+                new JtsPolyLineConverter().convert(polyLine),
+                Taggable.with("force-slice", "please"));
+        int withNearestNeighborTag = 0;
+        for (final Geometry slicedGeometry : sliced)
+        {
+            if (SyntheticNearestNeighborCountryCodeTag.YES.name()
+                    .equals(CountryBoundaryMap.getGeometryProperty(slicedGeometry,
+                            SyntheticNearestNeighborCountryCodeTag.KEY)))
+            {
+                withNearestNeighborTag++;
+            }
+        }
+        Assert.assertEquals(3, withNearestNeighborTag);
+    }
+
+    @Test
     public void testOnDemandIndexAndIndexFromFileViaArea()
     {
         // Generate grid index for the first time
@@ -425,6 +483,16 @@ public class CountryBoundaryMapTest
         Assert.assertEquals("AIA", firstCountryName(partialAIAMap));
         Assert.assertNotNull(partialAIAMap.countryBoundary("AIA"));
         Assert.assertNull(partialAIAMap.countryBoundary("MAF"));
+    }
+
+    @Test
+    public void testWithinBoundingBoxButNotWithinBoundary()
+    {
+        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
+                CountryBoundaryMapTest.class.getResourceAsStream("DMA_boundary.txt")));
+        final Location location = Location.forWkt("POINT (-61.6678538 15.2957509)");
+        final CountryCodeProperties countryCodeProperties = map.getCountryCodeISO3(location);
+        Assert.assertTrue(countryCodeProperties.usingNearestNeighbor());
     }
 
     private String firstCountryName(final CountryBoundaryMap map)

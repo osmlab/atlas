@@ -1,0 +1,12 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_outer_classname = "ProtoIntegerStringDictionaryWrapper";
+
+package org.openstreetmap.atlas.proto;
+
+message ProtoIntegerStringDictionary {
+    optional int32 currentIndex = 1;
+    repeated int32 indexes = 2;
+    repeated string words = 3;
+}

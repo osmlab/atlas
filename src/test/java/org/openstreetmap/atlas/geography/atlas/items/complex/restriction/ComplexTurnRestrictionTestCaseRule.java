@@ -91,6 +91,29 @@ public class ComplexTurnRestrictionTestCaseRule extends CoreTestRule
             })
     private Atlas relationWithTwoViaNodes;
 
+    @TestAtlas(
+
+            nodes = {
+
+                    @Node(id = "1", coordinates = @Loc(value = ONE)),
+                    @Node(id = "2", coordinates = @Loc(value = TWO)),
+                    @Node(id = "3", coordinates = @Loc(value = THREE)),
+                    @Node(id = "4", coordinates = @Loc(value = FOUR)),
+                    @Node(id = "6", coordinates = @Loc(value = SIX))
+
+            }, edges = { @Edge(id = "102", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }, tags = { "highway=trunk" }), @Edge(id = "203", coordinates = { @Loc(value = TWO), @Loc(value = THREE) }, tags = { "highway=trunk" }), @Edge(id = "304", coordinates = { @Loc(value = THREE), @Loc(value = FOUR) }, tags = { "highway=trunk" }), @Edge(id = "205", coordinates = { @Loc(value = TWO), @Loc(value = SIX) }, tags = { "highway=trunk" })
+
+            }, relations = {
+
+                    @Relation(id = "1", tags = { "type=restriction",
+                            "restriction=no_left_turn" }, members = {
+                                    @Member(id = "102", role = "from", type = "edge"),
+                                    @Member(id = "203", role = "via", type = "edge"),
+                                    @Member(id = "304", role = "to", type = "edge") })
+
+            })
+    private Atlas atlasNoUTurn;
+
     public Atlas getAtlasNo()
     {
         return this.atlasNo;
@@ -109,5 +132,10 @@ public class ComplexTurnRestrictionTestCaseRule extends CoreTestRule
     public Atlas getRelationWithTwoViaNodes()
     {
         return this.relationWithTwoViaNodes;
+    }
+
+    public Atlas getAtlasNoUTurn()
+    {
+        return this.atlasNoUTurn;
     }
 }

@@ -13,9 +13,10 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRelation;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryRelationMember;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryRelation;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryRelationMember;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
+import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +55,9 @@ public class RelationChangeSetHandler extends ChangeSetHandler
     @Override
     public Atlas applyChanges()
     {
+        final Time time = Time.now();
+        logger.info("Started Applying Relation Changes for {}", getShardOrAtlasName());
+
         // Log original Atlas statistics
         if (logger.isInfoEnabled())
         {
@@ -83,16 +87,27 @@ public class RelationChangeSetHandler extends ChangeSetHandler
             logger.info("After Slicing Relations: " + atlasStatistics(atlasWithUpdates));
         }
 
+        logger.info("Finished Applying Relation Changes for {} in {}", getShardOrAtlasName(),
+                time.elapsedSince());
+
         return atlasWithUpdates;
     }
 
     private void addExistingPointsAndLines()
     {
-        this.getAtlas().points().forEach(point -> this.getBuilder().addPoint(point.getIdentifier(),
-                point.getLocation(), point.getTags()));
+        this.getAtlas().points().forEach(point ->
+        {
+            // Add the point, if it hasn't been deleted
+            if (!this.changeSet.getDeletedPoints().contains(point.getIdentifier()))
+            {
+                this.getBuilder().addPoint(point.getIdentifier(), point.getLocation(),
+                        point.getTags());
+            }
+        });
+
         this.getAtlas().lines().forEach(line ->
         {
-            // Add the line, if it hasn't been removed
+            // Add the line, if it hasn't been deleted
             if (!this.changeSet.getDeletedLines().contains(line.getIdentifier()))
             {
                 this.getBuilder().addLine(line.getIdentifier(), line.asPolyLine(), line.getTags());

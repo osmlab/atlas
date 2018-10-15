@@ -1,13 +1,16 @@
 package org.openstreetmap.atlas.geography.atlas.raw.creation;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
@@ -25,6 +28,7 @@ import org.openstreetmap.atlas.geography.atlas.pbf.CloseableOsmosisReader;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.AtlasTag;
+import org.openstreetmap.atlas.tags.LayerTag;
 import org.openstreetmap.atlas.tags.SyntheticDuplicateOsmNodeTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.time.Time;
@@ -211,6 +215,7 @@ public class RawAtlasGenerator
      */
     private Atlas buildRawAtlas()
     {
+        final String shardName = this.metaData.getShardName().orElse("unknown");
         final Time parseTime = Time.now();
         try (CloseableOsmosisReader reader = connectOsmPbfToPbfConsumer(this.pbfReader))
         {
@@ -218,27 +223,31 @@ public class RawAtlasGenerator
         }
         catch (final Exception e)
         {
-            throw new CoreException("Error during Atlas creation from PBF", e);
+            throw new CoreException("Atlas creation error for PBF shard {}", shardName, e);
         }
-        logger.info("Read PBF in {}, preparing to build Raw Atlas", parseTime.elapsedSince());
+        logger.info("Read PBF for {} in {}", shardName, parseTime.elapsedSince());
 
         final Time buildTime = Time.now();
         final Atlas atlas = this.builder.get();
-        final Atlas trimmedAtlas = removeDuplicateAndExtraneousPointsFromAtlas(atlas);
+        logger.info("Built Raw Atlas for {} in {}", shardName, buildTime.elapsedSince());
 
-        logger.info("Built Raw Atlas in {}", buildTime.elapsedSince());
-
-        if (trimmedAtlas != null)
+        if (atlas == null)
         {
-            logger.info("Successfully built atlas {}", trimmedAtlas.getName());
+            logger.info("Generated empty raw Atlas for PBF Shard {}", shardName);
+            return atlas;
         }
         else
         {
-            logger.info("No raw Atlas generated for given PBF Shard {}",
-                    this.metaData.getShardName().orElse("unknown"));
-        }
+            final Time trimTime = Time.now();
+            final Atlas trimmedAtlas = removeDuplicateAndExtraneousPointsFromAtlas(atlas);
+            logger.info("Trimmed Raw Atlas for {} in {}", shardName, trimTime.elapsedSince());
 
-        return trimmedAtlas;
+            if (trimmedAtlas == null)
+            {
+                logger.info("Empty raw Atlas after filtering for PBF Shard {}", shardName);
+            }
+            return trimmedAtlas;
+        }
     }
 
     /**
@@ -259,15 +268,20 @@ public class RawAtlasGenerator
     private void countOsmPbfEntities()
     {
         final Time countTime = Time.now();
-        try (CloseableOsmosisReader reader = connectOsmPbfToPbfConsumer(this.pbfCounter))
+        try (CloseableOsmosisReader counter = connectOsmPbfToPbfConsumer(this.pbfCounter))
         {
-            reader.run();
+            counter.run();
         }
         catch (final Exception e)
         {
             throw new CoreException("Error counting PBF entities", e);
         }
-        logger.info("Counted PBF entities in {}", countTime.elapsedSince());
+        logger.info("Counted PBF Entities in {}", countTime.elapsedSince());
+    }
+
+    private long getLayerTagValueForPoint(final Atlas atlas, final long identifier)
+    {
+        return LayerTag.getTaggedOrImpliedValue(atlas.point(identifier), 0L);
     }
 
     /**
@@ -319,6 +333,17 @@ public class RawAtlasGenerator
         return atlas.point(pointIdentifier).getTags().size() == AtlasTag.TAGS_FROM_OSM.size();
     }
 
+    private boolean locationPartOfMultipleWaysWithDifferentLayerTags(final Atlas atlas,
+            final Location location)
+    {
+        final long distinctLayerTagValues = StreamSupport
+                .stream(atlas.linesContaining(location).spliterator(), false)
+                .map(line -> LayerTag.getTaggedOrImpliedValue(atlas.line(line.getIdentifier()), 0L))
+                .distinct().count();
+
+        return distinctLayerTagValues > 1;
+    }
+
     /**
      * Populates the {@link AtlasMetaData} used to build the raw {@link Atlas}. Specifically,
      * records any {@link Node}, {@link Way} and {@link Relation} filtering that may have been used.
@@ -359,13 +384,13 @@ public class RawAtlasGenerator
     private Atlas rebuildAtlas(final Atlas atlas, final Set<Long> pointsToRemove,
             final Set<Long> pointsNeedingSyntheticTag)
     {
-        final PackedAtlasBuilder builder = new PackedAtlasBuilder();
+        final PackedAtlasBuilder rebuilder = new PackedAtlasBuilder();
 
         // Set the metadata and size. Use existing Atlas as estimate.
-        builder.setMetaData(this.metaData);
+        rebuilder.setMetaData(this.metaData);
         final AtlasSize size = new AtlasSize(0, 0, 0, atlas.numberOfLines(), atlas.numberOfPoints(),
                 atlas.numberOfRelations());
-        builder.setSizeEstimates(size);
+        rebuilder.setSizeEstimates(size);
 
         // Add Points
         atlas.points().forEach(point ->
@@ -383,18 +408,19 @@ public class RawAtlasGenerator
                 }
 
                 // Add the Point
-                builder.addPoint(identifier, point.getLocation(), tags);
+                rebuilder.addPoint(identifier, point.getLocation(), tags);
             }
         });
 
         // Add Lines
-        atlas.lines().forEach(line ->
-        {
-            builder.addLine(line.getIdentifier(), line.asPolyLine(), line.getTags());
-        });
+        atlas.lines().forEach(
+                line -> rebuilder.addLine(line.getIdentifier(), line.asPolyLine(), line.getTags()));
 
         // Add Relations
-        atlas.relations().forEach(relation ->
+        // Keep a set of all relations that have members that have been removed, so if that member
+        // is the only member, we do not add the parent relation either.
+        final Set<Long> relationsToCheckForRemoval = new HashSet<>();
+        atlas.relationsLowerOrderFirst().forEach(relation ->
         {
             final RelationBean bean = new RelationBean();
             relation.members().forEach(member ->
@@ -408,17 +434,35 @@ public class RawAtlasGenerator
                             "Excluding point {} from relation {} since point was removed from Atlas",
                             memberIdentifier, relation.getIdentifier());
                 }
+                else if (entity.getType() == ItemType.RELATION
+                        && relationsToCheckForRemoval.contains(memberIdentifier))
+                {
+                    // Make sure not to add any removed relations
+                    logger.debug(
+                            "Excluding relation member {} from parent relation {} since that relation member became empty",
+                            memberIdentifier, relation.getIdentifier());
+                }
                 else
                 {
                     bean.addItem(memberIdentifier, member.getRole(), entity.getType());
                 }
             });
-            builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(), bean,
-                    relation.getTags());
+
+            if (!bean.isEmpty())
+            {
+                rebuilder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(), bean,
+                        relation.getTags());
+            }
+            else
+            {
+                final long relationIdentifier = relation.getIdentifier();
+                logger.debug("Relation {} bean is empty, dropping from Atlas", relationIdentifier);
+                relationsToCheckForRemoval.add(relationIdentifier);
+            }
         });
 
         // Build and return the new Atlas
-        return builder.get();
+        return rebuilder.get();
     }
 
     /**
@@ -431,10 +475,12 @@ public class RawAtlasGenerator
      * other features in the Atlas.
      * <li>2. There are multiple {@link Point}s at a {@link Location}. In this case, we sort all the
      * points, keep the one with the smallest identifier, add a {@link SyntheticDuplicateOsmNodeTag}
-     * and remove the rest of the duplicate points. Note: we can potentially be tossing out OSM
-     * Nodes with non-empty tags. However, this is the most deterministic and simple way to handle
-     * this. The presence of the synthetic tag will make it easy to write an Atlas Check to resolve
-     * the data error.
+     * and remove the rest of the duplicate points. Two notes: 1. We keep Nodes if they have
+     * different layer tagging. This way, we aren't creating a false connection between an overpass
+     * and a road beneath it, which happened to have a way node at the identical location. 2. We are
+     * potentially tossing out OSM Nodes with non-empty tags. However, this is the most
+     * deterministic and simple way to handle this. The presence of the synthetic tag will make it
+     * easy to write an Atlas Check to resolve the data error.
      * </ul>
      *
      * @param atlas
@@ -449,20 +495,55 @@ public class RawAtlasGenerator
 
         for (final Point point : atlas.points())
         {
-            final Set<Long> duplicatePoints = Iterables.stream(atlas.pointsAt(point.getLocation()))
-                    .map(Point::getIdentifier).collectToSet();
-            if (!duplicatePoints.isEmpty() && duplicatePoints.size() > 1)
+            // Don't try to de-duplicate points we've already handled
+            if (!pointsToRemove.contains(point.getIdentifier())
+                    && !duplicatePointsToKeep.contains(point.getIdentifier()))
             {
-                // Sort the points
-                final Set<Long> sortedDuplicates = Iterables.asSortedSet(duplicatePoints);
+                final Set<Long> duplicatePoints = Iterables
+                        .stream(atlas.pointsAt(point.getLocation())).map(Point::getIdentifier)
+                        .collectToSet();
+                if (!duplicatePoints.isEmpty() && duplicatePoints.size() > 1)
+                {
+                    // Factor in ways that pass through these points. If these points are part of
+                    // ways that have a different layer tag value, then
+                    // keep all of them to avoid merging ways that shouldn't be merged.
+                    if (locationPartOfMultipleWaysWithDifferentLayerTags(atlas,
+                            point.getLocation()))
+                    {
+                        duplicatePointsToKeep.addAll(duplicatePoints);
+                        continue;
+                    }
 
-                // Grab the one with smallest identifier (deterministic)
-                final long duplicatePointToKeep = sortedDuplicates.iterator().next();
-                duplicatePointsToKeep.add(duplicatePointToKeep);
+                    // Sort the points
+                    final Set<Long> sortedDuplicates = Iterables.asSortedSet(duplicatePoints);
+                    final Set<Long> uniqueLayerValues = new HashSet<>();
 
-                // Add the rest to the to-be-removed collection
-                sortedDuplicates.remove(duplicatePointToKeep);
-                pointsToRemove.addAll(sortedDuplicates);
+                    // Keep the point with the smallest identifier (deterministic) for each layer
+                    final Iterator<Long> duplicateIterator = sortedDuplicates.iterator();
+                    final long duplicatePointToKeep = duplicateIterator.next();
+                    final long layerValue = getLayerTagValueForPoint(atlas, duplicatePointToKeep);
+
+                    duplicatePointsToKeep.add(duplicatePointToKeep);
+                    duplicateIterator.remove();
+                    uniqueLayerValues.add(layerValue);
+
+                    while (duplicateIterator.hasNext())
+                    {
+                        final long candidateToKeep = duplicateIterator.next();
+                        final long candidateLayerValue = getLayerTagValueForPoint(atlas,
+                                candidateToKeep);
+
+                        if (!uniqueLayerValues.contains(candidateLayerValue))
+                        {
+                            // Keep the point if it has a unique layer value
+                            duplicatePointsToKeep.add(candidateToKeep);
+                            duplicateIterator.remove();
+                        }
+                    }
+
+                    // Remove all remaining (non-kept) points
+                    pointsToRemove.addAll(sortedDuplicates);
+                }
             }
         }
 
@@ -472,7 +553,7 @@ public class RawAtlasGenerator
             pointsToRemove.addAll(preFilterPointsToRemove(atlas));
         }
 
-        // If there's any points to be removed, cut a sub-atlas. Otherwise return the original atlas
+        // Remove points or return the original atlas
         if (pointsToRemove.isEmpty())
         {
             return atlas;

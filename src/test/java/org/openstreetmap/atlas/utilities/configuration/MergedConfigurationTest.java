@@ -2,8 +2,10 @@ package org.openstreetmap.atlas.utilities.configuration;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -13,7 +15,7 @@ import org.openstreetmap.atlas.utilities.scalars.Angle;
 
 /**
  * Test Cases for MergedConfiguration implementations
- * 
+ *
  * @author brian_l_davis
  * @author jklamer
  */
@@ -25,6 +27,23 @@ public class MergedConfigurationTest
     private static final String KEYWORD_OVERRIDDEN_DEV_CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/developmentOverriding.json";
     private static final String OVERRIDE_CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/development.json";
     private static final String PARTIAL_CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/feature.json";
+
+    @Test
+    public void testConfigurationDataKeySet() throws IOException
+    {
+        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+
+        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION);
+                InputStream override = loader.getResourceAsStream(OVERRIDE_CONFIGURATION))
+        {
+            final Configuration configuration = new MergedConfiguration(
+                    new InputStreamResource(base), new InputStreamResource(override));
+
+            final Set<String> compareTo = new HashSet<>();
+            compareTo.add("feature");
+            Assert.assertEquals(configuration.configurationDataKeySet(), compareTo);
+        }
+    }
 
     @Test
     public void testDotFormat() throws IOException

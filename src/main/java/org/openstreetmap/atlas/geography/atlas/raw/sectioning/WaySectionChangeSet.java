@@ -1,10 +1,10 @@
 package org.openstreetmap.atlas.geography.atlas.raw.sectioning;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.atlas.items.Area;
@@ -13,8 +13,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryEdge;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryNode;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryEdge;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryNode;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 
 /**
@@ -50,10 +50,10 @@ public class WaySectionChangeSet
 
     public WaySectionChangeSet()
     {
-        this.linesToBecomeAreas = new HashSet<>();
-        this.linesExcludedFromAtlas = new HashSet<>();
-        this.pointsToStayPoints = new HashSet<>();
-        this.edgeToNodeMapping = new HashMap<>();
+        this.linesToBecomeAreas = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        this.linesExcludedFromAtlas = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        this.pointsToStayPoints = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        this.edgeToNodeMapping = new ConcurrentHashMap<>();
         this.lineToEdgeMapping = new MultiMap<>();
     }
 

@@ -9,7 +9,8 @@ signposts;points;highway->motorway_junction
 signpost_ways;edges;destination->*
 
 # all barrier values included
-barriers;points,lines;barrier->*
+barriers;points,lines,edges;barrier->*
+barriers_whitelist;points,lines,edges;barrier->toll_booth,sally_port,cattle_grid,entrance,border_control
 
 # Stop signs on nodes will be duplicated as a point because it has a tag. Count points only
 stop_signs;points;highway->stop
@@ -37,11 +38,21 @@ bus_stops;all;amenity->bus_station|highway->bus_stop|bus->*^trolleybus->*&public
 # natural=water AND water=[lake OR pond OR reflecting_pool OR reservoir] OR natural=water AND (NOT water=*) OR landuse=basin
 lakes;areas,points;natural->water&water->lake,pond,reflecting_pool,reservoir|natural->water&water->!|landuse->basin
 
-# address points only 
-address_points;areas,points;addr:street->*&addr:housenumber->*
-# address_ranges 
-address_ranges;lines;addr:interpolation->*
-housenumber;areas,points;addr:housenumber->*
+# Water queries
+rivers;areas,lines,relations;natural->stream||water->canal,river,lock,moat,creek,riverbank,stream,stream_pool||waterway->river,riverbank,brook,ditch,stream,canal,derelict_canal,creek||stream->*||waterway->drain&&name->*||water->drain&&name->*&tunnel->!culvert&covered->!yes;count,distance
+wetland;areas,relations;wetland->swamp,mangrove,bog,fen,string_bog,saltern,saltmash,wet_meadow,marsh&water->!tidalflat,!reedbed||seasonal->!yes&natural->!tidalflat,!reedbed||seasonal->!yes&covered->!yes&landuse->!basin||natural->water&waterway->!floodway,!spillway&water->!floodway,!spillway;surface,count
+lakes2;areas,relations;natural->spring,hot_spring&&name->*||natural->lake,pond||water:type->lake||landuse->pond||water->lake,pond,oxbow&covered->!yes&landuse->!basin||natural->water&water->!wastewater,!waterhole,!pool,!reflecting_pool,!swimming_pool,!salt_pool,!fountain,!tank;surface,count
+reservoir;areas,relations;water->reservoir||water->dam&&natural->water||landuse->reservoir||natural->reservoir||seamark:type->dam&&natural->water&covered->!yes&water->!waterhole,!pool,!reflecting_pool,!swimming_pool,!salt_pool,!fountain,!tank;surface,count
+lagoon;areas,relations;natural->lagoon|water->lagoon|waterway->lagoon;count,surface
+pool;areas,relations;water->reflecting_pool||leisure->swimming_pool,water_park,swimming_area||amenity->swimming_pool,public_bath||sport->swimming&covered->!yes;count,surface
+coastline;edges,lines,relations;natural->coastline;distance
+harbour;all;water->harbour|seamark:type->harbour|water->cove&salt->yes|harbour->yes;count,distance,surface
+bay;areas,relations;natural->bay;count,surface
+beach;areas,relations;natural->beach;count,surface
+island;areas,relations;place->island&natural->*&natural->!coastline|place->island&natural->!;count,surface
+pier;edges,lines,areas,relations;man_made->pier;count,distance,surface
+unknown_water;all;natural->water||waterway->water||water->water,perennial||landuse->water&covered->!yes&waterway->!drain||tags->!||name->*&water->!drain||tags->!||name->*&landuse->!basin||natural->water;count,distance,surface
+unnamed_intermittent_water;all;natural->intermittent&name->!|waterway->intermittent&name->!|water->intermittent&name->!|intermittent->*&name->!|stream->intermittent,ephemeral&name->!;count,distance,surface
 
 amenity;points,areas;amenity->*
 phone;points,areas;contact:phone->*|phone->*
@@ -61,3 +72,23 @@ POI rollup;points,areas;amenity->*|craft->*|historic->*|landuse->*|leisure->*|mi
 # http://wiki.openstreetmap.org/wiki/Key:place#Values
 city_center;points,areas,relations;place->municipality,city,town,village,hamlet
 
+# Details with addresses
+associated_street;relations;type->associatedstreet
+address_ranges;lines;addr:interpolation->*;count,distance
+address_housenumber;areas,points;addr:housenumber->*
+address_housename;areas,points;addr:housename->*
+address_street;areas,points;addr:street->*
+address_housenumber_and_street;areas,points;addr:street->*&addr:housenumber->*
+address_housename_and_street;areas,points;addr:street->*&addr:housename->*
+address_blocknumber;areas,points;addr:blocknumber->*
+
+# Ferries
+ferry_route;edges,lines,relations;route->ferry;count,distance
+
+# Ref/Lanes
+ref;relations;ref->*;count,distance
+ref_no_relation;nodes,edges,lines;ref->*;count,distance
+int_ref;relations;int_ref->*;count,distance
+int_ref_no_relation;nodes,edges,lines;int_ref->*;count,distance
+lane_direction;edges;turn:lanes->*;count,distance
+toll_booths;points;barrier->toll_booth

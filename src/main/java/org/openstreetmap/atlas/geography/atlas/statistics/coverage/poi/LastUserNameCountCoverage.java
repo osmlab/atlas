@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -15,6 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.statistics.AtlasStatistics.Statis
 import org.openstreetmap.atlas.geography.atlas.statistics.AtlasStatistics.StatisticValue;
 import org.openstreetmap.atlas.geography.atlas.statistics.coverage.Coverage;
 import org.openstreetmap.atlas.tags.LastEditUserNameTag;
+import org.openstreetmap.atlas.tags.Taggable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +25,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author matthieun
  */
-public class LastUserNameCountCoverage extends CountCoverage<AtlasEntity>
+public class LastUserNameCountCoverage extends SimpleCoverage<AtlasEntity>
 {
     private static final Logger logger = LoggerFactory.getLogger(LastUserNameCountCoverage.class);
 
@@ -37,7 +39,7 @@ public class LastUserNameCountCoverage extends CountCoverage<AtlasEntity>
      */
     public LastUserNameCountCoverage(final Atlas atlas, final long cutoff)
     {
-        super(logger, atlas);
+        super(logger, atlas, CoverageType.COUNT);
         this.cutoff = cutoff;
     }
 
@@ -112,9 +114,9 @@ public class LastUserNameCountCoverage extends CountCoverage<AtlasEntity>
     }
 
     @Override
-    protected Set<TagGroup> validKeyValuePairs()
+    protected Predicate<Taggable> validKeyValuePairs()
     {
         // count all the values.
-        return new HashSet<>();
+        return taggable -> true;
     }
 }

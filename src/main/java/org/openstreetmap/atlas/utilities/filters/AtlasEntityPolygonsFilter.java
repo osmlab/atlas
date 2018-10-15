@@ -13,9 +13,10 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.converters.PolygonStringFormat;
-import org.openstreetmap.atlas.geography.index.QuadTree;
+import org.openstreetmap.atlas.geography.index.RTree;
 import org.openstreetmap.atlas.utilities.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,7 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
     private static final Logger logger = LoggerFactory.getLogger(AtlasEntityPolygonsFilter.class);
     private static final long serialVersionUID = -3474748398986569205L;
     private Type filterType;
-    private List<GeometricSurface> geometricSurfaces = new ArrayList<>();
+    private RTree<GeometricSurface> geometricSurfaces = new RTree<>();
     private IntersectionPolicy intersectionPolicy;
 
     public static Collection<GeometricSurface> createSurfaceCollection(
@@ -144,58 +145,23 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
                 .collect(Collectors.toList());
     }
 
-    private static Predicate<GeometricSurface> notOverlappingSurfaces(final Type polygonType)
-    {
-        final QuadTree<GeometricSurface> vettedSurfaces = new QuadTree<>();
-        return geometricSurface ->
-        {
-            if (vettedSurfaces.get(geometricSurface.bounds()).stream()
-                    .noneMatch(surfaceOverlappingPredicate(geometricSurface)))
-            {
-                vettedSurfaces.add(geometricSurface.bounds(), geometricSurface);
-                return true;
-            }
-            else
-            {
-                logger.warn("Dropping {} GeometricSurface {}", polygonType, geometricSurface);
-                return false;
-            }
-        };
-    }
-
-    private static Predicate<GeometricSurface> surfaceOverlappingPredicate(
-            final GeometricSurface geometricSurface)
-    {
-        if (geometricSurface instanceof MultiPolygon)
-        {
-            return surface -> surface.overlaps((MultiPolygon) geometricSurface);
-        }
-        else if (geometricSurface instanceof Polygon)
-        {
-            return surface -> surface.overlaps((Polygon) geometricSurface);
-        }
-        else
-        {
-            logger.warn("Unrecognized GeometricSurface {}", geometricSurface);
-            return surface -> false;
-        }
-    }
-
     private AtlasEntityPolygonsFilter(final Type filterType,
             final Collection<? extends GeometricSurface> geometricSurfaces)
     {
         this(filterType, IntersectionPolicy.DEFAULT_INTERSECTION_POLICY, geometricSurfaces);
     }
 
+    @SuppressWarnings("unchecked")
     private AtlasEntityPolygonsFilter(final Type filterType,
             final IntersectionPolicy intersectionPolicy,
             final Collection<? extends GeometricSurface> geometricSurfaces)
     {
         this.filterType = filterType;
         this.intersectionPolicy = intersectionPolicy;
-        this.geometricSurfaces.addAll(geometricSurfaces == null ? Collections.EMPTY_SET
-                : geometricSurfaces.stream().filter(notOverlappingSurfaces(this.filterType))
-                        .collect(Collectors.toSet()));
+        this.geometricSurfaces = (RTree<GeometricSurface>) RTree
+                .forLocated(geometricSurfaces == null ? Collections.EMPTY_SET : geometricSurfaces);
+        // initialize underlying STR tree
+        this.geometricSurfaces.get(Rectangle.MAXIMUM);
     }
 
     @Override
@@ -206,15 +172,15 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
 
     private Predicate<AtlasEntity> isIncluded()
     {
-        return entity -> this.filterType == Type.INCLUDE && (this.geometricSurfaces.stream()
-                .anyMatch(geometricSurface -> this.intersectionPolicy
+        return entity -> this.filterType == Type.INCLUDE && (this.geometricSurfaces
+                .get(entity.bounds()).stream().anyMatch(geometricSurface -> this.intersectionPolicy
                         .geometricSurfaceEntityIntersecting(geometricSurface, entity)));
     }
 
     private Predicate<AtlasEntity> isNotExcluded()
     {
-        return entity -> this.filterType == Type.EXCLUDE && this.geometricSurfaces.stream()
-                .noneMatch(geometricSurface -> this.intersectionPolicy
+        return entity -> this.filterType == Type.EXCLUDE && this.geometricSurfaces
+                .get(entity.bounds()).stream().noneMatch(geometricSurface -> this.intersectionPolicy
                         .geometricSurfaceEntityIntersecting(geometricSurface, entity));
     }
 
@@ -242,8 +208,7 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
         public AtlasEntityPolygonsFilter geometricSurfaces(
                 final Collection<GeometricSurface> geometricSurfaces)
         {
-            return new AtlasEntityPolygonsFilter(this,
-                    IntersectionPolicy.DEFAULT_INTERSECTION_POLICY, geometricSurfaces);
+            return new AtlasEntityPolygonsFilter(this, geometricSurfaces);
         }
 
         public AtlasEntityPolygonsFilter multiPolygons(final Collection<MultiPolygon> multiPolygons)

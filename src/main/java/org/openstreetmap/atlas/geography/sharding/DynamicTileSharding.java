@@ -13,10 +13,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
-import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
@@ -126,13 +126,13 @@ public class DynamicTileSharding extends Command implements Sharding
             return this.tile.hashCode();
         }
 
-        public Set<Node> leafNodes(final Polygon polygon)
+        public Set<Node> leafNodes(final GeometricSurface surface)
         {
             final Set<Node> result = new HashSet<>();
-            final Rectangle polygonBounds = polygon.bounds();
+            final Rectangle polygonBounds = surface.bounds();
             if (polygonBounds.overlaps(bounds()))
             {
-                if (isFinal() && polygon.overlaps(bounds()))
+                if (isFinal() && surface.overlaps(bounds()))
                 {
                     result.add(this);
                 }
@@ -140,7 +140,7 @@ public class DynamicTileSharding extends Command implements Sharding
                 {
                     for (final Node child : this.children)
                     {
-                        result.addAll(child.leafNodes(polygon));
+                        result.addAll(child.leafNodes(surface));
                     }
                 }
             }
@@ -349,9 +349,9 @@ public class DynamicTileSharding extends Command implements Sharding
     }
 
     @Override
-    public Iterable<? extends Shard> shards(final Polygon bounds)
+    public Iterable<? extends Shard> shards(final GeometricSurface surface)
     {
-        return Iterables.stream(this.root.leafNodes(bounds)).map(Node::getTile);
+        return Iterables.stream(this.root.leafNodes(surface)).map(Node::getTile);
     }
 
     @Override

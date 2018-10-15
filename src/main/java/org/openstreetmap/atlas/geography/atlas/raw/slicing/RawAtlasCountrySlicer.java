@@ -10,6 +10,9 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.RelationChangeSet;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.SimpleChangeSet;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
+import org.openstreetmap.atlas.utilities.time.Time;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Main entry point to initiate raw {@link Atlas} country-slicing.
@@ -18,6 +21,8 @@ import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
  */
 public class RawAtlasCountrySlicer
 {
+    private static final Logger logger = LoggerFactory.getLogger(RawAtlasCountrySlicer.class);
+
     // The countries to be sliced with
     private final CountryBoundaryMap countryBoundaryMap;
 
@@ -65,6 +70,10 @@ public class RawAtlasCountrySlicer
      */
     public Atlas slice(final Atlas rawAtlas)
     {
+        final Time time = Time.now();
+        final String shardName = getShardOrAtlasName(rawAtlas);
+        logger.info("Started all Slicing for Shard {}", shardName);
+
         // Keep track of changes made during Point/Line and Relation slicing
         final SimpleChangeSet slicedPointAndLineChanges = new SimpleChangeSet();
         final RelationChangeSet slicedRelationChanges = new RelationChangeSet();
@@ -81,6 +90,13 @@ public class RawAtlasCountrySlicer
         final RawAtlasSlicer relationSlicer = new RawAtlasRelationSlicer(slicedPointsAndLinesAtlas,
                 this.countries, this.countryBoundaryMap, slicedPointAndLineChanges,
                 slicedRelationChanges, newPointCoordinates);
+
+        logger.info("Finished all Slicing for Shard {} in {}", shardName, time.elapsedSince());
         return relationSlicer.slice();
+    }
+
+    private String getShardOrAtlasName(final Atlas atlas)
+    {
+        return atlas.metaData().getShardName().orElse(atlas.getName());
     }
 }

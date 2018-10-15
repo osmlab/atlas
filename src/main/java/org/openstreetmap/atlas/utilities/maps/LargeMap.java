@@ -2,8 +2,11 @@ package org.openstreetmap.atlas.utilities.maps;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.Objects;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasSerializer;
+import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
 import org.openstreetmap.atlas.utilities.arrays.Arrays;
 import org.openstreetmap.atlas.utilities.arrays.LargeArray;
 import org.openstreetmap.atlas.utilities.arrays.LongArrayOfArrays;
@@ -14,6 +17,7 @@ import org.openstreetmap.atlas.utilities.scalars.Ratio;
  * Large map that is based on {@link LargeArray}s.
  *
  * @author matthieun
+ * @author lcram
  * @param <K>
  *            The key type
  * @param <V>
@@ -34,6 +38,23 @@ public abstract class LargeMap<K, V> implements Iterable<K>, Serializable
     // Each index of this list is a hash value (modulo-ed)
     // Each Value is an array of indices to look up the items in the key/value arrays
     private final LongArrayOfArrays hashes;
+
+    /**
+     * This nullary constructor exists solely for subclasses of {@link LargeMap} that wish to
+     * implement their own nullary constructor. These nullary constructors should only be used by
+     * serialization code in {@link PackedAtlasSerializer} that needs to obtain
+     * {@link ProtoAdapter}s. The objects they initialize are corrupted for general use and should
+     * be discarded.
+     */
+    protected LargeMap()
+    {
+        this.values = null;
+        this.keys = null;
+        this.hashSize = 0;
+        this.maximumSize = 0;
+        this.name = null;
+        this.hashes = null;
+    }
 
     /**
      * Construct a large map
@@ -155,6 +176,50 @@ public abstract class LargeMap<K, V> implements Iterable<K>, Serializable
     }
 
     /**
+     * A basic equals() implementation. Note that if this class is parameterized with an array type,
+     * this method may not work as expected (due to array equals() performing a reference
+     * comparison). Child classes of {@link LargeMap} may want to override this method to improve
+     * its behavior in special cases.
+     */
+    @Override
+    public boolean equals(final Object other)
+    {
+        if (other instanceof LargeMap)
+        {
+            if (this == other)
+            {
+                return true;
+            }
+            @SuppressWarnings("unchecked")
+            final LargeMap<K, V> that = (LargeMap<K, V>) other;
+            if (!Objects.equals(this.getName(), that.getName()))
+            {
+                return false;
+            }
+            if (this.size() != that.size())
+            {
+                return false;
+            }
+            final Iterable<K> iterable = () -> this.iterator();
+            for (final K key : iterable)
+            {
+                if (!that.containsKey(key))
+                {
+                    return false;
+                }
+                final V thisValue = this.get(key);
+                final V thatValue = that.get(key);
+                if (!thisValue.equals(thatValue))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param key
      *            The key to get the value at
      * @return The value at the specified key
@@ -175,6 +240,35 @@ public abstract class LargeMap<K, V> implements Iterable<K>, Serializable
     public long getMaximumSize()
     {
         return this.maximumSize;
+    }
+
+    /**
+     * @return The name of this map
+     */
+    public String getName()
+    {
+        return this.name;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int initialPrime = 31;
+        final int hashSeed = 37;
+
+        final int nameHash = this.getName() == null ? 0 : this.getName().hashCode();
+        int hash = hashSeed * initialPrime + nameHash;
+        hash = hashSeed * hash + Long.valueOf(this.size()).hashCode();
+
+        final Iterable<K> iterable = () -> this.iterator();
+        for (final K key : iterable)
+        {
+            final V value = this.get(key);
+            hash = hashSeed * hash + key.hashCode();
+            hash = hashSeed * hash + value.hashCode();
+        }
+
+        return hash;
     }
 
     public boolean isEmpty()
@@ -308,14 +402,6 @@ public abstract class LargeMap<K, V> implements Iterable<K>, Serializable
      * @return An empty array of values
      */
     protected abstract LargeArray<V> createValues(int memoryBlockSize, int subArraySize);
-
-    /**
-     * @return The name of this map
-     */
-    protected String getName()
-    {
-        return this.name;
-    }
 
     private int modulo(final int hashValue)
     {

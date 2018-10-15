@@ -228,6 +228,55 @@ public final class Rectangle extends Polygon
     }
 
     /**
+     * Contract the rectangle in 4 directions as far as possible. If the distance to move the
+     * corners would invert the rectangle then the side(s) will collapse into length 0. The most
+     * that it can contract is to a single point in the middle.
+     *
+     * @param distance
+     *            to contract the four corners
+     * @return new rectangle with contracted dimensions
+     */
+    public Rectangle contract(final Distance distance)
+    {
+        final Location newLowerLeft = this.lowerLeft.shiftAlongGreatCircle(Heading.NORTH, distance)
+                .shiftAlongGreatCircle(Heading.EAST, distance);
+        final Location newUpperRight = this.upperRight
+                .shiftAlongGreatCircle(Heading.SOUTH, distance)
+                .shiftAlongGreatCircle(Heading.WEST, distance);
+        final boolean tooShortHeight = newLowerLeft.getLatitude()
+                .isGreaterThan(newUpperRight.getLatitude());
+        final boolean tooShortWidth = newLowerLeft.getLongitude()
+                .isGreaterThan(newUpperRight.getLongitude());
+        if (tooShortHeight && tooShortWidth)
+        {
+            return this.center().bounds();
+        }
+        else
+        {
+            final Location lowerRight = new Location(this.lowerLeft().getLatitude(),
+                    this.upperRight().getLongitude());
+            if (tooShortHeight)
+            {
+                final Latitude sharedLatitude = lowerRight.midPoint(this.upperRight())
+                        .getLatitude();
+                return forCorners(new Location(sharedLatitude, newLowerLeft.getLongitude()),
+                        new Location(sharedLatitude, newUpperRight.getLongitude()));
+            }
+            else if (tooShortWidth)
+            {
+                final Longitude sharedLongitude = lowerRight.midPoint(this.lowerLeft())
+                        .getLongitude();
+                return forCorners(new Location(newLowerLeft.getLatitude(), sharedLongitude),
+                        new Location(newUpperRight.getLatitude(), sharedLongitude));
+            }
+            else
+            {
+                return forCorners(newLowerLeft, newUpperRight);
+            }
+        }
+    }
+
+    /**
      * @param that
      *            The other {@link Rectangle} to combine
      * @return The {@link Rectangle} wrapping this {@link Rectangle} and the one passed as an
