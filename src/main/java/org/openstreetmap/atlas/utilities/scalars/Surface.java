@@ -127,7 +127,8 @@ public final class Surface implements Serializable
     {
         if (factor < 0)
         {
-            throw new IllegalArgumentException("Scale factor must not be a negative number");
+            throw new IllegalArgumentException(
+                    "Scale factor must not be a negative number. Was: " + factor);
         }
         return Surface.forDm7Squared((long) (this.asDm7Squared() * factor));
     }
@@ -138,7 +139,8 @@ public final class Surface implements Serializable
         {
             return Surface.forDm7Squared(this.asDm7Squared() - other.asDm7Squared());
         }
-        throw new IllegalArgumentException("Invalid surfaces for performing subtraction");
+        throw new IllegalArgumentException(
+                "Invalid surfaces for performing subtraction: " + this + " minus " + other);
     }
 
     @Override
