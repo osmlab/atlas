@@ -150,7 +150,7 @@ public class AtlasStatisticsTest
                 statistics.get(new StatisticKey("", "wetland_surface", "true")).getCount(), 0.01);
 
         // Lakes2
-        Assert.assertEquals(2.0, statistics.get(new StatisticKey("", "lakes2", "true")).getCount(),
+        Assert.assertEquals(3.0, statistics.get(new StatisticKey("", "lakes2", "true")).getCount(),
                 0.01);
         Assert.assertEquals(2.08,
                 statistics.get(new StatisticKey("", "lakes2_surface", "true")).getCount(), 0.01);

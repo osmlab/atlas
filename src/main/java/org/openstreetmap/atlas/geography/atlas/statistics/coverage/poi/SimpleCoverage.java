@@ -38,6 +38,8 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
 {
+    private static final Logger logger = LoggerFactory.getLogger(SimpleCoverage.class);
+
     private static final String TYPE_SEPARATOR = ";";
     private static final String VALUES_SEPARATOR = ",";
     private static final String COMMENTED_LINE = "#";
@@ -278,6 +280,11 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
             {
                 // Many features will not be multipolygons.
             }
+            catch (final IllegalArgumentException e)
+            {
+                logger.error("AtlasStatistics cannot compute surface of {}", item, e);
+            }
+            return result;
         }
         if (item instanceof Relation)
         {
