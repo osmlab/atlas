@@ -14,6 +14,8 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.builder.text.TextAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.CountryCodeProperties;
 import org.openstreetmap.atlas.geography.converters.WktPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
@@ -21,6 +23,7 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
 import org.openstreetmap.atlas.tags.Taggable;
@@ -109,6 +112,27 @@ public class CountryBoundaryMapTest
 
         // HTI is the closest to the line
         Assert.assertEquals("HTI", map.getCountryCodeISO3(lineString).getIso3CountryCode());
+    }
+
+    @Test
+    public void testBorderDeduplication()
+    {
+        final InputStreamResource atlasResource = new InputStreamResource(
+                () -> CountryBoundaryMapTest.class
+                        .getResourceAsStream("USA_HTI_overlapping.atlas.txt"));
+        final Atlas atlas = new TextAtlasBuilder().read(atlasResource);
+        final CountryBoundaryMap map = CountryBoundaryMap.fromAtlas(atlas);
+        final StringResource boundaryHTI = new StringResource(new InputStreamResource(
+                () -> CountryBoundaryMapTest.class.getResourceAsStream("HTI_boundary.txt")));
+        final StringResource boundaryUSA = new StringResource(
+                new InputStreamResource(() -> CountryBoundaryMapTest.class
+                        .getResourceAsStream("USA_boundary_reduced.txt")));
+        // confirm the duplicated border belongs to the USA
+        Assert.assertEquals(boundaryUSA.all(),
+                map.countryBoundary("USA").get(0).getBoundary().toString());
+        // confirm the duplicated border does not belong to HTI
+        Assert.assertEquals(boundaryHTI.all(),
+                map.countryBoundary("HTI").get(0).getBoundary().toString());
     }
 
     @Test
