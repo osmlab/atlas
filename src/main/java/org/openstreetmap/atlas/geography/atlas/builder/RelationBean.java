@@ -36,7 +36,7 @@ public class RelationBean implements Serializable
     @Override
     public boolean equals(final Object other)
     {
-        if (Objects.nonNull(other) && other instanceof RelationBean)
+        if (other instanceof RelationBean)
         {
             final RelationBean that = (RelationBean) other;
             return Iterables.equals(this.getMemberIdentifiers(), that.getMemberIdentifiers())
