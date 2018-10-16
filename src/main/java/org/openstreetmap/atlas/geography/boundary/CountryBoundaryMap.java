@@ -1132,10 +1132,10 @@ public class CountryBoundaryMap implements Serializable
     public Iterable<ComplexBoundary> resolveOverlappingBorders(
             final Iterable<ComplexBoundary> complexBoundaries)
     {
-        final List<ComplexBoundary> dedupedComplexBoundaries = new ArrayList<>();
+        final List<ComplexBoundary> deduplicatedComplexBoundaries = new ArrayList<>();
         final Set<org.openstreetmap.atlas.geography.Polygon> processedOuters = new HashSet<>();
-        final List<ComplexBoundary> complexBoundariesList = Lists.newArrayList(complexBoundaries);
-        Collections.sort(complexBoundariesList, (firstBoundary, secondBoundary) ->
+        final List<ComplexBoundary> complexBoundaryList = Lists.newArrayList(complexBoundaries);
+        Collections.sort(complexBoundaryList, (firstBoundary, secondBoundary) ->
         {
             if (firstBoundary.getIdentifier() > secondBoundary.getIdentifier())
             {
@@ -1147,7 +1147,7 @@ public class CountryBoundaryMap implements Serializable
             }
             return 0;
         });
-        for (final ComplexBoundary currentComplexBoundary : complexBoundariesList)
+        for (final ComplexBoundary currentComplexBoundary : complexBoundaryList)
         {
             final MultiPolygon outline = currentComplexBoundary.getOutline();
             if (outline != null)
@@ -1164,10 +1164,10 @@ public class CountryBoundaryMap implements Serializable
                         processedOuters.add(outer);
                     }
                 }
-                dedupedComplexBoundaries.add(currentComplexBoundary);
+                deduplicatedComplexBoundaries.add(currentComplexBoundary);
             }
         }
-        return dedupedComplexBoundaries;
+        return deduplicatedComplexBoundaries;
     }
 
     public void setShouldAlwaysSlicePredicate(final Predicate<Taggable> shouldAlwaysSlicePredicate)
