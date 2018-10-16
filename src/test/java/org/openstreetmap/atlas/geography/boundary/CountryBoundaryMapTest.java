@@ -124,8 +124,9 @@ public class CountryBoundaryMapTest
         final CountryBoundaryMap map = CountryBoundaryMap.fromAtlas(atlas);
         final StringResource boundaryHTI = new StringResource(new InputStreamResource(
                 () -> CountryBoundaryMapTest.class.getResourceAsStream("HTI_boundary.txt")));
-        final StringResource boundaryUSA = new StringResource(new InputStreamResource(
-                () -> CountryBoundaryMapTest.class.getResourceAsStream("USA_boundary.txt")));
+        final StringResource boundaryUSA = new StringResource(
+                new InputStreamResource(() -> CountryBoundaryMapTest.class
+                        .getResourceAsStream("USA_boundary_reduced.txt")));
         // confirm the duplicated border belongs to the USA
         Assert.assertEquals(boundaryUSA.all(),
                 map.countryBoundary("USA").get(0).getBoundary().toString());
