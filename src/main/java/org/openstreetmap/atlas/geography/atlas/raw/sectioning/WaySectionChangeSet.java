@@ -40,6 +40,7 @@ public class WaySectionChangeSet
     private final Set<Long> linesToBecomeAreas;
     private final Set<Long> linesExcludedFromAtlas;
     private final Set<Long> pointsToStayPoints;
+    private final Set<Long> pointsToBecomesNodes;
 
     // Mapping of line identifiers (that become edges) to TemporaryNodes
     private final Map<Long, NodeOccurrenceCounter> edgeToNodeMapping;
@@ -53,6 +54,7 @@ public class WaySectionChangeSet
         this.linesToBecomeAreas = Collections.newSetFromMap(new ConcurrentHashMap<>());
         this.linesExcludedFromAtlas = Collections.newSetFromMap(new ConcurrentHashMap<>());
         this.pointsToStayPoints = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        this.pointsToBecomesNodes = Collections.newSetFromMap(new ConcurrentHashMap<>());
         this.edgeToNodeMapping = new ConcurrentHashMap<>();
         this.lineToEdgeMapping = new MultiMap<>();
     }
@@ -71,12 +73,6 @@ public class WaySectionChangeSet
     public List<TemporaryEdge> getCreatedEdges()
     {
         return this.lineToEdgeMapping.allValues();
-    }
-
-    public Set<TemporaryNode> getCreatedNodes()
-    {
-        return this.edgeToNodeMapping.values().stream()
-                .flatMap(mapping -> mapping.getNodes().stream()).collect(Collectors.toSet());
     }
 
     public Set<Long> getExcludedLines()
@@ -104,10 +100,16 @@ public class WaySectionChangeSet
         return this.edgeToNodeMapping.get(line.getIdentifier());
     }
 
-    public Set<Long> getPointsThatBecomeNodes()
+    public synchronized Set<Long> getPointsThatBecomeNodes()
     {
-        return this.getCreatedNodes().stream().map(TemporaryNode::getIdentifier)
-                .collect(Collectors.toSet());
+        if (this.pointsToBecomesNodes.isEmpty())
+        {
+            // This is an expensive calculation - do it once and cache the results.
+            this.pointsToBecomesNodes.addAll(this.getCreatedNodes().stream()
+                    .map(TemporaryNode::getIdentifier).collect(Collectors.toSet()));
+        }
+
+        return this.pointsToBecomesNodes;
     }
 
     public Set<Long> getPointsThatStayPoints()
@@ -128,5 +130,11 @@ public class WaySectionChangeSet
     public void recordPoint(final Point point)
     {
         this.pointsToStayPoints.add(point.getIdentifier());
+    }
+
+    private Set<TemporaryNode> getCreatedNodes()
+    {
+        return this.edgeToNodeMapping.values().stream()
+                .flatMap(mapping -> mapping.getNodes().stream()).collect(Collectors.toSet());
     }
 }
