@@ -100,13 +100,17 @@ public class WaySectionChangeSet
         return this.edgeToNodeMapping.get(line.getIdentifier());
     }
 
-    public synchronized Set<Long> getPointsThatBecomeNodes()
+    public Set<Long> getPointsThatBecomeNodes()
     {
-        if (this.pointsToBecomesNodes.isEmpty())
+        synchronized (this)
         {
-            // This is an expensive calculation - do it once and cache the results.
-            this.pointsToBecomesNodes.addAll(this.getCreatedNodes().stream()
-                    .map(TemporaryNode::getIdentifier).collect(Collectors.toSet()));
+            if (this.pointsToBecomesNodes.isEmpty())
+            {
+                // This is an expensive calculation - do it once and cache the results.
+                this.pointsToBecomesNodes.addAll(this.edgeToNodeMapping.values().stream()
+                        .flatMap(mapping -> mapping.getNodes().stream())
+                        .map(TemporaryNode::getIdentifier).collect(Collectors.toSet()));
+            }
         }
 
         return this.pointsToBecomesNodes;
@@ -130,11 +134,5 @@ public class WaySectionChangeSet
     public void recordPoint(final Point point)
     {
         this.pointsToStayPoints.add(point.getIdentifier());
-    }
-
-    private Set<TemporaryNode> getCreatedNodes()
-    {
-        return this.edgeToNodeMapping.values().stream()
-                .flatMap(mapping -> mapping.getNodes().stream()).collect(Collectors.toSet());
     }
 }
