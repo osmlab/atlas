@@ -240,6 +240,12 @@ public class BigNodeFinder implements Finder<BigNode>
      * prevent bad edge cases while constructing the big node
      */
     private static final int MAXIMUM_DUAL_CARRIAGEWAY_ROUTE_SIZE = 10;
+    /**
+     * This is a maximum number of possible exploratory routes when searching for dual carriage way
+     * junction routes. This is to prevent exponential slowdowns during rare edge cases, eg. when
+     * OSM ways overlap.
+     */
+    private static final int MAXIMUM_CANDIDATE_JUNCTION_ROUTE_SET_SIZE = 10_000;
 
     private final EdgeDirectionComparator edgeDirectionComparator = new EdgeDirectionComparator();
 
@@ -433,6 +439,13 @@ public class BigNodeFinder implements Finder<BigNode>
      */
     private Optional<Route> isDualCarriageWayJunctionRoute(final Set<Route> candidateJunctionRoutes)
     {
+        if (candidateJunctionRoutes.size() > MAXIMUM_CANDIDATE_JUNCTION_ROUTE_SET_SIZE)
+        {
+            logger.warn(
+                    "Aborting isDualCarriageWayJunctionRoute, candidate set size {} exceeded {}",
+                    candidateJunctionRoutes.size(), MAXIMUM_CANDIDATE_JUNCTION_ROUTE_SET_SIZE);
+            return Optional.empty();
+        }
         if (candidateJunctionRoutes.isEmpty())
         {
             return Optional.empty();
