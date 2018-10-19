@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openstreetmap.atlas.utilities.scalars.Duration;
 import org.openstreetmap.atlas.utilities.time.Time;
@@ -67,6 +68,7 @@ public class StreamIterableTest
         Assert.assertFalse(streamIterable.allMatch(n -> n % 5 == 0));
     }
 
+    @Ignore
     @Test
     public void testParallelPerformance()
     {
