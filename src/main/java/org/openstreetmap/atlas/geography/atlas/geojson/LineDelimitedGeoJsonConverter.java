@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
@@ -155,7 +154,7 @@ public class LineDelimitedGeoJsonConverter extends Command
             final String name = FilenameUtils.removeExtension(atlasFile.getName())
                     + FileSuffix.GEO_JSON.toString();
             final File geojsonFile = new File(geojsonDirectory.resolve(name).toFile());
-            atlas.saveAsLineDelimitedGeoJson(geojsonFile, POSITIVE_ONLY, JSON_MUTATOR);
+            atlas.saveAsLineDelimitedGeoJsonFeatures(geojsonFile, POSITIVE_ONLY, JSON_MUTATOR);
             logger.info("Saved {} in {}.", name, time.elapsedSince());
         });
     }

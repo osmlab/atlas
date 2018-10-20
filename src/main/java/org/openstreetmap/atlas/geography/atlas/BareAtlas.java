@@ -457,14 +457,14 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public void saveAsLineDelimitedGeoJson(final WritableResource resource,
+    public void saveAsLineDelimitedGeoJsonFeatures(final WritableResource resource,
             final BiConsumer<AtlasEntity, JsonObject> jsonMutator)
     {
-        saveAsLineDelimitedGeoJson(resource, item -> true, jsonMutator);
+        saveAsLineDelimitedGeoJsonFeatures(resource, item -> true, jsonMutator);
     }
 
     @Override
-    public void saveAsLineDelimitedGeoJson(final WritableResource resource,
+    public void saveAsLineDelimitedGeoJsonFeatures(final WritableResource resource,
             final Predicate<AtlasEntity> matcher,
             final BiConsumer<AtlasEntity, JsonObject> jsonMutator)
     {

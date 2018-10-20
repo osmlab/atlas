@@ -687,7 +687,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      * @param jsonMutator
      *            The callback function that will let you change what is in the Feature's JSON.
      */
-    void saveAsLineDelimitedGeoJson(WritableResource resource,
+    void saveAsLineDelimitedGeoJsonFeatures(WritableResource resource,
             BiConsumer<AtlasEntity, JsonObject> jsonMutator);
 
     /**
@@ -701,7 +701,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      * @param jsonMutator
      *        The callback function that will let you change what is in the Feature's JSON.
      */
-    void saveAsLineDelimitedGeoJson(WritableResource resource, Predicate<AtlasEntity> matcher,
+    void saveAsLineDelimitedGeoJsonFeatures(WritableResource resource, Predicate<AtlasEntity> matcher,
             BiConsumer<AtlasEntity, JsonObject> jsonMutator);
 
     /**
