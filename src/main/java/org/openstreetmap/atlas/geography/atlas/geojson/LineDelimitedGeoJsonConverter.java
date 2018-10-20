@@ -72,54 +72,12 @@ public class LineDelimitedGeoJsonConverter extends Command
             .getIdentifier() >= 0 && !ItemType.RELATION.equals(atlasEntity.getType());
 
     /**
-     * For the render logic of tippecanoe, we want to examine various tags of a given atlas entity
-     * and make decisions for the layer name, min zoom, and max zoom for the feature. These
-     * properties will be followed by tippecanoe if you put it in a "tippecanoe" object within the
-     * JSON feature.
+     * If we are rendering vector tiles, we may want to examine various tags of a given atlas entity
+     * and make decisions for the layer name, min zoom, and max zoom for the feature. Depending on your vector tile
+     * renderer, as well as map data visualization needs, you can override this BiConsumer to mutate your
+     * JSON object as you see fit.
      */
-    private static final BiConsumer<AtlasEntity, JsonObject> TIPPECANOEIFY = (atlasEntity,
-            feature) ->
-    {
-        final JsonObject tippecanoe = new JsonObject();
-
-        final String atlasType = atlasEntity.getType().name();
-        tippecanoe.addProperty("layer", atlasType);
-
-        // things will have a min zoom of 11 by default
-        int minzoom = 11;
-
-        // lets do some more specific zooms
-        final Map<String, String> tags = atlasEntity.getTags();
-
-        final String highway = tags.get("highway");
-
-        if (tags.get("boundary") != null)
-        {
-            minzoom = 7;
-        }
-        else if (tags.get("waterway") != null || "motorway".equals(highway))
-        {
-            minzoom = 8;
-        }
-
-        else if ("trunk".equals(highway) || "primary".equals(highway))
-        {
-            minzoom = 9;
-        }
-
-        else if ("secondary".equals(highway))
-        {
-            minzoom = 10;
-        }
-
-        else if ("NODE".equals(atlasType))
-        {
-            minzoom = 12;
-        }
-
-        tippecanoe.addProperty("minzoom", minzoom);
-        feature.add("tippecanoe", tippecanoe);
-    };
+    protected static final BiConsumer<AtlasEntity, JsonObject> JSON_MUTATOR = (atlasEntity, feature) -> {};
 
     public static void main(final String[] args)
     {
@@ -197,7 +155,7 @@ public class LineDelimitedGeoJsonConverter extends Command
             final String name = FilenameUtils.removeExtension(atlasFile.getName())
                     + FileSuffix.GEO_JSON.toString();
             final File geojsonFile = new File(geojsonDirectory.resolve(name).toFile());
-            atlas.saveAsLineDelimitedGeoJson(geojsonFile, POSITIVE_ONLY, TIPPECANOEIFY);
+            atlas.saveAsLineDelimitedGeoJson(geojsonFile, POSITIVE_ONLY, JSON_MUTATOR);
             logger.info("Saved {} in {}.", name, time.elapsedSince());
         });
     }
