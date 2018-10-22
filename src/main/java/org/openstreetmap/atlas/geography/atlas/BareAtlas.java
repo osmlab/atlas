@@ -524,13 +524,16 @@ public abstract class BareAtlas implements Atlas
         // but we also want to include those attached to edges that span outside the polygon.
         // Instead of doing a count to have an exact number, we choose here to have an arbitrary 20%
         // buffer on top of the nodes inside the polygon. This mostly avoids resizing.
-        final double nodeRatioBuffer = 1.2;
-        final long nodeNumber = Math.round(Iterables.size(nodesWithin(boundary)) * nodeRatioBuffer);
-        final long edgeNumber = Iterables.size(edgesIntersecting.get());
-        final long areaNumber = Iterables.size(areasIntersecting(boundary));
-        final long lineNumber = Iterables.size(linesIntersecting(boundary));
-        final long pointNumber = Iterables.size(pointsWithin(boundary));
-        final long relationNumber = Iterables.size(relationsWithEntitiesIntersecting(boundary));
+        final double ratioBuffer = 1.2;
+        final long nodeNumber = Math.round(Iterables.size(nodesWithin(boundary)) * ratioBuffer);
+        final long edgeNumber = Math.round(Iterables.size(edgesIntersecting.get()) * ratioBuffer);
+        final long areaNumber = Math
+                .round(Iterables.size(areasIntersecting(boundary)) * ratioBuffer);
+        final long lineNumber = Math
+                .round(Iterables.size(linesIntersecting(boundary)) * ratioBuffer);
+        final long pointNumber = Math.round(Iterables.size(pointsWithin(boundary)) * ratioBuffer);
+        final long relationNumber = Math
+                .round(Iterables.size(relationsWithEntitiesIntersecting(boundary)) * ratioBuffer);
         final AtlasSize size = new AtlasSize(edgeNumber, nodeNumber, areaNumber, lineNumber,
                 pointNumber, relationNumber);
         final PackedAtlasBuilder builder = new PackedAtlasBuilder().withSizeEstimates(size)
@@ -645,8 +648,13 @@ public abstract class BareAtlas implements Atlas
                 }
             });
         }
+        final PackedAtlas result = (PackedAtlas) builder.get();
+        if (result != null)
+        {
+            result.trim();
+        }
         logger.info("Cut sub-atlas in {}", begin.elapsedSince());
-        return Optional.ofNullable(builder.get());
+        return Optional.ofNullable(result);
     }
 
     @Override
