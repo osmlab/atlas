@@ -573,7 +573,7 @@ public abstract class BareAtlas implements Atlas
         {
             if (builder.peek().edge(edge.getIdentifier()) == null)
             {
-                if (edge.hasReverseEdge())
+                if (edge.getIdentifier() != 0 && edge.hasReverseEdge())
                 {
                     final Edge reverse = edge.reversed().get();
                     if (builder.peek().edge(reverse.getIdentifier()) == null)
