@@ -15,7 +15,9 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
@@ -514,6 +516,9 @@ public abstract class BareAtlas implements Atlas
     {
         final Time begin = Time.now();
 
+        final Supplier<Iterable<Edge>> edgesIntersecting = getCachingSupplier(
+                edgesIntersecting(boundary), ItemType.EDGE);
+
         // Generate the size estimates, then the builder.
         // Nodes estimating is a bit tricky. We want to include all the nodes within the polygon,
         // but we also want to include those attached to edges that span outside the polygon.
@@ -521,7 +526,7 @@ public abstract class BareAtlas implements Atlas
         // buffer on top of the nodes inside the polygon. This mostly avoids resizing.
         final double nodeRatioBuffer = 1.2;
         final long nodeNumber = Math.round(Iterables.size(nodesWithin(boundary)) * nodeRatioBuffer);
-        final long edgeNumber = Iterables.size(edgesIntersecting(boundary));
+        final long edgeNumber = Iterables.size(edgesIntersecting.get());
         final long areaNumber = Iterables.size(areasIntersecting(boundary));
         final long lineNumber = Iterables.size(linesIntersecting(boundary));
         final long pointNumber = Iterables.size(pointsWithin(boundary));
@@ -542,7 +547,7 @@ public abstract class BareAtlas implements Atlas
                 .relation(item.getIdentifier()) != null;
 
         // Add the nodes needed for Edges.
-        edgesIntersecting(boundary).forEach(edge ->
+        edgesIntersecting.get().forEach(edge ->
         {
             final Node start = edge.start();
             final Node end = edge.end();
@@ -560,9 +565,24 @@ public abstract class BareAtlas implements Atlas
         nodesWithin(boundary, hasNode.negate()).forEach(
                 node -> builder.addNode(node.getIdentifier(), node.getLocation(), node.getTags()));
 
-        // Add the edges
-        edgesIntersecting(boundary).forEach(
-                edge -> builder.addEdge(edge.getIdentifier(), edge.asPolyLine(), edge.getTags()));
+        // Add the edges. Use a consumer that makes sure master edges are always added first.
+        final Consumer<Edge> edgeAdder = edge ->
+        {
+            if (builder.peek().edge(edge.getIdentifier()) == null)
+            {
+                if (!edge.isMasterEdge())
+                {
+                    final Edge master = edge.reversed().get();
+                    if (builder.peek().edge(master.getIdentifier()) == null)
+                    {
+                        builder.addEdge(master.getIdentifier(), master.asPolyLine(),
+                                master.getTags());
+                    }
+                }
+                builder.addEdge(edge.getIdentifier(), edge.asPolyLine(), edge.getTags());
+            }
+        };
+        edgesIntersecting.get().forEach(edgeAdder::accept);
 
         // Add the Areas
         areasIntersecting(boundary).forEach(
@@ -912,6 +932,34 @@ public abstract class BareAtlas implements Atlas
             builder.addRelation(relationIdentifier, relation.getOsmIdentifier(), bean,
                     relation.getTags());
         }
+    }
+
+    private <Member extends AtlasEntity> Supplier<Iterable<Member>> getCachingSupplier(
+            final Iterable<Member> source, final ItemType type)
+    {
+        final List<Set<Long>> memberIdentifiersIntersecting = new ArrayList<>();
+        // A supplier that will effectively cache all the members intersecting that polygon. This is
+        // thread safe because the cache is internal to the supplier's scope.
+        @SuppressWarnings("unchecked")
+        final Supplier<Iterable<Member>> result = () ->
+        {
+            if (memberIdentifiersIntersecting.isEmpty())
+            {
+                final Set<Long> intersecting = new HashSet<>();
+                memberIdentifiersIntersecting.add(intersecting);
+                return Iterables.stream(source).map(member ->
+                {
+                    intersecting.add(member.getIdentifier());
+                    return member;
+                }).collect();
+            }
+            else
+            {
+                return (Iterable<Member>) Iterables.stream(memberIdentifiersIntersecting.get(0))
+                        .map(identifier -> this.entity(identifier, type)).collect();
+            }
+        };
+        return result;
     }
 
     /**
