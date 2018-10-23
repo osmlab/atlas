@@ -516,8 +516,18 @@ public abstract class BareAtlas implements Atlas
     {
         final Time begin = Time.now();
 
+        final Supplier<Iterable<Node>> nodesWithin = getCachingSupplier(nodesWithin(boundary),
+                ItemType.NODE);
         final Supplier<Iterable<Edge>> edgesIntersecting = getCachingSupplier(
                 edgesIntersecting(boundary), ItemType.EDGE);
+        final Supplier<Iterable<Area>> areasIntersecting = getCachingSupplier(
+                areasIntersecting(boundary), ItemType.AREA);
+        final Supplier<Iterable<Line>> linesIntersecting = getCachingSupplier(
+                linesIntersecting(boundary), ItemType.LINE);
+        final Supplier<Iterable<Point>> pointsWithin = getCachingSupplier(pointsWithin(boundary),
+                ItemType.POINT);
+        final Supplier<Iterable<Relation>> relationsWithEntitiesIntersecting = getCachingSupplier(
+                relationsWithEntitiesIntersecting(boundary), ItemType.RELATION);
 
         // Generate the size estimates, then the builder.
         // Nodes estimating is a bit tricky. We want to include all the nodes within the polygon,
@@ -525,15 +535,13 @@ public abstract class BareAtlas implements Atlas
         // Instead of doing a count to have an exact number, we choose here to have an arbitrary 20%
         // buffer on top of the nodes inside the polygon. This mostly avoids resizing.
         final double ratioBuffer = 1.2;
-        final long nodeNumber = Math.round(Iterables.size(nodesWithin(boundary)) * ratioBuffer);
+        final long nodeNumber = Math.round(Iterables.size(nodesWithin.get()) * ratioBuffer);
         final long edgeNumber = Math.round(Iterables.size(edgesIntersecting.get()) * ratioBuffer);
-        final long areaNumber = Math
-                .round(Iterables.size(areasIntersecting(boundary)) * ratioBuffer);
-        final long lineNumber = Math
-                .round(Iterables.size(linesIntersecting(boundary)) * ratioBuffer);
-        final long pointNumber = Math.round(Iterables.size(pointsWithin(boundary)) * ratioBuffer);
+        final long areaNumber = Math.round(Iterables.size(areasIntersecting.get()) * ratioBuffer);
+        final long lineNumber = Math.round(Iterables.size(linesIntersecting.get()) * ratioBuffer);
+        final long pointNumber = Math.round(Iterables.size(pointsWithin.get()) * ratioBuffer);
         final long relationNumber = Math
-                .round(Iterables.size(relationsWithEntitiesIntersecting(boundary)) * ratioBuffer);
+                .round(Iterables.size(relationsWithEntitiesIntersecting.get()) * ratioBuffer);
         final AtlasSize size = new AtlasSize(edgeNumber, nodeNumber, areaNumber, lineNumber,
                 pointNumber, relationNumber);
         final PackedAtlasBuilder builder = new PackedAtlasBuilder().withSizeEstimates(size)
@@ -565,7 +573,7 @@ public abstract class BareAtlas implements Atlas
         });
 
         // Add the remaining Nodes if any.
-        nodesWithin(boundary, hasNode.negate()).forEach(
+        Iterables.stream(nodesWithin.get()).filter(hasNode.negate()).forEach(
                 node -> builder.addNode(node.getIdentifier(), node.getLocation(), node.getTags()));
 
         // Add the edges. Use a consumer that makes sure master edges are always added first.
@@ -588,15 +596,15 @@ public abstract class BareAtlas implements Atlas
         edgesIntersecting.get().forEach(edgeAdder::accept);
 
         // Add the Areas
-        areasIntersecting(boundary).forEach(
+        areasIntersecting.get().forEach(
                 area -> builder.addArea(area.getIdentifier(), area.asPolygon(), area.getTags()));
 
         // Add the Lines
-        linesIntersecting(boundary).forEach(
+        linesIntersecting.get().forEach(
                 line -> builder.addLine(line.getIdentifier(), line.asPolyLine(), line.getTags()));
 
         // Add the Points
-        pointsWithin(boundary).forEach(point -> builder.addPoint(point.getIdentifier(),
+        pointsWithin.get().forEach(point -> builder.addPoint(point.getIdentifier(),
                 point.getLocation(), point.getTags()));
 
         // Add the Relations: Because relations can also be members of other relations, this is
