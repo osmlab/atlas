@@ -22,6 +22,10 @@ public class SubAtlasRule extends CoreTestRule
     private static final String FOUR = "37.780825, -122.471896";
     private static final String FIVE = "37.780835, -122.471896";
 
+    private static final String SIX = "37.045982,-121.7539795";
+    private static final String SIX_PRIME = "37.0459867,-121.7539853";
+    private static final String SEVEN = "37.0459913,-121.7539913";
+
     @TestAtlas(
 
             nodes = {
@@ -141,9 +145,41 @@ public class SubAtlasRule extends CoreTestRule
             })
     private Atlas filteredOutMemberRelationAtlas;
 
+    @TestAtlas(
+
+            nodes = {
+
+                    @Node(id = "1", coordinates = @Loc(value = ONE)),
+                    @Node(id = "2", coordinates = @Loc(value = TWO)),
+                    @Node(id = "6", coordinates = @Loc(value = SIX)),
+                    @Node(id = "7", coordinates = @Loc(value = SEVEN)),
+
+            }, edges = {
+
+                    @Edge(id = "12", coordinates = { @Loc(value = ONE),
+                            @Loc(value = TWO) }, tags = { "highway=trunk" }),
+
+                    @Edge(id = "67", coordinates = { @Loc(value = SIX), @Loc(value = SIX_PRIME),
+                            @Loc(value = SEVEN) }, tags = { "highway=primary" }),
+                    @Edge(id = "-67", coordinates = { @Loc(value = SEVEN), @Loc(value = SIX_PRIME),
+                            @Loc(value = SIX) }, tags = { "highway=primary" }),
+
+                    @Edge(id = "76", coordinates = { @Loc(value = SEVEN), @Loc(value = SIX_PRIME),
+                            @Loc(value = SIX) }, tags = { "highway=primary" }),
+                    @Edge(id = "-76", coordinates = { @Loc(value = SIX), @Loc(value = SIX_PRIME),
+                            @Loc(value = SEVEN) }, tags = { "highway=primary" })
+
+            })
+    private Atlas atlasWithEdgeAlongBoundary;
+
     public Atlas getAtlas()
     {
         return this.atlas;
+    }
+
+    public Atlas getAtlasWithEdgeAlongBoundary()
+    {
+        return this.atlasWithEdgeAlongBoundary;
     }
 
     public Atlas getFilteredOutMemberRelationAtlas()
