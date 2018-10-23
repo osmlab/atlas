@@ -955,6 +955,8 @@ public abstract class BareAtlas implements Atlas
             {
                 final Set<Long> intersecting = new HashSet<>();
                 memberIdentifiersIntersecting.add(intersecting);
+                // Here using a map instead of forEach to pipe the edge identifiers to the cache
+                // list without having to re-open the iterable.
                 return Iterables.stream(source).map(member ->
                 {
                     intersecting.add(member.getIdentifier());
