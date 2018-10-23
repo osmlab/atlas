@@ -579,6 +579,8 @@ public abstract class BareAtlas implements Atlas
         {
             if (builder.peek().edge(edge.getIdentifier()) == null)
             {
+                // Here, making sure that edge identifiers are not 0 to work around an issue in unit
+                // tests: https://github.com/osmlab/atlas/issues/252
                 if (edge.getIdentifier() != 0 && edge.hasReverseEdge())
                 {
                     final Edge reverse = edge.reversed().get();
