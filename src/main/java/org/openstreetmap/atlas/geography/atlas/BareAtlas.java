@@ -526,8 +526,6 @@ public abstract class BareAtlas implements Atlas
                 linesIntersecting(boundary), ItemType.LINE);
         final Supplier<Iterable<Point>> pointsWithin = getCachingSupplier(pointsWithin(boundary),
                 ItemType.POINT);
-        final Supplier<Iterable<Relation>> relationsWithEntitiesIntersecting = getCachingSupplier(
-                relationsWithEntitiesIntersecting(boundary), ItemType.RELATION);
 
         // Generate the size estimates, then the builder.
         // Nodes estimating is a bit tricky. We want to include all the nodes within the polygon,
@@ -541,7 +539,7 @@ public abstract class BareAtlas implements Atlas
         final long lineNumber = Math.round(Iterables.size(linesIntersecting.get()) * ratioBuffer);
         final long pointNumber = Math.round(Iterables.size(pointsWithin.get()) * ratioBuffer);
         final long relationNumber = Math
-                .round(Iterables.size(relationsWithEntitiesIntersecting.get()) * ratioBuffer);
+                .round(Iterables.size(relationsWithEntitiesIntersecting(boundary)) * ratioBuffer);
         final AtlasSize size = new AtlasSize(edgeNumber, nodeNumber, areaNumber, lineNumber,
                 pointNumber, relationNumber);
         final PackedAtlasBuilder builder = new PackedAtlasBuilder().withSizeEstimates(size)
