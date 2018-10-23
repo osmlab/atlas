@@ -76,7 +76,7 @@ public class LineDelimitedGeoJsonConverter extends Command
      * renderer, as well as map data visualization needs, you can override this BiConsumer to mutate your
      * JSON object as you see fit.
      */
-    protected static final BiConsumer<AtlasEntity, JsonObject> JSON_MUTATOR = (atlasEntity, feature) -> {};
+    protected BiConsumer<AtlasEntity, JsonObject> jsonMutator = (atlasEntity, feature) -> {};
 
     public static void main(final String[] args)
     {
@@ -154,7 +154,7 @@ public class LineDelimitedGeoJsonConverter extends Command
             final String name = FilenameUtils.removeExtension(atlasFile.getName())
                     + FileSuffix.GEO_JSON.toString();
             final File geojsonFile = new File(geojsonDirectory.resolve(name).toFile());
-            atlas.saveAsLineDelimitedGeoJsonFeatures(geojsonFile, POSITIVE_ONLY, JSON_MUTATOR);
+            atlas.saveAsLineDelimitedGeoJsonFeatures(geojsonFile, POSITIVE_ONLY, jsonMutator);
             logger.info("Saved {} in {}.", name, time.elapsedSince());
         });
     }
