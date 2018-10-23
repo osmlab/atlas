@@ -953,7 +953,7 @@ public abstract class BareAtlas implements Atlas
     private <Member extends AtlasEntity> Supplier<Iterable<Member>> getCachingSupplier(
             final Iterable<Member> source, final ItemType type)
     {
-        final List<Set<Long>> memberIdentifiersIntersecting = new ArrayList<>();
+        final Set<Long> memberIdentifiersIntersecting = new HashSet<>();
         // A supplier that will effectively cache all the members intersecting that polygon. This is
         // thread safe because the cache is internal to the supplier's scope.
         @SuppressWarnings("unchecked")
@@ -961,19 +961,17 @@ public abstract class BareAtlas implements Atlas
         {
             if (memberIdentifiersIntersecting.isEmpty())
             {
-                final Set<Long> intersecting = new HashSet<>();
-                memberIdentifiersIntersecting.add(intersecting);
                 // Here using a map instead of forEach to pipe the edge identifiers to the cache
                 // list without having to re-open the iterable.
                 return Iterables.stream(source).map(member ->
                 {
-                    intersecting.add(member.getIdentifier());
+                    memberIdentifiersIntersecting.add(member.getIdentifier());
                     return member;
                 }).collect();
             }
             else
             {
-                return (Iterable<Member>) Iterables.stream(memberIdentifiersIntersecting.get(0))
+                return (Iterable<Member>) Iterables.stream(memberIdentifiersIntersecting)
                         .map(identifier -> this.entity(identifier, type)).collect();
             }
         };
