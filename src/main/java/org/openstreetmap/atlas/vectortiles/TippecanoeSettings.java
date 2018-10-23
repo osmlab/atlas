@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.vectortiles;
 
 import com.google.gson.JsonObject;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 
 import java.util.Map;
@@ -8,6 +9,18 @@ import java.util.function.BiConsumer;
 
 class TippecanoeSettings
 {
+    static final DefaultArtifactVersion MIN_VERSION = new DefaultArtifactVersion("1.32.1");
+    static final String GEOJSON = "EVERYTHING.geojson";
+
+    static final String[] ARGS = new String[] {
+            "-Z7",
+            "-z14",
+            "--generate-ids",
+            "--read-parallel",
+            "--no-tile-size-limit",
+            "--no-feature-limit"
+    };
+
     static final BiConsumer<AtlasEntity, JsonObject> JSON_MUTATOR = (atlasEntity, feature) ->
     {
         final JsonObject tippecanoe = new JsonObject();
@@ -49,13 +62,5 @@ class TippecanoeSettings
 
         tippecanoe.addProperty("minzoom", minzoom);
         feature.add("tippecanoe", tippecanoe);
-    };
-
-    static final String[] ARGS = new String[] {
-            "-Z7",
-            "-z14",
-            "--read-parallel",
-            "--no-tile-size-limit",
-            "--no-feature-limit"
     };
 }

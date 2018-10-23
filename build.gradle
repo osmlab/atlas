@@ -60,6 +60,7 @@ dependencies
     compile packages.jackson.databind
     compile packages.protobuf_java
     compile packages.protoc
+    compile packages.artifact
 
     shaded project.configurations.getByName('compile')
     shaded packages.slf4j.log4j12

@@ -44,17 +44,17 @@ public class LineDelimitedGeoJsonConverter extends Command
      */
     private static final String EVERYTHING = "EVERYTHING.geojson";
 
-    private static final Logger logger = LoggerFactory.getLogger(LineDelimitedGeoJsonConverter.class);
+    protected static final Logger logger = LoggerFactory.getLogger(LineDelimitedGeoJsonConverter.class);
 
     private static final AtlasResourceLoader ATLAS_RESOURCE_LOADER = new AtlasResourceLoader();
 
     private static final Switch<Path> ATLAS_DIRECTORY = new Switch<>("atlasDirectory",
             "The directory of atlases to convert.", Paths::get, Optionality.REQUIRED);
 
-    private static final Switch<Path> GEOJSON_DIRECTORY = new Switch<>("geojsonDirectory",
+    protected static final Switch<Path> GEOJSON_DIRECTORY = new Switch<>("geojsonDirectory",
             "The directory to write line-delimited GeoJSON.", Paths::get, Optionality.REQUIRED);
 
-    private static final Switch<Boolean> OVERWRITE = new Switch<>("overwrite",
+    protected static final Switch<Boolean> OVERWRITE = new Switch<>("overwrite",
             "Choose to automatically overwrite a GeoJSON file if it exists at the given path.",
             Boolean::new, Optionality.OPTIONAL, "false");
 
