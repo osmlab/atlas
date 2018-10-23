@@ -17,6 +17,29 @@ import org.openstreetmap.atlas.tags.Taggable;
 public class TaggableFilterTest
 {
     @Test
+    public void testAllValidComplex()
+    {
+        // In this case the OR(|) is ignored here.
+        final String definition = "bus->*|";
+        final TaggableFilter filter = TaggableFilter.forDefinition(definition);
+
+        Assert.assertFalse(filter.test(Taggable.with()));
+        Assert.assertFalse(filter.test(Taggable.with("highway", "primary")));
+        Assert.assertTrue(filter.test(Taggable.with("bus", "lane")));
+    }
+
+    @Test
+    public void testAllValidSimple()
+    {
+        final String definition = "";
+        final TaggableFilter filter = TaggableFilter.forDefinition(definition);
+
+        Assert.assertTrue(filter.test(Taggable.with()));
+        Assert.assertTrue(filter.test(Taggable.with("highway", "primary")));
+        Assert.assertTrue(filter.test(Taggable.with("bus", "lane")));
+    }
+
+    @Test
     public void testBackwardsCompatibility()
     {
         final String definition = "bus->*|water->*&bus->*^water->!canal";
