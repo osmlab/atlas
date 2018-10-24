@@ -115,6 +115,30 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public <M extends AtlasEntity> Iterable<M> entities(final ItemType type,
+            final Class<M> memberClass)
+    {
+        switch (type)
+        {
+            case NODE:
+                return (Iterable<M>) nodes();
+            case EDGE:
+                return (Iterable<M>) edges();
+            case AREA:
+                return (Iterable<M>) areas();
+            case LINE:
+                return (Iterable<M>) lines();
+            case POINT:
+                return (Iterable<M>) points();
+            case RELATION:
+                return (Iterable<M>) relations();
+            default:
+                throw new CoreException("ItemType {} unknown.", type);
+        }
+    }
+
+    @Override
     public Iterable<AtlasEntity> entities(final Predicate<AtlasEntity> matcher)
     {
         return Iterables.filter(this, matcher);
@@ -950,14 +974,14 @@ public abstract class BareAtlas implements Atlas
         }
     }
 
-    private <Member extends AtlasEntity> Supplier<Iterable<Member>> getCachingSupplier(
-            final Iterable<Member> source, final ItemType type)
+    private <M extends AtlasEntity> Supplier<Iterable<M>> getCachingSupplier(
+            final Iterable<M> source, final ItemType type)
     {
         final Set<Long> memberIdentifiersIntersecting = new HashSet<>();
         // A supplier that will effectively cache all the members intersecting that polygon. This is
         // thread safe because the cache is internal to the supplier's scope.
         @SuppressWarnings("unchecked")
-        final Supplier<Iterable<Member>> result = () ->
+        final Supplier<Iterable<M>> result = () ->
         {
             if (memberIdentifiersIntersecting.isEmpty())
             {
@@ -971,8 +995,8 @@ public abstract class BareAtlas implements Atlas
             }
             else
             {
-                return (Iterable<Member>) Iterables.stream(memberIdentifiersIntersecting)
-                        .map(identifier -> this.entity(identifier, type)).collect();
+                return (Iterable<M>) Iterables.stream(memberIdentifiersIntersecting)
+                        .map(entityIdentifier -> this.entity(entityIdentifier, type)).collect();
             }
         };
         return result;

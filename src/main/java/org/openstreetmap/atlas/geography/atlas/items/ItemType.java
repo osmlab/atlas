@@ -84,6 +84,29 @@ public enum ItemType
         }
     }
 
+    @SuppressWarnings("unchecked")
+    public <Member extends AtlasEntity> Class<Member> getMemberClass()
+    {
+        switch (this)
+        {
+            case NODE:
+                return (Class<Member>) Node.class;
+            case EDGE:
+                return (Class<Member>) Edge.class;
+            case AREA:
+                return (Class<Member>) Area.class;
+            case LINE:
+                return (Class<Member>) Line.class;
+            case POINT:
+                return (Class<Member>) Point.class;
+            case RELATION:
+                return (Class<Member>) Relation.class;
+
+            default:
+                throw new CoreException("Invalid type {}", this);
+        }
+    }
+
     public int getValue()
     {
         return this.value;
