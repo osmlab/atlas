@@ -119,6 +119,11 @@ public abstract class BareAtlas implements Atlas
     public <M extends AtlasEntity> Iterable<M> entities(final ItemType type,
             final Class<M> memberClass)
     {
+        if (type.getMemberClass() != memberClass)
+        {
+            throw new CoreException("ItemType {} and class {} do not match!", type,
+                    memberClass.getSimpleName());
+        }
         switch (type)
         {
             case NODE:
@@ -1066,7 +1071,10 @@ public abstract class BareAtlas implements Atlas
         // Add the reverse
         if (edge.hasReverseEdge())
         {
-            final Edge reverseEdge = edge.reversed().get();
+            // Skip sonar lint here as S3655 "Optional value should only be accessed after calling
+            // isPresent()" will never be the case as the Edge has been verified to have a reverse
+            // edge before.
+            final Edge reverseEdge = edge.reversed().get(); // NOSONAR
             final long reverseEdgeIdentifier = reverseEdge.getIdentifier();
             if (builder.peek().edge(reverseEdgeIdentifier) == null)
             {
