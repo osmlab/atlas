@@ -711,12 +711,6 @@ public class MultiAtlas extends AbstractAtlas
         return this.edgeMemoryBlockSize;
     }
 
-    @Override
-    protected Logger getLogger()
-    {
-        return logger;
-    }
-
     protected long getMaximumSize()
     {
         return this.maximumSize;
