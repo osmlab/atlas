@@ -17,8 +17,9 @@ import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
  *
  * @author matthieun
  */
-public class LineFilterConverter implements TwoWayConverter<String, TaggableFilter>
+public class LineFilterConverter implements TwoWayConverter<String, TaggableFilter>, Serializable
 {
+    private static final long serialVersionUID = 7467006520189209952L;
     private static final String VALUES_SEPARATOR = ",";
     private static final String KEY_VALUE_SEPARATOR = "->";
     private static final Predicate<Taggable> ALL_VALID = taggable -> true;
