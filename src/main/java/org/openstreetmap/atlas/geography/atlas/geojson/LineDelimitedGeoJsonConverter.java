@@ -40,11 +40,13 @@ public class LineDelimitedGeoJsonConverter extends Command
     private static final int DEFAULT_THREADS = 8;
 
     /**
-     * After all of your files are converted to LD GeoJSON, it is then concatenated into EVERYTHING.geojson
+     * After all of your files are converted to LD GeoJSON, it is then concatenated into
+     * EVERYTHING.geojson
      */
     private static final String EVERYTHING = "EVERYTHING.geojson";
 
-    protected static final Logger logger = LoggerFactory.getLogger(LineDelimitedGeoJsonConverter.class);
+    protected static final Logger logger = LoggerFactory
+            .getLogger(LineDelimitedGeoJsonConverter.class);
 
     private static final AtlasResourceLoader ATLAS_RESOURCE_LOADER = new AtlasResourceLoader();
 
@@ -72,11 +74,18 @@ public class LineDelimitedGeoJsonConverter extends Command
 
     /**
      * If we are rendering vector tiles, we may want to examine various tags of a given atlas entity
-     * and make decisions for the layer name, min zoom, and max zoom for the feature. Depending on your vector tile
-     * renderer, as well as map data visualization needs, you can override this BiConsumer to mutate your
-     * JSON object as you see fit.
+     * and make decisions for the layer name, min zoom, and max zoom for the feature. Depending on
+     * your vector tile renderer, as well as map data visualization needs, you can override this
+     * BiConsumer to mutate your JSON object as you see fit.
      */
-    protected BiConsumer<AtlasEntity, JsonObject> jsonMutator = (atlasEntity, feature) -> {};
+    private BiConsumer<AtlasEntity, JsonObject> jsonMutator = (atlasEntity, feature) ->
+    {
+    };
+
+    protected void setJsonMutator(final BiConsumer<AtlasEntity, JsonObject> jsonMutator)
+    {
+        this.jsonMutator = jsonMutator;
+    }
 
     public static void main(final String[] args)
     {
@@ -115,7 +124,7 @@ public class LineDelimitedGeoJsonConverter extends Command
         try
         {
             pool.submit(() -> this.convertAtlases(atlasDirectory, geojsonDirectory)).get();
-             concatenate(geojsonDirectory);
+            concatenate(geojsonDirectory);
         }
         catch (final InterruptedException interrupt)
         {
@@ -165,10 +174,10 @@ public class LineDelimitedGeoJsonConverter extends Command
         final String directory = geojsonDirectory.toString();
 
         // https://stackoverflow.com/questions/5080109/how-to-execute-bin-sh-with-commons-exec
-        final String cat = String.format("cat '%s/'*.geojson > '%s/'%s", directory, directory, EVERYTHING);
+        final String cat = String.format("cat '%s/'*.geojson > '%s/'%s", directory, directory,
+                EVERYTHING);
 
-        final CommandLine commandLine = CommandLine.parse("bash")
-                .addArgument("-c", false)
+        final CommandLine commandLine = CommandLine.parse("bash").addArgument("-c", false)
                 .addArgument(cat, false);
 
         logger.info("cmd: {}", commandLine.toString());

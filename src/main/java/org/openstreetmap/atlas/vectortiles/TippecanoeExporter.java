@@ -1,5 +1,10 @@
 package org.openstreetmap.atlas.vectortiles;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.PumpStreamHandler;
@@ -9,20 +14,24 @@ import org.openstreetmap.atlas.geography.atlas.geojson.LineDelimitedGeoJsonConve
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 import org.openstreetmap.atlas.utilities.time.Time;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-public class TippecanoeExporter extends LineDelimitedGeoJsonConverter
+/**
+ * This CLI will take a directory full of atlases and export it into an MBTiles file full of Mapbox
+ * vector tiles. It creates intermediary line-delimited GeoJSON, and then it ultimately drives
+ * tippecanoe to do the vector tile creation.
+ *
+ * @author hallahan
+ */
+public final class TippecanoeExporter extends LineDelimitedGeoJsonConverter
 {
     private static final int EXIT_FAILURE = 1;
 
-    private static final Switch<Path> MBTILES = new Switch<>("mbtiles", "The MBTiles file to which tippecanoe will write vector tiles.", Paths::get, Optionality.REQUIRED);
+    private static final Switch<Path> MBTILES = new Switch<>("mbtiles",
+            "The MBTiles file to which tippecanoe will write vector tiles.", Paths::get,
+            Optionality.REQUIRED);
 
     private TippecanoeExporter()
     {
-        this.jsonMutator = TippecanoeSettings.JSON_MUTATOR;
+        this.setJsonMutator(TippecanoeSettings.JSON_MUTATOR);
     }
 
     public static void main(final String[] args)
@@ -37,7 +46,8 @@ public class TippecanoeExporter extends LineDelimitedGeoJsonConverter
 
         if (!hasValidTippecanoe())
         {
-            logger.error("Your system does not have a valid installation of tippecanoe installed in its path.");
+            logger.error(
+                    "Your system does not have a valid installation of tippecanoe installed in its path.");
             logger.error("https://github.com/mapbox/tippecanoe");
 
             System.exit(EXIT_FAILURE);
@@ -61,7 +71,6 @@ public class TippecanoeExporter extends LineDelimitedGeoJsonConverter
         return super.switches().with(MBTILES);
     }
 
-
     private boolean hasValidTippecanoe()
     {
         final CommandLine commandLine = CommandLine.parse("tippecanoe").addArgument("--version");
@@ -76,15 +85,15 @@ public class TippecanoeExporter extends LineDelimitedGeoJsonConverter
         }
         // When you look up the version, it tippecanoe exits with 1, so getting here is normal.
         // We want to get into this catch.
-        catch (IOException ioException)
+        catch (final IOException ioException)
         {
             final String outputString = outputStream.toString();
             logger.info(outputString);
-            String[] versionArr = outputString.split("\n")[0].split("tippecanoe v");
+            final String[] versionArray = outputString.split("\n")[0].split("tippecanoe v");
             // Here we extract the version.
-            if (versionArr.length == 2)
+            if (versionArray.length == 2)
             {
-                final String versionString = versionArr[1];
+                final String versionString = versionArray[1];
                 final DefaultArtifactVersion version = new DefaultArtifactVersion(versionString);
                 if (TippecanoeSettings.MIN_VERSION.compareTo(version) <= 0)
                 {
@@ -100,14 +109,12 @@ public class TippecanoeExporter extends LineDelimitedGeoJsonConverter
         return false;
     }
 
-
-    private void runTippecanoe(final Path geojson, final Path mbtiles, boolean overwrite)
+    private void runTippecanoe(final Path geojson, final Path mbtiles, final boolean overwrite)
     {
         final Time time = Time.now();
 
-        final CommandLine commandLine = CommandLine.parse("tippecanoe")
-                .addArgument("-o").addArgument(mbtiles.toString())
-                .addArguments(TippecanoeSettings.ARGS);
+        final CommandLine commandLine = CommandLine.parse("tippecanoe").addArgument("-o")
+                .addArgument(mbtiles.toString()).addArguments(TippecanoeSettings.ARGS);
 
         if (overwrite)
         {
@@ -121,7 +128,8 @@ public class TippecanoeExporter extends LineDelimitedGeoJsonConverter
         logger.info(StringUtils.toString(commandLine.toStrings(), " "));
 
         final DefaultExecutor executor = new DefaultExecutor();
-        try {
+        try
+        {
             executor.execute(commandLine);
             logger.info("tippecanoe has successfully generated vector tiles in {}", mbtiles);
         }

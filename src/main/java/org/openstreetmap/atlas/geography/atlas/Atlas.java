@@ -699,10 +699,10 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      * @param matcher
      *            The matcher to consider
      * @param jsonMutator
-     *        The callback function that will let you change what is in the Feature's JSON.
+     *            The callback function that will let you change what is in the Feature's JSON.
      */
-    void saveAsLineDelimitedGeoJsonFeatures(WritableResource resource, Predicate<AtlasEntity> matcher,
-            BiConsumer<AtlasEntity, JsonObject> jsonMutator);
+    void saveAsLineDelimitedGeoJsonFeatures(WritableResource resource,
+            Predicate<AtlasEntity> matcher, BiConsumer<AtlasEntity, JsonObject> jsonMutator);
 
     /**
      * Save as list of items
