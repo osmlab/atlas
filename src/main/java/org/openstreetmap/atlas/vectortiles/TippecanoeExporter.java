@@ -13,6 +13,8 @@ import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.openstreetmap.atlas.geography.atlas.geojson.LineDelimitedGeoJsonConverter;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 import org.openstreetmap.atlas.utilities.time.Time;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This CLI will take a directory full of atlases and export it into an MBTiles file full of Mapbox
@@ -24,6 +26,9 @@ import org.openstreetmap.atlas.utilities.time.Time;
 public final class TippecanoeExporter extends LineDelimitedGeoJsonConverter
 {
     private static final int EXIT_FAILURE = 1;
+
+    private static final Logger logger = LoggerFactory
+            .getLogger(TippecanoeExporter.class);
 
     private static final Switch<Path> MBTILES = new Switch<>("mbtiles",
             "The MBTiles file to which tippecanoe will write vector tiles.", Paths::get,

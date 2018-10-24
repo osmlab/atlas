@@ -45,7 +45,7 @@ public class LineDelimitedGeoJsonConverter extends Command
      */
     private static final String EVERYTHING = "EVERYTHING.geojson";
 
-    protected static final Logger logger = LoggerFactory
+    private static final Logger logger = LoggerFactory
             .getLogger(LineDelimitedGeoJsonConverter.class);
 
     private static final AtlasResourceLoader ATLAS_RESOURCE_LOADER = new AtlasResourceLoader();
