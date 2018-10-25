@@ -2,6 +2,12 @@ package org.openstreetmap.atlas.vectortiles;
 
 import com.google.gson.JsonObject;
 
+/**
+ * TippecanoeGeoJsonExtension fills in a JsonObject called "tippecanoe" to your GeoJSON feature.
+ * Here you can specify things like minzoom and layer name for the given feature.
+ *
+ * @author hallahan
+ */
 class TippecanoeGeoJsonExtension
 {
     private static final int DEFAULT_MIN_ZOOM = 14;

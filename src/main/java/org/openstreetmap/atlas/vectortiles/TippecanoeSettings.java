@@ -28,7 +28,8 @@ final class TippecanoeSettings
 
     static final BiConsumer<AtlasEntity, JsonObject> JSON_MUTATOR = (atlasEntity, feature) ->
     {
-        final TippecanoeGeoJsonExtension tippecanoe = new TippecanoeGeoJsonExtension().addTo(feature);
+        final TippecanoeGeoJsonExtension tippecanoe = new TippecanoeGeoJsonExtension()
+                .addTo(feature);
 
         final String atlasType = atlasEntity.getType().name();
         tippecanoe.layer(atlasType);

@@ -1,6 +1,12 @@
 package org.openstreetmap.atlas.vectortiles;
 
-final class MinZoom {
+/**
+ * This utility class is where you set the minimum zoom for features based on their tags.
+ *
+ * @author hallahan
+ */
+final class MinZoom
+{
     private MinZoom()
     {
         // Util
@@ -13,7 +19,7 @@ final class MinZoom {
 
     static int highway(final String tagValue)
     {
-        switch(tagValue)
+        switch (tagValue)
         {
             case "motorway":
             case "trunk":
@@ -47,7 +53,7 @@ final class MinZoom {
 
     static int route(final String tagValue)
     {
-        switch(tagValue)
+        switch (tagValue)
         {
             case "ferry":
                 return 8;
@@ -58,7 +64,7 @@ final class MinZoom {
 
     static int place(final String tagValue)
     {
-        switch(tagValue)
+        switch (tagValue)
         {
             case "country":
                 return 3;
@@ -71,7 +77,7 @@ final class MinZoom {
 
     static int natural(final String tagValue)
     {
-        switch(tagValue)
+        switch (tagValue)
         {
             case "glacier":
                 return 8;
@@ -82,7 +88,7 @@ final class MinZoom {
 
     static int landuse(final String tagValue)
     {
-        switch(tagValue)
+        switch (tagValue)
         {
             case "basin":
                 return 7;
@@ -93,7 +99,7 @@ final class MinZoom {
 
     static int waterway(final String tagValue)
     {
-        switch(tagValue)
+        switch (tagValue)
         {
             case "river":
                 return 8;
