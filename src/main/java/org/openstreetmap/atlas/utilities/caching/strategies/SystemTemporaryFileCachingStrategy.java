@@ -104,7 +104,7 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
             }
             catch (final Exception exception)
             {
-                logger.error("Something went wrong copying {} to temporary local file {}, trace {}",
+                logger.error("Something went wrong copying {} to temporary local file {}",
                         resourceFromDefaultFetcher.toString(), temporaryLocalFile.toString(),
                         exception);
                 return;
@@ -128,7 +128,7 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
                 }
                 catch (final Exception exception)
                 {
-                    logger.error("Something went wrong moving {} to {}, trace {}",
+                    logger.error("Something went wrong moving {} to {}",
                             temporaryLocalFile.toString(), cachedFile.toString(), exception);
                 }
             }

@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The threadsafe {@link Resource} cache implementation. The cache needs a specified
+ * The threadsafe {@link ResourceCache} implementation. The cache needs a specified
  * {@link CachingStrategy} and default fetching {@link Function} at creation time. The cache then
  * loads a resource using a given {@link URI}. Since using raw URIs can often be cumbersome, users
  * of this class are encouraged to extend it and overload the {@link ConcurrentResourceCache#get}
@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author lcram
  */
-public class ConcurrentResourceCache
+public class ConcurrentResourceCache implements ResourceCache
 {
     private static final Logger logger = LoggerFactory.getLogger(ConcurrentResourceCache.class);
 
@@ -40,25 +40,7 @@ public class ConcurrentResourceCache
         this.fetcher = fetcher;
     }
 
-    /**
-     * Attempt to get the resource specified by the given string URI.
-     *
-     * @param resourceURIString
-     *            the resource {@link URI} as a {@link String}
-     * @return an {@link Optional} wrapping the {@link Resource}
-     */
-    public Optional<Resource> get(final String resourceURIString)
-    {
-        return this.get(URI.create(resourceURIString));
-    }
-
-    /**
-     * Attempt to get the resource specified by the given URI.
-     *
-     * @param resourceURI
-     *            the resource {@link URI}
-     * @return an {@link Optional} wrapping the {@link Resource}
-     */
+    @Override
     public Optional<Resource> get(final URI resourceURI)
     {
         Optional<Resource> cachedResource;
