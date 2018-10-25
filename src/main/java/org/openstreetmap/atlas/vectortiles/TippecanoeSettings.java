@@ -23,7 +23,7 @@ final class TippecanoeSettings
     static final DefaultArtifactVersion MIN_VERSION = new DefaultArtifactVersion("1.32.1");
     static final String GEOJSON = "EVERYTHING.geojson";
 
-    static final String[] ARGS = new String[] { "-Z7", "-z14", "--generate-ids", "--read-parallel",
+    static final String[] ARGS = new String[] { "-Z6", "-z14", "--generate-ids", "--read-parallel",
             "--no-tile-size-limit", "--no-feature-limit" };
 
     static final BiConsumer<AtlasEntity, JsonObject> JSON_MUTATOR = (atlasEntity, feature) ->
