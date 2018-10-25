@@ -34,8 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Integration tests for creating raw atlases, slicing raw atlases and sectioning sliced raw
- * atlases.
+ * Integration tests for creating, slicing and sectioning with the raw Atlas ingest flow.
  *
  * @author mgostintsev
  */
@@ -264,11 +263,7 @@ public class RawAtlasIntegrationTest
     {
         // This is an OSM node that doesn't have any tags, is not a member of a relation or part of
         // a way. It should end up as a point in the final atlas.
-
-        // Create an Antarctica country
-        final Set<String> countries = new HashSet<>();
         final String antarctica = "ATA";
-        countries.add(antarctica);
 
         // Create a fake boundary as a bounding box around the target point
         final Map<String, MultiPolygon> boundaries = new HashMap<>();
@@ -287,7 +282,7 @@ public class RawAtlasIntegrationTest
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(pbfPath));
         final Atlas rawAtlas = rawAtlasGenerator.build();
 
-        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(countries, countryBoundaryMap)
+        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(antarctica, countryBoundaryMap)
                 .slice(rawAtlas);
         final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(countryBoundaryMap)).run();
@@ -315,15 +310,12 @@ public class RawAtlasIntegrationTest
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
         final Atlas rawAtlas = rawAtlasGenerator.build();
 
-        // Prepare the country and boundary
-        final Set<String> countries = new HashSet<>();
-        countries.add("RUS");
+        // Prepare the boundary
         final CountryBoundaryMap boundaryMap = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
                         .getResourceAsStream("layerIntersectionAtEndBoundaryMap.txt")));
 
-        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(countries, boundaryMap)
-                .slice(rawAtlas);
+        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer("RUS", boundaryMap).slice(rawAtlas);
         final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
 
@@ -356,15 +348,12 @@ public class RawAtlasIntegrationTest
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
         final Atlas rawAtlas = rawAtlasGenerator.build();
 
-        // Prepare the country and boundary
-        final Set<String> countries = new HashSet<>();
-        countries.add("RUS");
+        // Prepare the boundary
         final CountryBoundaryMap boundaryMap = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
                         .getResourceAsStream("layerIntersectionAtStartBoundaryMap.txt")));
 
-        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(countries, boundaryMap)
-                .slice(rawAtlas);
+        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer("RUS", boundaryMap).slice(rawAtlas);
         final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
 
@@ -402,15 +391,12 @@ public class RawAtlasIntegrationTest
         // Verify both points made it into the raw atlas
         Assert.assertTrue(Iterables.size(rawAtlas.pointsAt(overlappingLocation)) == 2);
 
-        // Prepare the country and boundary
-        final Set<String> singaporeCountry = new HashSet<>();
-        singaporeCountry.add("SGP");
+        // Prepare the boundary
         final CountryBoundaryMap boundaryMap = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
                         .getResourceAsStream("layerIntersectionInMiddleBoundaryMap.txt")));
 
-        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(singaporeCountry, boundaryMap)
-                .slice(rawAtlas);
+        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer("SGP", boundaryMap).slice(rawAtlas);
         final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
 

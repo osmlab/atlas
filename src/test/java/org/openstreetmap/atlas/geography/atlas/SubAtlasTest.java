@@ -7,6 +7,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 
@@ -131,6 +132,28 @@ public class SubAtlasTest
         Assert.assertEquals(1, source.relation(5).members().size());
         Assert.assertNotNull(sub.relation(5));
         Assert.assertEquals(1, sub.relation(5).members().size());
+    }
+
+    @Test
+    public void testSubAtlasWithPolygonAndEdgeAtBoundary()
+    {
+        final Atlas source = this.rule.getAtlasWithEdgeAlongBoundary();
+        final Polygon boundary = Polygon
+                .wkt("POLYGON ((-121.7540269 37.0463639, -121.75403 37.04635, "
+                        + "-121.75408 37.0462, -121.75408 37.04611, -121.75406 37.04606, "
+                        + "-121.75399 37.04599, -121.75344 37.04557, -121.75338 37.0455, "
+                        + "-121.7533422 37.0454102, -121.7544982 37.0454102, "
+                        + "-121.7544982 37.0463639, -121.7540269 37.0463639))");
+        final Atlas result = source.subAtlas(boundary).get();
+        Assert.assertEquals(4, result.numberOfEdges());
+        // Does not clip with JTS
+        Assert.assertNotNull(result.edge(67));
+        // Does clip with JTS
+        Assert.assertNotNull(result.edge(-67));
+        // Does clip with JTS
+        Assert.assertNotNull(result.edge(76));
+        // Does not clip with JTS
+        Assert.assertNotNull(result.edge(-76));
     }
 
     @Test

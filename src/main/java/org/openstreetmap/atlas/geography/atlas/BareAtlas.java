@@ -15,7 +15,9 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
@@ -110,6 +112,35 @@ public abstract class BareAtlas implements Atlas
     public Iterable<AtlasEntity> entities()
     {
         return new MultiIterable<>(items(), relations());
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <M extends AtlasEntity> Iterable<M> entities(final ItemType type,
+            final Class<M> memberClass)
+    {
+        if (type.getMemberClass() != memberClass)
+        {
+            throw new CoreException("ItemType {} and class {} do not match!", type,
+                    memberClass.getSimpleName());
+        }
+        switch (type)
+        {
+            case NODE:
+                return (Iterable<M>) nodes();
+            case EDGE:
+                return (Iterable<M>) edges();
+            case AREA:
+                return (Iterable<M>) areas();
+            case LINE:
+                return (Iterable<M>) lines();
+            case POINT:
+                return (Iterable<M>) points();
+            case RELATION:
+                return (Iterable<M>) relations();
+            default:
+                throw new CoreException("ItemType {} unknown.", type);
+        }
     }
 
     @Override
@@ -514,18 +545,30 @@ public abstract class BareAtlas implements Atlas
     {
         final Time begin = Time.now();
 
+        final Supplier<Iterable<Node>> nodesWithin = getCachingSupplier(nodesWithin(boundary),
+                ItemType.NODE);
+        final Supplier<Iterable<Edge>> edgesIntersecting = getCachingSupplier(
+                edgesIntersecting(boundary), ItemType.EDGE);
+        final Supplier<Iterable<Area>> areasIntersecting = getCachingSupplier(
+                areasIntersecting(boundary), ItemType.AREA);
+        final Supplier<Iterable<Line>> linesIntersecting = getCachingSupplier(
+                linesIntersecting(boundary), ItemType.LINE);
+        final Supplier<Iterable<Point>> pointsWithin = getCachingSupplier(pointsWithin(boundary),
+                ItemType.POINT);
+
         // Generate the size estimates, then the builder.
         // Nodes estimating is a bit tricky. We want to include all the nodes within the polygon,
         // but we also want to include those attached to edges that span outside the polygon.
         // Instead of doing a count to have an exact number, we choose here to have an arbitrary 20%
         // buffer on top of the nodes inside the polygon. This mostly avoids resizing.
-        final double nodeRatioBuffer = 1.2;
-        final long nodeNumber = Math.round(Iterables.size(nodesWithin(boundary)) * nodeRatioBuffer);
-        final long edgeNumber = Iterables.size(edgesIntersecting(boundary));
-        final long areaNumber = Iterables.size(areasIntersecting(boundary));
-        final long lineNumber = Iterables.size(linesIntersecting(boundary));
-        final long pointNumber = Iterables.size(pointsWithin(boundary));
-        final long relationNumber = Iterables.size(relationsWithEntitiesIntersecting(boundary));
+        final double ratioBuffer = 1.2;
+        final long nodeNumber = Math.round(Iterables.size(nodesWithin.get()) * ratioBuffer);
+        final long edgeNumber = Math.round(Iterables.size(edgesIntersecting.get()) * ratioBuffer);
+        final long areaNumber = Math.round(Iterables.size(areasIntersecting.get()) * ratioBuffer);
+        final long lineNumber = Math.round(Iterables.size(linesIntersecting.get()) * ratioBuffer);
+        final long pointNumber = Math.round(Iterables.size(pointsWithin.get()) * ratioBuffer);
+        final long relationNumber = Math
+                .round(Iterables.size(relationsWithEntitiesIntersecting(boundary)) * ratioBuffer);
         final AtlasSize size = new AtlasSize(edgeNumber, nodeNumber, areaNumber, lineNumber,
                 pointNumber, relationNumber);
         final PackedAtlasBuilder builder = new PackedAtlasBuilder().withSizeEstimates(size)
@@ -542,7 +585,7 @@ public abstract class BareAtlas implements Atlas
                 .relation(item.getIdentifier()) != null;
 
         // Add the nodes needed for Edges.
-        edgesIntersecting(boundary).forEach(edge ->
+        edgesIntersecting.get().forEach(edge ->
         {
             final Node start = edge.start();
             final Node end = edge.end();
@@ -557,23 +600,40 @@ public abstract class BareAtlas implements Atlas
         });
 
         // Add the remaining Nodes if any.
-        nodesWithin(boundary, hasNode.negate()).forEach(
+        Iterables.stream(nodesWithin.get()).filter(hasNode.negate()).forEach(
                 node -> builder.addNode(node.getIdentifier(), node.getLocation(), node.getTags()));
 
-        // Add the edges
-        edgesIntersecting(boundary).forEach(
-                edge -> builder.addEdge(edge.getIdentifier(), edge.asPolyLine(), edge.getTags()));
+        // Add the edges. Use a consumer that makes sure master edges are always added first.
+        final Consumer<Edge> edgeAdder = edge ->
+        {
+            if (builder.peek().edge(edge.getIdentifier()) == null)
+            {
+                // Here, making sure that edge identifiers are not 0 to work around an issue in unit
+                // tests: https://github.com/osmlab/atlas/issues/252
+                if (edge.getIdentifier() != 0 && edge.hasReverseEdge())
+                {
+                    final Edge reverse = edge.reversed().get();
+                    if (builder.peek().edge(reverse.getIdentifier()) == null)
+                    {
+                        builder.addEdge(reverse.getIdentifier(), reverse.asPolyLine(),
+                                reverse.getTags());
+                    }
+                }
+                builder.addEdge(edge.getIdentifier(), edge.asPolyLine(), edge.getTags());
+            }
+        };
+        edgesIntersecting.get().forEach(edgeAdder::accept);
 
         // Add the Areas
-        areasIntersecting(boundary).forEach(
+        areasIntersecting.get().forEach(
                 area -> builder.addArea(area.getIdentifier(), area.asPolygon(), area.getTags()));
 
         // Add the Lines
-        linesIntersecting(boundary).forEach(
+        linesIntersecting.get().forEach(
                 line -> builder.addLine(line.getIdentifier(), line.asPolyLine(), line.getTags()));
 
         // Add the Points
-        pointsWithin(boundary).forEach(point -> builder.addPoint(point.getIdentifier(),
+        pointsWithin.get().forEach(point -> builder.addPoint(point.getIdentifier(),
                 point.getLocation(), point.getTags()));
 
         // Add the Relations: Because relations can also be members of other relations, this is
@@ -625,8 +685,13 @@ public abstract class BareAtlas implements Atlas
                 }
             });
         }
+        final PackedAtlas result = (PackedAtlas) builder.get();
+        if (result != null)
+        {
+            result.trim();
+        }
         logger.info("Cut sub-atlas in {}", begin.elapsedSince());
-        return Optional.ofNullable(builder.get());
+        return Optional.ofNullable(result);
     }
 
     @Override
@@ -914,6 +979,34 @@ public abstract class BareAtlas implements Atlas
         }
     }
 
+    private <M extends AtlasEntity> Supplier<Iterable<M>> getCachingSupplier(
+            final Iterable<M> source, final ItemType type)
+    {
+        final Set<Long> memberIdentifiersIntersecting = new HashSet<>();
+        // A supplier that will effectively cache all the members intersecting that polygon. This is
+        // thread safe because the cache is internal to the supplier's scope.
+        @SuppressWarnings("unchecked")
+        final Supplier<Iterable<M>> result = () ->
+        {
+            if (memberIdentifiersIntersecting.isEmpty())
+            {
+                // Here using a map instead of forEach to pipe the edge identifiers to the cache
+                // list without having to re-open the iterable.
+                return Iterables.stream(source).map(member ->
+                {
+                    memberIdentifiersIntersecting.add(member.getIdentifier());
+                    return member;
+                }).collect();
+            }
+            else
+            {
+                return (Iterable<M>) Iterables.stream(memberIdentifiersIntersecting)
+                        .map(entityIdentifier -> this.entity(entityIdentifier, type)).collect();
+            }
+        };
+        return result;
+    }
+
     /**
      * This is used by the {@link #subAtlas(Predicate)} method to index all {@link Node}s contained
      * by the given {@link Relation} and the start/end {@link Node}s for all {@link Edge}s contained
@@ -978,7 +1071,10 @@ public abstract class BareAtlas implements Atlas
         // Add the reverse
         if (edge.hasReverseEdge())
         {
-            final Edge reverseEdge = edge.reversed().get();
+            // Skip sonar lint here as S3655 "Optional value should only be accessed after calling
+            // isPresent()" will never be the case as the Edge has been verified to have a reverse
+            // edge before.
+            final Edge reverseEdge = edge.reversed().get(); // NOSONAR
             final long reverseEdgeIdentifier = reverseEdge.getIdentifier();
             if (builder.peek().edge(reverseEdgeIdentifier) == null)
             {

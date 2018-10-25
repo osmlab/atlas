@@ -25,7 +25,14 @@ public enum BuildingPartTag
     RETAIL,
     SCHOOL,
     ROOT,
-    INDUSTRIAL;
+    INDUSTRIAL,
+    DEFAULT,
+    STILOBATE,
+    OFFICE,
+    SUPERSTRUCTURE,
+    RUINS,
+    OUTLINE,
+    UNIVERSITY;
 
     @TagKey
     public static final String KEY = "building:part";
