@@ -3,6 +3,13 @@ package org.openstreetmap.atlas.vectortiles;
 /**
  * This utility class is where you set the minimum zoom for features based on their tags.
  *
+ * The values you see here for various min zooms is inspired for what you see in the standard OpenStreetMap
+ * carto style. This is very loosely based off of the minimum zooms you see for various types of features.
+ *
+ * Note that there is definitely more work that needs to be done to refine our min zooms.
+ *
+ * https://github.com/gravitystorm/openstreetmap-carto
+ *
  * @author hallahan
  */
 final class MinZoom
