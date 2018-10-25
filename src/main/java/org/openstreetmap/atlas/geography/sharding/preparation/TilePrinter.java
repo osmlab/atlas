@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 public class TilePrinter extends Command
 {
     private static final Logger logger = LoggerFactory.getLogger(TilePrinter.class);
-    private static final int MAX_SHARDS_PER_FILE = 5_000_000;
+    private static final int MAX_SHARDS_PER_FILE = 4_000_000;
 
     private static final Switch<File> OUTPUT_FOLDER = new Switch<>("output", "The output folder",
             value -> new File(value));
@@ -93,13 +93,16 @@ public class TilePrinter extends Command
         writer.writeLine("s_tile text;");
         writer.writeLine("s_bounds geometry;");
         writer.writeLine("s_count integer;");
+        writer.writeLine("n_count integer;");
         writer.writeLine("BEGIN");
         writer.writeLine("    FOR s_tile, s_bounds IN SELECT tile, bounds FROM sharding.tiles");
         writer.writeLine("    LOOP");
         writer.writeLine(
                 "        SELECT count(*) INTO s_count FROM public.ways WHERE ST_Intersects(s_bounds, linestring);");
         writer.writeLine(
-                "        INSERT INTO sharding.counts(tile,count) VALUES (s_tile, s_count);");
+                "        SELECT count(*) INTO n_count FROM public.nodes WHERE ST_Intersects(s_bounds, geom);");
+        writer.writeLine(
+                "        INSERT INTO sharding.counts(tile,count) VALUES (s_tile, s_count + n_count);");
         writer.writeLine("    END LOOP;");
         writer.writeLine("    RETURN;");
         writer.writeLine("END");
