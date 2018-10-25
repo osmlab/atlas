@@ -21,7 +21,8 @@ public class LineFilterConverter implements TwoWayConverter<String, TaggableFilt
 {
     private static final String VALUES_SEPARATOR = ",";
     private static final String KEY_VALUE_SEPARATOR = "->";
-    private static final Predicate<Taggable> ALL_VALID = taggable -> true;
+    @SuppressWarnings({ "unchecked" })
+    private static final Predicate<Taggable> ALL_VALID = (Predicate<Taggable> & Serializable) taggable -> true;
 
     @Override
     public String backwardConvert(final TaggableFilter object)
