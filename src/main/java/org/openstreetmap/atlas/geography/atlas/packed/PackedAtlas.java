@@ -1116,12 +1116,6 @@ public final class PackedAtlas extends AbstractAtlas
         return this.loadSerializationFormat;
     }
 
-    @Override
-    protected Logger getLogger()
-    {
-        return logger;
-    }
-
     protected Optional<PackedAtlasSerializer> getSerializer()
     {
         return Optional.ofNullable(this.serializer);

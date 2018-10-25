@@ -1,15 +1,9 @@
 package org.openstreetmap.atlas.tags.filters;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 import org.junit.Assert;
 import org.junit.Test;
-import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
-import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.Taggable;
+import org.openstreetmap.atlas.utilities.testing.FreezeDryFunction;
 
 /**
  * @author matthieun
@@ -103,29 +97,18 @@ public class TaggableFilterTest
     }
 
     @Test
-    public void testSerialization() throws ClassNotFoundException
+    public void testSerialization()
     {
-        final String definition = "amenity->bus_station|highway->BUS_STOP|bus->*||trolleybus->*&public_transport->stop_position,platform,station";
-        final TaggableFilter filter = TaggableFilter.forDefinition(definition);
+        final String definition1 = "amenity->bus_station|highway->BUS_STOP|bus->*||trolleybus->*&public_transport->stop_position,platform,station";
+        final TaggableFilter filter1 = TaggableFilter.forDefinition(definition1);
 
-        final WritableResource out = new ByteArrayResource(4096);
-        try (ObjectOutputStream outStream = new ObjectOutputStream(out.write()))
-        {
-            outStream.writeObject(filter);
-        }
-        catch (final IOException e)
-        {
-            throw new CoreException("Unable to write to {}", out, e);
-        }
+        final String definition2 = "";
+        final TaggableFilter filter2 = TaggableFilter.forDefinition(definition2);
 
-        try (ObjectInputStream inStream = new ObjectInputStream(out.read()))
-        {
-            final TaggableFilter result = (TaggableFilter) inStream.readObject();
-            Assert.assertEquals(definition, result.toString());
-        }
-        catch (final IOException e)
-        {
-            throw new CoreException("Unable to read from {}", out, e);
-        }
+        final TaggableFilter filter12 = (TaggableFilter) new FreezeDryFunction<>().apply(filter1);
+        Assert.assertEquals(filter1.getDefinition(), filter12.getDefinition());
+
+        final TaggableFilter filter22 = (TaggableFilter) new FreezeDryFunction<>().apply(filter2);
+        Assert.assertEquals(filter2.getDefinition(), filter22.getDefinition());
     }
 }
