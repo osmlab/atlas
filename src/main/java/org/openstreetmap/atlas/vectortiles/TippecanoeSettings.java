@@ -1,6 +1,5 @@
 package org.openstreetmap.atlas.vectortiles;
 
-import java.util.Map;
 import java.util.function.BiConsumer;
 
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
@@ -29,44 +28,19 @@ final class TippecanoeSettings
 
     static final BiConsumer<AtlasEntity, JsonObject> JSON_MUTATOR = (atlasEntity, feature) ->
     {
-        final JsonObject tippecanoe = new JsonObject();
+        final TippecanoeGeoJsonExtension tippecanoe = new TippecanoeGeoJsonExtension().addTo(feature);
 
         final String atlasType = atlasEntity.getType().name();
-        tippecanoe.addProperty("layer", atlasType);
+        tippecanoe.layer(atlasType);
 
-        // things will have a min zoom of 11 by default
-        int minzoom = 11;
+        atlasEntity.getTag("building").ifPresent(tag -> tippecanoe.minZoom(MinZoom.building(tag)));
+        atlasEntity.getTag("highway").ifPresent(tag -> tippecanoe.minZoom(MinZoom.highway(tag)));
+        atlasEntity.getTag("route").ifPresent(tag -> tippecanoe.minZoom(MinZoom.route(tag)));
+        atlasEntity.getTag("place").ifPresent(tag -> tippecanoe.minZoom(MinZoom.place(tag)));
+        atlasEntity.getTag("natural").ifPresent(tag -> tippecanoe.minZoom(MinZoom.natural(tag)));
+        atlasEntity.getTag("landuse").ifPresent(tag -> tippecanoe.minZoom(MinZoom.landuse(tag)));
+        atlasEntity.getTag("waterway").ifPresent(tag -> tippecanoe.minZoom(MinZoom.waterway(tag)));
 
-        // lets do some more specific zooms
-        final Map<String, String> tags = atlasEntity.getTags();
-
-        final String highway = tags.get("highway");
-
-        if (tags.get("boundary") != null)
-        {
-            minzoom = 7;
-        }
-        else if (tags.get("waterway") != null || "motorway".equals(highway))
-        {
-            minzoom = 8;
-        }
-
-        else if ("trunk".equals(highway) || "primary".equals(highway))
-        {
-            minzoom = 9;
-        }
-
-        else if ("secondary".equals(highway))
-        {
-            minzoom = 10;
-        }
-
-        else if ("NODE".equals(atlasType))
-        {
-            minzoom = 12;
-        }
-
-        tippecanoe.addProperty("minzoom", minzoom);
-        feature.add("tippecanoe", tippecanoe);
     };
+
 }

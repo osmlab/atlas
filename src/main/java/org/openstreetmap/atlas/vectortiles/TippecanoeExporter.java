@@ -27,8 +27,7 @@ public final class TippecanoeExporter extends LineDelimitedGeoJsonConverter
 {
     private static final int EXIT_FAILURE = 1;
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(TippecanoeExporter.class);
+    private static final Logger logger = LoggerFactory.getLogger(TippecanoeExporter.class);
 
     private static final Switch<Path> MBTILES = new Switch<>("mbtiles",
             "The MBTiles file to which tippecanoe will write vector tiles.", Paths::get,
