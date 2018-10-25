@@ -66,4 +66,15 @@ public class ConcurrentResourceCache implements ResourceCache
 
         return cachedResource;
     }
+
+    @Override
+    public void invalidate()
+    {
+        // Synchronize invalidation with the same lock used to fetch and cache. This prevents
+        // invalidation corruption.
+        synchronized (this)
+        {
+            this.cachingStrategy.invalidate();
+        }
+    }
 }

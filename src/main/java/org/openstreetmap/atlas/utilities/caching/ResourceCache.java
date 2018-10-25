@@ -7,8 +7,8 @@ import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.utilities.caching.strategies.CachingStrategy;
 
 /**
- * All {@link ResourceCache}s must conform to this interface. Of particular interest is the
- * threadsafe implementation of this interface, the {@link ConcurrentResourceCache}.
+ * All {@link ResourceCache}s must conform to this interface. Of particular interest is the thread
+ * safe implementation of this interface, the {@link ConcurrentResourceCache}.
  *
  * @author lcram
  */
@@ -36,17 +36,10 @@ public interface ResourceCache
     Optional<Resource> get(final URI resourceURI);
 
     /**
-     * Get the {@link CachingStrategy} object in use by this cache.
-     * 
-     * @return the {@link CachingStrategy}
+     * Invalidate the underlying caching strategy. Generally, this method should rely on the
+     * {@link CachingStrategy#invalidate} implementation of the underlying strategy. However this is
+     * not enforced by the interface. since some implementations may need to do extra housekeeping
+     * to perform a valid invalidation. See {@link ConcurrentResourceCache} for an example.
      */
-    CachingStrategy getCachingStrategy();
-
-    /**
-     * Invalidate the underlying caching strategy.
-     */
-    default void invalidate()
-    {
-        this.getCachingStrategy().invalidate();
-    }
+    void invalidate();
 }
