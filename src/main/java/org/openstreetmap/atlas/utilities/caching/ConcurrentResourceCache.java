@@ -67,6 +67,16 @@ public class ConcurrentResourceCache implements ResourceCache
         return cachedResource;
     }
 
+    /**
+     * Get the name of the backing {@link CachingStrategy}.
+     *
+     * @return the name
+     */
+    public String getStrategyName()
+    {
+        return this.cachingStrategy.getName();
+    }
+
     @Override
     public void invalidate()
     {
