@@ -31,4 +31,10 @@ public class NoCachingStrategy extends AbstractCachingStrategy
     {
         return;
     }
+
+    @Override
+    public void invalidate(final URI uri)
+    {
+        return;
+    }
 }

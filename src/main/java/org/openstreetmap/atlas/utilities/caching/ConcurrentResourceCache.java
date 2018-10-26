@@ -87,4 +87,13 @@ public class ConcurrentResourceCache implements ResourceCache
             this.cachingStrategy.invalidate();
         }
     }
+
+    @Override
+    public void invalidate(final URI uri)
+    {
+        synchronized (this)
+        {
+            this.cachingStrategy.invalidate(uri);
+        }
+    }
 }

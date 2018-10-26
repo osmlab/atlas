@@ -3,14 +3,10 @@ package org.openstreetmap.atlas.utilities.caching.strategies;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
-
-import org.openstreetmap.atlas.streaming.resource.Resource;
 
 /**
- * Base implementation of the {@link CachingStrategy} interface. Provides some additional
+ * An incomplete implementation of the {@link CachingStrategy} interface. Provides some additional
  * functionality for subclasses to leverage.
  *
  * @author lcram
@@ -29,15 +25,8 @@ public abstract class AbstractCachingStrategy implements CachingStrategy
         this.uriStringToUUIDCache = new HashMap<>();
     }
 
-    @Override
-    public abstract Optional<Resource> attemptFetch(URI resourceURI,
-            Function<URI, Resource> defaultFetcher);
-
-    @Override
-    public abstract String getName();
-
     /**
-     * Given a URI, get a universally unique identifier ({@link UUID}) for that URI. This method
+     * Given a URI, compute a universally unique identifier ({@link UUID}) for that URI. This method
      * uses the {@link String} representation of a URI to compute the UUID. It will also cache
      * computed UUIDs, so subsequent fetches will not incur a re-computation performance penalty.
      *

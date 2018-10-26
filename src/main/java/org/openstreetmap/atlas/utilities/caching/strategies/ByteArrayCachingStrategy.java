@@ -80,6 +80,13 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
         this.resourceCache.clear();
     }
 
+    @Override
+    public void invalidate(final URI uri)
+    {
+        final UUID resourceUUID = this.getUUIDForResourceURI(uri);
+        this.resourceCache.remove(resourceUUID);
+    }
+
     /**
      * Use the exact resource size of the byte arrays of the cache. This may cause performance
      * degradation on cache misses, since some resources do not store their length as metadata.

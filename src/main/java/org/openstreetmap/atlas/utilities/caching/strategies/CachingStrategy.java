@@ -39,4 +39,10 @@ public interface CachingStrategy
      * {@link CachingStrategy#attemptFetch} after an {@link CachingStrategy#invalidate} call.
      */
     void invalidate();
+
+    /**
+     * Invalidate the {@link Resource} given by the {@link URI}. The contract of this method is the
+     * same as {@link CachingStrategy#invalidate()}, but only for the given {@link URI}.
+     */
+    void invalidate(URI uri);
 }

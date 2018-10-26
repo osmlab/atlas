@@ -88,6 +88,12 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
         throw new UnsupportedOperationException("Operation not supported at this time.");
     }
 
+    @Override
+    public void invalidate(final URI uri)
+    {
+        throw new UnsupportedOperationException("Operation not supported at this time.");
+    }
+
     private void attemptToCacheFileLocally(final File cachedFile,
             final Function<URI, Resource> defaultFetcher, final URI resourceURI)
     {

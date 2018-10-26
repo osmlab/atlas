@@ -36,10 +36,18 @@ public interface ResourceCache
     Optional<Resource> get(final URI resourceURI);
 
     /**
-     * Invalidate the underlying caching strategy. Generally, this method should rely on the
+     * Invalidate the contents of this cache. Generally, this method should rely on the
      * {@link CachingStrategy#invalidate} implementation of the underlying strategy. However this is
      * not enforced by the interface. since some implementations may need to do extra housekeeping
-     * to perform a valid invalidation. See {@link ConcurrentResourceCache} for an example.
+     * to perform an invalidation. See {@link ConcurrentResourceCache} for an example.
      */
     void invalidate();
+
+    /**
+     * Invalidate the cached {@link Resource} for a given {@link URI}, if it exists.
+     *
+     * @param uri
+     *            The {@link URI} of the {@link Resource} to invalidate
+     */
+    void invalidate(URI uri);
 }
