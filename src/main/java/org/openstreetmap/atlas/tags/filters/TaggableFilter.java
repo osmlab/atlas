@@ -80,6 +80,17 @@ public class TaggableFilter implements Predicate<Taggable>, Serializable
         return new LineFilterConverter().convert(definition);
     }
 
+    /**
+     * @param definition
+     *            The {@link String} definition of the filter
+     * @deprecated Use {@code TaggableFilter.forDefinition(definition)} instead.
+     */
+    @Deprecated()
+    public TaggableFilter(final String definition)
+    {
+        this(TaggableFilter.forDefinition(definition));
+    }
+
     protected TaggableFilter(final List<TaggableFilter> children, final TreeBoolean treeBoolean)
     {
         this.children = children;
@@ -94,6 +105,14 @@ public class TaggableFilter implements Predicate<Taggable>, Serializable
         this.treeBoolean = TreeBoolean.OR;
         this.simple = simple;
         this.definition = definition;
+    }
+
+    private TaggableFilter(final TaggableFilter other)
+    {
+        this.children = other.children;
+        this.treeBoolean = other.treeBoolean;
+        this.simple = other.simple;
+        this.definition = other.definition;
     }
 
     @Override

@@ -287,8 +287,8 @@ public class PackedAtlasSerializerTest
         final Atlas protoAtlas = new AtlasResourceLoader().withAtlasFileExtensionFilterSetTo(false)
                 .load(protoResource);
 
-        Assert.assertEquals(1, javaResource.getNumberStreamsClosed());
-        Assert.assertEquals(2, protoResource.getNumberStreamsClosed());
+        Assert.assertEquals(2, javaResource.getNumberStreamsClosed());
+        Assert.assertEquals(1, protoResource.getNumberStreamsClosed());
     }
 
     @Test
