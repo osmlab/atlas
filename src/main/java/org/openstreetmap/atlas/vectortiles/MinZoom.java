@@ -19,6 +19,16 @@ final class MinZoom
         // Util
     }
 
+    static int amenity(final String tagValue)
+    {
+        switch (tagValue)
+        {
+            case "hospital":
+                return 12;
+        }
+        return 13;
+    }
+
     static int building(final String tagValue)
     {
         return 13;
@@ -93,12 +103,25 @@ final class MinZoom
         }
     }
 
+    static int leisure(final String tagValue)
+    {
+        switch (tagValue)
+        {
+            case "park":
+                return 8;
+            default:
+                return 13;
+        }
+    }
+
     static int landuse(final String tagValue)
     {
         switch (tagValue)
         {
             case "basin":
                 return 7;
+            case "forest":
+                return 8;
             default:
                 return 12;
         }
