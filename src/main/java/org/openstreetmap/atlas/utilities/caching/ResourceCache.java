@@ -33,7 +33,7 @@ public interface ResourceCache
      *            the resource {@link URI}
      * @return an {@link Optional} wrapping the {@link Resource}
      */
-    Optional<Resource> get(final URI resourceURI);
+    Optional<Resource> get(URI resourceURI);
 
     /**
      * Invalidate the contents of this cache. Generally, this method should rely on the
@@ -46,8 +46,8 @@ public interface ResourceCache
     /**
      * Invalidate the cached {@link Resource} for a given {@link URI}, if it exists.
      *
-     * @param uri
+     * @param resourceURI
      *            The {@link URI} of the {@link Resource} to invalidate
      */
-    void invalidate(URI uri);
+    void invalidate(URI resourceURI);
 }

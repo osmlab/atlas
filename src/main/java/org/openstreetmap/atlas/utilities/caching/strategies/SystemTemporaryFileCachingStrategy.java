@@ -33,7 +33,7 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
 
     @Override
     public Optional<Resource> attemptFetch(final URI resourceURI,
-            final Function<URI, Resource> defaultFetcher)
+            final Function<URI, Optional<Resource>> defaultFetcher)
     {
         if (TEMPORARY_DIRECTORY_STRING == null)
         {
@@ -95,18 +95,25 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
     }
 
     private void attemptToCacheFileLocally(final File cachedFile,
-            final Function<URI, Resource> defaultFetcher, final URI resourceURI)
+            final Function<URI, Optional<Resource>> defaultFetcher, final URI resourceURI)
     {
         if (!cachedFile.exists())
         {
             logger.trace("Attempting to cache resource {} in temporary file {}", resourceURI,
                     cachedFile.toString());
 
-            final Resource resourceFromDefaultFetcher = defaultFetcher.apply(resourceURI);
+            final Optional<Resource> resourceFromDefaultFetcher = defaultFetcher.apply(resourceURI);
+            if (!resourceFromDefaultFetcher.isPresent())
+            {
+                logger.warn("Application of default fetcher for {} returned empty Optional!",
+                        resourceURI);
+                return;
+            }
+
             final File temporaryLocalFile = File.temporary();
             try
             {
-                resourceFromDefaultFetcher.copyTo(temporaryLocalFile);
+                resourceFromDefaultFetcher.get().copyTo(temporaryLocalFile);
             }
             catch (final Exception exception)
             {

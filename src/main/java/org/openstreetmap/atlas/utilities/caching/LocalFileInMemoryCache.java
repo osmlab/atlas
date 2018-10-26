@@ -6,6 +6,8 @@ import java.util.Optional;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.utilities.caching.strategies.ByteArrayCachingStrategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An example of how to extend the {@link ConcurrentResourceCache} to enhance functionality. This
@@ -17,9 +19,19 @@ import org.openstreetmap.atlas.utilities.caching.strategies.ByteArrayCachingStra
  */
 public class LocalFileInMemoryCache extends ConcurrentResourceCache
 {
+    private static final Logger logger = LoggerFactory.getLogger(LocalFileInMemoryCache.class);
+
     public LocalFileInMemoryCache()
     {
-        super(new ByteArrayCachingStrategy(), uri -> new File(uri.getPath()));
+        super(new ByteArrayCachingStrategy(), uri ->
+        {
+            final File file = new File(uri.getPath());
+            if (!file.exists())
+            {
+                logger.warn("File {} does not exist!", file);
+            }
+            return Optional.of(file);
+        });
     }
 
     /**

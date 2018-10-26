@@ -23,7 +23,7 @@ public class ConcurrentResourceCache implements ResourceCache
     private static final Logger logger = LoggerFactory.getLogger(ConcurrentResourceCache.class);
 
     private final CachingStrategy cachingStrategy;
-    private final Function<URI, Resource> fetcher;
+    private final Function<URI, Optional<Resource>> fetcher;
 
     /**
      * Create a new {@link ConcurrentResourceCache} with the given fetcher and strategy.
@@ -34,7 +34,7 @@ public class ConcurrentResourceCache implements ResourceCache
      *            the default fetcher
      */
     public ConcurrentResourceCache(final CachingStrategy cachingStrategy,
-            final Function<URI, Resource> fetcher)
+            final Function<URI, Optional<Resource>> fetcher)
     {
         this.cachingStrategy = cachingStrategy;
         this.fetcher = fetcher;
@@ -60,7 +60,7 @@ public class ConcurrentResourceCache implements ResourceCache
             // shared by the calling threads.
             synchronized (this)
             {
-                cachedResource = Optional.ofNullable(this.fetcher.apply(resourceURI));
+                cachedResource = this.fetcher.apply(resourceURI);
             }
         }
 
@@ -89,11 +89,11 @@ public class ConcurrentResourceCache implements ResourceCache
     }
 
     @Override
-    public void invalidate(final URI uri)
+    public void invalidate(final URI resourceURI)
     {
         synchronized (this)
         {
-            this.cachingStrategy.invalidate(uri);
+            this.cachingStrategy.invalidate(resourceURI);
         }
     }
 }

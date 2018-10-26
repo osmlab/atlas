@@ -23,7 +23,8 @@ public interface CachingStrategy
      *            the initial {@link Function} used to populate the cache
      * @return the {@link Resource} wrapped in an {@link Optional}
      */
-    Optional<Resource> attemptFetch(URI resourceURI, Function<URI, Resource> defaultFetcher);
+    Optional<Resource> attemptFetch(URI resourceURI,
+            Function<URI, Optional<Resource>> defaultFetcher);
 
     /**
      * Get a strategy name for logging purposes.
@@ -43,6 +44,9 @@ public interface CachingStrategy
     /**
      * Invalidate the {@link Resource} given by the {@link URI}. The contract of this method is the
      * same as {@link CachingStrategy#invalidate()}, but only for the given {@link URI}.
+     * 
+     * @param resourceURI
+     *            The {@link URI} of the {@link Resource} to invalidate
      */
-    void invalidate(URI uri);
+    void invalidate(URI resourceURI);
 }

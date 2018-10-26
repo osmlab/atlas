@@ -38,7 +38,7 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
 
     @Override
     public Optional<Resource> attemptFetch(final URI resourceURI,
-            final Function<URI, Resource> defaultFetcher)
+            final Function<URI, Optional<Resource>> defaultFetcher)
     {
         final UUID resourceUUID = this.getUUIDForResourceURI(resourceURI);
 
@@ -46,11 +46,19 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
         {
             logger.info("Attempting to cache resource {} in byte array keyed on UUID {}",
                     resourceURI, resourceUUID.toString());
-            final Resource resource = defaultFetcher.apply(resourceURI);
+
+            final Optional<Resource> resource = defaultFetcher.apply(resourceURI);
+            if (!resource.isPresent())
+            {
+                logger.warn("Application of default fetcher for {} returned empty Optional!",
+                        resourceURI);
+                return Optional.empty();
+            }
+
             final ByteArrayResource resourceBytes;
             if (this.useExactResourceSize)
             {
-                final long resourceLength = resource.length();
+                final long resourceLength = resource.get().length();
                 logger.info("Using extact resource length {}", resourceLength);
                 resourceBytes = new ByteArrayResource(resourceLength);
             }
@@ -59,7 +67,7 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
                 logger.info("Using initial array size {}", this.initialArraySize);
                 resourceBytes = new ByteArrayResource(this.initialArraySize);
             }
-            resourceBytes.writeAndClose(resource.readBytesAndClose());
+            resourceBytes.writeAndClose(resource.get().readBytesAndClose());
             this.resourceCache.put(resourceUUID, resourceBytes);
         }
 
@@ -81,9 +89,9 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
     }
 
     @Override
-    public void invalidate(final URI uri)
+    public void invalidate(final URI resourceURI)
     {
-        final UUID resourceUUID = this.getUUIDForResourceURI(uri);
+        final UUID resourceUUID = this.getUUIDForResourceURI(resourceURI);
         this.resourceCache.remove(resourceUUID);
     }
 

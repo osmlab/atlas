@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.utilities.caching;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -79,10 +80,10 @@ public class CachingTests
         Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheHitArray);
     }
 
-    private Resource fetchLocalFileResource(final URI resourceURI)
+    private Optional<Resource> fetchLocalFileResource(final URI resourceURI)
     {
         final String filePath = resourceURI.getPath();
-        return new File(filePath);
+        return Optional.of(new File(filePath));
     }
 
     private void testBaseCacheWithGivenStrategy(final CachingStrategy strategy)
