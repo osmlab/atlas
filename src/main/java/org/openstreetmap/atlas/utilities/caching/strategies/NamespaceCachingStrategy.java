@@ -11,12 +11,20 @@ import java.util.function.Function;
 
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.Resource;
+import org.openstreetmap.atlas.utilities.caching.ConcurrentResourceCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Caching strategy that attempts to cache a {@link Resource} within a user-defined namespace at the
- * standard system temporary location.
+ * standard system temporary location. It should be noted that this strategy has no inherent
+ * concurrency safety. Since the namespaces are implemented as directories in the underlying
+ * filesystem, two {@link NamespaceCachingStrategy} objects with the same namespace can possibly
+ * step on each other's toes if used improperly. It is up to the users of the strategy to prevent
+ * concurrent access to {@link NamespaceCachingStrategy} objects that share a namespace. One way to
+ * ensure concurrency safety is to carefully associate a given namespace (and its
+ * {@link NamespaceCachingStrategy}) with exactly one {@link ConcurrentResourceCache} object
+ * throughout your code, and stick to this restriction consistently.
  *
  * @author lcram
  */
