@@ -29,6 +29,7 @@ public class LocalFileInMemoryCache extends ConcurrentResourceCache
             if (!file.exists())
             {
                 logger.warn("File {} does not exist!", file);
+                return Optional.empty();
             }
             return Optional.of(file);
         });

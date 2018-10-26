@@ -11,7 +11,7 @@ import org.openstreetmap.atlas.streaming.resource.Resource;
  * means that all instances of {@link GlobalNamespaceCachingStrategy} will share the same underlying
  * contents. From this it follows that fetches and invalidates will manifest across instances. To
  * prevent concurrency issues, the global namespace is locked using a class lock. It is worth noting
- * that this still does not protect the namespace integrity from multiple JVMs running concurrent
+ * that this still does not protect the namespace's integrity from multiple JVMs running concurrent
  * {@link GlobalNamespaceCachingStrategy} objects.
  *
  * @author lcram
