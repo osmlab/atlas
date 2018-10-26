@@ -65,14 +65,14 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
         final File cachedFile = new File(cachedFilePath.toString());
         attemptToCacheFileLocally(cachedFile, defaultFetcher, resourceURI);
 
-        // cache hit!
         if (cachedFile.exists())
         {
-            logger.trace("Cache hit on resource {}, returning local copy", resourceURI);
+            logger.trace("Returning local copy of resource {}", resourceURI);
             return Optional.of(cachedFile);
         }
 
-        logger.warn("Unexpected cache miss on resource {}", resourceURI);
+        // If we got here, something went wrong in attemptToCacheFileLocally().
+        logger.warn("Could not find local copy of resource {}", resourceURI);
         return Optional.empty();
     }
 
