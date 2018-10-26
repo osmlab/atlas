@@ -12,8 +12,8 @@ import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.utilities.caching.strategies.ByteArrayCachingStrategy;
 import org.openstreetmap.atlas.utilities.caching.strategies.CachingStrategy;
+import org.openstreetmap.atlas.utilities.caching.strategies.GlobalNamespaceCachingStrategy;
 import org.openstreetmap.atlas.utilities.caching.strategies.NoCachingStrategy;
-import org.openstreetmap.atlas.utilities.caching.strategies.SystemTemporaryFileCachingStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,9 +34,9 @@ public class CachingTests
     }
 
     @Test
-    public void testBaseCacheWithLocalTemporaryStrategy()
+    public void testBaseCacheWithGlobalNamespaceStrategy()
     {
-        testBaseCacheWithGivenStrategy(new SystemTemporaryFileCachingStrategy());
+        testBaseCacheWithGivenStrategy(new GlobalNamespaceCachingStrategy());
     }
 
     @Test

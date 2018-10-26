@@ -15,21 +15,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Caching strategy that attempts to cache a resource in a temporary file at a system-defined
- * location.
+ * Caching strategy that attempts to cache a {@link Resource} within a user-defined namespace at the
+ * standard system temporary location.
  *
  * @author lcram
- * @author matthieun
- * @author mgostintsev
  */
-public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
+public class NamespaceCachingStrategy extends AbstractCachingStrategy
 {
-    private static final Logger logger = LoggerFactory
-            .getLogger(SystemTemporaryFileCachingStrategy.class);
+    private static final Logger logger = LoggerFactory.getLogger(NamespaceCachingStrategy.class);
     private static final String FILE_EXTENSION_DOT = ".";
     private static final String PROPERTY_LOCAL_TEMPORARY_DIRECTORY = "java.io.tmpdir";
     private static final String TEMPORARY_DIRECTORY_STRING = System
             .getProperty(PROPERTY_LOCAL_TEMPORARY_DIRECTORY);
+
+    private final String namespace;
+
+    public NamespaceCachingStrategy(final String namespace)
+    {
+        super();
+        if (namespace.contains("/") || namespace.contains("\\"))
+        {
+            throw new IllegalArgumentException(
+                    "The namespace cannot contain characters \'\\\' or \'/\'");
+        }
+        this.namespace = namespace;
+    }
 
     @Override
     public Optional<Resource> attemptFetch(final URI resourceURI,
@@ -48,7 +58,7 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
             return Optional.empty();
         }
 
-        final Path temporaryDirectory = Paths.get(TEMPORARY_DIRECTORY_STRING);
+        final Path storageDirectory = Paths.get(TEMPORARY_DIRECTORY_STRING, this.namespace);
         final Optional<String> resourceExtension = getFileExtensionFromURI(resourceURI);
         final String cachedFileName;
         if (resourceExtension.isPresent())
@@ -60,7 +70,7 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
         {
             cachedFileName = this.getUUIDForResourceURI(resourceURI).toString();
         }
-        final Path cachedFilePath = Paths.get(temporaryDirectory.toString(), cachedFileName);
+        final Path cachedFilePath = Paths.get(storageDirectory.toString(), cachedFileName);
 
         final File cachedFile = new File(cachedFilePath.toString());
         attemptToCacheFileLocally(cachedFile, defaultFetcher, resourceURI);
@@ -79,7 +89,7 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
     @Override
     public String getName()
     {
-        return "SystemTemporaryFileCachingStrategy";
+        return "NamespaceCachingStrategy";
     }
 
     @Override
@@ -89,7 +99,7 @@ public class SystemTemporaryFileCachingStrategy extends AbstractCachingStrategy
     }
 
     @Override
-    public void invalidate(final URI uri)
+    public void invalidate(final URI resourceURI)
     {
         throw new UnsupportedOperationException("Operation not supported at this time.");
     }

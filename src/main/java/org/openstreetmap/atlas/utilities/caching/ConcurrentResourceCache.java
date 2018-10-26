@@ -14,7 +14,11 @@ import org.slf4j.LoggerFactory;
  * {@link CachingStrategy} and default fetching {@link Function} at creation time. The cache then
  * loads a resource using a given {@link URI}. Since using raw URIs can often be cumbersome, users
  * of this class are encouraged to extend it and overload the {@link ConcurrentResourceCache#get}
- * method to take more convenient parameters.
+ * method to take more convenient parameters. A NOTE ON THREAD SAFETY: this class is only threadsafe
+ * insofar as a single instance is in use across multiple threads. If multiple instances are used
+ * across multiple threads, all safety guarantees are off. This is due to the fact that some caching
+ * strategies utilize global filesystem state, and the {@link ConcurrentResourceCache} is only
+ * locked using "this" instance.
  *
  * @author lcram
  */
