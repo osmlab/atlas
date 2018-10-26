@@ -85,13 +85,29 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
     public void invalidate()
     {
         final Path storageDirectory = this.getStorageDirectory();
-        new File(storageDirectory.toString()).deleteRecursively();
+        try
+        {
+            new File(storageDirectory.toString()).deleteRecursively();
+        }
+        catch (final Exception exception)
+        {
+            logger.warn("StrategyID {}: invalidate failed due to {}", this.getStrategyID(),
+                    exception);
+        }
     }
 
     @Override
     public void invalidate(final URI resourceURI)
     {
-        getCachedFile(resourceURI).delete();
+        try
+        {
+            getCachedFile(resourceURI).delete();
+        }
+        catch (final Exception exception)
+        {
+            logger.warn("StrategyID {}: invalidate of resource {} failed due to {}",
+                    this.getStrategyID(), resourceURI, exception);
+        }
     }
 
     private void attemptToCacheFileLocally(final File cachedFile,
