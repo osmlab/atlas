@@ -44,14 +44,16 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
 
         if (!this.resourceCache.containsKey(resourceUUID))
         {
-            logger.info("Attempting to cache resource {} in byte array keyed on UUID {}",
-                    resourceURI, resourceUUID.toString());
+            logger.info(
+                    "StrategyID {}: attempting to cache resource {} in byte array keyed on UUID {}",
+                    this.getStrategyID(), resourceURI, resourceUUID.toString());
 
             final Optional<Resource> resource = defaultFetcher.apply(resourceURI);
             if (!resource.isPresent())
             {
-                logger.warn("Application of default fetcher for {} returned empty Optional!",
-                        resourceURI);
+                logger.warn(
+                        "StrategyID {}: application of default fetcher for {} returned empty Optional!",
+                        this.getStrategyID(), resourceURI);
                 return Optional.empty();
             }
 
@@ -59,20 +61,22 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
             if (this.useExactResourceSize)
             {
                 final long resourceLength = resource.get().length();
-                logger.info("Using extact resource length {}", resourceLength);
+                logger.info("StrategyID {}: using extact resource length {}", this.getStrategyID(),
+                        resourceLength);
                 resourceBytes = new ByteArrayResource(resourceLength);
             }
             else
             {
-                logger.info("Using initial array size {}", this.initialArraySize);
+                logger.info("StrategyID {}: using initial array size {}", this.getStrategyID(),
+                        this.initialArraySize);
                 resourceBytes = new ByteArrayResource(this.initialArraySize);
             }
             resourceBytes.writeAndClose(resource.get().readBytesAndClose());
             this.resourceCache.put(resourceUUID, resourceBytes);
         }
 
-        logger.info("Returning cached resource {} from byte array keyed on UUID {}", resourceURI,
-                resourceUUID.toString());
+        logger.info("StrategyID {}: returning cached resource {} from byte array keyed on UUID {}",
+                this.getStrategyID(), resourceURI, resourceUUID.toString());
         return Optional.of(this.resourceCache.get(resourceUUID));
     }
 

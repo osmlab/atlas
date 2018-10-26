@@ -20,9 +20,22 @@ public abstract class AbstractCachingStrategy implements CachingStrategy
      */
     private final Map<String, UUID> uriStringToUUIDCache;
 
+    private final UUID strategyID;
+
     public AbstractCachingStrategy()
     {
         this.uriStringToUUIDCache = new HashMap<>();
+        this.strategyID = UUID.randomUUID();
+    }
+
+    /**
+     * Get a {@link UUID} for this strategy instance. This is useful for logging.
+     *
+     * @return The strategy instance {@link UUID}
+     */
+    protected UUID getStrategyID()
+    {
+        return this.strategyID;
     }
 
     /**

@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.utilities.caching;
 
 import java.net.URI;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 
 import org.openstreetmap.atlas.streaming.resource.Resource;
@@ -28,6 +29,7 @@ public class ConcurrentResourceCache implements ResourceCache
 
     private final CachingStrategy cachingStrategy;
     private final Function<URI, Optional<Resource>> fetcher;
+    private final UUID cacheID;
 
     /**
      * Create a new {@link ConcurrentResourceCache} with the given fetcher and strategy.
@@ -42,6 +44,7 @@ public class ConcurrentResourceCache implements ResourceCache
     {
         this.cachingStrategy = cachingStrategy;
         this.fetcher = fetcher;
+        this.cacheID = UUID.randomUUID();
     }
 
     @Override
@@ -58,7 +61,8 @@ public class ConcurrentResourceCache implements ResourceCache
 
         if (!cachedResource.isPresent())
         {
-            logger.warn("Cache fetch failed, falling back to default fetcher...");
+            logger.warn("CacheID {}: cache fetch failed, falling back to default fetcher...",
+                    this.cacheID);
 
             // We must also synchronize the application of the fetcher, since it may rely on state
             // shared by the calling threads.

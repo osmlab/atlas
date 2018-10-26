@@ -47,14 +47,15 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
     {
         if (TEMPORARY_DIRECTORY_STRING == null)
         {
-            logger.error("Failed to read property {}, skipping cache fetch...",
-                    PROPERTY_LOCAL_TEMPORARY_DIRECTORY);
+            logger.error("StrategyID {}: failed to read property {}, skipping cache fetch...",
+                    this.getStrategyID(), PROPERTY_LOCAL_TEMPORARY_DIRECTORY);
             return Optional.empty();
         }
 
         if (resourceURI == null)
         {
-            logger.warn("resourceURI was null, skipping cache fetch...");
+            logger.warn("StrategyID {}: resourceURI was null, skipping cache fetch...",
+                    this.getStrategyID());
             return Optional.empty();
         }
 
@@ -77,12 +78,14 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
 
         if (cachedFile.exists())
         {
-            logger.trace("Returning local copy of resource {}", resourceURI);
+            logger.trace("StrategyID {}: returning local copy of resource {}", this.getStrategyID(),
+                    resourceURI);
             return Optional.of(cachedFile);
         }
 
         // If we got here, something went wrong in attemptToCacheFileLocally().
-        logger.warn("Could not find local copy of resource {}", resourceURI);
+        logger.warn("StrategyID {}: could not find local copy of resource {}", this.getStrategyID(),
+                resourceURI);
         return Optional.empty();
     }
 
@@ -109,14 +112,15 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
     {
         if (!cachedFile.exists())
         {
-            logger.trace("Attempting to cache resource {} in temporary file {}", resourceURI,
-                    cachedFile.toString());
+            logger.trace("StrategyID {}: attempting to cache resource {} in temporary file {}",
+                    this.getStrategyID(), resourceURI, cachedFile.toString());
 
             final Optional<Resource> resourceFromDefaultFetcher = defaultFetcher.apply(resourceURI);
             if (!resourceFromDefaultFetcher.isPresent())
             {
-                logger.warn("Application of default fetcher for {} returned empty Optional!",
-                        resourceURI);
+                logger.warn(
+                        "StrategyID {}: application of default fetcher for {} returned empty Optional!",
+                        this.getStrategyID(), resourceURI);
                 return;
             }
 
@@ -127,9 +131,10 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
             }
             catch (final Exception exception)
             {
-                logger.error("Something went wrong copying {} to temporary local file {}",
-                        resourceFromDefaultFetcher.toString(), temporaryLocalFile.toString(),
-                        exception);
+                logger.error(
+                        "StrategyID {}: something went wrong copying {} to temporary local file {}",
+                        this.getStrategyID(), resourceFromDefaultFetcher.toString(),
+                        temporaryLocalFile.toString(), exception);
                 return;
             }
 
@@ -146,13 +151,15 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
                 }
                 catch (final FileAlreadyExistsException exception)
                 {
-                    logger.trace("File {} is already cached", cachedFile.toString());
+                    logger.trace("StrategyID {}: file {} is already cached", this.getStrategyID(),
+                            cachedFile.toString());
                     return;
                 }
                 catch (final Exception exception)
                 {
-                    logger.error("Something went wrong moving {} to {}",
-                            temporaryLocalFile.toString(), cachedFile.toString(), exception);
+                    logger.error("StrategyID {}: something went wrong moving {} to {}",
+                            this.getStrategyID(), temporaryLocalFile.toString(),
+                            cachedFile.toString(), exception);
                 }
             }
         }
