@@ -46,6 +46,53 @@ public class CachingTests
     }
 
     @Test
+    public void testIndividualResourceInvalidation()
+    {
+        final ConcurrentResourceCache resourceCache = new ConcurrentResourceCache(
+                new GlobalNamespaceCachingStrategy(), this::fetchLocalFileResource);
+
+        URI resourceUri;
+        try
+        {
+            resourceUri = CachingTests.class.getResource(FEATURE_JSON).toURI();
+        }
+        catch (final URISyntaxException exception)
+        {
+            logger.error("{}", exception);
+            resourceUri = null;
+            Assert.fail();
+        }
+
+        // read the contents of the file
+        final ByteArrayResource originalFileBytes = new ByteArrayResource();
+        originalFileBytes.copyFrom(new InputStreamResource(
+                () -> CachingTests.class.getResourceAsStream(FEATURE_JSON)));
+        final byte[] originalFileBytesArray = originalFileBytes.readBytesAndClose();
+
+        // read contents of the file with cache, this will incur a cache miss
+        final ByteArrayResource fileBytesCacheMiss = new ByteArrayResource();
+        fileBytesCacheMiss.copyFrom(resourceCache.get(resourceUri).get());
+        final byte[] fileBytesCacheMissArray = fileBytesCacheMiss.readBytesAndClose();
+        Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheMissArray);
+
+        // read contents again, this time with a cache hit
+        final ByteArrayResource fileBytesCacheHit = new ByteArrayResource();
+        fileBytesCacheHit.copyFrom(resourceCache.get(resourceUri).get());
+        final byte[] fileBytesCacheHitArray = fileBytesCacheHit.readBytesAndClose();
+        Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheHitArray);
+
+        resourceCache.invalidate(resourceUri);
+
+        // read contents of the file with again cache, this will incur a cache miss
+        final ByteArrayResource fileBytesCacheMiss2 = new ByteArrayResource();
+        fileBytesCacheMiss2.copyFrom(resourceCache.get(resourceUri).get());
+        final byte[] fileBytesCacheMissArray2 = fileBytesCacheMiss2.readBytesAndClose();
+        Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheMissArray2);
+
+        resourceCache.invalidate();
+    }
+
+    @Test
     public void testLocalFileInMemoryCache()
     {
         final LocalFileInMemoryCache cache = new LocalFileInMemoryCache();
@@ -78,6 +125,8 @@ public class CachingTests
         fileBytesCacheHit.copyFrom(cache.get(resourceUri).get());
         final byte[] fileBytesCacheHitArray = fileBytesCacheHit.readBytesAndClose();
         Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheHitArray);
+
+        cache.invalidate();
     }
 
     private Optional<Resource> fetchLocalFileResource(final URI resourceURI)
@@ -152,5 +201,7 @@ public class CachingTests
         fileBytesCacheHit.copyFrom(resourceCache.get(resourceUri2).get());
         fileBytesCacheHitArray = fileBytesCacheHit.readBytesAndClose();
         Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheHitArray);
+
+        resourceCache.invalidate();
     }
 }

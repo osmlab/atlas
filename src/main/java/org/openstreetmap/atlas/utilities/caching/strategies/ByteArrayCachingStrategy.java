@@ -44,7 +44,7 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
 
         if (!this.resourceCache.containsKey(resourceUUID))
         {
-            logger.info(
+            logger.trace(
                     "StrategyID {}: attempting to cache resource {} in byte array keyed on UUID {}",
                     this.getStrategyID(), resourceURI, resourceUUID.toString());
 
@@ -61,13 +61,13 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
             if (this.useExactResourceSize)
             {
                 final long resourceLength = resource.get().length();
-                logger.info("StrategyID {}: using extact resource length {}", this.getStrategyID(),
+                logger.trace("StrategyID {}: using extact resource length {}", this.getStrategyID(),
                         resourceLength);
                 resourceBytes = new ByteArrayResource(resourceLength);
             }
             else
             {
-                logger.info("StrategyID {}: using initial array size {}", this.getStrategyID(),
+                logger.trace("StrategyID {}: using initial array size {}", this.getStrategyID(),
                         this.initialArraySize);
                 resourceBytes = new ByteArrayResource(this.initialArraySize);
             }
@@ -75,7 +75,7 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
             this.resourceCache.put(resourceUUID, resourceBytes);
         }
 
-        logger.info("StrategyID {}: returning cached resource {} from byte array keyed on UUID {}",
+        logger.trace("StrategyID {}: returning cached resource {} from byte array keyed on UUID {}",
                 this.getStrategyID(), resourceURI, resourceUUID.toString());
         return Optional.of(this.resourceCache.get(resourceUUID));
     }

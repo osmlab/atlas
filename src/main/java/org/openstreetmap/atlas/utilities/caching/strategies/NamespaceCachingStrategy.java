@@ -59,21 +59,7 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
             return Optional.empty();
         }
 
-        final Path storageDirectory = Paths.get(TEMPORARY_DIRECTORY_STRING, this.namespace);
-        final Optional<String> resourceExtension = getFileExtensionFromURI(resourceURI);
-        final String cachedFileName;
-        if (resourceExtension.isPresent())
-        {
-            cachedFileName = this.getUUIDForResourceURI(resourceURI).toString() + FILE_EXTENSION_DOT
-                    + resourceExtension.get();
-        }
-        else
-        {
-            cachedFileName = this.getUUIDForResourceURI(resourceURI).toString();
-        }
-        final Path cachedFilePath = Paths.get(storageDirectory.toString(), cachedFileName);
-
-        final File cachedFile = new File(cachedFilePath.toString());
+        final File cachedFile = getCachedFile(resourceURI);
         attemptToCacheFileLocally(cachedFile, defaultFetcher, resourceURI);
 
         if (cachedFile.exists())
@@ -98,13 +84,14 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
     @Override
     public void invalidate()
     {
-        throw new UnsupportedOperationException("Operation not supported at this time.");
+        final Path storageDirectory = this.getStorageDirectory();
+        new File(storageDirectory.toString()).deleteRecursively();
     }
 
     @Override
     public void invalidate(final URI resourceURI)
     {
-        throw new UnsupportedOperationException("Operation not supported at this time.");
+        getCachedFile(resourceURI).delete();
     }
 
     private void attemptToCacheFileLocally(final File cachedFile,
@@ -165,6 +152,25 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
         }
     }
 
+    private File getCachedFile(final URI resourceURI)
+    {
+        final Path storageDirectory = getStorageDirectory();
+        final Optional<String> resourceExtension = getFileExtensionFromURI(resourceURI);
+        final String cachedFileName;
+        if (resourceExtension.isPresent())
+        {
+            cachedFileName = this.getUUIDForResourceURI(resourceURI).toString() + FILE_EXTENSION_DOT
+                    + resourceExtension.get();
+        }
+        else
+        {
+            cachedFileName = this.getUUIDForResourceURI(resourceURI).toString();
+        }
+        final Path cachedFilePath = Paths.get(storageDirectory.toString(), cachedFileName);
+
+        return new File(cachedFilePath.toString());
+    }
+
     private Optional<String> getFileExtensionFromURI(final URI resourceURI)
     {
         final String asciiString = resourceURI.toASCIIString();
@@ -184,5 +190,10 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
         {
             return Optional.of(extension);
         }
+    }
+
+    private Path getStorageDirectory()
+    {
+        return Paths.get(TEMPORARY_DIRECTORY_STRING, this.namespace);
     }
 }

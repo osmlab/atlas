@@ -88,6 +88,7 @@ public class ConcurrentResourceCache implements ResourceCache
     @Override
     public void invalidate()
     {
+        logger.info("CacheID {}: invalidating cache", this.cacheID);
         // Synchronize invalidation with the same lock used to fetch and cache. This prevents
         // invalidation corruption.
         synchronized (this)
@@ -99,6 +100,9 @@ public class ConcurrentResourceCache implements ResourceCache
     @Override
     public void invalidate(final URI resourceURI)
     {
+        logger.info("CacheID {}: invalidating resource {}", this.cacheID, resourceURI);
+        // Synchronize invalidation with the same lock used to fetch and cache. This prevents
+        // invalidation corruption.
         synchronized (this)
         {
             this.cachingStrategy.invalidate(resourceURI);
