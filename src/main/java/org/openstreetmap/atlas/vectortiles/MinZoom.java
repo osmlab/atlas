@@ -68,6 +68,23 @@ final class MinZoom
         }
     }
 
+    static int railway(final String tagValue)
+    {
+        switch (tagValue)
+        {
+            case "rail":
+            case "light_rail":
+                return 8;
+            case "tram":
+            case "subway":
+                return 12;
+            case "disused":
+                return 14;
+            default:
+                return 13;
+        }
+    }
+
     static int route(final String tagValue)
     {
         switch (tagValue)
