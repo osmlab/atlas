@@ -91,8 +91,21 @@ public class AtlasStatistics implements Iterable<AtlasStatistics.StatisticKey>, 
         private final double count;
         private final double totalCount;
 
+        private static String format(final double value)
+        {
+            return String.format("%.2f", value);
+        }
+
         public StatisticValue(final double count, final double totalCount)
         {
+            if (count > Double.MAX_VALUE / 2.0 || totalCount > Double.MAX_VALUE / 2.0
+                    || String.valueOf(count).contains("E")
+                    || String.valueOf(totalCount).contains("E"))
+            {
+                throw new CoreException(
+                        "Count / Total Count pair has one element too high: {} / {}", count,
+                        totalCount);
+            }
             this.count = count;
             this.totalCount = totalCount;
         }
@@ -134,7 +147,7 @@ public class AtlasStatistics implements Iterable<AtlasStatistics.StatisticKey>, 
         @Override
         public String toString()
         {
-            return String.format("%.2f", this.count) + "," + String.format("%.2f", this.totalCount);
+            return format(this.count) + "," + format(this.totalCount);
         }
     }
 
@@ -216,8 +229,11 @@ public class AtlasStatistics implements Iterable<AtlasStatistics.StatisticKey>, 
     @Override
     public boolean equals(final Object other)
     {
-        return other instanceof AtlasStatistics
-                ? ((AtlasStatistics) other).getData().equals(getData()) : false;
+        if (other instanceof AtlasStatistics)
+        {
+            return ((AtlasStatistics) other).getData().equals(getData());
+        }
+        return false;
     }
 
     public StatisticValue get(final StatisticKey key)

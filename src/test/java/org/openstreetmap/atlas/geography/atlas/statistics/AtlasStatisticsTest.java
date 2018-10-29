@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.statistics;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasTest;
 import org.openstreetmap.atlas.geography.atlas.statistics.AtlasStatistics.StatisticKey;
@@ -222,6 +223,35 @@ public class AtlasStatisticsTest
         // double quotes and the interior double quote is escaped
         final String correctlyFormattedCSVKey = ",last_edit_user_name,\"kepta\"\"sds'sds\"";
         Assert.assertEquals(key.toString(), correctlyFormattedCSVKey);
+    }
+
+    @Test
+    public void testFormatting()
+    {
+        final Atlas atlas = this.rule.getWaterAtlas();
+        final AtlasStatistics statistics = new Counter().processAtlas(atlas);
+
+        Assert.assertEquals("6.00,33.00",
+                statistics.get(new StatisticKey("", "rivers", "true")).toString());
+        Assert.assertEquals("24.92,32.80",
+                statistics.get(new StatisticKey("", "rivers_distance", "true")).toString());
+
+    }
+
+    @Test(expected = CoreException.class)
+    public void testFormattingKeyTooHigh()
+    {
+        final double key = 1.0 / 0.0;
+        final double value = 100.0;
+        new StatisticValue(key, value);
+    }
+
+    @Test(expected = CoreException.class)
+    public void testFormattingValueTooHigh()
+    {
+        final double key = 100.0;
+        final double value = Double.MAX_VALUE / 3;
+        System.out.println(new StatisticValue(key, value));
     }
 
     @Test
