@@ -1,9 +1,9 @@
 package org.openstreetmap.atlas.utilities.caching.strategies;
 
 import java.net.URI;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * An incomplete implementation of the {@link CachingStrategy} interface. Provides some additional
@@ -24,7 +24,7 @@ public abstract class AbstractCachingStrategy implements CachingStrategy
 
     public AbstractCachingStrategy()
     {
-        this.uriStringToUUIDCache = new HashMap<>();
+        this.uriStringToUUIDCache = new ConcurrentHashMap<>();
         this.strategyID = UUID.randomUUID();
     }
 
