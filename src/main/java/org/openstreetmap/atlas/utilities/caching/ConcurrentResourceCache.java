@@ -60,8 +60,8 @@ public class ConcurrentResourceCache implements ResourceCache
 
         if (!cachedResource.isPresent())
         {
-            logger.warn("CacheID {}: cache fetch failed, falling back to default fetcher...",
-                    this.cacheID);
+            logger.warn("CacheID {}: cache fetch of {} failed, falling back to default fetcher...",
+                    this.cacheID, resourceURI);
 
             // We must also synchronize the application of the fetcher, since it may rely on state
             // shared by the calling threads.
