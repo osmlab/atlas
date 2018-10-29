@@ -196,7 +196,7 @@ public class DynamicGridIndexBuilder extends AbstractGridIndexBuilder
     private static final double GRANULARITY = 0.02;
 
     // RTree to hold grid boxes
-    private STRtree index;
+    private volatile STRtree index;
 
     // RTree to hold raw boundaries
     private STRtree rawIndex;
@@ -256,11 +256,13 @@ public class DynamicGridIndexBuilder extends AbstractGridIndexBuilder
     @Override
     public STRtree getIndex()
     {
-        if (this.index == null)
+        STRtree localIndex = this.index;
+        if (localIndex == null)
         {
             synchronized (this)
             {
-                if (this.index == null)
+                localIndex = this.index;
+                if (localIndex == null)
                 {
                     this.index = new STRtree();
                     final BlockingQueue<GridWorkItem> queue = new LinkedBlockingQueue<>();
