@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 
 import org.openstreetmap.atlas.streaming.resource.File;
@@ -46,7 +47,8 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
             throw new IllegalArgumentException(
                     "The namespace cannot contain characters \'\\\' or \'/\'");
         }
-        this.namespace = namespace;
+        this.namespace = "NamespaceCachingStrategy_" + namespace + "_"
+                + UUID.nameUUIDFromBytes(namespace.getBytes()).toString();
     }
 
     @Override
