@@ -364,15 +364,20 @@ public class WaySectionProcessor
                 switch (entity.getType())
                 {
                     case POINT:
-                        if (builder.peek().point(memberIdentifier) != null)
+                        // Add both Point and Node representation into the Relation
+                        final boolean pointExists = builder.peek().point(memberIdentifier) != null;
+                        final boolean nodeExists = builder.peek().node(memberIdentifier) != null;
+
+                        if (pointExists)
                         {
                             bean.addItem(memberIdentifier, memberRole, ItemType.POINT);
                         }
-                        else if (builder.peek().node(memberIdentifier) != null)
+                        if (nodeExists)
                         {
                             bean.addItem(memberIdentifier, memberRole, ItemType.NODE);
                         }
-                        else
+
+                        if (!pointExists && !nodeExists)
                         {
                             logger.debug(RELATION_MEMBER_EXCLUSION_MESSAGE, ItemType.POINT,
                                     memberIdentifier, relation.getIdentifier());
