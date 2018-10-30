@@ -119,7 +119,7 @@ public final class PackedAtlasSerializer
             }
             catch (final CoreException exception)
             {
-                logger.debug("Load format {} invalid", candidateFormat);
+                logger.debug("Load format {} invalid", candidateFormat, exception);
                 continue;
             }
             // If we make it here, then we found the appropriate format and we can bail out
