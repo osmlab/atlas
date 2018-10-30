@@ -44,6 +44,7 @@ public class ConcurrentResourceCache implements ResourceCache
         this.cachingStrategy = cachingStrategy;
         this.fetcher = fetcher;
         this.cacheID = UUID.randomUUID();
+        logger.info("Initialized cache {} with ID {}", this.getClass().getName(), this.cacheID);
     }
 
     @Override
