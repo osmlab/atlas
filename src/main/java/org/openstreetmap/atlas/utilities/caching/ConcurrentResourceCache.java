@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.utilities.caching;
 
 import java.net.URI;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 
 import org.openstreetmap.atlas.streaming.resource.Resource;
@@ -10,20 +11,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The threadsafe {@link Resource} cache implementation. The cache needs a specified
- * {@link CachingStrategy} and default fetching {@link Function} at creation time. The cache then
- * loads a resource using a given {@link URI}. Since using raw URIs can often be cumbersome, users
- * of this class are encouraged to extend it and overload the {@link ConcurrentResourceCache#get}
- * method to take more convenient parameters.
+ * The threadsafe (with caveat) {@link ResourceCache} implementation (The caveat is related to the
+ * fact that some caching strategies utilize system-wide global state ie. the filesystem. In doing
+ * so it becomes impossible to guarantee concurrency safety from within the
+ * {@link ConcurrentResourceCache} alone). The cache needs a specified {@link CachingStrategy} and
+ * default fetching {@link Function} at creation time. The cache then loads a resource using a given
+ * {@link URI}. Since using raw URIs can often be cumbersome, users of this class are encouraged to
+ * extend it and overload the {@link ConcurrentResourceCache#get} method to take more convenient
+ * parameters.
  *
  * @author lcram
  */
-public class ConcurrentResourceCache
+public class ConcurrentResourceCache implements ResourceCache
 {
     private static final Logger logger = LoggerFactory.getLogger(ConcurrentResourceCache.class);
 
     private final CachingStrategy cachingStrategy;
-    private final Function<URI, Resource> fetcher;
+    private final Function<URI, Optional<Resource>> fetcher;
+    private final UUID cacheID;
 
     /**
      * Create a new {@link ConcurrentResourceCache} with the given fetcher and strategy.
@@ -34,31 +39,15 @@ public class ConcurrentResourceCache
      *            the default fetcher
      */
     public ConcurrentResourceCache(final CachingStrategy cachingStrategy,
-            final Function<URI, Resource> fetcher)
+            final Function<URI, Optional<Resource>> fetcher)
     {
         this.cachingStrategy = cachingStrategy;
         this.fetcher = fetcher;
+        this.cacheID = UUID.randomUUID();
+        logger.info("Initialized cache {} with ID {}", this.getClass().getName(), this.cacheID);
     }
 
-    /**
-     * Attempt to get the resource specified by the given string URI.
-     *
-     * @param resourceURIString
-     *            the resource {@link URI} as a {@link String}
-     * @return an {@link Optional} wrapping the {@link Resource}
-     */
-    public Optional<Resource> get(final String resourceURIString)
-    {
-        return this.get(URI.create(resourceURIString));
-    }
-
-    /**
-     * Attempt to get the resource specified by the given URI.
-     *
-     * @param resourceURI
-     *            the resource {@link URI}
-     * @return an {@link Optional} wrapping the {@link Resource}
-     */
+    @Override
     public Optional<Resource> get(final URI resourceURI)
     {
         Optional<Resource> cachedResource;
@@ -72,16 +61,51 @@ public class ConcurrentResourceCache
 
         if (!cachedResource.isPresent())
         {
-            logger.warn("Cache fetch failed, falling back to default fetcher...");
+            logger.warn("CacheID {}: cache fetch of {} failed, falling back to default fetcher...",
+                    this.cacheID, resourceURI);
 
             // We must also synchronize the application of the fetcher, since it may rely on state
             // shared by the calling threads.
             synchronized (this)
             {
-                cachedResource = Optional.ofNullable(this.fetcher.apply(resourceURI));
+                cachedResource = this.fetcher.apply(resourceURI);
             }
         }
 
         return cachedResource;
+    }
+
+    /**
+     * Get the name of the backing {@link CachingStrategy}.
+     *
+     * @return the name
+     */
+    public String getStrategyName()
+    {
+        return this.cachingStrategy.getName();
+    }
+
+    @Override
+    public void invalidate()
+    {
+        logger.info("CacheID {}: invalidating cache", this.cacheID);
+        // Synchronize invalidation with the same lock used to fetch and cache. This prevents
+        // invalidation corruption.
+        synchronized (this)
+        {
+            this.cachingStrategy.invalidate();
+        }
+    }
+
+    @Override
+    public void invalidate(final URI resourceURI)
+    {
+        logger.info("CacheID {}: invalidating resource {}", this.cacheID, resourceURI);
+        // Synchronize invalidation with the same lock used to fetch and cache. This prevents
+        // invalidation corruption.
+        synchronized (this)
+        {
+            this.cachingStrategy.invalidate(resourceURI);
+        }
     }
 }
