@@ -96,16 +96,18 @@ public class AtlasStatistics implements Iterable<AtlasStatistics.StatisticKey>, 
             return String.format("%.2f", value);
         }
 
+        private static void validate(final double value)
+        {
+            if (Math.abs(value) > Double.MAX_VALUE / 2.0)
+            {
+                throw new CoreException("Invalid count/totalCount value: {}", format(value));
+            }
+        }
+
         public StatisticValue(final double count, final double totalCount)
         {
-            if (count > Double.MAX_VALUE / 2.0 || totalCount > Double.MAX_VALUE / 2.0
-                    || String.valueOf(count).contains("E")
-                    || String.valueOf(totalCount).contains("E"))
-            {
-                throw new CoreException(
-                        "Count / Total Count pair has one element too high: {} / {}", count,
-                        totalCount);
-            }
+            validate(count);
+            validate(totalCount);
             this.count = count;
             this.totalCount = totalCount;
         }

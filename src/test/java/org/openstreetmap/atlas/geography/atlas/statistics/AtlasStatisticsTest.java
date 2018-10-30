@@ -247,10 +247,18 @@ public class AtlasStatisticsTest
     }
 
     @Test(expected = CoreException.class)
+    public void testFormattingKeyTooLow()
+    {
+        final double key = -1.0 / 0.0;
+        final double value = 100.0;
+        new StatisticValue(key, value);
+    }
+
+    @Test(expected = CoreException.class)
     public void testFormattingValueTooHigh()
     {
         final double key = 100.0;
-        final double value = Double.MAX_VALUE / 3;
+        final double value = Double.MAX_VALUE / 1.5;
         System.out.println(new StatisticValue(key, value));
     }
 
