@@ -14,6 +14,17 @@ package org.openstreetmap.atlas.vectortiles;
  */
 final class MinZoom
 {
+    private static final int THREE = 3;
+    private static final int FIVE = 5;
+    private static final int SIX = 6;
+    private static final int SEVEN = 7;
+    private static final int EIGHT = 8;
+    private static final int NINE = 9;
+    private static final int TEN = 10;
+    private static final int TWELVE = 12;
+    private static final int THIRTEEN = 13;
+    private static final int FOURTEEN = 14;
+
     private MinZoom()
     {
         // Util
@@ -24,14 +35,14 @@ final class MinZoom
         switch (tagValue)
         {
             case "hospital":
-                return 12;
+                return TWELVE;
         }
-        return 13;
+        return THIRTEEN;
     }
 
     static int building(final String tagValue)
     {
-        return 13;
+        return THIRTEEN;
     }
 
     static int highway(final String tagValue)
@@ -40,20 +51,20 @@ final class MinZoom
         {
             case "motorway":
             case "trunk":
-                return 6;
+                return SIX;
             case "primary":
-                return 8;
+                return EIGHT;
             case "secondary":
-                return 9;
+                return NINE;
             case "tertiary":
-                return 10;
+                return TEN;
             case "motorway_link":
             case "trunk_link":
             case "primary_link":
             case "secondary_link":
             case "residential":
             case "unclassified":
-                return 12;
+                return TWELVE;
             case "service":
             case "living_street":
             case "pedestrian":
@@ -62,9 +73,9 @@ final class MinZoom
             case "cycleway":
             case "track":
             case "steps":
-                return 13;
+                return THIRTEEN;
             default:
-                return 14;
+                return FOURTEEN;
         }
     }
 
@@ -74,14 +85,14 @@ final class MinZoom
         {
             case "rail":
             case "light_rail":
-                return 8;
+                return EIGHT;
             case "tram":
             case "subway":
-                return 12;
+                return TWELVE;
             case "disused":
-                return 14;
+                return FOURTEEN;
             default:
-                return 13;
+                return THIRTEEN;
         }
     }
 
@@ -90,9 +101,9 @@ final class MinZoom
         switch (tagValue)
         {
             case "ferry":
-                return 8;
+                return EIGHT;
             default:
-                return 14;
+                return FOURTEEN;
         }
     }
 
@@ -101,11 +112,11 @@ final class MinZoom
         switch (tagValue)
         {
             case "country":
-                return 3;
+                return THREE;
             case "state":
-                return 5;
+                return FIVE;
             default:
-                return 12;
+                return TWELVE;
         }
     }
 
@@ -114,9 +125,9 @@ final class MinZoom
         switch (tagValue)
         {
             case "glacier":
-                return 8;
+                return EIGHT;
             default:
-                return 12;
+                return TWELVE;
         }
     }
 
@@ -125,9 +136,9 @@ final class MinZoom
         switch (tagValue)
         {
             case "park":
-                return 8;
+                return EIGHT;
             default:
-                return 13;
+                return THIRTEEN;
         }
     }
 
@@ -136,11 +147,11 @@ final class MinZoom
         switch (tagValue)
         {
             case "basin":
-                return 7;
+                return SEVEN;
             case "forest":
-                return 8;
+                return EIGHT;
             default:
-                return 12;
+                return TWELVE;
         }
     }
 
@@ -149,9 +160,9 @@ final class MinZoom
         switch (tagValue)
         {
             case "river":
-                return 8;
+                return EIGHT;
             default:
-                return 12;
+                return TWELVE;
         }
     }
 }
