@@ -150,11 +150,29 @@ public class CachingTests
             Assert.fail();
         }
 
+        URI resourceUri2;
+        try
+        {
+            resourceUri2 = CachingTests.class.getResource(FILE_NO_EXTENSION).toURI();
+        }
+        catch (final URISyntaxException exception)
+        {
+            logger.error("{}", exception);
+            resourceUri2 = null;
+            Assert.fail();
+        }
+
         // read the contents of the file
         final ByteArrayResource originalFileBytes = new ByteArrayResource();
         originalFileBytes.copyFrom(new InputStreamResource(
                 () -> CachingTests.class.getResourceAsStream(FEATURE_JSON)));
         final byte[] originalFileBytesArray = originalFileBytes.readBytesAndClose();
+
+        // read the contents of the file
+        final ByteArrayResource originalFileBytes2 = new ByteArrayResource();
+        originalFileBytes2.copyFrom(new InputStreamResource(
+                () -> CachingTests.class.getResourceAsStream(FILE_NO_EXTENSION)));
+        final byte[] originalFileBytesArray2 = originalFileBytes2.readBytesAndClose();
 
         // read contents of the file with cache, this will incur a cache miss
         final ByteArrayResource fileBytesCacheMiss = new ByteArrayResource();
@@ -164,9 +182,9 @@ public class CachingTests
 
         // read contents of the file with cache2, this will incur a cache miss
         final ByteArrayResource fileBytesCacheMiss2 = new ByteArrayResource();
-        fileBytesCacheMiss2.copyFrom(resourceCache2.get(resourceUri).get());
+        fileBytesCacheMiss2.copyFrom(resourceCache2.get(resourceUri2).get());
         final byte[] fileBytesCacheMissArray2 = fileBytesCacheMiss2.readBytesAndClose();
-        Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheMissArray2);
+        Assert.assertArrayEquals(originalFileBytesArray2, fileBytesCacheMissArray2);
 
         // read contents again, this time with a cache hit
         final ByteArrayResource fileBytesCacheHit = new ByteArrayResource();
@@ -176,9 +194,9 @@ public class CachingTests
 
         // read contents again, this time with a cache2 hit
         final ByteArrayResource fileBytesCacheHit2 = new ByteArrayResource();
-        fileBytesCacheHit2.copyFrom(resourceCache2.get(resourceUri).get());
+        fileBytesCacheHit2.copyFrom(resourceCache2.get(resourceUri2).get());
         final byte[] fileBytesCacheHitArray2 = fileBytesCacheHit2.readBytesAndClose();
-        Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheHitArray2);
+        Assert.assertArrayEquals(originalFileBytesArray2, fileBytesCacheHitArray2);
 
         resourceCache.invalidate();
         resourceCache2.invalidate();
