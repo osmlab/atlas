@@ -64,6 +64,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.vividsolutions.jts.algorithm.distance.DiscreteHausdorffDistance;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
@@ -482,7 +483,9 @@ public class CountryBoundaryMap implements Serializable
      */
     void readFromAtlas(final Atlas atlas)
     {
-        for (final ComplexBoundary complexBoundary : new ComplexBoundaryFinder().find(atlas))
+        final Iterable<ComplexBoundary> deduplicatedComplexBoundaries = resolveOverlappingBorders(
+                new ComplexBoundaryFinder().find(atlas));
+        for (final ComplexBoundary complexBoundary : deduplicatedComplexBoundaries)
         {
             if (complexBoundary.hasCountryCode())
             {
@@ -1116,6 +1119,55 @@ public class CountryBoundaryMap implements Serializable
                             + "Please check the input used for boundary generation.",
                     countriesWithoutGrids);
         }
+    }
+
+    /**
+     * Filters the given iterable of {@link ComplexBoundary}s to only allow a single country to
+     * claim an outer boundary polygon.
+     *
+     * @param complexBoundaries
+     *            The {@link ComplexBoundary}s to filter duplicate polygons from
+     * @return An iterable of {@link ComplexBoundary} with no duplicate outer polygons
+     */
+    public Iterable<ComplexBoundary> resolveOverlappingBorders(
+            final Iterable<ComplexBoundary> complexBoundaries)
+    {
+        final List<ComplexBoundary> deduplicatedComplexBoundaries = new ArrayList<>();
+        final Set<org.openstreetmap.atlas.geography.Polygon> processedOuters = new HashSet<>();
+        final List<ComplexBoundary> complexBoundaryList = Lists.newArrayList(complexBoundaries);
+        Collections.sort(complexBoundaryList, (firstBoundary, secondBoundary) ->
+        {
+            if (firstBoundary.getIdentifier() > secondBoundary.getIdentifier())
+            {
+                return 1;
+            }
+            else if (secondBoundary.getIdentifier() > firstBoundary.getIdentifier())
+            {
+                return -1;
+            }
+            return 0;
+        });
+        for (final ComplexBoundary currentComplexBoundary : complexBoundaryList)
+        {
+            final MultiPolygon outline = currentComplexBoundary.getOutline();
+            if (outline != null)
+            {
+                for (final org.openstreetmap.atlas.geography.Polygon outer : outline.outers())
+                {
+                    if (processedOuters.contains(outer))
+                    {
+                        currentComplexBoundary.removeOuter(outer);
+                    }
+                    // ensures that the outer is only claimed once it has been assigned to a country
+                    else if (Lists.newArrayList(currentComplexBoundary.getCountries()).size() > 0)
+                    {
+                        processedOuters.add(outer);
+                    }
+                }
+                deduplicatedComplexBoundaries.add(currentComplexBoundary);
+            }
+        }
+        return deduplicatedComplexBoundaries;
     }
 
     public void setShouldAlwaysSlicePredicate(final Predicate<Taggable> shouldAlwaysSlicePredicate)

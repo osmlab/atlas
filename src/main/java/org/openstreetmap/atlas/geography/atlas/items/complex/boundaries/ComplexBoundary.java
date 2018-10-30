@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolygon;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -27,6 +28,7 @@ import org.openstreetmap.atlas.tags.names.NameTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
+import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,6 +120,23 @@ public class ComplexBoundary extends ComplexEntity
     public boolean hasCountryCode()
     {
         return isValid() && Iterables.size(this.countries) > 0;
+    }
+
+    public void removeOuter(final Polygon outerToRemove)
+    {
+        final MultiMap<Polygon, Polygon> outersToInners = new MultiMap<>();
+        this.outline.outers().forEach(outer ->
+        {
+            final List<Polygon> innersForThisOuter = this.outline.innersOf(outer);
+            outersToInners.put(outer, innersForThisOuter);
+        });
+        outersToInners.remove(outerToRemove);
+        setOutline(new MultiPolygon(outersToInners));
+    }
+
+    public void setOutline(final MultiPolygon outline)
+    {
+        this.outline = outline;
     }
 
     @Override

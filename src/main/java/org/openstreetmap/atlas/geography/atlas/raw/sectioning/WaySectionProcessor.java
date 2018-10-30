@@ -31,8 +31,8 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.WaySectionIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.store.PbfOneWay;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryEdge;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryNode;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryEdge;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryNode;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.tags.AtlasTag;
@@ -71,6 +71,7 @@ public class WaySectionProcessor
     private static final String STARTED_TASK_MESSAGE = "Started {} for Shard {}";
     private static final String COMPLETED_TASK_MESSAGE = "Finished {} for Shard {} in {}";
     private static final String SHARD_SPECIFIC_COMPLETED_TASK_MESSAGE = "While processing shard {}, finished {} for shard {} in {}";
+    private static final String RELATION_MEMBER_EXCLUSION_MESSAGE = "Excluding {} {} from Relation {} since this member is not in the Atlas";
     private static final String WAY_SECTIONING_TASK = "Way-Sectioning";
     private static final String ATLAS_FETCHING_TASK = "Atlas-Fetching";
     private static final String SUB_ATLAS_CUTTING_TASK = "Sub-Atlas Cutting";
@@ -373,8 +374,7 @@ public class WaySectionProcessor
                         }
                         else
                         {
-                            logger.debug(
-                                    "Excluding Point {} from Relation {} since it's no longer in the Atlas",
+                            logger.debug(RELATION_MEMBER_EXCLUSION_MESSAGE, ItemType.POINT,
                                     memberIdentifier, relation.getIdentifier());
                         }
                         break;
@@ -404,13 +404,20 @@ public class WaySectionProcessor
                         }
                         else
                         {
-                            logger.debug(
-                                    "Excluding Line {} from Relation {} since it's no longer in the Atlas",
+                            logger.debug(RELATION_MEMBER_EXCLUSION_MESSAGE, ItemType.LINE,
                                     memberIdentifier, relation.getIdentifier());
                         }
                         break;
                     case RELATION:
-                        bean.addItem(memberIdentifier, memberRole, ItemType.RELATION);
+                        if (builder.peek().relation(memberIdentifier) != null)
+                        {
+                            bean.addItem(memberIdentifier, memberRole, ItemType.RELATION);
+                        }
+                        else
+                        {
+                            logger.debug(RELATION_MEMBER_EXCLUSION_MESSAGE, ItemType.RELATION,
+                                    memberIdentifier, relation.getIdentifier());
+                        }
                         break;
                     default:
                         throw new CoreException("Unsupported relation member type in Raw Atlas, {}",

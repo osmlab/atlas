@@ -1,5 +1,9 @@
 import org.gradle.plugins.signing.Sign
 
+nexusStaging {
+    delayBetweenRetriesInMillis = 5000
+}
+
 gradle.taskGraph.whenReady { taskGraph ->
     if (taskGraph.allTasks.any { it instanceof Sign }) {
         allprojects { ext."signing.keyId" = System.getenv('GPG_KEY_ID') }

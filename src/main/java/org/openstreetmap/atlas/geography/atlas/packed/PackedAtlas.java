@@ -67,8 +67,8 @@ public final class PackedAtlas extends AbstractAtlas
      */
     public enum AtlasSerializationFormat
     {
-        JAVA,
         PROTOBUF,
+        JAVA
     }
 
     private static final long serialVersionUID = -7582554057580336684L;
@@ -127,8 +127,8 @@ public final class PackedAtlas extends AbstractAtlas
     private transient PackedAtlasSerializer serializer;
 
     // Serialization formats for saving/loading this PackedAtlas
-    private AtlasSerializationFormat saveSerializationFormat = AtlasSerializationFormat.JAVA;
-    private AtlasSerializationFormat loadSerializationFormat = AtlasSerializationFormat.JAVA;
+    private AtlasSerializationFormat saveSerializationFormat = AtlasSerializationFormat.PROTOBUF;
+    private AtlasSerializationFormat loadSerializationFormat = AtlasSerializationFormat.PROTOBUF;
 
     // Meta-Data
     private AtlasMetaData metaData = new AtlasMetaData();
@@ -1114,12 +1114,6 @@ public final class PackedAtlas extends AbstractAtlas
     protected AtlasSerializationFormat getLoadSerializationFormat()
     {
         return this.loadSerializationFormat;
-    }
-
-    @Override
-    protected Logger getLogger()
-    {
-        return logger;
     }
 
     protected Optional<PackedAtlasSerializer> getSerializer()

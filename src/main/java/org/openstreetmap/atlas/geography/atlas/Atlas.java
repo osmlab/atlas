@@ -189,6 +189,19 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<AtlasEntity> entities();
 
     /**
+     * Return all the {@link AtlasEntity}s of a specific type
+     *
+     * @param type
+     *            The type to restrain to
+     * @param memberClass
+     *            The class of the member
+     * @param <M>
+     *            The AtlasEntity type
+     * @return All the {@link AtlasEntity}s of a specific type
+     */
+    <M extends AtlasEntity> Iterable<M> entities(ItemType type, Class<M> memberClass);
+
+    /**
      * Return all the {@link AtlasEntity}s matching a {@link Predicate}.
      *
      * @param matcher

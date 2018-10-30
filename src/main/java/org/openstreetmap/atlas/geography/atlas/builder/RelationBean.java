@@ -3,8 +3,10 @@ package org.openstreetmap.atlas.geography.atlas.builder;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * @author matthieun
@@ -29,6 +31,26 @@ public class RelationBean implements Serializable
         this.memberIdentifiers.add(identifier);
         this.memberRoles.add(role);
         this.memberTypes.add(itemType);
+    }
+
+    @Override
+    public boolean equals(final Object other)
+    {
+        if (other instanceof RelationBean)
+        {
+            final RelationBean that = (RelationBean) other;
+            return Iterables.equals(this.getMemberIdentifiers(), that.getMemberIdentifiers())
+                    && Iterables.equals(this.getMemberRoles(), that.getMemberRoles())
+                    && Iterables.equals(this.getMemberTypes(), that.getMemberTypes());
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(this.getMemberIdentifiers(), this.getMemberRoles(),
+                this.getMemberTypes());
     }
 
     public List<Long> getMemberIdentifiers()

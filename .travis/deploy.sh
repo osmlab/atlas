@@ -8,6 +8,8 @@ then
 	./gradlew uploadArchives
 	if [ "$MANUAL_RELEASE_TRIGGERED" = "true" ];
 	then
+		## Sleep 20s to give Travis enough time to wrap the upload step
+		sleep 20
 		echo "Promote repository"
 		./gradlew closeAndReleaseRepository
 		#python -m pip install --user --upgrade twine
