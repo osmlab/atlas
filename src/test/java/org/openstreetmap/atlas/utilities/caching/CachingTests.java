@@ -13,6 +13,7 @@ import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.utilities.caching.strategies.ByteArrayCachingStrategy;
 import org.openstreetmap.atlas.utilities.caching.strategies.CachingStrategy;
 import org.openstreetmap.atlas.utilities.caching.strategies.GlobalNamespaceCachingStrategy;
+import org.openstreetmap.atlas.utilities.caching.strategies.NamespaceCachingStrategy;
 import org.openstreetmap.atlas.utilities.caching.strategies.NoCachingStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,6 +130,60 @@ public class CachingTests
         cache.invalidate();
     }
 
+    @Test
+    public void testMultipleNamespaceCaches()
+    {
+        final ConcurrentResourceCache resourceCache = new ConcurrentResourceCache(
+                new NamespaceCachingStrategy("namespace1"), this::fetchLocalFileResource);
+        final ConcurrentResourceCache resourceCache2 = new ConcurrentResourceCache(
+                new NamespaceCachingStrategy("namespace2"), this::fetchLocalFileResource);
+
+        URI resourceUri;
+        try
+        {
+            resourceUri = CachingTests.class.getResource(FEATURE_JSON).toURI();
+        }
+        catch (final URISyntaxException exception)
+        {
+            logger.error("{}", exception);
+            resourceUri = null;
+            Assert.fail();
+        }
+
+        // read the contents of the file
+        final ByteArrayResource originalFileBytes = new ByteArrayResource();
+        originalFileBytes.copyFrom(new InputStreamResource(
+                () -> CachingTests.class.getResourceAsStream(FEATURE_JSON)));
+        final byte[] originalFileBytesArray = originalFileBytes.readBytesAndClose();
+
+        // read contents of the file with cache, this will incur a cache miss
+        final ByteArrayResource fileBytesCacheMiss = new ByteArrayResource();
+        fileBytesCacheMiss.copyFrom(resourceCache.get(resourceUri).get());
+        final byte[] fileBytesCacheMissArray = fileBytesCacheMiss.readBytesAndClose();
+        Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheMissArray);
+
+        // read contents of the file with cache2, this will incur a cache miss
+        final ByteArrayResource fileBytesCacheMiss2 = new ByteArrayResource();
+        fileBytesCacheMiss2.copyFrom(resourceCache2.get(resourceUri).get());
+        final byte[] fileBytesCacheMissArray2 = fileBytesCacheMiss2.readBytesAndClose();
+        Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheMissArray2);
+
+        // read contents again, this time with a cache hit
+        final ByteArrayResource fileBytesCacheHit = new ByteArrayResource();
+        fileBytesCacheHit.copyFrom(resourceCache.get(resourceUri).get());
+        final byte[] fileBytesCacheHitArray = fileBytesCacheHit.readBytesAndClose();
+        Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheHitArray);
+
+        // read contents again, this time with a cache2 hit
+        final ByteArrayResource fileBytesCacheHit2 = new ByteArrayResource();
+        fileBytesCacheHit2.copyFrom(resourceCache2.get(resourceUri).get());
+        final byte[] fileBytesCacheHitArray2 = fileBytesCacheHit2.readBytesAndClose();
+        Assert.assertArrayEquals(originalFileBytesArray, fileBytesCacheHitArray2);
+
+        resourceCache.invalidate();
+        resourceCache2.invalidate();
+    }
+
     private Optional<Resource> fetchLocalFileResource(final URI resourceURI)
     {
         final String filePath = resourceURI.getPath();
@@ -137,7 +192,7 @@ public class CachingTests
 
     private void testBaseCacheWithGivenStrategy(final CachingStrategy strategy)
     {
-        logger.info("Testing with caching strategy {}", strategy.getName());
+        logger.trace("Testing with caching strategy {}", strategy.getName());
 
         final ConcurrentResourceCache resourceCache = new ConcurrentResourceCache(strategy,
                 this::fetchLocalFileResource);
