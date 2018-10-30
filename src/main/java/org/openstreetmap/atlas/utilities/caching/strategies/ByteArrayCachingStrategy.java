@@ -38,33 +38,45 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
 
     @Override
     public Optional<Resource> attemptFetch(final URI resourceURI,
-            final Function<URI, Resource> defaultFetcher)
+            final Function<URI, Optional<Resource>> defaultFetcher)
     {
         final UUID resourceUUID = this.getUUIDForResourceURI(resourceURI);
 
         if (!this.resourceCache.containsKey(resourceUUID))
         {
-            logger.info("Attempting to cache resource {} in byte array keyed on UUID {}",
-                    resourceURI, resourceUUID.toString());
-            final Resource resource = defaultFetcher.apply(resourceURI);
+            logger.trace(
+                    "StrategyID {}: attempting to cache resource {} in byte array keyed on UUID {}",
+                    this.getStrategyID(), resourceURI, resourceUUID.toString());
+
+            final Optional<Resource> resource = defaultFetcher.apply(resourceURI);
+            if (!resource.isPresent())
+            {
+                logger.warn(
+                        "StrategyID {}: application of default fetcher for {} returned empty Optional!",
+                        this.getStrategyID(), resourceURI);
+                return Optional.empty();
+            }
+
             final ByteArrayResource resourceBytes;
             if (this.useExactResourceSize)
             {
-                final long resourceLength = resource.length();
-                logger.info("Using extact resource length {}", resourceLength);
+                final long resourceLength = resource.get().length();
+                logger.trace("StrategyID {}: using extact resource length {}", this.getStrategyID(),
+                        resourceLength);
                 resourceBytes = new ByteArrayResource(resourceLength);
             }
             else
             {
-                logger.info("Using initial array size {}", this.initialArraySize);
+                logger.trace("StrategyID {}: using initial array size {}", this.getStrategyID(),
+                        this.initialArraySize);
                 resourceBytes = new ByteArrayResource(this.initialArraySize);
             }
-            resourceBytes.writeAndClose(resource.readBytesAndClose());
+            resourceBytes.writeAndClose(resource.get().readBytesAndClose());
             this.resourceCache.put(resourceUUID, resourceBytes);
         }
 
-        logger.info("Returning cached resource {} from byte array keyed on UUID {}", resourceURI,
-                resourceUUID.toString());
+        logger.trace("StrategyID {}: returning cached resource {} from byte array keyed on UUID {}",
+                this.getStrategyID(), resourceURI, resourceUUID.toString());
         return Optional.of(this.resourceCache.get(resourceUUID));
     }
 
@@ -78,6 +90,13 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
     public void invalidate()
     {
         this.resourceCache.clear();
+    }
+
+    @Override
+    public void invalidate(final URI resourceURI)
+    {
+        final UUID resourceUUID = this.getUUIDForResourceURI(resourceURI);
+        this.resourceCache.remove(resourceUUID);
     }
 
     /**
