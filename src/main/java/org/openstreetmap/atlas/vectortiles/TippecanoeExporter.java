@@ -105,7 +105,8 @@ public final class TippecanoeExporter extends LineDelimitedGeoJsonConverter
                 }
                 else
                 {
-                    logger.error("Your version of tippecanoe is too old! The minimum version is {}", TippecanoeSettings.MIN_VERSION);
+                    logger.error("Your version of tippecanoe is too old! The minimum version is {}",
+                            TippecanoeSettings.MIN_VERSION);
                 }
             }
 

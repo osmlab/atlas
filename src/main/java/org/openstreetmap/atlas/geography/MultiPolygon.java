@@ -11,8 +11,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import org.openstreetmap.atlas.geography.clipping.Clip;
 import org.openstreetmap.atlas.geography.clipping.Clip.ClipType;
 import org.openstreetmap.atlas.geography.converters.MultiPolygonStringConverter;
@@ -31,6 +29,9 @@ import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * Multiple {@link Polygon}s some inner, some outer.
@@ -91,8 +92,7 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
     /**
      * Creates a JsonObject with GeoJSON geometry representing this multi-polygon.
      *
-     * @return
-     *      A JsonObject with GeoJSON geometry
+     * @return A JsonObject with GeoJSON geometry
      */
     public JsonObject asGeoJsonGeometry()
     {
@@ -109,12 +109,14 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
             final List<Polygon> inners = entry.getValue();
 
             final JsonArray polygon = new JsonArray();
-            final JsonArray outerRingCoordinates = GeoJsonUtils.locationsToCoordinates(outer.closedLoop());
+            final JsonArray outerRingCoordinates = GeoJsonUtils
+                    .locationsToCoordinates(outer.closedLoop());
             polygon.add(outerRingCoordinates);
 
             for (final Polygon inner : inners)
             {
-                final JsonArray innerRingCoordinates = GeoJsonUtils.locationsToCoordinates(inner.closedLoop());
+                final JsonArray innerRingCoordinates = GeoJsonUtils
+                        .locationsToCoordinates(inner.closedLoop());
                 polygon.add(innerRingCoordinates);
             }
         }

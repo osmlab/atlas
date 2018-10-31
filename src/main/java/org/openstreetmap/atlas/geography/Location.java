@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography;
 
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonUtils.coordinate;
+
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.io.Serializable;
@@ -16,11 +18,7 @@ import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-
-import static org.openstreetmap.atlas.geography.geojson.GeoJsonUtils.coordinate;
 
 /**
  * Location on the surface of the earth

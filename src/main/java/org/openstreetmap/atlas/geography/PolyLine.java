@@ -40,7 +40,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 /**
  * A PolyLine is a set of {@link Location}s in a specific order

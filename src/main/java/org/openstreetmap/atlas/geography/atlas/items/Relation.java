@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.items;
 
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonUtils.boundsToPolygonGeometry;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Deque;
@@ -13,8 +15,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonPrimitive;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Located;
@@ -36,8 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
-
-import static org.openstreetmap.atlas.geography.geojson.GeoJsonUtils.boundsToPolygonGeometry;
 
 /**
  * An OSM relation
@@ -280,14 +278,16 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         final JsonObject geometry;
 
         // We should only be writing relations as GeoJSON when they are polygons and multipolygons.
-        // We want multipolygons, but not boundaries, as we can render boundaries' ways by themselves fine.
+        // We want multipolygons, but not boundaries, as we can render boundaries' ways by
+        // themselves fine.
         // The isMultiPolygon method also includes boundaries, which we do not want.
         if (Validators.isOfType(this, RelationTypeTag.class, RelationTypeTag.MULTIPOLYGON))
         {
             final MultiPolygon multiPolygon = MULTI_POLYGON_CONVERTER.convert(this);
             geometry = multiPolygon.asGeoJsonGeometry();
         }
-        // Otherwise, we'll fall back to just providing the properties of the relation with the bounding box
+        // Otherwise, we'll fall back to just providing the properties of the relation with the
+        // bounding box
         // as a polygon geometry.
         else
         {
