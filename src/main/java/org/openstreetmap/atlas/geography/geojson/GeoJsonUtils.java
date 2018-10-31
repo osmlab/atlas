@@ -86,8 +86,8 @@ public final class GeoJsonUtils
     public static JsonArray coordinate(final double longitude, final double latitude)
     {
         final JsonArray coordinate = new JsonArray();
-        coordinate.add(new JsonPrimitive(latitude));
         coordinate.add(new JsonPrimitive(longitude));
+        coordinate.add(new JsonPrimitive(latitude));
         return coordinate;
     }
 }

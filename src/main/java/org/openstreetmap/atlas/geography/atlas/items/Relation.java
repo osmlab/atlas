@@ -26,6 +26,7 @@ import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
+import org.openstreetmap.atlas.geography.converters.MultiplePolyLineToPolygonsConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
@@ -266,6 +267,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     public JsonObject asGeoJsonFeature()
     {
         final JsonObject feature = new JsonObject();
+        feature.addProperty("type", "Feature");
 
         final JsonObject properties = new JsonObject();
         final Map<String, String> tags = getTags();
@@ -275,7 +277,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         properties.addProperty("itemType", String.valueOf(getType()));
         feature.add("properties", properties);
 
-        final JsonObject geometry;
+        JsonObject geometry;
 
         // We should only be writing relations as GeoJSON when they are polygons and multipolygons.
         // We want multipolygons, but not boundaries, as we can render boundaries' ways by
@@ -283,8 +285,19 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         // The isMultiPolygon method also includes boundaries, which we do not want.
         if (Validators.isOfType(this, RelationTypeTag.class, RelationTypeTag.MULTIPOLYGON))
         {
-            final MultiPolygon multiPolygon = MULTI_POLYGON_CONVERTER.convert(this);
-            geometry = multiPolygon.asGeoJsonGeometry();
+            try
+            {
+                final MultiPolygon multiPolygon = MULTI_POLYGON_CONVERTER.convert(this);
+                geometry = multiPolygon.asGeoJsonGeometry();
+            }
+            // It seems like we get caught in this exception a lot! We don't ingest coastline features,
+            // so polygons that touch coastlines will fail.
+            catch (final MultiplePolyLineToPolygonsConverter.OpenPolygonException exception)
+            {
+                final String message = String.format("%s - %s", exception.getClass().getSimpleName(), exception.getMessage());
+                properties.addProperty("exception", message);
+                geometry = boundsToPolygonGeometry(bounds());
+            }
         }
         // Otherwise, we'll fall back to just providing the properties of the relation with the
         // bounding box
