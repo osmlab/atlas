@@ -11,6 +11,11 @@ public class HelloWorldSubcommand extends AbstractOSMSubcommand
 {
     private static final Logger logger = LoggerFactory.getLogger(HelloWorldSubcommand.class);
 
+    public static void main(final String[] args)
+    {
+        new HelloWorldSubcommand().runSubcommandAndExit(args);
+    }
+
     @Override
     public int execute()
     {
@@ -21,5 +26,17 @@ public class HelloWorldSubcommand extends AbstractOSMSubcommand
         logger.error("ERROR message");
         System.out.println("Hello, world!");
         return 0;
+    }
+
+    @Override
+    public String getName()
+    {
+        return "HelloWorld";
+    }
+
+    @Override
+    public String getSimpleDescription()
+    {
+        return "a simple subcommand that prints \"Hello, world!\" and exits";
     }
 }
