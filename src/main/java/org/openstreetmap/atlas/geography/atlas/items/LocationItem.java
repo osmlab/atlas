@@ -45,7 +45,7 @@ public abstract class LocationItem extends AtlasItem
 
         feature.add("properties", properties);
 
-        final JsonObject geometry = getLocation().getJsonGeometry();
+        final JsonObject geometry = getLocation().asGeoJsonGeometry();
         feature.add("geometry", geometry);
 
         return feature;

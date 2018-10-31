@@ -46,7 +46,7 @@ public abstract class Area extends AtlasItem
 
         feature.add("properties", properties);
 
-        final JsonObject geometry = asPolygon().getJsonGeometry();
+        final JsonObject geometry = asPolygon().asGeoJsonGeometry();
         feature.add("geometry", geometry);
 
         return feature;

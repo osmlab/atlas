@@ -15,6 +15,7 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.scalars.Angle;
@@ -284,22 +285,15 @@ public class Polygon extends PolyLine implements GeometricSurface
     }
 
     @Override
-    public JsonObject getJsonGeometry()
+    public JsonObject asGeoJsonGeometry()
     {
         final JsonObject geometry = new JsonObject();
         geometry.addProperty("type", "Polygon");
 
         final JsonArray coordinates = new JsonArray();
         geometry.add("coordinates", coordinates);
-        final JsonArray subCoordinatesArray = new JsonArray();
+        final JsonArray subCoordinatesArray = GeoJsonUtils.locationsToCoordinates(closedLoop());
         coordinates.add(subCoordinatesArray);
-        for (final Location point : this.closedLoop())
-        {
-            final JsonArray coordinate = new JsonArray();
-            coordinate.add(new JsonPrimitive(point.getLongitude().asDegrees()));
-            coordinate.add(new JsonPrimitive(point.getLatitude().asDegrees()));
-            subCoordinatesArray.add(coordinate);
-        }
 
         return geometry;
     }

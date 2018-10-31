@@ -152,7 +152,7 @@ public abstract class LineItem extends AtlasItem
 
         feature.add("properties", properties);
 
-        final JsonObject geometry = asPolyLine().getJsonGeometry();
+        final JsonObject geometry = asPolyLine().asGeoJsonGeometry();
         feature.add("geometry", geometry);
 
         return feature;

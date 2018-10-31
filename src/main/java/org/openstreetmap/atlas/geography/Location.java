@@ -20,6 +20,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonUtils.coordinate;
+
 /**
  * Location on the surface of the earth
  *
@@ -249,15 +251,12 @@ public class Location implements Located, Iterable<Location>, Serializable
         return Distance.AVERAGE_EARTH_RADIUS.scaleBy(Math.sqrt(xAxis * xAxis + yAxis * yAxis));
     }
 
-    public JsonObject getJsonGeometry()
+    public JsonObject asGeoJsonGeometry()
     {
         final JsonObject geometry = new JsonObject();
         geometry.addProperty("type", "Point");
 
-        final JsonArray coordinates = new JsonArray();
-        geometry.add("coordinates", coordinates);
-        coordinates.add(new JsonPrimitive(this.getLongitude().asDegrees()));
-        coordinates.add(new JsonPrimitive(this.getLatitude().asDegrees()));
+        geometry.add("coordinates", coordinate(this));
 
         return geometry;
     }

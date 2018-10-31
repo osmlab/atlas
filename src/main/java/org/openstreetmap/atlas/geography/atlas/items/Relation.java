@@ -13,6 +13,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonPrimitive;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Located;
@@ -21,6 +23,7 @@ import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
@@ -33,6 +36,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
+
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonUtils.boundsToPolygonGeometry;
 
 /**
  * An OSM relation
@@ -59,6 +64,8 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     public static final Comparator<Relation> RELATION_ID_COMPARATOR = (final Relation relation1,
             final Relation relation2) -> Long.compare(relation1.getIdentifier(),
                     relation2.getIdentifier());
+
+    private static final RelationOrAreaToMultiPolygonConverter MULTI_POLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter();
 
     protected Relation(final Atlas atlas)
     {
@@ -260,11 +267,36 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     @Override
     public JsonObject asGeoJsonFeature()
     {
-        final JsonObject jsonObject = new JsonObject();
+        final JsonObject feature = new JsonObject();
 
-        jsonObject.addProperty("relation", "helloworld");
+        final JsonObject properties = new JsonObject();
+        final Map<String, String> tags = getTags();
+        tags.forEach(properties::addProperty);
+        properties.addProperty("identifier", getIdentifier());
+        properties.addProperty("osmIdentifier", getOsmIdentifier());
+        properties.addProperty("itemType", String.valueOf(getType()));
+        feature.add("properties", properties);
 
-        return jsonObject;
+        final JsonObject geometry;
+
+        // We should only be writing relations as GeoJSON when they are polygons and multipolygons.
+        // We want multipolygons, but not boundaries, as we can render boundaries' ways by themselves fine.
+        // The isMultiPolygon method also includes boundaries, which we do not want.
+        if (Validators.isOfType(this, RelationTypeTag.class, RelationTypeTag.MULTIPOLYGON))
+        {
+            final MultiPolygon multiPolygon = MULTI_POLYGON_CONVERTER.convert(this);
+            geometry = multiPolygon.asGeoJsonGeometry();
+        }
+        // Otherwise, we'll fall back to just providing the properties of the relation with the bounding box
+        // as a polygon geometry.
+        else
+        {
+            geometry = boundsToPolygonGeometry(bounds());
+        }
+
+        feature.add("geometry", geometry);
+
+        return feature;
     }
 
     public String toSimpleString()
