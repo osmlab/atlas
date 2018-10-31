@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * An incomplete implementation of the {@link CachingStrategy} interface. Provides some additional
  * functionality for subclasses to leverage.
@@ -13,6 +16,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public abstract class AbstractCachingStrategy implements CachingStrategy
 {
+    private static final Logger logger = LoggerFactory.getLogger(AbstractCachingStrategy.class);
+
     /*
      * Cache the UUIDs for each URI so we only have to compute them once. Caching them in a
      * comparatively small map is significantly faster than recomputing them every time. Subclasses
@@ -26,6 +31,8 @@ public abstract class AbstractCachingStrategy implements CachingStrategy
     {
         this.uriStringToUUIDCache = new ConcurrentHashMap<>();
         this.strategyID = UUID.randomUUID();
+        logger.info("Initialized strategy {} with ID {}", this.getClass().getName(),
+                this.strategyID);
     }
 
     /**
