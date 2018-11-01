@@ -138,8 +138,6 @@ public class AtlasStatisticsTest
         final Atlas atlas = this.rule.getWaterAtlas();
         final AtlasStatistics statistics = new Counter().processAtlas(atlas);
 
-        System.out.print(atlas);
-
         // Rivers
         Assert.assertEquals(6.0, statistics.get(new StatisticKey("", "rivers", "true")).getCount(),
                 0.01);
