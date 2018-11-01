@@ -90,8 +90,7 @@ public final class GeoJsonUtils
      *            The longitude (x).
      * @param latitude
      *            The latitude (y).
-     * @return
-     *            JsonArray [ longitude, latitude ] coordinate.
+     * @return JsonArray [ longitude, latitude ] coordinate.
      */
     public static JsonArray coordinate(final double longitude, final double latitude)
     {

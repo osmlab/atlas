@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography;
 
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonUtils.locationsToCoordinates;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,7 +20,6 @@ import org.openstreetmap.atlas.geography.converters.WktMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.geography.index.RTree;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.streaming.writers.JsonWriter;
@@ -110,14 +111,12 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
             final List<Polygon> inners = entry.getValue();
 
             final JsonArray polygon = new JsonArray();
-            final JsonArray outerRingCoordinates = GeoJsonUtils
-                    .locationsToCoordinates(outer.closedLoop());
+            final JsonArray outerRingCoordinates = locationsToCoordinates(outer.closedLoop());
             polygon.add(outerRingCoordinates);
 
             for (final Polygon inner : inners)
             {
-                final JsonArray innerRingCoordinates = GeoJsonUtils
-                        .locationsToCoordinates(inner.closedLoop());
+                final JsonArray innerRingCoordinates = locationsToCoordinates(inner.closedLoop());
                 polygon.add(innerRingCoordinates);
             }
         }

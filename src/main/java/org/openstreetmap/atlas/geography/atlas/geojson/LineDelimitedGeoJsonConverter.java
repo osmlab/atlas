@@ -69,11 +69,12 @@ public class LineDelimitedGeoJsonConverter extends Command
 
     /**
      * We only want positive edges, because the negative edge can be derived at the application
-     * level, and this encodes extraneous data that can be easily derived by the map viewer.
-     * For relations, we only want multipolygon relations, as the rest can be derived from
-     * their members.
+     * level, and this encodes extraneous data that can be easily derived by the map viewer. For
+     * relations, we only want multipolygon relations, as the rest can be derived from their
+     * members.
      */
-    private static final Predicate<AtlasEntity> PREDICATE = atlasEntity -> {
+    private static final Predicate<AtlasEntity> PREDICATE = atlasEntity ->
+    {
         // We only want positive atlas entities. No negative ids.
         if (atlasEntity.getIdentifier() < 0)
         {
@@ -83,7 +84,8 @@ public class LineDelimitedGeoJsonConverter extends Command
         // We only want multipolygon relations
         if (ItemType.RELATION.equals(atlasEntity.getType()))
         {
-            return Validators.isOfType(atlasEntity, RelationTypeTag.class, RelationTypeTag.MULTIPOLYGON);
+            return Validators.isOfType(atlasEntity, RelationTypeTag.class,
+                    RelationTypeTag.MULTIPOLYGON);
         }
 
         return true;
