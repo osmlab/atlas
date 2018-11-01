@@ -1,7 +1,5 @@
 package org.openstreetmap.atlas.geography;
 
-import static org.openstreetmap.atlas.geography.geojson.GeoJsonUtils.locationsToCoordinates;
-
 import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -17,6 +15,7 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.scalars.Angle;
@@ -292,7 +291,7 @@ public class Polygon extends PolyLine implements GeometricSurface
 
         final JsonArray coordinates = new JsonArray();
         geometry.add("coordinates", coordinates);
-        final JsonArray subCoordinatesArray = locationsToCoordinates(closedLoop());
+        final JsonArray subCoordinatesArray = GeoJsonUtils.locationsToCoordinates(closedLoop());
         coordinates.add(subCoordinatesArray);
 
         return geometry;

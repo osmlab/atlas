@@ -1,7 +1,5 @@
 package org.openstreetmap.atlas.geography;
 
-import static org.openstreetmap.atlas.geography.geojson.GeoJsonUtils.locationsToCoordinates;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,6 +24,7 @@ import org.openstreetmap.atlas.geography.converters.WktPolyLineConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.geography.matching.PolyLineMatch;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.streaming.writers.JsonWriter;
@@ -510,7 +509,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     {
         final JsonObject geometry = new JsonObject();
         geometry.addProperty("type", "LineString");
-        geometry.add("coordinates", locationsToCoordinates(this.points));
+        geometry.add("coordinates", GeoJsonUtils.locationsToCoordinates(this.points));
         return geometry;
     }
 
