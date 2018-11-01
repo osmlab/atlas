@@ -84,9 +84,9 @@ public abstract class AbstractAtlas extends BareAtlas
     public static Atlas createAndSaveOsmPbf(final Resource osmPbf,
             final WritableResource atlasResource)
     {
-        final Atlas rawAtlas = new RawAtlasGenerator(osmPbf).build();
-        final Atlas atlas = new WaySectionProcessor(rawAtlas,
-                AtlasLoadingOption.createOptionWithNoSlicing()).run();
+        Atlas atlas = new RawAtlasGenerator(osmPbf).build();
+        atlas = new WaySectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
+                .run();
         atlas.save(atlasResource);
         return atlas;
     }
@@ -106,10 +106,10 @@ public abstract class AbstractAtlas extends BareAtlas
     public static Atlas createAndSaveOsmPbfWithSlicing(final Resource osmPbf,
             final WritableResource atlasResource, final CountryBoundaryMap boundaryMap)
     {
-        final Atlas rawAtlas = new RawAtlasGenerator(osmPbf).build();
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer(boundaryMap.getLoadedCountries(),
-                boundaryMap).slice(rawAtlas);
-        final Atlas atlas = new WaySectionProcessor(slicedAtlas,
+        Atlas atlas = new RawAtlasGenerator(osmPbf).build();
+        atlas = new RawAtlasCountrySlicer(boundaryMap.getLoadedCountries(), boundaryMap)
+                .slice(atlas);
+        atlas = new WaySectionProcessor(atlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
         atlas.save(atlasResource);
         return atlas;
@@ -124,9 +124,9 @@ public abstract class AbstractAtlas extends BareAtlas
      */
     public static Atlas forOsmPbf(final Resource resource)
     {
-        final Atlas rawAtlas = new RawAtlasGenerator(resource).build();
-        final Atlas atlas = new WaySectionProcessor(rawAtlas,
-                AtlasLoadingOption.createOptionWithNoSlicing()).run();
+        Atlas atlas = new RawAtlasGenerator(resource).build();
+        atlas = new WaySectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
+                .run();
         return atlas;
     }
 

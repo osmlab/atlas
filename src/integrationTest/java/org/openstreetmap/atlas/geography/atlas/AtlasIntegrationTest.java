@@ -43,11 +43,9 @@ public class AtlasIntegrationTest
                 .getPath();
         final AtlasLoadingOption loadingOption = AtlasLoadingOption.createOptionWithOnlySectioning()
                 .setLoadWaysSpanningCountryBoundaries(false);
-        Atlas atlas = new RawAtlasGenerator(new File(path), loadingOption,
+        final Atlas atlas = new RawAtlasGenerator(new File(path), loadingOption,
                 MultiPolygon.forPolygon(polygon)).build();
-        atlas = new WaySectionProcessor(atlas, loadingOption).run();
-        // sectioning results in conflicts
-        return atlas;
+        return new WaySectionProcessor(atlas, loadingOption).run();
     }
 
     protected Atlas loadBelizeRaw(final Polygon polygon,
