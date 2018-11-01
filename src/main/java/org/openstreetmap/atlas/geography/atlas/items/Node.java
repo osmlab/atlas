@@ -37,7 +37,7 @@ public abstract class Node extends LocationItem
     public JsonObject asGeoJsonFeature()
     {
         final JsonObject feature = super.asGeoJsonFeature();
-        final JsonObject properties = feature.get("properties").getAsJsonObject();
+        final JsonObject properties = feature.getAsJsonObject("properties");
 
         final JsonArray inEdgesArray = new JsonArray();
         final JsonArray outEdgesArray = new JsonArray();
@@ -52,6 +52,9 @@ public abstract class Node extends LocationItem
             outEdgesArray.add(new JsonPrimitive(edge.getIdentifier()));
         }
 
+        // Adding a JSON array with the edge IDs.
+        // In the RFC spec, nested objects are ok in properties.
+        // https://tools.ietf.org/html/rfc7946#section-1.5
         properties.add("inEdges", inEdgesArray);
         properties.add("outEdges", outEdgesArray);
 

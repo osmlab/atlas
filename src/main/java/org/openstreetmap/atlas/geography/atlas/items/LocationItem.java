@@ -31,19 +31,7 @@ public abstract class LocationItem extends AtlasItem
     @Override
     public JsonObject asGeoJsonFeature()
     {
-        final JsonObject feature = new JsonObject();
-        feature.addProperty("type", "Feature");
-
-        final JsonObject properties = new JsonObject();
-        getTags().forEach(properties::addProperty);
-        properties.addProperty("identifier", getIdentifier());
-        properties.addProperty("osmIdentifier", getOsmIdentifier());
-        properties.addProperty("itemType", String.valueOf(getType()));
-
-        final Optional<String> shardName = getAtlas().metaData().getShardName();
-        shardName.ifPresent(shard -> properties.addProperty("shard", shard));
-
-        feature.add("properties", properties);
+        final JsonObject feature = super.asGeoJsonFeature();
 
         final JsonObject geometry = getLocation().asGeoJsonGeometry();
         feature.add("geometry", geometry);

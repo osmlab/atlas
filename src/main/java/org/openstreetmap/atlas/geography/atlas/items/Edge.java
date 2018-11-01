@@ -43,7 +43,7 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
     public JsonObject asGeoJsonFeature()
     {
         final JsonObject feature = super.asGeoJsonFeature();
-        final JsonObject properties = feature.get("properties").getAsJsonObject();
+        final JsonObject properties = feature.getAsJsonObject("properties");
 
         properties.addProperty("startNode", start().getIdentifier());
         properties.addProperty("endNode", end().getIdentifier());
