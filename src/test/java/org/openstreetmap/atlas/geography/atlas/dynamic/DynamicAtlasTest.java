@@ -27,16 +27,12 @@ import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.geography.sharding.SlippyTileSharding;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author matthieun
  */
 public class DynamicAtlasTest
 {
-    private static final Logger logger = LoggerFactory.getLogger(DynamicAtlasTest.class);
-
     @Rule
     public DynamicAtlasTestRule rule = new DynamicAtlasTestRule();
 
@@ -251,7 +247,6 @@ public class DynamicAtlasTest
         final Relation relation3 = this.dynamicAtlas.relation(3);
         Assert.assertEquals(2, relation3.members().size());
         Assert.assertEquals(8, this.dynamicAtlas.numberOfEdges());
-
     }
 
     /**

@@ -40,7 +40,7 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
 /**
  * @author tony
  */
-public class OsmPbfLoaderIntegrationTest extends AtlasIntegrationTest
+public class OsmPbfIngestIntegrationTest extends AtlasIntegrationTest
 {
     @Test
     public void testAreaAndLine()
@@ -244,9 +244,9 @@ public class OsmPbfLoaderIntegrationTest extends AtlasIntegrationTest
     public void testWaysSpanningOutsideOfCountry()
     {
         final Resource pbf = new InputStreamResource(
-                () -> OsmPbfLoaderIntegrationTest.class.getResourceAsStream("CUB_72-111.pbf"));
+                () -> OsmPbfIngestIntegrationTest.class.getResourceAsStream("CUB_72-111.pbf"));
         final CountryBoundaryMap map = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(() -> OsmPbfLoaderIntegrationTest.class
+                .fromPlainText(new InputStreamResource(() -> OsmPbfIngestIntegrationTest.class
                         .getResourceAsStream("CUB_osm_boundaries.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
         final SlippyTile tile = SlippyTile.forName("8-72-111");
