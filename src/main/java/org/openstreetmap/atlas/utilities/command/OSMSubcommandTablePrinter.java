@@ -5,17 +5,17 @@ import java.util.Set;
 /**
  * @author lcram
  */
-public class OSMSubcommandClasspathScanner
+public class OSMSubcommandTablePrinter
 {
     // Use ASCII record separator as delimiter
     private static final String DELIMITER = Character.toString((char) 0x1e);
 
     public static void main(final String[] args)
     {
-        new OSMSubcommandClasspathScanner().scanAndPrintLookupTable();
+        new OSMSubcommandTablePrinter().printLookupTable();
     }
 
-    private void scanAndPrintLookupTable()
+    private void printLookupTable()
     {
         final Set<AbstractOSMSubcommand> commands = ReflectionUtilities.getSubcommandInstances();
         for (final AbstractOSMSubcommand command : commands)

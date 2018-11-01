@@ -17,19 +17,18 @@ public final class ReflectionUtilities
 {
     public static Set<AbstractOSMSubcommand> getSubcommandInstances()
     {
-        final Set<Class<? extends AbstractOSMSubcommand>> subcommandClasses = new HashSet<>();
+        final Set<Class<? extends OSMSubcommand>> subcommandClasses = new HashSet<>();
         final Set<AbstractOSMSubcommand> instantiatedCommands = new HashSet<>();
         new FastClasspathScanner()
-                .matchClassesImplementing(AbstractOSMSubcommand.class, subcommandClasses::add)
-                .scan();
+                .matchClassesImplementing(OSMSubcommand.class, subcommandClasses::add).scan();
         subcommandClasses.stream().forEach(klass ->
         {
-            final Optional<AbstractOSMSubcommand> commandOption = instantiateSubcommand(
-                    klass.getName());
-            if (commandOption.isPresent())
-            {
-                instantiatedCommands.add(commandOption.get());
-            }
+            // final Optional<AbstractOSMSubcommand> commandOption = instantiateSubcommand(
+            // klass.getName());
+            // if (commandOption.isPresent())
+            // {
+            // instantiatedCommands.add(commandOption.get());
+            // }
         });
         return instantiatedCommands;
     }
