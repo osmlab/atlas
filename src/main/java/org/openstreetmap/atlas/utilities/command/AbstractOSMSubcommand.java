@@ -31,7 +31,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
             if ("--help".equals(args[0]) || "-h".equals(args[0]))
             {
                 System.err.println(this.getHelpMenu());
-                System.exit(1);
+                System.exit(0);
             }
         }
 
