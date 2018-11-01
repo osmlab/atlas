@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 /**
  * TippecanoeGeoJsonExtension fills in a JsonObject called "tippecanoe" to your GeoJSON feature.
  * Here you can specify things like minzoom and layer name for the given feature.
+ * https://github.com/mapbox/tippecanoe/blob/master/README.md#geojson-extension
  *
  * @author hallahan
  */
