@@ -95,10 +95,8 @@ public class WaySectionProcessorIntegrationTest extends AtlasIntegrationTest
         final AbstractIdentifierFactory factory = new WaySectionIdentifierFactory(
                 PaddingIdentifierFactory.pad(reversedWay));
         Assert.assertNull(sectionedAtlas.edge(factory.getReferenceIdentifier()));
-
         final Edge firstSplit = sectionedAtlas.edge(factory.nextIdentifier());
         final Edge secondSplit = sectionedAtlas.edge(factory.nextIdentifier());
-
         Assert.assertNotNull(firstSplit);
         Assert.assertNotNull(secondSplit);
         Assert.assertEquals(nonSplit.asPolyLine().last(), secondSplit.start().getLocation());
