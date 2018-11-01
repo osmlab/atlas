@@ -39,4 +39,10 @@ public class HelloWorldSubcommand extends AbstractOSMSubcommand
     {
         return "a simple subcommand that prints \"Hello, world!\" and exits";
     }
+
+    @Override
+    public void registerOptions()
+    {
+        // TODO implement
+    }
 }

@@ -11,6 +11,8 @@ public abstract class AbstractOSMSubcommand
 
     public abstract String getSimpleDescription();
 
+    public abstract void registerOptions();
+
     protected String getHelpMenu()
     {
         final String name = this.getName();
@@ -20,10 +22,10 @@ public abstract class AbstractOSMSubcommand
 
     protected void runSubcommandAndExit(final String[] args)
     {
-        // process the args based on registered commands
         // fill out appropriate data structures so the execute() implementation can query
+        registerOptions();
 
-        // dummy HELP implementation
+        // dummy HELP option implementation
         if (args.length > 0)
         {
             if ("--help".equals(args[0]) || "-h".equals(args[0]))
