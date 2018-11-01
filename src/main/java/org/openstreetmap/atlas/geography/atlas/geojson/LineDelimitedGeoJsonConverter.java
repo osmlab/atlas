@@ -22,6 +22,8 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
+import org.openstreetmap.atlas.tags.RelationTypeTag;
+import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.runtime.Command;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 import org.openstreetmap.atlas.utilities.time.Time;
@@ -37,6 +39,7 @@ import com.google.gson.JsonObject;
  */
 public class LineDelimitedGeoJsonConverter extends Command
 {
+    // Works great on a MacBook Pro (Retina, 15-inch, Mid 2015)
     private static final int DEFAULT_THREADS = 8;
 
     /**
@@ -66,11 +69,25 @@ public class LineDelimitedGeoJsonConverter extends Command
 
     /**
      * We only want positive edges, because the negative edge can be derived at the application
-     * level, and this encodes extraneous data that can be easily derived by the map viewer. NOTE:
-     * We're temporarily disabling RELATIONS right now here too!!!!
+     * level, and this encodes extraneous data that can be easily derived by the map viewer.
+     * For relations, we only want multipolygon relations, as the rest can be derived from
+     * their members.
      */
-    private static final Predicate<AtlasEntity> POSITIVE_ONLY = atlasEntity -> atlasEntity
-            .getIdentifier() >= 0 && !ItemType.RELATION.equals(atlasEntity.getType());
+    private static final Predicate<AtlasEntity> PREDICATE = atlasEntity -> {
+        // We only want positive atlas entities. No negative ids.
+        if (atlasEntity.getIdentifier() < 0)
+        {
+            return false;
+        }
+
+        // We only want multipolygon relations
+        if (ItemType.RELATION.equals(atlasEntity.getType()))
+        {
+            return Validators.isOfType(atlasEntity, RelationTypeTag.class, RelationTypeTag.MULTIPOLYGON);
+        }
+
+        return true;
+    };
 
     /**
      * If we are rendering vector tiles, we may want to examine various tags of a given atlas entity
@@ -163,7 +180,7 @@ public class LineDelimitedGeoJsonConverter extends Command
             final String name = FilenameUtils.removeExtension(atlasFile.getName())
                     + FileSuffix.GEO_JSON.toString();
             final File geojsonFile = new File(geojsonDirectory.resolve(name).toFile());
-            atlas.saveAsLineDelimitedGeoJsonFeatures(geojsonFile, POSITIVE_ONLY, jsonMutator);
+            atlas.saveAsLineDelimitedGeoJsonFeatures(geojsonFile, PREDICATE, jsonMutator);
             logger.info("Saved {} in {}.", name, time.elapsedSince());
         });
     }

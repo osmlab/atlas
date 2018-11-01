@@ -196,7 +196,30 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
      */
     public abstract LocationIterableProperties toGeoJsonBuildingBlock();
 
-    public abstract JsonObject asGeoJsonFeature();
+    /**
+     * A base method that creates a GeoJSON feature with properties from the tags. Note that it does not contain the geometry, and the subclasses should call this as super and then fill in the geometry.
+     *
+     * @return
+     *      A GeoJSON Feature with properties but no geometry.
+     */
+    public JsonObject asGeoJsonFeature()
+    {
+        final JsonObject feature =  new JsonObject();
+        feature.addProperty("type", "Feature");
+
+        final JsonObject properties = new JsonObject();
+        getTags().forEach(properties::addProperty);
+        properties.addProperty("identifier", getIdentifier());
+        properties.addProperty("osmIdentifier", getOsmIdentifier());
+        properties.addProperty("itemType", String.valueOf(getType()));
+
+        final Optional<String> shardName = getAtlas().metaData().getShardName();
+        shardName.ifPresent(shard -> properties.addProperty("shard", shard));
+
+        feature.add("properties", properties);
+
+        return feature;
+    }
 
     protected String parentRelationsAsDiffViewFriendlyString()
     {
