@@ -19,11 +19,11 @@ public class HelloWorldSubcommand extends AbstractOSMSubcommand
     @Override
     public int execute()
     {
-        logger.trace("TRACE message");
-        logger.debug("DEBUG message");
-        logger.info("INFO message");
-        logger.warn("WARN message");
-        logger.error("ERROR message");
+        // logger.trace("TRACE message");
+        // logger.debug("DEBUG message");
+        // logger.info("INFO message");
+        // logger.warn("WARN message");
+        // logger.error("ERROR message");
         System.out.println("Hello, world!");
         return 0;
     }
