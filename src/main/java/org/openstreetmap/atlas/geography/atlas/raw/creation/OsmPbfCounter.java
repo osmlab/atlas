@@ -17,7 +17,7 @@ import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
-import org.openstreetmap.atlas.geography.atlas.pbf.store.TagMap;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.TagMap;
 import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.RouteTag;
 import org.openstreetmap.osmosis.core.container.v0_6.EntityContainer;

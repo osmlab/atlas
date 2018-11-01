@@ -98,6 +98,14 @@ public final class AtlasLoadingOption implements Serializable
         return option;
     }
 
+    public static AtlasLoadingOption createOptionWithOnlySectioning()
+    {
+        final AtlasLoadingOption option = new AtlasLoadingOption();
+        option.setCountrySlicing(false);
+        option.setWaySectioning(true);
+        return option;
+    }
+
     public static AtlasLoadingOption withNoFilter()
     {
         final StringResource pbfFilter = new StringResource("{\"filters\":[]}");

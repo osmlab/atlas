@@ -21,7 +21,10 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
-import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader;
+import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
+import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.index.PackedSpatialIndex;
 import org.openstreetmap.atlas.geography.index.RTree;
 import org.openstreetmap.atlas.geography.index.SpatialIndex;
@@ -70,7 +73,7 @@ public abstract class AbstractAtlas extends BareAtlas
     private transient volatile SpatialIndex<Relation> relationSpatialIndex;
 
     /**
-     * Create an {@link Atlas} from an OSM protobuf and save it to a resource.
+     * Create an {@link Atlas} from an OSM protobuf and save it to a resource. Skip slicing.
      *
      * @param osmPbf
      *            The OSM protobuf
@@ -81,9 +84,11 @@ public abstract class AbstractAtlas extends BareAtlas
     public static Atlas createAndSaveOsmPbf(final Resource osmPbf,
             final WritableResource atlasResource)
     {
-        final OsmPbfLoader loader = new OsmPbfLoader(osmPbf);
-        loader.saveAtlas(atlasResource);
-        return loader.read();
+        final Atlas rawAtlas = new RawAtlasGenerator(osmPbf).build();
+        final Atlas atlas = new WaySectionProcessor(rawAtlas,
+                AtlasLoadingOption.createOptionWithNoSlicing()).run();
+        atlas.save(atlasResource);
+        return atlas;
     }
 
     /**
@@ -94,19 +99,24 @@ public abstract class AbstractAtlas extends BareAtlas
      *            The OSM protobuf
      * @param atlasResource
      *            The {@link WritableResource} to save the {@link Atlas} to
+     * @param boundaryMap
+     *            The {@link CountryBoundaryMap} to use for country-slicing
      * @return The created {@link Atlas}
      */
     public static Atlas createAndSaveOsmPbfWithSlicing(final Resource osmPbf,
-            final WritableResource atlasResource)
+            final WritableResource atlasResource, final CountryBoundaryMap boundaryMap)
     {
-        final OsmPbfLoader loader = new OsmPbfLoader(osmPbf,
-                AtlasLoadingOption.createOptionWithAllEnabled(null));
-        loader.saveAtlas(atlasResource);
-        return loader.read();
+        final Atlas rawAtlas = new RawAtlasGenerator(osmPbf).build();
+        final Atlas slicedAtlas = new RawAtlasCountrySlicer(boundaryMap.getLoadedCountries(),
+                boundaryMap).slice(rawAtlas);
+        final Atlas atlas = new WaySectionProcessor(slicedAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
+        atlas.save(atlasResource);
+        return atlas;
     }
 
     /**
-     * Create from an OSM protobuf resource
+     * Create from an OSM protobuf resource. Skip slicing.
      *
      * @param resource
      *            The OSM protobuf resource
@@ -114,8 +124,10 @@ public abstract class AbstractAtlas extends BareAtlas
      */
     public static Atlas forOsmPbf(final Resource resource)
     {
-        final OsmPbfLoader loader = new OsmPbfLoader(resource);
-        return loader.read();
+        final Atlas rawAtlas = new RawAtlasGenerator(resource).build();
+        final Atlas atlas = new WaySectionProcessor(rawAtlas,
+                AtlasLoadingOption.createOptionWithNoSlicing()).run();
+        return atlas;
     }
 
     @Override

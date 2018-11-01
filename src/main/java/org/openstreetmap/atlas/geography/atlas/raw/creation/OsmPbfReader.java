@@ -23,7 +23,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.PaddingIdentifierFactory;
-import org.openstreetmap.atlas.geography.atlas.pbf.store.TagMap;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.TagMap;
 import org.openstreetmap.atlas.tags.AtlasTag;
 import org.openstreetmap.atlas.tags.LastEditChangesetTag;
 import org.openstreetmap.atlas.tags.LastEditTimeTag;
@@ -74,11 +74,6 @@ public class OsmPbfReader implements Sink
      * Determines if the given {@link Entity} should be brought into the {@link Atlas}. Ideally, all
      * features will be brought in. However, to make {@link Atlas} generation flexible and fit all
      * use cases, this is configurable.
-     * <p>
-     * TODO We still temporarily suppress administrative boundaries and coastlines - see
-     * configuration files in src/main/resources. Once parity is achieved with current PBF ingest
-     * process, these two (and potentially others) cases will be handled and ingested into the
-     * Atlas.
      *
      * @param loadingOption
      *            The {@link AtlasLoadingOption} to use for configuration lookup.
@@ -106,19 +101,6 @@ public class OsmPbfReader implements Sink
             // No Bound filtering
             return true;
         }
-    }
-
-    /**
-     * Pads the given OSM identifier, by appending 6 digits to it. The first 3 appended digits are
-     * the country code identifier and the last 3 digits are the way-section identifier.
-     *
-     * @param identifier
-     *            The original OSM identifier
-     * @return a padded identifier
-     */
-    private static long padIdentifier(final long identifier)
-    {
-        return PaddingIdentifierFactory.pad(identifier);
     }
 
     /**
@@ -416,6 +398,31 @@ public class OsmPbfReader implements Sink
         }
     }
 
+    private boolean needsPadding()
+    {
+        return this.loadingOption.isCountrySlicing() || this.loadingOption.isWaySectioning();
+    }
+
+    /**
+     * Pads the given OSM identifier, by appending 6 digits to it. The first 3 appended digits are
+     * the country code identifier and the last 3 digits are the way-section identifier.
+     *
+     * @param identifier
+     *            The original OSM identifier
+     * @return a padded identifier
+     */
+    private long padIdentifier(final long identifier)
+    {
+        if (needsPadding())
+        {
+            return PaddingIdentifierFactory.pad(identifier);
+        }
+        else
+        {
+            return identifier;
+        }
+    }
+
     /**
      * First, creates an {@link Entity} {@link Tag} for specific OSM attributes we're interested in
      * propagating to the {@link AtlasEntity}. Secondly, converts the given {@link Entity}'s
@@ -431,7 +438,6 @@ public class OsmPbfReader implements Sink
         // Update the entity's tags to contain specific OSM attributes we care about, so that these
         // get translated to Atlas Entity tags.
         storeOsmEntityAttributesAsTags(entity);
-
         return new TagMap(entity.getTags()).getTags();
     }
 
@@ -605,4 +611,5 @@ public class OsmPbfReader implements Sink
             }
         }
     }
+
 }

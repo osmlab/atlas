@@ -7,8 +7,10 @@ import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.builder.text.TextAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
-import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader;
 import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoaderIntegrationTest;
+import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
@@ -37,12 +39,15 @@ public class AtlasIntegrationTest
 
     protected Atlas loadBahamas(final Polygon polygon)
     {
-        final String path = OsmPbfLoaderIntegrationTest.class.getResource("BHS_07082015.pbf")
+        final String path = OsmPbfLoaderIntegrationTest.class.getResource("BHS-6-18-27.pbf")
                 .getPath();
-        final OsmPbfLoader loader = new OsmPbfLoader(new File(path),
-                MultiPolygon.forPolygon(polygon), AtlasLoadingOption.createOptionWithNoSlicing()
-                        .setLoadWaysSpanningCountryBoundaries(false));
-        return loader.read();
+        final AtlasLoadingOption loadingOption = AtlasLoadingOption.createOptionWithOnlySectioning()
+                .setLoadWaysSpanningCountryBoundaries(false);
+        Atlas atlas = new RawAtlasGenerator(new File(path), loadingOption,
+                MultiPolygon.forPolygon(polygon)).build();
+        atlas = new WaySectionProcessor(atlas, loadingOption).run();
+        // sectioning results in conflicts
+        return atlas;
     }
 
     protected Atlas loadBelizeRaw(final Polygon polygon,
@@ -50,8 +55,18 @@ public class AtlasIntegrationTest
     {
         final String path = OsmPbfLoaderIntegrationTest.class
                 .getResource("BLZ_raw_08242015.osm.pbf").getPath();
-        final OsmPbfLoader loader = new OsmPbfLoader(new File(path),
-                MultiPolygon.forPolygon(polygon), atlasLoadingOption);
-        return loader.read();
+        Atlas atlas = new RawAtlasGenerator(new File(path), atlasLoadingOption,
+                MultiPolygon.forPolygon(polygon)).build();
+        if (atlasLoadingOption.isCountrySlicing())
+        {
+            atlas = new RawAtlasCountrySlicer(
+                    atlasLoadingOption.getCountryBoundaryMap().getLoadedCountries(),
+                    atlasLoadingOption.getCountryBoundaryMap()).slice(atlas);
+        }
+        if (atlasLoadingOption.isWaySectioning())
+        {
+            atlas = new WaySectionProcessor(atlas, atlasLoadingOption).run();
+        }
+        return atlas;
     }
 }
