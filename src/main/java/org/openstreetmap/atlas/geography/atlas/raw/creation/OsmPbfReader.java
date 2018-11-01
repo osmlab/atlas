@@ -398,6 +398,9 @@ public class OsmPbfReader implements Sink
         }
     }
 
+    /**
+     * @return {@code true} if we need to pad identifiers when creating atlas entities.
+     */
     private boolean needsPadding()
     {
         return this.loadingOption.isCountrySlicing() || this.loadingOption.isWaySectioning();
@@ -611,5 +614,4 @@ public class OsmPbfReader implements Sink
             }
         }
     }
-
 }
