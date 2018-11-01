@@ -2,7 +2,9 @@ package org.openstreetmap.atlas.utilities.command;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -17,18 +19,18 @@ public final class ReflectionUtilities
 {
     public static Set<AbstractOSMSubcommand> getSubcommandInstances()
     {
-        final Set<Class<? extends OSMSubcommand>> subcommandClasses = new HashSet<>();
+        final List<Class<? extends OSMSubcommand>> subcommandClasses = new ArrayList<>();
         final Set<AbstractOSMSubcommand> instantiatedCommands = new HashSet<>();
         new FastClasspathScanner()
                 .matchClassesImplementing(OSMSubcommand.class, subcommandClasses::add).scan();
         subcommandClasses.stream().forEach(klass ->
         {
-            // final Optional<AbstractOSMSubcommand> commandOption = instantiateSubcommand(
-            // klass.getName());
-            // if (commandOption.isPresent())
-            // {
-            // instantiatedCommands.add(commandOption.get());
-            // }
+            final Optional<AbstractOSMSubcommand> commandOption = instantiateSubcommand(
+                    klass.getName());
+            if (commandOption.isPresent())
+            {
+                instantiatedCommands.add(commandOption.get());
+            }
         });
         return instantiatedCommands;
     }
