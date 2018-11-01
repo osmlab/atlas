@@ -3,7 +3,7 @@ package org.openstreetmap.atlas.utilities.command;
 /**
  * @author lcram
  */
-public abstract class AbstractOSMSubcommand
+public abstract class AbstractOSMSubcommand implements OSMSubcommand
 {
     public abstract int execute();
 
