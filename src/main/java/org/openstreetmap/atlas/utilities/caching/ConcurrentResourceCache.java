@@ -110,9 +110,9 @@ public class ConcurrentResourceCache implements ResourceCache
     }
 
     /**
-     * Get a {@link UUID} for this strategy instance. This is useful for logging.
+     * Get a {@link UUID} for this cache instance. This is useful for logging.
      *
-     * @return The strategy instance {@link UUID}
+     * @return The cache instance {@link UUID}
      */
     protected UUID getCacheID()
     {
