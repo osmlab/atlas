@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.vectortiles;
+package org.openstreetmap.atlas.utilities.vectortiles;
 
 /**
  * This utility class is where you set the minimum zoom for features based on their tags. The values

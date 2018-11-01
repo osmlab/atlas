@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.vectortiles;
+package org.openstreetmap.atlas.utilities.vectortiles;
 
 import com.google.gson.JsonObject;
 

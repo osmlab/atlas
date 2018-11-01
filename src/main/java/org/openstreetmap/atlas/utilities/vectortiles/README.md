@@ -7,7 +7,7 @@ of MapboxVectorTiles by tippecanoe.
 Useage:
 
 ``` 
-java -Xmx12G -cp ./atlas.jar org.openstreetmap.atlas.vectortiles.TippecanoeExporter \
+java -Xmx12G -cp ./atlas.jar org.openstreetmap.atlas.utilities.vectortiles.TippecanoeExporter \
 -atlasDirectory=<directory of atlas files> \
 -geojsonDirectory=<directory to write GeoJSON> \
 -mbtiles=<where to write MBTiles file> \
@@ -18,7 +18,7 @@ java -Xmx12G -cp ./atlas.jar org.openstreetmap.atlas.vectortiles.TippecanoeExpor
 On a beefy server, you might do something like this:
 
 ``` 
-java -Xmx240G -cp ./atlas-njh.jar org.openstreetmap.atlas.vectortiles.TippecanoeExporter \
+java -Xmx240G -cp ./atlas-njh.jar org.openstreetmap.atlas.utilities.vectortiles.TippecanoeExporter \
 -atlasDirectory=/opt/data/tippecanoe/atlas \
 -geojsonDirectory=/opt/data/tippecanoe/geojson \
 -mbtiles=/opt/data/tippecanoe/WORLD.mbtiles \
