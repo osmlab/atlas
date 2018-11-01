@@ -99,7 +99,8 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
         final JsonObject geometry = new JsonObject();
         geometry.addProperty("type", "MultiPolygon");
 
-        // An array of polygons. A polygon is an outer ring with 0..n inner rings.
+        // An array of polygons. An OGC polygon is an outer ring with 0..n inner rings.
+        // To represent an OGC polygon with holes, you actually make a MultiPolygon in atlas.
         final JsonArray polygons = new JsonArray();
         geometry.add("coordinates", polygons);
 

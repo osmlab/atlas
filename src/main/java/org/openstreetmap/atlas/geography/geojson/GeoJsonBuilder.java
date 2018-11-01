@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.geojson;
 
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonUtils.locationsToCoordinates;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -249,13 +251,13 @@ public class GeoJsonBuilder
             case MULTI_LINESTRING:
             case MULTI_POLYGON:
             {
-                coordinates = GeoJsonUtils.locationsToCoordinates(locations);
+                coordinates = locationsToCoordinates(locations);
                 break;
             }
             case POLYGON:
             {
                 coordinates = new JsonArray();
-                final JsonArray locationArray = GeoJsonUtils.locationsToCoordinates(locations);
+                final JsonArray locationArray = locationsToCoordinates(locations);
                 coordinates.add(locationArray);
                 break;
             }

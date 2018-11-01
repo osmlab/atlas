@@ -76,13 +76,23 @@ public final class GeoJsonUtils
      *
      * @param location
      *            An atlas location
-     * @return a JsonArray with the first coordinate as a latitude and the second as a longitude.
+     * @return JsonArray [ longitude, latitude ] coordinate.
      */
     public static JsonArray coordinate(final Location location)
     {
         return coordinate(location.getLongitude().asDegrees(), location.getLatitude().asDegrees());
     }
 
+    /**
+     * Slightly more explicit, you provide a double longitude and latitude.
+     *
+     * @param longitude
+     *            The longitude (x).
+     * @param latitude
+     *            The latitude (y).
+     * @return
+     *            JsonArray [ longitude, latitude ] coordinate.
+     */
     public static JsonArray coordinate(final double longitude, final double latitude)
     {
         final JsonArray coordinate = new JsonArray();
