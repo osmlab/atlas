@@ -9,7 +9,7 @@ package org.openstreetmap.atlas.vectortiles;
  *
  * @author hallahan
  */
-final class MinZoom
+final class MinimumZoom
 {
     private static final int THREE = 3;
     private static final int FIVE = 5;
@@ -22,7 +22,7 @@ final class MinZoom
     private static final int THIRTEEN = 13;
     private static final int FOURTEEN = 14;
 
-    private MinZoom()
+    private MinimumZoom()
     {
         // Util
     }

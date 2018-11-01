@@ -11,13 +11,13 @@ import com.google.gson.JsonObject;
  */
 class TippecanoeGeoJsonExtension
 {
-    private static final int DEFAULT_MIN_ZOOM = 14;
+    private static final int DEFAULT_MINIMUM_ZOOM = 14;
 
     private final JsonObject json = new JsonObject();
 
     TippecanoeGeoJsonExtension()
     {
-        minZoom(DEFAULT_MIN_ZOOM);
+        minimumZoom(DEFAULT_MINIMUM_ZOOM);
     }
 
     TippecanoeGeoJsonExtension addTo(final JsonObject feature)
@@ -31,9 +31,9 @@ class TippecanoeGeoJsonExtension
         json.addProperty("layer", layer);
     }
 
-    void minZoom(final int minZoom)
+    void minimumZoom(final int minimumZoom)
     {
-        json.addProperty("minzoom", minZoom);
+        json.addProperty("minzoom", minimumZoom);
     }
 
 }
