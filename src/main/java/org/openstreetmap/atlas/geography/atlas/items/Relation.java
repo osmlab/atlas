@@ -282,7 +282,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         // We should only be writing relations as GeoJSON when they are polygons and multipolygons.
         // We want multipolygons, but not boundaries, as we can render boundaries' ways by
         // themselves fine.
-        // The isMultiPolygon method also includes boundaries, which we do not want.
+        // The isMultiPolygon() method also includes boundaries, which we do not want.
         if (Validators.isOfType(this, RelationTypeTag.class, RelationTypeTag.MULTIPOLYGON))
         {
             try
@@ -290,18 +290,20 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
                 final MultiPolygon multiPolygon = MULTI_POLYGON_CONVERTER.convert(this);
                 geometry = multiPolygon.asGeoJsonGeometry();
             }
-            // It seems like we get caught in this exception a lot! We don't ingest coastline features,
-            // so polygons that touch coastlines will fail.
+            // It seems like we get caught in this exception a lot! We don't ingest coastline
+            // features, so polygons that touch coastlines will fail. It's good to include
+            // the exception in the data, along with the bounding box. That way, we can
+            // notice the problem when browsing the map.
             catch (final MultiplePolyLineToPolygonsConverter.OpenPolygonException exception)
             {
-                final String message = String.format("%s - %s", exception.getClass().getSimpleName(), exception.getMessage());
+                final String message = String.format("%s - %s",
+                        exception.getClass().getSimpleName(), exception.getMessage());
                 properties.addProperty("exception", message);
                 geometry = boundsToPolygonGeometry(bounds());
             }
         }
         // Otherwise, we'll fall back to just providing the properties of the relation with the
-        // bounding box
-        // as a polygon geometry.
+        // bounding box as a polygon geometry.
         else
         {
             geometry = boundsToPolygonGeometry(bounds());
