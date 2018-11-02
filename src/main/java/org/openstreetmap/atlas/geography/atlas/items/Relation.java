@@ -1,7 +1,5 @@
 package org.openstreetmap.atlas.geography.atlas.items;
 
-import static org.openstreetmap.atlas.geography.geojson.GeoJsonUtils.boundsToPolygonGeometry;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Deque;
@@ -29,6 +27,7 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.converters.MultiplePolyLineToPolygonsConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -291,14 +290,14 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
                         exception.getClass().getSimpleName(), exception.getMessage());
                 final JsonObject properties = feature.getAsJsonObject("properties");
                 properties.addProperty("exception", message);
-                geometry = boundsToPolygonGeometry(bounds());
+                geometry = GeoJsonUtils.boundsToPolygonGeometry(bounds());
             }
         }
         // Otherwise, we'll fall back to just providing the properties of the relation with the
         // bounding box as a polygon geometry.
         else
         {
-            geometry = boundsToPolygonGeometry(bounds());
+            geometry = GeoJsonUtils.boundsToPolygonGeometry(bounds());
         }
 
         feature.add("geometry", geometry);
