@@ -482,9 +482,10 @@ public abstract class BareAtlas implements Atlas
     @Override
     public void saveAsGeoJson(final WritableResource resource, final Predicate<AtlasEntity> matcher)
     {
-        final JsonWriter writer = new JsonWriter(resource);
-        writer.write(this.asGeoJson(matcher).jsonObject());
-        writer.close();
+        try (final JsonWriter writer = new JsonWriter(resource))
+        {
+            writer.write(this.asGeoJson(matcher).jsonObject());
+        }
     }
 
     @Override
