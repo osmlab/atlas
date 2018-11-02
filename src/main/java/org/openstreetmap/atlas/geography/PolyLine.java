@@ -252,6 +252,14 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         return asGeoJson(geometries);
     }
 
+    public JsonObject asGeoJsonGeometry()
+    {
+        final JsonObject geometry = new JsonObject();
+        geometry.addProperty("type", "LineString");
+        geometry.add("coordinates", GeoJsonUtils.locationsToCoordinates(this.points));
+        return geometry;
+    }
+
     /**
      * Return the average distance from this {@link PolyLine}'s shape points to the other shape, and
      * the other shape's shape points to this polyline.
@@ -497,20 +505,12 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public Location get(final int index)
     {
-        if (index < 0 || index >= size())
+        if (index < 0 || index >= this.size())
         {
             throw new CoreException("Cannot get a Location with index " + index
                     + ", which is not between 0 and " + this.size());
         }
         return this.points.get(index);
-    }
-
-    public JsonObject asGeoJsonGeometry()
-    {
-        final JsonObject geometry = new JsonObject();
-        geometry.addProperty("type", "LineString");
-        geometry.add("coordinates", GeoJsonUtils.locationsToCoordinates(this.points));
-        return geometry;
     }
 
     @Override
@@ -669,7 +669,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
 
     public Location last()
     {
-        return points.size() > 0 ? get(size() - 1) : null;
+        return this.points.size() > 0 ? get(size() - 1) : null;
     }
 
     public Distance length()
