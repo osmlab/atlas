@@ -4,7 +4,7 @@ import java.lang.reflect.Type;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Located;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.GeoJsonType;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
