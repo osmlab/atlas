@@ -501,18 +501,19 @@ public abstract class BareAtlas implements Atlas
             final Predicate<AtlasEntity> matcher,
             final BiConsumer<AtlasEntity, JsonObject> jsonMutator)
     {
-        final JsonWriter writer = new JsonWriter(resource);
-        for (final AtlasEntity entity : entities())
+        try (JsonWriter writer = new JsonWriter(resource))
         {
-            if (!matcher.test(entity))
+            for (final AtlasEntity entity : entities())
             {
-                continue;
+                if (!matcher.test(entity))
+                {
+                    continue;
+                }
+                final JsonObject feature = entity.asGeoJsonFeature();
+                jsonMutator.accept(entity, feature);
+                writer.writeLine(feature);
             }
-            final JsonObject feature = entity.asGeoJsonFeature();
-            jsonMutator.accept(entity, feature);
-            writer.writeLine(feature);
         }
-        writer.close();
     }
 
     @Override
