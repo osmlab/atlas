@@ -14,10 +14,8 @@ import com.google.gson.JsonPrimitive;
  */
 public final class GeoJsonUtils
 {
-
     private GeoJsonUtils()
     {
-        // Utility class.
     }
 
     /**
