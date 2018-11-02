@@ -233,7 +233,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public PolyLine append(final PolyLine other)
     {
-        if (last().equals(other.first()))
+        if (this.last().equals(other.first()))
         {
             return new PolyLine(new MultiIterable<>(this, other.truncate(1, 0)));
         }
@@ -241,7 +241,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         {
             throw new CoreException(
                     "Cannot append {} to {} - the end and start points do not match.",
-                    other.toWkt(), toWkt());
+                    other.toWkt(), this.toWkt());
         }
     }
 
@@ -250,14 +250,6 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         final List<Iterable<Location>> geometries = new ArrayList<>();
         geometries.add(this);
         return asGeoJson(geometries);
-    }
-
-    public JsonObject asGeoJsonGeometry()
-    {
-        final JsonObject geometry = new JsonObject();
-        geometry.addProperty("type", "LineString");
-        geometry.add("coordinates", GeoJsonUtils.locationsToCoordinates(this.points));
-        return geometry;
     }
 
     /**
@@ -289,7 +281,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         {
             costDistance = costDistance.add(shapePoint.snapTo(other).getDistance());
         }
-        return costDistance.scaleBy(1.0 / size());
+        return costDistance.scaleBy(1.0 / this.size());
     }
 
     /**
@@ -326,7 +318,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
                 {
                     throw new CoreException(
                             "Found end first! {}(occurrence {}) and {}(occurrence {}) are not in order with respect to {}",
-                            start, startOccurrence, end, endOccurrence, toWkt());
+                            start, startOccurrence, end, endOccurrence, this.toWkt());
                 }
                 started = false;
                 result.add(location);
@@ -425,7 +417,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public boolean contains(final Segment segment)
     {
-        final List<Segment> segments = segments();
+        final List<Segment> segments = this.segments();
         for (final Segment thisSegment : segments)
         {
             if (thisSegment.equals(segment))
@@ -477,7 +469,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public boolean equalsShape(final PolyLine other)
     {
-        return overlapsShapeOf(other) && other.overlapsShapeOf(this);
+        return this.overlapsShapeOf(other) && other.overlapsShapeOf(this);
     }
 
     /**
@@ -486,7 +478,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public Optional<Heading> finalHeading()
     {
-        final List<Segment> segments = segments();
+        final List<Segment> segments = this.segments();
         return segments.size() > 0 ? segments.get(segments.size() - 1).heading() : Optional.empty();
     }
 
@@ -508,9 +500,17 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         if (index < 0 || index >= size())
         {
             throw new CoreException("Cannot get a Location with index " + index
-                    + ", which is not between 0 and " + size());
+                    + ", which is not between 0 and " + this.size());
         }
         return this.points.get(index);
+    }
+
+    public JsonObject asGeoJsonGeometry()
+    {
+        final JsonObject geometry = new JsonObject();
+        geometry.addProperty("type", "LineString");
+        geometry.add("coordinates", GeoJsonUtils.locationsToCoordinates(this.points));
+        return geometry;
     }
 
     @Override
@@ -530,17 +530,17 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public Optional<Angle> headingDifference()
     {
-        if (size() <= 1)
+        if (this.size() <= 1)
         {
             return Optional.empty();
         }
-        if (size() == 2)
+        if (this.size() == 2)
         {
             return Optional.of(Angle.NONE);
         }
         else
         {
-            final List<Segment> segments = segments();
+            final List<Segment> segments = this.segments();
             final Segment first = segments.get(0);
             final Segment last = segments.get(segments.size() - 1);
             final Optional<Heading> heading1 = first.heading();
@@ -563,7 +563,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public Optional<Heading> initialHeading()
     {
-        final List<Segment> segments = segments();
+        final List<Segment> segments = this.segments();
         return segments.size() > 0 ? segments.get(0).heading() : Optional.empty();
     }
 
@@ -572,7 +572,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public Iterable<Location> innerLocations()
     {
-        return truncate(1, 1);
+        return this.truncate(1, 1);
     }
 
     public Set<Location> intersections(final PolyLine candidate)
@@ -584,7 +584,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         }
         else
         {
-            final List<Segment> segments = segments();
+            final List<Segment> segments = this.segments();
             segments.forEach(segment ->
             {
                 final Set<Location> intersections = segment.intersections(candidate);
@@ -597,7 +597,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     public Set<Location> intersections(final Segment candidate)
     {
         final Set<Location> result = new HashSet<>();
-        final List<Segment> segments = segments();
+        final List<Segment> segments = this.segments();
         segments.forEach(segment ->
         {
             final Location intersection = segment.intersection(candidate);
@@ -618,7 +618,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public boolean intersects(final PolyLine other)
     {
-        final List<Segment> segments = segments();
+        final List<Segment> segments = this.segments();
         final List<Segment> otherSegments = other.segments();
 
         for (final Segment segment : segments)
@@ -669,13 +669,13 @@ public class PolyLine implements Collection<Location>, Located, Serializable
 
     public Location last()
     {
-        return this.points.size() > 0 ? get(size() - 1) : null;
+        return points.size() > 0 ? get(size() - 1) : null;
     }
 
     public Distance length()
     {
         Distance result = Distance.ZERO;
-        final List<Segment> segments = segments();
+        final List<Segment> segments = this.segments();
         for (final Segment segment : segments)
         {
             result = result.add(segment.length());
@@ -788,9 +788,9 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public Ratio offsetFromStart(final Location node, final int occurrenceIndex)
     {
-        final Distance max = length();
+        final Distance max = this.length();
         Distance candidate = Distance.ZERO;
-        Location previous = first();
+        Location previous = this.first();
         int index = 0;
         for (final Location location : this)
         {
@@ -809,7 +809,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         final Distance length = length();
         final Distance stop = length.scaleBy(ratio);
         Distance accumulated = Distance.ZERO;
-        final List<Segment> segments = segments();
+        final List<Segment> segments = this.segments();
 
         for (final Segment segment : segments)
         {
@@ -835,13 +835,13 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public Optional<Heading> overallHeading()
     {
-        if (isPoint())
+        if (this.isPoint())
         {
             logger.warn("Cannot compute a segment's heading when the polyline has zero length : {}",
                     this);
             return Optional.empty();
         }
-        return Optional.ofNullable(first().headingTo(last()));
+        return Optional.ofNullable(this.first().headingTo(this.last()));
     }
 
     /**
@@ -857,7 +857,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     public boolean overlapsShapeOf(final PolyLine other)
     {
         final Set<Segment> thisSegments = new HashSet<>();
-        final List<Segment> segments = segments();
+        final List<Segment> segments = this.segments();
         segments.forEach(segment ->
         {
             thisSegments.add(segment);
@@ -884,15 +884,15 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public PolyLine prepend(final PolyLine other)
     {
-        if (first().equals(other.last()))
+        if (this.first().equals(other.last()))
         {
-            return new PolyLine(new MultiIterable<>(other, truncate(1, 0)));
+            return new PolyLine(new MultiIterable<>(other, this.truncate(1, 0)));
         }
         else
         {
             throw new CoreException(
                     "Cannot prepend {} to {} - the end and start points do not match.",
-                    other.toWkt(), toWkt());
+                    other.toWkt(), this.toWkt());
         }
     }
 
@@ -917,9 +917,9 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     public PolyLine reversed()
     {
         final List<Location> reversed = new ArrayList<>();
-        for (int i = size() - 1; i >= 0; i--)
+        for (int i = this.size() - 1; i >= 0; i--)
         {
-            reversed.add(get(i));
+            reversed.add(this.get(i));
         }
         return new PolyLine(reversed);
     }
@@ -982,8 +982,8 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         final boolean isPolygon = this instanceof Polygon;
 
         // Exclude point-segments, so we know which segments are actually consecutive
-        final List<Segment> segments = segments().stream().filter(segment -> !segment.isPoint())
-                .collect(Collectors.toList());
+        final List<Segment> segments = this.segments().stream()
+                .filter(segment -> !segment.isPoint()).collect(Collectors.toList());
 
         // Consecutive segments should not be considered (they always have common point)
         for (int i = 0; i < segments.size() - 2; i++)
@@ -1022,8 +1022,8 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         // See comments on algorithm in selfIntersections()
 
         final boolean isPolygon = this instanceof Polygon;
-        final List<Segment> segments = segments().stream().filter(segment -> !segment.isPoint())
-                .collect(Collectors.toList());
+        final List<Segment> segments = this.segments().stream()
+                .filter(segment -> !segment.isPoint()).collect(Collectors.toList());
 
         for (int i = 0; i < segments.size() - 2; i++)
         {
@@ -1107,7 +1107,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     public String toCompactString()
     {
         final StringList stringList = new StringList();
-        forEach(location ->
+        this.forEach(location ->
         {
             stringList.add(location.toCompactString());
         });
@@ -1136,10 +1136,10 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public byte[] toWkb()
     {
-        if (size() == 1)
+        if (this.size() == 1)
         {
             // Handle a single location polyLine
-            return new WkbLocationConverter().convert(first());
+            return new WkbLocationConverter().convert(this.first());
         }
         return new WkbPolyLineConverter().convert(this);
     }
@@ -1149,10 +1149,10 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public String toWkt()
     {
-        if (size() == 1)
+        if (this.size() == 1)
         {
             // Handle a single location polyLine
-            return new WktLocationConverter().convert(first());
+            return new WktLocationConverter().convert(this.first());
         }
         return new WktPolyLineConverter().convert(this);
     }
@@ -1169,8 +1169,8 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public Iterable<Location> truncate(final int indexFromStart, final int indexFromEnd)
     {
-        if (indexFromStart < 0 || indexFromEnd < 0 || indexFromStart >= size()
-                || indexFromEnd >= size() || indexFromStart + indexFromEnd >= size())
+        if (indexFromStart < 0 || indexFromEnd < 0 || indexFromStart >= this.size()
+                || indexFromEnd >= this.size() || indexFromStart + indexFromEnd >= this.size())
         {
             logger.debug("Invalid start index {} or end index {} supplied.", indexFromStart,
                     indexFromEnd);
@@ -1189,7 +1189,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         final List<Location> shapePoints = new ArrayList<>();
         boolean hasDuplicates = false;
 
-        final Iterator<Location> locationIterator = iterator();
+        final Iterator<Location> locationIterator = this.iterator();
         // PolyLines are only valid if at least one point exists, so it is safe to call next() once.
         Location previousLocation = locationIterator.next();
         shapePoints.add(previousLocation);
