@@ -63,6 +63,7 @@ import com.google.gson.JsonObject;
  * @author matthieun
  * @author tony
  * @author mgostintsev
+ * @author hallahan
  */
 public abstract class BareAtlas implements Atlas
 {
