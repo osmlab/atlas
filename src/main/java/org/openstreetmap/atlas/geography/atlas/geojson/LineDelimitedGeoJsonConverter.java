@@ -71,7 +71,7 @@ public class LineDelimitedGeoJsonConverter extends Command
      * relations, we only want multipolygon relations, as the rest can be derived from their
      * members.
      */
-    private static final Predicate<AtlasEntity> PREDICATE = atlasEntity ->
+    private static final Predicate<AtlasEntity> ENTITY_PREDICATE = atlasEntity ->
     {
         // We only want positive atlas entities. No negative ids.
         if (atlasEntity.getIdentifier() < 0)
@@ -180,7 +180,7 @@ public class LineDelimitedGeoJsonConverter extends Command
             final String name = FilenameUtils.removeExtension(atlasFile.getName())
                     + FileSuffix.GEO_JSON.toString();
             final File geojsonFile = new File(geojsonDirectory.resolve(name).toFile());
-            atlas.saveAsLineDelimitedGeoJsonFeatures(geojsonFile, PREDICATE, jsonMutator);
+            atlas.saveAsLineDelimitedGeoJsonFeatures(geojsonFile, ENTITY_PREDICATE, jsonMutator);
             logger.info("Saved {} in {}.", name, time.elapsedSince());
         });
     }
