@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.utilities.command;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -18,10 +19,19 @@ public class OSMSubcommandTablePrinter
     private void printLookupTable()
     {
         final Set<AbstractOSMSubcommand> commands = ReflectionUtilities.getSubcommandInstances();
+        final Set<String> namesWeHaveAlreadySeen = new HashSet<>();
         for (final AbstractOSMSubcommand command : commands)
         {
+            int uniqueSuffix = 2;
             final StringBuilder builder = new StringBuilder();
-            builder.append(command.getName());
+            String name = command.getName();
+            while (namesWeHaveAlreadySeen.contains(name))
+            {
+                name = name + uniqueSuffix;
+                uniqueSuffix++;
+            }
+            builder.append(name);
+            namesWeHaveAlreadySeen.add(name);
             builder.append(DELIMITER);
             builder.append(command.getClass().getName());
             builder.append(DELIMITER);
