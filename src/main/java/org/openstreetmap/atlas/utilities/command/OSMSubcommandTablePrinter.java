@@ -22,14 +22,19 @@ public class OSMSubcommandTablePrinter
         final Set<String> namesWeHaveAlreadySeen = new HashSet<>();
         for (final AbstractOSMSubcommand command : commands)
         {
-            int uniqueSuffix = 2;
             final StringBuilder builder = new StringBuilder();
+
             String name = command.getName();
-            while (namesWeHaveAlreadySeen.contains(name))
+            String nameWithSuffix = name;
+            int uniqueSuffix = 2;
+
+            while (namesWeHaveAlreadySeen.contains(nameWithSuffix))
             {
-                name = name + uniqueSuffix;
+                nameWithSuffix = name + uniqueSuffix;
                 uniqueSuffix++;
             }
+            name = nameWithSuffix;
+
             builder.append(name);
             namesWeHaveAlreadySeen.add(name);
             builder.append(DELIMITER);

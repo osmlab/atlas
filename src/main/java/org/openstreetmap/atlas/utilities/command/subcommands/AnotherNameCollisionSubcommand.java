@@ -4,6 +4,10 @@ import org.openstreetmap.atlas.utilities.command.AbstractOSMSubcommand;
 
 public class AnotherNameCollisionSubcommand extends AbstractOSMSubcommand
 {
+    public static void main(final String[] args)
+    {
+        new AnotherNameCollisionSubcommand().runSubcommandAndExit(args);
+    }
 
     @Override
     public int execute()
