@@ -265,7 +265,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     @Override
     public JsonObject asGeoJsonFeature()
     {
-        final JsonObject feature = super.asGeoJsonFeature();
+        final JsonObject feature = asGeoJsonFeatureWithPropertiesOnly();
 
         JsonObject geometry;
 

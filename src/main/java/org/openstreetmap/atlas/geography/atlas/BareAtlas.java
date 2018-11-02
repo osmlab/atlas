@@ -483,7 +483,7 @@ public abstract class BareAtlas implements Atlas
     @Override
     public void saveAsGeoJson(final WritableResource resource, final Predicate<AtlasEntity> matcher)
     {
-        try (final JsonWriter writer = new JsonWriter(resource))
+        try (JsonWriter writer = new JsonWriter(resource))
         {
             writer.write(this.asGeoJson(matcher).jsonObject());
         }

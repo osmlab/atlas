@@ -138,7 +138,7 @@ public abstract class LineItem extends AtlasItem
     @Override
     public JsonObject asGeoJsonFeature()
     {
-        final JsonObject feature = super.asGeoJsonFeature();
+        final JsonObject feature = asGeoJsonFeatureWithPropertiesOnly();
 
         final JsonObject geometry = asPolyLine().asGeoJsonGeometry();
         feature.add("geometry", geometry);

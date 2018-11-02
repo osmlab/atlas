@@ -1,7 +1,8 @@
 package org.openstreetmap.atlas.geography;
 
-import com.google.gson.JsonObject;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
+
+import com.google.gson.JsonObject;
 
 /**
  * An interface for all geometric surface objects

@@ -1,7 +1,5 @@
 package org.openstreetmap.atlas.geography.atlas.geojson;
 
-import static org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader.IS_ATLAS;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -216,7 +214,7 @@ public class LineDelimitedGeoJsonConverter extends Command
 
     private static List<File> fetchAtlasFilesInDirectory(final Path directory)
     {
-        return new File(directory.toFile()).listFilesRecursively().stream().filter(IS_ATLAS)
-                .collect(Collectors.toList());
+        return new File(directory.toFile()).listFilesRecursively().stream()
+                .filter(AtlasResourceLoader.IS_ATLAS).collect(Collectors.toList());
     }
 }
