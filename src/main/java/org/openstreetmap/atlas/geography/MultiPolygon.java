@@ -95,6 +95,7 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
      *
      * @return A JsonObject with GeoJSON geometry
      */
+    @Override
     public JsonObject asGeoJsonGeometry()
     {
         final JsonObject geometry = new JsonObject();

@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography;
 
+import com.google.gson.JsonObject;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
 
 /**
@@ -33,4 +34,6 @@ public interface GeometricSurface extends Located
      * @see "https://trs.jpl.nasa.gov/bitstream/handle/2014/41271/07-0286.pdf"
      */
     Surface surfaceOnSphere();
+
+    JsonObject asGeoJsonGeometry();
 }
