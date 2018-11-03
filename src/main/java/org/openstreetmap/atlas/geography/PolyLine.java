@@ -503,10 +503,10 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public Location get(final int index)
     {
-        if (index < 0 || index >= this.size())
+        if (index < 0 || index >= size())
         {
             throw new CoreException("Cannot get a Location with index " + index
-                    + ", which is not between 0 and " + this.size());
+                    + ", which is not between 0 and " + size());
         }
         return this.points.get(index);
     }
