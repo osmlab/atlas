@@ -17,7 +17,7 @@ public class TestSubcommand extends AbstractOSMSubcommand
     }
 
     @Override
-    public String getName()
+    public String getCommandName()
     {
         return "test";
     }
@@ -29,7 +29,7 @@ public class TestSubcommand extends AbstractOSMSubcommand
     }
 
     @Override
-    public void registerOptions()
+    public void registerOptionsAndArguments()
     {
         // TODO implement
     }

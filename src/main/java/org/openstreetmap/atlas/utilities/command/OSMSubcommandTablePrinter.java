@@ -9,7 +9,7 @@ import java.util.Set;
 public class OSMSubcommandTablePrinter
 {
     // Use ASCII record separator as delimiter
-    private static final String DELIMITER = Character.toString((char) 0x1e);
+    private static final String DELIMITER = Character.toString((char) 0x1E);
 
     public static void main(final String[] args)
     {
@@ -24,7 +24,7 @@ public class OSMSubcommandTablePrinter
         {
             final StringBuilder builder = new StringBuilder();
 
-            String name = command.getName();
+            String name = command.getCommandName();
             String nameWithSuffix = name;
             int uniqueSuffix = 2;
 

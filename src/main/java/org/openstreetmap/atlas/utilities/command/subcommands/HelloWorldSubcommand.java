@@ -29,7 +29,7 @@ public class HelloWorldSubcommand extends AbstractOSMSubcommand
     }
 
     @Override
-    public String getName()
+    public String getCommandName()
     {
         return "HelloWorld";
     }
@@ -41,7 +41,7 @@ public class HelloWorldSubcommand extends AbstractOSMSubcommand
     }
 
     @Override
-    public void registerOptions()
+    public void registerOptionsAndArguments()
     {
         // TODO implement
     }

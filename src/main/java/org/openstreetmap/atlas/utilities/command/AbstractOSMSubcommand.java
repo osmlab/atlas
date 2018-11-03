@@ -22,15 +22,15 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
 
     public abstract int execute();
 
-    public abstract String getName();
+    public abstract String getCommandName();
 
     public abstract String getSimpleDescription();
 
-    public abstract void registerOptions();
+    public abstract void registerOptionsAndArguments();
 
     protected String getHelpMenu()
     {
-        final String name = this.getName();
+        final String name = this.getCommandName();
         final String simpleDescription = this.getSimpleDescription();
         final StringBuilder builder = new StringBuilder();
         builder.append("\n");
@@ -58,7 +58,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
         }
 
         // fill out appropriate data structures so the execute() implementation can query
-        registerOptions();
+        registerOptionsAndArguments();
 
         // dummy HELP option implementation
         if (args.length > 0)
