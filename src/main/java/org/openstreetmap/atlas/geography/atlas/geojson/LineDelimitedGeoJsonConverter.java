@@ -67,10 +67,10 @@ public class LineDelimitedGeoJsonConverter extends Command
             Optionality.OPTIONAL, String.valueOf(DEFAULT_THREADS));
 
     /**
-     * We only want positive edges, because the negative edge can be derived at the application
-     * level, and this encodes extraneous data that can be easily derived by the map viewer. For
-     * relations, we only want multipolygon relations, as the rest can be derived from their
-     * members.
+     * We only want positive (master) edges, because the negative edge can be derived at the
+     * application level, and this encodes extraneous data that can be easily derived by the map
+     * viewer. For relations, we only want multipolygon relations, as the rest can be derived from
+     * their members.
      */
     private static final Predicate<AtlasEntity> ENTITY_PREDICATE = atlasEntity ->
     {

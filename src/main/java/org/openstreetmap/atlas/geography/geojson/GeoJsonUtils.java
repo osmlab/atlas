@@ -31,12 +31,9 @@ public final class GeoJsonUtils
     public static final String MULTILINESTRING = "MultiLineString";
     public static final String MULTIPOLYGON = "MultiPolygon";
 
-
     private GeoJsonUtils()
     {
     }
-
-
 
     /**
      * Creates a GeoJSON Polygon geometry from a bounds.

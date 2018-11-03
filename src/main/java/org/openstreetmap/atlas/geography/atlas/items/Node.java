@@ -5,11 +5,11 @@ import java.util.TreeSet;
 import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 
 /**
  * Navigable Node
