@@ -14,26 +14,29 @@ import com.google.gson.JsonPrimitive;
  */
 public final class GeoJsonUtils
 {
+    public static final String COORDINATES = "coordinates";
+    public static final String FEATURE = "Feature";
+    public static final String FEATURES = "features";
+    public static final String FEATURE_COLLECTION = "FeatureCollection";
+    public static final String GEOMETRIES = "geometries";
+    public static final String GEOMETRY = "geometry";
+    public static final String GEOMETRY_COLLECTION = "GeometryCollection";
+    public static final String PROPERTIES = "properties";
+    public static final String TYPE = "type";
+
+    public static final String POINT = "point";
+    public static final String LINESTRING = "LineString";
+    public static final String POLYGON = "Polygon";
+    public static final String MULTIPOINT = "MultiPoint)";
+    public static final String MULTILINESTRING = "MultiLineString";
+    public static final String MULTIPOLYGON = "MultiPolygon";
+
+
     private GeoJsonUtils()
     {
     }
 
-    /**
-     * An iterable of locations will turn into a JsonArray of Longitude, Latitude coordinates.
-     *
-     * @param locations
-     *            An iterable of locations
-     * @return A JsonArray of Longitude, Latitude coordinates.
-     */
-    public static JsonArray locationsToCoordinates(final Iterable<Location> locations)
-    {
-        final JsonArray coordinates = new JsonArray();
-        for (final Location point : locations)
-        {
-            coordinates.add(coordinate(point));
-        }
-        return coordinates;
-    }
+
 
     /**
      * Creates a GeoJSON Polygon geometry from a bounds.
@@ -44,8 +47,6 @@ public final class GeoJsonUtils
      */
     public static JsonObject boundsToPolygonGeometry(final Rectangle bounds)
     {
-        final JsonObject geometry = new JsonObject();
-
         final Location lowerLeft = bounds.lowerLeft();
         final Location upperRight = bounds.upperRight();
         final double minLon = lowerLeft.getLongitude().asDegrees();
@@ -63,10 +64,32 @@ public final class GeoJsonUtils
         final JsonArray coordinates = new JsonArray();
         coordinates.add(outerRing);
 
-        geometry.addProperty("type", "Polygon");
-        geometry.add("coordinates", coordinates);
+        return geometry(POLYGON, coordinates);
+    }
 
+    public static JsonObject geometry(final String type, final JsonArray coordinates)
+    {
+        final JsonObject geometry = new JsonObject();
+        geometry.addProperty(TYPE, type);
+        geometry.add(COORDINATES, coordinates);
         return geometry;
+    }
+
+    /**
+     * An iterable of locations will turn into a JsonArray of Longitude, Latitude coordinates.
+     *
+     * @param locations
+     *            An iterable of locations
+     * @return A JsonArray of Longitude, Latitude coordinates.
+     */
+    public static JsonArray locationsToCoordinates(final Iterable<Location> locations)
+    {
+        final JsonArray coordinates = new JsonArray();
+        for (final Location point : locations)
+        {
+            coordinates.add(coordinate(point));
+        }
+        return coordinates;
     }
 
     /**

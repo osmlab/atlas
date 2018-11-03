@@ -284,7 +284,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
             // features, so polygons that touch coastlines will fail. It's good to include
             // the exception in the data, along with the bounding box. That way, we can
             // notice the problem when browsing the map.
-            catch (final MultiplePolyLineToPolygonsConverter.OpenPolygonException exception)
+            catch (final CoreException exception)
             {
                 final String message = String.format("%s - %s",
                         exception.getClass().getSimpleName(), exception.getMessage());

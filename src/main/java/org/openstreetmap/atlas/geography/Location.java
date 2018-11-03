@@ -1,7 +1,5 @@
 package org.openstreetmap.atlas.geography;
 
-import static org.openstreetmap.atlas.geography.geojson.GeoJsonUtils.coordinate;
-
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.io.Serializable;
@@ -15,6 +13,7 @@ import org.openstreetmap.atlas.geography.coordinates.EarthCenteredEarthFixedCoor
 import org.openstreetmap.atlas.geography.coordinates.GeodeticCoordinate;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 
@@ -251,12 +250,7 @@ public class Location implements Located, Iterable<Location>, Serializable
 
     public JsonObject asGeoJsonGeometry()
     {
-        final JsonObject geometry = new JsonObject();
-        geometry.addProperty("type", "Point");
-
-        geometry.add("coordinates", coordinate(this));
-
-        return geometry;
+        return GeoJsonUtils.geometry(GeoJsonUtils.POINT, GeoJsonUtils.coordinate(this));
     }
 
     /**

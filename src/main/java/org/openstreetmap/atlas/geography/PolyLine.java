@@ -254,10 +254,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
 
     public JsonObject asGeoJsonGeometry()
     {
-        final JsonObject geometry = new JsonObject();
-        geometry.addProperty("type", "LineString");
-        geometry.add("coordinates", GeoJsonUtils.locationsToCoordinates(this.points));
-        return geometry;
+        return GeoJsonUtils.geometry(GeoJsonUtils.LINESTRING, GeoJsonUtils.locationsToCoordinates(this.points));
     }
 
     /**

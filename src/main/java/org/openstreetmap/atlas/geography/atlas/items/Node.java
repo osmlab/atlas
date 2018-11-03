@@ -9,6 +9,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 
 /**
  * Navigable Node
@@ -37,7 +38,7 @@ public abstract class Node extends LocationItem
     public JsonObject asGeoJsonFeature()
     {
         final JsonObject feature = super.asGeoJsonFeature();
-        final JsonObject properties = feature.getAsJsonObject("properties");
+        final JsonObject properties = feature.getAsJsonObject(GeoJsonUtils.PROPERTIES);
 
         final JsonArray inEdgesArray = new JsonArray();
         final JsonArray outEdgesArray = new JsonArray();
