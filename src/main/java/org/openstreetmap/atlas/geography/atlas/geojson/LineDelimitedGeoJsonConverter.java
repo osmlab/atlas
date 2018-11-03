@@ -17,6 +17,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
@@ -74,9 +75,13 @@ public class LineDelimitedGeoJsonConverter extends Command
     private static final Predicate<AtlasEntity> ENTITY_PREDICATE = atlasEntity ->
     {
         // We only want positive atlas entities. No negative ids.
-        if (atlasEntity.getIdentifier() < 0)
+        if (ItemType.EDGE.equals(atlasEntity.getType()))
         {
-            return false;
+            final Edge edge = (Edge) atlasEntity;
+            if (!edge.isMasterEdge())
+            {
+                return false;
+            }
         }
 
         // We only want multipolygon relations
