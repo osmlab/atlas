@@ -20,6 +20,7 @@ import org.openstreetmap.atlas.geography.converters.WktMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.geography.index.RTree;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.streaming.writers.JsonWriter;
@@ -98,13 +99,8 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
     @Override
     public JsonObject asGeoJsonGeometry()
     {
-        final JsonObject geometry = new JsonObject();
-        geometry.addProperty("type", "MultiPolygon");
-
         // An array of polygons. An OGC polygon is an outer ring with 0..n inner rings.
-        // To represent an OGC polygon with holes, you actually make a MultiPolygon in atlas.
         final JsonArray polygons = new JsonArray();
-        geometry.add("coordinates", polygons);
 
         for (final Map.Entry<Polygon, List<Polygon>> entry : outerToInners.entrySet())
         {
@@ -122,7 +118,7 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
             }
         }
 
-        return geometry;
+        return GeoJsonUtils.geometry(GeoJsonUtils.MULTIPOLYGON, polygons);
     }
 
     /**
