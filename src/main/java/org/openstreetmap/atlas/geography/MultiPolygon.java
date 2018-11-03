@@ -106,12 +106,14 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
             final List<Polygon> inners = entry.getValue();
 
             final JsonArray polygon = new JsonArray();
-            final JsonArray outerRingCoordinates = GeoJsonUtils.locationsToCoordinates(outer.closedLoop());
+            final JsonArray outerRingCoordinates = GeoJsonUtils
+                    .locationsToCoordinates(outer.closedLoop());
             polygon.add(outerRingCoordinates);
 
             for (final Polygon inner : inners)
             {
-                final JsonArray innerRingCoordinates = GeoJsonUtils.locationsToCoordinates(inner.closedLoop());
+                final JsonArray innerRingCoordinates = GeoJsonUtils
+                        .locationsToCoordinates(inner.closedLoop());
                 polygon.add(innerRingCoordinates);
             }
         }

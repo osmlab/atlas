@@ -286,15 +286,11 @@ public class Polygon extends PolyLine implements GeometricSurface
     @Override
     public JsonObject asGeoJsonGeometry()
     {
-        final JsonObject geometry = new JsonObject();
-        geometry.addProperty("type", "Polygon");
-
         final JsonArray coordinates = new JsonArray();
-        geometry.add("coordinates", coordinates);
         final JsonArray subCoordinatesArray = GeoJsonUtils.locationsToCoordinates(closedLoop());
         coordinates.add(subCoordinatesArray);
 
-        return geometry;
+        return GeoJsonUtils.geometry(GeoJsonUtils.POLYGON, coordinates);
     }
 
     /**
