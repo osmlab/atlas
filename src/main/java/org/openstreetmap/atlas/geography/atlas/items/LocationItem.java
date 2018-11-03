@@ -32,12 +32,7 @@ public abstract class LocationItem extends AtlasItem
     @Override
     public JsonObject asGeoJsonFeature()
     {
-        final JsonObject feature = asGeoJsonFeatureWithPropertiesOnly();
-
-        final JsonObject geometry = getLocation().asGeoJsonGeometry();
-        feature.add(GeoJsonUtils.GEOMETRY, geometry);
-
-        return feature;
+        return GeoJsonUtils.feature(getLocation().asGeoJsonGeometry(), geoJsonProperties());
     }
 
     @Override

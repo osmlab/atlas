@@ -264,8 +264,9 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     @Override
     public JsonObject asGeoJsonFeature()
     {
-        final JsonObject feature = asGeoJsonFeatureWithPropertiesOnly();
+        final JsonObject properties = geoJsonProperties();
 
+        // Can't be final due to catch block may reassign.
         JsonObject geometry;
 
         // We should only be writing relations as GeoJSON when they are polygons and multipolygons.
@@ -287,7 +288,6 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
             {
                 final String message = String.format("%s - %s",
                         exception.getClass().getSimpleName(), exception.getMessage());
-                final JsonObject properties = feature.getAsJsonObject("properties");
                 properties.addProperty("exception", message);
                 geometry = GeoJsonUtils.boundsToPolygonGeometry(bounds());
             }
@@ -299,9 +299,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
             geometry = GeoJsonUtils.boundsToPolygonGeometry(bounds());
         }
 
-        feature.add("geometry", geometry);
-
-        return feature;
+        return GeoJsonUtils.feature(geometry, properties);
     }
 
     public String toSimpleString()

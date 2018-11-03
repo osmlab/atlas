@@ -33,12 +33,7 @@ public abstract class Area extends AtlasItem
     @Override
     public JsonObject asGeoJsonFeature()
     {
-        final JsonObject feature = asGeoJsonFeatureWithPropertiesOnly();
-
-        final JsonObject geometry = asPolygon().asGeoJsonGeometry();
-        feature.add(GeoJsonUtils.GEOMETRY, geometry);
-
-        return feature;
+        return GeoJsonUtils.feature(asPolygon().asGeoJsonGeometry(), geoJsonProperties());
     }
 
     /**

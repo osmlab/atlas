@@ -11,6 +11,7 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.slf4j.Logger;
@@ -138,11 +139,6 @@ public abstract class LineItem extends AtlasItem
     @Override
     public JsonObject asGeoJsonFeature()
     {
-        final JsonObject feature = asGeoJsonFeatureWithPropertiesOnly();
-
-        final JsonObject geometry = asPolyLine().asGeoJsonGeometry();
-        feature.add("geometry", geometry);
-
-        return feature;
+        return GeoJsonUtils.feature(asPolyLine().asGeoJsonGeometry(), geoJsonProperties());
     }
 }

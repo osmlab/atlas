@@ -36,6 +36,24 @@ public final class GeoJsonUtils
     }
 
     /**
+     * Creates a GeoJSON Feature with a geometry and properties object.
+     *
+     * @param geometry
+     *            JsonObject that is the geometry.
+     * @param properties
+     *            JsonObject that is the properties.
+     * @return GeoJSON Feature as JsonObject.
+     */
+    public static JsonObject feature(final JsonObject geometry, final JsonObject properties)
+    {
+        final JsonObject feature = new JsonObject();
+        feature.addProperty(TYPE, FEATURE);
+        feature.add(GEOMETRY, geometry);
+        feature.add(PROPERTIES, properties);
+        return feature;
+    }
+
+    /**
      * Creates a GeoJSON Polygon geometry from a bounds.
      *
      * @param bounds
