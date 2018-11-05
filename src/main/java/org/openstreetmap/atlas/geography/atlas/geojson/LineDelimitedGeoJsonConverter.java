@@ -25,6 +25,7 @@ import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.runtime.Command;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
+import org.openstreetmap.atlas.utilities.runtime.RunScript;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,7 +147,7 @@ public class LineDelimitedGeoJsonConverter extends Command
         try
         {
             pool.submit(() -> this.convertAtlases(atlasDirectory, geojsonDirectory)).get();
-            concatenate(geojsonDirectory);
+            concatenate2(geojsonDirectory);
         }
         catch (final InterruptedException interrupt)
         {
@@ -215,6 +216,14 @@ public class LineDelimitedGeoJsonConverter extends Command
             logger.error("Unable to concatenate the output line-delimited GeoJSON files.",
                     ioException);
         }
+    }
+
+    private void concatenate2(final Path geojsonDirectory)
+    {
+        final String directory = geojsonDirectory.toString();
+        final String command = String.format("bash -c \"cat '%s/'*.geojson > '%s/'%s\"", directory, directory, EVERYTHING);
+
+        RunScript.run(command);
     }
 
     private static List<File> fetchAtlasFilesInDirectory(final Path directory)
