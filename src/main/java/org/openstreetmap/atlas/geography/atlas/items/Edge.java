@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.tags.HighwayTag;
 
 import com.google.gson.JsonObject;
@@ -43,7 +44,7 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
     public JsonObject asGeoJsonFeature()
     {
         final JsonObject feature = super.asGeoJsonFeature();
-        final JsonObject properties = feature.getAsJsonObject("properties");
+        final JsonObject properties = feature.getAsJsonObject(GeoJsonUtils.PROPERTIES);
 
         properties.addProperty("startNode", start().getIdentifier());
         properties.addProperty("endNode", end().getIdentifier());
