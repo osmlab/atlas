@@ -62,19 +62,12 @@ public final class GeoJsonUtils
      */
     public static JsonObject boundsToPolygonGeometry(final Rectangle bounds)
     {
-        final Location lowerLeft = bounds.lowerLeft();
-        final Location upperRight = bounds.upperRight();
-        final double minLon = lowerLeft.getLongitude().asDegrees();
-        final double minLat = lowerLeft.getLatitude().asDegrees();
-        final double maxLon = upperRight.getLongitude().asDegrees();
-        final double maxLat = upperRight.getLatitude().asDegrees();
-
         final JsonArray outerRing = new JsonArray();
-        outerRing.add(coordinate(minLon, minLat));
-        outerRing.add(coordinate(minLon, maxLat));
-        outerRing.add(coordinate(maxLon, maxLat));
-        outerRing.add(coordinate(maxLon, minLat));
-        outerRing.add(coordinate(minLon, minLat));
+        final Iterable<Location> locations = bounds.closedLoop();
+        for (final Location location : locations)
+        {
+            outerRing.add(coordinate(location));
+        }
 
         final JsonArray coordinates = new JsonArray();
         coordinates.add(outerRing);
