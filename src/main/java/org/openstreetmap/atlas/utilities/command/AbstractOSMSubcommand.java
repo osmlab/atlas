@@ -18,6 +18,8 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     private static final String ANSI_BOLD = "\033[1m";
     private static final String ANSI_RESET = "\033[0m";
 
+    private final SimpleOptionAndArgumentParser optionParser = new SimpleOptionAndArgumentParser();
+
     private boolean useColor = true;
 
     public abstract int execute();
@@ -27,26 +29,6 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     public abstract String getSimpleDescription();
 
     public abstract void registerOptionsAndArguments();
-
-    protected String getHelpMenu()
-    {
-        final String name = this.getCommandName();
-        final String simpleDescription = this.getSimpleDescription();
-        final StringBuilder builder = new StringBuilder();
-        builder.append("\n");
-        if (this.useColor)
-        {
-            builder.append(ANSI_BOLD);
-        }
-        builder.append("NAME");
-        if (this.useColor)
-        {
-            builder.append(ANSI_RESET);
-        }
-        builder.append("\n\t" + name + " -- " + simpleDescription + "\n");
-        builder.append("\n");
-        return builder.toString();
-    }
 
     protected void runSubcommandAndExit(String... args)
     {
@@ -72,5 +54,25 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
 
         // run the command
         System.exit(execute());
+    }
+
+    private String getHelpMenu()
+    {
+        final String name = this.getCommandName();
+        final String simpleDescription = this.getSimpleDescription();
+        final StringBuilder builder = new StringBuilder();
+        builder.append("\n");
+        if (this.useColor)
+        {
+            builder.append(ANSI_BOLD);
+        }
+        builder.append("NAME");
+        if (this.useColor)
+        {
+            builder.append(ANSI_RESET);
+        }
+        builder.append("\n\t" + name + " -- " + simpleDescription + "\n");
+        builder.append("\n");
+        return builder.toString();
     }
 }
