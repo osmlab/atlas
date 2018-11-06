@@ -339,7 +339,7 @@ public class SimpleOptionAndArgumentParser
             {
                 seenEndOptionSentinel = true;
             }
-            if (argument.startsWith(LONG_FORM_PREFIX) && !seenEndOptionSentinel)
+            else if (argument.startsWith(LONG_FORM_PREFIX) && !seenEndOptionSentinel)
             {
                 parseLongFormOption(argument);
             }
