@@ -108,4 +108,14 @@ public class ConcurrentResourceCache implements ResourceCache
             this.cachingStrategy.invalidate(resourceURI);
         }
     }
+
+    /**
+     * Get a {@link UUID} for this cache instance. This is useful for logging.
+     *
+     * @return The cache instance {@link UUID}
+     */
+    protected UUID getCacheID()
+    {
+        return this.cacheID;
+    }
 }

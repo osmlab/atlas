@@ -4,6 +4,8 @@
 
 Raw Atlas Sectioning is the process of way-sectioning an intermediary Atlas file. As input, the process takes in a sliced raw Atlas and produces a final sectioned Atlas. It's important to note that the sliced raw Atlas contains only Points, Lines and Relations, whereas the final output contains all Atlas entities. One of the main advantages of the raw Atlas sectioning logic is the guarantee of consistent `Edge` identifiers. This means that if an OSM Way spans multiple Shards, the corresponding Atlas `Edge` will have consistent identifiers for the same geometry, irrespective of which `Shard` that `Edge` is queried from. Under the covers, the sectioning logic relies on a `DynamicAtlas` to be able to follow an OSM Way to its completion, capture any intersections that the Way may have, section the full view of the `Edge` and save the portion that belongs inside the boundary of the `Shard` being processed.
 
+The main driver behind this logic is located in the `WaySectionProcessor` class. In addition to the sectioning logic, this class will translate Points and Lines into their final state (`Node`, `Point`, `Area`, `Line` or `Edge`) in the `Atlas`. These state changes are tracked in the `WaySectionChangeSet` class and it's used as the source of truth when the final `Atlas` is built.
+
 ## Detailed Steps
 
 The sectioning process is comprised of the following steps:
@@ -20,7 +22,7 @@ The sectioning process is comprised of the following steps:
 
 4. Stream all the Lines that have been identified as Edges from step 2 and split them into one or more `Edge`. This step will take care of both open and closed Edges and handle forward and reverse `Edge` creation. It's important to note that the logic for sectioning closed Edges is slightly more complex since we try to avoid sectioning at the arbitrary start location where the OSM Way was drawn from. Instead, we try to section at any intersecting location with other Edges or if those don't exist, we have a single `Edge` that starts and stops at the first `Location` of the underlying `PolyLine`.
 
-5. Build the final Atlas. This step makes uses of steps 1-4 and has the important role of updating all Relations to use the newly created Atlas entities to properly replace the previous members that may have been updated or deleted. 
+5. Build the final Atlas. This step makes uses of steps 1-4 and has the important role of updating all Relations to use the newly created Atlas entities to properly replace the previous members that may have been updated or deleted. It's also important to call out that the `WaySectionProcessor` works on a per-Shard level. This means that if the `DynamicAtlas` created in step 1 pulled in any additional Shards, we need to cut away anything that is outside the boundary of the starting `Shard` that initiated the sectioning process. If there were no other Shards pulled in during `DynamicAtlas` creation, then the resulting `Atlas` is returned, as is. One final note is that it's possible to have AtlasEntities that are outside of the original `Shard` boundary. This happens in order to maintain `Atlas` integrity. A couple of examples include Points that are part of a Relation or Nodes that go outside of the `Shard` boundary for Edges that start or end within the boundary.
 
 ## Synthetic Tags
 
