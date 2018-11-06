@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.utilities.command;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -140,6 +141,18 @@ public class SimpleOptionAndArgumentParser
 
             return hash;
         }
+
+        @Override
+        public String toString()
+        {
+            final StringBuilder builder = new StringBuilder();
+            builder.append(this.longForm);
+            if (this.shortForm.isPresent())
+            {
+                builder.append(", " + this.shortForm.get());
+            }
+            return builder.toString();
+        }
     }
 
     /*
@@ -233,6 +246,21 @@ public class SimpleOptionAndArgumentParser
         this.parsedArguments = new LinkedHashMap<>();
     }
 
+    public void debugPrint()
+    {
+        logger.warn("{}", this.registeredOptions);
+        logger.warn("{}", this.parsedOptions);
+    }
+
+    /**
+     * Given a hint defined by a call to
+     * {@link SimpleOptionAndArgumentParser#registerArgument(String, ArgumentParity)}, return the
+     * argument values associated with that hint.
+     *
+     * @param hint
+     *            the hint to check
+     * @return a list of the values
+     */
     public List<String> getArgumentForHint(final String hint)
     {
         if (!this.argumentHints.contains(hint))
@@ -251,37 +279,44 @@ public class SimpleOptionAndArgumentParser
 
     public Optional<String> getLongOptionArgument(final String longForm)
     {
-        final Optional<SimpleOption> option = getOptionFromLongForm(longForm);
+        if (!registeredOptionForLongForm(longForm).isPresent())
+        {
+            throw new CoreException("{} not a registered option", longForm);
+        }
+        final Optional<SimpleOption> option = getParsedOptionFromLongForm(longForm);
         if (option.isPresent())
         {
             return this.parsedOptions.get(option.get());
         }
-
-        throw new CoreException("{} not a registered option", longForm);
+        return Optional.empty();
     }
 
-    public boolean hasLongOption(final String longForm)
+    public boolean hasOption(final String longForm)
     {
-        final Optional<SimpleOption> option = getOptionFromLongForm(longForm);
+        if (!registeredOptionForLongForm(longForm).isPresent())
+        {
+            throw new CoreException("{} not a registered option", longForm);
+        }
+        final Optional<SimpleOption> option = getParsedOptionFromLongForm(longForm);
         if (option.isPresent())
         {
             return true;
         }
-
-        throw new CoreException("{} not a registered option", longForm);
+        return false;
     }
 
     public boolean hasShortOption(final Character shortForm)
     {
-        final Optional<SimpleOption> option = getOptionFromShortForm(shortForm);
+        if (!registeredOptionForShortForm(shortForm).isPresent())
+        {
+            throw new CoreException("{} not a registered option", shortForm);
+        }
+        final Optional<SimpleOption> option = getParsedOptionFromShortForm(shortForm);
         if (option.isPresent())
         {
             return true;
         }
-        else
-        {
-            throw new CoreException("{} not a registered option", shortForm);
-        }
+        return false;
     }
 
     public void parseOptionsAndArguments(final List<String> allArguments)
@@ -434,12 +469,12 @@ public class SimpleOptionAndArgumentParser
         return Optional.empty();
     }
 
-    private Optional<SimpleOption> getOptionFromLongForm(final String longForm)
+    private Optional<SimpleOption> getParsedOptionFromLongForm(final String longForm)
     {
         return checkForLongOption(longForm, this.parsedOptions.keySet());
     }
 
-    private Optional<SimpleOption> getOptionFromShortForm(final Character shortForm)
+    private Optional<SimpleOption> getParsedOptionFromShortForm(final Character shortForm)
     {
         return checkForShortOption(shortForm, this.parsedOptions.keySet());
     }
@@ -486,9 +521,7 @@ public class SimpleOptionAndArgumentParser
         switch (currentParity)
         {
             case SINGLE:
-                final List<String> list = new ArrayList<>();
-                list.add(argument);
-                this.parsedArguments.put(argumentHint, list);
+                this.parsedArguments.put(argumentHint, Arrays.asList(argument));
                 this.argumentParityCounter++;
                 break;
             case MULTIPLE:

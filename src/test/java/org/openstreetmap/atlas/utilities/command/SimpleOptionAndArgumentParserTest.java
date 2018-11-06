@@ -9,6 +9,9 @@ import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.A
 import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.OptionParseException;
 import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.UnknownOptionException;
 
+/**
+ * @author lcram
+ */
 public class SimpleOptionAndArgumentParserTest
 {
     @Test
@@ -18,12 +21,13 @@ public class SimpleOptionAndArgumentParserTest
         parser.registerOption("opt1", "the 1st option");
         parser.registerOption("opt2", "the 2nd option");
         parser.registerOptionWithRequiredArgument("opt3", "the 3rd option", "ARG");
+        parser.registerOption("opt4", 'o', "a short form");
         parser.registerArgument("single1", ArgumentParity.SINGLE);
         parser.registerArgument("single2", ArgumentParity.SINGLE);
         parser.registerArgument("multi1", ArgumentParity.MULTIPLE);
 
         final List<String> arguments = Arrays.asList("--opt2", "--opt3=value", "arg1", "--opt1",
-                "arg2", "arg3", "arg4", "arg5");
+                "arg2", "arg3", "-o", "arg4", "arg5");
 
         try
         {
@@ -38,9 +42,17 @@ public class SimpleOptionAndArgumentParserTest
             Assert.fail(e.getMessage());
         }
 
-        Assert.assertEquals(true, parser.hasLongOption("opt1"));
-        Assert.assertEquals(true, parser.hasLongOption("opt2"));
+        Assert.assertEquals(true, parser.hasOption("opt1"));
+        Assert.assertEquals(true, parser.hasOption("opt2"));
         Assert.assertEquals("value", parser.getLongOptionArgument("opt3").get());
+
+        /*
+         * hasOption(longForm) will return true even if only the shortForm was actually present on
+         * the command line
+         */
+        Assert.assertEquals(true, parser.hasOption("opt4"));
+        Assert.assertEquals(true, parser.hasShortOption('o'));
+
         Assert.assertEquals(Arrays.asList("arg1"), parser.getArgumentForHint("single1"));
         Assert.assertEquals(Arrays.asList("arg2"), parser.getArgumentForHint("single2"));
         Assert.assertEquals(Arrays.asList("arg3", "arg4", "arg5"),
@@ -48,7 +60,19 @@ public class SimpleOptionAndArgumentParserTest
     }
 
     @Test
-    public void testMultiParityInAllOrders()
+    public void testMissingArgument()
+    {
+        // TODO fill in
+    }
+
+    @Test
+    public void testMissingOption()
+    {
+        // TODO fill in
+    }
+
+    @Test
+    public void testMultiParityArgumentInAllOrders()
     {
         final List<String> arguments = Arrays.asList("arg1", "arg2", "arg3", "arg4", "arg5");
 
@@ -117,5 +141,17 @@ public class SimpleOptionAndArgumentParserTest
         Assert.assertEquals(Arrays.asList("arg2"), parser3.getArgumentForHint("single2"));
         Assert.assertEquals(Arrays.asList("arg3", "arg4", "arg5"),
                 parser3.getArgumentForHint("multi1"));
+    }
+
+    @Test
+    public void testOptionParseException()
+    {
+        // TODO fill in
+    }
+
+    @Test
+    public void testUnknownOptionException()
+    {
+        // TODO fill in
     }
 }

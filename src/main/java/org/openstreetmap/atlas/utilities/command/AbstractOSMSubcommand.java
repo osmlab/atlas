@@ -1,6 +1,12 @@
 package org.openstreetmap.atlas.utilities.command;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.ArgumentParity;
+import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.OptionParseException;
+import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.UnknownOptionException;
 
 /**
  * @author lcram
@@ -18,7 +24,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     private static final String ANSI_BOLD = "\033[1m";
     private static final String ANSI_RESET = "\033[0m";
 
-    private final SimpleOptionAndArgumentParser optionParser = new SimpleOptionAndArgumentParser();
+    private final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
 
     private boolean useColor = true;
 
@@ -30,8 +36,74 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
 
     public abstract void registerOptionsAndArguments();
 
+    protected List<String> getArgumentForHint(final String hint)
+    {
+        return this.parser.getArgumentForHint(hint);
+    }
+
+    protected Optional<String> getLongOptionArgument(final String longForm)
+    {
+        return this.parser.getLongOptionArgument(longForm);
+    }
+
+    protected boolean hasOption(final String longForm)
+    {
+        return this.parser.hasOption(longForm);
+    }
+
+    protected boolean hasShortOption(final Character shortForm)
+    {
+        return this.parser.hasShortOption(shortForm);
+    }
+
+    protected void registerArgument(final String argumentHint, final ArgumentParity parity)
+    {
+        this.parser.registerArgument(argumentHint, parity);
+    }
+
+    protected void registerOption(final String longForm, final Character shortForm,
+            final String description)
+    {
+        if ("help".equals(longForm))
+        {
+            return;
+        }
+        this.parser.registerOption(longForm, shortForm, description);
+    }
+
+    protected void registerOption(final String longForm, final String description)
+    {
+        if ("help".equals(longForm))
+        {
+            return;
+        }
+        this.parser.registerOption(longForm, description);
+    }
+
+    protected void registerOptionWithOptionalArgument(final String longForm,
+            final String description, final String argumentHint)
+    {
+        if ("help".equals(longForm))
+        {
+            return;
+        }
+        this.parser.registerOptionWithOptionalArgument(longForm, description, argumentHint);
+    }
+
+    protected void registerOptionWithRequiredArgument(final String longForm,
+            final String description, final String argumentHint)
+    {
+        if ("help".equals(longForm))
+        {
+            return;
+        }
+        this.parser.registerOptionWithRequiredArgument(longForm, description, argumentHint);
+    }
+
     protected void runSubcommandAndExit(String... args)
     {
+        this.parser.registerOption("help", 'h', "Show this help menu.");
+
         // check the last arg to see if we should disable colors
         if (args.length > 0 && NO_COLOR_OPTION.equals(args[args.length - 1]))
         {
@@ -42,14 +114,28 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
         // fill out appropriate data structures so the execute() implementation can query
         registerOptionsAndArguments();
 
-        // dummy HELP option implementation
-        if (args.length > 0)
+        try
         {
-            if ("--help".equals(args[0]) || "-h".equals(args[0]))
-            {
-                System.out.println(this.getHelpMenu());
-                System.exit(0);
-            }
+            this.parser.parseOptionsAndArguments(Arrays.asList(args));
+        }
+        catch (final UnknownOptionException e)
+        {
+            // TODO colorize
+            System.err.println(this.getCommandName() + ": error: unknown option " + e.getMessage());
+            System.exit(1);
+        }
+        catch (final OptionParseException e)
+        {
+            // TODO colorize
+            System.err.println(this.getCommandName() + ": error: " + e.getMessage());
+            System.exit(1);
+        }
+
+        // Special case if user supplied '--help' or '-h'
+        if (this.parser.hasOption("help"))
+        {
+            System.out.println(this.getHelpMenu());
+            System.exit(0);
         }
 
         // run the command

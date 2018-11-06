@@ -11,6 +11,8 @@ public class HelloWorldSubcommand extends AbstractOSMSubcommand
 {
     private static final Logger logger = LoggerFactory.getLogger(HelloWorldSubcommand.class);
 
+    private static final String NAME_OPTION = "name";
+
     public static void main(final String[] args)
     {
         new HelloWorldSubcommand().runSubcommandAndExit(args);
@@ -19,12 +21,14 @@ public class HelloWorldSubcommand extends AbstractOSMSubcommand
     @Override
     public int execute()
     {
-        logger.trace("TRACE message");
-        logger.debug("DEBUG message");
-        logger.info("INFO message");
-        logger.warn("WARN message");
-        logger.error("ERROR message");
-        System.out.println("Hello, world!");
+        if (hasOption(NAME_OPTION))
+        {
+            System.out.println("Hello, " + getLongOptionArgument(NAME_OPTION).get() + "!");
+        }
+        else
+        {
+            System.out.println("Hello, world!");
+        }
         return 0;
     }
 
@@ -43,6 +47,6 @@ public class HelloWorldSubcommand extends AbstractOSMSubcommand
     @Override
     public void registerOptionsAndArguments()
     {
-        // TODO implement
+        registerOptionWithRequiredArgument(NAME_OPTION, "Your name for the greeting", "name");
     }
 }
