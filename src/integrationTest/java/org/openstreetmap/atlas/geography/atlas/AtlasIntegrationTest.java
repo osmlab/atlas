@@ -39,7 +39,7 @@ public class AtlasIntegrationTest
 
     protected Atlas loadBahamas(final Polygon polygon)
     {
-        final String path = OsmPbfIngestIntegrationTest.class.getResource("BHS-6-18-28.pbf")
+        final String path = OsmPbfIngestIntegrationTest.class.getResource("BHS-6-18-27.pbf")
                 .getPath();
         final AtlasLoadingOption loadingOption = AtlasLoadingOption.createOptionWithOnlySectioning()
                 .setLoadWaysSpanningCountryBoundaries(false);
