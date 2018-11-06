@@ -345,7 +345,14 @@ public class SimpleOptionAndArgumentParser
             }
             else if (argument.startsWith(SHORT_FORM_PREFIX) && !seenEndOptionSentinel)
             {
-                parseShortFormOption(argument);
+                if (SHORT_FORM_PREFIX.equals(argument))
+                {
+                    regularArguments.add(argument);
+                }
+                else
+                {
+                    parseShortFormOption(argument);
+                }
             }
             else
             {
