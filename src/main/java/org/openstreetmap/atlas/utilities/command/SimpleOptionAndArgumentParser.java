@@ -11,6 +11,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A very simple option and argument parser. Designed specifically to impose constraints on the
@@ -20,11 +22,6 @@ import org.openstreetmap.atlas.exception.CoreException;
  */
 public class SimpleOptionAndArgumentParser
 {
-    /*
-     * TODO: An alternate approach to explore would be: extend the Apache Commons CLI library to
-     * impose the necessary constraints without having to reinvent the wheel.
-     */
-
     /**
      * @author lcram
      */
@@ -145,6 +142,11 @@ public class SimpleOptionAndArgumentParser
         }
     }
 
+    /*
+     * TODO: An alternate approach to explore would be: extend the Apache Commons CLI library to
+     * impose the necessary constraints without having to reinvent the wheel.
+     */
+
     /**
      * @author lcram
      */
@@ -201,6 +203,8 @@ public class SimpleOptionAndArgumentParser
     private static final String LONG_FORM_PREFIX = "--";
     private static final String SHORT_FORM_PREFIX = "-";
     private static final String OPTION_ARGUMENT_DELIMITER = "=";
+    private static final Logger logger = LoggerFactory
+            .getLogger(SimpleOptionAndArgumentParser.class);
 
     private final Set<SimpleOption> registeredOptions;
     private final List<String> argumentHints;
@@ -227,6 +231,57 @@ public class SimpleOptionAndArgumentParser
 
         this.parsedOptions = new LinkedHashMap<>();
         this.parsedArguments = new LinkedHashMap<>();
+    }
+
+    public List<String> getArgumentForHint(final String hint)
+    {
+        if (!this.argumentHints.contains(hint))
+        {
+            throw new CoreException("hint \'{}\' does not correspond to a registered argument",
+                    hint);
+        }
+        final List<String> arguments = this.parsedArguments.get(hint);
+        if (arguments != null)
+        {
+            return arguments;
+        }
+
+        throw new CoreException("Critical failure. If you see this, it\'s a bug!");
+    }
+
+    public Optional<String> getLongOptionArgument(final String longForm)
+    {
+        final Optional<SimpleOption> option = getOptionFromLongForm(longForm);
+        if (option.isPresent())
+        {
+            return this.parsedOptions.get(option.get());
+        }
+
+        throw new CoreException("{} not a registered option", longForm);
+    }
+
+    public boolean hasLongOption(final String longForm)
+    {
+        final Optional<SimpleOption> option = getOptionFromLongForm(longForm);
+        if (option.isPresent())
+        {
+            return true;
+        }
+
+        throw new CoreException("{} not a registered option", longForm);
+    }
+
+    public boolean hasShortOption(final Character shortForm)
+    {
+        final Optional<SimpleOption> option = getOptionFromShortForm(shortForm);
+        if (option.isPresent())
+        {
+            return true;
+        }
+        else
+        {
+            throw new CoreException("{} not a registered option", shortForm);
+        }
     }
 
     public void parseOptionsAndArguments(final List<String> allArguments)
@@ -349,6 +404,46 @@ public class SimpleOptionAndArgumentParser
                 new SimpleOption(longForm, OptionArgumentType.REQUIRED, description, argumentHint));
     }
 
+    private Optional<SimpleOption> checkForLongOption(final String longForm,
+            final Set<SimpleOption> setToCheck)
+    {
+        for (final SimpleOption option : setToCheck)
+        {
+            if (option.getLongForm().equals(longForm))
+            {
+                return Optional.of(option);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private Optional<SimpleOption> checkForShortOption(final Character shortForm,
+            final Set<SimpleOption> setToCheck)
+    {
+        for (final SimpleOption option : setToCheck)
+        {
+            final Optional<Character> optionalForm = option.getShortForm();
+            if (optionalForm.isPresent())
+            {
+                if (optionalForm.get().equals(shortForm))
+                {
+                    return Optional.of(option);
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    private Optional<SimpleOption> getOptionFromLongForm(final String longForm)
+    {
+        return checkForLongOption(longForm, this.parsedOptions.keySet());
+    }
+
+    private Optional<SimpleOption> getOptionFromShortForm(final Character shortForm)
+    {
+        return checkForShortOption(shortForm, this.parsedOptions.keySet());
+    }
+
     private void parseLongFormOption(final String argument)
             throws UnknownOptionException, OptionParseException
     {
@@ -387,16 +482,16 @@ public class SimpleOptionAndArgumentParser
             throw new OptionParseException("too many arguments");
         }
         final ArgumentParity currentParity = this.argumentParities.get(this.argumentParityCounter);
+        final String argumentHint = this.argumentHints.get(this.argumentParityCounter);
         switch (currentParity)
         {
             case SINGLE:
                 final List<String> list = new ArrayList<>();
                 list.add(argument);
-                this.parsedArguments.put(argument, list);
+                this.parsedArguments.put(argumentHint, list);
                 this.argumentParityCounter++;
                 break;
             case MULTIPLE:
-                final String argumentHint = this.argumentHints.get(this.argumentParityCounter);
                 List<String> multiArgumentList = this.parsedArguments.get(argumentHint);
                 multiArgumentList = multiArgumentList == null ? new ArrayList<>()
                         : multiArgumentList;
@@ -409,8 +504,8 @@ public class SimpleOptionAndArgumentParser
                 {
                     // do nothing, we can consume the rest of the arguments
                 }
-                // Case 2 -> MULTIPLE SINGLE [SINGLE...]
-                else if (this.argumentParityCounter == 0)
+                // Case 2 -> [SINGLE...] MULTIPLE SINGLE [SINGLE...]
+                else
                 {
                     // cutoff point, be sure to save arguments for consumption by subsequent hints
                     if (multiArgumentList.size() == regularArgumentSize - this.argumentHints.size()
@@ -451,30 +546,12 @@ public class SimpleOptionAndArgumentParser
 
     private Optional<SimpleOption> registeredOptionForLongForm(final String longForm)
     {
-        for (final SimpleOption option : this.registeredOptions)
-        {
-            if (option.getLongForm().equals(longForm))
-            {
-                return Optional.of(option);
-            }
-        }
-        return Optional.empty();
+        return checkForLongOption(longForm, this.registeredOptions);
     }
 
     private Optional<SimpleOption> registeredOptionForShortForm(final Character shortForm)
     {
-        for (final SimpleOption option : this.registeredOptions)
-        {
-            final Optional<Character> optionalForm = option.getShortForm();
-            if (optionalForm.isPresent())
-            {
-                if (optionalForm.get().equals(shortForm))
-                {
-                    return Optional.of(option);
-                }
-            }
-        }
-        return Optional.empty();
+        return checkForShortOption(shortForm, this.registeredOptions);
     }
 
     private void throwIfArgumentHintSeen(final String hint)
