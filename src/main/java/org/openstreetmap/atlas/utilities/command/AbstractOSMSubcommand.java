@@ -118,16 +118,17 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
         {
             this.parser.parseOptionsAndArguments(Arrays.asList(args));
         }
-        catch (final UnknownOptionException e)
+        catch (final UnknownOptionException exception)
         {
             // TODO colorize
-            System.err.println(this.getCommandName() + ": error: unknown option " + e.getMessage());
+            System.err.println(
+                    this.getCommandName() + ": error: unknown option " + exception.getMessage());
             System.exit(1);
         }
-        catch (final OptionParseException e)
+        catch (final OptionParseException exception)
         {
             // TODO colorize
-            System.err.println(this.getCommandName() + ": error: " + e.getMessage());
+            System.err.println(this.getCommandName() + ": error: " + exception.getMessage());
             System.exit(1);
         }
 
