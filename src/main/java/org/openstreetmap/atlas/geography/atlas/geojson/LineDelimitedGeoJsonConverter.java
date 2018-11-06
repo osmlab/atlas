@@ -10,8 +10,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -147,7 +145,7 @@ public class LineDelimitedGeoJsonConverter extends Command
         try
         {
             pool.submit(() -> this.convertAtlases(atlasDirectory, geojsonDirectory)).get();
-            concatenate2(geojsonDirectory);
+            concatenate(geojsonDirectory);
         }
         catch (final InterruptedException interrupt)
         {
@@ -195,35 +193,11 @@ public class LineDelimitedGeoJsonConverter extends Command
     {
         final Time time = Time.now();
         final String directory = geojsonDirectory.toString();
-
-        // https://stackoverflow.com/questions/5080109/how-to-execute-bin-sh-with-commons-exec
         final String cat = String.format("cat '%s/'*.geojson > '%s/'%s", directory, directory,
                 EVERYTHING);
-
-        final CommandLine commandLine = CommandLine.parse("bash").addArgument("-c", false)
-                .addArgument(cat, false);
-
-        logger.info("cmd: {}", commandLine.toString());
-
-        final DefaultExecutor executor = new DefaultExecutor();
-        try
-        {
-            executor.execute(commandLine);
-            logger.info("Concatenated to {} in {}", EVERYTHING, time.elapsedSince());
-        }
-        catch (final IOException ioException)
-        {
-            logger.error("Unable to concatenate the output line-delimited GeoJSON files.",
-                    ioException);
-        }
-    }
-
-    private void concatenate2(final Path geojsonDirectory)
-    {
-        final String directory = geojsonDirectory.toString();
-        final String command = String.format("bash -c \"cat '%s/'*.geojson > '%s/'%s\"", directory, directory, EVERYTHING);
-
-        RunScript.run(command);
+        final String[] bashCommandArray = new String[] { "bash", "-c", cat };
+        RunScript.run(bashCommandArray);
+        logger.info("Concatenated to {} in {}", EVERYTHING, time.elapsedSince());
     }
 
     private static List<File> fetchAtlasFilesInDirectory(final Path directory)

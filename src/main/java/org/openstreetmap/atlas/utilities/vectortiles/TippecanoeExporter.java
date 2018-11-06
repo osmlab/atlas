@@ -1,17 +1,20 @@
 package org.openstreetmap.atlas.utilities.vectortiles;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.Optional;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.exec.util.StringUtils;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.geojson.LineDelimitedGeoJsonConverter;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
+import org.openstreetmap.atlas.utilities.runtime.RunScript;
+import org.openstreetmap.atlas.utilities.runtime.SingleLineMonitor;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,42 +80,50 @@ public final class TippecanoeExporter extends LineDelimitedGeoJsonConverter
 
     private boolean hasValidTippecanoe()
     {
-        final CommandLine commandLine = CommandLine.parse("tippecanoe").addArgument("--version");
-        logger.info("cmd: {}", commandLine);
-        final DefaultExecutor executor = new DefaultExecutor();
-        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        final PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream);
-        executor.setStreamHandler(streamHandler);
+        final String[] commandArray = new String[] { "tippecanoe", "--version" };
         try
         {
-            executor.execute(commandLine);
+            RunScript.run(commandArray, Collections.singletonList(TIPPECANOE_VERSION_MONITOR));
         }
         // When you look up the version, it tippecanoe exits with 1, so getting here is normal.
         // We want to get into this catch.
-        catch (final IOException ioException)
+        catch (final CoreException exception)
         {
-            final String outputString = outputStream.toString();
-            logger.info(outputString);
-            final String[] versionArray = outputString.split("\n")[0].split("tippecanoe v");
-            // Here we extract the version.
-            if (versionArray.length == 2)
+            final Optional<String> result = TIPPECANOE_VERSION_MONITOR.getResult();
+            if (result.isPresent())
             {
-                final String versionString = versionArray[1];
-                final DefaultArtifactVersion version = new DefaultArtifactVersion(versionString);
-                if (TippecanoeSettings.MIN_VERSION.compareTo(version) <= 0)
+                final String outputString = result.get();
+                final String[] versionArray = outputString.split("\n")[0].split("tippecanoe v");
+                // Here we extract the version.
+                if (versionArray.length == 2)
                 {
-                    return true;
-                }
-                else
-                {
-                    logger.error("Your version of tippecanoe is too old! The minimum version is {}",
-                            TippecanoeSettings.MIN_VERSION);
+                    final String versionString = versionArray[1];
+                    final DefaultArtifactVersion version = new DefaultArtifactVersion(
+                            versionString);
+                    if (TippecanoeSettings.MIN_VERSION.compareTo(version) <= 0)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        logger.error(
+                                "Your version of tippecanoe is too old! The minimum version is {}",
+                                TippecanoeSettings.MIN_VERSION);
+                    }
                 }
             }
-
         }
         return false;
     }
+
+    private static final SingleLineMonitor TIPPECANOE_VERSION_MONITOR = new SingleLineMonitor()
+    {
+        @Override
+        protected Optional<String> parseResult(final String line)
+        {
+            return Optional.of(line);
+        }
+    };
 
     private void runTippecanoe(final Path geojson, final Path mbtiles, final boolean overwrite)
     {
