@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.ArgumentParity;
+import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.OptionParseException;
 import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.UnknownOptionException;
 
@@ -22,9 +22,9 @@ public class SimpleOptionAndArgumentParserTest
         parser.registerOption("opt2", "the 2nd option");
         parser.registerOptionWithRequiredArgument("opt3", "the 3rd option", "ARG");
         parser.registerOption("opt4", 'o', "a short form");
-        parser.registerArgument("single1", ArgumentParity.SINGLE);
-        parser.registerArgument("single2", ArgumentParity.SINGLE);
-        parser.registerArgument("multi1", ArgumentParity.MULTIPLE);
+        parser.registerArgument("single1", ArgumentArity.UNARY);
+        parser.registerArgument("single2", ArgumentArity.UNARY);
+        parser.registerArgument("multi1", ArgumentArity.VARIADIC);
 
         final List<String> arguments = Arrays.asList("--opt2", "--opt3=value", "arg1", "--opt1",
                 "arg2", "arg3", "-o", "arg4", "arg5");
@@ -72,15 +72,27 @@ public class SimpleOptionAndArgumentParserTest
     }
 
     @Test
-    public void testMultiParityArgumentInAllOrders()
+    public void testOptionParseException()
+    {
+        // TODO fill in
+    }
+
+    @Test
+    public void testUnknownOptionException()
+    {
+        // TODO fill in
+    }
+
+    @Test
+    public void testVariadicArgumentInAllOrders()
     {
         final List<String> arguments = Arrays.asList("arg1", "arg2", "arg3", "arg4", "arg5");
 
         // First
         final SimpleOptionAndArgumentParser parser1 = new SimpleOptionAndArgumentParser();
-        parser1.registerArgument("multi1", ArgumentParity.MULTIPLE);
-        parser1.registerArgument("single1", ArgumentParity.SINGLE);
-        parser1.registerArgument("single2", ArgumentParity.SINGLE);
+        parser1.registerArgument("multi1", ArgumentArity.VARIADIC);
+        parser1.registerArgument("single1", ArgumentArity.UNARY);
+        parser1.registerArgument("single2", ArgumentArity.UNARY);
         try
         {
             parser1.parseOptionsAndArguments(arguments);
@@ -100,9 +112,9 @@ public class SimpleOptionAndArgumentParserTest
 
         // Middle
         final SimpleOptionAndArgumentParser parser2 = new SimpleOptionAndArgumentParser();
-        parser2.registerArgument("single1", ArgumentParity.SINGLE);
-        parser2.registerArgument("multi1", ArgumentParity.MULTIPLE);
-        parser2.registerArgument("single2", ArgumentParity.SINGLE);
+        parser2.registerArgument("single1", ArgumentArity.UNARY);
+        parser2.registerArgument("multi1", ArgumentArity.VARIADIC);
+        parser2.registerArgument("single2", ArgumentArity.UNARY);
         try
         {
             parser2.parseOptionsAndArguments(arguments);
@@ -122,9 +134,9 @@ public class SimpleOptionAndArgumentParserTest
 
         // Last
         final SimpleOptionAndArgumentParser parser3 = new SimpleOptionAndArgumentParser();
-        parser3.registerArgument("single1", ArgumentParity.SINGLE);
-        parser3.registerArgument("single2", ArgumentParity.SINGLE);
-        parser3.registerArgument("multi1", ArgumentParity.MULTIPLE);
+        parser3.registerArgument("single1", ArgumentArity.UNARY);
+        parser3.registerArgument("single2", ArgumentArity.UNARY);
+        parser3.registerArgument("multi1", ArgumentArity.VARIADIC);
         try
         {
             parser3.parseOptionsAndArguments(arguments);
@@ -141,17 +153,5 @@ public class SimpleOptionAndArgumentParserTest
         Assert.assertEquals(Arrays.asList("arg2"), parser3.getArgumentForHint("single2"));
         Assert.assertEquals(Arrays.asList("arg3", "arg4", "arg5"),
                 parser3.getArgumentForHint("multi1"));
-    }
-
-    @Test
-    public void testOptionParseException()
-    {
-        // TODO fill in
-    }
-
-    @Test
-    public void testUnknownOptionException()
-    {
-        // TODO fill in
     }
 }

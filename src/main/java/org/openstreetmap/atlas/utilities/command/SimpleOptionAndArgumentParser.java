@@ -163,10 +163,10 @@ public class SimpleOptionAndArgumentParser
     /**
      * @author lcram
      */
-    public enum ArgumentParity
+    public enum ArgumentArity
     {
-        SINGLE,
-        MULTIPLE
+        UNARY,
+        VARIADIC
     }
 
     /**
@@ -224,26 +224,26 @@ public class SimpleOptionAndArgumentParser
 
     private final Set<SimpleOption> registeredOptions;
     private final List<String> argumentHints;
-    private final List<ArgumentParity> argumentParities;
+    private final List<ArgumentArity> argumentArities;
     private final Set<String> longFormsSeen;
     private final Set<Character> shortFormsSeen;
     private final Set<String> argumentHintsSeen;
-    private boolean seenMultiParity;
+    private boolean alreadySeenVariadicArgument;
 
     private final Map<SimpleOption, Optional<String>> parsedOptions;
     private final Map<String, List<String>> parsedArguments;
 
-    private int argumentParityCounter = 0;
+    private int argumentArityCounter = 0;
 
     public SimpleOptionAndArgumentParser()
     {
         this.registeredOptions = new LinkedHashSet<>();
         this.argumentHints = new ArrayList<>();
-        this.argumentParities = new ArrayList<>();
+        this.argumentArities = new ArrayList<>();
         this.longFormsSeen = new HashSet<>();
         this.shortFormsSeen = new HashSet<>();
         this.argumentHintsSeen = new HashSet<>();
-        this.seenMultiParity = false;
+        this.alreadySeenVariadicArgument = false;
 
         this.parsedOptions = new LinkedHashMap<>();
         this.parsedArguments = new LinkedHashMap<>();
@@ -257,7 +257,7 @@ public class SimpleOptionAndArgumentParser
 
     /**
      * Given a hint defined by a call to
-     * {@link SimpleOptionAndArgumentParser#registerArgument(String, ArgumentParity)}, return the
+     * {@link SimpleOptionAndArgumentParser#registerArgument(String, ArgumentArity)}, return the
      * argument values associated with that hint.
      *
      * @param hint
@@ -340,7 +340,7 @@ public class SimpleOptionAndArgumentParser
         boolean seenEndOptionSentinel = false;
         this.parsedArguments.clear();
         this.parsedOptions.clear();
-        this.argumentParityCounter = 0;
+        this.argumentArityCounter = 0;
 
         for (final String argument : allArguments)
         {
@@ -386,26 +386,26 @@ public class SimpleOptionAndArgumentParser
         }
     }
 
-    public void registerArgument(final String argumentHint, final ArgumentParity parity)
+    public void registerArgument(final String argumentHint, final ArgumentArity parity)
     {
         throwIfArgumentHintSeen(argumentHint);
         if (argumentHint == null || argumentHint.isEmpty())
         {
             throw new CoreException("Argument hint cannot be null or empty");
         }
-        if (parity == ArgumentParity.MULTIPLE)
+        if (parity == ArgumentArity.VARIADIC)
         {
-            if (this.seenMultiParity)
+            if (this.alreadySeenVariadicArgument)
             {
-                throw new CoreException("Cannot register more than one multiple parity argument");
+                throw new CoreException("Cannot register more than one variadic argument");
             }
             else
             {
-                this.seenMultiParity = true;
+                this.alreadySeenVariadicArgument = true;
             }
         }
         this.argumentHints.add(argumentHint);
-        this.argumentParities.add(parity);
+        this.argumentArities.add(parity);
     }
 
     public void registerOption(final String longForm, final Character shortForm,
@@ -554,19 +554,19 @@ public class SimpleOptionAndArgumentParser
     private void parseRegularArgument(final String argument, final int regularArgumentSize)
             throws OptionParseException
     {
-        if (this.argumentParityCounter >= this.argumentParities.size())
+        if (this.argumentArityCounter >= this.argumentArities.size())
         {
             throw new OptionParseException("too many arguments");
         }
-        final ArgumentParity currentParity = this.argumentParities.get(this.argumentParityCounter);
-        final String argumentHint = this.argumentHints.get(this.argumentParityCounter);
+        final ArgumentArity currentParity = this.argumentArities.get(this.argumentArityCounter);
+        final String argumentHint = this.argumentHints.get(this.argumentArityCounter);
         switch (currentParity)
         {
-            case SINGLE:
+            case UNARY:
                 this.parsedArguments.put(argumentHint, Arrays.asList(argument));
-                this.argumentParityCounter++;
+                this.argumentArityCounter++;
                 break;
-            case MULTIPLE:
+            case VARIADIC:
                 List<String> multiArgumentList = this.parsedArguments.get(argumentHint);
                 multiArgumentList = multiArgumentList == null ? new ArrayList<>()
                         : multiArgumentList;
@@ -575,7 +575,7 @@ public class SimpleOptionAndArgumentParser
 
                 // Two cases:
                 // Case 1 -> [SINGLE...] MULTIPLE
-                if (this.argumentParityCounter == this.argumentParities.size() - 1)
+                if (this.argumentArityCounter == this.argumentArities.size() - 1)
                 {
                     // do nothing, we can consume the rest of the arguments
                 }
@@ -586,7 +586,7 @@ public class SimpleOptionAndArgumentParser
                     if (multiArgumentList.size() == regularArgumentSize - this.argumentHints.size()
                             + 1)
                     {
-                        this.argumentParityCounter++;
+                        this.argumentArityCounter++;
                         break;
                     }
                 }

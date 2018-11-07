@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.ArgumentParity;
+import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.OptionParseException;
 import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.UnknownOptionException;
 
@@ -57,7 +57,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
         return this.parser.hasShortOption(shortForm);
     }
 
-    protected void registerArgument(final String argumentHint, final ArgumentParity parity)
+    protected void registerArgument(final String argumentHint, final ArgumentArity parity)
     {
         this.parser.registerArgument(argumentHint, parity);
     }
