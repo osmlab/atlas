@@ -85,7 +85,7 @@ public final class TippecanoeExporter extends LineDelimitedGeoJsonConverter
         {
             RunScript.run(commandArray, Collections.singletonList(TIPPECANOE_VERSION_MONITOR));
         }
-        // When you look up the version, it tippecanoe exits with 1, so getting here is normal.
+        // When you look up the version, tippecanoe exits with 1, so getting here is normal.
         // We want to get into this catch.
         catch (final CoreException exception)
         {

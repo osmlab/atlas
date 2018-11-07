@@ -24,10 +24,10 @@ public final class GeoJsonUtils
     public static final String PROPERTIES = "properties";
     public static final String TYPE = "type";
 
-    public static final String POINT = "point";
+    public static final String POINT = "Point";
     public static final String LINESTRING = "LineString";
     public static final String POLYGON = "Polygon";
-    public static final String MULTIPOINT = "MultiPoint)";
+    public static final String MULTIPOINT = "MultiPoint";
     public static final String MULTILINESTRING = "MultiLineString";
     public static final String MULTIPOLYGON = "MultiPolygon";
 
