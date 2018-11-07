@@ -219,6 +219,9 @@ public class SimpleOptionAndArgumentParser
     private static final Logger logger = LoggerFactory
             .getLogger(SimpleOptionAndArgumentParser.class);
 
+    private static final String DEFAULT_LONG_HELP = LONG_FORM_PREFIX + "help";
+    private static final String DEFAULT_SHORT_HELP = SHORT_FORM_PREFIX + "h";
+
     private final Set<SimpleOption> registeredOptions;
     private final List<String> argumentHints;
     private final List<ArgumentParity> argumentParities;
@@ -319,6 +322,17 @@ public class SimpleOptionAndArgumentParser
         return false;
     }
 
+    /**
+     * Perform a full scan and parse of the provided arguments list. This method will populate the
+     * parser's internal data structures so they are ready to be queried for results.
+     *
+     * @param allArguments
+     *            The provided arguments list
+     * @throws UnknownOptionException
+     *             If an unknown option is detected
+     * @throws OptionParseException
+     *             If another parsing error occurs
+     */
     public void parseOptionsAndArguments(final List<String> allArguments)
             throws UnknownOptionException, OptionParseException
     {
@@ -444,6 +458,27 @@ public class SimpleOptionAndArgumentParser
         }
         this.registeredOptions.add(
                 new SimpleOption(longForm, OptionArgumentType.REQUIRED, description, argumentHint));
+    }
+
+    /**
+     * Perform a quick scan for any argument matching "--help" or "-h". This will not invoke any of
+     * the underlying parsing machinery, and is useful for determining if a user was trying to get
+     * help.
+     *
+     * @param allArguments
+     *            The provided arguments list.
+     * @return True if the user tried to provide a help flag, false otherwise.
+     */
+    public boolean scanForHelpFlag(final List<String> allArguments)
+    {
+        for (final String argument : allArguments)
+        {
+            if (DEFAULT_SHORT_HELP.equals(argument) || DEFAULT_LONG_HELP.equals(argument))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Optional<SimpleOption> checkForLongOption(final String longForm,

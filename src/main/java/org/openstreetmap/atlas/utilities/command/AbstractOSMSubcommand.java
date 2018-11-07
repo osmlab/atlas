@@ -114,6 +114,14 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
         // fill out appropriate data structures so the execute() implementation can query
         registerOptionsAndArguments();
 
+        // Special case if user supplied '--help' or '-h'
+        // We want to scan now, show the help menu, then abort
+        if (this.parser.scanForHelpFlag(Arrays.asList(args)))
+        {
+            System.out.println(this.getHelpMenu());
+            System.exit(0);
+        }
+
         try
         {
             this.parser.parseOptionsAndArguments(Arrays.asList(args));
@@ -130,13 +138,6 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
             // TODO colorize
             System.err.println(this.getCommandName() + ": error: " + exception.getMessage());
             System.exit(1);
-        }
-
-        // Special case if user supplied '--help' or '-h'
-        if (this.parser.hasOption("help"))
-        {
-            System.out.println(this.getHelpMenu());
-            System.exit(0);
         }
 
         // run the command
