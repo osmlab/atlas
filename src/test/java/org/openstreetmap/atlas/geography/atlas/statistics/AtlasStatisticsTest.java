@@ -175,8 +175,7 @@ public class AtlasStatisticsTest
                 statistics.get(new StatisticKey("", "pool_surface", "true")).getCount(), 0.01);
 
         // Coastlines
-        // This needs to be addressed once the defaults allow for coastlines to be ingested
-        Assert.assertEquals(0.00,
+        Assert.assertEquals(4.803585,
                 statistics.get(new StatisticKey("", "coastline_distance", "true")).getCount(),
                 0.01);
 
@@ -231,9 +230,9 @@ public class AtlasStatisticsTest
         final Atlas atlas = this.rule.getWaterAtlas();
         final AtlasStatistics statistics = new Counter().processAtlas(atlas);
 
-        Assert.assertEquals("6.00,33.00",
+        Assert.assertEquals("6.00,34.00",
                 statistics.get(new StatisticKey("", "rivers", "true")).toString());
-        Assert.assertEquals("24.92,32.80",
+        Assert.assertEquals("24.92,37.61",
                 statistics.get(new StatisticKey("", "rivers_distance", "true")).toString());
 
     }

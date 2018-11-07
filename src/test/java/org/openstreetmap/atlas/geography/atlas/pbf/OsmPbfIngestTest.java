@@ -23,6 +23,9 @@ import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
@@ -33,18 +36,19 @@ import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.filters.ConfiguredTaggableFilter;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.configuration.StandardConfiguration;
-import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.testing.OsmFileParser;
 import org.openstreetmap.atlas.utilities.testing.OsmFileToPbf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Tests data inclusion and exclusion scenarios when converting from OSM PBF to Atlas format.
+ *
  * @author matthieun
  */
-public class OsmPbfLoaderTest
+public class OsmPbfIngestTest
 {
-    private static final Logger logger = LoggerFactory.getLogger(OsmPbfLoaderTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(OsmPbfIngestTest.class);
 
     private static final String COUNTRY_1_NAME = "COUNTRY_1";
     private static final String COUNTRY_2_NAME = "COUNTRY_2";
@@ -93,7 +97,6 @@ public class OsmPbfLoaderTest
                 new AtlasPrimitiveLocationItem(4, Location.EIFFEL_TOWER, Maps.stringMap()));
         this.store.addNode(new AtlasPrimitiveLocationItem(5, Location.COLOSSEUM, Maps.stringMap()));
         this.store.addNode(new AtlasPrimitiveLocationItem(6, Location.TEST_6, Maps.stringMap()));
-        this.store.addNode(new AtlasPrimitiveLocationItem(7, Location.TEST_6, Maps.stringMap()));
         this.store.addNode(new AtlasPrimitiveLocationItem(8, SHAPEPOINT, Maps.stringMap()));
         this.store.addNode(new AtlasPrimitiveLocationItem(9,
                 new Segment(Location.TEST_6, Location.TEST_7).middle(),
@@ -146,14 +149,13 @@ public class OsmPbfLoaderTest
     {
         try (OsmosisReaderMock osmosis = new OsmosisReaderMock(this.store))
         {
-            final OsmPbfLoader osmPbfLoader = new OsmPbfLoader(() -> osmosis,
-                    // Here reduce the loading bounds to a small area around Edge 3. In this case
-                    // Node 3 is included in the country boundary but not in the loading area. It
-                    // should not have any boundary tag.
-                    MultiPolygon.forPolygon(SHAPEPOINT.boxAround(Distance.meters(10))),
-                    AtlasLoadingOption.createOptionWithAllEnabled(this.countryBoundaries1)
-                            .setAdditionalCountryCodes(COUNTRY_1_NAME));
-            final Atlas atlas = osmPbfLoader.read();
+            // Here, reduce the loading bounds to a small area around Edge 3. In this case
+            // Node 3 is included in the country boundary but not in the loading area. It
+            // should not have any boundary tag.
+            final AtlasLoadingOption loadingOption = AtlasLoadingOption.createOptionWithNoSlicing();
+            Atlas atlas = new RawAtlasGenerator(() -> osmosis, loadingOption, MultiPolygon.MAXIMUM)
+                    .build();
+            atlas = new WaySectionProcessor(atlas, loadingOption).run();
             logger.info("{}", atlas);
             final Edge edgeIn = atlas.edgesIntersecting(DE_ANZA_AT_280.bounds()).iterator().next();
             final Node nodeIn = edgeIn.end();
@@ -165,11 +167,11 @@ public class OsmPbfLoaderTest
     public void testDifferentEdgeFilterIncludingAccessNo()
     {
         final Resource osmFromJosm = new InputStreamResource(
-                () -> OsmPbfLoaderTest.class.getResourceAsStream("one_way_roads_in_AIA.osm"));
+                () -> OsmPbfIngestTest.class.getResourceAsStream("one_way_roads_in_AIA.osm"));
         final WritableResource osmFile = new StringResource();
         final WritableResource pbfFile = new StringResource();
         final Resource boundaries = new InputStreamResource(
-                () -> OsmPbfLoaderTest.class.getResourceAsStream("AIA_boundary.txt"));
+                () -> OsmPbfIngestTest.class.getResourceAsStream("AIA_boundary.txt"));
         new OsmFileParser().update(osmFromJosm, osmFile);
         new OsmFileToPbf().update(osmFile, pbfFile);
         final CountryBoundaryMap countryBoundaryMap = CountryBoundaryMap.fromPlainText(boundaries);
@@ -180,9 +182,11 @@ public class OsmPbfLoaderTest
                 .createOptionWithAllEnabled(countryBoundaryMap);
         option.setEdgeFilter(
                 new ConfiguredTaggableFilter(new StandardConfiguration(new InputStreamResource(
-                        () -> OsmPbfLoaderTest.class.getResourceAsStream("edge-filter.json")))));
-        final OsmPbfLoader loader = new OsmPbfLoader(pbfFile, boundary, option);
-        final Atlas atlas = loader.read();
+                        () -> OsmPbfIngestTest.class.getResourceAsStream("edge-filter.json")))));
+        Atlas atlas = new RawAtlasGenerator(pbfFile, option, boundary).build();
+        atlas = new RawAtlasCountrySlicer(countryBoundaryMap.getLoadedCountries(),
+                countryBoundaryMap).slice(atlas);
+        atlas = new WaySectionProcessor(atlas, option).run();
         logger.debug("Atlas: {}", atlas);
 
         // Edges with access=no that need to be included
@@ -199,10 +203,15 @@ public class OsmPbfLoaderTest
     {
         try (OsmosisReaderMock osmosis = new OsmosisReaderMock(this.store))
         {
-            final OsmPbfLoader osmPbfLoader = new OsmPbfLoader(() -> osmosis, MultiPolygon.MAXIMUM,
-                    AtlasLoadingOption.createOptionWithAllEnabled(this.countryBoundariesAll)
-                            .setAdditionalCountryCodes(COUNTRY_1_NAME));
-            final Atlas atlas = osmPbfLoader.read();
+            final AtlasLoadingOption loadingOption = AtlasLoadingOption
+                    .createOptionWithAllEnabled(this.countryBoundariesAll)
+                    .setAdditionalCountryCodes(COUNTRY_1_NAME);
+            Atlas atlas = new RawAtlasGenerator(() -> osmosis, loadingOption, MultiPolygon.MAXIMUM)
+                    .build();
+            atlas = new RawAtlasCountrySlicer(COUNTRY_1_NAME, loadingOption.getCountryBoundaryMap())
+                    .slice(atlas);
+            atlas = new WaySectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
+                    .run();
             logger.info("{}", atlas);
             Assert.assertEquals(2, atlas.numberOfLines());
             Assert.assertEquals(1, atlas.numberOfRelations());
@@ -217,9 +226,10 @@ public class OsmPbfLoaderTest
     {
         try (OsmosisReaderMock osmosis = new OsmosisReaderMock(this.store))
         {
-            final OsmPbfLoader osmPbfLoader = new OsmPbfLoader(() -> osmosis, MultiPolygon.MAXIMUM,
-                    AtlasLoadingOption.withNoFilter());
-            final Atlas atlas = osmPbfLoader.read();
+            final AtlasLoadingOption loadingOption = AtlasLoadingOption.withNoFilter();
+            Atlas atlas = new RawAtlasGenerator(() -> osmosis, loadingOption, MultiPolygon.MAXIMUM)
+                    .build();
+            atlas = new WaySectionProcessor(atlas, loadingOption).run();
             logger.info("{}", atlas);
             Assert.assertEquals(3, atlas.numberOfLines());
         }
@@ -230,12 +240,15 @@ public class OsmPbfLoaderTest
     {
         try (OsmosisReaderMock osmosis = new OsmosisReaderMock(this.store))
         {
-            final OsmPbfLoader osmPbfLoader = new OsmPbfLoader(() -> osmosis,
-                    this.countryBoundaries1.countryBoundary(COUNTRY_1_NAME).iterator().next()
-                            .getBoundary(),
-                    AtlasLoadingOption.createOptionWithAllEnabled(this.countryBoundaries1)
-                            .setAdditionalCountryCodes(COUNTRY_1_NAME));
-            final Atlas atlas = osmPbfLoader.read();
+            final AtlasLoadingOption loadingOption = AtlasLoadingOption
+                    .createOptionWithAllEnabled(this.countryBoundaries1)
+                    .setAdditionalCountryCodes(COUNTRY_1_NAME);
+            Atlas atlas = new RawAtlasGenerator(() -> osmosis, loadingOption, MultiPolygon.MAXIMUM)
+                    .build();
+            atlas = new RawAtlasCountrySlicer(COUNTRY_1_NAME, loadingOption.getCountryBoundaryMap())
+                    .slice(atlas);
+            atlas = new WaySectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
+                    .run();
             logger.info("{}", atlas);
             final Edge edgeOut = atlas.edgesIntersecting(OUTSIDE_COUNTRY_1.bounds()).iterator()
                     .next();

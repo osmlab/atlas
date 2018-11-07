@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.pbf.store;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.PbfOneWay;
 import org.openstreetmap.atlas.tags.AccessTag;
 import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.JunctionTag;

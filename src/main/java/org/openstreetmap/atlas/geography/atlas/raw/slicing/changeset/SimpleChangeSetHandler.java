@@ -120,7 +120,8 @@ public class SimpleChangeSetHandler extends ChangeSetHandler
                 {
                     final Line originalLine = this.getAtlas().line(lineIdentifier);
                     final Map<String, String> updatedTags = originalLine.getTags();
-                    updatedTags.putAll(this.changeSet.getUpdatedLineTags().get(lineIdentifier));
+                    updatedTags.putAll(
+                            this.changeSet.getUpdatedLineTags().get(lineIdentifier).getTags());
                     this.getBuilder().addLine(lineIdentifier, originalLine.asPolyLine(),
                             updatedTags);
                 }
@@ -153,7 +154,8 @@ public class SimpleChangeSetHandler extends ChangeSetHandler
             {
                 final Point originalPoint = this.getAtlas().point(pointIdentifier);
                 final Map<String, String> updatedTags = originalPoint.getTags();
-                updatedTags.putAll(this.changeSet.getUpdatedPointTags().get(pointIdentifier));
+                updatedTags.putAll(
+                        this.changeSet.getUpdatedPointTags().get(pointIdentifier).getTags());
                 this.getBuilder().addPoint(pointIdentifier, originalPoint.getLocation(),
                         updatedTags);
             }

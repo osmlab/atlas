@@ -30,7 +30,6 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.WaySectionIdentifierFactory;
-import org.openstreetmap.atlas.geography.atlas.pbf.store.PbfOneWay;
 import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryEdge;
 import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryNode;
 import org.openstreetmap.atlas.geography.sharding.Shard;

@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.pbf.store;
+package org.openstreetmap.atlas.geography.atlas.raw.sectioning;
 
 import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.JunctionTag;
