@@ -1,14 +1,13 @@
 package org.openstreetmap.atlas.utilities.vectortiles;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.geojson.LineDelimitedGeoJsonConverter;
@@ -83,13 +82,13 @@ public final class TippecanoeExporter extends LineDelimitedGeoJsonConverter
         final String[] commandArray = new String[] { "tippecanoe", "--version" };
         try
         {
-            RunScript.run(commandArray, Collections.singletonList(TIPPECANOE_VERSION_MONITOR));
+            RunScript.run(commandArray, Collections.singletonList(MONITOR));
         }
         // When you look up the version, tippecanoe exits with 1, so getting here is normal.
         // We want to get into this catch.
         catch (final CoreException exception)
         {
-            final Optional<String> result = TIPPECANOE_VERSION_MONITOR.getResult();
+            final Optional<String> result = MONITOR.getResult();
             if (result.isPresent())
             {
                 final String outputString = result.get();
@@ -116,7 +115,7 @@ public final class TippecanoeExporter extends LineDelimitedGeoJsonConverter
         return false;
     }
 
-    private static final SingleLineMonitor TIPPECANOE_VERSION_MONITOR = new SingleLineMonitor()
+    private static final SingleLineMonitor MONITOR = new SingleLineMonitor()
     {
         @Override
         protected Optional<String> parseResult(final String line)
@@ -129,30 +128,28 @@ public final class TippecanoeExporter extends LineDelimitedGeoJsonConverter
     {
         final Time time = Time.now();
 
-        final CommandLine commandLine = CommandLine.parse("tippecanoe").addArgument("-o")
-                .addArgument(mbtiles.toString()).addArguments(TippecanoeSettings.ARGS);
+        final List<String> commandList = new ArrayList<>();
+
+        commandList.add("tippecanoe");
+        commandList.add("-o");
+        commandList.add(mbtiles.toString());
 
         if (overwrite)
         {
-            commandLine.addArgument("--force");
+            commandList.add("--force");
         }
 
-        commandLine.addArgument(geojson.toString());
+        commandList.add(geojson.toString());
+
+        final String[] commandArray = commandList.toArray(new String[0]);
 
         logger.info("Running tippecanoe...");
 
-        logger.info(StringUtils.toString(commandLine.toStrings(), " "));
+        logger.info(StringUtils.join(commandArray, " "));
 
-        final DefaultExecutor executor = new DefaultExecutor();
-        try
-        {
-            executor.execute(commandLine);
-            logger.info("tippecanoe has successfully generated vector tiles in {}", mbtiles);
-        }
-        catch (final IOException ioException)
-        {
-            logger.error("Unable to execute tippecanoe.", ioException);
-        }
+        RunScript.run(commandArray);
+
+        logger.info("tippecanoe has successfully generated vector tiles in {}", mbtiles);
         logger.info("tippecanoe took {}", time.elapsedSince());
     }
 
