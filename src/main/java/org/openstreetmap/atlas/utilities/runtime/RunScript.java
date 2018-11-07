@@ -20,6 +20,16 @@ public final class RunScript
 {
     private static final Logger logger = LoggerFactory.getLogger(RunScript.class);
 
+    public static void run(final String command)
+    {
+        run(new String[] {command});
+    }
+
+    public static void run(final String command, final List<RunScriptMonitor> monitors)
+    {
+        run(new String[] {command}, monitors);
+    }
+
     public static void run(final String[] commandArray)
     {
         run(commandArray, new ArrayList<>());
