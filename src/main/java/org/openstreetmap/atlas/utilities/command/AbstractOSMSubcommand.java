@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.ArgumentParity;
 import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.OptionParseException;
 import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.UnknownOptionException;
@@ -64,9 +65,9 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     protected void registerOption(final String longForm, final Character shortForm,
             final String description)
     {
-        if ("help".equals(longForm))
+        if ("help".equals(longForm) || shortForm == 'h')
         {
-            return;
+            throw new CoreException("Cannot reregister builtin option (help,h)");
         }
         this.parser.registerOption(longForm, shortForm, description);
     }
@@ -75,7 +76,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     {
         if ("help".equals(longForm))
         {
-            return;
+            throw new CoreException("Cannot reregister builtin option (help,h)");
         }
         this.parser.registerOption(longForm, description);
     }
@@ -85,7 +86,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     {
         if ("help".equals(longForm))
         {
-            return;
+            throw new CoreException("Cannot reregister builtin option (help,h)");
         }
         this.parser.registerOptionWithOptionalArgument(longForm, description, argumentHint);
     }
@@ -95,7 +96,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     {
         if ("help".equals(longForm))
         {
-            return;
+            throw new CoreException("Cannot reregister builtin option (help,h)");
         }
         this.parser.registerOptionWithRequiredArgument(longForm, description, argumentHint);
     }
