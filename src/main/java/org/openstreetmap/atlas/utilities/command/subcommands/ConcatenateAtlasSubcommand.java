@@ -28,8 +28,8 @@ public class ConcatenateAtlasSubcommand extends AbstractOSMSubcommand
     @Override
     public int execute()
     {
-        final List<String> inputAtlasPaths = getArgumentForHint(INPUT_HINT);
-        final String outputAtlasPath = getArgumentForHint(OUTPUT_HINT).get(0);
+        final List<String> inputAtlasPaths = getVariadicArgument(INPUT_HINT);
+        final String outputAtlasPath = getUnaryArgument(OUTPUT_HINT);
         final List<File> atlasResourceList = new ArrayList<>();
 
         inputAtlasPaths.stream().forEach(path ->

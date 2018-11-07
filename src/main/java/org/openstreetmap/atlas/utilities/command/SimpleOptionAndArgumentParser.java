@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.utilities.command;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -225,6 +226,7 @@ public class SimpleOptionAndArgumentParser
     private final Set<SimpleOption> registeredOptions;
     private final List<String> argumentHints;
     private final List<ArgumentArity> argumentArities;
+    private final Map<String, ArgumentArity> argumentHintToArity;
     private final Set<String> longFormsSeen;
     private final Set<Character> shortFormsSeen;
     private final Set<String> argumentHintsSeen;
@@ -240,6 +242,7 @@ public class SimpleOptionAndArgumentParser
         this.registeredOptions = new LinkedHashSet<>();
         this.argumentHints = new ArrayList<>();
         this.argumentArities = new ArrayList<>();
+        this.argumentHintToArity = new HashMap<>();
         this.longFormsSeen = new HashSet<>();
         this.shortFormsSeen = new HashSet<>();
         this.argumentHintsSeen = new HashSet<>();
@@ -255,31 +258,6 @@ public class SimpleOptionAndArgumentParser
         logger.warn("{}", this.parsedOptions);
     }
 
-    /**
-     * Given a hint defined by a call to
-     * {@link SimpleOptionAndArgumentParser#registerArgument(String, ArgumentArity)}, return the
-     * argument values associated with that hint.
-     *
-     * @param hint
-     *            the hint to check
-     * @return a list of the values
-     */
-    public List<String> getArgumentForHint(final String hint)
-    {
-        if (!this.argumentHints.contains(hint))
-        {
-            throw new CoreException("hint \'{}\' does not correspond to a registered argument",
-                    hint);
-        }
-        final List<String> arguments = this.parsedArguments.get(hint);
-        if (arguments != null)
-        {
-            return arguments;
-        }
-
-        throw new CoreException("Critical failure. If you see this, it\'s a bug!");
-    }
-
     public Optional<String> getLongOptionArgument(final String longForm)
     {
         if (!registeredOptionForLongForm(longForm).isPresent())
@@ -292,6 +270,68 @@ public class SimpleOptionAndArgumentParser
             return this.parsedOptions.get(option.get());
         }
         return Optional.empty();
+    }
+
+    /**
+     * Given a hint registered as a unary argument (with
+     * {@link SimpleOptionAndArgumentParser#registerArgument(String, ArgumentArity)}), return the
+     * argument value associated with that hint.
+     *
+     * @param hint
+     *            the hint to check
+     * @return the value
+     * @throws CoreException
+     *             if the argument hint was not registered or is not unary
+     */
+    public String getUnaryArgument(final String hint)
+    {
+        if (!this.argumentHints.contains(hint))
+        {
+            throw new CoreException("hint \'{}\' does not correspond to a registered argument",
+                    hint);
+        }
+        if (this.argumentHintToArity.get(hint) != ArgumentArity.UNARY)
+        {
+            throw new CoreException("hint \'{}\' does not correspond to a unary argument", hint);
+        }
+        final List<String> arguments = this.parsedArguments.get(hint);
+        if (arguments != null && arguments.size() == 1)
+        {
+            return arguments.get(0);
+        }
+
+        throw new CoreException("Critical failure. If you see this, it\'s a bug!");
+    }
+
+    /**
+     * Given a hint registered as a variadic argument (with
+     * {@link SimpleOptionAndArgumentParser#registerArgument(String, ArgumentArity)}), return the
+     * argument values associated with that hint.
+     *
+     * @param hint
+     *            the hint to check
+     * @return a list of the values
+     * @throws CoreException
+     *             if the argument hint was not registered or is not variadic
+     */
+    public List<String> getVariadicArgument(final String hint)
+    {
+        if (!this.argumentHints.contains(hint))
+        {
+            throw new CoreException("hint \'{}\' does not correspond to a registered argument",
+                    hint);
+        }
+        if (this.argumentHintToArity.get(hint) != ArgumentArity.VARIADIC)
+        {
+            throw new CoreException("hint \'{}\' does not correspond to a variadic argument", hint);
+        }
+        final List<String> arguments = this.parsedArguments.get(hint);
+        if (arguments != null)
+        {
+            return arguments;
+        }
+
+        throw new CoreException("Critical failure. If you see this, it\'s a bug!");
     }
 
     public boolean hasOption(final String longForm)
@@ -386,14 +426,14 @@ public class SimpleOptionAndArgumentParser
         }
     }
 
-    public void registerArgument(final String argumentHint, final ArgumentArity parity)
+    public void registerArgument(final String argumentHint, final ArgumentArity arity)
     {
         throwIfArgumentHintSeen(argumentHint);
         if (argumentHint == null || argumentHint.isEmpty())
         {
             throw new CoreException("Argument hint cannot be null or empty");
         }
-        if (parity == ArgumentArity.VARIADIC)
+        if (arity == ArgumentArity.VARIADIC)
         {
             if (this.alreadySeenVariadicArgument)
             {
@@ -405,7 +445,8 @@ public class SimpleOptionAndArgumentParser
             }
         }
         this.argumentHints.add(argumentHint);
-        this.argumentArities.add(parity);
+        this.argumentArities.add(arity);
+        this.argumentHintToArity.put(argumentHint, arity);
     }
 
     public void registerOption(final String longForm, final Character shortForm,
@@ -558,9 +599,9 @@ public class SimpleOptionAndArgumentParser
         {
             throw new OptionParseException("too many arguments");
         }
-        final ArgumentArity currentParity = this.argumentArities.get(this.argumentArityCounter);
+        final ArgumentArity currentArity = this.argumentArities.get(this.argumentArityCounter);
         final String argumentHint = this.argumentHints.get(this.argumentArityCounter);
-        switch (currentParity)
+        switch (currentArity)
         {
             case UNARY:
                 this.parsedArguments.put(argumentHint, Arrays.asList(argument));
@@ -592,7 +633,7 @@ public class SimpleOptionAndArgumentParser
                 }
                 break;
             default:
-                throw new CoreException("Unrecognized ArgumentParity {}", currentParity);
+                throw new CoreException("Unrecognized ArgumentArity {}", currentArity);
         }
 
     }

@@ -37,14 +37,19 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
 
     public abstract void registerOptionsAndArguments();
 
-    protected List<String> getArgumentForHint(final String hint)
-    {
-        return this.parser.getArgumentForHint(hint);
-    }
-
     protected Optional<String> getLongOptionArgument(final String longForm)
     {
         return this.parser.getLongOptionArgument(longForm);
+    }
+
+    protected String getUnaryArgument(final String hint)
+    {
+        return this.parser.getUnaryArgument(hint);
+    }
+
+    protected List<String> getVariadicArgument(final String hint)
+    {
+        return this.parser.getVariadicArgument(hint);
     }
 
     protected boolean hasOption(final String longForm)
