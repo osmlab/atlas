@@ -21,6 +21,12 @@ public class HelloWorldSubcommand extends AbstractOSMSubcommand
     @Override
     public int execute()
     {
+        logger.trace("TRACE");
+        logger.debug("DEBUG");
+        logger.info("INFO");
+        logger.warn("WARN");
+        logger.error("ERROR");
+
         if (hasOption(NAME_OPTION))
         {
             System.out.println("Hello, " + getLongOptionArgument(NAME_OPTION).get() + "!");
