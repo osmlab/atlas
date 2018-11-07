@@ -52,7 +52,6 @@ dependencies
     compile packages.commons.cli
     compile packages.commons.csv
     compile packages.commons.lang
-    compile packages.commons.exec
     compile packages.fastclasspath
     compile packages.guava
     compile packages.jsonassert
