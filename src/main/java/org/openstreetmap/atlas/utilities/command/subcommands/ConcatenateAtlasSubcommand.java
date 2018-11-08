@@ -80,7 +80,6 @@ public class ConcatenateAtlasSubcommand extends AbstractOSMSubcommand
     @Override
     public void registerOptionsAndArguments()
     {
-        registerOption(VERBOSE_LONG, VERBOSE_SHORT, "Use verbose output.");
         registerArgument(INPUT_HINT, ArgumentArity.VARIADIC);
         registerArgument(OUTPUT_HINT, ArgumentArity.UNARY);
     }

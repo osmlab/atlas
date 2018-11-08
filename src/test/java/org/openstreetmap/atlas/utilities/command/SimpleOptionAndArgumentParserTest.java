@@ -29,8 +29,7 @@ public class SimpleOptionAndArgumentParserTest
         parser.registerArgument("multi1", ArgumentArity.VARIADIC);
 
         final List<String> arguments = Arrays.asList("--opt2", "--opt3=value", "arg1", "--opt1",
-                "arg2", "arg3", "-o", "arg4", "--opt5", "arg5");
-
+                "arg2", "arg3", "-o", "arg4", "arg5");
         try
         {
             parser.parseOptionsAndArguments(arguments);
@@ -130,20 +129,13 @@ public class SimpleOptionAndArgumentParserTest
         Assert.assertEquals(true, parser.hasOption("opt3"));
     }
 
-    @Test
-    public void testOptionParseException()
-    {
-        // TODO fill in
-    }
-
     @Test(expected = UnknownOptionException.class)
     public void testUnknownOption() throws UnknownOptionException
     {
-        final List<String> arguments = Arrays.asList("--opt2");
-
         final SimpleOptionAndArgumentParser parser1 = new SimpleOptionAndArgumentParser();
         parser1.registerOption("opt1", "option1");
 
+        final List<String> arguments = Arrays.asList("--opt2");
         try
         {
             parser1.parseOptionsAndArguments(arguments);
@@ -161,13 +153,13 @@ public class SimpleOptionAndArgumentParserTest
     @Test
     public void testVariadicArgumentInAllOrders()
     {
-        final List<String> arguments = Arrays.asList("arg1", "arg2", "arg3", "arg4", "arg5");
-
         // First
         SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
         parser.registerArgument("multi1", ArgumentArity.VARIADIC);
         parser.registerArgument("single1", ArgumentArity.UNARY);
         parser.registerArgument("single2", ArgumentArity.UNARY);
+
+        final List<String> arguments = Arrays.asList("arg1", "arg2", "arg3", "arg4", "arg5");
         try
         {
             parser.parseOptionsAndArguments(arguments);
@@ -244,10 +236,10 @@ public class SimpleOptionAndArgumentParserTest
 
     private void testMissingArgument(final ArgumentArity arity) throws ArgumentException
     {
-        final List<String> arguments = new ArrayList<>();
-
         final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
         parser.registerArgument("multi1", arity);
+
+        final List<String> arguments = new ArrayList<>();
         try
         {
             parser.parseOptionsAndArguments(arguments);

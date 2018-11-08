@@ -11,6 +11,9 @@ import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.O
 import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.UnknownOptionException;
 
 /**
+ * A partial implementation of an OSM subcommand. Contains significant functionality to aid in
+ * command development, including some builtin options.
+ *
  * @author lcram
  */
 public abstract class AbstractOSMSubcommand implements OSMSubcommand
@@ -32,15 +35,8 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
 
     /**
      * Execute the command logic. Subclasses of {@link AbstractOSMSubcommand} must implement this
-     * method, but in general it should not be called directly. Use the following code in the main
-     * method of your command class to get it running:
-     *
-     * <pre>
-     * public static void main(final String[] args)
-     * {
-     *     new MySubclassSubcommand().runSubcommandAndExit(args);
-     * }
-     * </pre>
+     * method, but in general it should not be called directly. See
+     * {@link AbstractOSMSubcommand#runSubcommandAndExit(String...)}.
      *
      * @return the return code of the command
      */
@@ -61,12 +57,6 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      */
     public abstract String getSimpleDescription();
 
-    /**
-     * Register any necessary options and arguments for the command. Use the protected API exposed
-     * by {@link AbstractOSMSubcommand}.
-     */
-    public abstract void registerOptionsAndArguments();
-
     /*
      * BEGIN FACADE OPTION/ARGUMENT PARSING INTERFACE
      */
@@ -75,6 +65,12 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     // setting up the interface this way, we are not wedded to the SimpleOptionAndArgumentParser for
     // future changes. Should we decide to change it, any subcommands implementing
     // AbstractOSMSubcommand will not have to change their option registration code.
+
+    /**
+     * Register any necessary options and arguments for the command. Use the protected API exposed
+     * by {@link AbstractOSMSubcommand}.
+     */
+    public abstract void registerOptionsAndArguments();
 
     /**
      * Get the argument of a given long option, if present.
@@ -164,10 +160,6 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     protected void registerOption(final String longForm, final Character shortForm,
             final String description)
     {
-        if ("help".equals(longForm) || shortForm == 'h')
-        {
-            throw new CoreException("Cannot reregister builtin option (help,h)");
-        }
         this.parser.registerOption(longForm, shortForm, description);
     }
 
@@ -182,10 +174,6 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      */
     protected void registerOption(final String longForm, final String description)
     {
-        if ("help".equals(longForm))
-        {
-            throw new CoreException("Cannot reregister builtin option (help,h)");
-        }
         this.parser.registerOption(longForm, description);
     }
 
@@ -204,12 +192,12 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     protected void registerOptionWithOptionalArgument(final String longForm,
             final String description, final String argumentHint)
     {
-        if ("help".equals(longForm))
-        {
-            throw new CoreException("Cannot reregister builtin option (help,h)");
-        }
         this.parser.registerOptionWithOptionalArgument(longForm, description, argumentHint);
     }
+
+    /*
+     * END FACADE OPTION/ARGUMENT PARSING INTERFACE
+     */
 
     /**
      * Register an option with a given long form that takes a required argument. The provided
@@ -227,20 +215,29 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     protected void registerOptionWithRequiredArgument(final String longForm,
             final String description, final String argumentHint)
     {
-        if ("help".equals(longForm))
-        {
-            throw new CoreException("Cannot reregister builtin option (help,h)");
-        }
         this.parser.registerOptionWithRequiredArgument(longForm, description, argumentHint);
     }
 
-    /*
-     * END FACADE OPTION/ARGUMENT PARSING INTERFACE
+    /**
+     * Run this subcommand using all the special setup and teardown semantics provided by
+     * {@link AbstractOSMSubcommand}. It automatically registers some default standard arguments:
+     * (help,h) and (verbose,v). An example of how this method should be called from main to make
+     * the command functional with an external wrapper.
+     *
+     * <pre>
+     * public static void main(final String[] args)
+     * {
+     *     new MySubclassSubcommand().runSubcommandAndExit(args);
+     * }
+     * </pre>
+     *
+     * @param args
+     *            the command arguments
      */
-
     protected void runSubcommandAndExit(String... args)
     {
         this.parser.registerOption("help", 'h', "Show this help menu.");
+        this.parser.registerOption("verbose", 'v', "Use verbose output.");
 
         // check the last arg to see if we should disable colors
         if (args.length > 0 && NO_COLOR_OPTION.equals(args[args.length - 1]))

@@ -2,7 +2,6 @@ package org.openstreetmap.atlas.utilities.command;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -18,7 +17,18 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A very simple option and argument parser. Designed specifically to impose constraints on the
- * format of the options.
+ * format of the options. Nothing about this class is thread safe, should you decide to parse in one
+ * thread and read results in another.
+ * <p>
+ * Supports long and short options:<br>
+ * --long-option : a long option<br>
+ * --long-option-arg=my_argument : a long option with an argument<br>
+ * -a : a short option<br>
+ * -ab : multiple short options at once<br>
+ * <br>
+ * Short options cannot have arguments. Additionally, supports argument parsing with unary and
+ * variadic arguments.
+ * </p>
  *
  * @author lcram
  */
@@ -160,7 +170,7 @@ public class SimpleOptionAndArgumentParser
     }
 
     /**
-     * The arity of the argument.
+     * The arity of an argument.
      *
      * @see "https://en.wikipedia.org/wiki/Arity"
      * @author lcram
@@ -185,6 +195,8 @@ public class SimpleOptionAndArgumentParser
     }
 
     /**
+     * The optionality of an option's argument.
+     *
      * @author lcram
      */
     public enum OptionArgumentType
@@ -238,32 +250,32 @@ public class SimpleOptionAndArgumentParser
     private static final String DEFAULT_SHORT_HELP = SHORT_FORM_PREFIX + "h";
 
     private final Set<SimpleOption> registeredOptions;
-    private final List<String> argumentHints;
-    private final List<ArgumentArity> argumentArities;
-    private final Map<String, ArgumentArity> argumentHintToArity;
+    private final Map<String, ArgumentArity> registeredArgumentHintToArity;
+
     private final Set<String> longFormsSeen;
     private final Set<Character> shortFormsSeen;
     private final Set<String> argumentHintsSeen;
-    private boolean alreadySeenVariadicArgument;
 
     private final Map<SimpleOption, Optional<String>> parsedOptions;
     private final Map<String, List<String>> parsedArguments;
 
-    private int argumentArityCounter = 0;
+    private boolean parseStepRan;
+    private boolean alreadyRegisteredVariadicArgument;
 
     public SimpleOptionAndArgumentParser()
     {
         this.registeredOptions = new LinkedHashSet<>();
-        this.argumentHints = new ArrayList<>();
-        this.argumentArities = new ArrayList<>();
-        this.argumentHintToArity = new HashMap<>();
+        this.registeredArgumentHintToArity = new LinkedHashMap<>();
+
         this.longFormsSeen = new HashSet<>();
         this.shortFormsSeen = new HashSet<>();
         this.argumentHintsSeen = new HashSet<>();
-        this.alreadySeenVariadicArgument = false;
 
         this.parsedOptions = new LinkedHashMap<>();
         this.parsedArguments = new LinkedHashMap<>();
+
+        this.parseStepRan = false;
+        this.alreadyRegisteredVariadicArgument = false;
     }
 
     /**
@@ -277,6 +289,10 @@ public class SimpleOptionAndArgumentParser
      */
     public Optional<String> getLongOptionArgument(final String longForm)
     {
+        if (!this.parseStepRan)
+        {
+            throw new CoreException("Cannot get results before parsing!");
+        }
         if (!registeredOptionForLongForm(longForm).isPresent())
         {
             throw new CoreException("{} not a registered option", longForm);
@@ -301,12 +317,16 @@ public class SimpleOptionAndArgumentParser
      */
     public String getUnaryArgument(final String hint)
     {
-        if (!this.argumentHints.contains(hint))
+        if (!this.parseStepRan)
+        {
+            throw new CoreException("Cannot get results before parsing!");
+        }
+        if (!this.registeredArgumentHintToArity.containsKey(hint))
         {
             throw new CoreException("hint \'{}\' does not correspond to a registered argument",
                     hint);
         }
-        if (this.argumentHintToArity.get(hint) != ArgumentArity.UNARY)
+        if (this.registeredArgumentHintToArity.get(hint) != ArgumentArity.UNARY)
         {
             throw new CoreException("hint \'{}\' does not correspond to a unary argument", hint);
         }
@@ -331,12 +351,16 @@ public class SimpleOptionAndArgumentParser
      */
     public List<String> getVariadicArgument(final String hint)
     {
-        if (!this.argumentHints.contains(hint))
+        if (!this.parseStepRan)
+        {
+            throw new CoreException("Cannot get results before parsing!");
+        }
+        if (!this.registeredArgumentHintToArity.containsKey(hint))
         {
             throw new CoreException("hint \'{}\' does not correspond to a registered argument",
                     hint);
         }
-        if (this.argumentHintToArity.get(hint) != ArgumentArity.VARIADIC)
+        if (this.registeredArgumentHintToArity.get(hint) != ArgumentArity.VARIADIC)
         {
             throw new CoreException("hint \'{}\' does not correspond to a variadic argument", hint);
         }
@@ -361,6 +385,10 @@ public class SimpleOptionAndArgumentParser
      */
     public boolean hasOption(final String longForm)
     {
+        if (!this.parseStepRan)
+        {
+            throw new CoreException("Cannot get results before parsing!");
+        }
         if (!registeredOptionForLongForm(longForm).isPresent())
         {
             throw new CoreException("{} not a registered option", longForm);
@@ -391,7 +419,7 @@ public class SimpleOptionAndArgumentParser
         boolean seenEndOptionSentinel = false;
         this.parsedArguments.clear();
         this.parsedOptions.clear();
-        this.argumentArityCounter = 0;
+        int regularArgumentCounter = 0;
 
         for (final String argument : allArguments)
         {
@@ -425,7 +453,7 @@ public class SimpleOptionAndArgumentParser
             }
         }
 
-        if (regularArguments.size() < this.argumentHints.size())
+        if (regularArguments.size() < this.registeredArgumentHintToArity.size())
         {
             throw new ArgumentException("missing required argument(s)");
         }
@@ -433,8 +461,11 @@ public class SimpleOptionAndArgumentParser
         // Now handle the regular arguments
         for (final String regularArgument : regularArguments)
         {
-            parseRegularArgument(regularArgument, regularArguments.size());
+            regularArgumentCounter = parseRegularArgument(regularArgument, regularArguments.size(),
+                    regularArgumentCounter);
         }
+
+        this.parseStepRan = true;
     }
 
     /**
@@ -456,18 +487,16 @@ public class SimpleOptionAndArgumentParser
         }
         if (arity == ArgumentArity.VARIADIC)
         {
-            if (this.alreadySeenVariadicArgument)
+            if (this.alreadyRegisteredVariadicArgument)
             {
                 throw new CoreException("Cannot register more than one variadic argument");
             }
             else
             {
-                this.alreadySeenVariadicArgument = true;
+                this.alreadyRegisteredVariadicArgument = true;
             }
         }
-        this.argumentHints.add(argumentHint);
-        this.argumentArities.add(arity);
-        this.argumentHintToArity.put(argumentHint, arity);
+        this.registeredArgumentHintToArity.put(argumentHint, arity);
     }
 
     /**
@@ -623,11 +652,6 @@ public class SimpleOptionAndArgumentParser
         return checkForLongOption(longForm, this.parsedOptions.keySet());
     }
 
-    private Optional<SimpleOption> getParsedOptionFromShortForm(final Character shortForm)
-    {
-        return checkForShortOption(shortForm, this.parsedOptions.keySet());
-    }
-
     private void parseLongFormOption(final String argument)
             throws UnknownOptionException, OptionParseException
     {
@@ -650,6 +674,8 @@ public class SimpleOptionAndArgumentParser
                 throw new OptionParseException(
                         "option \'" + option.get().getLongForm() + "\' needs an argument");
             }
+            logger.debug("parsed long option {}={}", option.get().getLongForm(),
+                    Optional.ofNullable(optionArgument));
             this.parsedOptions.put(option.get(), Optional.ofNullable(optionArgument));
         }
         else
@@ -658,31 +684,37 @@ public class SimpleOptionAndArgumentParser
         }
     }
 
-    private void parseRegularArgument(final String argument, final int regularArgumentSize)
-            throws ArgumentException
+    private int parseRegularArgument(final String argument, final int regularArgumentSize,
+            int regularArgumentCounter) throws ArgumentException
     {
-        if (this.argumentArityCounter >= this.argumentArities.size())
+        if (regularArgumentCounter >= this.registeredArgumentHintToArity.size())
         {
             throw new ArgumentException("too many arguments");
         }
-        final ArgumentArity currentArity = this.argumentArities.get(this.argumentArityCounter);
-        final String argumentHint = this.argumentHints.get(this.argumentArityCounter);
+
+        final String argumentHint = (String) this.registeredArgumentHintToArity.keySet()
+                .toArray()[regularArgumentCounter];
+        final ArgumentArity currentArity = this.registeredArgumentHintToArity.get(argumentHint);
         switch (currentArity)
         {
             case UNARY:
+                logger.debug("parsed unary argument hint => {} : value => {}", argumentHint,
+                        argument);
                 this.parsedArguments.put(argumentHint, Arrays.asList(argument));
-                this.argumentArityCounter++;
+                regularArgumentCounter++;
                 break;
             case VARIADIC:
                 List<String> multiArgumentList = this.parsedArguments.get(argumentHint);
                 multiArgumentList = multiArgumentList == null ? new ArrayList<>()
                         : multiArgumentList;
                 multiArgumentList.add(argument);
+                logger.debug("parsed variadic argument hint => {} : value => {}", argumentHint,
+                        argument);
                 this.parsedArguments.put(argumentHint, multiArgumentList);
 
                 // Two cases:
                 // Case 1 -> [SINGLE...] MULTIPLE
-                if (this.argumentArityCounter == this.argumentArities.size() - 1)
+                if (regularArgumentCounter == this.registeredArgumentHintToArity.size() - 1)
                 {
                     // do nothing, we can consume the rest of the arguments
                 }
@@ -690,10 +722,10 @@ public class SimpleOptionAndArgumentParser
                 else
                 {
                     // cutoff point, be sure to save arguments for consumption by subsequent hints
-                    if (multiArgumentList.size() == regularArgumentSize - this.argumentHints.size()
-                            + 1)
+                    if (multiArgumentList.size() == regularArgumentSize
+                            - this.registeredArgumentHintToArity.size() + 1)
                     {
-                        this.argumentArityCounter++;
+                        regularArgumentCounter++;
                         break;
                     }
                 }
@@ -701,7 +733,7 @@ public class SimpleOptionAndArgumentParser
             default:
                 throw new CoreException("Unrecognized ArgumentArity {}", currentArity);
         }
-
+        return regularArgumentCounter;
     }
 
     private void parseShortFormOption(final String argument) throws UnknownOptionException
@@ -716,6 +748,7 @@ public class SimpleOptionAndArgumentParser
                     optionName.charAt(i));
             if (option.isPresent())
             {
+                logger.debug("parsed short option {}", option.get().getShortForm().get());
                 this.parsedOptions.put(option.get(), Optional.empty());
             }
             else
@@ -739,7 +772,7 @@ public class SimpleOptionAndArgumentParser
     {
         if (this.argumentHintsSeen.contains(hint))
         {
-            throw new CoreException("Cannot register {} hint more than once!", hint);
+            throw new CoreException("Cannot register argument hint {} more than once!", hint);
         }
     }
 
@@ -747,7 +780,7 @@ public class SimpleOptionAndArgumentParser
     {
         if (this.longFormsSeen.contains(longForm))
         {
-            throw new CoreException("Cannot register {} more than once!", longForm);
+            throw new CoreException("Cannot register option {} more than once!", longForm);
         }
     }
 
@@ -755,7 +788,7 @@ public class SimpleOptionAndArgumentParser
     {
         if (this.shortFormsSeen.contains(shortForm))
         {
-            throw new CoreException("Cannot register {} more than once!", shortForm);
+            throw new CoreException("Cannot register option {} more than once!", shortForm);
         }
     }
 }
