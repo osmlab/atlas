@@ -235,13 +235,13 @@ public class SimpleOptionAndArgumentParser
     private final Set<Character> shortFormsSeen;
     private final Set<String> argumentHintsSeen;
 
-    private final Map<SimpleOption, Optional<String>> parsedOptions;
-    private final Map<String, List<String>> parsedArguments;
-
-    private boolean parseStepRan;
     private boolean registeredVariadicArgument;
     private boolean registeredOptionalArgument;
     private boolean previouslyRegisteredArgumentWasVariadic;
+
+    private final Map<SimpleOption, Optional<String>> parsedOptions;
+    private final Map<String, List<String>> parsedArguments;
+    private boolean parseStepRan;
 
     public SimpleOptionAndArgumentParser()
     {
@@ -253,13 +253,13 @@ public class SimpleOptionAndArgumentParser
         this.shortFormsSeen = new HashSet<>();
         this.argumentHintsSeen = new HashSet<>();
 
-        this.parsedOptions = new LinkedHashMap<>();
-        this.parsedArguments = new LinkedHashMap<>();
-
-        this.parseStepRan = false;
         this.registeredVariadicArgument = false;
         this.registeredOptionalArgument = false;
         this.previouslyRegisteredArgumentWasVariadic = false;
+
+        this.parsedOptions = new LinkedHashMap<>();
+        this.parsedArguments = new LinkedHashMap<>();
+        this.parseStepRan = false;
     }
 
     /**

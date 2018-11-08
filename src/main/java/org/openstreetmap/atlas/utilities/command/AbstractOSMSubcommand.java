@@ -67,7 +67,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     public abstract void registerOptionsAndArguments();
 
     /*
-     * BEGIN FACADE OPTION/ARGUMENT PARSING INTERFACE
+     * BEGIN ADAPTER OPTION/ARGUMENT PARSING INTERFACE
      */
     // While this may seem like duplication of the SimpleOptionAndArgumentParser interface,
     // it actually allows us to define an immutable interface for subcommand registration. By
