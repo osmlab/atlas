@@ -350,7 +350,8 @@ public class SimpleOptionAndArgumentParser
     }
 
     /**
-     * Check if a given long form option was supplied.
+     * Check if a given long form option was supplied. This will return true even if only the short
+     * form was actually present on the command line.
      *
      * @param longForm
      *            the long form option
@@ -365,29 +366,6 @@ public class SimpleOptionAndArgumentParser
             throw new CoreException("{} not a registered option", longForm);
         }
         final Optional<SimpleOption> option = getParsedOptionFromLongForm(longForm);
-        if (option.isPresent())
-        {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Check if a given short form option was supplied.
-     *
-     * @param shortForm
-     *            the short form option
-     * @return if the option was supplied
-     * @throws CoreException
-     *             if shortForm does not refer to a registered option
-     */
-    public boolean hasShortOption(final Character shortForm)
-    {
-        if (!registeredOptionForShortForm(shortForm).isPresent())
-        {
-            throw new CoreException("{} not a registered option", shortForm);
-        }
-        final Optional<SimpleOption> option = getParsedOptionFromShortForm(shortForm);
         if (option.isPresent())
         {
             return true;
@@ -731,21 +709,20 @@ public class SimpleOptionAndArgumentParser
         final String scrubPrefix = argument.substring(1);
 
         final String optionName = scrubPrefix;
-        if (optionName.length() > 1)
-        {
-            throw new UnknownOptionException(optionName);
-        }
 
-        final Optional<SimpleOption> option = registeredOptionForShortForm(optionName.charAt(0));
-        if (option.isPresent())
+        for (int i = 0; i < optionName.length(); i++)
         {
-            this.parsedOptions.put(option.get(), Optional.empty());
+            final Optional<SimpleOption> option = registeredOptionForShortForm(
+                    optionName.charAt(i));
+            if (option.isPresent())
+            {
+                this.parsedOptions.put(option.get(), Optional.empty());
+            }
+            else
+            {
+                throw new UnknownOptionException(optionName);
+            }
         }
-        else
-        {
-            throw new UnknownOptionException(optionName);
-        }
-
     }
 
     private Optional<SimpleOption> registeredOptionForLongForm(final String longForm)

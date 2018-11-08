@@ -29,7 +29,7 @@ public class SimpleOptionAndArgumentParserTest
         parser.registerArgument("multi1", ArgumentArity.VARIADIC);
 
         final List<String> arguments = Arrays.asList("--opt2", "--opt3=value", "arg1", "--opt1",
-                "arg2", "arg3", "-o", "arg4", "arg5");
+                "arg2", "arg3", "-o", "arg4", "--opt5", "arg5");
 
         try
         {
@@ -57,7 +57,6 @@ public class SimpleOptionAndArgumentParserTest
          * the command line
          */
         Assert.assertEquals(true, parser.hasOption("opt4"));
-        Assert.assertEquals(true, parser.hasShortOption('o'));
 
         Assert.assertEquals("arg1", parser.getUnaryArgument("single1"));
         Assert.assertEquals("arg2", parser.getUnaryArgument("single2"));
@@ -75,6 +74,60 @@ public class SimpleOptionAndArgumentParserTest
     public void testMissingVariadicArgument() throws ArgumentException
     {
         testMissingArgument(ArgumentArity.VARIADIC);
+    }
+
+    @Test
+    public void testMultipleShortFormArgumentShorthand()
+    {
+        final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
+        parser.registerOption("opt1", 'a', "a short form");
+        parser.registerOption("opt2", 'b', "a short form");
+        parser.registerOption("opt3", 'c', "a short form");
+
+        final List<String> arguments1 = Arrays.asList("-abc");
+        try
+        {
+            parser.parseOptionsAndArguments(arguments1);
+        }
+        catch (final UnknownOptionException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final OptionParseException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final ArgumentException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+
+        Assert.assertEquals(true, parser.hasOption("opt1"));
+        Assert.assertEquals(true, parser.hasOption("opt2"));
+        Assert.assertEquals(true, parser.hasOption("opt3"));
+
+        // Swap the order and try again
+        final List<String> arguments2 = Arrays.asList("-cba");
+        try
+        {
+            parser.parseOptionsAndArguments(arguments2);
+        }
+        catch (final UnknownOptionException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final OptionParseException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final ArgumentException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+
+        Assert.assertEquals(true, parser.hasOption("opt1"));
+        Assert.assertEquals(true, parser.hasOption("opt2"));
+        Assert.assertEquals(true, parser.hasOption("opt3"));
     }
 
     @Test

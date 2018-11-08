@@ -121,10 +121,11 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     }
 
     /**
-     * Check if a given long form option was supplied.
+     * Check if a given option was supplied. This will return true even if only the short form was
+     * actually present on the command line.
      *
      * @param longForm
-     *            the long form option
+     *            the option
      * @return if the option was supplied
      * @throws CoreException
      *             if longForm does not refer to a registered option
@@ -132,20 +133,6 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     protected boolean hasOption(final String longForm)
     {
         return this.parser.hasOption(longForm);
-    }
-
-    /**
-     * Check if a given short form option was supplied.
-     *
-     * @param shortForm
-     *            the short form option
-     * @return if the option was supplied
-     * @throws CoreException
-     *             if shortForm does not refer to a registered option
-     */
-    protected boolean hasShortOption(final Character shortForm)
-    {
-        return this.parser.hasShortOption(shortForm);
     }
 
     /**
