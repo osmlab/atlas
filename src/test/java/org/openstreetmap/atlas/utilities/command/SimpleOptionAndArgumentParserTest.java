@@ -228,6 +228,34 @@ public class SimpleOptionAndArgumentParserTest
     }
 
     @Test
+    public void testUnsuppliedOptionalArgument()
+    {
+        final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
+        parser.registerArgument("single1", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
+        parser.registerArgument("single2", ArgumentArity.UNARY, ArgumentOptionality.OPTIONAL);
+
+        final List<String> arguments = Arrays.asList("arg1");
+        try
+        {
+            parser.parseOptionsAndArguments(arguments);
+        }
+        catch (final UnknownOptionException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final OptionParseException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final ArgumentException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        Assert.assertEquals("arg1", parser.getUnaryArgument("single1"));
+        Assert.assertEquals("arg2", parser.getUnaryArgument("single2"));
+    }
+
+    @Test
     public void testVariadicArgumentInAllOrders()
     {
         // First
