@@ -60,8 +60,8 @@ public class SimpleOptionAndArgumentParserTest
          */
         Assert.assertEquals(true, parser.hasOption("opt4"));
 
-        Assert.assertEquals("arg1", parser.getUnaryArgument("single1"));
-        Assert.assertEquals("arg2", parser.getUnaryArgument("single2"));
+        Assert.assertEquals("arg1", parser.getUnaryArgument("single1").get());
+        Assert.assertEquals("arg2", parser.getUnaryArgument("single2").get());
         Assert.assertEquals(Arrays.asList("arg3", "arg4", "arg5"),
                 parser.getVariadicArgument("multi1"));
     }
@@ -183,7 +183,7 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
-        Assert.assertEquals("arg1", parser.getUnaryArgument("single1"));
+        Assert.assertEquals("arg1", parser.getUnaryArgument("single1").get());
 
         arguments = Arrays.asList("arg1", "arg2");
         try
@@ -202,8 +202,8 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
-        Assert.assertEquals("arg1", parser.getUnaryArgument("single1"));
-        Assert.assertEquals("arg2", parser.getUnaryArgument("single2"));
+        Assert.assertEquals("arg1", parser.getUnaryArgument("single1").get());
+        Assert.assertEquals("arg2", parser.getUnaryArgument("single2").get());
     }
 
     @Test(expected = UnknownOptionException.class)
@@ -230,11 +230,11 @@ public class SimpleOptionAndArgumentParserTest
     @Test
     public void testUnsuppliedOptionalArgument()
     {
-        final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
+        SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
         parser.registerArgument("single1", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
         parser.registerArgument("single2", ArgumentArity.UNARY, ArgumentOptionality.OPTIONAL);
 
-        final List<String> arguments = Arrays.asList("arg1");
+        List<String> arguments = Arrays.asList("arg1");
         try
         {
             parser.parseOptionsAndArguments(arguments);
@@ -251,8 +251,32 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
-        Assert.assertEquals("arg1", parser.getUnaryArgument("single1"));
-        Assert.assertEquals("arg2", parser.getUnaryArgument("single2"));
+        Assert.assertEquals("arg1", parser.getUnaryArgument("single1").get());
+        Assert.assertFalse(parser.getUnaryArgument("single2").isPresent());
+
+        parser = new SimpleOptionAndArgumentParser();
+        parser.registerArgument("single1", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
+        parser.registerArgument("multi1", ArgumentArity.VARIADIC, ArgumentOptionality.OPTIONAL);
+
+        arguments = Arrays.asList("arg1");
+        try
+        {
+            parser.parseOptionsAndArguments(arguments);
+        }
+        catch (final UnknownOptionException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final OptionParseException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final ArgumentException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        Assert.assertEquals("arg1", parser.getUnaryArgument("single1").get());
+        Assert.assertTrue(parser.getVariadicArgument("multi1").isEmpty());
     }
 
     @Test
@@ -281,8 +305,8 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
-        Assert.assertEquals("arg4", parser.getUnaryArgument("single1"));
-        Assert.assertEquals("arg5", parser.getUnaryArgument("single2"));
+        Assert.assertEquals("arg4", parser.getUnaryArgument("single1").get());
+        Assert.assertEquals("arg5", parser.getUnaryArgument("single2").get());
         Assert.assertEquals(Arrays.asList("arg1", "arg2", "arg3"),
                 parser.getVariadicArgument("multi1"));
 
@@ -307,8 +331,8 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
-        Assert.assertEquals("arg1", parser.getUnaryArgument("single1"));
-        Assert.assertEquals("arg5", parser.getUnaryArgument("single2"));
+        Assert.assertEquals("arg1", parser.getUnaryArgument("single1").get());
+        Assert.assertEquals("arg5", parser.getUnaryArgument("single2").get());
         Assert.assertEquals(Arrays.asList("arg2", "arg3", "arg4"),
                 parser.getVariadicArgument("multi1"));
 
@@ -333,8 +357,8 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
-        Assert.assertEquals("arg1", parser.getUnaryArgument("single1"));
-        Assert.assertEquals("arg2", parser.getUnaryArgument("single2"));
+        Assert.assertEquals("arg1", parser.getUnaryArgument("single1").get());
+        Assert.assertEquals("arg2", parser.getUnaryArgument("single2").get());
         Assert.assertEquals(Arrays.asList("arg3", "arg4", "arg5"),
                 parser.getVariadicArgument("multi1"));
     }
@@ -363,7 +387,7 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
-        Assert.assertEquals("arg1", parser.getUnaryArgument("single1"));
+        Assert.assertEquals("arg1", parser.getUnaryArgument("single1").get());
 
         arguments = Arrays.asList("arg1", "arg2", "arg3");
         try
@@ -382,7 +406,7 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
-        Assert.assertEquals("arg1", parser.getUnaryArgument("single1"));
+        Assert.assertEquals("arg1", parser.getUnaryArgument("single1").get());
         Assert.assertEquals(Arrays.asList("arg2", "arg3"), parser.getVariadicArgument("multi1"));
     }
 

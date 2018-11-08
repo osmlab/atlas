@@ -31,7 +31,7 @@ public class ConcatenateAtlasSubcommand extends AbstractOSMSubcommand
     public int execute()
     {
         final List<String> inputAtlasPaths = getVariadicArgument(INPUT_HINT);
-        final String outputAtlasPath = getUnaryArgument(OUTPUT_HINT);
+        final String outputAtlasPath = getUnaryArgument(OUTPUT_HINT).get();
         final List<File> atlasResourceList = new ArrayList<>();
 
         inputAtlasPaths.stream().forEach(path ->

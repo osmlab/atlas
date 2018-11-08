@@ -90,16 +90,16 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     }
 
     /**
-     * Given a hint registered as a unary argument, return the argument value associated with that
-     * hint.
+     * Given a hint registered as a unary argument, return an optional wrapping the argument value
+     * associated with that hint.
      *
      * @param hint
      *            the hint to check
-     * @return the value
+     * @return an {@link Optional} wrapping the value
      * @throws CoreException
      *             if the argument hint was not registered or is not unary
      */
-    protected String getUnaryArgument(final String hint)
+    protected Optional<String> getUnaryArgument(final String hint)
     {
         return this.parser.getUnaryArgument(hint);
     }

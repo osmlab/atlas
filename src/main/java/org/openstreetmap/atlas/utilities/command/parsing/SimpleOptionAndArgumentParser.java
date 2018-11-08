@@ -290,16 +290,16 @@ public class SimpleOptionAndArgumentParser
     }
 
     /**
-     * Given a hint registered as a unary argument, return the argument value associated with that
-     * hint.
+     * Given a hint registered as a unary argument, return an optional wrapping the argument value
+     * associated with that hint.
      *
      * @param hint
      *            the hint to check
-     * @return the value
+     * @return an optional wrapping the value
      * @throws CoreException
      *             if the argument hint was not registered or is not unary
      */
-    public String getUnaryArgument(final String hint)
+    public Optional<String> getUnaryArgument(final String hint)
     {
         if (!this.parseStepRan)
         {
@@ -317,10 +317,11 @@ public class SimpleOptionAndArgumentParser
         final List<String> arguments = this.parsedArguments.get(hint);
         if (arguments != null && arguments.size() == 1)
         {
-            return arguments.get(0);
+            return Optional.of(arguments.get(0));
         }
 
-        throw new CoreException("Critical failure. If you see this, it\'s a bug!");
+        logger.debug("No value found for unary argument {}, returning empty Optional", hint);
+        return Optional.empty();
     }
 
     /**
@@ -354,7 +355,8 @@ public class SimpleOptionAndArgumentParser
             return arguments;
         }
 
-        throw new CoreException("Critical failure. If you see this, it\'s a bug!");
+        logger.debug("No value found for variadic argument {}, returning empty List", hint);
+        return new ArrayList<>();
     }
 
     /**
