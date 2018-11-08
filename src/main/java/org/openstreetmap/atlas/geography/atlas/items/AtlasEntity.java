@@ -228,7 +228,7 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
                 final RelationMemberList members = relation.members();
                 final JsonArray membersArray = new JsonArray();
                 relationObject.add("members", membersArray);
-                for(final RelationMember member : members)
+                for (final RelationMember member : members)
                 {
                     final JsonObject memberObject = new JsonObject();
                     membersArray.add(memberObject);
