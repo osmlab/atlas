@@ -22,12 +22,12 @@ public final class RunScript
 
     public static void run(final String command)
     {
-        run(new String[] {command});
+        run(new String[] { command });
     }
 
     public static void run(final String command, final List<RunScriptMonitor> monitors)
     {
-        run(new String[] {command}, monitors);
+        run(new String[] { command }, monitors);
     }
 
     public static void run(final String[] commandArray)

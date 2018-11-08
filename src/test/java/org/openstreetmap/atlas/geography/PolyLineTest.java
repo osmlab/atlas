@@ -11,6 +11,8 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonObject;
+
 /**
  * @author matthieun
  * @author mgostintsev
@@ -308,6 +310,16 @@ public class PolyLineTest
                 polyLine3.withoutDuplicateConsecutiveShapePoints().toWkt());
         Assert.assertEquals(polyLine5.toWkt(),
                 polyLine4.withoutDuplicateConsecutiveShapePoints().toWkt());
+    }
+
+    @Test
+    public void testAsGeoJsonGeometry()
+    {
+        final PolyLine polyLine = PolyLine.wkt(
+                "LINESTRING (-75.616330 40.194570, -75.616330 40.194570, -75.616330 40.194570, -75.616340 40.194580, -75.616340 40.194590)");
+        final String geoJson = "{\"type\":\"LineString\",\"coordinates\":[[-75.61633,40.19457],[-75.61633,40.19457],[-75.61633,40.19457],[-75.61634,40.19458],[-75.61634,40.19459]]}";
+        final JsonObject geometry = polyLine.asGeoJsonGeometry();
+        Assert.assertEquals(geoJson, geometry.toString());
     }
 
 }

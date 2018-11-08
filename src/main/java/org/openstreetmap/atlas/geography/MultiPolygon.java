@@ -116,6 +116,7 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
                         .locationsToCoordinates(inner.closedLoop());
                 polygon.add(innerRingCoordinates);
             }
+            polygons.add(polygon);
         }
 
         return GeoJsonUtils.geometry(GeoJsonUtils.MULTIPOLYGON, polygons);

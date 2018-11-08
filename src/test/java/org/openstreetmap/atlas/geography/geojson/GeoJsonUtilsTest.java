@@ -1,12 +1,12 @@
 package org.openstreetmap.atlas.geography.geojson;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonParser;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Rectangle;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 /**
  * Test functions in GeoJsonUtils
@@ -24,6 +24,7 @@ public class GeoJsonUtilsTest
     private static final double LONGITUDE = -77.7951565;
     private static final double LATITUDE = -1.4317173;
     private static final String COORDINATE = "[-77.7951565,-1.4317173]";
+
     @Test
     public void testFeature()
     {
