@@ -58,9 +58,8 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     private static final Logger logger = LoggerFactory.getLogger(Relation.class);
     private static final long serialVersionUID = -9013894610780915685L;
 
-    public static final Comparator<Relation> RELATION_ID_COMPARATOR = (final Relation relation1,
-            final Relation relation2) -> Long.compare(relation1.getIdentifier(),
-                    relation2.getIdentifier());
+    public static final Comparator<Relation> RELATION_ID_COMPARATOR = Comparator
+            .comparingLong(AtlasObject::getIdentifier);
 
     private static final RelationOrAreaToMultiPolygonConverter MULTI_POLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter();
 
