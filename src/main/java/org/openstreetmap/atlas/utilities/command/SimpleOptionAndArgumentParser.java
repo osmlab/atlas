@@ -25,6 +25,9 @@ import org.slf4j.LoggerFactory;
 public class SimpleOptionAndArgumentParser
 {
     /**
+     * A simple option representation. Store the option long/short form as well as metadata about
+     * the option.
+     *
      * @author lcram
      */
     class SimpleOption
@@ -156,18 +159,29 @@ public class SimpleOptionAndArgumentParser
         }
     }
 
-    /*
-     * TODO: An alternate approach to explore would be: extend the Apache Commons CLI library to
-     * impose the necessary constraints without having to reinvent the wheel.
-     */
-
     /**
+     * The arity of the argument.
+     *
+     * @see "https://en.wikipedia.org/wiki/Arity"
      * @author lcram
      */
     public enum ArgumentArity
     {
         UNARY,
         VARIADIC
+    }
+
+    /**
+     * @author lcram
+     */
+    public class ArgumentException extends Exception
+    {
+        private static final long serialVersionUID = 8506034533362610699L;
+
+        public ArgumentException(final String message)
+        {
+            super(message);
+        }
     }
 
     /**
@@ -252,12 +266,15 @@ public class SimpleOptionAndArgumentParser
         this.parsedArguments = new LinkedHashMap<>();
     }
 
-    public void debugPrint()
-    {
-        logger.warn("{}", this.registeredOptions);
-        logger.warn("{}", this.parsedOptions);
-    }
-
+    /**
+     * Get the argument of a given long option, if present.
+     *
+     * @param longForm
+     *            the long form of the option
+     * @return an {@link Optional} wrapping the argument
+     * @throws CoreException
+     *             if longForm does not refer to a registered option
+     */
     public Optional<String> getLongOptionArgument(final String longForm)
     {
         if (!registeredOptionForLongForm(longForm).isPresent())
@@ -273,9 +290,8 @@ public class SimpleOptionAndArgumentParser
     }
 
     /**
-     * Given a hint registered as a unary argument (with
-     * {@link SimpleOptionAndArgumentParser#registerArgument(String, ArgumentArity)}), return the
-     * argument value associated with that hint.
+     * Given a hint registered as a unary argument, return the argument value associated with that
+     * hint.
      *
      * @param hint
      *            the hint to check
@@ -304,9 +320,8 @@ public class SimpleOptionAndArgumentParser
     }
 
     /**
-     * Given a hint registered as a variadic argument (with
-     * {@link SimpleOptionAndArgumentParser#registerArgument(String, ArgumentArity)}), return the
-     * argument values associated with that hint.
+     * Given a hint registered as a variadic argument, return the argument values associated with
+     * that hint.
      *
      * @param hint
      *            the hint to check
@@ -334,6 +349,15 @@ public class SimpleOptionAndArgumentParser
         throw new CoreException("Critical failure. If you see this, it\'s a bug!");
     }
 
+    /**
+     * Check if a given long form option was supplied.
+     *
+     * @param longForm
+     *            the long form option
+     * @return if the option was supplied
+     * @throws CoreException
+     *             if longForm does not refer to a registered option
+     */
     public boolean hasOption(final String longForm)
     {
         if (!registeredOptionForLongForm(longForm).isPresent())
@@ -348,6 +372,15 @@ public class SimpleOptionAndArgumentParser
         return false;
     }
 
+    /**
+     * Check if a given short form option was supplied.
+     *
+     * @param shortForm
+     *            the short form option
+     * @return if the option was supplied
+     * @throws CoreException
+     *             if shortForm does not refer to a registered option
+     */
     public boolean hasShortOption(final Character shortForm)
     {
         if (!registeredOptionForShortForm(shortForm).isPresent())
@@ -374,7 +407,7 @@ public class SimpleOptionAndArgumentParser
      *             If another parsing error occurs
      */
     public void parseOptionsAndArguments(final List<String> allArguments)
-            throws UnknownOptionException, OptionParseException
+            throws UnknownOptionException, OptionParseException, ArgumentException
     {
         final List<String> regularArguments = new ArrayList<>();
         boolean seenEndOptionSentinel = false;
@@ -426,6 +459,16 @@ public class SimpleOptionAndArgumentParser
         }
     }
 
+    /**
+     * Register an argument with a given arity. The argument hint is used as a key to retrieve the
+     * argument value(s) later. Additionally, documentation can use the hint to specify what the
+     * argument should be for. The arity is defined by {@link ArgumentArity}.
+     *
+     * @param argumentHint
+     *            the hint for the argument
+     * @param arity
+     *            the argument arity
+     */
     public void registerArgument(final String argumentHint, final ArgumentArity arity)
     {
         throwIfArgumentHintSeen(argumentHint);
@@ -449,6 +492,17 @@ public class SimpleOptionAndArgumentParser
         this.argumentHintToArity.put(argumentHint, arity);
     }
 
+    /**
+     * Register an option with a given long and short form. The option will be a flag option, ie. it
+     * can take no arguments.
+     *
+     * @param longForm
+     *            the long form of the option, eg. --option
+     * @param shortForm
+     *            the short form of the option, eg. -o
+     * @param description
+     *            a simple description
+     */
     public void registerOption(final String longForm, final Character shortForm,
             final String description)
     {
@@ -466,6 +520,15 @@ public class SimpleOptionAndArgumentParser
                 .add(new SimpleOption(longForm, shortForm, OptionArgumentType.NONE, description));
     }
 
+    /**
+     * Register an option with a given long form. The option will be a flag option, ie. it can take
+     * no arguments.
+     *
+     * @param longForm
+     *            the long form of the option, eg. --option
+     * @param description
+     *            a simple description
+     */
     public void registerOption(final String longForm, final String description)
     {
         if (longForm != null)
@@ -477,6 +540,18 @@ public class SimpleOptionAndArgumentParser
                 .add(new SimpleOption(longForm, OptionArgumentType.NONE, description));
     }
 
+    /**
+     * Register an option with a given long form that takes an optional argument. The provided
+     * argument hint can be used for generated documentation, and should be a single word describing
+     * the argument.
+     *
+     * @param longForm
+     *            the long form of the option, eg. --option
+     * @param description
+     *            a simple description
+     * @param argumentHint
+     *            the hint for the argument
+     */
     public void registerOptionWithOptionalArgument(final String longForm, final String description,
             final String argumentHint)
     {
@@ -489,6 +564,19 @@ public class SimpleOptionAndArgumentParser
                 new SimpleOption(longForm, OptionArgumentType.OPTIONAL, description, argumentHint));
     }
 
+    /**
+     * Register an option with a given long form that takes a required argument. The provided
+     * argument hint can be used for generated documentation, and should be a single word describing
+     * the argument. The parser will throw an exception if a required argument option is not
+     * supplied an argument at parse-time.
+     *
+     * @param longForm
+     *            the long form of the option, eg. --option
+     * @param description
+     *            a simple description
+     * @param argumentHint
+     *            the hint for the argument
+     */
     public void registerOptionWithRequiredArgument(final String longForm, final String description,
             final String argumentHint)
     {
@@ -593,11 +681,11 @@ public class SimpleOptionAndArgumentParser
     }
 
     private void parseRegularArgument(final String argument, final int regularArgumentSize)
-            throws OptionParseException
+            throws ArgumentException
     {
         if (this.argumentArityCounter >= this.argumentArities.size())
         {
-            throw new OptionParseException("too many arguments");
+            throw new ArgumentException("too many arguments");
         }
         final ArgumentArity currentArity = this.argumentArities.get(this.argumentArityCounter);
         final String argumentHint = this.argumentHints.get(this.argumentArityCounter);
