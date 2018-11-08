@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
+import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.ArgumentException;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.OptionParseException;
@@ -142,10 +143,13 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      *            the hint for the argument
      * @param arity
      *            the argument arity
+     * @param type
+     *            the argument hint type, optional or required
      */
-    protected void registerArgument(final String argumentHint, final ArgumentArity parity)
+    protected void registerArgument(final String argumentHint, final ArgumentArity arity,
+            final ArgumentOptionality type)
     {
-        this.parser.registerArgument(argumentHint, parity);
+        this.parser.registerArgument(argumentHint, arity, type);
     }
 
     /**

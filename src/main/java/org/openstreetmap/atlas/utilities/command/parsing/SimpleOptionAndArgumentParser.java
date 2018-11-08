@@ -229,6 +229,7 @@ public class SimpleOptionAndArgumentParser
 
     private final Set<SimpleOption> registeredOptions;
     private final Map<String, ArgumentArity> registeredArgumentHintToArity;
+    private final Map<String, ArgumentOptionality> registeredArgumentHintToType;
 
     private final Set<String> longFormsSeen;
     private final Set<Character> shortFormsSeen;
@@ -238,12 +239,15 @@ public class SimpleOptionAndArgumentParser
     private final Map<String, List<String>> parsedArguments;
 
     private boolean parseStepRan;
-    private boolean alreadyRegisteredVariadicArgument;
+    private boolean registeredVariadicArgument;
+    private boolean registeredOptionalArgument;
+    private boolean previouslyRegisteredArgumentWasVariadic;
 
     public SimpleOptionAndArgumentParser()
     {
         this.registeredOptions = new LinkedHashSet<>();
         this.registeredArgumentHintToArity = new LinkedHashMap<>();
+        this.registeredArgumentHintToType = new LinkedHashMap<>();
 
         this.longFormsSeen = new HashSet<>();
         this.shortFormsSeen = new HashSet<>();
@@ -253,7 +257,9 @@ public class SimpleOptionAndArgumentParser
         this.parsedArguments = new LinkedHashMap<>();
 
         this.parseStepRan = false;
-        this.alreadyRegisteredVariadicArgument = false;
+        this.registeredVariadicArgument = false;
+        this.registeredOptionalArgument = false;
+        this.previouslyRegisteredArgumentWasVariadic = false;
     }
 
     /**
@@ -431,9 +437,20 @@ public class SimpleOptionAndArgumentParser
             }
         }
 
-        if (regularArguments.size() < this.registeredArgumentHintToArity.size())
+        if (this.registeredOptionalArgument)
         {
-            throw new ArgumentException("missing required argument(s)");
+            if (regularArguments.size() < this.registeredArgumentHintToArity.size() - 1)
+            {
+                throw new ArgumentException("missing required argument(s)");
+            }
+        }
+        else
+        {
+            if (regularArguments.size() < this.registeredArgumentHintToArity.size())
+            {
+                throw new ArgumentException("missing required argument(s)");
+            }
+
         }
 
         // Now handle the regular arguments
@@ -449,32 +466,63 @@ public class SimpleOptionAndArgumentParser
     /**
      * Register an argument with a given arity. The argument hint is used as a key to retrieve the
      * argument value(s) later. Additionally, documentation can use the hint to specify what the
-     * argument should be for. The arity is defined by {@link ArgumentArity}.
+     * argument should be for.
      *
      * @param argumentHint
      *            the hint for the argument
      * @param arity
      *            the argument arity
+     * @param type
+     *            whether the argument is optional or required
      */
-    public void registerArgument(final String argumentHint, final ArgumentArity arity)
+    public void registerArgument(final String argumentHint, final ArgumentArity arity,
+            final ArgumentOptionality type)
     {
         throwIfArgumentHintSeen(argumentHint);
+
         if (argumentHint == null || argumentHint.isEmpty())
         {
             throw new CoreException("Argument hint cannot be null or empty");
         }
+
+        if (this.registeredOptionalArgument)
+        {
+            throw new CoreException("Optional argument must be the last registered argument");
+        }
+
         if (arity == ArgumentArity.VARIADIC)
         {
-            if (this.alreadyRegisteredVariadicArgument)
+            if (this.registeredVariadicArgument)
             {
                 throw new CoreException("Cannot register more than one variadic argument");
             }
-            else
-            {
-                this.alreadyRegisteredVariadicArgument = true;
-            }
+            this.registeredVariadicArgument = true;
         }
+        if (type == ArgumentOptionality.OPTIONAL)
+        {
+            if (this.registeredOptionalArgument)
+            {
+                throw new CoreException("Cannot register more than one optional argument");
+            }
+            if (this.previouslyRegisteredArgumentWasVariadic)
+            {
+                throw new CoreException(
+                        "Cannot register an optional argument after a variadic one");
+            }
+            this.registeredOptionalArgument = true;
+        }
+
         this.registeredArgumentHintToArity.put(argumentHint, arity);
+        this.registeredArgumentHintToType.put(argumentHint, type);
+
+        if (arity == ArgumentArity.VARIADIC)
+        {
+            this.previouslyRegisteredArgumentWasVariadic = true;
+        }
+        else
+        {
+            this.previouslyRegisteredArgumentWasVariadic = false;
+        }
     }
 
     /**

@@ -9,6 +9,7 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.command.AbstractOSMSubcommand;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
+import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 
 /**
  * @author lcram
@@ -82,8 +83,8 @@ public class ConcatenateAtlasSubcommand extends AbstractOSMSubcommand
     public void registerOptionsAndArguments()
     {
         setVersion(VERSION);
-        registerArgument(INPUT_HINT, ArgumentArity.VARIADIC);
-        registerArgument(OUTPUT_HINT, ArgumentArity.UNARY);
+        registerArgument(INPUT_HINT, ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED);
+        registerArgument(OUTPUT_HINT, ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
     }
 
 }

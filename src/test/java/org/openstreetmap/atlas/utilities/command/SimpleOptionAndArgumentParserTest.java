@@ -7,6 +7,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
+import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.ArgumentException;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.OptionParseException;
@@ -25,9 +26,9 @@ public class SimpleOptionAndArgumentParserTest
         parser.registerOption("opt2", "the 2nd option");
         parser.registerOptionWithRequiredArgument("opt3", "the 3rd option", "ARG");
         parser.registerOption("opt4", 'o', "a short form");
-        parser.registerArgument("single1", ArgumentArity.UNARY);
-        parser.registerArgument("single2", ArgumentArity.UNARY);
-        parser.registerArgument("multi1", ArgumentArity.VARIADIC);
+        parser.registerArgument("single1", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
+        parser.registerArgument("single2", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
+        parser.registerArgument("multi1", ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED);
 
         final List<String> arguments = Arrays.asList("--opt2", "--opt3=value", "arg1", "--opt1",
                 "arg2", "arg3", "-o", "arg4", "arg5");
@@ -64,6 +65,53 @@ public class SimpleOptionAndArgumentParserTest
                 parser.getVariadicArgument("multi1"));
     }
 
+    @Test
+    public void testArgumentOptionality()
+    {
+        final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
+        parser.registerArgument("single1", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
+        parser.registerArgument("single2", ArgumentArity.UNARY, ArgumentOptionality.OPTIONAL);
+
+        List<String> arguments = Arrays.asList("arg1");
+        try
+        {
+            parser.parseOptionsAndArguments(arguments);
+        }
+        catch (final UnknownOptionException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final OptionParseException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final ArgumentException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        Assert.assertEquals("arg1", parser.getUnaryArgument("single1"));
+
+        arguments = Arrays.asList("arg1", "arg2");
+        try
+        {
+            parser.parseOptionsAndArguments(arguments);
+        }
+        catch (final UnknownOptionException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final OptionParseException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final ArgumentException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        Assert.assertEquals("arg1", parser.getUnaryArgument("single1"));
+        Assert.assertEquals("arg2", parser.getUnaryArgument("single2"));
+    }
+
     @Test(expected = ArgumentException.class)
     public void testMissingUnaryArgument() throws ArgumentException
     {
@@ -84,10 +132,10 @@ public class SimpleOptionAndArgumentParserTest
         parser.registerOption("opt2", 'b', "a short form");
         parser.registerOption("opt3", 'c', "a short form");
 
-        final List<String> arguments1 = Arrays.asList("-abc");
+        List<String> arguments = Arrays.asList("-abc");
         try
         {
-            parser.parseOptionsAndArguments(arguments1);
+            parser.parseOptionsAndArguments(arguments);
         }
         catch (final UnknownOptionException e)
         {
@@ -107,10 +155,10 @@ public class SimpleOptionAndArgumentParserTest
         Assert.assertEquals(true, parser.hasOption("opt3"));
 
         // Swap the order and try again
-        final List<String> arguments2 = Arrays.asList("-cba");
+        arguments = Arrays.asList("-cba");
         try
         {
-            parser.parseOptionsAndArguments(arguments2);
+            parser.parseOptionsAndArguments(arguments);
         }
         catch (final UnknownOptionException e)
         {
@@ -156,9 +204,9 @@ public class SimpleOptionAndArgumentParserTest
     {
         // First
         SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
-        parser.registerArgument("multi1", ArgumentArity.VARIADIC);
-        parser.registerArgument("single1", ArgumentArity.UNARY);
-        parser.registerArgument("single2", ArgumentArity.UNARY);
+        parser.registerArgument("multi1", ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED);
+        parser.registerArgument("single1", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
+        parser.registerArgument("single2", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
 
         final List<String> arguments = Arrays.asList("arg1", "arg2", "arg3", "arg4", "arg5");
         try
@@ -184,9 +232,9 @@ public class SimpleOptionAndArgumentParserTest
 
         // Middle
         parser = new SimpleOptionAndArgumentParser();
-        parser.registerArgument("single1", ArgumentArity.UNARY);
-        parser.registerArgument("multi1", ArgumentArity.VARIADIC);
-        parser.registerArgument("single2", ArgumentArity.UNARY);
+        parser.registerArgument("single1", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
+        parser.registerArgument("multi1", ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED);
+        parser.registerArgument("single2", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
         try
         {
             parser.parseOptionsAndArguments(arguments);
@@ -210,9 +258,9 @@ public class SimpleOptionAndArgumentParserTest
 
         // Last
         parser = new SimpleOptionAndArgumentParser();
-        parser.registerArgument("single1", ArgumentArity.UNARY);
-        parser.registerArgument("single2", ArgumentArity.UNARY);
-        parser.registerArgument("multi1", ArgumentArity.VARIADIC);
+        parser.registerArgument("single1", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
+        parser.registerArgument("single2", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
+        parser.registerArgument("multi1", ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED);
         try
         {
             parser.parseOptionsAndArguments(arguments);
@@ -238,7 +286,7 @@ public class SimpleOptionAndArgumentParserTest
     private void testMissingArgument(final ArgumentArity arity) throws ArgumentException
     {
         final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
-        parser.registerArgument("multi1", arity);
+        parser.registerArgument("multi1", arity, ArgumentOptionality.REQUIRED);
 
         final List<String> arguments = new ArrayList<>();
         try
