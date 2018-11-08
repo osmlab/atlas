@@ -449,7 +449,7 @@ public class SimpleOptionAndArgumentParser
 
         if (regularArguments.size() < this.argumentHints.size())
         {
-            throw new OptionParseException("missing required argument(s)");
+            throw new ArgumentException("missing required argument(s)");
         }
 
         // Now handle the regular arguments
