@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
@@ -17,6 +18,7 @@ import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
@@ -71,12 +73,12 @@ public class LineDelimitedGeoJsonConverter extends Command
      * viewer. For relations, we only want multipolygon relations, as the rest can be derived from
      * their members.
      */
-    private static final Predicate<AtlasEntity> ENTITY_PREDICATE = atlasEntity ->
+    private static final Predicate<AtlasEntity> ENTITY_PREDICATE = entity ->
     {
         // We only want positive atlas entities. No negative ids.
-        if (ItemType.EDGE.equals(atlasEntity.getType()))
+        if (ItemType.EDGE.equals(entity.getType()))
         {
-            final Edge edge = (Edge) atlasEntity;
+            final Edge edge = (Edge) entity;
             if (!edge.isMasterEdge())
             {
                 return false;
@@ -84,10 +86,21 @@ public class LineDelimitedGeoJsonConverter extends Command
         }
 
         // We only want multipolygon relations
-        if (ItemType.RELATION.equals(atlasEntity.getType()))
+        if (ItemType.RELATION.equals(entity.getType()))
         {
-            return Validators.isOfType(atlasEntity, RelationTypeTag.class,
-                    RelationTypeTag.MULTIPOLYGON);
+            return Validators.isOfType(entity, RelationTypeTag.class, RelationTypeTag.MULTIPOLYGON);
+        }
+
+        // Because we're writing the multipolygon relations, we don't want to also write the area
+        // components that are pieces of the multipolygon relation.
+        if (ItemType.AREA.equals(entity.getType()))
+        {
+            final Set<Relation> relations = entity.relations();
+            if (relations.size() > 0)
+            {
+                return relations.stream().noneMatch(relation -> Validators.isOfType(relation,
+                        RelationTypeTag.class, RelationTypeTag.MULTIPOLYGON));
+            }
         }
 
         return true;
