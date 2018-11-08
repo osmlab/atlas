@@ -18,7 +18,8 @@ public class ConcatenateAtlasSubcommand extends AbstractOSMSubcommand
     private static final String INPUT_HINT = "input";
     private static final String OUTPUT_HINT = "output";
     private static final String VERBOSE_LONG = "verbose";
-    private static final Character VERBOSE_SHORT = 'v';
+
+    private static final String VERSION = "1.0.0";
 
     public static void main(final String[] args)
     {
@@ -80,6 +81,7 @@ public class ConcatenateAtlasSubcommand extends AbstractOSMSubcommand
     @Override
     public void registerOptionsAndArguments()
     {
+        setVersion(VERSION);
         registerArgument(INPUT_HINT, ArgumentArity.VARIADIC);
         registerArgument(OUTPUT_HINT, ArgumentArity.UNARY);
     }

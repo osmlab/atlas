@@ -248,6 +248,8 @@ public class SimpleOptionAndArgumentParser
 
     private static final String DEFAULT_LONG_HELP = LONG_FORM_PREFIX + "help";
     private static final String DEFAULT_SHORT_HELP = SHORT_FORM_PREFIX + "h";
+    private static final Object DEFAULT_LONG_VERSION = LONG_FORM_PREFIX + "version";;
+    private static final Object DEFAULT_SHORT_VERSION = SHORT_FORM_PREFIX + "V";
 
     private final Set<SimpleOption> registeredOptions;
     private final Map<String, ArgumentArity> registeredArgumentHintToArity;
@@ -610,6 +612,27 @@ public class SimpleOptionAndArgumentParser
         for (final String argument : allArguments)
         {
             if (DEFAULT_SHORT_HELP.equals(argument) || DEFAULT_LONG_HELP.equals(argument))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Perform a quick scan for any argument matching "--version" or "-V". This will not invoke any
+     * of the underlying parsing machinery, and is useful for determining if a user was trying to
+     * get the version.
+     *
+     * @param allArguments
+     *            The provided arguments list.
+     * @return True if the user tried to provide a version flag, false otherwise.
+     */
+    public boolean scanForVersionFlag(final List<String> allArguments)
+    {
+        for (final String argument : allArguments)
+        {
+            if (DEFAULT_SHORT_VERSION.equals(argument) || DEFAULT_LONG_VERSION.equals(argument))
             {
                 return true;
             }

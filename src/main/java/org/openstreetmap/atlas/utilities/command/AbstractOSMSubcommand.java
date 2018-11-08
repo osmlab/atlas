@@ -32,6 +32,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     private final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
 
     private boolean useColor = true;
+    private String version = "default_version_value";
 
     /**
      * Execute the command logic. Subclasses of {@link AbstractOSMSubcommand} must implement this
@@ -57,6 +58,12 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      */
     public abstract String getSimpleDescription();
 
+    /**
+     * Register any necessary options and arguments for the command. Use the protected API exposed
+     * by {@link AbstractOSMSubcommand}.
+     */
+    public abstract void registerOptionsAndArguments();
+
     /*
      * BEGIN FACADE OPTION/ARGUMENT PARSING INTERFACE
      */
@@ -65,12 +72,6 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     // setting up the interface this way, we are not wedded to the SimpleOptionAndArgumentParser for
     // future changes. Should we decide to change it, any subcommands implementing
     // AbstractOSMSubcommand will not have to change their option registration code.
-
-    /**
-     * Register any necessary options and arguments for the command. Use the protected API exposed
-     * by {@link AbstractOSMSubcommand}.
-     */
-    public abstract void registerOptionsAndArguments();
 
     /**
      * Get the argument of a given long option, if present.
@@ -195,10 +196,6 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
         this.parser.registerOptionWithOptionalArgument(longForm, description, argumentHint);
     }
 
-    /*
-     * END FACADE OPTION/ARGUMENT PARSING INTERFACE
-     */
-
     /**
      * Register an option with a given long form that takes a required argument. The provided
      * argument hint can be used for generated documentation, and should be a single word describing
@@ -217,6 +214,10 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     {
         this.parser.registerOptionWithRequiredArgument(longForm, description, argumentHint);
     }
+
+    /*
+     * END FACADE OPTION/ARGUMENT PARSING INTERFACE
+     */
 
     /**
      * Run this subcommand using all the special setup and teardown semantics provided by
@@ -257,6 +258,14 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
             System.exit(0);
         }
 
+        // Special case if user supplied '--version' or '-V'
+        // We want to scan now, show the version, then abort
+        if (this.parser.scanForVersionFlag(Arrays.asList(args)))
+        {
+            System.out.println(this.getCommandName() + " " + this.version);
+            System.exit(0);
+        }
+
         try
         {
             this.parser.parseOptionsAndArguments(Arrays.asList(args));
@@ -283,6 +292,16 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
 
         // run the command
         System.exit(execute());
+    }
+
+    /**
+     * Set the version of this command. Also automatically registers a version option.
+     */
+    protected void setVersion(final String version)
+    {
+        this.parser.registerOption("version", 'V',
+                "Print the version of " + this.getCommandName() + " and exit.");
+        this.version = version;
     }
 
     private String getHelpMenu()
