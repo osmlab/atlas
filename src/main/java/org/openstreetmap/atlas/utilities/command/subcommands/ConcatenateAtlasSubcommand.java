@@ -8,7 +8,7 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.command.AbstractOSMSubcommand;
-import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.ArgumentArity;
+import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 
 /**
  * @author lcram

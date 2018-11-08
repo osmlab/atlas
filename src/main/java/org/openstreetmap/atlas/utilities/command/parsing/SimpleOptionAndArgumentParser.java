@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.utilities.command;
+package org.openstreetmap.atlas.utilities.command.parsing;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -170,18 +170,6 @@ public class SimpleOptionAndArgumentParser
     }
 
     /**
-     * The arity of an argument.
-     *
-     * @see "https://en.wikipedia.org/wiki/Arity"
-     * @author lcram
-     */
-    public enum ArgumentArity
-    {
-        UNARY,
-        VARIADIC
-    }
-
-    /**
      * @author lcram
      */
     public class ArgumentException extends Exception
@@ -192,18 +180,6 @@ public class SimpleOptionAndArgumentParser
         {
             super(message);
         }
-    }
-
-    /**
-     * The optionality of an option's argument.
-     *
-     * @author lcram
-     */
-    public enum OptionArgumentType
-    {
-        NONE,
-        OPTIONAL,
-        REQUIRED
     }
 
     /**

@@ -6,10 +6,11 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.ArgumentArity;
-import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.ArgumentException;
-import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.OptionParseException;
-import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.UnknownOptionException;
+import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
+import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser;
+import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.ArgumentException;
+import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.OptionParseException;
+import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.UnknownOptionException;
 
 /**
  * @author lcram

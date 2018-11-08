@@ -5,10 +5,11 @@ import java.util.List;
 import java.util.Optional;
 
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.ArgumentArity;
-import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.ArgumentException;
-import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.OptionParseException;
-import org.openstreetmap.atlas.utilities.command.SimpleOptionAndArgumentParser.UnknownOptionException;
+import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
+import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser;
+import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.ArgumentException;
+import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.OptionParseException;
+import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.UnknownOptionException;
 
 /**
  * A partial implementation of an OSM subcommand. Contains significant functionality to aid in
