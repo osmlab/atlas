@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.utilities.vectortiles;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -133,6 +134,8 @@ public final class TippecanoeExporter extends LineDelimitedGeoJsonConverter
         commandList.add("tippecanoe");
         commandList.add("-o");
         commandList.add(mbtiles.toString());
+
+        commandList.addAll(Arrays.asList(TippecanoeSettings.ARGS));
 
         if (overwrite)
         {
