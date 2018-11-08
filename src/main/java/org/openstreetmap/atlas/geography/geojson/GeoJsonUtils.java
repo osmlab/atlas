@@ -25,6 +25,10 @@ public final class GeoJsonUtils
     public static final String POLYGON = "Polygon";
     public static final String MULTIPOLYGON = "MultiPolygon";
 
+    public static final String IDENTIFIER = "identifier";
+    public static final String OSM_IDENTIFIER = "osmIdentifier";
+    public static final String ITEM_TYPE = "itemType";
+
     private GeoJsonUtils()
     {
     }

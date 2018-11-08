@@ -9,6 +9,7 @@ import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.tags.LastEditTimeTag;
 import org.openstreetmap.atlas.tags.LastEditUserIdentifierTag;
 import org.openstreetmap.atlas.tags.LastEditUserNameTag;
@@ -16,6 +17,7 @@ import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Duration;
 import org.openstreetmap.atlas.utilities.time.Time;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 /**
@@ -207,12 +209,29 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
     {
         final JsonObject properties = new JsonObject();
         getTags().forEach(properties::addProperty);
-        properties.addProperty("identifier", getIdentifier());
-        properties.addProperty("osmIdentifier", getOsmIdentifier());
-        properties.addProperty("itemType", String.valueOf(getType()));
+        properties.addProperty(GeoJsonUtils.IDENTIFIER, getIdentifier());
+        properties.addProperty(GeoJsonUtils.OSM_IDENTIFIER, getOsmIdentifier());
+        properties.addProperty(GeoJsonUtils.ITEM_TYPE, String.valueOf(getType()));
 
         final Optional<String> shardName = getAtlas().metaData().getShardName();
         shardName.ifPresent(shard -> properties.addProperty("shard", shard));
+
+        final Set<Relation> relations = relations();
+        if (relations.size() > 0)
+        {
+            final JsonArray relationsArray = new JsonArray();
+            properties.add("relations", relationsArray);
+            for (final Relation relation : relations)
+            {
+                final JsonObject relationObject = relation.geoJsonProperties();
+                relationsArray.add(relationObject);
+                final RelationMemberList members = relation.members();
+                for(final RelationMember member : members)
+                {
+                    
+                }
+            }
+        }
 
         return properties;
     }
