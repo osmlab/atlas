@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.utilities.command.output.TTYAttribute;
 import org.openstreetmap.atlas.utilities.command.output.TTYStringBuilder;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
@@ -32,6 +33,11 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     private static final String NO_COLOR_OPTION = "___AbstractOSMSubcommand__NO_COLOR_SPECIAL_ARG___";
     private static final String ANSI_BOLD = "\033[1m";
     private static final String ANSI_RESET = "\033[0m";
+
+    private static final String DEFAULT_HELP_LONG = "help";
+    private static final Character DEFAULT_HELP_SHORT = 'h';
+    private static final String DEFAULT_VERBOSE_LONG = "verbose";
+    private static final Character DEFAULT_VERBOSE_SHORT = 'v';
 
     private final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
 
@@ -82,15 +88,6 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
         return this.parser.getLongOptionArgument(longForm);
     }
 
-    /*
-     * A NOTE ON THE ADAPTER OPTION/ARGUMENT PARSING INTERFACE
-     */
-    // While this may seem like duplication of the SimpleOptionAndArgumentParser interface,
-    // it actually allows us to define an immutable interface for subcommand registration. By
-    // setting up the interface this way, we are not wedded to the SimpleOptionAndArgumentParser for
-    // future changes. Should we decide to change it, any subcommands implementing
-    // AbstractOSMSubcommand will not have to change their option registration code.
-
     /**
      * Get the argument of a given long option, if present. Also, convert it using the supplied
      * converter.
@@ -111,6 +108,15 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
         return this.parser.getLongOptionArgument(longForm, converter);
     }
 
+    /*
+     * A NOTE ON THE ADAPTER OPTION/ARGUMENT PARSING INTERFACE
+     */
+    // While this may seem like duplication of the SimpleOptionAndArgumentParser interface,
+    // it actually allows us to define an immutable interface for subcommand registration. By
+    // setting up the interface this way, we are not wedded to the SimpleOptionAndArgumentParser for
+    // future changes. Should we decide to change it, any subcommands implementing
+    // AbstractOSMSubcommand will not have to change their option registration code.
+
     /**
      * Get a {@link TTYStringBuilder} with the correct formatting settings. Implementations of
      * {@link AbstractOSMSubcommand} should use this method instead of instantiating their own
@@ -118,7 +124,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      *
      * @return the string builder
      */
-    protected TTYStringBuilder getStringBuilderWithTTYSettings()
+    protected TTYStringBuilder getTTYStringBuilder()
     {
         return new TTYStringBuilder(this.useColor);
     }
@@ -166,6 +172,74 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     protected boolean hasOption(final String longForm)
     {
         return this.parser.hasOption(longForm);
+    }
+
+    /**
+     * Print a message to STDERR with the supplied attributes.
+     *
+     * @param string
+     *            the string to print
+     * @param attributes
+     *            the attributes
+     */
+    protected void printStderr(final String string, final TTYAttribute... attributes)
+    {
+        final TTYStringBuilder builder = this.getTTYStringBuilder();
+        builder.append(string, attributes);
+        System.err.print(builder.toString());
+    }
+
+    /**
+     * Print a message to STDOUT with the supplied attributes.
+     *
+     * @param string
+     *            the string to print
+     * @param attributes
+     *            the attributes
+     */
+    protected void printStdout(final String string, final TTYAttribute... attributes)
+    {
+        final TTYStringBuilder builder = this.getTTYStringBuilder();
+        builder.append(string, attributes);
+        System.out.print(builder.toString());
+    }
+
+    /**
+     * Print a message to STDERR with the supplied attributes, but only if the command was run using
+     * the '--verbose' flag.
+     *
+     * @param string
+     *            the string to print
+     * @param attributes
+     *            the attributes
+     */
+    protected void printVerboseStderr(final String string, final TTYAttribute... attributes)
+    {
+        final TTYStringBuilder builder = this.getTTYStringBuilder();
+        builder.append(string, attributes);
+        if (hasOption(DEFAULT_VERBOSE_LONG))
+        {
+            System.err.print(builder.toString());
+        }
+    }
+
+    /**
+     * Print a message to STDERR with the supplied attributes, but only if the command was run using
+     * the '--verbose' flag.
+     *
+     * @param string
+     *            the string to print
+     * @param attributes
+     *            the attributes
+     */
+    protected void printVerboseStdout(final String string, final TTYAttribute... attributes)
+    {
+        final TTYStringBuilder builder = this.getTTYStringBuilder();
+        builder.append(string, attributes);
+        if (hasOption(DEFAULT_VERBOSE_LONG))
+        {
+            System.out.print(builder.toString());
+        }
     }
 
     /**
@@ -282,8 +356,9 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      */
     protected void runSubcommandAndExit(String... args)
     {
-        this.parser.registerOption("help", 'h', "Show this help menu.");
-        this.parser.registerOption("verbose", 'v', "Use verbose output.");
+        this.parser.registerOption(DEFAULT_HELP_LONG, DEFAULT_HELP_SHORT, "Show this help menu.");
+        this.parser.registerOption(DEFAULT_VERBOSE_LONG, DEFAULT_VERBOSE_SHORT,
+                "Use verbose output.");
 
         // check the last arg to see if we should disable colors
         if (args.length > 0 && NO_COLOR_OPTION.equals(args[args.length - 1]))
