@@ -1,9 +1,56 @@
 [
   {
+    "key": "highway",
+    "default": 14,
+    "values": {
+      "motorway": 6,
+      "trunk": 6,
+      "primary": 8,
+      "secondary": 9,
+      "tertiary": 10,
+      "motorway_link": 12,
+      "trunk_link": 12,
+      "primary_link": 12,
+      "secondary_link": 12,
+      "residential": 12,
+      "unclassified": 12,
+      "service": 13,
+      "living_street": 13,
+      "pedestrian": 13,
+      "bridleway": 13,
+      "footway": 13,
+      "cycleway": 13,
+      "track": 13,
+      "steps": 13
+    }
+  },
+  {
+    "key": "building",
+    "default": 13
+  },
+  {
+    "key": "amenity",
+    "default": 13,
+    "values": {
+      "hospital": 12
+    }
+  },
+  {
     "key": "waterway",
     "default": 12,
     "values": {
       "river": 8
+    }
+  },
+  {
+    "key": "railway",
+    "default": 13,
+    "values": {
+      "rail": 8,
+      "light_rail": 8,
+      "tram": 12,
+      "subway": 12,
+      "disused": 14
     }
   },
   {
@@ -15,10 +62,32 @@
     }
   },
   {
+    "key": "route",
+    "default": 14,
+    "values": {
+      "ferry": 8
+    }
+  },
+  {
+    "key": "place",
+    "default": 12,
+    "values": {
+      "country": 3,
+      "state": 5
+    }
+  },
+  {
     "key": "leisure",
     "default": 13,
     "values": {
       "park": 8
+    }
+  },
+  {
+    "key": "natural",
+    "default": 12,
+    "values": {
+      "glacier": 8
     }
   }
 ]

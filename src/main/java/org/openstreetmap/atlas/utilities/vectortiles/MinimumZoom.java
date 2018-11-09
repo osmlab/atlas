@@ -17,7 +17,27 @@ import com.google.gson.JsonParser;
  * configuration. The values you see in the minimum-zoom.json resourse file is inspired for what you
  * see in the standard OpenStreetMap carto style. This is very loosely based off of the minimum
  * zooms you see for various types of features. Note that there is definitely more work that needs
- * to be done to refine our min zooms. https://github.com/gravitystorm/openstreetmap-carto
+ * to be done to refine our min zooms.
+ *
+ * https://github.com/gravitystorm/openstreetmap-carto
+ *
+ * The config is a JSON array of rule objects. Each rule looks like this:
+ *
+ *   {
+ *     "key": "landuse",
+ *     "default": 12,
+ *     "values": {
+ *       "basin": 7,
+ *       "forest": 8
+ *     }
+ *   }
+ *
+ * The rule must have a key for the tag key. It must have an integer for the default minimum zoom.
+ * values is optional, and this is an object with a given OSM tag value and a minimum zoom that will
+ * apply to it. The way that the JSON config evaluates is that the first rules in the array take
+ * priority. If a given key matches, we use that rule, and all other rules will not be evaluated for
+ * finding the minimum zoom for that given atlas element's tags.
+ *
  *
  * @author hallahan
  */
@@ -25,7 +45,7 @@ enum MinimumZoom
 {
     INSTANCE;
 
-    private static final String CONFIG_RESOURCE = "minimum-zoom.json";
+    private static final String CONFIG_RESOURCE = "minimum-zooms.json";
     private static final int DEFAULT_ZOOM = 14;
 
     private String[] keys;
@@ -59,8 +79,14 @@ enum MinimumZoom
 
             final Map<String, Integer> valuesMap = new HashMap<>();
             valuesList.add(index, valuesMap);
-            object.get("values").getAsJsonObject().entrySet()
-                    .forEach(entry -> valuesMap.put(entry.getKey(), entry.getValue().getAsInt()));
+
+            // values is optional
+            final JsonElement valuesElement = object.get("values");
+            if (valuesElement != null)
+            {
+                valuesElement.getAsJsonObject().entrySet().forEach(
+                        entry -> valuesMap.put(entry.getKey(), entry.getValue().getAsInt()));
+            }
         }
     }
 
@@ -75,10 +101,10 @@ enum MinimumZoom
                 continue;
             }
             final Map<String, Integer> valuesMap = valuesList.get(index);
-            final Integer valueMinZoom = valuesMap.get(value);
-            if (valueMinZoom != null)
+            final Integer valueMinimumZoom = valuesMap.get(value);
+            if (valueMinimumZoom != null)
             {
-                return valueMinZoom;
+                return valueMinimumZoom;
             }
             else
             {
