@@ -160,6 +160,33 @@ public class SimpleOptionAndArgumentParserTest
     }
 
     @Test
+    public void testOptionWithDefaultValue()
+    {
+        final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
+        parser.registerOptionWithOptionalArgument("opt1", "an opt with an optional arg", "optarg");
+
+        final List<String> arguments = Arrays.asList("--opt1");
+        try
+        {
+            parser.parseOptionsAndArguments(arguments);
+        }
+        catch (final UnknownOptionException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final OptionParseException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final ArgumentException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        Assert.assertEquals("defaultValue",
+                parser.getLongOptionArgument("opt1").orElse("defaultValue"));
+    }
+
+    @Test
     public void testUnaryArgumentOptionality()
     {
         final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();

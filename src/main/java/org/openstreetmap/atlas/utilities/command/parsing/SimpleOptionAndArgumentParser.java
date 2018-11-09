@@ -476,6 +476,8 @@ public class SimpleOptionAndArgumentParser
      *            the argument arity
      * @param type
      *            whether the argument is optional or required
+     * @throws CoreException
+     *             if the argument could not be registered
      */
     public void registerArgument(final String argumentHint, final ArgumentArity arity,
             final ArgumentOptionality type)
@@ -537,6 +539,8 @@ public class SimpleOptionAndArgumentParser
      *            the short form of the option, eg. -o
      * @param description
      *            a simple description
+     * @throws CoreException
+     *             if the option could not be registered
      */
     public void registerOption(final String longForm, final Character shortForm,
             final String description)
@@ -563,6 +567,8 @@ public class SimpleOptionAndArgumentParser
      *            the long form of the option, eg. --option
      * @param description
      *            a simple description
+     * @throws CoreException
+     *             if the option could not be registered
      */
     public void registerOption(final String longForm, final String description)
     {
@@ -586,6 +592,8 @@ public class SimpleOptionAndArgumentParser
      *            a simple description
      * @param argumentHint
      *            the hint for the argument
+     * @throws CoreException
+     *             if the option could not be registered
      */
     public void registerOptionWithOptionalArgument(final String longForm, final String description,
             final String argumentHint)
@@ -611,6 +619,8 @@ public class SimpleOptionAndArgumentParser
      *            a simple description
      * @param argumentHint
      *            the hint for the argument
+     * @throws CoreException
+     *             if the option could not be registered
      */
     public void registerOptionWithRequiredArgument(final String longForm, final String description,
             final String argumentHint)

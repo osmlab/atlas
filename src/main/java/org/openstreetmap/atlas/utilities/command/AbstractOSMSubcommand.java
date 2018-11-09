@@ -137,14 +137,16 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     /**
      * Register an argument with a given arity. The argument hint is used as a key to retrieve the
      * argument value(s) later. Additionally, documentation can use the hint to specify what the
-     * argument should be for. The arity is defined by {@link ArgumentArity}.
+     * argument should be for.
      *
      * @param argumentHint
      *            the hint for the argument
      * @param arity
      *            the argument arity
      * @param type
-     *            the argument hint type, optional or required
+     *            whether the argument is optional or required
+     * @throws CoreException
+     *             if the argument could not be registered
      */
     protected void registerArgument(final String argumentHint, final ArgumentArity arity,
             final ArgumentOptionality type)
@@ -162,6 +164,8 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      *            the short form of the option, eg. -o
      * @param description
      *            a simple description
+     * @throws CoreException
+     *             if the option could not be registered
      */
     protected void registerOption(final String longForm, final Character shortForm,
             final String description)
@@ -177,6 +181,8 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      *            the long form of the option, eg. --option
      * @param description
      *            a simple description
+     * @throws CoreException
+     *             if the option could not be registered
      */
     protected void registerOption(final String longForm, final String description)
     {
@@ -194,6 +200,8 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      *            a simple description
      * @param argumentHint
      *            the hint for the argument
+     * @throws CoreException
+     *             if the option could not be registered
      */
     protected void registerOptionWithOptionalArgument(final String longForm,
             final String description, final String argumentHint)
@@ -213,6 +221,8 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      *            a simple description
      * @param argumentHint
      *            the hint for the argument
+     * @throws CoreException
+     *             if the option could not be registered
      */
     protected void registerOptionWithRequiredArgument(final String longForm,
             final String description, final String argumentHint)
