@@ -1,0 +1,24 @@
+[
+  {
+    "key": "waterway",
+    "default": 12,
+    "values": {
+      "river": 8
+    }
+  },
+  {
+    "key": "landuse",
+    "default": 12,
+    "values": {
+      "basin": 7,
+      "forest": 8
+    }
+  },
+  {
+    "key": "leisure",
+    "default": 13,
+    "values": {
+      "park": 8
+    }
+  }
+]

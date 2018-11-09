@@ -1,166 +1,90 @@
 package org.openstreetmap.atlas.utilities.vectortiles;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 /**
- * This utility class is where you set the minimum zoom for features based on their tags. The values
- * you see here for various min zooms is inspired for what you see in the standard OpenStreetMap
- * carto style. This is very loosely based off of the minimum zooms you see for various types of
- * features. Note that there is definitely more work that needs to be done to refine our min zooms.
- * https://github.com/gravitystorm/openstreetmap-carto
+ * This singleton class is where you get the minimum zoom for features' tags based on a JSON
+ * configuration. The values you see in the minimum-zoom.json resourse file is inspired for what you
+ * see in the standard OpenStreetMap carto style. This is very loosely based off of the minimum
+ * zooms you see for various types of features. Note that there is definitely more work that needs
+ * to be done to refine our min zooms. https://github.com/gravitystorm/openstreetmap-carto
  *
  * @author hallahan
  */
-final class MinimumZoom
+enum MinimumZoom
 {
-    private static final int THREE = 3;
-    private static final int FIVE = 5;
-    private static final int SIX = 6;
-    private static final int SEVEN = 7;
-    private static final int EIGHT = 8;
-    private static final int NINE = 9;
-    private static final int TEN = 10;
-    private static final int TWELVE = 12;
-    private static final int THIRTEEN = 13;
-    private static final int FOURTEEN = 14;
+    INSTANCE;
 
-    private MinimumZoom()
+    private static final String CONFIG_RESOURCE = "minimum-zoom.json";
+    private static final int DEFAULT_ZOOM = 14;
+
+    private String[] keys;
+    private int[] defaults;
+    private List<Map<String, Integer>> valuesList = new ArrayList<>();
+
+    MinimumZoom()
     {
-        // Util
+        processConfig(parseConfig());
     }
 
-    static int amenity(final String tagValue)
+    private JsonArray parseConfig()
     {
-        switch (tagValue)
+        final InputStream inputStream = MinimumZoom.class.getResourceAsStream(CONFIG_RESOURCE);
+        final InputStreamReader reader = new InputStreamReader(inputStream);
+        final JsonParser parser = new JsonParser();
+        final JsonElement element = parser.parse(reader);
+        return element.getAsJsonArray();
+    }
+
+    private void processConfig(final JsonArray config)
+    {
+        final int length = config.size();
+        keys = new String[length];
+        defaults = new int[length];
+        for (int index = 0; index < length; ++index)
         {
-            case "hospital":
-                return TWELVE;
-            default:
-                return THIRTEEN;
+            final JsonObject object = config.get(index).getAsJsonObject();
+            keys[index] = object.get("key").getAsString();
+            defaults[index] = object.get("default").getAsInt();
+
+            final Map<String, Integer> valuesMap = new HashMap<>();
+            valuesList.add(index, valuesMap);
+            object.get("values").getAsJsonObject().entrySet()
+                    .forEach(entry -> valuesMap.put(entry.getKey(), entry.getValue().getAsInt()));
         }
     }
 
-    static int building(final String tagValue)
+    int get(final Map<String, String> tags)
     {
-        return THIRTEEN;
-    }
-
-    static int highway(final String tagValue)
-    {
-        switch (tagValue)
+        for (int index = 0; index < keys.length; ++index)
         {
-            case "motorway":
-            case "trunk":
-                return SIX;
-            case "primary":
-                return EIGHT;
-            case "secondary":
-                return NINE;
-            case "tertiary":
-                return TEN;
-            case "motorway_link":
-            case "trunk_link":
-            case "primary_link":
-            case "secondary_link":
-            case "residential":
-            case "unclassified":
-                return TWELVE;
-            case "service":
-            case "living_street":
-            case "pedestrian":
-            case "bridleway":
-            case "footway":
-            case "cycleway":
-            case "track":
-            case "steps":
-                return THIRTEEN;
-            default:
-                return FOURTEEN;
+            final String key = keys[index];
+            final String value = tags.get(key);
+            if (value == null)
+            {
+                continue;
+            }
+            final Map<String, Integer> valuesMap = valuesList.get(index);
+            final Integer valueMinZoom = valuesMap.get(value);
+            if (valueMinZoom != null)
+            {
+                return valueMinZoom;
+            }
+            else
+            {
+                return defaults[index];
+            }
         }
-    }
-
-    static int railway(final String tagValue)
-    {
-        switch (tagValue)
-        {
-            case "rail":
-            case "light_rail":
-                return EIGHT;
-            case "tram":
-            case "subway":
-                return TWELVE;
-            case "disused":
-                return FOURTEEN;
-            default:
-                return THIRTEEN;
-        }
-    }
-
-    static int route(final String tagValue)
-    {
-        switch (tagValue)
-        {
-            case "ferry":
-                return EIGHT;
-            default:
-                return FOURTEEN;
-        }
-    }
-
-    static int place(final String tagValue)
-    {
-        switch (tagValue)
-        {
-            case "country":
-                return THREE;
-            case "state":
-                return FIVE;
-            default:
-                return TWELVE;
-        }
-    }
-
-    static int natural(final String tagValue)
-    {
-        switch (tagValue)
-        {
-            case "glacier":
-                return EIGHT;
-            default:
-                return TWELVE;
-        }
-    }
-
-    static int leisure(final String tagValue)
-    {
-        switch (tagValue)
-        {
-            case "park":
-                return EIGHT;
-            default:
-                return THIRTEEN;
-        }
-    }
-
-    static int landuse(final String tagValue)
-    {
-        switch (tagValue)
-        {
-            case "basin":
-                return SEVEN;
-            case "forest":
-                return EIGHT;
-            default:
-                return TWELVE;
-        }
-    }
-
-    static int waterway(final String tagValue)
-    {
-        switch (tagValue)
-        {
-            case "river":
-                return EIGHT;
-            default:
-                return TWELVE;
-        }
+        return DEFAULT_ZOOM;
     }
 }

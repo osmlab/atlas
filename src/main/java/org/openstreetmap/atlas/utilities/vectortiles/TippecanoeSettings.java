@@ -34,27 +34,7 @@ final class TippecanoeSettings
         final String atlasType = atlasEntity.getType().name();
         tippecanoe.layer(atlasType);
 
-        atlasEntity.getTag("amenity")
-                .ifPresent(tag -> tippecanoe.minimumZoom(MinimumZoom.amenity(tag)));
-        atlasEntity.getTag("building")
-                .ifPresent(tag -> tippecanoe.minimumZoom(MinimumZoom.building(tag)));
-        atlasEntity.getTag("highway")
-                .ifPresent(tag -> tippecanoe.minimumZoom(MinimumZoom.highway(tag)));
-        atlasEntity.getTag("railway")
-                .ifPresent(tag -> tippecanoe.minimumZoom(MinimumZoom.railway(tag)));
-        atlasEntity.getTag("route")
-                .ifPresent(tag -> tippecanoe.minimumZoom(MinimumZoom.route(tag)));
-        atlasEntity.getTag("place")
-                .ifPresent(tag -> tippecanoe.minimumZoom(MinimumZoom.place(tag)));
-        atlasEntity.getTag("natural")
-                .ifPresent(tag -> tippecanoe.minimumZoom(MinimumZoom.natural(tag)));
-        atlasEntity.getTag("leisure")
-                .ifPresent(tag -> tippecanoe.minimumZoom(MinimumZoom.leisure(tag)));
-        atlasEntity.getTag("landuse")
-                .ifPresent(tag -> tippecanoe.minimumZoom(MinimumZoom.landuse(tag)));
-        atlasEntity.getTag("waterway")
-                .ifPresent(tag -> tippecanoe.minimumZoom(MinimumZoom.waterway(tag)));
-
+        tippecanoe.minimumZoom(MinimumZoom.INSTANCE.get(atlasEntity.getTags()));
     };
 
 }
