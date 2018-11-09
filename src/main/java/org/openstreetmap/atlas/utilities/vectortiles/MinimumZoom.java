@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.openstreetmap.atlas.exception.CoreException;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -39,11 +41,20 @@ enum MinimumZoom
 
     private JsonArray parseConfig()
     {
-        final InputStream inputStream = MinimumZoom.class.getResourceAsStream(CONFIG_RESOURCE);
-        final InputStreamReader reader = new InputStreamReader(inputStream);
-        final JsonParser parser = new JsonParser();
-        final JsonElement element = parser.parse(reader);
-        return element.getAsJsonArray();
+        try
+        {
+            final InputStream inputStream = MinimumZoom.class.getResourceAsStream(CONFIG_RESOURCE);
+            final InputStreamReader reader = new InputStreamReader(inputStream);
+            final JsonParser parser = new JsonParser();
+            final JsonElement element = parser.parse(reader);
+            return element.getAsJsonArray();
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException(
+                    "There was a problem parsing minimum-zooms.json. Check if the JSON file has valid structure.",
+                    exception);
+        }
     }
 
     private void processConfig(final JsonArray config)
@@ -53,19 +64,28 @@ enum MinimumZoom
         defaults = new int[length];
         for (int index = 0; index < length; ++index)
         {
-            final JsonObject object = config.get(index).getAsJsonObject();
-            keys[index] = object.get("key").getAsString();
-            defaults[index] = object.get("default").getAsInt();
-
-            final Map<String, Integer> valuesMap = new HashMap<>();
-            valuesList.add(index, valuesMap);
-
-            // values is optional
-            final JsonElement valuesElement = object.get("values");
-            if (valuesElement != null)
+            try
             {
-                valuesElement.getAsJsonObject().entrySet().forEach(
-                        entry -> valuesMap.put(entry.getKey(), entry.getValue().getAsInt()));
+                final JsonObject object = config.get(index).getAsJsonObject();
+                keys[index] = object.get("key").getAsString();
+                defaults[index] = object.get("default").getAsInt();
+
+                final Map<String, Integer> valuesMap = new HashMap<>();
+                valuesList.add(index, valuesMap);
+
+                // values is optional
+                final JsonElement valuesElement = object.get("values");
+                if (valuesElement != null)
+                {
+                    valuesElement.getAsJsonObject().entrySet().forEach(
+                            entry -> valuesMap.put(entry.getKey(), entry.getValue().getAsInt()));
+                }
+            }
+            catch (final Exception exception)
+            {
+                throw new CoreException(
+                        "There is a problem with one of the rule objects in the JSON configuration.",
+                        exception);
             }
         }
     }
