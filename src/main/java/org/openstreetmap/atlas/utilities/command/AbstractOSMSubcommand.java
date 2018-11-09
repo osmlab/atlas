@@ -31,8 +31,6 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      * avail: https://bugs.java.com/bugdatabase/view_bug.do?bug_id=4099017
      */
     private static final String NO_COLOR_OPTION = "___AbstractOSMSubcommand__NO_COLOR_SPECIAL_ARG___";
-    private static final String ANSI_BOLD = "\033[1m";
-    private static final String ANSI_RESET = "\033[0m";
 
     private static final String DEFAULT_HELP_LONG = "help";
     private static final Character DEFAULT_HELP_SHORT = 'h';
@@ -175,6 +173,31 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     }
 
     /**
+     * Prints the supplied message like "commandName: message".
+     *
+     * @param message
+     *            the message
+     */
+    protected void printCommandMessage(final String message)
+    {
+        printStderr(this.getCommandName() + ": ");
+        printStderr(message + "\n");
+    }
+
+    /**
+     * Prints the supplied message like "commandName: error: message" with automatic coloring.
+     *
+     * @param message
+     *            the error message
+     */
+    protected void printErrorMessage(final String message)
+    {
+        printStderr(this.getCommandName() + ": ");
+        printStderr("error: ", TTYAttribute.BOLD, TTYAttribute.RED);
+        printStderr(message + "\n");
+    }
+
+    /**
      * Print a message to STDERR with the supplied attributes.
      *
      * @param string
@@ -240,6 +263,19 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
         {
             System.out.print(builder.toString());
         }
+    }
+
+    /**
+     * Prints the supplied message like "commandName: warn: message" with automatic coloring.
+     *
+     * @param message
+     *            the warn message
+     */
+    protected void printWarnMessage(final String message)
+    {
+        printStderr(this.getCommandName() + ": ");
+        printStderr("warn: ", TTYAttribute.BOLD, TTYAttribute.MAGENTA);
+        printStderr(message + "\n");
     }
 
     /**
@@ -392,21 +428,26 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
         }
         catch (final UnknownOptionException exception)
         {
-            // TODO colorize
-            System.err.println(
-                    this.getCommandName() + ": error: unknown option " + exception.getMessage());
+            printErrorMessage("unknown option " + exception.getMessage());
+            printStderr("Try ");
+            printStderr("--help ", TTYAttribute.BOLD);
+            printStderr("for more info.\n");
             System.exit(1);
         }
         catch (final OptionParseException exception)
         {
-            // TODO colorize
-            System.err.println(this.getCommandName() + ": error: " + exception.getMessage());
+            printErrorMessage(exception.getMessage());
+            printStderr("Try ");
+            printStderr("--help ", TTYAttribute.BOLD);
+            printStderr("for more info.\n");
             System.exit(1);
         }
         catch (final ArgumentException exception)
         {
-            // TODO colorize
-            System.err.println(this.getCommandName() + ": error: " + exception.getMessage());
+            printErrorMessage(exception.getMessage());
+            printStderr("Try ");
+            printStderr("--help ", TTYAttribute.BOLD);
+            printStderr("for more info.\n");
             System.exit(1);
         }
 
@@ -415,7 +456,8 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     }
 
     /**
-     * Set the version of this command. Also automatically registers a version option.
+     * Set the version of this command. Also automatically registers a version option with forms
+     * "--version" and "-V".
      */
     protected void setVersion(final String version)
     {
@@ -428,17 +470,9 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     {
         final String name = this.getCommandName();
         final String simpleDescription = this.getSimpleDescription();
-        final StringBuilder builder = new StringBuilder();
+        final TTYStringBuilder builder = getTTYStringBuilder();
         builder.append("\n");
-        if (this.useColor)
-        {
-            builder.append(ANSI_BOLD);
-        }
-        builder.append("NAME");
-        if (this.useColor)
-        {
-            builder.append(ANSI_RESET);
-        }
+        builder.append("NAME", TTYAttribute.BOLD);
         builder.append("\n\t" + name + " -- " + simpleDescription + "\n");
         builder.append("\n");
         return builder.toString();

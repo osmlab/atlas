@@ -39,30 +39,20 @@ public class ConcatenateAtlasSubcommand extends AbstractOSMSubcommand
             final File file = new File(path);
             if (!file.exists())
             {
-                System.err.println("File not found: " + path);
+                printErrorMessage("file not found: " + path);
                 System.exit(1);
             }
             atlasResourceList.add(file);
-            if (hasOption(VERBOSE_LONG))
-            {
-                System.out.println("Loading " + path);
-            }
+            printVerboseStdout("Loading " + path);
         });
 
-        final AtlasResourceLoader loader = new AtlasResourceLoader();
-        if (hasOption(VERBOSE_LONG))
-        {
-            System.out.println("Cloning...");
-        }
+        printVerboseStdout("Cloning...");
         final PackedAtlas output = new PackedAtlasCloner()
-                .cloneFrom(loader.load(atlasResourceList));
+                .cloneFrom(new AtlasResourceLoader().load(atlasResourceList));
         final File outputFile = new File(outputAtlasPath);
         output.save(outputFile);
 
-        if (hasOption(VERBOSE_LONG))
-        {
-            System.out.println("Saved to " + outputAtlasPath);
-        }
+        printVerboseStdout("Saved to " + outputAtlasPath);
 
         return 0;
     }
