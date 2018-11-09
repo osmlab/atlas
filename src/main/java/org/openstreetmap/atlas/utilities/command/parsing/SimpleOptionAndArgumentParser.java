@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.utilities.conversion.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -285,6 +286,44 @@ public class SimpleOptionAndArgumentParser
         if (option.isPresent())
         {
             return this.parsedOptions.get(option.get());
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Get the argument of a given long option, if present. Also, convert it using the supplied
+     * converter.
+     *
+     * @param <T>
+     *            the type to convert to
+     * @param longForm
+     *            the long form of the option
+     * @param converter
+     *            the conversion function
+     * @return an {@link Optional} wrapping the argument
+     * @throws CoreException
+     *             if longForm does not refer to a registered option
+     */
+    public <T> Optional<T> getLongOptionArgument(final String longForm,
+            final StringConverter<T> converter)
+    {
+        if (!this.parseStepRan)
+        {
+            throw new CoreException("Cannot get results before parsing!");
+        }
+        if (!registeredOptionForLongForm(longForm).isPresent())
+        {
+            throw new CoreException("{} not a registered option", longForm);
+        }
+        final Optional<SimpleOption> option = getParsedOptionFromLongForm(longForm);
+        if (option.isPresent())
+        {
+            final Optional<String> argument = this.parsedOptions.get(option.get());
+            if (argument.isPresent())
+            {
+                final String argumentValue = argument.get();
+                return Optional.ofNullable(converter.convert(argumentValue));
+            }
         }
         return Optional.empty();
     }

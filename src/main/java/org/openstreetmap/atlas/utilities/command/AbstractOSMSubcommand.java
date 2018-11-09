@@ -11,6 +11,7 @@ import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgument
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.ArgumentException;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.OptionParseException;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.UnknownOptionException;
+import org.openstreetmap.atlas.utilities.conversion.StringConverter;
 
 /**
  * A partial implementation of an OSM subcommand. Contains significant functionality to aid in
@@ -87,6 +88,26 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     protected Optional<String> getLongOptionArgument(final String longForm)
     {
         return this.parser.getLongOptionArgument(longForm);
+    }
+
+    /**
+     * Get the argument of a given long option, if present. Also, convert it using the supplied
+     * converter.
+     *
+     * @param <T>
+     *            the type to convert to
+     * @param longForm
+     *            the long form of the option
+     * @param converter
+     *            the conversion function
+     * @return an {@link Optional} wrapping the argument
+     * @throws CoreException
+     *             if longForm does not refer to a registered option
+     */
+    protected <T> Optional<T> getLongOptionArgument(final String longForm,
+            final StringConverter<T> converter)
+    {
+        return this.parser.getLongOptionArgument(longForm, converter);
     }
 
     /**

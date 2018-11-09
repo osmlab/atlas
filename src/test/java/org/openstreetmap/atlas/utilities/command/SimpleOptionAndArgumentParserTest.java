@@ -160,6 +160,62 @@ public class SimpleOptionAndArgumentParserTest
     }
 
     @Test
+    public void testOptionArgumentConversion()
+    {
+        final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
+        parser.registerOptionWithRequiredArgument("two", "the number two", "value");
+        parser.registerOptionWithRequiredArgument("myList", "a list of numbers", "value");
+        parser.registerOptionWithRequiredArgument("three", "the number three", "value");
+
+        final List<String> arguments = Arrays.asList("--two=2", "--myList=1:2:3", "--three=foo");
+        try
+        {
+            parser.parseOptionsAndArguments(arguments);
+        }
+        catch (final UnknownOptionException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final OptionParseException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final ArgumentException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        Assert.assertEquals(new Integer(2), parser
+                .getLongOptionArgument("two", optionArgument -> Integer.parseInt(optionArgument))
+                .get());
+
+        Assert.assertEquals(Arrays.asList(1, 2, 3),
+                parser.getLongOptionArgument("myList", optionArgument ->
+                {
+                    final List<Integer> myList = new ArrayList<>();
+                    final String[] split = optionArgument.split(":");
+                    for (final String string : split)
+                    {
+                        myList.add(Integer.parseInt(string));
+                    }
+                    return myList;
+                }).get());
+
+        // this conversion will fail, but then we will fall back on a default value
+        Assert.assertEquals(new Integer(3), parser.getLongOptionArgument("three", optionArgument ->
+        {
+            try
+            {
+                return Integer.parseInt(optionArgument);
+            }
+            catch (final Exception e)
+            {
+                // return null on error, causing getLongOptionArgument to return an empty optional
+                return null;
+            }
+        }).orElse(new Integer(3)));
+    }
+
+    @Test
     public void testOptionWithDefaultValue()
     {
         final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
