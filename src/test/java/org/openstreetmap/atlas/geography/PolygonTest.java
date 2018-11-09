@@ -23,6 +23,7 @@ import com.google.gson.JsonObject;
  * @author matthieun
  * @author mgostintsev
  * @author james-gage
+ * @author hallahan
  */
 public class PolygonTest
 {

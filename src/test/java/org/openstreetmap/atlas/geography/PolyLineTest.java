@@ -16,6 +16,7 @@ import com.google.gson.JsonObject;
 /**
  * @author matthieun
  * @author mgostintsev
+ * @author hallahan
  */
 public class PolyLineTest
 {

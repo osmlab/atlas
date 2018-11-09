@@ -26,6 +26,7 @@ import com.google.gson.JsonObject;
  * @author matthieun
  * @author mgostintsev
  * @author Sid
+ * @author hallahan
  */
 public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
 {

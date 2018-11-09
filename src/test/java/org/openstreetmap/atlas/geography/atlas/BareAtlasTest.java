@@ -29,6 +29,7 @@ import com.google.gson.JsonObject;
 
 /**
  * @author matthieun
+ * @author hallahan
  */
 public class BareAtlasTest
 {

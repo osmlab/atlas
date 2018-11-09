@@ -41,6 +41,7 @@ import com.google.gson.JsonObject;
  *
  * @author matthieun
  * @author Sid
+ * @author hallahan
  */
 public abstract class Relation extends AtlasEntity implements Iterable<RelationMember>
 {
