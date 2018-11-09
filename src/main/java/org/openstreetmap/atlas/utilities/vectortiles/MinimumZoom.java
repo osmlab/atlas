@@ -16,7 +16,8 @@ import com.google.gson.JsonParser;
  * This singleton class is where you get the minimum zoom for features' tags based on a JSON
  * configuration. The values you see in the minimum-zoom.json resource file is inspired for what you
  * see in the standard OpenStreetMap carto style. This is very loosely based off of the minimum
- * zooms you see for various types of features. See the README.md in this package for more details...
+ * zooms you see for various types of features. See the README.md in this package for more
+ * details...
  *
  * @author hallahan
  */

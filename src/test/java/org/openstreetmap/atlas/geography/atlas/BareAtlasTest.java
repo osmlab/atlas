@@ -1,22 +1,31 @@
 package org.openstreetmap.atlas.geography.atlas;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiConsumer;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author matthieun
@@ -85,5 +94,32 @@ public class BareAtlasTest
         Assert.assertEquals(expectedRelationIdentifiers,
                 Iterables.stream(atlas.relationsLowerOrderFirst())
                         .map(relation -> relation.getIdentifier()).collectToList());
+    }
+
+    @Test
+    public void testSaveAsLineDelimitedGeoJsonFeatures()
+    {
+        final InputStream inputStream = BareAtlasTest.class
+                .getResourceAsStream("line-delimited-geojson.txt");
+        try
+        {
+            final String correctText = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+
+            final Atlas atlas = this.rule.getAtlas();
+            final StringResource stringResource = new StringResource();
+            final BiConsumer<AtlasEntity, JsonObject> jsonMutator = (atlasEntity, feature) ->
+            {
+            };
+            atlas.saveAsLineDelimitedGeoJsonFeatures(stringResource, jsonMutator);
+            final String text = stringResource.writtenString();
+
+            Assert.assertEquals(correctText, text);
+
+        }
+        catch (final IOException exception)
+        {
+            exception.printStackTrace();
+            Assert.fail();
+        }
     }
 }
