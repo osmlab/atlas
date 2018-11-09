@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.utilities.command.output.TTYStringBuilder;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser;
@@ -67,15 +68,6 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      */
     public abstract void registerOptionsAndArguments();
 
-    /*
-     * BEGIN ADAPTER OPTION/ARGUMENT PARSING INTERFACE
-     */
-    // While this may seem like duplication of the SimpleOptionAndArgumentParser interface,
-    // it actually allows us to define an immutable interface for subcommand registration. By
-    // setting up the interface this way, we are not wedded to the SimpleOptionAndArgumentParser for
-    // future changes. Should we decide to change it, any subcommands implementing
-    // AbstractOSMSubcommand will not have to change their option registration code.
-
     /**
      * Get the argument of a given long option, if present.
      *
@@ -89,6 +81,15 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     {
         return this.parser.getLongOptionArgument(longForm);
     }
+
+    /*
+     * A NOTE ON THE ADAPTER OPTION/ARGUMENT PARSING INTERFACE
+     */
+    // While this may seem like duplication of the SimpleOptionAndArgumentParser interface,
+    // it actually allows us to define an immutable interface for subcommand registration. By
+    // setting up the interface this way, we are not wedded to the SimpleOptionAndArgumentParser for
+    // future changes. Should we decide to change it, any subcommands implementing
+    // AbstractOSMSubcommand will not have to change their option registration code.
 
     /**
      * Get the argument of a given long option, if present. Also, convert it using the supplied
@@ -108,6 +109,18 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
             final StringConverter<T> converter)
     {
         return this.parser.getLongOptionArgument(longForm, converter);
+    }
+
+    /**
+     * Get a {@link TTYStringBuilder} with the correct formatting settings. Implementations of
+     * {@link AbstractOSMSubcommand} should use this method instead of instantiating their own
+     * string builders.
+     *
+     * @return the string builder
+     */
+    protected TTYStringBuilder getStringBuilderWithTTYSettings()
+    {
+        return new TTYStringBuilder(this.useColor);
     }
 
     /**
@@ -250,10 +263,6 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     {
         this.parser.registerOptionWithRequiredArgument(longForm, description, argumentHint);
     }
-
-    /*
-     * END FACADE OPTION/ARGUMENT PARSING INTERFACE
-     */
 
     /**
      * Run this subcommand using all the special setup and teardown semantics provided by
