@@ -173,12 +173,13 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     }
 
     /**
-     * Prints the supplied message like "commandName: message".
+     * Prints the supplied message like "commandName: message". Automatically appends a newline to
+     * the output.
      *
      * @param message
      *            the message
      */
-    protected void printCommandMessage(final String message)
+    protected void printlnCommandMessage(final String message)
     {
         printStderr(this.getCommandName() + ": ");
         printStderr(message + "\n");
@@ -186,14 +187,29 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
 
     /**
      * Prints the supplied message like "commandName: error: message" with automatic coloring.
+     * Automatically appends a newline to the output.
      *
      * @param message
      *            the error message
      */
-    protected void printErrorMessage(final String message)
+    protected void printlnErrorMessage(final String message)
     {
         printStderr(this.getCommandName() + ": ");
         printStderr("error: ", TTYAttribute.BOLD, TTYAttribute.RED);
+        printStderr(message + "\n");
+    }
+
+    /**
+     * Prints the supplied message like "commandName: warn: message" with automatic coloring.
+     * Automatically appends a newline to the output.
+     *
+     * @param message
+     *            the warn message
+     */
+    protected void printlnWarnMessage(final String message)
+    {
+        printStderr(this.getCommandName() + ": ");
+        printStderr("warn: ", TTYAttribute.BOLD, TTYAttribute.MAGENTA);
         printStderr(message + "\n");
     }
 
@@ -263,19 +279,6 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
         {
             System.out.print(builder.toString());
         }
-    }
-
-    /**
-     * Prints the supplied message like "commandName: warn: message" with automatic coloring.
-     *
-     * @param message
-     *            the warn message
-     */
-    protected void printWarnMessage(final String message)
-    {
-        printStderr(this.getCommandName() + ": ");
-        printStderr("warn: ", TTYAttribute.BOLD, TTYAttribute.MAGENTA);
-        printStderr(message + "\n");
     }
 
     /**
@@ -418,7 +421,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
         // We want to scan now, show the version, then abort
         if (this.parser.scanForVersionFlag(Arrays.asList(args)))
         {
-            System.out.println(this.getCommandName() + " " + this.version);
+            printlnCommandMessage(this.version);
             System.exit(0);
         }
 
@@ -428,26 +431,26 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
         }
         catch (final UnknownOptionException exception)
         {
-            printErrorMessage("unknown option " + exception.getMessage());
-            printStderr("Try ");
-            printStderr("--help ", TTYAttribute.BOLD);
-            printStderr("for more info.\n");
+            printlnErrorMessage("unknown option " + exception.getMessage());
+            printStderr("Try \'");
+            printStderr("--help", TTYAttribute.BOLD);
+            printStderr("\' option for more info.\n");
             System.exit(1);
         }
         catch (final OptionParseException exception)
         {
-            printErrorMessage(exception.getMessage());
-            printStderr("Try ");
-            printStderr("--help ", TTYAttribute.BOLD);
-            printStderr("for more info.\n");
+            printlnErrorMessage(exception.getMessage());
+            printStderr("Try \'");
+            printStderr("--help", TTYAttribute.BOLD);
+            printStderr("\' option for more info.\n");
             System.exit(1);
         }
         catch (final ArgumentException exception)
         {
-            printErrorMessage(exception.getMessage());
-            printStderr("Try ");
-            printStderr("--help ", TTYAttribute.BOLD);
-            printStderr("for more info.\n");
+            printlnErrorMessage(exception.getMessage());
+            printStderr("Try \'");
+            printStderr("--help", TTYAttribute.BOLD);
+            printStderr("\' option for more info.\n");
             System.exit(1);
         }
 
