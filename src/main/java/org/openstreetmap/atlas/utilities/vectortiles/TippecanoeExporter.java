@@ -67,7 +67,7 @@ public final class TippecanoeExporter extends LineDelimitedGeoJsonConverter
 
         final Boolean overwrite = (Boolean) command.get(OVERWRITE);
 
-         runTippecanoe(geojson, mbtiles, overwrite);
+        runTippecanoe(geojson, mbtiles, overwrite);
 
         return 0;
     }
