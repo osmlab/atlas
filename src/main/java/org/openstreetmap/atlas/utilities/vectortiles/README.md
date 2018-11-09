@@ -35,9 +35,9 @@ mbview <mbtiles file>
 Then a browser should pop up at http://localhost:3000
 
 
-## Dependencies
+# Dependencies
 
-### tippecanoe
+## tippecanoe
 
 Install tippecanoe:
 
@@ -49,10 +49,29 @@ or compile it...
 
 https://github.com/mapbox/tippecanoe
 
-### mbview
+## mbview
+
+Make sure you have installed [NodeJS](https://nodejs.org/).
 
 ``` 
 npm install -g mbview
 ```
 
 https://github.com/mapbox/mbview
+
+
+# Troubleshooting
+
+Sometimes mbview's dependency, `node-sqlite` doesn't play well wit the latest version of NodeJS. In that case, you need to pin your NodeJS to a specific version.
+
+Install nvm (NodeJS Version Manager):
+
+https://github.com/creationix/nvm
+
+Then run:
+
+``` 
+nvm install 8.11.1
+```
+
+Then, reinstall mbview. You should be up and running!
