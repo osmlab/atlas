@@ -4,7 +4,7 @@
 line-delimited GeoJSON, and then that gets converted into an MBTiles file full
 of MapboxVectorTiles by tippecanoe.
 
-Useage:
+Usage:
 
 ``` 
 java -Xmx12G -cp ./atlas.jar org.openstreetmap.atlas.utilities.vectortiles.TippecanoeExporter \
@@ -14,6 +14,8 @@ java -Xmx12G -cp ./atlas.jar org.openstreetmap.atlas.utilities.vectortiles.Tippe
 -threads=8 \
 -overwrite=true
 ```
+
+Note: The `-mbtiles` argument should be the path to the specific file you'd like to write to--not a directory.
 
 On a beefy server, you might do something like this:
 
