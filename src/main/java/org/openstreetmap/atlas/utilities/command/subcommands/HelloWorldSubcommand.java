@@ -21,7 +21,7 @@ public class HelloWorldSubcommand extends AbstractOSMSubcommand
     @Override
     public int execute()
     {
-        printlnCommandMessage("Hello, " + getLongOptionArgument(NAME_OPTION).orElse("world") + "!");
+        printStdout("Hello, " + getLongOptionArgument(NAME_OPTION).orElse("world") + "!\n");
         return 0;
     }
 

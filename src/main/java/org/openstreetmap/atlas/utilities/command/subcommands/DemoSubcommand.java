@@ -20,14 +20,9 @@ public class DemoSubcommand extends AbstractOSMSubcommand
         final List<String> foods = getVariadicArgument("favoriteFoods");
         final String meal = getUnaryArgument("favoriteMeal").get();
 
-        // this seems to be breaking
-        // final String soda = getUnaryArgument("favoriteSoda").orElse("unspecified");
-
         printStdout("I like meal ");
         printStdout(meal, TTYAttribute.MAGENTA, TTYAttribute.BOLD);
         printStdout(" the best\n");
-
-        // printStdout("My favorite soda is " + soda + "\n");
 
         printVerboseStdout(
                 "PS, I really like to talk, but only if you supply the \'--verbose\' option\n");
@@ -81,8 +76,7 @@ public class DemoSubcommand extends AbstractOSMSubcommand
         registerOptionWithRequiredArgument("beer", "Favorite beer", "beer");
         registerOptionWithOptionalArgument("cheese",
                 "Use cheese, optionally ask for LIGHT or EXTRA", "amount");
-        registerArgument("favoriteFoods", ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED);
         registerArgument("favoriteMeal", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
-        // registerArgument("favoriteSoda", ArgumentArity.UNARY, ArgumentOptionality.OPTIONAL);
+        registerArgument("favoriteFoods", ArgumentArity.VARIADIC, ArgumentOptionality.OPTIONAL);
     }
 }

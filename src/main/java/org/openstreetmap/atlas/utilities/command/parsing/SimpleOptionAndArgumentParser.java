@@ -238,7 +238,6 @@ public class SimpleOptionAndArgumentParser
 
     private boolean registeredVariadicArgument;
     private boolean registeredOptionalArgument;
-    private boolean previouslyRegisteredArgumentWasVariadic;
 
     private final Map<SimpleOption, Optional<String>> parsedOptions;
     private final Map<String, List<String>> parsedArguments;
@@ -256,7 +255,6 @@ public class SimpleOptionAndArgumentParser
 
         this.registeredVariadicArgument = false;
         this.registeredOptionalArgument = false;
-        this.previouslyRegisteredArgumentWasVariadic = false;
 
         this.parsedOptions = new LinkedHashMap<>();
         this.parsedArguments = new LinkedHashMap<>();
@@ -546,7 +544,6 @@ public class SimpleOptionAndArgumentParser
             {
                 throw new CoreException("Cannot register more than one variadic argument");
             }
-            this.registeredVariadicArgument = true;
         }
         if (type == ArgumentOptionality.OPTIONAL)
         {
@@ -554,25 +551,21 @@ public class SimpleOptionAndArgumentParser
             {
                 throw new CoreException("Cannot register more than one optional argument");
             }
-            if (this.previouslyRegisteredArgumentWasVariadic)
+            if (this.registeredVariadicArgument)
             {
                 throw new CoreException(
-                        "Cannot register an optional argument after a variadic argument");
+                        "Cannot register both an optional argument and a variadic argument");
             }
             this.registeredOptionalArgument = true;
         }
 
-        this.registeredArgumentHintToArity.put(argumentHint, arity);
-        this.registeredArgumentHintToType.put(argumentHint, type);
-
         if (arity == ArgumentArity.VARIADIC)
         {
-            this.previouslyRegisteredArgumentWasVariadic = true;
+            this.registeredVariadicArgument = true;
         }
-        else
-        {
-            this.previouslyRegisteredArgumentWasVariadic = false;
-        }
+
+        this.registeredArgumentHintToArity.put(argumentHint, arity);
+        this.registeredArgumentHintToType.put(argumentHint, type);
     }
 
     /**
