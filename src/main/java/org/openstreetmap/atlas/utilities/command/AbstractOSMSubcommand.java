@@ -393,17 +393,19 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      * @param args
      *            the command arguments
      */
-    protected void runSubcommandAndExit(String... args)
+    protected void runSubcommandAndExit(final String... args)
     {
         this.parser.registerOption(DEFAULT_HELP_LONG, DEFAULT_HELP_SHORT, "Show this help menu.");
         this.parser.registerOption(DEFAULT_VERBOSE_LONG, DEFAULT_VERBOSE_SHORT,
                 "Use verbose output.");
 
+        String[] argsCopy = args;
+
         // check the last arg to see if we should disable colors
-        if (args.length > 0 && NO_COLOR_OPTION.equals(args[args.length - 1]))
+        if (argsCopy.length > 0 && NO_COLOR_OPTION.equals(argsCopy[argsCopy.length - 1]))
         {
             this.useColor = false;
-            args = Arrays.copyOf(args, args.length - 1);
+            argsCopy = Arrays.copyOf(argsCopy, argsCopy.length - 1);
         }
 
         // fill out appropriate data structures so the execute() implementation can query
@@ -411,7 +413,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
 
         // Special case if user supplied '--help' or '-h'
         // We want to scan now, show the help menu, then abort
-        if (this.parser.scanForHelpFlag(Arrays.asList(args)))
+        if (this.parser.scanForHelpFlag(Arrays.asList(argsCopy)))
         {
             System.out.println(this.getHelpMenu());
             System.exit(0);
@@ -419,7 +421,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
 
         // Special case if user supplied '--version' or '-V'
         // We want to scan now, show the version, then abort
-        if (this.parser.scanForVersionFlag(Arrays.asList(args)))
+        if (this.parser.scanForVersionFlag(Arrays.asList(argsCopy)))
         {
             printlnCommandMessage(this.version);
             System.exit(0);
@@ -427,7 +429,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
 
         try
         {
-            this.parser.parseOptionsAndArguments(Arrays.asList(args));
+            this.parser.parseOptionsAndArguments(Arrays.asList(argsCopy));
         }
         catch (final UnknownOptionException exception)
         {

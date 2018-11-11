@@ -84,4 +84,9 @@ public final class ReflectionUtilities
 
         return Optional.of(subcommand);
     }
+
+    private ReflectionUtilities()
+    {
+
+    }
 }

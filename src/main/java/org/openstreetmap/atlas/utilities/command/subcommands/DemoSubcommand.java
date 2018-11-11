@@ -7,6 +7,9 @@ import org.openstreetmap.atlas.utilities.command.output.TTYAttribute;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 
+/**
+ * @author lcram
+ */
 public class DemoSubcommand extends AbstractOSMSubcommand
 {
     public static void main(final String[] args)
@@ -28,13 +31,14 @@ public class DemoSubcommand extends AbstractOSMSubcommand
                 "PS, I really like to talk, but only if you supply the \'--verbose\' option\n");
 
         printStdout("Favorite foods are:\n");
-        for (String food : foods)
+        for (final String food : foods)
         {
+            String mutableFood = food;
             if (hasOption("capitalize"))
             {
-                food = food.toUpperCase();
+                mutableFood = mutableFood.toUpperCase();
             }
-            printStdout(food + "\n", TTYAttribute.BOLD);
+            printStdout(mutableFood + "\n", TTYAttribute.BOLD);
         }
 
         if (hasOption("cheese"))

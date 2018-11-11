@@ -49,13 +49,13 @@ public class SimpleOptionAndArgumentParser
         private final String description;
         private final Optional<String> argumentHint;
 
-        public SimpleOption(final String longForm, final Character shortForm,
+        SimpleOption(final String longForm, final Character shortForm,
                 final OptionArgumentType argumentType, final String description)
         {
             this(longForm, shortForm, argumentType, description, null);
         }
 
-        public SimpleOption(final String longForm, final Character shortForm,
+        SimpleOption(final String longForm, final Character shortForm,
                 final OptionArgumentType argumentType, final String description,
                 final String argumentHint)
         {
@@ -90,13 +90,13 @@ public class SimpleOptionAndArgumentParser
             }
         }
 
-        public SimpleOption(final String longForm, final OptionArgumentType argumentType,
+        SimpleOption(final String longForm, final OptionArgumentType argumentType,
                 final String description)
         {
             this(longForm, null, argumentType, description, null);
         }
 
-        public SimpleOption(final String longForm, final OptionArgumentType argumentType,
+        SimpleOption(final String longForm, final OptionArgumentType argumentType,
                 final String description, final String argumentHint)
         {
             this(longForm, null, argumentType, description, argumentHint);
@@ -225,7 +225,7 @@ public class SimpleOptionAndArgumentParser
 
     private static final String DEFAULT_LONG_HELP = LONG_FORM_PREFIX + "help";
     private static final String DEFAULT_SHORT_HELP = SHORT_FORM_PREFIX + "h";
-    private static final Object DEFAULT_LONG_VERSION = LONG_FORM_PREFIX + "version";;
+    private static final Object DEFAULT_LONG_VERSION = LONG_FORM_PREFIX + "version";
     private static final Object DEFAULT_SHORT_VERSION = SHORT_FORM_PREFIX + "V";
 
     private final Set<SimpleOption> registeredOptions;
@@ -434,6 +434,8 @@ public class SimpleOptionAndArgumentParser
      *             If an unknown option is detected
      * @throws OptionParseException
      *             If another parsing error occurs
+     * @throws ArgumentException
+     *             If supplied arguments do not match the registered argument hints
      */
     public void parseOptionsAndArguments(final List<String> allArguments)
             throws UnknownOptionException, OptionParseException, ArgumentException
@@ -783,15 +785,16 @@ public class SimpleOptionAndArgumentParser
     }
 
     private int parseRegularArgument(final String argument, final int regularArgumentSize,
-            int regularArgumentCounter) throws ArgumentException
+            final int regularArgumentCounter) throws ArgumentException
     {
-        if (regularArgumentCounter >= this.registeredArgumentHintToArity.size())
+        int argumentCounter = regularArgumentCounter;
+        if (argumentCounter >= this.registeredArgumentHintToArity.size())
         {
             throw new ArgumentException("too many arguments");
         }
 
         final String argumentHint = (String) this.registeredArgumentHintToArity.keySet()
-                .toArray()[regularArgumentCounter];
+                .toArray()[argumentCounter];
         final ArgumentArity currentArity = this.registeredArgumentHintToArity.get(argumentHint);
         switch (currentArity)
         {
@@ -799,7 +802,7 @@ public class SimpleOptionAndArgumentParser
                 logger.debug("parsed unary argument hint => {} : value => {}", argumentHint,
                         argument);
                 this.parsedArguments.put(argumentHint, Arrays.asList(argument));
-                regularArgumentCounter++;
+                argumentCounter++;
                 break;
             case VARIADIC:
                 List<String> multiArgumentList = this.parsedArguments.get(argumentHint);
@@ -812,7 +815,7 @@ public class SimpleOptionAndArgumentParser
 
                 // Two cases:
                 // Case 1 -> [SINGLE...] MULTIPLE
-                if (regularArgumentCounter == this.registeredArgumentHintToArity.size() - 1)
+                if (argumentCounter == this.registeredArgumentHintToArity.size() - 1)
                 {
                     // do nothing, we can consume the rest of the arguments
                 }
@@ -823,7 +826,7 @@ public class SimpleOptionAndArgumentParser
                     if (multiArgumentList.size() == regularArgumentSize
                             - this.registeredArgumentHintToArity.size() + 1)
                     {
-                        regularArgumentCounter++;
+                        argumentCounter++;
                         break;
                     }
                 }
@@ -831,7 +834,7 @@ public class SimpleOptionAndArgumentParser
             default:
                 throw new CoreException("Unrecognized ArgumentArity {}", currentArity);
         }
-        return regularArgumentCounter;
+        return argumentCounter;
     }
 
     private void parseShortFormOption(final String argument) throws UnknownOptionException
