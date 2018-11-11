@@ -26,13 +26,17 @@ public class SimpleOptionAndArgumentParserTest
         parser.registerOption("opt1", "the 1st option");
         parser.registerOption("opt2", "the 2nd option");
         parser.registerOptionWithRequiredArgument("opt3", "the 3rd option", "ARG");
-        parser.registerOption("opt4", 'o', "a short form");
+        parser.registerOption("opt4", 'o', "a short form option (4th)");
+        parser.registerOptionWithOptionalArgument("opt5", "the 5th option", "ARG");
+        parser.registerOptionWithRequiredArgument("opt6", "the 6th option", "ARG");
+        parser.registerOptionWithRequiredArgument("opt7", "the 7th option", "ARG");
         parser.registerArgument("single1", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
         parser.registerArgument("single2", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
         parser.registerArgument("multi1", ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED);
 
-        final List<String> arguments = Arrays.asList("--opt2", "--opt3=value", "arg1", "--opt1",
-                "arg2", "arg3", "-o", "arg4", "arg5");
+        final List<String> arguments = Arrays.asList("--opt1", "--opt3=value3", "arg1", "--opt2",
+                "arg2", "arg3", "-o", "--opt5", "arg4", "--opt6", "value6", "arg5", "--opt7",
+                "value7");
         try
         {
             parser.parseOptionsAndArguments(arguments);
@@ -52,13 +56,18 @@ public class SimpleOptionAndArgumentParserTest
 
         Assert.assertEquals(true, parser.hasOption("opt1"));
         Assert.assertEquals(true, parser.hasOption("opt2"));
-        Assert.assertEquals("value", parser.getLongOptionArgument("opt3").get());
+        Assert.assertEquals("value3", parser.getLongOptionArgument("opt3").get());
 
         /*
          * hasOption(longForm) will return true even if only the shortForm was actually present on
          * the command line
          */
         Assert.assertEquals(true, parser.hasOption("opt4"));
+
+        Assert.assertEquals(true, parser.hasOption("opt5"));
+        Assert.assertFalse(parser.getLongOptionArgument("opt5").isPresent());
+        Assert.assertEquals("value6", parser.getLongOptionArgument("opt6").get());
+        Assert.assertEquals("value7", parser.getLongOptionArgument("opt7").get());
 
         Assert.assertEquals("arg1", parser.getUnaryArgument("single1").get());
         Assert.assertEquals("arg2", parser.getUnaryArgument("single2").get());
