@@ -97,5 +97,4 @@ public class ConcatenateAtlasSubcommand extends AbstractOSMSubcommand
         registerArgument(INPUT_HINT, ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED);
         registerArgument(OUTPUT_HINT, ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
     }
-
 }

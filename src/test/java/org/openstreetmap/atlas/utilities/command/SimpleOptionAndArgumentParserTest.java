@@ -160,6 +160,36 @@ public class SimpleOptionAndArgumentParserTest
     }
 
     @Test
+    public void testOptionalArgument()
+    {
+        final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
+        parser.registerArgument("multi1", ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED);
+        parser.registerArgument("single1", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
+        parser.registerArgument("single2", ArgumentArity.UNARY, ArgumentOptionality.OPTIONAL);
+
+        final List<String> arguments = Arrays.asList("arg1 arg2 arg3 arg4 arg5");
+        try
+        {
+            parser.parseOptionsAndArguments(arguments);
+        }
+        catch (final UnknownOptionException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final OptionParseException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final ArgumentException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+
+        // TODO what to assert here?? this case makes no sense
+        Assert.fail();
+    }
+
+    @Test
     public void testOptionArgumentConversion()
     {
         final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();

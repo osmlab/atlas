@@ -173,8 +173,8 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     }
 
     /**
-     * Prints the supplied message like "commandName: message". Automatically appends a newline to
-     * the output.
+     * Prints the supplied message like "commandName: message" to stderr. Automatically appends a
+     * newline to the output.
      *
      * @param message
      *            the message
@@ -186,8 +186,8 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     }
 
     /**
-     * Prints the supplied message like "commandName: error: message" with automatic coloring.
-     * Automatically appends a newline to the output.
+     * Prints the supplied message like "commandName: error: message" with automatic coloring to
+     * stderr. Automatically appends a newline to the output.
      *
      * @param message
      *            the error message
@@ -200,8 +200,8 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     }
 
     /**
-     * Prints the supplied message like "commandName: warn: message" with automatic coloring.
-     * Automatically appends a newline to the output.
+     * Prints the supplied message like "commandName: warn: message" with automatic coloring to
+     * stderr. Automatically appends a newline to the output.
      *
      * @param message
      *            the warn message
@@ -380,8 +380,8 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     /**
      * Run this subcommand using all the special setup and teardown semantics provided by
      * {@link AbstractOSMSubcommand}. It automatically registers some default standard arguments:
-     * (help,h) and (verbose,v). An example of how this method should be called from main to make
-     * the command functional with an external wrapper.
+     * (help,h) and (verbose,v). An example of how this method should be called to make the command
+     * functional with an external wrapper:
      *
      * <pre>
      * public static void main(final String[] args)
@@ -461,6 +461,9 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     /**
      * Set the version of this command. Also automatically registers a version option with forms
      * "--version" and "-V".
+     *
+     * @param version
+     *            the version string to use (eg. 1.0.0)
      */
     protected void setVersion(final String version)
     {

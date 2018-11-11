@@ -455,7 +455,14 @@ public class SimpleOptionAndArgumentParser
             // Anything else -> regular argument
             if ("--".equals(argument))
             {
-                seenEndOptionSentinel = true;
+                if (seenEndOptionSentinel)
+                {
+                    regularArguments.add(argument);
+                }
+                else
+                {
+                    seenEndOptionSentinel = true;
+                }
             }
             else if (argument.startsWith(LONG_FORM_PREFIX) && !seenEndOptionSentinel)
             {
@@ -506,8 +513,8 @@ public class SimpleOptionAndArgumentParser
 
     /**
      * Register an argument with a given arity. The argument hint is used as a key to retrieve the
-     * argument value(s) later. Additionally, documentation can use the hint to specify what the
-     * argument should be for.
+     * argument value(s) later. Additionally, documentation generators can use the hint to create
+     * more accurate doc pages.
      *
      * @param argumentHint
      *            the hint for the argument
@@ -550,7 +557,7 @@ public class SimpleOptionAndArgumentParser
             if (this.previouslyRegisteredArgumentWasVariadic)
             {
                 throw new CoreException(
-                        "Cannot register an optional argument after a variadic one");
+                        "Cannot register an optional argument after a variadic argument");
             }
             this.registeredOptionalArgument = true;
         }
@@ -649,8 +656,8 @@ public class SimpleOptionAndArgumentParser
     /**
      * Register an option with a given long form that takes a required argument. The provided
      * argument hint can be used for generated documentation, and should be a single word describing
-     * the argument. The parser will throw an exception if a required argument option is not
-     * supplied an argument at parse-time.
+     * the argument. The parser will throw an exception at parse-time if the argument is not
+     * supplied.
      *
      * @param longForm
      *            the long form of the option, eg. --option
