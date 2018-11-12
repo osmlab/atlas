@@ -72,7 +72,7 @@ public class JsonWriter implements Closeable
         writeLine(value);
     }
 
-    public void writeLine(final String stringValue)
+    private void writeLine(final String stringValue)
     {
         try
         {
