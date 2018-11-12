@@ -35,10 +35,9 @@ public abstract class Node extends LocationItem
     }
 
     @Override
-    public JsonObject asGeoJsonFeature()
+    public JsonObject geoJsonProperties()
     {
-        final JsonObject feature = super.asGeoJsonFeature();
-        final JsonObject properties = feature.getAsJsonObject(GeoJsonUtils.PROPERTIES);
+        final JsonObject properties = super.geoJsonProperties();
 
         final JsonArray inEdgesArray = new JsonArray();
         final JsonArray outEdgesArray = new JsonArray();
@@ -59,7 +58,7 @@ public abstract class Node extends LocationItem
         properties.add("inEdges", inEdgesArray);
         properties.add("outEdges", outEdgesArray);
 
-        return feature;
+        return return properties;
     }
 
     public SortedSet<Edge> connectedEdges()
