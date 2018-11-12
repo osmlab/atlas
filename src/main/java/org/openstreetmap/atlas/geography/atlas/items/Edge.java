@@ -6,7 +6,6 @@ import java.util.Set;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.tags.HighwayTag;
 
 import com.google.gson.JsonObject;

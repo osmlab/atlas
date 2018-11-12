@@ -5,7 +5,6 @@ import java.util.TreeSet;
 import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -58,7 +57,7 @@ public abstract class Node extends LocationItem
         properties.add("inEdges", inEdgesArray);
         properties.add("outEdges", outEdgesArray);
 
-        return return properties;
+        return properties;
     }
 
     public SortedSet<Edge> connectedEdges()
