@@ -503,16 +503,12 @@ public abstract class BareAtlas implements Atlas
     {
         try (JsonWriter writer = new JsonWriter(resource))
         {
-            for (final AtlasEntity entity : entities())
+            entities(matcher).forEach(entity ->
             {
-                if (!matcher.test(entity))
-                {
-                    continue;
-                }
                 final JsonObject feature = entity.asGeoJsonFeature();
                 jsonMutator.accept(entity, feature);
                 writer.writeLine(feature);
-            }
+            });
         }
     }
 
