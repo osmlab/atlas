@@ -22,15 +22,24 @@ import org.slf4j.LoggerFactory;
  * thread and read results in another.
  * <p>
  * Supports long and short options:<br>
- * --long-option : a long option<br>
- * --long-option-arg=my_argument : a long option with an argument<br>
+ * --opt : a long option<br>
+ * --opt-arg=my_argument : a long option with argument, supports optional or required arguments<br>
+ * --opt-arg my_argument : alternate syntax for required long option arguments<br>
  * -a : a short option<br>
- * -ab : multiple short options at once<br>
+ * -abc : multiple short options (a, b, c) at once<br>
+ * -o arg : a short option (-o) that takes a required arg<br>
+ * -oarg : alternate syntax, a short option (-o) that takes a required arg<br>
  * <br>
- * Short options cannot have arguments. Additionally, supports argument parsing with unary and
- * variadic arguments.
+ * If an option is specified multiple times with different arguments, the parser will use the
+ * version in the highest ARGV position (ie. the furthest right on the command line). Additionally,
+ * this class supports easy argument parsing/fetching with unary and variadic arguments.
  * </p>
+ * This class supports both the POSIX short option spec as well as the GNU long option spec. See
+ * included links for details.
  *
+ * @see "https://www.gnu.org/software/libc/manual/html_node/Argument-Syntax.html"
+ * @see "http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html"
+ * @see "http://pubs.opengroup.org/onlinepubs/7908799/xbd/utilconv.html"
  * @author lcram
  */
 public class SimpleOptionAndArgumentParser
@@ -276,7 +285,7 @@ public class SimpleOptionAndArgumentParser
     {
         if (!this.parseStepRan)
         {
-            throw new CoreException("Cannot get results before parsing!");
+            throw new CoreException("Cannot get options before parsing!");
         }
         if (!registeredOptionForLongForm(longForm).isPresent())
         {
@@ -309,7 +318,7 @@ public class SimpleOptionAndArgumentParser
     {
         if (!this.parseStepRan)
         {
-            throw new CoreException("Cannot get results before parsing!");
+            throw new CoreException("Cannot get options before parsing!");
         }
         if (!registeredOptionForLongForm(longForm).isPresent())
         {
@@ -342,7 +351,7 @@ public class SimpleOptionAndArgumentParser
     {
         if (!this.parseStepRan)
         {
-            throw new CoreException("Cannot get results before parsing!");
+            throw new CoreException("Cannot get arguments before parsing!");
         }
         if (!this.registeredArgumentHintToArity.containsKey(hint))
         {
@@ -377,7 +386,7 @@ public class SimpleOptionAndArgumentParser
     {
         if (!this.parseStepRan)
         {
-            throw new CoreException("Cannot get results before parsing!");
+            throw new CoreException("Cannot get arguments before parsing!");
         }
         if (!this.registeredArgumentHintToArity.containsKey(hint))
         {
@@ -412,7 +421,7 @@ public class SimpleOptionAndArgumentParser
     {
         if (!this.parseStepRan)
         {
-            throw new CoreException("Cannot get results before parsing!");
+            throw new CoreException("Cannot get options before parsing!");
         }
         if (!registeredOptionForLongForm(longForm).isPresent())
         {
@@ -448,8 +457,17 @@ public class SimpleOptionAndArgumentParser
         this.parsedOptions.clear();
         int regularArgumentCounter = 0;
 
+        boolean skipNextArgument = false;
+
         for (int index = 0; index < allArguments.size(); index++)
         {
+            if (skipNextArgument)
+            {
+                skipNextArgument = false;
+                continue;
+            }
+            skipNextArgument = false;
+
             final String argument = allArguments.get(index);
 
             // We store a lookahead to use in case of an option with the argument specified like
@@ -486,7 +504,7 @@ public class SimpleOptionAndArgumentParser
                 final boolean consumedLookahead = parseLongFormOption(argument, lookahead);
                 if (consumedLookahead)
                 {
-                    index++;
+                    skipNextArgument = true;
                 }
             }
             else if (argument.startsWith(SHORT_FORM_PREFIX) && !seenEndOptionsOperator)
@@ -494,7 +512,7 @@ public class SimpleOptionAndArgumentParser
                 final boolean consumedLookahead = parseShortFormOption(argument, lookahead);
                 if (consumedLookahead)
                 {
-                    index++;
+                    skipNextArgument = true;
                 }
             }
             else
@@ -641,6 +659,40 @@ public class SimpleOptionAndArgumentParser
     }
 
     /**
+     * Register an option with a given long and short form that takes an optional argument. The
+     * provided argument hint can be used for generated documentation, and should be a single word
+     * describing the argument. The parser will throw an exception at parse-time if the argument is
+     * not supplied.
+     *
+     * @param longForm
+     *            the long form of the option, eg. --option
+     * @param shortForm
+     *            the short form of the option, eg. -o
+     * @param description
+     *            a simple description
+     * @param argumentHint
+     *            the hint for the argument
+     * @throws CoreException
+     *             if the option could not be registered
+     */
+    public void registerOptionWithOptionalArgument(final String longForm, final Character shortForm,
+            final String description, final String argumentHint)
+    {
+        if (longForm != null)
+        {
+            throwIfDuplicateLongForm(longForm);
+            this.longFormsSeen.add(longForm);
+        }
+        if (shortForm != null)
+        {
+            throwIfDuplicateShortForm(shortForm);
+            this.shortFormsSeen.add(shortForm);
+        }
+        this.registeredOptions.add(new SimpleOption(longForm, shortForm,
+                OptionArgumentType.OPTIONAL, description, argumentHint));
+    }
+
+    /**
      * Register an option with a given long form that takes an optional argument. The provided
      * argument hint can be used for generated documentation, and should be a single word describing
      * the argument.
@@ -667,10 +719,10 @@ public class SimpleOptionAndArgumentParser
     }
 
     /**
-     * Register an option with a given long form that takes a required argument. The provided
-     * argument hint can be used for generated documentation, and should be a single word describing
-     * the argument. The parser will throw an exception at parse-time if the argument is not
-     * supplied.
+     * Register an option with a given long and short form that takes a required argument. The
+     * provided argument hint can be used for generated documentation, and should be a single word
+     * describing the argument. The parser will throw an exception at parse-time if the argument is
+     * not supplied.
      *
      * @param longForm
      *            the long form of the option, eg. --option
@@ -957,14 +1009,16 @@ public class SimpleOptionAndArgumentParser
                 throw new UnknownOptionException(String.valueOf(scrubbedPrefix));
             }
 
-            // 2 cases to handle here regarding the option argument type
+            // 3 cases to handle here regarding the option argument type
             // a) The option takes no argument -> do not use lookahead
-            // b) The option takes a required argument -> attempt to use lookahead
-            // Note: Short options cannot take optional arguments. Prevented by API.
+            // b) The option takes an optional argument -> do not use lookahead
+            // c) The option takes a required argument -> attempt to use lookahead
             // Once done, we return whether or not we used the lookahead
             switch (option.get().getArgumentType())
             {
                 case NONE:
+                    // fallthru intended
+                case OPTIONAL:
                     this.parsedOptions.put(option.get(), Optional.empty());
                     return false;
                 case REQUIRED:
@@ -1030,7 +1084,7 @@ public class SimpleOptionAndArgumentParser
                 {
                     throw new UnknownOptionException(String.valueOf(optionCharacter));
                 }
-                if (option.get().getArgumentType() != OptionArgumentType.REQUIRED)
+                if (option.get().getArgumentType() == OptionArgumentType.NONE)
                 {
                     throw new OptionParseException(
                             "option \'" + option.get().getShortForm() + "\' takes no argument");

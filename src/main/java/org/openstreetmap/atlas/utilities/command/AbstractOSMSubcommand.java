@@ -73,7 +73,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     public abstract void registerOptionsAndArguments();
 
     /**
-     * Get the argument of a given long option, if present.
+     * Get the argument of a given option, if present.
      *
      * @param longForm
      *            the long form of the option
@@ -81,13 +81,13 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      * @throws CoreException
      *             if longForm does not refer to a registered option
      */
-    protected Optional<String> getLongOptionArgument(final String longForm)
+    protected Optional<String> getOptionArgument(final String longForm)
     {
         return this.parser.getOptionArgument(longForm);
     }
 
     /**
-     * Get the argument of a given long option, if present. Also, convert it using the supplied
+     * Get the argument of a given option, if present. Also, convert it using the supplied
      * converter.
      *
      * @param <T>
@@ -100,7 +100,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      * @throws CoreException
      *             if longForm does not refer to a registered option
      */
-    protected <T> Optional<T> getLongOptionArgument(final String longForm,
+    protected <T> Optional<T> getOptionArgument(final String longForm,
             final StringConverter<T> converter)
     {
         return this.parser.getOptionArgument(longForm, converter);
@@ -337,6 +337,30 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     }
 
     /**
+     * Register an option with a given long and short form that takes an optional argument. The
+     * provided argument hint can be used for generated documentation, and should be a single word
+     * describing the argument. The parser will throw an exception at parse-time if the argument is
+     * not supplied.
+     *
+     * @param longForm
+     *            the long form of the option, eg. --option
+     * @param shortForm
+     *            the short form of the option, eg. -o
+     * @param description
+     *            a simple description
+     * @param argumentHint
+     *            the hint for the argument
+     * @throws CoreException
+     *             if the option could not be registered
+     */
+    protected void registerOptionWithOptionalArgument(final String longForm,
+            final Character shortForm, final String description, final String argumentHint)
+    {
+        this.parser.registerOptionWithOptionalArgument(longForm, shortForm, description,
+                argumentHint);
+    }
+
+    /**
      * Register an option with a given long form that takes an optional argument. The provided
      * argument hint can be used for generated documentation, and should be a single word describing
      * the argument.
@@ -354,6 +378,30 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
             final String description, final String argumentHint)
     {
         this.parser.registerOptionWithOptionalArgument(longForm, description, argumentHint);
+    }
+
+    /**
+     * Register an option with a given long form that takes a required argument. The provided
+     * argument hint can be used for generated documentation, and should be a single word describing
+     * the argument. The parser will throw an exception at parse-time if the argument is not
+     * supplied.
+     *
+     * @param longForm
+     *            the long form of the option, eg. --option
+     * @param shortForm
+     *            the short form of the option, eg. -o
+     * @param description
+     *            a simple description
+     * @param argumentHint
+     *            the hint for the argument
+     * @throws CoreException
+     *             if the option could not be registered
+     */
+    protected void registerOptionWithRequiredArgument(final String longForm,
+            final Character shortForm, final String description, final String argumentHint)
+    {
+        this.parser.registerOptionWithRequiredArgument(longForm, shortForm, description,
+                argumentHint);
     }
 
     /**

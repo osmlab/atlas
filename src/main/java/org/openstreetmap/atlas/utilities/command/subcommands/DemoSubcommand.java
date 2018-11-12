@@ -43,12 +43,12 @@ public class DemoSubcommand extends AbstractOSMSubcommand
 
         if (hasOption("cheese"))
         {
-            printStdout("Using " + getLongOptionArgument("cheese").orElse("NORMAL") + " cheese\n");
+            printStdout("Using " + getOptionArgument("cheese").orElse("NORMAL") + " cheese\n");
         }
 
         if (hasOption("beer"))
         {
-            printStdout("Also ordering a beer, " + getLongOptionArgument("beer").get() + "\n");
+            printStdout("Also ordering a beer, " + getOptionArgument("beer").get() + "\n");
         }
         else
         {
