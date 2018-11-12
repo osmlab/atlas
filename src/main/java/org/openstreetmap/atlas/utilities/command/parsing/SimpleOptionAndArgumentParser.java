@@ -946,7 +946,7 @@ public class SimpleOptionAndArgumentParser
                 {
                     case NONE:
                         throw new OptionParseException(
-                                "option \'" + option.get().getLongForm() + "\' takes no value");
+                                "option \'" + option.get().getLongForm() + "\' takes no argument");
                     case OPTIONAL:
                         // fallthru intended
                     case REQUIRED:
@@ -1040,7 +1040,7 @@ public class SimpleOptionAndArgumentParser
     }
 
     private boolean parseShortFormOption2(final String argument, final Optional<String> lookahead)
-            throws OptionParseException
+            throws OptionParseException, UnknownOptionException
     {
         final String scrubbedPrefix = argument.substring(SHORT_FORM_PREFIX.length());
 
@@ -1048,19 +1048,26 @@ public class SimpleOptionAndArgumentParser
         // 1) command line looks like "... -o anotherThing ..."
         // 2) command line looks like "... -omoreStuff ..."
         // scrubbedPrefix length will never be < 1
+
+        // Case 1) "... -o anotherThing ..."
         if (scrubbedPrefix.length() == 1)
         {
             final Optional<SimpleOption> option = registeredOptionForShortForm(
                     scrubbedPrefix.charAt(0));
-            // Cases to handle here regarding the lookahead
-            // 1) The option takes no argument or an optional argument -> do not use lookahead
-            // 2) The option takes a required argument -> attempt to use lookahead
+
+            if (!option.isPresent())
+            {
+                throw new UnknownOptionException(String.valueOf(scrubbedPrefix));
+            }
+
+            // 2 cases to handle here regarding the option argument type
+            // a) The option takes no argument -> do not use lookahead
+            // b) The option takes a required argument -> attempt to use lookahead
+            // Note: Short options cannot take optional arguments. Prevented by API.
             // Once done, we return whether or not we used the lookahead
             switch (option.get().getArgumentType())
             {
                 case NONE:
-                    // fallthru intended
-                case OPTIONAL:
                     this.parsedOptions.put(option.get(), Optional.empty());
                     return false;
                 case REQUIRED:
@@ -1075,27 +1082,67 @@ public class SimpleOptionAndArgumentParser
                                 "option \'" + option.get().getShortForm() + "\' needs an argument");
                     }
                 default:
-                    throw new CoreException("Unrecognized OptionArgumentType {}",
+                    throw new CoreException("Bad OptionArgumentType {}",
                             option.get().getArgumentType());
             }
         }
+        // Case 2) "... -omoreStuff ..."
         else
         {
             // Cases to handle here
-            // 1) The option is using shorthand composition, ie. ("-a -b -c" => "-abc")
-            // 2) The option is using an argument, ie. (-oarg where "arg" is an argument to "-o")
+            // a) The option is using shorthand composition, ie. ("-a -b -c" => "-abc")
+            // b) The option is using an argument, ie. (-oarg where "arg" is an argument to "-o")
 
-            // Case 1: every single character of scrubbedPrefix is a valid option AND takes no args
-            final boolean isShorthand = false;
-
-            if (isShorthand)
+            // Check for case a) determine if valid shorthand
+            boolean isValidShorthand = true;
+            for (int index = 0; index < scrubbedPrefix.length(); index++)
             {
+                final char optionCharacter = scrubbedPrefix.charAt(index);
+                final Optional<SimpleOption> option = registeredOptionForShortForm(optionCharacter);
+                if (option.isPresent())
+                {
+                    if (option.get().getArgumentType() != OptionArgumentType.NONE)
+                    {
+                        isValidShorthand = false;
+                        break;
+                    }
+                }
+                else
+                {
+                    isValidShorthand = false;
+                    break;
+                }
+            }
 
+            if (isValidShorthand)
+            {
+                // Shorthand was valid, so loop over again and add all options
+                for (int index = 0; index < scrubbedPrefix.length(); index++)
+                {
+                    final char optionCharacter = scrubbedPrefix.charAt(index);
+                    final Optional<SimpleOption> option = registeredOptionForShortForm(
+                            optionCharacter);
+                    this.parsedOptions.put(option.get(), Optional.empty());
+                }
             }
             else
             {
-
+                final char optionCharacter = scrubbedPrefix.charAt(0);
+                final Optional<SimpleOption> option = registeredOptionForShortForm(optionCharacter);
+                if (!option.isPresent())
+                {
+                    throw new UnknownOptionException(String.valueOf(optionCharacter));
+                }
+                if (option.get().getArgumentType() != OptionArgumentType.REQUIRED)
+                {
+                    throw new OptionParseException(
+                            "option \'" + option.get().getShortForm() + "\' takes no argument");
+                }
+                final String optionArgument = scrubbedPrefix.substring(1);
+                this.parsedOptions.put(option.get(), Optional.ofNullable(optionArgument));
             }
+
+            return false;
         }
     }
 
