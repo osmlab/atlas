@@ -41,15 +41,14 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
     }
 
     @Override
-    public JsonObject asGeoJsonFeature()
+    public JsonObject geoJsonProperties()
     {
-        final JsonObject feature = super.asGeoJsonFeature();
-        final JsonObject properties = feature.getAsJsonObject(GeoJsonUtils.PROPERTIES);
+        final JsonObject properties = super.geoJsonProperties();
 
         properties.addProperty("startNode", start().getIdentifier());
         properties.addProperty("endNode", end().getIdentifier());
 
-        return feature;
+        return properties;
     }
 
     /**
