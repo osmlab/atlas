@@ -264,7 +264,7 @@ public class SimpleOptionAndArgumentParser
     }
 
     /**
-     * Get the argument of a given long option, if present.
+     * Get the argument of a given option, if present.
      *
      * @param longForm
      *            the long form of the option
@@ -272,7 +272,7 @@ public class SimpleOptionAndArgumentParser
      * @throws CoreException
      *             if longForm does not refer to a registered option
      */
-    public Optional<String> getLongOptionArgument(final String longForm)
+    public Optional<String> getOptionArgument(final String longForm)
     {
         if (!this.parseStepRan)
         {
@@ -291,7 +291,7 @@ public class SimpleOptionAndArgumentParser
     }
 
     /**
-     * Get the argument of a given long option, if present. Also, convert it using the supplied
+     * Get the argument of a given option, if present. Also, convert it using the supplied
      * converter.
      *
      * @param <T>
@@ -304,7 +304,7 @@ public class SimpleOptionAndArgumentParser
      * @throws CoreException
      *             if longForm does not refer to a registered option
      */
-    public <T> Optional<T> getLongOptionArgument(final String longForm,
+    public <T> Optional<T> getOptionArgument(final String longForm,
             final StringConverter<T> converter)
     {
         if (!this.parseStepRan)
@@ -443,93 +443,6 @@ public class SimpleOptionAndArgumentParser
             throws UnknownOptionException, OptionParseException, ArgumentException
     {
         final List<String> regularArguments = new ArrayList<>();
-        boolean seenEndOptionSentinel = false;
-        this.parsedArguments.clear();
-        this.parsedOptions.clear();
-        int regularArgumentCounter = 0;
-
-        for (final String argument : allArguments)
-        {
-            // Four cases:
-            // Argument is "--" -> stop parsing arguments as options
-            // Argument starts with "--" -> long form option
-            // Argument starts with "-" -> short form option
-            // Anything else -> regular argument
-            if ("--".equals(argument))
-            {
-                if (seenEndOptionSentinel)
-                {
-                    regularArguments.add(argument);
-                }
-                else
-                {
-                    seenEndOptionSentinel = true;
-                }
-            }
-            else if (argument.startsWith(LONG_FORM_PREFIX) && !seenEndOptionSentinel)
-            {
-                parseLongFormOption(argument);
-            }
-            else if (argument.startsWith(SHORT_FORM_PREFIX) && !seenEndOptionSentinel)
-            {
-                if (SHORT_FORM_PREFIX.equals(argument))
-                {
-                    regularArguments.add(argument);
-                }
-                else
-                {
-                    parseShortFormOption(argument);
-                }
-            }
-            else
-            {
-                regularArguments.add(argument);
-            }
-        }
-
-        if (this.registeredOptionalArgument)
-        {
-            if (regularArguments.size() < this.registeredArgumentHintToArity.size() - 1)
-            {
-                throw new ArgumentException("missing required argument(s)");
-            }
-        }
-        else
-        {
-            if (regularArguments.size() < this.registeredArgumentHintToArity.size())
-            {
-                throw new ArgumentException("missing required argument(s)");
-            }
-
-        }
-
-        // Now handle the regular arguments
-        for (final String regularArgument : regularArguments)
-        {
-            regularArgumentCounter = parseRegularArgument(regularArgument, regularArguments.size(),
-                    regularArgumentCounter);
-        }
-
-        this.parseStepRan = true;
-    }
-
-    /**
-     * Perform a full scan and parse of the provided arguments list. This method will populate the
-     * parser's internal data structures so they are ready to be queried for results.
-     *
-     * @param allArguments
-     *            The provided arguments list
-     * @throws UnknownOptionException
-     *             If an unknown option is detected
-     * @throws OptionParseException
-     *             If another parsing error occurs
-     * @throws ArgumentException
-     *             If supplied arguments do not match the registered argument hints
-     */
-    public void parseOptionsAndArguments2(final List<String> allArguments)
-            throws UnknownOptionException, OptionParseException, ArgumentException
-    {
-        final List<String> regularArguments = new ArrayList<>();
         boolean seenEndOptionsOperator = false;
         this.parsedArguments.clear();
         this.parsedOptions.clear();
@@ -544,7 +457,7 @@ public class SimpleOptionAndArgumentParser
             Optional<String> lookahead = Optional.empty();
             if (index + 1 < allArguments.size())
             {
-                lookahead = Optional.ofNullable(allArguments.get(index));
+                lookahead = Optional.ofNullable(allArguments.get(index + 1));
             }
 
             // Five cases:
@@ -570,7 +483,7 @@ public class SimpleOptionAndArgumentParser
             }
             else if (argument.startsWith(LONG_FORM_PREFIX) && !seenEndOptionsOperator)
             {
-                final boolean consumedLookahead = parseLongFormOption2(argument, lookahead);
+                final boolean consumedLookahead = parseLongFormOption(argument, lookahead);
                 if (consumedLookahead)
                 {
                     index++;
@@ -578,7 +491,7 @@ public class SimpleOptionAndArgumentParser
             }
             else if (argument.startsWith(SHORT_FORM_PREFIX) && !seenEndOptionsOperator)
             {
-                final boolean consumedLookahead = parseShortFormOption2(argument, lookahead);
+                final boolean consumedLookahead = parseShortFormOption(argument, lookahead);
                 if (consumedLookahead)
                 {
                     index++;
@@ -761,6 +674,40 @@ public class SimpleOptionAndArgumentParser
      *
      * @param longForm
      *            the long form of the option, eg. --option
+     * @param shortForm
+     *            the short form of the option, eg. -o
+     * @param description
+     *            a simple description
+     * @param argumentHint
+     *            the hint for the argument
+     * @throws CoreException
+     *             if the option could not be registered
+     */
+    public void registerOptionWithRequiredArgument(final String longForm, final Character shortForm,
+            final String description, final String argumentHint)
+    {
+        if (longForm != null)
+        {
+            throwIfDuplicateLongForm(longForm);
+            this.longFormsSeen.add(longForm);
+        }
+        if (shortForm != null)
+        {
+            throwIfDuplicateShortForm(shortForm);
+            this.shortFormsSeen.add(shortForm);
+        }
+        this.registeredOptions.add(new SimpleOption(longForm, shortForm,
+                OptionArgumentType.REQUIRED, description, argumentHint));
+    }
+
+    /**
+     * Register an option with a given long form that takes a required argument. The provided
+     * argument hint can be used for generated documentation, and should be a single word describing
+     * the argument. The parser will throw an exception at parse-time if the argument is not
+     * supplied.
+     *
+     * @param longForm
+     *            the long form of the option, eg. --option
      * @param description
      *            a simple description
      * @param argumentHint
@@ -857,43 +804,11 @@ public class SimpleOptionAndArgumentParser
         return checkForLongOption(longForm, this.parsedOptions.keySet());
     }
 
-    private void parseLongFormOption(final String argument)
-            throws UnknownOptionException, OptionParseException
-    {
-        final String scrubPrefix = argument.substring(2);
-        final String[] split = scrubPrefix.split(OPTION_ARGUMENT_DELIMITER, 2);
-
-        final String optionName = split[0];
-        final String optionArgument = split.length > 1 ? split[1] : null;
-        final Optional<SimpleOption> option = registeredOptionForLongForm(optionName);
-        if (option.isPresent())
-        {
-            if (option.get().getArgumentType() == OptionArgumentType.NONE && optionArgument != null)
-            {
-                throw new OptionParseException(
-                        "option \'" + option.get().getLongForm() + "\' takes no value");
-            }
-            if (option.get().getArgumentType() == OptionArgumentType.REQUIRED
-                    && optionArgument == null)
-            {
-                throw new OptionParseException(
-                        "option \'" + option.get().getLongForm() + "\' needs an argument");
-            }
-            logger.debug("parsed long option {}={}", option.get().getLongForm(),
-                    Optional.ofNullable(optionArgument));
-            this.parsedOptions.put(option.get(), Optional.ofNullable(optionArgument));
-        }
-        else
-        {
-            throw new UnknownOptionException(optionName);
-        }
-    }
-
     /*
      * This function returns a boolean value specifying whether or not it consumed the lookahead
      * value.
      */
-    private boolean parseLongFormOption2(final String argument, final Optional<String> lookahead)
+    private boolean parseLongFormOption(final String argument, final Optional<String> lookahead)
             throws UnknownOptionException, OptionParseException
     {
         final String scrubbedPrefix = argument.substring(LONG_FORM_PREFIX.length());
@@ -1017,29 +932,11 @@ public class SimpleOptionAndArgumentParser
         return argumentCounter;
     }
 
-    private void parseShortFormOption(final String argument) throws UnknownOptionException
-    {
-        final String scrubPrefix = argument.substring(1);
-
-        final String optionName = scrubPrefix;
-
-        for (int i = 0; i < optionName.length(); i++)
-        {
-            final Optional<SimpleOption> option = registeredOptionForShortForm(
-                    optionName.charAt(i));
-            if (option.isPresent())
-            {
-                logger.debug("parsed short option {}", option.get().getShortForm().get());
-                this.parsedOptions.put(option.get(), Optional.empty());
-            }
-            else
-            {
-                throw new UnknownOptionException(optionName);
-            }
-        }
-    }
-
-    private boolean parseShortFormOption2(final String argument, final Optional<String> lookahead)
+    /*
+     * This function returns a boolean value specifying whether or not it consumed the lookahead
+     * value.
+     */
+    private boolean parseShortFormOption(final String argument, final Optional<String> lookahead)
             throws OptionParseException, UnknownOptionException
     {
         final String scrubbedPrefix = argument.substring(SHORT_FORM_PREFIX.length());

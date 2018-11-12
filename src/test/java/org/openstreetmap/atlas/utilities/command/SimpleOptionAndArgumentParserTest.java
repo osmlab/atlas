@@ -56,7 +56,7 @@ public class SimpleOptionAndArgumentParserTest
 
         Assert.assertEquals(true, parser.hasOption("opt1"));
         Assert.assertEquals(true, parser.hasOption("opt2"));
-        Assert.assertEquals("value3", parser.getLongOptionArgument("opt3").get());
+        Assert.assertEquals("value3", parser.getOptionArgument("opt3").get());
 
         /*
          * hasOption(longForm) will return true even if only the shortForm was actually present on
@@ -65,14 +65,37 @@ public class SimpleOptionAndArgumentParserTest
         Assert.assertEquals(true, parser.hasOption("opt4"));
 
         Assert.assertEquals(true, parser.hasOption("opt5"));
-        Assert.assertFalse(parser.getLongOptionArgument("opt5").isPresent());
-        Assert.assertEquals("value6", parser.getLongOptionArgument("opt6").get());
-        Assert.assertEquals("value7", parser.getLongOptionArgument("opt7").get());
+        Assert.assertFalse(parser.getOptionArgument("opt5").isPresent());
+        Assert.assertEquals("value6", parser.getOptionArgument("opt6").get());
+        Assert.assertEquals("value7", parser.getOptionArgument("opt7").get());
 
         Assert.assertEquals("arg1", parser.getUnaryArgument("single1").get());
         Assert.assertEquals("arg2", parser.getUnaryArgument("single2").get());
         Assert.assertEquals(Arrays.asList("arg3", "arg4", "arg5"),
                 parser.getVariadicArgument("multi1"));
+    }
+
+    @Test(expected = OptionParseException.class)
+    public void testFailOnInvalidShortOptionAbbrev() throws OptionParseException
+    {
+        final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
+        parser.registerOption("opt1", 'a', "the 1st option");
+        parser.registerOptionWithRequiredArgument("opt2", 'b', "the 2nd option", "ARG");
+        parser.registerOption("opt3", 'c', "the 3rd option");
+
+        final List<String> arguments = Arrays.asList("-abc");
+        try
+        {
+            parser.parseOptionsAndArguments(arguments);
+        }
+        catch (final UnknownOptionException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final ArgumentException e)
+        {
+            Assert.fail(e.getMessage());
+        }
     }
 
     @Test(expected = CoreException.class)
@@ -193,12 +216,12 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
-        Assert.assertEquals(new Integer(2), parser
-                .getLongOptionArgument("two", optionArgument -> Integer.parseInt(optionArgument))
-                .get());
+        Assert.assertEquals(new Integer(2),
+                parser.getOptionArgument("two", optionArgument -> Integer.parseInt(optionArgument))
+                        .get());
 
         Assert.assertEquals(Arrays.asList(1, 2, 3),
-                parser.getLongOptionArgument("myList", optionArgument ->
+                parser.getOptionArgument("myList", optionArgument ->
                 {
                     final List<Integer> myList = new ArrayList<>();
                     final String[] split = optionArgument.split(":");
@@ -210,7 +233,7 @@ public class SimpleOptionAndArgumentParserTest
                 }).get());
 
         // this conversion will fail, but then we will fall back on a default value
-        Assert.assertEquals(new Integer(3), parser.getLongOptionArgument("three", optionArgument ->
+        Assert.assertEquals(new Integer(3), parser.getOptionArgument("three", optionArgument ->
         {
             try
             {
@@ -248,7 +271,42 @@ public class SimpleOptionAndArgumentParserTest
             Assert.fail(e.getMessage());
         }
         Assert.assertEquals("defaultValue",
-                parser.getLongOptionArgument("opt1").orElse("defaultValue"));
+                parser.getOptionArgument("opt1").orElse("defaultValue"));
+    }
+
+    @Test
+    public void testShortFormOptions()
+    {
+        final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
+        parser.registerOption("opt1", 'a', "the 1st option");
+        parser.registerOption("opt2", 'b', "the 2nd option");
+        parser.registerOption("opt3", 'c', "the 3rd option");
+        parser.registerOptionWithRequiredArgument("opt4", 'd', "the 4th option", "ARG");
+        parser.registerOptionWithRequiredArgument("opt5", 'e', "the 5th option", "ARG");
+
+        final List<String> arguments = Arrays.asList("-abc", "-doptarg1", "-e", "optarg2");
+        try
+        {
+            parser.parseOptionsAndArguments(arguments);
+        }
+        catch (final UnknownOptionException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final OptionParseException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final ArgumentException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+
+        Assert.assertEquals(true, parser.hasOption("opt1"));
+        Assert.assertEquals(true, parser.hasOption("opt2"));
+        Assert.assertEquals(true, parser.hasOption("opt3"));
+        Assert.assertEquals("optarg1", parser.getOptionArgument("opt4").get());
+        Assert.assertEquals("optarg2", parser.getOptionArgument("opt5").get());
     }
 
     @Test

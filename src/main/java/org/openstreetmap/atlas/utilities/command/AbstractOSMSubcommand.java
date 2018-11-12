@@ -83,7 +83,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      */
     protected Optional<String> getLongOptionArgument(final String longForm)
     {
-        return this.parser.getLongOptionArgument(longForm);
+        return this.parser.getOptionArgument(longForm);
     }
 
     /**
@@ -103,7 +103,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     protected <T> Optional<T> getLongOptionArgument(final String longForm,
             final StringConverter<T> converter)
     {
-        return this.parser.getLongOptionArgument(longForm, converter);
+        return this.parser.getOptionArgument(longForm, converter);
     }
 
     /*
