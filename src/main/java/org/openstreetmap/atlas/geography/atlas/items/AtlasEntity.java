@@ -242,7 +242,7 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
                     {
                         final long identifier = entity.getIdentifier();
                         memberObject.addProperty(GeoJsonUtils.IDENTIFIER, identifier);
-                        memberObject.addProperty("type", entity.getType().name());
+                        memberObject.addProperty("itemType", entity.getType().name());
                     }
                     else
                     {
