@@ -145,7 +145,7 @@ public class LineDelimitedGeoJsonConverter extends Command
             {
                 logger.warn(
                         "Tried to delete GeoJSON output directory {} for overwrite, but unable.",
-                        geojsonDirectory);
+                        geojsonDirectory, noDelete);
             }
         }
 

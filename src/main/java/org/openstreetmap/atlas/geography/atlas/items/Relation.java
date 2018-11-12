@@ -289,6 +289,8 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
                 final String message = String.format("%s - %s",
                         exception.getClass().getSimpleName(), exception.getMessage());
                 properties.addProperty("exception", message);
+                logger.warn("Unable to recreate multipolygon for relation {}.", getIdentifier(),
+                        message);
                 geometry = GeoJsonUtils.boundsToPolygonGeometry(bounds());
             }
         }

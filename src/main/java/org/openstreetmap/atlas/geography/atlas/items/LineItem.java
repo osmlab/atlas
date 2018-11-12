@@ -14,8 +14,6 @@ import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterable
 import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 
@@ -28,8 +26,6 @@ import com.google.gson.JsonObject;
 public abstract class LineItem extends AtlasItem
 {
     private static final long serialVersionUID = -2053566750957119655L;
-
-    private static final Logger logger = LoggerFactory.getLogger(LineItem.class);
 
     protected LineItem(final Atlas atlas)
     {

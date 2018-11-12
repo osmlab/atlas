@@ -16,6 +16,8 @@ import org.openstreetmap.atlas.tags.LastEditUserNameTag;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Duration;
 import org.openstreetmap.atlas.utilities.time.Time;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -31,6 +33,8 @@ import com.google.gson.JsonObject;
 public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
 {
     private static final long serialVersionUID = -6072525057489468736L;
+
+    private static final Logger logger = LoggerFactory.getLogger(AtlasEntity.class);
 
     // The atlas this item belongs to
     private final Atlas atlas;
@@ -238,11 +242,14 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
                     {
                         final long identifier = entity.getIdentifier();
                         memberObject.addProperty(GeoJsonUtils.IDENTIFIER, identifier);
+                        memberObject.addProperty("type", entity.getType().name());
                     }
                     else
                     {
                         // We shouldn't get here, but if we do, let's know about it in the data...
                         memberObject.addProperty(GeoJsonUtils.IDENTIFIER, "MISSING");
+                        logger.warn("Missing identifier for relation entity: Relation ID: {}",
+                                relation.getIdentifier());
                     }
 
                     // Sometimes a member doesnt have a role. That's normal.
