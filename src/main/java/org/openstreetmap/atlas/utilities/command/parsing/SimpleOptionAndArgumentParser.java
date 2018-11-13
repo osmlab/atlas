@@ -26,9 +26,9 @@ import org.slf4j.LoggerFactory;
  * --opt-arg=my_argument : a long option with argument, supports optional or required arguments<br>
  * --opt-arg my_argument : alternate syntax for required long option arguments<br>
  * -a : a short option<br>
- * -abc : multiple short options (a, b, c) at once<br>
+ * -abc : bundled short options (-a, -b, -c)<br>
  * -o arg : a short option (-o) that takes a required arg<br>
- * -oarg : alternate syntax, a short option (-o) that takes a required arg<br>
+ * -oarg : alternate syntax, a short option (-o) that takes a required or optional arg<br>
  * <br>
  * If an option is specified multiple times with different arguments, the parser will use the
  * version in the highest ARGV position (ie. the furthest right on the command line). Additionally,
@@ -1041,11 +1041,11 @@ public class SimpleOptionAndArgumentParser
         else
         {
             // Cases to handle here
-            // a) The option is using shorthand composition, ie. ("-a -b -c" => "-abc")
+            // a) The option is using bundling, ie. ("-a -b -c" => "-abc")
             // b) The option is using an argument, ie. (-oarg where "arg" is an argument to "-o")
 
-            // Check for case a) determine if valid shorthand
-            boolean isValidShorthand = true;
+            // Check for case a) determine if valid bundle
+            boolean isValidBundle = true;
             for (int index = 0; index < scrubbedPrefix.length(); index++)
             {
                 final char optionCharacter = scrubbedPrefix.charAt(index);
@@ -1054,20 +1054,20 @@ public class SimpleOptionAndArgumentParser
                 {
                     if (option.get().getArgumentType() != OptionArgumentType.NONE)
                     {
-                        isValidShorthand = false;
+                        isValidBundle = false;
                         break;
                     }
                 }
                 else
                 {
-                    isValidShorthand = false;
+                    isValidBundle = false;
                     break;
                 }
             }
 
-            if (isValidShorthand)
+            if (isValidBundle)
             {
-                // Shorthand was valid, so loop over again and add all options
+                // Bundle was valid, so loop over again and add all options
                 for (int index = 0; index < scrubbedPrefix.length(); index++)
                 {
                     final char optionCharacter = scrubbedPrefix.charAt(index);
@@ -1078,6 +1078,7 @@ public class SimpleOptionAndArgumentParser
             }
             else
             {
+                // Bundle was not valid, so treat remaining chars as an option arg
                 final char optionCharacter = scrubbedPrefix.charAt(0);
                 final Optional<SimpleOption> option = registeredOptionForShortForm(optionCharacter);
                 if (!option.isPresent())
