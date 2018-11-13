@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.pbf.store;
+package org.openstreetmap.atlas.geography.atlas.raw.sectioning;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -13,8 +13,7 @@ import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.osmosis.core.domain.v0_6.Tag;
 
 /**
- * A wrapper for tags for an OSM entity. TODO Remove class after PBF Ingest - all of this
- * functionality is already revealed by corresponding Tag and Entity classes.
+ * A wrapper for tags for an OSM entity.
  *
  * @author tony
  * @author matthieun
@@ -27,6 +26,11 @@ public class TagMap implements Taggable
     {
         this.tags = new HashMap<>();
         tagCollection.forEach(tag -> this.tags.put(tag.getKey(), tag.getValue()));
+    }
+
+    public TagMap(final Map<String, String> tags)
+    {
+        this.tags = tags;
     }
 
     public PbfOneWay getOneWay()

@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -20,13 +19,15 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
+import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.clipping.Clip.ClipType;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
-import org.openstreetmap.atlas.tags.AerowayTag;
 import org.openstreetmap.atlas.tags.BuildingTag;
 import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.LastEditTimeTag;
@@ -37,83 +38,73 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
 /**
  * @author tony
  */
-public class OsmPbfLoaderIntegrationTest extends AtlasIntegrationTest
+public class OsmPbfIngestIntegrationTest extends AtlasIntegrationTest
 {
     @Test
     public void testAreaAndLine()
     {
-        // -74.8421145,23.6792718,-74.8284978,23.6868704
-        final Rectangle bound = Rectangle.forLocated(Location.forString("23.6792718,-74.8421145"),
-                Location.forString("23.6868704,-74.8284978"));
+        final Rectangle bound = Location.forString("25.0771736, -77.3597574")
+                .boxAround(Distance.meters(300));
         final Atlas atlas = loadBahamas(bound);
 
-        Assert.assertEquals(2, atlas.numberOfAreas());
-        Assert.assertEquals(2, atlas.numberOfLines());
+        Assert.assertEquals(24, atlas.numberOfAreas());
+        Assert.assertEquals(1, atlas.numberOfLines());
 
-        final Area smallArea = atlas.area(197913769000000L);
-        Assert.assertEquals(false, BuildingTag.isBuilding(smallArea));
-        Assert.assertEquals("apron", smallArea.getTags().get("aeroway"));
+        final Area smallArea = atlas.area(522592143000000L);
+        Assert.assertEquals(true, BuildingTag.isBuilding(smallArea));
         Assert.assertEquals(4, Iterables.size(smallArea));
         Assert.assertNotNull(smallArea.tag(LastEditTimeTag.KEY));
         Assert.assertNotNull(smallArea.tag(LastEditUserIdentifierTag.KEY));
 
-        final Area bigArea = atlas.area(197913691000000L);
+        final Area bigArea = atlas.area(191814889000000L);
         Assert.assertEquals(false, BuildingTag.isBuilding(bigArea));
-        Assert.assertEquals("aerodrome", bigArea.getTags().get("aeroway"));
-        Assert.assertEquals("Rum Cay Airport", bigArea.getTags().get("name"));
-        Assert.assertEquals(11, Iterables.size(bigArea));
+        Assert.assertEquals("attraction", bigArea.getTags().get("tourism"));
+        Assert.assertEquals("Fort Charlotte", bigArea.getTags().get("name"));
+        Assert.assertEquals(20, Iterables.size(bigArea));
         Assert.assertNotNull(bigArea.tag(LastEditTimeTag.KEY));
         Assert.assertNotNull(bigArea.tag(LastEditUserIdentifierTag.KEY));
 
-        final Line longLine = atlas.line(197913772000000L);
-        Assert.assertEquals(AerowayTag.RUNWAY,
-                AerowayTag.get(longLine).orElseThrow(() -> new CoreException("No aeroway Tag")));
-        Assert.assertEquals(4, Iterables.size(longLine));
+        final Line longLine = atlas.line(374341334000000L);
+        Assert.assertEquals("drain", longLine.getTags().get("waterway"));
+        Assert.assertEquals("Storm Water Drain", longLine.getTags().get("name"));
+        Assert.assertEquals(24, Iterables.size(longLine));
         Assert.assertNotNull(longLine.tag(LastEditTimeTag.KEY));
         Assert.assertNotNull(longLine.tag(LastEditUserIdentifierTag.KEY));
-
-        final Line shortLine = atlas.line(197913770000000L);
-        Assert.assertEquals(AerowayTag.TAXIWAY,
-                AerowayTag.get(shortLine).orElseThrow(() -> new CoreException("No aeroway Tag")));
-        Assert.assertEquals(4, Iterables.size(shortLine));
-        Assert.assertNotNull(shortLine.tag(LastEditTimeTag.KEY));
-        Assert.assertNotNull(shortLine.tag(LastEditUserIdentifierTag.KEY));
     }
 
     @Test
     public void testEdgeAndNode()
     {
-        // -74.8335514,23.6744331,-74.8268456,23.6781754
-        final Rectangle bound = Rectangle.forLocated(Location.forString("23.6744331,-74.8335514"),
-                Location.forString("23.6781754,-74.8268456"));
+        final Rectangle bound = Location.forString("25.0693383, -77.3160218")
+                .boxAround(Distance.feet(1));
         final Atlas atlas = loadBahamas(bound);
-        Assert.assertEquals(2, atlas.numberOfEdges());
+        Assert.assertEquals(6, atlas.numberOfEdges());
 
-        final Edge edgeForward = atlas.edge(197913739000001L);
-        Assert.assertEquals(197913739000001L, edgeForward.getIdentifier());
-        Assert.assertEquals(HighwayTag.TERTIARY, edgeForward.highwayTag());
-        Assert.assertEquals(32, Iterables.size(edgeForward.getRawGeometry()));
+        final Edge edgeForward = atlas.edge(63423376000000L);
+        Assert.assertEquals(63423376000000L, edgeForward.getIdentifier());
+        Assert.assertEquals(HighwayTag.RESIDENTIAL, edgeForward.highwayTag());
+        Assert.assertEquals(6, Iterables.size(edgeForward.getRawGeometry()));
         Assert.assertNotNull(edgeForward.tag(LastEditTimeTag.KEY));
         Assert.assertNotNull(edgeForward.tag(LastEditUserIdentifierTag.KEY));
 
-        final Edge edgeBackward = atlas.edge(-197913739000001L);
-        Assert.assertEquals(-197913739000001L, edgeBackward.getIdentifier());
-        Assert.assertEquals(HighwayTag.TERTIARY, edgeBackward.highwayTag());
-        Assert.assertEquals(32, Iterables.size(edgeBackward.getRawGeometry()));
+        final Edge edgeBackward = atlas.edge(-63423376000000L);
+        Assert.assertEquals(-63423376000000L, edgeBackward.getIdentifier());
+        Assert.assertEquals(HighwayTag.RESIDENTIAL, edgeBackward.highwayTag());
+        Assert.assertEquals(6, Iterables.size(edgeBackward.getRawGeometry()));
         Assert.assertNotNull(edgeBackward.tag(LastEditTimeTag.KEY));
         Assert.assertNotNull(edgeBackward.tag(LastEditUserIdentifierTag.KEY));
 
         Assert.assertEquals(Iterables.first(edgeForward.getRawGeometry()).get(),
                 Iterables.last(edgeBackward.getRawGeometry()).get());
 
-        final Node startNodeOfForwardEdge = atlas.node(2081113899000000L);
-        Assert.assertEquals("POINT (-74.8278433 23.6811808)",
+        final Node startNodeOfForwardEdge = atlas.node(786050062000000L);
+        Assert.assertEquals("POINT (-77.3160218 25.0693383)",
                 startNodeOfForwardEdge.getLocation().toString());
-        Assert.assertEquals(1, startNodeOfForwardEdge.inEdges().size());
+        Assert.assertEquals(3, startNodeOfForwardEdge.inEdges().size());
         Assert.assertTrue(
                 startNodeOfForwardEdge.inEdges().stream().map(edge -> edge.getIdentifier())
                         .collect(Collectors.toList()).contains(edgeBackward.getIdentifier()));
-        Assert.assertEquals(1, startNodeOfForwardEdge.outEdges().size());
+        Assert.assertEquals(3, startNodeOfForwardEdge.outEdges().size());
         Assert.assertTrue(
                 startNodeOfForwardEdge.outEdges().stream().map(edge -> edge.getIdentifier())
                         .collect(Collectors.toList()).contains(edgeForward.getIdentifier()));
@@ -121,8 +112,8 @@ public class OsmPbfLoaderIntegrationTest extends AtlasIntegrationTest
         Assert.assertNotNull(startNodeOfForwardEdge.tag(LastEditTimeTag.KEY));
         Assert.assertNotNull(startNodeOfForwardEdge.tag(LastEditUserIdentifierTag.KEY));
 
-        final Node endNodeOfForwardEdge = atlas.node(2081113527000000L);
-        Assert.assertEquals("POINT (-74.8332022 23.6576434)",
+        final Node endNodeOfForwardEdge = atlas.node(4354620579000000L);
+        Assert.assertEquals("POINT (-77.3149029 25.0691753)",
                 endNodeOfForwardEdge.getLocation().toString());
         Assert.assertEquals(1, endNodeOfForwardEdge.inEdges().size());
         Assert.assertTrue(endNodeOfForwardEdge.inEdges().stream().map(edge -> edge.getIdentifier())
@@ -138,17 +129,16 @@ public class OsmPbfLoaderIntegrationTest extends AtlasIntegrationTest
     @Test
     public void testPoint()
     {
-        // -74.8419221,23.6499071,-74.841058,23.6503894
-        final Rectangle bound = Rectangle.forLocated(Location.forString("23.6499071,-74.8419221"),
-                Location.forString("23.6503894,-74.841058"));
+        final Rectangle bound = Location.forString("25.0735519,-77.3073068")
+                .boxAround(Distance.inches(1));
         final Atlas atlas = loadBahamas(bound);
         Assert.assertEquals(1, atlas.numberOfPoints());
         final Point point = atlas.points().iterator().next();
 
-        Assert.assertEquals(821907853000000L, point.getIdentifier());
-        Assert.assertEquals("POINT (-74.8413646 23.6501327)", point.getLocation().toString());
-        Assert.assertEquals(9, point.getTags().size());
-        Assert.assertEquals("Port Nelson", point.getTags().get("name"));
+        Assert.assertEquals(5665510971000000L, point.getIdentifier());
+        Assert.assertEquals("POINT (-77.3073068 25.0735519)", point.getLocation().toString());
+        Assert.assertEquals(6, point.getTags().size());
+        Assert.assertEquals("viewpoint", point.getTags().get("tourism"));
         Assert.assertNotNull(point.tag(LastEditTimeTag.KEY));
         Assert.assertNotNull(point.tag(LastEditUserIdentifierTag.KEY));
     }
@@ -165,7 +155,7 @@ public class OsmPbfLoaderIntegrationTest extends AtlasIntegrationTest
         final Atlas smallAtlas = loadBahamas(polygon);
 
         Assert.assertTrue(bigAtlas.numberOfEdges() > smallAtlas.numberOfEdges());
-        Assert.assertEquals(6, smallAtlas.numberOfEdges());
+        Assert.assertEquals(40, smallAtlas.numberOfEdges());
         Assert.assertEquals(7, smallAtlas.numberOfAreas());
     }
 
@@ -228,7 +218,7 @@ public class OsmPbfLoaderIntegrationTest extends AtlasIntegrationTest
         Assert.assertEquals("route", relation1.getTags().get("type"));
         Assert.assertEquals("bus", relation1.getTags().get("route"));
         Assert.assertEquals("Adult Tram", relation1.getTags().get("name"));
-        Assert.assertEquals(27, relation1.members().size());
+        Assert.assertEquals(23, relation1.members().size());
 
         final Relation relation2 = relations.get(1245746000000L);
         Assert.assertEquals("route", relation2.getTags().get("type"));
@@ -241,18 +231,20 @@ public class OsmPbfLoaderIntegrationTest extends AtlasIntegrationTest
     public void testWaysSpanningOutsideOfCountry()
     {
         final Resource pbf = new InputStreamResource(
-                () -> OsmPbfLoaderIntegrationTest.class.getResourceAsStream("CUB_72-111.pbf"));
+                () -> OsmPbfIngestIntegrationTest.class.getResourceAsStream("CUB_72-111.pbf"));
         final CountryBoundaryMap map = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(() -> OsmPbfLoaderIntegrationTest.class
+                .fromPlainText(new InputStreamResource(() -> OsmPbfIngestIntegrationTest.class
                         .getResourceAsStream("CUB_osm_boundaries.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
         final SlippyTile tile = SlippyTile.forName("8-72-111");
         final MultiPolygon boundary = map.countryBoundary("CUB").get(0).getBoundary();
         final MultiPolygon loadingArea = tile.bounds().clip(boundary, ClipType.AND)
                 .getClipMultiPolygon();
-        final OsmPbfLoader loader = new OsmPbfLoader(pbf, loadingArea,
-                AtlasLoadingOption.createOptionWithAllEnabled(map));
-        final Atlas atlas = loader.read();
+
+        final AtlasLoadingOption loadingOption = AtlasLoadingOption.createOptionWithAllEnabled(map);
+        Atlas atlas = new RawAtlasGenerator(pbf, loadingOption, loadingArea).build();
+        atlas = new RawAtlasCountrySlicer(map.getLoadedCountries(), map).slice(atlas);
+        atlas = new WaySectionProcessor(atlas, loadingOption).run();
         // Make sure that the big bridge over water made it to the Atlas
         Assert.assertNotNull(atlas.edge(308541861000000L));
     }

@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.pbf.slicing;
+package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -68,6 +68,9 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     @TestAtlas(loadFromTextResource = "nestedRelationRemoval.atlas.txt")
     private Atlas nestedRelationRemoval;
 
+    @TestAtlas(loadFromTextResource = "nodeAndPointAsRelationMember.atlas.txt")
+    private Atlas nodeAndPointAsRelationMember;
+
     public Atlas getBidirectionalRingAtlas()
     {
         return this.bidirectioalRingAtlas;
@@ -116,6 +119,11 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     public Atlas getNestedRelationRemovalAtlas()
     {
         return this.nestedRelationRemoval;
+    }
+
+    public Atlas getNodeAndPointAsRelationMemberAtlas()
+    {
+        return this.nodeAndPointAsRelationMember;
     }
 
     public Atlas getOneWayRingAtlas()

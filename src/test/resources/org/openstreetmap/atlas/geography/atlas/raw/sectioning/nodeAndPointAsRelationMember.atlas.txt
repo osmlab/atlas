@@ -1,0 +1,15 @@
+# Nodes
+# Edges
+# Areas
+# Lines
+125508462000000 && 55.9257003,37.6560565:55.9253399,37.6564714:55.9252591,37.6566225:55.9252572,37.6569671:55.9253556,37.657839:55.9255128,37.6592395:55.9257493,37.6613014 && last_edit_user_name -> xmd5a || last_edit_changeset -> 46553526 || surface -> asphalt || last_edit_time -> 1488561413000 || last_edit_user_id -> 672536 || iso_country_code -> RUS || name -> Центральная улица || highway -> tertiary || last_edit_version -> 3
+# Points
+556595133000000 && 55.9257493,37.6613014 && last_edit_user_name -> Dima M || last_edit_changeset -> 9898421 || last_edit_time -> 1321890252000 || last_edit_user_id -> 433361 || iso_country_code -> RUS || highway -> traffic_signals || last_edit_version -> 4
+1184545034000000 && 55.9257003,37.6560565 && last_edit_user_name -> esaulenka || last_edit_changeset -> 33534429 || last_edit_time -> 1440369565000 || last_edit_user_id -> 336354 || iso_country_code -> RUS || last_edit_version -> 2
+3711172160000000 && 55.9253399,37.6564714 && last_edit_user_name -> esaulenka || last_edit_changeset -> 33534429 || last_edit_time -> 1440369382000 || last_edit_user_id -> 336354 || iso_country_code -> RUS || last_edit_version -> 1
+259592015000000 && 55.9252591,37.6566225 && last_edit_user_name -> esaulenka || last_edit_changeset -> 33534429 || last_edit_time -> 1440369573000 || last_edit_user_id -> 336354 || iso_country_code -> RUS || last_edit_version -> 2
+3711172157000000 && 55.9252572,37.6569671 && last_edit_user_name -> esaulenka || last_edit_changeset -> 33534429 || last_edit_time -> 1440369382000 || last_edit_user_id -> 336354 || iso_country_code -> RUS || last_edit_version -> 1
+3711172161000000 && 55.9253556,37.657839 && last_edit_user_name -> esaulenka || last_edit_changeset -> 33534429 || last_edit_time -> 1440369382000 || last_edit_user_id -> 336354 || iso_country_code -> RUS || last_edit_version -> 1
+1184566669000000 && 55.9255128,37.6592395 && last_edit_user_name -> esaulenka || last_edit_changeset -> 33534429 || last_edit_time -> 1440369565000 || last_edit_user_id -> 336354 || iso_country_code -> RUS || last_edit_version -> 2
+# Relations
+578254000000 && 125508462000000 -> from -> L || 125508462000000 -> to -> L || 556595133000000 -> via -> P && last_edit_user_name -> Torx || last_edit_changeset -> 8977626 || last_edit_time -> 1312990671000 || last_edit_user_id -> 131244 || iso_country_code -> RUS || restriction -> no_u_turn || type -> restriction || last_edit_version -> 3
