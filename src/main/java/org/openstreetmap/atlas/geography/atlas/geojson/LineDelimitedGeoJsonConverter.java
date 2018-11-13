@@ -85,12 +85,6 @@ public class LineDelimitedGeoJsonConverter extends Command
             }
         }
 
-        // We only want multipolygon relations
-        if (ItemType.RELATION.equals(entity.getType()))
-        {
-            return Validators.isOfType(entity, RelationTypeTag.class, RelationTypeTag.MULTIPOLYGON);
-        }
-
         // Because we're writing the multipolygon relations, we don't want to also write the area
         // components that are pieces of the multipolygon relation.
         if (ItemType.AREA.equals(entity.getType()))

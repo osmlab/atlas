@@ -210,7 +210,7 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
      *
      * @return A GeoJSON properties object that is to be put in a Feature.
      */
-    protected JsonObject geoJsonProperties()
+    public JsonObject geoJsonProperties()
     {
         final JsonObject properties = new JsonObject();
         getTags().forEach(properties::addProperty);
@@ -230,36 +230,6 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
             {
                 final JsonObject relationObject = relation.geoJsonProperties();
                 relationsArray.add(relationObject);
-                final RelationMemberList members = relation.members();
-                final JsonArray membersArray = new JsonArray();
-                relationObject.add("members", membersArray);
-                for (final RelationMember member : members)
-                {
-                    final JsonObject memberObject = new JsonObject();
-                    membersArray.add(memberObject);
-                    final AtlasEntity entity = member.getEntity();
-                    if (entity != null)
-                    {
-                        final long identifier = entity.getIdentifier();
-                        memberObject.addProperty(GeoJsonUtils.IDENTIFIER, identifier);
-                        memberObject.addProperty("itemType", entity.getType().name());
-                    }
-                    else
-                    {
-                        // We shouldn't get here, but if we do, let's know about it in the data...
-                        memberObject.addProperty(GeoJsonUtils.IDENTIFIER, "MISSING");
-                        logger.warn("Missing identifier for relation entity: Relation ID: {}",
-                                relation.getIdentifier());
-                    }
-
-                    // Sometimes a member doesnt have a role. That's normal.
-                    final String role = member.getRole();
-                    if (role != null)
-                    {
-                        // And sometimes the role is "", but we should keep it that way...
-                        memberObject.addProperty("role", role);
-                    }
-                }
             }
         }
 
