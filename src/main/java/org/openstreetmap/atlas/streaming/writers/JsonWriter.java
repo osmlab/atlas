@@ -69,9 +69,14 @@ public class JsonWriter implements Closeable
     public void writeLine(final JsonObject object)
     {
         final String value = object.toString();
+        writeLine(value);
+    }
+
+    private void writeLine(final String stringValue)
+    {
         try
         {
-            this.writer.write(value);
+            this.writer.write(stringValue);
             this.writer.newLine();
         }
         catch (final IOException e)

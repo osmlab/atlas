@@ -20,12 +20,22 @@ public final class RunScript
 {
     private static final Logger logger = LoggerFactory.getLogger(RunScript.class);
 
-    public static void run(final String script)
+    public static void run(final String command)
     {
-        run(script, new ArrayList<>());
+        run(new String[] { command });
     }
 
-    public static void run(final String script, final List<RunScriptMonitor> monitors)
+    public static void run(final String command, final List<RunScriptMonitor> monitors)
+    {
+        run(new String[] { command }, monitors);
+    }
+
+    public static void run(final String[] commandArray)
+    {
+        run(commandArray, new ArrayList<>());
+    }
+
+    public static void run(final String[] commandArray, final List<RunScriptMonitor> monitors)
     {
         int returnValue = 0;
         try
@@ -33,7 +43,7 @@ public final class RunScript
             final String[] env = System.getenv().entrySet().stream()
                     .map(entry -> entry.getKey() + "=" + entry.getValue())
                     .collect(Collectors.toList()).toArray(new String[0]);
-            final Process process = Runtime.getRuntime().exec(script, env);
+            final Process process = Runtime.getRuntime().exec(commandArray, env);
             final PrinterMonitor printer = new PrinterMonitor(logger);
             SplittableInputStream standardOut = null;
             SplittableInputStream standardErr = null;
@@ -85,12 +95,12 @@ public final class RunScript
         }
         catch (final Exception e)
         {
-            throw new CoreException("Could not launch script \"{}\"", script, e);
+            throw new CoreException("Could not launch script \"{}\"", commandArray, e);
         }
         if (returnValue != 0)
         {
             throw new CoreException("Non-Zero return value {} when running script \"{}\".",
-                    returnValue, script);
+                    returnValue, commandArray);
         }
     }
 

@@ -14,8 +14,11 @@ import org.openstreetmap.atlas.utilities.maps.MultiMapTest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonObject;
+
 /**
  * @author matthieun
+ * @author hallahan
  */
 public class MultiPolygonTest
 {
@@ -188,5 +191,17 @@ public class MultiPolygonTest
                         Longitude.degrees(rectangle.upperRight().getLongitude().asDegrees() + 0.1)),
                 rectangle.lowerRight()));
         Assert.assertEquals(rectangle.surface(), tilted.surface());
+    }
+
+    @Test
+    public void testAsGeoJsonGeometry()
+    {
+        final MultiPolygon multiPolygon = MultiPolygon
+                .wkt("MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),"
+                        + "((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),"
+                        + "(30 20, 20 15, 20 25, 30 20)))");
+        final String geoJson = "{\"type\":\"MultiPolygon\",\"coordinates\":[[[[40.0,40.0],[20.0,45.0],[45.0,30.0],[40.0,40.0]]],[[[20.0,35.0],[10.0,30.0],[10.0,10.0],[30.0,5.0],[45.0,20.0],[20.0,35.0]],[[30.0,20.0],[20.0,15.0],[20.0,25.0],[30.0,20.0]]]]}";
+        final JsonObject geometry = multiPolygon.asGeoJsonGeometry();
+        Assert.assertEquals(geoJson, geometry.toString());
     }
 }
