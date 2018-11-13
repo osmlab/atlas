@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.packed;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -1637,7 +1638,7 @@ public final class PackedAtlas extends AbstractAtlas
 
     private Set<Relation> itemRelations(final long[] relationIndices)
     {
-        final Set<Relation> result = new HashSet<>();
+        final Set<Relation> result = new LinkedHashSet<>();
         if (relationIndices == null)
         {
             return result;
