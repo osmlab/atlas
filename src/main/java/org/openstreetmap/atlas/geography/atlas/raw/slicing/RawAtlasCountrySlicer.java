@@ -82,14 +82,14 @@ public class RawAtlasCountrySlicer
         // duplicate points at the same location and to allow fast lookup to construct new lines
         // requiring the temporary point as a Line shape point
         final CoordinateToNewPointMapping newPointCoordinates = new CoordinateToNewPointMapping();
-
         final RawAtlasSlicer pointAndLineSlicer = new RawAtlasPointAndLineSlicer(this.countries,
                 this.countryBoundaryMap, rawAtlas, slicedPointAndLineChanges, newPointCoordinates);
         final Atlas slicedPointsAndLinesAtlas = pointAndLineSlicer.slice();
 
+        final CoordinateToNewPointMapping newPointCoordinatesRelations = new CoordinateToNewPointMapping();
         final RawAtlasSlicer relationSlicer = new RawAtlasRelationSlicer(slicedPointsAndLinesAtlas,
                 this.countries, this.countryBoundaryMap, slicedPointAndLineChanges,
-                slicedRelationChanges, newPointCoordinates);
+                slicedRelationChanges, newPointCoordinatesRelations);
 
         logger.info("Finished all Slicing for Shard {} in {}", shardName, time.elapsedSince());
         return relationSlicer.slice();
