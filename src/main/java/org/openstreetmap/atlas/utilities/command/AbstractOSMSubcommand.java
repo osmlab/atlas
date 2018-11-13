@@ -72,6 +72,15 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      */
     public abstract void registerOptionsAndArguments();
 
+    /*
+     * A NOTE ON THE ADAPTER OPTION/ARGUMENT PARSING INTERFACE
+     */
+    // While this may seem like duplication of the SimpleOptionAndArgumentParser interface,
+    // it actually allows us to define an immutable interface for subcommand registration. By
+    // setting up the interface this way, we are not wedded to the SimpleOptionAndArgumentParser for
+    // future changes. Should we decide to change it, any subcommands implementing
+    // AbstractOSMSubcommand will not have to change their option registration code.
+
     /**
      * Get the argument of a given option, if present.
      *
@@ -105,15 +114,6 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     {
         return this.parser.getOptionArgument(longForm, converter);
     }
-
-    /*
-     * A NOTE ON THE ADAPTER OPTION/ARGUMENT PARSING INTERFACE
-     */
-    // While this may seem like duplication of the SimpleOptionAndArgumentParser interface,
-    // it actually allows us to define an immutable interface for subcommand registration. By
-    // setting up the interface this way, we are not wedded to the SimpleOptionAndArgumentParser for
-    // future changes. Should we decide to change it, any subcommands implementing
-    // AbstractOSMSubcommand will not have to change their option registration code.
 
     /**
      * Get a {@link TTYStringBuilder} with the correct formatting settings. Implementations of
@@ -475,6 +475,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
             System.exit(0);
         }
 
+        // parse the options and arguments, throwing exceptions on bad input
         try
         {
             this.parser.parseOptionsAndArguments(Arrays.asList(argsCopy));

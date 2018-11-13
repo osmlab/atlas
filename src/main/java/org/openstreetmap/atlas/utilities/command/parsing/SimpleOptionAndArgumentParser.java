@@ -1029,8 +1029,8 @@ public class SimpleOptionAndArgumentParser
                     }
                     else
                     {
-                        throw new OptionParseException(
-                                "option \'" + option.get().getShortForm() + "\' needs an argument");
+                        throw new OptionParseException("option \'"
+                                + option.get().getShortForm().get() + "\' needs an argument");
                     }
                 default:
                     throw new CoreException("Bad OptionArgumentType {}",
@@ -1087,8 +1087,8 @@ public class SimpleOptionAndArgumentParser
                 }
                 if (option.get().getArgumentType() == OptionArgumentType.NONE)
                 {
-                    throw new OptionParseException(
-                            "option \'" + option.get().getShortForm() + "\' takes no argument");
+                    throw new OptionParseException("option \'" + option.get().getShortForm().get()
+                            + "\' takes no argument");
                 }
                 final String optionArgument = scrubbedPrefix.substring(1);
                 this.parsedOptions.put(option.get(), Optional.ofNullable(optionArgument));
