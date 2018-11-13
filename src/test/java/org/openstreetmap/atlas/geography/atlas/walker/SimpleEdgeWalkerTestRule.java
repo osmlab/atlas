@@ -31,10 +31,10 @@ public class SimpleEdgeWalkerTestRule extends CoreTestRule
                     @TestAtlas.Edge(id = "1002000001", coordinates = {
                             @TestAtlas.Loc(value = TEST_3),
                             @TestAtlas.Loc(value = TEST_1) }, tags = { "highway=motorway" }) })
-    private Atlas mototrwayPrimaryTriangleAtlas;
+    private Atlas motorwayPrimaryTriangleAtlas;
 
-    public Atlas mototrwayPrimaryTriangleAtlas()
+    public Atlas motorwayPrimaryTriangleAtlas()
     {
-        return this.mototrwayPrimaryTriangleAtlas;
+        return this.motorwayPrimaryTriangleAtlas;
     }
 }

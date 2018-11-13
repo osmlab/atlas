@@ -22,7 +22,7 @@ public class SimpleEdgeWalkerTest
     {
         Assert.assertEquals(3,
                 new SimpleEdgeWalker(
-                        setup.mototrwayPrimaryTriangleAtlas().edge(FIRST_EDGE_IDENTIFIER),
+                        setup.motorwayPrimaryTriangleAtlas().edge(FIRST_EDGE_IDENTIFIER),
                         edge -> edge.outEdges().stream()).collectEdges().size());
     }
 
@@ -31,7 +31,7 @@ public class SimpleEdgeWalkerTest
     {
         Assert.assertEquals(2,
                 new SimpleEdgeWalker(
-                        setup.mototrwayPrimaryTriangleAtlas().edge(FIRST_EDGE_IDENTIFIER),
+                        setup.motorwayPrimaryTriangleAtlas().edge(FIRST_EDGE_IDENTIFIER),
                         connectedEdge -> Validators.isOfType(connectedEdge, HighwayTag.class,
                                 HighwayTag.PRIMARY),
                         edge -> edge.outEdges().stream()).collectEdges().size());
