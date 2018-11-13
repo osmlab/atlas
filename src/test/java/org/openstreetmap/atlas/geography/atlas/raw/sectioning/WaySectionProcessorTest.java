@@ -283,6 +283,28 @@ public class WaySectionProcessorTest
     }
 
     @Test
+    public void testRelationMemberLocationItemInclusion()
+    {
+        // Based on https://www.openstreetmap.org/relation/578254 - the Node in the Relation gets
+        // created as both an Atlas point and node. Let's verify that the Relation consists of both.
+        final Atlas slicedRawAtlas = this.setup.getNodeAndPointAsRelationMemberAtlas();
+
+        final CountryBoundaryMap boundaryMap = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> WaySectionProcessorTest.class
+                        .getResourceAsStream("nodeAndPointRelationMemberBoundaryMap.txt")));
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
+
+        final RelationMemberList members = finalAtlas.relation(578254000000L).members();
+        Assert.assertEquals("Six members - 2 pairs of reverse edges, 1 node and 1 point", 6,
+                members.size());
+        Assert.assertEquals("Single point", 1, members.stream()
+                .filter(member -> member.getEntity().getType() == ItemType.POINT).count());
+        Assert.assertEquals("Single node", 1, members.stream()
+                .filter(member -> member.getEntity().getType() == ItemType.NODE).count());
+    }
+
+    @Test
     public void testReversedOneWayLine()
     {
         // Based on https://www.openstreetmap.org/way/333112568

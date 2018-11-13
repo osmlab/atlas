@@ -13,6 +13,7 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Latitude;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Longitude;
+import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -192,11 +193,12 @@ public class TestAtlasHandler implements FieldHandler
     private Atlas buildAtlasFromPbf(final Resource pbfResource)
     {
         // Create raw Atlas
-        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(pbfResource);
-        final Atlas rawAtlas = rawAtlasGenerator.build();
+        final AtlasLoadingOption loadingOption = AtlasLoadingOption.withNoFilter();
+        final Atlas rawAtlas = new RawAtlasGenerator(pbfResource, loadingOption,
+                MultiPolygon.MAXIMUM).build();
 
         // Way-section
-        return new WaySectionProcessor(rawAtlas, AtlasLoadingOption.withNoFilter()).run();
+        return new WaySectionProcessor(rawAtlas, loadingOption).run();
     }
 
     private Location convertLoc(final Loc point)

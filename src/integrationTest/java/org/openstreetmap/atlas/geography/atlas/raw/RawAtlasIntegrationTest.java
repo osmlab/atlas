@@ -162,42 +162,23 @@ public class RawAtlasIntegrationTest
 
         // Assert all raw Atlas entities have a country code
         assertAllEntitiesHaveCountryCode(slicedRawAtlas);
-    }
 
-    @Test
-    public void testPbfToSlicedRawAtlasFilterByCountry()
-    {
-        // This test is identical to test PbfToSlicedRawAtlas, with added country filter
-        final String pbfPath = RawAtlasIntegrationTest.class
-                .getResource("8-122-122-trimmed.osm.pbf").getPath();
-        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(pbfPath));
-        final Atlas rawAtlas = rawAtlasGenerator.build();
-
-        // We're only interested in CIV country
+        // Try only with Ivory Coast now!
         final Set<String> onlyIvoryCoast = new HashSet<>();
         onlyIvoryCoast.add("CIV");
-        final Atlas slicedRawAtlas = sliceRawAtlas(rawAtlas, onlyIvoryCoast);
+        final Atlas ivoryCoast = sliceRawAtlas(rawAtlas, onlyIvoryCoast);
 
-        Assert.assertEquals(0, slicedRawAtlas.numberOfNodes());
-        Assert.assertEquals(0, slicedRawAtlas.numberOfEdges());
-        Assert.assertEquals(0, slicedRawAtlas.numberOfAreas());
-        Assert.assertEquals(34784, slicedRawAtlas.numberOfPoints());
-        Assert.assertEquals(3636, slicedRawAtlas.numberOfLines());
-        Assert.assertEquals(6, slicedRawAtlas.numberOfRelations());
+        Assert.assertEquals(0, ivoryCoast.numberOfNodes());
+        Assert.assertEquals(0, ivoryCoast.numberOfEdges());
+        Assert.assertEquals(0, ivoryCoast.numberOfAreas());
+        Assert.assertEquals(34784, ivoryCoast.numberOfPoints());
+        Assert.assertEquals(3636, ivoryCoast.numberOfLines());
+        Assert.assertEquals(6, ivoryCoast.numberOfRelations());
 
         // Assert all raw Atlas entities have a country code
-        assertAllEntitiesHaveCountryCode(slicedRawAtlas);
-    }
+        assertAllEntitiesHaveCountryCode(ivoryCoast);
 
-    @Test
-    public void testSectioningFromRawAtlas()
-    {
-        final String path = RawAtlasIntegrationTest.class.getResource("8-122-122-trimmed.osm.pbf")
-                .getPath();
-        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
-        final Atlas rawAtlas = rawAtlasGenerator.build();
-        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
+        // Test sectioning!
         final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
@@ -247,14 +228,6 @@ public class RawAtlasIntegrationTest
         Assert.assertEquals(5126, finalAtlas.numberOfAreas());
         Assert.assertEquals(184, finalAtlas.numberOfPoints());
         Assert.assertEquals(271, finalAtlas.numberOfLines());
-
-        /*
-         * This has been updated to 16 instead of 14. This is because two of the relations in
-         * 8-122-122-trimmed.osm.pbf have subrelations, and so the WaySectionProcessor was simply
-         * dropping them when using the old BareAtlas.relationsLowerOrderFirstCode (We have now
-         * fixed BareAtlas.relationsLowerOrderFirst to not drop relations when the BareAtlas is a
-         * DynamicAtlas). In reality, we should process them and include then in the final atlas.
-         */
         Assert.assertEquals(16, finalAtlas.numberOfRelations());
     }
 

@@ -85,7 +85,7 @@ public class RawAtlasGenerator
      */
     public RawAtlasGenerator(final Resource resource)
     {
-        this(resource, AtlasLoadingOption.createOptionWithNoSlicing(), MultiPolygon.MAXIMUM);
+        this(resource, AtlasLoadingOption.createOptionWithOnlySectioning(), MultiPolygon.MAXIMUM);
     }
 
     /**
@@ -114,12 +114,10 @@ public class RawAtlasGenerator
      */
     public RawAtlasGenerator(final Resource resource, final MultiPolygon boundingBox)
     {
-        // TODO : Update AtlasLoadingOption to remove country-slicing/way-sectioning configurations
-        // after refactor is complete.
         this(resource, AtlasLoadingOption.createOptionWithNoSlicing(), boundingBox);
     }
 
-    protected RawAtlasGenerator(final Supplier<CloseableOsmosisReader> osmosisReaderSupplier,
+    public RawAtlasGenerator(final Supplier<CloseableOsmosisReader> osmosisReaderSupplier,
             final AtlasLoadingOption atlasLoadingOption, final GeometricSurface boundingBox)
     {
         this.osmosisReaderSupplier = osmosisReaderSupplier;

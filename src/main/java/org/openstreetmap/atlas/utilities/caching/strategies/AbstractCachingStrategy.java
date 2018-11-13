@@ -1,22 +1,23 @@
 package org.openstreetmap.atlas.utilities.caching.strategies;
 
 import java.net.URI;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.openstreetmap.atlas.streaming.resource.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Base implementation of the {@link CachingStrategy} interface. Provides some additional
+ * An incomplete implementation of the {@link CachingStrategy} interface. Provides some additional
  * functionality for subclasses to leverage.
  *
  * @author lcram
  */
 public abstract class AbstractCachingStrategy implements CachingStrategy
 {
+    private static final Logger logger = LoggerFactory.getLogger(AbstractCachingStrategy.class);
+
     /*
      * Cache the UUIDs for each URI so we only have to compute them once. Caching them in a
      * comparatively small map is significantly faster than recomputing them every time. Subclasses
@@ -24,20 +25,28 @@ public abstract class AbstractCachingStrategy implements CachingStrategy
      */
     private final Map<String, UUID> uriStringToUUIDCache;
 
+    private final UUID strategyID;
+
     public AbstractCachingStrategy()
     {
-        this.uriStringToUUIDCache = new HashMap<>();
+        this.uriStringToUUIDCache = new ConcurrentHashMap<>();
+        this.strategyID = UUID.randomUUID();
+        logger.info("Initialized strategy {} with ID {}", this.getClass().getName(),
+                this.strategyID);
     }
 
-    @Override
-    public abstract Optional<Resource> attemptFetch(URI resourceURI,
-            Function<URI, Resource> defaultFetcher);
-
-    @Override
-    public abstract String getName();
+    /**
+     * Get a {@link UUID} for this strategy instance. This is useful for logging.
+     *
+     * @return The strategy instance {@link UUID}
+     */
+    protected UUID getStrategyID()
+    {
+        return this.strategyID;
+    }
 
     /**
-     * Given a URI, get a universally unique identifier ({@link UUID}) for that URI. This method
+     * Given a URI, compute a universally unique identifier ({@link UUID}) for that URI. This method
      * uses the {@link String} representation of a URI to compute the UUID. It will also cache
      * computed UUIDs, so subsequent fetches will not incur a re-computation performance penalty.
      *

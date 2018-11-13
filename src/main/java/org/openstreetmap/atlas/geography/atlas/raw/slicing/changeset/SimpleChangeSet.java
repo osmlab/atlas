@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.TagMap;
 import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryEntity;
 import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryLine;
 import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryPoint;
@@ -23,16 +24,14 @@ import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryPoint;
  */
 public class SimpleChangeSet
 {
-    // TODO Use TagMap instead of Map<String, String>
-
     // Points
     private final Set<TemporaryPoint> createdPoints;
-    private final Map<Long, Map<String, String>> updatedPointTags;
+    private final Map<Long, TagMap> updatedPointTags;
     private final Set<Long> deletedPoints;
 
     // Lines
     private final Set<TemporaryLine> createdLines;
-    private final Map<Long, Map<String, String>> updatedLineTags;
+    private final Map<Long, TagMap> updatedLineTags;
 
     // Lines that were sliced will be deleted and replaced by two or more new line segments. We need
     // to maintain this mapping to maintain relation integrity by removing deleted line members and
@@ -90,23 +89,23 @@ public class SimpleChangeSet
         return this.deletedToCreatedLineMapping;
     }
 
-    public Map<Long, Map<String, String>> getUpdatedLineTags()
+    public Map<Long, TagMap> getUpdatedLineTags()
     {
         return this.updatedLineTags;
     }
 
-    public Map<Long, Map<String, String>> getUpdatedPointTags()
+    public Map<Long, TagMap> getUpdatedPointTags()
     {
         return this.updatedPointTags;
     }
 
     public void updateLineTags(final long lineIdentifier, final Map<String, String> newTags)
     {
-        this.updatedLineTags.put(lineIdentifier, newTags);
+        this.updatedLineTags.put(lineIdentifier, new TagMap(newTags));
     }
 
     public void updatePointTags(final long pointIdentifier, final Map<String, String> newTags)
     {
-        this.updatedPointTags.put(pointIdentifier, newTags);
+        this.updatedPointTags.put(pointIdentifier, new TagMap(newTags));
     }
 }
