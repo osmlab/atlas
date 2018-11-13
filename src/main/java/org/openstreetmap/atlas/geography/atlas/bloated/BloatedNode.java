@@ -12,6 +12,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
 /**
+ * Independent {@link Node} that contains its own data. At scale, use at your own risk.
+ *
  * @author matthieun
  */
 public class BloatedNode extends Node
@@ -38,8 +40,14 @@ public class BloatedNode extends Node
         this.relationIdentifiers = relationIdentifiers;
     }
 
-    // Constructor to be used only in BloatedEdge and BloatedRelation
-    public BloatedNode(final Long identifier)
+    /**
+     * Constructor to be used only in BloatedEdge and BloatedRelation. Used otherwise, and this
+     * object will misbehave.
+     *
+     * @param identifier
+     *            The feature identifier
+     */
+    protected BloatedNode(final Long identifier)
     {
         this(identifier, null, null, null, null, null);
     }

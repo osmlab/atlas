@@ -27,7 +27,9 @@ import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 
 /**
- * Simple Atlas that supports single temporary entities.
+ * Simple Atlas that supports single temporary entities. It does not do anything by design, as all
+ * the Bloated entities are self-contained. They just need an Atlas to refer to, so they comply with
+ * the Edge, Node, Area etc. definitions.
  *
  * @author matthieun
  */

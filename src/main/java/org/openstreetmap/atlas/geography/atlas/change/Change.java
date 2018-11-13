@@ -23,7 +23,9 @@ import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
 /**
- * A change that can be applied to an {@link Atlas} to generate a {@link ChangeAtlas}
+ * A change that can be applied to an {@link Atlas} to generate a {@link ChangeAtlas}.
+ * <p>
+ * It contains a collection of {@link FeatureChange} objects, which describe the changes.
  *
  * @author matthieun
  */

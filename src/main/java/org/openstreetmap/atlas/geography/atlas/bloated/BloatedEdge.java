@@ -9,6 +9,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
 /**
+ * Independent {@link Edge} that contains its own data. At scale, use at your own risk.
+ *
  * @author matthieun
  */
 public class BloatedEdge extends Edge
@@ -22,7 +24,13 @@ public class BloatedEdge extends Edge
     final Long endNodeIdentifier;
     final Set<Long> relationIdentifiers;
 
-    // Constructor to be used only in BloatedNode and BloatedRelation
+    /**
+     * Constructor to be used only in BloatedNode and BloatedRelation. Used otherwise, and this
+     * object will misbehave.
+     * 
+     * @param identifier
+     *            The feature identifier
+     */
     protected BloatedEdge(final long identifier)
     {
         super(new BloatedAtlas());

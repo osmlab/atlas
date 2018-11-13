@@ -169,6 +169,25 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Build a "Change" feature for this {@link ChangeAtlas} by querying the change object for
+     * matching features. Use the source atlas otherwise.
+     *
+     * @param <T>
+     *            The type of the feature to be built. Has to extend {@link AtlasEntity}.
+     * @param identifier
+     *            The feature identifier
+     * @param itemType
+     *            The feature type
+     * @param sourceSupplier
+     *            A supplier function that creates the entity from the source. Can return null if
+     *            the source atlas does not contain that feature.
+     * @param entityConstructorFromSource
+     *            A function that takes the updated feature from the {@link Change} object, and
+     *            constructs a new ChangeItem from it, that attaches to this Atlas.
+     * @return The ChangeItem that corresponds to that feature. Can be a ChangeNode, ChangeEdge,
+     *         etc. It links back to this Atlas.
+     */
     private <T extends AtlasEntity> T buildFor(final long identifier, final ItemType itemType,
             final Supplier<AtlasEntity> sourceSupplier,
             final Function<AtlasEntity, T> entityConstructorFromSource)
