@@ -18,14 +18,33 @@ public class BloatedEdge extends Edge
     private final long identifier;
     private final PolyLine polyLine;
     private final Map<String, String> tags;
+    final Long startNodeIdentifier;
+    final Long endNodeIdentifier;
+    final Set<Long> relationIdentifiers;
+
+    // Constructor to be used only in BloatedNode and BloatedRelation
+    protected BloatedEdge(final long identifier)
+    {
+        super(new BloatedAtlas());
+        this.identifier = identifier;
+        this.polyLine = null;
+        this.tags = null;
+        this.startNodeIdentifier = null;
+        this.endNodeIdentifier = null;
+        this.relationIdentifiers = null;
+    }
 
     protected BloatedEdge(final long identifier, final PolyLine polyLine,
-            final Map<String, String> tags)
+            final Map<String, String> tags, final long startNodeIdentifier,
+            final long endNodeIdentifier, final Set<Long> relationIdentifiers)
     {
         super(new BloatedAtlas());
         this.identifier = identifier;
         this.polyLine = polyLine;
         this.tags = tags;
+        this.startNodeIdentifier = startNodeIdentifier;
+        this.endNodeIdentifier = endNodeIdentifier;
+        this.relationIdentifiers = relationIdentifiers;
     }
 
     @Override
@@ -37,7 +56,7 @@ public class BloatedEdge extends Edge
     @Override
     public Node end()
     {
-        throw new UnsupportedOperationException();
+        return new BloatedNode(this.endNodeIdentifier);
     }
 
     @Override
@@ -50,9 +69,9 @@ public class BloatedEdge extends Edge
         if (other != null && this.getClass() == other.getClass())
         {
             final BloatedEdge that = (BloatedEdge) other;
-            return this.getIdentifier() == that.getIdentifier()
-                    && this.asPolyLine().equals(that.asPolyLine())
-                    && this.getTags().equals(that.getTags());
+            // Here override the Atlas equality check in Edge.equals() as the BloatedAtlas is always
+            // empty and unique.
+            return this.getIdentifier() == that.getIdentifier();
         }
         return false;
     }
@@ -78,6 +97,6 @@ public class BloatedEdge extends Edge
     @Override
     public Node start()
     {
-        throw new UnsupportedOperationException();
+        return new BloatedNode(this.startNodeIdentifier);
     }
 }
