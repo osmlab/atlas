@@ -994,11 +994,11 @@ public class SimpleOptionAndArgumentParser
         final String scrubbedPrefix = argument.substring(SHORT_FORM_PREFIX.length());
 
         // Two cases
-        // 1) command line looks like "... -o anotherThing ..."
-        // 2) command line looks like "... -omoreStuff ..."
+        // 1) command line looks like "... -o arg ..."
+        // 2) command line looks like "... -oarg ..."
         // scrubbedPrefix length will never be < 1
 
-        // Case 1) "... -o anotherThing ..."
+        // Case 1) "... -o arg ..."
         if (scrubbedPrefix.length() == 1)
         {
             final Optional<SimpleOption> option = registeredOptionForShortForm(
@@ -1037,12 +1037,12 @@ public class SimpleOptionAndArgumentParser
                             option.get().getArgumentType());
             }
         }
-        // Case 2) "... -omoreStuff ..."
+        // Case 2) "... -oarg ..."
         else
         {
             // Cases to handle here
-            // a) The option is using bundling, ie. ("-a -b -c" => "-abc")
-            // b) The option is using an argument, ie. (-oarg where "arg" is an argument to "-o")
+            // a) The option is using bundling, ie. ("-oarg" meaning "-o -a -r -g")
+            // b) The option is using an argument, ie. ("-oarg" where "arg" is an argument to "-o")
 
             // Check for case a) determine if valid bundle
             boolean isValidBundle = true;
