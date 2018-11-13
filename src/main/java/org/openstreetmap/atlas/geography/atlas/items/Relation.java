@@ -263,45 +263,6 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     }
 
     @Override
-    public JsonObject geoJsonProperties()
-    {
-        final JsonObject properties = super.geoJsonProperties();
-
-        final RelationMemberList members = members();
-        final JsonArray membersArray = new JsonArray();
-        properties.add("members", membersArray);
-        for (final RelationMember member : members)
-        {
-            final JsonObject memberObject = new JsonObject();
-            membersArray.add(memberObject);
-            final AtlasEntity entity = member.getEntity();
-            if (entity != null)
-            {
-                final long identifier = entity.getIdentifier();
-                memberObject.addProperty(GeoJsonUtils.IDENTIFIER, identifier);
-                memberObject.addProperty("itemType", entity.getType().name());
-            }
-            else
-            {
-                // We shouldn't get here, but if we do, let's know about it in the data...
-                memberObject.addProperty(GeoJsonUtils.IDENTIFIER, "MISSING");
-                logger.warn("Missing identifier for relation entity: Relation ID: {}",
-                        getIdentifier());
-            }
-
-            // Sometimes a member doesnt have a role. That's normal.
-            final String role = member.getRole();
-            if (role != null)
-            {
-                // And sometimes the role is "", but we should keep it that way...
-                memberObject.addProperty("role", role);
-            }
-        }
-
-        return properties;
-    }
-
-    @Override
     public JsonObject asGeoJsonFeature()
     {
         final JsonObject properties = geoJsonProperties();
@@ -341,7 +302,53 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
             geometry = GeoJsonUtils.boundsToPolygonGeometry(bounds());
         }
 
+        addMembersToProperties(properties);
+
         return GeoJsonUtils.feature(geometry, properties);
+    }
+
+    /**
+     * We explicitly want to add member metadata to the properties of Relations, but only when we
+     * are serializing relation entities. Overriding geoJsonProperties() would not work properly,
+     * because that gets called when you are listing metadata about relations a non-relation entity
+     * may be in. Calling this method, only in this class, avoids a recursive call that would list
+     * members of relations in relation metadata for non-relation entities.
+     *
+     * @param properties
+     *            The JsonObject properties object we will add member metadata to.
+     */
+    private void addMembersToProperties(final JsonObject properties)
+    {
+        final RelationMemberList members = members();
+        final JsonArray membersArray = new JsonArray();
+        properties.add("members", membersArray);
+        for (final RelationMember member : members)
+        {
+            final JsonObject memberObject = new JsonObject();
+            membersArray.add(memberObject);
+            final AtlasEntity entity = member.getEntity();
+            if (entity != null)
+            {
+                final long identifier = entity.getIdentifier();
+                memberObject.addProperty(GeoJsonUtils.IDENTIFIER, identifier);
+                memberObject.addProperty("itemType", entity.getType().name());
+            }
+            else
+            {
+                // We shouldn't get here, but if we do, let's know about it in the data...
+                memberObject.addProperty(GeoJsonUtils.IDENTIFIER, "MISSING");
+                logger.warn("Missing identifier for relation entity: Relation ID: {}",
+                        getIdentifier());
+            }
+
+            // Sometimes a member doesnt have a role. That's normal.
+            final String role = member.getRole();
+            if (role != null)
+            {
+                // And sometimes the role is "", but we should keep it that way...
+                memberObject.addProperty("role", role);
+            }
+        }
     }
 
     public String toSimpleString()
