@@ -34,6 +34,7 @@ import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 /**
@@ -259,6 +260,45 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         shardName.ifPresent(shard -> tags.put("shard", shard));
 
         return new GeoJsonBuilder.LocationIterableProperties(Location.CENTER, tags);
+    }
+
+    @Override
+    public JsonObject geoJsonProperties()
+    {
+        final JsonObject properties = super.geoJsonProperties();
+
+        final RelationMemberList members = members();
+        final JsonArray membersArray = new JsonArray();
+        properties.add("members", membersArray);
+        for (final RelationMember member : members)
+        {
+            final JsonObject memberObject = new JsonObject();
+            membersArray.add(memberObject);
+            final AtlasEntity entity = member.getEntity();
+            if (entity != null)
+            {
+                final long identifier = entity.getIdentifier();
+                memberObject.addProperty(GeoJsonUtils.IDENTIFIER, identifier);
+                memberObject.addProperty("itemType", entity.getType().name());
+            }
+            else
+            {
+                // We shouldn't get here, but if we do, let's know about it in the data...
+                memberObject.addProperty(GeoJsonUtils.IDENTIFIER, "MISSING");
+                logger.warn("Missing identifier for relation entity: Relation ID: {}",
+                        getIdentifier());
+            }
+
+            // Sometimes a member doesnt have a role. That's normal.
+            final String role = member.getRole();
+            if (role != null)
+            {
+                // And sometimes the role is "", but we should keep it that way...
+                memberObject.addProperty("role", role);
+            }
+        }
+
+        return properties;
     }
 
     @Override
