@@ -13,18 +13,18 @@ import org.slf4j.LoggerFactory;
 /**
  * @author matthieun
  */
-class ChangeAtlasNodeValidator
+public class ChangeAtlasNodeValidator
 {
     private static final Logger logger = LoggerFactory.getLogger(ChangeAtlasNodeValidator.class);
 
     private final ChangeAtlas atlas;
 
-    ChangeAtlasNodeValidator(final ChangeAtlas atlas)
+    public ChangeAtlasNodeValidator(final ChangeAtlas atlas)
     {
         this.atlas = atlas;
     }
 
-    protected void validate()
+    public void validate()
     {
         logger.trace("Starting Node validation of ChangeAtlas {}", this.atlas.getName());
         final Time start = Time.now();
@@ -34,7 +34,7 @@ class ChangeAtlasNodeValidator
                 start.elapsedSince());
     }
 
-    private void validateNodeToEdgeConnectivity()
+    public void validateNodeToEdgeConnectivity()
     {
         for (final Node node : this.atlas.nodes())
         {
@@ -59,7 +59,7 @@ class ChangeAtlasNodeValidator
         }
     }
 
-    private void validateNodeToEdgeLocationAccuracy()
+    public void validateNodeToEdgeLocationAccuracy()
     {
         for (final Node node : this.atlas.nodes())
         {
