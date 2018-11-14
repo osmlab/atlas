@@ -18,6 +18,7 @@
     <nd ref='-39002' />
     <nd ref='-39004' />
     <tag k='highway' v='primary' />
+    <tag k='name' v='primary' />
   </way>
   <way id='-39014' action='modify'>
     <nd ref='-39013' />
@@ -25,6 +26,7 @@
     <nd ref='-39015' />
     <nd ref='-39017' />
     <tag k='highway' v='motorway' />
+    <tag k='name' v='motorway' />
     <tag k='oneway' v='yes' />
   </way>
   <way id='-39034' action='modify'>
@@ -37,6 +39,7 @@
     <nd ref='-39032' />
     <tag k='highway' v='secondary' />
     <tag k='junction' v='roundabout' />
+    <tag k='name' v='secondary' />
     <tag k='oneway' v='yes' />
   </way>
   <relation id='-39069' action='modify'>

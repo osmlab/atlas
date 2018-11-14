@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
+import java.util.Map;
 import java.util.Set;
 
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -38,6 +39,12 @@ public class ChangeEdge extends Edge // NOSONAR
     public long getIdentifier()
     {
         return this.source.getIdentifier();
+    }
+
+    @Override
+    public Map<String, String> getTags()
+    {
+        return this.source.getTags();
     }
 
     @Override

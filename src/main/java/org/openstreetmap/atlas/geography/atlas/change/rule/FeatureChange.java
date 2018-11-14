@@ -61,4 +61,11 @@ public class FeatureChange implements Located, Serializable
     {
         return this.reference;
     }
+
+    @Override
+    public String toString()
+    {
+        return "FeatureChange [changeType=" + this.changeType + ", reference=" + this.reference
+                + "]";
+    }
 }

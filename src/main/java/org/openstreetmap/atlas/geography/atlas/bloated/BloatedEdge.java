@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.bloated;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -17,17 +18,37 @@ public class BloatedEdge extends Edge
 {
     private static final long serialVersionUID = 309534717673911086L;
 
-    private final long identifier;
-    private final PolyLine polyLine;
-    private final Map<String, String> tags;
-    final Long startNodeIdentifier;
-    final Long endNodeIdentifier;
-    final Set<Long> relationIdentifiers;
+    private long identifier;
+    private PolyLine polyLine;
+    private Map<String, String> tags;
+    private Long startNodeIdentifier;
+    private Long endNodeIdentifier;
+    private Set<Long> relationIdentifiers;
+
+    public static BloatedEdge fromEdge(final Edge edge)
+    {
+        return new BloatedEdge(edge.getIdentifier(), edge.asPolyLine(), edge.getTags(),
+                edge.start().getIdentifier(), edge.end().getIdentifier(),
+                edge.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
+    }
+
+    public BloatedEdge(final long identifier, final PolyLine polyLine,
+            final Map<String, String> tags, final long startNodeIdentifier,
+            final long endNodeIdentifier, final Set<Long> relationIdentifiers)
+    {
+        super(new BloatedAtlas());
+        this.identifier = identifier;
+        this.polyLine = polyLine;
+        this.tags = tags;
+        this.startNodeIdentifier = startNodeIdentifier;
+        this.endNodeIdentifier = endNodeIdentifier;
+        this.relationIdentifiers = relationIdentifiers;
+    }
 
     /**
      * Constructor to be used only in BloatedNode and BloatedRelation. Used otherwise, and this
      * object will misbehave.
-     * 
+     *
      * @param identifier
      *            The feature identifier
      */
@@ -40,19 +61,6 @@ public class BloatedEdge extends Edge
         this.startNodeIdentifier = null;
         this.endNodeIdentifier = null;
         this.relationIdentifiers = null;
-    }
-
-    protected BloatedEdge(final long identifier, final PolyLine polyLine,
-            final Map<String, String> tags, final long startNodeIdentifier,
-            final long endNodeIdentifier, final Set<Long> relationIdentifiers)
-    {
-        super(new BloatedAtlas());
-        this.identifier = identifier;
-        this.polyLine = polyLine;
-        this.tags = tags;
-        this.startNodeIdentifier = startNodeIdentifier;
-        this.endNodeIdentifier = endNodeIdentifier;
-        this.relationIdentifiers = relationIdentifiers;
     }
 
     @Override
@@ -106,5 +114,41 @@ public class BloatedEdge extends Edge
     public Node start()
     {
         return new BloatedNode(this.startNodeIdentifier);
+    }
+
+    public BloatedEdge withEndNodeIdentifier(final Long endNodeIdentifier)
+    {
+        this.endNodeIdentifier = endNodeIdentifier;
+        return this;
+    }
+
+    public BloatedEdge withIdentifier(final long identifier)
+    {
+        this.identifier = identifier;
+        return this;
+    }
+
+    public BloatedEdge withPolyLine(final PolyLine polyLine)
+    {
+        this.polyLine = polyLine;
+        return this;
+    }
+
+    public BloatedEdge withRelationIdentifiers(final Set<Long> relationIdentifiers)
+    {
+        this.relationIdentifiers = relationIdentifiers;
+        return this;
+    }
+
+    public BloatedEdge withStartNodeIdentifier(final Long startNodeIdentifier)
+    {
+        this.startNodeIdentifier = startNodeIdentifier;
+        return this;
+    }
+
+    public BloatedEdge withTags(final Map<String, String> tags)
+    {
+        this.tags = tags;
+        return this;
     }
 }

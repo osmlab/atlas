@@ -19,6 +19,7 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.LocationItem;
 import org.openstreetmap.atlas.geography.index.RTree;
+import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
@@ -57,9 +58,25 @@ public class Change implements Located, Serializable
         return this.indexToFeatureChange.values();
     }
 
-    protected void addFeatureChange(final FeatureChange featureChange)
+    @Override
+    public String toString()
     {
-        final long currentIndex = this.indexToFeatureChange.lastKey() + 1;
+        final StringList split = new StringList();
+        final StringBuilder builder = new StringBuilder();
+        this.indexToFeatureChange
+                .forEach((index, featureChange) -> split.add(index + " - " + featureChange));
+        builder.append("[Change:");
+        builder.append(System.lineSeparator());
+        builder.append(split.join(System.lineSeparator()));
+        builder.append(System.lineSeparator());
+        builder.append("]");
+        return builder.toString();
+    }
+
+    protected void add(final FeatureChange featureChange)
+    {
+        final long currentIndex = this.indexToFeatureChange.isEmpty() ? 0
+                : this.indexToFeatureChange.lastKey() + 1;
         final Tuple<ItemType, Long> key = new Tuple<>(featureChange.getItemType(),
                 featureChange.getIdentifier());
         if (!this.identifierToIndex.containsKey(key))
@@ -91,8 +108,12 @@ public class Change implements Located, Serializable
 
     protected Optional<FeatureChange> changeFor(final ItemType itemType, final Long identifier)
     {
-        return Optional.ofNullable(this.indexToFeatureChange
-                .get(this.identifierToIndex.get(new Tuple<>(itemType, identifier))));
+        final Tuple<ItemType, Long> key = new Tuple<>(itemType, identifier);
+        if (!this.identifierToIndex.containsKey(key))
+        {
+            return Optional.empty();
+        }
+        return Optional.of(this.indexToFeatureChange.get(this.identifierToIndex.get(key)));
     }
 
     protected Stream<FeatureChange> changesFor(final ItemType itemType)
@@ -100,6 +121,11 @@ public class Change implements Located, Serializable
         return this.identifierToIndex.keySet().stream()
                 .filter(tuple -> tuple.getFirst() == itemType)
                 .map(tuple -> this.indexToFeatureChange.get(this.identifierToIndex.get(tuple)));
+    }
+
+    protected void validate()
+    {
+        new ChangeValidator(this).validate();
     }
 
     private RTree<FeatureChange> getSpatialIndex()

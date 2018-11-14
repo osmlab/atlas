@@ -45,6 +45,7 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
         }
         this.change = change;
         this.source = source;
+        new ChangeAtlasValidator(this).validate();
     }
 
     @Override

@@ -20,12 +20,22 @@ public class BloatedNode extends Node
 {
     private static final long serialVersionUID = -8229589987121555419L;
 
-    private final long identifier;
-    private final Location location;
-    private final Map<String, String> tags;
-    private final SortedSet<Long> inEdgeIdentifiers;
-    private final SortedSet<Long> outEdgeIdentifiers;
-    private final Set<Long> relationIdentifiers;
+    private long identifier;
+    private Location location;
+    private Map<String, String> tags;
+    private SortedSet<Long> inEdgeIdentifiers;
+    private SortedSet<Long> outEdgeIdentifiers;
+    private Set<Long> relationIdentifiers;
+
+    public static BloatedNode fromNode(final Node node)
+    {
+        return new BloatedNode(node.getIdentifier(), node.getLocation(), node.getTags(),
+                node.inEdges().stream().map(Edge::getIdentifier)
+                        .collect(Collectors.toCollection(TreeSet::new)),
+                node.outEdges().stream().map(Edge::getIdentifier)
+                        .collect(Collectors.toCollection(TreeSet::new)),
+                node.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
+    }
 
     public BloatedNode(final long identifier, final Location location,
             final Map<String, String> tags, final SortedSet<Long> inEdgeIdentifiers,
@@ -105,5 +115,41 @@ public class BloatedNode extends Node
     public Set<Relation> relations()
     {
         throw new UnsupportedOperationException();
+    }
+
+    public BloatedNode withIdentifier(final long identifier)
+    {
+        this.identifier = identifier;
+        return this;
+    }
+
+    public BloatedNode withInEdgeIdentifiers(final SortedSet<Long> inEdgeIdentifiers)
+    {
+        this.inEdgeIdentifiers = inEdgeIdentifiers;
+        return this;
+    }
+
+    public BloatedNode withLocation(final Location location)
+    {
+        this.location = location;
+        return this;
+    }
+
+    public BloatedNode withOutEdgeIdentifiers(final SortedSet<Long> outEdgeIdentifiers)
+    {
+        this.outEdgeIdentifiers = outEdgeIdentifiers;
+        return this;
+    }
+
+    public BloatedNode withRelationIdentifiers(final Set<Long> relationIdentifiers)
+    {
+        this.relationIdentifiers = relationIdentifiers;
+        return this;
+    }
+
+    public BloatedNode withTags(final Map<String, String> tags)
+    {
+        this.tags = tags;
+        return this;
     }
 }
