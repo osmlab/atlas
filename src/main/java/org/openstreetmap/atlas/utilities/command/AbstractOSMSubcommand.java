@@ -482,7 +482,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
         }
         catch (final UnknownOptionException exception)
         {
-            printlnErrorMessage("unknown option " + exception.getMessage());
+            printlnErrorMessage("unknown option \'" + exception.getMessage() + "\'");
             printStderr("Try \'");
             printStderr("--help", TTYAttribute.BOLD);
             printStderr("\' option for more info.\n");
