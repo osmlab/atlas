@@ -35,6 +35,11 @@ public class ChangeEdge extends Edge // NOSONAR
         return getChangeAtlas().node(endNodeIdentifier());
     }
 
+    public long endNodeIdentifier()
+    {
+        return this.source.end().getIdentifier();
+    }
+
     @Override
     public long getIdentifier()
     {
@@ -59,12 +64,7 @@ public class ChangeEdge extends Edge // NOSONAR
         return getChangeAtlas().node(startNodeIdentifier());
     }
 
-    protected long endNodeIdentifier()
-    {
-        return this.source.end().getIdentifier();
-    }
-
-    protected long startNodeIdentifier()
+    public long startNodeIdentifier()
     {
         return this.source.start().getIdentifier();
     }

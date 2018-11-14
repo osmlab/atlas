@@ -1,5 +1,6 @@
-package org.openstreetmap.atlas.geography.atlas.change;
+package org.openstreetmap.atlas.geography.atlas.change.validators;
 
+import org.openstreetmap.atlas.geography.atlas.change.Change;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,18 +10,18 @@ import org.slf4j.LoggerFactory;
  *
  * @author matthieun
  */
-class ChangeValidator
+public class ChangeValidator
 {
     private static final Logger logger = LoggerFactory.getLogger(ChangeValidator.class);
 
     private final Change change;
 
-    ChangeValidator(final Change change)
+    public ChangeValidator(final Change change)
     {
         this.change = change;
     }
 
-    protected void validate()
+    public void validate()
     {
         logger.debug("Starting validation of Change {}", this.change.getName());
         final Time start = Time.now();

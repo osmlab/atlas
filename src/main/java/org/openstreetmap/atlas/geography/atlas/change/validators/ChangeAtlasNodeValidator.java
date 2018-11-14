@@ -1,7 +1,9 @@
-package org.openstreetmap.atlas.geography.atlas.change;
+package org.openstreetmap.atlas.geography.atlas.change.validators;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.atlas.change.ChangeAtlas;
+import org.openstreetmap.atlas.geography.atlas.change.ChangeNode;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.utilities.time.Time;
@@ -11,13 +13,13 @@ import org.slf4j.LoggerFactory;
 /**
  * @author matthieun
  */
-public class ChangeAtlasNodeValidator
+class ChangeAtlasNodeValidator
 {
     private static final Logger logger = LoggerFactory.getLogger(ChangeAtlasNodeValidator.class);
 
     private final ChangeAtlas atlas;
 
-    protected ChangeAtlasNodeValidator(final ChangeAtlas atlas)
+    ChangeAtlasNodeValidator(final ChangeAtlas atlas)
     {
         this.atlas = atlas;
     }
@@ -28,7 +30,7 @@ public class ChangeAtlasNodeValidator
         final Time start = Time.now();
         validateNodeToEdgeConnectivity();
         validateNodeToEdgeLocationAccuracy();
-        logger.debug("Finished Node validation of ChangeAtlas {} in {}", this.atlas.getName(),
+        logger.trace("Finished Node validation of ChangeAtlas {} in {}", this.atlas.getName(),
                 start.elapsedSince());
     }
 

@@ -37,11 +37,23 @@ public class ChangeNode extends Node // NOSONAR
         return this.source.getLocation();
     }
 
+    public SortedSet<Long> inEdgeIdentifiers()
+    {
+        return this.source.inEdges().stream().map(Edge::getIdentifier)
+                .collect(Collectors.toCollection(TreeSet::new));
+    }
+
     @Override
     public SortedSet<Edge> inEdges()
     {
         return this.source.inEdges().stream()
                 .map(edge -> getChangeAtlas().edge(edge.getIdentifier()))
+                .collect(Collectors.toCollection(TreeSet::new));
+    }
+
+    public SortedSet<Long> outEdgeIdentifiers()
+    {
+        return this.source.outEdges().stream().map(Edge::getIdentifier)
                 .collect(Collectors.toCollection(TreeSet::new));
     }
 
@@ -57,18 +69,6 @@ public class ChangeNode extends Node // NOSONAR
     public Set<Relation> relations()
     {
         throw new UnsupportedOperationException();
-    }
-
-    protected SortedSet<Long> inEdgeIdentifiers()
-    {
-        return this.source.inEdges().stream().map(Edge::getIdentifier)
-                .collect(Collectors.toCollection(TreeSet::new));
-    }
-
-    protected SortedSet<Long> outEdgeIdentifiers()
-    {
-        return this.source.outEdges().stream().map(Edge::getIdentifier)
-                .collect(Collectors.toCollection(TreeSet::new));
     }
 
     private ChangeAtlas getChangeAtlas()

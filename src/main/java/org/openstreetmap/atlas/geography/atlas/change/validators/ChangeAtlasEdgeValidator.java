@@ -1,7 +1,9 @@
-package org.openstreetmap.atlas.geography.atlas.change;
+package org.openstreetmap.atlas.geography.atlas.change.validators;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.atlas.change.ChangeAtlas;
+import org.openstreetmap.atlas.geography.atlas.change.ChangeEdge;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
@@ -10,13 +12,13 @@ import org.slf4j.LoggerFactory;
 /**
  * @author matthieun
  */
-public class ChangeAtlasEdgeValidator
+class ChangeAtlasEdgeValidator
 {
     private static final Logger logger = LoggerFactory.getLogger(ChangeAtlasEdgeValidator.class);
 
     private final ChangeAtlas atlas;
 
-    protected ChangeAtlasEdgeValidator(final ChangeAtlas atlas)
+    ChangeAtlasEdgeValidator(final ChangeAtlas atlas)
     {
         this.atlas = atlas;
     }
@@ -25,10 +27,22 @@ public class ChangeAtlasEdgeValidator
     {
         logger.trace("Starting Edge validation of ChangeAtlas {}", this.atlas.getName());
         final Time start = Time.now();
+        validateEdgePolyLinePresent();
         validateEdgeToNodeConnectivity();
         validateEdgeToNodeLocationAccuracy();
         logger.debug("Finished Edge validation of ChangeAtlas {} in {}", this.atlas.getName(),
                 start.elapsedSince());
+    }
+
+    private void validateEdgePolyLinePresent()
+    {
+        for (final Edge edge : this.atlas.edges())
+        {
+            if (edge.asPolyLine() == null)
+            {
+                throw new CoreException("Edge {} is missing its PolyLine.", edge.getIdentifier());
+            }
+        }
     }
 
     private void validateEdgeToNodeConnectivity()
