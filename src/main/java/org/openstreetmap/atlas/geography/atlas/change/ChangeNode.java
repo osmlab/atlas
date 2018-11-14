@@ -59,6 +59,18 @@ public class ChangeNode extends Node // NOSONAR
         throw new UnsupportedOperationException();
     }
 
+    protected SortedSet<Long> inEdgeIdentifiers()
+    {
+        return this.source.inEdges().stream().map(Edge::getIdentifier)
+                .collect(Collectors.toCollection(TreeSet::new));
+    }
+
+    protected SortedSet<Long> outEdgeIdentifiers()
+    {
+        return this.source.outEdges().stream().map(Edge::getIdentifier)
+                .collect(Collectors.toCollection(TreeSet::new));
+    }
+
     private ChangeAtlas getChangeAtlas()
     {
         return (ChangeAtlas) getAtlas();

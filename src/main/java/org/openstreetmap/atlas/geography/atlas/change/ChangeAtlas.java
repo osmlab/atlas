@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.change;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Rectangle;
@@ -19,6 +20,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 
 /**
  * Shallow atlas view that applies a set of change objects and presents the result without updating
@@ -69,14 +72,14 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     @Override
     public Edge edge(final long identifier)
     {
-        return buildFor(identifier, ItemType.EDGE, () -> this.source.edge(identifier),
+        return entityFor(identifier, ItemType.EDGE, () -> this.source.edge(identifier),
                 entity -> new ChangeEdge(this, (Edge) entity));
     }
 
     @Override
     public Iterable<Edge> edges()
     {
-        throw new UnsupportedOperationException();
+        return entitiesFor(ItemType.EDGE, this::edge, this.source.edges());
     }
 
     @Override
@@ -100,14 +103,14 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     @Override
     public Node node(final long identifier)
     {
-        return buildFor(identifier, ItemType.NODE, () -> this.source.node(identifier),
+        return entityFor(identifier, ItemType.NODE, () -> this.source.node(identifier),
                 entity -> new ChangeNode(this, (Node) entity));
     }
 
     @Override
     public Iterable<Node> nodes()
     {
-        throw new UnsupportedOperationException();
+        return entitiesFor(ItemType.NODE, this::node, this.source.nodes());
     }
 
     @Override
@@ -171,10 +174,41 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     }
 
     /**
+     * Get the {@link Iterable} of entities corresponding to the right type. This takes care of
+     * surfacing only the ones not deleted, or if added or modified, the new ones.
+     *
+     * @param <M>
+     *            The {@link AtlasEntity} subclass.
+     * @param itemType
+     *            The type of entity
+     * @param entityForIdentifier
+     *            A function that creates a new object from its identifier.
+     * @param sourceEntities
+     *            All the corresponding entities from the source atlas.
+     * @return All the corresponding entities in this atlas.
+     */
+    private <M extends AtlasEntity> Iterable<M> entitiesFor(final ItemType itemType,
+            final Function<Long, M> entityForIdentifier, final Iterable<M> sourceEntities)
+    {
+        return new MultiIterable<>(
+                this.change.getFeatureChanges().stream()
+                        .filter(featureChange -> featureChange.getItemType() == itemType
+                                && featureChange.getChangeType() == ChangeType.ADD)
+                        .map(featureChange -> entityForIdentifier
+                                .apply(featureChange.getIdentifier()))
+                        .collect(Collectors.toList()),
+                Iterables.stream(sourceEntities)
+                        .filter(entity -> !this.change.changeFor(itemType, entity.getIdentifier())
+                                .isPresent())
+                        .map(entity -> entityForIdentifier.apply(entity.getIdentifier()))
+                        .collect());
+    }
+
+    /**
      * Build a "Change" feature for this {@link ChangeAtlas} by querying the change object for
      * matching features. Use the source atlas otherwise.
      *
-     * @param <T>
+     * @param <M>
      *            The type of the feature to be built. Has to extend {@link AtlasEntity}.
      * @param identifier
      *            The feature identifier
@@ -189,9 +223,9 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
      * @return The ChangeItem that corresponds to that feature. Can be a ChangeNode, ChangeEdge,
      *         etc. It links back to this Atlas.
      */
-    private <T extends AtlasEntity> T buildFor(final long identifier, final ItemType itemType,
+    private <M extends AtlasEntity> M entityFor(final long identifier, final ItemType itemType,
             final Supplier<AtlasEntity> sourceSupplier,
-            final Function<AtlasEntity, T> entityConstructorFromSource)
+            final Function<AtlasEntity, M> entityConstructorFromSource)
     {
         final Optional<FeatureChange> itemChangeOption = this.change.changeFor(itemType,
                 identifier);

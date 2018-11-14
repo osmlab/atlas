@@ -76,7 +76,7 @@ public class BloatedEdge extends Edge
     }
 
     @Override
-    public boolean equals(final Object other) // NOSONAR
+    public boolean equals(final Object other)
     {
         if (this == other)
         {
@@ -102,6 +102,12 @@ public class BloatedEdge extends Edge
     public Map<String, String> getTags()
     {
         return this.tags;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return super.hashCode();
     }
 
     @Override

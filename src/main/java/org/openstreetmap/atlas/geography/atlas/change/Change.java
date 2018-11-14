@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -33,18 +34,22 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
 public class Change implements Located, Serializable
 {
     private static final long serialVersionUID = 1048481626851547987L;
+    private static final AtomicInteger CHANGE_IDENTIFIER_FACTORY = new AtomicInteger();
 
     private final SortedMap<Long, FeatureChange> indexToFeatureChange;
     private final Map<Tuple<ItemType, Long>, Long> identifierToIndex;
     private final MultiMap<Location, Long> locationToIndex;
     private Rectangle bounds;
     private transient volatile RTree<FeatureChange> spatialIndex;
+    private final int identifier;
+    private String name;
 
     protected Change()
     {
         this.indexToFeatureChange = new TreeMap<>();
         this.identifierToIndex = new HashMap<>();
         this.locationToIndex = new MultiMap<>();
+        this.identifier = CHANGE_IDENTIFIER_FACTORY.getAndIncrement();
     }
 
     @Override
@@ -56,6 +61,23 @@ public class Change implements Located, Serializable
     public Collection<FeatureChange> getFeatureChanges()
     {
         return this.indexToFeatureChange.values();
+    }
+
+    public int getIdentifier()
+    {
+        return this.identifier;
+    }
+
+    public String getName()
+    {
+        if (this.name == null)
+        {
+            return String.valueOf(this.getIdentifier());
+        }
+        else
+        {
+            return this.name;
+        }
     }
 
     @Override
@@ -71,6 +93,12 @@ public class Change implements Located, Serializable
         builder.append(System.lineSeparator());
         builder.append("]");
         return builder.toString();
+    }
+
+    public Change withName(final String name)
+    {
+        this.name = name;
+        return this;
     }
 
     protected void add(final FeatureChange featureChange)

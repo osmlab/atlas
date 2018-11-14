@@ -98,6 +98,12 @@ public class BloatedNode extends Node
     }
 
     @Override
+    public int hashCode()
+    {
+        return super.hashCode();
+    }
+
+    @Override
     public SortedSet<Edge> inEdges()
     {
         return this.inEdgeIdentifiers.stream().map(BloatedEdge::new)
