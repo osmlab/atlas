@@ -668,6 +668,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
             final int outerIndex = entry.getKey();
             final List<Integer> innerIndices = entry.getValue();
 
+            // Use the index of the outer to determine the new line identifier
             final CountrySlicingIdentifierFactory lineIdentifierGenerator = new CountrySlicingIdentifierFactory(
                     +identifierSeeds[outerIndex]);
             Geometry mergedMembers = null;
