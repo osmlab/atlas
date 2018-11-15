@@ -9,7 +9,7 @@ import com.google.gson.JsonObject;
  *
  * @author hallahan
  */
-class TippecanoeGeoJsonExtension
+public class TippecanoeGeoJsonExtension
 {
     private static final int DEFAULT_MINIMUM_ZOOM = 14;
 

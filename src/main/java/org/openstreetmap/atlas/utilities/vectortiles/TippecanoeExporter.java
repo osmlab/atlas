@@ -78,7 +78,7 @@ public final class TippecanoeExporter extends LineDelimitedGeoJsonConverter
         return super.switches().with(MBTILES);
     }
 
-    private boolean hasValidTippecanoe()
+    public boolean hasValidTippecanoe()
     {
         final String[] commandArray = new String[] { "tippecanoe", "--version" };
         try
@@ -125,7 +125,36 @@ public final class TippecanoeExporter extends LineDelimitedGeoJsonConverter
         }
     };
 
-    private void runTippecanoe(final Path geojson, final Path mbtiles, final boolean overwrite)
+    /**
+     * Runs the tippecanoe CLI with the default arguments found in TippecanoeSettings.java
+     *
+     * @param geojson
+     *            The path to the line-delimited GeoJSON.
+     * @param mbtiles
+     *            The path to write the MBTiles file.
+     * @param overwrite
+     *            Whether we should be able to overwrite an existing MBTiles file.
+     */
+    public void runTippecanoe(final Path geojson, final Path mbtiles, final boolean overwrite)
+    {
+        runTippecanoe(geojson, mbtiles, overwrite, TippecanoeSettings.ARGS);
+    }
+
+    /**
+     * Runs the tippecanoe CLI with the provided arguments.
+     *
+     * @param geojson
+     *            The path to the line-delimited GeoJSON.
+     * @param mbtiles
+     *            The path to write the MBTiles file.
+     * @param overwrite
+     *            Whether we should be able to overwrite an existing MBTiles file.
+     * @param args
+     *            tippecanoe CLI arguments as documented in
+     *            https://github.com/mapbox/tippecanoe/blob/master/README.md
+     */
+    public void runTippecanoe(final Path geojson, final Path mbtiles, final boolean overwrite,
+            final String[] args)
     {
         final Time time = Time.now();
 
@@ -135,7 +164,7 @@ public final class TippecanoeExporter extends LineDelimitedGeoJsonConverter
         commandList.add("-o");
         commandList.add(mbtiles.toString());
 
-        commandList.addAll(Arrays.asList(TippecanoeSettings.ARGS));
+        commandList.addAll(Arrays.asList(args));
 
         if (overwrite)
         {
