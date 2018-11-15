@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.Assert;
@@ -15,7 +16,10 @@ import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWater
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@link RawAtlasRelationSlicer} unit tests for slicing {@link Relation}s.
@@ -24,6 +28,8 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
  */
 public class RelationSlicingTest
 {
+    private static final Logger logger = LoggerFactory.getLogger(RelationSlicingTest.class);
+
     private static RawAtlasCountrySlicer RAW_ATLAS_SLICER;
     private static CountryBoundaryMap COUNTRY_BOUNDARY_MAP;
     private static Set<String> COUNTRIES;
@@ -150,5 +156,23 @@ public class RelationSlicingTest
         Assert.assertEquals(16, slicedAtlas.numberOfPoints());
         Assert.assertEquals(6, slicedAtlas.numberOfLines());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());
+    }
+
+    @Test
+    public void testSlicingOnRelationWithOnlyRelationsAsMembers()
+    {
+        final Atlas rawAtlas = this.setup.getRelationWithOnlyRelationsAsMembers();
+
+        Assert.assertEquals(2, rawAtlas.numberOfPoints());
+        Assert.assertEquals(3, rawAtlas.numberOfRelations());
+
+        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
+        for (final Relation relation : slicedAtlas.relations())
+        {
+            final Map<String, String> tags = relation.getTags();
+
+            Assert.assertTrue(tags.containsKey(ISOCountryTag.KEY));
+            Assert.assertNotEquals(ISOCountryTag.COUNTRY_MISSING, tags.get(ISOCountryTag.KEY));
+        }
     }
 }

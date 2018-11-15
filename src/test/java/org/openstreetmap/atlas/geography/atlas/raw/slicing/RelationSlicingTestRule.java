@@ -221,6 +221,19 @@ public class RelationSlicingTestRule extends CoreTestRule
             })
     private Atlas multiPolygonWithHole;
 
+    @TestAtlas(points = { @Point(id = "1", coordinates = @Loc(value = LOCATION_13)),
+            @Point(id = "2", coordinates = @Loc(value = LOCATION_14))
+
+    }, relations = {
+            @Relation(id = "3", tags = { "bugs=no" }, members = {
+                    @Member(id = "1", role = "member", type = "point") }),
+            @Relation(id = "4", tags = { "bugs=no" }, members = {
+                    @Member(id = "2", role = "member", type = "point") }),
+            @Relation(id = "5", tags = { "bugs=no" }, members = {
+                    @Member(id = "3", role = "member", type = "relation"),
+                    @Member(id = "4", role = "member", type = "relation") }) })
+    private Atlas relationWithOnlyRelationsAsMembers;
+
     public Atlas getComplexMultiPolygonWithHoleUsingClosedLinesAtlas()
     {
         return this.complexMuliPolygonWithHoleUsingClosedLines;
@@ -229,6 +242,11 @@ public class RelationSlicingTestRule extends CoreTestRule
     public Atlas getComplexMultiPolygonWithHoleUsingOpenLinesAtlas()
     {
         return this.complexMuliPolygonWithHoleUsingOpenLines;
+    }
+
+    public Atlas getRelationWithOnlyRelationsAsMembers()
+    {
+        return this.relationWithOnlyRelationsAsMembers;
     }
 
     public Atlas getSimpleMultiPolygonAtlas()
