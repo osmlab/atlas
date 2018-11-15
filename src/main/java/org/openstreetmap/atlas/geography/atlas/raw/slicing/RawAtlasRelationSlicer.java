@@ -482,6 +482,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 final Optional<String> countryCodeString = entity.getTag(ISOCountryTag.KEY);
                 if (countryCodeString.isPresent())
                 {
+                    // The country code tag was present, this is the easy case
                     final String[] countryCodes = countryCodeString.get()
                             .split(ISOCountryTag.COUNTRY_DELIMITER);
                     for (final String countryCode : countryCodes)
@@ -492,28 +493,31 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 }
                 else
                 {
-                    // If the country code string was not present, we need to check our changeset.
-                    // It is possible that we are
-                    final Map<Long, Map<String, String>> updatedTags = this.slicedRelationChanges
+                    // If the country code tag was not present, we need to check our changeset.
+                    // It is possible that we are operating on a relation entity which was supplied
+                    // a country code by this RawAtlasRelationSlicer. In this case, the relation
+                    // entity in the partiallySlicedRawAtlas will not have the tag update, but the
+                    // update will be present our current changeset.
+                    final Map<Long, Map<String, String>> entityIdToChangedTags = this.slicedRelationChanges
                             .getUpdatedRelationTags();
-                    if (updatedTags.containsKey(entity.getIdentifier()))
+                    final Map<String, String> newTagsForEntity = entityIdToChangedTags
+                            .getOrDefault(entity.getIdentifier(), new HashMap<>());
+
+                    if (newTagsForEntity.containsKey(ISOCountryTag.KEY))
                     {
-                        final Map<String, String> newTags = updatedTags.get(entity.getIdentifier());
-                        if (newTags.containsKey(ISOCountryTag.KEY))
+                        final String[] countryCodes = newTagsForEntity.get(ISOCountryTag.KEY)
+                                .split(ISOCountryTag.COUNTRY_DELIMITER);
+                        for (final String countryCode : countryCodes)
                         {
-                            final String[] countryCodes = newTags.get(ISOCountryTag.KEY)
-                                    .split(ISOCountryTag.COUNTRY_DELIMITER);
-                            for (final String countryCode : countryCodes)
-                            {
-                                // Entities that were not sliced could have more than one country
-                                // code
-                                countryEntityMap.add(countryCode, member);
-                            }
+                            // Entities that were not sliced could have more than one country
+                            // code
+                            countryEntityMap.add(countryCode, member);
                         }
                     }
                     else
                     {
-                        logger.debug("{} {} doesn't have a country code tag value",
+                        logger.warn(
+                                "{} {} missing country code tag value in both partiallySlicedRawAtlas and the current changeset",
                                 entity.getType(), entity.getIdentifier());
                     }
                 }
@@ -551,6 +555,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                     }
                     else
                     {
+                        // TODO: do we need to handle the missing tag case here?
                         logger.error("Newly added Relation Member {} does not have a country code!",
                                 member.getIdentifier());
                     }
