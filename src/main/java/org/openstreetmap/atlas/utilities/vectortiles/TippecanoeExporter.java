@@ -52,7 +52,7 @@ public final class TippecanoeExporter extends LineDelimitedGeoJsonConverter
         final Path mbtiles = (Path) command.get(MBTILES);
 
         final Path geojsonDirectory = (Path) command.get(GEOJSON_DIRECTORY);
-        final Path geojson = geojsonDirectory.resolve(TippecanoeSettings.EVERYTHING_GEOJSON);
+        final Path geojson = geojsonDirectory.resolve(EVERYTHING);
 
         final Boolean overwrite = (Boolean) command.get(OVERWRITE);
 
