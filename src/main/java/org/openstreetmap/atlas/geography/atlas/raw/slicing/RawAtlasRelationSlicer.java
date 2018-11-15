@@ -492,8 +492,30 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 }
                 else
                 {
-                    logger.debug("{} {} doesn't have a country code tag value", entity.getType(),
-                            entity.getIdentifier());
+                    // If the country code string was not present, we need to check our changeset.
+                    // It is possible that we are
+                    final Map<Long, Map<String, String>> updatedTags = this.slicedRelationChanges
+                            .getUpdatedRelationTags();
+                    if (updatedTags.containsKey(entity.getIdentifier()))
+                    {
+                        final Map<String, String> newTags = updatedTags.get(entity.getIdentifier());
+                        if (newTags.containsKey(ISOCountryTag.KEY))
+                        {
+                            final String[] countryCodes = newTags.get(ISOCountryTag.KEY)
+                                    .split(ISOCountryTag.COUNTRY_DELIMITER);
+                            for (final String countryCode : countryCodes)
+                            {
+                                // Entities that were not sliced could have more than one country
+                                // code
+                                countryEntityMap.add(countryCode, member);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        logger.debug("{} {} doesn't have a country code tag value",
+                                entity.getType(), entity.getIdentifier());
+                    }
                 }
             }
             else
