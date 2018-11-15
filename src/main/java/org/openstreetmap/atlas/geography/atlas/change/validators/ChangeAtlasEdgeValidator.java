@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.change.validators;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeAtlas;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeEdge;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -27,25 +28,14 @@ public class ChangeAtlasEdgeValidator
     {
         logger.trace("Starting Edge validation of ChangeAtlas {}", this.atlas.getName());
         final Time start = Time.now();
-        validateEdgePolyLinePresent();
         validateEdgeToNodeConnectivity();
         validateEdgeToNodeLocationAccuracy();
+        validateReverseEdgePolyLineUpdated();
         logger.debug("Finished Edge validation of ChangeAtlas {} in {}", this.atlas.getName(),
                 start.elapsedSince());
     }
 
-    public void validateEdgePolyLinePresent()
-    {
-        for (final Edge edge : this.atlas.edges())
-        {
-            if (edge.asPolyLine() == null)
-            {
-                throw new CoreException("Edge {} is missing its PolyLine.", edge.getIdentifier());
-            }
-        }
-    }
-
-    public void validateEdgeToNodeConnectivity()
+    private void validateEdgeToNodeConnectivity()
     {
         for (final Edge edge : this.atlas.edges())
         {
@@ -64,7 +54,7 @@ public class ChangeAtlasEdgeValidator
         }
     }
 
-    public void validateEdgeToNodeLocationAccuracy()
+    private void validateEdgeToNodeLocationAccuracy()
     {
         for (final Edge edge : this.atlas.edges())
         {
@@ -85,6 +75,24 @@ public class ChangeAtlasEdgeValidator
                         "Edge {} with end location {} does not match with its end Node {} at location: {}",
                         edge.getIdentifier(), edgeEndLocation, edge.end().getIdentifier(),
                         endNodeLocation);
+            }
+        }
+    }
+
+    private void validateReverseEdgePolyLineUpdated()
+    {
+        for (final Edge edge : this.atlas
+                .edges(edge -> edge.hasReverseEdge() && edge.isMasterEdge()))
+        {
+            final Edge reversed = edge.reversed().orElseThrow(() -> new CoreException(
+                    "Edge {} should have a reverse, but does not.", edge.getIdentifier()));
+            final PolyLine forward = edge.asPolyLine();
+            final PolyLine backward = reversed.asPolyLine();
+            if (!forward.equals(backward.reversed()))
+            {
+                throw new CoreException(
+                        "Edge {} and its reverse {} have mismatching PolyLines: Forward = {}, Backward = {}",
+                        edge.getIdentifier(), reversed.getIdentifier(), forward, backward);
             }
         }
     }

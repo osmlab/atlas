@@ -34,7 +34,7 @@ public class ChangeAtlasNodeValidator
                 start.elapsedSince());
     }
 
-    public void validateNodeToEdgeConnectivity()
+    private void validateNodeToEdgeConnectivity()
     {
         for (final Node node : this.atlas.nodes())
         {
@@ -59,7 +59,7 @@ public class ChangeAtlasNodeValidator
         }
     }
 
-    public void validateNodeToEdgeLocationAccuracy()
+    private void validateNodeToEdgeLocationAccuracy()
     {
         for (final Node node : this.atlas.nodes())
         {

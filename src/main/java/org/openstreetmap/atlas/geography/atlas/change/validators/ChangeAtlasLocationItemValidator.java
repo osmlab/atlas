@@ -10,28 +10,28 @@ import org.slf4j.LoggerFactory;
 /**
  * @author matthieun
  */
-public class ChangeAtlasLocationValidator
+public class ChangeAtlasLocationItemValidator
 {
     private static final Logger logger = LoggerFactory
-            .getLogger(ChangeAtlasLocationValidator.class);
+            .getLogger(ChangeAtlasLocationItemValidator.class);
 
     private final ChangeAtlas atlas;
 
-    public ChangeAtlasLocationValidator(final ChangeAtlas atlas)
+    public ChangeAtlasLocationItemValidator(final ChangeAtlas atlas)
     {
         this.atlas = atlas;
     }
 
     public void validate()
     {
-        logger.trace("Starting Location validation of ChangeAtlas {}", this.atlas.getName());
+        logger.trace("Starting LocationItem validation of ChangeAtlas {}", this.atlas.getName());
         final Time start = Time.now();
         validateLocationPresent();
-        logger.trace("Finished Location validation of ChangeAtlas {} in {}", this.atlas.getName(),
-                start.elapsedSince());
+        logger.trace("Finished LocationItem validation of ChangeAtlas {} in {}",
+                this.atlas.getName(), start.elapsedSince());
     }
 
-    public void validateLocationPresent()
+    private void validateLocationPresent()
     {
         for (final LocationItem locationItem : this.atlas.nodes())
         {

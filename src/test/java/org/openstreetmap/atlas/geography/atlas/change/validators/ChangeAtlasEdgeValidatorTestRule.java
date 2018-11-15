@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.change;
+package org.openstreetmap.atlas.geography.atlas.change.validators;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.utilities.testing.CoreTestRule;
@@ -7,9 +7,9 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas;
 /**
  * @author matthieun
  */
-public class ChangeAtlasTestRule extends CoreTestRule
+public class ChangeAtlasEdgeValidatorTestRule extends CoreTestRule
 {
-    @TestAtlas(loadFromJosmOsmResource = "changeAtlasTestEdge.josm.osm")
+    @TestAtlas(loadFromJosmOsmResource = "ChangeAtlasEdgeValidatorTest.josm.osm")
     private Atlas atlasEdge;
 
     public Atlas getAtlasEdge()

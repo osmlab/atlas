@@ -23,7 +23,8 @@ public class ChangeAtlasValidator
     {
         logger.debug("Starting validation of ChangeAtlas {}", this.atlas.getName());
         final Time start = Time.now();
-        new ChangeAtlasLocationValidator(this.atlas).validate();
+        new ChangeAtlasLocationItemValidator(this.atlas).validate();
+        new ChangeAtlasLineItemValidator(this.atlas).validate();
         new ChangeAtlasEdgeValidator(this.atlas).validate();
         new ChangeAtlasNodeValidator(this.atlas).validate();
         logger.debug("Finished validation of ChangeAtlas {} in {}", this.atlas.getName(),
