@@ -98,8 +98,11 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      * raw Atlas, and adds the points the list of points for the line.
      *
      * @param location
+     *            The location for the point(s)
      * @param rawAtlasPoints
+     *            The points from the raw Atlas
      * @param line
+     *            The List representing the points for the line to add the points to
      */
     private void addRawAtlasPointsToLine(final Location location,
             final Iterable<Point> rawAtlasPoints, final List<Long> line)
@@ -289,12 +292,10 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
 
                             // Check the cache for this coordinate -- if it already exists, we'll
                             // use it. Otherwise, scale to 6-digits and continue
-                            if (getCoordinateToPointMapping().containsCoordinate(coordinate,
-                                    line.getOsmIdentifier()))
+                            if (getCoordinateToPointMapping().containsCoordinate(coordinate))
                             {
-                                newLineShapePoints
-                                        .add(getCoordinateToPointMapping().getPointForCoordinate(
-                                                coordinate, line.getOsmIdentifier()));
+                                newLineShapePoints.add(getCoordinateToPointMapping()
+                                        .getPointForCoordinate(coordinate));
                             }
                             else
                             {
@@ -319,7 +320,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                                                     coordinate),
                                             pointIdentifierFactory, pointTags);
                                     getCoordinateToPointMapping().storeMapping(coordinate,
-                                            line.getOsmIdentifier(), newPoint.getIdentifier());
+                                            newPoint.getIdentifier());
                                     newLineShapePoints.add(newPoint.getIdentifier());
                                     this.slicedPointAndLineChanges.createPoint(newPoint);
                                 }

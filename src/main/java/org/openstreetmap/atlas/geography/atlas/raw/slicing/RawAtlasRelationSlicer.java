@@ -245,12 +245,11 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
 
             if (Iterables.isEmpty(rawAtlasPointsAtCoordinate))
             {
-                if (getCoordinateToPointMapping().containsCoordinate(pointCoordinate,
-                        relationIdentifier))
+                if (getCoordinateToPointMapping().containsCoordinate(pointCoordinate))
                 {
                     // A new point was already created for this coordinate - use it
-                    newLineShapePoints.add(getCoordinateToPointMapping()
-                            .getPointForCoordinate(pointCoordinate, relationIdentifier));
+                    newLineShapePoints.add(
+                            getCoordinateToPointMapping().getPointForCoordinate(pointCoordinate));
                 }
                 else
                 {
@@ -271,7 +270,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
 
                         // Store coordinate to avoid creating duplicate points
                         getCoordinateToPointMapping().storeMapping(pointCoordinate,
-                                relationIdentifier, newPoint.getIdentifier());
+                                newPoint.getIdentifier());
 
                         // Store this point to reconstruct the line geometry
                         newLineShapePoints.add(newPoint.getIdentifier());
