@@ -555,7 +555,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                     }
                     else
                     {
-                        // TODO: do we need to handle the missing tag case here?
+                        // TODO do we need to handle the missing tag case here?
                         logger.error("Newly added Relation Member {} does not have a country code!",
                                 member.getIdentifier());
                     }
