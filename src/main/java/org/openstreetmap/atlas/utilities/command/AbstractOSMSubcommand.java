@@ -471,7 +471,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
         // We want to scan now, show the version, then abort
         if (this.parser.scanForVersionFlag(Arrays.asList(argsCopy)))
         {
-            printlnCommandMessage(this.version);
+            System.out.println(String.format("%s version %s", getCommandName(), this.version));
             System.exit(0);
         }
 

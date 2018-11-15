@@ -24,7 +24,7 @@ public class DemoSubcommand extends AbstractOSMSubcommand
         final String meal = getUnaryArgument("favoriteMeal").get();
 
         printStdout("I like meal ");
-        printStdout(meal, TTYAttribute.MAGENTA, TTYAttribute.BOLD);
+        printStdout(meal, TTYAttribute.MAGENTA, TTYAttribute.BOLD, TTYAttribute.BLINK);
         printStdout(" the best\n");
 
         printVerboseStdout(

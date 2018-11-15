@@ -1,6 +1,8 @@
 package org.openstreetmap.atlas.utilities.command.output;
 
 /**
+ * Easy mnemonics for TTY display attributes (ANSI control codes) and their Unicode encodings.
+ *
  * @see "https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters"
  * @author lcram
  */
