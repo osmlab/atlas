@@ -18,8 +18,6 @@ import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * {@link RawAtlasRelationSlicer} unit tests for slicing {@link Relation}s.
@@ -28,8 +26,6 @@ import org.slf4j.LoggerFactory;
  */
 public class RelationSlicingTest
 {
-    private static final Logger logger = LoggerFactory.getLogger(RelationSlicingTest.class);
-
     private static RawAtlasCountrySlicer RAW_ATLAS_SLICER;
     private static CountryBoundaryMap COUNTRY_BOUNDARY_MAP;
     private static Set<String> COUNTRIES;
