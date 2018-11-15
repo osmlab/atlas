@@ -33,12 +33,12 @@ public class ChangeAtlasLineItemValidator
 
     private void validatePolyLinePresent()
     {
-        // TODO Change to this.atlas.lineItems
+        // TODO Change to this.atlas.lineItems() once the ChangeAtlas.lines() is implemented.
         for (final LineItem lineItem : this.atlas.edges())
         {
             if (lineItem.asPolyLine() == null)
             {
-                throw new CoreException("LineItem {} is missing its PolyLine.",
+                throw new CoreException("{} {} is missing its PolyLine.", lineItem.getType(),
                         lineItem.getIdentifier());
             }
         }
