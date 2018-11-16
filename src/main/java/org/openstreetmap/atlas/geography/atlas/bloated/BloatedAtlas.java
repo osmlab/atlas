@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.bloated;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.SortedSet;
+import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -26,6 +27,8 @@ import org.openstreetmap.atlas.geography.atlas.items.SnappedEdge;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
+
+import com.google.gson.JsonObject;
 
 /**
  * Simple Atlas that supports single temporary entities. It does not do anything by design, as all
@@ -519,6 +522,21 @@ class BloatedAtlas implements Atlas
 
     @Override
     public void saveAsGeoJson(final WritableResource resource, final Predicate<AtlasEntity> matcher)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void saveAsLineDelimitedGeoJsonFeatures(final WritableResource resource,
+            final BiConsumer<AtlasEntity, JsonObject> jsonMutator)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void saveAsLineDelimitedGeoJsonFeatures(final WritableResource resource,
+            final Predicate<AtlasEntity> matcher,
+            final BiConsumer<AtlasEntity, JsonObject> jsonMutator)
     {
         throw new UnsupportedOperationException();
     }
