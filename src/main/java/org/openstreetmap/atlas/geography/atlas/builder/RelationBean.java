@@ -2,17 +2,53 @@ package org.openstreetmap.atlas.geography.atlas.builder;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * @author matthieun
  */
-public class RelationBean implements Serializable
+public class RelationBean implements Serializable, Iterable<RelationBeanItem>
 {
+    /**
+     * @author matthieun
+     */
+    public static class RelationBeanItem implements Serializable
+    {
+        private static final long serialVersionUID = 441160361936498695L;
+
+        private final Long identifier;
+        private final String role;
+        private final ItemType type;
+
+        public RelationBeanItem(final Long identifier, final String role, final ItemType type)
+        {
+            this.identifier = identifier;
+            this.role = role;
+            this.type = type;
+        }
+
+        public Long getIdentifier()
+        {
+            return this.identifier;
+        }
+
+        public String getRole()
+        {
+            return this.role;
+        }
+
+        public ItemType getType()
+        {
+            return this.type;
+        }
+    }
+
     private static final long serialVersionUID = 8511830231633569713L;
 
     private final List<Long> memberIdentifiers;
@@ -33,6 +69,11 @@ public class RelationBean implements Serializable
         this.memberTypes.add(itemType);
     }
 
+    public void addItem(final RelationBeanItem item)
+    {
+        addItem(item.getIdentifier(), item.getRole(), item.getType());
+    }
+
     @Override
     public boolean equals(final Object other)
     {
@@ -44,13 +85,6 @@ public class RelationBean implements Serializable
                     && Iterables.equals(this.getMemberTypes(), that.getMemberTypes());
         }
         return false;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(this.getMemberIdentifiers(), this.getMemberRoles(),
-                this.getMemberTypes());
     }
 
     public List<Long> getMemberIdentifiers()
@@ -68,12 +102,31 @@ public class RelationBean implements Serializable
         return this.memberTypes;
     }
 
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(this.getMemberIdentifiers(), this.getMemberRoles(),
+                this.getMemberTypes());
+    }
+
     /**
      * @return True if this bean has no members
      */
     public boolean isEmpty()
     {
         return this.memberIdentifiers.isEmpty();
+    }
+
+    @Override
+    public Iterator<RelationBeanItem> iterator()
+    {
+        final List<RelationBeanItem> result = new ArrayList<>();
+        for (int index = 0; index < this.memberIdentifiers.size(); index++)
+        {
+            result.add(new RelationBeanItem(this.memberIdentifiers.get(index),
+                    this.memberRoles.get(index), this.memberTypes.get(index)));
+        }
+        return result.iterator();
     }
 
     /**

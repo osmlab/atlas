@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.function.Predicate;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
@@ -36,6 +37,21 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
 class BloatedAtlas implements Atlas
 {
     private static final long serialVersionUID = 5265300513234306056L;
+
+    static AtlasEntity bloatedEntityFor(final long identifier, final ItemType type)
+    {
+        switch (type)
+        {
+            case NODE:
+                return new BloatedNode(identifier);
+            case EDGE:
+                return new BloatedEdge(identifier);
+            case RELATION:
+                return new BloatedRelation(identifier);
+            default:
+                throw new CoreException("Unknown ItemType {}", type);
+        }
+    }
 
     @Override
     public Area area(final long identifier)

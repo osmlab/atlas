@@ -73,7 +73,7 @@ public class BloatedNode extends Node
     }
 
     @Override
-    public boolean equals(final Object other) // NOSONAR
+    public boolean equals(final Object other)
     {
         if (this == other)
         {
