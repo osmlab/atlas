@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
@@ -31,17 +32,42 @@ public class BloatedRelation extends Relation
     private Long osmRelationIdentifier;
     private Set<Long> relationIdentifiers;
 
-    BloatedRelation(final long identifier)
+    public static BloatedRelation fromRelation(final Relation relation)
     {
-        this(identifier, null, null, null, null, null, null);
+        return new BloatedRelation(relation.getIdentifier(), relation.getTags(), relation.bounds(),
+                relation.members().asBean(),
+                relation.allRelationsWithSameOsmIdentifier().stream().map(Relation::getIdentifier)
+                        .collect(Collectors.toList()),
+                relation.allKnownOsmMembers().asBean(), relation.osmRelationIdentifier(),
+                relation.relations().stream().map(Relation::getIdentifier)
+                        .collect(Collectors.toSet()));
     }
 
-    public BloatedRelation(final long identifier, final Map<String, String> tags,
-            final RelationBean members, final List<Long> allRelationsWithSameOsmIdentifier,
+    public static BloatedRelation shallowFromRelation(final Relation relation)
+    {
+        return new BloatedRelation(relation.getIdentifier()).withBounds(relation.bounds());
+    }
+
+    BloatedRelation(final long identifier)
+    {
+        this(identifier, null, null, null, null, null, null, null);
+    }
+
+    public BloatedRelation(final Long identifier, final Map<String, String> tags, // NOSONAR
+            final Rectangle bounds, final RelationBean members,
+            final List<Long> allRelationsWithSameOsmIdentifier,
             final RelationBean allKnownOsmMembers, final Long osmRelationIdentifier,
             final Set<Long> relationIdentifiers)
     {
         super(new BloatedAtlas());
+
+        if (identifier == null)
+        {
+            throw new CoreException("Identifier is the only parameter that cannot be null.");
+        }
+
+        this.bounds = bounds;
+
         this.identifier = identifier;
         this.tags = tags;
         this.members = members;
@@ -150,6 +176,13 @@ public class BloatedRelation extends Relation
         return this;
     }
 
+    public BloatedRelation withMembers(final RelationBean members, final Rectangle bounds)
+    {
+        this.members = members;
+        this.bounds = bounds;
+        return this;
+    }
+
     /**
      * Here the members have to be full so the new bounds can be computed from them.
      *
@@ -161,14 +194,6 @@ public class BloatedRelation extends Relation
     {
         this.members = members.asBean();
         this.bounds = members.bounds();
-        return this;
-    }
-
-    public BloatedRelation withMembersAndNewBounds(final RelationBean members,
-            final Rectangle bounds)
-    {
-        this.members = members;
-        this.bounds = bounds;
         return this;
     }
 
@@ -205,4 +230,11 @@ public class BloatedRelation extends Relation
         }
         return new RelationMemberList(memberList);
     }
+
+    private BloatedRelation withBounds(final Rectangle bounds)
+    {
+        this.bounds = bounds;
+        return this;
+    }
+
 }

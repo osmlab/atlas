@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -45,11 +46,16 @@ public class BloatedEdge extends Edge
         this(identifier, null, null, null, null, null);
     }
 
-    public BloatedEdge(final long identifier, final PolyLine polyLine,
+    public BloatedEdge(final Long identifier, final PolyLine polyLine,
             final Map<String, String> tags, final Long startNodeIdentifier,
             final Long endNodeIdentifier, final Set<Long> relationIdentifiers)
     {
         super(new BloatedAtlas());
+
+        if (identifier == null)
+        {
+            throw new CoreException("Identifier is the only parameter that cannot be null.");
+        }
 
         this.bounds = polyLine == null ? null : polyLine.bounds();
 
@@ -117,7 +123,9 @@ public class BloatedEdge extends Edge
     @Override
     public Set<Relation> relations()
     {
-        throw new UnsupportedOperationException();
+        return this.relationIdentifiers == null ? null
+                : this.relationIdentifiers.stream().map(BloatedRelation::new)
+                        .collect(Collectors.toSet());
     }
 
     @Override

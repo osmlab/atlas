@@ -6,6 +6,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -50,11 +51,16 @@ public class BloatedNode extends Node
         this(identifier, null, null, null, null, null);
     }
 
-    public BloatedNode(final long identifier, final Location location,
+    public BloatedNode(final Long identifier, final Location location,
             final Map<String, String> tags, final SortedSet<Long> inEdgeIdentifiers,
             final SortedSet<Long> outEdgeIdentifiers, final Set<Long> relationIdentifiers)
     {
         super(new BloatedAtlas());
+
+        if (identifier == null)
+        {
+            throw new CoreException("Identifier is the only parameter that cannot be null.");
+        }
 
         this.bounds = location == null ? null : location.bounds();
 
@@ -132,7 +138,9 @@ public class BloatedNode extends Node
     @Override
     public Set<Relation> relations()
     {
-        throw new UnsupportedOperationException();
+        return this.relationIdentifiers == null ? null
+                : this.relationIdentifiers.stream().map(BloatedRelation::new)
+                        .collect(Collectors.toSet());
     }
 
     public BloatedNode withIdentifier(final long identifier)

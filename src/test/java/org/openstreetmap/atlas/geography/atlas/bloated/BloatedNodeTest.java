@@ -13,6 +13,7 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 
@@ -44,6 +45,11 @@ public class BloatedNodeTest
                 result.outEdges().stream().map(Edge::getIdentifier)
                         .collect(Collectors.toCollection(TreeSet::new)));
         Assert.assertEquals(source.getTags(), result.getTags());
+        Assert.assertEquals(
+                source.relations().stream().map(Relation::getIdentifier)
+                        .collect(Collectors.toSet()),
+                result.relations().stream().map(Relation::getIdentifier)
+                        .collect(Collectors.toSet()));
     }
 
     @Test
