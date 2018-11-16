@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.bloated.BloatedAtlas.BloatedEntity;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -18,7 +19,7 @@ import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 /**
  * @author matthieun
  */
-public class BloatedRelation extends Relation
+public class BloatedRelation extends Relation implements BloatedEntity
 {
     private static final long serialVersionUID = -8295865049110084558L;
 
@@ -105,18 +106,7 @@ public class BloatedRelation extends Relation
     @Override
     public boolean equals(final Object other)
     {
-        if (this == other)
-        {
-            return true;
-        }
-        if (other != null && this.getClass() == other.getClass())
-        {
-            final BloatedNode that = (BloatedNode) other;
-            // Here override the Atlas equality check in Node.equals() as the BloatedAtlas is always
-            // empty and unique.
-            return this.getIdentifier() == that.getIdentifier();
-        }
-        return false;
+        return BloatedAtlas.equals(this, other);
     }
 
     @Override

@@ -37,8 +37,16 @@ import com.google.gson.JsonObject;
  *
  * @author matthieun
  */
-class BloatedAtlas implements Atlas
+final class BloatedAtlas implements Atlas
 {
+    /**
+     * @author matthieun
+     */
+    public static interface BloatedEntity
+    {
+        long getIdentifier();
+    }
+
     private static final long serialVersionUID = 5265300513234306056L;
 
     static AtlasEntity bloatedEntityFor(final long identifier, final ItemType type)
@@ -49,11 +57,36 @@ class BloatedAtlas implements Atlas
                 return new BloatedNode(identifier);
             case EDGE:
                 return new BloatedEdge(identifier);
+            case AREA:
+                return new BloatedArea(identifier);
+            case LINE:
+                return new BloatedLine(identifier);
+            case POINT:
+                return new BloatedPoint(identifier);
             case RELATION:
                 return new BloatedRelation(identifier);
             default:
                 throw new CoreException("Unknown ItemType {}", type);
         }
+    }
+
+    static <M extends BloatedEntity> boolean equals(final M mine, final Object other)
+    {
+        if (mine == other)
+        {
+            return true;
+        }
+        if (other != null && mine.getClass() == other.getClass())
+        {
+            @SuppressWarnings("unchecked")
+            final M that = (M) other;
+            // Here override the Atlas equality check in AtlasEntity.equals() as the BloatedAtlas is
+            // always
+            // empty and unique.
+            return mine.getIdentifier() == that.getIdentifier();
+        }
+        return false;
+
     }
 
     @Override

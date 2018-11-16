@@ -3,9 +3,12 @@ package org.openstreetmap.atlas.geography.atlas.bloated;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.utilities.testing.CoreTestRule;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas;
+import org.openstreetmap.atlas.utilities.testing.TestAtlas.Area;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Edge;
+import org.openstreetmap.atlas.utilities.testing.TestAtlas.Line;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Loc;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Node;
+import org.openstreetmap.atlas.utilities.testing.TestAtlas.Point;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation.Member;
 
@@ -24,6 +27,14 @@ public class BloatedTestRule extends CoreTestRule
 
             edges = { @Edge(id = "3", coordinates = { @Loc(value = POINT_1_LOCATION),
                     @Loc(value = POINT_2_LOCATION) }) },
+
+            areas = { @Area(id = "27", coordinates = { @Loc(value = POINT_1_LOCATION),
+                    @Loc(value = POINT_2_LOCATION) }) },
+
+            lines = { @Line(id = "18", coordinates = { @Loc(value = POINT_1_LOCATION),
+                    @Loc(value = POINT_2_LOCATION) }) },
+
+            points = { @Point(id = "33", coordinates = @Loc(value = POINT_1_LOCATION)) },
 
             relations = { @Relation(id = "22", members = {
                     @Member(id = "1", type = "node", role = "node role"),

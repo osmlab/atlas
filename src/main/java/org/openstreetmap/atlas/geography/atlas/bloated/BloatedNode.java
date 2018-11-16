@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.bloated.BloatedAtlas.BloatedEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -18,7 +19,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  *
  * @author matthieun
  */
-public class BloatedNode extends Node
+public class BloatedNode extends Node implements BloatedEntity
 {
     private static final long serialVersionUID = -8229589987121555419L;
 
@@ -46,7 +47,7 @@ public class BloatedNode extends Node
         return new BloatedNode(node.getIdentifier()).withBounds(node.getLocation().bounds());
     }
 
-    BloatedNode(final Long identifier)
+    BloatedNode(final long identifier)
     {
         this(identifier, null, null, null, null, null);
     }
@@ -81,18 +82,7 @@ public class BloatedNode extends Node
     @Override
     public boolean equals(final Object other)
     {
-        if (this == other)
-        {
-            return true;
-        }
-        if (other != null && this.getClass() == other.getClass())
-        {
-            final BloatedNode that = (BloatedNode) other;
-            // Here override the Atlas equality check in Node.equals() as the BloatedAtlas is always
-            // empty and unique.
-            return this.getIdentifier() == that.getIdentifier();
-        }
-        return false;
+        return BloatedAtlas.equals(this, other);
     }
 
     @Override
