@@ -67,7 +67,7 @@ public class ChangeAtlasEdgeValidatorTest
         final PolyLine oldPolyLine = edge.asPolyLine();
         final PolyLine newPolyLine = new PolyLine(oldPolyLine.first(), NEW_LOCATION,
                 oldPolyLine.last());
-        final BloatedEdge bloatedEdge = BloatedEdge.fromEdge(edge).withPolyLine(newPolyLine);
+        final BloatedEdge bloatedEdge = BloatedEdge.shallowFromEdge(edge).withPolyLine(newPolyLine);
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, bloatedEdge);
         changeBuilder.add(featureChange);
 
@@ -100,7 +100,7 @@ public class ChangeAtlasEdgeValidatorTest
         final Atlas atlas = this.rule.getAtlasEdge();
 
         final Node originalNode = atlas.node(38999000000L);
-        final BloatedNode bloatedNode = BloatedNode.fromNode(originalNode)
+        final BloatedNode bloatedNode = BloatedNode.shallowFromNode(originalNode)
                 .withLocation(NEW_LOCATION);
         return new FeatureChange(ChangeType.ADD, bloatedNode);
     }
@@ -117,9 +117,9 @@ public class ChangeAtlasEdgeValidatorTest
 
         // Forward:
         final PolyLine originalPolyLine1 = originalEdge1.asPolyLine();
-        final PolyLine originalPolyLine1Modified = new PolyLine(originalPolyLine1
-                .prepend(new PolyLine(NEW_LOCATION, originalPolyLine1.first())));
-        final BloatedEdge bloatedEdge1 = BloatedEdge.fromEdge(originalEdge1)
+        final PolyLine originalPolyLine1Modified = new PolyLine(
+                originalPolyLine1.prepend(new PolyLine(NEW_LOCATION, originalPolyLine1.first())));
+        final BloatedEdge bloatedEdge1 = BloatedEdge.shallowFromEdge(originalEdge1)
                 .withPolyLine(originalPolyLine1Modified);
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, bloatedEdge1);
 
@@ -127,7 +127,7 @@ public class ChangeAtlasEdgeValidatorTest
         final PolyLine originalPolyLine1Reverse = originalEdge1Reverse.asPolyLine();
         final PolyLine originalPolyLine1ModifiedReverse = new PolyLine(originalPolyLine1Reverse
                 .append(new PolyLine(originalPolyLine1Reverse.last(), NEW_LOCATION)));
-        final BloatedEdge bloatedEdge1Reverse = BloatedEdge.fromEdge(originalEdge1Reverse)
+        final BloatedEdge bloatedEdge1Reverse = BloatedEdge.shallowFromEdge(originalEdge1Reverse)
                 .withPolyLine(originalPolyLine1ModifiedReverse);
         final FeatureChange featureChange1Reverse = new FeatureChange(ChangeType.ADD,
                 bloatedEdge1Reverse);

@@ -142,7 +142,7 @@ public class Change implements Located, Serializable
         {
             return Optional.empty();
         }
-        return Optional.of(this.indexToFeatureChange.get(this.identifierToIndex.get(key)));
+        return Optional.ofNullable(this.indexToFeatureChange.get(this.identifierToIndex.get(key)));
     }
 
     protected Stream<FeatureChange> changesFor(final ItemType itemType)

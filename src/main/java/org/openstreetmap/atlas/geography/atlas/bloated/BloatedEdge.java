@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.PolyLine;
+import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -17,6 +18,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 public class BloatedEdge extends Edge
 {
     private static final long serialVersionUID = 309534717673911086L;
+
+    private Rectangle bounds;
 
     private long identifier;
     private PolyLine polyLine;
@@ -32,35 +35,30 @@ public class BloatedEdge extends Edge
                 edge.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
+    public static BloatedEdge shallowFromEdge(final Edge edge)
+    {
+        return new BloatedEdge(edge.getIdentifier()).withBounds(edge.asPolyLine().bounds());
+    }
+
+    BloatedEdge(final long identifier)
+    {
+        this(identifier, null, null, null, null, null);
+    }
+
     public BloatedEdge(final long identifier, final PolyLine polyLine,
-            final Map<String, String> tags, final long startNodeIdentifier,
-            final long endNodeIdentifier, final Set<Long> relationIdentifiers)
+            final Map<String, String> tags, final Long startNodeIdentifier,
+            final Long endNodeIdentifier, final Set<Long> relationIdentifiers)
     {
         super(new BloatedAtlas());
+
+        this.bounds = polyLine == null ? null : polyLine.bounds();
+
         this.identifier = identifier;
         this.polyLine = polyLine;
         this.tags = tags;
         this.startNodeIdentifier = startNodeIdentifier;
         this.endNodeIdentifier = endNodeIdentifier;
         this.relationIdentifiers = relationIdentifiers;
-    }
-
-    /**
-     * Constructor to be used only in BloatedNode and BloatedRelation. Used otherwise, and this
-     * object will misbehave.
-     *
-     * @param identifier
-     *            The feature identifier
-     */
-    protected BloatedEdge(final long identifier)
-    {
-        super(new BloatedAtlas());
-        this.identifier = identifier;
-        this.polyLine = null;
-        this.tags = null;
-        this.startNodeIdentifier = null;
-        this.endNodeIdentifier = null;
-        this.relationIdentifiers = null;
     }
 
     @Override
@@ -70,9 +68,15 @@ public class BloatedEdge extends Edge
     }
 
     @Override
+    public Rectangle bounds()
+    {
+        return this.bounds;
+    }
+
+    @Override
     public Node end()
     {
-        return new BloatedNode(this.endNodeIdentifier);
+        return this.endNodeIdentifier == null ? null : new BloatedNode(this.endNodeIdentifier);
     }
 
     @Override
@@ -119,7 +123,7 @@ public class BloatedEdge extends Edge
     @Override
     public Node start()
     {
-        return new BloatedNode(this.startNodeIdentifier);
+        return this.startNodeIdentifier == null ? null : new BloatedNode(this.startNodeIdentifier);
     }
 
     public BloatedEdge withEndNodeIdentifier(final Long endNodeIdentifier)
@@ -137,6 +141,7 @@ public class BloatedEdge extends Edge
     public BloatedEdge withPolyLine(final PolyLine polyLine)
     {
         this.polyLine = polyLine;
+        this.bounds = polyLine.bounds();
         return this;
     }
 
@@ -155,6 +160,12 @@ public class BloatedEdge extends Edge
     public BloatedEdge withTags(final Map<String, String> tags)
     {
         this.tags = tags;
+        return this;
+    }
+
+    private BloatedEdge withBounds(final Rectangle bounds)
+    {
+        this.bounds = bounds;
         return this;
     }
 }

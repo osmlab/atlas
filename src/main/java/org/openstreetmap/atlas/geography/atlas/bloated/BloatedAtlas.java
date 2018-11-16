@@ -33,7 +33,7 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
  *
  * @author matthieun
  */
-public class BloatedAtlas implements Atlas
+class BloatedAtlas implements Atlas
 {
     private static final long serialVersionUID = 5265300513234306056L;
 

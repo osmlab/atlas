@@ -1,8 +1,10 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.Location;
@@ -18,49 +20,57 @@ public class ChangeNode extends Node // NOSONAR
     private static final long serialVersionUID = 4353679260691518275L;
 
     private final Node source;
+    private final Node override;
 
-    protected ChangeNode(final ChangeAtlas atlas, final Node source)
+    protected ChangeNode(final ChangeAtlas atlas, final Node source, final Node override)
     {
         super(atlas);
         this.source = source;
+        this.override = override;
     }
 
     @Override
     public long getIdentifier()
     {
-        return this.source.getIdentifier();
+        return attribute(Node::getIdentifier);
     }
 
     @Override
     public Location getLocation()
     {
-        return this.source.getLocation();
+        return attribute(Node::getLocation);
+    }
+
+    @Override
+    public Map<String, String> getTags()
+    {
+        return attribute(Node::getTags);
     }
 
     public SortedSet<Long> inEdgeIdentifiers()
     {
-        return this.source.inEdges().stream().map(Edge::getIdentifier)
+        return attribute(Node::inEdges).stream().map(Edge::getIdentifier)
                 .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public SortedSet<Edge> inEdges()
     {
-        return this.source.inEdges().stream()
+        return attribute(Node::inEdges).stream()
                 .map(edge -> getChangeAtlas().edge(edge.getIdentifier()))
                 .collect(Collectors.toCollection(TreeSet::new));
     }
 
     public SortedSet<Long> outEdgeIdentifiers()
     {
-        return this.source.outEdges().stream().map(Edge::getIdentifier)
+        return attribute(Node::outEdges).stream().map(Edge::getIdentifier)
                 .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public SortedSet<Edge> outEdges()
     {
-        return this.source.outEdges().stream()
+        return attribute(Node::outEdges).stream()
                 .map(edge -> getChangeAtlas().edge(edge.getIdentifier()))
                 .collect(Collectors.toCollection(TreeSet::new));
     }
@@ -68,7 +78,13 @@ public class ChangeNode extends Node // NOSONAR
     @Override
     public Set<Relation> relations()
     {
+        // Return a set of ChangeRelations!! Not the original relations from the source or override.
         throw new UnsupportedOperationException();
+    }
+
+    private <T extends Object> T attribute(final Function<Node, T> memberExtractor)
+    {
+        return ChangeEntity.getAttributeOrBackup(this.source, this.override, memberExtractor);
     }
 
     private ChangeAtlas getChangeAtlas()

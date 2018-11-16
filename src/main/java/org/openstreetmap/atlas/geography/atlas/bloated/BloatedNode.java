@@ -7,6 +7,7 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -19,6 +20,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 public class BloatedNode extends Node
 {
     private static final long serialVersionUID = -8229589987121555419L;
+
+    private Rectangle bounds;
 
     private long identifier;
     private Location location;
@@ -37,11 +40,24 @@ public class BloatedNode extends Node
                 node.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
+    public static BloatedNode shallowFromNode(final Node node)
+    {
+        return new BloatedNode(node.getIdentifier()).withBounds(node.getLocation().bounds());
+    }
+
+    BloatedNode(final Long identifier)
+    {
+        this(identifier, null, null, null, null, null);
+    }
+
     public BloatedNode(final long identifier, final Location location,
             final Map<String, String> tags, final SortedSet<Long> inEdgeIdentifiers,
             final SortedSet<Long> outEdgeIdentifiers, final Set<Long> relationIdentifiers)
     {
         super(new BloatedAtlas());
+
+        this.bounds = location == null ? null : location.bounds();
+
         this.identifier = identifier;
         this.location = location;
         this.tags = tags;
@@ -50,16 +66,10 @@ public class BloatedNode extends Node
         this.relationIdentifiers = relationIdentifiers;
     }
 
-    /**
-     * Constructor to be used only in BloatedEdge and BloatedRelation. Used otherwise, and this
-     * object will misbehave.
-     *
-     * @param identifier
-     *            The feature identifier
-     */
-    protected BloatedNode(final Long identifier)
+    @Override
+    public Rectangle bounds()
     {
-        this(identifier, null, null, null, null, null);
+        return this.bounds;
     }
 
     @Override
@@ -106,15 +116,17 @@ public class BloatedNode extends Node
     @Override
     public SortedSet<Edge> inEdges()
     {
-        return this.inEdgeIdentifiers.stream().map(BloatedEdge::new)
-                .collect(Collectors.toCollection(TreeSet::new));
+        return this.inEdgeIdentifiers == null ? null
+                : this.inEdgeIdentifiers.stream().map(BloatedEdge::new)
+                        .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public SortedSet<Edge> outEdges()
     {
-        return this.outEdgeIdentifiers.stream().map(BloatedEdge::new)
-                .collect(Collectors.toCollection(TreeSet::new));
+        return this.outEdgeIdentifiers == null ? null
+                : this.outEdgeIdentifiers.stream().map(BloatedEdge::new)
+                        .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
@@ -138,6 +150,7 @@ public class BloatedNode extends Node
     public BloatedNode withLocation(final Location location)
     {
         this.location = location;
+        this.bounds = location.bounds();
         return this;
     }
 
@@ -156,6 +169,12 @@ public class BloatedNode extends Node
     public BloatedNode withTags(final Map<String, String> tags)
     {
         this.tags = tags;
+        return this;
+    }
+
+    private BloatedNode withBounds(final Rectangle bounds)
+    {
+        this.bounds = bounds;
         return this;
     }
 }

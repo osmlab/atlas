@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -74,7 +75,8 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     public Edge edge(final long identifier)
     {
         return entityFor(identifier, ItemType.EDGE, () -> this.source.edge(identifier),
-                entity -> new ChangeEdge(this, (Edge) entity));
+                (sourceEntity, overrideEntity) -> new ChangeEdge(this, (Edge) sourceEntity,
+                        (Edge) overrideEntity));
     }
 
     @Override
@@ -105,7 +107,8 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     public Node node(final long identifier)
     {
         return entityFor(identifier, ItemType.NODE, () -> this.source.node(identifier),
-                entity -> new ChangeNode(this, (Node) entity));
+                (sourceEntity, overrideEntity) -> new ChangeNode(this, (Node) sourceEntity,
+                        (Node) overrideEntity));
     }
 
     @Override
@@ -226,10 +229,11 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
      */
     private <M extends AtlasEntity> M entityFor(final long identifier, final ItemType itemType,
             final Supplier<AtlasEntity> sourceSupplier,
-            final Function<AtlasEntity, M> entityConstructorFromSource)
+            final BiFunction<AtlasEntity, AtlasEntity, M> entityConstructorFromSource)
     {
         final Optional<FeatureChange> itemChangeOption = this.change.changeFor(itemType,
                 identifier);
+        final AtlasEntity sourceItem = sourceSupplier.get();
         if (itemChangeOption.isPresent())
         {
             // That Edge is affected by a change
@@ -240,17 +244,17 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
             }
             else
             {
-                // Create the ChangeItem from the change object
-                return entityConstructorFromSource.apply(itemChange.getReference());
+                // Create the ChangeItem from the change object (the override). The source item
+                // might be null (In case of an ADD with is a create and not a modify)
+                return entityConstructorFromSource.apply(sourceItem, itemChange.getReference());
             }
         }
         else
         {
-            final AtlasEntity sourceItem = sourceSupplier.get();
             if (sourceItem != null)
             {
-                // Create the ChangeItem from the untouched source
-                return entityConstructorFromSource.apply(sourceItem);
+                // Create the ChangeItem from the untouched source; the override is null
+                return entityConstructorFromSource.apply(sourceItem, null);
             }
         }
         return null;
