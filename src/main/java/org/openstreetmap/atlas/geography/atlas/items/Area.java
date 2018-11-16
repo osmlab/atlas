@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.items;
 
 import java.util.Map;
+import java.util.Optional;
 
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
@@ -10,7 +11,10 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.StringList;
+
+import com.google.gson.JsonObject;
 
 /**
  * Area from an {@link Atlas}
@@ -24,6 +28,12 @@ public abstract class Area extends AtlasItem
     protected Area(final Atlas atlas)
     {
         super(atlas);
+    }
+
+    @Override
+    public JsonObject asGeoJsonFeature()
+    {
+        return GeoJsonUtils.feature(asPolygon().asGeoJsonGeometry(), geoJsonProperties());
     }
 
     /**
@@ -84,6 +94,9 @@ public abstract class Area extends AtlasItem
         tags.put("identifier", String.valueOf(getIdentifier()));
         tags.put("osmIdentifier", String.valueOf(getOsmIdentifier()));
         tags.put("itemType", String.valueOf(getType()));
+
+        final Optional<String> shardName = getAtlas().metaData().getShardName();
+        shardName.ifPresent(shard -> tags.put("shard", shard));
 
         final StringList parentRelations = new StringList();
         this.relations().forEach(relation ->

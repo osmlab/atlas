@@ -31,6 +31,8 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.PrecisionModel;
+import com.vividsolutions.jts.precision.PrecisionReducerCoordinateOperation;
 
 /**
  * The abstract class that contains all common raw Atlas slicing functionality.
@@ -41,15 +43,19 @@ public abstract class RawAtlasSlicer
 {
     private static final Logger logger = LoggerFactory.getLogger(RawAtlasSlicer.class);
 
-    // Constants
-    private static final double SEVEN_DIGIT_PRECISION_SCALE = 10_000_000;
-
     // JTS converters
     protected static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
     protected static final JtsPolyLineConverter JTS_POLYLINE_CONVERTER = new JtsPolyLineConverter();
     protected static final JtsLocationConverter JTS_LOCATION_CONVERTER = new JtsLocationConverter();
     protected static final JtsLinearRingConverter JTS_LINEAR_RING_CONVERTER = new JtsLinearRingConverter();
     protected static final MultiplePolyLineToPolygonsConverter MULTIPLE_POLY_LINE_TO_POLYGON_CONVERTER = new MultiplePolyLineToPolygonsConverter();
+
+    // JTS precision handling
+    private static final Integer SEVEN_DIGIT_PRECISION_SCALE = 10_000_000;
+    private static final PrecisionModel PRECISION_MODEL = new PrecisionModel(
+            SEVEN_DIGIT_PRECISION_SCALE);
+    protected static final PrecisionReducerCoordinateOperation PRECISION_REDUCER = new PrecisionReducerCoordinateOperation(
+            PRECISION_MODEL, false);
 
     // The countries we're interested in slicing against
     private final Set<String> countries;
@@ -151,22 +157,6 @@ public abstract class RawAtlasSlicer
         throw new CoreException(
                 "All raw Atlas lines must have a country code by the time Relation slicing is done. One of the two Lines {} or {} does not!",
                 one.getIdentifier(), two.getIdentifier());
-    }
-
-    /**
-     * JTS has trouble dealing with high-precision double values. For this reason, we round all
-     * coordinates to 7 degrees of precision. See {@link Coordinate} java doc for more detailed
-     * explanation of scaling.
-     *
-     * @param coordinate
-     *            The {@link Coordinate} to round
-     */
-    protected static void roundCoordinate(final Coordinate coordinate)
-    {
-        coordinate.x = Math.round(coordinate.x * SEVEN_DIGIT_PRECISION_SCALE)
-                / SEVEN_DIGIT_PRECISION_SCALE;
-        coordinate.y = Math.round(coordinate.y * SEVEN_DIGIT_PRECISION_SCALE)
-                / SEVEN_DIGIT_PRECISION_SCALE;
     }
 
     public RawAtlasSlicer(final Set<String> countries, final CountryBoundaryMap countryBoundaryMap,
