@@ -132,7 +132,7 @@ public class RelationSlicingTest
         final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
         new ComplexBuildingFinder().find(slicedAtlas).forEach(System.out::println);
 
-        Assert.assertEquals(23, slicedAtlas.numberOfPoints());
+        Assert.assertEquals(25, slicedAtlas.numberOfPoints());
         Assert.assertEquals(2, slicedAtlas.numberOfLines());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());
     }

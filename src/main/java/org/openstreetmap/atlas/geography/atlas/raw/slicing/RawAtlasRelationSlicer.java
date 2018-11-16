@@ -235,56 +235,66 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
     {
         // Keep track of identifiers that form the geometry of the new line
         final List<Long> newLineShapePoints = new ArrayList<>(lineString.getNumPoints());
-
-        for (int exteriorIndex = 0; exteriorIndex < lineString.getNumPoints(); exteriorIndex++)
+        final Coordinate[] lineCoordinates = PRECISION_REDUCER.edit(lineString.getCoordinates(),
+                lineString);
+        for (final Coordinate pointCoordinate : lineCoordinates)
         {
-            final Coordinate pointCoordinate = lineString.getCoordinateN(exteriorIndex);
-            roundCoordinate(pointCoordinate);
+            final Location pointLocation = JTS_LOCATION_CONVERTER.backwardConvert(pointCoordinate);
+            final Iterable<Point> rawAtlasPointsAtCoordinate = this.partiallySlicedRawAtlas
+                    .pointsAt(pointLocation);
 
-            if (getCoordinateToPointMapping().containsCoordinate(pointCoordinate))
+            if (Iterables.isEmpty(rawAtlasPointsAtCoordinate))
             {
-                // A new point was already created for this coordinate - use it
-                newLineShapePoints
-                        .add(getCoordinateToPointMapping().getPointForCoordinate(pointCoordinate));
-            }
-            else
-            {
-                // The point is in the original Raw Atlas or need to create a new one
-                final Location pointLocation = JTS_LOCATION_CONVERTER
-                        .backwardConvert(pointCoordinate);
-                final Iterable<Point> rawAtlasPointsAtCoordinate = this.partiallySlicedRawAtlas
-                        .pointsAt(pointLocation);
-                if (Iterables.isEmpty(rawAtlasPointsAtCoordinate))
+                if (getCoordinateToPointMapping().containsCoordinate(pointCoordinate))
                 {
-                    // Point doesn't exist in the raw Atlas, create a new one
-                    final Map<String, String> newPointTags = createPointTags(pointLocation, false);
-                    newPointTags.put(SyntheticBoundaryNodeTag.KEY,
-                            SyntheticBoundaryNodeTag.YES.toString());
-                    final long newPointIdentifier = createNewPointIdentifier(
-                            pointIdentifierGenerator, pointCoordinate);
-                    final TemporaryPoint newPoint = new TemporaryPoint(newPointIdentifier,
-                            JTS_LOCATION_CONVERTER.backwardConvert(pointCoordinate), newPointTags);
-
-                    // Store coordinate to avoid creating duplicate points
-                    getCoordinateToPointMapping().storeMapping(pointCoordinate,
-                            newPoint.getIdentifier());
-
-                    // Store this point to reconstruct the line geometry
-                    newLineShapePoints.add(newPoint.getIdentifier());
-
-                    // Save the point to add to the rebuilt atlas
-                    this.slicedRelationChanges.createPoint(newPoint);
+                    // A new point was already created for this coordinate - use it
+                    newLineShapePoints.add(
+                            getCoordinateToPointMapping().getPointForCoordinate(pointCoordinate));
                 }
                 else
                 {
-                    // There is at least one point at this Location in the raw Atlas. Update all
-                    // existing points to have the country code. Note: raw Atlas combines all nodes
-                    // at a single location, so expect only a single point to be added here.
-                    for (final Point rawAtlasPoint : rawAtlasPointsAtCoordinate)
+                    final Location scaledLocation = JTS_LOCATION_CONVERTER.backwardConvert(
+                            getCoordinateToPointMapping().getScaledCoordinate(pointCoordinate));
+                    final Iterable<Point> rawAtlasPointsAtScaledCoordinate = this.partiallySlicedRawAtlas
+                            .pointsAt(scaledLocation);
+                    if (Iterables.isEmpty(rawAtlasPointsAtScaledCoordinate))
                     {
-                        // Add all point identifiers to make up the new Line
-                        newLineShapePoints.add(rawAtlasPoint.getIdentifier());
+                        final Map<String, String> newPointTags = createPointTags(scaledLocation,
+                                false);
+                        newPointTags.put(SyntheticBoundaryNodeTag.KEY,
+                                SyntheticBoundaryNodeTag.YES.toString());
+                        final long newPointIdentifier = createNewPointIdentifier(
+                                pointIdentifierGenerator, pointCoordinate);
+                        final TemporaryPoint newPoint = new TemporaryPoint(newPointIdentifier,
+                                scaledLocation, newPointTags);
+
+                        // Store coordinate to avoid creating duplicate points
+                        getCoordinateToPointMapping().storeMapping(pointCoordinate,
+                                newPoint.getIdentifier());
+
+                        // Store this point to reconstruct the line geometry
+                        newLineShapePoints.add(newPoint.getIdentifier());
+
+                        // Save the point to add to the rebuilt atlas
+                        this.slicedRelationChanges.createPoint(newPoint);
                     }
+                    else
+                    {
+                        for (final Point rawAtlasPoint : rawAtlasPointsAtScaledCoordinate)
+                        {
+                            // Add all point identifiers to make up the new Line
+                            newLineShapePoints.add(rawAtlasPoint.getIdentifier());
+                        }
+                    }
+                }
+            }
+
+            else
+            {
+                for (final Point rawAtlasPoint : rawAtlasPointsAtCoordinate)
+                {
+                    // Add all point identifiers to make up the new Line
+                    newLineShapePoints.add(rawAtlasPoint.getIdentifier());
                 }
             }
         }
@@ -648,8 +658,6 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 closedOuterLines, closedInnerLines);
 
         final long[] identifierSeeds = createIdentifierSeeds(relation);
-        final CountrySlicingIdentifierFactory lineIdentifierGenerator = new CountrySlicingIdentifierFactory(
-                identifierSeeds[0]);
         final CountrySlicingIdentifierFactory pointIdentifierGenerator = new CountrySlicingIdentifierFactory(
                 identifierSeeds);
 
@@ -659,6 +667,9 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
             final int outerIndex = entry.getKey();
             final List<Integer> innerIndices = entry.getValue();
 
+            // Use the index of the outer to determine the new line identifier
+            final CountrySlicingIdentifierFactory lineIdentifierGenerator = new CountrySlicingIdentifierFactory(
+                    +identifierSeeds[outerIndex]);
             Geometry mergedMembers = null;
 
             // Convert outer to ring
