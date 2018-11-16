@@ -73,5 +73,12 @@ public class BloatedNodeTest
         result.withOutEdgeIdentifiers(outEdgeIdentifiers);
         Assert.assertEquals(outEdgeIdentifiers, result.outEdges().stream().map(Edge::getIdentifier)
                 .collect(Collectors.toCollection(TreeSet::new)));
+        result.withRelationIdentifiers(source.relations().stream().map(Relation::getIdentifier)
+                .collect(Collectors.toSet()));
+        Assert.assertEquals(
+                source.relations().stream().map(Relation::getIdentifier)
+                        .collect(Collectors.toSet()),
+                result.relations().stream().map(Relation::getIdentifier)
+                        .collect(Collectors.toSet()));
     }
 }

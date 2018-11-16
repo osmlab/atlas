@@ -58,5 +58,12 @@ public class BloatedEdgeTest
         final long endNodeIdentifier = 6;
         result.withEndNodeIdentifier(endNodeIdentifier);
         Assert.assertEquals(endNodeIdentifier, result.end().getIdentifier());
+        result.withRelationIdentifiers(source.relations().stream().map(Relation::getIdentifier)
+                .collect(Collectors.toSet()));
+        Assert.assertEquals(
+                source.relations().stream().map(Relation::getIdentifier)
+                        .collect(Collectors.toSet()),
+                result.relations().stream().map(Relation::getIdentifier)
+                        .collect(Collectors.toSet()));
     }
 }
