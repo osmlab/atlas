@@ -6,22 +6,21 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.PolyLine;
-import org.openstreetmap.atlas.geography.atlas.items.Edge;
-import org.openstreetmap.atlas.geography.atlas.items.Node;
+import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
 /**
  * @author matthieun
  */
-public class ChangeEdge extends Edge // NOSONAR
+public class ChangeLine extends Line // NOSONAR
 {
     private static final long serialVersionUID = -5658471275390043045L;
 
     // At most one of those two can be null. Not using Optional here as it is not Serializable.
-    private final Edge source;
-    private final Edge override;
+    private final Line source;
+    private final Line override;
 
-    protected ChangeEdge(final ChangeAtlas atlas, final Edge source, final Edge override)
+    protected ChangeLine(final ChangeAtlas atlas, final Line source, final Line override)
     {
         super(atlas);
         this.source = source;
@@ -31,52 +30,30 @@ public class ChangeEdge extends Edge // NOSONAR
     @Override
     public PolyLine asPolyLine()
     {
-        return attribute(Edge::asPolyLine);
-    }
-
-    @Override
-    public Node end()
-    {
-        return getChangeAtlas().node(endNodeIdentifier());
-    }
-
-    public long endNodeIdentifier()
-    {
-        return attribute(Edge::end).getIdentifier();
+        return attribute(Line::asPolyLine);
     }
 
     @Override
     public long getIdentifier()
     {
-        return attribute(Edge::getIdentifier);
+        return attribute(Line::getIdentifier);
     }
 
     @Override
     public Map<String, String> getTags()
     {
-        return attribute(Edge::getTags);
+        return attribute(Line::getTags);
     }
 
     @Override
     public Set<Relation> relations()
     {
-        return attribute(Edge::relations).stream()
+        return attribute(Line::relations).stream()
                 .map(relation -> getChangeAtlas().relation(relation.getIdentifier()))
                 .collect(Collectors.toSet());
     }
 
-    @Override
-    public Node start()
-    {
-        return getChangeAtlas().node(startNodeIdentifier());
-    }
-
-    public long startNodeIdentifier()
-    {
-        return attribute(Edge::start).getIdentifier();
-    }
-
-    private <T extends Object> T attribute(final Function<Edge, T> memberExtractor)
+    private <T extends Object> T attribute(final Function<Line, T> memberExtractor)
     {
         return ChangeEntity.getAttributeOrBackup(this.source, this.override, memberExtractor);
     }

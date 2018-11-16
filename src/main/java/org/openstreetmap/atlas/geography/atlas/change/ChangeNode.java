@@ -78,8 +78,9 @@ public class ChangeNode extends Node // NOSONAR
     @Override
     public Set<Relation> relations()
     {
-        // Return a set of ChangeRelations!! Not the original relations from the source or override.
-        throw new UnsupportedOperationException();
+        return attribute(Node::relations).stream()
+                .map(relation -> getChangeAtlas().relation(relation.getIdentifier()))
+                .collect(Collectors.toSet());
     }
 
     private <T extends Object> T attribute(final Function<Node, T> memberExtractor)
