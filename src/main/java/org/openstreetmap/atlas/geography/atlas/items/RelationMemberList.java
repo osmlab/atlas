@@ -6,12 +6,15 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Located;
+import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * @author matthieun
  */
-public class RelationMemberList extends AbstractCollection<RelationMember>
+public class RelationMemberList extends AbstractCollection<RelationMember> implements Located
 {
     private final List<RelationMember> members;
 
@@ -26,6 +29,23 @@ public class RelationMemberList extends AbstractCollection<RelationMember>
             this.members = new ArrayList<>();
             members.forEach(member -> this.members.add(member));
         }
+    }
+
+    public RelationBean asBean()
+    {
+        final RelationBean result = new RelationBean();
+        for (final RelationMember member : this.members)
+        {
+            result.addItem(member.getEntity().getIdentifier(), member.getRole(),
+                    member.getEntity().getType());
+        }
+        return result;
+    }
+
+    @Override
+    public Rectangle bounds()
+    {
+        return Rectangle.forLocated(this.members);
     }
 
     @Override
