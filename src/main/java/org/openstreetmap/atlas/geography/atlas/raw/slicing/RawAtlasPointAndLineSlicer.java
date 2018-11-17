@@ -93,6 +93,31 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
     }
 
     /**
+     * Takes a location, a list of points from the raw Atlas at that location, and a list of point
+     * IDs. Ensures the tags for the point are updated, ensures the points are not removed from the
+     * raw Atlas, and adds the points the list of points for the line.
+     *
+     * @param location
+     *            The location for the point(s)
+     * @param rawAtlasPoints
+     *            The points from the raw Atlas
+     * @param line
+     *            The List representing the points for the line to add the points to
+     */
+    private void addRawAtlasPointsToLine(final Location location,
+            final Iterable<Point> rawAtlasPoints, final List<Long> line)
+    {
+        final Map<String, String> pointTags = createPointTags(location, true);
+        for (final Point rawAtlasPoint : rawAtlasPoints)
+        {
+            this.pointsMarkedForRemoval.remove(rawAtlasPoint.getIdentifier());
+            this.slicedPointAndLineChanges.updatePointTags(rawAtlasPoint.getIdentifier(),
+                    pointTags);
+            line.add(rawAtlasPoint.getIdentifier());
+        }
+    }
+
+    /**
      * Converts the given {@link Line} into a JTS {@link Geometry} and slices it.
      *
      * @param line
@@ -238,10 +263,10 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             {
                 for (final Geometry slice : slices)
                 {
-                    // Check if the slice is within the working bound
+                    // Check if the slice is within the working bound and mark all points for this
+                    // slice for removal if so
                     if (isOutsideWorkingBound(slice))
                     {
-                        // Mark all existing points from this slice for removal and continue
                         removeShapePointsFromFilteredSliced(slice);
                         continue;
                     }
@@ -249,70 +274,67 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                     // Keep track of identifiers that form the geometry of the new line
                     final List<Long> newLineShapePoints = new ArrayList<>(slice.getNumPoints());
 
-                    final Coordinate[] jtsSliceCoordinates = slice.getCoordinates();
+                    // Because country shapes do not share border, we are reducing the precision of
+                    // the geometry
+                    final Coordinate[] jtsSliceCoordinates = PRECISION_REDUCER
+                            .edit(slice.getCoordinates(), slice);
                     for (final Coordinate coordinate : jtsSliceCoordinates)
                     {
-                        // Because country shapes do not share border, we are rounding coordinate
-                        // first to consider very close nodes as one
-                        roundCoordinate(coordinate);
+                        final Location coordinateLocation = JTS_LOCATION_CONVERTER
+                                .backwardConvert(coordinate);
+                        final Iterable<Point> rawAtlasPointsAtSliceVertex = this.rawAtlas
+                                .pointsAt(coordinateLocation);
 
-                        if (getCoordinateToPointMapping().containsCoordinate(coordinate))
+                        // If there aren't any points at this precision in the raw Atlas, need to
+                        // examine cache and possibly scale the coordinate to 6 digits of precision
+                        if (Iterables.isEmpty(rawAtlasPointsAtSliceVertex))
                         {
-                            // A new point was already created for this coordinate. Look it up and
-                            // use it for the line we're creating
-                            newLineShapePoints.add(getCoordinateToPointMapping()
-                                    .getPointForCoordinate(coordinate));
-                        }
-                        else
-                        {
-                            // The point is in the original Raw Atlas or we need to create a new one
-                            final Location coordinateLocation = JTS_LOCATION_CONVERTER
-                                    .backwardConvert(coordinate);
-                            final Iterable<Point> rawAtlasPointsAtSliceVertex = this.rawAtlas
-                                    .pointsAt(coordinateLocation);
 
-                            if (Iterables.isEmpty(rawAtlasPointsAtSliceVertex))
+                            // Check the cache for this coordinate -- if it already exists, we'll
+                            // use it. Otherwise, scale to 6-digits and continue
+                            if (getCoordinateToPointMapping().containsCoordinate(coordinate))
                             {
-                                // Grab the country code tags for this point
-                                final Map<String, String> pointTags = createPointTags(
-                                        coordinateLocation, false);
-
-                                // Need to create a new point
-                                final TemporaryPoint newPoint = createNewPoint(coordinate,
-                                        pointIdentifierFactory, pointTags);
-
-                                // Store coordinate to avoid creating duplicate points
-                                getCoordinateToPointMapping().storeMapping(coordinate,
-                                        newPoint.getIdentifier());
-
-                                // Store this point to reconstruct the line geometry
-                                newLineShapePoints.add(newPoint.getIdentifier());
-
-                                // Save the point to add to the rebuilt atlas
-                                this.slicedPointAndLineChanges.createPoint(newPoint);
+                                newLineShapePoints.add(getCoordinateToPointMapping()
+                                        .getPointForCoordinate(coordinate));
                             }
                             else
                             {
-                                // Grab the country code tags for this point
-                                final Map<String, String> pointTags = createPointTags(
-                                        coordinateLocation, true);
+                                final Location scaledLocation = JTS_LOCATION_CONVERTER
+                                        .backwardConvert(getCoordinateToPointMapping()
+                                                .getScaledCoordinate(coordinate));
+                                final Iterable<Point> rawAtlasPointsAtScaledCoordinate = this.rawAtlas
+                                        .pointsAt(scaledLocation);
 
-                                // There is at least one point at this location in the raw Atlas.
-                                // Update all existing points to have the country code.
-                                for (final Point rawAtlasPoint : rawAtlasPointsAtSliceVertex)
+                                // If the raw Atlas doesn't contain the 6-digit coordinate either,
+                                // then we'll make a point at that location and update the cache and
+                                // changeset with it. Otherwise, use the existing Atlas point by
+                                // making sure it's kept and adding it to the line
+                                if (Iterables.isEmpty(rawAtlasPointsAtScaledCoordinate))
                                 {
-                                    // Make sure to keep this point
-                                    this.pointsMarkedForRemoval
-                                            .remove(rawAtlasPoint.getIdentifier());
-
-                                    // Update the country codes
-                                    this.slicedPointAndLineChanges.updatePointTags(
-                                            rawAtlasPoint.getIdentifier(), pointTags);
-
-                                    // Add all point identifiers to make up the new Line
-                                    newLineShapePoints.add(rawAtlasPoint.getIdentifier());
+                                    final Map<String, String> pointTags = createPointTags(
+                                            scaledLocation, false);
+                                    pointTags.put(SyntheticBoundaryNodeTag.KEY,
+                                            SyntheticBoundaryNodeTag.YES.toString());
+                                    final TemporaryPoint newPoint = createNewPoint(
+                                            getCoordinateToPointMapping().getScaledCoordinate(
+                                                    coordinate),
+                                            pointIdentifierFactory, pointTags);
+                                    getCoordinateToPointMapping().storeMapping(coordinate,
+                                            newPoint.getIdentifier());
+                                    newLineShapePoints.add(newPoint.getIdentifier());
+                                    this.slicedPointAndLineChanges.createPoint(newPoint);
+                                }
+                                else
+                                {
+                                    addRawAtlasPointsToLine(scaledLocation,
+                                            rawAtlasPointsAtScaledCoordinate, newLineShapePoints);
                                 }
                             }
+                        }
+                        else
+                        {
+                            addRawAtlasPointsToLine(coordinateLocation, rawAtlasPointsAtSliceVertex,
+                                    newLineShapePoints);
                         }
                     }
 
