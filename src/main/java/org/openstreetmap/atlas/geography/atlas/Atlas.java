@@ -764,6 +764,18 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
 
     /**
      * Return a sub-atlas from this Atlas.
+     *
+     * @param boundary
+     *            The boundary within which the sub atlas will be built
+     * @param cutType
+     *            The type of cut to perform
+     * @return An optional sub-atlas. The optional will be empty in case there is nothing in the
+     *         {@link Polygon} after the cut was applied. Returning an empty atlas is not allowed.
+     */
+    Optional<Atlas> subAtlas(Polygon boundary, AtlasCutType cutType);
+
+    /**
+     * Return a sub-atlas from this Atlas.
      * <p>
      * This would be a soft cut, meaning:
      * <ul>
@@ -789,6 +801,18 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      *         empty atlas, which is not allowed.
      */
     Optional<Atlas> subAtlas(Predicate<AtlasEntity> matcher);
+
+    /**
+     * Return a sub-atlas from this Atlas.
+     *
+     * @param matcher
+     *            The matcher to consider
+     * @param cutType
+     *            The type of cut to perform
+     * @return An optional sub-atlas. The optional will be empty in case the matcher and cut-type
+     *         return an empty atlas, which is not allowed.
+     */
+    Optional<Atlas> subAtlas(Predicate<AtlasEntity> matcher, AtlasCutType cutType);
 
     /**
      * @return A summary of this {@link Atlas}

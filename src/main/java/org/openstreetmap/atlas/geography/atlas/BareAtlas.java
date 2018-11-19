@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
@@ -68,6 +69,7 @@ public abstract class BareAtlas implements Atlas
     private static final int MAXIMUM_RELATION_DEPTH = 500;
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
     private static final AtomicInteger ATLAS_IDENTIFIER_FACTORY = new AtomicInteger();
+
     static
     {
         NUMBER_FORMAT.setGroupingUsed(true);
@@ -636,55 +638,47 @@ public abstract class BareAtlas implements Atlas
         pointsWithin.get().forEach(point -> builder.addPoint(point.getIdentifier(),
                 point.getLocation(), point.getTags()));
 
-        // Add the Relations: Because relations can also be members of other relations, this is
-        // trickier. There is a while loop re-checking if each relation added needs to trigger the
-        // loading of another relation if it is member in another relation.
-        final List<Boolean> relationAdded = new ArrayList<>();
-        relationAdded.add(true);
-        while (numberOfRelations() > Iterables.size(builder.peek().relations())
-                && relationAdded.get(0))
-        {
-            relationAdded.set(0, false);
-            // Check all the relations that are not in the sub atlas
-            Iterables.stream(relations()).filter(hasRelation.negate()).forEach(relation ->
-            {
-                final RelationMemberList members = relation.members();
-                final List<RelationMember> validMembers = new ArrayList<>();
-                // And consider them only if they have members that have already been added to the
-                // sub atlas.
-                members.forEach(member ->
+        // Add all the relations that are not in the sub atlas, in lower order first
+        Iterables.stream(relationsLowerOrderFirst()).filter(hasRelation.negate())
+                .forEach(relation ->
                 {
-                    final AtlasEntity entity = member.getEntity();
-                    // Non-Relation members
-                    if (entity instanceof Node && hasNode.test((Node) entity)
-                            || entity instanceof Edge && hasEdge.test((Edge) entity)
-                            || entity instanceof Area && hasArea.test((Area) entity)
-                            || entity instanceof Line && hasLine.test((Line) entity)
-                            || entity instanceof Point && hasPoint.test((Point) entity))
+                    final RelationMemberList members = relation.members();
+                    final List<RelationMember> validMembers = new ArrayList<>();
+                    // And consider them only if they have members that have already been added to
+                    // the sub atlas.
+                    members.forEach(member ->
                     {
-                        validMembers.add(member);
-                    }
-                    // Relation members
-                    if (entity instanceof Relation && hasRelation.test((Relation) entity))
+                        final AtlasEntity entity = member.getEntity();
+                        // Non-Relation members
+                        if (entity instanceof Node && hasNode.test((Node) entity)
+                                || entity instanceof Edge && hasEdge.test((Edge) entity)
+                                || entity instanceof Area && hasArea.test((Area) entity)
+                                || entity instanceof Line && hasLine.test((Line) entity)
+                                || entity instanceof Point && hasPoint.test((Point) entity))
+                        {
+                            validMembers.add(member);
+                        }
+                        // Relation members
+                        if (entity instanceof Relation && hasRelation.test((Relation) entity))
+                        {
+                            validMembers.add(member);
+                        }
+                    });
+                    if (!validMembers.isEmpty())
                     {
-                        relationAdded.set(0, true);
-                        validMembers.add(member);
+                        // If there are legitimate members, we need to add the relation to the sub
+                        // atlas
+                        final RelationBean structure = new RelationBean();
+                        validMembers.forEach(validMember ->
+                        {
+                            structure.addItem(validMember.getEntity().getIdentifier(),
+                                    validMember.getRole(),
+                                    ItemType.forEntity(validMember.getEntity()));
+                        });
+                        builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(),
+                                structure, relation.getTags());
                     }
                 });
-                if (!validMembers.isEmpty())
-                {
-                    // If there are legitimate members, we need to add the relation to the sub atlas
-                    final RelationBean structure = new RelationBean();
-                    validMembers.forEach(validMember ->
-                    {
-                        structure.addItem(validMember.getEntity().getIdentifier(),
-                                validMember.getRole(), ItemType.forEntity(validMember.getEntity()));
-                    });
-                    builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(),
-                            structure, relation.getTags());
-                }
-            });
-        }
         final PackedAtlas result = (PackedAtlas) builder.get();
         if (result != null)
         {
@@ -695,12 +689,28 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
+    public Optional<Atlas> subAtlas(final Polygon boundary, final AtlasCutType cutType)
+    {
+        switch (cutType)
+        {
+            case SOFT_CUT:
+                return this.subAtlas(boundary);
+            case HARD_CUT_ALL:
+                return this.hardCutAllEntities(boundary);
+            case HARD_CUT_RELATIONS_ONLY:
+                return this.hardCutRelationsOnly(boundary);
+            default:
+                throw new CoreException("Unsupported Atlas cut type: {}", cutType);
+        }
+    }
+
+    @Override
     public Optional<Atlas> subAtlas(final Predicate<AtlasEntity> matcher)
     {
         logger.debug("Filtering Atlas {} with meta-data {}", this.getName(), this.metaData());
         final Time begin = Time.now();
 
-        // Using a predicate here can create wild changes in entity numbers. For example a predicate
+        // Using a predicate here can create wild changes in entity counts. For example a predicate
         // would include only edges, but all the nodes would have to be pulled in. In that case, we
         // use the same size as the source Atlas, but we trim it at the end.
         final PackedAtlasBuilder builder = new PackedAtlasBuilder().withSizeEstimates(size())
@@ -715,7 +725,7 @@ public abstract class BareAtlas implements Atlas
 
         // Next, index all the individual nodes and edge start/stop nodes coming from the predicate
         final Iterable<AtlasEntity> nodes = Iterables.stream(nodes(matcher::test))
-                .map(item -> (AtlasEntity) item);
+                .map(item -> (AtlasEntity) item).collectToSet();
         final Iterable<AtlasEntity> edges = Iterables.stream(edges(matcher::test))
                 .map(item -> (AtlasEntity) item);
         for (final AtlasEntity entity : new MultiIterable<>(nodes, edges))
@@ -733,18 +743,7 @@ public abstract class BareAtlas implements Atlas
         {
             indexEdge(edge, builder);
         }
-        for (final Area area : areas(matcher::test))
-        {
-            builder.addArea(area.getIdentifier(), area.asPolygon(), area.getTags());
-        }
-        for (final Line line : lines(matcher::test))
-        {
-            builder.addLine(line.getIdentifier(), line.asPolyLine(), line.getTags());
-        }
-        for (final Point point : points(matcher::test))
-        {
-            builder.addPoint(point.getIdentifier(), point.getLocation(), point.getTags());
-        }
+        indexPointsAreasLines(matcher, builder);
 
         // It's now safe to add Relations. There are two caveats: 1. A relation member may not
         // have been pulled in by the given predicate. In order to maintain relation validity, we
@@ -754,7 +753,8 @@ public abstract class BareAtlas implements Atlas
         // relation has been processed). This guarantees that anything we add to the index has all
         // of its members indexed already.
         Set<Long> stagedRelationIdentifiers = new HashSet<>();
-        final Iterable<Relation> relations = relations(matcher::test);
+        final Iterable<Relation> relations = Iterables.filter(relationsLowerOrderFirst(),
+                matcher::test);
         for (final Relation relation : relations)
         {
             checkRelationMembersAndIndexRelation(relation, matcher, stagedRelationIdentifiers,
@@ -793,6 +793,23 @@ public abstract class BareAtlas implements Atlas
 
         logger.info("Cut sub-atlas in {}", begin.elapsedSince());
         return Optional.ofNullable(result);
+    }
+
+    @Override
+    public Optional<Atlas> subAtlas(final Predicate<AtlasEntity> matcher,
+            final AtlasCutType cutType)
+    {
+        switch (cutType)
+        {
+            case SOFT_CUT:
+                return this.subAtlas(matcher);
+            case HARD_CUT_ALL:
+                return this.hardCutAllEntities(matcher);
+            case HARD_CUT_RELATIONS_ONLY:
+                return this.hardCutRelationsOnly(matcher);
+            default:
+                throw new CoreException("Unsupported Atlas cut type: {}", cutType);
+        }
     }
 
     @Override
@@ -1007,6 +1024,203 @@ public abstract class BareAtlas implements Atlas
         return result;
     }
 
+    private Optional<Atlas> hardCutAllEntities(final Polygon boundary)
+    {
+        // 1. Filter out edges with any nodes outside the boundary.
+        // 2. Filter out any feature not fully contained within said polygon
+        // 3. Go through all relations and check them!
+        // TODO
+        return null;
+    }
+
+    private Optional<Atlas> hardCutAllEntities(final Predicate<AtlasEntity> matcher)
+    {
+        logger.debug("Hard-cutting Atlas {} with meta-data {}", this.getName(), this.metaData());
+        final Time begin = Time.now();
+
+        // Using a predicate here can create wild changes in entity counts. For example a predicate
+        // would include only edges, but all the nodes would have to be pulled in. In that case, we
+        // use the same size as the source Atlas, but we trim it at the end.
+        final PackedAtlasBuilder builder = new PackedAtlasBuilder().withSizeEstimates(size())
+                .withMetaData(metaData()).withName(this.getName() + "_sub");
+
+        // Identify all nodes and edges that match the given predicate
+        final Set<Node> matchedNodes = Iterables.stream(nodes(matcher::test)).map(item -> item)
+                .collectToSet();
+        final Set<Long> matchedEdgeIdentifiers = Iterables.stream(edges(matcher::test))
+                .map(item -> item.getIdentifier()).collectToSet();
+
+        // Avoid floating nodes, the matched node has to be connected to at least one matched edge
+        for (final Node node : matchedNodes)
+        {
+            if (node.connectedEdges().stream().anyMatch(connectedEdge -> matchedEdgeIdentifiers
+                    .contains(connectedEdge.getIdentifier())))
+            {
+                // Safely add this node
+                final Long nodeIdentifier = node.getIdentifier();
+                if (builder.peek().node(nodeIdentifier) == null)
+                {
+                    builder.addNode(nodeIdentifier, node.getLocation(), node.getTags());
+                }
+            }
+            else
+            {
+                logger.trace("Dropping node {} due to lack of connectivity after {}",
+                        node.getIdentifier(), AtlasCutType.HARD_CUT_ALL);
+            }
+        }
+
+        // Before adding an edge, check that its start and end nodes matched the predicate
+        for (final Long matchedEdgeIdentifier : matchedEdgeIdentifiers)
+        {
+            final Edge matchedEdge = edge(matchedEdgeIdentifier);
+            if (builder.peek().node(matchedEdge.start().getIdentifier()) != null
+                    && builder.peek().node(matchedEdge.end().getIdentifier()) != null)
+            {
+                // Safely add this edge
+                if (builder.peek().edge(matchedEdge.getIdentifier()) == null)
+                {
+                    builder.addEdge(matchedEdge.getIdentifier(), matchedEdge.asPolyLine(),
+                            matchedEdge.getTags());
+                }
+            }
+            else
+            {
+                logger.trace("Dropping edge {} due to missing start/end node after {}",
+                        matchedEdge.getIdentifier(), AtlasCutType.HARD_CUT_ALL);
+            }
+        }
+
+        // Points, Lines and Areas require no additional checks - just apply the predicate
+        indexPointsAreasLines(matcher, builder);
+
+        // Process relations - members could have been filtered out, avoid adding an empty relation.
+        // Because we're processing relations in the lowest order first, we're guaranteed to not
+        // encounter a relation that contains an un-processed relation.
+        final Iterable<Relation> matchedRelations = Iterables.filter(relationsLowerOrderFirst(),
+                matcher::test);
+        for (final Relation relation : matchedRelations)
+        {
+            // Gather all members that made it through the predicate
+            final List<RelationMember> validMembers = relation.members().stream()
+                    .filter(member -> builder.peek().entity(member.getEntity().getIdentifier(),
+                            member.getEntity().getType()) != null)
+                    .collect(Collectors.toList());
+
+            if (!validMembers.isEmpty())
+            {
+                // Safely add this relation
+                if (builder.peek().relation(relation.getIdentifier()) == null)
+                {
+                    final RelationBean structure = new RelationBean();
+                    validMembers.forEach(validMember ->
+                    {
+                        structure.addItem(validMember.getEntity().getIdentifier(),
+                                validMember.getRole(), ItemType.forEntity(validMember.getEntity()));
+                    });
+                    builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(),
+                            structure, relation.getTags());
+                }
+            }
+            else
+            {
+                logger.trace("Dropping relation {} due to empty member list after {}",
+                        relation.getIdentifier(), AtlasCutType.HARD_CUT_ALL);
+            }
+        }
+
+        final PackedAtlas result = (PackedAtlas) builder.get();
+        if (result != null)
+        {
+            result.trim();
+        }
+
+        logger.info("Finished hard-cutting sub-atlas in {}", begin.elapsedSince());
+        return Optional.ofNullable(result);
+    }
+
+    private Optional<Atlas> hardCutRelationsOnly(final Polygon boundary)
+    {
+        // TODO
+        return null;
+    }
+
+    private Optional<Atlas> hardCutRelationsOnly(final Predicate<AtlasEntity> matcher)
+    {
+        logger.debug("Relation-only hard-cutting Atlas {} with meta-data {}", this.getName(),
+                this.metaData());
+        final Time begin = Time.now();
+
+        // Using a predicate here can create wild changes in entity counts. For example a predicate
+        // would include only edges, but all the nodes would have to be pulled in. In that case, we
+        // use the same size as the source Atlas, but we trim it at the end.
+        final PackedAtlasBuilder builder = new PackedAtlasBuilder().withSizeEstimates(size())
+                .withMetaData(metaData()).withName(this.getName() + "_sub");
+
+        // Identify all nodes that match the predicate. This includes pulling in nodes that did not
+        // match the predicate, but are required by matched edges
+        final Iterable<AtlasEntity> nodes = Iterables.stream(nodes(matcher::test))
+                .map(item -> (AtlasEntity) item).collectToSet();
+        final Iterable<AtlasEntity> edges = Iterables.stream(edges(matcher::test))
+                .map(item -> (AtlasEntity) item);
+        for (final AtlasEntity entity : new MultiIterable<>(nodes, edges))
+        {
+            addNodesToAtlas(entity, builder);
+        }
+
+        // Next, add the edges, areas, lines and points. We can safely add the edges since we've
+        // made sure to pull in all appropriate nodes in the step above.
+        for (final Edge edge : edges(matcher::test))
+        {
+            indexEdge(edge, builder);
+        }
+        indexPointsAreasLines(matcher, builder);
+
+        // Process relations - because they are being hard-cut, we can't blindly add all
+        // members. We must verify that each member matches the predicate and the relation being
+        // added isn't empty. Because we're processing relations in the lowest order first, we're
+        // guaranteed to not encounter a relation that contains an un-processed relation.
+        final Iterable<Relation> relations = Iterables.filter(relationsLowerOrderFirst(),
+                matcher::test);
+        for (final Relation relation : relations)
+        {
+            // Gather all members that made it through the predicate
+            final List<RelationMember> matchingMembers = relation.members().stream()
+                    .filter(member -> matcher.test(member.getEntity()))
+                    .collect(Collectors.toList());
+
+            if (!matchingMembers.isEmpty())
+            {
+                // Safely add this relation
+                if (builder.peek().relation(relation.getIdentifier()) == null)
+                {
+                    final RelationBean structure = new RelationBean();
+                    matchingMembers.forEach(validMember ->
+                    {
+                        structure.addItem(validMember.getEntity().getIdentifier(),
+                                validMember.getRole(), ItemType.forEntity(validMember.getEntity()));
+                    });
+                    builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(),
+                            structure, relation.getTags());
+                }
+            }
+            else
+            {
+                logger.trace("Dropping relation {} due to empty member list after {}",
+                        relation.getIdentifier(), AtlasCutType.HARD_CUT_RELATIONS_ONLY);
+            }
+        }
+
+        final PackedAtlas result = (PackedAtlas) builder.get();
+        if (result != null)
+        {
+            result.trim();
+        }
+
+        logger.info("Finished relation-only hard cutting sub-atlas in {}", begin.elapsedSince());
+        return Optional.ofNullable(result);
+    }
+
     /**
      * This is used by the {@link #subAtlas(Predicate)} method to index all {@link Node}s contained
      * by the given {@link Relation} and the start/end {@link Node}s for all {@link Edge}s contained
@@ -1081,6 +1295,29 @@ public abstract class BareAtlas implements Atlas
                 builder.addEdge(reverseEdgeIdentifier, reverseEdge.asPolyLine(),
                         reverseEdge.getTags());
             }
+        }
+    }
+
+    /**
+     * TODO
+     *
+     * @param matcher
+     * @param builder
+     */
+    private void indexPointsAreasLines(final Predicate<AtlasEntity> matcher,
+            final PackedAtlasBuilder builder)
+    {
+        for (final Point point : points(matcher::test))
+        {
+            builder.addPoint(point.getIdentifier(), point.getLocation(), point.getTags());
+        }
+        for (final Area area : areas(matcher::test))
+        {
+            builder.addArea(area.getIdentifier(), area.asPolygon(), area.getTags());
+        }
+        for (final Line line : lines(matcher::test))
+        {
+            builder.addLine(line.getIdentifier(), line.asPolyLine(), line.getTags());
         }
     }
 }

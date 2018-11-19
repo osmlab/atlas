@@ -10,6 +10,10 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.Node;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.tags.HighwayTag;
+import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 
 /**
  * @author matthieun
@@ -37,127 +41,77 @@ public class SubAtlasTest
     }
 
     @Test
-    public void testSubAtlasWithNodeNestedWithinRelationCase()
+    public void testSubAtlasHardCutRelationsWithPolygon()
     {
-        final Atlas source = this.rule.getNodeNestedWithinRelationAtlas();
+        // TODO
+    }
 
-        final Predicate<AtlasEntity> entitiesWithIdentifierZero = entity -> entity
-                .getIdentifier() == 0;
+    @Test
+    public void testSubAtlasHardCutWithPolygon()
+    {
+        // TODO
+    }
 
-        final Atlas subAtlasWithZeroBasedIdentifiers = source.subAtlas(entitiesWithIdentifierZero)
+    @Test
+    public void testSubAtlasPredicateHardCut()
+    {
+        final Atlas source = this.rule.getHardCutPredicateAtlas();
+        final Predicate<AtlasEntity> filteredOutPredicate = entity -> entity instanceof Relation
+                || entity instanceof Node
+                || Validators.isOfType(entity, HighwayTag.class, HighwayTag.RESIDENTIAL);
+        final Atlas filtered = source.subAtlas(filteredOutPredicate, AtlasCutType.HARD_CUT_ALL)
                 .orElseThrow(() -> new CoreException("SubAtlas was not present."));
 
-        // Nodes
-        Assert.assertNotNull(source.node(1));
-        Assert.assertNotNull(subAtlasWithZeroBasedIdentifiers.node(1));
-        Assert.assertNotNull(source.node(2));
-        Assert.assertNotNull(subAtlasWithZeroBasedIdentifiers.node(2));
-        Assert.assertNotNull(source.node(3));
-        Assert.assertNull(subAtlasWithZeroBasedIdentifiers.node(3));
-        Assert.assertNotNull(source.node(4));
-        Assert.assertNotNull(subAtlasWithZeroBasedIdentifiers.node(4));
+        // Verify counts
+        Assert.assertEquals("Two connected edges got filtered out, so there should be 3 less nodes",
+                source.numberOfNodes() - 3, filtered.numberOfNodes());
+        Assert.assertEquals("Two non-residential edges got filtered out",
+                source.numberOfEdges() - 2, filtered.numberOfEdges());
+        Assert.assertEquals("There should not be any areas left", 0, filtered.numberOfAreas());
+        Assert.assertEquals("There should not be any points left", 0, filtered.numberOfPoints());
+        Assert.assertEquals("One relation should have gotten removed due to empty members", 1,
+                filtered.numberOfRelations());
 
-        // Edges
-        Assert.assertNotNull(source.edge(0));
-        Assert.assertNotNull(subAtlasWithZeroBasedIdentifiers.edge(0));
-        Assert.assertNotNull(source.edge(1));
-        Assert.assertNull(subAtlasWithZeroBasedIdentifiers.edge(1));
-
-        // Relations
-        Assert.assertNotNull(source.relation(0));
-        Assert.assertEquals(2, source.relation(0).members().size());
-        Assert.assertNotNull(subAtlasWithZeroBasedIdentifiers.relation(0));
-        Assert.assertEquals(2, subAtlasWithZeroBasedIdentifiers.relation(0).members().size());
+        // Verify filtered entities
+        Assert.assertNull(filtered.edge(2));
+        Assert.assertNull(filtered.edge(3));
+        Assert.assertNull(filtered.node(4));
+        Assert.assertNull(filtered.node(5));
+        Assert.assertNull(filtered.node(6));
+        Assert.assertNull(filtered.relation(2));
+        Assert.assertNotNull(filtered.relation(1));
     }
 
     @Test
-    public void testSubAtlasWithPolygon()
+    public void testSubAtlasPredicateHardCutRelationsOnly()
     {
-        final Atlas source = this.rule.getAtlas();
-        // This Rectangle covers only the Node 1, Edge 0, Area 0, Line 0 and Point 0.
-        final Atlas sub = source
-                .subAtlas(Rectangle.forCorners(Location.forString("37.780400, -122.473149"),
-                        Location.forString("37.780785, -122.472631")))
+        final Atlas source = this.rule.getHardCutPredicateAtlas();
+        final Predicate<AtlasEntity> filteredOutPredicate = entity -> entity instanceof Relation
+                || entity instanceof Node
+                || Validators.isOfType(entity, HighwayTag.class, HighwayTag.RESIDENTIAL);
+        final Atlas filtered = source
+                .subAtlas(filteredOutPredicate, AtlasCutType.HARD_CUT_RELATIONS_ONLY)
                 .orElseThrow(() -> new CoreException("SubAtlas was not present."));
-        // Nodes
-        Assert.assertNotNull(source.node(1));
-        Assert.assertNotNull(sub.node(1));
-        Assert.assertNotNull(source.node(2));
-        Assert.assertNotNull(sub.node(2));
-        Assert.assertNotNull(source.node(3));
-        Assert.assertNull(sub.node(3));
 
-        // Edges
-        Assert.assertNotNull(source.edge(0));
-        Assert.assertNotNull(sub.edge(0));
-        Assert.assertNotNull(source.edge(1));
-        Assert.assertNull(sub.edge(1));
+        // Verify counts
+        Assert.assertEquals("No nodes should be filtered out", source.numberOfNodes(),
+                filtered.numberOfNodes());
+        Assert.assertEquals("Two non-residential edges got filtered out",
+                source.numberOfEdges() - 2, filtered.numberOfEdges());
+        Assert.assertEquals("There should not be any areas left", 0, filtered.numberOfAreas());
+        Assert.assertEquals("There should not be any points left", 0, filtered.numberOfPoints());
+        Assert.assertEquals("One relation should have gotten removed due to empty members", 1,
+                filtered.numberOfRelations());
 
-        // Areas
-        Assert.assertNotNull(source.area(0));
-        Assert.assertNotNull(sub.area(0));
-        Assert.assertNotNull(source.area(1));
-        Assert.assertNull(sub.area(1));
-
-        // Lines
-        Assert.assertNotNull(source.line(0));
-        Assert.assertNotNull(sub.line(0));
-        Assert.assertNotNull(source.line(1));
-        Assert.assertNull(sub.line(1));
-
-        // Points
-        Assert.assertNotNull(source.point(0));
-        Assert.assertNotNull(sub.point(0));
-        Assert.assertNotNull(source.point(1));
-        Assert.assertNull(sub.point(1));
-        Assert.assertNotNull(source.point(2));
-        Assert.assertNull(sub.point(2));
-        Assert.assertNotNull(source.point(3));
-        Assert.assertNull(sub.point(3));
-
-        // Relations
-        Assert.assertNotNull(source.relation(1));
-        Assert.assertNotNull(sub.relation(1));
-        Assert.assertNotNull(source.relation(2));
-        Assert.assertEquals(2, source.relation(2).members().size());
-        Assert.assertNotNull(sub.relation(2));
-        Assert.assertEquals(1, sub.relation(2).members().size());
-        Assert.assertNotNull(source.relation(3));
-        Assert.assertNull(sub.relation(3));
-        Assert.assertNotNull(source.relation(4));
-        Assert.assertEquals(2, source.relation(4).members().size());
-        Assert.assertNotNull(sub.relation(4));
-        Assert.assertEquals(1, sub.relation(4).members().size());
-        Assert.assertNotNull(source.relation(5));
-        Assert.assertEquals(1, source.relation(5).members().size());
-        Assert.assertNotNull(sub.relation(5));
-        Assert.assertEquals(1, sub.relation(5).members().size());
+        // Verify filtered entities
+        Assert.assertNull(filtered.edge(2));
+        Assert.assertNull(filtered.edge(3));
+        Assert.assertNull(filtered.relation(2));
+        Assert.assertNotNull(filtered.relation(1));
     }
 
     @Test
-    public void testSubAtlasWithPolygonAndEdgeAtBoundary()
-    {
-        final Atlas source = this.rule.getAtlasWithEdgeAlongBoundary();
-        final Polygon boundary = Polygon
-                .wkt("POLYGON ((-121.7540269 37.0463639, -121.75403 37.04635, "
-                        + "-121.75408 37.0462, -121.75408 37.04611, -121.75406 37.04606, "
-                        + "-121.75399 37.04599, -121.75344 37.04557, -121.75338 37.0455, "
-                        + "-121.7533422 37.0454102, -121.7544982 37.0454102, "
-                        + "-121.7544982 37.0463639, -121.7540269 37.0463639))");
-        final Atlas result = source.subAtlas(boundary).get();
-        Assert.assertEquals(4, result.numberOfEdges());
-        // Does not clip with JTS
-        Assert.assertNotNull(result.edge(67));
-        // Does clip with JTS
-        Assert.assertNotNull(result.edge(-67));
-        // Does clip with JTS
-        Assert.assertNotNull(result.edge(76));
-        // Does not clip with JTS
-        Assert.assertNotNull(result.edge(-76));
-    }
-
-    @Test
-    public void testSubAtlasWithPredicate()
+    public void testSubAtlasPredicateSoftCut()
     {
         final Atlas source = this.rule.getAtlas();
 
@@ -278,5 +232,125 @@ public class SubAtlasTest
         Assert.assertNull(subAtlasWithZeroBasedIdentifiers.relation(4));
         Assert.assertNotNull(source.relation(5));
         Assert.assertNull(subAtlasWithZeroBasedIdentifiers.relation(5));
+    }
+
+    @Test
+    public void testSubAtlasSoftCutWithPolygon()
+    {
+        final Atlas source = this.rule.getAtlas();
+        // This Rectangle covers only the Node 1, Edge 0, Area 0, Line 0 and Point 0.
+        final Atlas sub = source
+                .subAtlas(Rectangle.forCorners(Location.forString("37.780400, -122.473149"),
+                        Location.forString("37.780785, -122.472631")))
+                .orElseThrow(() -> new CoreException("SubAtlas was not present."));
+        // Nodes
+        Assert.assertNotNull(source.node(1));
+        Assert.assertNotNull(sub.node(1));
+        Assert.assertNotNull(source.node(2));
+        Assert.assertNotNull(sub.node(2));
+        Assert.assertNotNull(source.node(3));
+        Assert.assertNull(sub.node(3));
+
+        // Edges
+        Assert.assertNotNull(source.edge(0));
+        Assert.assertNotNull(sub.edge(0));
+        Assert.assertNotNull(source.edge(1));
+        Assert.assertNull(sub.edge(1));
+
+        // Areas
+        Assert.assertNotNull(source.area(0));
+        Assert.assertNotNull(sub.area(0));
+        Assert.assertNotNull(source.area(1));
+        Assert.assertNull(sub.area(1));
+
+        // Lines
+        Assert.assertNotNull(source.line(0));
+        Assert.assertNotNull(sub.line(0));
+        Assert.assertNotNull(source.line(1));
+        Assert.assertNull(sub.line(1));
+
+        // Points
+        Assert.assertNotNull(source.point(0));
+        Assert.assertNotNull(sub.point(0));
+        Assert.assertNotNull(source.point(1));
+        Assert.assertNull(sub.point(1));
+        Assert.assertNotNull(source.point(2));
+        Assert.assertNull(sub.point(2));
+        Assert.assertNotNull(source.point(3));
+        Assert.assertNull(sub.point(3));
+
+        // Relations
+        Assert.assertNotNull(source.relation(1));
+        Assert.assertNotNull(sub.relation(1));
+        Assert.assertNotNull(source.relation(2));
+        Assert.assertEquals(2, source.relation(2).members().size());
+        Assert.assertNotNull(sub.relation(2));
+        Assert.assertEquals(1, sub.relation(2).members().size());
+        Assert.assertNotNull(source.relation(3));
+        Assert.assertNull(sub.relation(3));
+        Assert.assertNotNull(source.relation(4));
+        Assert.assertEquals(2, source.relation(4).members().size());
+        Assert.assertNotNull(sub.relation(4));
+        Assert.assertEquals(1, sub.relation(4).members().size());
+        Assert.assertNotNull(source.relation(5));
+        Assert.assertEquals(1, source.relation(5).members().size());
+        Assert.assertNotNull(sub.relation(5));
+        Assert.assertEquals(1, sub.relation(5).members().size());
+    }
+
+    @Test
+    public void testSubAtlasWithNodeNestedWithinRelationCase()
+    {
+        final Atlas source = this.rule.getNodeNestedWithinRelationAtlas();
+
+        final Predicate<AtlasEntity> entitiesWithIdentifierZero = entity -> entity
+                .getIdentifier() == 0;
+
+        final Atlas subAtlasWithZeroBasedIdentifiers = source.subAtlas(entitiesWithIdentifierZero)
+                .orElseThrow(() -> new CoreException("SubAtlas was not present."));
+
+        // Nodes
+        Assert.assertNotNull(source.node(1));
+        Assert.assertNotNull(subAtlasWithZeroBasedIdentifiers.node(1));
+        Assert.assertNotNull(source.node(2));
+        Assert.assertNotNull(subAtlasWithZeroBasedIdentifiers.node(2));
+        Assert.assertNotNull(source.node(3));
+        Assert.assertNull(subAtlasWithZeroBasedIdentifiers.node(3));
+        Assert.assertNotNull(source.node(4));
+        Assert.assertNotNull(subAtlasWithZeroBasedIdentifiers.node(4));
+
+        // Edges
+        Assert.assertNotNull(source.edge(0));
+        Assert.assertNotNull(subAtlasWithZeroBasedIdentifiers.edge(0));
+        Assert.assertNotNull(source.edge(1));
+        Assert.assertNull(subAtlasWithZeroBasedIdentifiers.edge(1));
+
+        // Relations
+        Assert.assertNotNull(source.relation(0));
+        Assert.assertEquals(2, source.relation(0).members().size());
+        Assert.assertNotNull(subAtlasWithZeroBasedIdentifiers.relation(0));
+        Assert.assertEquals(2, subAtlasWithZeroBasedIdentifiers.relation(0).members().size());
+    }
+
+    @Test
+    public void testSubAtlasWithPolygonAndEdgeAtBoundary()
+    {
+        final Atlas source = this.rule.getAtlasWithEdgeAlongBoundary();
+        final Polygon boundary = Polygon
+                .wkt("POLYGON ((-121.7540269 37.0463639, -121.75403 37.04635, "
+                        + "-121.75408 37.0462, -121.75408 37.04611, -121.75406 37.04606, "
+                        + "-121.75399 37.04599, -121.75344 37.04557, -121.75338 37.0455, "
+                        + "-121.7533422 37.0454102, -121.7544982 37.0454102, "
+                        + "-121.7544982 37.0463639, -121.7540269 37.0463639))");
+        final Atlas result = source.subAtlas(boundary).get();
+        Assert.assertEquals(4, result.numberOfEdges());
+        // Does not clip with JTS
+        Assert.assertNotNull(result.edge(67));
+        // Does clip with JTS
+        Assert.assertNotNull(result.edge(-67));
+        // Does clip with JTS
+        Assert.assertNotNull(result.edge(76));
+        // Does not clip with JTS
+        Assert.assertNotNull(result.edge(-76));
     }
 }
