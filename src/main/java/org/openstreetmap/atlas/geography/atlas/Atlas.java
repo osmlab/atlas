@@ -776,34 +776,6 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
 
     /**
      * Return a sub-atlas from this Atlas.
-     * <p>
-     * This would be a soft cut, meaning:
-     * <ul>
-     * <li>{@link Node}: It is included only if it is matched by the matcher, or if a valid edge
-     * (below) has it at one of its ends, or it is pulled in by an {@link Edge} which itself pulled
-     * in by a {@link Relation}, matched by the matcher.
-     * <li>{@link Edge}: It is included only if it is matched by the matcher or pulled in by a
-     * {@link Relation}, matched by the matcher.
-     * <li>{@link Area}: It is included only if it is matched by the matcher or pulled in by a
-     * {@link Relation}, matched by the matcher.
-     * <li>{@link Line}: It is included only if it is matched by the matcher or pulled in by a
-     * {@link Relation}, matched by the matcher.
-     * <li>{@link Point}: It is included only if it is matched by the matcher or pulled in by a
-     * {@link Relation}, matched by the matcher.
-     * <li>{@link Relation}: It is included if is matched by matcher or pulled in via another
-     * {@link Relation} which was matched by the matcher. To maintain {@link Relation} validity, all
-     * of its members will be included in the member list, even if not matched by the given matcher.
-     * </ul>
-     *
-     * @param matcher
-     *            The matcher to consider
-     * @return An optional sub-atlas. The optional will be empty in case the matcher would return an
-     *         empty atlas, which is not allowed.
-     */
-    Optional<Atlas> subAtlas(Predicate<AtlasEntity> matcher);
-
-    /**
-     * Return a sub-atlas from this Atlas.
      *
      * @param matcher
      *            The matcher to consider

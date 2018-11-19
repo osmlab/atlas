@@ -90,7 +90,8 @@ public class AtlasResourceLoader
             Atlas result = PackedAtlas.load(resources.get(0));
             if (this.atlasEntityFilter != null)
             {
-                final Optional<Atlas> subAtlas = result.subAtlas(this.atlasEntityFilter);
+                final Optional<Atlas> subAtlas = result.subAtlas(this.atlasEntityFilter,
+                        AtlasCutType.SOFT_CUT);
                 result = subAtlas.isPresent() ? subAtlas.get() : null;
             }
             return result;

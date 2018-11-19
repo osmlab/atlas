@@ -16,6 +16,7 @@ import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.AtlasCutType;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
@@ -251,7 +252,7 @@ public class WaySectionProcessor
                         final Atlas atlas = possibleAtlas.get();
                         final Time subAtlasTime = Time.now();
                         final Optional<Atlas> subAtlas = atlas
-                                .subAtlas(this.dynamicAtlasExpansionFilter);
+                                .subAtlas(this.dynamicAtlasExpansionFilter, AtlasCutType.SOFT_CUT);
                         logTaskAsInfo(SHARD_SPECIFIC_COMPLETED_TASK_MESSAGE, getShardOrAtlasName(),
                                 SUB_ATLAS_CUTTING_TASK, shard.getName(),
                                 subAtlasTime.elapsedSince());

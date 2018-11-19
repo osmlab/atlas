@@ -704,7 +704,13 @@ public abstract class BareAtlas implements Atlas
         }
     }
 
-    @Override
+    /**
+     * @param matcher
+     *            The matcher to consider
+     * @return a sub-atlas from this Atlas.
+     * @deprecated use {@link #subAtlas(Predicate, AtlasCutType)} with SOFT_CUT cut type instead.
+     */
+    @Deprecated
     public Optional<Atlas> subAtlas(final Predicate<AtlasEntity> matcher)
     {
         logger.debug("Filtering Atlas {} with meta-data {}", this.getName(), this.metaData());

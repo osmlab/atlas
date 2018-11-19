@@ -30,7 +30,8 @@ public class SubAtlasTest
         final Atlas source = this.rule.getFilteredOutMemberRelationAtlas();
         final Predicate<AtlasEntity> filteredOutPredicate = entity -> !"excluded"
                 .equals(entity.getTag("type").orElse(""));
-        final Atlas filteredOutSubRelationAtlas = source.subAtlas(filteredOutPredicate)
+        final Atlas filteredOutSubRelationAtlas = source
+                .subAtlas(filteredOutPredicate, AtlasCutType.SOFT_CUT)
                 .orElseThrow(() -> new CoreException("SubAtlas was not present."));
 
         Assert.assertNull(filteredOutSubRelationAtlas.node(5));
@@ -123,10 +124,11 @@ public class SubAtlasTest
         final Predicate<AtlasEntity> entitiesWithIdentifierZero = (
                 entity) -> entity.getIdentifier() == 0;
 
-        final Atlas identicalSubAtlas = source.subAtlas(allEntities)
+        final Atlas identicalSubAtlas = source.subAtlas(allEntities, AtlasCutType.SOFT_CUT)
                 .orElseThrow(() -> new CoreException("SubAtlas was not present."));
 
-        final Atlas subAtlasWithZeroBasedIdentifiers = source.subAtlas(entitiesWithIdentifierZero)
+        final Atlas subAtlasWithZeroBasedIdentifiers = source
+                .subAtlas(entitiesWithIdentifierZero, AtlasCutType.SOFT_CUT)
                 .orElseThrow(() -> new CoreException("SubAtlas was not present."));
 
         // Nodes
@@ -306,7 +308,8 @@ public class SubAtlasTest
         final Predicate<AtlasEntity> entitiesWithIdentifierZero = entity -> entity
                 .getIdentifier() == 0;
 
-        final Atlas subAtlasWithZeroBasedIdentifiers = source.subAtlas(entitiesWithIdentifierZero)
+        final Atlas subAtlasWithZeroBasedIdentifiers = source
+                .subAtlas(entitiesWithIdentifierZero, AtlasCutType.SOFT_CUT)
                 .orElseThrow(() -> new CoreException("SubAtlas was not present."));
 
         // Nodes
