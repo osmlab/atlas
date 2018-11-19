@@ -70,6 +70,18 @@ public class AtlasItemIntersectionTest
     }
 
     @Test
+    public void testAreasWithinPolygon()
+    {
+        // TODO
+    }
+
+    @Test
+    public void testAtlasItemsWithinPolygon()
+    {
+        // TODO
+    }
+
+    @Test
     public void testEdgesIntersectingPolygon()
     {
         final Atlas atlas = this.rule.getIntersectionAtlas();
@@ -97,6 +109,18 @@ public class AtlasItemIntersectionTest
     }
 
     @Test
+    public void testEdgesWithinPolygon()
+    {
+        // TODO
+    }
+
+    @Test
+    public void testLineItemsWithinPolygon()
+    {
+        // TODO
+    }
+
+    @Test
     public void testLinesIntersectingPolygon()
     {
         final Atlas atlas = this.rule.getIntersectionAtlas();
@@ -121,6 +145,12 @@ public class AtlasItemIntersectionTest
 
         Assert.assertEquals("There should be a single intersection", 1,
                 Iterables.size(atlas.linesIntersecting(overlapping)));
+    }
+
+    @Test
+    public void testLinesWithinPolygon()
+    {
+        // TODO
     }
 
     @Test

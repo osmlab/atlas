@@ -319,6 +319,13 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
+    public Iterable<AtlasItem> itemsWithin(final Polygon polygon)
+    {
+        return new MultiIterable<>(locationItemsWithin(polygon), lineItemsWithin(polygon),
+                areasWithin(polygon));
+    }
+
+    @Override
     public Iterator<AtlasEntity> iterator()
     {
         return new MultiIterable<AtlasEntity>(nodes(), edges(), areas(), lines(), points(),
@@ -361,6 +368,12 @@ public abstract class BareAtlas implements Atlas
             final Predicate<LineItem> matcher)
     {
         return Iterables.filter(lineItemsIntersecting(polygon), matcher);
+    }
+
+    @Override
+    public Iterable<LineItem> lineItemsWithin(final Polygon polygon)
+    {
+        return new MultiIterable<>(edgesWithin(polygon), linesWithin(polygon));
     }
 
     @Override

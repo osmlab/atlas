@@ -165,6 +165,17 @@ public abstract class AbstractAtlas extends BareAtlas
     }
 
     @Override
+    public Iterable<Area> areasWithin(final Polygon polygon)
+    {
+        final Iterable<Area> areas = this.getAreaSpatialIndex().get(polygon.bounds());
+        return Iterables.filter(areas, area ->
+        {
+            final Polygon areaPolygon = area.asPolygon();
+            return polygon.fullyGeometricallyEncloses(areaPolygon);
+        });
+    }
+
+    @Override
     public Iterable<Edge> edgesContaining(final Location location)
     {
         final Iterable<Edge> edges = this.getEdgeSpatialIndex().get(location.bounds());
@@ -196,6 +207,17 @@ public abstract class AbstractAtlas extends BareAtlas
     public Iterable<Edge> edgesIntersecting(final Polygon polygon, final Predicate<Edge> matcher)
     {
         return Iterables.filter(edgesIntersecting(polygon), matcher);
+    }
+
+    @Override
+    public Iterable<Edge> edgesWithin(final Polygon polygon)
+    {
+        final Iterable<Edge> edges = this.getEdgeSpatialIndex().get(polygon.bounds());
+        return Iterables.filter(edges, edge ->
+        {
+            final PolyLine polyline = edge.asPolyLine();
+            return polygon.fullyGeometricallyEncloses(polyline);
+        });
     }
 
     public SpatialIndex<Area> getAreaSpatialIndex()
@@ -266,6 +288,17 @@ public abstract class AbstractAtlas extends BareAtlas
     public Iterable<Line> linesIntersecting(final Polygon polygon, final Predicate<Line> matcher)
     {
         return Iterables.filter(linesIntersecting(polygon), matcher);
+    }
+
+    @Override
+    public Iterable<Line> linesWithin(final Polygon polygon)
+    {
+        final Iterable<Line> lines = this.getLineSpatialIndex().get(polygon.bounds());
+        return Iterables.filter(lines, line ->
+        {
+            final PolyLine polyline = line.asPolyLine();
+            return polygon.fullyGeometricallyEncloses(polyline);
+        });
     }
 
     @Override

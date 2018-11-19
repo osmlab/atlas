@@ -101,6 +101,15 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<Area> areasIntersecting(Polygon polygon, Predicate<Area> matcher);
 
     /**
+     * Return all the {@link Area}s fully within some polygon.
+     *
+     * @param polygon
+     *            The polygon to consider
+     * @return All the {@link Area}s fully within the polygon.
+     */
+    Iterable<Area> areasWithin(Polygon polygon);
+
+    /**
      * @return A {@link GeoJsonObject} that contains all the features in this {@link Atlas}
      */
     GeoJsonObject asGeoJson();
@@ -177,6 +186,15 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      *         the polygon.
      */
     Iterable<Edge> edgesIntersecting(Polygon polygon, Predicate<Edge> matcher);
+
+    /**
+     * Return all the {@link Edge}s fully within some polygon.
+     *
+     * @param polygon
+     *            The polygon to consider
+     * @return All the {@link Edge}s fully within the polygon.
+     */
+    Iterable<Edge> edgesWithin(Polygon polygon);
 
     /**
      * Return all the {@link AtlasEntity}s
@@ -312,6 +330,15 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<AtlasItem> itemsIntersecting(Polygon polygon, Predicate<AtlasItem> matcher);
 
     /**
+     * Return all the {@link AtlasItem}s fully within some polygon.
+     *
+     * @param polygon
+     *            The polygon to consider
+     * @return All the {@link AtlasItem}s fully within the polygon.
+     */
+    Iterable<AtlasItem> itemsWithin(Polygon polygon);
+
+    /**
      * @param identifier
      *            The {@link Line}'s identifier
      * @return The {@link Line} that corresponds to the provided identifier
@@ -379,6 +406,15 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<LineItem> lineItemsIntersecting(Polygon polygon, Predicate<LineItem> matcher);
 
     /**
+     * Return all the {@link LineItem}s fully within some polygon.
+     *
+     * @param polygon
+     *            The {@link Polygon} to consider
+     * @return All the {@link LineItem}s within and/or intersecting the {@link Polygon}.
+     */
+    Iterable<LineItem> lineItemsWithin(Polygon polygon);
+
+    /**
      * @return All the {@link Line}s in this {@link Atlas}
      */
     Iterable<Line> lines();
@@ -435,6 +471,15 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      *         the polygon.
      */
     Iterable<Line> linesIntersecting(Polygon polygon, Predicate<Line> matcher);
+
+    /**
+     * Return all the {@link Line}s fully within some polygon.
+     *
+     * @param polygon
+     *            The polygon to consider
+     * @return All the {@link Line}s fully within the polygon.
+     */
+    Iterable<Line> linesWithin(Polygon polygon);
 
     /**
      * Return all the {@link LocationItem}s
