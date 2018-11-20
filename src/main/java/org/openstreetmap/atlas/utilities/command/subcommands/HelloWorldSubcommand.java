@@ -38,6 +38,12 @@ public class HelloWorldSubcommand extends AbstractOSMSubcommand
     }
 
     @Override
+    public void registerManualPageSections()
+    {
+
+    }
+
+    @Override
     public void registerOptionsAndArguments()
     {
         registerOptionWithRequiredArgument(NAME_OPTION, "Your name for the greeting", "name");

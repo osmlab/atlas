@@ -90,6 +90,12 @@ public class ConcatenateAtlasSubcommand extends AbstractOSMSubcommand
     }
 
     @Override
+    public void registerManualPageSections()
+    {
+
+    }
+
+    @Override
     public void registerOptionsAndArguments()
     {
         setVersion(VERSION);

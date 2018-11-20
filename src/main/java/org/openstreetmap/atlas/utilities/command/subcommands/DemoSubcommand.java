@@ -73,6 +73,12 @@ public class DemoSubcommand extends AbstractOSMSubcommand
     }
 
     @Override
+    public void registerManualPageSections()
+    {
+
+    }
+
+    @Override
     public void registerOptionsAndArguments()
     {
         setVersion("1.0.0");

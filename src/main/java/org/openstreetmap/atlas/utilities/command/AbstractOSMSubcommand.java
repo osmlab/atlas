@@ -42,6 +42,36 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     private boolean useColor = true;
     private String version = "default_version_value";
 
+    public AbstractOSMSubcommand()
+    {
+        final String name = this.getCommandName();
+        if (name == null || name.isEmpty())
+        {
+            throw new CoreException("Command name must not be null or empty");
+        }
+        final String[] split = name.split("\\s+");
+        if (split.length > 1)
+        {
+            throw new CoreException("Command name must not contain whitespace");
+        }
+        for (int index = 0; index < name.length(); index++)
+        {
+            final char currentCharacter = name.charAt(index);
+            if (!Character.isLetterOrDigit(currentCharacter) && currentCharacter != '-'
+                    && currentCharacter != '_')
+            {
+                throw new CoreException(
+                        "Command names must only contain letters, digits, hyphens, or underscores");
+            }
+        }
+
+        final String simpleDescription = this.getSimpleDescription();
+        if (simpleDescription == null || simpleDescription.isEmpty())
+        {
+            throw new CoreException("Simple description must not be null or empty");
+        }
+    }
+
     /**
      * Execute the command logic. Subclasses of {@link AbstractOSMSubcommand} must implement this
      * method, but in general it should not be called directly. See
@@ -67,6 +97,15 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     public abstract String getSimpleDescription();
 
     /**
+     * Register any desired manual page sections. An OPTIONS section will be automatically
+     * generated, so it is recommended that you register at least a DESCRIPTION and EXAMPLES section
+     * with some appropriate documentation. See other {@link AbstractOSMSubcommand} implementations
+     * for how this is done. For clarification on best practices and/or other sections to include,
+     * see any Unix man-page.
+     */
+    public abstract void registerManualPageSections();
+
+    /**
      * Register any necessary options and arguments for the command. Use the protected API exposed
      * by {@link AbstractOSMSubcommand}.
      */
@@ -80,6 +119,48 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     // setting up the interface this way, we are not wedded to the SimpleOptionAndArgumentParser for
     // future changes. Should we decide to change it, any subcommands implementing
     // AbstractOSMSubcommand will not have to change their option registration code.
+
+    /**
+     * Add a given code block to a given manual page section. Code blocks are given additional
+     * indentation and are excluded from line-wrap formatting.
+     *
+     * @param section
+     *            the section to add to
+     * @param codeBlock
+     *            the code block
+     * @throws CoreException
+     *             if the section does not exist
+     */
+    protected void addCodeBlockToSection(final String section, final String codeBlock)
+    {
+        // TODO implement
+    }
+
+    /**
+     * Add a section to this command's manual page. The section name will be made all capitalized.
+     *
+     * @param section
+     *            the name of the section
+     */
+    protected void addManualPageSection(final String section)
+    {
+        // TODO implement
+    }
+
+    /**
+     * Add a given paragraph to a given manual page section.
+     *
+     * @param section
+     *            the section to add to
+     * @param paragraph
+     *            the paragraph
+     * @throws CoreException
+     *             if the section does not exist
+     */
+    protected void addParagraphToSection(final String section, final String paragraph)
+    {
+        // TODO implement
+    }
 
     /**
      * Get the argument of a given option, if present.
