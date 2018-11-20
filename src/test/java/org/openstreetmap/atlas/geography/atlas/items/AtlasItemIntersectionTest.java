@@ -25,20 +25,20 @@ public class AtlasItemIntersectionTest
         final Atlas atlas = this.rule.getIntersectionAtlas();
 
         final Rectangle notTouching = Rectangle.forCorners(
-                Location.forWkt("POINT (-122.288925 47.618916)"),
-                Location.forWkt("POINT (-122.288935 47.618946)"));
+                Location.forWkt("POINT(-122.288935 47.618916)"),
+                Location.forWkt("POINT(-122.288925 47.618946)"));
 
         final Rectangle fullyInside = Rectangle.forCorners(
-                Location.forWkt("POINT (-122.288798 47.618482)"),
-                Location.forWkt("POINT (-122.288788 47.618472)"));
+                Location.forWkt("POINT(-122.288798 47.618472)"),
+                Location.forWkt("POINT(-122.288788 47.618482)"));
 
         final Rectangle touchingAtCorner = Rectangle.forCorners(
                 Location.forWkt("POINT (-122.2886447 47.6182798)"),
                 Location.forWkt("POINT (-122.288635 47.618286)"));
 
         final Rectangle overlapping = Rectangle.forCorners(
-                Location.forWkt("POINT (-122.2886447 47.6182798)"),
-                Location.forWkt("POINT (-122.289001 47.618416)"));
+                Location.forWkt("POINT(-122.289001 47.6182798)"),
+                Location.forWkt("POINT(-122.2886447 47.618416)"));
 
         Assert.assertEquals("There should be zero intersecting areas", 0,
                 Iterables.size(atlas.areasIntersecting(notTouching)));
@@ -87,16 +87,16 @@ public class AtlasItemIntersectionTest
         final Atlas atlas = this.rule.getIntersectionAtlas();
 
         final Rectangle notTouching = Rectangle.forCorners(
-                Location.forWkt("POINT (-122.288798 47.618482)"),
-                Location.forWkt("POINT (-122.288788 47.618472)"));
+                Location.forWkt("POINT(-122.288798 47.618472)"),
+                Location.forWkt("POINT (-122.288788 47.618482)"));
 
         final Rectangle touchingAtCorner = Rectangle.forCorners(
                 Location.forWkt("POINT (-122.2886447 47.6182798)"),
                 Location.forWkt("POINT (-122.288635 47.618286)"));
 
         final Rectangle overlapping = Rectangle.forCorners(
-                Location.forWkt("POINT (-122.2886447 47.6182798)"),
-                Location.forWkt("POINT (-122.289001 47.618416)"));
+                Location.forWkt("POINT(-122.289001 47.6182798)"),
+                Location.forWkt("POINT(-122.2886447 47.618416)"));
 
         Assert.assertEquals("There should be zero intersections", 0,
                 Iterables.size(atlas.edgesIntersecting(notTouching)));
@@ -126,16 +126,16 @@ public class AtlasItemIntersectionTest
         final Atlas atlas = this.rule.getIntersectionAtlas();
 
         final Rectangle notTouching = Rectangle.forCorners(
-                Location.forWkt("POINT (-122.288798 47.618482)"),
-                Location.forWkt("POINT (-122.288788 47.618472)"));
+                Location.forWkt("POINT(-122.288798 47.618472)"),
+                Location.forWkt("POINT (-122.288788 47.618482)"));
 
         final Rectangle touchingAtCorner = Rectangle.forCorners(
                 Location.forWkt("POINT (-122.2886447 47.6182798)"),
                 Location.forWkt("POINT (-122.288635 47.618286)"));
 
         final Rectangle overlapping = Rectangle.forCorners(
-                Location.forWkt("POINT (-122.2886447 47.6182798)"),
-                Location.forWkt("POINT (-122.289001 47.618416)"));
+                Location.forWkt("POINT (-122.289001 47.6182798)"),
+                Location.forWkt("POINT(-122.2886447 47.618416)"));
 
         Assert.assertEquals("There should be zero intersections", 0,
                 Iterables.size(atlas.linesIntersecting(notTouching)));
@@ -151,6 +151,18 @@ public class AtlasItemIntersectionTest
     public void testLinesWithinPolygon()
     {
         // TODO
+        final Atlas atlas = this.rule.getWithinTestAtlas();
+
+        final Polygon polygon = Polygon.wkt(
+                "POLYGON ((-122.2886447 47.6182798, -122.2886447 47.618416, -122.289001 47.618416, -122.289001 47.6182798, -122.2886447 47.6182798))\n"
+                        + "");
+
+        System.out.println(polygon);
+
+        System.out.println(Iterables.size(atlas.linesWithin(polygon)));
+
+        // Assert.assertEquals("There should be zero nodes in this Polygon", 0,
+        // Iterables.size(atlas.linesWithin(bounds)));
     }
 
     @Test
@@ -159,16 +171,16 @@ public class AtlasItemIntersectionTest
         final Atlas atlas = this.rule.getIntersectionAtlas();
 
         final Rectangle notTouching = Rectangle.forCorners(
-                Location.forWkt("POINT (-122.288798 47.618482)"),
-                Location.forWkt("POINT (-122.288788 47.618472)"));
+                Location.forWkt("POINT(-122.288798 47.618472)"),
+                Location.forWkt("POINT(-122.288788 47.618482)"));
 
         final Rectangle touchingAtCorner = Rectangle.forCorners(
-                Location.forWkt("POINT (-122.2886447 47.6182798)"),
-                Location.forWkt("POINT (-122.289001 47.618416)"));
+                Location.forWkt("POINT(-122.289001 47.6182798)"),
+                Location.forWkt("POINT(-122.2886447 47.618416)"));
 
         final Rectangle containingMultipleNodes = Rectangle.forCorners(
-                Location.forWkt("POINT (-122.2886447 47.6182798)"),
-                Location.forWkt("POINT (-122.289001 47.621016)"));
+                Location.forWkt("POINT(-122.289001 47.6182798)"),
+                Location.forWkt("POINT(-122.2886447 47.621016)"));
 
         Assert.assertEquals("There should be zero nodes in this Polygon", 0,
                 Iterables.size(atlas.nodesWithin(notTouching)));
@@ -186,16 +198,16 @@ public class AtlasItemIntersectionTest
         final Atlas atlas = this.rule.getIntersectionAtlas();
 
         final Rectangle notTouching = Rectangle.forCorners(
-                Location.forWkt("POINT (-122.288798 47.618482)"),
-                Location.forWkt("POINT (-122.288788 47.618472)"));
+                Location.forWkt("POINT(-122.288798 47.618472)"),
+                Location.forWkt("POINT(-122.288788 47.618482)"));
 
         final Rectangle intersectingSingleEdge = Rectangle.forCorners(
-                Location.forWkt("POINT (-122.2886447 47.6182798)"),
-                Location.forWkt("POINT (-122.289001 47.618416)"));
+                Location.forWkt("POINT(-122.289001 47.6182798)"),
+                Location.forWkt("POINT(-122.2886447 47.618416)"));
 
         final Rectangle containingMultipleEdges = Rectangle.forCorners(
-                Location.forWkt("POINT (-122.2886447 47.6182798)"),
-                Location.forWkt("POINT (-122.289001 47.621016)"));
+                Location.forWkt("POINT(-122.289001 47.6182798)"),
+                Location.forWkt("POINT(-122.2886447 47.621016)"));
 
         Assert.assertEquals("There should be no parts of the relation touching this Polygon", 0,
                 Iterables.size(atlas.relationsWithEntitiesIntersecting(notTouching)));

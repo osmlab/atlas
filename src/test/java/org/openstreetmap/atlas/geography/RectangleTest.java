@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
@@ -24,22 +25,44 @@ public class RectangleTest
     private final Rectangle rectangle4 = Rectangle.forLocations(this.location2, this.location4);
 
     @Test
-    public void testCoversAndCoversPartially()
+    public void testAntiMeridianEastRectangle()
     {
-        Assert.assertTrue("Rectangle 3 fully contains rectangle 2",
-                this.rectangle3.fullyGeometricallyEncloses(this.rectangle2));
-        Assert.assertTrue("That means, it should also cover it partially",
-                this.rectangle3.overlaps(this.rectangle4));
+        final Location antiMeridian = new Location(Latitude.ZERO, Longitude.degrees(180));
+        final Location lowerLeftAntiMeridianRectangle = new Location(Latitude.degrees(-10),
+                Longitude.degrees(170));
+        final Location lowerLeftTestRectangle = new Location(Latitude.degrees(-10),
+                Longitude.degrees(150));
+        final Location upperRightTestRectangle1 = new Location(Latitude.ZERO,
+                Longitude.degrees(160));
+        final Location upperRightTestRectangle2 = new Location(Latitude.ZERO,
+                Longitude.degrees(175));
 
-        Assert.assertTrue("Rectangle 3 only partially covers rectangle 4",
-                this.rectangle3.overlaps(this.rectangle4));
-        Assert.assertFalse("It should not fully contain it",
-                this.rectangle3.fullyGeometricallyEncloses(this.rectangle4));
+        // List construction
+        final Rectangle antiMeridianRectangle1 = Rectangle
+                .forLocations(Arrays.asList(antiMeridian, lowerLeftAntiMeridianRectangle));
+        final Rectangle testRectangle1 = Rectangle
+                .forLocations(Arrays.asList(upperRightTestRectangle1, lowerLeftTestRectangle));
+        Assert.assertFalse(testRectangle1.overlaps(antiMeridianRectangle1));
+        Assert.assertFalse(antiMeridianRectangle1.overlaps(testRectangle1));
 
-        Assert.assertTrue("Rectangle 2 only partly overlaps rectangle 4",
-                this.rectangle2.overlaps(this.rectangle4));
-        Assert.assertFalse("But does not fully contain it",
-                this.rectangle2.fullyGeometricallyEncloses(this.rectangle4));
+        // Corners construction
+        final Rectangle antiMeridianRectangle2 = Rectangle
+                .forCorners(lowerLeftAntiMeridianRectangle, antiMeridian);
+        final Rectangle testRectangle2 = Rectangle.forCorners(lowerLeftTestRectangle,
+                upperRightTestRectangle2);
+        Assert.assertTrue(testRectangle2.overlaps(antiMeridianRectangle2));
+        Assert.assertTrue(antiMeridianRectangle2.overlaps(testRectangle2));
+    }
+
+    @Test(expected = CoreException.class)
+    public void testConstructInvalidRectangle()
+    {
+        // The lower left is actually the lower right and the upper right is actually the upper
+        // left, making this an invalid specification.
+        @SuppressWarnings("unused")
+        final Rectangle invalidRectangle = Rectangle.forCorners(
+                Location.forWkt("POINT (-122.288925 47.618916)"),
+                Location.forWkt("POINT (-122.288935 47.618946)"));
     }
 
     @Test
@@ -91,6 +114,25 @@ public class RectangleTest
     }
 
     @Test
+    public void testCoversAndCoversPartially()
+    {
+        Assert.assertTrue("Rectangle 3 fully contains rectangle 2",
+                this.rectangle3.fullyGeometricallyEncloses(this.rectangle2));
+        Assert.assertTrue("That means, it should also cover it partially",
+                this.rectangle3.overlaps(this.rectangle4));
+
+        Assert.assertTrue("Rectangle 3 only partially covers rectangle 4",
+                this.rectangle3.overlaps(this.rectangle4));
+        Assert.assertFalse("It should not fully contain it",
+                this.rectangle3.fullyGeometricallyEncloses(this.rectangle4));
+
+        Assert.assertTrue("Rectangle 2 only partly overlaps rectangle 4",
+                this.rectangle2.overlaps(this.rectangle4));
+        Assert.assertFalse("But does not fully contain it",
+                this.rectangle2.fullyGeometricallyEncloses(this.rectangle4));
+    }
+
+    @Test
     public void testIntersection()
     {
         Assert.assertEquals(Rectangle.forLocations(this.location2),
@@ -126,35 +168,5 @@ public class RectangleTest
         Assert.assertTrue(surface.isLessThan(this.rectangle3.surface()));
         Assert.assertTrue(this.rectangle1.surface().add(this.rectangle2.surface())
                 .isLessThan(this.rectangle3.surface()));
-    }
-
-    @Test
-    public void testAntiMeridianEastRectangle()
-    {
-        final Location antiMeridian = new Location(Latitude.ZERO, Longitude.degrees(180));
-        final Location lowerLeftAntiMeridianRectangle = new Location(Latitude.degrees(-10),
-                Longitude.degrees(170));
-        final Location lowerLeftTestRectangle = new Location(Latitude.degrees(-10),
-                Longitude.degrees(150));
-        final Location upperRightTestRectangle1 = new Location(Latitude.ZERO,
-                Longitude.degrees(160));
-        final Location upperRightTestRectangle2 = new Location(Latitude.ZERO,
-                Longitude.degrees(175));
-
-        // List construction
-        final Rectangle antiMeridianRectangle1 = Rectangle
-                .forLocations(Arrays.asList(antiMeridian, lowerLeftAntiMeridianRectangle));
-        final Rectangle testRectangle1 = Rectangle
-                .forLocations(Arrays.asList(upperRightTestRectangle1, lowerLeftTestRectangle));
-        Assert.assertFalse(testRectangle1.overlaps(antiMeridianRectangle1));
-        Assert.assertFalse(antiMeridianRectangle1.overlaps(testRectangle1));
-
-        // Corners construction
-        final Rectangle antiMeridianRectangle2 = Rectangle
-                .forCorners(lowerLeftAntiMeridianRectangle, antiMeridian);
-        final Rectangle testRectangle2 = Rectangle.forCorners(lowerLeftTestRectangle,
-                upperRightTestRectangle2);
-        Assert.assertTrue(testRectangle2.overlaps(antiMeridianRectangle2));
-        Assert.assertTrue(antiMeridianRectangle2.overlaps(testRectangle2));
     }
 }
