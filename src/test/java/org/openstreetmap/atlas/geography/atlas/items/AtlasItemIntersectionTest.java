@@ -153,8 +153,8 @@ public class AtlasItemIntersectionTest
         // TODO
         final Atlas atlas = this.rule.getWithinTestAtlas();
 
-        final Polygon polygon = Polygon.wkt(
-                "POLYGON ((-122.2886447 47.6182798, -122.2886447 47.618416, -122.289001 47.618416, -122.289001 47.6182798, -122.2886447 47.6182798))\n"
+        final Polygon polygon = Polygon
+                .wkt("POLYGON ((-122.2886447 47.6182798, -122.2886447 47.618416, -122.289001 47.618416, -122.289001 47.6182798, -122.2886447 47.6182798))\n"
                         + "");
 
         System.out.println(polygon);
