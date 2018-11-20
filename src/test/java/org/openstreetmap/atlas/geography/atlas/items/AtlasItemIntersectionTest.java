@@ -16,6 +16,8 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
  */
 public class AtlasItemIntersectionTest
 {
+    private static final String WITHIN_TEST_POLYGON_WKT = "POLYGON ((-122.2886447 47.6182798, -122.2886447 47.618416, -122.289001 47.618416, -122.289001 47.6182798, -122.2886447 47.6182798))";
+
     @Rule
     public final AtlasItemIntersectionTestRule rule = new AtlasItemIntersectionTestRule();
 
@@ -72,13 +74,14 @@ public class AtlasItemIntersectionTest
     @Test
     public void testAreasWithinPolygon()
     {
-        // TODO
+        // TODO Finish areas
+
     }
 
     @Test
     public void testAtlasItemsWithinPolygon()
     {
-        // TODO
+        // TODO Finish all entities
     }
 
     @Test
@@ -111,13 +114,19 @@ public class AtlasItemIntersectionTest
     @Test
     public void testEdgesWithinPolygon()
     {
-        // TODO
+        final Atlas atlas = this.rule.getWithinTestAtlas();
+        final Polygon polygon = Polygon.wkt(WITHIN_TEST_POLYGON_WKT);
+        Assert.assertEquals("There are exactly 2 edges within this Polygon", 2,
+                Iterables.size(atlas.edgesWithin(polygon)));
     }
 
     @Test
     public void testLineItemsWithinPolygon()
     {
-        // TODO
+        final Atlas atlas = this.rule.getWithinTestAtlas();
+        final Polygon polygon = Polygon.wkt(WITHIN_TEST_POLYGON_WKT);
+        Assert.assertEquals("There are 2 lines and 2 edges within this Polygon", 4,
+                Iterables.size(atlas.lineItemsWithin(polygon)));
     }
 
     @Test
@@ -150,19 +159,10 @@ public class AtlasItemIntersectionTest
     @Test
     public void testLinesWithinPolygon()
     {
-        // TODO
         final Atlas atlas = this.rule.getWithinTestAtlas();
-
-        final Polygon polygon = Polygon
-                .wkt("POLYGON ((-122.2886447 47.6182798, -122.2886447 47.618416, -122.289001 47.618416, -122.289001 47.6182798, -122.2886447 47.6182798))\n"
-                        + "");
-
-        System.out.println(polygon);
-
-        System.out.println(Iterables.size(atlas.linesWithin(polygon)));
-
-        // Assert.assertEquals("There should be zero nodes in this Polygon", 0,
-        // Iterables.size(atlas.linesWithin(bounds)));
+        final Polygon polygon = Polygon.wkt(WITHIN_TEST_POLYGON_WKT);
+        Assert.assertEquals("There are exactly 2 lines within this Polygon", 2,
+                Iterables.size(atlas.linesWithin(polygon)));
     }
 
     @Test
