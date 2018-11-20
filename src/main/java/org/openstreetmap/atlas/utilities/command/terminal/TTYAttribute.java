@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.utilities.command.output;
+package org.openstreetmap.atlas.utilities.command.terminal;
 
 /**
  * Easy mnemonics for TTY display attributes (ANSI control codes) and their Unicode encodings.

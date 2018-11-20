@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.utilities.command.output;
+package org.openstreetmap.atlas.utilities.command.terminal;
 
 /**
  * A simple string building class that allows for optional TTY formatting.

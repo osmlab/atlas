@@ -3,9 +3,9 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 import java.util.List;
 
 import org.openstreetmap.atlas.utilities.command.AbstractOSMSubcommand;
-import org.openstreetmap.atlas.utilities.command.output.TTYAttribute;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
+import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 
 /**
  * @author lcram
