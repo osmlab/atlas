@@ -50,7 +50,71 @@ public class SubAtlasTest
     @Test
     public void testSubAtlasHardCutWithPolygon()
     {
-        // TODO
+        final Atlas source = this.rule.getAtlas();
+        // This Rectangle covers only the Node 1, Node 4, Edge 2, Point 0, and Relation 6 made up of
+        // Edge 4 and Node 2
+        final Atlas sub = source
+                .subAtlas(
+                        Rectangle.forCorners(Location.forString("37.780400, -122.473149"),
+                                Location.forString("37.780785, -122.472631")),
+                        AtlasCutType.HARD_CUT_ALL)
+                .orElseThrow(() -> new CoreException("SubAtlas was not present."));
+
+        // Nodes
+        Assert.assertNotNull(source.node(1));
+        Assert.assertNotNull(sub.node(1));
+        Assert.assertNotNull(source.node(2));
+        Assert.assertNull(sub.node(2));
+        Assert.assertNotNull(source.node(3));
+        Assert.assertNull(sub.node(3));
+        Assert.assertNotNull(source.node(4));
+        Assert.assertNotNull(sub.node(4));
+
+        // Edges
+        Assert.assertNotNull(source.edge(0));
+        Assert.assertNull(sub.edge(0));
+        Assert.assertNotNull(source.edge(1));
+        Assert.assertNull(sub.edge(1));
+        Assert.assertNotNull(source.edge(2));
+        Assert.assertNotNull(sub.edge(2));
+
+        // Areas
+        Assert.assertNotNull(source.area(0));
+        Assert.assertNull(sub.area(0));
+        Assert.assertNotNull(source.area(1));
+        Assert.assertNull(sub.area(1));
+
+        // Lines
+        Assert.assertNotNull(source.line(0));
+        Assert.assertNull(sub.line(0));
+        Assert.assertNotNull(source.line(1));
+        Assert.assertNull(sub.line(1));
+
+        // Points
+        Assert.assertNotNull(source.point(0));
+        Assert.assertNotNull(sub.point(0));
+        Assert.assertNotNull(source.point(1));
+        Assert.assertNull(sub.point(1));
+        Assert.assertNotNull(source.point(2));
+        Assert.assertNull(sub.point(2));
+        Assert.assertNotNull(source.point(3));
+        Assert.assertNull(sub.point(3));
+
+        // Relations
+        Assert.assertNotNull(source.relation(1));
+        Assert.assertNull(sub.relation(1));
+        Assert.assertNotNull(source.relation(2));
+        Assert.assertNull(sub.relation(2));
+        Assert.assertNotNull(source.relation(3));
+        Assert.assertNull(sub.relation(3));
+        Assert.assertNotNull(source.relation(4));
+        Assert.assertNull(sub.relation(4));
+        Assert.assertNotNull(source.relation(5));
+        Assert.assertNull(sub.relation(5));
+        Assert.assertNotNull(source.relation(6));
+        Assert.assertEquals(2, source.relation(6).members().size());
+        Assert.assertNotNull(sub.relation(6));
+        Assert.assertEquals(2, sub.relation(6).members().size());
     }
 
     @Test

@@ -17,6 +17,7 @@ import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.MultiPolygon;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
@@ -28,8 +29,6 @@ import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.StringList;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * An OSM relation
@@ -50,7 +49,6 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         INNER
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(Relation.class);
     private static final long serialVersionUID = -9013894610780915685L;
 
     public static final Comparator<Relation> RELATION_ID_COMPARATOR = (final Relation relation1,
@@ -276,6 +274,19 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     }
 
     /**
+     * Return {@code true} if this Relation has all members fully within the supplied
+     * {@link Polygon}.
+     *
+     * @param polygon
+     *            The {@link Polygon} to check for
+     * @return {@code true} if the relation has all members within the given {@link Polygon}
+     */
+    public boolean within(final Polygon polygon)
+    {
+        return withinInternal(polygon, new LinkedHashSet<>());
+    }
+
+    /**
      * Avoid stack overflows in case a relation has looping members. This should never happen with a
      * {@link PackedAtlas} but could happen when two {@link Atlas} are combined into a
      * {@link MultiAtlas}.
@@ -363,5 +374,57 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
             }
         }
         return false;
+    }
+
+    /**
+     * Avoid stack overflows in case a relation has looping members. This should never happen with a
+     * {@link PackedAtlas} but could happen when two {@link Atlas} are combined into a
+     * {@link MultiAtlas}.
+     *
+     * @param polygon
+     *            The {@link Polygon} to check for
+     * @param parentRelationIdentifiers
+     *            The identifiers of the parent relations that have already been visited.
+     * @return {@code true} if the relation has all members within the given {@link Polygon}
+     */
+    protected boolean withinInternal(final Polygon polygon,
+            final Set<Long> parentRelationIdentifiers)
+    {
+        for (final RelationMember member : this)
+        {
+            final AtlasEntity entity = member.getEntity();
+            if (entity instanceof Relation)
+            {
+                final long identifier = entity.getIdentifier();
+                if (parentRelationIdentifiers.contains(identifier))
+                {
+                    continue;
+                }
+                else
+                {
+                    parentRelationIdentifiers.add(identifier);
+                    if (!((Relation) entity).withinInternal(polygon, parentRelationIdentifiers))
+                    {
+                        return false;
+                    }
+                }
+            }
+            else if (entity instanceof LineItem
+                    && !polygon.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine()))
+            {
+                return false;
+            }
+            else if (entity instanceof LocationItem
+                    && !polygon.fullyGeometricallyEncloses(((LocationItem) entity).getLocation()))
+            {
+                return false;
+            }
+            else if (entity instanceof Area
+                    && !polygon.fullyGeometricallyEncloses(((Area) entity).asPolygon()))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }

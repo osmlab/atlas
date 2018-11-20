@@ -8,6 +8,8 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas.Edge;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Line;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Loc;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Node;
+import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation;
+import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation.Member;
 
 /**
  * {@link AtlasItemIntersectionTest} test data.
@@ -108,7 +110,24 @@ public class AtlasItemIntersectionTestRule extends CoreTestRule
                     @Area(id = "3", coordinates = { @Loc(value = LOCATION_20),
                             @Loc(value = LOCATION_21), @Loc(value = LOCATION_18),
                             @Loc(value = LOCATION_19) }, tags = { "addr:housenumber=25",
-                                    "test=fully outside" }) })
+                                    "test=fully outside" })
+
+            }, relations = {
+
+                    @Relation(id = "1", tags = { "type=route" }, members = {
+                            @Member(id = "0", role = "inside", type = "edge"),
+                            @Member(id = "1", role = "touchingEdge", type = "edge") }),
+                    @Relation(id = "2", tags = { "type=route" }, members = {
+                            @Member(id = "1", role = "touchingEdge", type = "edge"),
+                            @Member(id = "4", role = "outside", type = "edge") }),
+                    @Relation(id = "3", tags = { "type=route" }, members = {
+                            @Member(id = "2", role = "extendingOutside", type = "edge"),
+                            @Member(id = "4", role = "outside", type = "edge") }),
+                    @Relation(id = "4", tags = { "type=route" }, members = {
+                            @Member(id = "3", role = "running Through", type = "edge"),
+                            @Member(id = "4", role = "outside", type = "edge") }),
+
+            })
     private Atlas withinTestAtlas;
 
     public Atlas getIntersectionAtlas()

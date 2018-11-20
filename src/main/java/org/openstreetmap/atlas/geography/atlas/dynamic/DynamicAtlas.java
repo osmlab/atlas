@@ -494,6 +494,13 @@ public class DynamicAtlas extends BareAtlas
     }
 
     @Override
+    public Iterable<Relation> relationsWithEntitiesWithin(final Polygon polygon)
+    {
+        return expand(() -> this.current.relationsWithEntitiesWithin(polygon),
+                this::relationCovered, this::newRelation);
+    }
+
+    @Override
     public void save(final WritableResource writableResource)
     {
         throw new CoreException("DynamicAtlas cannot be saved");

@@ -560,16 +560,16 @@ public abstract class BareAtlas implements Atlas
     {
         final Time begin = Time.now();
 
-        final Supplier<Iterable<Node>> nodesWithin = getCachingSupplier(nodesWithin(boundary),
-                ItemType.NODE);
-        final Supplier<Iterable<Edge>> edgesIntersecting = getCachingSupplier(
+        final Supplier<Iterable<Node>> nodesWithin = getIntersectingCachingSupplier(
+                nodesWithin(boundary), ItemType.NODE);
+        final Supplier<Iterable<Edge>> edgesIntersecting = getIntersectingCachingSupplier(
                 edgesIntersecting(boundary), ItemType.EDGE);
-        final Supplier<Iterable<Area>> areasIntersecting = getCachingSupplier(
+        final Supplier<Iterable<Area>> areasIntersecting = getIntersectingCachingSupplier(
                 areasIntersecting(boundary), ItemType.AREA);
-        final Supplier<Iterable<Line>> linesIntersecting = getCachingSupplier(
+        final Supplier<Iterable<Line>> linesIntersecting = getIntersectingCachingSupplier(
                 linesIntersecting(boundary), ItemType.LINE);
-        final Supplier<Iterable<Point>> pointsWithin = getCachingSupplier(pointsWithin(boundary),
-                ItemType.POINT);
+        final Supplier<Iterable<Point>> pointsWithin = getIntersectingCachingSupplier(
+                pointsWithin(boundary), ItemType.POINT);
 
         // Generate the size estimates, then the builder.
         // Nodes estimating is a bit tricky. We want to include all the nodes within the polygon,
@@ -718,6 +718,9 @@ public abstract class BareAtlas implements Atlas
     }
 
     /**
+     * TODO Remove deprecation, make this private, route all calls through the method referenced
+     * below.
+     *
      * @param matcher
      *            The matcher to consider
      * @return a sub-atlas from this Atlas.
@@ -1015,7 +1018,35 @@ public abstract class BareAtlas implements Atlas
         }
     }
 
-    private <M extends AtlasEntity> Supplier<Iterable<M>> getCachingSupplier(
+    private <M extends AtlasEntity> Supplier<Iterable<M>> getContainmentCachingSupplier(
+            final Iterable<M> source, final ItemType type)
+    {
+        final Set<Long> memberIdentifiersWithin = new HashSet<>();
+        // A supplier that will effectively cache all the members contained by that polygon. This is
+        // thread safe because the cache is internal to the supplier's scope.
+        @SuppressWarnings("unchecked")
+        final Supplier<Iterable<M>> result = () ->
+        {
+            if (memberIdentifiersWithin.isEmpty())
+            {
+                // Here using a map instead of forEach to pipe the edge identifiers to the cache
+                // list without having to re-open the iterable.
+                return Iterables.stream(source).map(member ->
+                {
+                    memberIdentifiersWithin.add(member.getIdentifier());
+                    return member;
+                }).collect();
+            }
+            else
+            {
+                return (Iterable<M>) Iterables.stream(memberIdentifiersWithin)
+                        .map(entityIdentifier -> this.entity(entityIdentifier, type)).collect();
+            }
+        };
+        return result;
+    }
+
+    private <M extends AtlasEntity> Supplier<Iterable<M>> getIntersectingCachingSupplier(
             final Iterable<M> source, final ItemType type)
     {
         final Set<Long> memberIdentifiersIntersecting = new HashSet<>();
@@ -1045,11 +1076,150 @@ public abstract class BareAtlas implements Atlas
 
     private Optional<Atlas> hardCutAllEntities(final Polygon boundary)
     {
-        // 1. Filter out edges with any nodes outside the boundary.
-        // 2. Filter out any feature not fully contained within said polygon
-        // 3. Go through all relations and check them!
-        // TODO
-        return null;
+        logger.debug("Hard-cutting Atlas {} with meta-data {}", this.getName(), this.metaData());
+        final Time begin = Time.now();
+
+        final Supplier<Iterable<Node>> nodesWithin = getContainmentCachingSupplier(
+                nodesWithin(boundary), ItemType.NODE);
+        final Supplier<Iterable<Edge>> edgesWithin = getContainmentCachingSupplier(
+                edgesWithin(boundary), ItemType.EDGE);
+        final Supplier<Iterable<Area>> areasWithin = getContainmentCachingSupplier(
+                areasWithin(boundary), ItemType.AREA);
+        final Supplier<Iterable<Line>> linesWithin = getContainmentCachingSupplier(
+                linesWithin(boundary), ItemType.LINE);
+        final Supplier<Iterable<Point>> pointsWithin = getContainmentCachingSupplier(
+                pointsWithin(boundary), ItemType.POINT);
+
+        // Generate the size estimates and the builder. There is an edge case we need to consider
+        // for node size estimating. Because of our underlying dependency on awt insideness
+        // definition - we may be excluding some nodes that are exactly on the boundary of the given
+        // polygon. To account for this, instead of doing a count to have an exact number, we choose
+        // here to have an arbitrary 5% buffer on top of the nodes inside the polygon. This mostly
+        // avoids resizing. No other entity needs the buffer since the resulting within calls give
+        // us exact features we want to include.
+        final double ratioBuffer = 0.5;
+        final long nodeNumber = Math.round(Iterables.size(nodesWithin.get()) * ratioBuffer);
+        final long edgeNumber = Math.round(Iterables.size(edgesWithin.get()));
+        final long areaNumber = Math.round(Iterables.size(areasWithin.get()));
+        final long lineNumber = Math.round(Iterables.size(linesWithin.get()));
+        final long pointNumber = Math.round(Iterables.size(pointsWithin.get()));
+        final long relationNumber = Math
+                .round(Iterables.size(relationsWithEntitiesWithin(boundary)));
+        final AtlasSize size = new AtlasSize(edgeNumber, nodeNumber, areaNumber, lineNumber,
+                pointNumber, relationNumber);
+        final PackedAtlasBuilder builder = new PackedAtlasBuilder().withSizeEstimates(size)
+                .withMetaData(metaData());
+
+        // Predicates to test if some items have already been added.
+        final Predicate<Node> hasNode = item -> builder.peek().node(item.getIdentifier()) != null;
+        final Predicate<Edge> hasEdge = item -> builder.peek().edge(item.getIdentifier()) != null;
+        final Predicate<Area> hasArea = item -> builder.peek().area(item.getIdentifier()) != null;
+        final Predicate<Line> hasLine = item -> builder.peek().line(item.getIdentifier()) != null;
+        final Predicate<Point> hasPoint = item -> builder.peek()
+                .point(item.getIdentifier()) != null;
+        final Predicate<Relation> hasRelation = item -> builder.peek()
+                .relation(item.getIdentifier()) != null;
+
+        // Add the nodes needed for Edges.
+        edgesWithin.get().forEach(edge ->
+        {
+            final Node start = edge.start();
+            final Node end = edge.end();
+            if (!hasNode.test(start))
+            {
+                builder.addNode(start.getIdentifier(), start.getLocation(), start.getTags());
+            }
+            if (!hasNode.test(end))
+            {
+                builder.addNode(end.getIdentifier(), end.getLocation(), end.getTags());
+            }
+        });
+
+        // Add the remaining nodes, if any.
+        Iterables.stream(nodesWithin.get()).filter(hasNode.negate()).forEach(
+                node -> builder.addNode(node.getIdentifier(), node.getLocation(), node.getTags()));
+
+        // Add the edges. Use a consumer that makes sure master edges are always added first.
+        final Consumer<Edge> edgeAdder = edge ->
+        {
+            if (builder.peek().edge(edge.getIdentifier()) == null)
+            {
+                // Here, making sure that edge identifiers are not 0 to work around an issue in unit
+                // tests: https://github.com/osmlab/atlas/issues/252
+                if (edge.getIdentifier() != 0 && edge.hasReverseEdge())
+                {
+                    final Edge reverse = edge.reversed().get();
+                    if (builder.peek().edge(reverse.getIdentifier()) == null)
+                    {
+                        builder.addEdge(reverse.getIdentifier(), reverse.asPolyLine(),
+                                reverse.getTags());
+                    }
+                }
+                builder.addEdge(edge.getIdentifier(), edge.asPolyLine(), edge.getTags());
+            }
+        };
+        edgesWithin.get().forEach(edgeAdder::accept);
+
+        // Add the Areas
+        areasWithin.get().forEach(
+                area -> builder.addArea(area.getIdentifier(), area.asPolygon(), area.getTags()));
+
+        // Add the Lines
+        linesWithin.get().forEach(
+                line -> builder.addLine(line.getIdentifier(), line.asPolyLine(), line.getTags()));
+
+        // Add the Points
+        pointsWithin.get().forEach(point -> builder.addPoint(point.getIdentifier(),
+                point.getLocation(), point.getTags()));
+
+        // Add all the relations that are not in the sub atlas, in lower order first
+        Iterables.stream(relationsLowerOrderFirst()).filter(hasRelation.negate())
+                .forEach(relation ->
+                {
+                    final RelationMemberList members = relation.members();
+                    final List<RelationMember> validMembers = new ArrayList<>();
+                    // And consider them only if they have members that have already been added to
+                    // the sub atlas.
+                    members.forEach(member ->
+                    {
+                        final AtlasEntity entity = member.getEntity();
+                        // Non-Relation members
+                        if (entity instanceof Node && hasNode.test((Node) entity)
+                                || entity instanceof Edge && hasEdge.test((Edge) entity)
+                                || entity instanceof Area && hasArea.test((Area) entity)
+                                || entity instanceof Line && hasLine.test((Line) entity)
+                                || entity instanceof Point && hasPoint.test((Point) entity))
+                        {
+                            validMembers.add(member);
+                        }
+                        // Relation members
+                        if (entity instanceof Relation && hasRelation.test((Relation) entity))
+                        {
+                            validMembers.add(member);
+                        }
+                    });
+                    if (!validMembers.isEmpty())
+                    {
+                        // If there are legitimate members, we need to add the relation to the sub
+                        // atlas
+                        final RelationBean structure = new RelationBean();
+                        validMembers.forEach(validMember ->
+                        {
+                            structure.addItem(validMember.getEntity().getIdentifier(),
+                                    validMember.getRole(),
+                                    ItemType.forEntity(validMember.getEntity()));
+                        });
+                        builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(),
+                                structure, relation.getTags());
+                    }
+                });
+        final PackedAtlas result = (PackedAtlas) builder.get();
+        if (result != null)
+        {
+            result.trim();
+        }
+        logger.info("Finished hard-cutting sub-atlas in {}", begin.elapsedSince());
+        return Optional.ofNullable(result);
     }
 
     private Optional<Atlas> hardCutAllEntities(final Predicate<AtlasEntity> matcher)
@@ -1318,10 +1488,13 @@ public abstract class BareAtlas implements Atlas
     }
 
     /**
-     * TODO
+     * Add all points, areas and lines that pass the given matcher to the sub-atlas, using the given
+     * {@link PackedAtlasBuilder}.
      *
      * @param matcher
+     *            The matcher to consider
      * @param builder
+     *            The {@link PackedAtlasBuilder} used to build the sub-atlas
      */
     private void indexPointsAreasLines(final Predicate<AtlasEntity> matcher,
             final PackedAtlasBuilder builder)

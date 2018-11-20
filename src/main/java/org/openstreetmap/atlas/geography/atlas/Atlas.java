@@ -715,6 +715,15 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
             Predicate<Relation> matcher);
 
     /**
+     * Return all the {@link Relation}s which have all features within some polygon.
+     *
+     * @param polygon
+     *            The polygon to consider
+     * @return All the {@link Relation}s which have all features within the polygon.
+     */
+    Iterable<Relation> relationsWithEntitiesWithin(Polygon polygon);
+
+    /**
      * Serialize this {@link Atlas} to a {@link WritableResource}
      *
      * @param writableResource

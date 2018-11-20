@@ -241,4 +241,14 @@ public class AtlasItemIntersectionTest
                 Iterables.size(atlas.relationsWithEntitiesIntersecting(containingMultipleEdges)));
     }
 
+    @Test
+    public void testRelationsWithinPolygon()
+    {
+        final Atlas atlas = this.rule.getWithinTestAtlas();
+        final Polygon polygon = Polygon.wkt(WITHIN_TEST_POLYGON_WKT);
+        Assert.assertEquals(
+                "There is a single relation that has all members fully within the polygon", 1,
+                Iterables.size(atlas.relationsWithEntitiesWithin(polygon)));
+    }
+
 }

@@ -364,6 +364,13 @@ public abstract class AbstractAtlas extends BareAtlas
     }
 
     @Override
+    public Iterable<Relation> relationsWithEntitiesWithin(final Polygon polygon)
+    {
+        final Iterable<Relation> relations = this.getRelationSpatialIndex().get(polygon.bounds());
+        return Iterables.filter(relations, relation -> relation.within(polygon));
+    }
+
+    @Override
     public void save(final WritableResource writableResource)
     {
         throw new CoreException("{} does not support saving. Consider using {} instead.",

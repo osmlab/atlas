@@ -21,6 +21,7 @@ public class SubAtlasRule extends CoreTestRule
     private static final String THREE = "37.780724, -122.472249";
     private static final String FOUR = "37.780825, -122.471896";
     private static final String FIVE = "37.780835, -122.471896";
+    private static final String FIVE_PRIME = "37.7807005, -122.4728703";
 
     private static final String SIX = "37.045982,-121.7539795";
     private static final String SIX_PRIME = "37.0459867,-121.7539853";
@@ -32,14 +33,17 @@ public class SubAtlasRule extends CoreTestRule
 
                     @Node(id = "1", coordinates = @Loc(value = ONE)),
                     @Node(id = "2", coordinates = @Loc(value = TWO)),
-                    @Node(id = "3", coordinates = @Loc(value = THREE))
+                    @Node(id = "3", coordinates = @Loc(value = THREE)),
+                    @Node(id = "4", coordinates = @Loc(value = FIVE_PRIME))
 
             }, edges = {
 
                     @Edge(id = "0", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }, tags = {
                             "highway=trunk", "fixme=please" }),
                     @Edge(id = "1", coordinates = { @Loc(value = TWO),
-                            @Loc(value = THREE) }, tags = { "highway=trunk" })
+                            @Loc(value = THREE) }, tags = { "highway=trunk" }),
+                    @Edge(id = "2", coordinates = { @Loc(value = ONE),
+                            @Loc(value = FIVE_PRIME) }, tags = { "highway=trunk" })
 
             }, areas = {
 
@@ -84,7 +88,10 @@ public class SubAtlasRule extends CoreTestRule
                                     @Member(id = "1", role = "outside", type = "line") }),
                     @Relation(id = "5", tags = {
                             "type=inside_because_of_level_2_relation_inside" }, members = {
-                                    @Member(id = "4", role = "inside", type = "relation") })
+                                    @Member(id = "4", role = "inside", type = "relation") }),
+                    @Relation(id = "6", tags = { "type=inside-fully" }, members = {
+                            @Member(id = "4", role = "inside", type = "node"),
+                            @Member(id = "2", role = "inside", type = "edge") }),
 
             })
     private Atlas atlas;
