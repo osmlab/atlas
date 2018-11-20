@@ -3,13 +3,16 @@ package org.openstreetmap.atlas.utilities.command;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.utilities.command.documentation.DocumentationFormatter;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.ArgumentException;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.OptionParseException;
+import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.SimpleOption;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.UnknownOptionException;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYStringBuilder;
@@ -205,6 +208,9 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      */
     protected TTYStringBuilder getTTYStringBuilder()
     {
+        /*
+         * TODO there should be two versions of this method, one for STDOUT and one for STDERR
+         */
         return new TTYStringBuilder(this.useColor);
     }
 
@@ -263,7 +269,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     protected void printlnCommandMessage(final String message)
     {
         printStderr(this.getCommandName() + ": ");
-        printStderr(message + "\n");
+        printStderr(message + System.getProperty("line.separator"));
     }
 
     /**
@@ -277,7 +283,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     {
         printStderr(this.getCommandName() + ": ");
         printStderr("error: ", TTYAttribute.BOLD, TTYAttribute.RED);
-        printStderr(message + "\n");
+        printStderr(message + System.getProperty("line.separator"));
     }
 
     /**
@@ -291,7 +297,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     {
         printStderr(this.getCommandName() + ": ");
         printStderr("warn: ", TTYAttribute.BOLD, TTYAttribute.MAGENTA);
-        printStderr(message + "\n");
+        printStderr(message + System.getProperty("line.separator"));
     }
 
     /**
@@ -566,7 +572,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
             printlnErrorMessage("unknown option \'" + exception.getMessage() + "\'");
             printStderr("Try \'");
             printStderr("--help", TTYAttribute.BOLD);
-            printStderr("\' option for more info.\n");
+            printStderr("\' option for more info." + System.getProperty("line.separator"));
             System.exit(1);
         }
         catch (final OptionParseException exception)
@@ -574,7 +580,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
             printlnErrorMessage(exception.getMessage());
             printStderr("Try \'");
             printStderr("--help", TTYAttribute.BOLD);
-            printStderr("\' option for more info.\n");
+            printStderr("\' option for more info." + System.getProperty("line.separator"));
             System.exit(1);
         }
         catch (final ArgumentException exception)
@@ -582,7 +588,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
             printlnErrorMessage(exception.getMessage());
             printStderr("Try \'");
             printStderr("--help", TTYAttribute.BOLD);
-            printStderr("\' option for more info.\n");
+            printStderr("\' option for more info." + System.getProperty("line.separator"));
             System.exit(1);
         }
 
@@ -608,11 +614,24 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     {
         final String name = this.getCommandName();
         final String simpleDescription = this.getSimpleDescription();
+        final Set<SimpleOption> options = this.parser.getRegisteredOptions();
         final TTYStringBuilder builder = getTTYStringBuilder();
+
         builder.append("\n");
-        builder.append("NAME", TTYAttribute.BOLD);
-        builder.append("\n\t" + name + " -- " + simpleDescription + "\n");
-        builder.append("\n");
+
+        builder.append("NAME\n", TTYAttribute.BOLD);
+        DocumentationFormatter.indentBuilderToLevel(1, builder);
+        builder.append(name + " -- " + simpleDescription).newline().newline();
+
+        builder.append("SYNOPSIS", TTYAttribute.BOLD).newline();
+        DocumentationFormatter.generateTextForSynopsisSection(name, options,
+                this.parser.getArgumentHintToArity(), this.parser.getArgumentHintToOptionality(),
+                builder);
+        builder.newline().newline();
+
+        builder.append("OPTIONS", TTYAttribute.BOLD).newline();
+        DocumentationFormatter.generateTextForOptionsSection(options, builder);
+
         return builder.toString();
     }
 }

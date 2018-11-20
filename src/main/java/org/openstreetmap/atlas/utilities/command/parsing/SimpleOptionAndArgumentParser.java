@@ -45,12 +45,38 @@ import org.slf4j.LoggerFactory;
 public class SimpleOptionAndArgumentParser
 {
     /**
+     * @author lcram
+     */
+    public class ArgumentException extends Exception
+    {
+        private static final long serialVersionUID = 8506034533362610699L;
+
+        public ArgumentException(final String message)
+        {
+            super(message);
+        }
+    }
+
+    /**
+     * @author lcram
+     */
+    public class OptionParseException extends Exception
+    {
+        private static final long serialVersionUID = 2471393426772482019L;
+
+        public OptionParseException(final String message)
+        {
+            super(message);
+        }
+    }
+
+    /**
      * A simple option representation. Store the option long/short form as well as metadata about
      * the option.
      *
      * @author lcram
      */
-    class SimpleOption
+    public class SimpleOption
     {
         private final String longForm;
         private final Optional<Character> shortForm;
@@ -182,32 +208,6 @@ public class SimpleOptionAndArgumentParser
     /**
      * @author lcram
      */
-    public class ArgumentException extends Exception
-    {
-        private static final long serialVersionUID = 8506034533362610699L;
-
-        public ArgumentException(final String message)
-        {
-            super(message);
-        }
-    }
-
-    /**
-     * @author lcram
-     */
-    public class OptionParseException extends Exception
-    {
-        private static final long serialVersionUID = 2471393426772482019L;
-
-        public OptionParseException(final String message)
-        {
-            super(message);
-        }
-    }
-
-    /**
-     * @author lcram
-     */
     public class UnknownOptionException extends Exception
     {
         private static final long serialVersionUID = 8506034533362610699L;
@@ -229,9 +229,9 @@ public class SimpleOptionAndArgumentParser
     private static final Logger logger = LoggerFactory
             .getLogger(SimpleOptionAndArgumentParser.class);
 
-    private static final String LONG_FORM_PREFIX = "--";
-    private static final String SHORT_FORM_PREFIX = "-";
-    private static final String OPTION_ARGUMENT_DELIMITER = "=";
+    public static final String LONG_FORM_PREFIX = "--";
+    public static final String SHORT_FORM_PREFIX = "-";
+    public static final String OPTION_ARGUMENT_DELIMITER = "=";
     private static final String END_OPTIONS_OPERATOR = "--";
 
     private static final String DEFAULT_LONG_HELP = LONG_FORM_PREFIX + "help";
@@ -270,6 +270,26 @@ public class SimpleOptionAndArgumentParser
         this.parsedOptions = new LinkedHashMap<>();
         this.parsedArguments = new LinkedHashMap<>();
         this.parseStepRan = false;
+    }
+
+    /**
+     * Get the mapping of registered argument hints to their arities.
+     *
+     * @return the mapping
+     */
+    public Map<String, ArgumentArity> getArgumentHintToArity()
+    {
+        return this.registeredArgumentHintToArity;
+    }
+
+    /**
+     * Get the mapping of registered argument hints to their optionalities
+     *
+     * @return the mapping
+     */
+    public Map<String, ArgumentOptionality> getArgumentHintToOptionality()
+    {
+        return this.registeredArgumentHintToOptionality;
     }
 
     /**
@@ -335,6 +355,16 @@ public class SimpleOptionAndArgumentParser
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * Get the set of registered {@link SimpleOption}s.
+     *
+     * @return the set
+     */
+    public Set<SimpleOption> getRegisteredOptions()
+    {
+        return this.registeredOptions;
     }
 
     /**

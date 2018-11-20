@@ -81,9 +81,14 @@ public class DemoSubcommand extends AbstractOSMSubcommand
     @Override
     public void registerOptionsAndArguments()
     {
+        final String beerDescription = "Brand of your favorite beer. "
+                + "Currently making this option description really long in"
+                + " order to test out the autoformatting capabilities of"
+                + " the DocumentationFormatter class.";
+
         setVersion("1.0.0");
         registerOption("capitalize", 'c', "Capitalize the foods list");
-        registerOptionWithRequiredArgument("beer", "Favorite beer", "beer");
+        registerOptionWithRequiredArgument("beer", beerDescription, "brand");
         registerOptionWithOptionalArgument("cheese",
                 "Use cheese, optionally ask for LIGHT or EXTRA", "amount");
         registerArgument("favoriteMeal", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);

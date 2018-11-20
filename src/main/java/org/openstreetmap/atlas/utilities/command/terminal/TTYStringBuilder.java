@@ -58,6 +58,12 @@ public class TTYStringBuilder
         return this;
     }
 
+    public TTYStringBuilder newline()
+    {
+        this.builder.append(System.getProperty("line.separator"));
+        return this;
+    }
+
     @Override
     public String toString()
     {
