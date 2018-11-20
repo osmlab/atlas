@@ -48,11 +48,6 @@ public class AtlasItemIntersectionTestRule extends CoreTestRule
                     @Node(id = "9", coordinates = @Loc(value = LOCATION_9)),
                     @Node(id = "10", coordinates = @Loc(value = LOCATION_10)),
                     @Node(id = "11", coordinates = @Loc(value = LOCATION_11))
-            // 4, 5
-            // 4, 6
-            // 4, 7
-            // 8, 9
-            // 10, 11
 
             }, edges = {
 
