@@ -74,14 +74,33 @@ public class AtlasItemIntersectionTest
     @Test
     public void testAreasWithinPolygon()
     {
-        // TODO Finish areas
-
+        final Atlas atlas = this.rule.getWithinTestAtlas();
+        final Polygon polygon = Polygon.wkt(WITHIN_TEST_POLYGON_WKT);
+        Assert.assertEquals("There are 2 areas within this Polygon", 2,
+                Iterables.size(atlas.areasWithin(polygon)));
     }
 
     @Test
     public void testAtlasItemsWithinPolygon()
     {
-        // TODO Finish all entities
+        final Atlas atlas = this.rule.getWithinTestAtlas();
+
+        // These are equivalent representations of the same shape.
+        final Polygon polygonBoundary = Polygon.wkt(WITHIN_TEST_POLYGON_WKT);
+        final Rectangle rectangleBoundary = Rectangle.forCorners(
+                Location.forWkt("POINT(-122.289001 47.6182798)"),
+                Location.forWkt("POINT(-122.2886447 47.618416)"));
+
+        // However, when the Polygon is not represented as a Rectangle, we rely on the underlying
+        // awt definition of insideness - which considers Node 4 from edge 0 to be "outside" the
+        // polygon, even though it is on the boundary.
+        Assert.assertEquals("There are 2 lines, 2 edges, 2 Areas and 2 Nodes within this Polygon",
+                8, Iterables.size(atlas.itemsWithin(polygonBoundary)));
+
+        // If we represent the Polygon as a Rectangle, then we forego the awt call and the same Node
+        // 4 is now considered inside. This is an unfortunate side-affect of the awt dependency.
+        Assert.assertEquals("There are 2 lines, 2 edges, 2 Areas and 3 Nodes within this Polygon",
+                9, Iterables.size(atlas.itemsWithin(rectangleBoundary)));
     }
 
     @Test

@@ -8,6 +8,7 @@ import java.util.function.Predicate;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -555,7 +556,9 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<Node> nodesAt(Location location);
 
     /**
-     * Return all the {@link Node}s within and/or intersecting some polygon.
+     * Return all the {@link Node}s within and/or intersecting some polygon. Note: results may vary,
+     * for an identical boundary, depending on the type, {@link Rectangle} or {@link Polygon} of the
+     * input. This is due to an underlying dependency on the awt definition of insideness.
      *
      * @param polygon
      *            The polygon to consider
@@ -637,7 +640,9 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<Point> pointsAt(Location location);
 
     /**
-     * Return all the {@link Point}s within some polygon.
+     * Return all the {@link Point}s within some polygon. Note: results may vary, for an identical
+     * boundary, depending on the type, {@link Rectangle} or {@link Polygon} of the input. This is
+     * due to an underlying dependency on the awt definition of insideness.
      *
      * @param polygon
      *            The polygon to consider
@@ -646,7 +651,9 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<Point> pointsWithin(Polygon polygon);
 
     /**
-     * Return all the {@link Point}s matching a {@link Predicate}.
+     * Return all the {@link Point}s matching a {@link Predicate}. Note: results may vary, for an
+     * identical boundary, depending on the type, {@link Rectangle} or {@link Polygon} of the input.
+     * This is due to an underlying dependency on the awt definition of insideness.
      *
      * @param matcher
      *            The matcher to consider
