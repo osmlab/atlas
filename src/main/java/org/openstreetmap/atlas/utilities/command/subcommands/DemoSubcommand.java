@@ -20,7 +20,10 @@ public class DemoSubcommand extends AbstractOSMSubcommand
     @Override
     public int execute()
     {
+        // We registered favoriteFoods as variadic so it comes back as a List.
         final List<String> foods = getVariadicArgument("favoriteFoods");
+
+        // We registered favoriteMeal as REQUIRED so it is safe to unwrap the Optional.
         final String meal = getUnaryArgument("favoriteMeal").get();
 
         printStdout("I like meal ");
@@ -30,15 +33,34 @@ public class DemoSubcommand extends AbstractOSMSubcommand
         printVerboseStdout(
                 "PS, I really like to talk, but only if you supply the \'--verbose\' option\n");
 
-        printStdout("Favorite foods are:\n");
-        for (final String food : foods)
+        final int repeatDefault = 1;
+        final int repeat = getOptionArgument("repeat", value ->
         {
-            String mutableFood = food;
-            if (hasOption("capitalize"))
+            final int parsed;
+            try
             {
-                mutableFood = mutableFood.toUpperCase();
+                parsed = Integer.parseInt(value);
             }
-            printStdout(mutableFood + "\n", TTYAttribute.BOLD);
+            catch (final Exception exception)
+            {
+                printlnWarnMessage("failed to parse repeat argument, using default");
+                return null;
+            }
+            return parsed;
+        }).orElse(repeatDefault);
+
+        printStdout("Favorite foods are:\n");
+        for (int index = 0; index < repeat; index++)
+        {
+            for (final String food : foods)
+            {
+                String mutableFood = food;
+                if (hasOption("capitalize"))
+                {
+                    mutableFood = mutableFood.toUpperCase();
+                }
+                printStdout(mutableFood + "\n", TTYAttribute.BOLD);
+            }
         }
 
         if (hasOption("cheese"))
@@ -75,7 +97,22 @@ public class DemoSubcommand extends AbstractOSMSubcommand
     @Override
     public void registerManualPageSections()
     {
-
+        final String paragraph1 = "This example section is filled out to demonstrate the capabilities of the "
+                + "automatic documentation formatting code. Below are some examples of how to "
+                + "run the demo command:";
+        final String paragraph2 = "Here is a follow up paragraph that comes after the code example. Unfortunately,\n"
+                + "Java does not provide a way to declare multi-line string literals. Due to this\n"
+                + "shortcoming, declaring these paragraphs in code can be a pain. Thankfully,\n"
+                + "Eclipse and IntelliJ both automatically format multi-line strings when pasted\n"
+                + "into an empty \"\". Alternatively, you could have your subcommand read the\n"
+                + "paragraphs from a resource file.";
+        addManualPageSection("DEMO SECTION");
+        addParagraphToSection("DEMO SECTION", paragraph1);
+        addCodeBlockToSection("DEMO SECTION",
+                "$ demo dinner pizza wings --beer=805 --cheese=cheddar");
+        addCodeBlockToSection("DEMO SECTION", "$ demo breakfast waffles pancakes");
+        addCodeBlockToSection("DEMO SECTION", "$ demo lunch salad --cheese=parmesan");
+        addParagraphToSection("DEMO SECTION", paragraph2);
     }
 
     @Override
@@ -87,10 +124,11 @@ public class DemoSubcommand extends AbstractOSMSubcommand
                 + " the DocumentationFormatter class.";
 
         setVersion("1.0.0");
-        registerOption("capitalize", 'c', "Capitalize the foods list");
+        registerOption("capitalize", 'c', "Capitalize the foods list.");
         registerOptionWithRequiredArgument("beer", beerDescription, "brand");
         registerOptionWithOptionalArgument("cheese",
-                "Use cheese, optionally ask for LIGHT or EXTRA", "amount");
+                "Use cheese, optionally ask for LIGHT or EXTRA.", "amount");
+        registerOptionWithRequiredArgument("repeat", "Repeat the food list N times.", "N");
         registerArgument("favoriteMeal", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
         registerArgument("favoriteFoods", ArgumentArity.VARIADIC, ArgumentOptionality.OPTIONAL);
     }

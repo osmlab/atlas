@@ -25,8 +25,9 @@ public class OSMSubcommandTablePrinter
             // validate the command name and description
             command.throwIfInvalidNameOrDescription();
 
-            // Validate the registered command options/args - will throw if something is awry.
+            // Validate the command options/args/manpage - will throw if something is awry
             command.registerOptionsAndArguments();
+            command.registerManualPageSections();
 
             final StringBuilder builder = new StringBuilder();
             String name = command.getCommandName();

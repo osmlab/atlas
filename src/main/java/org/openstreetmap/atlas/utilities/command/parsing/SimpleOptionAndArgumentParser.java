@@ -333,7 +333,8 @@ public class SimpleOptionAndArgumentParser
 
     /**
      * Get the argument of a given option, if present. Also, convert it using the supplied
-     * converter.
+     * converter. If the converter function returns null, then this method will return
+     * {@link Optional#empty()}.
      *
      * @param <T>
      *            the type to convert to

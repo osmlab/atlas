@@ -6,7 +6,9 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.utilities.command.documentation.DocumentationFormatType;
 import org.openstreetmap.atlas.utilities.command.documentation.DocumentationFormatter;
+import org.openstreetmap.atlas.utilities.command.documentation.DocumentationRegistrar;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser;
@@ -17,6 +19,7 @@ import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgument
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYStringBuilder;
 import org.openstreetmap.atlas.utilities.conversion.StringConverter;
+import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
 /**
  * A partial implementation of an OSM subcommand. Contains significant functionality to aid in
@@ -43,6 +46,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     public static final Character DEFAULT_VERSION_SHORT = 'V';
 
     private final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
+    private final DocumentationRegistrar registrar = new DocumentationRegistrar();
 
     private boolean useColor = true;
     private String version = "default_version_value";
@@ -146,7 +150,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      */
     protected void addCodeBlockToSection(final String section, final String codeBlock)
     {
-        // TODO implement
+        this.registrar.addCodeBlockToSection(section, codeBlock);
     }
 
     /**
@@ -157,7 +161,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      */
     protected void addManualPageSection(final String section)
     {
-        // TODO implement
+        this.registrar.addManualPageSection(section);
     }
 
     /**
@@ -172,7 +176,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      */
     protected void addParagraphToSection(final String section, final String paragraph)
     {
-        // TODO implement
+        this.registrar.addParagraphToSection(section, paragraph);
     }
 
     /**
@@ -191,7 +195,8 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
 
     /**
      * Get the argument of a given option, if present. Also, convert it using the supplied
-     * converter.
+     * converter. If the converter function returns null, then this method will return
+     * {@link Optional#empty()}.
      *
      * @param <T>
      *            the type to convert to
@@ -559,6 +564,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
 
         // fill out appropriate data structures so the execute() implementation can query
         registerOptionsAndArguments();
+        registerManualPageSections();
 
         // Special case if user supplied '--help' or '-h'
         // We want to scan now, show the help menu, then abort
@@ -631,7 +637,8 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
         builder.append("\n");
 
         builder.append("NAME\n", TTYAttribute.BOLD);
-        DocumentationFormatter.indentBuilderToLevel(1, builder);
+        DocumentationFormatter.indentBuilderToLevel(
+                DocumentationFormatter.DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
         builder.append(name + " -- " + simpleDescription).newline().newline();
 
         builder.append("SYNOPSIS", TTYAttribute.BOLD).newline();
@@ -642,6 +649,31 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
 
         builder.append("OPTIONS", TTYAttribute.BOLD).newline();
         DocumentationFormatter.generateTextForOptionsSection(options, builder);
+
+        // TODO move this code into the DocumentationFormatter?
+        for (final String section : this.registrar.getSections())
+        {
+            final List<Tuple<DocumentationFormatType, String>> sectionContents = this.registrar
+                    .getSectionContents(section);
+            builder.append(section, TTYAttribute.BOLD).newline();
+            for (final Tuple<DocumentationFormatType, String> contents : sectionContents)
+            {
+                final DocumentationFormatType type = contents.getFirst();
+                final String text = contents.getSecond();
+                if (type == DocumentationFormatType.CODE)
+                {
+                    DocumentationFormatter.addCodeBlock(
+                            DocumentationFormatter.DEFAULT_CODE_INDENT_LEVEL, text, builder);
+                }
+                else if (type == DocumentationFormatType.PARAGRAPH)
+                {
+                    DocumentationFormatter.addParagraphWithLineWrapping(
+                            DocumentationFormatter.DEFAULT_PARAGRAPH_INDENT_LEVEL,
+                            DocumentationFormatter.MAXIMUM_COLUMN, text, builder, true);
+                }
+                builder.newline().newline();
+            }
+        }
 
         return builder.toString();
     }

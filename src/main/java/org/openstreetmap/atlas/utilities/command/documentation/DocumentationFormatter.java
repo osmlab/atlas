@@ -20,8 +20,45 @@ import org.openstreetmap.atlas.utilities.command.terminal.TTYStringBuilder;
  */
 public final class DocumentationFormatter
 {
-    private static final int MAXIMUM_COLUMN = 80;
-    private static final int INDENTATION_WIDTH = 4;
+    public static final int MAXIMUM_COLUMN = 80;
+    public static final int INDENTATION_WIDTH = 4;
+
+    public static final int DEFAULT_CODE_INDENT_LEVEL = 2;
+    public static final int DEFAULT_PARAGRAPH_INDENT_LEVEL = 1;
+    private static final int DEFAULT_INNER_PARAGRAPH_INDENT_LEVEL = 2;
+
+    /**
+     * Call
+     * {@link DocumentationFormatter#addCodeBlockAtExactIndentation(int, String, TTYStringBuilder)},
+     * but compute the exact indentation width by multiplying the supplied indentationLevel with the
+     * default INDENTATION_WIDTH.
+     */
+    public static void addCodeBlock(final int indentationLevel, final String string,
+            final TTYStringBuilder builder)
+    {
+        DocumentationFormatter.addCodeBlockAtExactIndentation(indentationLevel * INDENTATION_WIDTH,
+                string, builder);
+    }
+
+    /**
+     * Add a string to the builder with a given number of indentation spaces and a given maximum
+     * column width. The string will be treated as a code block, ie. it will not have any special
+     * formatting applied to it.
+     *
+     * @param exactIndentation
+     *            the exact number of indentation spaces
+     * @param string
+     *            the string to display
+     * @param builder
+     *            the builder to be modified
+     */
+    public static void addCodeBlockAtExactIndentation(final int exactIndentation,
+            final String string, final TTYStringBuilder builder)
+    {
+        // TODO this currently fails for multiline codeblocks
+        indentBuilderToExact(exactIndentation, builder);
+        builder.append(string);
+    }
 
     /**
      * Call
@@ -30,10 +67,12 @@ public final class DocumentationFormatter
      * default INDENTATION_WIDTH.
      */
     public static void addParagraphWithLineWrapping(final int indentationLevel,
-            final int maximumColumn, final String string, final TTYStringBuilder builder)
+            final int maximumColumn, final String string, final TTYStringBuilder builder,
+            final boolean indentFirstLine)
     {
         DocumentationFormatter.addParagraphWithLineWrappingAtExactIndentation(
-                indentationLevel * INDENTATION_WIDTH, maximumColumn, string, builder);
+                indentationLevel * INDENTATION_WIDTH, maximumColumn, string, builder,
+                indentFirstLine);
     }
 
     /**
@@ -51,19 +90,37 @@ public final class DocumentationFormatter
      *            the string to display
      * @param builder
      *            the builder to be modified
+     * @param indentFirstLine
+     *            whether or not to indent the first line in the paragraph
      */
     public static void addParagraphWithLineWrappingAtExactIndentation(final int exactIndentation,
-            final int maximumColumn, final String string, final TTYStringBuilder builder)
+            final int maximumColumn, final String string, final TTYStringBuilder builder,
+            final boolean indentFirstLine)
     {
         final int lineWidth = maximumColumn - exactIndentation;
         int spaceLeft = lineWidth;
         final String[] words = string.split("\\s+");
+        boolean firstIteration = true;
+
+        if (indentFirstLine)
+        {
+            indentBuilderToExact(exactIndentation, builder);
+        }
         for (final String word : words)
         {
             if (word.length() + " ".length() > spaceLeft)
             {
-                builder.newline();
-                indentBuilderToExact(exactIndentation, builder);
+                /*
+                 * This is a special edge case that can occur if the first word of the documentation
+                 * is longer than the line length: if we are on the first iteration, we already
+                 * indented so just skip this extra indentation step. We also do not need a newline
+                 * on the first iteration.
+                 */
+                if (!firstIteration)
+                {
+                    builder.newline();
+                    indentBuilderToExact(exactIndentation, builder);
+                }
                 builder.append(word + " ");
                 spaceLeft = lineWidth - word.length();
             }
@@ -72,6 +129,7 @@ public final class DocumentationFormatter
                 builder.append(word + " ");
                 spaceLeft = spaceLeft - (word.length() + " ".length());
             }
+            firstIteration = false;
         }
     }
 
@@ -82,7 +140,7 @@ public final class DocumentationFormatter
         Collections.sort(sortedOptions);
         for (final SimpleOption option : sortedOptions)
         {
-            indentBuilderToLevel(1, builder);
+            indentBuilderToLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
             builder.append(SimpleOptionAndArgumentParser.LONG_FORM_PREFIX + option.getLongForm(),
                     TTYAttribute.BOLD);
             final OptionArgumentType argumentType = option.getArgumentType();
@@ -106,8 +164,8 @@ public final class DocumentationFormatter
                         + option.getShortForm().get().toString(), TTYAttribute.BOLD);
             }
             builder.newline();
-            indentBuilderToLevel(2, builder);
-            addParagraphWithLineWrapping(2, MAXIMUM_COLUMN, option.getDescription(), builder);
+            addParagraphWithLineWrapping(DEFAULT_INNER_PARAGRAPH_INDENT_LEVEL, MAXIMUM_COLUMN,
+                    option.getDescription(), builder, true);
             builder.newline().newline();
         }
 
@@ -119,17 +177,17 @@ public final class DocumentationFormatter
             final Map<String, ArgumentOptionality> argumentOptionalities,
             final TTYStringBuilder builder)
     {
-        indentBuilderToLevel(1, builder);
+        indentBuilderToLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
         builder.append(programName, TTYAttribute.UNDERLINE).append(" ")
                 .append("[" + SimpleOptionAndArgumentParser.LONG_FORM_PREFIX
                         + AbstractOSMSubcommand.DEFAULT_HELP_LONG + "]")
                 .newline();
-        indentBuilderToLevel(1, builder);
+        indentBuilderToLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
         builder.append(programName, TTYAttribute.UNDERLINE).append(" ")
                 .append("[" + SimpleOptionAndArgumentParser.LONG_FORM_PREFIX
                         + AbstractOSMSubcommand.DEFAULT_VERSION_LONG + "]")
                 .newline();
-        indentBuilderToLevel(1, builder);
+        indentBuilderToLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
         builder.append(programName, TTYAttribute.UNDERLINE).append(" ");
         final StringBuilder paragraph = new StringBuilder();
 
@@ -189,9 +247,10 @@ public final class DocumentationFormatter
             }
         }
 
-        final int exactIndentation = 1 * INDENTATION_WIDTH + programName.length() + " ".length();
+        final int exactIndentation = DEFAULT_PARAGRAPH_INDENT_LEVEL * INDENTATION_WIDTH
+                + programName.length() + " ".length();
         addParagraphWithLineWrappingAtExactIndentation(exactIndentation, MAXIMUM_COLUMN,
-                paragraph.toString(), builder);
+                paragraph.toString(), builder, false);
     }
 
     /**
