@@ -20,6 +20,8 @@ import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYStringBuilder;
 import org.openstreetmap.atlas.utilities.conversion.StringConverter;
 import org.openstreetmap.atlas.utilities.tuples.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A partial implementation of an OSM subcommand. Contains significant functionality to aid in
@@ -29,14 +31,21 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
  */
 public abstract class AbstractOSMSubcommand implements OSMSubcommand
 {
+    private static final Logger logger = LoggerFactory.getLogger(AbstractOSMSubcommand.class);
+
     /*
-     * Until Java supports the ability to do granular TTY checking thru an interface like isatty(3),
-     * we must rely on a sentinel. An external wrapper (bash, perl, etc.) can do the necessary TTY
-     * checking, and then pass this sentinel to tell the subcommand if it should use special
-     * formatting. A ticket to support better TTY in Java checking has been open for years, with no
-     * avail: https://bugs.java.com/bugdatabase/view_bug.do?bug_id=4099017
+     * Until Java supports the ability to do granular TTY configuration checking thru an interface
+     * like isatty(3), we must rely on special tail arguments. An external wrapper (bash, perl,
+     * etc.) can do the necessary TTY config check, and then pass these sentinels to tell the
+     * subcommand if it should use special formatting. A ticket to support better TTY in Java
+     * checking has been open for years, with no avail:
+     * https://bugs.java.com/bugdatabase/view_bug.do?bug_id=4099017
      */
-    private static final String NO_COLOR_OPTION = "___AbstractOSMSubcommand__NO_COLOR_SPECIAL_ARG___";
+    private static final String JAVA_COLOR_STDOUT = "___atlas-shell-tools_color_stdout_SPECIALARGUMENT___";
+    private static final String JAVA_NO_COLOR_STDOUT = "___atlas-shell-tools_nocolor_stdout_SPECIALARGUMENT___";
+    private static final String JAVA_COLOR_STDERR = "___atlas-shell-tools_color_stderr_SPECIALARGUMENT___";
+    private static final String JAVA_NO_COLOR_STDERR = "___atlas-shell-tools_nocolor_stderr_SPECIALARGUMENT___";
+    private static final String JAVA_MARKER_SENTINEL = "___atlas-shell-tools_LAST_ARG_MARKER_SENTINEL___";
 
     public static final String DEFAULT_HELP_LONG = "help";
     public static final Character DEFAULT_HELP_SHORT = 'h';
@@ -48,7 +57,9 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     private final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
     private final DocumentationRegistrar registrar = new DocumentationRegistrar();
 
-    private boolean useColor = true;
+    private boolean useColorStdout = false;
+    private boolean useColorStderr = false;
+    private int maximumColumn = DocumentationFormatter.DEFAULT_MAXIMUM_COLUMN;
     private String version = "default_version_value";
 
     /**
@@ -215,18 +226,27 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     }
 
     /**
-     * Get a {@link TTYStringBuilder} with the correct formatting settings. Implementations of
-     * {@link AbstractOSMSubcommand} should use this method instead of instantiating their own
-     * string builders.
+     * Get a {@link TTYStringBuilder} with the correct formatting settings for stderr.
+     * Implementations of {@link AbstractOSMSubcommand} should use this method instead of
+     * instantiating their own string builders.
      *
      * @return the string builder
      */
-    protected TTYStringBuilder getTTYStringBuilder()
+    protected TTYStringBuilder getTTYStringBuilderForStderr()
     {
-        /*
-         * TODO there should be two versions of this method, one for STDOUT and one for STDERR
-         */
-        return new TTYStringBuilder(this.useColor);
+        return new TTYStringBuilder(this.useColorStderr);
+    }
+
+    /**
+     * Get a {@link TTYStringBuilder} with the correct formatting settings for stdout.
+     * Implementations of {@link AbstractOSMSubcommand} should use this method instead of
+     * instantiating their own string builders.
+     *
+     * @return the string builder
+     */
+    protected TTYStringBuilder getTTYStringBuilderForStdout()
+    {
+        return new TTYStringBuilder(this.useColorStdout);
     }
 
     /**
@@ -325,7 +345,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      */
     protected void printStderr(final String string, final TTYAttribute... attributes)
     {
-        final TTYStringBuilder builder = this.getTTYStringBuilder();
+        final TTYStringBuilder builder = this.getTTYStringBuilderForStderr();
         builder.append(string, attributes);
         System.err.print(builder.toString());
     }
@@ -340,7 +360,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      */
     protected void printStdout(final String string, final TTYAttribute... attributes)
     {
-        final TTYStringBuilder builder = this.getTTYStringBuilder();
+        final TTYStringBuilder builder = this.getTTYStringBuilderForStdout();
         builder.append(string, attributes);
         System.out.print(builder.toString());
     }
@@ -356,7 +376,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      */
     protected void printVerboseStderr(final String string, final TTYAttribute... attributes)
     {
-        final TTYStringBuilder builder = this.getTTYStringBuilder();
+        final TTYStringBuilder builder = this.getTTYStringBuilderForStderr();
         builder.append(string, attributes);
         if (hasOption(DEFAULT_VERBOSE_LONG))
         {
@@ -375,7 +395,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      */
     protected void printVerboseStdout(final String string, final TTYAttribute... attributes)
     {
-        final TTYStringBuilder builder = this.getTTYStringBuilder();
+        final TTYStringBuilder builder = this.getTTYStringBuilderForStdout();
         builder.append(string, attributes);
         if (hasOption(DEFAULT_VERBOSE_LONG))
         {
@@ -555,11 +575,30 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
 
         String[] argsCopy = args;
 
-        // check the last arg to see if we should disable colors
-        if (argsCopy.length > 0 && NO_COLOR_OPTION.equals(argsCopy[argsCopy.length - 1]))
+        // check the last arg to see if we should check for other tail arguments
+        if (argsCopy.length > 0 && JAVA_MARKER_SENTINEL.equals(argsCopy[argsCopy.length - 1]))
         {
-            this.useColor = false;
-            argsCopy = Arrays.copyOf(argsCopy, argsCopy.length - 1);
+            final String stdoutColorArg = argsCopy[argsCopy.length - 4];
+            final String stderrColorArg = argsCopy[argsCopy.length - 3];
+            final String terminalColumnArg = argsCopy[argsCopy.length - 2];
+            if (JAVA_COLOR_STDOUT.equals(stdoutColorArg))
+            {
+                this.useColorStdout = true;
+            }
+            else if (JAVA_NO_COLOR_STDOUT.equals(stdoutColorArg))
+            {
+                this.useColorStdout = false;
+            }
+            if (JAVA_COLOR_STDERR.equals(stderrColorArg))
+            {
+                this.useColorStderr = true;
+            }
+            else if (JAVA_NO_COLOR_STDERR.equals(stderrColorArg))
+            {
+                this.useColorStderr = false;
+            }
+            this.maximumColumn = Integer.parseInt(terminalColumnArg);
+            argsCopy = Arrays.copyOf(argsCopy, argsCopy.length - 4);
         }
 
         // fill out appropriate data structures so the execute() implementation can query
@@ -632,7 +671,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
         final String name = this.getCommandName();
         final String simpleDescription = this.getSimpleDescription();
         final Set<SimpleOption> options = this.parser.getRegisteredOptions();
-        final TTYStringBuilder builder = getTTYStringBuilder();
+        final TTYStringBuilder builder = getTTYStringBuilderForStdout();
 
         builder.append("\n");
 
@@ -642,15 +681,14 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
         builder.append(name + " -- " + simpleDescription).newline().newline();
 
         builder.append("SYNOPSIS", TTYAttribute.BOLD).newline();
-        DocumentationFormatter.generateTextForSynopsisSection(name, options,
+        DocumentationFormatter.generateTextForSynopsisSection(name, this.maximumColumn, options,
                 this.parser.getArgumentHintToArity(), this.parser.getArgumentHintToOptionality(),
                 builder);
         builder.newline().newline();
 
         builder.append("OPTIONS", TTYAttribute.BOLD).newline();
-        DocumentationFormatter.generateTextForOptionsSection(options, builder);
+        DocumentationFormatter.generateTextForOptionsSection(this.maximumColumn, options, builder);
 
-        // TODO move this code into the DocumentationFormatter?
         for (final String section : this.registrar.getSections())
         {
             final List<Tuple<DocumentationFormatType, String>> sectionContents = this.registrar
@@ -669,7 +707,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
                 {
                     DocumentationFormatter.addParagraphWithLineWrapping(
                             DocumentationFormatter.DEFAULT_PARAGRAPH_INDENT_LEVEL,
-                            DocumentationFormatter.MAXIMUM_COLUMN, text, builder, true);
+                            this.maximumColumn, text, builder, true);
                 }
                 builder.newline().newline();
             }

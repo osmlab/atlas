@@ -20,7 +20,7 @@ import org.openstreetmap.atlas.utilities.command.terminal.TTYStringBuilder;
  */
 public final class DocumentationFormatter
 {
-    public static final int MAXIMUM_COLUMN = 80;
+    public static final int DEFAULT_MAXIMUM_COLUMN = 80;
     public static final int INDENTATION_WIDTH = 4;
 
     public static final int DEFAULT_CODE_INDENT_LEVEL = 2;
@@ -62,7 +62,7 @@ public final class DocumentationFormatter
 
     /**
      * Call
-     * {@link DocumentationFormatter#addParagraphWithLineWrappingAtExactIndentation(int, int, String, TTYStringBuilder)},
+     * {@link DocumentationFormatter#addParagraphWithLineWrappingAtExactIndentation(int, int, String, TTYStringBuilder, boolean)},
      * but compute the exact indentation width by multiplying the supplied indentationLevel with the
      * default INDENTATION_WIDTH.
      */
@@ -133,8 +133,8 @@ public final class DocumentationFormatter
         }
     }
 
-    public static String generateTextForOptionsSection(final Set<SimpleOption> options,
-            final TTYStringBuilder builder)
+    public static String generateTextForOptionsSection(final int maximumColumn,
+            final Set<SimpleOption> options, final TTYStringBuilder builder)
     {
         final List<SimpleOption> sortedOptions = new ArrayList<>(options);
         Collections.sort(sortedOptions);
@@ -173,7 +173,7 @@ public final class DocumentationFormatter
                 }
             }
             builder.newline();
-            addParagraphWithLineWrapping(DEFAULT_INNER_PARAGRAPH_INDENT_LEVEL, MAXIMUM_COLUMN,
+            addParagraphWithLineWrapping(DEFAULT_INNER_PARAGRAPH_INDENT_LEVEL, maximumColumn,
                     option.getDescription(), builder, true);
             builder.newline().newline();
         }
@@ -182,7 +182,8 @@ public final class DocumentationFormatter
     }
 
     public static void generateTextForSynopsisSection(final String programName,
-            final Set<SimpleOption> options, final Map<String, ArgumentArity> argumentArities,
+            final int maximumColumn, final Set<SimpleOption> options,
+            final Map<String, ArgumentArity> argumentArities,
             final Map<String, ArgumentOptionality> argumentOptionalities,
             final TTYStringBuilder builder)
     {
@@ -258,7 +259,7 @@ public final class DocumentationFormatter
 
         final int exactIndentation = DEFAULT_PARAGRAPH_INDENT_LEVEL * INDENTATION_WIDTH
                 + programName.length() + " ".length();
-        addParagraphWithLineWrappingAtExactIndentation(exactIndentation, MAXIMUM_COLUMN,
+        addParagraphWithLineWrappingAtExactIndentation(exactIndentation, maximumColumn,
                 paragraph.toString(), builder, false);
     }
 
