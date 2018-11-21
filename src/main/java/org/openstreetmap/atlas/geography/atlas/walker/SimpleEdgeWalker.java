@@ -7,7 +7,10 @@ import java.util.stream.Stream;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 
 /**
- * This class provides some constructors for simple {@link EdgeWalker}s.
+ * This class provides some constructors for simple {@link EdgeWalker}s. These constructors mirror
+ * constructors from the abstract parent class, making them public and instantiable. These walkers
+ * get all filtering logic from their parameters, and only return a single {@link java.util.Set} of
+ * unsorted {@link Edge}s from the {@link #collectEdges()} method.
  *
  * @author bbreithaupt
  */
