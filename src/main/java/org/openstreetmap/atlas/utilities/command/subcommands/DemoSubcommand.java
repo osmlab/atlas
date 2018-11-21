@@ -65,7 +65,7 @@ public class DemoSubcommand extends AbstractOSMSubcommand
 
         if (hasOption("cheese"))
         {
-            printStdout("Using " + getOptionArgument("cheese").orElse("NORMAL") + " cheese\n");
+            printStdout("Using " + getOptionArgument("cheese").orElse("cheddar") + " cheese\n");
         }
 
         if (hasOption("beer"))
@@ -97,22 +97,30 @@ public class DemoSubcommand extends AbstractOSMSubcommand
     @Override
     public void registerManualPageSections()
     {
-        final String paragraph1 = "This example section is filled out to demonstrate the capabilities of the "
-                + "automatic documentation formatting code. Below are some examples of how to "
-                + "run the demo command:";
-        final String paragraph2 = "Here is a follow up paragraph that comes after the code example. Unfortunately,\n"
-                + "Java does not provide a way to declare multi-line string literals. Due to this\n"
-                + "shortcoming, declaring these paragraphs in code can be a pain. Thankfully,\n"
-                + "Eclipse and IntelliJ both automatically format multi-line strings when pasted\n"
-                + "into an empty \"\". Alternatively, you could have your subcommand read the\n"
+        final String paragraph1 = "This command serves as a demo of the subcommand API and capabilities. "
+                + "This example section is filled out to demonstrate the behavior of the "
+                + "automatic documentation formatting code.";
+        final String paragraph2 = "Here is a second follow up paragraph. Unfortunately, "
+                + "Java does not provide a way to declare multi-line string literals. Due to this "
+                + "shortcoming, declaring these paragraphs in code can be a pain. Thankfully, "
+                + "Eclipse and IntelliJ both automatically format multi-line strings when pasted "
+                + "into an empty \"\". Alternatively, you could have your subcommand read the "
                 + "paragraphs from a resource file.";
-        addManualPageSection("DEMO SECTION");
-        addParagraphToSection("DEMO SECTION", paragraph1);
-        addCodeBlockToSection("DEMO SECTION",
-                "$ demo dinner pizza wings --beer=805 --cheese=cheddar");
-        addCodeBlockToSection("DEMO SECTION", "$ demo breakfast waffles pancakes");
-        addCodeBlockToSection("DEMO SECTION", "$ demo lunch salad --cheese=parmesan");
-        addParagraphToSection("DEMO SECTION", paragraph2);
+
+        addManualPageSection("DESCRIPTION");
+        addParagraphToSection("DESCRIPTION", paragraph1);
+        addParagraphToSection("DESCRIPTION", paragraph2);
+
+        addManualPageSection("EXAMPLES");
+        addParagraphToSection("EXAMPLES",
+                "Run a dinner command with pizza and wings. Use 805 beer and the default cheese:");
+        addCodeBlockToSection("EXAMPLES", "$ demo dinner pizza wings --beer=805 --cheese");
+        addParagraphToSection("EXAMPLES",
+                "Run a breakfast command with some waffles and pancakes:");
+        addCodeBlockToSection("EXAMPLES", "$ demo breakfast waffles pancakes");
+        addParagraphToSection("EXAMPLES",
+                "Run a lunch command with a salad. Use some tasty parmesan cheese:");
+        addCodeBlockToSection("EXAMPLES", "$ demo lunch salad --cheese=parmesan");
     }
 
     @Override
@@ -126,9 +134,9 @@ public class DemoSubcommand extends AbstractOSMSubcommand
         setVersion("1.0.0");
         registerOption("capitalize", 'c', "Capitalize the foods list.");
         registerOptionWithRequiredArgument("beer", beerDescription, "brand");
-        registerOptionWithOptionalArgument("cheese",
-                "Use cheese, optionally ask for LIGHT or EXTRA.", "amount");
-        registerOptionWithRequiredArgument("repeat", "Repeat the food list N times.", "N");
+        registerOptionWithOptionalArgument("cheese", 'C',
+                "Use cheese. Defaults to cheddar, but will accept a supplied alternative.", "type");
+        registerOptionWithRequiredArgument("repeat", 'R', "Repeat the food list N times.", "N");
         registerArgument("favoriteMeal", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
         registerArgument("favoriteFoods", ArgumentArity.VARIADIC, ArgumentOptionality.OPTIONAL);
     }

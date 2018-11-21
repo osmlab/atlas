@@ -40,12 +40,14 @@ public class HelloWorldSubcommand extends AbstractOSMSubcommand
     @Override
     public void registerManualPageSections()
     {
-
+        addManualPageSection("DESCRIPTION");
+        addParagraphToSection("DESCRIPTION",
+                "Prints a simple greeting. The greeting can be personalized with the '--name' option.");
     }
 
     @Override
     public void registerOptionsAndArguments()
     {
-        registerOptionWithRequiredArgument(NAME_OPTION, "Your name for the greeting", "name");
+        registerOptionWithRequiredArgument(NAME_OPTION, "Your name for the greeting.", "name");
     }
 }

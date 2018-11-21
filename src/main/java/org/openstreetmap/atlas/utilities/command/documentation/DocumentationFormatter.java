@@ -159,9 +159,18 @@ public final class DocumentationFormatter
             if (option.getShortForm().isPresent())
             {
                 builder.append(", ");
-                // TODO short options should also show args if present
                 builder.append(SimpleOptionAndArgumentParser.SHORT_FORM_PREFIX
                         + option.getShortForm().get().toString(), TTYAttribute.BOLD);
+                if (argumentType == OptionArgumentType.OPTIONAL)
+                {
+                    // TODO is it always safe to unwrap this optional?
+                    builder.append("[" + option.getArgumentHint().get() + "]");
+                }
+                else if (argumentType == OptionArgumentType.REQUIRED)
+                {
+                    // TODO is it always safe to unwrap this optional?
+                    builder.append("<" + option.getArgumentHint().get() + ">");
+                }
             }
             builder.newline();
             addParagraphWithLineWrapping(DEFAULT_INNER_PARAGRAPH_INDENT_LEVEL, MAXIMUM_COLUMN,

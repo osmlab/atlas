@@ -92,7 +92,22 @@ public class ConcatenateAtlasSubcommand extends AbstractOSMSubcommand
     @Override
     public void registerManualPageSections()
     {
-
+        final String descriptionParagraph1 = "The fatlas command provides an easy way to concatenate atlas files together "
+                + "using the MultiAtlas class. The command takes an arbitrary number of input atlas "
+                + "files, reads them into a MultiAtlas, and then saves that MultiAtlas to a specified "
+                + "output file. By default, it will skip over any atlas files it fails to load. "
+                + "This behavior can be modified with the '--strict' option.";
+        final String exampleParagraph1 = "Concatenate all atlas files on your desktop and write them to an output atlas "
+                + "in your home directory:";
+        final String exampleParagraph2 = "Concatenate two atlases, but fail fast if either cannot be found:";
+        addManualPageSection("DESCRIPTION");
+        addParagraphToSection("DESCRIPTION", descriptionParagraph1);
+        addManualPageSection("EXAMPLES");
+        addParagraphToSection("EXAMPLES", exampleParagraph1);
+        addCodeBlockToSection("EXAMPLES", "$ fatlas ~/Desktop/*.atlas ~/output.atlas");
+        addParagraphToSection("EXAMPLES", exampleParagraph2);
+        addCodeBlockToSection("EXAMPLES",
+                "$ fatlas --strict ~/file1.atlas ~/file2.atlas ~/output.atlas");
     }
 
     @Override
