@@ -35,27 +35,35 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      */
     private static final String NO_COLOR_OPTION = "___AbstractOSMSubcommand__NO_COLOR_SPECIAL_ARG___";
 
-    private static final String DEFAULT_HELP_LONG = "help";
-    private static final Character DEFAULT_HELP_SHORT = 'h';
-    private static final String DEFAULT_VERBOSE_LONG = "verbose";
-    private static final Character DEFAULT_VERBOSE_SHORT = 'v';
+    public static final String DEFAULT_HELP_LONG = "help";
+    public static final Character DEFAULT_HELP_SHORT = 'h';
+    public static final String DEFAULT_VERBOSE_LONG = "verbose";
+    public static final Character DEFAULT_VERBOSE_SHORT = 'v';
+    public static final String DEFAULT_VERSION_LONG = "version";
+    public static final Character DEFAULT_VERSION_SHORT = 'V';
 
     private final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
 
     private boolean useColor = true;
     private String version = "default_version_value";
 
-    public AbstractOSMSubcommand()
+    /**
+     * Check that the command name and description are valid. This should be called before relying
+     * on the return values of getCommandName and getDescription.
+     */
+    void throwIfInvalidNameOrDescription()
     {
         final String name = this.getCommandName();
         if (name == null || name.isEmpty())
         {
-            throw new CoreException("Command name must not be null or empty");
+            throw new CoreException("{} command name must not be null or empty",
+                    this.getClass().getName());
         }
         final String[] split = name.split("\\s+");
         if (split.length > 1)
         {
-            throw new CoreException("Command name must not contain whitespace");
+            throw new CoreException("{} command name must not contain whitespace",
+                    this.getClass().getName());
         }
         for (int index = 0; index < name.length(); index++)
         {
@@ -64,14 +72,16 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
                     && currentCharacter != '_')
             {
                 throw new CoreException(
-                        "Command names must only contain letters, digits, hyphens, or underscores");
+                        "{} command name must only contain letters, digits, hyphens, or underscores",
+                        this.getClass().getName());
             }
         }
 
         final String simpleDescription = this.getSimpleDescription();
         if (simpleDescription == null || simpleDescription.isEmpty())
         {
-            throw new CoreException("Simple description must not be null or empty");
+            throw new CoreException("{} simple description must not be null or empty",
+                    this.getClass().getName());
         }
     }
 
@@ -104,15 +114,9 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      * generated, so it is recommended that you register at least a DESCRIPTION and EXAMPLES section
      * with some appropriate documentation. See other {@link AbstractOSMSubcommand} implementations
      * for how this is done. For clarification on best practices and/or other sections to include,
-     * see any Unix man-page.
+     * see any system man-page (git(1), curl(1), and less(1) are good places to start).
      */
     public abstract void registerManualPageSections();
-
-    /**
-     * Register any necessary options and arguments for the command. Use the protected API exposed
-     * by {@link AbstractOSMSubcommand}.
-     */
-    public abstract void registerOptionsAndArguments();
 
     /*
      * A NOTE ON THE ADAPTER OPTION/ARGUMENT PARSING INTERFACE
@@ -122,6 +126,12 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     // setting up the interface this way, we are not wedded to the SimpleOptionAndArgumentParser for
     // future changes. Should we decide to change it, any subcommands implementing
     // AbstractOSMSubcommand will not have to change their option registration code.
+
+    /**
+     * Register any necessary options and arguments for the command. Use the protected API exposed
+     * by {@link AbstractOSMSubcommand}.
+     */
+    public abstract void registerOptionsAndArguments();
 
     /**
      * Add a given code block to a given manual page section. Code blocks are given additional
@@ -530,9 +540,13 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
      */
     protected void runSubcommandAndExit(final String... args)
     {
+        throwIfInvalidNameOrDescription();
+
         this.parser.registerOption(DEFAULT_HELP_LONG, DEFAULT_HELP_SHORT, "Show this help menu.");
         this.parser.registerOption(DEFAULT_VERBOSE_LONG, DEFAULT_VERBOSE_SHORT,
                 "Use verbose output.");
+        this.parser.registerOption(DEFAULT_VERSION_LONG, DEFAULT_VERSION_SHORT,
+                "Print the version of " + this.getCommandName() + " and exit.");
 
         String[] argsCopy = args;
 
@@ -597,16 +611,13 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     }
 
     /**
-     * Set the version of this command. Also automatically registers a version option with forms
-     * "--version" and "-V".
+     * Set the version of this command.
      *
      * @param version
      *            the version string to use (eg. 1.0.0)
      */
     protected void setVersion(final String version)
     {
-        this.parser.registerOption("version", 'V',
-                "Print the version of " + this.getCommandName() + " and exit.");
         this.version = version;
     }
 

@@ -76,23 +76,17 @@ public class SimpleOptionAndArgumentParser
      *
      * @author lcram
      */
-    public class SimpleOption
+    public class SimpleOption implements Comparable<SimpleOption>
     {
         private final String longForm;
         private final Optional<Character> shortForm;
-        private final OptionArgumentType argumentType;
         private final String description;
-        private final Optional<String> argumentHint;
 
-        SimpleOption(final String longForm, final Character shortForm,
-                final OptionArgumentType argumentType, final String description)
-        {
-            this(longForm, shortForm, argumentType, description, null);
-        }
+        // Default values for option argument fields
+        private OptionArgumentType argumentType = OptionArgumentType.NONE;
+        private Optional<String> argumentHint = Optional.empty();
 
-        SimpleOption(final String longForm, final Character shortForm,
-                final OptionArgumentType argumentType, final String description,
-                final String argumentHint)
+        SimpleOption(final String longForm, final Character shortForm, final String description)
         {
             if (longForm == null || longForm.isEmpty())
             {
@@ -102,7 +96,7 @@ public class SimpleOptionAndArgumentParser
             {
                 if (!Character.isLetterOrDigit(shortForm))
                 {
-                    throw new CoreException("Invalid short option {}: must be letter or digit",
+                    throw new CoreException("Invalid short option form {}: must be letter or digit",
                             shortForm);
                 }
             }
@@ -113,28 +107,46 @@ public class SimpleOptionAndArgumentParser
 
             this.longForm = longForm;
             this.shortForm = Optional.ofNullable(shortForm);
-            this.argumentType = argumentType;
             this.description = description;
+        }
+
+        SimpleOption(final String longForm, final Character shortForm, final String description,
+                final OptionArgumentType argumentType, final String argumentHint)
+        {
+            this(longForm, shortForm, description);
+            this.argumentType = argumentType;
             if (argumentHint != null && !argumentHint.isEmpty())
             {
+                final String[] split = argumentHint.split("\\s+");
+                if (split.length > 1)
+                {
+                    throw new CoreException("Option argument hint cannot contain whitespace");
+                }
                 this.argumentHint = Optional.of(argumentHint);
             }
             else
             {
-                this.argumentHint = Optional.empty();
+                throw new CoreException("Option argument hint cannot be null or empty");
             }
-        }
-
-        SimpleOption(final String longForm, final OptionArgumentType argumentType,
-                final String description)
-        {
-            this(longForm, null, argumentType, description, null);
         }
 
         SimpleOption(final String longForm, final OptionArgumentType argumentType,
                 final String description, final String argumentHint)
         {
-            this(longForm, null, argumentType, description, argumentHint);
+            this(longForm, null, description, argumentType, argumentHint);
+        }
+
+        SimpleOption(final String longForm, final String description)
+        {
+            this(longForm, null, description);
+        }
+
+        @Override
+        public int compareTo(final SimpleOption other)
+        {
+            final String otherCaps = other.longForm.toUpperCase();
+            final String thisCaps = this.longForm.toUpperCase();
+            return thisCaps.compareTo(otherCaps);
         }
 
         @Override
@@ -601,6 +613,12 @@ public class SimpleOptionAndArgumentParser
             throw new CoreException("Argument hint cannot be null or empty");
         }
 
+        final String[] split = argumentHint.split("\\s+");
+        if (split.length > 1)
+        {
+            throw new CoreException("Option argument hint cannot contain whitespace");
+        }
+
         if (this.registeredOptionalArgument)
         {
             throw new CoreException("Optional argument must be the last registered argument");
@@ -662,8 +680,7 @@ public class SimpleOptionAndArgumentParser
             throwIfDuplicateShortForm(shortForm);
             this.shortFormsSeen.add(shortForm);
         }
-        this.registeredOptions
-                .add(new SimpleOption(longForm, shortForm, OptionArgumentType.NONE, description));
+        this.registeredOptions.add(new SimpleOption(longForm, shortForm, description));
     }
 
     /**
@@ -684,8 +701,7 @@ public class SimpleOptionAndArgumentParser
             throwIfDuplicateLongForm(longForm);
             this.longFormsSeen.add(longForm);
         }
-        this.registeredOptions
-                .add(new SimpleOption(longForm, OptionArgumentType.NONE, description));
+        this.registeredOptions.add(new SimpleOption(longForm, description));
     }
 
     /**
@@ -718,8 +734,8 @@ public class SimpleOptionAndArgumentParser
             throwIfDuplicateShortForm(shortForm);
             this.shortFormsSeen.add(shortForm);
         }
-        this.registeredOptions.add(new SimpleOption(longForm, shortForm,
-                OptionArgumentType.OPTIONAL, description, argumentHint));
+        this.registeredOptions.add(new SimpleOption(longForm, shortForm, description,
+                OptionArgumentType.OPTIONAL, argumentHint));
     }
 
     /**
@@ -778,8 +794,8 @@ public class SimpleOptionAndArgumentParser
             throwIfDuplicateShortForm(shortForm);
             this.shortFormsSeen.add(shortForm);
         }
-        this.registeredOptions.add(new SimpleOption(longForm, shortForm,
-                OptionArgumentType.REQUIRED, description, argumentHint));
+        this.registeredOptions.add(new SimpleOption(longForm, shortForm, description,
+                OptionArgumentType.REQUIRED, argumentHint));
     }
 
     /**

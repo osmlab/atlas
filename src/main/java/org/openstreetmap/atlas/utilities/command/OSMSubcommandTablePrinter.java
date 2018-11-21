@@ -22,8 +22,13 @@ public class OSMSubcommandTablePrinter
         final Set<String> namesWeHaveAlreadySeen = new HashSet<>();
         for (final AbstractOSMSubcommand command : commands)
         {
-            final StringBuilder builder = new StringBuilder();
+            // validate the command name and description
+            command.throwIfInvalidNameOrDescription();
 
+            // Validate the registered command options/args - will throw if something is awry.
+            command.registerOptionsAndArguments();
+
+            final StringBuilder builder = new StringBuilder();
             String name = command.getCommandName();
             String nameWithSuffix = name;
             int uniqueSuffix = 2;

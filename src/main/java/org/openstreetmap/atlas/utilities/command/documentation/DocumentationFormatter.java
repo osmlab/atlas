@@ -1,8 +1,12 @@
 package org.openstreetmap.atlas.utilities.command.documentation;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.openstreetmap.atlas.utilities.command.AbstractOSMSubcommand;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionArgumentType;
@@ -74,7 +78,9 @@ public final class DocumentationFormatter
     public static String generateTextForOptionsSection(final Set<SimpleOption> options,
             final TTYStringBuilder builder)
     {
-        for (final SimpleOption option : options)
+        final List<SimpleOption> sortedOptions = new ArrayList<>(options);
+        Collections.sort(sortedOptions);
+        for (final SimpleOption option : sortedOptions)
         {
             indentBuilderToLevel(1, builder);
             builder.append(SimpleOptionAndArgumentParser.LONG_FORM_PREFIX + option.getLongForm(),
@@ -114,12 +120,30 @@ public final class DocumentationFormatter
             final TTYStringBuilder builder)
     {
         indentBuilderToLevel(1, builder);
+        builder.append(programName, TTYAttribute.UNDERLINE).append(" ")
+                .append("[" + SimpleOptionAndArgumentParser.LONG_FORM_PREFIX
+                        + AbstractOSMSubcommand.DEFAULT_HELP_LONG + "]")
+                .newline();
+        indentBuilderToLevel(1, builder);
+        builder.append(programName, TTYAttribute.UNDERLINE).append(" ")
+                .append("[" + SimpleOptionAndArgumentParser.LONG_FORM_PREFIX
+                        + AbstractOSMSubcommand.DEFAULT_VERSION_LONG + "]")
+                .newline();
+        indentBuilderToLevel(1, builder);
         builder.append(programName, TTYAttribute.UNDERLINE).append(" ");
         final StringBuilder paragraph = new StringBuilder();
 
         // add all the options
-        for (final SimpleOption option : options)
+        final List<SimpleOption> sortedOptions = new ArrayList<>(options);
+        Collections.sort(sortedOptions);
+        for (final SimpleOption option : sortedOptions)
         {
+            // skip --help and --version, these are special hardcoded cases handled above
+            if (AbstractOSMSubcommand.DEFAULT_HELP_LONG.equals(option.getLongForm())
+                    || AbstractOSMSubcommand.DEFAULT_VERSION_LONG.equals(option.getLongForm()))
+            {
+                continue;
+            }
             paragraph.append(
                     "[" + SimpleOptionAndArgumentParser.LONG_FORM_PREFIX + option.getLongForm());
             final OptionArgumentType argumentType = option.getArgumentType();
