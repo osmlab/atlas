@@ -1,0 +1,203 @@
+.\"     Title: ash
+.\"    Author: Lucas Cram
+.\"    Source: ash 1.0.0
+.\"  Language: English
+.\"
+.TH "ASH" "1" "1 December 2018" "ash 1\&.0\&.0" "Atlas Shell Tools Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+
+.SH "NAME"
+.sp
+ash \-- run an OSM command line tool
+
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIash\fR [\-\-no-pager] [\-\-help[=<\fIcommand\fR>]]
+\fIash\fR [\-V | \-\-version]
+\fIash\fR [\-\-no-pager] [\-l | \-\-list]
+\fIash\fR [\-\-class\-of=<\fIcommand\fR>]
+\fIash\fR [\-\-quiet] [\-\-cfg\-preset <directive[:context]>] <\fIcommand\fR> [arg...]
+\fIash\fR [\-\-no\-pager] [\-\-memory=<amount>] [\-\-preset=<preset>]
+    <\fIcommand\fR> [arg...]
+.fi
+
+.SH "DESCRIPTION"
+.sp
+Run a given <\fIcommand\fR> from the current activated \fBash\fR module. Additionally,
+\fBash\fR can display all available commands with the \fB--list\fR option. For
+advanced module management capabilities, please see \fBash-config\fR(1).
+
+.SH "OPTIONS"
+
+.PP
+<\fIcommand\fR>
+.RS 4
+This indicates a subcommand. A list of currently available subcommands can be
+seen with the \fB--list\fR option.
+.RE
+
+.PP
+\fB\-\-cfg\-preset\fR <directive[:context]>
+.RS 4
+Run a given preset configuration directive with an optional context
+argument. See the \fBPRESETS\fR section for more information.
+.RE
+
+.PP
+\fB\-\-class\-of\fR=<\fIcommand\fR>
+.RS 4
+Show the full classname of a given command and then exit.
+.RE
+
+.PP
+\fB\-\-help\fR[=<\fIcommand\fR>]\fR
+.RS 4
+Show the help menu for a given command. If no command is given, show
+a general help menu and then exit.
+.RE
+
+.PP
+\fB\-\-list\fR, \fB-l\fR
+.RS 4
+Display a list of all available commands and exit. Command name collision is
+resolved deterministically at module activation time. The resolution exists at
+the \fBash\fR wrapper level only, and is not reflected in the actual command
+class files.
+.RE
+
+.PP
+\fB\-\-memory\fR=<amount>, \fB\-m\fR<amount>
+.RS 4
+Set the maximum memory pool size for the JVM that runs your command.
+<amount> should be specified in bytes. \fB--memory\fR also understands
+shorthand for metric prefixes, eg. 1024K, 512M, 4G, etc.
+.RE
+
+.PP
+\fB\-\-no\-pager\fR
+.RS 4
+Disable pagination for all documentation.
+.RE
+
+.PP
+\fB\-\-preset\fR=<preset>, \fB\-p\fR<preset>
+.RS 4
+Use the given preset when running <\fIcommand\fR>. See the \fBPRESETS\fR
+section for more information.
+.RE
+
+.PP
+\fB\-\-quiet\fR, \fB\-q\fR
+.RS 4
+Suppress non-essential \fBash\fR output.
+.RE
+
+.PP
+\fB\-\-version\fR, \fB-V\fR
+.RS 4
+Show the \fBash\fR version info and then exit.
+.RE
+.sp
+
+.SH "EXAMPLES"
+.sp
+Run a command called MyCommand with some args and options:
+.sp
+.RS 4
+$ ash MyCommand \-\-opt1 arg1 \-\-opt2=optarg2 arg2 arg3
+.RE
+.sp
+See the manual page for MyCommand:
+.sp
+.RS 4
+$ ash \-\-help MyCommand
+.RE
+.sp
+See a list of all available commands:
+.sp
+.RS 4
+$ ash \-\-list
+.RE
+.sp
+Run MyCommand with preset p1:
+.sp
+.RS 4
+$ ash \-\-preset=p1 MyCommand arg1 \-\-opt2=overridePresetArg
+.RE
+.sp
+Edit preset p1 for MyCommand:
+.sp
+.RS 4
+$ ash \-\-cfg\-preset edit:p1 MyCommand
+.RE
+.sp
+Copy preset p1 into new preset p2 for MyCommand:
+.sp
+.RS 4
+$ ash \-\-cfg\-preset copy:p1:p2 MyCommand
+.RE
+
+.SH "TERMINAL AND ENVIRONMENT"
+.sp
+\fBash\fr pages the output of the various command help messages. \fBash\fr will use
+\fBless\fr for pagination. If the \fBPAGER\fR environment variable is set, then the
+program it specifies will be used instead. Note that \fBash\fR expects your
+specified pager to understand ANSI formatting codes. To disable all paged
+output, try the \fB\-\-no\-pager\fR option.
+.sp
+\fBash\fR uses formatted output when approriate. To change this behavior,
+\fBash\fR checks for existence of the following environment variables:
+.sp
+.RS 4
+\fBNO_COLOR\fR \-
+Disable all special formatted output. Other popular CLI tools also
+respect this variable. See https://no-color.org/
+.sp
+\fBASH_NO_COLOR\fR \-
+Disable special formatted output for \fBash\fR and \fBash-config\fR only.
+.sp
+\fBASH_USE_COLOR\fR \-
+Enable special formatted output. Overrides the setting of \fBNO_COLOR\fR and \fBASH_NO_COLOR\fR.
+.sp
+.RE
+\fBash\fR stores program data in compliance with the XDG Base Directory
+specification, ie. at $HOME/.local/share/ash. It also respects the
+\fBXDG_DATA_HOME\fR environment variable - if set, \fBash\fR will store program
+data at the base path specified by that variable.
+
+.SH "SEE ALSO"
+.sp
+\fBash-config\fR(1)
+
+.SH "AUTHOR"
+.sp
+This program was written by Lucas Cram <lucaspcram@gmail.com>.
+Please report any bugs you find.
+
+.SH "BUGS"
+.sp
+Shell variable quote interactions do not quite work correctly within \fBash\fR.
+All variables end up being passed forward into the JVM, even those
+surrounded with single quotes. Eg:
+.sp
+.RS 4
+$ ash MyProgram '$SHELL'
+.RE
+.sp
+This will end up passing the value of $SHELL forward as an argument to MyProgram
+when in reality it should be passing the literal text $SHELL.

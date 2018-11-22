@@ -1,0 +1,165 @@
+.\"     Title: ash-config
+.\"    Author: Lucas Cram
+.\"    Source: ash-config 1.0.0
+.\"  Language: English
+.\"
+.TH "ASH-CONFIG" "1" "1 December 2018" "ash-config 1\&.0\&.0" "Atlas Shell Tools Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+
+.SH "NAME"
+.sp
+ash-config \-- configure the OSM command line tool installation
+
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIash-config\fR [\-\-no-pager] [\-\-help[=<\fIcommand\fR>]]
+\fIash-config\fR [\-V | \-\-version]
+\fIash-config\fR [\-\-quiet] <\fIcommand\fR> [arg...]
+.fi
+
+.SH "DESCRIPTION"
+.sp
+Run a given configuration command.
+
+.SH "OPTIONS"
+
+.PP
+<\fIcommand\fR>
+.RS 4
+This indicates a command. See the \fBCOMMANDS\fR section for a list of available
+commands.
+.RE
+
+.PP
+\fB\-\-help\fR[=<\fIcommand\fR>]\fR
+.RS 4
+Show the help menu for a given command. If no command is given, show
+a general help menu and then exit.
+.RE
+
+.PP
+\fB\-\-no\-pager\fR
+.RS 4
+Disable pagination for all documentation.
+.RE
+
+.PP
+\fB\-\-quiet\fR, \fB\-q\fR
+.RS 4
+Suppress non-essential \fBash\fR output.
+.RE
+
+.PP
+\fB\-\-version\fR, \fB-V\fR
+.RS 4
+Show the \fBash\fR version info and then exit.
+.RE
+.sp
+
+.SH "COMMANDS"
+.sp
+Try \fBman ash-config-\fR<\fIcommand\fR> or \fBash-config --help\fR=<\fIcommand\fR>
+for help with a specific command.
+
+\fBactivate\fR
+.RS 4
+Activate an installed module.
+.RE
+
+\fBdeactivate\fR
+.RS 4
+Deactivate an installed module.
+.RE
+
+\fBinstall\fR
+.RS 4
+Install a new module.
+.RE
+
+\fBlist\fR
+.RS 4
+List all installed modules and module statuses.
+.RE
+
+\fBlog\fR
+.RS 4
+Check of set log parameters.
+.RE
+
+\fBreset\fR
+.RS 4
+Reset the installation.
+.RE
+
+\fBsync\fR
+.RS 4
+Refresh the installation based on the active module.
+.RE
+
+\fBuninstall\fR
+.RS 4
+Uninstall a module.
+.RE
+
+.SH "TERMINAL AND ENVIRONMENT"
+.sp
+\fBash-config\fr pages the output of the various command help messages. \fBash-config\fr will use
+\fBless\fr for pagination. If the \fBPAGER\fR environment variable is set, then the
+program it specifies will be used instead. Note that \fBash-config\fR expects your
+specified pager to understand ANSI formatting codes. To disable all paged
+output, try the \fB\-\-no\-pager\fR option.
+.sp
+\fBash-config\fR uses formatted output when approriate. To change this behavior,
+\fBash-config\fR checks for existence of the following environment variables:
+.sp
+.RS 4
+\fBNO_COLOR\fR \-
+Disable all special formatted output. Other popular CLI tools also
+respect this variable. See https://no-color.org/
+.sp
+\fBASH_NO_COLOR\fR \-
+Disable special formatted output for \fBash\fR and \fBash-config\fR only.
+.sp
+\fBASH_USE_COLOR\fR \-
+Enable special formatted output. Overrides the setting of \fBNO_COLOR\fR and \fBASH_NO_COLOR\fR.
+.sp
+.RE
+\fBash-config\fR stores program data in compliance with the XDG Base Directory
+specification, ie. at $HOME/.local/share/ash. It also respects the
+\fBXDG_DATA_HOME\fR environment variable - if set, \fBash-config\fR will store program
+data at the base path specified by that variable.
+
+.SH "SEE ALSO"
+.sp
+\fBash\fR(1)
+
+.SH "AUTHOR"
+.sp
+This program was written by Lucas Cram <lucaspcram@gmail.com>.
+Please report any bugs you find.
+
+.SH "BUGS"
+.sp
+If you run the command:
+.sp
+.RS 4
+$ ash-config install <active\-module>
+.RE
+.sp
+where <active\-module> is the path to the currently active module JARfile, this
+will start the installation process but then delete the JARfile.

@@ -1,0 +1,1046 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+
+use Getopt::Long qw(GetOptions);
+use File::Basename;
+use File::Copy qw(copy);
+use File::Spec;
+use File::Path;
+
+# Pull in code from the common module
+use FindBin;
+use lib "$FindBin::Bin/common";
+use ash_common;
+
+
+## ORGANIZATION
+## This script is organized into 3 sections:
+## 1) GLOBAL INITIALIZATION - initialize some useful global constants
+## 2) SUBROUTINES - helper subroutines
+## 3) COMMAND SUBROUTINES - subcommand execution subroutines
+## 4) EXECUTION LOGIC - the actual command logic, ie. 'main'
+
+########## BEGIN GLOBAL INITIALIZATION ##########
+my $ansi_red = ash_common::ansi_red();
+my $ansi_green = ash_common::ansi_green();
+my $ansi_magenta = ash_common::ansi_magenta();
+my $ansi_bold = ash_common::ansi_bold();
+my $ansi_blink = ash_common::ansi_blink();
+my $ansi_reset = ash_common::ansi_reset();
+my $ansi_bunl = ash_common::ansi_begin_underln();
+my $ansi_eunl = ash_common::ansi_end_underln();
+
+my $no_colors_stdout = ash_common::is_no_colors_stdout();
+my $red_stdout = $no_colors_stdout ? "" : $ansi_red;
+my $green_stdout = $no_colors_stdout ? "" : $ansi_green;
+my $magenta_stdout = $no_colors_stdout ? "" : $ansi_magenta;
+my $bold_stdout = $no_colors_stdout ? "" : $ansi_bold;
+my $blink_stdout = $no_colors_stdout ? "" : $ansi_blink;
+my $reset_stdout = $no_colors_stdout ? "" : $ansi_reset;
+my $bunl_stdout = $no_colors_stdout ? "" : $ansi_bunl;
+my $eunl_stdout = $no_colors_stdout ? "" : $ansi_eunl;
+
+my $no_colors_stderr = ash_common::is_no_colors_stderr();
+my $red_stderr = $no_colors_stderr ? "" : $ansi_red;
+my $green_stderr = $no_colors_stderr ? "" : $ansi_green;
+my $magenta_stderr = $no_colors_stderr ? "" : $ansi_magenta;
+my $bold_stderr = $no_colors_stderr ? "" : $ansi_bold;
+my $blink_stderr = $no_colors_stderr ? "" : $ansi_blink;
+my $reset_stderr = $no_colors_stderr ? "" : $ansi_reset;
+my $bunl_stderr = $no_colors_stderr ? "" : $ansi_bunl;
+my $eunl_stderr = $no_colors_stderr ? "" : $ansi_eunl;
+
+my $ash_path;
+my $skip_paging;
+my $quiet;
+
+my $program_name = 'ash-config';
+my $program_version = "$program_name version 1.0.0";
+
+my $program_usage = "
+${bold_stdout}NAME${reset_stdout}
+    ${program_name} -- configure the OSM command line tools
+
+${bold_stdout}SYNOPSIS${reset_stdout}
+    ${bunl_stdout}${program_name}${eunl_stdout} [--no-pager] [--help[=<${bunl_stdout}command${eunl_stdout}>]]
+    ${bunl_stdout}${program_name}${eunl_stdout} [-V | --version]
+    ${bunl_stdout}${program_name}${eunl_stdout} [--quiet] <${bunl_stdout}command${eunl_stdout}> [<args>]
+
+${bold_stdout}DESCRIPTION${reset_stdout}
+    Run a given configuration <${bunl_stdout}command${eunl_stdout}>. 
+
+${bold_stdout}OPTIONS${reset_stdout}
+    ${bold_stdout}--help${reset_stdout}[=<${bunl_stdout}command${eunl_stdout}>]
+        Show the help menu for a given command. If no command is given, show
+        this help menu and then exit.
+
+    ${bold_stdout}--no-pager${reset_stdout}
+        Disable pagination for all documentation.
+
+    ${bold_stdout}--quiet${reset_stdout}
+        Suppress non-essential ${bold_stdout}${program_name}${reset_stdout} output.
+
+    ${bold_stdout}--version${reset_stdout}
+        Show the ${bold_stdout}${program_name}${reset_stdout} version info and then exit.
+
+${bold_stdout}COMMANDS${reset_stdout}
+    Try ${bold_stdout}${program_name} --help=<${bunl_stdout}command${eunl_stdout}>${reset_stdout} for help with a specific command.
+
+    ${bold_stdout}activate${reset_stdout}
+        Activate an installed module.
+
+    ${bold_stdout}deactivate${reset_stdout}
+        Deactivate an installed module.
+
+    ${bold_stdout}install${reset_stdout}
+        Install a new module.
+
+    ${bold_stdout}list${reset_stdout}
+        List all installed modules.
+
+    ${bold_stdout}log${reset_stdout}
+        Check or set log parameters.
+
+    ${bold_stdout}reset${reset_stdout}
+        Reset the installation.
+
+    ${bold_stdout}sync${reset_stdout}
+        Refresh the active module.
+
+    ${bold_stdout}uninstall${reset_stdout}
+        Uninstall a module.
+
+${bold_stdout}TERMINAL AND ENVIRONMENT${reset_stdout}
+    ${bold_stdout}${program_name}${reset_stdout} pages the output of the various help messages. ${bold_stdout}${program_name}${reset_stdout} will use
+    ${bold_stdout}less${reset_stdout} for pagination. If the ${bold_stdout}PAGER${reset_stdout} environment variable is set, then the
+    program it specifies will be used instead. Note that ${bold_stdout}${program_name}${reset_stdout} expects your
+    specified pager to understand ANSI formatting codes. To disable all paged
+    output, try the ${bold_stdout}--no-pager${reset_stdout} option.
+
+    ${bold_stdout}${program_name}${reset_stdout} uses formatted output when approriate. To change this behavior,
+    ${bold_stdout}${program_name}${reset_stdout} checks for existence of the following environment variables:
+
+    ${bold_stdout}NO_COLOR${reset_stdout}
+        Disable all special formatted output. Other popular CLI tools also
+        respect this variable. See https://no-color.org/
+
+    ${bold_stdout}ASH_NO_COLOR${reset_stdout}
+        Disable special formatted output for ${bold_stdout}${program_name}${reset_stdout} only.
+
+    ${bold_stdout}ASH_USE_COLOR${reset_stdout}
+        Enable special formatted output. Overrides the setting of ${bold_stdout}NO_COLOR${reset_stdout}.
+
+    ${bold_stdout}${program_name}${reset_stdout} stores program data in compliance with the XDG Base Directory
+    specification, ie. at \$HOME/.local/share/ash. It also respects the
+    ${bold_stdout}XDG_DATA_HOME${reset_stdout} environment variable - if set, ${bold_stdout}${program_name}${reset_stdout} will store program
+    data at the base path specified by that variable.
+
+${bold_stdout}SEE ALSO${reset_stdout}
+    ash
+
+${bold_stdout}AUTHOR${reset_stdout}
+    This program was written by Lucas Cram <lucaspcram\@gmail.com>
+
+${bold_stdout}BUGS${reset_stdout}
+    None known at this time. Please report bugs to <lucaspcram\@gmail.com>
+
+";
+
+my $activate_usage = "
+${bold_stdout}NAME${reset_stdout}
+    ${program_name}-activate -- Activate an installed module
+
+${bold_stdout}SYNOPSIS${reset_stdout}
+    ${bunl_stdout}${program_name}${eunl_stdout} ${bunl_stdout}activate${eunl_stdout} [--help]
+    ${bunl_stdout}${program_name}${eunl_stdout} ${bunl_stdout}activate${eunl_stdout} <${bunl_stdout}module${eunl_stdout}>
+
+${bold_stdout}DESCRIPTION${reset_stdout}
+    Activate the provided <${bunl_stdout}module${eunl_stdout}>. Commands defined in an activated module
+    become available for execution by the ${bold_stdout}ash${reset_stdout} tool. By default, activating a
+    module deactivates all other active modules.
+
+    Note that <${bunl_stdout}module${eunl_stdout}> should be specified with the module name as reported by
+    ${bold_stdout}${program_name} list${reset_stdout}, ie. without a '.jar' extension.
+
+${bold_stdout}OPTIONS${reset_stdout}
+    ${bold_stdout}--help${reset_stdout}
+        Show this help menu.
+
+${bold_stdout}SEE ALSO${reset_stdout}
+    ash-config
+    ash-config-deactivate
+
+";
+
+my $deactivate_usage = "
+${bold_stdout}NAME${reset_stdout}
+    ${program_name}-deactivate -- Deactivate an installed module
+
+${bold_stdout}SYNOPSIS${reset_stdout}
+    ${bunl_stdout}${program_name}${eunl_stdout} ${bunl_stdout}deactivate${eunl_stdout} [--help]
+    ${bunl_stdout}${program_name}${eunl_stdout} ${bunl_stdout}deactivate${eunl_stdout} <${bunl_stdout}module${eunl_stdout}>
+
+${bold_stdout}DESCRIPTION${reset_stdout}
+    Deactivate the provided <${bunl_stdout}module${eunl_stdout}>. Commands defined in a deactivated module
+    cannot be run by the ${bold_stdout}ash${reset_stdout} tool until the module is reactivated.
+
+    Deactivating a module will also prevent the commands from showing in the
+    ${bold_stdout}ash${reset_stdout} tool command list.
+
+    Note that <${bunl_stdout}module${eunl_stdout}> should be specified with the module name as reported by
+    ${bold_stdout}${program_name} list${reset_stdout}, ie. without a '.jar' extension.
+
+${bold_stdout}OPTIONS${reset_stdout}
+    ${bold_stdout}--help${reset_stdout}
+        Show this help menu.
+
+${bold_stdout}SEE ALSO${reset_stdout}
+    ash-config
+    ash-config-activate
+
+";
+
+my $install_usage = "
+${bold_stdout}NAME${reset_stdout}
+    ${program_name}-install - Install a new module
+
+${bold_stdout}SYNOPSIS${reset_stdout}
+    ${bunl_stdout}${program_name}${eunl_stdout} ${bunl_stdout}install${eunl_stdout} [--help]
+    ${bunl_stdout}${program_name}${eunl_stdout} ${bunl_stdout}install${eunl_stdout} [--symlink] [--force] [--skip] [--deactivated]
+                       [--name=<${bunl_stdout}name${eunl_stdout}>] <${bunl_stdout}JARfile${eunl_stdout}>
+
+${bold_stdout}DESCRIPTION${reset_stdout}
+    Installs and activates a given <${bunl_stdout}JARfile${eunl_stdout}> as a new ${bold_stdout}ash${reset_stdout} module. This will
+    deactivate any currently activated module, unless the ${bold_stdout}--deactivated${reset_stdout} flag is
+    supplied.
+
+    Modules can optionally be installed via symbolic link with the ${bold_stdout}--symlink${reset_stdout}
+    option. This is great for cases where the underlying <${bunl_stdout}JARfile${eunl_stdout}> may change
+    dynamically (eg. when incrementally rebuilding the shaded JAR during
+    development/testing).
+
+    Note that once a module is installed, it should be referred to by its module
+    name and not by the <${bunl_stdout}JARfile${eunl_stdout}> name. The module names are displayed by
+    ${bold_stdout}${program_name} list${reset_stdout}. Unless the ${bold_stdout}--name${reset_stdout} option is used, the module name will be
+    the same as the <${bunl_stdout}JARfile${eunl_stdout}> name but without the '.jar' extension.
+
+${bold_stdout}OPTIONS${reset_stdout}
+    ${bold_stdout}--symlink${reset_stdout}
+        Install a module using a symlink as opposed to a copy.
+
+    ${bold_stdout}--force${reset_stdout}
+        Force overwrite when re-installing an existing module.
+
+    ${bold_stdout}--skip${reset_stdout}
+        Skip installation when re-installing an existing module.
+
+    ${bold_stdout}--deactivated${reset_stdout}
+        Install a module without actually activating it.
+
+    ${bold_stdout}--name${reset_stdout}=<name>
+        Install a module using a custom name.
+
+    ${bold_stdout}--help${reset_stdout}
+        Show this help menu.
+
+${bold_stdout}EXAMPLES${reset_stdout}
+    Install a module with custom name 'MyModule':
+        \$ ${program_name} install --name=MyModule ~/Desktop/example.jar
+
+    Install a symlinked module but do not activate it:
+        \$ ${program_name} install --symlink --deactivated ~/example.jar
+
+${bold_stdout}SEE ALSO${reset_stdout}
+    ash-config
+    ash-config-uninstall
+    ash-config-activate
+
+";
+
+my $list_usage = "
+${bold_stdout}NAME${reset_stdout}
+    ${program_name}-list - List all installed modules
+
+${bold_stdout}SYNOPSIS${reset_stdout}
+    ${bunl_stdout}${program_name}${eunl_stdout} ${bunl_stdout}list${eunl_stdout} [--help]
+    ${bunl_stdout}${program_name}${eunl_stdout} ${bunl_stdout}list${eunl_stdout}
+
+${bold_stdout}DESCRIPTION${reset_stdout}
+    List all installed modules with additional contextual information.
+
+    A ${bold_stdout}*${reset_stdout} next to a module denotes that the module is activated. Symlinked
+    modules display their targets using the familiar arrow notation. If a
+    symlink is broken, the warning ${bold_stdout}(BROKEN SYMLINK)${reset_stdout} is displayed next to the
+    module name.
+
+${bold_stdout}OPTIONS${reset_stdout}
+    ${bold_stdout}--help${reset_stdout}
+        Show this help menu.
+
+${bold_stdout}SEE ALSO${reset_stdout}
+    ash-config
+
+";
+
+my $log_usage = "
+${bold_stdout}NAME${reset_stdout}
+    ${program_name}-log - Check or set log parameters
+
+${bold_stdout}SYNOPSIS${reset_stdout}
+    ${bunl_stdout}${program_name}${eunl_stdout} ${bunl_stdout}log${eunl_stdout} [--help] 
+    ${bunl_stdout}${program_name}${eunl_stdout} ${bunl_stdout}log${eunl_stdout} [--set-level=<level>] [--set-stream=<stream>] [--reset]
+                 [-s | --show]
+
+${bold_stdout}DESCRIPTION${reset_stdout}
+    Use this command to check or set the current log parameters. Under the hood,
+    this command is a shortcut for modifying the ${bold_stdout}ash${reset_stdout} log4j configuration
+    file. It expects that file to follow a well-defined format. For best
+    results, avoid manually updating the file.
+
+    Note that this command requires at least one of the documented options to
+    be specified.
+
+${bold_stdout}OPTIONS${reset_stdout}
+    ${bold_stdout}--help${reset_stdout}
+        Show this help menu.
+
+    ${bold_stdout}--reset${reset_stdout}
+        Reset the log parameters to default, ie. level=${bold_stdout}ERROR${reset_stdout} and stream=${bold_stdout}stderr${reset_stdout}.
+
+    ${bold_stdout}--set-level${reset_stdout}=<level>
+        Set the current logging level to <level>.
+        Valid log levels: ${bold_stdout}ALL${reset_stdout}, ${bold_stdout}TRACE${reset_stdout}, ${bold_stdout}DEBUG${reset_stdout}, ${bold_stdout}INFO${reset_stdout}, ${bold_stdout}WARN${reset_stdout}, ${bold_stdout}ERROR${reset_stdout}, ${bold_stdout}FATAL${reset_stdout}, and ${bold_stdout}OFF${reset_stdout}.
+
+    ${bold_stdout}--set-stream${reset_stdout}=<stream>
+        Set the current logging stream to <stream>.
+        Valid stream settings: ${bold_stdout}stdout${reset_stdout} and ${bold_stdout}stderr${reset_stdout}.
+
+    ${bold_stdout}--show${reset_stdout}
+        Show the current log settings.
+
+${bold_stdout}EXAMPLES${reset_stdout}
+    Set the log level to ${bold_stdout}INFO${reset_stdout} and the stream to ${bold_stdout}stdout${reset_stdout}:
+        \$ ${program_name} log --set-level=INFO --set-stream=stdout
+
+    Reset the log parameters and then show them:
+        \$ ${program_name} log --reset --show
+
+${bold_stdout}SEE ALSO${reset_stdout}
+    ash-config
+
+";
+
+my $reset_usage = "
+${bold_stdout}NAME${reset_stdout}
+    ${program_name}-reset - Reset the installation
+
+${bold_stdout}SYNOPSIS${reset_stdout}
+    ${bunl_stdout}${program_name}${eunl_stdout} ${bunl_stdout}reset${eunl_stdout} [--help]
+    ${bunl_stdout}${program_name}${eunl_stdout} ${bunl_stdout}reset${eunl_stdout} [--force] [--all]
+    ${bunl_stdout}${program_name}${eunl_stdout} ${bunl_stdout}reset${eunl_stdout} [--force] [--modules] [--presets] [--log] [--index]
+
+${bold_stdout}DESCRIPTION${reset_stdout}
+    Completely reset the ${bold_stdout}ash${reset_stdout} installation. A full reset (using ${bold_stdout}--all${reset_stdout}) consists
+    of the following steps:
+
+        ${bold_stdout}1)${reset_stdout} Uninstalling all installed modules
+        ${bold_stdout}2)${reset_stdout} Removing all presets
+        ${bold_stdout}3)${reset_stdout} Setting the log level back to ${bold_stdout}ERROR${reset_stdout}
+        ${bold_stdout}4)${reset_stdout} Setting the log stream back to ${bold_stdout}stderr${reset_stdout}
+        ${bold_stdout}5)${reset_stdout} Deleting the active command index
+
+    You can apply various options to only run some subset of these steps. See
+    the ${bold_stdout}OPTIONS${reset_stdout} section for more details.
+
+
+${bold_stdout}OPTIONS${reset_stdout}
+    ${bold_stdout}--all${reset_stdout}
+        Perform all the reset steps, fully resetting the environment to the
+        state it was in at install time.
+
+    ${bold_stdout}--force${reset_stdout}
+        Skip all confirmation promtps when performing the reset.
+
+    ${bold_stdout}--help${reset_stdout}
+        Show this help menu.
+
+    ${bold_stdout}--index${reset_stdout}
+        Reset the active module index.
+
+    ${bold_stdout}--log${reset_stdout}
+        Reset the log parameters to default. This is equivalent to running
+        ${bold_stdout}${program_name} log --reset${reset_stdout}.
+
+    ${bold_stdout}--modules${reset_stdout}
+        Uninstall all installed modules.
+
+    ${bold_stdout}--presets${reset_stdout}
+        Remove all saved presets. This includes presets for commands from
+        modules which are not currently active.
+
+${bold_stdout}SEE ALSO${reset_stdout}
+    ash-config
+
+";
+
+my $sync_usage = "
+${bold_stdout}NAME${reset_stdout}
+    ${program_name}-sync -- Refresh the active module
+
+${bold_stdout}SYNOPSIS${reset_stdout}
+    ${bunl_stdout}${program_name}${eunl_stdout} ${bunl_stdout}sync${eunl_stdout} [--help]
+    ${bunl_stdout}${program_name}${eunl_stdout} ${bunl_stdout}sync${eunl_stdout}
+
+${bold_stdout}DESCRIPTION${reset_stdout}
+    Refresh the command index for the current active module. This is useful when
+    a module JAR is installed using a symlink, and has been updated at the
+    other end of the link. Note that this command only needs to be run if a new
+    command has been added, or an existing command name has changed.
+
+${bold_stdout}OPTIONS${reset_stdout}
+    ${bold_stdout}--help${reset_stdout}
+        Show this help menu.
+
+${bold_stdout}SEE ALSO${reset_stdout}
+    ash-config
+
+";
+
+my $uninstall_usage = "
+${bold_stdout}NAME${reset_stdout}
+    ${program_name}-uninstall - Uninstall a module
+
+${bold_stdout}SYNOPSIS${reset_stdout}
+    ${bunl_stdout}${program_name}${eunl_stdout} ${bunl_stdout}uninstall${eunl_stdout} [--help]
+    ${bunl_stdout}${program_name}${eunl_stdout} ${bunl_stdout}uninstall${eunl_stdout} [--all]
+    ${bunl_stdout}${program_name}${eunl_stdout} ${bunl_stdout}uninstall${eunl_stdout} <${bunl_stdout}module${eunl_stdout}>
+
+${bold_stdout}DESCRIPTION${reset_stdout}
+    Remove an installed module. If the module is a symlink, this will only
+    remove the link. It will ${bold_stdout}not${reset_stdout} delete the linked file itself.
+
+    Note that <${bunl_stdout}module${eunl_stdout}> should be specified with the module name as reported by
+    ${bold_stdout}${program_name} list${reset_stdout}, ie. without a '.jar' extension.
+
+${bold_stdout}OPTIONS${reset_stdout}
+    ${bold_stdout}--all${reset_stdout}
+        Uninstall all modules, ignoring the supplied <${bunl_stdout}module${eunl_stdout}> argument if
+        present. This is equivalent to running ${bold_stdout}${program_name} reset --modules${reset_stdout}.
+
+    ${bold_stdout}--help${reset_stdout}
+        Show this help menu.
+
+${bold_stdout}SEE ALSO${reset_stdout}
+    ash-config
+    ash-config-install
+
+";
+
+my %usage_hash = (
+    "activate" => $activate_usage,
+    "deactivate" => $deactivate_usage,
+    "install" => $install_usage,
+    "list" => $list_usage,
+    "log" => $log_usage,
+    "reset" => $reset_usage,
+    "sync" => $sync_usage,
+    "uninstall" => $uninstall_usage
+);
+
+# logging definitions
+my %valid_levels = (
+    "ALL" => 1,
+    "TRACE" => 1,
+    "DEBUG" => 1,
+    "INFO" => 1,
+    "WARN" => 1,
+    "ERROR" => 1,
+    "FATAL" => 1,
+    "OFF" => 1
+);
+my @valid_level_keys = keys %valid_levels;
+
+my %valid_streams = (
+    "stdout" => 1,
+    "stderr" => 1
+);
+my @valid_stream_keys = keys %valid_streams;
+
+########## END GLOBAL INITIALIZATION ##########
+
+
+########## BEGIN SUBROUTINES ##########
+
+sub show_contextual_help_menu_and_exit {
+    my $context = shift;
+    my $skip_paging = shift;
+    my $ash_path = shift;
+
+    unless (defined $skip_paging) {
+        $skip_paging = 0;
+    }
+
+    my $subcommand_usage = $usage_hash{$context};
+
+    unless (defined $subcommand_usage) {
+        ash_common::error_output($program_name, "no such command ${bold_stderr}${context}${reset_stderr}");
+        print STDERR "Try '${bold_stderr}${program_name} --help${reset_stderr}' for more info.\n";
+        exit 127;
+    }
+
+    ash_common::display_and_exit($subcommand_usage, $skip_paging);
+
+    exit 0;
+}
+
+########## END SUBROUTINES ##########
+
+
+########## BEGIN COMMAND SUBROUTINES ##########
+
+sub execute_command_activate {
+    my $helpflag;
+    GetOptions(
+        'help|h' => \$helpflag
+    ) or ash_common::getopt_failure_and_exit($program_name, "activate");
+
+    if (defined $helpflag) {
+        ash_common::display_and_exit($activate_usage, $skip_paging);
+    }
+
+    my $module_to_activate = shift @ARGV;
+    unless (defined $module_to_activate) {
+        ash_common::error_output($program_name . "-activate", "missing required argument");
+        ash_common::getopt_failure_and_exit($program_name, "activate");
+    }
+
+    my %modules = get_module_to_status_hash($ash_path);
+    unless (exists $modules{$module_to_activate}) {
+        ash_common::error_output($program_name . "-activate", "no such module ${bold_stderr}${module_to_activate}${reset_stderr}");
+        return 0;
+    }
+
+    # deactivate all other modules
+    foreach my $module (keys %modules) {
+        if ($modules{$module} == $ash_common::ACTIVATED) {
+            ash_common::perform_deactivate($module, $ash_path, $program_name, $quiet);
+        }
+    }
+
+    my $success = ash_common::perform_activate($module_to_activate, $ash_path, $program_name, $quiet);
+    return $success;
+}
+
+sub execute_command_deactivate {
+    my $helpflag;
+    GetOptions(
+        'help|h' => \$helpflag
+    ) or ash_common::getopt_failure_and_exit($program_name, "deactivate");
+
+    if (defined $helpflag) {
+        ash_common::display_and_exit($deactivate_usage, $skip_paging);
+    }
+
+    my $module_to_deactivate = shift @ARGV;
+    unless (defined $module_to_deactivate) {
+        ash_common::error_output($program_name . "-deactivate", "missing required argument");
+        ash_common::getopt_failure_and_exit($program_name, "deactivate");
+    }
+
+    my %modules = ash_common::get_module_to_status_hash($ash_path);
+    unless (exists $modules{$module_to_deactivate}) {
+        error_output($program_name . "-deactivate", "no such module ${bold_stderr}${module_to_deactivate}${reset_stderr}");
+        return 0;
+    }
+
+    my $success = ash_common::perform_deactivate($module_to_deactivate, $ash_path, $program_name, $quiet);
+    if ($success) {
+        ash_common::remove_active_module_index($ash_path, $program_name, $quiet);
+    }
+    return $success;
+}
+
+sub execute_command_install {
+    my $syminstall = 0;
+    my $force_install = 0;
+    my $skip_install = 0;
+    my $install_deactivated = 0;
+    my $alternate_name;
+    my $helpflag;
+    GetOptions(
+        'symlink|s' => \$syminstall,
+        'deactivated' => \$install_deactivated,
+        'force' => \$force_install,
+        'skip' => \$skip_install,
+        'name=s' => \$alternate_name,
+        'help|h' => \$helpflag
+    ) or ash_common::getopt_failure_and_exit($program_name, "install");
+
+    if (defined $helpflag) {
+        ash_common::display_and_exit($install_usage, $skip_paging);
+    }
+
+    my $module_to_install = shift @ARGV;
+    unless (defined $module_to_install) {
+        ash_common::error_output($program_name . "-install", "missing required argument");
+        ash_common::getopt_failure_and_exit($program_name, "install");
+    }
+
+    unless (-f $module_to_install || -l $module_to_install) {
+        ash_common::error_output($program_name . "-install", "no such file ${bold_stderr}${module_to_install}${reset_stderr}");
+        return 0;
+    }
+
+    my $modules_folder = File::Spec->catfile($ash_path, $ash_common::MODULES_FOLDER);
+
+    # Create the module name, respecting the --name flag if present.
+    my $module_basename;
+    if (defined $alternate_name) {
+        $module_basename = $alternate_name . $ash_common::MODULE_SUFFIX;
+    } else {
+        $module_basename = basename($module_to_install);
+    }
+    # TODO: figure out how to interpolate $MODULE_SUFFIX into this regex
+    unless ($module_basename =~ /.*\.jar$/) {
+        ash_common::error_output($program_name . "-install", "module must end with '.jar' extension");
+        return 0;
+    }
+    $module_basename =~ s{$ash_common::MODULE_SUFFIX}{};
+
+    # Handle the case where the module is already installed
+    my %modules = ash_common::get_module_to_status_hash($ash_path);
+    if (defined $modules{$module_basename}) {
+        ash_common::warn_output($program_name, "module ${bold_stderr}${module_basename}${reset_stderr} is already installed");
+        if ($skip_install) {
+            print STDERR "Skipping installation.\n";
+            return 0;
+        }
+        unless ($force_install) {
+            my $overwrite = ash_common::prompt_yn("Overwrite?");
+            unless ($overwrite) {
+                print STDERR "Skipping installation.\n";
+                return 0;
+            }
+        }
+        ash_common::warn_output($program_name, "overwriting ${bold_stderr}${module_basename}${reset_stderr}");
+    }
+
+    # Construct the new module paths.
+    # We create a path for both an activated and deactivated version.
+    my $module_new_path =
+        File::Spec->catfile($modules_folder, $module_basename . $ash_common::MODULE_SUFFIX);
+    my $module_new_path_deactivated =
+        File::Spec->catfile($modules_folder, $module_basename . $ash_common::DEACTIVATED_MODULE_SUFFIX);
+
+    # If we made it here we are go to overwrite, so clean up any matching existing modules.
+    unlink $module_new_path;
+    unlink $module_new_path_deactivated;
+
+    my $exitcode;
+    if ($syminstall) {
+        my $module_to_install_abs = Cwd::realpath($module_to_install);
+        my $module_to_install_rel = File::Spec->abs2rel($module_to_install_abs, $modules_folder);
+
+        if ($install_deactivated) {
+            symlink($module_to_install_rel, $module_new_path_deactivated);
+        } else {
+            symlink($module_to_install_rel, $module_new_path);
+        }
+        $exitcode = $? >> 8;
+    } else {
+        if ($install_deactivated) {
+            # TODO File::Copy vs system 'cp', see pitfalls: https://www.perlmonks.org/?node_id=582433
+            system("cp $module_to_install $module_new_path_deactivated");
+        } else {
+            system("cp $module_to_install $module_new_path");
+        }
+        $exitcode = $? >> 8;
+    }
+
+    if ($exitcode) {
+        print STDERR "${red_stderr}${bold_stderr}Installation failed.${reset_stderr} Operation exited with $exitcode.\n";
+        return 0;
+    } else {
+        unless ($install_deactivated) {
+            my %modules = get_module_to_status_hash($ash_path);
+            foreach my $module (keys %modules) {
+                if ($modules{$module} == $ash_common::ACTIVATED
+                    && $module ne $module_basename) {
+                    ash_common::perform_deactivate($module, $ash_path, $program_name, $quiet);
+                }
+            }
+        }
+
+        unless($install_deactivated) {
+            ash_common::remove_active_module_index($ash_path, $program_name, $quiet);
+            my $success = ash_common::generate_active_module_index($ash_path, $program_name, $quiet);
+            unless ($success) {
+                ash_common::warn_output($program_name . "-install", "partial installation may not function properly");
+            }
+        }
+
+        unless ($quiet) {
+            print "Module ${green_stdout}${bold_stdout}${module_basename}${reset_stdout} installed.\n";
+        }
+    }
+
+    return 1;
+}
+
+sub execute_command_list {
+    my $helpflag;
+    GetOptions(
+        'help|h' => \$helpflag
+    ) or ash_common::getopt_failure_and_exit($program_name, "list");
+
+    if (defined $helpflag) {
+        ash_common::display_and_exit($list_usage, $skip_paging);
+    }
+
+    my %modules = ash_common::get_module_to_status_hash($ash_path);
+    my %symlinks = ash_common::get_module_to_symlink_hash($ash_path);
+    my %targets = ash_common::get_module_to_target_hash($ash_path);
+
+    unless (keys %modules) {
+        ash_common::error_output($program_name . "-list", "found no installed modules");
+        print STDERR "Try '${bold_stderr}${program_name} install /path/to/module.jar${reset_stderr}' to install a module.\n";
+        return 0;
+    }
+
+    print "${bold_stdout}Installed ash modules:${reset_stdout}\n\n";
+    # Sort the module names alphabetically. We use 'lc' to convert them to
+    # lowercase, since by default 'sort' uses ASCII ordering.
+    foreach my $module (sort {lc $a cmp lc $b} keys %modules) {
+        my $status = $modules{$module};
+        my $symlink = $symlinks{$module};
+        my $target = $targets{$module};
+        my $display = '    ';
+
+        # if activated, place a star next to the name
+        if ($status == 1) {
+            $display = $display . '*';
+        } else {
+            $display = $display . ' ';
+        }
+
+        # choose an appropriate color for the display
+        if ($status == $ash_common::ACTIVATED
+            && ($symlink == $ash_common::REAL_FILE || $symlink == $ash_common::GOOD_SYMLINK)) {
+            $display = $display . "${green_stdout}${bold_stdout}";
+        } elsif ($symlink == $ash_common::BROKEN_SYMLINK) {
+            $display = $display . "${red_stdout}${bold_stdout}";
+        }
+
+        # show the module name!
+        $display = $display . " ${module}${reset_stdout}";
+
+        # show a big message if the symlink is broken, blink if also activated
+        if ($symlink == $ash_common::BROKEN_SYMLINK) {
+            if ($status == $ash_common::ACTIVATED) {
+                $display = $display . " ${bold_stdout}${blink_stdout}(BROKEN SYMLINK)${reset_stdout}";
+            } else {
+                $display = $display . " ${bold_stdout}(BROKEN SYMLINK)${reset_stdout}";
+            }
+        }
+
+        # if we were a symlink, show the target after the module name
+        if ($symlink != $ash_common::REAL_FILE) {
+            $display = $display . " -> ${target}";
+        }
+
+        print "$display\n";
+    }
+    print "\n";
+
+    return 1;
+}
+
+sub execute_command_log {
+    my $ARGV_len = @ARGV;
+
+    my $loglevel = '';
+    my $logstream = '';
+    my $reset = 0;
+    my $helpflag;
+    my $show;
+    GetOptions(
+        'reset' => \$reset,
+        'set-level=s' => \$loglevel,
+        'set-stream=s' => \$logstream,
+        'show|s' => \$show,
+        'help|h' => \$helpflag
+    ) or ash_common::getopt_failure_and_exit($program_name, "log");
+
+    if ($ARGV_len == @ARGV) {
+        ash_common::error_output($program_name . "-log", "requires at least one option");
+        ash_common::getopt_failure_and_exit($program_name, "log");
+    }
+
+    if (defined $helpflag) {
+        ash_common::display_and_exit($log_usage, $skip_paging);
+    }
+
+    my $log_folder = File::Spec->catfile($ash_path, $ash_common::LOG4J_FOLDER);
+    my $logfile_path = File::Spec->catfile($log_folder, $ash_common::LOG4J_FILE);
+    my $current_level = ash_common::read_loglevel_from_file($logfile_path);
+    my $current_stream = ash_common::read_logstream_from_file($logfile_path);
+
+    if ($reset) {
+        ash_common::reset_log4j($ash_path);
+    }
+
+    unless ($loglevel eq '') {
+        if (exists($valid_levels{$loglevel})) {
+            ash_common::replace_loglevel_in_file($logfile_path, $loglevel);
+        } else {
+            ash_common::error_output($program_name, "unrecognized log level ${bold_stderr}${loglevel}${reset_stderr}");
+            return 0;
+        }
+    }
+
+    unless ($logstream eq '') {
+        if (exists($valid_streams{$logstream})) {
+            ash_common::replace_logstream_in_file($logfile_path, $logstream);
+        } else {
+            ash_common::error_output($program_name, "unrecognized log stream ${bold_stderr}${logstream}${reset_stderr}");
+            return 0;
+        }
+    }
+
+    if ($show) {
+        $current_level = ash_common::read_loglevel_from_file($logfile_path);
+        $current_stream = ash_common::read_logstream_from_file($logfile_path);
+        print "Current log level:    ${bold_stdout}${current_level}${reset_stdout}\n";
+        print "Current log stream:   ${bold_stdout}${current_stream}${reset_stdout}\n";
+    }
+
+    return 1;
+}
+
+sub execute_command_reset {
+    my $ARGV_len = @ARGV;
+
+    my $help_flag;
+    my $force_flag;
+    my $all_flag;
+    my $modules_flag;
+    my $index_flag;
+    my $presets_flag;
+    my $log_flag;
+    GetOptions(
+        'force|f' => \$force_flag,
+        'help|h' => \$help_flag,
+        'all|a' => \$all_flag,
+        'modules' => \$modules_flag,
+        'index' => \$index_flag,
+        'presets' => \$presets_flag,
+        'log' => \$log_flag
+    ) or ash_common::getopt_failure_and_exit($program_name, "reset");
+
+    if (defined $help_flag) {
+        ash_common::display_and_exit($reset_usage, $skip_paging);
+    }
+
+    if ($ARGV_len == @ARGV) {
+        ash_common::error_output($program_name . "-reset", "requires at least one option");
+        ash_common::getopt_failure_and_exit($program_name, "reset");
+    }
+
+    if (defined $modules_flag || defined $all_flag) {
+        my $modules_folder = File::Spec->catfile($ash_path, $ash_common::MODULES_FOLDER);
+        my %modules = ash_common::get_module_to_status_hash($ash_path);
+
+        my $modules_length = keys %modules;
+        if ($modules_length == 0) {
+            ash_common::warn_output($program_name, "found no modules to uninstall");
+        } else {
+            foreach my $module (keys %modules) {
+                my $confirmed = 1;
+                unless ($force_flag) {
+                     $confirmed = ash_common::prompt_yn("Uninstalling module $module. OK?");
+                }
+                if ($confirmed) {
+                    ash_common::perform_uninstall($module, $ash_path, $program_name, $quiet);
+                }
+            }
+        }
+    }
+
+    if (defined $presets_flag || defined $all_flag) {
+        my $presets_folder = File::Spec->catfile($ash_path, $ash_common::PRESETS_FOLDER);
+        my $confirmed = 1;
+        unless ($force_flag) {
+            $confirmed = ash_common::prompt_yn("Clearing saved presets at $presets_folder. OK?");
+        }
+        if ($confirmed) {
+            rmtree($presets_folder);
+            unless ($quiet) {
+                print "Cleared presets.\n";
+            }
+        }
+    }
+
+    if (defined $log_flag || defined $all_flag) {
+        my $log_folder = File::Spec->catfile($ash_path, $ash_common::LOG4J_FOLDER);
+        my $logfile_path = File::Spec->catfile($log_folder, $ash_common::LOG4J_FILE);
+        my $confirmed = 1;
+        unless ($force_flag) {
+            $confirmed = ash_common::prompt_yn("Resetting log parameters. OK?");
+        }
+        if ($confirmed) {
+            ash_common::replace_loglevel_in_file($logfile_path, 'ERROR');
+            ash_common::replace_logstream_in_file($logfile_path, 'stderr');
+        }
+    }
+
+    if (defined $index_flag || defined $all_flag) {
+        my $confirmed = 1;
+        unless ($force_flag) {
+            $confirmed = ash_common::prompt_yn("Removing active module index. OK?");
+        }
+        if ($confirmed) {
+            ash_common::remove_active_module_index($ash_path, $program_name, $quiet);
+        }
+    }
+
+    return 1;
+}
+
+sub execute_command_sync {
+    my $helpflag;
+    GetOptions(
+        'help|h' => \$helpflag
+    ) or ash_common::getopt_failure_and_exit($program_name, "sync");
+
+    if (defined $helpflag) {
+        ash_common::display_and_exit($sync_usage, $skip_paging);
+    }
+
+    ash_common::remove_active_module_index($ash_path, $program_name, $quiet);
+    ash_common::generate_active_module_index($ash_path, $program_name, $quiet);
+}
+
+sub execute_command_uninstall {
+    my $allflag;
+    my $helpflag;
+    GetOptions(
+        'all|a' => \$allflag,
+        'help|h' => \$helpflag
+    ) or ash_common::getopt_failure_and_exit($program_name, "uninstall");
+
+    if (defined $helpflag) {
+        ash_common::display_and_exit($uninstall_usage, $skip_paging);
+    }
+
+    if (defined $allflag) {
+        my %modules = ash_common::get_module_to_status_hash($ash_path);
+        foreach my $module (keys %modules) {
+            ash_common::perform_uninstall($module, $ash_path, $program_name, $quiet);
+        }
+        return 1;
+    }
+
+    my $module_to_uninstall = shift @ARGV;
+    unless (defined $module_to_uninstall) {
+        ash_common::error_output($program_name . "-uninstall", "missing required argument");
+        ash_common::getopt_failure_and_exit($program_name, "uninstall");
+    }
+
+    my %modules = ash_common::get_module_to_status_hash($ash_path);
+    my @activated_modules = ash_common::get_activated_modules(\%modules);
+    my $activated_module = $activated_modules[0];
+    my $success = ash_common::perform_uninstall($module_to_uninstall, $ash_path, $program_name, $quiet);
+    unless ($success) {
+        return 0;
+    }
+
+    if (defined $activated_module) {
+        if ($module_to_uninstall eq $activated_module) {
+            ash_common::remove_active_module_index($ash_path, $program_name, $quiet);
+        }
+    }
+
+    return 1;
+}
+
+########## END COMMAND SUBROUTINES ##########
+
+
+########## BEGIN EXECUTION LOGIC ##########
+
+$ash_path = ash_common::create_data_directory();
+
+my $help_argument;
+Getopt::Long::Configure(qw(no_ignore_case_always));
+GetOptions(
+    "no-pager" => \$skip_paging,
+    "help|h:s" => \$help_argument,
+    "version|V" => sub { print "$program_version\n"; exit 0; },
+    "quiet|q" => \$quiet,
+    # This callback occurs the first time we see a non-option argument.
+    # In our case, this will be the subcommand.
+    "<>" => sub {
+        my($arg) = @_;
+        if ($arg =~ m{^-}) {
+            unless ($arg eq '-') {
+                die "FATAL error: unhandled global option $arg";
+            }
+        }
+        # add the subcommand to the front of ARGV
+        unshift @ARGV, $arg;
+        die "!FINISH";
+    }
+) or ash_common::getopt_failure_and_exit($program_name);
+
+# Handle the cases where the user supplied a --help flag
+# 1) --help -> print the default help menu and exit
+# 2) --help=TOPIC -> print the TOPIC help menu and exit
+if (defined $help_argument) {
+    if ($help_argument eq '') {
+        ash_common::display_and_exit($program_usage, $skip_paging);
+    } else {
+        show_contextual_help_menu_and_exit($help_argument, $skip_paging, $ash_path);
+    }
+}
+
+# All global options have been processed, so shift the subcommand off of ARGV
+my $subcommand = shift @ARGV;
+
+unless (defined $subcommand) {
+    ash_common::error_output($program_name, "missing required command or option");
+    print STDERR "Try '${bold_stderr}${program_name} --help${reset_stderr}' for more information.\n";
+    exit 1;
+}
+
+my $success = 0;
+if ($subcommand eq "activate") {
+    $success = execute_command_activate();
+} elsif ($subcommand eq "deactivate") {
+    $success = execute_command_deactivate();
+} elsif ($subcommand eq "install") {
+    $success = execute_command_install();
+} elsif ($subcommand eq "list") {
+    $success = execute_command_list();
+} elsif ($subcommand eq "log") {
+    $success = execute_command_log();
+} elsif ($subcommand eq "reset") {
+    $success = execute_command_reset();
+} elsif ($subcommand eq "sync") {
+    $success = execute_command_sync();
+} elsif ($subcommand eq "uninstall") {
+    $success = execute_command_uninstall();
+} else {
+    ash_common::error_output($program_name, "no such command ${bold_stderr}${subcommand}${reset_stderr}");
+    print STDERR "Try '${bold_stderr}${program_name} --help${reset_stderr}' for more information.\n";
+    exit 127;
+}
+
+if ($success) {
+    exit 0;
+} else {
+    exit 1;
+}
+
+########## END EXECUTION LOGIC ##########

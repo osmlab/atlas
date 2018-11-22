@@ -1,0 +1,441 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+
+use File::Spec;
+use Getopt::Long qw(GetOptions);
+
+# Pull in code from the common module
+use FindBin;
+use lib "$FindBin::Bin/common";
+use ash_common;
+
+
+## ORGANIZATION
+## This script is organized into 3 sections:
+## 1) GLOBAL INITIALIZATION - initialize some useful global constants
+## 2) EXECUTION LOGIC - the actual command logic, ie. 'main'
+## 3) SUBROUTINES - subroutines used by the command logic
+
+
+########## BEGIN GLOBAL INITIALIZATION ##########
+my $ansi_red = ash_common::ansi_red();
+my $ansi_green = ash_common::ansi_green();
+my $ansi_magenta = ash_common::ansi_magenta();
+my $ansi_bold = ash_common::ansi_bold();
+my $ansi_reset = ash_common::ansi_reset();
+my $ansi_bunl = ash_common::ansi_begin_underln();
+my $ansi_eunl = ash_common::ansi_end_underln();
+
+my $no_colors_stdout = ash_common::is_no_colors_stdout();
+my $red_stdout = $no_colors_stdout ? "" : $ansi_red;
+my $green_stdout = $no_colors_stdout ? "" : $ansi_green;
+my $magenta_stdout = $no_colors_stdout ? "" : $ansi_magenta;
+my $bold_stdout = $no_colors_stdout ? "" : $ansi_bold;
+my $reset_stdout = $no_colors_stdout ? "" : $ansi_reset;
+my $bunl_stdout = $no_colors_stdout ? "" : $ansi_bunl;
+my $eunl_stdout = $no_colors_stdout ? "" : $ansi_eunl;
+
+my $no_colors_stderr = ash_common::is_no_colors_stderr();
+my $red_stderr = $no_colors_stderr ? "" : $ansi_red;
+my $green_stderr = $no_colors_stderr ? "" : $ansi_green;
+my $magenta_stderr = $no_colors_stderr ? "" : $ansi_magenta;
+my $bold_stderr = $no_colors_stderr ? "" : $ansi_bold;
+my $reset_stderr = $no_colors_stderr ? "" : $ansi_reset;
+my $bunl_stderr = $no_colors_stderr ? "" : $ansi_bunl;
+my $eunl_stderr = $no_colors_stderr ? "" : $ansi_eunl;
+
+my $ash_path;
+my $skip_paging;
+my $quiet;
+
+my $program_name = 'ash';
+my $program_version = "$program_name version 1.0.0";
+my $program_usage = "usage: $program_name [options...] [<command>] [args...]
+
+You can see a list of available commands with the '--list' option.
+
+Try 'man ${program_name}' to see more detailed usage information.
+
+TODO this help message should actually just open the man page.
+";
+
+########## END GLOBAL INITIALIZATION ##########
+
+
+########## BEGIN SUBROUTINES ##########
+
+sub ash_unrecognized_command_message_and_exit {
+    my $command = shift;
+    ash_common::error_output($program_name, "no such command ${bold_stderr}${command}${reset_stderr}");
+    print STDERR "Try '${bold_stderr}${program_name} --list${reset_stderr}' for a list of commands.\n";
+    print STDERR "Try '${bold_stderr}${program_name} --help${reset_stderr}' for more information.\n";
+    exit 127;
+}
+
+sub ash_show_contextual_help_menu_and_exit {
+    my $context = shift;
+    my $skip_paging = shift;
+    my $ash_path = shift;
+
+    unless (defined $skip_paging) {
+        $skip_paging = 0;
+    }
+
+    my %subcommand_classes = get_subcommand_to_class_hash($ash_path);
+    my $subcommand_class = $subcommand_classes{$context};
+
+    unless (defined $subcommand_class) {
+        ash_unrecognized_command_message_and_exit($context);
+    }
+
+    my $full_path_to_modules_folder = File::Spec->catfile($ash_path, $ash_common::MODULES_FOLDER, '*');
+
+    my $java_command = "java -Xms2G -Xmx2G ".
+                   "-cp \"${full_path_to_modules_folder}\" ".
+                   "-Dlog4j.rootLogger=ERROR ".
+                   "${subcommand_class} --help ";
+
+    if (ash_common::is_no_colors_stdout()) {
+        $java_command = $java_command . "$ash_common::JAVA_NO_COLOR_STDOUT ";
+    } else {
+        $java_command = $java_command . "$ash_common::JAVA_COLOR_STDOUT ";
+    }
+
+    if (ash_common::is_no_colors_stderr()) {
+        $java_command = $java_command . "$ash_common::JAVA_NO_COLOR_STDERR ";
+    } else {
+        $java_command = $java_command . "$ash_common::JAVA_COLOR_STDERR ";
+    }
+
+    my $terminal_width = ash_common::terminal_width();
+    $java_command = $java_command . "$terminal_width ";
+    $java_command = $java_command . "$ash_common::JAVA_MARKER_SENTINEL ";
+
+    my $pager_command = ash_common::get_pager();
+    unless (defined $pager_command) {
+        $skip_paging = 1;
+    }
+
+    if ($skip_paging) {
+        my $output = `$java_command`;
+        print "$output";
+    } else {
+        open PAGER, "|${pager_command}" or die $!;
+        my $output = `$java_command`;
+        print PAGER "$output";
+    }
+
+    exit 0;
+}
+
+sub ash_show_class_of_and_exit {
+    my $ash_path = shift;
+    my $class_of = shift;
+
+    my %subcommand_classes = ash_common::get_subcommand_to_class_hash($ash_path);
+    my $subcommand_class = $subcommand_classes{$class_of};
+
+    unless (defined $subcommand_class) {
+        ash_unrecognized_command_message_and_exit($class_of);
+    }
+
+    print "$subcommand_class\n";
+    exit 0;
+}
+
+sub ash_list_subcommands_and_exit {
+    my $ash_path = shift;
+    my $skip_paging = shift;
+
+    unless (defined $skip_paging) {
+        $skip_paging = 0;
+    }
+
+    my %subcommand_desc = ash_common::get_subcommand_to_description_hash($ash_path);
+    my $pager_command = ash_common::get_pager();
+
+    unless (defined $pager_command) {
+        $skip_paging = 1;
+    }
+
+    if ($skip_paging) {
+        print "\n";
+        print "${bold_stdout}AVAILABLE COMMANDS${reset_stdout}\n";
+        print "See the help page for a command with ${bold_stdout}${program_name} --help <command>${reset_stdout}.\n\n";
+        foreach my $subcommand (sort {lc $a cmp lc $b} keys %subcommand_desc) {
+            print "    ${bold_stdout}$subcommand${reset_stdout}\n";
+            print "        $subcommand_desc{$subcommand}\n\n";
+        }
+        print "\n";
+    }
+    else {
+        open PAGER, "|${pager_command}" or die $!;
+        print PAGER "${bold_stdout}AVAILABLE COMMANDS${reset_stdout}\n";
+        print PAGER "See the help page for a command with ${bold_stdout}${program_name} --help <command>${reset_stdout}.\n";
+        print PAGER "You can open a new page directly from this window with ${bold_stdout}!ash --help <command>${reset_stdout}.\n\n";
+        foreach my $subcommand (sort {lc $a cmp lc $b} keys %subcommand_desc) {
+            print PAGER "    ${bold_stdout}$subcommand${reset_stdout}\n";
+            print PAGER "        $subcommand_desc{$subcommand}\n\n";
+        }
+    }
+
+    exit 0;
+}
+
+sub ash_cfgpreset {
+    my $directive = shift;
+    my $subcommand = shift;
+    my $argv_ref = shift;
+
+    my @argv = @{$argv_ref};
+
+    my @split = split(":", $directive, 2);
+    my $cfg_command = $split[0];
+    my $cfg_arg = $split[1];
+    my $success = 1;
+
+    if ($cfg_command eq 'save') {
+        unless (defined $cfg_arg) {
+            ash_common::error_output($program_name, "cfg-preset directive ${bold_stderr}${cfg_command}${reset_stderr} requires context");
+            print STDERR "Try ${bold_stderr}${cfg_command}:examplePreset${reset_stderr} or check \'${bold_stderr}${program_name} --help${reset_stderr}\'.\n";
+            return 0;
+        }
+        if (index($cfg_arg, ":") != -1) {
+            ash_common::error_output($program_name, "preset name may not contain ':'");
+            return 0;
+        }
+        $success = ash_common::save_preset($ash_path, $program_name, $quiet, $cfg_arg, $subcommand, \@argv);
+    } elsif ($cfg_command eq 'show') {
+        if (defined $cfg_arg) {
+            $success = ash_common::show_preset($ash_path, $program_name, $quiet, $cfg_arg, $subcommand);
+        } else {
+            $success = ash_common::all_presets($ash_path, $program_name, $quiet, $subcommand);
+        }
+    } elsif ($cfg_command eq 'remove') {
+        unless (defined $cfg_arg) {
+            ash_common::error_output($program_name, "cfg-preset directive ${bold_stderr}${cfg_command}${reset_stderr} requires context");
+            print STDERR "Try ${bold_stderr}${cfg_command}:examplePreset${reset_stderr} or check \'${bold_stderr}${program_name} --help${reset_stderr}\'.\n";
+            return 0;
+        }
+        $success = ash_common::remove_preset($ash_path, $program_name, $quiet, $cfg_arg, $subcommand);
+    } elsif ($cfg_command eq 'edit') {
+        unless (defined $cfg_arg) {
+            ash_common::error_output($program_name, "cfg-preset directive ${bold_stderr}${cfg_command}${reset_stderr} requires context");
+            print STDERR "Try ${bold_stderr}${cfg_command}:examplePreset${reset_stderr} or check \'${bold_stderr}${program_name} --help${reset_stderr}\'.\n";
+            return 0;
+        }
+        if (index($cfg_arg, ":") != -1) {
+            ash_common::error_output($program_name, "preset name may not contain ':'");
+            return 0;
+        }
+        $success = ash_common::edit_preset($ash_path, $program_name, $quiet, $cfg_arg, $subcommand);
+    } elsif ($cfg_command eq 'copy') {
+        unless (defined $cfg_arg) {
+            ash_common::error_output($program_name, "cfg-preset directive ${bold_stderr}${cfg_command}${reset_stderr} requires context");
+            print STDERR "Try ${bold_stderr}${cfg_command}:src_preset:dest_preset${reset_stderr} or check \'${bold_stderr}${program_name} --help${reset_stderr}\'.\n";
+            return 0;
+        }
+        my @split_arg = split(":", $cfg_arg, 2);
+        my $src_arg = $split_arg[0];
+        my $dest_arg = $split_arg[1];
+        unless (defined $dest_arg) {
+            ash_common::error_output($program_name, "cfg-preset directive ${bold_stderr}${cfg_command}${reset_stderr} requires destination context");
+            print STDERR "Try ${bold_stderr}${cfg_command}:${src_arg}:dest_preset${reset_stderr} or check \'${bold_stderr}${program_name} --help${reset_stderr}\'.\n";
+            return 0;
+        }
+        if (index($dest_arg, ":") != -1) {
+            ash_common::error_output($program_name, "destination name may not contain ':'");
+            return 0;
+        }
+        $success = ash_common::copy_preset($ash_path, $program_name, $quiet, $src_arg, $dest_arg, $subcommand);
+    } elsif ($cfg_command eq 'clear') {
+        my $preset_subfolder = File::Spec->catfile($ash_path, $ash_common::PRESETS_FOLDER, $subcommand);
+        unless (-d $preset_subfolder) {
+            error_output($program_name, "no presets found for command ${bold_stderr}${subcommand}${reset_stderr}");
+            return 0;
+        }
+        my $prompt = ash_common::prompt_yn("Removing ${bunl_stdout}all${eunl_stdout} presets for ${bold_stdout}${subcommand}${reset_stdout}. OK?");
+        if ($prompt) {
+            $success = ash_common::remove_all_presets_for_command($ash_path, $program_name, $quiet, $subcommand);
+        } else {
+            $success = 1;
+        }
+    } else {
+        ash_common::error_output($program_name, "unrecognized cfg-preset directive ${bold_stderr}${cfg_command}${reset_stderr}");
+        print STDERR "Try ${bold_stderr}save${reset_stderr}, ${bold_stderr}show${reset_stderr}, ${bold_stderr}remove${reset_stderr}, ${bold_stderr}edit${reset_stderr}, ${bold_stderr}copy${reset_stderr}, or ${bold_stderr}clear${reset_stderr}.\n";
+        return 0;
+    }
+
+    return $success;
+}
+
+########## END SUBROUTINES ##########
+
+
+########## BEGIN EXECUTION LOGIC ##########
+
+$ash_path = ash_common::create_data_directory();
+
+# Handle ash global options. Global options are options that come before the
+# supplied subcommand. Subcommand options are handled by the command implementation.
+my $memory = '8G';
+my $help_argument;
+my $show_list;
+my $class_of;
+my $save_preset;
+my $use_preset;
+my $remove_preset;
+my $all_presets;
+my $show_preset;
+my $edit_preset;
+my $cfgpreset;
+Getopt::Long::Configure(qw(no_ignore_case_always));
+GetOptions(
+    "no-pager" => \$skip_paging,
+    "memory|m=s" => \$memory,
+    "help|h:s" => \$help_argument,
+    "version|V" => sub { print "$program_version\n"; exit 0; },
+    "quiet|q" => \$quiet,
+    "list|l" => \$show_list,
+    "class-of=s" => \$class_of,
+    "preset|p=s" => \$use_preset,
+    "cfg-preset=s" => \$cfgpreset,
+    # This callback occurs the first time we see a non-option argument.
+    # In our case, this will be the subcommand.
+    "<>" => sub {
+        my($arg) = @_;
+        if ($arg =~ m{^-}) {
+            unless ($arg eq '-') {
+                die "FATAL error: unhandled global option $arg";
+            }
+        }
+        # add the subcommand to the front of ARGV
+        unshift @ARGV, $arg;
+        die "!FINISH";
+    }
+) or ash_common::getopt_failure_and_exit($program_name);
+
+# Handle the case where the user supplied a --help flag with no arg
+# We can show this without doing any other verification
+if (defined $help_argument) {
+    if ($help_argument eq '') {
+        #ash_common::display_and_exit($program_usage, $skip_paging);
+        print "$program_usage";
+        exit 0;
+    }
+}
+
+my %modules = ash_common::get_module_to_status_hash($ash_path);
+
+# If there are no modules, let's throw an error
+unless (keys %modules) {
+    ash_common::error_output($program_name, 'found no installed modules');
+    print STDERR "Try '${bold_stderr}ash-config install /path/to/module.jar${reset_stderr}' to install a module.\n";
+    exit 1;
+}
+
+my @activated_modules = ash_common::get_activated_modules(\%modules);
+
+# If there are modules but none are active, let's warn the user
+if (scalar @activated_modules == 0) {
+    ash_common::error_output($program_name, 'no activated module');
+    print STDERR "Try '${bold_stderr}ash-config list${reset_stderr}' to see all installed modules.\n";
+    print STDERR "Then try '${bold_stderr}ash-config activate <module>${reset_stderr}' to activate.\n";
+    exit 1;
+}
+
+my $index_path = File::Spec->catfile($ash_path, $ash_common::ACTIVE_INDEX_PATH);
+unless (-f $index_path) {
+    ash_common::error_output($program_name, 'could not find active module index');
+    print STDERR "Try '${bold_stderr}ash-config sync${reset_stderr}' to resolve.\n";
+    exit 1;
+}
+
+# Handle case where user entered --help=TOPIC flag
+# We waited until after verifying that a command index exists
+if (defined $help_argument) {
+    unless ($help_argument eq '') {
+        ash_show_contextual_help_menu_and_exit($help_argument, $skip_paging, $ash_path);
+    }
+}
+
+my %subcommand_classes = get_subcommand_to_class_hash($ash_path);
+
+# Handle --class-of option
+if (defined $class_of) {
+    ash_show_class_of_and_exit($ash_path, $class_of);
+}
+
+# Handle --list option
+if (defined $show_list) {
+    ash_list_subcommands_and_exit($ash_path, $skip_paging);
+}
+
+# All global options have been processed, so shift the subcommand off of ARGV
+my $subcommand = shift @ARGV;
+
+unless (defined $subcommand) {
+    ash_common::error_output($program_name, "missing required command or option");
+    print STDERR "Try '${bold_stderr}${program_name} --list${reset_stderr}' for a list of commands.\n";
+    print STDERR "Try '${bold_stderr}${program_name} --help${reset_stderr}' for more information.\n";
+    exit 1;
+}
+
+my $subcommand_class = $subcommand_classes{$subcommand};
+
+# Case where the user entered an invalid subcommand
+unless (defined $subcommand_class) {
+    ash_unrecognized_command_message_and_exit($subcommand);
+}
+
+my @new_argv = @ARGV;
+
+# Check if a preset is being used, which takes precendence over cfg-preset
+if (defined $use_preset) {
+    @new_argv = ash_common::apply_preset_or_exit($ash_path, $program_name, $quiet, $use_preset, $subcommand, \@ARGV);
+} elsif (defined $cfgpreset) {
+    my $success = ash_cfgpreset($cfgpreset, $subcommand, \@new_argv);
+    unless ($success) {
+        exit 1;
+    }
+    exit 0;
+}
+
+# Set up the subcommand to execute using the JVM
+my $full_path_to_modules_folder = File::Spec->catfile($ash_path, $ash_common::MODULES_FOLDER, '*');
+my $full_path_to_log4j = File::Spec->catfile($ash_path, $ash_common::LOG4J_FILE_PATH);
+my $java_command = "java -Xms$memory -Xmx$memory ".
+                   "-cp \"${full_path_to_modules_folder}\" ".
+                   "-Dlog4j.configuration=file:${full_path_to_log4j} ".
+                   "${subcommand_class} ";
+
+# Surround each arg in quotes in case it contains whitespace
+foreach my $arg (@new_argv) {
+    $java_command = $java_command . '"' . $arg . '" ';
+}
+
+# Append the special TTY formatting sentinel arguments
+if (ash_common::is_no_colors_stdout()) {
+    $java_command = $java_command . "$ash_common::JAVA_NO_COLOR_STDOUT ";
+} else {
+    $java_command = $java_command . "$ash_common::JAVA_COLOR_STDOUT ";
+}
+
+if (ash_common::is_no_colors_stderr()) {
+    $java_command = $java_command . "$ash_common::JAVA_NO_COLOR_STDERR ";
+} else {
+    $java_command = $java_command . "$ash_common::JAVA_COLOR_STDERR ";
+}
+
+my $terminal_width = ash_common::terminal_width();
+$java_command = $java_command . "$terminal_width ";
+$java_command = $java_command . "$ash_common::JAVA_MARKER_SENTINEL ";
+
+system($java_command);
+my $exitcode = $? >> 8;
+exit $exitcode;
+
+
+########## END EXECUTION LOGIC ##########
