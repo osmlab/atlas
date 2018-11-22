@@ -22,14 +22,14 @@
 
 .SH "NAME"
 .sp
-ash-config \-- configure the OSM command line tool installation
+ash-config \-- configure the Atlas shell tools installation
 
 .SH "SYNOPSIS"
 .sp
 .nf
 \fIash-config\fR [\-\-no-pager] [\-\-help[=<\fIcommand\fR>]]
 \fIash-config\fR [\-V | \-\-version]
-\fIash-config\fR [\-\-quiet] <\fIcommand\fR> [arg...]
+\fIash-config\fR [\-\-no-pager] [\-\-quiet] <\fIcommand\fR> [arg...]
 .fi
 
 .SH "DESCRIPTION"
@@ -41,7 +41,7 @@ Run a given configuration command.
 .PP
 <\fIcommand\fR>
 .RS 4
-This indicates a command. See the \fBCOMMANDS\fR section for a list of available
+This indicates a command. See the \fBASH\-CONFIG COMMANDS\fR section for a list of available
 commands.
 .RE
 
@@ -61,68 +61,66 @@ Disable pagination for all documentation.
 .PP
 \fB\-\-quiet\fR, \fB\-q\fR
 .RS 4
-Suppress non-essential \fBash\fR output.
+Suppress non-essential output.
 .RE
 
 .PP
 \fB\-\-version\fR, \fB-V\fR
 .RS 4
-Show the \fBash\fR version info and then exit.
+Show the \fBash\-config\fR version info and then exit.
 .RE
 .sp
 
-.SH "COMMANDS"
+.SH "ASH-CONFIG COMMANDS"
 .sp
-Try \fBman ash-config-\fR<\fIcommand\fR> or \fBash-config --help\fR=<\fIcommand\fR>
-for help with a specific command.
+\fBash-config\fR uses a set of subcommands to present a high\-level interface
+for installation configuration.
 
-\fBactivate\fR
+\fBash\-config\-activate\fR(1)
 .RS 4
 Activate an installed module.
 .RE
 
-\fBdeactivate\fR
+\fBash\-config\-deactivate\fR(1)
 .RS 4
 Deactivate an installed module.
 .RE
 
-\fBinstall\fR
+\fBash\-config\-install\fR(1)
 .RS 4
 Install a new module.
 .RE
 
-\fBlist\fR
+\fBash\-config\-list\fR(1)
 .RS 4
 List all installed modules and module statuses.
 .RE
 
-\fBlog\fR
+\fBash\-config\-log\fR(1)
 .RS 4
 Check of set log parameters.
 .RE
 
-\fBreset\fR
+\fBash\-config\-reset\fR(1)
 .RS 4
 Reset the installation.
 .RE
 
-\fBsync\fR
+\fBash\-config\-sync\fR(1)
 .RS 4
 Refresh the installation based on the active module.
 .RE
 
-\fBuninstall\fR
+\fBash\-config\-uninstall\fR(1)
 .RS 4
 Uninstall a module.
 .RE
 
 .SH "TERMINAL AND ENVIRONMENT"
 .sp
-\fBash-config\fr pages the output of the various command help messages. \fBash-config\fr will use
-\fBless\fr for pagination. If the \fBPAGER\fR environment variable is set, then the
-program it specifies will be used instead. Note that \fBash-config\fR expects your
-specified pager to understand ANSI formatting codes. To disable all paged
-output, try the \fB\-\-no\-pager\fR option.
+\fBash\-config\fr displays its various help and manual pages using \fBman\fR,
+which is paged by default. To disable paged output for all documentation, try
+the \fB\-\-no\-pager\fR option.
 .sp
 \fBash-config\fR uses formatted output when approriate. To change this behavior,
 \fBash-config\fR checks for existence of the following environment variables:

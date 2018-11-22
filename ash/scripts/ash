@@ -317,12 +317,22 @@ GetOptions(
     }
 ) or ash_common::getopt_failure_and_exit($program_name);
 
-# Handle the case where the user supplied a --help flag with no arg
-# We can show this without doing any other verification
+# Handle the case where the user supplied a --help flag with no arg.
+# We can show this without doing any other verification.
+# Just display the man page and exit.
 if (defined $help_argument) {
     if ($help_argument eq '') {
-        #ash_common::display_and_exit($program_usage, $skip_paging);
-        print "$program_usage";
+        my $man_command = ash_common::get_man($skip_paging);
+        unless (defined $man_command) {
+            ash_common::error_output($program_name, "could not obtain \'man\' command");
+            print STDERR "Please ensure a valid \'man\' command is on your path.\n";
+            exit 1;
+        }
+        system("$man_command $program_name");
+        my $exitcode = $? >> 8;
+        if ($exitcode != 0) {
+            exit 1;
+        }
         exit 0;
     }
 }

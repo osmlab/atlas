@@ -46,6 +46,7 @@ our @EXPORT = qw(
     prompt_yn
     get_pager
     get_editor
+    get_man
     get_subcommand_to_class_hash
     get_subcommand_to_description_hash
     get_module_to_status_hash
@@ -417,7 +418,31 @@ sub get_editor {
         return $editor_command;
     }
 
-    # this has pitfalls, but it should be OK in this case
+    # This has pitfalls, but it should be OK in this case
+    # https://perlmaven.com/how-to-return-undef-from-a-function
+    return undef;
+}
+
+# Get a man command capable of displaying some desired manpage. Checks
+# Params:
+#   $skip_paging: optionally disable paging for man
+# Return: the man command, or undef if no valid command is found
+sub get_man {
+    my $skip_paging = shift;
+
+    my $man_command = `which man`;
+    my $exitcode = $? >> 8;
+    chomp $man_command;
+    if ($skip_paging) {
+        $man_command = $man_command . ' -P cat'
+    }
+    
+    if ($exitcode == 0) {
+        return $man_command;
+    }
+
+    # This has pitfalls, but it should be OK in this case
+    # https://perlmaven.com/how-to-return-undef-from-a-function
     return undef;
 }
 
@@ -428,6 +453,7 @@ sub get_editor {
 # Return: a hash of all subcommands to their classes.
 sub get_subcommand_to_class_hash {
     my $ash_path = shift;
+
     my $index_path = File::Spec->catfile($ash_path, $ACTIVE_INDEX_PATH);
     open my $index_fileIN, '<', $index_path or die "could not read index from path $index_path";
     my %subcommand_to_class = ();
@@ -449,6 +475,7 @@ sub get_subcommand_to_class_hash {
 # Return: a hash of all subcommands to their descriptions.
 sub get_subcommand_to_description_hash {
     my $ash_path = shift;
+
     my $index_path = File::Spec->catfile($ash_path, $ACTIVE_INDEX_PATH);
     open my $index_fileIN, '<', $index_path or die "could not read index from path $index_path";
     my %subcommand_to_description = ();
@@ -471,6 +498,7 @@ sub get_subcommand_to_description_hash {
 # Return: a hash of all modules to their activation status.
 sub get_module_to_status_hash {
     my $ash_path = shift;
+
     my @find_command=(
         "find", "${ash_path}/${MODULES_FOLDER}",
         "-maxdepth", "1",
@@ -514,6 +542,7 @@ sub get_module_to_status_hash {
 # Return: a hash of all modules to their symlink state.
 sub get_module_to_symlink_hash {
     my $ash_path = shift;
+
     my @find_command=(
         "find", "${ash_path}/${MODULES_FOLDER}",
         "-maxdepth", "1",
@@ -557,6 +586,7 @@ sub get_module_to_symlink_hash {
 # Return: a hash of all modules to their symlink target.
 sub get_module_to_target_hash {
     my $ash_path = shift;
+
     my @find_command=(
         "find", "${ash_path}/${MODULES_FOLDER}",
         "-maxdepth", "1",
@@ -592,10 +622,11 @@ sub get_module_to_target_hash {
 # Get an array of all active modules, computed from the modules hash returned by
 # the 'get_module_to_status_hash' subroutine.
 # Params:
-#   $modules: a reference to the module hash returned by 'get_module_to_status_hash'
+#   $modules_ref: a reference to the module hash returned by 'get_module_to_status_hash'
 # Return: an array of all active modules
 sub get_activated_modules {
     my $modules_ref = shift;
+
     my %modules = %{$modules_ref};
     my @activated_modules = ();
 

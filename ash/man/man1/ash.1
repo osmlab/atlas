@@ -22,7 +22,7 @@
 
 .SH "NAME"
 .sp
-ash \-- run an OSM command line tool
+ash \-- run an Atlas shell tool
 
 .SH "SYNOPSIS"
 .sp
@@ -154,11 +154,12 @@ $ ash \-\-cfg\-preset copy:p1:p2 MyCommand
 
 .SH "TERMINAL AND ENVIRONMENT"
 .sp
-\fBash\fr pages the output of the various command help messages. \fBash\fr will use
-\fBless\fr for pagination. If the \fBPAGER\fR environment variable is set, then the
-program it specifies will be used instead. Note that \fBash\fR expects your
-specified pager to understand ANSI formatting codes. To disable all paged
-output, try the \fB\-\-no\-pager\fR option.
+\fBash\fr pages the output of the various help messages using a combination of
+\fBless\fR and \fBman\fR. Subcommand help pages are piped through \fBless\fR
+by default, but this can be overridden with the \fBPAGER\fR environment variable.
+The actual \fBash\fR manual page (which you are currently reading) is displayed
+using \fBman\fR. To disable paged output for all documentation, try the
+\fB\-\-no\-pager\fR option.
 .sp
 \fBash\fR uses formatted output when approriate. To change this behavior,
 \fBash\fR checks for existence of the following environment variables:

@@ -473,27 +473,7 @@ my @valid_stream_keys = keys %valid_streams;
 
 ########## BEGIN SUBROUTINES ##########
 
-sub show_contextual_help_menu_and_exit {
-    my $context = shift;
-    my $skip_paging = shift;
-    my $ash_path = shift;
-
-    unless (defined $skip_paging) {
-        $skip_paging = 0;
-    }
-
-    my $subcommand_usage = $usage_hash{$context};
-
-    unless (defined $subcommand_usage) {
-        ash_common::error_output($program_name, "no such command ${bold_stderr}${context}${reset_stderr}");
-        print STDERR "Try '${bold_stderr}${program_name} --help${reset_stderr}' for more info.\n";
-        exit 127;
-    }
-
-    ash_common::display_and_exit($subcommand_usage, $skip_paging);
-
-    exit 0;
-}
+# Nothing here for now
 
 ########## END SUBROUTINES ##########
 
@@ -501,13 +481,20 @@ sub show_contextual_help_menu_and_exit {
 ########## BEGIN COMMAND SUBROUTINES ##########
 
 sub execute_command_activate {
-    my $helpflag;
+    my $help_flag;
     GetOptions(
-        'help|h' => \$helpflag
+        'help|h' => \$help_flag
     ) or ash_common::getopt_failure_and_exit($program_name, "activate");
 
-    if (defined $helpflag) {
-        ash_common::display_and_exit($activate_usage, $skip_paging);
+    if (defined $help_flag) {
+        my $man_command = ash_common::get_man($skip_paging);
+        unless (defined $man_command) {
+            ash_common::error_output($program_name, "could not obtain \'man\' command");
+            print STDERR "Please ensure a valid \'man\' command is on your path.\n";
+            exit 1;
+        }
+        system("$man_command $program_name-activate");
+        exit 0;
     }
 
     my $module_to_activate = shift @ARGV;
@@ -534,13 +521,20 @@ sub execute_command_activate {
 }
 
 sub execute_command_deactivate {
-    my $helpflag;
+    my $help_flag;
     GetOptions(
-        'help|h' => \$helpflag
+        'help|h' => \$help_flag
     ) or ash_common::getopt_failure_and_exit($program_name, "deactivate");
 
-    if (defined $helpflag) {
-        ash_common::display_and_exit($deactivate_usage, $skip_paging);
+    if (defined $help_flag) {
+        my $man_command = ash_common::get_man($skip_paging);
+        unless (defined $man_command) {
+            ash_common::error_output($program_name, "could not obtain \'man\' command");
+            print STDERR "Please ensure a valid \'man\' command is on your path.\n";
+            exit 1;
+        }
+        system("$man_command $program_name-deactivate");
+        exit 0;
     }
 
     my $module_to_deactivate = shift @ARGV;
@@ -568,18 +562,25 @@ sub execute_command_install {
     my $skip_install = 0;
     my $install_deactivated = 0;
     my $alternate_name;
-    my $helpflag;
+    my $help_flag;
     GetOptions(
         'symlink|s' => \$syminstall,
         'deactivated' => \$install_deactivated,
         'force' => \$force_install,
         'skip' => \$skip_install,
         'name=s' => \$alternate_name,
-        'help|h' => \$helpflag
+        'help|h' => \$help_flag
     ) or ash_common::getopt_failure_and_exit($program_name, "install");
 
-    if (defined $helpflag) {
-        ash_common::display_and_exit($install_usage, $skip_paging);
+    if (defined $help_flag) {
+        my $man_command = ash_common::get_man($skip_paging);
+        unless (defined $man_command) {
+            ash_common::error_output($program_name, "could not obtain \'man\' command");
+            print STDERR "Please ensure a valid \'man\' command is on your path.\n";
+            exit 1;
+        }
+        system("$man_command $program_name-install");
+        exit 0;
     }
 
     my $module_to_install = shift @ARGV;
@@ -690,13 +691,20 @@ sub execute_command_install {
 }
 
 sub execute_command_list {
-    my $helpflag;
+    my $help_flag;
     GetOptions(
-        'help|h' => \$helpflag
+        'help|h' => \$help_flag
     ) or ash_common::getopt_failure_and_exit($program_name, "list");
 
-    if (defined $helpflag) {
-        ash_common::display_and_exit($list_usage, $skip_paging);
+    if (defined $help_flag) {
+        my $man_command = ash_common::get_man($skip_paging);
+        unless (defined $man_command) {
+            ash_common::error_output($program_name, "could not obtain \'man\' command");
+            print STDERR "Please ensure a valid \'man\' command is on your path.\n";
+            exit 1;
+        }
+        system("$man_command $program_name-list");
+        exit 0;
     }
 
     my %modules = ash_common::get_module_to_status_hash($ash_path);
@@ -763,14 +771,14 @@ sub execute_command_log {
     my $loglevel = '';
     my $logstream = '';
     my $reset = 0;
-    my $helpflag;
+    my $help_flag;
     my $show;
     GetOptions(
         'reset' => \$reset,
         'set-level=s' => \$loglevel,
         'set-stream=s' => \$logstream,
         'show|s' => \$show,
-        'help|h' => \$helpflag
+        'help|h' => \$help_flag
     ) or ash_common::getopt_failure_and_exit($program_name, "log");
 
     if ($ARGV_len == @ARGV) {
@@ -778,8 +786,15 @@ sub execute_command_log {
         ash_common::getopt_failure_and_exit($program_name, "log");
     }
 
-    if (defined $helpflag) {
-        ash_common::display_and_exit($log_usage, $skip_paging);
+    if (defined $help_flag) {
+        my $man_command = ash_common::get_man($skip_paging);
+        unless (defined $man_command) {
+            ash_common::error_output($program_name, "could not obtain \'man\' command");
+            print STDERR "Please ensure a valid \'man\' command is on your path.\n";
+            exit 1;
+        }
+        system("$man_command $program_name-log");
+        exit 0;
     }
 
     my $log_folder = File::Spec->catfile($ash_path, $ash_common::LOG4J_FOLDER);
@@ -840,7 +855,14 @@ sub execute_command_reset {
     ) or ash_common::getopt_failure_and_exit($program_name, "reset");
 
     if (defined $help_flag) {
-        ash_common::display_and_exit($reset_usage, $skip_paging);
+        my $man_command = ash_common::get_man($skip_paging);
+        unless (defined $man_command) {
+            ash_common::error_output($program_name, "could not obtain \'man\' command");
+            print STDERR "Please ensure a valid \'man\' command is on your path.\n";
+            exit 1;
+        }
+        system("$man_command $program_name-reset");
+        exit 0;
     }
 
     if ($ARGV_len == @ARGV) {
@@ -909,13 +931,20 @@ sub execute_command_reset {
 }
 
 sub execute_command_sync {
-    my $helpflag;
+    my $help_flag;
     GetOptions(
-        'help|h' => \$helpflag
+        'help|h' => \$help_flag
     ) or ash_common::getopt_failure_and_exit($program_name, "sync");
 
-    if (defined $helpflag) {
-        ash_common::display_and_exit($sync_usage, $skip_paging);
+    if (defined $help_flag) {
+        my $man_command = ash_common::get_man($skip_paging);
+        unless (defined $man_command) {
+            ash_common::error_output($program_name, "could not obtain \'man\' command");
+            print STDERR "Please ensure a valid \'man\' command is on your path.\n";
+            exit 1;
+        }
+        system("$man_command $program_name-sync");
+        exit 0;
     }
 
     ash_common::remove_active_module_index($ash_path, $program_name, $quiet);
@@ -924,14 +953,21 @@ sub execute_command_sync {
 
 sub execute_command_uninstall {
     my $allflag;
-    my $helpflag;
+    my $help_flag;
     GetOptions(
         'all|a' => \$allflag,
-        'help|h' => \$helpflag
+        'help|h' => \$help_flag
     ) or ash_common::getopt_failure_and_exit($program_name, "uninstall");
 
-    if (defined $helpflag) {
-        ash_common::display_and_exit($uninstall_usage, $skip_paging);
+    if (defined $help_flag) {
+        my $man_command = ash_common::get_man($skip_paging);
+        unless (defined $man_command) {
+            ash_common::error_output($program_name, "could not obtain \'man\' command");
+            print STDERR "Please ensure a valid \'man\' command is on your path.\n";
+            exit 1;
+        }
+        system("$man_command $program_name-uninstall");
+        exit 0;
     }
 
     if (defined $allflag) {
@@ -998,11 +1034,24 @@ GetOptions(
 # 1) --help -> print the default help menu and exit
 # 2) --help=TOPIC -> print the TOPIC help menu and exit
 if (defined $help_argument) {
-    if ($help_argument eq '') {
-        ash_common::display_and_exit($program_usage, $skip_paging);
-    } else {
-        show_contextual_help_menu_and_exit($help_argument, $skip_paging, $ash_path);
+    my $man_command = ash_common::get_man($skip_paging);
+    unless (defined $man_command) {
+        ash_common::error_output($program_name, "could not obtain \'man\' command");
+        print STDERR "Please ensure a valid \'man\' command is on your path.\n";
+        exit 1;
     }
+    my $exitcode;
+    if ($help_argument eq '') {
+        system("$man_command $program_name");
+        $exitcode = $? >> 8;
+    } else {
+        system("$man_command $program_name-$help_argument");
+        $exitcode = $? >> 8;
+    }
+    if ($exitcode != 0) {
+            exit 1;
+    }
+    exit 0;
 }
 
 # All global options have been processed, so shift the subcommand off of ARGV
