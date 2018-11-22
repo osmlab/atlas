@@ -44,10 +44,10 @@ our @EXPORT = qw(
     warn_output
     prompt
     prompt_yn
-    get_subcommand_to_class_hash
-    get_subcommand_to_description_hash
     get_pager
     get_editor
+    get_subcommand_to_class_hash
+    get_subcommand_to_description_hash
     get_module_to_status_hash
     get_module_to_symlink_hash
     get_module_to_target_hash
@@ -354,6 +354,73 @@ sub prompt_yn {
     return 0;
 }
 
+# Get a pager command capable of displaying formatting codes. Checks the value
+# of the PAGER env variable, and uses that instead if it points to a pager.
+# If no valid pager can be found, returns 'undef'.
+# Params: none
+# Return: the pager command, or undef if no valid command is found
+sub get_pager {
+    my $pager_command;
+    my $exitcode;
+
+    if (defined $ENV{PAGER}) {
+        $pager_command = `which $ENV{PAGER}`;
+        chomp $pager_command;
+        $exitcode = $? >> 8;
+    } else {
+        $pager_command = `which less`;
+        chomp $pager_command;
+        $exitcode = $? >> 8;
+
+        # Options (see less(1) for more info):
+        # -c -> clear the screen before displaying
+        # -S -> chop long lines instead of wrapping them
+        # -R -> actually display ANSI "color" control sequences as colors/formatting
+        # -M -> use verbose prompt
+        # -i -> searches ignore case
+        # -s -> squeeze consecutive blank lines
+        # TODO consider -FX options here?
+        # https://unix.stackexchange.com/questions/107315/less-quit-if-one-screen-without-no-init
+        $pager_command = $pager_command . ' -cSRMis';
+    }
+    
+    if ($exitcode == 0) {
+        return $pager_command;
+    }
+
+    # This has pitfalls, but it should be OK in this case
+    # https://perlmaven.com/how-to-return-undef-from-a-function
+    return undef;
+}
+
+# Get an editor command capable of displaying and editing a text file. Checks
+# the value of the EDITOR env variable, and uses that instead if it points to an
+# editor. If no valid pager can be found, returns 'undef'.
+# Params: none
+# Return: the editor command, or undef if no valid command is found
+sub get_editor {
+    my $editor_command;
+    my $exitcode;
+
+    if (defined $ENV{EDITOR}) {
+        $editor_command = `which $ENV{EDITOR}`;
+        chomp $editor_command;
+        $exitcode = $? >> 8;
+    } else {
+        $editor_command = `which vim`;
+        chomp $editor_command;
+        $exitcode = $? >> 8;
+        $editor_command = $editor_command . ' +';
+    }
+
+    if ($exitcode == 0) {
+        return $editor_command;
+    }
+
+    # this has pitfalls, but it should be OK in this case
+    return undef;
+}
+
 # Get a hash that maps subcommand names to their respective classes. The hash is
 # computed from the current active module index.
 # Params:
@@ -394,64 +461,6 @@ sub get_subcommand_to_description_hash {
     }
 
     return %subcommand_to_description;
-}
-
-# Get a pager command capable of displaying formatting codes. Checks the value
-# of the PAGER env variable, and uses that instead if it points to a pager.
-# If no valid pager can be found, returns 'undef'.
-# Params: none
-# Return: the pager command, or undef if no valid command is found
-sub get_pager {
-    my $pager_command;
-    my $exitcode;
-
-    if (defined $ENV{PAGER}) {
-        $pager_command = `which $ENV{PAGER}`;
-        chomp $pager_command;
-        $exitcode = $? >> 8;
-    } else {
-        $pager_command = `which less`;
-        chomp $pager_command;
-        $exitcode = $? >> 8;
-        # TODO consider -FX options here, need more research/testing
-        # https://unix.stackexchange.com/questions/107315/less-quit-if-one-screen-without-no-init
-        $pager_command = $pager_command . ' -cSRM';
-    }
-    
-    if ($exitcode == 0) {
-        return $pager_command;
-    }
-
-    # this has pitfalls, but it should be OK in this case
-    return undef;
-}
-
-# Get an editor command capable of displaying and editing a text file. Checks
-# the value of the EDITOR env variable, and uses that instead if it points to an
-# editor. If no valid pager can be found, returns 'undef'.
-# Params: none
-# Return: the editor command, or undef if no valid command is found
-sub get_editor {
-    my $editor_command;
-    my $exitcode;
-
-    if (defined $ENV{EDITOR}) {
-        $editor_command = `which $ENV{EDITOR}`;
-        chomp $editor_command;
-        $exitcode = $? >> 8;
-    } else {
-        $editor_command = `which vim`;
-        chomp $editor_command;
-        $exitcode = $? >> 8;
-        $editor_command = $editor_command . ' +';
-    }
-
-    if ($exitcode == 0) {
-        return $editor_command;
-    }
-
-    # this has pitfalls, but it should be OK in this case
-    return undef;
 }
 
 # Get a hash that maps all present module names to their activation status.
