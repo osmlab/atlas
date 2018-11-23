@@ -14,6 +14,8 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
  */
 public class DocumentationRegistrar
 {
+    private static String DESCRIPTION_HEADER = "DESCRIPTION";
+
     private final Map<String, List<Tuple<DocumentationFormatType, String>>> sections;
 
     public DocumentationRegistrar()
@@ -53,6 +55,11 @@ public class DocumentationRegistrar
         list.add(new Tuple<>(DocumentationFormatType.PARAGRAPH, paragraph));
     }
 
+    public String getDescriptionHeader()
+    {
+        return DESCRIPTION_HEADER;
+    }
+
     public List<Tuple<DocumentationFormatType, String>> getSectionContents(final String section)
     {
         return this.sections.get(section);
@@ -61,5 +68,10 @@ public class DocumentationRegistrar
     public Set<String> getSections()
     {
         return this.sections.keySet();
+    }
+
+    public boolean hasDescriptionSection()
+    {
+        return this.sections.keySet().contains(DESCRIPTION_HEADER);
     }
 }

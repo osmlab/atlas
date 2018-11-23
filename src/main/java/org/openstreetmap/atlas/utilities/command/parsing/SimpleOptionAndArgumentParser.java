@@ -1008,12 +1008,12 @@ public class SimpleOptionAndArgumentParser
                 this.parsedArguments.put(argumentHint, multiArgumentList);
 
                 // Two cases:
-                // Case 1 -> [SINGLE...] MULTIPLE
+                // Case 1 -> [UNARY...] VARIADIC
                 if (argumentCounter == this.registeredArgumentHintToArity.size() - 1)
                 {
                     // do nothing, we can consume the rest of the arguments
                 }
-                // Case 2 -> [SINGLE...] MULTIPLE SINGLE [SINGLE...]
+                // Case 2 -> [UNARY...] VARIADIC UNARY [UNARY...]
                 else
                 {
                     // cutoff point, be sure to save arguments for consumption by subsequent hints
