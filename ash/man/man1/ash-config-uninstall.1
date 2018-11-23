@@ -22,4 +22,48 @@
 
 .SH "NAME"
 .sp
-ash-config-uninstall \--
+ash-config-uninstall \-- Uninstall a module
+
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIash\-config\fR \fIuninstall\fR [\-\-help]
+\fIash\-config\fR \fIuninstall\fR [\-\-all]
+\fIash\-config\fR \fIuninstall\fR <\fImodule\fR>
+.fi
+
+.SH "DESCRIPTION"
+.sp
+Remove an installed module. If the module is a symlink, this will only
+remove the link. It will \fBnot\fR delete the linked\-to file.
+
+.SH "OPTIONS"
+.sp
+
+.PP
+<\fImodule\fR>
+.RS 4
+This indicates a module. The module should be referred to using its name, as
+reported by \fBash-config-list\fR(1).
+.RE
+
+.PP
+\fB\-\-all\fR, \fB\-a\fR
+.RS 4
+Uninstall all modules, ignoring the supplied <\fImodule\fR> argument if
+present. This is equivalent to running \fBash\-config reset \-\-modules\fR.
+.RE
+
+.PP
+\fB\-\-help\fR
+.RS 4
+Show this help menu.
+.RE
+
+.SH "SEE ALSO"
+.sp
+\fBash\-config\fR(1), \fBash\-config\-install\fR(1)
+
+.SH "ASH-CONFIG"
+.sp
+Part of the \fBash\-config\fR(1) suite

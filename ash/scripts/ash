@@ -52,14 +52,6 @@ my $quiet;
 
 my $program_name = 'ash';
 my $program_version = "$program_name version 1.0.0";
-my $program_usage = "usage: $program_name [options...] [<command>] [args...]
-
-You can see a list of available commands with the '--list' option.
-
-Try 'man ${program_name}' to see more detailed usage information.
-
-TODO this help message should actually just open the man page.
-";
 
 ########## END GLOBAL INITIALIZATION ##########
 

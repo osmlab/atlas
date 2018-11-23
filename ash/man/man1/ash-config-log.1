@@ -22,4 +22,78 @@
 
 .SH "NAME"
 .sp
-ash-config-log \--
+ash-config-log \-- Check or set log parameters
+
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIash\-config\fR \fIlog\fR [\-\-help]
+\fIash\-config\fR \fIlog\fR [\-\-set-level=<level>] [\-\-set-stream=<stream>] [\-\-reset] [\-\-show]
+.fi
+
+.SH "DESCRIPTION"
+.sp
+Use this command to check or set the current log parameters. Under the hood,
+this command is a shortcut for modifying the \fBash\fR log4j configuration
+file. It expects that file to follow a well-defined format. For best
+results, avoid manually updating the file.
+
+Note that this command requires at least one of the documented options to
+be specified.
+
+.SH "OPTIONS"
+.sp
+.PP
+\fB\-\-help\fR
+.RS 4
+Show this help menu.
+.RE
+
+.PP
+\fB\-\-reset\fR
+.RS 4
+Reset the log parameters to default, ie. level=\fBERROR\fR and stream=\fBstderr\fR.
+This is equivalent to running \fBash\-config reset \-\-log\fR.
+.RE
+
+.PP
+\fB\-\-set\-level\fR=<level>
+.RS 4
+Set the current logging level to <level>.
+Valid log levels: \fBALL\fR, \fBTRACE\fR, \fBDEBUG\fR, \fBINFO\fR, \fBWARN\fR, \fBERROR\fR, \fBFATAL\fR, and \fBOFF\fR.
+.RE
+
+.PP
+\fB--set-stream\fR=<stream>
+.RS 4
+Set the current logging stream to <stream>.
+Valid stream settings: \fBstdout\fR and \fBstderr\fR.
+.RE
+
+.PP
+\fB\-\-show\fR, \fB\-s\fR
+.RS 4
+Show the current log settings.
+.RE
+
+.SH "EXAMPLES"
+.sp
+Set the log level to \fBINFO\fR and the stream to \fBstdout\fR:
+.sp
+.RS 4
+$ ash\-config log \-\-set\-level=INFO \-\-set\-stream=stdout
+.RE
+.sp
+Reset the log parameters and then show them:
+.sp
+.RS 4
+$ ash\-config log \-\-reset \-\-show
+.RE
+
+.SH "SEE ALSO"
+.sp
+\fBash\-config\fR(1)
+
+.SH "ASH-CONFIG"
+.sp
+Part of the \fBash\-config\fR(1) suite

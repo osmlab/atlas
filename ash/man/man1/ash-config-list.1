@@ -22,4 +22,37 @@
 
 .SH "NAME"
 .sp
-ash-config-list \--
+ash-config-list \-- List all installed modules and module statuses
+
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIash\-config\fR \fIlist\fR [\-\-help]
+\fIash\-config\fR \fIlist\fR
+.fi
+
+.SH "DESCRIPTION"
+.sp
+List all installed modules with additional contextual information.
+
+A \fB*\fR next to a module denotes that the module is activated. Symlinked
+modules display their targets using the familiar arrow notation (\fB\->\fR). If a
+symlink is broken, the warning \fB(BROKEN SYMLINK)\fR is displayed next to the
+module name.
+
+.SH "OPTIONS"
+.sp
+
+.PP
+\fB\-\-help\fR
+.RS 4
+Show this help menu.
+.RE
+
+.SH "SEE ALSO"
+.sp
+\fBash\-config\fR(1)
+
+.SH "ASH-CONFIG"
+.sp
+Part of the \fBash\-config\fR(1) suite

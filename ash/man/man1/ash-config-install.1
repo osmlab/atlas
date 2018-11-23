@@ -22,4 +22,95 @@
 
 .SH "NAME"
 .sp
-ash-config-install \--
+ash-config-install \-- Install a new module.
+
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIash\-config\fR \fIinstall\fR [\-\-help]
+\fIash\-config\fR \fIinstall\fR [\-\-symlink] [\-\-force] [\-\-skip] [\-\-deactivated] [\-\-name=<\fIname\fR>] <\fIJARfile\fR>
+.fi
+
+.SH "DESCRIPTION"
+.sp
+Installs and activates a given <\fIJARfile\fR> as a new \fBash\fR module. This will
+deactivate any currently activated module, unless the \fB\-\-deactivated\fR flag is
+supplied.
+
+Modules can optionally be installed via symbolic link with the \fB\-\-symlink\fR
+option. This is great for cases where the underlying <\fIJARfile\fR> may change
+dynamically (eg. when incrementally rebuilding the shaded JAR during
+development/testing).
+
+Note that once a module is installed, it should be referred to by its module
+name and not by the <\fIJARfile\fR> name. The module names are displayed by
+\fBash-config-list\fR(1). Unless the \fB\-\-name\fR option is used, the module name will be
+the same as the <\fIJARfile\fR> name but without the '.jar' extension.
+
+.SH "OPTIONS"
+.sp
+
+.PP
+<\fIJARfile\fR>
+.RS 4
+The path to a JARfile containing \fBash\fR commands. Once installed, this JARfile
+is referred to as a module.
+.RE
+
+.PP
+\fB\-\-deactivated\fR
+.RS 4
+Install a module without actually activating it.
+.RE
+
+.PP
+\fB\-\-force\fR
+.RS 4
+Force overwrite when re-installing an existing module.
+.RE
+
+.PP
+\fB\-\-help\fR
+.RS 4
+Show this help menu.
+.RE
+
+.PP
+\fB\-\-name\fR=<name>
+.RS 4
+Install a module using a custom name.
+.RE
+
+.PP
+\fB\-\-skip\fR
+.RS 4
+Skip installation when re-installing an existing module.
+.RE
+
+.PP
+\fB\-\-symlink\fR, \fB-s\fR
+.RS 4
+Install a module using a symlink as opposed to a copy.
+.RE
+
+
+.SH "EXAMPLES"
+.sp
+Install a module with custom name 'MyModule':
+.sp
+.RS 4
+$ ash\-config install \-\-name=MyModule ~/Desktop/example.jar
+.RE
+.sp
+Install a symlinked module but do not activate it:
+.RS 4
+$ ash\-config install \-\-symlink \-\-deactivated ~/example.jar
+.RE
+
+.SH "SEE ALSO"
+.sp
+\fBash\-config\fR(1), \fBash\-config\-uninstall\fR(1), \fBash\-config\-activate\fR(1)
+
+.SH "ASH-CONFIG"
+.sp
+Part of the \fBash\-config\fR(1) suite

@@ -22,4 +22,40 @@
 
 .SH "NAME"
 .sp
-ash-config-sync \--
+ash-config-sync \-- Refresh the installation based on the active module
+
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIash\-config\fR \fIsync\fR [\-\-help]
+\fIash\-config\fR \fIsync\fR
+.fi
+
+.SH "DESCRIPTION"
+.sp
+Refresh the command index for the current active module. Additionally, this will
+perform some runtime checks to validate that all commands in the active module
+registered their documentation and options/arguments correctly.
+
+This command is useful when a module JAR is installed using a symlink, and has
+been updated at the other end of the link. If you made changes to a command
+name or description, running this command will reflect those changes in
+\fBash \-\-list\fR. If you altered some option/argument or documentation
+registration, running \fBsync\fR will perform a quick validation \- preventing
+you from having to test each altered command individually.
+
+.SH "OPTIONS"
+.sp
+.PP
+\fB\-\-help\fR
+.RS 4
+Show this help menu.
+.RE
+
+.SH "SEE ALSO"
+.sp
+\fBash\-config\fR(1)
+
+.SH "ASH-CONFIG"
+.sp
+Part of the \fBash\-config\fR(1) suite

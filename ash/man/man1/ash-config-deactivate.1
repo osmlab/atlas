@@ -22,4 +22,43 @@
 
 .SH "NAME"
 .sp
-ash-config-deactivate \--
+ash-config-deactivate \-- Deactivate an installed module
+
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIash-config deactivate\fR [\-\-help]
+\fIash-config deactivate\fR <\fImodule\fR>
+.fi
+
+.SH "DESCRIPTION"
+.sp
+Deactivate the provided <\fImodule\fR>. Commands defined in a deactivated module
+cannot be run by the \fBash\fR tool until the module is reactivated.
+Deactivating a module will also prevent the commands from showing in the
+\fBash\fR tool command list.
+
+.SH "OPTIONS"
+.sp
+
+.PP
+<\fImodule\fR>
+.RS 4
+This indicates a module. The module should be referred to using its name, as
+reported by \fBash-config-list\fR(1).
+.RE
+
+.PP
+\fB\-\-help\fR
+.RS 4
+Show this help menu.
+.RE
+
+.SH "SEE ALSO"
+.sp
+\fBash\-config\fR(1), \fBash\-config\-activate\fR(1)
+
+.SH "ASH-CONFIG"
+.sp
+Part of the \fBash\-config\fR(1) suite
+

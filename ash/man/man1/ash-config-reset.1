@@ -22,4 +22,100 @@
 
 .SH "NAME"
 .sp
-ash-config-reset \--
+ash-config-reset \-- Reset the installation
+
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIash\-config\fR \fIreset\fR [\-\-help]
+\fIash\-config\fR \fIreset\fR [\-\-force] [\-\-all]
+\fIash\-config\fR \fIreset\fR [\-\-force] [\-\-modules] [\-\-presets] [\-\-log] [\-\-index]
+.fi
+
+.SH "DESCRIPTION"
+.sp
+Completely reset the \fBash\fR installation. A full reset (using \fB\-\-all\fR) consists
+of the following steps:
+
+.RS 4
+\fB1)\fR Uninstalling all installed modules
+
+\fB2)\fR Removing all presets
+
+\fB3)\fR Setting the log level back to \fBERROR\fR
+
+\fB4)\fR Setting the log stream back to \fBstderr\fR
+
+\fB5)\fR Deleting the active command index
+.RE
+
+You can apply various options to only run some subset of these steps. See
+the \fBOPTIONS\fR section for more details.
+
+.SH "OPTIONS"
+.sp
+.PP
+\fB\-\-all\fR, \fB\-a\fR
+.RS 4
+Perform all the reset steps, fully resetting the environment to the
+state it was in at install time.
+.RE
+
+.PP
+\fB\-\-force\fR, \fB\-f\fR
+.RS 4
+Skip all confirmation promtps when performing the reset.
+.RE
+
+.PP
+\fB\-\-help\fR
+.RS 4
+Show this help menu.
+.RE
+
+.PP
+\fB\-\-index\fR
+.RS 4
+Reset the active module index.
+.RE
+
+.PP
+\fB\-\-log\fR
+.RS 4
+Reset the log parameters to default, ie. level=\fBERROR\fR and stream=\fBstderr\fR.
+This is equivalent to running \fBash\-config log \-\-reset\fR.
+.RE
+
+.PP
+\fB\-\-modules\fR
+.RS 4
+Uninstall all installed modules. This is equivalent to running \fBash\-config uninstall \-\-all\fR.
+.RE
+
+.PP
+\fB\-\-presets\fR
+.RS 4
+Remove all saved presets in all namespaces.
+.RE
+
+.SH "EXAMPLES"
+.sp
+Reset everything and do not show any confirmation prompts:
+.sp
+.RS 4
+$ ash\-config reset \-\-all \-\-force
+.RE
+.sp
+Reset the preset and log parameters:
+.sp
+.RS 4
+$ ash\-config reset \-\-presets \-\-log
+.RE
+
+.SH "SEE ALSO"
+.sp
+\fBash\-config\fR(1)
+
+.SH "ASH-CONFIG"
+.sp
+Part of the \fBash\-config\fR(1) suite
