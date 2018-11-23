@@ -17,11 +17,14 @@ our @EXPORT = qw(
     DEACTIVATED_MODULE_SUFFIX
     MODULES_FOLDER
     PRESETS_FOLDER
+    NAMESPACE_FILE
+    NAMESPACE_PATH
     ACTIVE_INDEX_FILE
     ACTIVE_INDEX_PATH
     LOG4J_FOLDER
     LOG4J_FILE
     LOG4J_FILE_PATH
+    DEFAULT_NAMESPACE
     ACTIVATED
     DEACTIVATED
     GOOD_SYMLINK
@@ -35,6 +38,8 @@ our @EXPORT = qw(
     JAVA_MARKER_SENTINEL
     create_data_directory
     reset_log4j
+    reset_namespace
+    get_namespace
     display_and_exit
     getopt_failure_and_exit
     is_no_colors
@@ -88,11 +93,15 @@ our $DEACTIVATED_SUFFIX = '.deactivated';
 our $DEACTIVATED_MODULE_SUFFIX = $MODULE_SUFFIX . $DEACTIVATED_SUFFIX;
 our $MODULES_FOLDER = 'modules';
 our $PRESETS_FOLDER = 'presets';
-our $ACTIVE_INDEX_FILE = 'active_module_index';
+our $NAMESPACE_FILE = '.current_namespace';
+our $NAMESPACE_PATH = File::Spec->catfile($PRESETS_FOLDER, $NAMESPACE_FILE);
+our $ACTIVE_INDEX_FILE = '.active_module_index';
 our $ACTIVE_INDEX_PATH = File::Spec->catfile($MODULES_FOLDER, $ACTIVE_INDEX_FILE);
 our $LOG4J_FOLDER = 'log4j';
 our $LOG4J_FILE = 'log4j.properties';
 our $LOG4J_FILE_PATH = File::Spec->catfile($LOG4J_FOLDER, $LOG4J_FILE);
+
+our $DEFAULT_NAMESPACE = 'default';
 
 our $ACTIVATED = 1;
 our $DEACTIVATED = 0;
@@ -177,6 +186,10 @@ sub create_data_directory {
     unless (-f $log4j_file) {
         reset_log4j($data_directory);
     }
+    my $namespace_file = File::Spec->catfile($data_directory, $NAMESPACE_PATH);
+    unless (-f $namespace_file) {
+        reset_namespace($data_directory);
+    }
     return $data_directory;
 }
 
@@ -190,6 +203,39 @@ sub reset_log4j {
     open my $file_handle, '>', "$log4j_file";
     print $file_handle $DEFAULT_LOG4J_CONTENTS;
     close $file_handle;
+}
+
+# Reset the preset namespace to default. If an extra argument is supplied,
+# then reset the namespace to the supplied argument.
+# Params:
+#   $ash_path: the path to the ash data folder
+#   $new_namespace: an optional namespace to swap to
+# Return: none
+sub reset_namespace {
+    my $ash_path = shift;
+    my $new_namespace = shift;
+    my $namespace_file = File::Spec->catfile($ash_path, $NAMESPACE_PATH);
+    open my $file_handle, '>', "$namespace_file";
+    if (defined $new_namespace) {
+        print $file_handle "${new_namespace}\n";
+    } else {
+        print $file_handle "${DEFAULT_NAMESPACE}\n";
+    }
+    close $file_handle;
+}
+
+# Read and return the current namespace.
+# Params:
+#   $ash_path: the path to the ash data folder
+# Return: the current namespace
+sub get_namespace {
+    my $ash_path = shift;
+    my $namespace_file = File::Spec->catfile($ash_path, $NAMESPACE_PATH);
+    open my $file_handle, '<', "$namespace_file";
+    my $firstline = <$file_handle>;
+    chomp $firstline;
+    close $file_handle;
+    return $firstline;
 }
 
 # Display the given message and exit. Default behaviour is to use pagination,
@@ -971,6 +1017,7 @@ sub remove_active_module_index {
 #   $quiet: suppress non-essential output output
 #   $preset: the name of the preset
 #   $command: the name of the command
+#   $namespace: the namespace to save to
 #   $argv_ref: a reference to an array containing all the options and args
 # Return: 1 on success, 0 on failure
 sub save_preset {
@@ -979,11 +1026,12 @@ sub save_preset {
     my $quiet = shift;
     my $preset = shift;
     my $command = shift;
+    my $namespace = shift;
     my $argv_ref = shift;
 
     my @argv = @{$argv_ref};
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $command);
+    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
     make_path("$preset_subfolder", {
         verbose => 0,
         mode => 0755
@@ -992,8 +1040,6 @@ sub save_preset {
 
     if (-f $preset_file) {
         error_output($program_name, "preset ${bold_stderr}${preset}${reset_stderr} already exists for ${bold_stderr}${command}${reset_stderr}");
-        print STDERR "Try '${bold_stderr}${program_name} --cfgpreset remove:${preset} ${command}${reset_stderr}' to remove.\n";
-        print STDERR "Try '${bold_stderr}${program_name} --cfgpreset edit:${preset} ${command}${reset_stderr}' to edit interactively.\n";
         return 0;
     }
 
@@ -1023,7 +1069,7 @@ sub save_preset {
         return 0;
     }
 
-    print "Command ${bold_stdout}${command}${reset_stdout} preset ${bold_stdout}${preset}${reset_stdout}:\n";
+    print "Preset ${bold_stdout}${preset}${reset_stdout} for command ${bold_stdout}${command}${reset_stdout}:\n";
     print "\n${bunl_stdout}Preset ARGV${eunl_stdout}${reset_stdout}\n";
     open my $file_handle, '>', "$preset_file";
     foreach my $option (@detected_options) {
@@ -1032,7 +1078,7 @@ sub save_preset {
     }
     close $file_handle;
 
-    print "\nPreset ${bold_stdout}${preset}${reset_stdout} saved for ${bold_stdout}${command}${reset_stdout}.\n";
+    print "\nPreset ${bold_stdout}${preset}${reset_stdout} saved for command ${bold_stdout}${command}${reset_stdout}.\n";
 
     return 1;
 }

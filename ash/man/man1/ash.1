@@ -31,7 +31,7 @@ ash \-- run an Atlas shell tool
 \fIash\fR [\-V | \-\-version]
 \fIash\fR [\-\-no-pager] [\-l | \-\-list]
 \fIash\fR [\-\-class\-of=<\fIcommand\fR>]
-\fIash\fR [\-\-quiet] [\-\-cfg\-preset <directive[:context]>] <\fIcommand\fR> [arg...]
+\fIash\fR [\-\-quiet] cfg:preset [args...]
 \fIash\fR [\-\-no\-pager] [\-\-memory=<amount>] [\-\-preset=<preset>]
     <\fIcommand\fR> [arg...]
 .fi
@@ -52,10 +52,12 @@ seen with the \fB--list\fR option.
 .RE
 
 .PP
-\fB\-\-cfg\-preset\fR <directive[:context]>
+\fBcfg:preset\fR
 .RS 4
-Run a given preset configuration directive with an optional context
-argument. See the \fBPRESETS\fR section for more information.
+This special subcommand puts \fBash\fR into preset configuration mode \- allowing
+the user to run a preset configuration directive with some arguments. When the
+option parser sees \fBcfg:preset\fR, it stops and passes any remaining ARGV elements into the
+preset configuration engine. See the \fBPRESETS\fR section for more information.
 .RE
 
 .PP
@@ -138,18 +140,6 @@ Run MyCommand with preset p1:
 .sp
 .RS 4
 $ ash \-\-preset=p1 MyCommand arg1 \-\-opt2=overridePresetArg
-.RE
-.sp
-Edit preset p1 for MyCommand:
-.sp
-.RS 4
-$ ash \-\-cfg\-preset edit:p1 MyCommand
-.RE
-.sp
-Copy preset p1 into new preset p2 for MyCommand:
-.sp
-.RS 4
-$ ash \-\-cfg\-preset copy:p1:p2 MyCommand
 .RE
 
 .SH "TERMINAL AND ENVIRONMENT"
