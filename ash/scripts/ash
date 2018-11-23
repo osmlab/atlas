@@ -199,7 +199,7 @@ sub ash_cfgpreset {
 
     if ($directive eq 'save') {
         unless (defined $command_context) {
-            ash_common::error_output($program_name, "must specify a target subcommand like ${bold_stderr}save:MyCommand${reset_stderr}");
+            ash_common::error_output($program_name, "must specify a target command like ${bold_stderr}save:MyCommand${reset_stderr}");
             return 0;
         }
         unless (defined $subcommand_classes{$command_context}) {
@@ -214,7 +214,7 @@ sub ash_cfgpreset {
         $success = ash_common::save_preset($ash_path, $program_name, $quiet, $preset, $command_context, $current_namespace, \@argv);
     } elsif ($directive eq 'show') {
         unless (defined $command_context) {
-            ash_common::error_output($program_name, "must specify a target subcommand like ${bold_stderr}show:MyCommand${reset_stderr}");
+            ash_common::error_output($program_name, "must specify a target command like ${bold_stderr}show:MyCommand${reset_stderr}");
             return 0;
         }
         unless (defined $subcommand_classes{$command_context}) {
@@ -231,7 +231,7 @@ sub ash_cfgpreset {
         # TODO
     } elsif ($directive eq 'edit') {
         unless (defined $command_context) {
-            ash_common::error_output($program_name, "must specify a target subcommand like ${bold_stderr}edit:MyCommand${reset_stderr}");
+            ash_common::error_output($program_name, "must specify a target command like ${bold_stderr}edit:MyCommand${reset_stderr}");
             return 0;
         }
         unless (defined $subcommand_classes{$command_context}) {
@@ -245,7 +245,25 @@ sub ash_cfgpreset {
         }
         $success = ash_common::edit_preset($ash_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
     } elsif ($directive eq 'copy') {
-        # TODO
+        unless (defined $command_context) {
+            ash_common::error_output($program_name, "must specify a target command like ${bold_stderr}copy:MyCommand${reset_stderr}");
+            return 0;
+        }
+        unless (defined $subcommand_classes{$command_context}) {
+            ash_common::error_output($program_name, "no such command ${bold_stderr}${command_context}${reset_stderr}");
+            return 0;
+        }
+        my $src_preset = shift @argv;
+        my $dest_preset = shift @argv;
+        unless (defined $src_preset) {
+            ash_common::error_output($program_name, "must specify a src preset name");
+            return 0;
+        }
+        unless (defined $dest_preset) {
+            ash_common::error_output($program_name, "must specify a dest preset name");
+            return 0;
+        }
+        $success = ash_common::copy_preset($ash_path, $program_name, $quiet, $src_preset, $dest_preset, $command_context, $current_namespace);
     } elsif ($directive eq 'namespace') {
         # TODO
     } else {

@@ -1347,6 +1347,7 @@ sub edit_preset {
 #   $src_preset: the source preset
 #   $dest_preset: the destination preset
 #   $command: the name of the command
+#   $namespace: the namespace
 # Return: 1 on success, 0 on failure
 sub copy_preset {
     my $ash_path = shift;
@@ -1355,8 +1356,9 @@ sub copy_preset {
     my $src_preset = shift;
     my $dest_preset = shift;
     my $command = shift;
+    my $namespace = shift;
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $command);
+    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
     my $source_file = File::Spec->catfile($preset_subfolder, $src_preset);
     my $dest_file = File::Spec->catfile($preset_subfolder, $dest_preset);
 
