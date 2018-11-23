@@ -288,97 +288,10 @@ sub ash_cfgpreset {
         }
         $success = ash_common::copy_preset($ash_path, $program_name, $quiet, $src_preset, $dest_preset, $command_context, $current_namespace);
     } elsif ($directive eq 'namespace') {
-        # TODO
+        # TODO implement the namespace code
     } else {
         ash_common::error_output($program_name, "unrecognized ${cfgpreset_start} directive '${bold_stderr}${directive}${reset_stderr}'");
         print STDERR "Check ${bold_stderr}PRESETS${reset_stderr} section of '${bold_stderr}${program_name} --help${reset_stderr}'.\n";
-        return 0;
-    }
-
-    return $success;
-}
-
-sub ash_cfgpreset2 {
-    my $directive = shift;
-    my $subcommand = shift;
-    my $argv_ref = shift;
-
-    my @argv = @{$argv_ref};
-
-    my @split = split(":", $directive, 2);
-    my $cfg_command = $split[0];
-    my $cfg_arg = $split[1];
-    my $success = 1;
-
-    if ($cfg_command eq 'save') {
-        unless (defined $cfg_arg) {
-            ash_common::error_output($program_name, "cfg-preset directive ${bold_stderr}${cfg_command}${reset_stderr} requires context");
-            print STDERR "Try ${bold_stderr}${cfg_command}:examplePreset${reset_stderr} or check \'${bold_stderr}${program_name} --help${reset_stderr}\'.\n";
-            return 0;
-        }
-        if (index($cfg_arg, ":") != -1) {
-            ash_common::error_output($program_name, "preset name may not contain ':'");
-            return 0;
-        }
-        $success = ash_common::save_preset($ash_path, $program_name, $quiet, $cfg_arg, $subcommand, \@argv);
-    } elsif ($cfg_command eq 'list') {
-        if (defined $cfg_arg) {
-            $success = ash_common::show_preset($ash_path, $program_name, $quiet, $cfg_arg, $subcommand);
-        } else {
-            $success = ash_common::all_presets($ash_path, $program_name, $quiet, $subcommand);
-        }
-    } elsif ($cfg_command eq 'remove') {
-        unless (defined $cfg_arg) {
-            ash_common::error_output($program_name, "cfg-preset directive ${bold_stderr}${cfg_command}${reset_stderr} requires context");
-            print STDERR "Try ${bold_stderr}${cfg_command}:examplePreset${reset_stderr} or check \'${bold_stderr}${program_name} --help${reset_stderr}\'.\n";
-            return 0;
-        }
-        $success = ash_common::remove_preset($ash_path, $program_name, $quiet, $cfg_arg, $subcommand);
-    } elsif ($cfg_command eq 'edit') {
-        unless (defined $cfg_arg) {
-            ash_common::error_output($program_name, "cfg-preset directive ${bold_stderr}${cfg_command}${reset_stderr} requires context");
-            print STDERR "Try ${bold_stderr}${cfg_command}:examplePreset${reset_stderr} or check \'${bold_stderr}${program_name} --help${reset_stderr}\'.\n";
-            return 0;
-        }
-        if (index($cfg_arg, ":") != -1) {
-            ash_common::error_output($program_name, "preset name may not contain ':'");
-            return 0;
-        }
-        $success = ash_common::edit_preset($ash_path, $program_name, $quiet, $cfg_arg, $subcommand);
-    } elsif ($cfg_command eq 'copy') {
-        unless (defined $cfg_arg) {
-            ash_common::error_output($program_name, "cfg-preset directive ${bold_stderr}${cfg_command}${reset_stderr} requires context");
-            print STDERR "Try ${bold_stderr}${cfg_command}:src_preset:dest_preset${reset_stderr} or check \'${bold_stderr}${program_name} --help${reset_stderr}\'.\n";
-            return 0;
-        }
-        my @split_arg = split(":", $cfg_arg, 2);
-        my $src_arg = $split_arg[0];
-        my $dest_arg = $split_arg[1];
-        unless (defined $dest_arg) {
-            ash_common::error_output($program_name, "cfg-preset directive ${bold_stderr}${cfg_command}${reset_stderr} requires destination context");
-            print STDERR "Try ${bold_stderr}${cfg_command}:${src_arg}:dest_preset${reset_stderr} or check \'${bold_stderr}${program_name} --help${reset_stderr}\'.\n";
-            return 0;
-        }
-        if (index($dest_arg, ":") != -1) {
-            ash_common::error_output($program_name, "destination name may not contain ':'");
-            return 0;
-        }
-        $success = ash_common::copy_preset($ash_path, $program_name, $quiet, $src_arg, $dest_arg, $subcommand);
-    } elsif ($cfg_command eq 'clear') {
-        my $preset_subfolder = File::Spec->catfile($ash_path, $ash_common::PRESETS_FOLDER, $subcommand);
-        unless (-d $preset_subfolder) {
-            error_output($program_name, "no presets found for command ${bold_stderr}${subcommand}${reset_stderr}");
-            return 0;
-        }
-        my $prompt = ash_common::prompt_yn("Removing ${bunl_stdout}all${eunl_stdout} presets for ${bold_stdout}${subcommand}${reset_stdout}. OK?");
-        if ($prompt) {
-            $success = ash_common::remove_all_presets_for_command($ash_path, $program_name, $quiet, $subcommand);
-        } else {
-            $success = 1;
-        }
-    } else {
-        ash_common::error_output($program_name, "unrecognized cfg-preset directive ${bold_stderr}${cfg_command}${reset_stderr}");
-        print STDERR "Try ${bold_stderr}save${reset_stderr}, ${bold_stderr}list${reset_stderr}, ${bold_stderr}remove${reset_stderr}, ${bold_stderr}edit${reset_stderr}, ${bold_stderr}copy${reset_stderr}, or ${bold_stderr}clear${reset_stderr}.\n";
         return 0;
     }
 
