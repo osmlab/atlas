@@ -1017,7 +1017,7 @@ sub remove_active_module_index {
 #   $quiet: suppress non-essential output output
 #   $preset: the name of the preset
 #   $command: the name of the command
-#   $namespace: the namespace to save to
+#   $namespace: the namespace to which to save
 #   $argv_ref: a reference to an array containing all the options and args
 # Return: 1 on success, 0 on failure
 sub save_preset {
@@ -1090,6 +1090,7 @@ sub save_preset {
 #   $quiet: suppress non-essential output
 #   $preset: the name of the preset
 #   $command: the name of the command
+#   $namespace: the namespace from which to remove
 # Return: 1 on success, 0 on failure
 sub remove_preset {
     my $ash_path = shift;
@@ -1097,8 +1098,9 @@ sub remove_preset {
     my $quiet = shift;
     my $preset = shift;
     my $command = shift;
+    my $namespace = shift;
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $command);
+    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
 
     unless (-f $preset_file) {
@@ -1122,14 +1124,16 @@ sub remove_preset {
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $command: the name of the command
+#   $namespace: the namespace from which to remove
 # Return: 1 on success, 0 on failure
 sub remove_all_presets_for_command {
     my $ash_path = shift;
     my $program_name = shift;
     my $quiet = shift;
     my $command = shift;
+    my $namespace = shift;
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $command);
+    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
 
     unless (-d $preset_subfolder) {
         error_output($program_name, "no presets found for command ${bold_stderr}${command}${reset_stderr}");

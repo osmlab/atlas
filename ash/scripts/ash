@@ -228,7 +228,30 @@ sub ash_cfgpreset {
             $success = ash_common::all_presets($ash_path, $program_name, $quiet, $command_context, $current_namespace);
         }
     } elsif ($directive eq 'remove') {
-        # TODO
+        unless (defined $command_context) {
+            ash_common::error_output($program_name, "must specify a target command like ${bold_stderr}show:MyCommand${reset_stderr}");
+            return 0;
+        }
+        unless (defined $subcommand_classes{$command_context}) {
+            ash_common::error_output($program_name, "no such command ${bold_stderr}${command_context}${reset_stderr}");
+            return 0;
+        }
+        my $preset = shift @argv;
+        if (defined $preset) {
+            $success = ash_common::remove_preset($ash_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
+        } else {
+            my $preset_subfolder = File::Spec->catfile($ash_path, $ash_common::PRESETS_FOLDER, $current_namespace, $command_context);
+            unless (-d $preset_subfolder) {
+                error_output($program_name, "no presets found for command ${bold_stderr}${command_context}${reset_stderr}");
+                return 0;
+            }
+            my $prompt = ash_common::prompt_yn("Removing ${bunl_stdout}all${eunl_stdout} presets for ${bold_stdout}${command_context}${reset_stdout}. OK?");
+            if ($prompt) {
+                $success = ash_common::remove_all_presets_for_command($ash_path, $program_name, $quiet, $command_context, $current_namespace);
+            } else {
+                $success = 1;
+            }
+        }
     } elsif ($directive eq 'edit') {
         unless (defined $command_context) {
             ash_common::error_output($program_name, "must specify a target command like ${bold_stderr}edit:MyCommand${reset_stderr}");
@@ -392,9 +415,9 @@ GetOptions(
     "list|l" => \$show_list,
     "class-of=s" => \$class_of,
     "preset|p=s" => \$use_preset,
-    #"cfg-preset" => \$cfg_preset,
     # This callback occurs the first time we see a non-option argument.
-    # In our case, this will be the subcommand.
+    # In our case, this will be the either the 'cfg:preset' command or the
+    # target subcommand.
     "<>" => sub {
         my($arg) = @_;
         if ($arg eq $cfgpreset_start) {
