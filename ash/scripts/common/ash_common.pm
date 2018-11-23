@@ -1057,7 +1057,7 @@ sub remove_preset {
 
     unless (-f $preset_file) {
         error_output($program_name, "no such preset ${bold_stderr}${preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
-        print STDERR "Try \'${bold_stderr}${program_name} --cfgpreset show ${command}${reset_stderr}\' to see presets for ${bold_stderr}${command}${reset_stderr}.\n";
+        print STDERR "Try \'${bold_stderr}${program_name} --cfgpreset list ${command}${reset_stderr}\' to see presets for ${bold_stderr}${command}${reset_stderr}.\n";
         return 0;
     }
 
@@ -1163,7 +1163,7 @@ sub show_preset {
 
     unless (-f $preset_file) {
         error_output($program_name, "no such preset ${bold_stderr}${preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
-        print STDERR "Try \'${bold_stderr}${program_name} --cfgpreset show ${command}${reset_stderr}\' to see presets for ${bold_stderr}${command}${reset_stderr}.\n";
+        print STDERR "Try \'${bold_stderr}${program_name} --cfgpreset list ${command}${reset_stderr}\' to see presets for ${bold_stderr}${command}${reset_stderr}.\n";
         return 0;
     }
 
@@ -1312,7 +1312,7 @@ sub copy_preset {
 
     unless (-e $source_file) {
         error_output($program_name, "no such preset ${bold_stderr}${src_preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
-        print STDERR "Try \'${bold_stderr}${program_name} --cfgpreset show ${command}${reset_stderr}\' to see presets for ${bold_stderr}${command}${reset_stderr}.\n";
+        print STDERR "Try \'${bold_stderr}${program_name} --cfgpreset list ${command}${reset_stderr}\' to see presets for ${bold_stderr}${command}${reset_stderr}.\n";
         return 0;
     }
 
@@ -1355,7 +1355,7 @@ sub apply_preset_or_exit {
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
     unless (-f $preset_file) {
         error_output($program_name, "no such preset ${bold_stderr}${preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
-        print STDERR "Try \'${bold_stderr}${program_name} --cfgpreset show ${command}${reset_stderr}\' to see presets for ${bold_stderr}${command}${reset_stderr}.\n";
+        print STDERR "Try \'${bold_stderr}${program_name} --cfgpreset list ${command}${reset_stderr}\' to see presets for ${bold_stderr}${command}${reset_stderr}.\n";
         exit 1;
     }
 

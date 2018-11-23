@@ -207,7 +207,7 @@ sub ash_cfgpreset {
             return 0;
         }
         $success = ash_common::save_preset($ash_path, $program_name, $quiet, $cfg_arg, $subcommand, \@argv);
-    } elsif ($cfg_command eq 'show') {
+    } elsif ($cfg_command eq 'list') {
         if (defined $cfg_arg) {
             $success = ash_common::show_preset($ash_path, $program_name, $quiet, $cfg_arg, $subcommand);
         } else {
@@ -264,7 +264,7 @@ sub ash_cfgpreset {
         }
     } else {
         ash_common::error_output($program_name, "unrecognized cfg-preset directive ${bold_stderr}${cfg_command}${reset_stderr}");
-        print STDERR "Try ${bold_stderr}save${reset_stderr}, ${bold_stderr}show${reset_stderr}, ${bold_stderr}remove${reset_stderr}, ${bold_stderr}edit${reset_stderr}, ${bold_stderr}copy${reset_stderr}, or ${bold_stderr}clear${reset_stderr}.\n";
+        print STDERR "Try ${bold_stderr}save${reset_stderr}, ${bold_stderr}list${reset_stderr}, ${bold_stderr}remove${reset_stderr}, ${bold_stderr}edit${reset_stderr}, ${bold_stderr}copy${reset_stderr}, or ${bold_stderr}clear${reset_stderr}.\n";
         return 0;
     }
 
