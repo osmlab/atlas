@@ -1056,7 +1056,7 @@ sub save_preset {
             last;
         }
 
-        # detected an option
+        # detect an option or skip non-option arguments
         if (string_starts_with($arg, '--') || string_starts_with($arg, '-')) {
             push @detected_options, $arg;
         } else {
@@ -1319,7 +1319,7 @@ sub edit_preset {
             last;
         }
 
-        # skip non-option arguments
+        # detect an option or skip non-option arguments
         if (string_starts_with($line, '--') || string_starts_with($line, '-')) {
             print $stage_handle "$line\n";
         } else {
