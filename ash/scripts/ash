@@ -213,15 +213,41 @@ sub ash_cfgpreset {
         }
         $success = ash_common::save_preset($ash_path, $program_name, $quiet, $preset, $command_context, $current_namespace, \@argv);
     } elsif ($directive eq 'show') {
-        #
+        unless (defined $command_context) {
+            ash_common::error_output($program_name, "must specify a target subcommand like ${bold_stderr}show:MyCommand${reset_stderr}");
+            return 0;
+        }
+        unless (defined $subcommand_classes{$command_context}) {
+            ash_common::error_output($program_name, "no such command ${bold_stderr}${command_context}${reset_stderr}");
+            return 0;
+        }
+        my $preset = shift @argv;
+        if (defined $preset) {
+            $success = ash_common::show_preset($ash_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
+        } else {
+            $success = ash_common::all_presets($ash_path, $program_name, $quiet, $command_context, $current_namespace);
+        }
     } elsif ($directive eq 'remove') {
-        #
+        # TODO
     } elsif ($directive eq 'edit') {
-        #
+        unless (defined $command_context) {
+            ash_common::error_output($program_name, "must specify a target subcommand like ${bold_stderr}edit:MyCommand${reset_stderr}");
+            return 0;
+        }
+        unless (defined $subcommand_classes{$command_context}) {
+            ash_common::error_output($program_name, "no such command ${bold_stderr}${command_context}${reset_stderr}");
+            return 0;
+        }
+        my $preset = shift @argv;
+        unless (defined $preset) {
+            ash_common::error_output($program_name, "must specify a preset name");
+            return 0;
+        }
+        $success = ash_common::edit_preset($ash_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
     } elsif ($directive eq 'copy') {
-        #
+        # TODO
     } elsif ($directive eq 'namespace') {
-        #
+        # TODO
     } else {
         ash_common::error_output($program_name, "unrecognized ${cfgpreset_start} directive '${bold_stderr}${directive}${reset_stderr}'");
         print STDERR "Check ${bold_stderr}PRESETS${reset_stderr} section of '${bold_stderr}${program_name} --help${reset_stderr}'.\n";

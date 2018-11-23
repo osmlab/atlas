@@ -1103,7 +1103,6 @@ sub remove_preset {
 
     unless (-f $preset_file) {
         error_output($program_name, "no such preset ${bold_stderr}${preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
-        print STDERR "Try \'${bold_stderr}${program_name} --cfgpreset list ${command}${reset_stderr}\' to see presets for ${bold_stderr}${command}${reset_stderr}.\n";
         return 0;
     }
 
@@ -1149,14 +1148,16 @@ sub remove_all_presets_for_command {
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $command: the name of the command
+#   $namespace: the namespace to save to
 # Return: 1 on success, 0 on failure
 sub all_presets {
     my $ash_path = shift;
     my $program_name = shift;
     my $quiet = shift;
     my $command = shift;
+    my $current_namespace = shift;
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $command);
+    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $current_namespace, $command);
 
     unless (-d $preset_subfolder) {
         error_output($program_name, "no presets found for ${bold_stderr}${command}${reset_stderr}.");
@@ -1196,6 +1197,7 @@ sub all_presets {
 #   $quiet: suppress non-essential output
 #   $preset: the name of the preset
 #   $command: the name of the command
+#   $namespace: the namespace to save to
 # Return: 1 on success, 0 on failure
 sub show_preset {
     my $ash_path = shift;
@@ -1203,18 +1205,18 @@ sub show_preset {
     my $quiet = shift;
     my $preset = shift;
     my $command = shift;
+    my $current_namespace = shift;
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $command);
+    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $current_namespace, $command);
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
 
     unless (-f $preset_file) {
         error_output($program_name, "no such preset ${bold_stderr}${preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
-        print STDERR "Try \'${bold_stderr}${program_name} --cfgpreset list ${command}${reset_stderr}\' to see presets for ${bold_stderr}${command}${reset_stderr}.\n";
         return 0;
     }
 
-    my @presets_from_file = read_preset($ash_path, $program_name, $quiet, $preset, $command);
-    print "Command ${bold_stdout}${command}${reset_stdout} preset ${bold_stdout}${preset}${reset_stdout}:\n";
+    my @presets_from_file = read_preset($ash_path, $program_name, $quiet, $preset, $command, $current_namespace);
+    print "Preset ${bold_stdout}${preset}${reset_stdout} for command ${bold_stdout}${command}${reset_stdout}:\n";
     print "\n${bunl_stdout}Preset ARGV${eunl_stdout}${reset_stdout}\n";
     for my $preset_from_file (@presets_from_file) {
         print "${bold_stdout}${preset_from_file}${reset_stderr}\n";
@@ -1231,6 +1233,7 @@ sub show_preset {
 #   $quiet: suppress non-essential output
 #   $preset: the name of the preset
 #   $command: the name of the command
+#   $namespace: the namespace
 # Return: 1 on success, 0 on failure
 sub edit_preset {
     my $ash_path = shift;
@@ -1238,8 +1241,9 @@ sub edit_preset {
     my $quiet = shift;
     my $preset = shift;
     my $command = shift;
+    my $namespace = shift;
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $command);
+    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
 
     my $creating_from_scratch = 0;
@@ -1247,7 +1251,7 @@ sub edit_preset {
         $creating_from_scratch = 1;
     }
 
-    my @presets_from_file = read_preset($ash_path, $program_name, $quiet, $preset, $command);
+    my @presets_from_file = read_preset($ash_path, $program_name, $quiet, $preset, $command, $namespace);
 
     my $handle;
     my $stage_handle;
@@ -1330,7 +1334,7 @@ sub edit_preset {
     # TODO File::Copy vs system 'cp', see pitfalls: https://www.perlmonks.org/?node_id=582433
     system("cp $preset_stage_file $preset_file");
     close $tmpdir;
-    show_preset($ash_path, $program_name, $quiet, $preset, $command);
+    show_preset($ash_path, $program_name, $quiet, $preset, $command, $namespace);
 
     return 1;
 }
@@ -1358,13 +1362,11 @@ sub copy_preset {
 
     unless (-e $source_file) {
         error_output($program_name, "no such preset ${bold_stderr}${src_preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
-        print STDERR "Try \'${bold_stderr}${program_name} --cfgpreset list ${command}${reset_stderr}\' to see presets for ${bold_stderr}${command}${reset_stderr}.\n";
         return 0;
     }
 
     if (-e $dest_file) {
         error_output($program_name, "preset ${bold_stderr}${dest_preset}${reset_stderr} already exists for ${bold_stderr}${command}${reset_stderr}");
-        print STDERR "Try '${bold_stderr}${program_name} --cfgpreset remove:${dest_preset} ${command}${reset_stderr}' to remove.\n";
         return 0;
     }
 
@@ -1401,7 +1403,6 @@ sub apply_preset_or_exit {
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
     unless (-f $preset_file) {
         error_output($program_name, "no such preset ${bold_stderr}${preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
-        print STDERR "Try \'${bold_stderr}${program_name} --cfgpreset list ${command}${reset_stderr}\' to see presets for ${bold_stderr}${command}${reset_stderr}.\n";
         exit 1;
     }
 
@@ -1426,6 +1427,7 @@ sub apply_preset_or_exit {
 #   $quiet: suppress non-essential output
 #   $preset: the name of the preset
 #   $command: the name of the command
+#   $namespace: the current namespace
 # Return: the preset array, or an empty array on error
 sub read_preset {
     my $ash_path = shift;
@@ -1433,8 +1435,9 @@ sub read_preset {
     my $quiet = shift;
     my $preset = shift;
     my $command = shift;
+    my $namespace = shift;
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $command);
+    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
 
     unless (-f $preset_file) {
