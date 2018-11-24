@@ -445,7 +445,8 @@ my @new_argv = @ARGV;
 
 # Check if a preset is being used
 if (defined $use_preset) {
-    @new_argv = ash_common::apply_preset_or_exit($ash_path, $program_name, $quiet, $use_preset, $subcommand, \@ARGV);
+    my $current_namespace = ash_common::get_namespace($ash_path);
+    @new_argv = ash_common::apply_preset_or_save($ash_path, $program_name, $quiet, $use_preset, $subcommand, $current_namespace, \@ARGV);
 }
 
 # Set up the subcommand to execute using the JVM

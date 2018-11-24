@@ -74,7 +74,7 @@ our @EXPORT = qw(
     show_preset
     edit_preset
     copy_preset
-    apply_preset_or_exit
+    apply_preset_or_save
     read_preset
     string_starts_with
     is_dir_empty
@@ -1159,9 +1159,9 @@ sub all_presets {
     my $program_name = shift;
     my $quiet = shift;
     my $command = shift;
-    my $current_namespace = shift;
+    my $namespace = shift;
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $current_namespace, $command);
+    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
 
     unless (-d $preset_subfolder) {
         error_output($program_name, "no presets found for ${bold_stderr}${command}${reset_stderr}.");
@@ -1209,9 +1209,9 @@ sub show_preset {
     my $quiet = shift;
     my $preset = shift;
     my $command = shift;
-    my $current_namespace = shift;
+    my $namespace = shift;
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $current_namespace, $command);
+    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
 
     unless (-f $preset_file) {
@@ -1219,7 +1219,7 @@ sub show_preset {
         return 0;
     }
 
-    my @presets_from_file = read_preset($ash_path, $program_name, $quiet, $preset, $command, $current_namespace);
+    my @presets_from_file = read_preset($ash_path, $program_name, $quiet, $preset, $command, $namespace);
     print "Preset ${bold_stdout}${preset}${reset_stdout} for command ${bold_stdout}${command}${reset_stdout}:\n";
     print "\n${bunl_stdout}Preset ARGV${eunl_stdout}${reset_stdout}\n";
     for my $preset_from_file (@presets_from_file) {
@@ -1386,33 +1386,42 @@ sub copy_preset {
 }
 
 # Apply a preset for a given command. Returns an updated argv array with the
-# preset applied.
+# preset applied. If the preset does not exist, it will instead save argv
+# into the preset.
 # Params:
 #   $ash_path: the path to the ash data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppres non-essential output
 #   $preset: the name of the preset
 #   $command: the name of the command
+#   $namespace: the namespace
 #   $argv_ref: a reference to an array containing all the options and args
 # Return: the updated argv array
-sub apply_preset_or_exit {
+sub apply_preset_or_save {
     my $ash_path = shift;
     my $program_name = shift;
     my $quiet = shift;
     my $preset = shift;
     my $command = shift;
+    my $namespace = shift;
     my $argv_ref = shift;
 
     my @argv = @{$argv_ref};
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $command);
+    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
     unless (-f $preset_file) {
-        error_output($program_name, "no such preset ${bold_stderr}${preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
-        exit 1;
+        warn_output($program_name, "preset ${bold_stderr}${preset}${reset_stderr} not found, creating...");
+        my $success = save_preset($ash_path, $program_name, $quiet, $preset, $command, $namespace, \@argv);
+        if ($success) {
+            print "Starting command ${bold_stdout}${command}${reset_stdout} with new preset ${bold_stdout}${preset}${reset_stdout}...\n";
+        } else {
+            print "Aborting creation of preset ${bold_stdout}${preset}${reset_stdout}...\n";
+        }
+        return @argv;
     }
 
-    my @argv_from_presets = read_preset($ash_path, $program_name, $quiet, $preset, $command);
+    my @argv_from_presets = read_preset($ash_path, $program_name, $quiet, $preset, $command, $namespace);
     my @final_argv = ();
 
     foreach my $preset_argv_elem (@argv_from_presets) {
