@@ -288,14 +288,51 @@ sub ash_cfgpreset {
         }
         $success = ash_common::copy_preset($ash_path, $program_name, $quiet, $src_preset, $dest_preset, $command_context, $current_namespace);
     } elsif ($directive eq 'namespace') {
-        # TODO implement the namespace code
+        $success = ash_cfgpreset_namespace($current_namespace, \@argv);
     } else {
-        ash_common::error_output($program_name, "unrecognized ${cfgpreset_start} directive '${bold_stderr}${directive}${reset_stderr}'");
-        print STDERR "Check ${bold_stderr}PRESETS${reset_stderr} section of '${bold_stderr}${program_name} --help${reset_stderr}'.\n";
+        ash_common::error_output($program_name, "unrecognized ${bold_stderr}${cfgpreset_start}${reset_stderr} directive '${bold_stderr}${directive}${reset_stderr}'");
+        print STDERR "Try ${bold_stderr}save${reset_stderr}, ${bold_stderr}show${reset_stderr}, ${bold_stderr}remove${reset_stderr}, ${bold_stderr}edit${reset_stderr}, ${bold_stderr}copy${reset_stderr}, or ${bold_stderr}namespace${reset_stderr}.\n";
         return 0;
     }
 
     return $success;
+}
+
+sub ash_cfgpreset_namespace {
+    my $current_namespace = shift;
+    my $argv_ref = shift;
+
+    my @argv = @{$argv_ref};
+    my %subcommand_classes = get_subcommand_to_class_hash($ash_path);
+    my $success = 1;
+
+    my $subdirective = shift @argv;
+
+    unless (defined $subdirective) {
+        ash_common::error_output($program_name, "${bold_stderr}${cfgpreset_start} namespace${reset_stderr} requires a subdirective");
+        return 0;
+    }
+
+    if ($subdirective eq 'list') {
+        $success = ash_common::all_namespaces($ash_path, $program_name, $quiet);
+    } elsif ($subdirective eq 'use') {
+        #
+    } elsif ($subdirective eq 'create') {
+        my $new_namespace = shift @argv;
+        unless (defined $new_namespace) {
+            ash_common:error_output($program_name, "must specify a new preset name");
+            return 0;
+        }
+        $success = ash_common::create_namespace($ash_path, $program_name, $quiet, $new_namespace);
+    } elsif ($subdirective eq 'remove') {
+        #
+    } else {
+        ash_common::error_output($program_name, "unrecognized ${bold_stderr}${cfgpreset_start} namespace${reset_stderr} subdirective '${bold_stderr}${subdirective}${reset_stderr}'");
+        print STDERR "Try ${bold_stderr}list${reset_stderr}, ${bold_stderr}create${reset_stderr}, ${bold_stderr}use${reset_stderr}, or ${bold_stderr}remove${reset_stderr}.\n";
+        return 0;
+    }
+
+    return 1;
 }
 
 ########## END SUBROUTINES ##########

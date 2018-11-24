@@ -76,6 +76,8 @@ our @EXPORT = qw(
     copy_preset
     apply_preset_or_save
     read_preset
+    all_namespaces
+    create_namespace
     string_starts_with
     is_dir_empty
     ansi_red
@@ -1164,7 +1166,7 @@ sub all_presets {
     my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
 
     unless (-d $preset_subfolder) {
-        error_output($program_name, "no presets found for ${bold_stderr}${command}${reset_stderr}.");
+        error_output($program_name, "no presets found for ${bold_stderr}${command}${reset_stderr}");
         return 0;
     }
 
@@ -1181,13 +1183,13 @@ sub all_presets {
     }
 
     if (scalar @filtered_presets == 0) {
-        error_output($program_name, "no presets found for ${bold_stderr}${command}${reset_stderr}.");
+        error_output($program_name, "no presets found for ${bold_stderr}${command}${reset_stderr}");
         return 0;
     }
 
     print "Command ${bold_stdout}${command}${reset_stdout} presets:\n\n";
     for my $found_preset (sort {lc $a cmp lc $b} @filtered_presets) {
-        print "${bold_stdout}${found_preset}${reset_stdout}\n";
+        print "    ${bold_stdout}${found_preset}${reset_stdout}\n";
     }
     print "\n";
 
@@ -1471,6 +1473,93 @@ sub read_preset {
 
     close($file_handle);
     return @options;
+}
+
+# Print all namespaces, and denote the current checked out namespace.
+# Params:
+#   $ash_path: the path to the ash data folder
+#   $program_name: the name of the calling program
+#   $quiet: suppress non-essential output
+# Return: 1 on success, 0 on failure
+sub all_namespaces {
+    my $ash_path = shift;
+    my $program_name = shift;
+    my $quiet = shift;
+
+    my $current_namespace = get_namespace($ash_path);
+    my $preset_folder = File::Spec->catfile($ash_path, $PRESETS_FOLDER);
+
+    unless (-d $preset_folder) {
+        die "The folder $PRESETS_FOLDER did not exist at $ash_path";
+    }
+
+    opendir my $presets_dir_handle, $preset_folder or die "Something went wrong opening dir: $!";
+    my @namespaces = readdir $presets_dir_handle;
+    close $presets_dir_handle;
+
+    # we need to filter '.', '..', and '.current_namespace'
+    my @filtered_namespaces = ();
+    for my $found_namespace (@namespaces) {
+        unless ($found_namespace eq '.' || $found_namespace eq '..'
+                || $found_namespace eq $NAMESPACE_FILE) {
+            push @filtered_namespaces, $found_namespace;
+        }
+    }
+
+    if (scalar @filtered_namespaces == 0) {
+        error_output($program_name, "no namespaces found");
+        return 0;
+    }
+
+    print "${bold_stdout}Preset namespaces:${reset_stdout}\n\n";
+    for my $found_namespace (sort {lc $a cmp lc $b} @filtered_namespaces) {
+        if ($found_namespace eq $current_namespace) {
+            print "    * ${bold_stdout}${green_stdout}${found_namespace}${reset_stdout}\n";
+        } else {
+            print "      ${found_namespace}\n";
+        }
+    }
+    print "\n";
+
+    return 1;
+}
+
+# Create a new namespace.
+# Params:
+#   $ash_path: the path to the ash data folder
+#   $program_name: the name of the calling program
+#   $quiet: suppress non-essential output
+#   $new_namespace: the namespace to create
+# Return: 1 on success, 0 on failure
+sub create_namespace {
+    my $ash_path = shift;
+    my $program_name = shift;
+    my $quiet = shift;
+    my $new_namespace = shift;
+
+    my $current_namespace = get_namespace($ash_path);
+    my $preset_folder = File::Spec->catfile($ash_path, $PRESETS_FOLDER);
+    my $new_namespace_folder = File::Spec->catfile($preset_folder, $new_namespace);
+
+    unless (-d $preset_folder) {
+        die "The folder $PRESETS_FOLDER did not exist at $ash_path";
+    }
+
+    if (-d $new_namespace_folder) {
+        error_output($program_name, "namespace ${bold_stderr}${new_namespace}${reset_stderr} already exists");
+        return 0;
+    }
+
+    make_path("$new_namespace_folder", {
+        verbose => 0,
+        mode => 0755
+    });
+
+    unless ($quiet) {
+        print "Created namespace ${bold_stdout}${new_namespace}${reset_stdout}.\n";
+    }
+
+    return 1;
 }
 
 # Check if a given string starts with a given prefix.
