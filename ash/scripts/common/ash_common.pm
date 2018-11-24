@@ -78,6 +78,8 @@ our @EXPORT = qw(
     read_preset
     all_namespaces
     create_namespace
+    use_namespace
+    remove_namespace
     string_starts_with
     is_dir_empty
     ansi_red
@@ -180,7 +182,9 @@ sub create_data_directory {
     my $full_log4j_path = File::Spec->catfile($data_directory, $LOG4J_FOLDER);
     my $full_module_path = File::Spec->catfile($data_directory, $MODULES_FOLDER);
     my $full_presets_path = File::Spec->catfile($data_directory, $PRESETS_FOLDER);
-    make_path("$data_directory", "$full_module_path", "$full_log4j_path", "$full_presets_path", {
+    my $default_namespace_path = File::Spec->catfile($data_directory, $PRESETS_FOLDER, $DEFAULT_NAMESPACE);
+    make_path("$data_directory", "$full_module_path", "$full_log4j_path",
+              "$full_presets_path", "$default_namespace_path", {
         verbose => 0,
         mode => 0755
     });
@@ -1557,6 +1561,85 @@ sub create_namespace {
 
     unless ($quiet) {
         print "Created namespace ${bold_stdout}${new_namespace}${reset_stdout}.\n";
+    }
+
+    return 1;
+}
+
+# Check out a given namespace.
+# Params:
+#   $ash_path: the path to the ash data folder
+#   $program_name: the name of the calling program
+#   $quiet: suppress non-essential output
+#   $namespace: the namespace to use
+# Return: 1 on success, 0 on failure
+sub use_namespace {
+    my $ash_path = shift;
+    my $program_name = shift;
+    my $quiet = shift;
+    my $namespace = shift;
+
+    my $preset_folder = File::Spec->catfile($ash_path, $PRESETS_FOLDER);
+    my $namespace_folder = File::Spec->catfile($preset_folder, $namespace);
+
+    unless (-d $preset_folder) {
+        die "The folder $PRESETS_FOLDER did not exist at $ash_path";
+    }
+
+    unless (-d $namespace_folder) {
+        error_output($program_name, "no such namespace ${bold_stderr}${namespace}${reset_stderr}");
+        return 0;
+    }
+
+    reset_namespace($ash_path, $namespace);
+
+    unless ($quiet) {
+        print "Now using namespace ${bold_stdout}${namespace}${reset_stdout}.\n";
+    }
+
+    return 1;
+}
+
+# Remove a namespace.
+# Params:
+#   $ash_path: the path to the ash data folder
+#   $program_name: the name of the calling program
+#   $quiet: suppress non-essential output
+#   $namespace: the namespace to remove
+# Return: 1 on success, 0 on failure
+sub remove_namespace {
+    my $ash_path = shift;
+    my $program_name = shift;
+    my $quiet = shift;
+    my $namespace = shift;
+
+    my $current_namespace = get_namespace($ash_path);
+    my $preset_folder = File::Spec->catfile($ash_path, $PRESETS_FOLDER);
+    my $namespace_folder = File::Spec->catfile($preset_folder, $namespace);
+
+    unless (-d $preset_folder) {
+        die "The folder $PRESETS_FOLDER did not exist at $ash_path";
+    }
+
+    unless (-d $namespace_folder) {
+        error_output($program_name, "no such namespace ${bold_stderr}${namespace}${reset_stderr}");
+        return 0;
+    }
+
+    if ($namespace eq $DEFAULT_NAMESPACE) {
+        error_output($program_name, "cannot remove the default namespace");
+        return 0;
+    }
+
+    if ($namespace eq $current_namespace) {
+        error_output($program_name, "cannot remove in-use namespace ${bold_stderr}${namespace}${reset_stderr}");
+        return 0;
+    }
+
+    rmtree($namespace_folder);
+
+    unless ($quiet) {
+        print "Removed namespace ${bold_stdout}${namespace}${reset_stdout}.\n";
     }
 
     return 1;

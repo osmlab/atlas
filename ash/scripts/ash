@@ -316,16 +316,26 @@ sub ash_cfgpreset_namespace {
     if ($subdirective eq 'list') {
         $success = ash_common::all_namespaces($ash_path, $program_name, $quiet);
     } elsif ($subdirective eq 'use') {
-        #
+        my $namespace = shift @argv;
+        unless (defined $namespace) {
+            ash_common:error_output($program_name, "must specify a namespace");
+            return 0;
+        }
+        $success = ash_common::use_namespace($ash_path, $program_name, $quiet, $namespace);
     } elsif ($subdirective eq 'create') {
         my $new_namespace = shift @argv;
         unless (defined $new_namespace) {
-            ash_common:error_output($program_name, "must specify a new preset name");
+            ash_common:error_output($program_name, "must specify a new namespace");
             return 0;
         }
         $success = ash_common::create_namespace($ash_path, $program_name, $quiet, $new_namespace);
     } elsif ($subdirective eq 'remove') {
-        #
+        my $namespace = shift @argv;
+        unless (defined $namespace) {
+            ash_common:error_output($program_name, "must specify a namespace");
+            return 0;
+        }
+        $success = ash_common::remove_namespace($ash_path, $program_name, $quiet, $namespace);
     } else {
         ash_common::error_output($program_name, "unrecognized ${bold_stderr}${cfgpreset_start} namespace${reset_stderr} subdirective '${bold_stderr}${subdirective}${reset_stderr}'");
         print STDERR "Try ${bold_stderr}list${reset_stderr}, ${bold_stderr}create${reset_stderr}, ${bold_stderr}use${reset_stderr}, or ${bold_stderr}remove${reset_stderr}.\n";

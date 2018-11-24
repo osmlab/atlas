@@ -31,7 +31,7 @@ ash \-- run an Atlas shell tool
 \fIash\fR [\-V | \-\-version]
 \fIash\fR [\-\-no-pager] [\-l | \-\-list]
 \fIash\fR [\-\-class\-of=<\fIcommand\fR>]
-\fIash\fR [\-\-quiet] cfg:preset [args...]
+\fIash\fR [\-\-quiet] cfg:preset <directive> [args...]
 \fIash\fR [\-\-no\-pager] [\-\-memory=<amount>] [\-\-preset=<preset>]
     <\fIcommand\fR> [arg...]
 .fi
@@ -52,7 +52,7 @@ seen with the \fB--list\fR option.
 .RE
 
 .PP
-\fBcfg:preset\fR
+\fBcfg:preset\fR <directive> [args...]
 .RS 4
 This special subcommand puts \fBash\fR into preset configuration mode \- allowing
 the user to run a preset configuration directive with some arguments. When the
