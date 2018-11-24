@@ -1071,6 +1071,9 @@ sub save_preset {
     }
 
     if (scalar @detected_options == 0) {
+        if (is_dir_empty($preset_subfolder)) {
+            rmdir($preset_subfolder);
+        }
         error_output($program_name, "cannot save an empty preset");
         return 0;
     }
@@ -1254,6 +1257,10 @@ sub edit_preset {
     my $namespace = shift;
 
     my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
+    make_path("$preset_subfolder", {
+        verbose => 0,
+        mode => 0755
+    });
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
 
     my $creating_from_scratch = 0;
@@ -1291,6 +1298,9 @@ sub edit_preset {
     unless (defined $editor) {
         error_output($program_name, "could not obtain a valid editor");
         print STDERR "Please point the ${bold_stdout}EDITOR${reset_stdout} environment variable at a valid editor.\n";
+        if (is_dir_empty($preset_subfolder)) {
+            rmdir($preset_subfolder);
+        }
         return 0;
     }
 
@@ -1338,6 +1348,9 @@ sub edit_preset {
     # Verify that the staged preset file is not empty
     if (-z $preset_stage_file) {
         error_output($program_name, "preset cannot be empty");
+        if (is_dir_empty($preset_subfolder)) {
+            rmdir($preset_subfolder);
+        }
         return 0;
     }
 
