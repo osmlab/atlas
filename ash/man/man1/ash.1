@@ -171,12 +171,12 @@ The three usage tiers are:
 \fBTIER 1\fR
 .RS 4
 Tier 1 provides a simple, lightweight interface for preset usage through the
-\fB\-\-preset\fR option. This option takes an \fIargument\fR \- the name of the preset
-you would like to use or create. When running a command with the preset option,
+\fB\-\-preset\fR=\fIname\fR option, where \fIname\fR is the name of the preset
+you would like to use or create. When running a command with the \fB\-\-preset\fR option,
 \fBash\fR checks the list of saved presets associated with that command. If one of
-those presets matches with the \fIargument\fR, \fBash\fR uses that preset. If
-\fBash\fR cannot find a match with the \fIargument\fR, then it creates a new preset,
-with name \fIargument\fR, based on the current ARGV.
+those presets matches with \fIname\fR, \fBash\fR uses that preset. If
+\fBash\fR cannot find a match with \fIname\fR, it creates a new preset
+\fIname\fR, based on the current ARGV.
 
 Let's look at a quick example of \fB\-\-preset\fR in action.
 We will run a command called "MyCommand" and assume preset "p1" does not yet exist:
@@ -188,7 +188,8 @@ $ ash \-\-preset=p1 MyCommand arg1 \-\-opt1 arg2 \-\-opt2=opt2Arg
 This will save a preset "p1" for "MyCommand" with contents ["\-\-opt1", "\-\-opt2=opt2Arg"]
 and then run the command. Note that the preset engine only saves options, and so will
 automatically discard any ARGV element that does not look like an option. For this reason,
-it is critical that when saving presets you use the '=' syntax for specifying option arguments.
+you must use the long option '=' syntax for specifying option arguments when saving
+a preset.
 .sp
 Now that you have saved preset "p1" for "MyCommand", you can apply it like:
 .sp
@@ -225,11 +226,13 @@ Below are the available directives:
 
 .sp
 .RS 4
-\fIsave\fR:\fIcommand\fR <name> <args...>
+\fBsave\fR:\fIcommand\fR <name> <args...>
 .RS 4
-Save a preset <name> for command \fIcommand\fR without actually running the command.
-<args...> is a sequence of options to be saved in the preset. The following
-example saves preset "p1" to command "MyCommand" with some options --opt1 and --opt2:
+Save a preset <name> for \fIcommand\fR without actually running the command.
+<args...> is a sequence of options to be saved in the preset.
+Again, recall that you must use the long option '=' syntax for specifying option
+arguments when saving a preset. The following example saves preset "p1" to command
+"MyCommand" with some options --opt1 and --opt2:
 .sp
 .RS 4
 $ ash cfg:preset save:MyCommand p1 --opt1 --opt2=opt2Arg
@@ -239,34 +242,78 @@ $ ash cfg:preset save:MyCommand p1 --opt1 --opt2=opt2Arg
 
 .sp
 .RS 4
-\fIshow\fR:\fIcommand\fR [name]
+\fBshow\fR:\fIcommand\fR [name]
 .RS 4
 Show all presets for a given \fIcommand\fR, or show contents of preset [name]
-for \fIcommand\fR. Example:
+for \fIcommand\fR. The following example shows the contents of preset "p1"
+for command "MyCommand":
 .sp
 .RS 4
 $ ash cfg:preset show:MyCommand p1
 .RE
 .sp
-This shows the contents of preset "p1" for command "MyCommand".
+Omitting the "p1" argument would have shown all presets for "MyCommand".
 .RE
 .RE
 
 .sp
 .RS 4
-\fIremove\fR
+\fBremove\fR:\fIcommand\fR [name]
+.RS 4
+Remove all presets for a given command, or remove the preset [name] for
+\fIcommand\fR. The following example removes all presets for command "MyCommand",
+then removes preset "p1" for command "AnotherCommand":
+.sp
+.RS 4
+$ ash cfg:preset remove:MyCommand
+
+$ ash cfg:preset remove:AnotherCommand p1
+.RE
+.sp
+.RE
 .RE
 
 .sp
 .RS 4
-\fIedit\fR
+\fBedit\fR:\fIcommand\fR <name>
+.RS 4
+Edit preset <name> for \fIcommand\fR. If <name> does not exist, then it will be
+created when the edit is successfully saved. The default preset editor is \fBvim\fR,
+but this can be changed by setting the \fBEDITOR\fR environment variable. The following
+example will edit preset "p1" for command "MyCommand":
+.sp
+.RS 4
+$ ash cfg:preset edit:MyCommand p1
+.RE
+.RE
 .RE
 
 .sp
 .RS 4
-\fIcopy\fR
+\fBcopy\fR:\fIcommand\fR <source> <destination>
+.RS 4
+Copy preset <source> into new preset <destination>, for \fIcommand\fR.
+<destination> must not already exist, else the copy will fail. The following example
+copies the preset "p1" into new preset "p2", for command "MyCommand":
+.sp
+.RS 4
+$ ash cfg:preset copy:MyCommand p1 p2
+.RE
+.sp
+The \fBcopy\fR directive is useful in combination with the \fBedit\fR directive \-
+when you want to have multiple versions of a large preset, each with some minor differences.
+.RE
 .RE
 
+.sp
+.RS 4
+\fBnamespace\fR <subdirective> [namespace]
+.RS 4
+Execute a <subdirective> on a given preset [namespace]. Available subdirectives are
+\fBlist\fR, \fBuse\fR, \fBcreate\fR, and \fBremove\fR. Preset namespaces \-
+and the \fBnamespace\fR directive\- are explained in more detail in the
+\fBTIER 3\fR section found below.
+.RE
 .RE
 .sp
 
@@ -278,7 +325,7 @@ TODO tier 3 info
 
 .SH "TERMINAL AND ENVIRONMENT"
 .sp
-\fBash\fr pages the output of the various help messages using a combination of
+\fBash\fR pages the output of the various help messages using a combination of
 \fBless\fR and \fBman\fR. Subcommand help pages are piped through \fBless\fR
 by default, but this can be overridden with the \fBPAGER\fR environment variable.
 The actual \fBash\fR manual page (which you are currently reading) is displayed
