@@ -244,12 +244,12 @@ public class SimpleOptionAndArgumentParser
     public static final String LONG_FORM_PREFIX = "--";
     public static final String SHORT_FORM_PREFIX = "-";
     public static final String OPTION_ARGUMENT_DELIMITER = "=";
-    private static final String END_OPTIONS_OPERATOR = "--";
+    public static final String END_OPTIONS_OPERATOR = "--";
 
     private static final String DEFAULT_LONG_HELP = LONG_FORM_PREFIX + "help";
     private static final String DEFAULT_SHORT_HELP = SHORT_FORM_PREFIX + "h";
-    private static final Object DEFAULT_LONG_VERSION = LONG_FORM_PREFIX + "version";
-    private static final Object DEFAULT_SHORT_VERSION = SHORT_FORM_PREFIX + "V";
+    private static final String DEFAULT_LONG_VERSION = LONG_FORM_PREFIX + "version";
+    private static final String DEFAULT_SHORT_VERSION = SHORT_FORM_PREFIX + "V";
 
     private final Set<SimpleOption> registeredOptions;
     private final Map<String, ArgumentArity> registeredArgumentHintToArity;

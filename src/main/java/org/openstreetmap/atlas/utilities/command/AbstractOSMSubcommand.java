@@ -697,9 +697,9 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
         final Set<SimpleOption> options = this.parser.getRegisteredOptions();
         final TTYStringBuilder builder = getTTYStringBuilderForStdout();
 
-        builder.append("\n");
+        builder.newline();
 
-        builder.append("NAME\n", TTYAttribute.BOLD);
+        builder.append("NAME", TTYAttribute.BOLD).newline();
         DocumentationFormatter.indentBuilderToLevel(
                 DocumentationFormatter.DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
         builder.append(name + " -- " + simpleDescription).newline().newline();
