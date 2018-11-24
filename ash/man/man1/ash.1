@@ -47,7 +47,7 @@ advanced module management capabilities, please see \fBash-config\fR(1).
 .PP
 <\fIcommand\fR>
 .RS 4
-This indicates a subcommand. A list of currently available subcommands can be
+This indicates a subcommand. A list of available subcommands can be
 seen with the \fB--list\fR option.
 .RE
 
@@ -142,6 +142,139 @@ Run MyCommand with preset p1:
 .RS 4
 $ ash \-\-preset=p1 MyCommand arg1 \-\-opt2=overridePresetArg
 .RE
+.sp
+Edit preset p1 for MyCommand:
+.sp
+.RS 4
+$ ash cfg:preset edit:MyCommand p1
+.RE
+
+.SH "PRESETS"
+.sp
+\fBash\fR features a robust command presets system. Presets provide a way to save
+command options and their arguments for future application. Preset usage is
+divided into 3 tiers. Each tier supports an increasing number of potential use
+cases at the cost of added complexity for the user. The tiers are designed such
+that you can stop at any tier you feel comfortable using \- without needing
+to understand how the next tier up works.
+
+The three usage tiers are:
+.sp
+.RS 4
+\fBTier 1)\fR Basic preset creation and use with the \fB\-\-preset\fR option.
+
+\fBTier 2)\fR More advanced preset management with \fBcfg:preset\fR, including editing, copying, etc.
+
+\fBTier 3)\fR Preset namespace management with \fBcfg:preset namespace\fR.
+.RE
+
+\fBTIER 1\fR
+.RS 4
+Tier 1 provides a simple, lightweight interface for preset usage through the
+\fB\-\-preset\fR option. This option takes an \fIargument\fR \- the name of the preset
+you would like to use or create. When running a command with the preset option,
+\fBash\fR checks the list of saved presets associated with that command. If one of
+those presets matches with the \fIargument\fR, \fBash\fR uses that preset. If
+\fBash\fR cannot find a match with the \fIargument\fR, then it creates a new preset,
+with name \fIargument\fR, based on the current ARGV.
+
+Let's look at a quick example of \fB\-\-preset\fR in action.
+We will run a command called "MyCommand" and assume preset "p1" does not yet exist:
+.sp
+.RS 4
+$ ash \-\-preset=p1 MyCommand arg1 \-\-opt1 arg2 \-\-opt2=opt2Arg
+.RE
+.sp
+This will save a preset "p1" for "MyCommand" with contents ["\-\-opt1", "\-\-opt2=opt2Arg"]
+and then run the command. Note that the preset engine only saves options, and so will
+automatically discard any ARGV element that does not look like an option. For this reason,
+it is critical that when saving presets you use the '=' syntax for specifying option arguments.
+.sp
+Now that you have saved preset "p1" for "MyCommand", you can apply it like:
+.sp
+.RS 4
+$ ash \-\-preset=p1 MyCommand arg1 arg2
+.RE
+.sp
+This will run the exact same command we ran before but saves us from having
+to type out \-\-opt1, \-\-opt2 with their arguments. In addition to simply applying
+a preset verbatim, you can also override a saved option by specifying it again on the command line:
+.sp
+.RS 4
+$ ash \-\-preset=p1 MyCommand arg1 \-\-opt2=OverrideOpt2Arg arg2
+.RE
+.sp
+This will run the same command as the above 2 examples, except it will override
+the preset value of \-\-opt2 with your new value "OverrideOpt2Arg".
+.sp
+Note that preset names are bound to the target command at save\-time \- 
+a preset name without a command context is meaningless. This means that preset
+"p1" for "ExampleCommand" and preset "p1" for "MyCommand" may contain
+completely different values!
+.RE
+.sp
+
+\fBTIER 2\fR
+.RS 4
+Tier 2 provides more advanced preset management, using a special argument to \fBash\fR
+called \fBcfg:preset\fR. \fBcfg:preset\fR takes a mandatory \fIdirective\fR, each
+of which is a verb specifying a configuration action. Note that many of the
+directives require additional command context, which is specified using the ':'
+operator (recall that preset names are meaningless without an associated command).
+Below are the available directives:
+
+.sp
+.RS 4
+\fIsave\fR:\fIcommand\fR <name> <args...>
+.RS 4
+Save a preset <name> for command \fIcommand\fR without actually running the command.
+<args...> is a sequence of options to be saved in the preset. The following
+example saves preset "p1" to command "MyCommand" with some options --opt1 and --opt2:
+.sp
+.RS 4
+$ ash cfg:preset save:MyCommand p1 --opt1 --opt2=opt2Arg
+.RE
+.RE
+.RE
+
+.sp
+.RS 4
+\fIshow\fR:\fIcommand\fR [name]
+.RS 4
+Show all presets for a given \fIcommand\fR, or show contents of preset [name]
+for \fIcommand\fR. Example:
+.sp
+.RS 4
+$ ash cfg:preset show:MyCommand p1
+.RE
+.sp
+This shows the contents of preset "p1" for command "MyCommand".
+.RE
+.RE
+
+.sp
+.RS 4
+\fIremove\fR
+.RE
+
+.sp
+.RS 4
+\fIedit\fR
+.RE
+
+.sp
+.RS 4
+\fIcopy\fR
+.RE
+
+.RE
+.sp
+
+\fBTIER 3\fR
+.RS 4
+TODO tier 3 info
+.RE
+.sp
 
 .SH "TERMINAL AND ENVIRONMENT"
 .sp

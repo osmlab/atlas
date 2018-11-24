@@ -199,7 +199,7 @@ sub ash_cfgpreset {
 
     if ($directive eq 'save') {
         unless (defined $command_context) {
-            ash_common::error_output($program_name, "must specify a target command like ${bold_stderr}save:MyCommand${reset_stderr}");
+            ash_common::error_output($program_name, "must specify a command context like ${bold_stderr}save:MyCommand${reset_stderr}");
             return 0;
         }
         unless (defined $subcommand_classes{$command_context}) {
@@ -214,7 +214,7 @@ sub ash_cfgpreset {
         $success = ash_common::save_preset($ash_path, $program_name, $quiet, $preset, $command_context, $current_namespace, \@argv);
     } elsif ($directive eq 'show') {
         unless (defined $command_context) {
-            ash_common::error_output($program_name, "must specify a target command like ${bold_stderr}show:MyCommand${reset_stderr}");
+            ash_common::error_output($program_name, "must specify a command context like ${bold_stderr}show:MyCommand${reset_stderr}");
             return 0;
         }
         unless (defined $subcommand_classes{$command_context}) {
@@ -229,7 +229,7 @@ sub ash_cfgpreset {
         }
     } elsif ($directive eq 'remove') {
         unless (defined $command_context) {
-            ash_common::error_output($program_name, "must specify a target command like ${bold_stderr}show:MyCommand${reset_stderr}");
+            ash_common::error_output($program_name, "must specify a command context like ${bold_stderr}show:MyCommand${reset_stderr}");
             return 0;
         }
         unless (defined $subcommand_classes{$command_context}) {
@@ -254,7 +254,7 @@ sub ash_cfgpreset {
         }
     } elsif ($directive eq 'edit') {
         unless (defined $command_context) {
-            ash_common::error_output($program_name, "must specify a target command like ${bold_stderr}edit:MyCommand${reset_stderr}");
+            ash_common::error_output($program_name, "must specify a command context like ${bold_stderr}edit:MyCommand${reset_stderr}");
             return 0;
         }
         unless (defined $subcommand_classes{$command_context}) {
@@ -269,7 +269,7 @@ sub ash_cfgpreset {
         $success = ash_common::edit_preset($ash_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
     } elsif ($directive eq 'copy') {
         unless (defined $command_context) {
-            ash_common::error_output($program_name, "must specify a target command like ${bold_stderr}copy:MyCommand${reset_stderr}");
+            ash_common::error_output($program_name, "must specify a command context like ${bold_stderr}copy:MyCommand${reset_stderr}");
             return 0;
         }
         unless (defined $subcommand_classes{$command_context}) {
