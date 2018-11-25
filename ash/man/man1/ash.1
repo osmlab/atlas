@@ -33,7 +33,7 @@ ash \-- Run an Atlas Shell Tool
 \fIash\fR [\-\-class\-of=<\fIcommand\fR>]
 \fIash\fR [\-\-quiet] cfg:preset <directive> [args...]
 \fIash\fR [\-\-no\-pager] [\-\-memory=<amount>] [\-\-preset=<preset>]
-    <\fIcommand\fR> [arg...]
+    [\-\-save\-preset=<new\-preset>] <\fIcommand\fR> [arg...]
 .fi
 
 .SH "DESCRIPTION"
@@ -99,15 +99,24 @@ Disable pagination for all documentation.
 .PP
 \fB\-\-preset\fR=<preset>, \fB\-p\fR<preset>
 .RS 4
-Use the given preset when running <\fIcommand\fR>. If the preset does not exist,
-create it based on the current ARGV and continue running the command. See the
-\fBPRESETS\fR section for more information.
+Apply the given preset before running <\fIcommand\fR>. See the \fBPRESETS\fR section
+for more information.
 .RE
 
 .PP
 \fB\-\-quiet\fR, \fB\-q\fR
 .RS 4
 Suppress non-essential \fBash\fR output.
+.RE
+
+.PP
+\fB\-\-save\-preset\fR=<new\-preset>
+.RS 4
+Save the command ARGV to <new\-preset> before running <\fIcommand\fR>. If
+\fB\-\-preset\fR is also supplied, the save operation will occur after the
+argument to \fB\-\-preset\fR is applied. So <new\-preset> will include ARGV
+elements inserted by the \fB\-\-preset\fR application in addition to those
+directly supplied by the user. See the \fBPRESETS\fR section for more information.
 .RE
 
 .PP
@@ -152,18 +161,19 @@ $ ash cfg:preset edit:MyCommand p1
 .SH "PRESETS"
 .sp
 \fBash\fR features a robust command presets system. Presets provide a way to save
-command options and their arguments for future application. Preset usage is
-divided into 3 tiers. Each tier supports an increasing number of potential use
-cases at the cost of added complexity for the user. The tiers are designed such
-that you can stop at any tier you feel comfortable using \- without needing
-to understand how the next tier up works.
+command options and their arguments for future application or modification.
+The preset interface is divided into 3 tiers. Each tier supports an increasing
+number of potential use cases at the cost of added complexity for the user. The
+tiers are designed such that you can stop at any tier you feel comfortable using
+\- without needing to understand how the next tier up works. Each tier builds
+on concepts introduced in the previous tier.
 
-The three usage tiers are:
+The three interface tiers are:
 .sp
 .RS 4
-\fBTier 1)\fR Basic preset creation and use with the \fB\-\-preset\fR option.
+\fBTier 1)\fR Basic preset creation and use with the \fB\-\-save\-preset\fR and \fB\-\-preset\fR options.
 
-\fBTier 2)\fR More advanced preset management with \fBcfg:preset\fR, including editing, copying, etc.
+\fBTier 2)\fR More precise preset management with \fBcfg:preset\fR, including editing, copying, etc.
 
 \fBTier 3)\fR Preset namespace management with \fBcfg:preset namespace\fR.
 .RE
@@ -171,24 +181,41 @@ The three usage tiers are:
 \fBTIER 1\fR
 .RS 4
 Tier 1 provides a simple, lightweight interface for preset usage through the
-\fB\-\-preset\fR=\fIname\fR option, where \fIname\fR is the name of the preset
-you would like to use or create. When running a command with the \fB\-\-preset\fR option,
-\fBash\fR checks the list of saved presets associated with that command. If one of
-those presets matches with \fIname\fR, \fBash\fR uses that preset. If
-\fBash\fR cannot find a match with \fIname\fR, it creates a new preset
-\fIname\fR, based on the current ARGV.
-
-Let's look at a quick example of \fB\-\-preset\fR in action.
+\fB\-\-preset\fR=\fIname\fR and \fB\-\-save\-preset\fR=\fInew\-name\fR options, where
+\fIname\fR is the name of the preset you would like to apply and \fInew\-name\fR is
+the name of the preset you would like to create.
+.sp
+When running a command with the \fB\-\-preset\fR=\fIname\fR option,
+\fBash\fR checks the list of saved presets associated with that command.
+If one of those presets matches with \fIname\fR, \fBash\fR uses that preset. If
+\fBash\fR cannot find a match with \fIname\fR, it displays the list and exits
+with an error.
+.sp
+When running a command with the \fB\-\-save\-preset\fR=\fInew\-name\fR option,
+\fBash\fR attempts to save the current ARGV to a new preset called \fInew\-name\fR.
+If \fInew\-name\fR already exists, \fBash\fR will exit with an error.
+.sp
+If both \fB\-\-preset\fR=\fIname\fR and \fB\-\-save\-preset\fR=\fInew\-name\fR
+are applied at the same time, \fBash\fR will attempt to apply \fIname\fR before
+saving \fInew\-name\fR. This allows you to easily save new presets that iterate
+on a previously created preset.
+.sp
+Note that preset names are bound to the target command at save\-time \- 
+a preset name without its command context is meaningless. This means that preset
+"p1" for "ExampleCommand" and preset "p1" for "MyCommand" may contain
+completely different values!
+.sp
+Let's look at an example of the Tier 1 interface in action.
 We will run a command called "MyCommand" and assume preset "p1" does not yet exist:
 .sp
 .RS 4
-$ ash \-\-preset=p1 MyCommand arg1 \-\-opt1 arg2 \-\-opt2=opt2Arg
+$ ash \-\-save\-preset=p1 MyCommand arg1 arg2 \-\-opt1 \-\-opt2=opt2Arg
 .RE
 .sp
 This will save a preset "p1" for "MyCommand" with contents ["\-\-opt1", "\-\-opt2=opt2Arg"]
 and then run the command. Note that the preset engine only saves options, and so will
 automatically discard any ARGV element that does not look like an option. For this reason,
-you must use the long option '=' syntax for specifying option arguments when saving
+you \fImust\fR use the long option '=' syntax for specifying option arguments when saving
 a preset.
 .sp
 Now that you have saved preset "p1" for "MyCommand", you can apply it like:
@@ -197,29 +224,38 @@ Now that you have saved preset "p1" for "MyCommand", you can apply it like:
 $ ash \-\-preset=p1 MyCommand arg1 arg2
 .RE
 .sp
-This will run the exact same command we ran before but saves us from having
+This will run the exact same command as before, but it saves us from having
 to type out \-\-opt1, \-\-opt2 with their arguments. In addition to simply applying
-a preset verbatim, you can also override a saved option by specifying it again on the command line:
+a preset verbatim, you can also override a saved option by specifying it again
+on the command line:
 .sp
 .RS 4
-$ ash \-\-preset=p1 MyCommand arg1 \-\-opt2=OverrideOpt2Arg arg2
+$ ash \-\-preset=p1 MyCommand arg1 arg2 \-\-opt2=OverrideOpt2Arg
 .RE
 .sp
 This will run the same command as the above 2 examples, except it will override
 the preset value of \-\-opt2 with your new value "OverrideOpt2Arg".
 .sp
-Note that preset names are bound to the target command at save\-time \- 
-a preset name without a command context is meaningless. This means that preset
-"p1" for "ExampleCommand" and preset "p1" for "MyCommand" may contain
-completely different values!
+Finally, you can extend presets by applying and saving at the same time. Here,
+we apply our preset "p1" while also saving a new preset called "p2", based off
+the contents of "p1":
+.sp
+.RS 4
+$ ash \-\-preset=p1 \-\-save\-preset=p2 MyCommand arg1 arg2 --opt2=OverrideOpt2Arg --opt3
+.RE
+.sp
+The new preset "p2" will contain the following contents:
+["\-\-opt1", "\-\-opt2=opt2Arg", "\-\-opt2=OverrideOpt2Arg", "\-\-opt3"]. Even though
+\-\-opt2 is repeated, this is OK! When multiple instances of the same option are
+supplied, the option parser will use ARGV's rightmost instance of that option.
 .RE
 .sp
 
 \fBTIER 2\fR
 .RS 4
-Tier 2 provides more advanced preset management using a special argument to \fBash\fR
-called \fBcfg:preset\fR. \fBcfg:preset\fR takes a mandatory \fIdirective\fR, each
-of which is a verb specifying a configuration action. Note that many of the
+Tier 2 provides more precise preset management using a special argument to \fBash\fR
+called \fBcfg:preset\fR. \fBcfg:preset\fR takes a mandatory \fIdirective\fR,
+which is just a verb specifying a configuration action. Note that many of the
 directives require additional command context, which is specified using the ':'
 operator (recall that preset names are meaningless without an associated command).
 Below are the available directives:
@@ -232,7 +268,7 @@ Save a preset <name> for \fIcommand\fR without actually running the command.
 <args...> is a sequence of options to be saved in the preset.
 Again, recall that you must use the long option '=' syntax for specifying option
 arguments when saving a preset. The following example saves preset "p1" to command
-"MyCommand" with some options --opt1 and --opt2:
+"MyCommand" with some options --opt1 and --opt2=opt2Arg:
 .sp
 .RS 4
 $ ash cfg:preset save:MyCommand p1 --opt1 --opt2=opt2Arg
@@ -292,7 +328,7 @@ $ ash cfg:preset edit:MyCommand p1
 .RS 4
 \fBcopy\fR:\fIcommand\fR <source> <destination>
 .RS 4
-Copy preset <source> into new preset <destination>, for \fIcommand\fR.
+Copy \fIcommand\fR preset <source> into new preset <destination>.
 <destination> must not already exist, else the copy will fail. The following example
 copies the preset "p1" into new preset "p2", for command "MyCommand":
 .sp
@@ -320,8 +356,8 @@ and the \fBnamespace\fR directive \- are explained in more detail in the
 
 \fBTIER 3\fR
 .RS 4
-Tier 3 provides preset namespaces. A namespace creates an enclosing scope for
-the presets associated with each command. For example, preset
+Tier 3 provides preset namespaces. A namespace creates an enclosing
+scope for the presets associated with each command. For example, preset
 "p1" for command "MyCommand" under "namespace1" and preset "p1" for command
 "MyCommand" under "namespace2" may have completely different contents. Up to
 this point, we have been working under the default namespace, appropriately
@@ -414,7 +450,8 @@ Enable special formatted output. Overrides the setting of \fBNO_COLOR\fR and \fB
 \fBash\fR stores program data in compliance with the XDG Base Directory
 specification, ie. at $HOME/.local/share/ash. It also respects the
 \fBXDG_DATA_HOME\fR environment variable - if set, \fBash\fR will store program
-data at the base path specified by that variable.
+data at the base path specified by that variable. See \fBash\-plumbing\fR(5) for
+more information.
 
 .SH "SEE ALSO"
 .sp

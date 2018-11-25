@@ -489,20 +489,25 @@ unless (defined $subcommand_class) {
     ash_unrecognized_command_message_and_exit($subcommand);
 }
 
+# Set @new_argv to @ARGV for now. @new_argv will get overriden by an applied
+# preset if the user supplied one.
 my @new_argv = @ARGV;
+my $current_namespace = ash_common::get_namespace($ash_path);
 
-# Check if a preset is being saved or used.
-# Saving a preset takes precedence over using.
+# Check if a preset is being saved or used. We check for preset application
+# first, and apply it if necessary. We then check for a preset save. This allows
+# users to easily extend presets they have already created by applying and
+# saving in a single step.
+if (defined $use_preset) {
+    @new_argv = ash_common::apply_preset_or_exit($ash_path, $program_name, $quiet, $use_preset, $subcommand, $current_namespace, \@ARGV);
+}
+
 if (defined $save_preset) {
-    my $current_namespace = ash_common::get_namespace($ash_path);
-    my $success = ash_common::save_preset($ash_path, $program_name, $quiet, $save_preset, $subcommand, $current_namespace, \@ARGV);
+    my $success = ash_common::save_preset($ash_path, $program_name, $quiet, $save_preset, $subcommand, $current_namespace, \@new_argv);
     unless ($success) {
         exit 1;
     }
     print "Launching command ${bold_stdout}${subcommand}${reset_stdout}...\n\n";
-} elsif (defined $use_preset) {
-    my $current_namespace = ash_common::get_namespace($ash_path);
-    @new_argv = ash_common::apply_preset_or_exit($ash_path, $program_name, $quiet, $use_preset, $subcommand, $current_namespace, \@ARGV);
 }
 
 # Set up the subcommand to execute using the JVM
