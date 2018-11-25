@@ -417,12 +417,31 @@ sub get_pager {
     my $exitcode;
 
     if (defined $ENV{PAGER}) {
+        if ($ENV{PAGER} eq '') {
+            return undef;
+        }
         $pager_command = `which $ENV{PAGER}`;
+        # Make double sure we found a valid command. One some OS's,
+        # the 'which' binary does not return an exit status.
+        if ($pager_command eq '') {
+            return undef;
+        }
         chomp $pager_command;
+        if ($pager_command eq '') {
+            return undef;
+        }
         $exitcode = $? >> 8;
     } else {
         $pager_command = `which less`;
+        # Make double sure we found a valid command. One some OS's,
+        # the 'which' binary does not return an exit status.
+        if ($pager_command eq '') {
+            return undef;
+        }
         chomp $pager_command;
+        if ($pager_command eq '') {
+            return undef;
+        }
         $exitcode = $? >> 8;
 
         # Options (see less(1) for more info):
@@ -456,12 +475,31 @@ sub get_editor {
     my $exitcode;
 
     if (defined $ENV{EDITOR}) {
+        if ($ENV{PAGER} eq '') {
+            return undef;
+        }
         $editor_command = `which $ENV{EDITOR}`;
+        # Make double sure we found a valid command. One some OS's,
+        # the 'which' binary does not return an exit status.
+        if ($editor_command eq '') {
+            return undef;
+        }
         chomp $editor_command;
+        if ($editor_command eq '') {
+            return undef;
+        }
         $exitcode = $? >> 8;
     } else {
         $editor_command = `which vim`;
+        # Make double sure we found a valid command. One some OS's,
+        # the 'which' binary does not return an exit status.
+        if ($editor_command eq '') {
+            return undef;
+        }
         chomp $editor_command;
+        if ($editor_command eq '') {
+            return undef;
+        }
         $exitcode = $? >> 8;
         $editor_command = $editor_command . ' +';
     }
@@ -484,11 +522,21 @@ sub get_man {
 
     my $man_command = `which man`;
     my $exitcode = $? >> 8;
-    chomp $man_command;
-    if ($skip_paging) {
-        $man_command = $man_command . ' -P cat'
+
+    # Make double sure we found a valid command. One some OS's,
+    # the 'which' binary does not return an exit status.
+    if ($man_command eq '') {
+        return undef;
     }
-    
+    chomp $man_command;
+    if ($man_command eq '') {
+        return undef;
+    }
+
+    if ($skip_paging) {
+        $man_command = $man_command . ' -P cat';
+    }
+
     if ($exitcode == 0) {
         return $man_command;
     }
@@ -1362,7 +1410,6 @@ sub edit_preset {
         return 0;
     }
 
-    # TODO File::Copy vs system 'cp', see pitfalls: https://www.perlmonks.org/?node_id=582433
     # FIXME this is vulnerable to code injection if a preset is named something
     # like eg. '; echo vulnerable'. It will also cause editing to do unexpected
     # things. For this reason, this needs to be refactored to use something safe,
@@ -1407,6 +1454,10 @@ sub copy_preset {
         return 0;
     }
 
+    # FIXME this is vulnerable to code injection if a preset is named something
+    # like eg. '; echo vulnerable'. It will also cause editing to do unexpected
+    # things. For this reason, this needs to be refactored to use something safe,
+    # like File::Copy.
     system("cp $source_file $dest_file");
 
     unless ($quiet) {

@@ -262,7 +262,9 @@ sub execute_command_install {
         $exitcode = $? >> 8;
     } else {
         if ($install_deactivated) {
-            # TODO File::Copy vs system 'cp', see pitfalls: https://www.perlmonks.org/?node_id=582433
+            # FIXME this is vulnerable to code injection if a module is named something
+            # like eg. '; echo vulnerable'. For this reason, this needs to be
+            # refactored to use something safe, like File::Copy.
             system("cp $module_to_install $module_new_path_deactivated");
         } else {
             system("cp $module_to_install $module_new_path");
