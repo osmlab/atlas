@@ -1087,7 +1087,9 @@ sub save_preset {
     }
     close $file_handle;
 
-    print "\nPreset ${bold_stdout}${preset}${reset_stdout} saved for command ${bold_stdout}${command}${reset_stdout}.\n";
+    unless ($quiet) {
+        print "\nPreset ${bold_stdout}${preset}${reset_stdout} saved for command ${bold_stdout}${command}${reset_stdout}.\n";
+    }
 
     return 1;
 }
@@ -1118,7 +1120,10 @@ sub remove_preset {
     }
 
     unlink $preset_file;
-    print "Removed preset ${bold_stdout}${preset}${reset_stdout} for ${bold_stdout}${command}${reset_stdout}.\n";
+
+    unless ($quiet) {
+        print "Removed preset ${bold_stdout}${preset}${reset_stdout} for ${bold_stdout}${command}${reset_stdout}.\n";
+    }
 
     if (is_dir_empty($preset_subfolder)) {
         rmdir($preset_subfolder);
@@ -1150,7 +1155,10 @@ sub remove_all_presets_for_command {
     }
 
     rmtree($preset_subfolder);
-    print "Removed all presets for ${bold_stdout}${command}${reset_stdout}.\n";
+
+    unless ($quiet) {
+        print "Removed all presets for ${bold_stdout}${command}${reset_stdout}.\n";
+    }
 
     return 1;
 }
@@ -1355,6 +1363,10 @@ sub edit_preset {
     }
 
     # TODO File::Copy vs system 'cp', see pitfalls: https://www.perlmonks.org/?node_id=582433
+    # FIXME this is vulnerable to code injection if a preset is named something
+    # like eg. '; echo vulnerable'. It will also cause editing to do unexpected
+    # things. For this reason, this needs to be refactored to use something safe,
+    # like File::Copy.
     system("cp $preset_stage_file $preset_file");
     close $tmpdir;
     show_preset($ash_path, $program_name, $quiet, $preset, $command, $namespace);

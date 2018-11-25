@@ -189,7 +189,7 @@ sub ash_cfgpreset {
     my $directive_and_context = shift @argv;
     unless (defined $directive_and_context) {
         ash_common::error_output($program_name, "${cfgpreset_start} requires a directive");
-        print STDERR "Check ${bold_stderr}PRESETS${reset_stderr} section of '${bold_stderr}${program_name} --help${reset_stderr}'.\n";
+        print STDERR "Try ${bold_stderr}save${reset_stderr}, ${bold_stderr}show${reset_stderr}, ${bold_stderr}remove${reset_stderr}, ${bold_stderr}edit${reset_stderr}, ${bold_stderr}copy${reset_stderr}, or ${bold_stderr}namespace${reset_stderr}.\n";
         return 0;
     }
 
@@ -209,6 +209,7 @@ sub ash_cfgpreset {
         my $preset = shift @argv;
         unless (defined $preset) {
             ash_common::error_output($program_name, "must specify a preset name");
+            print STDERR "Try \'${bold_stderr}ash cfg:preset save:${command_context} <preset>${reset_stderr}\'.\n";
             return 0;
         }
         $success = ash_common::save_preset($ash_path, $program_name, $quiet, $preset, $command_context, $current_namespace, \@argv);
@@ -240,17 +241,7 @@ sub ash_cfgpreset {
         if (defined $preset) {
             $success = ash_common::remove_preset($ash_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
         } else {
-            my $preset_subfolder = File::Spec->catfile($ash_path, $ash_common::PRESETS_FOLDER, $current_namespace, $command_context);
-            unless (-d $preset_subfolder) {
-                error_output($program_name, "no presets found for command ${bold_stderr}${command_context}${reset_stderr}");
-                return 0;
-            }
-            my $prompt = ash_common::prompt_yn("Removing ${bunl_stdout}all${eunl_stdout} presets for ${bold_stdout}${command_context}${reset_stdout}. OK?");
-            if ($prompt) {
-                $success = ash_common::remove_all_presets_for_command($ash_path, $program_name, $quiet, $command_context, $current_namespace);
-            } else {
-                $success = 1;
-            }
+            $success = ash_common::remove_all_presets_for_command($ash_path, $program_name, $quiet, $command_context, $current_namespace);
         }
     } elsif ($directive eq 'edit') {
         unless (defined $command_context) {
@@ -264,6 +255,7 @@ sub ash_cfgpreset {
         my $preset = shift @argv;
         unless (defined $preset) {
             ash_common::error_output($program_name, "must specify a preset name");
+            print STDERR "Try \'${bold_stderr}ash cfg:preset edit:${command_context} <preset>${reset_stderr}\'.\n";
             return 0;
         }
         $success = ash_common::edit_preset($ash_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
@@ -279,11 +271,13 @@ sub ash_cfgpreset {
         my $src_preset = shift @argv;
         my $dest_preset = shift @argv;
         unless (defined $src_preset) {
-            ash_common::error_output($program_name, "must specify a src preset name");
+            ash_common::error_output($program_name, "must specify a source preset name");
+            print STDERR "Try \'${bold_stderr}ash cfg:preset copy:${command_context} <source-preset> <destination-preset>${reset_stderr}\'.\n";
             return 0;
         }
         unless (defined $dest_preset) {
-            ash_common::error_output($program_name, "must specify a dest preset name");
+            ash_common::error_output($program_name, "must specify a destination preset name");
+            print STDERR "Try \'${bold_stderr}ash cfg:preset copy:${command_context} <source-preset> <destination-preset>${reset_stderr}\'.\n";
             return 0;
         }
         $success = ash_common::copy_preset($ash_path, $program_name, $quiet, $src_preset, $dest_preset, $command_context, $current_namespace);
@@ -319,6 +313,7 @@ sub ash_cfgpreset_namespace {
         my $namespace = shift @argv;
         unless (defined $namespace) {
             ash_common:error_output($program_name, "must specify a namespace");
+            print STDERR "Try \'${bold_stderr}ash cfg:preset namespace use <namespace>${reset_stderr}\'.\n";
             return 0;
         }
         $success = ash_common::use_namespace($ash_path, $program_name, $quiet, $namespace);
@@ -326,6 +321,7 @@ sub ash_cfgpreset_namespace {
         my $new_namespace = shift @argv;
         unless (defined $new_namespace) {
             ash_common:error_output($program_name, "must specify a new namespace");
+            print STDERR "Try \'${bold_stderr}ash cfg:preset namespace create <new-namespace>${reset_stderr}\'.\n";
             return 0;
         }
         $success = ash_common::create_namespace($ash_path, $program_name, $quiet, $new_namespace);
@@ -333,6 +329,7 @@ sub ash_cfgpreset_namespace {
         my $namespace = shift @argv;
         unless (defined $namespace) {
             ash_common:error_output($program_name, "must specify a namespace");
+            print STDERR "Try \'${bold_stderr}ash cfg:preset namespace remove <namespace>${reset_stderr}\'.\n";
             return 0;
         }
         $success = ash_common::remove_namespace($ash_path, $program_name, $quiet, $namespace);
