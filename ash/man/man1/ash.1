@@ -217,7 +217,7 @@ completely different values!
 
 \fBTIER 2\fR
 .RS 4
-Tier 2 provides more advanced preset management, using a special argument to \fBash\fR
+Tier 2 provides more advanced preset management using a special argument to \fBash\fR
 called \fBcfg:preset\fR. \fBcfg:preset\fR takes a mandatory \fIdirective\fR, each
 of which is a verb specifying a configuration action. Note that many of the
 directives require additional command context, which is specified using the ':'
@@ -309,17 +309,81 @@ when you want to have multiple versions of a large preset, each with some minor 
 .RS 4
 \fBnamespace\fR <subdirective> [namespace]
 .RS 4
-Execute a <subdirective> on a given preset [namespace]. Available subdirectives are
-\fBlist\fR, \fBuse\fR, \fBcreate\fR, and \fBremove\fR. Preset namespaces \-
+Execute a <subdirective> on a given preset [namespace]. Available subdirectives
+are \fBlist\fR, \fBuse\fR, \fBcreate\fR, and \fBremove\fR. Preset namespaces \-
 and the \fBnamespace\fR directive \- are explained in more detail in the
 \fBTIER 3\fR section found below.
+.RE
 .RE
 .RE
 .sp
 
 \fBTIER 3\fR
 .RS 4
-TODO tier 3 info
+Tier 3 provides preset namespaces. A namespace creates an enclosing scope for
+the presets associated with each command. For example, preset
+"p1" for command "MyCommand" under "namespace1" and preset "p1" for command
+"MyCommand" under "namespace2" may have completely different contents. Up to
+this point, we have been working under the default namespace, appropriately
+called "default". You can create and switch to new namespaces using the
+\fBcfg:preset namespace\fR directive, which takes a subdirective to denote
+the desired action. The available subdirectives are below:
+.sp
+
+.RS 4
+\fBlist\fR
+.RS 4
+List all namespaces, highlighting the current namespace with a "*". An example
+usage would look like:
+.sp
+.RS 4
+$ ash cfg:preset namespace list
+.RE
+.RE
+.RE
+.sp
+
+.RS 4
+\fBuse\fR <namespace>
+.RS 4
+Switch to <namespace>, throwing an error if <namespace> does not exist. Any new
+presets you create will now be saved under <namespace>, and presets you apply
+will be sourced from <namespace>. The following example switches to a namespace
+called "namespace1":
+.sp
+.RS 4
+$ ash cfg:preset namespace use namespace1
+.RE
+.RE
+.RE
+
+.RS 4
+\fBcreate\fR <namespace>
+.RS 4
+Create a new <namespace>, throwing an error if <namespace> already exists. This
+will not actually switch to the new namespace. The following example creates a
+namespace called "namespace1":
+.sp
+.RS 4
+$ ash cfg:preset namespace create namespace1
+.RE
+.RE
+.RE
+
+.RS 4
+\fBremove\fR <namespace>
+.RS 4
+Delete a <namespace>, including all associated presets. The \fBremove\fR will
+fail if <namespace> does not exist, if <namespace> is currently in-use, or if
+<namespace> is the default namespace. The following example removes a namespace
+called "namespace1":
+.sp
+.RS 4
+$ ash cfg:preset namespace remove namespace1
+.RE
+.RE
+.RE
+
 .RE
 .sp
 
