@@ -74,7 +74,7 @@ our @EXPORT = qw(
     show_preset
     edit_preset
     copy_preset
-    apply_preset_or_save
+    apply_preset_or_exit
     read_preset
     all_namespaces
     create_namespace
@@ -1053,7 +1053,7 @@ sub save_preset {
     foreach my $arg (@argv) {
         # treat '-' as a regular argument
         if ($arg eq '-') {
-            warn_output($program_name, "discarding non-option arg \'${bold_stderr}$arg${reset_stderr}\'");
+            warn_output($program_name, "preset discarding non-option arg \'${bold_stderr}$arg${reset_stderr}\'");
             next;
         }
 
@@ -1066,7 +1066,7 @@ sub save_preset {
         if (string_starts_with($arg, '--') || string_starts_with($arg, '-')) {
             push @detected_options, $arg;
         } else {
-            warn_output($program_name, "discarding non-option arg \'${bold_stderr}$arg${reset_stderr}\'");
+            warn_output($program_name, "preset discarding non-option arg \'${bold_stderr}$arg${reset_stderr}\'");
         }
     }
 
@@ -1326,7 +1326,7 @@ sub edit_preset {
 
         # treat '-' as a regular argument
         if ($line eq '-') {
-            warn_output($program_name, "discarding non-option arg \'${bold_stderr}${line}${reset_stderr}\'");
+            warn_output($program_name, "preset discarding non-option arg \'${bold_stderr}${line}${reset_stderr}\'");
             next;
         }
 
@@ -1339,7 +1339,7 @@ sub edit_preset {
         if (string_starts_with($line, '--') || string_starts_with($line, '-')) {
             print $stage_handle "$line\n";
         } else {
-            warn_output($program_name, "discarding non-option arg \'${bold_stderr}${line}${reset_stderr}\'");
+            warn_output($program_name, "preset discarding non-option arg \'${bold_stderr}${line}${reset_stderr}\'");
         }
     }
     close $handle;
@@ -1405,8 +1405,7 @@ sub copy_preset {
 }
 
 # Apply a preset for a given command. Returns an updated argv array with the
-# preset applied. If the preset does not exist, it will instead save argv
-# into the preset.
+# preset applied. If the preset does not exist, it will error and exit.
 # Params:
 #   $ash_path: the path to the ash data folder
 #   $program_name: the name of the calling program
@@ -1416,7 +1415,7 @@ sub copy_preset {
 #   $namespace: the namespace
 #   $argv_ref: a reference to an array containing all the options and args
 # Return: the updated argv array
-sub apply_preset_or_save {
+sub apply_preset_or_exit {
     my $ash_path = shift;
     my $program_name = shift;
     my $quiet = shift;
@@ -1430,14 +1429,9 @@ sub apply_preset_or_save {
     my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
     unless (-f $preset_file) {
-        warn_output($program_name, "preset ${bold_stderr}${preset}${reset_stderr} not found, creating...");
-        my $success = save_preset($ash_path, $program_name, $quiet, $preset, $command, $namespace, \@argv);
-        if ($success) {
-            print "Starting command ${bold_stdout}${command}${reset_stdout} with new preset ${bold_stdout}${preset}${reset_stdout}...\n";
-        } else {
-            print "Aborting creation of preset ${bold_stdout}${preset}${reset_stdout}...\n";
-        }
-        return @argv;
+        error_output($program_name, "no such preset ${bold_stderr}${preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
+        all_presets($ash_path, $program_name, $quiet, $command, $namespace);
+        exit 1;
     }
 
     my @argv_from_presets = read_preset($ash_path, $program_name, $quiet, $preset, $command, $namespace);

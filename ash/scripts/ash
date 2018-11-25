@@ -375,6 +375,7 @@ GetOptions(
     "list|l" => \$show_list,
     "class-of=s" => \$class_of,
     "preset|p=s" => \$use_preset,
+    "save-preset=s" => \$save_preset,
     # This callback occurs the first time we see a non-option argument.
     # In our case, this will be the either the 'cfg:preset' command or the
     # target subcommand.
@@ -490,10 +491,18 @@ unless (defined $subcommand_class) {
 
 my @new_argv = @ARGV;
 
-# Check if a preset is being used
-if (defined $use_preset) {
+# Check if a preset is being saved or used.
+# Saving a preset takes precedence over using.
+if (defined $save_preset) {
     my $current_namespace = ash_common::get_namespace($ash_path);
-    @new_argv = ash_common::apply_preset_or_save($ash_path, $program_name, $quiet, $use_preset, $subcommand, $current_namespace, \@ARGV);
+    my $success = ash_common::save_preset($ash_path, $program_name, $quiet, $save_preset, $subcommand, $current_namespace, \@ARGV);
+    unless ($success) {
+        exit 1;
+    }
+    print "Launching command ${bold_stdout}${subcommand}${reset_stdout}...\n\n";
+} elsif (defined $use_preset) {
+    my $current_namespace = ash_common::get_namespace($ash_path);
+    @new_argv = ash_common::apply_preset_or_exit($ash_path, $program_name, $quiet, $use_preset, $subcommand, $current_namespace, \@ARGV);
 }
 
 # Set up the subcommand to execute using the JVM
