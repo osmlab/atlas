@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Optional;
 
+import org.openstreetmap.atlas.streaming.resource.File;
+
 public class PagerHelper
 {
     private static final String PAGER_ENVIRONMENT_VARIABLE = "PAGER";
@@ -34,19 +36,43 @@ public class PagerHelper
 
         final Optional<String> pagerProgram = callWhichOnPager(DEFAULT_PAGER);
 
-        Process process;
+        File temporaryFile = null;
         try
         {
-            final String[] arguments = { pagerProgram.get(), DEFAULT_PAGER_FLAGS };
-            process = Runtime.getRuntime().exec(arguments);
+            temporaryFile = File.temporary();
+        }
+        catch (final Exception exception)
+        {
+            System.out.println(string);
+            return;
+        }
+
+        if (temporaryFile == null)
+        {
+            System.out.println(string);
+            return;
+        }
+
+        temporaryFile.writeAndClose(string);
+
+        try
+        {
+            final ProcessBuilder processBuilder = new ProcessBuilder(pagerProgram.get(),
+                    DEFAULT_PAGER_FLAGS, temporaryFile.getAbsolutePath());
+            processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+            processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
+            processBuilder.redirectInput(ProcessBuilder.Redirect.INHERIT);
+            final Process process = processBuilder.start();
+            process.waitFor();
         }
         catch (final Exception exception)
         {
             System.out.println(string);
         }
-
-        // TODO figure out how to pipe to less
-        System.out.println(string);
+        finally
+        {
+            temporaryFile.delete();
+        }
     }
 
     private Optional<String> callWhichOnPager(final String pager)

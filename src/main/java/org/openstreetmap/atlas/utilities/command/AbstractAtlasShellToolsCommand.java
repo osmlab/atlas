@@ -633,7 +633,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             if (this.usePager)
             {
                 final PagerHelper helper = new PagerHelper();
-                helper.pageString(this.getHelpMenu() + "\nTODO this should be paged");
+                helper.pageString(this.getHelpMenu());
             }
             else
             {
