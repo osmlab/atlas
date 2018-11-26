@@ -555,8 +555,7 @@ public class DynamicAtlas extends BareAtlas
                     else
                     {
                         logger.info("{}: Loading new shard {} found a new Atlas {} of size {}",
-                                this.getName(), shard.getName(), loaded.getName(),
-                                loaded.size().toString());
+                                this.getName(), shard.getName(), loaded.getName(), loaded.size());
                     }
                 }
             }
