@@ -802,7 +802,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     SortedSet<SnappedEdge> snaps(Location point, Distance threshold);
 
     /**
-     * Return a sub-atlas from this Atlas.
+     * Return a sub-atlas from this Atlas. TODO Remove this call next major release.
      * <p>
      * This would be a soft cut, meaning:
      * <ul>
@@ -820,8 +820,13 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      *            The boundary within which the sub atlas will be built
      * @return An optional sub-atlas. The optional will be empty in case the boundary would return
      *         an empty atlas, which is not allowed.
+     * @deprecated use {@link #subAtlas(Polygon, AtlasCutType)} with SOFT_CUT cut type instead.
      */
-    Optional<Atlas> subAtlas(Polygon boundary);
+    @Deprecated
+    default Optional<Atlas> subAtlas(final Polygon boundary)
+    {
+        return subAtlas(boundary, AtlasCutType.SOFT_CUT);
+    }
 
     /**
      * Return a sub-atlas from this Atlas.
@@ -834,6 +839,21 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      *         {@link Polygon} after the cut was applied. Returning an empty atlas is not allowed.
      */
     Optional<Atlas> subAtlas(Polygon boundary, AtlasCutType cutType);
+
+    /**
+     * Return a sub-atlas from this Atlas. TODO Remove this call next major release.
+     *
+     * @param matcher
+     *            The matcher to consider
+     * @return An optional sub-atlas. The optional will be empty in case there is nothing matching
+     *         the supplied predicate. Returning an empty atlas is not allowed.
+     * @deprecated use {@link #subAtlas(Predicate, AtlasCutType)} with SOFT_CUT cut type instead.
+     */
+    @Deprecated
+    default Optional<Atlas> subAtlas(final Predicate<AtlasEntity> matcher)
+    {
+        return subAtlas(matcher, AtlasCutType.SOFT_CUT);
+    }
 
     /**
      * Return a sub-atlas from this Atlas.

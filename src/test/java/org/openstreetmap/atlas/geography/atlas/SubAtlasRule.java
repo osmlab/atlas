@@ -92,6 +92,9 @@ public class SubAtlasRule extends CoreTestRule
                     @Relation(id = "6", tags = { "type=inside-fully" }, members = {
                             @Member(id = "4", role = "inside", type = "node"),
                             @Member(id = "2", role = "inside", type = "edge") }),
+                    @Relation(id = "7", tags = { "type=single-member-inside" }, members = {
+                            @Member(id = "0", role = "inside", type = "edge"),
+                            @Member(id = "2", role = "inside", type = "edge") })
 
             })
     private Atlas atlas;
