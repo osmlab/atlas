@@ -54,29 +54,39 @@ public final class TippecanoeCommands
         }
         // When you look up the version, tippecanoe exits with 1, so getting here is normal.
         // We want to get into this catch.
+        // https://github.com/osmlab/atlas/pull/275#discussion_r235430727
         catch (final CoreException exception)
         {
-            final Optional<String> result = MONITOR.getResult();
-            if (result.isPresent())
+            logger.warn(
+                    "Note that tippecanoe exited with 1 when checking the version; this is known and does not cause a problem for us.",
+                    exception);
+            return checkVersion();
+        }
+        // Exception or not, we can check the version and proceed either way. If tippecanoe stops
+        // exiting with 1, then we will handle the same logic outside of the exception.
+        return checkVersion();
+    }
+
+    private static boolean checkVersion()
+    {
+        final Optional<String> result = MONITOR.getResult();
+        if (result.isPresent())
+        {
+            final String outputString = result.get();
+            final String[] versionArray = outputString.split("\n")[0].split("tippecanoe v");
+            // Here we extract the version.
+            if (versionArray.length == 2)
             {
-                final String outputString = result.get();
-                final String[] versionArray = outputString.split("\n")[0].split("tippecanoe v");
-                // Here we extract the version.
-                if (versionArray.length == 2)
+                final String versionString = versionArray[1];
+                final DefaultArtifactVersion version = new DefaultArtifactVersion(versionString);
+                if (TippecanoeSettings.MIN_VERSION.compareTo(version) <= 0)
                 {
-                    final String versionString = versionArray[1];
-                    final DefaultArtifactVersion version = new DefaultArtifactVersion(
-                            versionString);
-                    if (TippecanoeSettings.MIN_VERSION.compareTo(version) <= 0)
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        logger.error(
-                                "Your version of tippecanoe is too old! The minimum version is {}",
-                                TippecanoeSettings.MIN_VERSION);
-                    }
+                    return true;
+                }
+                else
+                {
+                    logger.error("Your version of tippecanoe is too old! The minimum version is {}",
+                            TippecanoeSettings.MIN_VERSION);
                 }
             }
         }
