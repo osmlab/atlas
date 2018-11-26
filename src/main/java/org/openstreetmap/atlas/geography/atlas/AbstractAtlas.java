@@ -133,8 +133,7 @@ public abstract class AbstractAtlas extends BareAtlas
     @Override
     public Iterable<Area> areasCovering(final Location location)
     {
-        final Iterable<Area> areas = this.getAreaSpatialIndex().get(location.bounds());
-        return Iterables.stream(areas).filter(area ->
+        return Iterables.stream(this.getAreaSpatialIndex().get(location.bounds())).filter(area ->
         {
             final Polygon areaPolygon = area.asPolygon();
             return areaPolygon.fullyGeometricallyEncloses(location);
@@ -150,8 +149,7 @@ public abstract class AbstractAtlas extends BareAtlas
     @Override
     public Iterable<Area> areasIntersecting(final Polygon polygon)
     {
-        final Iterable<Area> areas = this.getAreaSpatialIndex().get(polygon.bounds());
-        return Iterables.filter(areas, area ->
+        return Iterables.stream(this.getAreaSpatialIndex().get(polygon.bounds())).filter(area ->
         {
             final Polygon areaPolygon = area.asPolygon();
             return polygon.overlaps(areaPolygon);
@@ -167,8 +165,7 @@ public abstract class AbstractAtlas extends BareAtlas
     @Override
     public Iterable<Area> areasWithin(final Polygon polygon)
     {
-        final Iterable<Area> areas = this.getAreaSpatialIndex().get(polygon.bounds());
-        return Iterables.filter(areas, area ->
+        return Iterables.stream(this.getAreaSpatialIndex().get(polygon.bounds())).filter(area ->
         {
             final Polygon areaPolygon = area.asPolygon();
             return polygon.fullyGeometricallyEncloses(areaPolygon);
@@ -178,8 +175,7 @@ public abstract class AbstractAtlas extends BareAtlas
     @Override
     public Iterable<Edge> edgesContaining(final Location location)
     {
-        final Iterable<Edge> edges = this.getEdgeSpatialIndex().get(location.bounds());
-        return Iterables.filter(edges, edge ->
+        return Iterables.stream(this.getEdgeSpatialIndex().get(location.bounds())).filter(edge ->
         {
             final PolyLine polyline = edge.asPolyLine();
             return polyline.contains(location);
@@ -195,8 +191,7 @@ public abstract class AbstractAtlas extends BareAtlas
     @Override
     public Iterable<Edge> edgesIntersecting(final Polygon polygon)
     {
-        final Iterable<Edge> edges = this.getEdgeSpatialIndex().get(polygon.bounds());
-        return Iterables.filter(edges, edge ->
+        return Iterables.stream(this.getEdgeSpatialIndex().get(polygon.bounds())).filter(edge ->
         {
             final PolyLine polyline = edge.asPolyLine();
             return polygon.overlaps(polyline);
@@ -212,8 +207,7 @@ public abstract class AbstractAtlas extends BareAtlas
     @Override
     public Iterable<Edge> edgesWithin(final Polygon polygon)
     {
-        final Iterable<Edge> edges = this.getEdgeSpatialIndex().get(polygon.bounds());
-        return Iterables.filter(edges, edge ->
+        return Iterables.stream(this.getEdgeSpatialIndex().get(polygon.bounds())).filter(edge ->
         {
             final PolyLine polyline = edge.asPolyLine();
             return polygon.fullyGeometricallyEncloses(polyline);
@@ -259,8 +253,7 @@ public abstract class AbstractAtlas extends BareAtlas
     @Override
     public Iterable<Line> linesContaining(final Location location)
     {
-        final Iterable<Line> lines = this.getLineSpatialIndex().get(location.bounds());
-        return Iterables.filter(lines, line ->
+        return Iterables.stream(this.getLineSpatialIndex().get(location.bounds())).filter(line ->
         {
             final PolyLine polyline = line.asPolyLine();
             return polyline.contains(location);
@@ -276,8 +269,7 @@ public abstract class AbstractAtlas extends BareAtlas
     @Override
     public Iterable<Line> linesIntersecting(final Polygon polygon)
     {
-        final Iterable<Line> lines = this.getLineSpatialIndex().get(polygon.bounds());
-        return Iterables.filter(lines, line ->
+        return Iterables.stream(this.getLineSpatialIndex().get(polygon.bounds())).filter(line ->
         {
             final PolyLine polyline = line.asPolyLine();
             return polygon.overlaps(polyline);
@@ -293,8 +285,7 @@ public abstract class AbstractAtlas extends BareAtlas
     @Override
     public Iterable<Line> linesWithin(final Polygon polygon)
     {
-        final Iterable<Line> lines = this.getLineSpatialIndex().get(polygon.bounds());
-        return Iterables.filter(lines, line ->
+        return Iterables.stream(this.getLineSpatialIndex().get(polygon.bounds())).filter(line ->
         {
             final PolyLine polyline = line.asPolyLine();
             return polygon.fullyGeometricallyEncloses(polyline);
