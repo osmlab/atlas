@@ -21,7 +21,6 @@ import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.BareAtlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
@@ -59,7 +58,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         INNER
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(BareAtlas.class);
+    private static final Logger logger = LoggerFactory.getLogger(Relation.class);
     private static final long serialVersionUID = -9013894610780915685L;
 
     public static final Comparator<Relation> RELATION_ID_COMPARATOR = Comparator
