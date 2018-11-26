@@ -18,9 +18,9 @@ public class OSMSubcommandTablePrinter
 
     private void printLookupTable()
     {
-        final Set<AbstractOSMSubcommand> commands = ReflectionUtilities.getSubcommandInstances();
+        final Set<AbstractAtlasCommand> commands = ReflectionUtilities.getSubcommandInstances();
         final Set<String> namesWeHaveAlreadySeen = new HashSet<>();
-        for (final AbstractOSMSubcommand command : commands)
+        for (final AbstractAtlasCommand command : commands)
         {
             // validate the command name and description
             command.throwIfInvalidNameOrDescription();

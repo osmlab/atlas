@@ -24,14 +24,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A partial implementation of an OSM subcommand. Contains significant functionality to aid in
+ * A partial implementation of an Atlas command. Contains significant functionality to aid in
  * command development, including some builtin options.
  *
  * @author lcram
  */
-public abstract class AbstractOSMSubcommand implements OSMSubcommand
+public abstract class AbstractAtlasCommand implements AtlasCommand
 {
-    private static final Logger logger = LoggerFactory.getLogger(AbstractOSMSubcommand.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbstractAtlasCommand.class);
 
     /*
      * Until Java supports the ability to do granular TTY configuration checking thru an interface
@@ -101,9 +101,9 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     }
 
     /**
-     * Execute the command logic. Subclasses of {@link AbstractOSMSubcommand} must implement this
+     * Execute the command logic. Subclasses of {@link AbstractAtlasCommand} must implement this
      * method, but in general it should not be called directly. See
-     * {@link AbstractOSMSubcommand#runSubcommandAndExit(String...)}.
+     * {@link AbstractAtlasCommand#runSubcommandAndExit(String...)}.
      *
      * @return the return code of the command
      */
@@ -127,7 +127,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     /**
      * Register any desired manual page sections. An OPTIONS section will be automatically
      * generated, so it is recommended that you register at least a DESCRIPTION and EXAMPLES section
-     * with some appropriate documentation. See other {@link AbstractOSMSubcommand} implementations
+     * with some appropriate documentation. See other {@link AbstractAtlasCommand} implementations
      * for how this is done. For clarification on best practices and/or other sections to include,
      * see any system man-page (git(1), curl(1), and less(1) are good places to start).
      */
@@ -139,12 +139,12 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
     // While this may seem like duplication of the SimpleOptionAndArgumentParser interface,
     // it actually allows us to define an immutable interface for subcommand registration. By
     // setting up the interface this way, we are not wedded to the SimpleOptionAndArgumentParser for
-    // future changes. Should we decide to change it, any subcommands implementing
-    // AbstractOSMSubcommand will not have to change their option registration code.
+    // future changes. Should we decide to change it, any subcommands extending this class
+    // will not have to change their option registration code.
 
     /**
      * Register any necessary options and arguments for the command. Use the protected API exposed
-     * by {@link AbstractOSMSubcommand}.
+     * by {@link AbstractAtlasCommand}.
      */
     public abstract void registerOptionsAndArguments();
 
@@ -227,7 +227,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
 
     /**
      * Get a {@link TTYStringBuilder} with the correct formatting settings for stderr.
-     * Implementations of {@link AbstractOSMSubcommand} should use this method instead of
+     * Implementations of {@link AbstractAtlasCommand} should use this method instead of
      * instantiating their own string builders.
      *
      * @return the string builder
@@ -239,7 +239,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
 
     /**
      * Get a {@link TTYStringBuilder} with the correct formatting settings for stdout.
-     * Implementations of {@link AbstractOSMSubcommand} should use this method instead of
+     * Implementations of {@link AbstractAtlasCommand} should use this method instead of
      * instantiating their own string builders.
      *
      * @return the string builder
@@ -549,7 +549,7 @@ public abstract class AbstractOSMSubcommand implements OSMSubcommand
 
     /**
      * Run this subcommand using all the special setup and teardown semantics provided by
-     * {@link AbstractOSMSubcommand}. It automatically registers some default standard arguments:
+     * {@link AbstractAtlasCommand}. It automatically registers some default standard arguments:
      * (help,h) and (verbose,v). An example of how this method should be called to make the command
      * functional with an external wrapper:
      *

@@ -17,15 +17,15 @@ import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
  */
 public final class ReflectionUtilities
 {
-    public static Set<AbstractOSMSubcommand> getSubcommandInstances()
+    public static Set<AbstractAtlasCommand> getSubcommandInstances()
     {
-        final List<Class<? extends OSMSubcommand>> subcommandClasses = new ArrayList<>();
-        final Set<AbstractOSMSubcommand> instantiatedCommands = new HashSet<>();
+        final List<Class<? extends AtlasCommand>> subcommandClasses = new ArrayList<>();
+        final Set<AbstractAtlasCommand> instantiatedCommands = new HashSet<>();
         new FastClasspathScanner()
-                .matchClassesImplementing(OSMSubcommand.class, subcommandClasses::add).scan();
+                .matchClassesImplementing(AtlasCommand.class, subcommandClasses::add).scan();
         subcommandClasses.stream().forEach(klass ->
         {
-            final Optional<AbstractOSMSubcommand> commandOption = instantiateSubcommand(
+            final Optional<AbstractAtlasCommand> commandOption = instantiateSubcommand(
                     klass.getName());
             if (commandOption.isPresent())
             {
@@ -35,7 +35,7 @@ public final class ReflectionUtilities
         return instantiatedCommands;
     }
 
-    private static Optional<AbstractOSMSubcommand> instantiateSubcommand(final String classname)
+    private static Optional<AbstractAtlasCommand> instantiateSubcommand(final String classname)
     {
         final Class<?> subcommandClass;
         try
@@ -67,15 +67,15 @@ public final class ReflectionUtilities
             throw new CoreException("Error instantiating class {}", classname, exception);
         }
 
-        final AbstractOSMSubcommand subcommand;
+        final AbstractAtlasCommand subcommand;
         try
         {
-            subcommand = (AbstractOSMSubcommand) constructor.newInstance(new Object[] {});
+            subcommand = (AbstractAtlasCommand) constructor.newInstance(new Object[] {});
         }
         catch (final ClassCastException exception)
         {
             throw new CoreException("Class {} not a subtype of {}", classname,
-                    AbstractOSMSubcommand.class.getName(), exception);
+                    AbstractAtlasCommand.class.getName(), exception);
         }
         catch (final Exception exception)
         {

@@ -1,13 +1,13 @@
 package org.openstreetmap.atlas.utilities.command.subcommands;
 
-import org.openstreetmap.atlas.utilities.command.AbstractOSMSubcommand;
+import org.openstreetmap.atlas.utilities.command.AbstractAtlasCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author lcram
  */
-public class HelloWorldSubcommand extends AbstractOSMSubcommand
+public class HelloWorldSubcommand extends AbstractAtlasCommand
 {
     private static final Logger logger = LoggerFactory.getLogger(HelloWorldSubcommand.class);
 
