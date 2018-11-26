@@ -46,7 +46,7 @@ public class LineDelimitedGeoJsonConverter extends Command
      * After all of your files are converted to LD GeoJSON, it is then concatenated into
      * EVERYTHING.geojson
      */
-    private static final String EVERYTHING = "EVERYTHING.geojson";
+    public static final String EVERYTHING = "EVERYTHING.geojson";
 
     private static final Logger logger = LoggerFactory
             .getLogger(LineDelimitedGeoJsonConverter.class);
@@ -196,7 +196,13 @@ public class LineDelimitedGeoJsonConverter extends Command
         });
     }
 
-    private void concatenate(final Path geojsonDirectory)
+    /**
+     * Concatenates all of the GeoJSON files in a directory into a single GeoJSON file.
+     *
+     * @param geojsonDirectory
+     *            The directory of GeoJSON files to concatenate.
+     */
+    public static void concatenate(final Path geojsonDirectory)
     {
         final Time time = Time.now();
         final String directory = geojsonDirectory.toString();

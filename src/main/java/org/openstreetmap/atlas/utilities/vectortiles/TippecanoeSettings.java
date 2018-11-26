@@ -24,7 +24,6 @@ final class TippecanoeSettings
     }
 
     public static final DefaultArtifactVersion MIN_VERSION = new DefaultArtifactVersion("1.32.1");
-    public static final String GEOJSON = "EVERYTHING.geojson";
 
     public static final String[] ARGS = new String[] { "-Z6", "-z14", "--generate-ids",
             "--read-parallel", "--no-tile-size-limit", "--no-feature-limit" };
