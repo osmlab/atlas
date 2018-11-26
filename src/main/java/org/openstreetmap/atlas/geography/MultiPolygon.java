@@ -18,6 +18,7 @@ import org.openstreetmap.atlas.geography.converters.WktMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.geography.index.RTree;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.streaming.writers.JsonWriter;
@@ -28,6 +29,9 @@ import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * Multiple {@link Polygon}s some inner, some outer.
@@ -83,6 +87,39 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
     public MultiPolygon(final MultiMap<Polygon, Polygon> outerToInners)
     {
         this.outerToInners = outerToInners;
+    }
+
+    /**
+     * Creates a JsonObject with GeoJSON geometry representing this multi-polygon.
+     *
+     * @return A JsonObject with GeoJSON geometry
+     */
+    @Override
+    public JsonObject asGeoJsonGeometry()
+    {
+        // An array of polygons. An OGC polygon is an outer ring with 0..n inner rings.
+        final JsonArray polygons = new JsonArray();
+
+        for (final Map.Entry<Polygon, List<Polygon>> entry : outerToInners.entrySet())
+        {
+            final Polygon outer = entry.getKey();
+            final List<Polygon> inners = entry.getValue();
+
+            final JsonArray polygon = new JsonArray();
+            final JsonArray outerRingCoordinates = GeoJsonUtils
+                    .locationsToCoordinates(outer.closedLoop());
+            polygon.add(outerRingCoordinates);
+
+            for (final Polygon inner : inners)
+            {
+                final JsonArray innerRingCoordinates = GeoJsonUtils
+                        .locationsToCoordinates(inner.closedLoop());
+                polygon.add(innerRingCoordinates);
+            }
+            polygons.add(polygon);
+        }
+
+        return GeoJsonUtils.geometry(GeoJsonUtils.MULTIPOLYGON, polygons);
     }
 
     /**

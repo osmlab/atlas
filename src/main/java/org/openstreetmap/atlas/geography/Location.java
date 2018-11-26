@@ -13,8 +13,11 @@ import org.openstreetmap.atlas.geography.coordinates.EarthCenteredEarthFixedCoor
 import org.openstreetmap.atlas.geography.coordinates.GeodeticCoordinate;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
+
+import com.google.gson.JsonObject;
 
 /**
  * Location on the surface of the earth
@@ -243,6 +246,11 @@ public class Location implements Located, Iterable<Location>, Serializable
         final double yAxis = lat2 - lat1;
 
         return Distance.AVERAGE_EARTH_RADIUS.scaleBy(Math.sqrt(xAxis * xAxis + yAxis * yAxis));
+    }
+
+    public JsonObject asGeoJsonGeometry()
+    {
+        return GeoJsonUtils.geometry(GeoJsonUtils.POINT, GeoJsonUtils.coordinate(this));
     }
 
     /**
@@ -507,18 +515,17 @@ public class Location implements Located, Iterable<Location>, Serializable
         final double bearing = initialHeading.asRadians();
 
         final double latitude2 = Math.asin(Math.sin(latitude1)
-                * Math.cos((double) distance.asMillimeters()
-                        / Distance.AVERAGE_EARTH_RADIUS.asMillimeters())
+                * Math.cos(distance.asMillimeters() / Distance.AVERAGE_EARTH_RADIUS.asMillimeters())
                 + Math.cos(latitude1)
-                        * Math.sin((double) distance.asMillimeters()
+                        * Math.sin(distance.asMillimeters()
                                 / Distance.AVERAGE_EARTH_RADIUS.asMillimeters())
                         * Math.cos(bearing));
-        final double longitude2 = longitude1 + Math.atan2(Math.sin(bearing)
-                * Math.sin((double) distance.asMillimeters()
-                        / Distance.AVERAGE_EARTH_RADIUS.asMillimeters())
-                * Math.cos(latitude1), Math
-                        .cos((double) distance.asMillimeters()
+        final double longitude2 = longitude1 + Math.atan2(
+                Math.sin(bearing)
+                        * Math.sin(distance.asMillimeters()
                                 / Distance.AVERAGE_EARTH_RADIUS.asMillimeters())
+                        * Math.cos(latitude1),
+                Math.cos(distance.asMillimeters() / Distance.AVERAGE_EARTH_RADIUS.asMillimeters())
                         - Math.sin(latitude1) * Math.sin(latitude2));
         return new Location(Latitude.radiansBounded(latitude2),
                 Longitude.radiansBounded(longitude2));

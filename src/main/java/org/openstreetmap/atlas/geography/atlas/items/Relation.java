@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -22,10 +23,12 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.BareAtlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -33,11 +36,15 @@ import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 /**
  * An OSM relation
  *
  * @author matthieun
  * @author Sid
+ * @author hallahan
  */
 public abstract class Relation extends AtlasEntity implements Iterable<RelationMember>
 {
@@ -52,13 +59,13 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         INNER
     }
 
+    private static final Logger logger = LoggerFactory.getLogger(BareAtlas.class);
     private static final long serialVersionUID = -9013894610780915685L;
 
-    private static final Logger logger = LoggerFactory.getLogger(BareAtlas.class);
+    public static final Comparator<Relation> RELATION_ID_COMPARATOR = Comparator
+            .comparingLong(AtlasObject::getIdentifier);
 
-    public static final Comparator<Relation> RELATION_ID_COMPARATOR = (final Relation relation1,
-            final Relation relation2) -> Long.compare(relation1.getIdentifier(),
-                    relation2.getIdentifier());
+    private static final RelationOrAreaToMultiPolygonConverter MULTI_POLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter();
 
     protected Relation(final Atlas atlas)
     {
@@ -75,6 +82,51 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     public abstract RelationMemberList allKnownOsmMembers();
 
     public abstract List<Relation> allRelationsWithSameOsmIdentifier();
+
+    @Override
+    public JsonObject asGeoJsonFeature()
+    {
+        final JsonObject properties = geoJsonProperties();
+
+        // Can't be final due to catch block may reassign.
+        JsonObject geometry;
+
+        // We should only be writing relations as GeoJSON when they are polygons and multipolygons.
+        // We want multipolygons, but not boundaries, as we can render boundaries' ways by
+        // themselves fine.
+        // The isMultiPolygon() method also includes boundaries, which we do not want.
+        if (Validators.isOfType(this, RelationTypeTag.class, RelationTypeTag.MULTIPOLYGON))
+        {
+            try
+            {
+                final MultiPolygon multiPolygon = MULTI_POLYGON_CONVERTER.convert(this);
+                geometry = multiPolygon.asGeoJsonGeometry();
+            }
+            // It seems like we get caught in this exception a lot! We don't ingest coastline
+            // features, so polygons that touch coastlines will fail. It's good to include
+            // the exception in the data, along with the bounding box. That way, we can
+            // notice the problem when browsing the map.
+            catch (final CoreException exception)
+            {
+                final String message = String.format("%s - %s",
+                        exception.getClass().getSimpleName(), exception.getMessage());
+                properties.addProperty("exception", message);
+                logger.warn("Unable to recreate multipolygon for relation {}.", getIdentifier(),
+                        message);
+                geometry = GeoJsonUtils.boundsToPolygonGeometry(bounds());
+            }
+        }
+        // Otherwise, we'll fall back to just providing the properties of the relation with the
+        // bounding box as a polygon geometry.
+        else
+        {
+            geometry = GeoJsonUtils.boundsToPolygonGeometry(bounds());
+        }
+
+        addMembersToProperties(properties);
+
+        return GeoJsonUtils.feature(geometry, properties);
+    }
 
     @Override
     public Rectangle bounds()
@@ -250,6 +302,9 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         tags.put("osmIdentifier", String.valueOf(getOsmIdentifier()));
         tags.put("itemType", String.valueOf(getType()));
         tags.put("relation", this.toSimpleString());
+
+        final Optional<String> shardName = getAtlas().metaData().getShardName();
+        shardName.ifPresent(shard -> tags.put("shard", shard));
 
         return new GeoJsonBuilder.LocationIterableProperties(Location.CENTER, tags);
     }
@@ -431,5 +486,49 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
             }
         }
         return true;
+    }
+
+    /**
+     * We explicitly want to add member metadata to the properties of Relations, but only when we
+     * are serializing relation entities. Overriding geoJsonProperties() would not work properly,
+     * because that gets called when you are listing metadata about relations a non-relation entity
+     * may be in. Calling this method, only in this class, avoids a recursive call that would list
+     * members of relations in relation metadata for non-relation entities.
+     *
+     * @param properties
+     *            The JsonObject properties object we will add member metadata to.
+     */
+    private void addMembersToProperties(final JsonObject properties)
+    {
+        final RelationMemberList members = members();
+        final JsonArray membersArray = new JsonArray();
+        properties.add("members", membersArray);
+        for (final RelationMember member : members)
+        {
+            final JsonObject memberObject = new JsonObject();
+            membersArray.add(memberObject);
+            final AtlasEntity entity = member.getEntity();
+            if (entity != null)
+            {
+                final long identifier = entity.getIdentifier();
+                memberObject.addProperty(GeoJsonUtils.IDENTIFIER, identifier);
+                memberObject.addProperty("itemType", entity.getType().name());
+            }
+            else
+            {
+                // We shouldn't get here, but if we do, let's know about it in the data...
+                memberObject.addProperty(GeoJsonUtils.IDENTIFIER, "MISSING");
+                logger.warn("Missing identifier for relation entity: Relation ID: {}",
+                        getIdentifier());
+            }
+
+            // Sometimes a member doesnt have a role. That's normal.
+            final String role = member.getRole();
+            if (role != null)
+            {
+                // And sometimes the role is "", but we should keep it that way...
+                memberObject.addProperty("role", role);
+            }
+        }
     }
 }

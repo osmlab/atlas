@@ -8,6 +8,8 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
 import org.openstreetmap.atlas.tags.HighwayTag;
 
+import com.google.gson.JsonObject;
+
 /**
  * A unidirectional edge that belongs to an Atlas.
  *
@@ -35,6 +37,17 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
     protected Edge(final Atlas atlas)
     {
         super(atlas);
+    }
+
+    @Override
+    public JsonObject geoJsonProperties()
+    {
+        final JsonObject properties = super.geoJsonProperties();
+
+        properties.addProperty("startNode", start().getIdentifier());
+        properties.addProperty("endNode", end().getIdentifier());
+
+        return properties;
     }
 
     /**

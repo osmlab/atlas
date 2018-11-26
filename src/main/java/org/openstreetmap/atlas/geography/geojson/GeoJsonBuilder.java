@@ -233,12 +233,13 @@ public class GeoJsonBuilder
     {
         final JsonObject result = new JsonObject();
         result.addProperty(TYPE, FEATURE);
-        final JsonArray coordinates = new JsonArray();
+        final JsonArray coordinates;
         switch (type)
         {
             case POINT:
             {
                 final Location location = locations.iterator().next();
+                coordinates = new JsonArray();
                 coordinates.add(new JsonPrimitive(location.getLongitude().asDegrees()));
                 coordinates.add(new JsonPrimitive(location.getLatitude().asDegrees()));
                 break;
@@ -248,25 +249,13 @@ public class GeoJsonBuilder
             case MULTI_LINESTRING:
             case MULTI_POLYGON:
             {
-                for (final Location location : locations)
-                {
-                    final JsonArray locationArray = new JsonArray();
-                    locationArray.add(new JsonPrimitive(location.getLongitude().asDegrees()));
-                    locationArray.add(new JsonPrimitive(location.getLatitude().asDegrees()));
-                    coordinates.add(locationArray);
-                }
+                coordinates = GeoJsonUtils.locationsToCoordinates(locations);
                 break;
             }
             case POLYGON:
             {
-                final JsonArray locationArray = new JsonArray();
-                for (final Location location : locations)
-                {
-                    final JsonArray locationArray2 = new JsonArray();
-                    locationArray2.add(new JsonPrimitive(location.getLongitude().asDegrees()));
-                    locationArray2.add(new JsonPrimitive(location.getLatitude().asDegrees()));
-                    locationArray.add(locationArray2);
-                }
+                coordinates = new JsonArray();
+                final JsonArray locationArray = GeoJsonUtils.locationsToCoordinates(locations);
                 coordinates.add(locationArray);
                 break;
             }
