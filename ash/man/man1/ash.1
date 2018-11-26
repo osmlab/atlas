@@ -22,7 +22,7 @@
 
 .SH "NAME"
 .sp
-ash \-- Run an Atlas Shell Tool
+ash \-- The main Atlas Shell Tools command interface
 
 .SH "SYNOPSIS"
 .sp
@@ -38,9 +38,16 @@ ash \-- Run an Atlas Shell Tool
 
 .SH "DESCRIPTION"
 .sp
-Run a given <\fIcommand\fR> from the current activated \fBash\fR module. Additionally,
-\fBash\fR can display all available commands with the \fB--list\fR option. For
-advanced module management capabilities, please see \fBash-config\fR(1).
+\fBash\fR is an easy\-to\-use wrapper for launching command line tools extending
+the \fBAbstractOSMSubcommand\fR class in \fBAtlas\fR. It provides a simple
+interface to both find and run any commands contained within a JARfile, known as
+a module in \fBash\fR lingo.
+\fBash\fR also implements a robust preset management system, which can save
+you tons of typing for commands that require a lot of options. See the \fBPRESETS\fR
+section for more on this topic.
+.sp
+For more advanced module management capabilites and other installation related
+commands, please see \fBash\-config\fR(1).
 
 .SH "OPTIONS"
 
@@ -160,7 +167,7 @@ $ ash cfg:preset edit:MyCommand p1
 
 .SH "PRESETS"
 .sp
-\fBash\fR features a robust command presets system. Presets provide a way to save
+\fBash\fR features a robust preset management system. Presets provide a way to save
 command options and their arguments for future application or modification.
 The preset interface is divided into 3 tiers. Each tier supports an increasing
 number of potential use cases at the cost of added complexity for the user. The
