@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas;
+package org.openstreetmap.atlas.geography.atlas.sub;
 
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
