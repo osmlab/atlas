@@ -43,6 +43,9 @@ public class SubAtlasCreator
 {
     private static final Logger logger = LoggerFactory.getLogger(SubAtlasCreator.class);
 
+    private static final String CUT_START_MESSAGE = "Starting {} of Atlas {} with meta-data {}";
+    private static final String CUT_STOP_MESSAGE = "Finished {} of Atlas {} in {}";
+
     private final Atlas atlas;
 
     public SubAtlasCreator(final Atlas atlas)
@@ -52,7 +55,7 @@ public class SubAtlasCreator
 
     public Optional<Atlas> hardCutAllEntities(final Polygon boundary)
     {
-        logger.debug("Starting hard-cut Atlas {} with meta-data {}", this.atlas.getName(),
+        logger.debug(CUT_START_MESSAGE, AtlasCutType.HARD_CUT_ALL, this.atlas.getName(),
                 this.atlas.metaData());
         final Time begin = Time.now();
 
@@ -204,13 +207,15 @@ public class SubAtlasCreator
         {
             result.trim();
         }
-        logger.info("Finished hard-cut sub-atlas in {}", begin.elapsedSince());
+
+        logger.info(CUT_STOP_MESSAGE, AtlasCutType.HARD_CUT_ALL, this.atlas.getName(),
+                begin.elapsedSince());
         return Optional.ofNullable(result);
     }
 
     public Optional<Atlas> hardCutAllEntities(final Predicate<AtlasEntity> matcher)
     {
-        logger.debug("Starting hard-cut Atlas {} with meta-data {}", this.atlas.getName(),
+        logger.debug(CUT_START_MESSAGE, AtlasCutType.HARD_CUT_ALL, this.atlas.getName(),
                 this.atlas.metaData());
         final Time begin = Time.now();
 
@@ -310,14 +315,15 @@ public class SubAtlasCreator
             result.trim();
         }
 
-        logger.info("Finished hard-cut sub-atlas in {}", begin.elapsedSince());
+        logger.info(CUT_STOP_MESSAGE, AtlasCutType.HARD_CUT_ALL, this.atlas.getName(),
+                begin.elapsedSince());
         return Optional.ofNullable(result);
     }
 
     public Optional<Atlas> hardCutRelationsOnly(final Predicate<AtlasEntity> matcher)
     {
-        logger.debug("Starting relation-only hard-cut Atlas {} with meta-data {}",
-                this.atlas.getName(), this.atlas.metaData());
+        logger.debug(CUT_START_MESSAGE, AtlasCutType.HARD_CUT_RELATIONS_ONLY, this.atlas.getName(),
+                this.atlas.metaData());
         final Time begin = Time.now();
 
         // Using a predicate here can create wild changes in entity counts. For example a predicate
@@ -385,14 +391,16 @@ public class SubAtlasCreator
             result.trim();
         }
 
-        logger.info("Finished relation-only hard cut sub-atlas in {}", begin.elapsedSince());
+        logger.info(CUT_STOP_MESSAGE, AtlasCutType.HARD_CUT_RELATIONS_ONLY, this.atlas.getName(),
+                begin.elapsedSince());
         return Optional.ofNullable(result);
     }
 
     public Optional<Atlas> softCut(final Polygon boundary, final boolean hardCutRelations)
     {
-        logger.debug("Starting soft-cut Atlas {} with meta-data {}", this.atlas.getName(),
-                this.atlas.metaData());
+        logger.debug(CUT_START_MESSAGE,
+                !hardCutRelations ? AtlasCutType.SOFT_CUT : AtlasCutType.HARD_CUT_RELATIONS_ONLY,
+                this.atlas.getName(), this.atlas.metaData());
         final Time begin = Time.now();
 
         final Supplier<Iterable<Node>> nodesWithin = getIntersectingCachingSupplier(
@@ -596,7 +604,9 @@ public class SubAtlasCreator
             result.trim();
         }
 
-        logger.info("Finished soft-cut sub-atlas in {}", begin.elapsedSince());
+        logger.info(CUT_STOP_MESSAGE,
+                !hardCutRelations ? AtlasCutType.SOFT_CUT : AtlasCutType.HARD_CUT_RELATIONS_ONLY,
+                this.atlas.getName(), begin.elapsedSince());
         return Optional.ofNullable(result);
     }
 
@@ -607,7 +617,7 @@ public class SubAtlasCreator
      */
     public Optional<Atlas> softCut(final Predicate<AtlasEntity> matcher)
     {
-        logger.debug("Starting soft-cut Atlas {} with meta-data {}", this.atlas.getName(),
+        logger.debug(CUT_START_MESSAGE, AtlasCutType.SOFT_CUT, this.atlas.getName(),
                 this.atlas.metaData());
         final Time begin = Time.now();
 
@@ -694,7 +704,8 @@ public class SubAtlasCreator
             result.trim();
         }
 
-        logger.info("Cut sub-atlas in {}", begin.elapsedSince());
+        logger.info(CUT_STOP_MESSAGE, AtlasCutType.SOFT_CUT, this.atlas.getName(),
+                begin.elapsedSince());
         return Optional.ofNullable(result);
     }
 
