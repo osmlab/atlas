@@ -1,9 +1,9 @@
 .\"     Title: ash
 .\"    Author: Lucas Cram
-.\"    Source: ash 1.0.0
+.\"    Source: atlas-shell-tools 1.0.0
 .\"  Language: English
 .\"
-.TH "ASH" "1" "1 December 2018" "ash 1\&.0\&.0" "Atlas Shell Tools Manual"
+.TH "ASH" "1" "1 December 2018" "atlas\-shell\-tools 1\&.0\&.0" "Atlas Shell Tools Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -22,7 +22,7 @@
 
 .SH "NAME"
 .sp
-ash \-- The main Atlas Shell Tools command interface
+ash \-- The main Atlas Shell Tools interface for running commands
 
 .SH "SYNOPSIS"
 .sp
@@ -38,23 +38,24 @@ ash \-- The main Atlas Shell Tools command interface
 
 .SH "DESCRIPTION"
 .sp
-\fBash\fR is an easy\-to\-use wrapper for launching command line tools extending
-the \fBAbstractAtlasCommand\fR class in \fBAtlas\fR. It provides a simple
-interface to both find and run any commands contained within a JARfile, known as
-a module in \fBash\fR lingo.
+\fBash\fR is an easy\-to\-use wrapper for launching Atlas Shell Tools commands.
+It provides a simple interface to find and run any commands contained within the currently
+activated module.
 \fBash\fR also implements a robust preset management system, which can save
 you tons of typing for commands that require a lot of options. See the \fBPRESETS\fR
 section for more on this topic.
 .sp
-For more advanced module management capabilites and other installation related
+For advanced module management capabilites and other installation configuration
 commands, please see \fBash\-config\fR(1).
+.sp
+For a glossary of Atlas Shell Tools terms, see \fBash-glossary\fR(7).
 
 .SH "OPTIONS"
 
 .PP
 <\fIcommand\fR>
 .RS 4
-This indicates a subcommand. A list of available subcommands can be
+This indicates a command. A list of available commands can be
 seen with the \fB--list\fR option.
 .RE
 
@@ -481,3 +482,7 @@ $ ash MyProgram '$SHELL'
 .sp
 This will end up passing the value of $SHELL forward as an argument to MyProgram
 when in reality it should be passing the literal text $SHELL.
+
+.SH "ATLAS SHELL TOOLS"
+.sp
+Part of the \fBatlas\-shell\-tools\fR(7) suite

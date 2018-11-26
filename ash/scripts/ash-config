@@ -57,7 +57,7 @@ my $skip_paging;
 my $quiet;
 
 my $program_name = 'ash-config';
-my $program_version = "$program_name version 1.0.0";
+my $program_version = "$ash_common::ATLAS_SHELL_TOOLS_VERSION ($program_name program)";
 
 # logging definitions
 my %valid_levels = (

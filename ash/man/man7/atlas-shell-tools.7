@@ -1,9 +1,9 @@
-.\"     Title: ash-config-activate
+.\"     Title: atlas-shell-tools
 .\"    Author: Lucas Cram
 .\"    Source: atlas-shell-tools 1.0.0
 .\"  Language: English
 .\"
-.TH "ASH-CONFIG-ACTIVATE" "1" "1 December 2018" "atlas\-shell\-tools 1\&.0\&.0" "Atlas Shell Tools Manual"
+.TH "ATLAS-SHELL-TOOLS" "7" "1 December 2018" "atlas\-shell\-tools 1\&.0\&.0" "Atlas Shell Tools Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -22,40 +22,44 @@
 
 .SH "NAME"
 .sp
-ash\-config\-activate \-- Activate an installed Atlas Shell Tools module
+atlas\-shell\-tools \-- A command line toolset for Atlas and related projects
 
 .SH "SYNOPSIS"
-.sp
-.nf
-\fIash-config activate\fR [\-\-help]
-\fIash-config activate\fR <\fImodule\fR>
-.fi
+*
 
 .SH "DESCRIPTION"
-.sp
-Activate the provided <\fImodule\fR>. Commands defined in an activated module
-become available for execution by the \fBash\fR tool. Activating a
-module deactivates any other active modules.
+The Atlas Shell Tools are a command line toolset for running commands defined
+in Atlas and related projects. The main tool for running commands is
+\fBash\fR(1), and the installation can be configured with \fBash\-config\fR(1)
+and its various subcommands.
 
-.SH "OPTIONS"
-.sp
-
-.PP
-<\fImodule\fR>
+.SH "MANUAL PAGES"
 .RS 4
-This indicates a module. The module should be referred to using its name, as
-reported by \fBash-config-list\fR(1).
+\fBash\fR(1)
+
+\fBash\-config\fR(1)
+
+\fBash\-config\-activate\fR(1)
+
+\fBash\-config\-deactivate\fR(1)
+
+\fBash\-config\-install\fR(1)
+
+\fBash\-config\-list\fR(1)
+
+\fBash\-config\-log\fR(1)
+
+\fBash\-config\-reset\fR(1)
+
+\fBash\-config\-sync\fR(1)
+
+\fBash\-config\-uninstall\fR(1)
+
+\fBash\-plumbing\fR(5)
+
+\fBash\-glossary\fR(7)
 .RE
 
-.PP
-\fB\-\-help\fR
-.RS 4
-Show this help menu.
-.RE
-
-.SH "SEE ALSO"
-.sp
-\fBash\-config\fR(1), \fBash\-config\-deactivate\fR(1)
 
 .SH "ATLAS SHELL TOOLS"
 .sp

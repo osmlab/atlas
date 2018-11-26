@@ -1,9 +1,9 @@
 .\"     Title: ash-config
 .\"    Author: Lucas Cram
-.\"    Source: ash-config 1.0.0
+.\"    Source: atlas-shell-tools 1.0.0
 .\"  Language: English
 .\"
-.TH "ASH-CONFIG" "1" "1 December 2018" "ash-config 1\&.0\&.0" "Atlas Shell Tools Manual"
+.TH "ASH-CONFIG" "1" "1 December 2018" "atlas\-shell\-tools 1\&.0\&.0" "Atlas Shell Tools Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -22,7 +22,7 @@
 
 .SH "NAME"
 .sp
-ash-config \-- Configure the Atlas Shell Tools installation
+ash\-config \-- Configure the Atlas Shell Tools installation
 
 .SH "SYNOPSIS"
 .sp
@@ -34,7 +34,8 @@ ash-config \-- Configure the Atlas Shell Tools installation
 
 .SH "DESCRIPTION"
 .sp
-Run a given configuration command.
+\fBash-config\fR exposes an interface for configuring the Atlas Shell Tools
+installation. It provides a way to install new modules, change the currently
 
 .SH "OPTIONS"
 
@@ -162,3 +163,7 @@ $ ash-config install <active\-module>
 .sp
 where <active\-module> is the path to the currently active module JARfile, this
 will start the installation process but then delete the JARfile.
+
+.SH "ATLAS SHELL TOOLS"
+.sp
+Part of the \fBatlas\-shell\-tools\fR(7) suite

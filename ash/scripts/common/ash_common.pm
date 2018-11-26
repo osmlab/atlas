@@ -12,6 +12,7 @@ use Cwd qw(abs_path);
 
 # Export symbols: variables and subroutines
 our @EXPORT = qw(
+    ATLAS_SHELL_TOOLS_VERSION
     MODULE_SUFFIX
     DEACTIVATED_SUFFIX
     DEACTIVATED_MODULE_SUFFIX
@@ -91,6 +92,8 @@ our @EXPORT = qw(
     ansi_end_underln
     terminal_width
 );
+
+our $ATLAS_SHELL_TOOLS_VERSION = "atlas-shell-tools version 1.0.0";
 
 our $MODULE_SUFFIX = '.jar';
 our $DEACTIVATED_SUFFIX = '.deactivated';
