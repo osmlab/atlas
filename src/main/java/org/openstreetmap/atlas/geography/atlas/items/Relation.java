@@ -20,6 +20,7 @@ import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.BareAtlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
@@ -29,6 +30,8 @@ import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.StringList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An OSM relation
@@ -50,6 +53,8 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     }
 
     private static final long serialVersionUID = -9013894610780915685L;
+
+    private static final Logger logger = LoggerFactory.getLogger(BareAtlas.class);
 
     public static final Comparator<Relation> RELATION_ID_COMPARATOR = (final Relation relation1,
             final Relation relation2) -> Long.compare(relation1.getIdentifier(),
