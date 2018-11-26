@@ -11,8 +11,11 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
+
+import com.google.gson.JsonObject;
 
 /**
  * {@link AtlasItem} that is in shape of a {@link PolyLine}
@@ -105,6 +108,9 @@ public abstract class LineItem extends AtlasItem
         tags.put("osmIdentifier", String.valueOf(getOsmIdentifier()));
         tags.put("itemType", String.valueOf(getType()));
 
+        final Optional<String> shardName = getAtlas().metaData().getShardName();
+        shardName.ifPresent(shard -> tags.put("shard", shard));
+
         if (this instanceof Edge)
         {
             tags.put("startNode", String.valueOf(((Edge) this).start().getIdentifier()));
@@ -124,5 +130,11 @@ public abstract class LineItem extends AtlasItem
         }
 
         return new GeoJsonBuilder.LocationIterableProperties(getRawGeometry(), tags);
+    }
+
+    @Override
+    public JsonObject asGeoJsonFeature()
+    {
+        return GeoJsonUtils.feature(asPolyLine().asGeoJsonGeometry(), geoJsonProperties());
     }
 }

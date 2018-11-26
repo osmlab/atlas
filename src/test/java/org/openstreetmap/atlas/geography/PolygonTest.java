@@ -17,10 +17,13 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonObject;
+
 /**
  * @author matthieun
  * @author mgostintsev
  * @author james-gage
+ * @author hallahan
  */
 public class PolygonTest
 {
@@ -742,5 +745,19 @@ public class PolygonTest
         final Polygon doubleClosedLoop = new Polygon(initialClosedLoop.closedLoop());
         Assert.assertNotEquals("Last and Last - 1 locations for polygon should not be duplicate.",
                 doubleClosedLoop.last(), doubleClosedLoop.get(doubleClosedLoop.size() - 2));
+    }
+
+    @Test
+    public void testAsGeoJsonGeometry()
+    {
+        final Polygon tennisCourt = new Polygon(Location.forString("47.6778433, -122.2012807"),
+                Location.forString("47.6779773, -122.2008187"),
+                Location.forString("47.6776721, -122.2006229"),
+                Location.forString("47.6775366, -122.2010923"),
+                Location.forString("47.6776969, -122.2011787"),
+                Location.forString("47.6778433, -122.2012807"));
+        final String geoJson = "{\"type\":\"Polygon\",\"coordinates\":[[[-122.2012807,47.6778433],[-122.2008187,47.6779773],[-122.2006229,47.6776721],[-122.2010923,47.6775366],[-122.2011787,47.6776969],[-122.2012807,47.6778433]]]}";
+        final JsonObject geometry = tennisCourt.asGeoJsonGeometry();
+        Assert.assertEquals(geoJson, geometry.toString());
     }
 }

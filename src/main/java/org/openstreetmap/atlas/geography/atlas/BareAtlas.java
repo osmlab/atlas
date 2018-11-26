@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -56,10 +57,13 @@ import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonObject;
+
 /**
  * @author matthieun
  * @author tony
  * @author mgostintsev
+ * @author hallahan
  */
 public abstract class BareAtlas implements Atlas
 {
@@ -479,9 +483,33 @@ public abstract class BareAtlas implements Atlas
     @Override
     public void saveAsGeoJson(final WritableResource resource, final Predicate<AtlasEntity> matcher)
     {
-        final JsonWriter writer = new JsonWriter(resource);
-        writer.write(this.asGeoJson(matcher).jsonObject());
-        writer.close();
+        try (JsonWriter writer = new JsonWriter(resource))
+        {
+            writer.write(this.asGeoJson(matcher).jsonObject());
+        }
+    }
+
+    @Override
+    public void saveAsLineDelimitedGeoJsonFeatures(final WritableResource resource,
+            final BiConsumer<AtlasEntity, JsonObject> jsonMutator)
+    {
+        saveAsLineDelimitedGeoJsonFeatures(resource, item -> true, jsonMutator);
+    }
+
+    @Override
+    public void saveAsLineDelimitedGeoJsonFeatures(final WritableResource resource,
+            final Predicate<AtlasEntity> matcher,
+            final BiConsumer<AtlasEntity, JsonObject> jsonMutator)
+    {
+        try (JsonWriter writer = new JsonWriter(resource))
+        {
+            entities(matcher).forEach(entity ->
+            {
+                final JsonObject feature = entity.asGeoJsonFeature();
+                jsonMutator.accept(entity, feature);
+                writer.writeLine(feature);
+            });
+        }
     }
 
     @Override

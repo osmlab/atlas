@@ -9,7 +9,10 @@ import org.openstreetmap.atlas.geography.Snapper.SnappedLocation;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.StringList;
+
+import com.google.gson.JsonObject;
 
 /**
  * An {@link AtlasItem} that is represented by one single location
@@ -23,6 +26,12 @@ public abstract class LocationItem extends AtlasItem
     protected LocationItem(final Atlas atlas)
     {
         super(atlas);
+    }
+
+    @Override
+    public JsonObject asGeoJsonFeature()
+    {
+        return GeoJsonUtils.feature(getLocation().asGeoJsonGeometry(), geoJsonProperties());
     }
 
     @Override

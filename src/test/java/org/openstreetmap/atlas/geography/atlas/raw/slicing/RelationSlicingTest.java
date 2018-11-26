@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.Assert;
@@ -15,6 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWater
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
@@ -130,7 +132,7 @@ public class RelationSlicingTest
         final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
         new ComplexBuildingFinder().find(slicedAtlas).forEach(System.out::println);
 
-        Assert.assertEquals(23, slicedAtlas.numberOfPoints());
+        Assert.assertEquals(25, slicedAtlas.numberOfPoints());
         Assert.assertEquals(2, slicedAtlas.numberOfLines());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());
     }
@@ -150,5 +152,23 @@ public class RelationSlicingTest
         Assert.assertEquals(16, slicedAtlas.numberOfPoints());
         Assert.assertEquals(6, slicedAtlas.numberOfLines());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());
+    }
+
+    @Test
+    public void testSlicingOnRelationWithOnlyRelationsAsMembers()
+    {
+        final Atlas rawAtlas = this.setup.getRelationWithOnlyRelationsAsMembers();
+
+        Assert.assertEquals(2, rawAtlas.numberOfPoints());
+        Assert.assertEquals(3, rawAtlas.numberOfRelations());
+
+        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
+        for (final Relation relation : slicedAtlas.relations())
+        {
+            final Map<String, String> tags = relation.getTags();
+
+            Assert.assertTrue(tags.containsKey(ISOCountryTag.KEY));
+            Assert.assertNotEquals(ISOCountryTag.COUNTRY_MISSING, tags.get(ISOCountryTag.KEY));
+        }
     }
 }

@@ -24,6 +24,7 @@ import org.openstreetmap.atlas.geography.converters.WktPolyLineConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.geography.matching.PolyLineMatch;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.streaming.writers.JsonWriter;
@@ -36,6 +37,8 @@ import org.openstreetmap.atlas.utilities.scalars.Ratio;
 import org.openstreetmap.atlas.utilities.tuples.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.JsonObject;
 
 /**
  * A PolyLine is a set of {@link Location}s in a specific order
@@ -247,6 +250,12 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         final List<Iterable<Location>> geometries = new ArrayList<>();
         geometries.add(this);
         return asGeoJson(geometries);
+    }
+
+    public JsonObject asGeoJsonGeometry()
+    {
+        return GeoJsonUtils.geometry(GeoJsonUtils.LINESTRING,
+                GeoJsonUtils.locationsToCoordinates(this.points));
     }
 
     /**
