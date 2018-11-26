@@ -103,6 +103,8 @@ sub ash_show_contextual_help_menu_and_exit {
         $java_command = $java_command . "$ash_common::JAVA_COLOR_STDERR ";
     }
 
+    $java_command = $java_command . "$ash_common::JAVA_NO_USE_PAGER ";
+
     my $terminal_width = ash_common::terminal_width();
     $java_command = $java_command . "$terminal_width ";
     $java_command = $java_command . "$ash_common::JAVA_MARKER_SENTINEL ";
@@ -531,6 +533,12 @@ if (ash_common::is_no_colors_stderr()) {
     $java_command = $java_command . "$ash_common::JAVA_NO_COLOR_STDERR ";
 } else {
     $java_command = $java_command . "$ash_common::JAVA_COLOR_STDERR ";
+}
+
+if ($skip_paging) {
+    $java_command = $java_command . "$ash_common::JAVA_NO_USE_PAGER ";
+} else {
+    $java_command = $java_command . "$ash_common::JAVA_USE_PAGER ";
 }
 
 my $terminal_width = ash_common::terminal_width();

@@ -9,6 +9,7 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.command.documentation.DocumentationFormatType;
 import org.openstreetmap.atlas.utilities.command.documentation.DocumentationFormatter;
 import org.openstreetmap.atlas.utilities.command.documentation.DocumentationRegistrar;
+import org.openstreetmap.atlas.utilities.command.documentation.PagerHelper;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser;
@@ -24,14 +25,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A partial implementation of an Atlas Shell Tools command. Contains significant functionality to aid in
- * command development, including some builtin options.
+ * A partial implementation of an Atlas Shell Tools command. Contains significant functionality to
+ * aid in command development, including some builtin options.
  *
  * @author lcram
  */
 public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsMarker
 {
-    private static final Logger logger = LoggerFactory.getLogger(AbstractAtlasShellToolsCommand.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(AbstractAtlasShellToolsCommand.class);
 
     /*
      * Until Java supports the ability to do granular TTY configuration checking thru an interface
@@ -41,10 +43,18 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      * checking has been open for years, with no avail:
      * https://bugs.java.com/bugdatabase/view_bug.do?bug_id=4099017
      */
+    /**
+     * In addition to the tail arguments declared here, this command also expects a TTY maximum
+     * column value (a single integer). See
+     * {@link AbstractAtlasShellToolsCommand#runSubcommandAndExit(String...)} for the code that
+     * unpacks the tail arguments.
+     */
     private static final String JAVA_COLOR_STDOUT = "___atlas-shell-tools_color_stdout_SPECIALARGUMENT___";
     private static final String JAVA_NO_COLOR_STDOUT = "___atlas-shell-tools_nocolor_stdout_SPECIALARGUMENT___";
     private static final String JAVA_COLOR_STDERR = "___atlas-shell-tools_color_stderr_SPECIALARGUMENT___";
     private static final String JAVA_NO_COLOR_STDERR = "___atlas-shell-tools_nocolor_stderr_SPECIALARGUMENT___";
+    private static final String JAVA_USE_PAGER = "___atlas-shell-tools_use_pager_SPECIALARGUMENT___";
+    private static final String JAVA_NO_USE_PAGER = "___atlas-shell-tools_no_use_pager_SPECIALARGUMENT___";
     private static final String JAVA_MARKER_SENTINEL = "___atlas-shell-tools_LAST_ARG_MARKER_SENTINEL___";
 
     public static final String DEFAULT_HELP_LONG = "help";
@@ -59,6 +69,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
 
     private boolean useColorStdout = false;
     private boolean useColorStderr = false;
+    private boolean usePager = false;
     private int maximumColumn = DocumentationFormatter.DEFAULT_MAXIMUM_COLUMN;
     private String version = "default_version_value";
 
@@ -101,8 +112,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     }
 
     /**
-     * Execute the command logic. Subclasses of {@link AbstractAtlasShellToolsCommand} must implement this
-     * method, but in general it should not be called directly. See
+     * Execute the command logic. Subclasses of {@link AbstractAtlasShellToolsCommand} must
+     * implement this method, but in general it should not be called directly. See
      * {@link AbstractAtlasShellToolsCommand#runSubcommandAndExit(String...)}.
      *
      * @return the return code of the command
@@ -127,9 +138,10 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     /**
      * Register any desired manual page sections. An OPTIONS section will be automatically
      * generated, so it is recommended that you register at least a DESCRIPTION and EXAMPLES section
-     * with some appropriate documentation. See other {@link AbstractAtlasShellToolsCommand} implementations
-     * for how this is done. For clarification on best practices and/or other sections to include,
-     * see any system man-page (git(1), curl(1), and less(1) are good places to start).
+     * with some appropriate documentation. See other {@link AbstractAtlasShellToolsCommand}
+     * implementations for how this is done. For clarification on best practices and/or other
+     * sections to include, see any system man-page (git(1), curl(1), and less(1) are good places to
+     * start).
      */
     public abstract void registerManualPageSections();
 
@@ -549,9 +561,9 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
 
     /**
      * Run this subcommand using all the special setup and teardown semantics provided by
-     * {@link AbstractAtlasShellToolsCommand}. It automatically registers some default standard arguments:
-     * (help,h) and (verbose,v). An example of how this method should be called to make the command
-     * functional with an external wrapper:
+     * {@link AbstractAtlasShellToolsCommand}. It automatically registers some default standard
+     * arguments: (help,h) and (verbose,v). An example of how this method should be called to make
+     * the command functional with an external wrapper:
      *
      * <pre>
      * public static void main(final String[] args)
@@ -578,8 +590,9 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         // check the last arg to see if we should check for other tail arguments
         if (argsCopy.length > 0 && JAVA_MARKER_SENTINEL.equals(argsCopy[argsCopy.length - 1]))
         {
-            final String stdoutColorArg = argsCopy[argsCopy.length - 4];
-            final String stderrColorArg = argsCopy[argsCopy.length - 3];
+            final String stdoutColorArg = argsCopy[argsCopy.length - 5];
+            final String stderrColorArg = argsCopy[argsCopy.length - 4];
+            final String usePagerArg = argsCopy[argsCopy.length - 3];
             final String terminalColumnArg = argsCopy[argsCopy.length - 2];
             if (JAVA_COLOR_STDOUT.equals(stdoutColorArg))
             {
@@ -597,6 +610,14 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             {
                 this.useColorStderr = false;
             }
+            if (JAVA_USE_PAGER.equals(usePagerArg))
+            {
+                this.usePager = true;
+            }
+            else if (JAVA_NO_USE_PAGER.equals(usePagerArg))
+            {
+                this.usePager = false;
+            }
             this.maximumColumn = Integer.parseInt(terminalColumnArg);
             argsCopy = Arrays.copyOf(argsCopy, argsCopy.length - 4);
         }
@@ -609,7 +630,15 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         // We want to scan now, show the help menu, then abort
         if (this.parser.scanForHelpFlag(Arrays.asList(argsCopy)))
         {
-            System.out.println(this.getHelpMenu());
+            if (this.usePager)
+            {
+                final PagerHelper helper = new PagerHelper();
+                helper.pageString(this.getHelpMenu() + "\nTODO this should be paged");
+            }
+            else
+            {
+                System.out.println(this.getHelpMenu());
+            }
             System.exit(0);
         }
 

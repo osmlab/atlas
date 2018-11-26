@@ -36,6 +36,8 @@ our @EXPORT = qw(
     JAVA_NO_COLOR_STDOUT
     JAVA_COLOR_STDERR
     JAVA_NO_COLOR_STDERR
+    JAVA_USE_PAGER
+    JAVA_NO_USE_PAGER
     JAVA_MARKER_SENTINEL
     create_data_directory
     reset_log4j
@@ -121,6 +123,8 @@ our $JAVA_COLOR_STDOUT = "___atlas-shell-tools_color_stdout_SPECIALARGUMENT___";
 our $JAVA_NO_COLOR_STDOUT = "___atlas-shell-tools_nocolor_stdout_SPECIALARGUMENT___";
 our $JAVA_COLOR_STDERR = "___atlas-shell-tools_color_stderr_SPECIALARGUMENT___";
 our $JAVA_NO_COLOR_STDERR = "___atlas-shell-tools_nocolor_stderr_SPECIALARGUMENT___";
+our $JAVA_USE_PAGER = "___atlas-shell-tools_use_pager_SPECIALARGUMENT___";
+our $JAVA_NO_USE_PAGER = "___atlas-shell-tools_no_use_pager_SPECIALARGUMENT___";
 our $JAVA_MARKER_SENTINEL = "___atlas-shell-tools_LAST_ARG_MARKER_SENTINEL___";
 
 # Use ASCII record separator as delimiter.
@@ -454,7 +458,7 @@ sub get_pager {
         # -M -> use verbose prompt
         # -i -> searches ignore case
         # -s -> squeeze consecutive blank lines
-        # TODO consider -FX options here?
+        # TODO consider -F, -X options here?
         # https://unix.stackexchange.com/questions/107315/less-quit-if-one-screen-without-no-init
         $pager_command = $pager_command . ' -cSRMis';
     }
