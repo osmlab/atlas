@@ -2,7 +2,7 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import java.util.List;
 
-import org.openstreetmap.atlas.utilities.command.AbstractAtlasCommand;
+import org.openstreetmap.atlas.utilities.command.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
@@ -10,7 +10,7 @@ import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 /**
  * @author lcram
  */
-public class DemoSubcommand extends AbstractAtlasCommand
+public class DemoSubcommand extends AbstractAtlasShellToolsCommand
 {
     public static void main(final String[] args)
     {

@@ -17,15 +17,15 @@ import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
  */
 public final class ReflectionUtilities
 {
-    public static Set<AbstractAtlasCommand> getSubcommandInstances()
+    public static Set<AbstractAtlasShellToolsCommand> getSubcommandInstances()
     {
-        final List<Class<? extends AtlasCommand>> subcommandClasses = new ArrayList<>();
-        final Set<AbstractAtlasCommand> instantiatedCommands = new HashSet<>();
+        final List<Class<? extends AtlasShellToolsMarker>> subcommandClasses = new ArrayList<>();
+        final Set<AbstractAtlasShellToolsCommand> instantiatedCommands = new HashSet<>();
         new FastClasspathScanner()
-                .matchClassesImplementing(AtlasCommand.class, subcommandClasses::add).scan();
+                .matchClassesImplementing(AtlasShellToolsMarker.class, subcommandClasses::add).scan();
         subcommandClasses.stream().forEach(klass ->
         {
-            final Optional<AbstractAtlasCommand> commandOption = instantiateSubcommand(
+            final Optional<AbstractAtlasShellToolsCommand> commandOption = instantiateSubcommand(
                     klass.getName());
             if (commandOption.isPresent())
             {
@@ -35,7 +35,7 @@ public final class ReflectionUtilities
         return instantiatedCommands;
     }
 
-    private static Optional<AbstractAtlasCommand> instantiateSubcommand(final String classname)
+    private static Optional<AbstractAtlasShellToolsCommand> instantiateSubcommand(final String classname)
     {
         final Class<?> subcommandClass;
         try
@@ -67,15 +67,15 @@ public final class ReflectionUtilities
             throw new CoreException("Error instantiating class {}", classname, exception);
         }
 
-        final AbstractAtlasCommand subcommand;
+        final AbstractAtlasShellToolsCommand subcommand;
         try
         {
-            subcommand = (AbstractAtlasCommand) constructor.newInstance(new Object[] {});
+            subcommand = (AbstractAtlasShellToolsCommand) constructor.newInstance(new Object[] {});
         }
         catch (final ClassCastException exception)
         {
             throw new CoreException("Class {} not a subtype of {}", classname,
-                    AbstractAtlasCommand.class.getName(), exception);
+                    AbstractAtlasShellToolsCommand.class.getName(), exception);
         }
         catch (final Exception exception)
         {

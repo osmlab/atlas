@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.openstreetmap.atlas.utilities.command.AbstractAtlasCommand;
+import org.openstreetmap.atlas.utilities.command.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionArgumentType;
@@ -190,12 +190,12 @@ public final class DocumentationFormatter
         indentBuilderToLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
         builder.append(programName, TTYAttribute.UNDERLINE).append(" ")
                 .append("[" + SimpleOptionAndArgumentParser.LONG_FORM_PREFIX
-                        + AbstractAtlasCommand.DEFAULT_HELP_LONG + "]")
+                        + AbstractAtlasShellToolsCommand.DEFAULT_HELP_LONG + "]")
                 .newline();
         indentBuilderToLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
         builder.append(programName, TTYAttribute.UNDERLINE).append(" ")
                 .append("[" + SimpleOptionAndArgumentParser.LONG_FORM_PREFIX
-                        + AbstractAtlasCommand.DEFAULT_VERSION_LONG + "]")
+                        + AbstractAtlasShellToolsCommand.DEFAULT_VERSION_LONG + "]")
                 .newline();
         indentBuilderToLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
         builder.append(programName, TTYAttribute.UNDERLINE).append(" ");
@@ -207,8 +207,8 @@ public final class DocumentationFormatter
         for (final SimpleOption option : sortedOptions)
         {
             // skip --help and --version, these are special hardcoded cases handled above
-            if (AbstractAtlasCommand.DEFAULT_HELP_LONG.equals(option.getLongForm())
-                    || AbstractAtlasCommand.DEFAULT_VERSION_LONG.equals(option.getLongForm()))
+            if (AbstractAtlasShellToolsCommand.DEFAULT_HELP_LONG.equals(option.getLongForm())
+                    || AbstractAtlasShellToolsCommand.DEFAULT_VERSION_LONG.equals(option.getLongForm()))
             {
                 continue;
             }

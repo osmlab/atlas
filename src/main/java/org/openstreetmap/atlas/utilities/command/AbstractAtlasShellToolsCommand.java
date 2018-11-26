@@ -24,14 +24,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A partial implementation of an Atlas command. Contains significant functionality to aid in
+ * A partial implementation of an Atlas Shell Tools command. Contains significant functionality to aid in
  * command development, including some builtin options.
  *
  * @author lcram
  */
-public abstract class AbstractAtlasCommand implements AtlasCommand
+public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsMarker
 {
-    private static final Logger logger = LoggerFactory.getLogger(AbstractAtlasCommand.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbstractAtlasShellToolsCommand.class);
 
     /*
      * Until Java supports the ability to do granular TTY configuration checking thru an interface
@@ -101,9 +101,9 @@ public abstract class AbstractAtlasCommand implements AtlasCommand
     }
 
     /**
-     * Execute the command logic. Subclasses of {@link AbstractAtlasCommand} must implement this
+     * Execute the command logic. Subclasses of {@link AbstractAtlasShellToolsCommand} must implement this
      * method, but in general it should not be called directly. See
-     * {@link AbstractAtlasCommand#runSubcommandAndExit(String...)}.
+     * {@link AbstractAtlasShellToolsCommand#runSubcommandAndExit(String...)}.
      *
      * @return the return code of the command
      */
@@ -127,7 +127,7 @@ public abstract class AbstractAtlasCommand implements AtlasCommand
     /**
      * Register any desired manual page sections. An OPTIONS section will be automatically
      * generated, so it is recommended that you register at least a DESCRIPTION and EXAMPLES section
-     * with some appropriate documentation. See other {@link AbstractAtlasCommand} implementations
+     * with some appropriate documentation. See other {@link AbstractAtlasShellToolsCommand} implementations
      * for how this is done. For clarification on best practices and/or other sections to include,
      * see any system man-page (git(1), curl(1), and less(1) are good places to start).
      */
@@ -144,7 +144,7 @@ public abstract class AbstractAtlasCommand implements AtlasCommand
 
     /**
      * Register any necessary options and arguments for the command. Use the protected API exposed
-     * by {@link AbstractAtlasCommand}.
+     * by {@link AbstractAtlasShellToolsCommand}.
      */
     public abstract void registerOptionsAndArguments();
 
@@ -227,7 +227,7 @@ public abstract class AbstractAtlasCommand implements AtlasCommand
 
     /**
      * Get a {@link TTYStringBuilder} with the correct formatting settings for stderr.
-     * Implementations of {@link AbstractAtlasCommand} should use this method instead of
+     * Implementations of {@link AbstractAtlasShellToolsCommand} should use this method instead of
      * instantiating their own string builders.
      *
      * @return the string builder
@@ -239,7 +239,7 @@ public abstract class AbstractAtlasCommand implements AtlasCommand
 
     /**
      * Get a {@link TTYStringBuilder} with the correct formatting settings for stdout.
-     * Implementations of {@link AbstractAtlasCommand} should use this method instead of
+     * Implementations of {@link AbstractAtlasShellToolsCommand} should use this method instead of
      * instantiating their own string builders.
      *
      * @return the string builder
@@ -549,7 +549,7 @@ public abstract class AbstractAtlasCommand implements AtlasCommand
 
     /**
      * Run this subcommand using all the special setup and teardown semantics provided by
-     * {@link AbstractAtlasCommand}. It automatically registers some default standard arguments:
+     * {@link AbstractAtlasShellToolsCommand}. It automatically registers some default standard arguments:
      * (help,h) and (verbose,v). An example of how this method should be called to make the command
      * functional with an external wrapper:
      *

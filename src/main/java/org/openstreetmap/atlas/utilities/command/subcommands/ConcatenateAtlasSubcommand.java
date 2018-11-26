@@ -7,14 +7,14 @@ import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.streaming.resource.File;
-import org.openstreetmap.atlas.utilities.command.AbstractAtlasCommand;
+import org.openstreetmap.atlas.utilities.command.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 
 /**
  * @author lcram
  */
-public class ConcatenateAtlasSubcommand extends AbstractAtlasCommand
+public class ConcatenateAtlasSubcommand extends AbstractAtlasShellToolsCommand
 {
     private static final String INPUT_HINT = "input";
     private static final String OUTPUT_HINT = "output";
