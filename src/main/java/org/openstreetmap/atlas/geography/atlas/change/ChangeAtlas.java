@@ -200,12 +200,12 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
                                 && featureChange.getChangeType() == ChangeType.ADD)
                         .map(featureChange -> entityForIdentifier
                                 .apply(featureChange.getIdentifier()))
-                        .collect(Collectors.toList()),
+                        .filter(entity -> entity != null).collect(Collectors.toList()),
                 Iterables.stream(sourceEntities)
                         .filter(entity -> !this.change.changeFor(itemType, entity.getIdentifier())
                                 .isPresent())
                         .map(entity -> entityForIdentifier.apply(entity.getIdentifier()))
-                        .collect());
+                        .filter(entity -> entity != null).collect());
     }
 
     /**
