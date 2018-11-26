@@ -119,7 +119,7 @@ public class RectangleTest
         Assert.assertTrue("Rectangle 3 fully contains rectangle 2",
                 this.rectangle3.fullyGeometricallyEncloses(this.rectangle2));
         Assert.assertTrue("That means, it should also cover it partially",
-                this.rectangle3.overlaps(this.rectangle4));
+                this.rectangle3.overlaps(this.rectangle2));
 
         Assert.assertTrue("Rectangle 3 only partially covers rectangle 4",
                 this.rectangle3.overlaps(this.rectangle4));
