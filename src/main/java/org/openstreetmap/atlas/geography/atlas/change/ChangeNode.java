@@ -58,7 +58,7 @@ public class ChangeNode extends Node // NOSONAR
     {
         return attribute(Node::inEdges).stream()
                 .map(edge -> getChangeAtlas().edge(edge.getIdentifier()))
-                .collect(Collectors.toCollection(TreeSet::new));
+                .filter(edge -> edge != null).collect(Collectors.toCollection(TreeSet::new));
     }
 
     public SortedSet<Long> outEdgeIdentifiers()
@@ -72,7 +72,7 @@ public class ChangeNode extends Node // NOSONAR
     {
         return attribute(Node::outEdges).stream()
                 .map(edge -> getChangeAtlas().edge(edge.getIdentifier()))
-                .collect(Collectors.toCollection(TreeSet::new));
+                .filter(edge -> edge != null).collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
