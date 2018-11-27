@@ -80,7 +80,7 @@ public class ChangeNode extends Node // NOSONAR
     {
         return attribute(Node::relations).stream()
                 .map(relation -> getChangeAtlas().relation(relation.getIdentifier()))
-                .collect(Collectors.toSet());
+                .filter(relation -> relation != null).collect(Collectors.toSet());
     }
 
     private <T extends Object> T attribute(final Function<Node, T> memberExtractor)
