@@ -11,6 +11,7 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.AbstractAtlas;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
+import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.change.rule.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.change.rule.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.change.validators.ChangeAtlasValidator;
@@ -38,6 +39,15 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     private final Change change;
     private final Atlas source;
 
+    private transient Rectangle bounds;
+    private transient AtlasMetaData metaData;
+    private transient Long numberOfNodes;
+    private transient Long numberOfEdges;
+    private transient Long numberOfAreas;
+    private transient Long numberOfLines;
+    private transient Long numberOfPoints;
+    private transient Long numberOfRelations;
+
     public ChangeAtlas(final Atlas source, final Change change)
     {
         if (change == null)
@@ -56,19 +66,27 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     @Override
     public Area area(final long identifier)
     {
-        throw new UnsupportedOperationException();
+        return entityFor(identifier, ItemType.AREA, () -> this.source.area(identifier),
+                (sourceEntity, overrideEntity) -> new ChangeArea(this, (Area) sourceEntity,
+                        (Area) overrideEntity));
     }
 
     @Override
     public Iterable<Area> areas()
     {
-        throw new UnsupportedOperationException();
+        return entitiesFor(ItemType.AREA, this::area, this.source.areas());
     }
 
     @Override
-    public Rectangle bounds()
+    public synchronized Rectangle bounds()
     {
-        throw new UnsupportedOperationException();
+        if (this.bounds == null)
+        {
+            // Stream it to make sure the "Iterable" signature is used here (vs. Located, which
+            // would stack overflow).
+            this.bounds = Rectangle.forLocated(Iterables.stream(this));
+        }
+        return this.bounds;
     }
 
     @Override
@@ -88,19 +106,31 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     @Override
     public Line line(final long identifier)
     {
-        throw new UnsupportedOperationException();
+        return entityFor(identifier, ItemType.LINE, () -> this.source.line(identifier),
+                (sourceEntity, overrideEntity) -> new ChangeLine(this, (Line) sourceEntity,
+                        (Line) overrideEntity));
     }
 
     @Override
     public Iterable<Line> lines()
     {
-        throw new UnsupportedOperationException();
+        return entitiesFor(ItemType.LINE, this::line, this.source.lines());
     }
 
     @Override
-    public AtlasMetaData metaData()
+    public synchronized AtlasMetaData metaData()
     {
-        throw new UnsupportedOperationException();
+        if (this.metaData == null)
+        {
+            AtlasMetaData sourceMetaData = this.source.metaData();
+            if (sourceMetaData == null)
+            {
+                sourceMetaData = new AtlasMetaData();
+            }
+            final AtlasSize size = new AtlasSize(this);
+            this.metaData = sourceMetaData.copyWithNewSize(size).copyWithNewOriginal(false);
+        }
+        return this.metaData;
     }
 
     @Override
@@ -118,63 +148,91 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     }
 
     @Override
-    public long numberOfAreas()
+    public synchronized long numberOfAreas()
     {
-        throw new UnsupportedOperationException();
+        if (this.numberOfAreas == null)
+        {
+            this.numberOfAreas = Iterables.size(areas());
+        }
+        return this.numberOfAreas;
     }
 
     @Override
-    public long numberOfEdges()
+    public synchronized long numberOfEdges()
     {
-        throw new UnsupportedOperationException();
+        if (this.numberOfEdges == null)
+        {
+            this.numberOfEdges = Iterables.size(edges());
+        }
+        return this.numberOfEdges;
     }
 
     @Override
-    public long numberOfLines()
+    public synchronized long numberOfLines()
     {
-        throw new UnsupportedOperationException();
+        if (this.numberOfLines == null)
+        {
+            this.numberOfLines = Iterables.size(lines());
+        }
+        return this.numberOfLines;
     }
 
     @Override
-    public long numberOfNodes()
+    public synchronized long numberOfNodes()
     {
-        throw new UnsupportedOperationException();
+        if (this.numberOfNodes == null)
+        {
+            this.numberOfNodes = Iterables.size(nodes());
+        }
+        return this.numberOfNodes;
     }
 
     @Override
-    public long numberOfPoints()
+    public synchronized long numberOfPoints()
     {
-        throw new UnsupportedOperationException();
+        if (this.numberOfPoints == null)
+        {
+            this.numberOfPoints = Iterables.size(points());
+        }
+        return this.numberOfPoints;
     }
 
     @Override
-    public long numberOfRelations()
+    public synchronized long numberOfRelations()
     {
-        throw new UnsupportedOperationException();
+        if (this.numberOfRelations == null)
+        {
+            this.numberOfRelations = Iterables.size(relations());
+        }
+        return this.numberOfRelations;
     }
 
     @Override
     public Point point(final long identifier)
     {
-        throw new UnsupportedOperationException();
+        return entityFor(identifier, ItemType.POINT, () -> this.source.point(identifier),
+                (sourceEntity, overrideEntity) -> new ChangePoint(this, (Point) sourceEntity,
+                        (Point) overrideEntity));
     }
 
     @Override
     public Iterable<Point> points()
     {
-        throw new UnsupportedOperationException();
+        return entitiesFor(ItemType.POINT, this::point, this.source.points());
     }
 
     @Override
     public Relation relation(final long identifier)
     {
-        throw new UnsupportedOperationException();
+        return entityFor(identifier, ItemType.RELATION, () -> this.source.relation(identifier),
+                (sourceEntity, overrideEntity) -> new ChangeRelation(this, (Relation) sourceEntity,
+                        (Relation) overrideEntity));
     }
 
     @Override
     public Iterable<Relation> relations()
     {
-        throw new UnsupportedOperationException();
+        return entitiesFor(ItemType.RELATION, this::relation, this.source.relations());
     }
 
     /**

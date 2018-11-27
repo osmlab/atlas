@@ -7,8 +7,10 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
@@ -96,9 +98,16 @@ public class ChangeRelation extends Relation // NOSONAR
         final List<RelationMember> memberList = new ArrayList<>();
         for (final RelationBeanItem item : bean)
         {
-            memberList.add(new RelationMember(item.getRole(),
-                    getChangeAtlas().entity(item.getIdentifier(), item.getType()),
-                    getIdentifier()));
+            final AtlasEntity memberChangeEntity = getChangeAtlas().entity(item.getIdentifier(),
+                    item.getType());
+            if (memberChangeEntity == null)
+            {
+                throw new CoreException(
+                        "Member {} {} (Role = \"{}\") is referenced in Relation {} but is unavailable or removed in ChangeAtlas {}.",
+                        item.getType(), item.getIdentifier(), item.getRole(), this.getIdentifier(),
+                        getChangeAtlas().getName());
+            }
+            memberList.add(new RelationMember(item.getRole(), memberChangeEntity, getIdentifier()));
         }
         return new RelationMemberList(memberList);
     }

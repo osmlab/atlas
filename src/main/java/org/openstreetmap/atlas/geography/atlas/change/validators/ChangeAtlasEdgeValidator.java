@@ -31,7 +31,7 @@ public class ChangeAtlasEdgeValidator
         validateEdgeToNodeConnectivity();
         validateEdgeToNodeLocationAccuracy();
         validateReverseEdgePolyLineUpdated();
-        logger.debug("Finished Edge validation of ChangeAtlas {} in {}", this.atlas.getName(),
+        logger.trace("Finished Edge validation of ChangeAtlas {} in {}", this.atlas.getName(),
                 start.elapsedSince());
     }
 
