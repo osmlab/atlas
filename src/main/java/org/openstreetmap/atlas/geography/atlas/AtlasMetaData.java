@@ -64,6 +64,12 @@ public final class AtlasMetaData implements Serializable, Taggable, ProtoSeriali
         this.tags = tags;
     }
 
+    public AtlasMetaData copyWithNewOriginal(final boolean original)
+    {
+        return new AtlasMetaData(this.size, original, this.codeVersion, this.dataVersion,
+                this.country, this.shardName, this.tags);
+    }
+
     public AtlasMetaData copyWithNewShardName(final String shardName)
     {
         return new AtlasMetaData(this.size, this.original, this.codeVersion, this.dataVersion,
