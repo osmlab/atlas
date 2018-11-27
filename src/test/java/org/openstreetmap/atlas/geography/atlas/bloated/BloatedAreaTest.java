@@ -7,6 +7,7 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -46,7 +47,10 @@ public class BloatedAreaTest
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         result.withPolygon(Polygon.TEST_BUILDING);
-        Assert.assertEquals(Polygon.TEST_BUILDING.bounds(), result.bounds());
+        // When we update a polygon, the bounds should expand to include the original polygon as
+        // well as the updated polygon
+        Assert.assertEquals(Rectangle.forLocated(Polygon.TEST_BUILDING.bounds(), source.bounds()),
+                result.bounds());
         final Map<String, String> tags = Maps.hashMap("key", "value");
         result.withTags(tags);
         Assert.assertEquals(tags, result.getTags());
@@ -57,5 +61,11 @@ public class BloatedAreaTest
                         .collect(Collectors.toSet()),
                 result.relations().stream().map(Relation::getIdentifier)
                         .collect(Collectors.toSet()));
+
+        result.withPolygon(Polygon.SILICON_VALLEY);
+        // When we update the polygon again, the bounds recalculation should "forget" about the
+        // first update
+        Assert.assertEquals(Rectangle.forLocated(source.bounds(), Polygon.SILICON_VALLEY),
+                result.bounds());
     }
 }
