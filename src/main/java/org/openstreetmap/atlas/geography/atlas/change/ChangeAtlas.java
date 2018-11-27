@@ -72,7 +72,7 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     }
 
     @Override
-    public Rectangle bounds()
+    public synchronized Rectangle bounds()
     {
         if (this.bounds == null)
         {
