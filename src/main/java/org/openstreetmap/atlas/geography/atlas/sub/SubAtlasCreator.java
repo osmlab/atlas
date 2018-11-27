@@ -21,6 +21,8 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
+import org.openstreetmap.atlas.geography.atlas.items.LineItem;
+import org.openstreetmap.atlas.geography.atlas.items.LocationItem;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -39,7 +41,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author mgostintsev
  */
-public class SubAtlasCreator
+public class SubAtlasCreator implements SubAtlas
 {
     private static final Logger logger = LoggerFactory.getLogger(SubAtlasCreator.class);
 
@@ -53,6 +55,7 @@ public class SubAtlasCreator
         this.atlas = atlas;
     }
 
+    @Override
     public Optional<Atlas> hardCutAllEntities(final Polygon boundary)
     {
         logger.debug(CUT_START_MESSAGE, AtlasCutType.HARD_CUT_ALL, this.atlas.getName(),
@@ -213,6 +216,7 @@ public class SubAtlasCreator
         return Optional.ofNullable(result);
     }
 
+    @Override
     public Optional<Atlas> hardCutAllEntities(final Predicate<AtlasEntity> matcher)
     {
         logger.debug(CUT_START_MESSAGE, AtlasCutType.HARD_CUT_ALL, this.atlas.getName(),
@@ -320,6 +324,7 @@ public class SubAtlasCreator
         return Optional.ofNullable(result);
     }
 
+    @Override
     public Optional<Atlas> hardCutRelationsOnly(final Predicate<AtlasEntity> matcher)
     {
         logger.debug(CUT_START_MESSAGE, AtlasCutType.HARD_CUT_RELATIONS_ONLY, this.atlas.getName(),
@@ -396,6 +401,7 @@ public class SubAtlasCreator
         return Optional.ofNullable(result);
     }
 
+    @Override
     public Optional<Atlas> softCut(final Polygon boundary, final boolean hardCutRelations)
     {
         logger.debug(CUT_START_MESSAGE,
@@ -508,28 +514,19 @@ public class SubAtlasCreator
                         members.forEach(member ->
                         {
                             final AtlasEntity entity = member.getEntity();
-                            if (entity instanceof Node && boundary
-                                    .fullyGeometricallyEncloses(((Node) entity).getLocation()))
+                            if (entity instanceof LocationItem
+                                    && boundary.fullyGeometricallyEncloses(
+                                            ((LocationItem) entity).getLocation()))
                             {
                                 validMembers.add(member);
                             }
-                            else if (entity instanceof Edge && boundary
-                                    .fullyGeometricallyEncloses(((Edge) entity).asPolyLine()))
+                            else if (entity instanceof LineItem && boundary
+                                    .fullyGeometricallyEncloses(((LineItem) entity).asPolyLine()))
                             {
                                 validMembers.add(member);
                             }
                             else if (entity instanceof Area && boundary
                                     .fullyGeometricallyEncloses(((Area) entity).asPolygon()))
-                            {
-                                validMembers.add(member);
-                            }
-                            else if (entity instanceof Line && boundary
-                                    .fullyGeometricallyEncloses(((Line) entity).asPolyLine()))
-                            {
-                                validMembers.add(member);
-                            }
-                            else if (entity instanceof Point && boundary
-                                    .fullyGeometricallyEncloses(((Point) entity).getLocation()))
                             {
                                 validMembers.add(member);
                             }
@@ -542,15 +539,11 @@ public class SubAtlasCreator
                         if (!validMembers.isEmpty())
                         {
                             // If there are legitimate members, we need to add the relation to the
-                            // sub
-                            // atlas
+                            // sub atlas
                             final RelationBean structure = new RelationBean();
-                            validMembers.forEach(validMember ->
-                            {
-                                structure.addItem(validMember.getEntity().getIdentifier(),
-                                        validMember.getRole(),
-                                        ItemType.forEntity(validMember.getEntity()));
-                            });
+                            validMembers.forEach(validMember -> structure.addItem(
+                                    validMember.getEntity().getIdentifier(), validMember.getRole(),
+                                    ItemType.forEntity(validMember.getEntity())));
                             builder.addRelation(relation.getIdentifier(),
                                     relation.getOsmIdentifier(), structure, relation.getTags());
                         }
@@ -564,8 +557,7 @@ public class SubAtlasCreator
                         final RelationMemberList members = relation.members();
                         final List<RelationMember> validMembers = new ArrayList<>();
                         // And consider them only if they have members that have already been added
-                        // to
-                        // the sub atlas.
+                        // to the sub atlas.
                         members.forEach(member ->
                         {
                             final AtlasEntity entity = member.getEntity();
@@ -615,6 +607,7 @@ public class SubAtlasCreator
      *            The matcher to consider
      * @return a sub-atlas from this Atlas.
      */
+    @Override
     public Optional<Atlas> softCut(final Predicate<AtlasEntity> matcher)
     {
         logger.debug(CUT_START_MESSAGE, AtlasCutType.SOFT_CUT, this.atlas.getName(),
