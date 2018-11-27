@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.utilities.collections;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.function.Function;
@@ -152,9 +153,13 @@ public class StreamIterable<T> implements Iterable<T>
     public <IdentifierType> StreamIterable<T> filter(final Set<IdentifierType> filterSet,
             final Function<T, IdentifierType> identifier)
     {
-        return new StreamIterable<>(
-                new FilteredIterable<T, IdentifierType>(this.source, filterSet, identifier),
+        return new StreamIterable<>(new FilteredIterable<>(this.source, filterSet, identifier),
                 this.parallel);
+    }
+
+    public Optional<T> firstMatching(final Predicate<T> filter)
+    {
+        return Iterables.firstMatching(this.source, filter);
     }
 
     /**
@@ -175,6 +180,11 @@ public class StreamIterable<T> implements Iterable<T>
     public Iterator<T> iterator()
     {
         return this.source.iterator();
+    }
+
+    public Optional<T> lastMatching(final Predicate<T> filter)
+    {
+        return Iterables.lastMatching(this.source, filter);
     }
 
     /**

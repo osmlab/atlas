@@ -18,8 +18,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
 
-import org.openstreetmap.atlas.exception.CoreException;
-
 /**
  * Iterable utility methods
  *
@@ -350,7 +348,7 @@ public final class Iterables
             final Iterable<Type> types, final Set<IdentifierType> filterSet,
             final Function<Type, IdentifierType> identifier)
     {
-        return new FilteredIterable<Type, IdentifierType>(types, filterSet, identifier);
+        return new FilteredIterable<>(types, filterSet, identifier);
     }
 
     /**
@@ -432,6 +430,11 @@ public final class Iterables
     public static <Type> Optional<Type> first(final Iterable<Type> types)
     {
         return nth(types, 0);
+    }
+
+    public static <T> Optional<T> firstMatching(final Iterable<T> types, final Predicate<T> matcher)
+    {
+        return first(filter(types, matcher));
     }
 
     /**
@@ -583,21 +586,34 @@ public final class Iterables
      *
      * @param types
      *            The items
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return The last element in the {@link Iterable}
      */
-    public static <Type> Optional<Type> last(final Iterable<Type> types)
+    public static <T> Optional<T> last(final Iterable<T> types)
     {
-        final List<Type> list = asList(types);
-        if (list.size() >= 1)
+        T result = null;
+        if (types instanceof List)
         {
-            return Optional.ofNullable(list.get(list.size() - 1));
+            final List<T> list = (List<T>) types;
+            if (list.size() >= 1)
+            {
+                result = list.get(list.size() - 1);
+            }
         }
         else
         {
-            throw new CoreException("No last item when there is nothing.");
+            for (final T type : types)
+            {
+                result = type;
+            }
         }
+        return Optional.ofNullable(result);
+    }
+
+    public static <T> Optional<T> lastMatching(final Iterable<T> types, final Predicate<T> matcher)
+    {
+        return last(filter(types, matcher));
     }
 
     /**
