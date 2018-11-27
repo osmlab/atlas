@@ -140,22 +140,25 @@ public class BloatedNode extends Node implements BloatedEntity
     @Override
     public SortedSet<Edge> inEdges()
     {
-        return this.inEdgeIdentifiers == null ? null : this.inEdgeIdentifiers.stream()
-                .map(BloatedEdge::new).collect(Collectors.toCollection(TreeSet::new));
+        return this.inEdgeIdentifiers == null ? null
+                : this.inEdgeIdentifiers.stream().map(BloatedEdge::new)
+                        .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public SortedSet<Edge> outEdges()
     {
-        return this.outEdgeIdentifiers == null ? null : this.outEdgeIdentifiers.stream()
-                .map(BloatedEdge::new).collect(Collectors.toCollection(TreeSet::new));
+        return this.outEdgeIdentifiers == null ? null
+                : this.outEdgeIdentifiers.stream().map(BloatedEdge::new)
+                        .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
-                .map(BloatedRelation::new).collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null
+                : this.relationIdentifiers.stream().map(BloatedRelation::new)
+                        .collect(Collectors.toSet());
     }
 
     public BloatedNode withIdentifier(final long identifier)

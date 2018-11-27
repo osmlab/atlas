@@ -114,8 +114,9 @@ public class BloatedLine extends Line implements BloatedEntity
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
-                .map(BloatedRelation::new).collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null
+                : this.relationIdentifiers.stream().map(BloatedRelation::new)
+                        .collect(Collectors.toSet());
     }
 
     public BloatedLine withIdentifier(final long identifier)
