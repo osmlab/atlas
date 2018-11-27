@@ -482,7 +482,7 @@ sub get_editor {
     my $exitcode;
 
     if (defined $ENV{EDITOR}) {
-        if ($ENV{PAGER} eq '') {
+        if ($ENV{EDITOR} eq '') {
             return undef;
         }
         $editor_command = `which $ENV{EDITOR}`;
