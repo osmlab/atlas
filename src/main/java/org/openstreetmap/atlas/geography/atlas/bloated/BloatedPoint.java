@@ -119,8 +119,9 @@ public class BloatedPoint extends Point implements BloatedEntity
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
-                .map(BloatedRelation::new).collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null
+                : this.relationIdentifiers.stream().map(BloatedRelation::new)
+                        .collect(Collectors.toSet());
     }
 
     public BloatedPoint withIdentifier(final long identifier)

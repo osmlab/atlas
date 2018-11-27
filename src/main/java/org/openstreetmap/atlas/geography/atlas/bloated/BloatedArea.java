@@ -119,8 +119,9 @@ public class BloatedArea extends Area implements BloatedEntity
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
-                .map(BloatedRelation::new).collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null
+                : this.relationIdentifiers.stream().map(BloatedRelation::new)
+                        .collect(Collectors.toSet());
     }
 
     public BloatedArea withIdentifier(final long identifier)
