@@ -58,17 +58,12 @@ public class BloatedRelation extends Relation implements BloatedEntity
 
     public static BloatedRelation shallowFromRelation(final Relation relation)
     {
-        return new BloatedRelation(relation.getIdentifier(), relation.bounds());
+        return new BloatedRelation(relation.getIdentifier()).withInitialBounds(relation.bounds());
     }
 
     BloatedRelation(final long identifier)
     {
         this(identifier, null, null, null, null, null, null, null);
-    }
-
-    BloatedRelation(final long identifier, final Rectangle bounds)
-    {
-        this(identifier, null, bounds, null, null, null, null, null);
     }
 
     public BloatedRelation(final Long identifier, final Map<String, String> tags, // NOSONAR
@@ -85,7 +80,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
         }
 
         this.originalBounds = bounds != null ? bounds : null;
-        this.aggregateBounds = bounds != null ? bounds : null;
+        this.aggregateBounds = this.originalBounds;
 
         this.identifier = identifier;
         this.tags = tags;
@@ -160,9 +155,8 @@ public class BloatedRelation extends Relation implements BloatedEntity
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(BloatedRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(BloatedRelation::new).collect(Collectors.toSet());
     }
 
     public BloatedRelation withAllKnownOsmMembers(final RelationBean allKnownOsmMembers)
@@ -188,7 +182,11 @@ public class BloatedRelation extends Relation implements BloatedEntity
     {
         this.members = members;
         // TODO note to reviewer, is this the right approach?
-        this.aggregateBounds = bounds;
+        if (this.originalBounds == null)
+        {
+            this.originalBounds = bounds;
+        }
+        this.aggregateBounds = Rectangle.forLocated(this.originalBounds, bounds);
         return this;
     }
 
@@ -202,6 +200,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
     public BloatedRelation withMembers(final RelationMemberList members)
     {
         this.members = members.asBean();
+        // TODO note to reviewer, is this the right approach?
         if (this.originalBounds == null)
         {
             this.originalBounds = members.bounds();
@@ -242,5 +241,12 @@ public class BloatedRelation extends Relation implements BloatedEntity
                     getIdentifier()));
         }
         return new RelationMemberList(memberList);
+    }
+
+    private BloatedRelation withInitialBounds(final Rectangle bounds)
+    {
+        this.originalBounds = bounds;
+        this.aggregateBounds = bounds;
+        return this;
     }
 }

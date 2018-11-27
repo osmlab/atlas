@@ -71,17 +71,12 @@ public class BloatedNode extends Node implements BloatedEntity
      */
     public static BloatedNode shallowFromNode(final Node node)
     {
-        return new BloatedNode(node.getIdentifier(), node.getLocation());
+        return new BloatedNode(node.getIdentifier()).withInitialBounds(node.getLocation().bounds());
     }
 
     BloatedNode(final long identifier)
     {
         this(identifier, null, null, null, null, null);
-    }
-
-    BloatedNode(final long identifier, final Location location)
-    {
-        this(identifier, location, null, null, null, null);
     }
 
     public BloatedNode(final Long identifier, final Location location,
@@ -96,7 +91,7 @@ public class BloatedNode extends Node implements BloatedEntity
         }
 
         this.originalBounds = location != null ? location.bounds() : null;
-        this.aggregateBounds = location != null ? location.bounds() : null;
+        this.aggregateBounds = this.originalBounds;
 
         this.identifier = identifier;
         this.location = location;
@@ -145,25 +140,22 @@ public class BloatedNode extends Node implements BloatedEntity
     @Override
     public SortedSet<Edge> inEdges()
     {
-        return this.inEdgeIdentifiers == null ? null
-                : this.inEdgeIdentifiers.stream().map(BloatedEdge::new)
-                        .collect(Collectors.toCollection(TreeSet::new));
+        return this.inEdgeIdentifiers == null ? null : this.inEdgeIdentifiers.stream()
+                .map(BloatedEdge::new).collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public SortedSet<Edge> outEdges()
     {
-        return this.outEdgeIdentifiers == null ? null
-                : this.outEdgeIdentifiers.stream().map(BloatedEdge::new)
-                        .collect(Collectors.toCollection(TreeSet::new));
+        return this.outEdgeIdentifiers == null ? null : this.outEdgeIdentifiers.stream()
+                .map(BloatedEdge::new).collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(BloatedRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(BloatedRelation::new).collect(Collectors.toSet());
     }
 
     public BloatedNode withIdentifier(final long identifier)
@@ -204,6 +196,13 @@ public class BloatedNode extends Node implements BloatedEntity
     public BloatedNode withTags(final Map<String, String> tags)
     {
         this.tags = tags;
+        return this;
+    }
+
+    private BloatedNode withInitialBounds(final Rectangle bounds)
+    {
+        this.originalBounds = bounds;
+        this.aggregateBounds = bounds;
         return this;
     }
 }

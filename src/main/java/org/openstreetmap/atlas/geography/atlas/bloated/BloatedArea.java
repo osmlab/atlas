@@ -48,17 +48,12 @@ public class BloatedArea extends Area implements BloatedEntity
 
     public static BloatedArea shallowFromArea(final Area area)
     {
-        return new BloatedArea(area.getIdentifier(), area.asPolygon());
+        return new BloatedArea(area.getIdentifier()).withInitialBounds(area.asPolygon().bounds());
     }
 
     BloatedArea(final long identifier)
     {
         this(identifier, null, null, null);
-    }
-
-    BloatedArea(final long identifier, final Polygon polygon)
-    {
-        this(identifier, polygon, null, null);
     }
 
     public BloatedArea(final Long identifier, final Polygon polygon, final Map<String, String> tags,
@@ -72,7 +67,7 @@ public class BloatedArea extends Area implements BloatedEntity
         }
 
         this.originalBounds = polygon != null ? polygon.bounds() : null;
-        this.aggregateBounds = polygon != null ? polygon.bounds() : null;
+        this.aggregateBounds = this.originalBounds;
 
         this.identifier = identifier;
         this.polygon = polygon;
@@ -119,9 +114,8 @@ public class BloatedArea extends Area implements BloatedEntity
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(BloatedRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(BloatedRelation::new).collect(Collectors.toSet());
     }
 
     public BloatedArea withIdentifier(final long identifier)
@@ -150,6 +144,13 @@ public class BloatedArea extends Area implements BloatedEntity
     public BloatedArea withTags(final Map<String, String> tags)
     {
         this.tags = tags;
+        return this;
+    }
+
+    private BloatedArea withInitialBounds(final Rectangle bounds)
+    {
+        this.originalBounds = bounds;
+        this.aggregateBounds = bounds;
         return this;
     }
 }

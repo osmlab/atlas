@@ -48,17 +48,12 @@ public class BloatedLine extends Line implements BloatedEntity
 
     public static BloatedLine shallowFromLine(final Line line)
     {
-        return new BloatedLine(line.getIdentifier(), line.asPolyLine());
+        return new BloatedLine(line.getIdentifier()).withInitialBounds(line.asPolyLine().bounds());
     }
 
     BloatedLine(final long identifier)
     {
         this(identifier, null, null, null);
-    }
-
-    BloatedLine(final long identifier, final PolyLine polyLine)
-    {
-        this(identifier, polyLine, null, null);
     }
 
     public BloatedLine(final Long identifier, final PolyLine polyLine,
@@ -72,7 +67,7 @@ public class BloatedLine extends Line implements BloatedEntity
         }
 
         this.originalBounds = polyLine != null ? polyLine.bounds() : null;
-        this.aggregateBounds = polyLine != null ? polyLine.bounds() : null;
+        this.aggregateBounds = this.originalBounds;
 
         this.identifier = identifier;
         this.polyLine = polyLine;
@@ -119,9 +114,8 @@ public class BloatedLine extends Line implements BloatedEntity
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(BloatedRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(BloatedRelation::new).collect(Collectors.toSet());
     }
 
     public BloatedLine withIdentifier(final long identifier)
@@ -150,6 +144,13 @@ public class BloatedLine extends Line implements BloatedEntity
     public BloatedLine withTags(final Map<String, String> tags)
     {
         this.tags = tags;
+        return this;
+    }
+
+    private BloatedLine withInitialBounds(final Rectangle bounds)
+    {
+        this.originalBounds = bounds;
+        this.aggregateBounds = bounds;
         return this;
     }
 }

@@ -51,17 +51,12 @@ public class BloatedEdge extends Edge implements BloatedEntity
 
     public static BloatedEdge shallowFromEdge(final Edge edge)
     {
-        return new BloatedEdge(edge.getIdentifier(), edge.asPolyLine().bounds());
+        return new BloatedEdge(edge.getIdentifier()).withInitialBounds(edge.asPolyLine().bounds());
     }
 
     BloatedEdge(final long identifier)
     {
         this(identifier, null, null, null, null, null);
-    }
-
-    BloatedEdge(final long identifier, final PolyLine polyLine)
-    {
-        this(identifier, polyLine, null, null, null, null);
     }
 
     public BloatedEdge(final Long identifier, final PolyLine polyLine,
@@ -76,7 +71,7 @@ public class BloatedEdge extends Edge implements BloatedEntity
         }
 
         this.originalBounds = polyLine != null ? polyLine.bounds() : null;
-        this.aggregateBounds = polyLine != null ? polyLine.bounds() : null;
+        this.aggregateBounds = this.originalBounds;
 
         this.identifier = identifier;
         this.polyLine = polyLine;
@@ -131,9 +126,8 @@ public class BloatedEdge extends Edge implements BloatedEntity
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(BloatedRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(BloatedRelation::new).collect(Collectors.toSet());
     }
 
     @Override
@@ -180,6 +174,13 @@ public class BloatedEdge extends Edge implements BloatedEntity
     public BloatedEdge withTags(final Map<String, String> tags)
     {
         this.tags = tags;
+        return this;
+    }
+
+    private BloatedEdge withInitialBounds(final Rectangle bounds)
+    {
+        this.originalBounds = bounds;
+        this.aggregateBounds = bounds;
         return this;
     }
 }

@@ -48,17 +48,13 @@ public class BloatedPoint extends Point implements BloatedEntity
 
     public static BloatedPoint shallowFromPoint(final Point point)
     {
-        return new BloatedPoint(point.getIdentifier(), point.getLocation());
+        return new BloatedPoint(point.getIdentifier())
+                .withInitialBounds(point.getLocation().bounds());
     }
 
     BloatedPoint(final long identifier)
     {
         this(identifier, null, null, null);
-    }
-
-    BloatedPoint(final long identifier, final Location location)
-    {
-        this(identifier, location, null, null);
     }
 
     public BloatedPoint(final Long identifier, final Location location,
@@ -72,7 +68,7 @@ public class BloatedPoint extends Point implements BloatedEntity
         }
 
         this.originalBounds = location != null ? location.bounds() : null;
-        this.aggregateBounds = location != null ? location.bounds() : null;
+        this.aggregateBounds = this.originalBounds;
 
         this.identifier = identifier;
         this.location = location;
@@ -119,9 +115,8 @@ public class BloatedPoint extends Point implements BloatedEntity
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(BloatedRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(BloatedRelation::new).collect(Collectors.toSet());
     }
 
     public BloatedPoint withIdentifier(final long identifier)
@@ -150,6 +145,13 @@ public class BloatedPoint extends Point implements BloatedEntity
     public BloatedPoint withTags(final Map<String, String> tags)
     {
         this.tags = tags;
+        return this;
+    }
+
+    private BloatedPoint withInitialBounds(final Rectangle bounds)
+    {
+        this.originalBounds = bounds;
+        this.aggregateBounds = bounds;
         return this;
     }
 }
