@@ -49,7 +49,7 @@ public class BloatedAreaTest
         result.withPolygon(Polygon.TEST_BUILDING);
         // When we update a polygon, the bounds should expand to include the original polygon as
         // well as the updated polygon
-        Assert.assertEquals(Rectangle.forLocated(Polygon.TEST_BUILDING.bounds(), source.bounds()),
+        Assert.assertEquals(Rectangle.forLocated(source.bounds(), Polygon.TEST_BUILDING),
                 result.bounds());
         final Map<String, String> tags = Maps.hashMap("key", "value");
         result.withTags(tags);
