@@ -619,7 +619,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
                 this.usePager = false;
             }
             this.maximumColumn = Integer.parseInt(terminalColumnArg);
-            argsCopy = Arrays.copyOf(argsCopy, argsCopy.length - 4);
+            argsCopy = Arrays.copyOf(argsCopy, argsCopy.length - 5);
         }
 
         // fill out appropriate data structures so the execute() implementation can query
