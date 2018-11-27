@@ -21,7 +21,19 @@ public class BloatedArea extends Area implements BloatedEntity
 {
     private static final long serialVersionUID = 309534717673911086L;
 
-    private Rectangle bounds;
+    /*
+     * We need to store the original entity bounds at creation-time. This is so multiple consecutive
+     * with(Located) calls can update the aggregate bounds without including the bounds from the
+     * overwritten change.
+     */
+    private Rectangle originalBounds;
+
+    /*
+     * This is the aggregate feature bounds. It is a super-bound of the original bounds and the
+     * changed bounds, if preset. Each time with(Located) is called on this entity, it is recomputed
+     * from the original bounds and the new Located bounds.
+     */
+    private Rectangle aggregateBounds;
 
     private long identifier;
     private Polygon polygon;
@@ -36,12 +48,17 @@ public class BloatedArea extends Area implements BloatedEntity
 
     public static BloatedArea shallowFromArea(final Area area)
     {
-        return new BloatedArea(area.getIdentifier()).withBounds(area.asPolygon().bounds());
+        return new BloatedArea(area.getIdentifier(), area.asPolygon());
     }
 
     BloatedArea(final long identifier)
     {
         this(identifier, null, null, null);
+    }
+
+    BloatedArea(final long identifier, final Polygon polygon)
+    {
+        this(identifier, polygon, null, null);
     }
 
     public BloatedArea(final Long identifier, final Polygon polygon, final Map<String, String> tags,
@@ -51,10 +68,11 @@ public class BloatedArea extends Area implements BloatedEntity
 
         if (identifier == null)
         {
-            throw new CoreException("Identifier is the only parameter that cannot be null.");
+            throw new CoreException("Identifier can never be null.");
         }
 
-        this.bounds = polygon == null ? null : polygon.bounds();
+        this.originalBounds = polygon != null ? polygon.bounds() : null;
+        this.aggregateBounds = polygon != null ? polygon.bounds() : null;
 
         this.identifier = identifier;
         this.polygon = polygon;
@@ -71,7 +89,7 @@ public class BloatedArea extends Area implements BloatedEntity
     @Override
     public Rectangle bounds()
     {
-        return this.bounds;
+        return this.aggregateBounds;
     }
 
     @Override
@@ -101,9 +119,8 @@ public class BloatedArea extends Area implements BloatedEntity
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(BloatedRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(BloatedRelation::new).collect(Collectors.toSet());
     }
 
     public BloatedArea withIdentifier(final long identifier)
@@ -115,7 +132,11 @@ public class BloatedArea extends Area implements BloatedEntity
     public BloatedArea withPolygon(final Polygon polygon)
     {
         this.polygon = polygon;
-        this.bounds = polygon.bounds();
+        if (this.originalBounds == null)
+        {
+            this.originalBounds = polygon.bounds();
+        }
+        this.aggregateBounds = Rectangle.forLocated(this.originalBounds, polygon.bounds());
         return this;
     }
 
@@ -128,12 +149,6 @@ public class BloatedArea extends Area implements BloatedEntity
     public BloatedArea withTags(final Map<String, String> tags)
     {
         this.tags = tags;
-        return this;
-    }
-
-    private BloatedArea withBounds(final Rectangle bounds)
-    {
-        this.bounds = bounds;
         return this;
     }
 }

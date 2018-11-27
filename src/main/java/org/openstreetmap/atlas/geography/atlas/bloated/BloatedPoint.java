@@ -21,7 +21,19 @@ public class BloatedPoint extends Point implements BloatedEntity
 {
     private static final long serialVersionUID = 309534717673911086L;
 
-    private Rectangle bounds;
+    /*
+     * We need to store the original entity bounds at creation-time. This is so multiple consecutive
+     * with(Located) calls can update the aggregate bounds without including the bounds from the
+     * overwritten change.
+     */
+    private Rectangle originalBounds;
+
+    /*
+     * This is the aggregate feature bounds. It is a super-bound of the original bounds and the
+     * changed bounds, if preset. Each time with(Located) is called on this entity, it is recomputed
+     * from the original bounds and the new Located bounds.
+     */
+    private Rectangle aggregateBounds;
 
     private long identifier;
     private Location location;
@@ -36,12 +48,17 @@ public class BloatedPoint extends Point implements BloatedEntity
 
     public static BloatedPoint shallowFromPoint(final Point point)
     {
-        return new BloatedPoint(point.getIdentifier()).withBounds(point.getLocation().bounds());
+        return new BloatedPoint(point.getIdentifier(), point.getLocation());
     }
 
     BloatedPoint(final long identifier)
     {
         this(identifier, null, null, null);
+    }
+
+    BloatedPoint(final long identifier, final Location location)
+    {
+        this(identifier, location, null, null);
     }
 
     public BloatedPoint(final Long identifier, final Location location,
@@ -51,10 +68,11 @@ public class BloatedPoint extends Point implements BloatedEntity
 
         if (identifier == null)
         {
-            throw new CoreException("Identifier is the only parameter that cannot be null.");
+            throw new CoreException("Identifier can never be null.");
         }
 
-        this.bounds = location == null ? null : location.bounds();
+        this.originalBounds = location != null ? location.bounds() : null;
+        this.aggregateBounds = location != null ? location.bounds() : null;
 
         this.identifier = identifier;
         this.location = location;
@@ -65,7 +83,7 @@ public class BloatedPoint extends Point implements BloatedEntity
     @Override
     public Rectangle bounds()
     {
-        return this.bounds;
+        return this.aggregateBounds;
     }
 
     @Override
@@ -101,9 +119,8 @@ public class BloatedPoint extends Point implements BloatedEntity
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(BloatedRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(BloatedRelation::new).collect(Collectors.toSet());
     }
 
     public BloatedPoint withIdentifier(final long identifier)
@@ -115,7 +132,11 @@ public class BloatedPoint extends Point implements BloatedEntity
     public BloatedPoint withLocation(final Location location)
     {
         this.location = location;
-        this.bounds = location.bounds();
+        if (this.originalBounds == null)
+        {
+            this.originalBounds = location.bounds();
+        }
+        this.aggregateBounds = Rectangle.forLocated(this.originalBounds, location.bounds());
         return this;
     }
 
@@ -128,12 +149,6 @@ public class BloatedPoint extends Point implements BloatedEntity
     public BloatedPoint withTags(final Map<String, String> tags)
     {
         this.tags = tags;
-        return this;
-    }
-
-    private BloatedPoint withBounds(final Rectangle bounds)
-    {
-        this.bounds = bounds;
         return this;
     }
 }

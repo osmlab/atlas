@@ -21,7 +21,19 @@ public class BloatedEdge extends Edge implements BloatedEntity
 {
     private static final long serialVersionUID = 309534717673911086L;
 
-    private Rectangle bounds;
+    /*
+     * We need to store the original entity bounds at creation-time. This is so multiple consecutive
+     * with(Located) calls can update the aggregate bounds without including the bounds from the
+     * overwritten change.
+     */
+    private Rectangle originalBounds;
+
+    /*
+     * This is the aggregate feature bounds. It is a super-bound of the original bounds and the
+     * changed bounds, if preset. Each time with(Located) is called on this entity, it is recomputed
+     * from the original bounds and the new Located bounds.
+     */
+    private Rectangle aggregateBounds;
 
     private long identifier;
     private PolyLine polyLine;
@@ -39,12 +51,17 @@ public class BloatedEdge extends Edge implements BloatedEntity
 
     public static BloatedEdge shallowFromEdge(final Edge edge)
     {
-        return new BloatedEdge(edge.getIdentifier()).withBounds(edge.asPolyLine().bounds());
+        return new BloatedEdge(edge.getIdentifier(), edge.asPolyLine().bounds());
     }
 
     BloatedEdge(final long identifier)
     {
         this(identifier, null, null, null, null, null);
+    }
+
+    BloatedEdge(final long identifier, final PolyLine polyLine)
+    {
+        this(identifier, polyLine, null, null, null, null);
     }
 
     public BloatedEdge(final Long identifier, final PolyLine polyLine,
@@ -55,10 +72,11 @@ public class BloatedEdge extends Edge implements BloatedEntity
 
         if (identifier == null)
         {
-            throw new CoreException("Identifier is the only parameter that cannot be null.");
+            throw new CoreException("Identifier can never be null.");
         }
 
-        this.bounds = polyLine == null ? null : polyLine.bounds();
+        this.originalBounds = polyLine != null ? polyLine.bounds() : null;
+        this.aggregateBounds = polyLine != null ? polyLine.bounds() : null;
 
         this.identifier = identifier;
         this.polyLine = polyLine;
@@ -77,7 +95,7 @@ public class BloatedEdge extends Edge implements BloatedEntity
     @Override
     public Rectangle bounds()
     {
-        return this.bounds;
+        return this.aggregateBounds;
     }
 
     @Override
@@ -113,9 +131,8 @@ public class BloatedEdge extends Edge implements BloatedEntity
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(BloatedRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(BloatedRelation::new).collect(Collectors.toSet());
     }
 
     @Override
@@ -139,7 +156,11 @@ public class BloatedEdge extends Edge implements BloatedEntity
     public BloatedEdge withPolyLine(final PolyLine polyLine)
     {
         this.polyLine = polyLine;
-        this.bounds = polyLine.bounds();
+        if (this.originalBounds == null)
+        {
+            this.originalBounds = polyLine.bounds();
+        }
+        this.aggregateBounds = Rectangle.forLocated(this.originalBounds, polyLine.bounds());
         return this;
     }
 
@@ -158,12 +179,6 @@ public class BloatedEdge extends Edge implements BloatedEntity
     public BloatedEdge withTags(final Map<String, String> tags)
     {
         this.tags = tags;
-        return this;
-    }
-
-    private BloatedEdge withBounds(final Rectangle bounds)
-    {
-        this.bounds = bounds;
         return this;
     }
 }

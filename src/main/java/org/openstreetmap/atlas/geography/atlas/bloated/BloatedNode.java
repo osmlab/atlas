@@ -15,7 +15,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
 /**
- * Independent {@link Node} that contains its own data. At scale, use at your own risk.
+ * Independent {@link Node} that may contain its own altered data. At scale, use at your own risk.
  *
  * @author matthieun
  */
@@ -23,7 +23,19 @@ public class BloatedNode extends Node implements BloatedEntity
 {
     private static final long serialVersionUID = -8229589987121555419L;
 
-    private Rectangle bounds;
+    /*
+     * We need to store the original entity bounds at creation-time. This is so multiple consecutive
+     * with(Located) calls can update the aggregate bounds without including the bounds from the
+     * overwritten change.
+     */
+    private Rectangle originalBounds;
+
+    /*
+     * This is the aggregate feature bounds. It is a super-bound of the original bounds and the
+     * changed bounds, if preset. Each time with(Located) is called on this entity, it is recomputed
+     * from the original bounds and the new Located bounds.
+     */
+    private Rectangle aggregateBounds;
 
     private long identifier;
     private Location location;
@@ -32,6 +44,13 @@ public class BloatedNode extends Node implements BloatedEntity
     private SortedSet<Long> outEdgeIdentifiers;
     private Set<Long> relationIdentifiers;
 
+    /**
+     * Create a full copy of the given node.
+     *
+     * @param node
+     *            the {@link Node} to deep copy
+     * @return the new {@link BloatedNode}
+     */
     public static BloatedNode fromNode(final Node node)
     {
         return new BloatedNode(node.getIdentifier(), node.getLocation(), node.getTags(),
@@ -42,14 +61,27 @@ public class BloatedNode extends Node implements BloatedEntity
                 node.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
+    /**
+     * Create a shallow copy of a given node. All fields (except the identifier and the geometry)
+     * are left null until updated by a with() call.
+     *
+     * @param node
+     *            the {@link Node} to copy
+     * @return the new {@link BloatedNode}
+     */
     public static BloatedNode shallowFromNode(final Node node)
     {
-        return new BloatedNode(node.getIdentifier()).withBounds(node.getLocation().bounds());
+        return new BloatedNode(node.getIdentifier(), node.getLocation());
     }
 
     BloatedNode(final long identifier)
     {
         this(identifier, null, null, null, null, null);
+    }
+
+    BloatedNode(final long identifier, final Location location)
+    {
+        this(identifier, location, null, null, null, null);
     }
 
     public BloatedNode(final Long identifier, final Location location,
@@ -60,10 +92,11 @@ public class BloatedNode extends Node implements BloatedEntity
 
         if (identifier == null)
         {
-            throw new CoreException("Identifier is the only parameter that cannot be null.");
+            throw new CoreException("Identifier can never be null.");
         }
 
-        this.bounds = location == null ? null : location.bounds();
+        this.originalBounds = location != null ? location.bounds() : null;
+        this.aggregateBounds = location != null ? location.bounds() : null;
 
         this.identifier = identifier;
         this.location = location;
@@ -76,7 +109,7 @@ public class BloatedNode extends Node implements BloatedEntity
     @Override
     public Rectangle bounds()
     {
-        return this.bounds;
+        return this.aggregateBounds;
     }
 
     @Override
@@ -112,25 +145,22 @@ public class BloatedNode extends Node implements BloatedEntity
     @Override
     public SortedSet<Edge> inEdges()
     {
-        return this.inEdgeIdentifiers == null ? null
-                : this.inEdgeIdentifiers.stream().map(BloatedEdge::new)
-                        .collect(Collectors.toCollection(TreeSet::new));
+        return this.inEdgeIdentifiers == null ? null : this.inEdgeIdentifiers.stream()
+                .map(BloatedEdge::new).collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public SortedSet<Edge> outEdges()
     {
-        return this.outEdgeIdentifiers == null ? null
-                : this.outEdgeIdentifiers.stream().map(BloatedEdge::new)
-                        .collect(Collectors.toCollection(TreeSet::new));
+        return this.outEdgeIdentifiers == null ? null : this.outEdgeIdentifiers.stream()
+                .map(BloatedEdge::new).collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(BloatedRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(BloatedRelation::new).collect(Collectors.toSet());
     }
 
     public BloatedNode withIdentifier(final long identifier)
@@ -148,7 +178,11 @@ public class BloatedNode extends Node implements BloatedEntity
     public BloatedNode withLocation(final Location location)
     {
         this.location = location;
-        this.bounds = location.bounds();
+        if (this.originalBounds == null)
+        {
+            this.originalBounds = location.bounds();
+        }
+        this.aggregateBounds = Rectangle.forLocated(this.originalBounds, location.bounds());
         return this;
     }
 
@@ -167,12 +201,6 @@ public class BloatedNode extends Node implements BloatedEntity
     public BloatedNode withTags(final Map<String, String> tags)
     {
         this.tags = tags;
-        return this;
-    }
-
-    private BloatedNode withBounds(final Rectangle bounds)
-    {
-        this.bounds = bounds;
         return this;
     }
 }

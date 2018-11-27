@@ -23,7 +23,19 @@ public class BloatedRelation extends Relation implements BloatedEntity
 {
     private static final long serialVersionUID = -8295865049110084558L;
 
-    private Rectangle bounds;
+    /*
+     * We need to store the original entity bounds at creation-time. This is so multiple consecutive
+     * with(Located) calls can update the aggregate bounds without including the bounds from the
+     * overwritten change.
+     */
+    private Rectangle originalBounds;
+
+    /*
+     * This is the aggregate feature bounds. It is a super-bound of the original bounds and the
+     * changed bounds, if preset. Each time with(Located) is called on this entity, it is recomputed
+     * from the original bounds and the new Located bounds.
+     */
+    private Rectangle aggregateBounds;
 
     private long identifier;
     private Map<String, String> tags;
@@ -46,12 +58,17 @@ public class BloatedRelation extends Relation implements BloatedEntity
 
     public static BloatedRelation shallowFromRelation(final Relation relation)
     {
-        return new BloatedRelation(relation.getIdentifier()).withBounds(relation.bounds());
+        return new BloatedRelation(relation.getIdentifier(), relation.bounds());
     }
 
     BloatedRelation(final long identifier)
     {
         this(identifier, null, null, null, null, null, null, null);
+    }
+
+    BloatedRelation(final long identifier, final Rectangle bounds)
+    {
+        this(identifier, null, bounds, null, null, null, null, null);
     }
 
     public BloatedRelation(final Long identifier, final Map<String, String> tags, // NOSONAR
@@ -64,10 +81,11 @@ public class BloatedRelation extends Relation implements BloatedEntity
 
         if (identifier == null)
         {
-            throw new CoreException("Identifier is the only parameter that cannot be null.");
+            throw new CoreException("Identifier can never be null.");
         }
 
-        this.bounds = bounds;
+        this.originalBounds = bounds != null ? bounds : null;
+        this.aggregateBounds = bounds != null ? bounds : null;
 
         this.identifier = identifier;
         this.tags = tags;
@@ -100,7 +118,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
     @Override
     public Rectangle bounds()
     {
-        return this.bounds;
+        return this.aggregateBounds;
     }
 
     @Override
@@ -142,9 +160,8 @@ public class BloatedRelation extends Relation implements BloatedEntity
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(BloatedRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(BloatedRelation::new).collect(Collectors.toSet());
     }
 
     public BloatedRelation withAllKnownOsmMembers(final RelationBean allKnownOsmMembers)
@@ -169,7 +186,8 @@ public class BloatedRelation extends Relation implements BloatedEntity
     public BloatedRelation withMembers(final RelationBean members, final Rectangle bounds)
     {
         this.members = members;
-        this.bounds = bounds;
+        // TODO note to reviewer, is this the right approach?
+        this.aggregateBounds = bounds;
         return this;
     }
 
@@ -183,7 +201,11 @@ public class BloatedRelation extends Relation implements BloatedEntity
     public BloatedRelation withMembers(final RelationMemberList members)
     {
         this.members = members.asBean();
-        this.bounds = members.bounds();
+        if (this.originalBounds == null)
+        {
+            this.originalBounds = members.bounds();
+        }
+        this.aggregateBounds = Rectangle.forLocated(this.originalBounds, members.bounds());
         return this;
     }
 
@@ -220,11 +242,4 @@ public class BloatedRelation extends Relation implements BloatedEntity
         }
         return new RelationMemberList(memberList);
     }
-
-    private BloatedRelation withBounds(final Rectangle bounds)
-    {
-        this.bounds = bounds;
-        return this;
-    }
-
 }
