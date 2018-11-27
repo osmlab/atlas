@@ -42,7 +42,7 @@ final class BloatedAtlas implements Atlas
     /**
      * @author matthieun
      */
-    public static interface BloatedEntity
+    public interface BloatedEntity
     {
         long getIdentifier();
     }

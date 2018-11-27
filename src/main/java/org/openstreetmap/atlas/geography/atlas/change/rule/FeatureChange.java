@@ -14,9 +14,7 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
  * to contain all the information related to that new feature.
  * <p>
  * To modify an existing feature: {@link ChangeType} is ADD, and the included reference needs to
- * contain all the information related to that new feature, including the unchanged attributes as
- * well as the modified attributes. (This can make change objects very large, and might be updated
- * in the future if performance is problematic. In the mean time, it makes the code much simpler!).
+ * contain the only the changed information related to that changed feature.
  * <p>
  * To remove an existing feature: {@link ChangeType} is REMOVE. The included reference's only
  * feature that needs to match the existing feature is the identifier.

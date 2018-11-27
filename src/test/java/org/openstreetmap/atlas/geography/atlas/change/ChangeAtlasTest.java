@@ -42,8 +42,9 @@ public class ChangeAtlasTest
     public void testBounds()
     {
         final Atlas atlas = this.rule.getAtlas();
-        Assert.assertEquals("POLYGON ((-122.2450237 37.5920679, -122.2450237 37.5938783, "
-                + "-122.2412753 37.5938783, -122.2412753 37.5920679, -122.2450237 37.5920679))",
+        Assert.assertEquals(
+                "POLYGON ((-122.2450237 37.5920679, -122.2450237 37.5938783, "
+                        + "-122.2412753 37.5938783, -122.2412753 37.5920679, -122.2450237 37.5920679))",
                 atlas.bounds().toWkt());
 
         final ChangeBuilder changeBuilder = new ChangeBuilder();
@@ -60,8 +61,9 @@ public class ChangeAtlasTest
         final Change change = changeBuilder.get();
 
         final Atlas changeAtlas = new ChangeAtlas(atlas, change);
-        Assert.assertEquals("POLYGON ((-122.2450237 37.5920679, -122.2450237 37.5938873, "
-                + "-122.2412753 37.5938873, -122.2412753 37.5920679, -122.2450237 37.5920679))",
+        Assert.assertEquals(
+                "POLYGON ((-122.2450237 37.5920679, -122.2450237 37.5938873, "
+                        + "-122.2412753 37.5938873, -122.2412753 37.5920679, -122.2450237 37.5920679))",
                 changeAtlas.bounds().toWkt());
     }
 

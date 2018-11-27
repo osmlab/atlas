@@ -258,12 +258,12 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
                                 && featureChange.getChangeType() == ChangeType.ADD)
                         .map(featureChange -> entityForIdentifier
                                 .apply(featureChange.getIdentifier()))
-                        .collect(Collectors.toList()),
+                        .filter(entity -> entity != null).collect(Collectors.toList()),
                 Iterables.stream(sourceEntities)
                         .filter(entity -> !this.change.changeFor(itemType, entity.getIdentifier())
                                 .isPresent())
                         .map(entity -> entityForIdentifier.apply(entity.getIdentifier()))
-                        .collect());
+                        .filter(entity -> entity != null).collect());
     }
 
     /**
@@ -294,7 +294,7 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
         final AtlasEntity sourceItem = sourceSupplier.get();
         if (itemChangeOption.isPresent())
         {
-            // That Edge is affected by a change
+            // That Entity is affected by a change
             final FeatureChange itemChange = itemChangeOption.get();
             if (ChangeType.REMOVE == itemChange.getChangeType())
             {
@@ -303,7 +303,7 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
             else
             {
                 // Create the ChangeItem from the change object (the override). The source item
-                // might be null (In case of an ADD with is a create and not a modify)
+                // might be null (In case of an ADD which is a create and not a modify)
                 return entityConstructorFromSource.apply(sourceItem, itemChange.getReference());
             }
         }
