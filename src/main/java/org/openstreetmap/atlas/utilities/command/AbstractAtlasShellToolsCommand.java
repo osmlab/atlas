@@ -56,6 +56,11 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private static final String JAVA_USE_PAGER = "___atlas-shell-tools_use_pager_SPECIALARGUMENT___";
     private static final String JAVA_NO_USE_PAGER = "___atlas-shell-tools_no_use_pager_SPECIALARGUMENT___";
     private static final String JAVA_MARKER_SENTINEL = "___atlas-shell-tools_LAST_ARG_MARKER_SENTINEL___";
+    private static final int NUMBER_SENTINELS = 5;
+    private static final int STDOUT_COLOR_OFFSET = 5;
+    private static final int STDERR_COLOR_OFFSET = 4;
+    private static final int PAGER_OFFSET = 3;
+    private static final int TERMINAL_COLUMN_OFFSET = 2;
 
     public static final String DEFAULT_HELP_LONG = "help";
     public static final Character DEFAULT_HELP_SHORT = 'h';
@@ -590,10 +595,10 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         // check the last arg to see if we should check for other tail arguments
         if (argsCopy.length > 0 && JAVA_MARKER_SENTINEL.equals(argsCopy[argsCopy.length - 1]))
         {
-            final String stdoutColorArg = argsCopy[argsCopy.length - 5];
-            final String stderrColorArg = argsCopy[argsCopy.length - 4];
-            final String usePagerArg = argsCopy[argsCopy.length - 3];
-            final String terminalColumnArg = argsCopy[argsCopy.length - 2];
+            final String stdoutColorArg = argsCopy[argsCopy.length - STDOUT_COLOR_OFFSET];
+            final String stderrColorArg = argsCopy[argsCopy.length - STDERR_COLOR_OFFSET];
+            final String usePagerArg = argsCopy[argsCopy.length - PAGER_OFFSET];
+            final String terminalColumnArg = argsCopy[argsCopy.length - TERMINAL_COLUMN_OFFSET];
             if (JAVA_COLOR_STDOUT.equals(stdoutColorArg))
             {
                 this.useColorStdout = true;
@@ -619,7 +624,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
                 this.usePager = false;
             }
             this.maximumColumn = Integer.parseInt(terminalColumnArg);
-            argsCopy = Arrays.copyOf(argsCopy, argsCopy.length - 5);
+            argsCopy = Arrays.copyOf(argsCopy, argsCopy.length - NUMBER_SENTINELS);
         }
 
         // fill out appropriate data structures so the execute() implementation can query

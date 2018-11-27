@@ -8,6 +8,9 @@ import java.util.Optional;
 
 import org.openstreetmap.atlas.streaming.resource.File;
 
+/**
+ * @author lcram
+ */
 public class PagerHelper
 {
     private static final String PAGER_ENVIRONMENT_VARIABLE = "PAGER";

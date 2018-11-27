@@ -232,7 +232,7 @@ sub ash_cfgpreset {
         }
     } elsif ($directive eq 'remove') {
         unless (defined $command_context) {
-            ash_common::error_output($program_name, "must specify a command context like ${bold_stderr}show:MyCommand${reset_stderr}");
+            ash_common::error_output($program_name, "must specify a command context like ${bold_stderr}remove:MyCommand${reset_stderr}");
             return 0;
         }
         unless (defined $subcommand_classes{$command_context}) {
@@ -306,6 +306,7 @@ sub ash_cfgpreset_namespace {
 
     unless (defined $subdirective) {
         ash_common::error_output($program_name, "${bold_stderr}${cfgpreset_start} namespace${reset_stderr} requires a subdirective");
+        print STDERR "Try ${bold_stderr}list${reset_stderr}, ${bold_stderr}use${reset_stderr}, ${bold_stderr}create${reset_stderr}, or ${bold_stderr}remove${reset_stderr}.\n";
         return 0;
     }
 

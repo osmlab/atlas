@@ -32,6 +32,13 @@ public final class DocumentationFormatter
      * {@link DocumentationFormatter#addCodeBlockAtExactIndentation(int, String, TTYStringBuilder)},
      * but compute the exact indentation width by multiplying the supplied indentationLevel with the
      * default INDENTATION_WIDTH.
+     *
+     * @param indentationLevel
+     *            the indentation level
+     * @param string
+     *            the code block string
+     * @param builder
+     *           the builder to be modified
      */
     public static void addCodeBlock(final int indentationLevel, final String string,
             final TTYStringBuilder builder)
@@ -65,6 +72,17 @@ public final class DocumentationFormatter
      * {@link DocumentationFormatter#addParagraphWithLineWrappingAtExactIndentation(int, int, String, TTYStringBuilder, boolean)},
      * but compute the exact indentation width by multiplying the supplied indentationLevel with the
      * default INDENTATION_WIDTH.
+     *
+     * @param indentationLevel
+     *            the indentation level
+     * @param maximumColumn
+     *            the max column to wrap at
+     * @param string
+     *            the code block string
+     * @param builder
+     *           the builder to be modified
+     * @param indentFirstLine
+     *            decide to indent the first line
      */
     public static void addParagraphWithLineWrapping(final int indentationLevel,
             final int maximumColumn, final String string, final TTYStringBuilder builder,
