@@ -41,6 +41,12 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
 
     private transient Rectangle bounds;
     private transient AtlasMetaData metaData;
+    private transient Long numberOfNodes;
+    private transient Long numberOfEdges;
+    private transient Long numberOfAreas;
+    private transient Long numberOfLines;
+    private transient Long numberOfPoints;
+    private transient Long numberOfRelations;
 
     public ChangeAtlas(final Atlas source, final Change change)
     {
@@ -116,8 +122,13 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     {
         if (this.metaData == null)
         {
+            AtlasMetaData sourceMetaData = this.source.metaData();
+            if (sourceMetaData == null)
+            {
+                sourceMetaData = new AtlasMetaData();
+            }
             final AtlasSize size = new AtlasSize(this);
-            this.metaData = this.source.metaData().copyWithNewSize(size).copyWithNewOriginal(false);
+            this.metaData = sourceMetaData.copyWithNewSize(size).copyWithNewOriginal(false);
         }
         return this.metaData;
     }
@@ -137,39 +148,63 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     }
 
     @Override
-    public long numberOfAreas()
+    public synchronized long numberOfAreas()
     {
-        return Iterables.size(areas());
+        if (this.numberOfAreas == null)
+        {
+            this.numberOfAreas = Iterables.size(areas());
+        }
+        return this.numberOfAreas;
     }
 
     @Override
-    public long numberOfEdges()
+    public synchronized long numberOfEdges()
     {
-        return Iterables.size(edges());
+        if (this.numberOfEdges == null)
+        {
+            this.numberOfEdges = Iterables.size(edges());
+        }
+        return this.numberOfEdges;
     }
 
     @Override
-    public long numberOfLines()
+    public synchronized long numberOfLines()
     {
-        return Iterables.size(lines());
+        if (this.numberOfLines == null)
+        {
+            this.numberOfLines = Iterables.size(lines());
+        }
+        return this.numberOfLines;
     }
 
     @Override
-    public long numberOfNodes()
+    public synchronized long numberOfNodes()
     {
-        return Iterables.size(nodes());
+        if (this.numberOfNodes == null)
+        {
+            this.numberOfNodes = Iterables.size(nodes());
+        }
+        return this.numberOfNodes;
     }
 
     @Override
-    public long numberOfPoints()
+    public synchronized long numberOfPoints()
     {
-        return Iterables.size(points());
+        if (this.numberOfPoints == null)
+        {
+            this.numberOfPoints = Iterables.size(points());
+        }
+        return this.numberOfPoints;
     }
 
     @Override
-    public long numberOfRelations()
+    public synchronized long numberOfRelations()
     {
-        return Iterables.size(relations());
+        if (this.numberOfRelations == null)
+        {
+            this.numberOfRelations = Iterables.size(relations());
+        }
+        return this.numberOfRelations;
     }
 
     @Override
