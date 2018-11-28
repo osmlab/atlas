@@ -56,7 +56,24 @@ public class ChangeAtlasEdgeValidatorTest
     }
 
     @Test
-    public void testModifyEdgeWithoutReverseEdge()
+    public void testModifyEdgeWithoutStartNode()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("does not match with its start Node");
+
+        final Atlas atlas = this.rule.getAtlasEdge();
+        final ChangeBuilder changeBuilder = new ChangeBuilder();
+
+        final Tuple<FeatureChange, FeatureChange> featureChange1 = getFeatureChangeUpdatedEdgePolyLine();
+        changeBuilder.add(featureChange1.getFirst());
+        changeBuilder.add(featureChange1.getSecond());
+
+        final Change change = changeBuilder.get();
+        new ChangeAtlas(atlas, change);
+    }
+
+    @Test
+    public void testModifyForwardEdgeWithoutReverseEdge()
     {
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("have mismatching PolyLines");
@@ -71,23 +88,6 @@ public class ChangeAtlasEdgeValidatorTest
         final BloatedEdge bloatedEdge = BloatedEdge.shallowFromEdge(edge).withPolyLine(newPolyLine);
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, bloatedEdge);
         changeBuilder.add(featureChange);
-
-        final Change change = changeBuilder.get();
-        new ChangeAtlas(atlas, change);
-    }
-
-    @Test
-    public void testModifyEdgeWithoutStartNode()
-    {
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("does not match with its start Node");
-
-        final Atlas atlas = this.rule.getAtlasEdge();
-        final ChangeBuilder changeBuilder = new ChangeBuilder();
-
-        final Tuple<FeatureChange, FeatureChange> featureChange1 = getFeatureChangeUpdatedEdgePolyLine();
-        changeBuilder.add(featureChange1.getFirst());
-        changeBuilder.add(featureChange1.getSecond());
 
         final Change change = changeBuilder.get();
         new ChangeAtlas(atlas, change);

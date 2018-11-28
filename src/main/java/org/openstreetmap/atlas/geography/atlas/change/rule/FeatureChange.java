@@ -2,8 +2,10 @@ package org.openstreetmap.atlas.geography.atlas.change.rule;
 
 import java.io.Serializable;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.bloated.BloatedEntity;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 
@@ -30,14 +32,23 @@ public class FeatureChange implements Located, Serializable
 
     public FeatureChange(final ChangeType changeType, final AtlasEntity reference)
     {
+        if (changeType == null)
+        {
+            throw new CoreException("changeType cannot be null.");
+        }
+        if (reference == null)
+        {
+            throw new CoreException("reference cannot be null.");
+        }
         this.changeType = changeType;
         this.reference = reference;
+        this.validateUsefulFeatureChange();
     }
 
     @Override
     public Rectangle bounds()
     {
-        return getReference().bounds();
+        return this.reference.bounds();
     }
 
     public ChangeType getChangeType()
@@ -63,7 +74,17 @@ public class FeatureChange implements Located, Serializable
     @Override
     public String toString()
     {
-        return "FeatureChange [changeType=" + this.changeType + ", reference=" + this.reference
-                + "]";
+        return "FeatureChange [changeType=" + this.changeType + ", reference={"
+                + this.reference.getType() + "," + this.reference.getIdentifier() + "}, bounds="
+                + bounds() + "]";
+    }
+
+    private void validateUsefulFeatureChange()
+    {
+        if (this.changeType == ChangeType.ADD && this.reference instanceof BloatedEntity
+                && ((BloatedEntity) this.reference).isSuperShallow())
+        {
+            throw new CoreException("{} does not contain anything useful.", this);
+        }
     }
 }
