@@ -194,6 +194,36 @@ public class ChangeAtlasTest
     }
 
     @Test
+    public void testRemovedRelationMemberFromIndirectRemoval()
+    {
+        final Atlas atlas = this.rule.getAtlas();
+
+        // Remove a node. This removal will trigger an indirect removal of the connected edges. This
+        // should also trigger an indirect removal of these members from any relation member lists.
+        final ChangeBuilder changeBuilder = new ChangeBuilder();
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedNode.shallowFromNode(atlas.node(38984000000L))));
+        final Atlas changeAtlas = new ChangeAtlas(atlas, changeBuilder.get());
+        final RelationMemberList memberList = changeAtlas.relation(39008000000L).members();
+        final RelationMemberList newMembers = new RelationMemberList(
+                changeAtlas.relation(39008000000L).members().stream()
+                        .filter(member -> member.getEntity().getIdentifier() == -39002000001L
+                                || member.getEntity().getIdentifier() == 39002000001L)
+                        .collect(Collectors.toList()));
+        Assert.assertEquals(newMembers, memberList);
+
+        // Now, let's do the same thing but remove an additional node. This will trigger the
+        // indirect removal of all the relation's members - so we should see the relation disappear.
+        final ChangeBuilder changeBuilder2 = new ChangeBuilder();
+        changeBuilder2.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedNode.shallowFromNode(atlas.node(38984000000L))));
+        changeBuilder2.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedNode.shallowFromNode(atlas.node(38982000000L))));
+        final Atlas changeAtlas2 = new ChangeAtlas(atlas, changeBuilder2.get());
+        Assert.assertNull(changeAtlas2.relation(39008000000L));
+    }
+
+    @Test
     public void testRemoveEdgeWhenAConnectedNodeIsMissing()
     {
         final Atlas atlas = this.rule.getAtlas();
