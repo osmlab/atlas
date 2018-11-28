@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.validators;
 
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -28,11 +29,12 @@ public class AtlasValidator
     {
         logger.debug("Starting validation of ChangeAtlas {}", this.atlas.getName());
         final Time start = Time.now();
+        this.validateRelationsPresent();
+        this.validateTagsPresent();
         new AtlasLocationItemValidator(this.atlas).validate();
         new AtlasLineItemValidator(this.atlas).validate();
         new AtlasEdgeValidator(this.atlas).validate();
         new AtlasNodeValidator(this.atlas).validate();
-        this.validateRelationsPresent();
         logger.debug("Finished validation of ChangeAtlas {} in {}", this.atlas.getName(),
                 start.elapsedSince());
     }
@@ -53,6 +55,19 @@ public class AtlasValidator
                                             : String.valueOf(parent.getIdentifier()))
                                     .collect(Collectors.toSet()));
                 }
+            }
+        }
+    }
+
+    protected void validateTagsPresent()
+    {
+        for (final AtlasEntity entity : this.atlas.entities())
+        {
+            final Map<String, String> tags = entity.getTags();
+            if (tags == null)
+            {
+                throw new CoreException("Entity {} {} is missing tags.", entity.getType(),
+                        entity.getIdentifier());
             }
         }
     }

@@ -30,7 +30,7 @@ public class AtlasEdgeValidatorTest
     {
         final Atlas atlas = new BloatedAtlas()
         {
-            private static final long serialVersionUID = -242183195939062159L;
+            private static final long serialVersionUID = 2810137078529598434L;
 
             @Override
             public Iterable<Edge> edges()
@@ -59,7 +59,7 @@ public class AtlasEdgeValidatorTest
     {
         final Atlas atlas = new BloatedAtlas()
         {
-            private static final long serialVersionUID = -242183195939062159L;
+            private static final long serialVersionUID = -3111613839268225792L;
 
             @Override
             public Iterable<Edge> edges()
@@ -68,7 +68,7 @@ public class AtlasEdgeValidatorTest
                         new PolyLine(Location.COLOSSEUM, Location.EIFFEL_TOWER), null, null, null,
                         null)
                 {
-                    private static final long serialVersionUID = 8238381291474515199L;
+                    private static final long serialVersionUID = -1653164181164046228L;
 
                     @Override
                     public Node start()
@@ -86,7 +86,7 @@ public class AtlasEdgeValidatorTest
 
         final Atlas atlas2 = new BloatedAtlas()
         {
-            private static final long serialVersionUID = -242183195939062159L;
+            private static final long serialVersionUID = -3557437996775535655L;
 
             @Override
             public Iterable<Edge> edges()
@@ -95,7 +95,7 @@ public class AtlasEdgeValidatorTest
                         new PolyLine(Location.COLOSSEUM, Location.EIFFEL_TOWER), null, null, null,
                         null)
                 {
-                    private static final long serialVersionUID = 8238381291474515199L;
+                    private static final long serialVersionUID = 2460452389716155618L;
 
                     @Override
                     public Node end()
@@ -117,7 +117,7 @@ public class AtlasEdgeValidatorTest
     {
         final Atlas atlas = new BloatedAtlas()
         {
-            private static final long serialVersionUID = -242183195939062159L;
+            private static final long serialVersionUID = -1125897101453459977L;
 
             @Override
             public Edge edge(final long identifier)

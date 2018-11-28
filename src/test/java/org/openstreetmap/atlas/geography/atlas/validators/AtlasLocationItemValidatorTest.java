@@ -6,35 +6,35 @@ import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedAtlas;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedLine;
-import org.openstreetmap.atlas.geography.atlas.items.LineItem;
+import org.openstreetmap.atlas.geography.atlas.bloated.BloatedPoint;
+import org.openstreetmap.atlas.geography.atlas.items.LocationItem;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * @author matthieun
  */
-public class AtlasLineItemValidatorTest
+public class AtlasLocationItemValidatorTest
 {
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
 
     @Test
-    public void testMissingPolyLineValidation()
+    public void testLocationPresent()
     {
         final Atlas atlas = new BloatedAtlas()
         {
-            private static final long serialVersionUID = 3421885788588156857L;
+            private static final long serialVersionUID = -242183195939062159L;
 
             @Override
-            public Iterable<LineItem> lineItems()
+            public Iterable<LocationItem> locationItems()
             {
-                return Iterables.from(new BloatedLine(123L, null, null, null));
+                return Iterables.from(new BloatedPoint(123L, null, null, null));
             }
         };
 
         this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("is missing its PolyLine.");
+        this.expectedException.expectMessage("is missing a Location.");
 
-        new AtlasLineItemValidator(atlas).validate();
+        new AtlasLocationItemValidator(atlas).validateLocationPresent();
     }
 }

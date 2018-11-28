@@ -30,7 +30,7 @@ public class AtlasLocationItemValidator
                 start.elapsedSince());
     }
 
-    private void validateLocationPresent()
+    protected void validateLocationPresent()
     {
         for (final LocationItem locationItem : this.atlas.locationItems())
         {

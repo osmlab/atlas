@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.validators;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.Rule;
@@ -44,17 +45,40 @@ public class AtlasValidatorTest
                     }
                 });
             }
-
-            @Override
-            public String getName()
-            {
-                return "BloatedAtlas";
-            }
         };
 
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("lists some parent relation that is not present");
 
         new AtlasValidator(atlas).validateRelationsPresent();
+    }
+
+    @Test
+    public void testTagsPresent()
+    {
+        final BloatedAtlas atlas = new BloatedAtlas()
+        {
+            private static final long serialVersionUID = -2478701330988023398L;
+
+            @Override
+            public Iterable<AtlasEntity> entities()
+            {
+                return Iterables.from(new BloatedPoint(456L, null, null, null)
+                {
+                    private static final long serialVersionUID = -3850622600530001863L;
+
+                    @Override
+                    public Map<String, String> getTags()
+                    {
+                        return null;
+                    }
+                });
+            }
+        };
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("is missing tags.");
+
+        new AtlasValidator(atlas).validateTagsPresent();
     }
 }

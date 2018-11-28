@@ -3,7 +3,6 @@ package org.openstreetmap.atlas.geography.atlas.validators;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.change.ChangeNode;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.utilities.time.Time;
@@ -34,32 +33,31 @@ public class AtlasNodeValidator
                 start.elapsedSince());
     }
 
-    private void validateNodeToEdgeConnectivity()
+    protected void validateNodeToEdgeConnectivity()
     {
         for (final Node node : this.atlas.nodes())
         {
-            for (final Long edgeIdentifier : ((ChangeNode) node).inEdgeIdentifiers())
+            for (final Edge edge : node.inEdges())
             {
-                if (this.atlas.edge(edgeIdentifier) == null)
+                if (edge == null)
                 {
                     throw new CoreException(
-                            "Node {} is logically disconnected from some in edge. Referenced in edge {} does not exist.",
-                            node.getIdentifier(), edgeIdentifier);
+                            "Node {} is logically disconnected from some referenced in edge.",
+                            node.getIdentifier());
                 }
             }
-            for (final Long edgeIdentifier : ((ChangeNode) node).outEdgeIdentifiers())
+            for (final Edge edge : node.outEdges())
             {
-                if (this.atlas.edge(edgeIdentifier) == null)
+                if (edge == null)
                 {
-                    throw new CoreException(
-                            "Node {} is logically disconnected from some out edge. Referenced out edge {} does not exist.",
-                            node.getIdentifier(), edgeIdentifier);
+                    throw new CoreException("Node {} is logically disconnected from some out edge.",
+                            node.getIdentifier());
                 }
             }
         }
     }
 
-    private void validateNodeToEdgeLocationAccuracy()
+    protected void validateNodeToEdgeLocationAccuracy()
     {
         for (final Node node : this.atlas.nodes())
         {

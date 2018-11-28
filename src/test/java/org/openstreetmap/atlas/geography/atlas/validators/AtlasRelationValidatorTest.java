@@ -39,12 +39,6 @@ public class AtlasRelationValidatorTest
             }
 
             @Override
-            public String getName()
-            {
-                return "BloatedAtlas";
-            }
-
-            @Override
             public Iterable<Relation> relations()
             {
                 final RelationBean members = new RelationBean();
