@@ -21,7 +21,19 @@ public class BloatedLine extends Line implements BloatedEntity
 {
     private static final long serialVersionUID = 309534717673911086L;
 
-    private Rectangle bounds;
+    /*
+     * We need to store the original entity bounds at creation-time. This is so multiple consecutive
+     * with(Located) calls can update the aggregate bounds without including the bounds from the
+     * overwritten change.
+     */
+    private Rectangle originalBounds;
+
+    /*
+     * This is the aggregate feature bounds. It is a super-bound of the original bounds and the
+     * changed bounds, if preset. Each time with(Located) is called on this entity, it is recomputed
+     * from the original bounds and the new Located bounds.
+     */
+    private Rectangle aggregateBounds;
 
     private long identifier;
     private PolyLine polyLine;
@@ -36,7 +48,7 @@ public class BloatedLine extends Line implements BloatedEntity
 
     public static BloatedLine shallowFromLine(final Line line)
     {
-        return new BloatedLine(line.getIdentifier()).withBounds(line.asPolyLine().bounds());
+        return new BloatedLine(line.getIdentifier()).withInitialBounds(line.asPolyLine().bounds());
     }
 
     BloatedLine(final long identifier)
@@ -51,10 +63,11 @@ public class BloatedLine extends Line implements BloatedEntity
 
         if (identifier == null)
         {
-            throw new CoreException("Identifier is the only parameter that cannot be null.");
+            throw new CoreException("Identifier can never be null.");
         }
 
-        this.bounds = polyLine == null ? null : polyLine.bounds();
+        this.originalBounds = polyLine != null ? polyLine.bounds() : null;
+        this.aggregateBounds = this.originalBounds;
 
         this.identifier = identifier;
         this.polyLine = polyLine;
@@ -71,7 +84,7 @@ public class BloatedLine extends Line implements BloatedEntity
     @Override
     public Rectangle bounds()
     {
-        return this.bounds;
+        return this.aggregateBounds;
     }
 
     @Override
@@ -112,10 +125,14 @@ public class BloatedLine extends Line implements BloatedEntity
         return this;
     }
 
-    public BloatedLine withPolyLine(final PolyLine polygon)
+    public BloatedLine withPolyLine(final PolyLine polyLine)
     {
-        this.polyLine = polygon;
-        this.bounds = polygon.bounds();
+        this.polyLine = polyLine;
+        if (this.originalBounds == null)
+        {
+            this.originalBounds = polyLine.bounds();
+        }
+        this.aggregateBounds = Rectangle.forLocated(this.originalBounds, polyLine.bounds());
         return this;
     }
 
@@ -131,9 +148,10 @@ public class BloatedLine extends Line implements BloatedEntity
         return this;
     }
 
-    private BloatedLine withBounds(final Rectangle bounds)
+    private BloatedLine withInitialBounds(final Rectangle bounds)
     {
-        this.bounds = bounds;
+        this.originalBounds = bounds;
+        this.aggregateBounds = bounds;
         return this;
     }
 }
