@@ -14,7 +14,6 @@ import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.change.rule.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.change.rule.FeatureChange;
-import org.openstreetmap.atlas.geography.atlas.change.validators.ChangeAtlasValidator;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -23,6 +22,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.atlas.validators.AtlasValidator;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 
@@ -60,7 +60,7 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
         }
         this.change = change;
         this.source = source;
-        new ChangeAtlasValidator(this).validate();
+        new AtlasValidator(this).validate();
     }
 
     @Override

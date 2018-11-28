@@ -1,8 +1,8 @@
-package org.openstreetmap.atlas.geography.atlas.change.validators;
+package org.openstreetmap.atlas.geography.atlas.validators;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.atlas.change.ChangeAtlas;
+import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeNode;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
@@ -13,24 +13,24 @@ import org.slf4j.LoggerFactory;
 /**
  * @author matthieun
  */
-public class ChangeAtlasNodeValidator
+public class AtlasNodeValidator
 {
-    private static final Logger logger = LoggerFactory.getLogger(ChangeAtlasNodeValidator.class);
+    private static final Logger logger = LoggerFactory.getLogger(AtlasNodeValidator.class);
 
-    private final ChangeAtlas atlas;
+    private final Atlas atlas;
 
-    public ChangeAtlasNodeValidator(final ChangeAtlas atlas)
+    public AtlasNodeValidator(final Atlas atlas)
     {
         this.atlas = atlas;
     }
 
     public void validate()
     {
-        logger.trace("Starting Node validation of ChangeAtlas {}", this.atlas.getName());
+        logger.trace("Starting Node validation of Atlas {}", this.atlas.getName());
         final Time start = Time.now();
         validateNodeToEdgeConnectivity();
         validateNodeToEdgeLocationAccuracy();
-        logger.trace("Finished Node validation of ChangeAtlas {} in {}", this.atlas.getName(),
+        logger.trace("Finished Node validation of Atlas {} in {}", this.atlas.getName(),
                 start.elapsedSince());
     }
 
