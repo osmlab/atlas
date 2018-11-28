@@ -239,9 +239,25 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     @Override
     public Relation relation(final long identifier)
     {
-        return entityFor(identifier, ItemType.RELATION, () -> this.source.relation(identifier),
+        final Relation relation = entityFor(identifier, ItemType.RELATION,
+                () -> this.source.relation(identifier),
                 (sourceEntity, overrideEntity) -> new ChangeRelation(this, (Relation) sourceEntity,
                         (Relation) overrideEntity));
+
+        /*
+         * If the relation was not found in this atlas, return null. Additionally, we check to see
+         * if the relation has no members. If so, it is considered shallow and is dropped from the
+         * atlas.
+         */
+        if (relation == null)
+        {
+            return null;
+        }
+        if (relation.members().isEmpty())
+        {
+            return null;
+        }
+        return relation;
     }
 
     @Override

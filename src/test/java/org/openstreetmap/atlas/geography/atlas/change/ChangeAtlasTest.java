@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Heading;
@@ -241,12 +240,8 @@ public class ChangeAtlasTest
         Assert.assertEquals(newMembers.asBean(), fromRelation.members().asBean());
     }
 
-    /**
-     * Once relations can prune their member list when a member is not present, this test will pass.
-     */
-    @Ignore
     @Test
-    public void testRemoveRelationMemberWithoutChangingMemberList()
+    public void testRemoveRelationMemberIsReflectedInMemberListAutomatically()
     {
         final Atlas atlas = this.rule.getAtlas();
         final ChangeBuilder changeBuilder = new ChangeBuilder();
@@ -269,5 +264,41 @@ public class ChangeAtlasTest
         final Relation fromRelation = (Relation) Iterables.stream(parentRelation.members())
                 .firstMatching(member -> "child1".equals(member.getRole())).get().getEntity();
         Assert.assertEquals(newMembers.asBean(), fromRelation.members().asBean());
+    }
+
+    @Test
+    public void testRemoveShallowRelation()
+    {
+        final Atlas atlas = this.rule.getAtlas();
+        final ChangeBuilder changeBuilder = new ChangeBuilder();
+        // These changes remove all members of relations 41834000000 and 39008000000. Both of these
+        // relations will be dropped, due to becoming shallow. Additionally, relation 41860000000
+        // will also become shallow and be dropped, because its only 2 members are the
+        // aforementioned now-shallow relations.
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedEdge.shallowFromEdge(atlas.edge(39002000001L))));
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedEdge.shallowFromEdge(atlas.edge(-39002000001L))));
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedEdge.shallowFromEdge(atlas.edge(39002000002L))));
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedEdge.shallowFromEdge(atlas.edge(-39002000002L))));
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedEdge.shallowFromEdge(atlas.edge(39006000001L))));
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedPoint.shallowFromPoint(atlas.point(41822000000L))));
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedLine.shallowFromLine(atlas.line(41771000000L))));
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedArea.shallowFromArea(atlas.area(41795000000L))));
+
+        final Atlas changeAtlas = new ChangeAtlas(atlas, changeBuilder.get());
+        Assert.assertNull(changeAtlas.relation(41834000000L));
+        Assert.assertNull(changeAtlas.relation(39008000000L));
+        Assert.assertNull(changeAtlas.relation(41860000000L));
+
+        // Check to make sure we did not accidentally drop relation 39010000000. This relation
+        // contains members which still exist and so must be preserved.
+        Assert.assertNotNull(changeAtlas.relation(39010000000L));
     }
 }
