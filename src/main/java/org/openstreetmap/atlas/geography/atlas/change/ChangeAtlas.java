@@ -246,8 +246,9 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
 
         /*
          * If the relation was not found in this atlas, return null. Additionally, we check to see
-         * if the relation has no members. If so, it is considered shallow and is dropped from the
-         * atlas.
+         * if the relation has no members. If so, it is considered empty and is dropped from the
+         * atlas. This logic, combined with the logic in ChangeRelation.membersFor, will
+         * automatically handle removing non-empty but shallow relations as well.
          */
         if (relation == null)
         {
