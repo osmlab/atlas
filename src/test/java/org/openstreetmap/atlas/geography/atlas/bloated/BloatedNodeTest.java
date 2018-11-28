@@ -61,7 +61,10 @@ public class BloatedNodeTest
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         result.withLocation(Location.CENTER);
-        Assert.assertEquals(Rectangle.MINIMUM, result.bounds());
+        // When we update a location, the bounds should expand to include the original location as
+        // well as the updated location
+        Assert.assertEquals(Rectangle.forLocated(source.bounds(), Location.CENTER),
+                result.bounds());
         final Map<String, String> tags = Maps.hashMap("key", "value");
         result.withTags(tags);
         Assert.assertEquals(tags, result.getTags());
@@ -80,5 +83,11 @@ public class BloatedNodeTest
                         .collect(Collectors.toSet()),
                 result.relations().stream().map(Relation::getIdentifier)
                         .collect(Collectors.toSet()));
+
+        result.withLocation(Location.COLOSSEUM);
+        // When we update the location again, the bounds recalculation should "forget" about the
+        // first update
+        Assert.assertEquals(Rectangle.forLocated(source.bounds(), Location.COLOSSEUM),
+                result.bounds());
     }
 }
