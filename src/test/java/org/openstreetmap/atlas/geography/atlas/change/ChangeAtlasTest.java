@@ -29,12 +29,16 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author matthieun
  */
 public class ChangeAtlasTest
 {
+    private static final Logger logger = LoggerFactory.getLogger(ChangeAtlasTest.class);
+
     @Rule
     public ChangeAtlasTestRule rule = new ChangeAtlasTestRule();
 
@@ -42,9 +46,8 @@ public class ChangeAtlasTest
     public void testBounds()
     {
         final Atlas atlas = this.rule.getAtlas();
-        Assert.assertEquals(
-                "POLYGON ((-122.2450237 37.5920679, -122.2450237 37.5938783, "
-                        + "-122.2412753 37.5938783, -122.2412753 37.5920679, -122.2450237 37.5920679))",
+        Assert.assertEquals("POLYGON ((-122.2450237 37.5920679, -122.2450237 37.5938783, "
+                + "-122.2412753 37.5938783, -122.2412753 37.5920679, -122.2450237 37.5920679))",
                 atlas.bounds().toWkt());
 
         final ChangeBuilder changeBuilder = new ChangeBuilder();
@@ -61,9 +64,8 @@ public class ChangeAtlasTest
         final Change change = changeBuilder.get();
 
         final Atlas changeAtlas = new ChangeAtlas(atlas, change);
-        Assert.assertEquals(
-                "POLYGON ((-122.2450237 37.5920679, -122.2450237 37.5938873, "
-                        + "-122.2412753 37.5938873, -122.2412753 37.5920679, -122.2450237 37.5920679))",
+        Assert.assertEquals("POLYGON ((-122.2450237 37.5920679, -122.2450237 37.5938873, "
+                + "-122.2412753 37.5938873, -122.2412753 37.5920679, -122.2450237 37.5920679))",
                 changeAtlas.bounds().toWkt());
     }
 
@@ -185,6 +187,32 @@ public class ChangeAtlasTest
         final Point fromRelation = (Point) Iterables.stream(disconnectedFeatures.members())
                 .firstMatching(member -> "tree".equals(member.getRole())).get().getEntity();
         Assert.assertEquals(newLocation, fromRelation.getLocation());
+    }
+
+    @Test
+    public void testRemoveEdgeWhenAConnectedNodeIsMissing()
+    {
+        final Atlas atlas = this.rule.getAtlas();
+        final ChangeBuilder changeBuilder = new ChangeBuilder();
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedNode.shallowFromNode(atlas.node(38982000000L))));
+        final Atlas changeAtlas = new ChangeAtlas(atlas, changeBuilder.get());
+
+        // Check that appropriate edges were deleted, triggered by removal of the node
+        Assert.assertNull(changeAtlas.node(38982000000L));
+        Assert.assertNull(changeAtlas.edge(39004000002L));
+        Assert.assertNull(changeAtlas.edge(39004000001L));
+        Assert.assertNull(changeAtlas.edge(39002000001L));
+        Assert.assertNull(changeAtlas.edge(-39002000001L));
+        Assert.assertNull(changeAtlas.edge(39002000002L));
+        Assert.assertNull(changeAtlas.edge(-39002000002L));
+
+        // Check that appropriate features were left alone
+        Assert.assertNotNull(changeAtlas.node(38990000000L));
+        Assert.assertNotNull(changeAtlas.node(38978000000L));
+        Assert.assertNotNull(changeAtlas.node(38986000000L));
+        Assert.assertNotNull(changeAtlas.node(38984000000L));
+        Assert.assertNotNull(changeAtlas.edge(39006000001L));
     }
 
     @Test

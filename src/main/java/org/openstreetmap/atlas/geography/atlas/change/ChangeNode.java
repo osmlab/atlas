@@ -50,29 +50,31 @@ public class ChangeNode extends Node // NOSONAR
     public SortedSet<Long> inEdgeIdentifiers()
     {
         return attribute(Node::inEdges).stream().map(Edge::getIdentifier)
+                .filter(edgeIdentifier -> getChangeAtlas().edge(edgeIdentifier) != null)
                 .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public SortedSet<Edge> inEdges()
     {
-        return attribute(Node::inEdges).stream()
-                .map(edge -> getChangeAtlas().edge(edge.getIdentifier()))
-                .filter(edge -> edge != null).collect(Collectors.toCollection(TreeSet::new));
+        return inEdgeIdentifiers().stream()
+                .map(edgeIdentifier -> getChangeAtlas().edge(edgeIdentifier))
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 
     public SortedSet<Long> outEdgeIdentifiers()
     {
         return attribute(Node::outEdges).stream().map(Edge::getIdentifier)
+                .filter(edgeIdentifier -> getChangeAtlas().edge(edgeIdentifier) != null)
                 .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public SortedSet<Edge> outEdges()
     {
-        return attribute(Node::outEdges).stream()
-                .map(edge -> getChangeAtlas().edge(edge.getIdentifier()))
-                .filter(edge -> edge != null).collect(Collectors.toCollection(TreeSet::new));
+        return outEdgeIdentifiers().stream()
+                .map(edgeIdentifier -> getChangeAtlas().edge(edgeIdentifier))
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override

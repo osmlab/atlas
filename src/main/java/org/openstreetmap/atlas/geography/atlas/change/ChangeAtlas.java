@@ -92,9 +92,24 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     @Override
     public Edge edge(final long identifier)
     {
-        return entityFor(identifier, ItemType.EDGE, () -> this.source.edge(identifier),
+        final Edge edge = entityFor(identifier, ItemType.EDGE, () -> this.source.edge(identifier),
                 (sourceEntity, overrideEntity) -> new ChangeEdge(this, (Edge) sourceEntity,
                         (Edge) overrideEntity));
+
+        /*
+         * If the edge was not found in this atlas, return null. Additionally, we then check to see
+         * if this edge is missing a start or end node (which may have been removed by a
+         * FeatureChange). In this case, we also want to "remove" the edge by returning null.
+         */
+        if (edge == null)
+        {
+            return null;
+        }
+        if (edge.start() == null || edge.end() == null)
+        {
+            return null;
+        }
+        return edge;
     }
 
     @Override
