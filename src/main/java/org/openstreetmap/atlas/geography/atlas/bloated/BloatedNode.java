@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedAtlas.BloatedEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -146,6 +145,14 @@ public class BloatedNode extends Node implements BloatedEntity
     }
 
     @Override
+    public boolean isSuperShallow()
+    {
+        return this.location == null && this.inEdgeIdentifiers == null
+                && this.outEdgeIdentifiers == null && this.tags == null
+                && this.relationIdentifiers == null;
+    }
+
+    @Override
     public SortedSet<Edge> outEdges()
     {
         return this.outEdgeIdentifiers == null ? null
@@ -159,6 +166,15 @@ public class BloatedNode extends Node implements BloatedEntity
         return this.relationIdentifiers == null ? null
                 : this.relationIdentifiers.stream().map(BloatedRelation::new)
                         .collect(Collectors.toSet());
+    }
+
+    @Override
+    public String toString()
+    {
+        return "BloatedNode [identifier=" + this.identifier + ", inEdgeIdentifiers="
+                + this.inEdgeIdentifiers + ", outEdgeIdentifiers=" + this.outEdgeIdentifiers
+                + ", location=" + this.location + ", tags=" + this.tags + ", relationIdentifiers="
+                + this.relationIdentifiers + "]";
     }
 
     public BloatedNode withIdentifier(final long identifier)

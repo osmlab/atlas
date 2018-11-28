@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedAtlas.BloatedEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -113,11 +112,24 @@ public class BloatedPoint extends Point implements BloatedEntity
     }
 
     @Override
+    public boolean isSuperShallow()
+    {
+        return this.location == null && this.tags == null && this.relationIdentifiers == null;
+    }
+
+    @Override
     public Set<Relation> relations()
     {
         return this.relationIdentifiers == null ? null
                 : this.relationIdentifiers.stream().map(BloatedRelation::new)
                         .collect(Collectors.toSet());
+    }
+
+    @Override
+    public String toString()
+    {
+        return "BloatedPoint [identifier=" + this.identifier + ", location=" + this.location
+                + ", tags=" + this.tags + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
     public BloatedPoint withIdentifier(final long identifier)

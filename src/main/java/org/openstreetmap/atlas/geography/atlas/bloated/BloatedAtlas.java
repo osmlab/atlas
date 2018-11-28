@@ -39,14 +39,6 @@ import com.google.gson.JsonObject;
  */
 final class BloatedAtlas implements Atlas
 {
-    /**
-     * @author matthieun
-     */
-    public interface BloatedEntity
-    {
-        long getIdentifier();
-    }
-
     private static final long serialVersionUID = 5265300513234306056L;
 
     static AtlasEntity bloatedEntityFor(final long identifier, final ItemType type)

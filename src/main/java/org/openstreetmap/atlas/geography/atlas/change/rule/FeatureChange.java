@@ -5,6 +5,7 @@ import java.io.Serializable;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.bloated.BloatedEntity;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 
@@ -41,6 +42,7 @@ public class FeatureChange implements Located, Serializable
         }
         this.changeType = changeType;
         this.reference = reference;
+        this.validateUsefulFeatureChange();
     }
 
     @Override
@@ -75,5 +77,14 @@ public class FeatureChange implements Located, Serializable
         return "FeatureChange [changeType=" + this.changeType + ", reference={"
                 + this.reference.getType() + "," + this.reference.getIdentifier() + "}, bounds="
                 + bounds() + "]";
+    }
+
+    private void validateUsefulFeatureChange()
+    {
+        if (this.changeType == ChangeType.ADD && this.reference instanceof BloatedEntity
+                && ((BloatedEntity) this.reference).isSuperShallow())
+        {
+            throw new CoreException("{} does not contain anything useful.", this);
+        }
     }
 }

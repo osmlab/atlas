@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedAtlas.BloatedEntity;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -141,6 +140,14 @@ public class BloatedRelation extends Relation implements BloatedEntity
     }
 
     @Override
+    public boolean isSuperShallow()
+    {
+        return this.members == null && this.allRelationsWithSameOsmIdentifier == null
+                && this.allKnownOsmMembers == null && this.osmRelationIdentifier == null
+                && this.tags == null && this.relationIdentifiers == null;
+    }
+
+    @Override
     public RelationMemberList members()
     {
         return membersFor(this.members);
@@ -158,6 +165,14 @@ public class BloatedRelation extends Relation implements BloatedEntity
         return this.relationIdentifiers == null ? null
                 : this.relationIdentifiers.stream().map(BloatedRelation::new)
                         .collect(Collectors.toSet());
+    }
+
+    @Override
+    public String toString()
+    {
+        return "BloatedRelation [identifier=" + this.identifier + ", tags=" + this.tags
+                + ", members=" + this.members + ", relationIdentifiers=" + this.relationIdentifiers
+                + "]";
     }
 
     public BloatedRelation withAllKnownOsmMembers(final RelationBean allKnownOsmMembers)

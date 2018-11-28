@@ -10,6 +10,7 @@ import org.openstreetmap.atlas.geography.atlas.bloated.BloatedLine;
 import org.openstreetmap.atlas.geography.atlas.change.rule.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.change.rule.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.utilities.collections.Maps;
 
 /**
  * @author matthieun
@@ -23,7 +24,7 @@ public class ChangeTest
     public void testAdd()
     {
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new BloatedArea(123L, null, null, null));
+                new BloatedArea(123L, null, Maps.hashMap(), null));
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.REMOVE,
                 new BloatedLine(123L, null, null, null));
         final ChangeBuilder builder = new ChangeBuilder();
@@ -42,7 +43,7 @@ public class ChangeTest
         this.expectedException.expectMessage("already has a feature change");
 
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new BloatedArea(123L, null, null, null));
+                new BloatedArea(123L, null, Maps.hashMap(), null));
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.REMOVE,
                 new BloatedArea(123L, null, null, null));
         final ChangeBuilder builder = new ChangeBuilder();

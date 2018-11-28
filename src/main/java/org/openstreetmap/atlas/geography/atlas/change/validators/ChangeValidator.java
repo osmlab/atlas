@@ -35,7 +35,7 @@ public class ChangeValidator
     {
         logger.trace("Starting validation of Change {}", this.change.getName());
         final Time start = Time.now();
-        this.validateReverseEdgesHaveForwardMatchingCounterpart();
+        validateReverseEdgesHaveForwardMatchingCounterpart();
         logger.trace("Finished validation of Change {} in {}", this.change.getName(),
                 start.elapsedSince());
     }

@@ -64,6 +64,11 @@ public class Change implements Located, Serializable
         return Optional.ofNullable(this.featureChanges.get(this.identifierToIndex.get(key)));
     }
 
+    public Stream<FeatureChange> changes()
+    {
+        return this.featureChanges.stream();
+    }
+
     public Stream<FeatureChange> changesFor(final ItemType itemType)
     {
         return this.identifierToIndex.keySet().stream()
