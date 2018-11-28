@@ -17,16 +17,19 @@ import org.openstreetmap.atlas.geography.atlas.bloated.BloatedLine;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedPoint;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation;
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.change.rule.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.change.rule.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -267,14 +270,16 @@ public class ChangeAtlasTest
     }
 
     @Test
-    public void testRemoveShallowRelation()
+    public void testRemoveShallowRelations()
     {
         final Atlas atlas = this.rule.getAtlas();
         final ChangeBuilder changeBuilder = new ChangeBuilder();
+
         // These changes remove all members of relations 41834000000 and 39008000000. Both of these
-        // relations will be dropped, due to becoming shallow. Additionally, relation 41860000000
+        // relations will be dropped, due to becoming empty. Additionally, relation 41860000000
         // will also become shallow and be dropped, because its only 2 members are the
-        // aforementioned now-shallow relations.
+        // aforementioned empty relations. Finally. relation 41861000000 will also be dropped, since
+        // its only member was relation 41860000000, which was dropped due to becoming shallow.
         changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
                 BloatedEdge.shallowFromEdge(atlas.edge(39002000001L))));
         changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
@@ -292,13 +297,26 @@ public class ChangeAtlasTest
         changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
                 BloatedArea.shallowFromArea(atlas.area(41795000000L))));
 
+        // Now, we are going to add a new relation 41862000000 to the changeset. However, the new
+        // relation will only have a single member, which is a shallow relation that will be
+        // removed. So this brand new relation will also become shallow, and should also be removed.
+        final RelationBean newBean = new RelationBean();
+        newBean.addItem(41861000000L, "someChild", ItemType.RELATION);
+        changeBuilder.add(
+                new FeatureChange(ChangeType.ADD, new BloatedRelation(41862000000L, Maps.hashMap(),
+                        atlas.relation(41861000000L).bounds(), newBean, null, null, null, null)));
+
+        // Build the ChangeAtlas and verify relations were removed correctly
         final Atlas changeAtlas = new ChangeAtlas(atlas, changeBuilder.get());
         Assert.assertNull(changeAtlas.relation(41834000000L));
         Assert.assertNull(changeAtlas.relation(39008000000L));
         Assert.assertNull(changeAtlas.relation(41860000000L));
+        Assert.assertNull(changeAtlas.relation(41861000000L));
+        Assert.assertNull(changeAtlas.relation(41862000000L));
 
         // Check to make sure we did not accidentally drop relation 39010000000. This relation
         // contains members which still exist and so must be preserved.
+        Assert.assertFalse(changeAtlas.relation(39010000000L).members().isEmpty());
         Assert.assertNotNull(changeAtlas.relation(39010000000L));
     }
 }

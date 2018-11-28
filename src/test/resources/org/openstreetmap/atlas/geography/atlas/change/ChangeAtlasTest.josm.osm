@@ -105,4 +105,9 @@
     <tag k='name' v='parent' />
     <tag k='type' v='parent' />
   </relation>
+  <relation id='-41861' action='modify'>
+    <member type='relation' ref='-41860' role='child1' />
+    <tag k='name' v='super-parent' />
+    <tag k='type' v='super-parent' />
+  </relation>
 </osm>
