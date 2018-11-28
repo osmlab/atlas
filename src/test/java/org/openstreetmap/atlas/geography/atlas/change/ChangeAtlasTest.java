@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -20,18 +19,23 @@ import org.openstreetmap.atlas.geography.atlas.bloated.BloatedLine;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedPoint;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation;
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.change.rule.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.change.rule.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.tuples.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author matthieun
@@ -39,6 +43,7 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
 public class ChangeAtlasTest
 {
     private static final Location NEW_LOCATION = Location.forString("37.592796,-122.2457961");
+    private static final Logger logger = LoggerFactory.getLogger(ChangeAtlasTest.class);
 
     @Rule
     public ChangeAtlasTestRule rule = new ChangeAtlasTestRule();
@@ -254,6 +259,62 @@ public class ChangeAtlasTest
     }
 
     @Test
+    public void testRemovedRelationMemberFromIndirectRemoval()
+    {
+        final Atlas atlas = this.rule.getAtlas();
+
+        // Remove a node. This removal will trigger an indirect removal of the connected edges. This
+        // should also trigger an indirect removal of these members from any relation member lists.
+        final ChangeBuilder changeBuilder = new ChangeBuilder();
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedNode.shallowFromNode(atlas.node(38984000000L))));
+        final Atlas changeAtlas = new ChangeAtlas(atlas, changeBuilder.get());
+        final RelationMemberList memberList = changeAtlas.relation(39008000000L).members();
+        final RelationMemberList newMembers = new RelationMemberList(
+                changeAtlas.relation(39008000000L).members().stream()
+                        .filter(member -> member.getEntity().getIdentifier() == -39002000001L
+                                || member.getEntity().getIdentifier() == 39002000001L)
+                        .collect(Collectors.toList()));
+        Assert.assertEquals(newMembers, memberList);
+
+        // Now, let's do the same thing but remove an additional node. This will trigger the
+        // indirect removal of all the relation's members - so we should see the relation disappear.
+        final ChangeBuilder changeBuilder2 = new ChangeBuilder();
+        changeBuilder2.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedNode.shallowFromNode(atlas.node(38984000000L))));
+        changeBuilder2.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedNode.shallowFromNode(atlas.node(38982000000L))));
+        final Atlas changeAtlas2 = new ChangeAtlas(atlas, changeBuilder2.get());
+        Assert.assertNull(changeAtlas2.relation(39008000000L));
+    }
+
+    @Test
+    public void testRemoveEdgeWhenAConnectedNodeIsMissing()
+    {
+        final Atlas atlas = this.rule.getAtlas();
+        final ChangeBuilder changeBuilder = new ChangeBuilder();
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedNode.shallowFromNode(atlas.node(38982000000L))));
+        final Atlas changeAtlas = new ChangeAtlas(atlas, changeBuilder.get());
+
+        // Check that appropriate edges were deleted, triggered by removal of the node
+        Assert.assertNull(changeAtlas.node(38982000000L));
+        Assert.assertNull(changeAtlas.edge(39004000002L));
+        Assert.assertNull(changeAtlas.edge(39004000001L));
+        Assert.assertNull(changeAtlas.edge(39002000001L));
+        Assert.assertNull(changeAtlas.edge(-39002000001L));
+        Assert.assertNull(changeAtlas.edge(39002000002L));
+        Assert.assertNull(changeAtlas.edge(-39002000002L));
+
+        // Check that appropriate features were left alone
+        Assert.assertNotNull(changeAtlas.node(38990000000L));
+        Assert.assertNotNull(changeAtlas.node(38978000000L));
+        Assert.assertNotNull(changeAtlas.node(38986000000L));
+        Assert.assertNotNull(changeAtlas.node(38984000000L));
+        Assert.assertNotNull(changeAtlas.edge(39006000001L));
+    }
+
+    @Test
     public void testRemoveRelationMember()
     {
         final Atlas atlas = this.rule.getAtlas();
@@ -279,12 +340,8 @@ public class ChangeAtlasTest
         Assert.assertEquals(newMembers.asBean(), fromRelation.members().asBean());
     }
 
-    /**
-     * Once relations can prune their member list when a member is not present, this test will pass.
-     */
-    @Ignore
     @Test
-    public void testRemoveRelationMemberWithoutChangingMemberList()
+    public void testRemoveRelationMemberIsReflectedInMemberListAutomatically()
     {
         final Atlas atlas = this.rule.getAtlas();
         final ChangeBuilder changeBuilder = new ChangeBuilder();
@@ -307,6 +364,57 @@ public class ChangeAtlasTest
         final Relation fromRelation = (Relation) Iterables.stream(parentRelation.members())
                 .firstMatching(member -> "child1".equals(member.getRole())).get().getEntity();
         Assert.assertEquals(newMembers.asBean(), fromRelation.members().asBean());
+    }
+
+    @Test
+    public void testRemoveShallowRelations()
+    {
+        final Atlas atlas = this.rule.getAtlas();
+        final ChangeBuilder changeBuilder = new ChangeBuilder();
+
+        // These changes remove all members of relations 41834000000 and 39008000000. Both of these
+        // relations will be dropped, due to becoming empty. Additionally, relation 41860000000
+        // will also become shallow and be dropped, because its only 2 members are the
+        // aforementioned empty relations. Finally. relation 41861000000 will also be dropped, since
+        // its only member was relation 41860000000, which was dropped due to becoming shallow.
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedEdge.shallowFromEdge(atlas.edge(39002000001L))));
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedEdge.shallowFromEdge(atlas.edge(-39002000001L))));
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedEdge.shallowFromEdge(atlas.edge(39002000002L))));
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedEdge.shallowFromEdge(atlas.edge(-39002000002L))));
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedEdge.shallowFromEdge(atlas.edge(39006000001L))));
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedPoint.shallowFromPoint(atlas.point(41822000000L))));
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedLine.shallowFromLine(atlas.line(41771000000L))));
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                BloatedArea.shallowFromArea(atlas.area(41795000000L))));
+
+        // Now, we are going to add a new relation 41862000000 to the changeset. However, the new
+        // relation will only have a single member, which is a shallow relation that will be
+        // removed. So this brand new relation will also become shallow, and should also be removed.
+        final RelationBean newBean = new RelationBean();
+        newBean.addItem(41861000000L, "someChild", ItemType.RELATION);
+        changeBuilder.add(
+                new FeatureChange(ChangeType.ADD, new BloatedRelation(41862000000L, Maps.hashMap(),
+                        atlas.relation(41861000000L).bounds(), newBean, null, null, null, null)));
+
+        // Build the ChangeAtlas and verify relations were removed correctly
+        final Atlas changeAtlas = new ChangeAtlas(atlas, changeBuilder.get());
+        Assert.assertNull(changeAtlas.relation(41834000000L));
+        Assert.assertNull(changeAtlas.relation(39008000000L));
+        Assert.assertNull(changeAtlas.relation(41860000000L));
+        Assert.assertNull(changeAtlas.relation(41861000000L));
+        Assert.assertNull(changeAtlas.relation(41862000000L));
+
+        // Check to make sure we did not accidentally drop relation 39010000000. This relation
+        // contains members which still exist and so must be preserved.
+        Assert.assertFalse(changeAtlas.relation(39010000000L).members().isEmpty());
+        Assert.assertNotNull(changeAtlas.relation(39010000000L));
     }
 
     /**
