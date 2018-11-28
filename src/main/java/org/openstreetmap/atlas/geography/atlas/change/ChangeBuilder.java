@@ -20,7 +20,7 @@ public class ChangeBuilder
         this.open = true;
     }
 
-    public void add(final FeatureChange featureChange)
+    public synchronized void add(final FeatureChange featureChange)
     {
         if (!this.open)
         {
@@ -30,7 +30,7 @@ public class ChangeBuilder
         this.change.add(featureChange);
     }
 
-    public Change get()
+    public synchronized Change get()
     {
         new ChangeValidator(this.change).validate();
         this.open = false;
