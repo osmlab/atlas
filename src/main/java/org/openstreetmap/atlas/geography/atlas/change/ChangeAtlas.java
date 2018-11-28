@@ -92,9 +92,24 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     @Override
     public Edge edge(final long identifier)
     {
-        return entityFor(identifier, ItemType.EDGE, () -> this.source.edge(identifier),
+        final Edge edge = entityFor(identifier, ItemType.EDGE, () -> this.source.edge(identifier),
                 (sourceEntity, overrideEntity) -> new ChangeEdge(this, (Edge) sourceEntity,
                         (Edge) overrideEntity));
+
+        /*
+         * If the edge was not found in this atlas, return null. Additionally, we then check to see
+         * if this edge is missing a start or end node (which may have been removed by a
+         * FeatureChange). In this case, we also want to "remove" the edge by returning null.
+         */
+        if (edge == null)
+        {
+            return null;
+        }
+        if (edge.start() == null || edge.end() == null)
+        {
+            return null;
+        }
+        return edge;
     }
 
     @Override
@@ -224,9 +239,26 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     @Override
     public Relation relation(final long identifier)
     {
-        return entityFor(identifier, ItemType.RELATION, () -> this.source.relation(identifier),
+        final Relation relation = entityFor(identifier, ItemType.RELATION,
+                () -> this.source.relation(identifier),
                 (sourceEntity, overrideEntity) -> new ChangeRelation(this, (Relation) sourceEntity,
                         (Relation) overrideEntity));
+
+        /*
+         * If the relation was not found in this atlas, return null. Additionally, we check to see
+         * if the relation has no members. If so, it is considered empty and is dropped from the
+         * atlas. This logic, combined with the logic in ChangeRelation.membersFor, will
+         * automatically handle removing non-empty but shallow relations as well.
+         */
+        if (relation == null)
+        {
+            return null;
+        }
+        if (relation.members().isEmpty())
+        {
+            return null;
+        }
+        return relation;
     }
 
     @Override

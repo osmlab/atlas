@@ -7,7 +7,7 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 
 /**
  * Utility class for Change entities: ChangeNode, ChangeEdge, etc.
- * 
+ *
  * @author matthieun
  */
 public final class ChangeEntity

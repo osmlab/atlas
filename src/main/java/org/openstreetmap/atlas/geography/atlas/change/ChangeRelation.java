@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -100,14 +99,11 @@ public class ChangeRelation extends Relation // NOSONAR
         {
             final AtlasEntity memberChangeEntity = getChangeAtlas().entity(item.getIdentifier(),
                     item.getType());
-            if (memberChangeEntity == null)
+            if (memberChangeEntity != null)
             {
-                throw new CoreException(
-                        "Member {} {} (Role = \"{}\") is referenced in Relation {} but is unavailable or removed in ChangeAtlas {}.",
-                        item.getType(), item.getIdentifier(), item.getRole(), this.getIdentifier(),
-                        getChangeAtlas().getName());
+                memberList.add(
+                        new RelationMember(item.getRole(), memberChangeEntity, getIdentifier()));
             }
-            memberList.add(new RelationMember(item.getRole(), memberChangeEntity, getIdentifier()));
         }
         return new RelationMemberList(memberList);
     }
