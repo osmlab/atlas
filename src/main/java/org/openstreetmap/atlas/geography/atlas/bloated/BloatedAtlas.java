@@ -37,30 +37,9 @@ import com.google.gson.JsonObject;
  *
  * @author matthieun
  */
-final class BloatedAtlas implements Atlas
+public class BloatedAtlas implements Atlas
 {
     private static final long serialVersionUID = 5265300513234306056L;
-
-    static AtlasEntity bloatedEntityFor(final long identifier, final ItemType type)
-    {
-        switch (type)
-        {
-            case NODE:
-                return new BloatedNode(identifier);
-            case EDGE:
-                return new BloatedEdge(identifier);
-            case AREA:
-                return new BloatedArea(identifier);
-            case LINE:
-                return new BloatedLine(identifier);
-            case POINT:
-                return new BloatedPoint(identifier);
-            case RELATION:
-                return new BloatedRelation(identifier);
-            default:
-                throw new CoreException("Unknown ItemType {}", type);
-        }
-    }
 
     static <M extends BloatedEntity> boolean equals(final M mine, final Object other)
     {
@@ -218,7 +197,23 @@ final class BloatedAtlas implements Atlas
     @Override
     public AtlasEntity entity(final long identifier, final ItemType type)
     {
-        throw new UnsupportedOperationException();
+        switch (type)
+        {
+            case NODE:
+                return new BloatedNode(identifier);
+            case EDGE:
+                return new BloatedEdge(identifier);
+            case AREA:
+                return new BloatedArea(identifier);
+            case LINE:
+                return new BloatedLine(identifier);
+            case POINT:
+                return new BloatedPoint(identifier);
+            case RELATION:
+                return new BloatedRelation(identifier);
+            default:
+                throw new CoreException("Unknown ItemType {}", type);
+        }
     }
 
     @Override
@@ -230,7 +225,7 @@ final class BloatedAtlas implements Atlas
     @Override
     public String getName()
     {
-        throw new UnsupportedOperationException();
+        return "BloatedAtlas";
     }
 
     @Override

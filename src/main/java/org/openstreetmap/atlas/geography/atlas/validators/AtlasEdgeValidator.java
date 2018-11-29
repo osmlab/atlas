@@ -1,10 +1,9 @@
-package org.openstreetmap.atlas.geography.atlas.change.validators;
+package org.openstreetmap.atlas.geography.atlas.validators;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
-import org.openstreetmap.atlas.geography.atlas.change.ChangeAtlas;
-import org.openstreetmap.atlas.geography.atlas.change.ChangeEdge;
+import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
@@ -13,48 +12,48 @@ import org.slf4j.LoggerFactory;
 /**
  * @author matthieun
  */
-public class ChangeAtlasEdgeValidator
+public class AtlasEdgeValidator
 {
-    private static final Logger logger = LoggerFactory.getLogger(ChangeAtlasEdgeValidator.class);
+    private static final Logger logger = LoggerFactory.getLogger(AtlasEdgeValidator.class);
 
-    private final ChangeAtlas atlas;
+    private final Atlas atlas;
 
-    public ChangeAtlasEdgeValidator(final ChangeAtlas atlas)
+    public AtlasEdgeValidator(final Atlas atlas)
     {
         this.atlas = atlas;
     }
 
     public void validate()
     {
-        logger.trace("Starting Edge validation of ChangeAtlas {}", this.atlas.getName());
+        logger.trace("Starting Edge validation of Atlas {}", this.atlas.getName());
         final Time start = Time.now();
         validateEdgeToNodeConnectivity();
         validateEdgeToNodeLocationAccuracy();
         validateReverseEdgePolyLineUpdated();
-        logger.trace("Finished Edge validation of ChangeAtlas {} in {}", this.atlas.getName(),
+        logger.trace("Finished Edge validation of Atlas {} in {}", this.atlas.getName(),
                 start.elapsedSince());
     }
 
-    private void validateEdgeToNodeConnectivity()
+    protected void validateEdgeToNodeConnectivity()
     {
         for (final Edge edge : this.atlas.edges())
         {
             if (edge.start() == null)
             {
                 throw new CoreException(
-                        "Edge {} is logically disconnected at its start. Referenced Node {} does not exist.",
-                        edge.getIdentifier(), ((ChangeEdge) edge).startNodeIdentifier());
+                        "Edge {} is logically disconnected at its start. Referenced Node does not exist.",
+                        edge.getIdentifier());
             }
             if (edge.end() == null)
             {
                 throw new CoreException(
-                        "Edge {} is logically disconnected at its end. Referenced Node {} does not exist.",
-                        edge.getIdentifier(), ((ChangeEdge) edge).endNodeIdentifier());
+                        "Edge {} is logically disconnected at its end. Referenced Node does not exist.",
+                        edge.getIdentifier());
             }
         }
     }
 
-    private void validateEdgeToNodeLocationAccuracy()
+    protected void validateEdgeToNodeLocationAccuracy()
     {
         for (final Edge edge : this.atlas.edges())
         {
@@ -79,7 +78,7 @@ public class ChangeAtlasEdgeValidator
         }
     }
 
-    private void validateReverseEdgePolyLineUpdated()
+    protected void validateReverseEdgePolyLineUpdated()
     {
         for (final Edge edge : this.atlas
                 .edges(edge -> edge.hasReverseEdge() && edge.isMasterEdge()))

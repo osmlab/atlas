@@ -13,17 +13,17 @@ public class BloatedAtlasTest
     public void testAssignment()
     {
         Assert.assertTrue(
-                new BloatedNode(123).equals(BloatedAtlas.bloatedEntityFor(123, ItemType.NODE)));
+                new BloatedNode(123).equals(new BloatedAtlas().entity(123, ItemType.NODE)));
         Assert.assertTrue(
-                new BloatedEdge(123).equals(BloatedAtlas.bloatedEntityFor(123, ItemType.EDGE)));
+                new BloatedEdge(123).equals(new BloatedAtlas().entity(123, ItemType.EDGE)));
         Assert.assertTrue(
-                new BloatedArea(123).equals(BloatedAtlas.bloatedEntityFor(123, ItemType.AREA)));
+                new BloatedArea(123).equals(new BloatedAtlas().entity(123, ItemType.AREA)));
         Assert.assertTrue(
-                new BloatedLine(123).equals(BloatedAtlas.bloatedEntityFor(123, ItemType.LINE)));
+                new BloatedLine(123).equals(new BloatedAtlas().entity(123, ItemType.LINE)));
         Assert.assertTrue(
-                new BloatedPoint(123).equals(BloatedAtlas.bloatedEntityFor(123, ItemType.POINT)));
-        Assert.assertTrue(new BloatedRelation(123)
-                .equals(BloatedAtlas.bloatedEntityFor(123, ItemType.RELATION)));
+                new BloatedPoint(123).equals(new BloatedAtlas().entity(123, ItemType.POINT)));
+        Assert.assertTrue(
+                new BloatedRelation(123).equals(new BloatedAtlas().entity(123, ItemType.RELATION)));
     }
 
     @SuppressWarnings("unlikely-arg-type")

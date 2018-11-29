@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Heading;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -31,26 +33,27 @@ import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
 /**
  * @author matthieun
  */
 public class ChangeAtlasTest
 {
-    private static final Logger logger = LoggerFactory.getLogger(ChangeAtlasTest.class);
+    private static final Location NEW_LOCATION = Location.forString("37.592796,-122.2457961");
 
     @Rule
     public ChangeAtlasTestRule rule = new ChangeAtlasTestRule();
+
+    @Rule
+    public final ExpectedException expectedException = ExpectedException.none();
 
     @Test
     public void testBounds()
     {
         final Atlas atlas = this.rule.getAtlas();
-        Assert.assertEquals(
-                "POLYGON ((-122.2450237 37.5920679, -122.2450237 37.5938783, "
-                        + "-122.2412753 37.5938783, -122.2412753 37.5920679, -122.2450237 37.5920679))",
+        Assert.assertEquals("POLYGON ((-122.2450237 37.5920679, -122.2450237 37.5938783, "
+                + "-122.2412753 37.5938783, -122.2412753 37.5920679, -122.2450237 37.5920679))",
                 atlas.bounds().toWkt());
 
         final ChangeBuilder changeBuilder = new ChangeBuilder();
@@ -67,9 +70,8 @@ public class ChangeAtlasTest
         final Change change = changeBuilder.get();
 
         final Atlas changeAtlas = new ChangeAtlas(atlas, change);
-        Assert.assertEquals(
-                "POLYGON ((-122.2450237 37.5920679, -122.2450237 37.5938873, "
-                        + "-122.2412753 37.5938873, -122.2412753 37.5920679, -122.2450237 37.5920679))",
+        Assert.assertEquals("POLYGON ((-122.2450237 37.5920679, -122.2450237 37.5938873, "
+                + "-122.2412753 37.5938873, -122.2412753 37.5920679, -122.2450237 37.5920679))",
                 changeAtlas.bounds().toWkt());
     }
 
@@ -92,6 +94,66 @@ public class ChangeAtlasTest
         final Relation fromRelation = (Relation) Iterables.stream(parentRelation.members())
                 .firstMatching(member -> "child1".equals(member.getRole())).get().getEntity();
         Assert.assertEquals(tags, fromRelation.getTags());
+    }
+
+    @Test
+    public void testModifyEdgeAndNode()
+    {
+        final Atlas atlas = this.rule.getAtlasEdge();
+        final ChangeBuilder changeBuilder = new ChangeBuilder();
+
+        final Tuple<FeatureChange, FeatureChange> featureChange1 = getFeatureChangeUpdatedEdgePolyLine();
+        changeBuilder.add(featureChange1.getFirst());
+        changeBuilder.add(featureChange1.getSecond());
+
+        changeBuilder.add(getFeatureChangeMovedNode());
+
+        final Change change = changeBuilder.get();
+        Assert.assertEquals("[Edge: id=39001000001, startNode=38999000000, endNode=39002000000, "
+                + "polyLine=LINESTRING (-122.2457961 37.592796, -122.2450237 37.5926929, "
+                + "-122.2441049 37.5930666, -122.2429584 37.5926993), "
+                + "[Tags: [last_edit_user_name => myself], [last_edit_changeset => 1], "
+                + "[last_edit_time => 1513719782000], [last_edit_user_id => 1], [name => primary], "
+                + "[highway => primary], [last_edit_version => 1]]]",
+                new ChangeAtlas(atlas, change).edge(39001000001L).toString());
+    }
+
+    @Test
+    public void testModifyEdgeWithoutStartNode()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("does not match with its start Node");
+
+        final Atlas atlas = this.rule.getAtlasEdge();
+        final ChangeBuilder changeBuilder = new ChangeBuilder();
+
+        final Tuple<FeatureChange, FeatureChange> featureChange1 = getFeatureChangeUpdatedEdgePolyLine();
+        changeBuilder.add(featureChange1.getFirst());
+        changeBuilder.add(featureChange1.getSecond());
+
+        final Change change = changeBuilder.get();
+        new ChangeAtlas(atlas, change);
+    }
+
+    @Test
+    public void testModifyForwardEdgeWithoutReverseEdge()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("have mismatching PolyLines");
+
+        final Atlas atlas = this.rule.getAtlasEdge();
+        final ChangeBuilder changeBuilder = new ChangeBuilder();
+
+        final Edge edge = atlas.edge(39001000001L);
+        final PolyLine oldPolyLine = edge.asPolyLine();
+        final PolyLine newPolyLine = new PolyLine(oldPolyLine.first(), NEW_LOCATION,
+                oldPolyLine.last());
+        final BloatedEdge bloatedEdge = BloatedEdge.shallowFromEdge(edge).withPolyLine(newPolyLine);
+        final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, bloatedEdge);
+        changeBuilder.add(featureChange);
+
+        final Change change = changeBuilder.get();
+        new ChangeAtlas(atlas, change);
     }
 
     @Test
@@ -350,5 +412,48 @@ public class ChangeAtlasTest
         // contains members which still exist and so must be preserved.
         Assert.assertFalse(changeAtlas.relation(39010000000L).members().isEmpty());
         Assert.assertNotNull(changeAtlas.relation(39010000000L));
+    }
+
+    /**
+     * @return Feature change 2: Update the edge 39001000001L's start node: 38999000000L
+     */
+    private FeatureChange getFeatureChangeMovedNode()
+    {
+        final Atlas atlas = this.rule.getAtlasEdge();
+
+        final Node originalNode = atlas.node(38999000000L);
+        final BloatedNode bloatedNode = BloatedNode.shallowFromNode(originalNode)
+                .withLocation(NEW_LOCATION);
+        return new FeatureChange(ChangeType.ADD, bloatedNode);
+    }
+
+    /**
+     * @return Feature change 1: Update the first location in the edge 39001000001L's polyLine
+     */
+    private Tuple<FeatureChange, FeatureChange> getFeatureChangeUpdatedEdgePolyLine()
+    {
+        final Atlas atlas = this.rule.getAtlasEdge();
+
+        final Edge originalEdge1 = atlas.edge(39001000001L);
+        final Edge originalEdge1Reverse = atlas.edge(-39001000001L);
+
+        // Forward:
+        final PolyLine originalPolyLine1 = originalEdge1.asPolyLine();
+        final PolyLine originalPolyLine1Modified = new PolyLine(
+                originalPolyLine1.prepend(new PolyLine(NEW_LOCATION, originalPolyLine1.first())));
+        final BloatedEdge bloatedEdge1 = BloatedEdge.shallowFromEdge(originalEdge1)
+                .withPolyLine(originalPolyLine1Modified);
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, bloatedEdge1);
+
+        // Backward
+        final PolyLine originalPolyLine1Reverse = originalEdge1Reverse.asPolyLine();
+        final PolyLine originalPolyLine1ModifiedReverse = new PolyLine(originalPolyLine1Reverse
+                .append(new PolyLine(originalPolyLine1Reverse.last(), NEW_LOCATION)));
+        final BloatedEdge bloatedEdge1Reverse = BloatedEdge.shallowFromEdge(originalEdge1Reverse)
+                .withPolyLine(originalPolyLine1ModifiedReverse);
+        final FeatureChange featureChange1Reverse = new FeatureChange(ChangeType.ADD,
+                bloatedEdge1Reverse);
+
+        return new Tuple<>(featureChange1, featureChange1Reverse);
     }
 }

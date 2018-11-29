@@ -197,7 +197,6 @@ public class BloatedRelation extends Relation implements BloatedEntity
     public BloatedRelation withMembers(final RelationBean members, final Rectangle bounds)
     {
         this.members = members;
-        // TODO note to reviewer, is this the right approach?
         if (this.originalBounds == null)
         {
             this.originalBounds = bounds;
@@ -216,7 +215,6 @@ public class BloatedRelation extends Relation implements BloatedEntity
     public BloatedRelation withMembers(final RelationMemberList members)
     {
         this.members = members.asBean();
-        // TODO note to reviewer, is this the right approach?
         if (this.originalBounds == null)
         {
             this.originalBounds = members.bounds();
@@ -253,8 +251,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
         for (final RelationBeanItem item : bean)
         {
             memberList.add(new RelationMember(item.getRole(),
-                    BloatedAtlas.bloatedEntityFor(item.getIdentifier(), item.getType()),
-                    getIdentifier()));
+                    getAtlas().entity(item.getIdentifier(), item.getType()), getIdentifier()));
         }
         return new RelationMemberList(memberList);
     }
