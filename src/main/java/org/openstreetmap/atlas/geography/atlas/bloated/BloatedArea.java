@@ -8,11 +8,10 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
-import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
 /**
- * Independent {@link Edge} that contains its own data. At scale, use at your own risk.
+ * Independent {@link Area} that contains its own data. At scale, use at your own risk.
  *
  * @author matthieun
  */

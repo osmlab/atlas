@@ -10,8 +10,8 @@ import org.openstreetmap.atlas.geography.atlas.bloated.BloatedLine;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedPoint;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation;
-import org.openstreetmap.atlas.geography.atlas.change.rule.ChangeType;
-import org.openstreetmap.atlas.geography.atlas.change.rule.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
+import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
 
 /**
  * @author matthieun

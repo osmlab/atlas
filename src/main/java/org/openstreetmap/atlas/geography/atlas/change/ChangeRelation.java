@@ -15,6 +15,13 @@ import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 
 /**
+ * {@link Relation} that references a {@link ChangeAtlas}. That {@link Relation} makes sure that all
+ * the member entitiess are "Change" types, and that all the parent {@link Relation}s are
+ * {@link ChangeRelation}s.
+ * <p>
+ * NOSONAR here to avoid "Subclasses that add fields should override "equals" (squid:S2160)". Here
+ * the equals from the parent works.
+ *
  * @author matthieun
  */
 public class ChangeRelation extends Relation // NOSONAR

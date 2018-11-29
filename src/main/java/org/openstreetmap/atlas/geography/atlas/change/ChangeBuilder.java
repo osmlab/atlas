@@ -1,7 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.atlas.change.rule.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.change.validators.ChangeValidator;
 
 /**

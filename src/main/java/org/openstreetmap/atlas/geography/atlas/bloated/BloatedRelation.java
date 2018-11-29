@@ -16,6 +16,8 @@ import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 
 /**
+ * Independent {@link Relation} that contains its own data. At scale, use at your own risk.
+ *
  * @author matthieun
  */
 public class BloatedRelation extends Relation implements BloatedEntity

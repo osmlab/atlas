@@ -7,8 +7,6 @@ import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedArea;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedLine;
-import org.openstreetmap.atlas.geography.atlas.change.rule.ChangeType;
-import org.openstreetmap.atlas.geography.atlas.change.rule.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 

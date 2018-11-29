@@ -20,8 +20,6 @@ import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedPoint;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
-import org.openstreetmap.atlas.geography.atlas.change.rule.ChangeType;
-import org.openstreetmap.atlas.geography.atlas.change.rule.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;

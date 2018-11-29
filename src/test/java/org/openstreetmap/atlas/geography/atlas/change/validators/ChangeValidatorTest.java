@@ -7,8 +7,8 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedEdge;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeBuilder;
-import org.openstreetmap.atlas.geography.atlas.change.rule.ChangeType;
-import org.openstreetmap.atlas.geography.atlas.change.rule.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
+import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 
 /**

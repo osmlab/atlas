@@ -10,6 +10,12 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
 /**
+ * {@link Line} that references a {@link ChangeAtlas}. That {@link Line} makes sure that all the
+ * parent {@link Relation}s are {@link ChangeRelation}s.
+ * <p>
+ * NOSONAR here to avoid "Subclasses that add fields should override "equals" (squid:S2160)". Here
+ * the equals from the parent works.
+ *
  * @author matthieun
  */
 public class ChangeLine extends Line // NOSONAR

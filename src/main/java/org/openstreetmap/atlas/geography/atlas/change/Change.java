@@ -13,7 +13,6 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.change.rule.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.tuples.Tuple;
