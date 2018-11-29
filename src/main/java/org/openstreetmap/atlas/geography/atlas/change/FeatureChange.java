@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.change.rule;
+package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.io.Serializable;
 

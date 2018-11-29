@@ -10,6 +10,12 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
 /**
+ * {@link Point} that references a {@link ChangeAtlas}. That {@link Point} makes sure that all the
+ * parent {@link Relation}s are {@link ChangeRelation}s.
+ * <p>
+ * NOSONAR here to avoid "Subclasses that add fields should override "equals" (squid:S2160)". Here
+ * the equals from the parent works.
+ *
  * @author matthieun
  */
 public class ChangePoint extends Point // NOSONAR

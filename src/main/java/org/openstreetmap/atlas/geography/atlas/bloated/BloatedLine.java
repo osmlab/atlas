@@ -7,12 +7,11 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
-import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
 /**
- * Independent {@link Edge} that contains its own data. At scale, use at your own risk.
+ * Independent {@link Line} that contains its own data. At scale, use at your own risk.
  *
  * @author matthieun
  */

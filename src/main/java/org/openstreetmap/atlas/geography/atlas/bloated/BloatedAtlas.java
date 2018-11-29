@@ -24,6 +24,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.SnappedEdge;
+import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
@@ -103,6 +104,12 @@ public class BloatedAtlas implements Atlas
     }
 
     @Override
+    public Iterable<Area> areasWithin(final Polygon polygon)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public GeoJsonObject asGeoJson()
     {
         throw new UnsupportedOperationException();
@@ -158,6 +165,12 @@ public class BloatedAtlas implements Atlas
 
     @Override
     public Iterable<Edge> edgesIntersecting(final Polygon polygon, final Predicate<Edge> matcher)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Iterable<Edge> edgesWithin(final Polygon polygon)
     {
         throw new UnsupportedOperationException();
     }
@@ -267,6 +280,12 @@ public class BloatedAtlas implements Atlas
     }
 
     @Override
+    public Iterable<AtlasItem> itemsWithin(final Polygon polygon)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Iterator<AtlasEntity> iterator()
     {
         throw new UnsupportedOperationException();
@@ -317,6 +336,12 @@ public class BloatedAtlas implements Atlas
     }
 
     @Override
+    public Iterable<LineItem> lineItemsWithin(final Polygon polygon)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Iterable<Line> lines()
     {
         throw new UnsupportedOperationException();
@@ -348,6 +373,12 @@ public class BloatedAtlas implements Atlas
 
     @Override
     public Iterable<Line> linesIntersecting(final Polygon polygon, final Predicate<Line> matcher)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Iterable<Line> linesWithin(final Polygon polygon)
     {
         throw new UnsupportedOperationException();
     }
@@ -529,6 +560,12 @@ public class BloatedAtlas implements Atlas
     }
 
     @Override
+    public Iterable<Relation> relationsWithEntitiesWithin(final Polygon polygon)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void save(final WritableResource writableResource)
     {
         throw new UnsupportedOperationException();
@@ -591,6 +628,7 @@ public class BloatedAtlas implements Atlas
         throw new UnsupportedOperationException();
     }
 
+    @Deprecated
     @Override
     public Optional<Atlas> subAtlas(final Polygon boundary)
     {
@@ -598,7 +636,21 @@ public class BloatedAtlas implements Atlas
     }
 
     @Override
+    public Optional<Atlas> subAtlas(final Polygon boundary, final AtlasCutType cutType)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Deprecated
+    @Override
     public Optional<Atlas> subAtlas(final Predicate<AtlasEntity> matcher)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Optional<Atlas> subAtlas(final Predicate<AtlasEntity> matcher,
+            final AtlasCutType cutType)
     {
         throw new UnsupportedOperationException();
     }
@@ -608,5 +660,4 @@ public class BloatedAtlas implements Atlas
     {
         throw new UnsupportedOperationException();
     }
-
 }
