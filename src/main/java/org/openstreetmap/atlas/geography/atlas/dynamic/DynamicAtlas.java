@@ -136,6 +136,12 @@ public class DynamicAtlas extends BareAtlas
     }
 
     @Override
+    public Iterable<Area> areasWithin(final Polygon polygon)
+    {
+        return expand(() -> this.current.areasWithin(polygon), this::areaCovered, this::newArea);
+    }
+
+    @Override
     public Rectangle bounds()
     {
         return this.current.bounds();
@@ -224,6 +230,13 @@ public class DynamicAtlas extends BareAtlas
                 this::newEdge);
     }
 
+    @Override
+    public Iterable<Edge> edgesWithin(final Polygon polygon)
+    {
+        return expand(() -> this.current.edgesWithin(polygon), this::lineItemCovered,
+                this::newEdge);
+    }
+
     /**
      * @return The number of times that {@link DynamicAtlas} has (re-)built its {@link MultiAtlas}
      *         underneath.
@@ -272,6 +285,13 @@ public class DynamicAtlas extends BareAtlas
     public Iterable<Line> linesIntersecting(final Polygon polygon, final Predicate<Line> matcher)
     {
         return expand(() -> this.current.linesIntersecting(polygon, matcher), this::lineItemCovered,
+                this::newLine);
+    }
+
+    @Override
+    public Iterable<Line> linesWithin(final Polygon polygon)
+    {
+        return expand(() -> this.current.linesWithin(polygon), this::lineItemCovered,
                 this::newLine);
     }
 
@@ -474,6 +494,13 @@ public class DynamicAtlas extends BareAtlas
     }
 
     @Override
+    public Iterable<Relation> relationsWithEntitiesWithin(final Polygon polygon)
+    {
+        return expand(() -> this.current.relationsWithEntitiesWithin(polygon),
+                this::relationCovered, this::newRelation);
+    }
+
+    @Override
     public void save(final WritableResource writableResource)
     {
         throw new CoreException("DynamicAtlas cannot be saved");
@@ -528,8 +555,7 @@ public class DynamicAtlas extends BareAtlas
                     else
                     {
                         logger.info("{}: Loading new shard {} found a new Atlas {} of size {}",
-                                this.getName(), shard.getName(), loaded.getName(),
-                                loaded.size().toString());
+                                this.getName(), shard.getName(), loaded.getName(), loaded.size());
                     }
                 }
             }

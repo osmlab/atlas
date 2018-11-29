@@ -21,6 +21,7 @@ public class SubAtlasRule extends CoreTestRule
     private static final String THREE = "37.780724, -122.472249";
     private static final String FOUR = "37.780825, -122.471896";
     private static final String FIVE = "37.780835, -122.471896";
+    private static final String FIVE_PRIME = "37.7807005, -122.4728703";
 
     private static final String SIX = "37.045982,-121.7539795";
     private static final String SIX_PRIME = "37.0459867,-121.7539853";
@@ -32,14 +33,17 @@ public class SubAtlasRule extends CoreTestRule
 
                     @Node(id = "1", coordinates = @Loc(value = ONE)),
                     @Node(id = "2", coordinates = @Loc(value = TWO)),
-                    @Node(id = "3", coordinates = @Loc(value = THREE))
+                    @Node(id = "3", coordinates = @Loc(value = THREE)),
+                    @Node(id = "4", coordinates = @Loc(value = FIVE_PRIME))
 
             }, edges = {
 
                     @Edge(id = "0", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }, tags = {
                             "highway=trunk", "fixme=please" }),
                     @Edge(id = "1", coordinates = { @Loc(value = TWO),
-                            @Loc(value = THREE) }, tags = { "highway=trunk" })
+                            @Loc(value = THREE) }, tags = { "highway=trunk" }),
+                    @Edge(id = "2", coordinates = { @Loc(value = ONE),
+                            @Loc(value = FIVE_PRIME) }, tags = { "highway=trunk" })
 
             }, areas = {
 
@@ -84,7 +88,13 @@ public class SubAtlasRule extends CoreTestRule
                                     @Member(id = "1", role = "outside", type = "line") }),
                     @Relation(id = "5", tags = {
                             "type=inside_because_of_level_2_relation_inside" }, members = {
-                                    @Member(id = "4", role = "inside", type = "relation") })
+                                    @Member(id = "4", role = "inside", type = "relation") }),
+                    @Relation(id = "6", tags = { "type=inside-fully" }, members = {
+                            @Member(id = "4", role = "inside", type = "node"),
+                            @Member(id = "2", role = "inside", type = "edge") }),
+                    @Relation(id = "7", tags = { "type=single-member-inside" }, members = {
+                            @Member(id = "0", role = "inside", type = "edge"),
+                            @Member(id = "2", role = "inside", type = "edge") })
 
             })
     private Atlas atlas;
@@ -172,6 +182,58 @@ public class SubAtlasRule extends CoreTestRule
             })
     private Atlas atlasWithEdgeAlongBoundary;
 
+    @TestAtlas(
+
+            nodes = {
+
+                    @Node(id = "1", coordinates = @Loc(value = ONE)),
+                    @Node(id = "2", coordinates = @Loc(value = TWO)),
+                    @Node(id = "3", coordinates = @Loc(value = THREE)),
+                    @Node(id = "4", coordinates = @Loc(value = FOUR)),
+                    @Node(id = "5", coordinates = @Loc(value = FIVE)),
+                    @Node(id = "6", coordinates = @Loc(value = SIX)),
+
+            }, edges = {
+
+                    @Edge(id = "0", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }, tags = {
+                            "highway=residential" }),
+                    @Edge(id = "1", coordinates = { @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "highway=residential" }),
+                    @Edge(id = "2", coordinates = { @Loc(value = FOUR),
+                            @Loc(value = FIVE) }, tags = { "highway=trunk" }),
+                    @Edge(id = "3", coordinates = { @Loc(value = FIVE),
+                            @Loc(value = SIX) }, tags = { "highway=trunk" })
+
+            }, points = {
+
+                    @Point(id = "0", coordinates = @Loc(value = ONE), tags = { "addr:street=coco",
+                            "addr:housenumber=25" }),
+                    @Point(id = "1", coordinates = @Loc(value = TWO), tags = {
+                            "fixme=wrong name" }),
+                    @Point(id = "2", coordinates = @Loc(value = THREE), tags = { "landuse=basin" }),
+                    @Point(id = "3", coordinates = @Loc(value = FOUR), tags = { "amenity=school" })
+
+            }, areas = {
+
+                    @Area(id = "0", coordinates = { @Loc(value = ONE), @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "addr:housenumber=25" }),
+                    @Area(id = "1", coordinates = { @Loc(value = TWO), @Loc(value = THREE),
+                            @Loc(value = FOUR) }, tags = { "natural=water", "water=lake" })
+
+            }, relations = {
+
+                    @Relation(id = "1", tags = { "type=restriction",
+                            "restriction=no_u_turn" }, members = {
+                                    @Member(id = "0", role = "from", type = "edge"),
+                                    @Member(id = "2", role = "via", type = "node"),
+                                    @Member(id = "1", role = "to", type = "edge") }),
+                    @Relation(id = "2", tags = { "type=route", "route=bus" }, members = {
+                            @Member(id = "2", role = "", type = "edge"),
+                            @Member(id = "3", role = "", type = "edge") })
+
+            })
+    private Atlas hardCutPredicateAtlas;
+
     public Atlas getAtlas()
     {
         return this.atlas;
@@ -185,6 +247,11 @@ public class SubAtlasRule extends CoreTestRule
     public Atlas getFilteredOutMemberRelationAtlas()
     {
         return this.filteredOutMemberRelationAtlas;
+    }
+
+    public Atlas getHardCutPredicateAtlas()
+    {
+        return this.hardCutPredicateAtlas;
     }
 
     public Atlas getNodeNestedWithinRelationAtlas()

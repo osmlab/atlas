@@ -9,6 +9,7 @@ import java.util.function.Predicate;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -22,6 +23,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.SnappedEdge;
+import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
@@ -104,6 +106,15 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<Area> areasIntersecting(Polygon polygon, Predicate<Area> matcher);
 
     /**
+     * Return all the {@link Area}s fully within some polygon.
+     *
+     * @param polygon
+     *            The polygon to consider
+     * @return All the {@link Area}s fully within the polygon.
+     */
+    Iterable<Area> areasWithin(Polygon polygon);
+
+    /**
      * @return A {@link GeoJsonObject} that contains all the features in this {@link Atlas}
      */
     GeoJsonObject asGeoJson();
@@ -180,6 +191,15 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      *         the polygon.
      */
     Iterable<Edge> edgesIntersecting(Polygon polygon, Predicate<Edge> matcher);
+
+    /**
+     * Return all the {@link Edge}s fully within some polygon.
+     *
+     * @param polygon
+     *            The polygon to consider
+     * @return All the {@link Edge}s fully within the polygon.
+     */
+    Iterable<Edge> edgesWithin(Polygon polygon);
 
     /**
      * Return all the {@link AtlasEntity}s
@@ -315,6 +335,15 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<AtlasItem> itemsIntersecting(Polygon polygon, Predicate<AtlasItem> matcher);
 
     /**
+     * Return all the {@link AtlasItem}s fully within some polygon.
+     *
+     * @param polygon
+     *            The polygon to consider
+     * @return All the {@link AtlasItem}s fully within the polygon.
+     */
+    Iterable<AtlasItem> itemsWithin(Polygon polygon);
+
+    /**
      * @param identifier
      *            The {@link Line}'s identifier
      * @return The {@link Line} that corresponds to the provided identifier
@@ -382,6 +411,15 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<LineItem> lineItemsIntersecting(Polygon polygon, Predicate<LineItem> matcher);
 
     /**
+     * Return all the {@link LineItem}s fully within some polygon.
+     *
+     * @param polygon
+     *            The {@link Polygon} to consider
+     * @return All the {@link LineItem}s within and/or intersecting the {@link Polygon}.
+     */
+    Iterable<LineItem> lineItemsWithin(Polygon polygon);
+
+    /**
      * @return All the {@link Line}s in this {@link Atlas}
      */
     Iterable<Line> lines();
@@ -438,6 +476,15 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      *         the polygon.
      */
     Iterable<Line> linesIntersecting(Polygon polygon, Predicate<Line> matcher);
+
+    /**
+     * Return all the {@link Line}s fully within some polygon.
+     *
+     * @param polygon
+     *            The polygon to consider
+     * @return All the {@link Line}s fully within the polygon.
+     */
+    Iterable<Line> linesWithin(Polygon polygon);
 
     /**
      * Return all the {@link LocationItem}s
@@ -513,7 +560,9 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<Node> nodesAt(Location location);
 
     /**
-     * Return all the {@link Node}s within and/or intersecting some polygon.
+     * Return all the {@link Node}s within and/or intersecting some polygon. Note: results may vary,
+     * for an identical boundary, depending on the type, {@link Rectangle} or {@link Polygon} of the
+     * input. This is due to an underlying dependency on the awt definition of insideness.
      *
      * @param polygon
      *            The polygon to consider
@@ -595,7 +644,9 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<Point> pointsAt(Location location);
 
     /**
-     * Return all the {@link Point}s within some polygon.
+     * Return all the {@link Point}s within some polygon. Note: results may vary, for an identical
+     * boundary, depending on the type, {@link Rectangle} or {@link Polygon} of the input. This is
+     * due to an underlying dependency on the awt definition of insideness.
      *
      * @param polygon
      *            The polygon to consider
@@ -604,7 +655,9 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<Point> pointsWithin(Polygon polygon);
 
     /**
-     * Return all the {@link Point}s matching a {@link Predicate}.
+     * Return all the {@link Point}s matching a {@link Predicate}. Note: results may vary, for an
+     * identical boundary, depending on the type, {@link Rectangle} or {@link Polygon} of the input.
+     * This is due to an underlying dependency on the awt definition of insideness.
      *
      * @param matcher
      *            The matcher to consider
@@ -664,6 +717,15 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      */
     Iterable<Relation> relationsWithEntitiesIntersecting(Polygon polygon,
             Predicate<Relation> matcher);
+
+    /**
+     * Return all the {@link Relation}s which have all features within some polygon.
+     *
+     * @param polygon
+     *            The polygon to consider
+     * @return All the {@link Relation}s which have all features within the polygon.
+     */
+    Iterable<Relation> relationsWithEntitiesWithin(Polygon polygon);
 
     /**
      * Serialize this {@link Atlas} to a {@link WritableResource}
@@ -770,7 +832,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     SortedSet<SnappedEdge> snaps(Location point, Distance threshold);
 
     /**
-     * Return a sub-atlas from this Atlas.
+     * Return a sub-atlas from this Atlas. TODO Remove this call next major release.
      * <p>
      * This would be a soft cut, meaning:
      * <ul>
@@ -788,36 +850,52 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      *            The boundary within which the sub atlas will be built
      * @return An optional sub-atlas. The optional will be empty in case the boundary would return
      *         an empty atlas, which is not allowed.
+     * @deprecated use {@link #subAtlas(Polygon, AtlasCutType)} with SOFT_CUT cut type instead.
      */
-    Optional<Atlas> subAtlas(Polygon boundary);
+    @Deprecated
+    default Optional<Atlas> subAtlas(final Polygon boundary)
+    {
+        return subAtlas(boundary, AtlasCutType.SOFT_CUT);
+    }
 
     /**
      * Return a sub-atlas from this Atlas.
-     * <p>
-     * This would be a soft cut, meaning:
-     * <ul>
-     * <li>{@link Node}: It is included only if it is matched by the matcher, or if a valid edge
-     * (below) has it at one of its ends, or it is pulled in by an {@link Edge} which itself pulled
-     * in by a {@link Relation}, matched by the matcher.
-     * <li>{@link Edge}: It is included only if it is matched by the matcher or pulled in by a
-     * {@link Relation}, matched by the matcher.
-     * <li>{@link Area}: It is included only if it is matched by the matcher or pulled in by a
-     * {@link Relation}, matched by the matcher.
-     * <li>{@link Line}: It is included only if it is matched by the matcher or pulled in by a
-     * {@link Relation}, matched by the matcher.
-     * <li>{@link Point}: It is included only if it is matched by the matcher or pulled in by a
-     * {@link Relation}, matched by the matcher.
-     * <li>{@link Relation}: It is included if is matched by matcher or pulled in via another
-     * {@link Relation} which was matched by the matcher. To maintain {@link Relation} validity, all
-     * of its members will be included in the member list, even if not matched by the given matcher.
-     * </ul>
+     *
+     * @param boundary
+     *            The boundary within which the sub atlas will be built
+     * @param cutType
+     *            The type of cut to perform
+     * @return An optional sub-atlas. The optional will be empty in case there is nothing in the
+     *         {@link Polygon} after the cut was applied. Returning an empty atlas is not allowed.
+     */
+    Optional<Atlas> subAtlas(Polygon boundary, AtlasCutType cutType);
+
+    /**
+     * Return a sub-atlas from this Atlas. TODO Remove this call next major release.
      *
      * @param matcher
      *            The matcher to consider
-     * @return An optional sub-atlas. The optional will be empty in case the matcher would return an
-     *         empty atlas, which is not allowed.
+     * @return An optional sub-atlas. The optional will be empty in case there is nothing matching
+     *         the supplied predicate. Returning an empty atlas is not allowed.
+     * @deprecated use {@link #subAtlas(Predicate, AtlasCutType)} with SOFT_CUT cut type instead.
      */
-    Optional<Atlas> subAtlas(Predicate<AtlasEntity> matcher);
+    @Deprecated
+    default Optional<Atlas> subAtlas(final Predicate<AtlasEntity> matcher)
+    {
+        return subAtlas(matcher, AtlasCutType.SOFT_CUT);
+    }
+
+    /**
+     * Return a sub-atlas from this Atlas.
+     *
+     * @param matcher
+     *            The matcher to consider
+     * @param cutType
+     *            The type of cut to perform
+     * @return An optional sub-atlas. The optional will be empty in case the matcher and cut-type
+     *         return an empty atlas, which is not allowed.
+     */
+    Optional<Atlas> subAtlas(Predicate<AtlasEntity> matcher, AtlasCutType cutType);
 
     /**
      * @return A summary of this {@link Atlas}

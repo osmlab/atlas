@@ -32,6 +32,7 @@ import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.WaySectionIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryEdge;
 import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryNode;
+import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.tags.AtlasTag;
@@ -251,7 +252,7 @@ public class WaySectionProcessor
                         final Atlas atlas = possibleAtlas.get();
                         final Time subAtlasTime = Time.now();
                         final Optional<Atlas> subAtlas = atlas
-                                .subAtlas(this.dynamicAtlasExpansionFilter);
+                                .subAtlas(this.dynamicAtlasExpansionFilter, AtlasCutType.SOFT_CUT);
                         logTaskAsInfo(SHARD_SPECIFIC_COMPLETED_TASK_MESSAGE, getShardOrAtlasName(),
                                 SUB_ATLAS_CUTTING_TASK, shard.getName(),
                                 subAtlasTime.elapsedSince());
