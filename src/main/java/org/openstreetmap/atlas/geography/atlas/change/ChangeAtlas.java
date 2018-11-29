@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -290,12 +291,12 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
                                 && featureChange.getChangeType() == ChangeType.ADD)
                         .map(featureChange -> entityForIdentifier
                                 .apply(featureChange.getIdentifier()))
-                        .filter(entity -> entity != null).collect(Collectors.toList()),
+                        .filter(Objects::nonNull).collect(Collectors.toList()),
                 Iterables.stream(sourceEntities)
                         .filter(entity -> !this.change.changeFor(itemType, entity.getIdentifier())
                                 .isPresent())
                         .map(entity -> entityForIdentifier.apply(entity.getIdentifier()))
-                        .filter(entity -> entity != null).collect());
+                        .filter(Objects::nonNull).collect());
     }
 
     /**
