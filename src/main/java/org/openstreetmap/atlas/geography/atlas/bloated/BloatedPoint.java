@@ -38,13 +38,13 @@ public class BloatedPoint extends Point implements BloatedEntity
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
 
-    public static BloatedPoint fromPoint(final Point point)
+    public static BloatedPoint from(final Point point)
     {
         return new BloatedPoint(point.getIdentifier(), point.getLocation(), point.getTags(), point
                 .relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
-    public static BloatedPoint shallowFromPoint(final Point point)
+    public static BloatedPoint shallowFrom(final Point point)
     {
         return new BloatedPoint(point.getIdentifier())
                 .withInitialBounds(point.getLocation().bounds());

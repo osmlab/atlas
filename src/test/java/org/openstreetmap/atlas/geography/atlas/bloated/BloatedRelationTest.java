@@ -22,7 +22,7 @@ public class BloatedRelationTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Relation source = atlas.relation(22);
-        final BloatedRelation result = BloatedRelation.fromRelation(source);
+        final BloatedRelation result = BloatedRelation.from(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         Assert.assertEquals(source.members().asBean(), result.members().asBean());
@@ -41,7 +41,7 @@ public class BloatedRelationTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Relation source = atlas.relation(22);
-        final BloatedRelation result = BloatedRelation.shallowFromRelation(source);
+        final BloatedRelation result = BloatedRelation.shallowFrom(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         result.withMembers(new RelationMemberList(source.members()));

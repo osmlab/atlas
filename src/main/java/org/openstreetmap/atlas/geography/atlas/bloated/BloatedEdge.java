@@ -41,14 +41,14 @@ public class BloatedEdge extends Edge implements BloatedEntity
     private Long endNodeIdentifier;
     private Set<Long> relationIdentifiers;
 
-    public static BloatedEdge fromEdge(final Edge edge)
+    public static BloatedEdge from(final Edge edge)
     {
         return new BloatedEdge(edge.getIdentifier(), edge.asPolyLine(), edge.getTags(),
                 edge.start().getIdentifier(), edge.end().getIdentifier(),
                 edge.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
-    public static BloatedEdge shallowFromEdge(final Edge edge)
+    public static BloatedEdge shallowFrom(final Edge edge)
     {
         return new BloatedEdge(edge.getIdentifier()).withInitialBounds(edge.asPolyLine().bounds());
     }

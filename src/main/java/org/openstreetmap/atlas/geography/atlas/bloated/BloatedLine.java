@@ -38,13 +38,13 @@ public class BloatedLine extends Line implements BloatedEntity
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
 
-    public static BloatedLine fromLine(final Line line)
+    public static BloatedLine from(final Line line)
     {
         return new BloatedLine(line.getIdentifier(), line.asPolyLine(), line.getTags(),
                 line.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
-    public static BloatedLine shallowFromLine(final Line line)
+    public static BloatedLine shallowFrom(final Line line)
     {
         return new BloatedLine(line.getIdentifier()).withInitialBounds(line.asPolyLine().bounds());
     }

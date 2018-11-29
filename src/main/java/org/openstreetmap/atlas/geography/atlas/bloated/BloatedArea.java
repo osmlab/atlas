@@ -38,13 +38,13 @@ public class BloatedArea extends Area implements BloatedEntity
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
 
-    public static BloatedArea fromArea(final Area area)
+    public static BloatedArea from(final Area area)
     {
         return new BloatedArea(area.getIdentifier(), area.asPolygon(), area.getTags(),
                 area.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
-    public static BloatedArea shallowFromArea(final Area area)
+    public static BloatedArea shallowFrom(final Area area)
     {
         return new BloatedArea(area.getIdentifier()).withInitialBounds(area.asPolygon().bounds());
     }

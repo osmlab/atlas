@@ -46,7 +46,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
     private Long osmRelationIdentifier;
     private Set<Long> relationIdentifiers;
 
-    public static BloatedRelation fromRelation(final Relation relation)
+    public static BloatedRelation from(final Relation relation)
     {
         return new BloatedRelation(relation.getIdentifier(), relation.getTags(), relation.bounds(),
                 relation.members().asBean(),
@@ -57,7 +57,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
                         .collect(Collectors.toSet()));
     }
 
-    public static BloatedRelation shallowFromRelation(final Relation relation)
+    public static BloatedRelation shallowFrom(final Relation relation)
     {
         return new BloatedRelation(relation.getIdentifier()).withInitialBounds(relation.bounds());
     }

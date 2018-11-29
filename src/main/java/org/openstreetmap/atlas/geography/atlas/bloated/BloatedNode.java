@@ -50,7 +50,7 @@ public class BloatedNode extends Node implements BloatedEntity
      *            the {@link Node} to deep copy
      * @return the new {@link BloatedNode}
      */
-    public static BloatedNode fromNode(final Node node)
+    public static BloatedNode from(final Node node)
     {
         return new BloatedNode(node.getIdentifier(), node.getLocation(), node.getTags(),
                 node.inEdges().stream().map(Edge::getIdentifier)
@@ -68,7 +68,7 @@ public class BloatedNode extends Node implements BloatedEntity
      *            the {@link Node} to copy
      * @return the new {@link BloatedNode}
      */
-    public static BloatedNode shallowFromNode(final Node node)
+    public static BloatedNode shallowFrom(final Node node)
     {
         return new BloatedNode(node.getIdentifier()).withInitialBounds(node.getLocation().bounds());
     }
@@ -183,6 +183,25 @@ public class BloatedNode extends Node implements BloatedEntity
         return this;
     }
 
+    public BloatedNode withInEdgeIdentifierExtra(final Long extraInEdgeIdentifier)
+    {
+        this.inEdgeIdentifiers.add(extraInEdgeIdentifier);
+        return this;
+    }
+
+    public BloatedNode withInEdgeIdentifierLess(final Long lessInEdgeIdentifier)
+    {
+        this.inEdgeIdentifiers.remove(lessInEdgeIdentifier);
+        return this;
+    }
+
+    public BloatedNode withInEdgeIdentifierReplaced(final Long beforeInEdgeIdentifier,
+            final Long afterInEdgeIdentifier)
+    {
+        return this.withInEdgeIdentifierLess(beforeInEdgeIdentifier)
+                .withInEdgeIdentifierExtra(afterInEdgeIdentifier);
+    }
+
     public BloatedNode withInEdgeIdentifiers(final SortedSet<Long> inEdgeIdentifiers)
     {
         this.inEdgeIdentifiers = inEdgeIdentifiers;
@@ -198,6 +217,25 @@ public class BloatedNode extends Node implements BloatedEntity
         }
         this.aggregateBounds = Rectangle.forLocated(this.originalBounds, location.bounds());
         return this;
+    }
+
+    public BloatedNode withOutEdgeIdentifierExtra(final Long extraOutEdgeIdentifier)
+    {
+        this.outEdgeIdentifiers.add(extraOutEdgeIdentifier);
+        return this;
+    }
+
+    public BloatedNode withOutEdgeIdentifierLess(final Long lessOutEdgeIdentifier)
+    {
+        this.outEdgeIdentifiers.remove(lessOutEdgeIdentifier);
+        return this;
+    }
+
+    public BloatedNode withOutEdgeIdentifierReplaced(final Long beforeOutEdgeIdentifier,
+            final Long afterOutEdgeIdentifier)
+    {
+        return this.withOutEdgeIdentifierLess(beforeOutEdgeIdentifier)
+                .withOutEdgeIdentifierExtra(afterOutEdgeIdentifier);
     }
 
     public BloatedNode withOutEdgeIdentifiers(final SortedSet<Long> outEdgeIdentifiers)

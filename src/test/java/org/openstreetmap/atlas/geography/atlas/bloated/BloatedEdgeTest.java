@@ -25,7 +25,7 @@ public class BloatedEdgeTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Edge source = atlas.edge(3);
-        final BloatedEdge result = BloatedEdge.fromEdge(source);
+        final BloatedEdge result = BloatedEdge.from(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         Assert.assertEquals(source.asPolyLine(), result.asPolyLine());
@@ -44,7 +44,7 @@ public class BloatedEdgeTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Edge source = atlas.edge(3);
-        final BloatedEdge result = BloatedEdge.shallowFromEdge(source);
+        final BloatedEdge result = BloatedEdge.shallowFrom(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         result.withPolyLine(PolyLine.TEST_POLYLINE);
