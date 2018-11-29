@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.change.diff;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -40,13 +41,7 @@ public class AtlasDiff
     private final Atlas after;
     private boolean geometryMatching = false;
     private boolean saveAllGeometries = false;
-
-    /*
-     * TODO this can be enabled to skip saving bloated features and instead save features from the
-     * before or after atlas. However, a Diff saved in this way will not be serializable. However,
-     * it will be faster, and may be better for simple printing use-case.
-     */
-    private final boolean skipBloatedFeatures = false;
+    private boolean useBloatedEntities = true;
 
     /*
      * TODO have a set of detected changes, construct FeatureChanges at the end. Try to avoid
@@ -54,8 +49,10 @@ public class AtlasDiff
      */
     // Entities that were removed from the after atlas
     private Set<AtlasEntity> removedEntities;
-    // Entities that were added or modified to the after atlas
+    // Entities that were added to the after atlas
     private Set<AtlasEntity> addedEntities;
+    // Entities that were modified in the after atlas
+    private Set<AtlasEntity> changedEntities;
 
     /**
      * Construct an {@link AtlasDiff} with a given before {@link Atlas} and after {@link Atlas}.
@@ -92,28 +89,37 @@ public class AtlasDiff
      */
     public Change generateChange()
     {
+        this.addedEntities = ConcurrentHashMap.newKeySet();
+        this.removedEntities = ConcurrentHashMap.newKeySet();
+        this.changedEntities = ConcurrentHashMap.newKeySet();
         final ChangeBuilder changeBuilder = new ChangeBuilder();
 
-        // Check for entities that were removed in the after atlas
-        for (final AtlasEntity beforeEntity : this.before)
-        {
-            createRemoveFeatureChangeIfNecessary(beforeEntity, this.before, this.after,
-                    this.geometryMatching).ifPresent(changeBuilder::add);
-        }
+        /*
+         * Check for entities that were removed in the after atlas. If we find any, add them to a
+         * removedEntities set for later processing. We will use this set to create FeatureChanges.
+         */
+        Iterables.parallelStream(this.before)
+                .forEach(beforeEntity -> getRemovedEntityIfNecessary(beforeEntity, this.before,
+                        this.after, this.geometryMatching).ifPresent(this.removedEntities::add));
 
-        // Check for entities that were added in the after atlas
-        for (final AtlasEntity afterEntity : this.after)
-        {
-            createAddFeatureChangeIfNecessary(afterEntity, this.before, this.after,
-                    this.geometryMatching).ifPresent(changeBuilder::add);
-        }
+        /*
+         * Check for entities that were added in the after atlas. If we find any, add them to a
+         * addedEntities set for later processing. We will use this set to create FeatureChanges.
+         */
+        Iterables.parallelStream(this.after)
+                .forEach(afterEntity -> getAddedEntityIfNecessary(afterEntity, this.before,
+                        this.after, this.geometryMatching).ifPresent(this.addedEntities::add));
 
-        // Check for entities that were changed in the after atlas
-        for (final AtlasEntity beforeEntity : this.before)
-        {
-            createModifyFeatureChangeIfNecessary(beforeEntity, this.before, this.after,
-                    this.geometryMatching).ifPresent(changeBuilder::add);
-        }
+        /*
+         * Check for entities that were changed in the after atlas. If we find any, add them to a
+         * changedEntities set for later processing. We will use this set to create FeatureChanges.
+         */
+
+        // Aggregate the results stored in addedEntities and removedEntities, creating the
+        // ChangeObject if there are necessary changes
+        createFeatureChangesBasedOnChangedEntities(this.addedEntities, this.removedEntities,
+                this.before, this.after, this.useBloatedEntities, this.saveAllGeometries)
+                        .parallelStream().forEach(changeBuilder::add);
 
         return changeBuilder.get();
     }
@@ -146,6 +152,24 @@ public class AtlasDiff
     }
 
     /**
+     * This can be disabled to skip saving bloated features and instead save features from the
+     * before or after atlas. However, a Diff saved in this way will not be serializable. However,
+     * it will be faster, and may be better for simple printing use-case.<br>
+     * <br>
+     * TODO We will need to decide on the default setting, true vs. false. Right now, it is set to
+     * true.
+     *
+     * @param useBloatedEntities
+     *            use bloated entities instead of the original entities
+     * @return a configured {@link AtlasDiff}
+     */
+    public AtlasDiff useBloatedEntities(final boolean useBloatedEntities)
+    {
+        this.useBloatedEntities = useBloatedEntities;
+        return this;
+    }
+
+    /**
      * Use geometry matching when computing diffs. This means that if we detect an added or removed
      * {@link Edge} based on ID, we will additionally check its geometry before actually generating
      * a diff. Sometimes, the same OSM way can be way-sectioned differently. So while the IDs for a
@@ -163,236 +187,68 @@ public class AtlasDiff
         return this;
     }
 
-    /**
-     * Create an ADD {@link FeatureChange} (corresponding to a new feature) for a given
-     * {@link AtlasEntity} if necessary. This method only creates an add feature change if the after
-     * entity is not found in the before atlas. If geometryMatching is specified, then this method
-     * will also look for edges that have different IDs but identical geometry. Those will be
-     * counted as matches, and no change will be generated.
-     *
-     * @param afterEntity
-     *            The entity in question from the after atlas
-     * @param beforeAtlas
-     *            The before atlas
-     * @param afterAtlas
-     *            The after atlas
-     * @param geometryMatching
-     *            Use geometry matching
-     */
-    private Optional<FeatureChange> createAddFeatureChangeIfNecessary(final AtlasEntity afterEntity,
-            final Atlas beforeAtlas, final Atlas afterAtlas, final boolean geometryMatching)
+    private Set<FeatureChange> createFeatureChangesBasedOnChangedEntities(
+            final Set<AtlasEntity> addedEntities, final Set<AtlasEntity> removedEntities,
+            final Atlas beforeAtlas, final Atlas afterAtlas, final boolean useBloatedEntities,
+            final boolean saveAllGeometries)
     {
-        final Long afterEntityIdentifier = afterEntity.getIdentifier();
+        final Set<FeatureChange> featureChanges = ConcurrentHashMap.newKeySet();
 
-        /*
-         * Look up the afterEntity ID in the before atlas. If the entity is missing, we know it was
-         * added to the after atlas.
-         */
-        if (afterEntity.getType().entityForIdentifier(beforeAtlas,
-                afterEntity.getIdentifier()) == null)
-        {
-            /*
-             * We made it here because we could not find an exact identifier match for "afterEntity"
-             * in the before atlas. However, it is possible that the edge geometry is there, just
-             * with a different ID. So if the user set to use geometryMatching, let's check to see
-             * if the edge geometry is there.
-             */
-            // NOTE TO REVIEWER TODO this may not be necessary due to new consistent ID atlases?
-            if (geometryMatching)
-            {
-                if (afterEntity instanceof Edge
-                        && edgeHasGeometryMatchInAtlas((Edge) afterEntity, beforeAtlas))
-                {
-                    return Optional.empty();
-                }
-            }
+        addedEntities
+                .parallelStream().map(addedEntity -> createFeatureChangeWithType(addedEntity,
+                        afterAtlas, useBloatedEntities, ChangeType.ADD))
+                .forEach(featureChanges::add);
 
-            FeatureChange featureChange;
-            switch (afterEntity.getType())
-            {
-                case NODE:
-                    featureChange = new FeatureChange(ChangeType.ADD,
-                            BloatedNode.fromNode(afterAtlas.node(afterEntityIdentifier)));
-                    break;
-                case EDGE:
-                    featureChange = new FeatureChange(ChangeType.ADD,
-                            BloatedEdge.fromEdge(afterAtlas.edge(afterEntityIdentifier)));
-                    break;
-                case POINT:
-                    featureChange = new FeatureChange(ChangeType.ADD,
-                            BloatedPoint.fromPoint(afterAtlas.point(afterEntityIdentifier)));
-                    break;
-                case LINE:
-                    featureChange = new FeatureChange(ChangeType.ADD,
-                            BloatedLine.fromLine(afterAtlas.line(afterEntityIdentifier)));
-                    break;
-                case AREA:
-                    featureChange = new FeatureChange(ChangeType.ADD,
-                            BloatedArea.fromArea(afterAtlas.area(afterEntityIdentifier)));
-                    break;
-                case RELATION:
-                    featureChange = new FeatureChange(ChangeType.ADD, BloatedRelation
-                            .fromRelation(afterAtlas.relation(afterEntityIdentifier)));
-                    break;
-                default:
-                    throw new CoreException("Unknown item type {}", afterEntity.getType());
-            }
-            return Optional.ofNullable(featureChange);
-        }
-        return Optional.empty();
+        removedEntities
+                .parallelStream().map(removedEntity -> createFeatureChangeWithType(removedEntity,
+                        beforeAtlas, useBloatedEntities, ChangeType.REMOVE))
+                .forEach(featureChanges::add);
+
+        return featureChanges;
     }
 
-    /**
-     * Create an ADD {@link FeatureChange} (corresponding to a modified feature) for a given
-     * {@link AtlasEntity} if necessary. This method only creates an ADD feature change if the
-     * before entity is found in the after atlas AND was modified in the after atlas.
-     *
-     * @param beforeEntity
-     *            The entity in question from the before atlas
-     * @param beforeAtlas
-     *            The before atlas
-     * @param afterAtlas
-     *            The after atlas
-     * @param geometryMatching
-     *            Use geometry matching
-     */
-    private Optional<FeatureChange> createModifyFeatureChangeIfNecessary(
-            final AtlasEntity beforeEntity, final Atlas before, final Atlas after,
-            final boolean geometryMatching)
+    private FeatureChange createFeatureChangeWithType(final AtlasEntity entity, final Atlas atlas,
+            final boolean useBloatedEntities, final ChangeType changeType)
     {
-        final AtlasEntity afterEntity = beforeEntity.getType().entityForIdentifier(this.after,
-                beforeEntity.getIdentifier());
-
-        // Only continue if the entity is in the before atlas AND the after atlas.
-        if (afterEntity != null)
+        FeatureChange featureChange;
+        final Long addedEntityIdentifier = entity.getIdentifier();
+        if (useBloatedEntities)
         {
-            final Long afterEntityIdentifier = afterEntity.getIdentifier();
-            FeatureChange featureChange = null;
-            // Entity Tags & Entity's Relations first
-            // Check the entities for changed tags
-            if (!beforeEntity.getTags().equals(afterEntity.getTags()))
-            {
-                // this.differences.add(new Diff(baseEntity.getType(), DiffType.CHANGED,
-                // DiffReason.TAGS, this.before, this.after, identifier));
-                switch (afterEntity.getType())
-                {
-                    case NODE:
-                        featureChange = new FeatureChange(ChangeType.ADD,
-                                BloatedNode.fromNode(after.node(afterEntityIdentifier)));
-                        break;
-                    case EDGE:
-                        featureChange = new FeatureChange(ChangeType.ADD,
-                                BloatedEdge.fromEdge(after.edge(afterEntityIdentifier)));
-                        break;
-                    case POINT:
-                        featureChange = new FeatureChange(ChangeType.ADD,
-                                BloatedPoint.fromPoint(after.point(afterEntityIdentifier)));
-                        break;
-                    case LINE:
-                        featureChange = new FeatureChange(ChangeType.ADD,
-                                BloatedLine.fromLine(after.line(afterEntityIdentifier)));
-                        break;
-                    case AREA:
-                        featureChange = new FeatureChange(ChangeType.ADD,
-                                BloatedArea.fromArea(after.area(afterEntityIdentifier)));
-                        break;
-                    case RELATION:
-                        featureChange = new FeatureChange(ChangeType.ADD, BloatedRelation
-                                .fromRelation(after.relation(afterEntityIdentifier)));
-                        break;
-                    default:
-                        throw new CoreException("Unknown item type {}", afterEntity.getType());
-                }
-            }
-            // check the entities for changed relations
-            // else if (differentInRelation(baseEntity, alterEntity))
-            // {
-            // this.differences.add(new Diff(baseEntity.getType(), DiffType.CHANGED,
-            // DiffReason.RELATION_MEMBER, this.before, this.after, identifier));
-            // }
-            return Optional.ofNullable(featureChange);
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * Create a REMOVE {@link FeatureChange} for a given {@link AtlasEntity} if necessary. This
-     * method only creates a remove feature change if the before entity is not found in the after
-     * atlas. If geometryMatching is specified, then this method will also look for edges that have
-     * different IDs but identical geometry. Those will be counted as matches, and no change will be
-     * generated.
-     *
-     * @param beforeEntity
-     *            The entity in question from the before atlas
-     * @param beforeAtlas
-     *            The before atlas
-     * @param afterAtlas
-     *            The after atlas
-     * @param geometryMatching
-     *            Use geometry matching
-     */
-    private Optional<FeatureChange> createRemoveFeatureChangeIfNecessary(
-            final AtlasEntity beforeEntity, final Atlas beforeAtlas, final Atlas afterAtlas,
-            final boolean geometryMatching)
-    {
-        final Long beforeEntityIdentifier = beforeEntity.getIdentifier();
-
-        /*
-         * Look up the beforeEntity ID in the after atlas. If the entity is missing, we know it was
-         * removed from the after atlas.
-         */
-        if (beforeEntity.getType().entityForIdentifier(afterAtlas,
-                beforeEntity.getIdentifier()) == null)
-        {
-            /*
-             * We made it here because we could not find an exact identifier match for
-             * "beforeEntity" in the after atlas. However, it is possible that the edge geometry is
-             * there, just with a different ID. So if the user set to use geometryMatching, let's
-             * check to see if the edge geometry is there.
-             */
-            // NOTE TO REVIEWER TODO this may not be necessary due to new consistent ID atlases?
-            if (geometryMatching)
-            {
-                if (beforeEntity instanceof Edge
-                        && edgeHasGeometryMatchInAtlas((Edge) beforeEntity, afterAtlas))
-                {
-                    return Optional.empty();
-                }
-            }
-
-            FeatureChange featureChange;
-            switch (beforeEntity.getType())
+            switch (entity.getType())
             {
                 case NODE:
-                    featureChange = new FeatureChange(ChangeType.REMOVE,
-                            BloatedNode.shallowFromNode(beforeAtlas.node(beforeEntityIdentifier)));
+                    featureChange = new FeatureChange(changeType,
+                            BloatedNode.fromNode(atlas.node(addedEntityIdentifier)));
                     break;
                 case EDGE:
-                    featureChange = new FeatureChange(ChangeType.REMOVE,
-                            BloatedEdge.shallowFromEdge(beforeAtlas.edge(beforeEntityIdentifier)));
+                    featureChange = new FeatureChange(changeType,
+                            BloatedEdge.fromEdge(atlas.edge(addedEntityIdentifier)));
                     break;
                 case POINT:
-                    featureChange = new FeatureChange(ChangeType.REMOVE, BloatedPoint
-                            .shallowFromPoint(beforeAtlas.point(beforeEntityIdentifier)));
+                    featureChange = new FeatureChange(changeType,
+                            BloatedPoint.fromPoint(atlas.point(addedEntityIdentifier)));
                     break;
                 case LINE:
-                    featureChange = new FeatureChange(ChangeType.REMOVE,
-                            BloatedLine.shallowFromLine(beforeAtlas.line(beforeEntityIdentifier)));
+                    featureChange = new FeatureChange(changeType,
+                            BloatedLine.fromLine(atlas.line(addedEntityIdentifier)));
                     break;
                 case AREA:
-                    featureChange = new FeatureChange(ChangeType.REMOVE,
-                            BloatedArea.shallowFromArea(beforeAtlas.area(beforeEntityIdentifier)));
+                    featureChange = new FeatureChange(changeType,
+                            BloatedArea.fromArea(atlas.area(addedEntityIdentifier)));
                     break;
                 case RELATION:
-                    featureChange = new FeatureChange(ChangeType.REMOVE, BloatedRelation
-                            .shallowFromRelation(beforeAtlas.relation(beforeEntityIdentifier)));
+                    featureChange = new FeatureChange(changeType,
+                            BloatedRelation.fromRelation(atlas.relation(addedEntityIdentifier)));
                     break;
                 default:
-                    throw new CoreException("Unknown item type {}", beforeEntity.getType());
+                    throw new CoreException("Unknown item type {}", entity.getType());
             }
-            return Optional.ofNullable(featureChange);
         }
-        return Optional.empty();
+        else
+        {
+            featureChange = new FeatureChange(changeType, entity);
+        }
+        return featureChange;
     }
 
     private boolean edgeHasGeometryMatchAmong(final Edge edge, final Iterable<Edge> otherEdges)
@@ -418,5 +274,77 @@ public class AtlasDiff
                 edge.bounds(),
                 otherEdge -> edge.getOsmIdentifier() == otherEdge.getOsmIdentifier());
         return edgeHasGeometryMatchAmong(edge, intersectingEdgesWithSameOSMIdentifier);
+    }
+
+    private Optional<AtlasEntity> getAddedEntityIfNecessary(final AtlasEntity afterEntity,
+            final Atlas beforeAtlas, final Atlas afterAtlas, final boolean geometryMatching)
+    {
+        /*
+         * Look up the afterEntity ID in the before atlas. If the entity is missing, we know it was
+         * added to the after atlas.
+         */
+        if (afterEntity.getType().entityForIdentifier(beforeAtlas,
+                afterEntity.getIdentifier()) == null)
+        {
+            /*
+             * We made it here because we could not find an exact identifier match for "afterEntity"
+             * in the before atlas. However, it is possible that the edge geometry is there, just
+             * with a different ID. So if the user set to use geometryMatching, let's check to see
+             * if the edge geometry is there.
+             */
+            if (geometryMatching)
+            {
+                if (afterEntity instanceof Edge
+                        && edgeHasGeometryMatchInAtlas((Edge) afterEntity, beforeAtlas))
+                {
+                    return Optional.empty();
+                }
+            }
+
+            /*
+             * Ok, we made it here, so that means the afterEntity was not in the before atlas. It
+             * was added to the after atlas, so let's return it!
+             */
+            return Optional.ofNullable(afterEntity);
+        }
+        return Optional.empty();
+    }
+
+    private Optional<AtlasEntity> getRemovedEntityIfNecessary(final AtlasEntity beforeEntity,
+            final Atlas beforeAtlas, final Atlas afterAtlas, final boolean geometryMatching)
+    {
+        /*
+         * Look up the beforeEntity ID in the after atlas. If the entity is missing, we know it was
+         * removed from the after atlas.
+         */
+        if (beforeEntity.getType().entityForIdentifier(afterAtlas,
+                beforeEntity.getIdentifier()) == null)
+        {
+            /*
+             * We made it here because we could not find an exact identifier match for
+             * "beforeEntity" in the after atlas. However, it is possible that the edge geometry is
+             * there, just with a different ID. So if the user set to use geometryMatching, let's
+             * check to see if the edge geometry is there.
+             */
+            if (geometryMatching)
+            {
+                if (beforeEntity instanceof Edge
+                        && edgeHasGeometryMatchInAtlas((Edge) beforeEntity, afterAtlas))
+                {
+                    return Optional.empty();
+                }
+            }
+
+            /*
+             * Ok, we made it here, so that means the beforeEntity was not in the after atlas. It
+             * was removed from the after atlas, so let's return it!
+             */
+            return Optional.ofNullable(beforeEntity);
+        }
+
+        /*
+         * The beforeEntity was in both the before and after atlases,
+         */
+        return Optional.empty();
     }
 }
