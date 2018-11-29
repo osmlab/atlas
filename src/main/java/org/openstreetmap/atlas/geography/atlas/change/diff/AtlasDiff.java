@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.change.diffs;
+package org.openstreetmap.atlas.geography.atlas.change.diff;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -11,8 +11,8 @@ import org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation;
 import org.openstreetmap.atlas.geography.atlas.change.Change;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeAtlas;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeBuilder;
-import org.openstreetmap.atlas.geography.atlas.change.rule.ChangeType;
-import org.openstreetmap.atlas.geography.atlas.change.rule.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
+import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,28 +111,28 @@ public class AtlasDiff
                 switch (afterEntity.getType())
                 {
                     case NODE:
-                        featureChange = new FeatureChange(ChangeType.ADD, BloatedNode
-                                .shallowFromNode(this.before.node(afterEntityIdentifier)));
+                        featureChange = new FeatureChange(ChangeType.ADD,
+                                BloatedNode.fromNode(this.after.node(afterEntityIdentifier)));
                         break;
                     case EDGE:
-                        featureChange = new FeatureChange(ChangeType.ADD, BloatedEdge
-                                .shallowFromEdge(this.before.edge(afterEntityIdentifier)));
+                        featureChange = new FeatureChange(ChangeType.ADD,
+                                BloatedEdge.fromEdge(this.after.edge(afterEntityIdentifier)));
                         break;
                     case POINT:
-                        featureChange = new FeatureChange(ChangeType.ADD, BloatedPoint
-                                .shallowFromPoint(this.before.point(afterEntityIdentifier)));
+                        featureChange = new FeatureChange(ChangeType.ADD,
+                                BloatedPoint.fromPoint(this.after.point(afterEntityIdentifier)));
                         break;
                     case LINE:
-                        featureChange = new FeatureChange(ChangeType.ADD, BloatedLine
-                                .shallowFromLine(this.before.line(afterEntityIdentifier)));
+                        featureChange = new FeatureChange(ChangeType.ADD,
+                                BloatedLine.fromLine(this.after.line(afterEntityIdentifier)));
                         break;
                     case AREA:
-                        featureChange = new FeatureChange(ChangeType.ADD, BloatedArea
-                                .shallowFromArea(this.before.area(afterEntityIdentifier)));
+                        featureChange = new FeatureChange(ChangeType.ADD,
+                                BloatedArea.fromArea(this.after.area(afterEntityIdentifier)));
                         break;
                     case RELATION:
                         featureChange = new FeatureChange(ChangeType.ADD, BloatedRelation
-                                .shallowFromRelation(this.before.relation(afterEntityIdentifier)));
+                                .fromRelation(this.after.relation(afterEntityIdentifier)));
                         break;
                     default:
                         throw new CoreException("Unknown item type {}", afterEntity.getType());

@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.change.diffs;
+package org.openstreetmap.atlas.geography.atlas.change.diff;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.utilities.testing.CoreTestRule;
