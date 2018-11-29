@@ -79,35 +79,4 @@
     <tag k='natural' v='water' />
     <tag k='water' v='pond' />
   </way>
-  <relation id='-39008' action='modify'>
-    <member type='way' ref='-39002' role='role1' />
-    <member type='way' ref='-39006' role='role2' />
-    <tag k='name' v='route1' />
-    <tag k='type' v='route' />
-  </relation>
-  <relation id='-39010' action='modify'>
-    <member type='node' ref='-38990' role='endNode' />
-    <member type='way' ref='-39004' role='roleA' />
-    <member type='way' ref='-39006' role='roleB' />
-    <tag k='name' v='route2' />
-    <tag k='type' v='route' />
-  </relation>
-  <relation id='-41834' action='modify'>
-    <member type='node' ref='-41822' role='tree' />
-    <member type='way' ref='-41795' role='pond' />
-    <member type='way' ref='-41771' role='river' />
-    <tag k='name' v='disconnected features' />
-    <tag k='type' v='group' />
-  </relation>
-  <relation id='-41860' action='modify'>
-    <member type='relation' ref='-39008' role='child2' />
-    <member type='relation' ref='-41834' role='child1' />
-    <tag k='name' v='parent' />
-    <tag k='type' v='parent' />
-  </relation>
-  <relation id='-41861' action='modify'>
-    <member type='relation' ref='-41860' role='child1' />
-    <tag k='name' v='super-parent' />
-    <tag k='type' v='super-parent' />
-  </relation>
 </osm>
