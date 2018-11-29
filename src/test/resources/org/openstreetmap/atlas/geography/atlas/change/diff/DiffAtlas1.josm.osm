@@ -26,9 +26,6 @@
   <node id='-41798' action='modify' lat='37.59248032732' lon='-122.24371462227' />
   <node id='-41800' action='modify' lat='37.59258985328' lon='-122.24351134884' />
   <node id='-41802' action='modify' lat='37.59270904312' lon='-122.24357639634' />
-  <node id='-41822' action='modify' lat='37.59261884542' lon='-122.24322270057'>
-    <tag k='natural' v='tree' />
-  </node>
   <way id='-39002' action='modify'>
     <nd ref='-38978' />
     <nd ref='-38980' />
