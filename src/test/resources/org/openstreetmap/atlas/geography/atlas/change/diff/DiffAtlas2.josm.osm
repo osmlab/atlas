@@ -1,0 +1,113 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-38978' action='modify' lat='37.59269293962' lon='-122.24502370724' />
+  <node id='-38980' action='modify' lat='37.5930666147' lon='-122.24410491133' />
+  <node id='-38982' action='modify' lat='37.59269938231' lon='-122.24295844917' />
+  <node id='-38984' action='modify' lat='37.5931374839' lon='-122.24195021295' />
+  <node id='-38986' action='modify' lat='37.59206799606' lon='-122.24292592542' />
+  <node id='-38988' action='modify' lat='37.5932470089' lon='-122.24284461605' />
+  <node id='-38990' action='modify' lat='37.59387838514' lon='-122.2433568651'>
+    <tag k='highway' v='stop' />
+  </node>
+  <node id='-38992' action='modify' lat='37.59344673053' lon='-122.24189329639' />
+  <node id='-38994' action='modify' lat='37.59354336984' lon='-122.24146235671' />
+  <node id='-38996' action='modify' lat='37.59334364847' lon='-122.2413078689' />
+  <node id='-38998' action='modify' lat='37.59304084407' lon='-122.24127534515' />
+  <node id='-39000' action='modify' lat='37.59296353211' lon='-122.24160871358' />
+  <node id='-41769' action='modify' lat='37.59333720261' lon='-122.24404392523' />
+  <node id='-41770' action='modify' lat='37.59333398129' lon='-122.2437756043' />
+  <node id='-41772' action='modify' lat='37.59320834981' lon='-122.24376747336' />
+  <node id='-41774' action='modify' lat='37.59319546452' lon='-122.24341784306' />
+  <node id='-41776' action='modify' lat='37.5932824402' lon='-122.24327148619' />
+  <node id='-41778' action='modify' lat='37.59308916078' lon='-122.24317798041' />
+  <node id='-41793' action='modify' lat='37.59273803521' lon='-122.24378780071' />
+  <node id='-41794' action='modify' lat='37.59269293639' lon='-122.24397481226' />
+  <node id='-41796' action='modify' lat='37.59256086113' lon='-122.24393009211' />
+  <node id='-41798' action='modify' lat='37.59248032732' lon='-122.24371462227' />
+  <node id='-41800' action='modify' lat='37.59258985328' lon='-122.24351134884' />
+  <node id='-41802' action='modify' lat='37.59270904312' lon='-122.24357639634' />
+  <node id='-41822' action='modify' lat='37.59261884542' lon='-122.24322270057'>
+    <tag k='natural' v='tree' />
+  </node>
+  <way id='-39002' action='modify'>
+    <nd ref='-38978' />
+    <nd ref='-38980' />
+    <nd ref='-38982' />
+    <nd ref='-38984' />
+    <tag k='highway' v='primary' />
+    <tag k='name' v='primary' />
+  </way>
+  <way id='-39004' action='modify'>
+    <nd ref='-38986' />
+    <nd ref='-38982' />
+    <nd ref='-38988' />
+    <nd ref='-38990' />
+    <tag k='highway' v='motorway' />
+    <tag k='name' v='motorway' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='-39006' action='modify'>
+    <nd ref='-38992' />
+    <nd ref='-38994' />
+    <nd ref='-38996' />
+    <nd ref='-38998' />
+    <nd ref='-39000' />
+    <nd ref='-38984' />
+    <nd ref='-38992' />
+    <tag k='highway' v='secondary' />
+    <tag k='junction' v='roundabout' />
+    <tag k='name' v='secondary' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='-41771' action='modify'>
+    <nd ref='-41769' />
+    <nd ref='-41770' />
+    <nd ref='-41772' />
+    <nd ref='-41774' />
+    <nd ref='-41776' />
+    <nd ref='-41778' />
+    <tag k='waterway' v='canal' />
+  </way>
+  <way id='-41795' action='modify'>
+    <nd ref='-41793' />
+    <nd ref='-41794' />
+    <nd ref='-41796' />
+    <nd ref='-41798' />
+    <nd ref='-41800' />
+    <nd ref='-41802' />
+    <nd ref='-41793' />
+    <tag k='natural' v='water' />
+    <tag k='water' v='pond' />
+  </way>
+  <relation id='-39008' action='modify'>
+    <member type='way' ref='-39002' role='role1' />
+    <member type='way' ref='-39006' role='role2' />
+    <tag k='name' v='route1' />
+    <tag k='type' v='route' />
+  </relation>
+  <relation id='-39010' action='modify'>
+    <member type='node' ref='-38990' role='endNode' />
+    <member type='way' ref='-39004' role='roleA' />
+    <member type='way' ref='-39006' role='roleB' />
+    <tag k='name' v='route2' />
+    <tag k='type' v='route' />
+  </relation>
+  <relation id='-41834' action='modify'>
+    <member type='node' ref='-41822' role='tree' />
+    <member type='way' ref='-41795' role='pond' />
+    <member type='way' ref='-41771' role='river' />
+    <tag k='name' v='disconnected features' />
+    <tag k='type' v='group' />
+  </relation>
+  <relation id='-41860' action='modify'>
+    <member type='relation' ref='-39008' role='child2' />
+    <member type='relation' ref='-41834' role='child1' />
+    <tag k='name' v='parent' />
+    <tag k='type' v='parent' />
+  </relation>
+  <relation id='-41861' action='modify'>
+    <member type='relation' ref='-41860' role='child1' />
+    <tag k='name' v='super-parent' />
+    <tag k='type' v='super-parent' />
+  </relation>
+</osm>

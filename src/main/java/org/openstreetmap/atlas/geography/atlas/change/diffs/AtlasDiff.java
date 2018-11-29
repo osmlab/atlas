@@ -20,14 +20,24 @@ import org.slf4j.LoggerFactory;
 /**
  * @author lcram
  */
-public class AtlasDelta
+public class AtlasDiff
 {
-    private static final Logger logger = LoggerFactory.getLogger(AtlasDelta.class);
+    private static final Logger logger = LoggerFactory.getLogger(AtlasDiff.class);
 
     private final Atlas before;
     private final Atlas after;
+    private boolean geometryMatching = false;
+    private boolean saveAllGeometries = false;
 
-    public AtlasDelta(final Atlas before, final Atlas after)
+    /**
+     * Construct a diff that will change the before {@link Atlas} into the after {@link Atlas}.
+     *
+     * @param before
+     *            the initial {@link Atlas}
+     * @param after
+     *            the changed {@link Atlas}
+     */
+    public AtlasDiff(final Atlas before, final Atlas after)
     {
         this.before = before;
         this.after = after;
@@ -43,12 +53,13 @@ public class AtlasDelta
     public Change generateChange()
     {
         final ChangeBuilder changeBuilder = new ChangeBuilder();
-
-        // Check for removed entities
-        logger.info("Looking for removed entities.");
         for (final AtlasEntity beforeEntity : this.before)
         {
             final Long beforeEntityIdentifier = beforeEntity.getIdentifier();
+            /*
+             * Look up the beforeEntity ID in the after atlas. If the entity is missing, we know it
+             * was removed from the after atlas.
+             */
             if (beforeEntity.getType().entityForIdentifier(this.after,
                     beforeEntity.getIdentifier()) == null)
             {
@@ -86,16 +97,47 @@ public class AtlasDelta
             }
         }
 
-        // Check for added entities
-        logger.info("Looking for added entities.");
         for (final AtlasEntity afterEntity : this.after)
         {
             final Long afterEntityIdentifier = afterEntity.getIdentifier();
+            /*
+             * Look up the afterEntity ID in the before atlas. If the entity is missing, we know it
+             * was added to the after atlas.
+             */
             if (afterEntity.getType().entityForIdentifier(this.before,
                     afterEntity.getIdentifier()) == null)
             {
-                // this.differences.add(new Diff(entity.getType(), DiffType.ADDED, DiffReason.ADDED,
-                // this.before, this.after, entity.getIdentifier()));
+                FeatureChange featureChange;
+                switch (afterEntity.getType())
+                {
+                    case NODE:
+                        featureChange = new FeatureChange(ChangeType.ADD, BloatedNode
+                                .shallowFromNode(this.before.node(afterEntityIdentifier)));
+                        break;
+                    case EDGE:
+                        featureChange = new FeatureChange(ChangeType.ADD, BloatedEdge
+                                .shallowFromEdge(this.before.edge(afterEntityIdentifier)));
+                        break;
+                    case POINT:
+                        featureChange = new FeatureChange(ChangeType.ADD, BloatedPoint
+                                .shallowFromPoint(this.before.point(afterEntityIdentifier)));
+                        break;
+                    case LINE:
+                        featureChange = new FeatureChange(ChangeType.ADD, BloatedLine
+                                .shallowFromLine(this.before.line(afterEntityIdentifier)));
+                        break;
+                    case AREA:
+                        featureChange = new FeatureChange(ChangeType.ADD, BloatedArea
+                                .shallowFromArea(this.before.area(afterEntityIdentifier)));
+                        break;
+                    case RELATION:
+                        featureChange = new FeatureChange(ChangeType.ADD, BloatedRelation
+                                .shallowFromRelation(this.before.relation(afterEntityIdentifier)));
+                        break;
+                    default:
+                        throw new CoreException("Unknown item type {}", afterEntity.getType());
+                }
+                changeBuilder.add(featureChange);
             }
         }
 
@@ -110,5 +152,17 @@ public class AtlasDelta
     public Atlas getBeforeAtlas()
     {
         return this.before;
+    }
+
+    public AtlasDiff saveAllGeometries(final boolean saveAllGeometries)
+    {
+        this.saveAllGeometries = saveAllGeometries;
+        return this;
+    }
+
+    public AtlasDiff withGeometryMatching(final boolean matching)
+    {
+        this.geometryMatching = matching;
+        return this;
     }
 }
