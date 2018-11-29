@@ -60,6 +60,15 @@ public final class Rectangle extends Polygon
         {
             throw new CoreException("Cannot build a Rectangle with one of the corners being null.");
         }
+        // Sanity check to avoid invalid Rectangles
+        else if (lowerLeft.isNorthOf(upperRight))
+        {
+            throw new CoreException("Lower left cannot be higher than upper right.");
+        }
+        else if (lowerLeft.isEastOf(upperRight))
+        {
+            throw new CoreException("Lower left cannot be to the right of the upper right.");
+        }
         return new Rectangle(lowerLeft, upperRight);
     }
 
@@ -228,6 +237,18 @@ public final class Rectangle extends Polygon
     }
 
     /**
+     * @param that
+     *            The other {@link Rectangle} to combine
+     * @return The {@link Rectangle} wrapping this {@link Rectangle} and the one passed as an
+     *         argument.
+     */
+    public Rectangle combine(final Rectangle that)
+    {
+        return Rectangle.forLocations(this.lowerLeft, this.upperRight, that.lowerLeft,
+                that.upperRight);
+    }
+
+    /**
      * Contract the rectangle in 4 directions as far as possible. If the distance to move the
      * corners would invert the rectangle then the side(s) will collapse into length 0. The most
      * that it can contract is to a single point in the middle.
@@ -274,18 +295,6 @@ public final class Rectangle extends Polygon
                 return forCorners(newLowerLeft, newUpperRight);
             }
         }
-    }
-
-    /**
-     * @param that
-     *            The other {@link Rectangle} to combine
-     * @return The {@link Rectangle} wrapping this {@link Rectangle} and the one passed as an
-     *         argument.
-     */
-    public Rectangle combine(final Rectangle that)
-    {
-        return Rectangle.forLocations(this.lowerLeft, this.upperRight, that.lowerLeft,
-                that.upperRight);
     }
 
     /**
