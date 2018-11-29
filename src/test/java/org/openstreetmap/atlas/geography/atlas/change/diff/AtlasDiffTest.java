@@ -25,6 +25,9 @@ public class AtlasDiffTest
         final Atlas atlas2 = this.rule.getAtlas2();
 
         Assert.assertTrue(new AtlasDiff(atlas1, atlas2).generateChange().hasChanges());
+        Assert.assertEquals(8, new AtlasDiff(atlas1, atlas2).generateChange().changeCount());
+        new AtlasDiff(atlas1, atlas2).generateChange().changes()
+                .forEach(change -> logger.error("{}", change));
 
         final ChangeAtlas changeAtlas = new ChangeAtlas(atlas1,
                 new AtlasDiff(atlas1, atlas2).generateChange());

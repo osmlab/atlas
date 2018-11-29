@@ -65,15 +65,4 @@
     <nd ref='-41778' />
     <tag k='waterway' v='canal' />
   </way>
-  <way id='-41795' action='modify'>
-    <nd ref='-41793' />
-    <nd ref='-41794' />
-    <nd ref='-41796' />
-    <nd ref='-41798' />
-    <nd ref='-41800' />
-    <nd ref='-41802' />
-    <nd ref='-41793' />
-    <tag k='natural' v='water' />
-    <tag k='water' v='pond' />
-  </way>
 </osm>
