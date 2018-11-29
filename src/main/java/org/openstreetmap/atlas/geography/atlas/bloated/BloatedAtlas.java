@@ -106,8 +106,7 @@ public class BloatedAtlas implements Atlas
     @Override
     public Iterable<Area> areasWithin(final Polygon polygon)
     {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -173,8 +172,7 @@ public class BloatedAtlas implements Atlas
     @Override
     public Iterable<Edge> edgesWithin(final Polygon polygon)
     {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -284,8 +282,7 @@ public class BloatedAtlas implements Atlas
     @Override
     public Iterable<AtlasItem> itemsWithin(final Polygon polygon)
     {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -341,8 +338,7 @@ public class BloatedAtlas implements Atlas
     @Override
     public Iterable<LineItem> lineItemsWithin(final Polygon polygon)
     {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -384,8 +380,7 @@ public class BloatedAtlas implements Atlas
     @Override
     public Iterable<Line> linesWithin(final Polygon polygon)
     {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -567,8 +562,7 @@ public class BloatedAtlas implements Atlas
     @Override
     public Iterable<Relation> relationsWithEntitiesWithin(final Polygon polygon)
     {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
