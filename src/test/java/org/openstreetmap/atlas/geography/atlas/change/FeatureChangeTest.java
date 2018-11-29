@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.change.rules;
+package org.openstreetmap.atlas.geography.atlas.change;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -10,8 +10,6 @@ import org.openstreetmap.atlas.geography.atlas.bloated.BloatedLine;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedPoint;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation;
-import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
-import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
 
 /**
  * @author matthieun
