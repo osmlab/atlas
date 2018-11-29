@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.change.Change;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeAtlas;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,16 +22,16 @@ public class AtlasDiffTest
     @Test
     public void simpleTest()
     {
-        final Atlas atlas1 = this.rule.getAtlas1();
-        final Atlas atlas2 = this.rule.getAtlas2();
+        final Atlas atlasX = this.rule.getAtlas1();
+        final Atlas atlasY = this.rule.getAtlas2();
 
-        Assert.assertTrue(new AtlasDiff(atlas1, atlas2).generateChange().hasChanges());
-        Assert.assertEquals(8, new AtlasDiff(atlas1, atlas2).generateChange().changeCount());
-        new AtlasDiff(atlas1, atlas2).generateChange().changes()
-                .forEach(change -> logger.error("{}", change));
+        final Change changeXToY = new AtlasDiff(atlasX, atlasY).generateChange();
 
-        final ChangeAtlas changeAtlas = new ChangeAtlas(atlas1,
-                new AtlasDiff(atlas1, atlas2).generateChange());
-        Assert.assertFalse(new AtlasDiff(changeAtlas, atlas2).generateChange().hasChanges());
+        Assert.assertTrue(changeXToY.hasChanges());
+        Assert.assertEquals(8, changeXToY.changeCount());
+        changeXToY.changes().forEach(featureChange -> logger.trace("{}", featureChange));
+
+        final ChangeAtlas changeAtlasY = new ChangeAtlas(atlasX, changeXToY);
+        Assert.assertFalse(new AtlasDiff(changeAtlasY, atlasY).generateChange().hasChanges());
     }
 }
