@@ -7,6 +7,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.change.Change;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeAtlas;
 import org.openstreetmap.atlas.geography.atlas.delta.AtlasDelta;
+import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +51,27 @@ public class AtlasDiffTest
         Assert.assertTrue(
                 new AtlasDelta(atlasY, changeAtlasY2).generate().getDifferences().size() == 0);
         Assert.assertFalse(new AtlasDiff(changeAtlasY2, atlasY).generateChange().hasChanges());
+    }
+
+    @Test
+    public void testNodeDiff()
+    {
+        final Atlas atlasX = this.rule.getAtlas5();
+        final Atlas atlasY = this.rule.getAtlas6();
+
+        final Change changeXToYBloated = new AtlasDiff(atlasX, atlasY).useBloatedEntities(true)
+                .generateChange();
+
+        Assert.assertTrue(changeXToYBloated.hasChanges());
+        Assert.assertEquals(1, changeXToYBloated.changeCount());
+
+        changeXToYBloated.changes().forEach(featureChange -> logger.trace("{}: {}", featureChange,
+                ((Node) featureChange.getReference()).getLocation()));
+
+        final ChangeAtlas changeAtlasY = new ChangeAtlas(atlasX, changeXToYBloated);
+        Assert.assertTrue(
+                new AtlasDelta(atlasY, changeAtlasY).generate().getDifferences().size() == 0);
+        Assert.assertFalse(new AtlasDiff(changeAtlasY, atlasY).generateChange().hasChanges());
     }
 
     @Test

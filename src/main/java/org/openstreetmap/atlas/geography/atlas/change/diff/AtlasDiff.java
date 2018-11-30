@@ -280,10 +280,8 @@ public class AtlasDiff
         /*
          * Detect if the entity changed its parent relation membership.
          */
-        /*
-         * AtlasDiffHelper.getParentRelationMembershipChangeIfNecessary(beforeEntity, afterEntity)
-         * .ifPresent(featureChanges::add);
-         */
+        AtlasDiffHelper.getParentRelationMembershipChangeIfNecessary(beforeEntity, afterEntity)
+                .ifPresent(featureChanges::add);
 
         /*
          * Detect if the entities were Nodes and some Node properties changed.

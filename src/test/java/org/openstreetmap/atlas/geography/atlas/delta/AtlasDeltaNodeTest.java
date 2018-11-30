@@ -11,7 +11,6 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.delta.Diff.DiffType;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
-import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.random.RandomTagsSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,27 +99,6 @@ public class AtlasDeltaNodeTest
                 Assert.assertEquals(DiffType.CHANGED, diff.getDiffType());
                 Assert.assertEquals(ItemType.NODE, diff.getItemType());
             }
-        }
-    }
-
-    @Test
-    public void testRandom()
-    {
-        final PackedAtlasBuilder baseBuilder = new PackedAtlasBuilder();
-        final PackedAtlasBuilder alterBuilder = new PackedAtlasBuilder();
-        final Map<String, String> tags = Maps.hashMap("tag1", "value1");
-        final Map<String, String> tags2 = Maps.hashMap("tag1", "value1", "tag2", "value2");
-        baseBuilder.addNode(1, Location.TEST_1, tags);
-        alterBuilder.addNode(1, Location.TEST_2, tags2);
-        baseBuilder.addNode(3, Location.TEST_2, tags);
-        alterBuilder.addNode(3, Location.TEST_2, tags);
-
-        final SortedSet<Diff> diffs = new AtlasDelta(baseBuilder.get(), alterBuilder.get())
-                .generate().getDifferences();
-
-        for (final Diff diff : diffs)
-        {
-            logger.error("{}", diff.toDiffViewFriendlyString());
         }
     }
 

@@ -26,6 +26,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
+import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.geography.matching.PolyLineRoute;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
@@ -114,32 +116,86 @@ public final class AtlasDiffHelper
         return Optional.empty();
     }
 
-    /*
-     * public static Optional<FeatureChange> getParentRelationMembershipChangeIfNecessary( final
-     * AtlasEntity beforeEntity, final AtlasEntity afterEntity) { try { final Set<Relation>
-     * beforeRelations = beforeEntity.relations(); final Set<Relation> afterRelations =
-     * afterEntity.relations(); if (beforeRelations.size() != afterRelations.size()) { return true;
-     * } for (final Relation beforeRelation : beforeRelations) { Relation afterRelation = null; for
-     * (final Relation alterRelationCandidate : afterRelations) { if
-     * (alterRelationCandidate.getIdentifier() == beforeRelation.getIdentifier()) { afterRelation =
-     * alterRelationCandidate; break; } } if (afterRelation == null) { // The two relation sets are
-     * different return true; } // Index of the member in the Relation's member list int beforeIndex
-     * = -1; int afterIndex = -1; final RelationMemberList beforeMembers = beforeRelation.members();
-     * final RelationMemberList afterMembers = afterRelation.members(); for (int j = 0; j <
-     * beforeMembers.size(); j++) { final RelationMember baseMember = beforeMembers.get(j); if
-     * (baseMember.getEntity().getIdentifier() == beforeEntity.getIdentifier()) { beforeIndex = j; }
-     * } for (int j = 0; j < afterMembers.size(); j++) { final RelationMember alterMember =
-     * afterMembers.get(j); if (alterMember.getEntity().getIdentifier() ==
-     * beforeEntity.getIdentifier()) { afterIndex = j; } } if (beforeIndex < 0 || afterIndex < 0) {
-     * throw new CoreException("Corrupted Atlas dataset."); } if (beforeIndex != afterIndex) { //
-     * Order changed return true; } if (!beforeMembers.get(beforeIndex).getRole()
-     * .equals(afterMembers.get(afterIndex).getRole())) { // Role changed return true; } if
-     * (beforeMembers.get(beforeIndex).getEntity().getType() != afterMembers
-     * .get(afterIndex).getEntity().getType()) { // Type changed return true; } } return
-     * Optional.empty(); } catch (final Exception exception) { throw new
-     * CoreException("Unable to compare relations for {} and {}", beforeEntity, afterEntity,
-     * exception); } }
-     */
+    public static Optional<FeatureChange> getParentRelationMembershipChangeIfNecessary(
+            final AtlasEntity beforeEntity, final AtlasEntity afterEntity)
+    {
+        try
+        {
+            final Set<Relation> baseRelations = beforeEntity.relations();
+            final Set<Relation> alterRelations = afterEntity.relations();
+            if (baseRelations.size() != alterRelations.size())
+            {
+                return true;
+            }
+            for (final Relation baseRelation : baseRelations)
+            {
+                Relation alterRelation = null;
+                for (final Relation alterRelationCandidate : alterRelations)
+                {
+                    if (alterRelationCandidate.getIdentifier() == baseRelation.getIdentifier())
+                    {
+                        alterRelation = alterRelationCandidate;
+                        break;
+                    }
+                }
+                if (alterRelation == null)
+                {
+                    // The two relation sets are different
+                    return true;
+                }
+
+                // Index of the member in the Relation's member list
+                int baseIndex = -1;
+                int alterIndex = -1;
+                final RelationMemberList baseMembers = baseRelation.members();
+                final RelationMemberList alterMembers = alterRelation.members();
+                for (int j = 0; j < baseMembers.size(); j++)
+                {
+                    final RelationMember baseMember = baseMembers.get(j);
+                    if (baseMember.getEntity().getIdentifier() == beforeEntity.getIdentifier())
+                    {
+                        baseIndex = j;
+                    }
+                }
+                for (int j = 0; j < alterMembers.size(); j++)
+                {
+                    final RelationMember alterMember = alterMembers.get(j);
+                    if (alterMember.getEntity().getIdentifier() == beforeEntity.getIdentifier())
+                    {
+                        alterIndex = j;
+                    }
+                }
+                if (baseIndex < 0 || alterIndex < 0)
+                {
+                    throw new CoreException("Corrupted Atlas dataset.");
+                }
+                if (baseIndex != alterIndex)
+                {
+                    // Order changed
+                    return true;
+                }
+                if (!baseMembers.get(baseIndex).getRole()
+                        .equals(alterMembers.get(alterIndex).getRole()))
+                {
+                    // Role changed
+                    return true;
+                }
+                if (baseMembers.get(baseIndex).getEntity().getType() != alterMembers.get(alterIndex)
+                        .getEntity().getType())
+                {
+                    // Type changed
+                    return true;
+                }
+            }
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException("Unable to compare relations for {} and {}", beforeEntity,
+                    afterEntity, exception);
+        }
+
+        return Optional.empty();
+    }
 
     public static Optional<FeatureChange> getTagChangeIfNecessary(final AtlasEntity beforeEntity,
             final AtlasEntity entity)

@@ -27,6 +27,7 @@ public class AtlasDiffTestRule extends CoreTestRule
     // Inside 12-1349-1870
     private static final String SEVEN = "15.4145,-61.3826";
     private static final String EIGHT = "15.4073,-61.3749";
+    private static final String NINE = "15.4075,-61.3746";
 
     @TestAtlas(loadFromJosmOsmResource = "DiffAtlas1.josm.osm")
     private Atlas atlas1;
@@ -69,6 +70,38 @@ public class AtlasDiffTestRule extends CoreTestRule
             })
     private Atlas atlas4;
 
+    @TestAtlas(
+
+            nodes = {
+
+                    @Node(id = "1", coordinates = @Loc(value = ONE), tags = { "tag1=value1" }),
+                    @Node(id = "2", coordinates = @Loc(value = TWO), tags = { "tag1=value1" }),
+                    @Node(id = "3", coordinates = @Loc(value = THREE), tags = { "tag1=value1" }),
+                    @Node(id = "4", coordinates = @Loc(value = FOUR), tags = { "tag1=value1" }),
+                    @Node(id = "5", coordinates = @Loc(value = FIVE), tags = { "tag1=value1" }),
+                    @Node(id = "6", coordinates = @Loc(value = SIX), tags = { "tag1=value1" }),
+                    @Node(id = "7", coordinates = @Loc(value = SEVEN), tags = { "tag1=value1" }),
+                    @Node(id = "8", coordinates = @Loc(value = EIGHT), tags = { "tag1=value1" })
+
+            })
+    private Atlas atlas5;
+
+    @TestAtlas(
+
+            nodes = {
+
+                    @Node(id = "1", coordinates = @Loc(value = ONE), tags = { "tag1=value1" }),
+                    @Node(id = "2", coordinates = @Loc(value = TWO), tags = { "tag1=value1" }),
+                    @Node(id = "3", coordinates = @Loc(value = THREE), tags = { "tag1=value1" }),
+                    @Node(id = "4", coordinates = @Loc(value = FOUR), tags = { "tag1=value1" }),
+                    @Node(id = "5", coordinates = @Loc(value = FIVE), tags = { "tag1=value1" }),
+                    @Node(id = "6", coordinates = @Loc(value = SIX), tags = { "tag1=value1" }),
+                    @Node(id = "7", coordinates = @Loc(value = SEVEN), tags = { "tag1=value1" }),
+                    @Node(id = "8", coordinates = @Loc(value = NINE), tags = { "tag1=value1" })
+
+            })
+    private Atlas atlas6;
+
     public Atlas getAtlas1()
     {
         return this.atlas1;
@@ -87,5 +120,15 @@ public class AtlasDiffTestRule extends CoreTestRule
     public Atlas getAtlas4()
     {
         return this.atlas4;
+    }
+
+    public Atlas getAtlas5()
+    {
+        return this.atlas5;
+    }
+
+    public Atlas getAtlas6()
+    {
+        return this.atlas6;
     }
 }
