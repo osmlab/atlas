@@ -6,8 +6,6 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.change.Change;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeAtlas;
-import org.openstreetmap.atlas.geography.atlas.delta.AtlasDelta;
-import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,74 +22,67 @@ public class AtlasDiffTest
     @Test
     public void simpleTest()
     {
-        final Atlas atlasX = this.rule.getAtlas1();
-        final Atlas atlasY = this.rule.getAtlas2();
+        final Atlas atlasX = this.rule.simpleAtlas1();
+        final Atlas atlasY = this.rule.simpleAtlas2();
 
+        final int expectedNumberOfChanges = 8;
+
+        // First, test with bloated entities
         final Change changeXToYBloated = new AtlasDiff(atlasX, atlasY).useBloatedEntities(true)
                 .generateChange();
-
         Assert.assertTrue(changeXToYBloated.hasChanges());
-        Assert.assertEquals(8, changeXToYBloated.changeCount());
-
-        changeXToYBloated.changes().forEach(featureChange -> logger.trace("{}", featureChange));
-
+        Assert.assertEquals(expectedNumberOfChanges, changeXToYBloated.changeCount());
         final ChangeAtlas changeAtlasY = new ChangeAtlas(atlasX, changeXToYBloated);
-        Assert.assertTrue(
-                new AtlasDelta(atlasY, changeAtlasY).generate().getDifferences().size() == 0);
         Assert.assertFalse(new AtlasDiff(changeAtlasY, atlasY).generateChange().hasChanges());
 
-        // Now test not-bloated
+        // Now test not-bloated entities
         final Change changeXToY = new AtlasDiff(atlasX, atlasY).useBloatedEntities(false)
                 .generateChange();
-
         Assert.assertTrue(changeXToY.hasChanges());
-        Assert.assertEquals(8, changeXToY.changeCount());
-
+        Assert.assertEquals(expectedNumberOfChanges, changeXToY.changeCount());
         final ChangeAtlas changeAtlasY2 = new ChangeAtlas(atlasX, changeXToY);
-        Assert.assertTrue(
-                new AtlasDelta(atlasY, changeAtlasY2).generate().getDifferences().size() == 0);
         Assert.assertFalse(new AtlasDiff(changeAtlasY2, atlasY).generateChange().hasChanges());
     }
 
     @Test
-    public void testNodeDiff()
+    public void testNodeLocationsDiff()
     {
-        final Atlas atlasX = this.rule.getAtlas5();
-        final Atlas atlasY = this.rule.getAtlas6();
+        final Atlas atlasX = this.rule.differentNodeLocations1();
+        final Atlas atlasY = this.rule.differentNodeLocations2();
+
+        final Change changeXToYBloated = new AtlasDiff(atlasX, atlasY).useBloatedEntities(true)
+                .generateChange();
+        Assert.assertTrue(changeXToYBloated.hasChanges());
+        Assert.assertEquals(1, changeXToYBloated.changeCount());
+        final ChangeAtlas changeAtlasY = new ChangeAtlas(atlasX, changeXToYBloated);
+        Assert.assertFalse(new AtlasDiff(changeAtlasY, atlasY).generateChange().hasChanges());
+    }
+
+    @Test
+    public void testParentRelationsDiff()
+    {
+        // TODO actually fill in this test once full relation support
+        final Atlas atlasX = this.rule.differentParentRelations1();
+        final Atlas atlasY = this.rule.differentParentRelations2();
 
         final Change changeXToYBloated = new AtlasDiff(atlasX, atlasY).useBloatedEntities(true)
                 .generateChange();
 
-        Assert.assertTrue(changeXToYBloated.hasChanges());
-        Assert.assertEquals(1, changeXToYBloated.changeCount());
-
-        changeXToYBloated.changes().forEach(featureChange -> logger.trace("{}: {}", featureChange,
-                ((Node) featureChange.getReference()).getLocation()));
-
-        final ChangeAtlas changeAtlasY = new ChangeAtlas(atlasX, changeXToYBloated);
-        Assert.assertTrue(
-                new AtlasDelta(atlasY, changeAtlasY).generate().getDifferences().size() == 0);
-        Assert.assertFalse(new AtlasDiff(changeAtlasY, atlasY).generateChange().hasChanges());
+        changeXToYBloated.changes()
+                .forEach(change -> logger.error("{}: {}", change, change.getReference()));
     }
 
     @Test
     public void testTagDiff()
     {
-        final Atlas atlasX = this.rule.getAtlas3();
-        final Atlas atlasY = this.rule.getAtlas4();
+        final Atlas atlasX = this.rule.differentTags1();
+        final Atlas atlasY = this.rule.differentTags2();
 
         final Change changeXToYBloated = new AtlasDiff(atlasX, atlasY).useBloatedEntities(true)
                 .generateChange();
-
         Assert.assertTrue(changeXToYBloated.hasChanges());
         Assert.assertEquals(3, changeXToYBloated.changeCount());
-
-        changeXToYBloated.changes().forEach(featureChange -> logger.trace("{}: {}", featureChange,
-                featureChange.getReference().getTags()));
-
         final ChangeAtlas changeAtlasY = new ChangeAtlas(atlasX, changeXToYBloated);
-        Assert.assertTrue(
-                new AtlasDelta(atlasY, changeAtlasY).generate().getDifferences().size() == 0);
         Assert.assertFalse(new AtlasDiff(changeAtlasY, atlasY).generateChange().hasChanges());
     }
 }

@@ -5,6 +5,8 @@ import org.openstreetmap.atlas.utilities.testing.CoreTestRule;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Loc;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Node;
+import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation;
+import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation.Member;
 
 /**
  * @author lcram
@@ -30,105 +32,169 @@ public class AtlasDiffTestRule extends CoreTestRule
     private static final String NINE = "15.4075,-61.3746";
 
     @TestAtlas(loadFromJosmOsmResource = "DiffAtlas1.josm.osm")
-    private Atlas atlas1;
+    private Atlas simpleAtlas1;
 
     @TestAtlas(loadFromJosmOsmResource = "DiffAtlas2.josm.osm")
-    private Atlas atlas2;
+    private Atlas simpleAtlas2;
 
     @TestAtlas(
 
             nodes = {
 
-                    @Node(id = "1", coordinates = @Loc(value = ONE), tags = { "tag1=value1" }),
-                    @Node(id = "2", coordinates = @Loc(value = TWO), tags = { "tag1=value1" }),
-                    @Node(id = "3", coordinates = @Loc(value = THREE), tags = { "tag1=value1" }),
-                    @Node(id = "4", coordinates = @Loc(value = FOUR), tags = { "tag1=value1" }),
                     @Node(id = "5", coordinates = @Loc(value = FIVE), tags = { "tag1=value1" }),
                     @Node(id = "6", coordinates = @Loc(value = SIX), tags = { "tag1=value1" }),
                     @Node(id = "7", coordinates = @Loc(value = SEVEN), tags = { "tag1=value1" }),
                     @Node(id = "8", coordinates = @Loc(value = EIGHT), tags = { "tag1=value1",
                             "tag2=value2" })
 
-            })
-    private Atlas atlas3;
+            }
+
+    )
+    private Atlas differentTags1;
 
     @TestAtlas(
 
             nodes = {
 
-                    @Node(id = "1", coordinates = @Loc(value = ONE), tags = { "tag1=value1" }),
-                    @Node(id = "2", coordinates = @Loc(value = TWO), tags = { "tag1=value1" }),
-                    @Node(id = "3", coordinates = @Loc(value = THREE), tags = { "tag1=value1",
+                    @Node(id = "5", coordinates = @Loc(value = FIVE), tags = { "tag1=value1",
                             "tag2=value2" }),
-                    @Node(id = "4", coordinates = @Loc(value = FOUR), tags = { "tag1=value1" }),
-                    @Node(id = "5", coordinates = @Loc(value = FIVE), tags = { "tag1=value1" }),
                     @Node(id = "6", coordinates = @Loc(value = SIX), tags = { "tag1=value1",
                             "tag2=value2" }),
                     @Node(id = "7", coordinates = @Loc(value = SEVEN), tags = { "tag1=value1" }),
                     @Node(id = "8", coordinates = @Loc(value = EIGHT), tags = { "tag1=value1" })
 
-            })
-    private Atlas atlas4;
+            }
+
+    )
+    private Atlas differentTags2;
 
     @TestAtlas(
 
             nodes = {
 
-                    @Node(id = "1", coordinates = @Loc(value = ONE), tags = { "tag1=value1" }),
-                    @Node(id = "2", coordinates = @Loc(value = TWO), tags = { "tag1=value1" }),
-                    @Node(id = "3", coordinates = @Loc(value = THREE), tags = { "tag1=value1" }),
-                    @Node(id = "4", coordinates = @Loc(value = FOUR), tags = { "tag1=value1" }),
-                    @Node(id = "5", coordinates = @Loc(value = FIVE), tags = { "tag1=value1" }),
+                    @Node(id = "7", coordinates = @Loc(value = SEVEN), tags = { "tag1=value1" }),
+                    @Node(id = "8", coordinates = @Loc(value = EIGHT), tags = { "tag1=value1" })
+
+            }
+
+    )
+    private Atlas differentNodeLocations1;
+
+    @TestAtlas(
+
+            nodes = {
+
+                    @Node(id = "7", coordinates = @Loc(value = SEVEN), tags = { "tag1=value1" }),
+                    @Node(id = "8", coordinates = @Loc(value = NINE), tags = { "tag1=value1" })
+
+            }
+
+    )
+    private Atlas differentNodeLocations2;
+
+    @TestAtlas(
+
+            nodes = {
+
                     @Node(id = "6", coordinates = @Loc(value = SIX), tags = { "tag1=value1" }),
                     @Node(id = "7", coordinates = @Loc(value = SEVEN), tags = { "tag1=value1" }),
                     @Node(id = "8", coordinates = @Loc(value = EIGHT), tags = { "tag1=value1" })
 
-            })
-    private Atlas atlas5;
+            },
+
+            relations = {
+
+                    @Relation(id = "31", tags = { "type=relation" }, members = {
+
+                            @Member(id = "7", role = "a", type = "node")
+
+                    }),
+
+                    @Relation(id = "32", tags = { "type=relation" }, members = {
+
+                            @Member(id = "7", role = "a", type = "node"),
+
+                            @Member(id = "8", role = "a", type = "node")
+
+                    }),
+
+                    @Relation(id = "33", tags = { "type=relation" }, members = {
+
+                            @Member(id = "6", role = "a", type = "node"),
+
+                    })
+
+            }
+
+    )
+    private Atlas differentParentRelations1;
 
     @TestAtlas(
 
             nodes = {
 
-                    @Node(id = "1", coordinates = @Loc(value = ONE), tags = { "tag1=value1" }),
-                    @Node(id = "2", coordinates = @Loc(value = TWO), tags = { "tag1=value1" }),
-                    @Node(id = "3", coordinates = @Loc(value = THREE), tags = { "tag1=value1" }),
-                    @Node(id = "4", coordinates = @Loc(value = FOUR), tags = { "tag1=value1" }),
-                    @Node(id = "5", coordinates = @Loc(value = FIVE), tags = { "tag1=value1" }),
                     @Node(id = "6", coordinates = @Loc(value = SIX), tags = { "tag1=value1" }),
                     @Node(id = "7", coordinates = @Loc(value = SEVEN), tags = { "tag1=value1" }),
-                    @Node(id = "8", coordinates = @Loc(value = NINE), tags = { "tag1=value1" })
+                    @Node(id = "8", coordinates = @Loc(value = EIGHT), tags = { "tag1=value1" })
 
-            })
-    private Atlas atlas6;
+            },
 
-    public Atlas getAtlas1()
+            relations = {
+
+                    @Relation(id = "31", tags = { "type=relation" }, members = {
+
+                            @Member(id = "7", role = "a", type = "node")
+
+                    }),
+
+                    @Relation(id = "32", tags = { "type=relation" }, members = {
+
+                            @Member(id = "8", role = "a", type = "node")
+
+                    })
+
+            }
+
+    )
+    private Atlas differentParentRelations2;
+
+    public Atlas differentNodeLocations1()
     {
-        return this.atlas1;
+        return this.differentNodeLocations1;
     }
 
-    public Atlas getAtlas2()
+    public Atlas differentNodeLocations2()
     {
-        return this.atlas2;
+        return this.differentNodeLocations2;
     }
 
-    public Atlas getAtlas3()
+    public Atlas differentParentRelations1()
     {
-        return this.atlas3;
+        return this.differentParentRelations1;
     }
 
-    public Atlas getAtlas4()
+    public Atlas differentParentRelations2()
     {
-        return this.atlas4;
+        return this.differentParentRelations2;
     }
 
-    public Atlas getAtlas5()
+    public Atlas differentTags1()
     {
-        return this.atlas5;
+        return this.differentTags1;
     }
 
-    public Atlas getAtlas6()
+    public Atlas differentTags2()
     {
-        return this.atlas6;
+        return this.differentTags2;
+    }
+
+    public Atlas simpleAtlas1()
+    {
+        return this.simpleAtlas1;
+    }
+
+    public Atlas simpleAtlas2()
+    {
+        return this.simpleAtlas2;
     }
 }

@@ -26,8 +26,6 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
-import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.geography.matching.PolyLineRoute;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
@@ -35,8 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A helper class for {@link AtlasDiff}. Contains lots of static utilities. Ideally, it would be
- * nice to refactor this since there is a lot of duplicated code patterns.
+ * A helper class for {@link AtlasDiff}. Contains lots of static utilities.
  *
  * @author lcram
  */
@@ -119,73 +116,71 @@ public final class AtlasDiffHelper
     public static Optional<FeatureChange> getParentRelationMembershipChangeIfNecessary(
             final AtlasEntity beforeEntity, final AtlasEntity afterEntity)
     {
+        /*
+         * TODO this method may generate redundant FeatureChanges in some cases. For instance, if a
+         * feature's parent relation changes because the entire relation was removed, we won't need
+         * to manually update the feature's parentRelations set. However, we do need to remove it if
+         * the feature was simply removed as a member of the relation, with the relation remaining
+         * preset and valid (since it still has other features).
+         */
         try
         {
-            final Set<Relation> beforeRelations = beforeEntity.relations();
-            final Set<Relation> afterRelations = afterEntity.relations();
-            if (beforeRelations.size() != afterRelations.size())
-            {
-                return true;
-            }
-            for (final Relation beforeRelation : beforeRelations)
-            {
-                Relation afterRelation = null;
-                for (final Relation afterRelationCandidate : afterRelations)
-                {
-                    if (afterRelationCandidate.getIdentifier() == beforeRelation.getIdentifier())
-                    {
-                        afterRelation = afterRelationCandidate;
-                        break;
-                    }
-                }
-                if (afterRelation == null)
-                {
-                    // The two relation sets are different
-                    return true;
-                }
+            final Set<Long> beforeRelationIdentifiers = beforeEntity.relations().stream()
+                    .map(relation -> relation.getIdentifier()).collect(Collectors.toSet());
+            final Set<Long> afterRelationIdentifiers = afterEntity.relations().stream()
+                    .map(relation -> relation.getIdentifier()).collect(Collectors.toSet());
 
-                // Index of the member in the Relation's member list
-                int beforeIndex = -1;
-                int afterIndex = -1;
-                final RelationMemberList beforeMembers = beforeRelation.members();
-                final RelationMemberList afterMembers = afterRelation.members();
-                for (int j = 0; j < beforeMembers.size(); j++)
+            /*
+             * In this case, we only care if the relation identifier sets were different. If the
+             * features had their roles in the relations altered, this will be caught when we
+             * actually diff the relations.
+             */
+            boolean relationSetsWereDifferent = false;
+            if (!beforeRelationIdentifiers.equals(afterRelationIdentifiers))
+            {
+                relationSetsWereDifferent = true;
+            }
+
+            if (relationSetsWereDifferent)
+            {
+                FeatureChange featureChange;
+                switch (afterEntity.getType())
                 {
-                    final RelationMember beforeMember = beforeMembers.get(j);
-                    if (beforeMember.getEntity().getIdentifier() == beforeEntity.getIdentifier())
-                    {
-                        beforeIndex = j;
-                    }
+                    case AREA:
+                        featureChange = new FeatureChange(ChangeType.ADD,
+                                BloatedArea.shallowFrom((Area) afterEntity)
+                                        .withRelationIdentifiers(afterRelationIdentifiers));
+                        break;
+                    case EDGE:
+                        featureChange = new FeatureChange(ChangeType.ADD,
+                                BloatedEdge.shallowFrom((Edge) afterEntity)
+                                        .withRelationIdentifiers(afterRelationIdentifiers));
+                        break;
+                    case LINE:
+                        featureChange = new FeatureChange(ChangeType.ADD,
+                                BloatedLine.shallowFrom((Line) afterEntity)
+                                        .withRelationIdentifiers(afterRelationIdentifiers));
+                        break;
+                    case NODE:
+                        featureChange = new FeatureChange(ChangeType.ADD,
+                                BloatedNode.shallowFrom((Node) afterEntity)
+                                        .withRelationIdentifiers(afterRelationIdentifiers));
+                        break;
+                    case POINT:
+                        featureChange = new FeatureChange(ChangeType.ADD,
+                                BloatedPoint.shallowFrom((Point) afterEntity)
+                                        .withRelationIdentifiers(afterRelationIdentifiers));
+                        break;
+                    case RELATION:
+                        featureChange = new FeatureChange(ChangeType.ADD,
+                                BloatedRelation.shallowFrom((Relation) afterEntity)
+                                        .withRelationIdentifiers(afterRelationIdentifiers));
+                        break;
+                    default:
+                        throw new CoreException("Unknown item type {}", afterEntity.getType());
                 }
-                for (int j = 0; j < afterMembers.size(); j++)
-                {
-                    final RelationMember afterMember = afterMembers.get(j);
-                    if (afterMember.getEntity().getIdentifier() == beforeEntity.getIdentifier())
-                    {
-                        afterIndex = j;
-                    }
-                }
-                if (beforeIndex < 0 || afterIndex < 0)
-                {
-                    throw new CoreException("Corrupted Atlas dataset.");
-                }
-                if (beforeIndex != afterIndex)
-                {
-                    // Order changed
-                    return true;
-                }
-                if (!beforeMembers.get(beforeIndex).getRole()
-                        .equals(afterMembers.get(afterIndex).getRole()))
-                {
-                    // Role changed
-                    return true;
-                }
-                if (beforeMembers.get(beforeIndex).getEntity().getType() != afterMembers.get(afterIndex)
-                        .getEntity().getType())
-                {
-                    // Type changed
-                    return true;
-                }
+                // featureChange should never be null
+                return Optional.of(featureChange);
             }
         }
         catch (final Exception exception)
@@ -198,39 +193,39 @@ public final class AtlasDiffHelper
     }
 
     public static Optional<FeatureChange> getTagChangeIfNecessary(final AtlasEntity beforeEntity,
-            final AtlasEntity entity)
+            final AtlasEntity afterEntity)
     {
-        if (!beforeEntity.getTags().equals(entity.getTags()))
+        if (!beforeEntity.getTags().equals(afterEntity.getTags()))
         {
             FeatureChange featureChange;
-            switch (entity.getType())
+            switch (afterEntity.getType())
             {
                 case AREA:
-                    featureChange = new FeatureChange(ChangeType.ADD,
-                            BloatedArea.shallowFrom((Area) entity).withTags(entity.getTags()));
+                    featureChange = new FeatureChange(ChangeType.ADD, BloatedArea
+                            .shallowFrom((Area) afterEntity).withTags(afterEntity.getTags()));
                     break;
                 case EDGE:
-                    featureChange = new FeatureChange(ChangeType.ADD,
-                            BloatedEdge.shallowFrom((Edge) entity).withTags(entity.getTags()));
+                    featureChange = new FeatureChange(ChangeType.ADD, BloatedEdge
+                            .shallowFrom((Edge) afterEntity).withTags(afterEntity.getTags()));
                     break;
                 case LINE:
-                    featureChange = new FeatureChange(ChangeType.ADD,
-                            BloatedLine.shallowFrom((Line) entity).withTags(entity.getTags()));
+                    featureChange = new FeatureChange(ChangeType.ADD, BloatedLine
+                            .shallowFrom((Line) afterEntity).withTags(afterEntity.getTags()));
                     break;
                 case NODE:
-                    featureChange = new FeatureChange(ChangeType.ADD,
-                            BloatedNode.shallowFrom((Node) entity).withTags(entity.getTags()));
+                    featureChange = new FeatureChange(ChangeType.ADD, BloatedNode
+                            .shallowFrom((Node) afterEntity).withTags(afterEntity.getTags()));
                     break;
                 case POINT:
-                    featureChange = new FeatureChange(ChangeType.ADD,
-                            BloatedPoint.shallowFrom((Point) entity).withTags(entity.getTags()));
+                    featureChange = new FeatureChange(ChangeType.ADD, BloatedPoint
+                            .shallowFrom((Point) afterEntity).withTags(afterEntity.getTags()));
                     break;
                 case RELATION:
                     featureChange = new FeatureChange(ChangeType.ADD, BloatedRelation
-                            .shallowFrom((Relation) entity).withTags(entity.getTags()));
+                            .shallowFrom((Relation) afterEntity).withTags(afterEntity.getTags()));
                     break;
                 default:
-                    throw new CoreException("Unknown item type {}", entity.getType());
+                    throw new CoreException("Unknown item type {}", afterEntity.getType());
             }
             // featureChange should never be null
             return Optional.of(featureChange);
@@ -353,34 +348,16 @@ public final class AtlasDiffHelper
     private static boolean differentEdgeSet(final SortedSet<Edge> beforeEdges,
             final SortedSet<Edge> afterEdges, final boolean useGeometryMatching)
     {
-        final boolean differentEdgeSetFirstTry = differentEdgeSetLinearCheck(beforeEdges, afterEdges);
-        final boolean differentEdgeDeeperLook = differentEdgeSetQuadraticCheck(beforeEdges, afterEdges,
-                useGeometryMatching);
-        return differentEdgeSetFirstTry && differentEdgeDeeperLook;
+        /*
+         * Here, we try a simple equivalence check first, and only go to the more expensive deep
+         * check if necessary. This is because the quick check will find false positive cases where
+         * edges look different due to way sectioning, but have the same underlying geometry.
+         */
+        return differentEdgeSetQuickCheck(beforeEdges, afterEdges)
+                && differentEdgeSetDeeperCheck(beforeEdges, afterEdges, useGeometryMatching);
     }
 
-    private static boolean differentEdgeSetLinearCheck(final SortedSet<Edge> beforeEdges,
-            final SortedSet<Edge> afterEdges)
-    {
-        if (beforeEdges.size() != afterEdges.size())
-        {
-            return true;
-        }
-        final Iterator<Edge> beforeInEdgeIterator = beforeEdges.iterator();
-        final Iterator<Edge> afterInEdgeIterator = afterEdges.iterator();
-        for (int i = 0; i < beforeEdges.size(); i++)
-        {
-            final Edge beforeInEdge = beforeInEdgeIterator.next();
-            final Edge afterInEdge = afterInEdgeIterator.next();
-            if (beforeInEdge.getIdentifier() != afterInEdge.getIdentifier())
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean differentEdgeSetQuadraticCheck(final Set<Edge> beforeEdges,
+    private static boolean differentEdgeSetDeeperCheck(final Set<Edge> beforeEdges,
             final Set<Edge> afterEdges, final boolean useGeometryMatching)
     {
         if (beforeEdges.isEmpty() && afterEdges.isEmpty())
@@ -408,6 +385,27 @@ public final class AtlasDiffHelper
             }
         }
         return beforeToAfterResult && afterToBeforeResult;
+    }
+
+    private static boolean differentEdgeSetQuickCheck(final SortedSet<Edge> beforeEdges,
+            final SortedSet<Edge> afterEdges)
+    {
+        if (beforeEdges.size() != afterEdges.size())
+        {
+            return true;
+        }
+        final Iterator<Edge> beforeInEdgeIterator = beforeEdges.iterator();
+        final Iterator<Edge> afterInEdgeIterator = afterEdges.iterator();
+        for (int i = 0; i < beforeEdges.size(); i++)
+        {
+            final Edge beforeInEdge = beforeInEdgeIterator.next();
+            final Edge afterInEdge = afterInEdgeIterator.next();
+            if (beforeInEdge.getIdentifier() != afterInEdge.getIdentifier())
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private AtlasDiffHelper()
