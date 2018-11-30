@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Located;
@@ -30,6 +31,16 @@ public class FeatureChange implements Located, Serializable
     private final ChangeType changeType;
     private final AtlasEntity reference;
 
+    public static FeatureChange add(final AtlasEntity reference)
+    {
+        return new FeatureChange(ChangeType.ADD, reference);
+    }
+
+    public static FeatureChange remove(final AtlasEntity reference)
+    {
+        return new FeatureChange(ChangeType.REMOVE, reference);
+    }
+
     public FeatureChange(final ChangeType changeType, final AtlasEntity reference)
     {
         if (changeType == null)
@@ -51,6 +62,18 @@ public class FeatureChange implements Located, Serializable
         return this.reference.bounds();
     }
 
+    @Override
+    public boolean equals(final Object other)
+    {
+        if (other instanceof FeatureChange)
+        {
+            final FeatureChange that = (FeatureChange) other;
+            return this.getChangeType() == that.getChangeType()
+                    && this.getReference().equals(that.getReference());
+        }
+        return false;
+    }
+
     public ChangeType getChangeType()
     {
         return this.changeType;
@@ -69,6 +92,12 @@ public class FeatureChange implements Located, Serializable
     public AtlasEntity getReference()
     {
         return this.reference;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(this.changeType, this.reference);
     }
 
     @Override

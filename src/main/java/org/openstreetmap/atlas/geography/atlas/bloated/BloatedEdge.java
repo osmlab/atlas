@@ -41,14 +41,14 @@ public class BloatedEdge extends Edge implements BloatedEntity
     private Long endNodeIdentifier;
     private Set<Long> relationIdentifiers;
 
-    public static BloatedEdge fromEdge(final Edge edge)
+    public static BloatedEdge from(final Edge edge)
     {
         return new BloatedEdge(edge.getIdentifier(), edge.asPolyLine(), edge.getTags(),
                 edge.start().getIdentifier(), edge.end().getIdentifier(),
                 edge.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
-    public static BloatedEdge shallowFromEdge(final Edge edge)
+    public static BloatedEdge shallowFrom(final Edge edge)
     {
         return new BloatedEdge(edge.getIdentifier()).withInitialBounds(edge.asPolyLine().bounds());
     }
@@ -185,6 +185,22 @@ public class BloatedEdge extends Edge implements BloatedEntity
     {
         this.startNodeIdentifier = startNodeIdentifier;
         return this;
+    }
+
+    public BloatedEdge withTagExtra(final String key, final String value)
+    {
+        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+    }
+
+    public BloatedEdge withTagLess(final String key)
+    {
+        return withTags(BloatedEntity.removeTag(getTags(), key));
+    }
+
+    public BloatedEdge withTagReplaced(final String oldKey, final String newKey,
+            final String newValue)
+    {
+        return withTagLess(oldKey).withTagExtra(newKey, newValue);
     }
 
     public BloatedEdge withTags(final Map<String, String> tags)

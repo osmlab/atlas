@@ -38,13 +38,13 @@ public class BloatedArea extends Area implements BloatedEntity
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
 
-    public static BloatedArea fromArea(final Area area)
+    public static BloatedArea from(final Area area)
     {
         return new BloatedArea(area.getIdentifier(), area.asPolygon(), area.getTags(),
                 area.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
-    public static BloatedArea shallowFromArea(final Area area)
+    public static BloatedArea shallowFrom(final Area area)
     {
         return new BloatedArea(area.getIdentifier()).withInitialBounds(area.asPolygon().bounds());
     }
@@ -151,6 +151,22 @@ public class BloatedArea extends Area implements BloatedEntity
     {
         this.relationIdentifiers = relationIdentifiers;
         return this;
+    }
+
+    public BloatedArea withTagExtra(final String key, final String value)
+    {
+        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+    }
+
+    public BloatedArea withTagLess(final String key)
+    {
+        return withTags(BloatedEntity.removeTag(getTags(), key));
+    }
+
+    public BloatedArea withTagReplaced(final String oldKey, final String newKey,
+            final String newValue)
+    {
+        return withTagLess(oldKey).withTagExtra(newKey, newValue);
     }
 
     public BloatedArea withTags(final Map<String, String> tags)

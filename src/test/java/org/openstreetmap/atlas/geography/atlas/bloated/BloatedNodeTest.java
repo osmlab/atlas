@@ -30,7 +30,7 @@ public class BloatedNodeTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Node source = atlas.node(1);
-        final BloatedNode result = BloatedNode.fromNode(source);
+        final BloatedNode result = BloatedNode.from(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         Assert.assertEquals(source.getLocation(), result.getLocation());
@@ -57,7 +57,7 @@ public class BloatedNodeTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Node source = atlas.node(1);
-        final BloatedNode result = BloatedNode.shallowFromNode(source);
+        final BloatedNode result = BloatedNode.shallowFrom(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         result.withLocation(Location.CENTER);

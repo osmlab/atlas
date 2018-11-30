@@ -26,7 +26,7 @@ public class BloatedAreaTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Area source = atlas.area(27);
-        final BloatedArea result = BloatedArea.fromArea(source);
+        final BloatedArea result = BloatedArea.from(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         Assert.assertEquals(source.asPolygon(), result.asPolygon());
@@ -43,7 +43,7 @@ public class BloatedAreaTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Area source = atlas.area(27);
-        final BloatedArea result = BloatedArea.shallowFromArea(source);
+        final BloatedArea result = BloatedArea.shallowFrom(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         result.withPolygon(Polygon.TEST_BUILDING);

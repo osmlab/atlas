@@ -364,8 +364,10 @@ public abstract class AbstractAtlas extends BareAtlas
     @Override
     public void save(final WritableResource writableResource)
     {
-        throw new CoreException("{} does not support saving. Consider using {} instead.",
-                this.getClass().getName(), PackedAtlas.class.getName());
+        throw new CoreException(
+                "{} does not support saving. Consider using {} instead. A {} can be had using Atlas.cloneToPackedAtlas()",
+                this.getClass().getName(), PackedAtlas.class.getName(),
+                PackedAtlas.class.getName());
     }
 
     /**

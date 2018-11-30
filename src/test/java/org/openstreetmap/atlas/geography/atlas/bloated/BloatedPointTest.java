@@ -26,7 +26,7 @@ public class BloatedPointTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Point source = atlas.point(33);
-        final BloatedPoint result = BloatedPoint.fromPoint(source);
+        final BloatedPoint result = BloatedPoint.from(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         Assert.assertEquals(source.getLocation(), result.getLocation());
@@ -43,7 +43,7 @@ public class BloatedPointTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Point source = atlas.point(33);
-        final BloatedPoint result = BloatedPoint.shallowFromPoint(source);
+        final BloatedPoint result = BloatedPoint.shallowFrom(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         result.withLocation(Location.CENTER);

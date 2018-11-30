@@ -44,6 +44,7 @@ public class ChangeValidator
     {
         this.change.changesFor(ItemType.EDGE)
                 .filter(featureChange -> !((Edge) featureChange.getReference()).isMasterEdge())
+                .filter(featureChange -> featureChange.getChangeType() != ChangeType.REMOVE)
                 .forEach(backwardFeatureChange ->
                 {
                     final long backwardEdgeIdentifier = backwardFeatureChange.getReference()
