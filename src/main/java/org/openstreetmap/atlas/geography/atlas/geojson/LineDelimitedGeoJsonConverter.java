@@ -25,15 +25,16 @@ import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.runtime.Command;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
-import org.openstreetmap.atlas.utilities.runtime.RunScript;
 import org.openstreetmap.atlas.utilities.time.Time;
+import org.openstreetmap.atlas.utilities.vectortiles.TippecanoeCommands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 
 /**
- * This CLI takes a directory of atlas files and turns them into line-delimited GeoJSON.
+ * This CLI takes a directory of atlas files and turns them into line-delimited GeoJSON. If you
+ * would also like to convert into MBTiles with tippecanoe, use TippecanoeExporter.
  *
  * @author hallahan
  */
@@ -47,6 +48,8 @@ public class LineDelimitedGeoJsonConverter extends Command
      * EVERYTHING.geojson
      */
     public static final String EVERYTHING = "EVERYTHING.geojson";
+
+    public static final int EXIT_FAILURE = 1;
 
     private static final Logger logger = LoggerFactory
             .getLogger(LineDelimitedGeoJsonConverter.class);
@@ -144,6 +147,13 @@ public class LineDelimitedGeoJsonConverter extends Command
         }
 
         final List<File> atlases = fetchAtlasFilesInDirectory(atlasDirectory);
+
+        if (atlases.size() == 0)
+        {
+            logger.error("There are no atlas files in {}. Exiting...", atlasDirectory);
+            System.exit(EXIT_FAILURE);
+        }
+
         logger.info("About to convert {} atlas shards into line-delimited GeoJSON...",
                 atlases.size());
 
@@ -152,7 +162,7 @@ public class LineDelimitedGeoJsonConverter extends Command
         try
         {
             pool.submit(() -> this.convertAtlases(atlasDirectory, geojsonDirectory)).get();
-            concatenate(geojsonDirectory);
+            TippecanoeCommands.concatenate(geojsonDirectory);
         }
         catch (final InterruptedException interrupt)
         {
@@ -194,23 +204,6 @@ public class LineDelimitedGeoJsonConverter extends Command
             atlas.saveAsLineDelimitedGeoJsonFeatures(geojsonFile, ENTITY_PREDICATE, jsonMutator);
             logger.info("Saved {} in {}.", name, time.elapsedSince());
         });
-    }
-
-    /**
-     * Concatenates all of the GeoJSON files in a directory into a single GeoJSON file.
-     *
-     * @param geojsonDirectory
-     *            The directory of GeoJSON files to concatenate.
-     */
-    public static void concatenate(final Path geojsonDirectory)
-    {
-        final Time time = Time.now();
-        final String directory = geojsonDirectory.toString();
-        final String cat = String.format("cat '%s/'*.geojson > '%s/'%s", directory, directory,
-                EVERYTHING);
-        final String[] bashCommandArray = new String[] { "bash", "-c", cat };
-        RunScript.run(bashCommandArray);
-        logger.info("Concatenated to {} in {}", EVERYTHING, time.elapsedSince());
     }
 
     private static List<File> fetchAtlasFilesInDirectory(final Path directory)
