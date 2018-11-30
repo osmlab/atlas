@@ -1,9 +1,9 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.util.Set;
-import java.util.function.Function;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.utilities.conversion.Converter;
 
 /**
  * Something that takes an {@link Atlas} and produces a set of {@link FeatureChange} that should be
@@ -11,10 +11,10 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
  *
  * @author matthieun
  */
-public interface AtlasChangeGenerator extends Function<Atlas, Set<FeatureChange>>
+public interface AtlasChangeGenerator extends Converter<Atlas, Set<FeatureChange>>
 {
     @Override
-    default Set<FeatureChange> apply(final Atlas atlas)
+    default Set<FeatureChange> convert(final Atlas atlas)
     {
         return generate(atlas);
     }

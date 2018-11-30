@@ -9,8 +9,10 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas;
  */
 public class MultipleChangeAtlasTestRule extends CoreTestRule
 {
-    @TestAtlas(loadFromTextResource = "MultipleChangeAtlasTest.atlas.txt")
+    // MultipleChangeAtlasTest.osm is the osm file from which MultipleChangeAtlasTest.atlas.txt was
+    // created.
     // @TestAtlas(loadFromTextResource = "MultipleChangeAtlasTest.osm")
+    @TestAtlas(loadFromTextResource = "MultipleChangeAtlasTest.atlas.txt")
     private Atlas atlas;
 
     public Atlas getAtlas()
