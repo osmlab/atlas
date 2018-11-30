@@ -32,10 +32,10 @@ import org.slf4j.LoggerFactory;
 /**
  * Generate {@link Change} objects based on the differences between two {@link Atlas}es. The main
  * usage of this class is the {@link AtlasDiff#generateChange()} method.<br>
- * TODO this class uses parallel streams. However, the stream parallelizations all use the same
- * global fork-join pool. This could prove an issue in parallel environments, since one parallel
- * stream will lock all others. Also, there is significant overhead with setting up parallel
- * streams. Benchmarking is needed here.
+ * TODO this class could utilize parallel streams. However, all stream parallelization uses the same
+ * common fork-join pool (https://stackoverflow.com/a/21172732). This could prove an issue in
+ * parallel compute environments, since one parallel stream will lock all others. Also, there is
+ * significant overhead with setting up parallel streams. Benchmarking is needed here.
  *
  * @author lcram
  */
@@ -56,7 +56,7 @@ public class AtlasDiff
     private Set<AtlasEntity> addedEntities;
 
     // Entities that were modified in the after atlas
-    private Set<AtlasEntity> changedEntities;
+    private Set<AtlasEntity> potentiallyModifiedEntities;
 
     /**
      * Construct an {@link AtlasDiff} with a given before {@link Atlas} and after {@link Atlas}. The
@@ -107,14 +107,14 @@ public class AtlasDiff
     {
         this.addedEntities = ConcurrentHashMap.newKeySet();
         this.removedEntities = ConcurrentHashMap.newKeySet();
-        this.changedEntities = ConcurrentHashMap.newKeySet();
+        this.potentiallyModifiedEntities = ConcurrentHashMap.newKeySet();
         final ChangeBuilder changeBuilder = new ChangeBuilder();
 
         /*
          * Check for entities that were removed in the after atlas. If we find any, add them to a
          * removedEntities set for later processing. We will use this set to create FeatureChanges.
          */
-        Iterables.parallelStream(this.before)
+        Iterables.stream(this.before)
                 .filter(beforeEntity -> isEntityMissingFromGivenAtlas(beforeEntity, this.after,
                         this.useGeometryMatching))
                 .forEach(this.removedEntities::add);
@@ -123,27 +123,29 @@ public class AtlasDiff
          * Check for entities that were added in the after atlas. If we find any, add them to a
          * addedEntities set for later processing. We will use this set to create FeatureChanges.
          */
-        Iterables.parallelStream(this.after)
+        Iterables.stream(this.after)
                 .filter(afterEntity -> isEntityMissingFromGivenAtlas(afterEntity, this.before,
                         this.useGeometryMatching))
                 .forEach(this.addedEntities::add);
 
         /*
-         * TODO Check for entities that were changed in the after atlas. If we find any, add them to
-         * a changedEntities set for later processing. We will use this set to create
-         * FeatureChanges. TODO How can we save what was modified, so that we can optionally
-         * construct mostly-shallow FeatureChanges based only on the modification?
+         * Check for entities that were potentially modified in the after atlas (here, a potentially
+         * modified entity is simple any entity what was present in both the before and after
+         * atlas). If we find any, add them to a set for later processing. We will use this set to
+         * create FeatureChanges. TODO does the useGeometryMatching setting still make sense here?
          */
+        Iterables.stream(this.before)
+                .filter(beforeEntity -> !isEntityMissingFromGivenAtlas(beforeEntity, this.after,
+                        this.useGeometryMatching))
+                .forEach(this.potentiallyModifiedEntities::add);
 
         /*
-         * Aggregate the results stored in addedEntities, removedEntities, and modifiedEntities,
-         * creating the ChangeObject if there are necessary changes. The ChangeBuilder add method is
-         * thread-safe, so we are OK to add to it in a parallel stream. TODO also need to pass the
-         * modified list in somewhere.
+         * Aggregate the results stored in the sets, creating the FeatureChange objects if there are
+         * necessary changes.
          */
         createFeatureChangesBasedOnChangedEntities(this.addedEntities, this.removedEntities,
-                this.before, this.after, this.useBloatedEntities, this.saveAllGeometries)
-                        .parallelStream().forEach(changeBuilder::add);
+                this.potentiallyModifiedEntities, this.before, this.after, this.useBloatedEntities,
+                this.saveAllGeometries).stream().forEach(changeBuilder::add);
 
         return changeBuilder.get();
     }
@@ -213,20 +215,23 @@ public class AtlasDiff
 
     private Set<FeatureChange> createFeatureChangesBasedOnChangedEntities(
             final Set<AtlasEntity> addedEntities, final Set<AtlasEntity> removedEntities,
-            final Atlas beforeAtlas, final Atlas afterAtlas, final boolean useBloatedEntities,
+            final Set<AtlasEntity> modifiedEntities, final Atlas beforeAtlas,
+            final Atlas afterAtlas, final boolean useBloatedEntities,
             final boolean saveAllGeometries)
     {
         final Set<FeatureChange> featureChanges = ConcurrentHashMap.newKeySet();
 
-        addedEntities.parallelStream()
+        addedEntities.stream()
                 .map(addedEntity -> createFeatureChangeWithType(addedEntity, afterAtlas,
                         useBloatedEntities, saveAllGeometries, ChangeType.ADD))
                 .forEach(featureChanges::add);
 
-        removedEntities.parallelStream()
+        removedEntities.stream()
                 .map(removedEntity -> createFeatureChangeWithType(removedEntity, beforeAtlas,
                         useBloatedEntities, saveAllGeometries, ChangeType.REMOVE))
                 .forEach(featureChanges::add);
+
+        // TODO handle modified entities
 
         return featureChanges;
     }
