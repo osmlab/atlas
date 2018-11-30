@@ -121,66 +121,66 @@ public final class AtlasDiffHelper
     {
         try
         {
-            final Set<Relation> baseRelations = beforeEntity.relations();
-            final Set<Relation> alterRelations = afterEntity.relations();
-            if (baseRelations.size() != alterRelations.size())
+            final Set<Relation> beforeRelations = beforeEntity.relations();
+            final Set<Relation> afterRelations = afterEntity.relations();
+            if (beforeRelations.size() != afterRelations.size())
             {
                 return true;
             }
-            for (final Relation baseRelation : baseRelations)
+            for (final Relation beforeRelation : beforeRelations)
             {
-                Relation alterRelation = null;
-                for (final Relation alterRelationCandidate : alterRelations)
+                Relation afterRelation = null;
+                for (final Relation afterRelationCandidate : afterRelations)
                 {
-                    if (alterRelationCandidate.getIdentifier() == baseRelation.getIdentifier())
+                    if (afterRelationCandidate.getIdentifier() == beforeRelation.getIdentifier())
                     {
-                        alterRelation = alterRelationCandidate;
+                        afterRelation = afterRelationCandidate;
                         break;
                     }
                 }
-                if (alterRelation == null)
+                if (afterRelation == null)
                 {
                     // The two relation sets are different
                     return true;
                 }
 
                 // Index of the member in the Relation's member list
-                int baseIndex = -1;
-                int alterIndex = -1;
-                final RelationMemberList baseMembers = baseRelation.members();
-                final RelationMemberList alterMembers = alterRelation.members();
-                for (int j = 0; j < baseMembers.size(); j++)
+                int beforeIndex = -1;
+                int afterIndex = -1;
+                final RelationMemberList beforeMembers = beforeRelation.members();
+                final RelationMemberList afterMembers = afterRelation.members();
+                for (int j = 0; j < beforeMembers.size(); j++)
                 {
-                    final RelationMember baseMember = baseMembers.get(j);
-                    if (baseMember.getEntity().getIdentifier() == beforeEntity.getIdentifier())
+                    final RelationMember beforeMember = beforeMembers.get(j);
+                    if (beforeMember.getEntity().getIdentifier() == beforeEntity.getIdentifier())
                     {
-                        baseIndex = j;
+                        beforeIndex = j;
                     }
                 }
-                for (int j = 0; j < alterMembers.size(); j++)
+                for (int j = 0; j < afterMembers.size(); j++)
                 {
-                    final RelationMember alterMember = alterMembers.get(j);
-                    if (alterMember.getEntity().getIdentifier() == beforeEntity.getIdentifier())
+                    final RelationMember afterMember = afterMembers.get(j);
+                    if (afterMember.getEntity().getIdentifier() == beforeEntity.getIdentifier())
                     {
-                        alterIndex = j;
+                        afterIndex = j;
                     }
                 }
-                if (baseIndex < 0 || alterIndex < 0)
+                if (beforeIndex < 0 || afterIndex < 0)
                 {
                     throw new CoreException("Corrupted Atlas dataset.");
                 }
-                if (baseIndex != alterIndex)
+                if (beforeIndex != afterIndex)
                 {
                     // Order changed
                     return true;
                 }
-                if (!baseMembers.get(baseIndex).getRole()
-                        .equals(alterMembers.get(alterIndex).getRole()))
+                if (!beforeMembers.get(beforeIndex).getRole()
+                        .equals(afterMembers.get(afterIndex).getRole()))
                 {
                     // Role changed
                     return true;
                 }
-                if (baseMembers.get(baseIndex).getEntity().getType() != alterMembers.get(alterIndex)
+                if (beforeMembers.get(beforeIndex).getEntity().getType() != afterMembers.get(afterIndex)
                         .getEntity().getType())
                 {
                     // Type changed
@@ -350,29 +350,29 @@ public final class AtlasDiffHelper
         }
     }
 
-    private static boolean differentEdgeSet(final SortedSet<Edge> baseEdges,
-            final SortedSet<Edge> alterEdges, final boolean useGeometryMatching)
+    private static boolean differentEdgeSet(final SortedSet<Edge> beforeEdges,
+            final SortedSet<Edge> afterEdges, final boolean useGeometryMatching)
     {
-        final boolean differentEdgeSetBasic = differentEdgeSetBasic(baseEdges, alterEdges);
-        final boolean differentEdgeSetWithMatch = differentEdgeSetWithMatch(baseEdges, alterEdges,
+        final boolean differentEdgeSetFirstTry = differentEdgeSetLinearCheck(beforeEdges, afterEdges);
+        final boolean differentEdgeDeeperLook = differentEdgeSetQuadraticCheck(beforeEdges, afterEdges,
                 useGeometryMatching);
-        return differentEdgeSetBasic && differentEdgeSetWithMatch;
+        return differentEdgeSetFirstTry && differentEdgeDeeperLook;
     }
 
-    private static boolean differentEdgeSetBasic(final SortedSet<Edge> baseEdges,
-            final SortedSet<Edge> alterEdges)
+    private static boolean differentEdgeSetLinearCheck(final SortedSet<Edge> beforeEdges,
+            final SortedSet<Edge> afterEdges)
     {
-        if (baseEdges.size() != alterEdges.size())
+        if (beforeEdges.size() != afterEdges.size())
         {
             return true;
         }
-        final Iterator<Edge> baseInEdgeIterator = baseEdges.iterator();
-        final Iterator<Edge> alterInEdgeIterator = alterEdges.iterator();
-        for (int i = 0; i < baseEdges.size(); i++)
+        final Iterator<Edge> beforeInEdgeIterator = beforeEdges.iterator();
+        final Iterator<Edge> afterInEdgeIterator = afterEdges.iterator();
+        for (int i = 0; i < beforeEdges.size(); i++)
         {
-            final Edge baseInEdge = baseInEdgeIterator.next();
-            final Edge alterInEdge = alterInEdgeIterator.next();
-            if (baseInEdge.getIdentifier() != alterInEdge.getIdentifier())
+            final Edge beforeInEdge = beforeInEdgeIterator.next();
+            final Edge afterInEdge = afterInEdgeIterator.next();
+            if (beforeInEdge.getIdentifier() != afterInEdge.getIdentifier())
             {
                 return true;
             }
@@ -380,34 +380,34 @@ public final class AtlasDiffHelper
         return false;
     }
 
-    private static boolean differentEdgeSetWithMatch(final Set<Edge> baseEdges,
-            final Set<Edge> alterEdges, final boolean useGeometryMatching)
+    private static boolean differentEdgeSetQuadraticCheck(final Set<Edge> beforeEdges,
+            final Set<Edge> afterEdges, final boolean useGeometryMatching)
     {
-        if (baseEdges.isEmpty() && alterEdges.isEmpty())
+        if (beforeEdges.isEmpty() && afterEdges.isEmpty())
         {
             return false;
         }
-        boolean baseToAlterResult = baseEdges.isEmpty();
-        for (final Edge edge : baseEdges)
+        boolean beforeToAfterResult = beforeEdges.isEmpty();
+        for (final Edge edge : beforeEdges)
         {
-            if (alterEdges.isEmpty()
-                    || !edgeHasGeometryMatchAmong(edge, alterEdges, useGeometryMatching))
+            if (afterEdges.isEmpty()
+                    || !edgeHasGeometryMatchAmong(edge, afterEdges, useGeometryMatching))
             {
-                baseToAlterResult = true;
+                beforeToAfterResult = true;
                 break;
             }
         }
-        boolean alterToBaseResult = alterEdges.isEmpty();
-        for (final Edge edge : alterEdges)
+        boolean afterToBeforeResult = afterEdges.isEmpty();
+        for (final Edge edge : afterEdges)
         {
-            if (baseEdges.isEmpty()
-                    || !edgeHasGeometryMatchAmong(edge, baseEdges, useGeometryMatching))
+            if (beforeEdges.isEmpty()
+                    || !edgeHasGeometryMatchAmong(edge, beforeEdges, useGeometryMatching))
             {
-                alterToBaseResult = true;
+                afterToBeforeResult = true;
                 break;
             }
         }
-        return baseToAlterResult && alterToBaseResult;
+        return beforeToAfterResult && afterToBeforeResult;
     }
 
     private AtlasDiffHelper()

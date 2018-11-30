@@ -228,7 +228,7 @@ public class AtlasDiff
         potentiallyModifiedEntities.stream()
                 .map(modifiedEntity -> createModifyFeatureChanges(modifiedEntity, beforeAtlas,
                         afterAtlas, useGeometryMatching, useBloatedEntities, saveAllGeometries))
-                .forEach(featureChangeSet -> featureChangeSet.forEach(featureChanges::add));
+                .forEach(modifyFeatureChangeSet -> modifyFeatureChangeSet.forEach(featureChanges::add));
 
         return featureChanges;
     }
