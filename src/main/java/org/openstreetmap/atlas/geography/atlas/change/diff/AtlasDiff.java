@@ -249,27 +249,27 @@ public class AtlasDiff
                  */
                 case NODE:
                     featureChange = new FeatureChange(changeType,
-                            BloatedNode.fromNode(atlas.node(addedEntityIdentifier)));
+                            BloatedNode.from(atlas.node(addedEntityIdentifier)));
                     break;
                 case EDGE:
                     featureChange = new FeatureChange(changeType,
-                            BloatedEdge.fromEdge(atlas.edge(addedEntityIdentifier)));
+                            BloatedEdge.from(atlas.edge(addedEntityIdentifier)));
                     break;
                 case POINT:
                     featureChange = new FeatureChange(changeType,
-                            BloatedPoint.fromPoint(atlas.point(addedEntityIdentifier)));
+                            BloatedPoint.from(atlas.point(addedEntityIdentifier)));
                     break;
                 case LINE:
                     featureChange = new FeatureChange(changeType,
-                            BloatedLine.fromLine(atlas.line(addedEntityIdentifier)));
+                            BloatedLine.from(atlas.line(addedEntityIdentifier)));
                     break;
                 case AREA:
                     featureChange = new FeatureChange(changeType,
-                            BloatedArea.fromArea(atlas.area(addedEntityIdentifier)));
+                            BloatedArea.from(atlas.area(addedEntityIdentifier)));
                     break;
                 case RELATION:
                     featureChange = new FeatureChange(changeType,
-                            BloatedRelation.fromRelation(atlas.relation(addedEntityIdentifier)));
+                            BloatedRelation.from(atlas.relation(addedEntityIdentifier)));
                     break;
                 default:
                     throw new CoreException("Unknown item type {}", entity.getType());
