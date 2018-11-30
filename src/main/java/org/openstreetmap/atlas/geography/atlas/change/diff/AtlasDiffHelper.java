@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -24,8 +26,6 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
-import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.geography.matching.PolyLineRoute;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
@@ -43,136 +43,103 @@ public final class AtlasDiffHelper
     private static final Logger logger = LoggerFactory.getLogger(AtlasDiffHelper.class);
 
     public static boolean edgeHasGeometryMatchAmong(final Edge edge,
-            final Iterable<Edge> otherEdges)
+            final Iterable<Edge> otherEdges, final boolean useGeometryMatching)
     {
-        final PolyLine source = edge.asPolyLine();
-        final List<PolyLine> candidates = Iterables.stream(otherEdges).map(Edge::asPolyLine)
-                .collectToList();
-        final Optional<PolyLineRoute> match = source.costDistanceToOneWay(candidates)
-                .match(Distance.ZERO);
-        if (match.isPresent() && match.get().getCost().isLessThanOrEqualTo(Distance.ZERO))
+        if (useGeometryMatching)
         {
-            // The edge was probably split by way sectioning without changing itself.
-            logger.trace("Edge {} from {} has no equal member but found a match with no cost.",
-                    edge, edge.getAtlas().getName());
-            return true;
+            final PolyLine source = edge.asPolyLine();
+            final List<PolyLine> candidates = Iterables.stream(otherEdges).map(Edge::asPolyLine)
+                    .collectToList();
+            final Optional<PolyLineRoute> match = source.costDistanceToOneWay(candidates)
+                    .match(Distance.ZERO);
+            if (match.isPresent() && match.get().getCost().isLessThanOrEqualTo(Distance.ZERO))
+            {
+                // The edge was probably split by way sectioning without changing itself.
+                logger.trace("Edge {} from {} has no equal member but found a match with no cost.",
+                        edge, edge.getAtlas().getName());
+                return true;
+            }
         }
         return false;
     }
 
-    public static boolean edgeHasGeometryMatchInAtlas(final Edge edge, final Atlas atlas)
+    public static boolean edgeHasGeometryMatchInAtlas(final Edge edge, final Atlas atlas,
+            final boolean useGeometryMatching)
     {
-        final Iterable<Edge> intersectingEdgesWithSameOSMIdentifier = atlas.edgesIntersecting(
-                edge.bounds(),
-                otherEdge -> edge.getOsmIdentifier() == otherEdge.getOsmIdentifier());
-        return edgeHasGeometryMatchAmong(edge, intersectingEdgesWithSameOSMIdentifier);
+        if (useGeometryMatching)
+        {
+            final Iterable<Edge> intersectingEdgesWithSameOSMIdentifier = atlas.edgesIntersecting(
+                    edge.bounds(),
+                    otherEdge -> edge.getOsmIdentifier() == otherEdge.getOsmIdentifier());
+            return edgeHasGeometryMatchAmong(edge, intersectingEdgesWithSameOSMIdentifier,
+                    useGeometryMatching);
+        }
+        return false;
     }
 
     public static Optional<FeatureChange> getNodeChangeIfNecessary(final Node beforeNode,
-            final Node afterNode)
+            final Node afterNode, final boolean useGeometryMatching)
     {
         try
         {
+            boolean featureChangeWouldBeUseful = false;
+            final BloatedNode bloatedNode = BloatedNode.shallowFrom(afterNode);
             if (!beforeNode.getLocation().equals(afterNode.getLocation()))
             {
-                return true;
+                bloatedNode.withLocation(afterNode.getLocation());
+                featureChangeWouldBeUseful = true;
             }
-            if (differentEdgeSet(beforeNode.inEdges(), afterNode.inEdges()))
+            if (differentEdgeSet(beforeNode.inEdges(), afterNode.inEdges(), useGeometryMatching))
             {
-                return true;
+                bloatedNode.withInEdgeIdentifiers(new TreeSet<>(afterNode.inEdges().stream()
+                        .map(edge -> edge.getIdentifier()).collect(Collectors.toSet())));
+                featureChangeWouldBeUseful = true;
             }
-            if (differentEdgeSet(beforeNode.outEdges(), afterNode.outEdges()))
+            if (differentEdgeSet(beforeNode.outEdges(), afterNode.outEdges(), useGeometryMatching))
             {
-                return true;
+                bloatedNode.withOutEdgeIdentifiers(new TreeSet<>(afterNode.outEdges().stream()
+                        .map(edge -> edge.getIdentifier()).collect(Collectors.toSet())));
+                featureChangeWouldBeUseful = true;
             }
-            return Optional.empty();
+            if (featureChangeWouldBeUseful)
+            {
+                return Optional.of(new FeatureChange(ChangeType.ADD, bloatedNode));
+            }
         }
         catch (final Exception exception)
         {
             throw new CoreException("Unable to compare nodes {} and {}", beforeNode, afterNode,
                     exception);
         }
+        return Optional.empty();
     }
 
-    public static Optional<FeatureChange> getParentRelationMembershipChangeIfNecessary(
-            final AtlasEntity beforeEntity, final AtlasEntity afterEntity)
-    {
-        try
-        {
-            final Set<Relation> beforeRelations = beforeEntity.relations();
-            final Set<Relation> afterRelations = afterEntity.relations();
-            if (beforeRelations.size() != afterRelations.size())
-            {
-                return true;
-            }
-            for (final Relation beforeRelation : beforeRelations)
-            {
-                Relation afterRelation = null;
-                for (final Relation alterRelationCandidate : afterRelations)
-                {
-                    if (alterRelationCandidate.getIdentifier() == beforeRelation.getIdentifier())
-                    {
-                        afterRelation = alterRelationCandidate;
-                        break;
-                    }
-                }
-                if (afterRelation == null)
-                {
-                    // The two relation sets are different
-                    return true;
-                }
-
-                // Index of the member in the Relation's member list
-                int beforeIndex = -1;
-                int afterIndex = -1;
-                final RelationMemberList beforeMembers = beforeRelation.members();
-                final RelationMemberList afterMembers = afterRelation.members();
-                for (int j = 0; j < beforeMembers.size(); j++)
-                {
-                    final RelationMember baseMember = beforeMembers.get(j);
-                    if (baseMember.getEntity().getIdentifier() == beforeEntity.getIdentifier())
-                    {
-                        beforeIndex = j;
-                    }
-                }
-                for (int j = 0; j < afterMembers.size(); j++)
-                {
-                    final RelationMember alterMember = afterMembers.get(j);
-                    if (alterMember.getEntity().getIdentifier() == beforeEntity.getIdentifier())
-                    {
-                        afterIndex = j;
-                    }
-                }
-                if (beforeIndex < 0 || afterIndex < 0)
-                {
-                    throw new CoreException("Corrupted Atlas dataset.");
-                }
-                if (beforeIndex != afterIndex)
-                {
-                    // Order changed
-                    return true;
-                }
-                if (!beforeMembers.get(beforeIndex).getRole()
-                        .equals(afterMembers.get(afterIndex).getRole()))
-                {
-                    // Role changed
-                    return true;
-                }
-                if (beforeMembers.get(beforeIndex).getEntity().getType() != afterMembers
-                        .get(afterIndex).getEntity().getType())
-                {
-                    // Type changed
-                    return true;
-                }
-            }
-            return Optional.empty();
-        }
-        catch (final Exception exception)
-        {
-            throw new CoreException("Unable to compare relations for {} and {}", beforeEntity,
-                    afterEntity, exception);
-        }
-    }
+    /*
+     * public static Optional<FeatureChange> getParentRelationMembershipChangeIfNecessary( final
+     * AtlasEntity beforeEntity, final AtlasEntity afterEntity) { try { final Set<Relation>
+     * beforeRelations = beforeEntity.relations(); final Set<Relation> afterRelations =
+     * afterEntity.relations(); if (beforeRelations.size() != afterRelations.size()) { return true;
+     * } for (final Relation beforeRelation : beforeRelations) { Relation afterRelation = null; for
+     * (final Relation alterRelationCandidate : afterRelations) { if
+     * (alterRelationCandidate.getIdentifier() == beforeRelation.getIdentifier()) { afterRelation =
+     * alterRelationCandidate; break; } } if (afterRelation == null) { // The two relation sets are
+     * different return true; } // Index of the member in the Relation's member list int beforeIndex
+     * = -1; int afterIndex = -1; final RelationMemberList beforeMembers = beforeRelation.members();
+     * final RelationMemberList afterMembers = afterRelation.members(); for (int j = 0; j <
+     * beforeMembers.size(); j++) { final RelationMember baseMember = beforeMembers.get(j); if
+     * (baseMember.getEntity().getIdentifier() == beforeEntity.getIdentifier()) { beforeIndex = j; }
+     * } for (int j = 0; j < afterMembers.size(); j++) { final RelationMember alterMember =
+     * afterMembers.get(j); if (alterMember.getEntity().getIdentifier() ==
+     * beforeEntity.getIdentifier()) { afterIndex = j; } } if (beforeIndex < 0 || afterIndex < 0) {
+     * throw new CoreException("Corrupted Atlas dataset."); } if (beforeIndex != afterIndex) { //
+     * Order changed return true; } if (!beforeMembers.get(beforeIndex).getRole()
+     * .equals(afterMembers.get(afterIndex).getRole())) { // Role changed return true; } if
+     * (beforeMembers.get(beforeIndex).getEntity().getType() != afterMembers
+     * .get(afterIndex).getEntity().getType()) { // Type changed return true; } } return
+     * Optional.empty(); } catch (final Exception exception) { throw new
+     * CoreException("Unable to compare relations for {} and {}", beforeEntity, afterEntity,
+     * exception); } }
+     */
 
     public static Optional<FeatureChange> getTagChangeIfNecessary(final AtlasEntity beforeEntity,
             final AtlasEntity entity)
@@ -327,20 +294,16 @@ public final class AtlasDiffHelper
         }
     }
 
-    private AtlasDiffHelper()
-    {
-
-    }
-
-    private boolean differentEdgeSet(final SortedSet<Edge> baseEdges,
-            final SortedSet<Edge> alterEdges)
+    private static boolean differentEdgeSet(final SortedSet<Edge> baseEdges,
+            final SortedSet<Edge> alterEdges, final boolean useGeometryMatching)
     {
         final boolean differentEdgeSetBasic = differentEdgeSetBasic(baseEdges, alterEdges);
-        final boolean differentEdgeSetWithMatch = differentEdgeSetWithMatch(baseEdges, alterEdges);
+        final boolean differentEdgeSetWithMatch = differentEdgeSetWithMatch(baseEdges, alterEdges,
+                useGeometryMatching);
         return differentEdgeSetBasic && differentEdgeSetWithMatch;
     }
 
-    private boolean differentEdgeSetBasic(final SortedSet<Edge> baseEdges,
+    private static boolean differentEdgeSetBasic(final SortedSet<Edge> baseEdges,
             final SortedSet<Edge> alterEdges)
     {
         if (baseEdges.size() != alterEdges.size())
@@ -361,7 +324,8 @@ public final class AtlasDiffHelper
         return false;
     }
 
-    private boolean differentEdgeSetWithMatch(final Set<Edge> baseEdges, final Set<Edge> alterEdges)
+    private static boolean differentEdgeSetWithMatch(final Set<Edge> baseEdges,
+            final Set<Edge> alterEdges, final boolean useGeometryMatching)
     {
         if (baseEdges.isEmpty() && alterEdges.isEmpty())
         {
@@ -370,7 +334,8 @@ public final class AtlasDiffHelper
         boolean baseToAlterResult = baseEdges.isEmpty();
         for (final Edge edge : baseEdges)
         {
-            if (alterEdges.isEmpty() || !edgeHasGeometryMatchAmong(edge, alterEdges))
+            if (alterEdges.isEmpty()
+                    || !edgeHasGeometryMatchAmong(edge, alterEdges, useGeometryMatching))
             {
                 baseToAlterResult = true;
                 break;
@@ -379,12 +344,18 @@ public final class AtlasDiffHelper
         boolean alterToBaseResult = alterEdges.isEmpty();
         for (final Edge edge : alterEdges)
         {
-            if (baseEdges.isEmpty() || !edgeHasGeometryMatchAmong(edge, baseEdges))
+            if (baseEdges.isEmpty()
+                    || !edgeHasGeometryMatchAmong(edge, baseEdges, useGeometryMatching))
             {
                 alterToBaseResult = true;
                 break;
             }
         }
         return baseToAlterResult && alterToBaseResult;
+    }
+
+    private AtlasDiffHelper()
+    {
+
     }
 }

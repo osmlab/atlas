@@ -280,16 +280,18 @@ public class AtlasDiff
         /*
          * Detect if the entity changed its parent relation membership.
          */
-        AtlasDiffHelper.getParentRelationMembershipChangeIfNecessary(beforeEntity, afterEntity)
-                .ifPresent(featureChanges::add);
+        /*
+         * AtlasDiffHelper.getParentRelationMembershipChangeIfNecessary(beforeEntity, afterEntity)
+         * .ifPresent(featureChanges::add);
+         */
 
         /*
          * Detect if the entities were Nodes and some Node properties changed.
          */
         if (entity instanceof Node)
         {
-            AtlasDiffHelper.getNodeChangeIfNecessary((Node) beforeEntity, (Node) afterEntity)
-                    .ifPresent(featureChanges::add);
+            AtlasDiffHelper.getNodeChangeIfNecessary((Node) beforeEntity, (Node) afterEntity,
+                    useGeometryMatching).ifPresent(featureChanges::add);
         }
 
         return featureChanges;
@@ -372,19 +374,16 @@ public class AtlasDiff
          */
         if (entity.getType().entityForIdentifier(atlasToCheck, entity.getIdentifier()) == null)
         {
-            if (useGeometryMatching)
+            /*
+             * We made it here because we could not find an exact identifier match for "entity" in
+             * the atlasToCheck. However, it is possible that the edge geometry is there, just with
+             * a different ID. So if the user set to useGeometryMatching, let's check to see if the
+             * edge geometry is there, based on the useGeometryMatching setting.
+             */
+            if (entity instanceof Edge && AtlasDiffHelper.edgeHasGeometryMatchInAtlas((Edge) entity,
+                    atlasToCheck, useGeometryMatching))
             {
-                /*
-                 * We made it here because we could not find an exact identifier match for "entity"
-                 * in the atlasToCheck. However, it is possible that the edge geometry is there,
-                 * just with a different ID. So if the user set to useGeometryMatching, let's check
-                 * to see if the edge geometry is there.
-                 */
-                if (entity instanceof Edge
-                        && AtlasDiffHelper.edgeHasGeometryMatchInAtlas((Edge) entity, atlasToCheck))
-                {
-                    return false;
-                }
+                return false;
             }
 
             /*
