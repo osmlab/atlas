@@ -38,7 +38,7 @@ public class ChangeTest
     public void testAddSameIdentifier()
     {
         this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("already has a feature change");
+        this.expectedException.expectMessage("Cannot merge two feature changes");
 
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
                 new BloatedArea(123L, null, Maps.hashMap(), null));

@@ -132,9 +132,8 @@ public class Change implements Located, Serializable
         {
             final int existingIndex = this.identifierToIndex.get(key);
             final FeatureChange existing = this.featureChanges.get(existingIndex);
-            logger.warn(
-                    "\"Change\" already has a feature change {}. Adding {} triggers a merge attempt!",
-                    existing, featureChange);
+            logger.warn("Change already has a {}. Adding {} triggered a merge attempt!", existing,
+                    featureChange);
             chosen = existing.merge(featureChange);
             this.featureChanges.set(existingIndex, chosen);
         }

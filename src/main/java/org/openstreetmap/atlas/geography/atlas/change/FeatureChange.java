@@ -348,13 +348,16 @@ public class FeatureChange implements Located, Serializable
         final Long mergedOsmRelationIdentifier = mergedMember("osmRelationIdentifier",
                 thisReference, thatReference, entity -> ((Relation) entity).getOsmIdentifier(),
                 Optional.empty());
-        final List<Long> mergedAllRelationsWithSameOsmIdentifier = mergedMember(
+        final Set<Long> mergedAllRelationsWithSameOsmIdentifierSet = mergedMember(
                 "allRelationsWithSameOsmIdentifier", thisReference, thatReference,
                 atlasEntity -> ((Relation) atlasEntity).allRelationsWithSameOsmIdentifier() == null
                         ? null
                         : ((Relation) atlasEntity).allRelationsWithSameOsmIdentifier().stream()
                                 .map(Relation::getIdentifier).collect(Collectors.toSet()),
-                Optional.of(directReferenceMerger)).stream().collect(Collectors.toList());
+                Optional.of(directReferenceMerger));
+        final List<Long> mergedAllRelationsWithSameOsmIdentifier = mergedAllRelationsWithSameOsmIdentifierSet == null
+                ? null
+                : mergedAllRelationsWithSameOsmIdentifierSet.stream().collect(Collectors.toList());
         final RelationBean mergedAllKnownMembers = mergedMember("allKnownOsmMembers", thisReference,
                 thatReference,
                 entity -> ((Relation) entity).allKnownOsmMembers() == null ? null
