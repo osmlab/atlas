@@ -114,15 +114,9 @@ public final class AtlasDiffHelper
     }
 
     public static Optional<FeatureChange> getParentRelationMembershipChangeIfNecessary(
-            final AtlasEntity beforeEntity, final AtlasEntity afterEntity)
+            final AtlasEntity beforeEntity, final AtlasEntity afterEntity, final Atlas beforeAtlas,
+            final Atlas afterAtlas)
     {
-        /*
-         * TODO this method may generate redundant FeatureChanges in some cases. For instance, if a
-         * feature's parent relation changes because the entire relation was removed, we won't need
-         * to manually update the feature's parentRelations set. However, we do need to remove it if
-         * the feature was simply removed as a member of the relation, with the relation remaining
-         * preset and valid (since it still has other features).
-         */
         try
         {
             final Set<Long> beforeRelationIdentifiers = beforeEntity.relations().stream()
@@ -135,61 +129,68 @@ public final class AtlasDiffHelper
              * features had their roles in the relations altered, this will be caught when we
              * actually diff the relations.
              */
-            boolean relationSetsWereDifferent = false;
             if (!beforeRelationIdentifiers.equals(afterRelationIdentifiers))
             {
-                relationSetsWereDifferent = true;
+                return Optional.empty();
             }
 
-            if (relationSetsWereDifferent)
+            /*
+             * TODO Now that we confirmed the relation sets are different, we need to make sure this
+             * is not because a relation was added to or removed from the after atlas. In that case,
+             * the relation's ADD/REMOVE diff will take care of this feature's relation member set
+             * for us. TODO This actually may not be necessary. We can just save redundant diffs, it
+             * won't negatively impact anything. Plus, it's helpful for visualization.
+             */
+
+            /*
+             * OK! We made it here because we have finally confirmed that the diff is due to a
+             * simple update of a relation member list, where the relation was not
+             * added/removed/shallow-pruned.
+             */
+            FeatureChange featureChange;
+            switch (afterEntity.getType())
             {
-                FeatureChange featureChange;
-                switch (afterEntity.getType())
-                {
-                    case AREA:
-                        featureChange = new FeatureChange(ChangeType.ADD,
-                                BloatedArea.shallowFrom((Area) afterEntity)
-                                        .withRelationIdentifiers(afterRelationIdentifiers));
-                        break;
-                    case EDGE:
-                        featureChange = new FeatureChange(ChangeType.ADD,
-                                BloatedEdge.shallowFrom((Edge) afterEntity)
-                                        .withRelationIdentifiers(afterRelationIdentifiers));
-                        break;
-                    case LINE:
-                        featureChange = new FeatureChange(ChangeType.ADD,
-                                BloatedLine.shallowFrom((Line) afterEntity)
-                                        .withRelationIdentifiers(afterRelationIdentifiers));
-                        break;
-                    case NODE:
-                        featureChange = new FeatureChange(ChangeType.ADD,
-                                BloatedNode.shallowFrom((Node) afterEntity)
-                                        .withRelationIdentifiers(afterRelationIdentifiers));
-                        break;
-                    case POINT:
-                        featureChange = new FeatureChange(ChangeType.ADD,
-                                BloatedPoint.shallowFrom((Point) afterEntity)
-                                        .withRelationIdentifiers(afterRelationIdentifiers));
-                        break;
-                    case RELATION:
-                        featureChange = new FeatureChange(ChangeType.ADD,
-                                BloatedRelation.shallowFrom((Relation) afterEntity)
-                                        .withRelationIdentifiers(afterRelationIdentifiers));
-                        break;
-                    default:
-                        throw new CoreException("Unknown item type {}", afterEntity.getType());
-                }
-                // featureChange should never be null
-                return Optional.of(featureChange);
+                case AREA:
+                    featureChange = new FeatureChange(ChangeType.ADD,
+                            BloatedArea.shallowFrom((Area) afterEntity)
+                                    .withRelationIdentifiers(afterRelationIdentifiers));
+                    break;
+                case EDGE:
+                    featureChange = new FeatureChange(ChangeType.ADD,
+                            BloatedEdge.shallowFrom((Edge) afterEntity)
+                                    .withRelationIdentifiers(afterRelationIdentifiers));
+                    break;
+                case LINE:
+                    featureChange = new FeatureChange(ChangeType.ADD,
+                            BloatedLine.shallowFrom((Line) afterEntity)
+                                    .withRelationIdentifiers(afterRelationIdentifiers));
+                    break;
+                case NODE:
+                    featureChange = new FeatureChange(ChangeType.ADD,
+                            BloatedNode.shallowFrom((Node) afterEntity)
+                                    .withRelationIdentifiers(afterRelationIdentifiers));
+                    break;
+                case POINT:
+                    featureChange = new FeatureChange(ChangeType.ADD,
+                            BloatedPoint.shallowFrom((Point) afterEntity)
+                                    .withRelationIdentifiers(afterRelationIdentifiers));
+                    break;
+                case RELATION:
+                    featureChange = new FeatureChange(ChangeType.ADD,
+                            BloatedRelation.shallowFrom((Relation) afterEntity)
+                                    .withRelationIdentifiers(afterRelationIdentifiers));
+                    break;
+                default:
+                    throw new CoreException("Unknown item type {}", afterEntity.getType());
             }
+            // featureChange should never be null
+            return Optional.of(featureChange);
         }
         catch (final Exception exception)
         {
             throw new CoreException("Unable to compare relations for {} and {}", beforeEntity,
                     afterEntity, exception);
         }
-
-        return Optional.empty();
     }
 
     public static Optional<FeatureChange> getTagChangeIfNecessary(final AtlasEntity beforeEntity,

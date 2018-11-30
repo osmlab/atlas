@@ -228,7 +228,8 @@ public class AtlasDiff
         potentiallyModifiedEntities.stream()
                 .map(modifiedEntity -> createModifyFeatureChanges(modifiedEntity, beforeAtlas,
                         afterAtlas, useGeometryMatching, useBloatedEntities, saveAllGeometries))
-                .forEach(modifyFeatureChangeSet -> modifyFeatureChangeSet.forEach(featureChanges::add));
+                .forEach(modifyFeatureChangeSet -> modifyFeatureChangeSet
+                        .forEach(featureChanges::add));
 
         return featureChanges;
     }
@@ -280,7 +281,8 @@ public class AtlasDiff
         /*
          * Detect if the entity changed its parent relation membership.
          */
-        AtlasDiffHelper.getParentRelationMembershipChangeIfNecessary(beforeEntity, afterEntity)
+        AtlasDiffHelper
+                .getParentRelationMembershipChangeIfNecessary(beforeEntity, afterEntity, afterAtlas)
                 .ifPresent(featureChanges::add);
 
         /*
