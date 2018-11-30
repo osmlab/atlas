@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.change.diff;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -20,8 +21,12 @@ import org.openstreetmap.atlas.geography.atlas.change.ChangeAtlas;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeBuilder;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.Line;
+import org.openstreetmap.atlas.geography.atlas.items.Node;
+import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.matching.PolyLineRoute;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -32,10 +37,13 @@ import org.slf4j.LoggerFactory;
 /**
  * Generate {@link Change} objects based on the differences between two {@link Atlas}es. The main
  * usage of this class is the {@link AtlasDiff#generateChange()} method.<br>
+ * <br>
  * TODO this class could utilize parallel streams. However, all stream parallelization uses the same
  * common fork-join pool (https://stackoverflow.com/a/21172732). This could prove an issue in
  * parallel compute environments, since one parallel stream will lock all others. Also, there is
- * significant overhead with setting up parallel streams. Benchmarking is needed here.
+ * significant overhead with setting up parallel streams. Benchmarking is needed here. If we do
+ * decide to use parallelization, we will need to convert the data structures to their
+ * concurrency-safe versions.
  *
  * @author lcram
  */
@@ -144,8 +152,9 @@ public class AtlasDiff
          * necessary changes.
          */
         createFeatureChangesBasedOnChangedEntities(this.addedEntities, this.removedEntities,
-                this.potentiallyModifiedEntities, this.before, this.after, this.useBloatedEntities,
-                this.saveAllGeometries).stream().forEach(changeBuilder::add);
+                this.potentiallyModifiedEntities, this.before, this.after, this.useGeometryMatching,
+                this.useBloatedEntities, this.saveAllGeometries).stream()
+                        .forEach(changeBuilder::add);
 
         return changeBuilder.get();
     }
@@ -215,66 +224,195 @@ public class AtlasDiff
 
     private Set<FeatureChange> createFeatureChangesBasedOnChangedEntities(
             final Set<AtlasEntity> addedEntities, final Set<AtlasEntity> removedEntities,
-            final Set<AtlasEntity> modifiedEntities, final Atlas beforeAtlas,
-            final Atlas afterAtlas, final boolean useBloatedEntities,
-            final boolean saveAllGeometries)
+            final Set<AtlasEntity> potentiallyModifiedEntities, final Atlas beforeAtlas,
+            final Atlas afterAtlas, final boolean useGeometryMatching,
+            final boolean useBloatedEntities, final boolean saveAllGeometries)
     {
-        final Set<FeatureChange> featureChanges = ConcurrentHashMap.newKeySet();
+        final Set<FeatureChange> featureChanges = new HashSet<>();
 
         addedEntities.stream()
-                .map(addedEntity -> createFeatureChangeWithType(addedEntity, afterAtlas,
+                .map(addedEntity -> createSimpleFeatureChangeWithType(addedEntity, afterAtlas,
                         useBloatedEntities, saveAllGeometries, ChangeType.ADD))
                 .forEach(featureChanges::add);
 
         removedEntities.stream()
-                .map(removedEntity -> createFeatureChangeWithType(removedEntity, beforeAtlas,
+                .map(removedEntity -> createSimpleFeatureChangeWithType(removedEntity, beforeAtlas,
                         useBloatedEntities, saveAllGeometries, ChangeType.REMOVE))
                 .forEach(featureChanges::add);
 
-        // TODO handle modified entities
+        potentiallyModifiedEntities.stream()
+                .map(modifiedEntity -> createModifyFeatureChange(modifiedEntity, beforeAtlas,
+                        afterAtlas, useGeometryMatching, useBloatedEntities, saveAllGeometries))
+                .forEach(featureChanges::add);
 
         return featureChanges;
     }
 
-    private FeatureChange createFeatureChangeWithType(final AtlasEntity entity, final Atlas atlas,
-            final boolean useBloatedEntities, final boolean saveAllGeometries,
+    /**
+     * Create a modify {@link FeatureChange} ie. an ADD that changes an existing feature.<br>
+     * TODO handle case where user wants to use bloated entities
+     *
+     * @param entity
+     * @param beforeAtlas
+     * @param afterAtlas
+     * @param useGeometryMatching
+     * @param useBloatedEntities
+     * @param saveAllGeometries
+     * @return the feature change
+     */
+    private FeatureChange createModifyFeatureChange(final AtlasEntity entity,
+            final Atlas beforeAtlas, final Atlas afterAtlas, final boolean useGeometryMatching,
+            final boolean useBloatedEntities, final boolean saveAllGeometries)
+    {
+        /*
+         * TODO currently this method is bad, because it will generate an ADD for any feature shared
+         * in both atlases, even if the feature did not change!
+         */
+
+        final AtlasEntity beforeEntity = entity.getType().entityForIdentifier(this.before,
+                entity.getIdentifier());
+        final AtlasEntity afterEntity = entity.getType().entityForIdentifier(this.after,
+                entity.getIdentifier());
+
+        if (beforeEntity == null || afterEntity == null)
+        {
+            throw new CoreException("Unexpected null entity. This should never happen.");
+        }
+
+        /*
+         * TODO determine if the entities are actually different in any relevant way. If so, then we
+         * can decide how to create the feature change.
+         */
+
+        return new FeatureChange(ChangeType.ADD, entity);
+    }
+
+    /**
+     * Create a simple {@link FeatureChange} ie. a REMOVE, or an ADD that is adding a new feature
+     * (as opposed to modifying an existing feature). The feature change will be created from the
+     * given entity in the given atlas.
+     *
+     * @param entity
+     * @param atlas
+     * @param useBloatedEntities
+     * @param saveAllGeometries
+     * @param changeType
+     * @return the feature change
+     */
+    private FeatureChange createSimpleFeatureChangeWithType(final AtlasEntity entity,
+            final Atlas atlas, final boolean useBloatedEntities, final boolean saveAllGeometries,
             final ChangeType changeType)
     {
         FeatureChange featureChange;
-        final Long addedEntityIdentifier = entity.getIdentifier();
+        final Long entityIdentifier = entity.getIdentifier();
         if (useBloatedEntities)
         {
             switch (entity.getType())
             {
                 /*
-                 * TODO these cases all use the deep Bloated copy. In the case of changeType=REMOVE,
-                 * we want to use a shallow copy. And we also need to be able to control this more
-                 * granularly, in the case of an ADD that is a modify. Additionally, we are
-                 * currently ignoring both the useBloatedEntities and the saveAllGeometries flags.
+                 * In the case of changeType=REMOVE, we want to use a shallow copy. We also respect
+                 * both the useBloatedEntities and the saveAllGeometries flags.
+                 */
+                /*
+                 * TODO there is a ton of repeated code here. Refactor ideas?
                  */
                 case NODE:
-                    featureChange = new FeatureChange(changeType,
-                            BloatedNode.from(atlas.node(addedEntityIdentifier)));
+                    if (changeType == ChangeType.REMOVE)
+                    {
+                        BloatedNode bloatedNode = BloatedNode
+                                .shallowFrom(atlas.node(entityIdentifier));
+                        if (saveAllGeometries)
+                        {
+                            bloatedNode = bloatedNode.withLocation(((Node) entity).getLocation());
+                        }
+                        featureChange = new FeatureChange(changeType, bloatedNode);
+                    }
+                    else
+                    {
+                        featureChange = new FeatureChange(changeType,
+                                BloatedNode.from(atlas.node(entityIdentifier)));
+                    }
                     break;
                 case EDGE:
-                    featureChange = new FeatureChange(changeType,
-                            BloatedEdge.from(atlas.edge(addedEntityIdentifier)));
+                    if (changeType == ChangeType.REMOVE)
+                    {
+                        BloatedEdge bloatedEdge = BloatedEdge
+                                .shallowFrom(atlas.edge(entityIdentifier));
+                        if (saveAllGeometries)
+                        {
+                            bloatedEdge = bloatedEdge.withPolyLine(((Edge) entity).asPolyLine());
+                        }
+                        featureChange = new FeatureChange(changeType, bloatedEdge);
+                    }
+                    else
+                    {
+                        featureChange = new FeatureChange(changeType,
+                                BloatedEdge.from(atlas.edge(entityIdentifier)));
+                    }
                     break;
                 case POINT:
-                    featureChange = new FeatureChange(changeType,
-                            BloatedPoint.from(atlas.point(addedEntityIdentifier)));
+                    if (changeType == ChangeType.REMOVE)
+                    {
+                        BloatedPoint bloatedPoint = BloatedPoint
+                                .shallowFrom(atlas.point(entityIdentifier));
+                        if (saveAllGeometries)
+                        {
+                            bloatedPoint = bloatedPoint
+                                    .withLocation(((Point) entity).getLocation());
+                        }
+                        featureChange = new FeatureChange(changeType, bloatedPoint);
+                    }
+                    else
+                    {
+                        featureChange = new FeatureChange(changeType,
+                                BloatedPoint.from(atlas.point(entityIdentifier)));
+                    }
                     break;
                 case LINE:
-                    featureChange = new FeatureChange(changeType,
-                            BloatedLine.from(atlas.line(addedEntityIdentifier)));
+                    if (changeType == ChangeType.REMOVE)
+                    {
+                        BloatedLine bloatedLine = BloatedLine
+                                .shallowFrom(atlas.line(entityIdentifier));
+                        if (saveAllGeometries)
+                        {
+                            bloatedLine = bloatedLine.withPolyLine(((Line) entity).asPolyLine());
+                        }
+                        featureChange = new FeatureChange(changeType, bloatedLine);
+                    }
+                    else
+                    {
+                        featureChange = new FeatureChange(changeType,
+                                BloatedLine.from(atlas.line(entityIdentifier)));
+                    }
                     break;
                 case AREA:
-                    featureChange = new FeatureChange(changeType,
-                            BloatedArea.from(atlas.area(addedEntityIdentifier)));
+                    if (changeType == ChangeType.REMOVE)
+                    {
+                        BloatedArea bloatedArea = BloatedArea
+                                .shallowFrom(atlas.area(entityIdentifier));
+                        if (saveAllGeometries)
+                        {
+                            bloatedArea = bloatedArea.withPolygon(((Area) entity).asPolygon());
+                        }
+                        featureChange = new FeatureChange(changeType, bloatedArea);
+                    }
+                    else
+                    {
+                        featureChange = new FeatureChange(changeType,
+                                BloatedArea.from(atlas.area(entityIdentifier)));
+                    }
                     break;
                 case RELATION:
-                    featureChange = new FeatureChange(changeType,
-                            BloatedRelation.from(atlas.relation(addedEntityIdentifier)));
+                    if (changeType == ChangeType.REMOVE)
+                    {
+                        featureChange = new FeatureChange(changeType,
+                                BloatedRelation.shallowFrom(atlas.relation(entityIdentifier)));
+                    }
+                    else
+                    {
+                        featureChange = new FeatureChange(changeType,
+                                BloatedRelation.from(atlas.relation(entityIdentifier)));
+                    }
                     break;
                 default:
                     throw new CoreException("Unknown item type {}", entity.getType());
