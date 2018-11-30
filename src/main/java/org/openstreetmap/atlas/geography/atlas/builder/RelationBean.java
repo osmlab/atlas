@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -33,6 +35,19 @@ public class RelationBean implements Serializable, Iterable<RelationBeanItem>
             this.type = type;
         }
 
+        @Override
+        public boolean equals(final Object other)
+        {
+            if (other instanceof RelationBeanItem)
+            {
+                final RelationBeanItem that = (RelationBeanItem) other;
+                return this.getIdentifier() == that.getIdentifier()
+                        && this.getRole().equals(that.getRole())
+                        && this.getType() == that.getType();
+            }
+            return false;
+        }
+
         public Long getIdentifier()
         {
             return this.identifier;
@@ -46,6 +61,12 @@ public class RelationBean implements Serializable, Iterable<RelationBeanItem>
         public ItemType getType()
         {
             return this.type;
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return Objects.hash(this.identifier, this.role, this.type);
         }
     }
 
@@ -85,6 +106,19 @@ public class RelationBean implements Serializable, Iterable<RelationBeanItem>
                     && Iterables.equals(this.getMemberTypes(), that.getMemberTypes());
         }
         return false;
+    }
+
+    public Optional<RelationBeanItem> getItemFor(final long identifier, final ItemType type)
+    {
+        for (int index = 0; index < this.memberIdentifiers.size(); index++)
+        {
+            if (this.memberIdentifiers.get(index) == identifier
+                    && this.memberTypes.get(index) == type)
+            {
+                return Optional.of(getItemFor(index));
+            }
+        }
+        return Optional.empty();
     }
 
     public List<Long> getMemberIdentifiers()
@@ -142,5 +176,15 @@ public class RelationBean implements Serializable, Iterable<RelationBeanItem>
     {
         return "RelationBean [memberIdentifiers=" + this.memberIdentifiers + ", memberRoles="
                 + this.memberRoles + ", memberTypes=" + this.memberTypes + "]";
+    }
+
+    private RelationBeanItem getItemFor(final int index)
+    {
+        if (index < 0 || index > this.memberIdentifiers.size())
+        {
+            throw new CoreException("Invalid index {}", index);
+        }
+        return new RelationBeanItem(this.memberIdentifiers.get(index), this.memberRoles.get(index),
+                this.memberTypes.get(index));
     }
 }
