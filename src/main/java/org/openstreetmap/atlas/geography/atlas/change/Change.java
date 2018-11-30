@@ -9,13 +9,14 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.tuples.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A change that can be applied to an {@link Atlas} to generate a {@link ChangeAtlas}.
@@ -27,6 +28,7 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
 public class Change implements Located, Serializable
 {
     private static final long serialVersionUID = 1048481626851547987L;
+    private static final Logger logger = LoggerFactory.getLogger(Change.class);
     private static final AtomicInteger CHANGE_IDENTIFIER_FACTORY = new AtomicInteger();
 
     private final List<FeatureChange> featureChanges;
@@ -120,18 +122,23 @@ public class Change implements Located, Serializable
         final int currentIndex = this.featureChanges.size();
         final Tuple<ItemType, Long> key = new Tuple<>(featureChange.getItemType(),
                 featureChange.getIdentifier());
+        FeatureChange chosen = featureChange;
         if (!this.identifierToIndex.containsKey(key))
         {
             this.identifierToIndex.put(key, currentIndex);
+            this.featureChanges.add(featureChange);
         }
         else
         {
-            throw new CoreException(
-                    "\"Change\" already has a feature change {}. Adding {} is not allowed.",
-                    this.featureChanges.get(this.identifierToIndex.get(key)), featureChange);
+            final int existingIndex = this.identifierToIndex.get(key);
+            final FeatureChange existing = this.featureChanges.get(existingIndex);
+            logger.warn(
+                    "\"Change\" already has a feature change {}. Adding {} triggers a merge attempt!",
+                    existing, featureChange);
+            chosen = existing.merge(featureChange);
+            this.featureChanges.set(existingIndex, chosen);
         }
-        this.featureChanges.add(featureChange);
-        final Rectangle featureBounds = featureChange.bounds();
+        final Rectangle featureBounds = chosen.bounds();
         if (this.bounds != null)
         {
             this.bounds = this.bounds.combine(featureBounds);

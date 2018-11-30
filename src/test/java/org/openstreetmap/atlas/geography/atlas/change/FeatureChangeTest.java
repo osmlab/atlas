@@ -90,6 +90,18 @@ public class FeatureChangeTest
     }
 
     @Test
+    public void testMergeRelationsCollision()
+    {
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new BloatedArea(123L, null, null, Sets.hashSet(456L)));
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
+                new BloatedArea(123L, null, null, Sets.hashSet(456L)));
+        Assert.assertEquals(Sets.hashSet(456L),
+                Iterables.stream(featureChange1.merge(featureChange2).getReference().relations())
+                        .map(Relation::getIdentifier).collectToSet());
+    }
+
+    @Test
     public void testMergeTags()
     {
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
