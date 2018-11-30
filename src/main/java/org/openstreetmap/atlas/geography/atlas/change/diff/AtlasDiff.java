@@ -31,7 +31,11 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Generate {@link Change} objects based on the differences between two {@link Atlas}es. The main
- * usage of this class is the {@link AtlasDiff#generateChange()} method.
+ * usage of this class is the {@link AtlasDiff#generateChange()} method.<br>
+ * TODO this class uses parallel streams. However, the stream parallelizations all use the same
+ * global fork-join pool. This could prove an issue in parallel environments, since one parallel
+ * stream will lock all others. Also, there is significant overhead with setting up parallel
+ * streams. Benchmarking is needed here.
  *
  * @author lcram
  */
@@ -134,7 +138,8 @@ public class AtlasDiff
         /*
          * Aggregate the results stored in addedEntities, removedEntities, and modifiedEntities,
          * creating the ChangeObject if there are necessary changes. The ChangeBuilder add method is
-         * thread-safe, so we are OK to add to it in a parallel stream.
+         * thread-safe, so we are OK to add to it in a parallel stream. TODO also need to pass the
+         * modified list in somewhere.
          */
         createFeatureChangesBasedOnChangedEntities(this.addedEntities, this.removedEntities,
                 this.before, this.after, this.useBloatedEntities, this.saveAllGeometries)
@@ -171,8 +176,8 @@ public class AtlasDiff
 
     /**
      * This can be disabled to skip saving bloated features and instead save features from the
-     * before or after atlas. However, a {@link Change} saved in this way will not be serializable.
-     * However, computing the change will be faster, so this may be better for the simple printing
+     * before or after atlas. A {@link Change} saved in this way will not be serializable. However,
+     * computing the change will be faster, so this may be better for the simple printing
      * use-case.<br>
      * <br>
      * TODO We will need to decide on the default setting, true vs. false. Right now, it is set to
