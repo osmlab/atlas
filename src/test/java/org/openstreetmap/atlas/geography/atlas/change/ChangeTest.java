@@ -5,8 +5,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedArea;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedLine;
+import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 
@@ -47,5 +49,22 @@ public class ChangeTest
         final ChangeBuilder builder = new ChangeBuilder();
         builder.add(featureChange1);
         builder.add(featureChange2);
+    }
+
+    @Test
+    public void testAddSameIdentifierMerge()
+    {
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new BloatedArea(123L, null, Maps.hashMap("key", "value"), null));
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
+                new BloatedArea(123L, Polygon.TEST_BUILDING, null, null));
+        final ChangeBuilder builder = new ChangeBuilder();
+        builder.add(featureChange1);
+        builder.add(featureChange2);
+        final Change result = builder.get();
+        final FeatureChange merged = result.changeFor(ItemType.AREA, 123L).get();
+        final Area area = (Area) merged.getReference();
+        Assert.assertEquals(Polygon.TEST_BUILDING, area.asPolygon());
+        Assert.assertEquals(Maps.hashMap("key", "value"), area.getTags());
     }
 }
