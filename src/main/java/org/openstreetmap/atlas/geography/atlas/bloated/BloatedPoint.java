@@ -154,6 +154,22 @@ public class BloatedPoint extends Point implements BloatedEntity
         return this;
     }
 
+    public BloatedPoint withTagExtra(final String key, final String value)
+    {
+        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+    }
+
+    public BloatedPoint withTagLess(final String key)
+    {
+        return withTags(BloatedEntity.removeTag(getTags(), key));
+    }
+
+    public BloatedPoint withTagReplaced(final String oldKey, final String newKey,
+            final String newValue)
+    {
+        return withTagLess(oldKey).withTagExtra(newKey, newValue);
+    }
+
     public BloatedPoint withTags(final Map<String, String> tags)
     {
         this.tags = tags;

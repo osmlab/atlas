@@ -1,5 +1,8 @@
 package org.openstreetmap.atlas.geography.atlas.bloated;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -18,6 +21,18 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  */
 public interface BloatedEntity
 {
+    static Map<String, String> addNewTag(final Map<String, String> tags, final String key,
+            final String value)
+    {
+        Map<String, String> result = tags;
+        if (result == null)
+        {
+            result = new HashMap<>();
+        }
+        result.put(key, value);
+        return result;
+    }
+
     static AtlasEntity from(final AtlasEntity reference)
     {
         final ItemType type = reference.getType();
@@ -38,6 +53,17 @@ public interface BloatedEntity
             default:
                 throw new CoreException("Unknown ItemType {}", type);
         }
+    }
+
+    static Map<String, String> removeTag(final Map<String, String> tags, final String key)
+    {
+        Map<String, String> result = tags;
+        if (result == null)
+        {
+            result = new HashMap<>();
+        }
+        result.remove(key);
+        return result;
     }
 
     static AtlasEntity shallowFrom(final AtlasEntity reference)

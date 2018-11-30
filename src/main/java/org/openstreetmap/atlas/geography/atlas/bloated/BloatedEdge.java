@@ -187,6 +187,22 @@ public class BloatedEdge extends Edge implements BloatedEntity
         return this;
     }
 
+    public BloatedEdge withTagExtra(final String key, final String value)
+    {
+        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+    }
+
+    public BloatedEdge withTagLess(final String key)
+    {
+        return withTags(BloatedEntity.removeTag(getTags(), key));
+    }
+
+    public BloatedEdge withTagReplaced(final String oldKey, final String newKey,
+            final String newValue)
+    {
+        return withTagLess(oldKey).withTagExtra(newKey, newValue);
+    }
+
     public BloatedEdge withTags(final Map<String, String> tags)
     {
         this.tags = tags;

@@ -153,6 +153,22 @@ public class BloatedLine extends Line implements BloatedEntity
         return this;
     }
 
+    public BloatedLine withTagExtra(final String key, final String value)
+    {
+        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+    }
+
+    public BloatedLine withTagLess(final String key)
+    {
+        return withTags(BloatedEntity.removeTag(getTags(), key));
+    }
+
+    public BloatedLine withTagReplaced(final String oldKey, final String newKey,
+            final String newValue)
+    {
+        return withTagLess(oldKey).withTagExtra(newKey, newValue);
+    }
+
     public BloatedLine withTags(final Map<String, String> tags)
     {
         this.tags = tags;

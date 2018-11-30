@@ -1,6 +1,5 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -61,12 +60,10 @@ public class MultipleChangeAtlasTest
     {
         resetAndChange("allNodesAreTrafficLights", atlas ->
         {
-            return Iterables.stream(atlas.nodes()).map(node ->
-            {
-                final Map<String, String> tags = node.getTags();
-                tags.put("highway", "traffic_signals");
-                return BloatedNode.shallowFrom(node).withTags(tags);
-            }).map(FeatureChange::add).collectToSet();
+            return Iterables
+                    .stream(atlas.nodes()).map(node -> BloatedNode.shallowFrom(node)
+                            .withTagExtra("highway", "traffic_signals"))
+                    .map(FeatureChange::add).collectToSet();
         });
         final Predicate<Node> trafficSignal = node -> "traffic_signals".equals(node.tag("highway"));
         final long changeAtlasNodesWithTrafficSignals = Iterables
