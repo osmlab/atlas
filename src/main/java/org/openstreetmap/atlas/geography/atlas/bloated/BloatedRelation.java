@@ -11,6 +11,7 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
@@ -190,6 +191,27 @@ public class BloatedRelation extends Relation implements BloatedEntity
         return this;
     }
 
+    public BloatedRelation withExtraMember(final AtlasEntity newMember,
+            final AtlasEntity memberFromWhichToCopyRole)
+    {
+        final String role = this.members
+                .getItemFor(memberFromWhichToCopyRole.getIdentifier(),
+                        memberFromWhichToCopyRole.getType())
+                .orElseThrow(() -> new CoreException(
+                        "Cannot copy role from {} as it is not a member of {}",
+                        memberFromWhichToCopyRole, this))
+                .getRole();
+        return withExtraMember(newMember, role);
+    }
+
+    public BloatedRelation withExtraMember(final AtlasEntity newMember, final String role)
+    {
+        this.members.addItem(
+                new RelationBeanItem(newMember.getIdentifier(), role, newMember.getType()));
+        this.updateBounds(newMember.bounds());
+        return this;
+    }
+
     public BloatedRelation withIdentifier(final long identifier)
     {
         this.identifier = identifier;
@@ -199,11 +221,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
     public BloatedRelation withMembers(final RelationBean members, final Rectangle bounds)
     {
         this.members = members;
-        if (this.originalBounds == null)
-        {
-            this.originalBounds = bounds;
-        }
-        this.aggregateBounds = Rectangle.forLocated(this.originalBounds, bounds);
+        updateBounds(bounds);
         return this;
     }
 
@@ -217,11 +235,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
     public BloatedRelation withMembers(final RelationMemberList members)
     {
         this.members = members.asBean();
-        if (this.originalBounds == null)
-        {
-            this.originalBounds = members.bounds();
-        }
-        this.aggregateBounds = Rectangle.forLocated(this.originalBounds, members.bounds());
+        updateBounds(members.bounds());
         return this;
     }
 
@@ -272,6 +286,15 @@ public class BloatedRelation extends Relation implements BloatedEntity
                     getAtlas().entity(item.getIdentifier(), item.getType()), getIdentifier()));
         }
         return new RelationMemberList(memberList);
+    }
+
+    private void updateBounds(final Rectangle bounds)
+    {
+        if (this.originalBounds == null)
+        {
+            this.originalBounds = bounds;
+        }
+        this.aggregateBounds = Rectangle.forLocated(this.originalBounds, bounds);
     }
 
     private BloatedRelation withInitialBounds(final Rectangle bounds)

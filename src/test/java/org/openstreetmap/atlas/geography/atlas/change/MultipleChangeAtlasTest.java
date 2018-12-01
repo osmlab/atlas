@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -12,6 +13,7 @@ import org.openstreetmap.atlas.geography.atlas.bloated.BloatedEdge;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.tags.JunctionTag;
@@ -31,7 +33,7 @@ public class MultipleChangeAtlasTest
     private Atlas atlas;
     private Atlas subAtlas;
     private ChangeAtlas changeAtlas;
-    private final String saveLocally = null;
+    private final String saveLocally = "/Users/matthieun/Desktop/test";
 
     @Test
     public void allEdgesAreStraight()
@@ -103,6 +105,11 @@ public class MultipleChangeAtlasTest
         resetAndChange("splitRoundaboutEdges", new AtlasChangeGeneratorSplitRoundabout());
         Assert.assertEquals(6, Iterables.size(this.atlas.edges(JunctionTag::isRoundabout)));
         Assert.assertEquals(12, Iterables.size(this.changeAtlas.edges(JunctionTag::isRoundabout)));
+        Assert.assertEquals(
+                this.atlas.edge(221434104000005L).relations().stream().map(Relation::getIdentifier)
+                        .collect(Collectors.toSet()),
+                this.changeAtlas.edge(10L).relations().stream().map(Relation::getIdentifier)
+                        .collect(Collectors.toSet()));
     }
 
     /**

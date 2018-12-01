@@ -80,9 +80,7 @@ public class ChangeRelation extends Relation // NOSONAR
     @Override
     public Set<Relation> relations()
     {
-        return attribute(Relation::relations).stream()
-                .map(relation -> getChangeAtlas().relation(relation.getIdentifier()))
-                .collect(Collectors.toSet());
+        return ChangeEntity.filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
     }
 
     private <T extends Object> T attribute(final Function<Relation, T> memberExtractor)

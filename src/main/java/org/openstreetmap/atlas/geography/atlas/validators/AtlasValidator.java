@@ -29,14 +29,32 @@ public class AtlasValidator
     {
         logger.debug("Starting validation of ChangeAtlas {}", this.atlas.getName());
         final Time start = Time.now();
-        this.validateRelationsPresent();
-        this.validateTagsPresent();
+        validateRelationsPresent();
+        validateRelationsLinked();
+        validateTagsPresent();
         new AtlasLocationItemValidator(this.atlas).validate();
         new AtlasLineItemValidator(this.atlas).validate();
         new AtlasEdgeValidator(this.atlas).validate();
         new AtlasNodeValidator(this.atlas).validate();
         logger.debug("Finished validation of ChangeAtlas {} in {}", this.atlas.getName(),
                 start.elapsedSince());
+    }
+
+    protected void validateRelationsLinked()
+    {
+        for (final AtlasEntity entity : this.atlas.entities())
+        {
+            for (final Relation relation : entity.relations())
+            {
+                if (!relation.members().asBean()
+                        .getItemFor(entity.getIdentifier(), entity.getType()).isPresent())
+                {
+                    throw new CoreException(
+                            "Entity {} {} lists parent relation {} which does not have it as a member.",
+                            entity.getType(), entity.getIdentifier(), relation.getIdentifier());
+                }
+            }
+        }
     }
 
     protected void validateRelationsPresent()
