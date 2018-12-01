@@ -33,7 +33,7 @@ public class MultipleChangeAtlasTest
     private Atlas atlas;
     private Atlas subAtlas;
     private ChangeAtlas changeAtlas;
-    private final String saveLocally = "/Users/matthieun/Desktop/test";
+    private final String saveLocally = null;
 
     @Test
     public void allEdgesAreStraight()

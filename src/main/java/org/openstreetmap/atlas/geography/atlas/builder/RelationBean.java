@@ -163,6 +163,28 @@ public class RelationBean implements Serializable, Iterable<RelationBeanItem>
         return result.iterator();
     }
 
+    public RelationBean merge(final RelationBean other)
+    {
+        final RelationBean result = new RelationBean();
+        for (final RelationBeanItem leftItem : this)
+        {
+            result.addItem(leftItem);
+        }
+        for (final RelationBeanItem rightItem : other)
+        {
+            final Optional<RelationBeanItem> existingLeftItem = this
+                    .getItemFor(rightItem.getIdentifier(), rightItem.getType());
+            if (existingLeftItem.isPresent()
+                    && existingLeftItem.get().getRole().equals(rightItem.getRole()))
+            {
+                // Role already exists, continue.
+                continue;
+            }
+            result.addItem(rightItem);
+        }
+        return result;
+    }
+
     /**
      * @return The number of members in this {@link RelationBean}
      */

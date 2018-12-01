@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.bloated;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -101,7 +102,16 @@ public class BloatedEdge extends Edge implements BloatedEntity
     @Override
     public boolean equals(final Object other)
     {
-        return BloatedAtlas.equals(this, other);
+        if (other instanceof BloatedEdge)
+        {
+            final BloatedEdge that = (BloatedEdge) other;
+            return BloatedEntity.basicEqual(this, that)
+                    && Objects.equals(this.asPolyLine(), that.asPolyLine())
+                    && BloatedEntity.equalThroughGet(this.start(), that.start(),
+                            Node::getIdentifier)
+                    && BloatedEntity.equalThroughGet(this.end(), that.end(), Node::getIdentifier);
+        }
+        return false;
     }
 
     @Override

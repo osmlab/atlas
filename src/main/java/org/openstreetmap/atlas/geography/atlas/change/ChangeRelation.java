@@ -68,7 +68,18 @@ public class ChangeRelation extends Relation // NOSONAR
     @Override
     public RelationMemberList members()
     {
-        return membersFor(attribute(Relation::members).asBean());
+        final RelationBean mergedMembersBean = allAvailableAttributes(Relation::members).stream()
+                .map(RelationMemberList::asBean).reduce(new RelationBean(), RelationBean::merge);
+        final RelationBean filteredAndMergedMembersBean = new RelationBean();
+        mergedMembersBean.forEach(relationBeanItem ->
+        {
+            if (getChangeAtlas().entity(relationBeanItem.getIdentifier(),
+                    relationBeanItem.getType()) != null)
+            {
+                filteredAndMergedMembersBean.addItem(relationBeanItem);
+            }
+        });
+        return membersFor(filteredAndMergedMembersBean);
     }
 
     @Override
@@ -81,6 +92,13 @@ public class ChangeRelation extends Relation // NOSONAR
     public Set<Relation> relations()
     {
         return ChangeEntity.filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+    }
+
+    private <T extends Object> List<T> allAvailableAttributes(
+            final Function<Relation, T> memberExtractor)
+    {
+        return ChangeEntity.getAttributeAndOptionallyBackup(this.source, this.override,
+                memberExtractor);
     }
 
     private <T extends Object> T attribute(final Function<Relation, T> memberExtractor)

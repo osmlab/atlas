@@ -42,25 +42,6 @@ public class BloatedAtlas implements Atlas
 {
     private static final long serialVersionUID = 5265300513234306056L;
 
-    static <M extends BloatedEntity> boolean equals(final M mine, final Object other)
-    {
-        if (mine == other)
-        {
-            return true;
-        }
-        if (other != null && mine.getClass() == other.getClass())
-        {
-            @SuppressWarnings("unchecked")
-            final M that = (M) other;
-            // Here override the Atlas equality check in AtlasEntity.equals() as the BloatedAtlas is
-            // always
-            // empty and unique.
-            return mine.getIdentifier() == that.getIdentifier();
-        }
-        return false;
-
-    }
-
     @Override
     public Area area(final long identifier)
     {

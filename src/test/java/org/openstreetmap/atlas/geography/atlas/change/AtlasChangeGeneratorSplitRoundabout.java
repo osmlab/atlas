@@ -46,7 +46,10 @@ public class AtlasChangeGeneratorSplitRoundabout implements AtlasChangeGenerator
                 edge.relations().stream()
                         .map(relation -> BloatedRelation.shallowFrom(relation)
                                 .withMembers(relation.members()).withExtraMember(secondEdge, edge))
-                        .map(FeatureChange::add).forEach(result::add);
+                        .map(FeatureChange::add).forEach(featureChange ->
+                        {
+                            result.add(featureChange);
+                        });
 
                 // Add the two new edges. First one has same ID as old edge and replaces it.
                 result.add(FeatureChange.add(firstEdge));
@@ -64,7 +67,8 @@ public class AtlasChangeGeneratorSplitRoundabout implements AtlasChangeGenerator
         }
         final ChangeBuilder builder = new ChangeBuilder();
         result.forEach(builder::add);
-        final ChangeAtlas changeAtlas = new ChangeAtlas(atlas, builder.get());
+        final Change change = builder.get();
+        final ChangeAtlas changeAtlas = new ChangeAtlas(atlas, change);
         System.out.println(changeAtlas.relation(2981334000000L));
         return result;
     }

@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.bloated;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -121,7 +122,19 @@ public class BloatedRelation extends Relation implements BloatedEntity
     @Override
     public boolean equals(final Object other)
     {
-        return BloatedAtlas.equals(this, other);
+        if (other instanceof BloatedRelation)
+        {
+            final BloatedRelation that = (BloatedRelation) other;
+            return BloatedEntity.basicEqual(this, that)
+                    && BloatedEntity.equalThroughGet(this.members(), that.members(),
+                            RelationMemberList::asBean)
+                    && Objects.equals(this.allRelationsWithSameOsmIdentifier(),
+                            that.allRelationsWithSameOsmIdentifier())
+                    && BloatedEntity.equalThroughGet(this.allKnownOsmMembers(),
+                            that.allKnownOsmMembers(), RelationMemberList::asBean)
+                    && Objects.equals(this.osmRelationIdentifier(), that.osmRelationIdentifier());
+        }
+        return false;
     }
 
     @Override

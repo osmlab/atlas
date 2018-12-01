@@ -26,7 +26,6 @@ import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedPoint;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
-import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -58,25 +57,7 @@ public class FeatureChange implements Located, Serializable
     private static final long serialVersionUID = 9172045162819925515L;
     private static final BinaryOperator<Map<String, String>> tagMerger = Maps::withMaps;
     private static final BinaryOperator<Set<Long>> directReferenceMerger = Sets::withSets;
-    private static final BinaryOperator<RelationBean> relationBeanMerger = (leftBean, rightBean) ->
-    {
-        final RelationBean result = new RelationBean();
-        for (final RelationBeanItem leftItem : leftBean)
-        {
-            result.addItem(leftItem);
-        }
-        for (final RelationBeanItem rightItem : rightBean)
-        {
-            if (leftBean.getItemFor(rightItem.getIdentifier(), rightItem.getType()).isPresent())
-            {
-                // Collision, fail
-                throw new CoreException("Unable to merge relation beans. Collision for {} {}",
-                        rightItem.getType(), rightItem.getIdentifier());
-            }
-            result.addItem(rightItem);
-        }
-        return result;
-    };
+    private static final BinaryOperator<RelationBean> relationBeanMerger = RelationBean::merge;
 
     private final ChangeType changeType;
     private final AtlasEntity reference;

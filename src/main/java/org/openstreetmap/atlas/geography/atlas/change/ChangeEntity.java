@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -32,9 +34,40 @@ public final class ChangeEntity
     }
 
     /**
+     * Get all the available attributes asked from the change entity (override), and/or from the
+     * backup entity.
+     *
+     * @param source
+     *            The source entity
+     * @param override
+     *            The change entity (override)
+     * @param memberExtractor
+     *            Extract the member attribute from that entity
+     * @return The corresponding attribute list. Will not be empty.
+     */
+    static <T extends Object, M extends AtlasEntity> List<T> getAttributeAndOptionallyBackup(
+            final M source, final M override, final Function<M, T> memberExtractor)
+    {
+        final List<T> result = new ArrayList<>();
+        if (override != null)
+        {
+            result.add(memberExtractor.apply(override));
+        }
+        if (source != null)
+        {
+            result.add(memberExtractor.apply(source));
+        }
+        if (result.isEmpty())
+        {
+            throw new CoreException("Could not retrieve attribute from source nor backup!");
+        }
+        return result;
+    }
+
+    /**
      * Get either the attribute asked from the change entity (override), or from the backup entity
      * if unavailable.
-     * 
+     *
      * @param source
      *            The source entity
      * @param override
