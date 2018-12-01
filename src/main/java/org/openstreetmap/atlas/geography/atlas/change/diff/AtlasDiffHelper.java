@@ -125,9 +125,19 @@ public final class AtlasDiffHelper
                     .map(relation -> relation.getIdentifier()).collect(Collectors.toSet());
 
             /*
+             * We never had any parent relations. We want to explicitly return empty so as not to
+             * generate a misleading FeatureChange changing a null into an empty set.
+             */
+            if (beforeRelationIdentifiers.isEmpty() && afterRelationIdentifiers.isEmpty())
+            {
+                return Optional.empty();
+            }
+
+            /*
              * In this case, we only care if the relation identifier sets were different. If the
              * features had their roles in the relations altered, this will be caught when we
-             * actually diff the relations.
+             * actually diff the relations. TODO this needs to be expanded back to the more granular
+             * role/type checking like in AtlasDelta.
              */
             if (!beforeRelationIdentifiers.equals(afterRelationIdentifiers))
             {
@@ -139,7 +149,9 @@ public final class AtlasDiffHelper
              * is not because a relation was added to or removed from the after atlas. In that case,
              * the relation's ADD/REMOVE diff will take care of this feature's relation member set
              * for us. TODO This actually may not be necessary. We can just save redundant diffs, it
-             * won't negatively impact anything. Plus, it's helpful for visualization.
+             * won't negatively impact anything. Plus, it's helpful for visualization. In order to
+             * do this, we will need the more granular member role checking from AtlasDelta, so we
+             * can highlight geometry whose roles have changed
              */
 
             /*
@@ -194,44 +206,75 @@ public final class AtlasDiffHelper
     }
 
     public static Optional<FeatureChange> getTagChangeIfNecessary(final AtlasEntity beforeEntity,
-            final AtlasEntity afterEntity)
+            final AtlasEntity afterEntity, final boolean useBloatedEntities,
+            final boolean saveAllGeometries)
     {
-        if (!beforeEntity.getTags().equals(afterEntity.getTags()))
+        if (beforeEntity.getTags().equals(afterEntity.getTags()))
         {
-            FeatureChange featureChange;
+            return Optional.empty();
+        }
+
+        if (useBloatedEntities)
+        {
+            final AtlasEntity bloatedEntity;
             switch (afterEntity.getType())
             {
                 case AREA:
-                    featureChange = new FeatureChange(ChangeType.ADD, BloatedArea
-                            .shallowFrom((Area) afterEntity).withTags(afterEntity.getTags()));
+                    BloatedArea area = BloatedArea.shallowFrom((Area) afterEntity)
+                            .withTags(afterEntity.getTags());
+                    if (saveAllGeometries)
+                    {
+                        area = area.withPolygon(((Area) afterEntity).asPolygon());
+                    }
+                    bloatedEntity = area;
                     break;
                 case EDGE:
-                    featureChange = new FeatureChange(ChangeType.ADD, BloatedEdge
-                            .shallowFrom((Edge) afterEntity).withTags(afterEntity.getTags()));
+                    BloatedEdge edge = BloatedEdge.shallowFrom((Edge) afterEntity)
+                            .withTags(afterEntity.getTags());
+                    if (saveAllGeometries)
+                    {
+                        edge = edge.withPolyLine(((Edge) afterEntity).asPolyLine());
+                    }
+                    bloatedEntity = edge;
                     break;
                 case LINE:
-                    featureChange = new FeatureChange(ChangeType.ADD, BloatedLine
-                            .shallowFrom((Line) afterEntity).withTags(afterEntity.getTags()));
+                    BloatedLine line = BloatedLine.shallowFrom((Line) afterEntity)
+                            .withTags(afterEntity.getTags());
+                    if (saveAllGeometries)
+                    {
+                        line = line.withPolyLine(((Line) afterEntity).asPolyLine());
+                    }
+                    bloatedEntity = line;
                     break;
                 case NODE:
-                    featureChange = new FeatureChange(ChangeType.ADD, BloatedNode
-                            .shallowFrom((Node) afterEntity).withTags(afterEntity.getTags()));
+                    BloatedNode node = BloatedNode.shallowFrom((Node) afterEntity)
+                            .withTags(afterEntity.getTags());
+                    if (saveAllGeometries)
+                    {
+                        node = node.withLocation(((Node) afterEntity).getLocation());
+                    }
+                    bloatedEntity = node;
                     break;
                 case POINT:
-                    featureChange = new FeatureChange(ChangeType.ADD, BloatedPoint
-                            .shallowFrom((Point) afterEntity).withTags(afterEntity.getTags()));
+                    BloatedPoint point = BloatedPoint.shallowFrom((Point) afterEntity)
+                            .withTags(afterEntity.getTags());
+                    if (saveAllGeometries)
+                    {
+                        point = point.withLocation(((Point) afterEntity).getLocation());
+                    }
+                    bloatedEntity = point;
                     break;
                 case RELATION:
-                    featureChange = new FeatureChange(ChangeType.ADD, BloatedRelation
-                            .shallowFrom((Relation) afterEntity).withTags(afterEntity.getTags()));
+                    final BloatedRelation relation = BloatedRelation
+                            .shallowFrom((Relation) afterEntity).withTags(afterEntity.getTags());
+                    bloatedEntity = relation;
                     break;
                 default:
                     throw new CoreException("Unknown item type {}", afterEntity.getType());
             }
-            // featureChange should never be null
-            return Optional.of(featureChange);
+            return Optional.of(new FeatureChange(ChangeType.ADD, bloatedEntity));
         }
-        return Optional.empty();
+        return Optional.of(new FeatureChange(ChangeType.ADD, afterEntity));
     }
 
     public static FeatureChange simpleBloatedAreaChange(final ChangeType changeType,

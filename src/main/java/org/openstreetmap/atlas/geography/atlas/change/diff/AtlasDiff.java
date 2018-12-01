@@ -125,7 +125,7 @@ public class AtlasDiff
          * Check for entities that were potentially modified in the after atlas (here, a potentially
          * modified entity is any entity what was present in both the before and after atlas). If we
          * find any, add them to a set for later processing. We will use this set to create
-         * FeatureChanges. TODO does the useGeometryMatching setting still make sense here?
+         * FeatureChanges.
          */
         Iterables.stream(this.before)
                 .filter(beforeEntity -> !isEntityMissingFromGivenAtlas(beforeEntity, this.after,
@@ -240,7 +240,7 @@ public class AtlasDiff
      * a Point's location AND tags changed, then the set will contain two feature changes, one for
      * the location and one for the tags. However, if a Node's location and connected edges change,
      * this will come in as one feature change.<br>
-     * TODO Everything here currently ignores useBloatedEntities and saveAllGeometries, this needs
+     * TODO Many things here currently ignore useBloatedEntities and saveAllGeometries, this needs
      * to change.
      *
      * @param entity
@@ -275,15 +275,15 @@ public class AtlasDiff
         /*
          * Detect changed tags.
          */
-        AtlasDiffHelper.getTagChangeIfNecessary(beforeEntity, afterEntity)
-                .ifPresent(featureChanges::add);
+        AtlasDiffHelper.getTagChangeIfNecessary(beforeEntity, afterEntity, useBloatedEntities,
+                saveAllGeometries).ifPresent(featureChanges::add);
 
         /*
-         * Detect if the entity changed its parent relation membership.
+         * Detect if the entity changed its parent relation membership. TODO see this method, it
+         * still needs work.
          */
-        AtlasDiffHelper
-                .getParentRelationMembershipChangeIfNecessary(beforeEntity, afterEntity, afterAtlas)
-                .ifPresent(featureChanges::add);
+        AtlasDiffHelper.getParentRelationMembershipChangeIfNecessary(beforeEntity, afterEntity,
+                beforeAtlas, afterAtlas).ifPresent(featureChanges::add);
 
         /*
          * Detect if the entities were Nodes and some Node properties changed.

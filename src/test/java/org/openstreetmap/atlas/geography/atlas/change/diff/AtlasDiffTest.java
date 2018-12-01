@@ -24,13 +24,11 @@ public class AtlasDiffTest
     {
         final Atlas atlasX = this.rule.simpleAtlas1();
         final Atlas atlasY = this.rule.simpleAtlas2();
-
         final int expectedNumberOfChanges = 8;
 
         // First, test with bloated entities
         final Change changeXToYBloated = new AtlasDiff(atlasX, atlasY).useBloatedEntities(true)
                 .generateChange();
-        Assert.assertTrue(changeXToYBloated.hasChanges());
         Assert.assertEquals(expectedNumberOfChanges, changeXToYBloated.changeCount());
         final ChangeAtlas changeAtlasY = new ChangeAtlas(atlasX, changeXToYBloated);
         Assert.assertFalse(new AtlasDiff(changeAtlasY, atlasY).generateChange().hasChanges());
@@ -38,7 +36,6 @@ public class AtlasDiffTest
         // Now test not-bloated entities
         final Change changeXToY = new AtlasDiff(atlasX, atlasY).useBloatedEntities(false)
                 .generateChange();
-        Assert.assertTrue(changeXToY.hasChanges());
         Assert.assertEquals(expectedNumberOfChanges, changeXToY.changeCount());
         final ChangeAtlas changeAtlasY2 = new ChangeAtlas(atlasX, changeXToY);
         Assert.assertFalse(new AtlasDiff(changeAtlasY2, atlasY).generateChange().hasChanges());
@@ -49,11 +46,11 @@ public class AtlasDiffTest
     {
         final Atlas atlasX = this.rule.differentNodeLocations1();
         final Atlas atlasY = this.rule.differentNodeLocations2();
+        final int expectedNumberOfChanges = 1;
 
         final Change changeXToYBloated = new AtlasDiff(atlasX, atlasY).useBloatedEntities(true)
                 .generateChange();
-        Assert.assertTrue(changeXToYBloated.hasChanges());
-        Assert.assertEquals(1, changeXToYBloated.changeCount());
+        Assert.assertEquals(expectedNumberOfChanges, changeXToYBloated.changeCount());
         final ChangeAtlas changeAtlasY = new ChangeAtlas(atlasX, changeXToYBloated);
         Assert.assertFalse(new AtlasDiff(changeAtlasY, atlasY).generateChange().hasChanges());
     }
@@ -64,12 +61,12 @@ public class AtlasDiffTest
         // TODO actually fill in this test once full relation support
         final Atlas atlasX = this.rule.differentParentRelations1();
         final Atlas atlasY = this.rule.differentParentRelations2();
+        final int expectedNumberOfChanges = 1;
 
         final Change changeXToYBloated = new AtlasDiff(atlasX, atlasY).useBloatedEntities(true)
                 .generateChange();
-
         changeXToYBloated.changes()
-                .forEach(change -> logger.error("{}: {}", change, change.getReference()));
+                .forEach(change -> logger.trace("{}: {}", change, change.getReference()));
     }
 
     @Test
@@ -77,12 +74,22 @@ public class AtlasDiffTest
     {
         final Atlas atlasX = this.rule.differentTags1();
         final Atlas atlasY = this.rule.differentTags2();
+        final int expectedNumberOfChanges = 3;
 
+        // First test with bloated entities
         final Change changeXToYBloated = new AtlasDiff(atlasX, atlasY).useBloatedEntities(true)
                 .generateChange();
-        Assert.assertTrue(changeXToYBloated.hasChanges());
-        Assert.assertEquals(3, changeXToYBloated.changeCount());
+        changeXToYBloated.changes()
+                .forEach(change -> logger.trace("{}: {}", change, change.getReference()));
+        Assert.assertEquals(expectedNumberOfChanges, changeXToYBloated.changeCount());
         final ChangeAtlas changeAtlasY = new ChangeAtlas(atlasX, changeXToYBloated);
         Assert.assertFalse(new AtlasDiff(changeAtlasY, atlasY).generateChange().hasChanges());
+
+        // Now test with non-bloated
+        final Change changeXToY = new AtlasDiff(atlasX, atlasY).useBloatedEntities(false)
+                .generateChange();
+        Assert.assertEquals(expectedNumberOfChanges, changeXToY.changeCount());
+        final ChangeAtlas changeAtlasY2 = new ChangeAtlas(atlasX, changeXToY);
+        Assert.assertFalse(new AtlasDiff(changeAtlasY2, atlasY).generateChange().hasChanges());
     }
 }
