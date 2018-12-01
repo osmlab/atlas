@@ -51,11 +51,20 @@ public final class ChangeEntity
         final List<T> result = new ArrayList<>();
         if (override != null)
         {
-            result.add(memberExtractor.apply(override));
+            final T member = memberExtractor.apply(override);
+            if (member != null)
+            {
+                result.add(member);
+            }
+
         }
         if (source != null)
         {
-            result.add(memberExtractor.apply(source));
+            final T member = memberExtractor.apply(source);
+            if (member != null)
+            {
+                result.add(member);
+            }
         }
         if (result.isEmpty())
         {

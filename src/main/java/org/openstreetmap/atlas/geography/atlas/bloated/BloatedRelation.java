@@ -170,7 +170,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
     }
 
     @Override
-    public long osmRelationIdentifier()
+    public Long osmRelationIdentifier()
     {
         return this.osmRelationIdentifier;
     }

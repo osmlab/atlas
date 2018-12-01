@@ -68,7 +68,9 @@ public class ChangeRelation extends Relation // NOSONAR
     @Override
     public RelationMemberList members()
     {
-        final RelationBean mergedMembersBean = allAvailableAttributes(Relation::members).stream()
+        final List<RelationMemberList> availableMemberLists = allAvailableAttributes(
+                Relation::members);
+        final RelationBean mergedMembersBean = availableMemberLists.stream()
                 .map(RelationMemberList::asBean).reduce(new RelationBean(), RelationBean::merge);
         final RelationBean filteredAndMergedMembersBean = new RelationBean();
         mergedMembersBean.forEach(relationBeanItem ->
@@ -83,7 +85,7 @@ public class ChangeRelation extends Relation // NOSONAR
     }
 
     @Override
-    public long osmRelationIdentifier()
+    public Long osmRelationIdentifier()
     {
         return attribute(Relation::osmRelationIdentifier);
     }

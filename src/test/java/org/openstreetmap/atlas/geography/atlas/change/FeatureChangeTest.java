@@ -198,9 +198,8 @@ public class FeatureChangeTest
     @Test
     public void testMergeRelationMembersRoleCollision()
     {
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("Cannot merge two feature changes");
-
+        // OSM allows (but discourages) the same feature to appear multiple times with the same or
+        // different roles.
         final RelationBean members1 = new RelationBean();
         members1.addItem(new RelationBeanItem(456L, "myRole1", ItemType.AREA));
         final RelationBean members2 = new RelationBean();
@@ -212,7 +211,8 @@ public class FeatureChangeTest
                 123L, null, Rectangle.TEST_RECTANGLE, members1, null, null, null, null));
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, new BloatedRelation(
                 123L, null, Rectangle.TEST_RECTANGLE, members2, null, null, null, null));
-        featureChange1.merge(featureChange2);
+        Assert.assertEquals(result, ((Relation) featureChange1.merge(featureChange2).getReference())
+                .members().asBean());
     }
 
     @Test
