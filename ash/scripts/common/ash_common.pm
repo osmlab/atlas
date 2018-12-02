@@ -964,7 +964,7 @@ sub perform_activate {
     }
     else {
         ash_common::remove_active_module_index($ash_path, $program_name, $quiet);
-        ash_common::generate_active_module_index($ash_path, $program_name, $quiet);
+        ash_common::generate_active_module_index($ash_path, $program_name, $quiet, 0);
         unless ($quiet) {
             print "Module ${green_stdout}${bold_stdout}${module_to_activate}${reset_stdout} activated.\n";
         }
@@ -1025,18 +1025,24 @@ sub perform_deactivate {
 #   $ash_path: the path to the ash data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
+#   $verbose_java: make the Java table printer use verbose output
 # Return: 1 on success, 0 on failure
 sub generate_active_module_index {
     my $ash_path = shift;
     my $program_name = shift;
     my $quiet = shift;
+    my $verbose_java = shift;
 
     my $full_index_path = File::Spec->catfile($ash_path, $ACTIVE_INDEX_PATH);
     my $full_path_to_modules_folder = File::Spec->catfile($ash_path, $ash_common::MODULES_FOLDER, '*');
     my $java_command = "java -Xms2G -Xmx2G ".
                    "-cp \"${full_path_to_modules_folder}\" ".
                    "-Dlog4j.rootLogger=ERROR ".
-                   "${TABLE_PRINTER_CLASS}";
+                   "${TABLE_PRINTER_CLASS} ";
+
+    if ($verbose_java && !$quiet) {
+        $java_command = $java_command . "--verbose";
+    }
 
     my %modules = ash_common::get_module_to_status_hash($ash_path);
     my @activated_modules = get_activated_modules(\%modules);

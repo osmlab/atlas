@@ -608,6 +608,7 @@ public class SimpleOptionAndArgumentParser
             final ArgumentOptionality type)
     {
         throwIfArgumentHintSeen(argumentHint);
+        this.argumentHintsSeen.add(argumentHint);
 
         if (argumentHint == null || argumentHint.isEmpty())
         {

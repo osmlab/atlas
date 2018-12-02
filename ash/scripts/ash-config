@@ -293,7 +293,7 @@ sub execute_command_install {
 
         unless($install_deactivated) {
             ash_common::remove_active_module_index($ash_path, $program_name, $quiet);
-            my $success = ash_common::generate_active_module_index($ash_path, $program_name, $quiet);
+            my $success = ash_common::generate_active_module_index($ash_path, $program_name, $quiet, 0);
             unless ($success) {
                 ash_common::warn_output($program_name . "-install", "partial installation may not function properly");
             }
@@ -571,7 +571,7 @@ sub execute_command_sync {
     }
 
     ash_common::remove_active_module_index($ash_path, $program_name, $quiet);
-    ash_common::generate_active_module_index($ash_path, $program_name, $quiet);
+    ash_common::generate_active_module_index($ash_path, $program_name, $quiet, 1);
 }
 
 sub execute_command_uninstall {
