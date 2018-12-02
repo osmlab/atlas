@@ -137,6 +137,16 @@ public class BloatedArea extends Area implements BloatedEntity
                 + ", tags=" + this.tags + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
+    public BloatedArea withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    {
+        if (this.aggregateBounds == null)
+        {
+            this.aggregateBounds = bounds;
+        }
+        this.aggregateBounds = Rectangle.forLocated(this.aggregateBounds, bounds);
+        return this;
+    }
+
     public BloatedArea withIdentifier(final long identifier)
     {
         this.identifier = identifier;

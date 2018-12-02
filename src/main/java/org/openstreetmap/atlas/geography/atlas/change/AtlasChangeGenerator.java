@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.utilities.conversion.Converter;
@@ -32,8 +33,10 @@ public interface AtlasChangeGenerator extends Converter<Atlas, Set<FeatureChange
         // Validate
         final ChangeBuilder builder = new ChangeBuilder();
         result.forEach(builder::add);
-        new ChangeAtlas(atlas, builder.get());
-        return result;
+        final Change change = builder.get();
+        new ChangeAtlas(atlas, change);
+        // Return the already merged changes
+        return change.changes().collect(Collectors.toSet());
     }
 
     /**

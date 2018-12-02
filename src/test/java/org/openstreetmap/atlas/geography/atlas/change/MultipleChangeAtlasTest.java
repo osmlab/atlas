@@ -11,7 +11,9 @@ import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedEdge;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
@@ -34,6 +36,21 @@ public class MultipleChangeAtlasTest
     private Atlas subAtlas;
     private ChangeAtlas changeAtlas;
     private final String saveLocally = null;
+
+    @Test
+    public void addTurnRestrictions()
+    {
+        resetAndChange("addTurnRestrictions", new AtlasChangeGeneratorAddTurnRestrictions());
+        final Node via = this.changeAtlas.node(3985226613000000L);
+        final Relation restriction = via.relations().iterator().next();
+        Assert.assertNotNull(restriction);
+        final RelationBean members = new RelationBean();
+        members.addItem(221434099000002L, "from", ItemType.EDGE);
+        members.addItem(via.getIdentifier(), "via", ItemType.NODE);
+        members.addItem(634444999000000L, "to", ItemType.EDGE);
+        members.addItem(-634444999000000L, "to", ItemType.EDGE);
+        Assert.assertEquals(members, restriction.members().asBean());
+    }
 
     @Test
     public void allEdgesAreStraight()

@@ -138,6 +138,16 @@ public class BloatedPoint extends Point implements BloatedEntity
                 + ", tags=" + this.tags + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
+    public BloatedPoint withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    {
+        if (this.aggregateBounds == null)
+        {
+            this.aggregateBounds = bounds;
+        }
+        this.aggregateBounds = Rectangle.forLocated(this.aggregateBounds, bounds);
+        return this;
+    }
+
     public BloatedPoint withIdentifier(final long identifier)
     {
         this.identifier = identifier;

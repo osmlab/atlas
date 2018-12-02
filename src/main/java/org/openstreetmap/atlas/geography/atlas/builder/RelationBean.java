@@ -12,6 +12,8 @@ import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBean
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
+import com.google.common.collect.HashMultiset;
+
 /**
  * @author matthieun
  */
@@ -95,15 +97,25 @@ public class RelationBean implements Serializable, Iterable<RelationBeanItem>
         addItem(item.getIdentifier(), item.getRole(), item.getType());
     }
 
+    /**
+     * Check if the two beans are the same, without looking at the List order.
+     *
+     * @param other
+     *            The other object
+     * @return True if the other object is a {@link RelationBean} and is equal regardless of order.
+     */
     @Override
     public boolean equals(final Object other)
     {
         if (other instanceof RelationBean)
         {
             final RelationBean that = (RelationBean) other;
-            return Iterables.equals(this.getMemberIdentifiers(), that.getMemberIdentifiers())
-                    && Iterables.equals(this.getMemberRoles(), that.getMemberRoles())
-                    && Iterables.equals(this.getMemberTypes(), that.getMemberTypes());
+            return Iterables.equals(HashMultiset.create(this.getMemberIdentifiers()),
+                    HashMultiset.create(that.getMemberIdentifiers()))
+                    && Iterables.equals(HashMultiset.create(this.getMemberRoles()),
+                            HashMultiset.create(that.getMemberRoles()))
+                    && Iterables.equals(HashMultiset.create(this.getMemberTypes()),
+                            HashMultiset.create(that.getMemberTypes()));
         }
         return false;
     }

@@ -186,6 +186,16 @@ public class BloatedNode extends Node implements BloatedEntity
                 + this.relationIdentifiers + "]";
     }
 
+    public BloatedNode withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    {
+        if (this.aggregateBounds == null)
+        {
+            this.aggregateBounds = bounds;
+        }
+        this.aggregateBounds = Rectangle.forLocated(this.aggregateBounds, bounds);
+        return this;
+    }
+
     public BloatedNode withIdentifier(final long identifier)
     {
         this.identifier = identifier;

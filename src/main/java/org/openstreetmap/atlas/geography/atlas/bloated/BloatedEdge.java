@@ -162,6 +162,16 @@ public class BloatedEdge extends Edge implements BloatedEntity
                 + this.relationIdentifiers + "]";
     }
 
+    public BloatedEdge withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    {
+        if (this.aggregateBounds == null)
+        {
+            this.aggregateBounds = bounds;
+        }
+        this.aggregateBounds = Rectangle.forLocated(this.aggregateBounds, bounds);
+        return this;
+    }
+
     public BloatedEdge withEndNodeIdentifier(final Long endNodeIdentifier)
     {
         this.endNodeIdentifier = endNodeIdentifier;
