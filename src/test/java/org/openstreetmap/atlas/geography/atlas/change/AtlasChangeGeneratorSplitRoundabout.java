@@ -65,11 +65,6 @@ public class AtlasChangeGeneratorSplitRoundabout implements AtlasChangeGenerator
                         .withInEdgeIdentifierReplaced(oldEdgeIdentifier, newEdgeIdentifier)));
             }
         }
-        final ChangeBuilder builder = new ChangeBuilder();
-        result.forEach(builder::add);
-        final Change change = builder.get();
-        final ChangeAtlas changeAtlas = new ChangeAtlas(atlas, change);
-        System.out.println(changeAtlas.relation(2981334000000L));
         return result;
     }
 }
