@@ -231,7 +231,8 @@ sub reset_namespace {
     open my $file_handle, '>', "$namespace_file";
     if (defined $new_namespace) {
         print $file_handle "${new_namespace}\n";
-    } else {
+    }
+    else {
         print $file_handle "${DEFAULT_NAMESPACE}\n";
     }
     close $file_handle;
@@ -272,7 +273,8 @@ sub display_and_exit {
 
     if ($skip_paging) {
         print "$message";
-    } else {
+    }
+    else {
         open PAGER, "|${pager_command}" or die $!;
         print PAGER "$message";
     }
@@ -290,7 +292,8 @@ sub getopt_failure_and_exit {
     my $subcommand_name = shift;
     if (defined $subcommand_name) {
         print STDERR "Try '${bold_stderr}${program_name} ${subcommand_name} --help${reset_stderr}' for more information.\n";
-    } else {
+    }
+    else {
         print STDERR "Try '${bold_stderr}${program_name} --help${reset_stderr}' for more information.\n";
     }
     exit 1;
@@ -438,7 +441,8 @@ sub get_pager {
             return undef;
         }
         $exitcode = $? >> 8;
-    } else {
+    }
+    else {
         $pager_command = `which less`;
         # Make double sure we found a valid command. One some OS's,
         # the 'which' binary does not return an exit status.
@@ -496,7 +500,8 @@ sub get_editor {
             return undef;
         }
         $exitcode = $? >> 8;
-    } else {
+    }
+    else {
         $editor_command = `which vim`;
         # Make double sure we found a valid command. One some OS's,
         # the 'which' binary does not return an exit status.
@@ -630,7 +635,8 @@ sub get_module_to_status_hash {
         # TODO: figure out how to interpolate $DEACTIVATED_SUFFIX into this regex
         if ($module =~ /.*\.deactivated$/) {
             $module_activated = $DEACTIVATED;
-        } else {
+        }
+        else {
             $module_activated = $ACTIVATED;
         }
         $module =~ s{$MODULE_SUFFIX}{};
@@ -672,10 +678,12 @@ sub get_module_to_symlink_hash {
         if (-l $_) {
             if (lstat $_ and not stat $_) {
                 $module_islink = $BROKEN_SYMLINK;
-            } else {
+            }
+            else {
                 $module_islink = $GOOD_SYMLINK;
             }
-        } else {
+        }
+        else {
             $module_islink = $REAL_FILE;
         }
         $module =~ s{$MODULE_SUFFIX}{};
@@ -715,7 +723,8 @@ sub get_module_to_target_hash {
 
         if (-l $_) {
             $module_target = readlink $_;
-        } else {
+        }
+        else {
             $module_target = '';
         }
         $module =~ s{$MODULE_SUFFIX}{};
@@ -855,10 +864,12 @@ sub replace_logstream_in_file {
     if ($new_stream eq 'stdout') {
         $old_system = 'System\.err';
         $new_system = 'System.out';
-    } elsif ($new_stream eq 'stderr') {
+    }
+    elsif ($new_stream eq 'stderr') {
         $old_system = 'System\.out';
         $new_system = 'System.err';
-    } else {
+    }
+    else {
         die "Invalid stream setting $new_stream, must be stdout or stderr";
     }
 
@@ -950,7 +961,8 @@ sub perform_activate {
     if ($exitcode) {
         print STDERR "${red_stderr}${bold_stderr}Activation failed.${reset_stderr} Rename exited with $exitcode.\n";
         return 0;
-    } else {
+    }
+    else {
         ash_common::remove_active_module_index($ash_path, $program_name, $quiet);
         ash_common::generate_active_module_index($ash_path, $program_name, $quiet);
         unless ($quiet) {
@@ -998,7 +1010,8 @@ sub perform_deactivate {
     if ($exitcode) {
         print STDERR "${red_stderr}${bold_stderr}Deactivation failed.${reset_stderr} Rename exited with $exitcode.\n";
             return 0;
-    } else {
+    }
+    else {
         unless ($quiet) {
             print "Module ${bold_stdout}${module_to_deactivate}${reset_stdout} deactivated.\n";
         }
@@ -1120,7 +1133,8 @@ sub save_preset {
         # detect an option or skip non-option arguments
         if (string_starts_with($arg, '--') || string_starts_with($arg, '-')) {
             push @detected_options, $arg;
-        } else {
+        }
+        else {
             warn_output($program_name, "preset discarding non-option arg \'${bold_stderr}$arg${reset_stderr}\'");
         }
     }
@@ -1346,7 +1360,8 @@ sub edit_preset {
     open $handle, '>', "$tmpfile";
     if ($creating_from_scratch) {
         print $handle "# CREATING PRESET\n";
-    } else {
+    }
+    else {
         print $handle "# EDITING PRESET\n";
     }
     print $handle "# Preset: ${preset}\n";
@@ -1401,7 +1416,8 @@ sub edit_preset {
         # detect an option or skip non-option arguments
         if (string_starts_with($line, '--') || string_starts_with($line, '-')) {
             print $stage_handle "$line\n";
-        } else {
+        }
+        else {
             warn_output($program_name, "preset discarding non-option arg \'${bold_stderr}${line}${reset_stderr}\'");
         }
     }
@@ -1596,7 +1612,8 @@ sub all_namespaces {
     for my $found_namespace (sort {lc $a cmp lc $b} @filtered_namespaces) {
         if ($found_namespace eq $current_namespace) {
             print "    * ${bold_stdout}${green_stdout}${found_namespace}${reset_stdout}\n";
-        } else {
+        }
+        else {
             print "      ${found_namespace}\n";
         }
     }
@@ -1744,7 +1761,7 @@ sub is_dir_empty {
     opendir my $h, $dir
         or die "Cannot open directory: '$dir': $!";
 
-    while ( defined (my $entry = readdir $h) ) {
+    while (defined(my $entry = readdir $h)) {
         return unless $entry =~ /^[.][.]?\z/;
     }
 

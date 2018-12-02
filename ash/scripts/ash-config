@@ -210,7 +210,8 @@ sub execute_command_install {
     my $module_basename;
     if (defined $alternate_name) {
         $module_basename = $alternate_name . $ash_common::MODULE_SUFFIX;
-    } else {
+    }
+    else {
         $module_basename = basename($module_to_install);
     }
     # TODO: figure out how to interpolate $MODULE_SUFFIX into this regex
@@ -256,17 +257,20 @@ sub execute_command_install {
 
         if ($install_deactivated) {
             symlink($module_to_install_rel, $module_new_path_deactivated);
-        } else {
+        }
+        else {
             symlink($module_to_install_rel, $module_new_path);
         }
         $exitcode = $? >> 8;
-    } else {
+    }
+    else {
         if ($install_deactivated) {
             # FIXME this is vulnerable to code injection if a module is named something
             # like eg. '; echo vulnerable'. For this reason, this needs to be
             # refactored to use something safe, like File::Copy.
             system("cp $module_to_install $module_new_path_deactivated");
-        } else {
+        }
+        else {
             system("cp $module_to_install $module_new_path");
         }
         $exitcode = $? >> 8;
@@ -275,7 +279,8 @@ sub execute_command_install {
     if ($exitcode) {
         print STDERR "${red_stderr}${bold_stderr}Installation failed.${reset_stderr} Operation exited with $exitcode.\n";
         return 0;
-    } else {
+    }
+    else {
         unless ($install_deactivated) {
             my %modules = get_module_to_status_hash($ash_path);
             foreach my $module (keys %modules) {
@@ -341,7 +346,8 @@ sub execute_command_list {
         # if activated, place a star next to the name
         if ($status == 1) {
             $display = $display . '*';
-        } else {
+        }
+        else {
             $display = $display . ' ';
         }
 
@@ -349,7 +355,8 @@ sub execute_command_list {
         if ($status == $ash_common::ACTIVATED
             && ($symlink == $ash_common::REAL_FILE || $symlink == $ash_common::GOOD_SYMLINK)) {
             $display = $display . "${green_stdout}${bold_stdout}";
-        } elsif ($symlink == $ash_common::BROKEN_SYMLINK) {
+        }
+        elsif ($symlink == $ash_common::BROKEN_SYMLINK) {
             $display = $display . "${red_stdout}${bold_stdout}";
         }
 
@@ -360,7 +367,8 @@ sub execute_command_list {
         if ($symlink == $ash_common::BROKEN_SYMLINK) {
             if ($status == $ash_common::ACTIVATED) {
                 $display = $display . " ${bold_stdout}${blink_stdout}(BROKEN SYMLINK)${reset_stdout}";
-            } else {
+            }
+            else {
                 $display = $display . " ${bold_stdout}(BROKEN SYMLINK)${reset_stdout}";
             }
         }
@@ -421,7 +429,8 @@ sub execute_command_log {
     unless ($loglevel eq '') {
         if (exists($valid_levels{$loglevel})) {
             ash_common::replace_loglevel_in_file($logfile_path, $loglevel);
-        } else {
+        }
+        else {
             ash_common::error_output($program_name, "unrecognized log level ${bold_stderr}${loglevel}${reset_stderr}");
             return 0;
         }
@@ -430,7 +439,8 @@ sub execute_command_log {
     unless ($logstream eq '') {
         if (exists($valid_streams{$logstream})) {
             ash_common::replace_logstream_in_file($logfile_path, $logstream);
-        } else {
+        }
+        else {
             ash_common::error_output($program_name, "unrecognized log stream ${bold_stderr}${logstream}${reset_stderr}");
             return 0;
         }
@@ -489,7 +499,8 @@ sub execute_command_reset {
         my $modules_length = keys %modules;
         if ($modules_length == 0) {
             ash_common::warn_output($program_name, "found no modules to uninstall");
-        } else {
+        }
+        else {
             foreach my $module (keys %modules) {
                 my $confirmed = 1;
                 unless ($force_flag) {
@@ -656,7 +667,8 @@ if (defined $help_argument) {
     if ($help_argument eq '') {
         system("$man_command $program_name");
         $exitcode = $? >> 8;
-    } else {
+    }
+    else {
         system("$man_command $program_name-$help_argument");
         $exitcode = $? >> 8;
     }
@@ -678,21 +690,29 @@ unless (defined $subcommand) {
 my $success = 0;
 if ($subcommand eq "activate") {
     $success = execute_command_activate();
-} elsif ($subcommand eq "deactivate") {
+}
+elsif ($subcommand eq "deactivate") {
     $success = execute_command_deactivate();
-} elsif ($subcommand eq "install") {
+}
+elsif ($subcommand eq "install") {
     $success = execute_command_install();
-} elsif ($subcommand eq "list") {
+}
+elsif ($subcommand eq "list") {
     $success = execute_command_list();
-} elsif ($subcommand eq "log") {
+}
+elsif ($subcommand eq "log") {
     $success = execute_command_log();
-} elsif ($subcommand eq "reset") {
+}
+elsif ($subcommand eq "reset") {
     $success = execute_command_reset();
-} elsif ($subcommand eq "sync") {
+}
+elsif ($subcommand eq "sync") {
     $success = execute_command_sync();
-} elsif ($subcommand eq "uninstall") {
+}
+elsif ($subcommand eq "uninstall") {
     $success = execute_command_uninstall();
-} else {
+}
+else {
     ash_common::error_output($program_name, "no such command ${bold_stderr}${subcommand}${reset_stderr}");
     print STDERR "Try '${bold_stderr}${program_name} --help${reset_stderr}' for more information.\n";
     exit 127;
@@ -700,7 +720,8 @@ if ($subcommand eq "activate") {
 
 if ($success) {
     exit 0;
-} else {
+}
+else {
     exit 1;
 }
 

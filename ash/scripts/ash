@@ -93,13 +93,15 @@ sub ash_show_contextual_help_menu_and_exit {
 
     if (ash_common::is_no_colors_stdout()) {
         $java_command = $java_command . "$ash_common::JAVA_NO_COLOR_STDOUT ";
-    } else {
+    }
+    else {
         $java_command = $java_command . "$ash_common::JAVA_COLOR_STDOUT ";
     }
 
     if (ash_common::is_no_colors_stderr()) {
         $java_command = $java_command . "$ash_common::JAVA_NO_COLOR_STDERR ";
-    } else {
+    }
+    else {
         $java_command = $java_command . "$ash_common::JAVA_COLOR_STDERR ";
     }
 
@@ -117,7 +119,8 @@ sub ash_show_contextual_help_menu_and_exit {
     if ($skip_paging) {
         my $output = `$java_command`;
         print "$output";
-    } else {
+    }
+    else {
         open PAGER, "|${pager_command}" or die $!;
         my $output = `$java_command`;
         print PAGER "$output";
@@ -215,7 +218,8 @@ sub ash_cfgpreset {
             return 0;
         }
         $success = ash_common::save_preset($ash_path, $program_name, $quiet, $preset, $command_context, $current_namespace, \@argv);
-    } elsif ($directive eq 'show') {
+    }
+    elsif ($directive eq 'show') {
         unless (defined $command_context) {
             ash_common::error_output($program_name, "must specify a command context like ${bold_stderr}show:MyCommand${reset_stderr}");
             return 0;
@@ -227,10 +231,12 @@ sub ash_cfgpreset {
         my $preset = shift @argv;
         if (defined $preset) {
             $success = ash_common::show_preset($ash_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
-        } else {
+        }
+        else {
             $success = ash_common::all_presets($ash_path, $program_name, $quiet, $command_context, $current_namespace);
         }
-    } elsif ($directive eq 'remove') {
+    }
+    elsif ($directive eq 'remove') {
         unless (defined $command_context) {
             ash_common::error_output($program_name, "must specify a command context like ${bold_stderr}remove:MyCommand${reset_stderr}");
             return 0;
@@ -242,10 +248,12 @@ sub ash_cfgpreset {
         my $preset = shift @argv;
         if (defined $preset) {
             $success = ash_common::remove_preset($ash_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
-        } else {
+        }
+        else {
             $success = ash_common::remove_all_presets_for_command($ash_path, $program_name, $quiet, $command_context, $current_namespace);
         }
-    } elsif ($directive eq 'edit') {
+    }
+    elsif ($directive eq 'edit') {
         unless (defined $command_context) {
             ash_common::error_output($program_name, "must specify a command context like ${bold_stderr}edit:MyCommand${reset_stderr}");
             return 0;
@@ -261,7 +269,8 @@ sub ash_cfgpreset {
             return 0;
         }
         $success = ash_common::edit_preset($ash_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
-    } elsif ($directive eq 'copy') {
+    }
+    elsif ($directive eq 'copy') {
         unless (defined $command_context) {
             ash_common::error_output($program_name, "must specify a command context like ${bold_stderr}copy:MyCommand${reset_stderr}");
             return 0;
@@ -283,9 +292,11 @@ sub ash_cfgpreset {
             return 0;
         }
         $success = ash_common::copy_preset($ash_path, $program_name, $quiet, $src_preset, $dest_preset, $command_context, $current_namespace);
-    } elsif ($directive eq 'namespace') {
+    }
+    elsif ($directive eq 'namespace') {
         $success = ash_cfgpreset_namespace($current_namespace, \@argv);
-    } else {
+    }
+    else {
         ash_common::error_output($program_name, "unrecognized ${bold_stderr}${cfgpreset_start}${reset_stderr} directive '${bold_stderr}${directive}${reset_stderr}'");
         print STDERR "Try ${bold_stderr}save${reset_stderr}, ${bold_stderr}show${reset_stderr}, ${bold_stderr}remove${reset_stderr}, ${bold_stderr}edit${reset_stderr}, ${bold_stderr}copy${reset_stderr}, or ${bold_stderr}namespace${reset_stderr}.\n";
         return 0;
@@ -312,7 +323,8 @@ sub ash_cfgpreset_namespace {
 
     if ($subdirective eq 'list') {
         $success = ash_common::all_namespaces($ash_path, $program_name, $quiet);
-    } elsif ($subdirective eq 'use') {
+    }
+    elsif ($subdirective eq 'use') {
         my $namespace = shift @argv;
         unless (defined $namespace) {
             ash_common:error_output($program_name, "must specify a namespace");
@@ -320,7 +332,8 @@ sub ash_cfgpreset_namespace {
             return 0;
         }
         $success = ash_common::use_namespace($ash_path, $program_name, $quiet, $namespace);
-    } elsif ($subdirective eq 'create') {
+    }
+    elsif ($subdirective eq 'create') {
         my $new_namespace = shift @argv;
         unless (defined $new_namespace) {
             ash_common:error_output($program_name, "must specify a new namespace");
@@ -328,7 +341,8 @@ sub ash_cfgpreset_namespace {
             return 0;
         }
         $success = ash_common::create_namespace($ash_path, $program_name, $quiet, $new_namespace);
-    } elsif ($subdirective eq 'remove') {
+    }
+    elsif ($subdirective eq 'remove') {
         my $namespace = shift @argv;
         unless (defined $namespace) {
             ash_common:error_output($program_name, "must specify a namespace");
@@ -336,7 +350,8 @@ sub ash_cfgpreset_namespace {
             return 0;
         }
         $success = ash_common::remove_namespace($ash_path, $program_name, $quiet, $namespace);
-    } else {
+    }
+    else {
         ash_common::error_output($program_name, "unrecognized ${bold_stderr}${cfgpreset_start} namespace${reset_stderr} subdirective '${bold_stderr}${subdirective}${reset_stderr}'");
         print STDERR "Try ${bold_stderr}list${reset_stderr}, ${bold_stderr}create${reset_stderr}, ${bold_stderr}use${reset_stderr}, or ${bold_stderr}remove${reset_stderr}.\n";
         return 0;
@@ -526,19 +541,22 @@ foreach my $arg (@new_argv) {
 # Append the special TTY formatting sentinel arguments
 if (ash_common::is_no_colors_stdout()) {
     $java_command = $java_command . "$ash_common::JAVA_NO_COLOR_STDOUT ";
-} else {
+}
+else {
     $java_command = $java_command . "$ash_common::JAVA_COLOR_STDOUT ";
 }
 
 if (ash_common::is_no_colors_stderr()) {
     $java_command = $java_command . "$ash_common::JAVA_NO_COLOR_STDERR ";
-} else {
+}
+else {
     $java_command = $java_command . "$ash_common::JAVA_COLOR_STDERR ";
 }
 
 if ($skip_paging) {
     $java_command = $java_command . "$ash_common::JAVA_NO_USE_PAGER ";
-} else {
+}
+else {
     $java_command = $java_command . "$ash_common::JAVA_USE_PAGER ";
 }
 
