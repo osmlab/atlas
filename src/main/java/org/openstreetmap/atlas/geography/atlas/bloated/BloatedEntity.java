@@ -2,6 +2,8 @@ package org.openstreetmap.atlas.geography.atlas.bloated;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
@@ -31,6 +33,29 @@ public interface BloatedEntity
         }
         result.put(key, value);
         return result;
+    }
+
+    static boolean basicEqual(final AtlasEntity left, final AtlasEntity right)
+    {
+        return left.getIdentifier() == right.getIdentifier()
+                && Objects.equals(left.getTags(), right.getTags())
+                && Objects.equals(left.relations(), right.relations());
+    }
+
+    static <M, T> boolean equalThroughGet(final M left, final M right, final Function<M, T> getter)
+    {
+        if (left == null && right == null)
+        {
+            return true;
+        }
+        else if (left == null || right == null)
+        {
+            return false;
+        }
+        else
+        {
+            return Objects.equals(getter.apply(left), getter.apply(right));
+        }
     }
 
     static AtlasEntity from(final AtlasEntity reference)

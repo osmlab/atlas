@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.bloated;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -88,7 +89,13 @@ public class BloatedLine extends Line implements BloatedEntity
     @Override
     public boolean equals(final Object other)
     {
-        return BloatedAtlas.equals(this, other);
+        if (other instanceof BloatedLine)
+        {
+            final BloatedLine that = (BloatedLine) other;
+            return BloatedEntity.basicEqual(this, that)
+                    && Objects.equals(this.asPolyLine(), that.asPolyLine());
+        }
+        return false;
     }
 
     @Override
@@ -128,6 +135,16 @@ public class BloatedLine extends Line implements BloatedEntity
     {
         return "BloatedLine [identifier=" + this.identifier + ", polyLine=" + this.polyLine
                 + ", tags=" + this.tags + ", relationIdentifiers=" + this.relationIdentifiers + "]";
+    }
+
+    public BloatedLine withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    {
+        if (this.aggregateBounds == null)
+        {
+            this.aggregateBounds = bounds;
+        }
+        this.aggregateBounds = Rectangle.forLocated(this.aggregateBounds, bounds);
+        return this;
     }
 
     public BloatedLine withIdentifier(final long identifier)

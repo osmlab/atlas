@@ -27,16 +27,42 @@ public class AtlasValidator
 
     public void validate()
     {
-        logger.debug("Starting validation of ChangeAtlas {}", this.atlas.getName());
+        logger.debug("Starting validation of Atlas {}", this.atlas.getName());
         final Time start = Time.now();
-        this.validateRelationsPresent();
-        this.validateTagsPresent();
+        logger.debug("Starting relation validation of Atlas {}", this.atlas.getName());
+        final Time startRelations = Time.now();
+        validateRelationsPresent();
+        validateRelationsLinked();
+        logger.debug("Finished relation validation of Atlas {} in {}", this.atlas.getName(),
+                startRelations.elapsedSince());
+        logger.debug("Starting tags validation of Atlas {}", this.atlas.getName());
+        final Time startTags = Time.now();
+        validateTagsPresent();
+        logger.debug("Finished tags validation of Atlas {} in {}", this.atlas.getName(),
+                startTags.elapsedSince());
         new AtlasLocationItemValidator(this.atlas).validate();
         new AtlasLineItemValidator(this.atlas).validate();
         new AtlasEdgeValidator(this.atlas).validate();
         new AtlasNodeValidator(this.atlas).validate();
-        logger.debug("Finished validation of ChangeAtlas {} in {}", this.atlas.getName(),
+        logger.debug("Finished validation of Atlas {} in {}", this.atlas.getName(),
                 start.elapsedSince());
+    }
+
+    protected void validateRelationsLinked()
+    {
+        for (final AtlasEntity entity : this.atlas.entities())
+        {
+            for (final Relation relation : entity.relations())
+            {
+                if (!relation.members().asBean()
+                        .getItemFor(entity.getIdentifier(), entity.getType()).isPresent())
+                {
+                    throw new CoreException(
+                            "Entity {} {} lists parent relation {} which does not have it as a member.",
+                            entity.getType(), entity.getIdentifier(), relation.getIdentifier());
+                }
+            }
+        }
     }
 
     protected void validateRelationsPresent()

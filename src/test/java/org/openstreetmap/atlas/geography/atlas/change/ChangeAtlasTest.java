@@ -81,17 +81,23 @@ public class ChangeAtlasTest
         final Relation disconnectedFeatures = atlas.relation(41834000000L);
         final Map<String, String> tags = disconnectedFeatures.getTags();
         tags.put("newKey", "newValue");
-        changeBuilder.add(new FeatureChange(ChangeType.ADD,
-                BloatedRelation.shallowFrom(disconnectedFeatures).withTags(tags)));
+        changeBuilder.add(FeatureChange
+                .add(BloatedRelation.shallowFrom(disconnectedFeatures).withTags(tags)));
         final Change change = changeBuilder.get();
 
         final Atlas changeAtlas = new ChangeAtlas(atlas, change);
-        Assert.assertEquals(tags, changeAtlas.relation(41834000000L).getTags());
+        final Relation changeRelation = changeAtlas.relation(41834000000L);
+        Assert.assertEquals(tags, changeRelation.getTags());
+        Assert.assertEquals(disconnectedFeatures.members().asBean(),
+                changeRelation.members().asBean());
 
         final Relation parentRelation = changeAtlas.relation(41860000000L);
-        final Relation fromRelation = (Relation) Iterables.stream(parentRelation.members())
+        final Relation changeRelationFromParentRelation = (Relation) Iterables
+                .stream(parentRelation.members())
                 .firstMatching(member -> "child1".equals(member.getRole())).get().getEntity();
-        Assert.assertEquals(tags, fromRelation.getTags());
+        Assert.assertEquals(tags, changeRelationFromParentRelation.getTags());
+        Assert.assertEquals(disconnectedFeatures.members().asBean(),
+                changeRelationFromParentRelation.members().asBean());
     }
 
     @Test

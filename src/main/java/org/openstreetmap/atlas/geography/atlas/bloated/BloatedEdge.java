@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.bloated;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -101,7 +102,16 @@ public class BloatedEdge extends Edge implements BloatedEntity
     @Override
     public boolean equals(final Object other)
     {
-        return BloatedAtlas.equals(this, other);
+        if (other instanceof BloatedEdge)
+        {
+            final BloatedEdge that = (BloatedEdge) other;
+            return BloatedEntity.basicEqual(this, that)
+                    && Objects.equals(this.asPolyLine(), that.asPolyLine())
+                    && BloatedEntity.equalThroughGet(this.start(), that.start(),
+                            Node::getIdentifier)
+                    && BloatedEntity.equalThroughGet(this.end(), that.end(), Node::getIdentifier);
+        }
+        return false;
     }
 
     @Override
@@ -150,6 +160,16 @@ public class BloatedEdge extends Edge implements BloatedEntity
                 + this.startNodeIdentifier + ", endNodeIdentifier=" + this.endNodeIdentifier
                 + ", polyLine=" + this.polyLine + ", tags=" + this.tags + ", relationIdentifiers="
                 + this.relationIdentifiers + "]";
+    }
+
+    public BloatedEdge withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    {
+        if (this.aggregateBounds == null)
+        {
+            this.aggregateBounds = bounds;
+        }
+        this.aggregateBounds = Rectangle.forLocated(this.aggregateBounds, bounds);
+        return this;
     }
 
     public BloatedEdge withEndNodeIdentifier(final Long endNodeIdentifier)

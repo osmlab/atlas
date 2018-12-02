@@ -53,7 +53,7 @@ public class PackedRelation extends Relation
     }
 
     @Override
-    public long osmRelationIdentifier()
+    public Long osmRelationIdentifier()
     {
         return packedAtlas().relationOsmIdentifier(this.index);
     }

@@ -26,7 +26,6 @@ import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedPoint;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
-import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -58,25 +57,9 @@ public class FeatureChange implements Located, Serializable
     private static final long serialVersionUID = 9172045162819925515L;
     private static final BinaryOperator<Map<String, String>> tagMerger = Maps::withMaps;
     private static final BinaryOperator<Set<Long>> directReferenceMerger = Sets::withSets;
-    private static final BinaryOperator<RelationBean> relationBeanMerger = (leftBean, rightBean) ->
-    {
-        final RelationBean result = new RelationBean();
-        for (final RelationBeanItem leftItem : leftBean)
-        {
-            result.addItem(leftItem);
-        }
-        for (final RelationBeanItem rightItem : rightBean)
-        {
-            if (leftBean.getItemFor(rightItem.getIdentifier(), rightItem.getType()).isPresent())
-            {
-                // Collision, fail
-                throw new CoreException("Unable to merge relation beans. Collision for {} {}",
-                        rightItem.getType(), rightItem.getIdentifier());
-            }
-            result.addItem(rightItem);
-        }
-        return result;
-    };
+    private static final BinaryOperator<Set<Long>> directReferenceMergerLoose = (left,
+            right) -> Sets.withSets(false, left, right);
+    private static final BinaryOperator<RelationBean> relationBeanMerger = RelationBean::merge;
 
     private final ChangeType changeType;
     private final AtlasEntity reference;
@@ -184,7 +167,7 @@ public class FeatureChange implements Located, Serializable
                         atlasEntity -> atlasEntity.relations() == null ? null
                                 : atlasEntity.relations().stream().map(Relation::getIdentifier)
                                         .collect(Collectors.toSet()),
-                        Optional.of(directReferenceMerger));
+                        Optional.of(directReferenceMergerLoose));
                 if (thisReference instanceof LocationItem)
                 {
                     return mergeLocationItems(other, mergedTags, mergedParentRelations);
@@ -228,8 +211,20 @@ public class FeatureChange implements Located, Serializable
         final Polygon mergedPolygon = mergedMember("polygon", thisReference, thatReference,
                 atlasEntity -> ((Area) atlasEntity).asPolygon(), Optional.empty());
 
-        return FeatureChange.add(
-                new BloatedArea(getIdentifier(), mergedPolygon, mergedTags, mergedParentRelations));
+        BloatedArea result = new BloatedArea(getIdentifier(), mergedPolygon, mergedTags,
+                mergedParentRelations);
+        if (result.bounds() == null)
+        {
+            if (bounds() != null)
+            {
+                result = result.withAggregateBoundsExtendedUsing(bounds());
+            }
+            else if (other.bounds() != null)
+            {
+                result = result.withAggregateBoundsExtendedUsing(other.bounds());
+            }
+        }
+        return FeatureChange.add(result);
     }
 
     private <M> M mergedMember(final String memberName, final AtlasEntity left,
@@ -291,14 +286,38 @@ public class FeatureChange implements Located, Serializable
                     thatReference, edge -> ((Edge) edge).end() == null ? null
                             : ((Edge) edge).end().getIdentifier(),
                     Optional.empty());
-            return FeatureChange.add(new BloatedEdge(getIdentifier(), mergedPolyLine, mergedTags,
-                    mergedStartNodeIdentifier, mergedEndNodeIdentifier, mergedParentRelations));
+            BloatedEdge result = new BloatedEdge(getIdentifier(), mergedPolyLine, mergedTags,
+                    mergedStartNodeIdentifier, mergedEndNodeIdentifier, mergedParentRelations);
+            if (result.bounds() == null)
+            {
+                if (bounds() != null)
+                {
+                    result = result.withAggregateBoundsExtendedUsing(bounds());
+                }
+                else if (other.bounds() != null)
+                {
+                    result = result.withAggregateBoundsExtendedUsing(other.bounds());
+                }
+            }
+            return FeatureChange.add(result);
         }
         else
         {
             // Line
-            return FeatureChange.add(new BloatedLine(getIdentifier(), mergedPolyLine, mergedTags,
-                    mergedParentRelations));
+            BloatedLine result = new BloatedLine(getIdentifier(), mergedPolyLine, mergedTags,
+                    mergedParentRelations);
+            if (result.bounds() == null)
+            {
+                if (bounds() != null)
+                {
+                    result = result.withAggregateBoundsExtendedUsing(bounds());
+                }
+                else if (other.bounds() != null)
+                {
+                    result = result.withAggregateBoundsExtendedUsing(other.bounds());
+                }
+            }
+            return FeatureChange.add(result);
         }
     }
 
@@ -323,14 +342,38 @@ public class FeatureChange implements Located, Serializable
                             : ((Node) atlasEntity).outEdges().stream().map(Edge::getIdentifier)
                                     .collect(Collectors.toCollection(TreeSet::new)),
                     Optional.of(directReferenceMerger));
-            return FeatureChange.add(new BloatedNode(getIdentifier(), mergedLocation, mergedTags,
-                    mergedInEdgeIdentifiers, mergedOutEdgeIdentifiers, mergedParentRelations));
+            BloatedNode result = new BloatedNode(getIdentifier(), mergedLocation, mergedTags,
+                    mergedInEdgeIdentifiers, mergedOutEdgeIdentifiers, mergedParentRelations);
+            if (result.bounds() == null)
+            {
+                if (bounds() != null)
+                {
+                    result = result.withAggregateBoundsExtendedUsing(bounds());
+                }
+                else if (other.bounds() != null)
+                {
+                    result = result.withAggregateBoundsExtendedUsing(other.bounds());
+                }
+            }
+            return FeatureChange.add(result);
         }
         else
         {
             // Point
-            return FeatureChange.add(new BloatedPoint(getIdentifier(), mergedLocation, mergedTags,
-                    mergedParentRelations));
+            BloatedPoint result = new BloatedPoint(getIdentifier(), mergedLocation, mergedTags,
+                    mergedParentRelations);
+            if (result.bounds() == null)
+            {
+                if (bounds() != null)
+                {
+                    result = result.withAggregateBoundsExtendedUsing(bounds());
+                }
+                else if (other.bounds() != null)
+                {
+                    result = result.withAggregateBoundsExtendedUsing(other.bounds());
+                }
+            }
+            return FeatureChange.add(result);
         }
     }
 

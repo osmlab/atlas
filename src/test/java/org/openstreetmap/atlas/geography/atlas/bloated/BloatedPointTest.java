@@ -12,6 +12,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.utilities.collections.Maps;
+import org.openstreetmap.atlas.utilities.collections.Sets;
 
 /**
  * @author matthieun
@@ -20,6 +21,36 @@ public class BloatedPointTest
 {
     @Rule
     public BloatedTestRule rule = new BloatedTestRule();
+
+    @Test
+    public void testBloatedEquals()
+    {
+        final BloatedPoint point11 = new BloatedPoint(123L, null, null, null);
+        final BloatedPoint point12 = new BloatedPoint(123L, null, null, null);
+        final BloatedPoint point21 = new BloatedPoint(123L, Location.COLOSSEUM, null, null);
+        final BloatedPoint point22 = new BloatedPoint(123L, Location.COLOSSEUM, null, null);
+        final BloatedPoint point23 = new BloatedPoint(123L, Location.EIFFEL_TOWER, null, null);
+        final BloatedPoint point31 = new BloatedPoint(123L, null, Maps.hashMap("key", "value"),
+                null);
+        final BloatedPoint point32 = new BloatedPoint(123L, null, Maps.hashMap("key", "value"),
+                null);
+        final BloatedPoint point33 = new BloatedPoint(123L, null, Maps.hashMap(), null);
+        final BloatedPoint point41 = new BloatedPoint(123L, null, null, Sets.hashSet(1L, 2L));
+        final BloatedPoint point42 = new BloatedPoint(123L, null, null, Sets.hashSet(1L, 2L));
+        final BloatedPoint point43 = new BloatedPoint(123L, null, null, Sets.hashSet(1L));
+
+        Assert.assertEquals(point11, point12);
+        Assert.assertEquals(point21, point22);
+        Assert.assertEquals(point31, point32);
+        Assert.assertEquals(point41, point42);
+
+        Assert.assertNotEquals(point11, point21);
+        Assert.assertNotEquals(point11, point31);
+        Assert.assertNotEquals(point11, point41);
+        Assert.assertNotEquals(point21, point23);
+        Assert.assertNotEquals(point31, point33);
+        Assert.assertNotEquals(point41, point43);
+    }
 
     @Test
     public void testFull()

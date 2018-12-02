@@ -9,6 +9,7 @@ import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedEdge;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
+import org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.tags.JunctionTag;
 import org.openstreetmap.atlas.utilities.collections.Maps;
@@ -41,6 +42,14 @@ public class AtlasChangeGeneratorSplitRoundabout implements AtlasChangeGenerator
                 final BloatedEdge secondEdge = BloatedEdge.from(edge)
                         .withIdentifier(newEdgeIdentifier).withPolyLine(shape2)
                         .withStartNodeIdentifier(middleNodeIdentifier);
+                // Update relations of edge to also list second edge that has a new ID here.
+                edge.relations().stream()
+                        .map(relation -> BloatedRelation.shallowFrom(relation)
+                                .withMembers(relation.members()).withExtraMember(secondEdge, edge))
+                        .map(FeatureChange::add).forEach(featureChange ->
+                        {
+                            result.add(featureChange);
+                        });
 
                 // Add the two new edges. First one has same ID as old edge and replaces it.
                 result.add(FeatureChange.add(firstEdge));

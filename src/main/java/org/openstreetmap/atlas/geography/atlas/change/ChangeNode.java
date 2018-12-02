@@ -8,6 +8,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -87,9 +88,7 @@ public class ChangeNode extends Node // NOSONAR
     @Override
     public Set<Relation> relations()
     {
-        return attribute(Node::relations).stream()
-                .map(relation -> getChangeAtlas().relation(relation.getIdentifier()))
-                .filter(relation -> relation != null).collect(Collectors.toSet());
+        return ChangeEntity.filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
     }
 
     private <T extends Object> T attribute(final Function<Node, T> memberExtractor)

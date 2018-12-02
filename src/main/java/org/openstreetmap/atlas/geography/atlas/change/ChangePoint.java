@@ -3,9 +3,9 @@ package org.openstreetmap.atlas.geography.atlas.change;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
@@ -53,9 +53,7 @@ public class ChangePoint extends Point // NOSONAR
     @Override
     public Set<Relation> relations()
     {
-        return attribute(Point::relations).stream()
-                .map(relation -> getChangeAtlas().relation(relation.getIdentifier()))
-                .collect(Collectors.toSet());
+        return ChangeEntity.filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
     }
 
     private <T extends Object> T attribute(final Function<Point, T> memberExtractor)

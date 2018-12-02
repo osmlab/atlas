@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.bloated;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -83,7 +84,13 @@ public class BloatedPoint extends Point implements BloatedEntity
     @Override
     public boolean equals(final Object other)
     {
-        return BloatedAtlas.equals(this, other);
+        if (other instanceof BloatedPoint)
+        {
+            final BloatedPoint that = (BloatedPoint) other;
+            return BloatedEntity.basicEqual(this, that)
+                    && Objects.equals(this.getLocation(), that.getLocation());
+        }
+        return false;
     }
 
     @Override
@@ -129,6 +136,16 @@ public class BloatedPoint extends Point implements BloatedEntity
     {
         return "BloatedPoint [identifier=" + this.identifier + ", location=" + this.location
                 + ", tags=" + this.tags + ", relationIdentifiers=" + this.relationIdentifiers + "]";
+    }
+
+    public BloatedPoint withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    {
+        if (this.aggregateBounds == null)
+        {
+            this.aggregateBounds = bounds;
+        }
+        this.aggregateBounds = Rectangle.forLocated(this.aggregateBounds, bounds);
+        return this;
     }
 
     public BloatedPoint withIdentifier(final long identifier)

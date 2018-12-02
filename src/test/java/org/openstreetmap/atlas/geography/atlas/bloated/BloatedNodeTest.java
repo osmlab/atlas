@@ -26,6 +26,57 @@ public class BloatedNodeTest
     public BloatedTestRule rule = new BloatedTestRule();
 
     @Test
+    public void testBloatedEquals()
+    {
+        final BloatedNode node11 = new BloatedNode(123L, null, null, null, null, null);
+        final BloatedNode node12 = new BloatedNode(123L, null, null, null, null, null);
+        final BloatedNode node21 = new BloatedNode(123L, Location.COLOSSEUM, null, null, null,
+                null);
+        final BloatedNode node22 = new BloatedNode(123L, Location.COLOSSEUM, null, null, null,
+                null);
+        final BloatedNode node23 = new BloatedNode(123L, Location.EIFFEL_TOWER, null, null, null,
+                null);
+        final BloatedNode node31 = new BloatedNode(123L, null, Maps.hashMap("key", "value"), null,
+                null, null);
+        final BloatedNode node32 = new BloatedNode(123L, null, Maps.hashMap("key", "value"), null,
+                null, null);
+        final BloatedNode node33 = new BloatedNode(123L, null, Maps.hashMap(), null, null, null);
+        final BloatedNode node41 = new BloatedNode(123L, null, null, null, null,
+                Sets.hashSet(1L, 2L));
+        final BloatedNode node42 = new BloatedNode(123L, null, null, null, null,
+                Sets.hashSet(1L, 2L));
+        final BloatedNode node43 = new BloatedNode(123L, null, null, null, null, Sets.hashSet(1L));
+        final BloatedNode node51 = new BloatedNode(123L, null, null, Sets.treeSet(1L, 2L), null,
+                null);
+        final BloatedNode node52 = new BloatedNode(123L, null, null, Sets.treeSet(1L, 2L), null,
+                null);
+        final BloatedNode node53 = new BloatedNode(123L, null, null, Sets.treeSet(1L), null, null);
+        final BloatedNode node61 = new BloatedNode(123L, null, null, null, Sets.treeSet(1L, 2L),
+                null);
+        final BloatedNode node62 = new BloatedNode(123L, null, null, null, Sets.treeSet(1L, 2L),
+                null);
+        final BloatedNode node63 = new BloatedNode(123L, null, null, null, Sets.treeSet(1L), null);
+
+        Assert.assertEquals(node11, node12);
+        Assert.assertEquals(node21, node22);
+        Assert.assertEquals(node31, node32);
+        Assert.assertEquals(node41, node42);
+        Assert.assertEquals(node51, node52);
+        Assert.assertEquals(node61, node62);
+
+        Assert.assertNotEquals(node11, node21);
+        Assert.assertNotEquals(node11, node31);
+        Assert.assertNotEquals(node11, node41);
+        Assert.assertNotEquals(node11, node51);
+        Assert.assertNotEquals(node11, node61);
+        Assert.assertNotEquals(node21, node23);
+        Assert.assertNotEquals(node31, node33);
+        Assert.assertNotEquals(node41, node43);
+        Assert.assertNotEquals(node51, node53);
+        Assert.assertNotEquals(node61, node63);
+    }
+
+    @Test
     public void testFull()
     {
         final Atlas atlas = this.rule.getAtlas();
