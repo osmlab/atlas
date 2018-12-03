@@ -10,6 +10,7 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
  *
  * @author matthieun
  */
+@Deprecated
 public class HeightConverter implements StringConverter<Distance>
 {
     private static final String METERS_SUFFIX = " m";
