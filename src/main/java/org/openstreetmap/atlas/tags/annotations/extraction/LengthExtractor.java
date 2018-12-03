@@ -9,7 +9,7 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
 
 /**
  * Extracts a {@link Distance} from a value. Can be used on tag values such as
- * {@link org.openstreetmap.atlas.tags.HeightTag}.
+ * {@link org.openstreetmap.atlas.tags.WidthTag}.
  *
  * @author bbreithaupt
  */

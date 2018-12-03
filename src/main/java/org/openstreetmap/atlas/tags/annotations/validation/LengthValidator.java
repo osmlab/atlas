@@ -27,7 +27,6 @@ public class LengthValidator implements TagValidator
     static
     {
         DOUBLE_VALIDATOR = new DoubleValidator();
-        DOUBLE_VALIDATOR.setMinimum(0);
     }
 
     /**
@@ -106,8 +105,9 @@ public class LengthValidator implements TagValidator
 
     private boolean validateInchesAndTail(final String value, final int start, final int index)
     {
-        return DOUBLE_VALIDATOR.isValid(value.substring(start, index)) ? index + 1 == value.length()
-                || StringUtils.isBlank(value.substring(index + 1, value.length())) : false;
+        return DOUBLE_VALIDATOR.isValid(value.substring(start, index)) && (
+                index + 1 == value.length() || StringUtils
+                        .isBlank(value.substring(index + 1, value.length())));
     }
 
 }
