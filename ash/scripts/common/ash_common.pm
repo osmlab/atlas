@@ -128,7 +128,7 @@ our $JAVA_NO_USE_PAGER = "___atlas-shell-tools_no_use_pager_SPECIALARGUMENT___";
 our $JAVA_MARKER_SENTINEL = "___atlas-shell-tools_LAST_ARG_MARKER_SENTINEL___";
 
 # Use ASCII record separator as delimiter.
-# This is also defined in Atlas class OSMSubcommandTablePrinter.
+# This is also defined in Atlas class ActiveModuleIndexWriter.
 my $INDEX_DELIMITER = "\x1E";
 
 # The default setting for the log4j file.
@@ -154,7 +154,7 @@ my $PRESET_EDIT_HEADER = "# Each line in this file will become a discrete ARGV e
 # To save your changes, hit <ESC> then type :wq<Enter>";
 
 # The Java class that creates the active_module_index
-my $TABLE_PRINTER_CLASS = "org.openstreetmap.atlas.utilities.command.OSMSubcommandTablePrinter";
+my $INDEX_WRITER_CLASS = "org.openstreetmap.atlas.utilities.command.ActiveModuleIndexWriter";
 
 my $no_colors_stdout = is_no_colors_stdout();
 my $red_stdout = $no_colors_stdout ? "" : ansi_red();
@@ -1038,7 +1038,7 @@ sub generate_active_module_index {
     my $java_command = "java -Xms2G -Xmx2G ".
                    "-cp \"${full_path_to_modules_folder}\" ".
                    "-Dlog4j.rootLogger=ERROR ".
-                   "${TABLE_PRINTER_CLASS} ";
+                   "${INDEX_WRITER_CLASS} $full_index_path ";
 
     if ($verbose_java && !$quiet) {
         $java_command = $java_command . "--verbose";
@@ -1055,15 +1055,12 @@ sub generate_active_module_index {
         return 0;
     }
 
-    my $output = `$java_command`;
+    system("$java_command");
     my $exitcode = $? >> 8;
     unless ($exitcode == 0) {
         ash_common::error_output($program_name, 'could not generate index');
         return 0;
     }
-    open my $file_handle, '>', $full_index_path;
-    print $file_handle $output;
-    close $file_handle;
 
     unless ($quiet) {
         print "New index successfully generated.\n";

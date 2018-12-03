@@ -1,14 +1,19 @@
 package org.openstreetmap.atlas.utilities.command;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.openstreetmap.atlas.exception.CoreException;
 
 import com.google.common.base.Objects;
 
 /**
  * @author lcram
  */
-public class OSMSubcommandTablePrinter
+public class ActiveModuleIndexWriter
 {
     private static final String VERBOSE = "--verbose";
 
@@ -16,27 +21,39 @@ public class OSMSubcommandTablePrinter
     private static final String DELIMITER = Character.toString((char) 0x1E);
 
     private final boolean useVerbose;
+    private final String outputPath;
 
     public static void main(final String[] args)
     {
-        String arg = null;
-        if (args.length > 0)
+        String outputPath = null;
+        String verboseFlag = null;
+        if (args.length < 1)
         {
-            arg = args[0];
+            throw new CoreException("Missing required output path argument");
         }
-        if (Objects.equal(VERBOSE, arg))
+        else if (args.length == 1)
         {
-            new OSMSubcommandTablePrinter(true).printLookupTable();
+            outputPath = args[0];
         }
         else
         {
-            new OSMSubcommandTablePrinter(false).printLookupTable();
+            outputPath = args[0];
+            verboseFlag = args[1];
+        }
+        if (Objects.equal(VERBOSE, verboseFlag))
+        {
+            new ActiveModuleIndexWriter(outputPath, true).printLookupTable();
+        }
+        else
+        {
+            new ActiveModuleIndexWriter(outputPath, false).printLookupTable();
         }
 
     }
 
-    public OSMSubcommandTablePrinter(final boolean useVerbose)
+    public ActiveModuleIndexWriter(final String outputPath, final boolean useVerbose)
     {
+        this.outputPath = outputPath;
         this.useVerbose = useVerbose;
     }
 
@@ -44,7 +61,7 @@ public class OSMSubcommandTablePrinter
     {
         if (this.useVerbose)
         {
-            System.err.println(message);
+            System.out.println(message);
         }
     }
 
@@ -53,9 +70,19 @@ public class OSMSubcommandTablePrinter
         final Set<AbstractAtlasShellToolsCommand> commands = ReflectionUtilities
                 .getSubcommandInstances();
         final Set<String> namesWeHaveAlreadySeen = new HashSet<>();
+        final PrintWriter printWriter;
+        try
+        {
+            printWriter = new PrintWriter(new FileWriter(this.outputPath));
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("Could not write index", exception);
+        }
 
         // print a line break
         diagnosticIfVerbose("");
+
         for (final AbstractAtlasShellToolsCommand command : commands)
         {
             diagnosticIfVerbose("Found command definition in " + command.getClass().getName());
@@ -87,10 +114,12 @@ public class OSMSubcommandTablePrinter
             builder.append(command.getClass().getName());
             builder.append(DELIMITER);
             builder.append(command.getSimpleDescription());
-            System.out.println(builder.toString());
+            printWriter.println(builder.toString());
             diagnosticIfVerbose("Command " + command.getCommandName() + " registered OK.");
+
             // print a line break
             diagnosticIfVerbose("");
         }
+        printWriter.close();
     }
 }
