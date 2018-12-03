@@ -170,7 +170,7 @@ $ ash cfg:preset edit:MyCommand p1
 .SH "PRESETS"
 .sp
 \fBash\fR features a robust preset management system. Presets provide a way to save
-command options and their arguments for future application or modification.
+command options (and long option arguments) for future application or modification.
 For more information about how \fBash\fR saves and manipulates presets under
 the hood, see \fBash\-plumbing\fR(5).
 .sp
@@ -237,7 +237,7 @@ $ ash \-\-preset=p1 MyCommand arg1 arg2
 .RE
 .sp
 This will run the exact same command as before, but it saves us from having
-to type out \-\-opt1, \-\-opt2 with their arguments. In addition to simply applying
+to type out "\-\-opt1" and "\-\-opt2=opt2Arg". In addition to simply applying
 a preset verbatim, you can also override a saved option by specifying it again
 on the command line:
 .sp
