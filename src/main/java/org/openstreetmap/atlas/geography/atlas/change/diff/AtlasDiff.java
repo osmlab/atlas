@@ -299,8 +299,21 @@ public class AtlasDiff
          */
         if (entity instanceof Node)
         {
-            AtlasDiffHelper.getNodeChangeIfNecessary((Node) beforeEntity, (Node) afterEntity,
-                    useGeometryMatching).ifPresent(featureChanges::add);
+            AtlasDiffHelper
+                    .getNodeChangeIfNecessary((Node) beforeEntity, (Node) afterEntity,
+                            useGeometryMatching, useBloatedEntities, saveAllGeometries)
+                    .ifPresent(featureChanges::add);
+        }
+
+        /*
+         * Detect if the entities were Edges and some Edge properties changed.
+         */
+        if (entity instanceof Edge)
+        {
+            AtlasDiffHelper
+                    .getEdgeChangeIfNecessary((Edge) beforeEntity, (Edge) afterEntity, beforeAtlas,
+                            afterAtlas, useGeometryMatching, useBloatedEntities, saveAllGeometries)
+                    .ifPresent(featureChanges::add);
         }
 
         return featureChanges;

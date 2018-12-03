@@ -78,8 +78,59 @@ public final class AtlasDiffHelper
         return false;
     }
 
+    public static Optional<FeatureChange> getEdgeChangeIfNecessary(final Edge beforeEdge,
+            final Edge afterEdge, final Atlas beforeAtlas, final Atlas afterAtlas,
+            final boolean useGeometryMatching, final boolean useBloatedEntities,
+            final boolean saveAllGeometry)
+    {
+        try
+        {
+            boolean featureChangeWouldBeUseful = false;
+            final BloatedEdge bloatedEdge = BloatedEdge.shallowFrom(afterEdge);
+            if (!beforeEdge.asPolyLine().equals(afterEdge.asPolyLine()))
+            {
+                bloatedEdge.withPolyLine(afterEdge.asPolyLine());
+                featureChangeWouldBeUseful = true;
+            }
+            if (beforeEdge.start().getIdentifier() != afterEdge.start().getIdentifier())
+            {
+                bloatedEdge.withStartNodeIdentifier(afterEdge.start().getIdentifier());
+                featureChangeWouldBeUseful = true;
+            }
+            if (beforeEdge.end().getIdentifier() != afterEdge.end().getIdentifier())
+            {
+                bloatedEdge.withEndNodeIdentifier(afterEdge.end().getIdentifier());
+                featureChangeWouldBeUseful = true;
+            }
+            if (featureChangeWouldBeUseful)
+            {
+                // Make sure that there is not way to find a match with the other polylines
+                featureChangeWouldBeUseful = !edgeHasGeometryMatchInAtlas(beforeEdge, afterAtlas,
+                        useGeometryMatching);
+            }
+            if (featureChangeWouldBeUseful)
+            {
+                if (useBloatedEntities)
+                {
+                    return Optional.of(new FeatureChange(ChangeType.ADD, bloatedEdge));
+                }
+                else
+                {
+                    return Optional.of(new FeatureChange(ChangeType.ADD, afterEdge));
+                }
+            }
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException("Unable to compare edges {} and {}", beforeEdge, afterEdge,
+                    exception);
+        }
+        return Optional.empty();
+    }
+
     public static Optional<FeatureChange> getNodeChangeIfNecessary(final Node beforeNode,
-            final Node afterNode, final boolean useGeometryMatching)
+            final Node afterNode, final boolean useGeometryMatching,
+            final boolean useBloatedEntities, final boolean saveAllGeometries)
     {
         try
         {
@@ -94,17 +145,32 @@ public final class AtlasDiffHelper
             {
                 bloatedNode.withInEdgeIdentifiers(new TreeSet<>(afterNode.inEdges().stream()
                         .map(edge -> edge.getIdentifier()).collect(Collectors.toSet())));
+                if (saveAllGeometries)
+                {
+                    bloatedNode.withLocation(afterNode.getLocation());
+                }
                 featureChangeWouldBeUseful = true;
             }
             if (differentEdgeSet(beforeNode.outEdges(), afterNode.outEdges(), useGeometryMatching))
             {
                 bloatedNode.withOutEdgeIdentifiers(new TreeSet<>(afterNode.outEdges().stream()
                         .map(edge -> edge.getIdentifier()).collect(Collectors.toSet())));
+                if (saveAllGeometries)
+                {
+                    bloatedNode.withLocation(afterNode.getLocation());
+                }
                 featureChangeWouldBeUseful = true;
             }
             if (featureChangeWouldBeUseful)
             {
-                return Optional.of(new FeatureChange(ChangeType.ADD, bloatedNode));
+                if (useBloatedEntities)
+                {
+                    return Optional.of(new FeatureChange(ChangeType.ADD, bloatedNode));
+                }
+                else
+                {
+                    return Optional.of(new FeatureChange(ChangeType.ADD, afterNode));
+                }
             }
         }
         catch (final Exception exception)
