@@ -20,6 +20,22 @@ public class AtlasDiffTest
     public AtlasDiffTestRule rule = new AtlasDiffTestRule();
 
     @Test
+    public void testAggregateDiff()
+    {
+        Atlas atlasX = this.rule.simpleAtlas1();
+        Atlas atlasY = this.rule.simpleAtlas2();
+        int expectedNumberOfChanges = 8;
+
+        assertChangeAtlasConsistency(atlasX, atlasY, expectedNumberOfChanges);
+
+        atlasX = this.rule.simpleAtlas3();
+        atlasY = this.rule.simpleAtlas4();
+        expectedNumberOfChanges = 16;
+
+        assertChangeAtlasConsistency(atlasX, atlasY, expectedNumberOfChanges);
+    }
+
+    @Test
     public void testNodeAndEdgePropertyDiff()
     {
         final Atlas atlasX = this.rule.differentNodeAndEdgeProperties1();
@@ -53,16 +69,6 @@ public class AtlasDiffTest
         atlasX = this.rule.differentRelations3();
         atlasY = this.rule.differentRelations4();
         expectedNumberOfChanges = 7;
-
-        assertChangeAtlasConsistency(atlasX, atlasY, expectedNumberOfChanges);
-    }
-
-    @Test
-    public void testAggregateDiff()
-    {
-        final Atlas atlasX = this.rule.simpleAtlas1();
-        final Atlas atlasY = this.rule.simpleAtlas2();
-        final int expectedNumberOfChanges = 8;
 
         assertChangeAtlasConsistency(atlasX, atlasY, expectedNumberOfChanges);
     }

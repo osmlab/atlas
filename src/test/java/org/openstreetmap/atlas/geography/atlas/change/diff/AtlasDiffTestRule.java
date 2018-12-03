@@ -19,7 +19,6 @@ public class AtlasDiffTestRule extends CoreTestRule
 {
     private static final String ONE = "15.420563,-61.336198";
     private static final String TWO = "15.429499,-61.332850";
-    private static final String TWO_BIS = "15.3907,-61.3112";
     private static final String THREE = "15.4855,-61.3041";
     private static final String FOUR = "15.4809,-61.3366";
     private static final String FIVE = "15.4852,-61.3816";
@@ -28,12 +27,177 @@ public class AtlasDiffTestRule extends CoreTestRule
     private static final String EIGHT = "15.4073,-61.3749";
     private static final String NINE = "15.4075,-61.3746";
     private static final String TEN = "15.4081,-61.3741";
+    private static final String ELEVEN = "15.4111,-62.3741";
 
     @TestAtlas(loadFromJosmOsmResource = "DiffAtlas1.josm.osm")
     private Atlas simpleAtlas1;
 
     @TestAtlas(loadFromJosmOsmResource = "DiffAtlas2.josm.osm")
     private Atlas simpleAtlas2;
+
+    @TestAtlas(
+
+            nodes = {
+
+                    @Node(id = "5", coordinates = @Loc(value = FIVE), tags = { "tag1=value1" }),
+                    @Node(id = "6", coordinates = @Loc(value = SIX), tags = { "tag1=value1" }),
+                    @Node(id = "7", coordinates = @Loc(value = SEVEN), tags = { "tag1=value1" }),
+                    @Node(id = "8", coordinates = @Loc(value = EIGHT), tags = { "tag1=value1",
+                            "tag2=value2" })
+
+            },
+
+            edges = {
+
+                    @Edge(id = "99", coordinates = { @Loc(value = FIVE),
+                            @Loc(value = SIX) }, tags = { "highway=secondary" }),
+                    @Edge(id = "100", coordinates = { @Loc(value = SIX),
+                            @Loc(value = SEVEN) }, tags = { "highway=secondary" }),
+                    @Edge(id = "101", coordinates = { @Loc(value = SEVEN),
+                            @Loc(value = EIGHT) }, tags = { "highway=secondary" })
+
+            },
+
+            areas = {
+
+                    @Area(id = "1", coordinates = { @Loc(value = ONE), @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "landuse=residential" })
+
+            },
+
+            lines = {
+
+                    @Line(id = "1", coordinates = { @Loc(value = FOUR), @Loc(value = FIVE),
+                            @Loc(value = SIX) }, tags = { "power=line" })
+
+            },
+
+            points = {
+
+                    @Point(id = "1", coordinates = @Loc(value = ONE)),
+                    @Point(id = "2", coordinates = @Loc(value = TWO)),
+                    @Point(id = "100", coordinates = @Loc(value = ELEVEN))
+
+            },
+
+            relations = {
+
+                    @Relation(id = "31", tags = { "type=relation" }, members = {
+
+                            @Member(id = "5", role = "a", type = "node"),
+                            @Member(id = "7", role = "a", type = "node")
+
+                    }),
+
+                    @Relation(id = "32", tags = { "type=relation" }, members = {
+
+                            @Member(id = "7", role = "a", type = "node"),
+                            @Member(id = "8", role = "a", type = "node")
+
+                    }),
+
+                    @Relation(id = "33", tags = { "type=relation" }, members = {
+
+                            @Member(id = "6", role = "a", type = "node"),
+
+                    }),
+
+                    @Relation(id = "1000", tags = { "type=relation" }, members = {
+
+                            @Member(id = "100", role = "a", type = "point"),
+
+                    })
+
+            }
+
+    )
+    private Atlas simpleAtlas3;
+
+    @TestAtlas(
+
+            nodes = {
+
+                    @Node(id = "5", coordinates = @Loc(value = FIVE), tags = { "tag1=value1" }),
+                    @Node(id = "6", coordinates = @Loc(value = SIX), tags = { "tag1=value1" }),
+                    @Node(id = "7", coordinates = @Loc(value = SEVEN), tags = { "tag1=value1" }),
+                    @Node(id = "8", coordinates = @Loc(value = EIGHT), tags = { "tag1=value1",
+                            "tag2=value2" }),
+                    @Node(id = "9", coordinates = @Loc(value = NINE), tags = { "tag1=value1",
+                            "tag2=value2" }),
+                    @Node(id = "10", coordinates = @Loc(value = TEN), tags = { "tag1=value1",
+                            "tag2=value2" })
+
+            },
+
+            edges = {
+
+                    @Edge(id = "99", coordinates = { @Loc(value = FIVE),
+                            @Loc(value = SIX) }, tags = { "highway=secondary" }),
+                    @Edge(id = "100", coordinates = { @Loc(value = SIX),
+                            @Loc(value = SEVEN) }, tags = { "highway=secondary" }),
+                    @Edge(id = "101", coordinates = { @Loc(value = SEVEN),
+                            @Loc(value = EIGHT) }, tags = { "highway=secondary" }),
+                    @Edge(id = "102", coordinates = { @Loc(value = NINE),
+                            @Loc(value = TEN) }, tags = { "highway=secondary" })
+
+            },
+
+            areas = {
+
+                    @Area(id = "1", coordinates = { @Loc(value = ONE), @Loc(value = FOUR),
+                            @Loc(value = THREE) }, tags = { "landuse=residential" })
+
+            },
+
+            lines = {
+
+                    @Line(id = "1", coordinates = { @Loc(value = FOUR), @Loc(value = FIVE),
+                            @Loc(value = SIX) }, tags = { "power=line", "tag=value" }),
+                    @Line(id = "2", coordinates = { @Loc(value = FOUR), @Loc(value = EIGHT),
+                            @Loc(value = SIX) }, tags = { "power=line" })
+
+            },
+
+            points = {
+
+                    @Point(id = "1", coordinates = @Loc(value = ONE)),
+                    @Point(id = "2", coordinates = @Loc(value = TWO))
+
+            },
+
+            relations = {
+
+                    @Relation(id = "31", tags = { "type=relation" }, members = {
+
+                            @Member(id = "5", role = "a", type = "node")
+
+                    }),
+
+                    @Relation(id = "32", tags = { "type=relation" }, members = {
+
+                            @Member(id = "7", role = "a", type = "node"),
+                            @Member(id = "8", role = "b", type = "node")
+
+                    }),
+
+                    @Relation(id = "33", tags = { "type=relation" }, members = {
+
+                            @Member(id = "6", role = "a", type = "node"),
+                            @Member(id = "2", role = "b", type = "line")
+
+                    }),
+
+                    @Relation(id = "34", tags = { "type=relation" }, members = {
+
+                            @Member(id = "1", role = "a", type = "point"),
+                            @Member(id = "2", role = "b", type = "point")
+
+                    })
+
+            }
+
+    )
+    private Atlas simpleAtlas4;
 
     @TestAtlas(
 
@@ -385,5 +549,15 @@ public class AtlasDiffTestRule extends CoreTestRule
     public Atlas simpleAtlas2()
     {
         return this.simpleAtlas2;
+    }
+
+    public Atlas simpleAtlas3()
+    {
+        return this.simpleAtlas3;
+    }
+
+    public Atlas simpleAtlas4()
+    {
+        return this.simpleAtlas4;
     }
 }
