@@ -78,6 +78,38 @@ public final class AtlasDiffHelper
         return false;
     }
 
+    public static Optional<FeatureChange> getAreaChangeIfNecessary(final Area beforeArea,
+            final Area afterArea, final boolean useBloatedEntities, final boolean saveAllGeometry)
+    {
+        try
+        {
+            boolean featureChangeWouldBeUseful = false;
+            final BloatedArea bloatedArea = BloatedArea.shallowFrom(afterArea);
+            if (!beforeArea.asPolygon().equals(afterArea.asPolygon()))
+            {
+                bloatedArea.withPolygon(afterArea.asPolygon());
+                featureChangeWouldBeUseful = true;
+            }
+            if (featureChangeWouldBeUseful)
+            {
+                if (useBloatedEntities)
+                {
+                    return Optional.of(new FeatureChange(ChangeType.ADD, bloatedArea));
+                }
+                else
+                {
+                    return Optional.of(new FeatureChange(ChangeType.ADD, afterArea));
+                }
+            }
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException("Unable to compare areas {} and {}", beforeArea, afterArea,
+                    exception);
+        }
+        return Optional.empty();
+    }
+
     public static Optional<FeatureChange> getEdgeChangeIfNecessary(final Edge beforeEdge,
             final Edge afterEdge, final Atlas beforeAtlas, final Atlas afterAtlas,
             final boolean useGeometryMatching, final boolean useBloatedEntities,
@@ -123,6 +155,38 @@ public final class AtlasDiffHelper
         catch (final Exception exception)
         {
             throw new CoreException("Unable to compare edges {} and {}", beforeEdge, afterEdge,
+                    exception);
+        }
+        return Optional.empty();
+    }
+
+    public static Optional<FeatureChange> getLineChangeIfNecessary(final Line beforeLine,
+            final Line afterLine, final boolean useBloatedEntities, final boolean saveAllGeometry)
+    {
+        try
+        {
+            boolean featureChangeWouldBeUseful = false;
+            final BloatedLine bloatedLine = BloatedLine.shallowFrom(afterLine);
+            if (!beforeLine.asPolyLine().equals(afterLine.asPolyLine()))
+            {
+                bloatedLine.withPolyLine(afterLine.asPolyLine());
+                featureChangeWouldBeUseful = true;
+            }
+            if (featureChangeWouldBeUseful)
+            {
+                if (useBloatedEntities)
+                {
+                    return Optional.of(new FeatureChange(ChangeType.ADD, bloatedLine));
+                }
+                else
+                {
+                    return Optional.of(new FeatureChange(ChangeType.ADD, afterLine));
+                }
+            }
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException("Unable to compare lines {} and {}", beforeLine, afterLine,
                     exception);
         }
         return Optional.empty();
@@ -285,6 +349,79 @@ public final class AtlasDiffHelper
             throw new CoreException("Unable to compare relations for {} and {}", beforeEntity,
                     afterEntity, exception);
         }
+    }
+
+    public static Optional<FeatureChange> getPointChangeIfNecessary(final Point beforePoint,
+            final Point afterPoint, final boolean useBloatedEntities,
+            final boolean saveAllGeometries)
+    {
+        try
+        {
+            boolean featureChangeWouldBeUseful = false;
+            final BloatedPoint bloatedPoint = BloatedPoint.shallowFrom(afterPoint);
+            if (!beforePoint.getLocation().equals(afterPoint.getLocation()))
+            {
+                bloatedPoint.withLocation(afterPoint.getLocation());
+                featureChangeWouldBeUseful = true;
+            }
+            if (featureChangeWouldBeUseful)
+            {
+                if (useBloatedEntities)
+                {
+                    return Optional.of(new FeatureChange(ChangeType.ADD, bloatedPoint));
+                }
+                else
+                {
+                    return Optional.of(new FeatureChange(ChangeType.ADD, afterPoint));
+                }
+            }
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException("Unable to compare points {} and {}", beforePoint, afterPoint,
+                    exception);
+        }
+        return Optional.empty();
+    }
+
+    public static Optional<FeatureChange> getRelationChangeIfNecessary(
+            final Relation beforeRelation, final Relation afterRelation, final Atlas beforeAtlas,
+            final Atlas afterAtlas, final boolean useGeometryMatching,
+            final boolean useBloatedEntities, final boolean saveAllGeometry)
+    {
+        try
+        {
+            boolean featureChangeWouldBeUseful = false;
+            final BloatedRelation bloatedRelation = BloatedRelation.shallowFrom(afterRelation);
+            final RelationMemberList beforeMembers = beforeRelation.members();
+            final RelationMemberList afterMembers = afterRelation.members();
+            if (!afterMembers.equals(beforeMembers))
+            {
+                if (!geometryMatchInRelationMemberList(beforeMembers, afterMembers,
+                        useGeometryMatching))
+                {
+                    bloatedRelation.withMembers(afterRelation.members());
+                    featureChangeWouldBeUseful = true;
+                }
+            }
+            if (featureChangeWouldBeUseful)
+            {
+                if (useBloatedEntities)
+                {
+                    return Optional.of(new FeatureChange(ChangeType.ADD, bloatedRelation));
+                }
+                else
+                {
+                    return Optional.of(new FeatureChange(ChangeType.ADD, afterRelation));
+                }
+            }
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException("Unable to compare relations {} and {}", beforeRelation,
+                    afterRelation, exception);
+        }
+        return Optional.empty();
     }
 
     public static Optional<FeatureChange> getTagChangeIfNecessary(final AtlasEntity beforeEntity,
@@ -613,6 +750,18 @@ public final class AtlasDiffHelper
             throw new CoreException("Unable to compare relations for {} and {}", beforeEntity,
                     afterEntity, exception);
         }
+    }
+
+    private static boolean geometryMatchInRelationMemberList(final RelationMemberList beforeMembers,
+            final RelationMemberList afterMembers, final boolean useGeometryMatching)
+    {
+        final SortedSet<Edge> beforeEdges = Iterables.stream(beforeMembers)
+                .map(member -> member.getEntity()).filter(entity -> entity instanceof Edge)
+                .map(entity -> (Edge) entity).collectToSortedSet();
+        final SortedSet<Edge> afterEdges = Iterables.stream(afterMembers)
+                .map(member -> member.getEntity()).filter(entity -> entity instanceof Edge)
+                .map(entity -> (Edge) entity).collectToSortedSet();
+        return differentEdgeSet(beforeEdges, afterEdges, useGeometryMatching);
     }
 
     private AtlasDiffHelper()

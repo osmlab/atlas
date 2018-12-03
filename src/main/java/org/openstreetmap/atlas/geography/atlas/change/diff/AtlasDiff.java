@@ -11,9 +11,13 @@ import org.openstreetmap.atlas.geography.atlas.change.ChangeAtlas;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeBuilder;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
+import org.openstreetmap.atlas.geography.atlas.items.Point;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.slf4j.Logger;
@@ -248,8 +252,6 @@ public class AtlasDiff
      * a Point's location AND tags changed, then the set will contain two feature changes, one for
      * the location and one for the tags. However, if a Node's location and connected edges change,
      * this will come in as one feature change.<br>
-     * TODO Many things here currently ignore useBloatedEntities and saveAllGeometries, this needs
-     * to change.
      *
      * @param entity
      * @param beforeAtlas
@@ -295,7 +297,8 @@ public class AtlasDiff
                 .ifPresent(featureChanges::add);
 
         /*
-         * Detect if the entities were Nodes and some Node properties changed.
+         * Detect if the entities were Nodes and some Node properties changed. We check for Node
+         * locations, as well as inEdges and outEdges.
          */
         if (entity instanceof Node)
         {
@@ -306,7 +309,8 @@ public class AtlasDiff
         }
 
         /*
-         * Detect if the entities were Edges and some Edge properties changed.
+         * Detect if the entities were Edges and some Edge properties changed. We check for Edge
+         * polylines, as well as the start and end Node.
          */
         if (entity instanceof Edge)
         {
@@ -314,6 +318,47 @@ public class AtlasDiff
                     .getEdgeChangeIfNecessary((Edge) beforeEntity, (Edge) afterEntity, beforeAtlas,
                             afterAtlas, useGeometryMatching, useBloatedEntities, saveAllGeometries)
                     .ifPresent(featureChanges::add);
+        }
+
+        /*
+         * Detect if the entities were Points and some Point properties changed. We just check the
+         * location.
+         */
+        if (entity instanceof Point)
+        {
+            AtlasDiffHelper.getPointChangeIfNecessary((Point) beforeEntity, (Point) afterEntity,
+                    useBloatedEntities, saveAllGeometries).ifPresent(featureChanges::add);
+        }
+
+        /*
+         * Detect if the entities were Lines and some Line properties changed. We just check the
+         * polyline.
+         */
+        if (entity instanceof Line)
+        {
+            AtlasDiffHelper.getLineChangeIfNecessary((Line) beforeEntity, (Line) afterEntity,
+                    useBloatedEntities, saveAllGeometries).ifPresent(featureChanges::add);
+        }
+
+        /*
+         * Detect if the entities were Areas and some Area properties changed. We just check the
+         * polygon.
+         */
+        if (entity instanceof Area)
+        {
+            AtlasDiffHelper.getAreaChangeIfNecessary((Area) beforeEntity, (Area) afterEntity,
+                    useBloatedEntities, saveAllGeometries).ifPresent(featureChanges::add);
+        }
+
+        /*
+         * Detect if the entities were Relations and some Relation properties changed. We just check
+         * the member lists for changes.
+         */
+        if (entity instanceof Relation)
+        {
+            AtlasDiffHelper.getRelationChangeIfNecessary((Relation) beforeEntity,
+                    (Relation) afterEntity, beforeAtlas, afterAtlas, useGeometryMatching,
+                    useBloatedEntities, saveAllGeometries).ifPresent(featureChanges::add);
         }
 
         return featureChanges;

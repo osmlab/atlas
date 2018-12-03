@@ -32,13 +32,15 @@ public class AtlasDiffTest
         Assert.assertEquals(expectedNumberOfChanges, changeXToYBloated.changeCount());
         final ChangeAtlas changeAtlasY = new ChangeAtlas(atlasX, changeXToYBloated);
         Assert.assertFalse(new AtlasDiff(changeAtlasY, atlasY).generateChange().hasChanges());
+        Assert.assertEquals(atlasY, changeAtlasY);
 
         // Now test not-bloated entities
         final Change changeXToY = new AtlasDiff(atlasX, atlasY).useBloatedEntities(false)
                 .generateChange();
         Assert.assertEquals(expectedNumberOfChanges, changeXToY.changeCount());
-        final ChangeAtlas changeAtlasY2 = new ChangeAtlas(atlasX, changeXToY);
-        Assert.assertFalse(new AtlasDiff(changeAtlasY2, atlasY).generateChange().hasChanges());
+        final ChangeAtlas changeAtlasY_2 = new ChangeAtlas(atlasX, changeXToY);
+        Assert.assertFalse(new AtlasDiff(changeAtlasY_2, atlasY).generateChange().hasChanges());
+        Assert.assertEquals(atlasY, changeAtlasY_2);
     }
 
     @Test
@@ -53,6 +55,7 @@ public class AtlasDiffTest
         Assert.assertEquals(expectedNumberOfChanges, changeXToYBloated.changeCount());
         final ChangeAtlas changeAtlasY = new ChangeAtlas(atlasX, changeXToYBloated);
         Assert.assertFalse(new AtlasDiff(changeAtlasY, atlasY).generateChange().hasChanges());
+        Assert.assertEquals(atlasY, changeAtlasY);
     }
 
     @Test
@@ -84,12 +87,14 @@ public class AtlasDiffTest
         Assert.assertEquals(expectedNumberOfChanges, changeXToYBloated.changeCount());
         final ChangeAtlas changeAtlasY = new ChangeAtlas(atlasX, changeXToYBloated);
         Assert.assertFalse(new AtlasDiff(changeAtlasY, atlasY).generateChange().hasChanges());
+        Assert.assertEquals(atlasY, changeAtlasY);
 
         // Now test with non-bloated
         final Change changeXToY = new AtlasDiff(atlasX, atlasY).useBloatedEntities(false)
                 .generateChange();
         Assert.assertEquals(expectedNumberOfChanges, changeXToY.changeCount());
-        final ChangeAtlas changeAtlasY2 = new ChangeAtlas(atlasX, changeXToY);
-        Assert.assertFalse(new AtlasDiff(changeAtlasY2, atlasY).generateChange().hasChanges());
+        final ChangeAtlas changeAtlasY_2 = new ChangeAtlas(atlasX, changeXToY);
+        Assert.assertFalse(new AtlasDiff(changeAtlasY_2, atlasY).generateChange().hasChanges());
+        Assert.assertEquals(atlasY, changeAtlasY_2);
     }
 }
