@@ -93,6 +93,8 @@ our @EXPORT = qw(
     ansi_begin_underln
     ansi_end_underln
     terminal_width
+    completion_match_prefix
+    completion_ash
 );
 
 our $ATLAS_SHELL_TOOLS_VERSION = "atlas-shell-tools version 1.0.0";
@@ -1810,6 +1812,63 @@ sub terminal_width {
     # Explicitly convert to an integer here, removing the newline
     # This allows allows for calling code to do math with the value
     return int($cols);
+}
+
+sub completion_match_prefix {
+    my $prefix_to_complete = shift;
+    my $possible_words_ref = shift;
+
+    my @possible_words = @{$possible_words_ref};
+
+    if ($prefix_to_complete eq "") {
+        return @possible_words;
+    }
+
+    my @matched_words = ();
+
+    foreach my $word (@possible_words) {
+        if (string_starts_with($word, $prefix_to_complete)) {
+            push @matched_words, $word;
+        }
+    }
+
+    return @matched_words;
+}
+
+sub completion_ash {
+    my $ash_path = shift;
+    my $argv_ref = shift;
+
+    my @argv = @{$argv_ref};
+    my %subcommand_desc = get_subcommand_to_description_hash($ash_path);
+    my @commands = keys %subcommand_desc;
+
+    # shift argv to remove "ash"
+    shift @argv;
+
+    # If we see a command anywhere on the command line, stop special completions
+    foreach my $arg (@argv) {
+        foreach my $command (@commands) {
+            if ($arg eq $command) {
+                print "__ash_sentinel_complete_filenames__";
+                return 1;
+            }
+        }
+    }
+
+    print "foo bar baz";
+
+
+    
+    #my @commands = keys %subcommand_desc;
+
+    #my @completion_matches = completion_match_prefix($current_word, \@commands);
+
+    #foreach my $command (@completion_matches) {
+    #    print "$command\n";
+    #}
+
+    return 1;
 }
 
 # Perl modules must return a value. Returning a value perl considers "truthy"

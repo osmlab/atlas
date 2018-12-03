@@ -1,14 +1,14 @@
 
 # What is this script for?
 #
-# This script provides autocomplete functionality for 'closm' and 'closmcfg' in
-# the bash shell.
+# This script provides autocomplete functionality for Atlas Shell Tools in the
+# bash shell.
 #
 # How do I use it?
 #
 # Run the following command:
-#    $ source /path/to/closm_completions.bash
-# Then add 'source /path/to/closm_completions.bash' to your '~/.bashrc'
+#    $ source /path/to/ash_completions.bash
+# Then add 'source /path/to/ash_completions.bash' to your '~/.bashrc'
 # file to pick up the completions in every new shell!
 
 is_bash_at_least_version_4 ()
@@ -23,12 +23,40 @@ is_bash_at_least_version_4 ()
     fi
 }
 
-_closm ()
+_ash ()
+{
+    # disable bash default autocompletion, we are going to customize
+    if [ $(is_bash_at_least_version_4) == "true" ];
+    then
+        compopt +o default
+    fi
+
+    local reply=$(ash-config __completion_ash__ "${COMP_WORDS[@]}");
+
+    if [ "$reply" = "__ash_sentinel_complete_filenames__" ];
+    then
+        # re-enable bash default completion for filenames
+        if [ $(is_bash_at_least_version_4) == "true" ];
+        then
+            compopt -o default
+            COMPREPLY=()
+        else
+            local cur=${COMP_WORDS[COMP_CWORD]}
+            local IFS=$'\n'
+            COMPREPLY=($(compgen -o filenames -f -- $cur))
+        fi
+        return 0
+    else
+        COMPREPLY=(${reply});
+    fi
+}
+
+_ashconfig ()
 {
     COMPREPLY=()
 }
 
-_closmcfg ()
+_closm_config_OLD ()
 {
     # disable bash default autocompletion, we are going to customize
     if [ $(is_bash_at_least_version_4) == "true" ];
@@ -71,5 +99,5 @@ _closmcfg ()
     fi
 }
 
-complete -F _closm closm
-complete -F _closmcfg closmcfg
+complete -o filenames -o bashdefault -F _ash ash
+complete -o filenames -o bashdefault -F _ashconfig ash-config
