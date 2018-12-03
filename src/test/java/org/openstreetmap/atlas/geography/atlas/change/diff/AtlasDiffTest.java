@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.change.Change;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeAtlas;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,5 +105,10 @@ public class AtlasDiffTest
         final ChangeAtlas changeAtlasY = new ChangeAtlas(atlasX, changeXToY);
         Assert.assertFalse(new AtlasDiff(changeAtlasY, atlasY).generateChange().hasChanges());
         Assert.assertEquals(atlasY, changeAtlasY);
+
+        Assert.assertEquals(new PackedAtlasCloner().cloneFrom(atlasY),
+                new PackedAtlasCloner().cloneFrom(changeAtlasYBloated));
+        Assert.assertEquals(new PackedAtlasCloner().cloneFrom(atlasY),
+                new PackedAtlasCloner().cloneFrom(changeAtlasY));
     }
 }
