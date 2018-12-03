@@ -13,6 +13,12 @@ public class LengthValidatorTest
     private static final LengthValidator VALIDATOR = new LengthValidator();
 
     @Test
+    public void validNumberTest()
+    {
+        Assert.assertTrue(VALIDATOR.isValid("123.5"));
+    }
+
+    @Test
     public void validMetersTest()
     {
         Assert.assertTrue(VALIDATOR.isValid("123 m"));
@@ -37,7 +43,7 @@ public class LengthValidatorTest
     }
 
     @Test
-    public void invalidFeetInchsTest()
+    public void invalidFeetInchesTest()
     {
         Assert.assertTrue(VALIDATOR.isValid("12'5\""));
     }
@@ -49,7 +55,7 @@ public class LengthValidatorTest
     }
 
     @Test
-    public void invalidInchsTest()
+    public void invalidInchesTest()
     {
         Assert.assertTrue(VALIDATOR.isValid("5\""));
     }
