@@ -282,7 +282,7 @@ public final class AtlasDiffHelper
              */
             if (useBloatedEntities)
             {
-                AtlasEntity bloatedEntity;
+                final AtlasEntity bloatedEntity;
                 switch (afterEntity.getType())
                 {
                     case AREA:

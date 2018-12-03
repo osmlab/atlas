@@ -92,16 +92,17 @@ public class AtlasDiffTest
         changeXToYBloated.changes()
                 .forEach(change -> logger.trace("{}: {}", change, change.getReference()));
         Assert.assertEquals(expectedNumberOfChanges, changeXToYBloated.changeCount());
-        final ChangeAtlas changeAtlasY = new ChangeAtlas(atlasX, changeXToYBloated);
-        Assert.assertFalse(new AtlasDiff(changeAtlasY, atlasY).generateChange().hasChanges());
-        Assert.assertEquals(atlasY, changeAtlasY);
+        final ChangeAtlas changeAtlasYBloated = new ChangeAtlas(atlasX, changeXToYBloated);
+        Assert.assertFalse(
+                new AtlasDiff(changeAtlasYBloated, atlasY).generateChange().hasChanges());
+        Assert.assertEquals(atlasY, changeAtlasYBloated);
 
         // Now test with non-bloated
         final Change changeXToY = new AtlasDiff(atlasX, atlasY).useBloatedEntities(false)
                 .generateChange();
         Assert.assertEquals(expectedNumberOfChanges, changeXToY.changeCount());
-        final ChangeAtlas changeAtlasY_2 = new ChangeAtlas(atlasX, changeXToY);
-        Assert.assertFalse(new AtlasDiff(changeAtlasY_2, atlasY).generateChange().hasChanges());
-        Assert.assertEquals(atlasY, changeAtlasY_2);
+        final ChangeAtlas changeAtlasY = new ChangeAtlas(atlasX, changeXToY);
+        Assert.assertFalse(new AtlasDiff(changeAtlasY, atlasY).generateChange().hasChanges());
+        Assert.assertEquals(atlasY, changeAtlasY);
     }
 }

@@ -380,7 +380,7 @@ public class AtlasDiff
             final AtlasEntity entity, final Atlas atlas, final boolean useBloatedEntities,
             final boolean saveAllGeometries)
     {
-        FeatureChange featureChange;
+        final FeatureChange featureChange;
         if (useBloatedEntities)
         {
             switch (entity.getType())
