@@ -96,6 +96,7 @@ public class AtlasDiffTestRule extends CoreTestRule
 
             nodes = {
 
+                    @Node(id = "5", coordinates = @Loc(value = FIVE), tags = { "tag1=value1" }),
                     @Node(id = "6", coordinates = @Loc(value = SIX), tags = { "tag1=value1" }),
                     @Node(id = "7", coordinates = @Loc(value = SEVEN), tags = { "tag1=value1" }),
                     @Node(id = "8", coordinates = @Loc(value = EIGHT), tags = { "tag1=value1" })
@@ -106,6 +107,7 @@ public class AtlasDiffTestRule extends CoreTestRule
 
                     @Relation(id = "31", tags = { "type=relation" }, members = {
 
+                            @Member(id = "5", role = "a", type = "node"),
                             @Member(id = "7", role = "a", type = "node")
 
                     }),
@@ -133,6 +135,7 @@ public class AtlasDiffTestRule extends CoreTestRule
 
             nodes = {
 
+                    @Node(id = "5", coordinates = @Loc(value = FIVE), tags = { "tag1=value1" }),
                     @Node(id = "6", coordinates = @Loc(value = SIX), tags = { "tag1=value1" }),
                     @Node(id = "7", coordinates = @Loc(value = SEVEN), tags = { "tag1=value1" }),
                     @Node(id = "8", coordinates = @Loc(value = EIGHT), tags = { "tag1=value1" })
@@ -143,6 +146,7 @@ public class AtlasDiffTestRule extends CoreTestRule
 
                     @Relation(id = "31", tags = { "type=relation" }, members = {
 
+                            @Member(id = "5", role = "b", type = "node"),
                             @Member(id = "7", role = "a", type = "node")
 
                     }),

@@ -38,6 +38,7 @@ public class AtlasDiff
 
     private final Atlas before;
     private final Atlas after;
+    private Change change;
     private boolean useGeometryMatching = false;
     private boolean saveAllGeometries = false;
     private boolean useBloatedEntities = true;
@@ -64,6 +65,7 @@ public class AtlasDiff
     {
         this.before = before;
         this.after = after;
+        this.change = null;
 
         if (this.before == null)
         {
@@ -98,6 +100,11 @@ public class AtlasDiff
      */
     public Change generateChange()
     {
+        if (this.change != null)
+        {
+            return this.change;
+        }
+
         this.addedEntities = new HashSet<>();
         this.removedEntities = new HashSet<>();
         this.potentiallyModifiedEntities = new HashSet<>();
@@ -141,7 +148,8 @@ public class AtlasDiff
                 this.useBloatedEntities, this.saveAllGeometries).stream()
                         .forEach(changeBuilder::add);
 
-        return changeBuilder.get();
+        this.change = changeBuilder.get();
+        return this.change;
     }
 
     public Atlas getAfterAtlas()
@@ -279,11 +287,12 @@ public class AtlasDiff
                 saveAllGeometries).ifPresent(featureChanges::add);
 
         /*
-         * Detect if the entity changed its parent relation membership. TODO see this method, it
-         * still needs work.
+         * Detect if the entity changed its parent relation membership.
          */
-        AtlasDiffHelper.getParentRelationMembershipChangeIfNecessary(beforeEntity, afterEntity,
-                beforeAtlas, afterAtlas).ifPresent(featureChanges::add);
+        AtlasDiffHelper
+                .getParentRelationMembershipChangeIfNecessary(beforeEntity, afterEntity,
+                        beforeAtlas, afterAtlas, useBloatedEntities, saveAllGeometries)
+                .ifPresent(featureChanges::add);
 
         /*
          * Detect if the entities were Nodes and some Node properties changed.

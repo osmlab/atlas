@@ -64,7 +64,7 @@ public class AtlasDiffTest
         final int expectedNumberOfChanges = 1;
 
         final Change changeXToYBloated = new AtlasDiff(atlasX, atlasY).useBloatedEntities(true)
-                .generateChange();
+                .saveAllGeometries(true).generateChange();
         changeXToYBloated.changes()
                 .forEach(change -> logger.trace("{}: {}", change, change.getReference()));
     }

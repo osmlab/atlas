@@ -26,6 +26,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
+import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.geography.matching.PolyLineRoute;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
@@ -115,7 +117,8 @@ public final class AtlasDiffHelper
 
     public static Optional<FeatureChange> getParentRelationMembershipChangeIfNecessary(
             final AtlasEntity beforeEntity, final AtlasEntity afterEntity, final Atlas beforeAtlas,
-            final Atlas afterAtlas)
+            final Atlas afterAtlas, final boolean useBloatedEntities,
+            final boolean saveAllGeometries)
     {
         try
         {
@@ -134,69 +137,82 @@ public final class AtlasDiffHelper
             }
 
             /*
-             * In this case, we only care if the relation identifier sets were different. If the
-             * features had their roles in the relations altered, this will be caught when we
-             * actually diff the relations. TODO this needs to be expanded back to the more granular
-             * role/type checking like in AtlasDelta.
+             * Now, check to see if the afterEntity was different from the beforeEntity in any
+             * relations in the afterAtlas. If they were not different, there is no feature change.
              */
-            if (!beforeRelationIdentifiers.equals(afterRelationIdentifiers))
+            if (!entitiesWereDifferentInRelations(beforeEntity, afterEntity, beforeAtlas,
+                    afterAtlas))
             {
                 return Optional.empty();
             }
 
             /*
-             * TODO Now that we confirmed the relation sets are different, we need to make sure this
-             * is not because a relation was added to or removed from the after atlas. In that case,
-             * the relation's ADD/REMOVE diff will take care of this feature's relation member set
-             * for us. TODO This actually may not be necessary. We can just save redundant diffs, it
-             * won't negatively impact anything. Plus, it's helpful for visualization. In order to
-             * do this, we will need the more granular member role checking from AtlasDelta, so we
-             * can highlight geometry whose roles have changed
+             * OK! We made it here because we have confirmed that the entities have some
+             * relation-related difference. We create a feature change to reflect this.
              */
-
-            /*
-             * OK! We made it here because we have finally confirmed that the diff is due to a
-             * simple update of a relation member list, where the relation was not
-             * added/removed/shallow-pruned.
-             */
-            FeatureChange featureChange;
-            switch (afterEntity.getType())
+            if (useBloatedEntities)
             {
-                case AREA:
-                    featureChange = new FeatureChange(ChangeType.ADD,
-                            BloatedArea.shallowFrom((Area) afterEntity)
-                                    .withRelationIdentifiers(afterRelationIdentifiers));
-                    break;
-                case EDGE:
-                    featureChange = new FeatureChange(ChangeType.ADD,
-                            BloatedEdge.shallowFrom((Edge) afterEntity)
-                                    .withRelationIdentifiers(afterRelationIdentifiers));
-                    break;
-                case LINE:
-                    featureChange = new FeatureChange(ChangeType.ADD,
-                            BloatedLine.shallowFrom((Line) afterEntity)
-                                    .withRelationIdentifiers(afterRelationIdentifiers));
-                    break;
-                case NODE:
-                    featureChange = new FeatureChange(ChangeType.ADD,
-                            BloatedNode.shallowFrom((Node) afterEntity)
-                                    .withRelationIdentifiers(afterRelationIdentifiers));
-                    break;
-                case POINT:
-                    featureChange = new FeatureChange(ChangeType.ADD,
-                            BloatedPoint.shallowFrom((Point) afterEntity)
-                                    .withRelationIdentifiers(afterRelationIdentifiers));
-                    break;
-                case RELATION:
-                    featureChange = new FeatureChange(ChangeType.ADD,
-                            BloatedRelation.shallowFrom((Relation) afterEntity)
-                                    .withRelationIdentifiers(afterRelationIdentifiers));
-                    break;
-                default:
-                    throw new CoreException("Unknown item type {}", afterEntity.getType());
+                AtlasEntity bloatedEntity;
+                switch (afterEntity.getType())
+                {
+                    case AREA:
+                        BloatedArea area = BloatedArea.shallowFrom((Area) afterEntity)
+                                .withRelationIdentifiers(afterRelationIdentifiers);
+                        if (saveAllGeometries)
+                        {
+                            area = area.withPolygon(((Area) afterEntity).asPolygon());
+                        }
+                        bloatedEntity = area;
+                        break;
+                    case EDGE:
+                        BloatedEdge edge = BloatedEdge.shallowFrom((Edge) afterEntity)
+                                .withRelationIdentifiers(afterRelationIdentifiers);
+                        if (saveAllGeometries)
+                        {
+                            edge = edge.withPolyLine(((Edge) afterEntity).asPolyLine());
+                        }
+                        bloatedEntity = edge;
+                        break;
+                    case LINE:
+                        BloatedLine line = BloatedLine.shallowFrom((Line) afterEntity)
+                                .withRelationIdentifiers(afterRelationIdentifiers);
+                        if (saveAllGeometries)
+                        {
+                            line = line.withPolyLine(((Line) afterEntity).asPolyLine());
+                        }
+                        bloatedEntity = line;
+                        break;
+                    case NODE:
+                        BloatedNode node = BloatedNode.shallowFrom((Node) afterEntity)
+                                .withRelationIdentifiers(afterRelationIdentifiers);
+                        if (saveAllGeometries)
+                        {
+                            node = node.withLocation(((Node) afterEntity).getLocation());
+                        }
+                        bloatedEntity = node;
+                        break;
+                    case POINT:
+                        BloatedPoint point = BloatedPoint.shallowFrom((Point) afterEntity)
+                                .withRelationIdentifiers(afterRelationIdentifiers);
+                        if (saveAllGeometries)
+                        {
+                            point = point.withLocation(((Point) afterEntity).getLocation());
+                        }
+                        bloatedEntity = point;
+                        break;
+                    case RELATION:
+                        final BloatedRelation relation = BloatedRelation
+                                .shallowFrom((Relation) afterEntity)
+                                .withRelationIdentifiers(afterRelationIdentifiers);
+                        bloatedEntity = relation;
+                        break;
+                    default:
+                        throw new CoreException("Unknown item type {}", afterEntity.getType());
+                }
+                // featureChange should never be null
+                return Optional.of(new FeatureChange(ChangeType.ADD, bloatedEntity));
             }
-            // featureChange should never be null
-            return Optional.of(featureChange);
+            return Optional.of(new FeatureChange(ChangeType.ADD, afterEntity));
         }
         catch (final Exception exception)
         {
@@ -450,6 +466,87 @@ public final class AtlasDiffHelper
             }
         }
         return false;
+    }
+
+    private static boolean entitiesWereDifferentInRelations(final AtlasEntity beforeEntity,
+            final AtlasEntity afterEntity, final Atlas beforeAtlas, final Atlas afterAtlas)
+    {
+        try
+        {
+            final Set<Relation> beforeRelations = beforeEntity.relations();
+            final Set<Relation> afterRelations = afterEntity.relations();
+
+            if (beforeRelations.size() != afterRelations.size())
+            {
+                return true;
+            }
+            for (final Relation beforeRelation : beforeRelations)
+            {
+                Relation afterRelation = null;
+                for (final Relation afterRelationCandidate : afterRelations)
+                {
+                    if (afterRelationCandidate.getIdentifier() == beforeRelation.getIdentifier())
+                    {
+                        afterRelation = afterRelationCandidate;
+                        break;
+                    }
+                }
+                if (afterRelation == null)
+                {
+                    // The two relation sets are different
+                    return true;
+                }
+
+                // Index of the member in the Relation's member list
+                int beforeIndex = -1;
+                int afterIndex = -1;
+                final RelationMemberList beforeMembers = beforeRelation.members();
+                final RelationMemberList afterMembers = afterRelation.members();
+                for (int j = 0; j < beforeMembers.size(); j++)
+                {
+                    final RelationMember beforeMember = beforeMembers.get(j);
+                    if (beforeMember.getEntity().getIdentifier() == beforeEntity.getIdentifier())
+                    {
+                        beforeIndex = j;
+                    }
+                }
+                for (int j = 0; j < afterMembers.size(); j++)
+                {
+                    final RelationMember afterMember = afterMembers.get(j);
+                    if (afterMember.getEntity().getIdentifier() == beforeEntity.getIdentifier())
+                    {
+                        afterIndex = j;
+                    }
+                }
+                if (beforeIndex < 0 || afterIndex < 0)
+                {
+                    throw new CoreException("Corrupted Atlas dataset.");
+                }
+                if (beforeIndex != afterIndex)
+                {
+                    // Order changed
+                    return true;
+                }
+                if (!beforeMembers.get(beforeIndex).getRole()
+                        .equals(afterMembers.get(afterIndex).getRole()))
+                {
+                    // Role changed
+                    return true;
+                }
+                if (beforeMembers.get(beforeIndex).getEntity().getType() != afterMembers
+                        .get(afterIndex).getEntity().getType())
+                {
+                    // Type changed
+                    return true;
+                }
+            }
+            return false;
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException("Unable to compare relations for {} and {}", beforeEntity,
+                    afterEntity, exception);
+        }
     }
 
     private AtlasDiffHelper()
