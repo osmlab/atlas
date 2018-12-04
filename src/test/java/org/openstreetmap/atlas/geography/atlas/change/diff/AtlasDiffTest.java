@@ -63,13 +63,9 @@ public class AtlasDiffTest
     {
         final Atlas atlasX = this.rule.removeRelationMember1();
         final Atlas atlasY = this.rule.removeRelationMember2();
+        final int expectedNumberOfChanges = 2;
 
-        final Change changeXToYBloated = new AtlasDiff(atlasX, atlasY).useBloatedEntities(true)
-                .generateChange();
-        final ChangeAtlas changeAtlasYBloated = new ChangeAtlas(atlasX, changeXToYBloated);
-        Assert.assertEquals(atlasY, changeAtlasYBloated);
-        Assert.assertFalse(
-                new AtlasDiff(changeAtlasYBloated, atlasY).generateChange().hasChanges());
+        assertChangeAtlasConsistency(atlasX, atlasY, expectedNumberOfChanges);
     }
 
     @Test
@@ -101,7 +97,7 @@ public class AtlasDiffTest
     private void assertChangeAtlasConsistency(final Atlas atlasX, final Atlas atlasY,
             final int expectedNumberOfChanges)
     {
-        // First test with bloated entities
+        // First test with bloated entities.
         final Change changeXToYBloated = new AtlasDiff(atlasX, atlasY).useBloatedEntities(true)
                 .generateChange();
         changeXToYBloated.changes()
@@ -112,7 +108,7 @@ public class AtlasDiffTest
                 new AtlasDiff(changeAtlasYBloated, atlasY).generateChange().hasChanges());
         Assert.assertEquals(atlasY, changeAtlasYBloated);
 
-        // Now test with non-bloated
+        // Now test with non-bloated.
         final Change changeXToY = new AtlasDiff(atlasX, atlasY).useBloatedEntities(false)
                 .generateChange();
         Assert.assertEquals(expectedNumberOfChanges, changeXToY.changeCount());
@@ -120,6 +116,8 @@ public class AtlasDiffTest
         Assert.assertFalse(new AtlasDiff(changeAtlasY, atlasY).generateChange().hasChanges());
         Assert.assertEquals(atlasY, changeAtlasY);
 
+        // Now test that PackedAtlas cloning is consistent. This is guaranteed by AtlasDiff so we
+        // must ensure it holds.
         Assert.assertEquals(new PackedAtlasCloner().cloneFrom(atlasY),
                 new PackedAtlasCloner().cloneFrom(changeAtlasYBloated));
         Assert.assertEquals(new PackedAtlasCloner().cloneFrom(atlasY),
