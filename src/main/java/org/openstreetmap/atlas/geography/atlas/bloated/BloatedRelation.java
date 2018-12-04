@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -241,9 +242,36 @@ public class BloatedRelation extends Relation implements BloatedEntity
         return this;
     }
 
-    public BloatedRelation withMembers(final RelationBean members, final Rectangle bounds)
+    /**
+     * @param source
+     *            The relation that was used as a base to create that BloatedRelation, if any. Due
+     *            to the weak nature of relation membership across Atlas(es), this helps decide what
+     *            relation members are forcibly removed if any.
+     * @param members
+     *            The members of the relation
+     * @param bounds
+     *            The bounds of all the members of the relation.
+     * @return This.
+     */
+    public BloatedRelation withMembers(final Optional<Relation> source, final RelationBean members,
+            final Rectangle bounds)
     {
         this.members = members;
+        if (source.isPresent())
+        {
+            // This has been created from an existing relation, make sure to record the members that
+            // have been intentionally omitted, so as not to add them back in the future when either
+            // merging FeatureChanges or stitching MultiAtlases.
+            for (final RelationMember member : source.get().members())
+            {
+                if (!members.getItemFor(member.getEntity().getIdentifier(),
+                        member.getEntity().getType()).isPresent())
+                {
+                    this.members.addItemExplicitlyExcluded(member.getEntity().getIdentifier(),
+                            member.getRole(), member.getEntity().getType());
+                }
+            }
+        }
         updateBounds(bounds);
         return this;
     }
@@ -251,15 +279,18 @@ public class BloatedRelation extends Relation implements BloatedEntity
     /**
      * Here the members have to be full so the new bounds can be computed from them.
      *
+     * @param source
+     *            The relation that was used as a base to create that BloatedRelation, if any. Due
+     *            to the weak nature of relation membership across Atlas(es), this helps decide what
+     *            relation members are forcibly removed if any.
      * @param members
      *            The full members of the Relation
      * @return This.
      */
-    public BloatedRelation withMembers(final RelationMemberList members)
+    public BloatedRelation withMembers(final Optional<Relation> source,
+            final RelationMemberList members)
     {
-        this.members = members.asBean();
-        updateBounds(members.bounds());
-        return this;
+        return withMembers(source, members.asBean(), members.bounds());
     }
 
     public BloatedRelation withOsmRelationIdentifier(final Long osmRelationIdentifier)
