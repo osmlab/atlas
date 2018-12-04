@@ -16,7 +16,7 @@ import com.google.gson.JsonObject;
  *
  * @author hallahan
  */
-final class TippecanoeSettings
+public final class TippecanoeSettings
 {
     private TippecanoeSettings()
     {

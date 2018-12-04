@@ -11,7 +11,10 @@ import org.slf4j.LoggerFactory;
 /**
  * This CLI will take a directory full of atlases and export it into an MBTiles file full of Mapbox
  * vector tiles. It creates intermediary line-delimited GeoJSON, and then it ultimately drives
- * tippecanoe to do the vector tile creation.
+ * tippecanoe to do the vector tile creation. This CLI is to do the full end-to-end conversion of
+ * atlas files into an MBTiles file. If you would like to just convert line-delimited GeoJSON into
+ * MBTiles, use TippecanoeConverter. If you would like to just convert atlas files into
+ * line-delimited GeoJSON, use LineDelimitedGeoJsonConverter.
  *
  * @author hallahan
  */
