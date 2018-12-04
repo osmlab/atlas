@@ -10,10 +10,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This is a simple CLI that will take tippecanoe line-delimited GeoJSON output and convert it into
- * vector tiles with tippecanoe. If you would like the full end-to-end conversion of atlas files
- * into an MBTiles file, use TippecanoeExporter. If you would like to just convert atlas files into
- * line-delimited GeoJSON, use LineDelimitedGeoJsonConverter.
+ * Typically you will use this for atlas-checks or any other tool that already has line-delimited
+ * GeoJSON that you would like to turn into vector tiles. This is a simple CLI that will take
+ * tippecanoe line-delimited GeoJSON output and convert it into vector tiles with tippecanoe. If you
+ * would like the full end-to-end conversion of atlas files into an MBTiles file, use
+ * TippecanoeExporter. If you would like to just convert atlas files into line-delimited GeoJSON,
+ * use LineDelimitedGeoJsonConverter.
  *
  * @author hallahan
  */
