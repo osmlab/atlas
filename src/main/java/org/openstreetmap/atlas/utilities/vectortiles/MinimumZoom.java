@@ -23,7 +23,7 @@ import com.google.gson.JsonParser;
  *
  * @author hallahan
  */
-enum MinimumZoom
+public enum MinimumZoom
 {
     INSTANCE;
 
@@ -90,7 +90,7 @@ enum MinimumZoom
         }
     }
 
-    int get(final Map<String, String> tags)
+    public int get(final Map<String, String> tags)
     {
         for (int index = 0; index < keys.length; ++index)
         {
