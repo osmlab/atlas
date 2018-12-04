@@ -11,6 +11,9 @@
 # Then add 'source /path/to/ash_completions.bash' to your '~/.bashrc'
 # file to pick up the completions in every new shell!
 
+
+# Return "true" if bash major version is greater than or equal to 4.
+# Bash4 has a better auto-complete API, so using bash4 if possible is better.
 is_bash_at_least_version_4 ()
 {
     local version=$BASH_VERSION
@@ -25,7 +28,7 @@ is_bash_at_least_version_4 ()
 
 _ash ()
 {
-    # disable bash default autocompletion, we are going to customize
+    # disable readline default autocompletion, we are going to customize
     if [ $(is_bash_at_least_version_4) == "true" ];
     then
         compopt +o default
@@ -42,7 +45,12 @@ _ash ()
             COMPREPLY=()
         else
             local cur=${COMP_WORDS[COMP_CWORD]}
+
+            # We must locally set IFS to '\n' in case there are filenames with whitespace.
+            # Without this, a filename like "file with spaces" would present itself
+            # as 3 discrete completion options, "file", "with", and "spaces".
             local IFS=$'\n'
+
             COMPREPLY=($(compgen -o filenames -f -- $cur))
         fi
         return 0
