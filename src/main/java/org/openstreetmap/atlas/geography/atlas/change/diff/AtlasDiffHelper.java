@@ -136,12 +136,6 @@ public final class AtlasDiffHelper
             }
             if (featureChangeWouldBeUseful)
             {
-                // Make sure that there is not way to find a match with the other polylines
-                featureChangeWouldBeUseful = !edgeHasGeometryMatchInAtlas(beforeEdge, afterAtlas,
-                        useGeometryMatching);
-            }
-            if (featureChangeWouldBeUseful)
-            {
                 if (useBloatedEntities)
                 {
                     return Optional.of(new FeatureChange(ChangeType.ADD, bloatedEdge));

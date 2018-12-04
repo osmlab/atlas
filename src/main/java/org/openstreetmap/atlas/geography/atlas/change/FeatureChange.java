@@ -76,13 +76,19 @@ public class FeatureChange implements Located, Serializable
 
     public FeatureChange(final ChangeType changeType, final AtlasEntity reference)
     {
-        if (changeType == null)
-        {
-            throw new CoreException("changeType cannot be null.");
-        }
         if (reference == null)
         {
             throw new CoreException("reference cannot be null.");
+        }
+        if (!(reference instanceof BloatedEntity))
+        {
+            throw new CoreException(
+                    "FeatureChange requires BloatedEntities, found reference of type {}",
+                    reference.getClass().getName());
+        }
+        if (changeType == null)
+        {
+            throw new CoreException("changeType cannot be null.");
         }
         this.changeType = changeType;
         this.reference = reference;

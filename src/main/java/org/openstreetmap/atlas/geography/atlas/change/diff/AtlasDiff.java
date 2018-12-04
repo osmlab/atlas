@@ -102,6 +102,8 @@ public class AtlasDiff
      *
      * @return the generated {@link Change}
      */
+    // TODO this should be an optional, and return empty if no change. This is because Changes are
+    // located and so should not be empty. Also, make the changeBuilder lint this.
     public Change generateChange()
     {
         if (this.change != null)
@@ -117,11 +119,21 @@ public class AtlasDiff
         /*
          * Check for entities that were removed in the after atlas. If we find any, add them to a
          * removedEntities set for later processing. We will use this set to create FeatureChanges.
+         * We also check for entities that were potentially modified in the after atlas, i.e. any
+         * entities present in both the before and after atlases. We add them to a
+         * potentiallyModified set, and will check if any modifications occurred later.
          */
-        Iterables.stream(this.before)
-                .filter(beforeEntity -> isEntityMissingFromGivenAtlas(beforeEntity, this.after,
-                        this.useGeometryMatching))
-                .forEach(this.removedEntities::add);
+        Iterables.stream(this.before).forEach(beforeEntity ->
+        {
+            if (isEntityMissingFromGivenAtlas(beforeEntity, this.after, this.useGeometryMatching))
+            {
+                this.removedEntities.add(beforeEntity);
+            }
+            else
+            {
+                this.potentiallyModifiedEntities.add(beforeEntity);
+            }
+        });
 
         /*
          * Check for entities that were added in the after atlas. If we find any, add them to a
@@ -131,17 +143,6 @@ public class AtlasDiff
                 .filter(afterEntity -> isEntityMissingFromGivenAtlas(afterEntity, this.before,
                         this.useGeometryMatching))
                 .forEach(this.addedEntities::add);
-
-        /*
-         * Check for entities that were potentially modified in the after atlas (here, a potentially
-         * modified entity is any entity what was present in both the before and after atlas). If we
-         * find any, add them to a set for later processing. We will use this set to create
-         * FeatureChanges.
-         */
-        Iterables.stream(this.before)
-                .filter(beforeEntity -> !isEntityMissingFromGivenAtlas(beforeEntity, this.after,
-                        this.useGeometryMatching))
-                .forEach(this.potentiallyModifiedEntities::add);
 
         /*
          * Aggregate the results stored in the sets, creating the FeatureChange objects if there are

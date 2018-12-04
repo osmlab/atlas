@@ -108,19 +108,9 @@ public class AtlasDiffTest
                 new AtlasDiff(changeAtlasYBloated, atlasY).generateChange().hasChanges());
         Assert.assertEquals(atlasY, changeAtlasYBloated);
 
-        // Now test with non-bloated.
-        final Change changeXToY = new AtlasDiff(atlasX, atlasY).useBloatedEntities(false)
-                .generateChange();
-        Assert.assertEquals(expectedNumberOfChanges, changeXToY.changeCount());
-        final ChangeAtlas changeAtlasY = new ChangeAtlas(atlasX, changeXToY);
-        Assert.assertFalse(new AtlasDiff(changeAtlasY, atlasY).generateChange().hasChanges());
-        Assert.assertEquals(atlasY, changeAtlasY);
-
         // Now test that PackedAtlas cloning is consistent. This is guaranteed by AtlasDiff so we
         // must ensure it holds.
         Assert.assertEquals(new PackedAtlasCloner().cloneFrom(atlasY),
                 new PackedAtlasCloner().cloneFrom(changeAtlasYBloated));
-        Assert.assertEquals(new PackedAtlasCloner().cloneFrom(atlasY),
-                new PackedAtlasCloner().cloneFrom(changeAtlasY));
     }
 }
