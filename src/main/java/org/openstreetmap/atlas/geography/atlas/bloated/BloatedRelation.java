@@ -293,6 +293,40 @@ public class BloatedRelation extends Relation implements BloatedEntity
         return withMembers(source, members.asBean(), members.bounds());
     }
 
+    /**
+     * Assign this {@link BloatedRelation} with members.
+     * <p>
+     * In case this {@link BloatedRelation} is created from an existing relation, and the new member
+     * list has had some existing members removed, use
+     * {@link #withMembers(Optional, RelationBean, Rectangle)}
+     *
+     * @param members
+     *            The members of the relation
+     * @param bounds
+     *            The bounds of all the members of the relation.
+     * @return This
+     */
+    public BloatedRelation withMembers(final RelationBean members, final Rectangle bounds)
+    {
+        return withMembers(Optional.empty(), members, bounds);
+    }
+
+    /**
+     * Assign this {@link BloatedRelation} with members.
+     * <p>
+     * In case this {@link BloatedRelation} is created from an existing relation, and the new member
+     * list has had some existing members removed, use
+     * {@link #withMembers(Optional, RelationMemberList)}
+     * 
+     * @param members
+     *            The full members of the Relation
+     * @return This
+     */
+    public BloatedRelation withMembers(final RelationMemberList members)
+    {
+        return withMembers(Optional.empty(), members);
+    }
+
     public BloatedRelation withOsmRelationIdentifier(final Long osmRelationIdentifier)
     {
         this.osmRelationIdentifier = osmRelationIdentifier;
