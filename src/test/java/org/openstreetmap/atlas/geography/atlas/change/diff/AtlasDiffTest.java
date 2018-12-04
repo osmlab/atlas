@@ -94,6 +94,8 @@ public class AtlasDiffTest
                 .forEach(change -> logger.trace("{}: {}", change, change.getReference()));
         Assert.assertEquals(expectedNumberOfChanges, changeXToYBloated.changeCount());
         final ChangeAtlas changeAtlasYBloated = new ChangeAtlas(atlasX, changeXToYBloated);
+        // new AtlasDiff(changeAtlasYBloated, atlasY).generateChange().changes()
+        // .forEach(change -> logger.trace("{}: {}", change, change.getReference()));
         Assert.assertFalse(
                 new AtlasDiff(changeAtlasYBloated, atlasY).generateChange().hasChanges());
         Assert.assertEquals(atlasY, changeAtlasYBloated);
