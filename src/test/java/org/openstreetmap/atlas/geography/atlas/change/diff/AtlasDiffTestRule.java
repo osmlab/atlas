@@ -491,6 +491,51 @@ public class AtlasDiffTestRule extends CoreTestRule
     )
     private Atlas differentRelations4;
 
+    @TestAtlas(
+
+            nodes = {
+
+                    @Node(id = "5", coordinates = @Loc(value = FIVE), tags = { "tag1=value1" }),
+                    @Node(id = "6", coordinates = @Loc(value = SIX), tags = { "tag1=value1" })
+
+            },
+
+            relations = {
+
+                    @Relation(id = "31", tags = { "type=relation" }, members = {
+
+                            @Member(id = "5", role = "b", type = "node"),
+                            @Member(id = "6", role = "a", type = "node")
+
+                    })
+
+            }
+
+    )
+    private Atlas knownBug1;
+
+    @TestAtlas(
+
+            nodes = {
+
+                    @Node(id = "5", coordinates = @Loc(value = FIVE), tags = { "tag1=value1" }),
+                    @Node(id = "6", coordinates = @Loc(value = SIX), tags = { "tag1=value1" })
+
+            },
+
+            relations = {
+
+                    @Relation(id = "31", tags = { "type=relation" }, members = {
+
+                            @Member(id = "5", role = "b", type = "node"),
+
+                    })
+
+            }
+
+    )
+    private Atlas knownBug2;
+
     public Atlas differentNodeAndEdgeProperties1()
     {
         return this.differentNodeAndEdgeProperties1;
@@ -539,6 +584,16 @@ public class AtlasDiffTestRule extends CoreTestRule
     public Atlas differentTags2()
     {
         return this.differentTags2;
+    }
+
+    public Atlas knownBug1()
+    {
+        return this.knownBug1;
+    }
+
+    public Atlas knownBug2()
+    {
+        return this.knownBug2;
     }
 
     public Atlas simpleAtlas1()
