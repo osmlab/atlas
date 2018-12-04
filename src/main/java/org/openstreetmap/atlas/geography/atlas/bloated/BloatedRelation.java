@@ -264,7 +264,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
             // merging FeatureChanges or stitching MultiAtlases.
             for (final RelationMember member : source.get().members())
             {
-                if (!members.getItemFor(member.getEntity().getIdentifier(),
+                if (!members.getItemFor(member.getEntity().getIdentifier(), member.getRole(),
                         member.getEntity().getType()).isPresent())
                 {
                     this.members.addItemExplicitlyExcluded(member.getEntity().getIdentifier(),
