@@ -1,7 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.change.diff;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
@@ -9,7 +8,6 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedArea;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedEdge;
@@ -28,9 +26,6 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
-import org.openstreetmap.atlas.geography.matching.PolyLineRoute;
-import org.openstreetmap.atlas.utilities.collections.Iterables;
-import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,41 +37,6 @@ import org.slf4j.LoggerFactory;
 public final class AtlasDiffHelper
 {
     private static final Logger logger = LoggerFactory.getLogger(AtlasDiffHelper.class);
-
-    public static boolean edgeHasGeometryMatchAmong(final Edge edge,
-            final Iterable<Edge> otherEdges, final boolean useGeometryMatching)
-    {
-        if (useGeometryMatching)
-        {
-            final PolyLine source = edge.asPolyLine();
-            final List<PolyLine> candidates = Iterables.stream(otherEdges).map(Edge::asPolyLine)
-                    .collectToList();
-            final Optional<PolyLineRoute> match = source.costDistanceToOneWay(candidates)
-                    .match(Distance.ZERO);
-            if (match.isPresent() && match.get().getCost().isLessThanOrEqualTo(Distance.ZERO))
-            {
-                // The edge was probably split by way sectioning without changing itself.
-                logger.trace("Edge {} from {} has no equal member but found a match with no cost.",
-                        edge, edge.getAtlas().getName());
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static boolean edgeHasGeometryMatchInAtlas(final Edge edge, final Atlas atlas,
-            final boolean useGeometryMatching)
-    {
-        if (useGeometryMatching)
-        {
-            final Iterable<Edge> intersectingEdgesWithSameOSMIdentifier = atlas.edgesIntersecting(
-                    edge.bounds(),
-                    otherEdge -> edge.getOsmIdentifier() == otherEdge.getOsmIdentifier());
-            return edgeHasGeometryMatchAmong(edge, intersectingEdgesWithSameOSMIdentifier,
-                    useGeometryMatching);
-        }
-        return false;
-    }
 
     public static Optional<FeatureChange> getAreaChangeIfNecessary(final Area beforeArea,
             final Area afterArea, final boolean useBloatedEntities, final boolean saveAllGeometry)
@@ -112,8 +72,7 @@ public final class AtlasDiffHelper
 
     public static Optional<FeatureChange> getEdgeChangeIfNecessary(final Edge beforeEdge,
             final Edge afterEdge, final Atlas beforeAtlas, final Atlas afterAtlas,
-            final boolean useGeometryMatching, final boolean useBloatedEntities,
-            final boolean saveAllGeometry)
+            final boolean useBloatedEntities, final boolean saveAllGeometry)
     {
         try
         {
@@ -187,8 +146,7 @@ public final class AtlasDiffHelper
     }
 
     public static Optional<FeatureChange> getNodeChangeIfNecessary(final Node beforeNode,
-            final Node afterNode, final boolean useGeometryMatching,
-            final boolean useBloatedEntities, final boolean saveAllGeometries)
+            final Node afterNode, final boolean useBloatedEntities, final boolean saveAllGeometries)
     {
         try
         {
@@ -199,7 +157,7 @@ public final class AtlasDiffHelper
                 bloatedNode.withLocation(afterNode.getLocation());
                 featureChangeWouldBeUseful = true;
             }
-            if (differentEdgeSet(beforeNode.inEdges(), afterNode.inEdges(), useGeometryMatching))
+            if (differentEdgeSet(beforeNode.inEdges(), afterNode.inEdges()))
             {
                 bloatedNode.withInEdgeIdentifiers(new TreeSet<>(afterNode.inEdges().stream()
                         .map(edge -> edge.getIdentifier()).collect(Collectors.toSet())));
@@ -209,7 +167,7 @@ public final class AtlasDiffHelper
                 }
                 featureChangeWouldBeUseful = true;
             }
-            if (differentEdgeSet(beforeNode.outEdges(), afterNode.outEdges(), useGeometryMatching))
+            if (differentEdgeSet(beforeNode.outEdges(), afterNode.outEdges()))
             {
                 bloatedNode.withOutEdgeIdentifiers(new TreeSet<>(afterNode.outEdges().stream()
                         .map(edge -> edge.getIdentifier()).collect(Collectors.toSet())));
@@ -380,8 +338,7 @@ public final class AtlasDiffHelper
 
     public static Optional<FeatureChange> getRelationChangeIfNecessary(
             final Relation beforeRelation, final Relation afterRelation, final Atlas beforeAtlas,
-            final Atlas afterAtlas, final boolean useGeometryMatching,
-            final boolean useBloatedEntities, final boolean saveAllGeometry)
+            final Atlas afterAtlas, final boolean useBloatedEntities, final boolean saveAllGeometry)
     {
         try
         {
@@ -391,14 +348,8 @@ public final class AtlasDiffHelper
             final RelationMemberList afterMembers = afterRelation.members();
             if (!afterMembers.equals(beforeMembers))
             {
-                if (!geometryMatchInRelationMemberList(beforeMembers, afterMembers,
-                        useGeometryMatching))
-                {
-                    // TODO this should be beforeRelation, right?
-                    bloatedRelation.withMembers(Optional.of(beforeRelation),
-                            afterRelation.members());
-                    featureChangeWouldBeUseful = true;
-                }
+                bloatedRelation.withMembers(Optional.of(beforeRelation), afterRelation.members());
+                featureChangeWouldBeUseful = true;
             }
             if (featureChangeWouldBeUseful)
             {
@@ -604,49 +555,11 @@ public final class AtlasDiffHelper
         }
     }
 
+    /*
+     * NOTE: this method considers two edges to be distinct if and only if they have distinct
+     * identifiers.
+     */
     private static boolean differentEdgeSet(final SortedSet<Edge> beforeEdges,
-            final SortedSet<Edge> afterEdges, final boolean useGeometryMatching)
-    {
-        /*
-         * Here, we try a simple equivalence check first, and only go to the more expensive deep
-         * check if necessary. This is because the quick check will find false positive cases where
-         * edges look different due to way sectioning, but have the same underlying geometry.
-         */
-        return differentEdgeSetQuickCheck(beforeEdges, afterEdges)
-                && differentEdgeSetDeeperCheck(beforeEdges, afterEdges, useGeometryMatching);
-    }
-
-    private static boolean differentEdgeSetDeeperCheck(final Set<Edge> beforeEdges,
-            final Set<Edge> afterEdges, final boolean useGeometryMatching)
-    {
-        if (beforeEdges.isEmpty() && afterEdges.isEmpty())
-        {
-            return false;
-        }
-        boolean beforeToAfterResult = beforeEdges.isEmpty();
-        for (final Edge edge : beforeEdges)
-        {
-            if (afterEdges.isEmpty()
-                    || !edgeHasGeometryMatchAmong(edge, afterEdges, useGeometryMatching))
-            {
-                beforeToAfterResult = true;
-                break;
-            }
-        }
-        boolean afterToBeforeResult = afterEdges.isEmpty();
-        for (final Edge edge : afterEdges)
-        {
-            if (beforeEdges.isEmpty()
-                    || !edgeHasGeometryMatchAmong(edge, beforeEdges, useGeometryMatching))
-            {
-                afterToBeforeResult = true;
-                break;
-            }
-        }
-        return beforeToAfterResult && afterToBeforeResult;
-    }
-
-    private static boolean differentEdgeSetQuickCheck(final SortedSet<Edge> beforeEdges,
             final SortedSet<Edge> afterEdges)
     {
         if (beforeEdges.size() != afterEdges.size())
@@ -746,18 +659,6 @@ public final class AtlasDiffHelper
             throw new CoreException("Unable to compare relations for {} and {}", beforeEntity,
                     afterEntity, exception);
         }
-    }
-
-    private static boolean geometryMatchInRelationMemberList(final RelationMemberList beforeMembers,
-            final RelationMemberList afterMembers, final boolean useGeometryMatching)
-    {
-        final SortedSet<Edge> beforeEdges = Iterables.stream(beforeMembers)
-                .map(member -> member.getEntity()).filter(entity -> entity instanceof Edge)
-                .map(entity -> (Edge) entity).collectToSortedSet();
-        final SortedSet<Edge> afterEdges = Iterables.stream(afterMembers)
-                .map(member -> member.getEntity()).filter(entity -> entity instanceof Edge)
-                .map(entity -> (Edge) entity).collectToSortedSet();
-        return differentEdgeSet(beforeEdges, afterEdges, useGeometryMatching);
     }
 
     private AtlasDiffHelper()

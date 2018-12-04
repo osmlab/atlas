@@ -43,7 +43,6 @@ public class AtlasDiff
     private final Atlas before;
     private final Atlas after;
     private Change change;
-    private boolean useGeometryMatching = false;
     private boolean saveAllGeometries = false;
     private boolean useBloatedEntities = true;
 
@@ -125,7 +124,7 @@ public class AtlasDiff
          */
         Iterables.stream(this.before).forEach(beforeEntity ->
         {
-            if (isEntityMissingFromGivenAtlas(beforeEntity, this.after, this.useGeometryMatching))
+            if (isEntityMissingFromGivenAtlas(beforeEntity, this.after))
             {
                 this.removedEntities.add(beforeEntity);
             }
@@ -140,8 +139,7 @@ public class AtlasDiff
          * addedEntities set for later processing. We will use this set to create FeatureChanges.
          */
         Iterables.stream(this.after)
-                .filter(afterEntity -> isEntityMissingFromGivenAtlas(afterEntity, this.before,
-                        this.useGeometryMatching))
+                .filter(afterEntity -> isEntityMissingFromGivenAtlas(afterEntity, this.before))
                 .forEach(this.addedEntities::add);
 
         /*
@@ -149,9 +147,8 @@ public class AtlasDiff
          * necessary changes.
          */
         createFeatureChangesBasedOnEntitySets(this.addedEntities, this.removedEntities,
-                this.potentiallyModifiedEntities, this.before, this.after, this.useGeometryMatching,
-                this.useBloatedEntities, this.saveAllGeometries).stream()
-                        .forEach(changeBuilder::add);
+                this.potentiallyModifiedEntities, this.before, this.after, this.useBloatedEntities,
+                this.saveAllGeometries).stream().forEach(changeBuilder::add);
 
         this.change = changeBuilder.get();
         return this.change;
@@ -202,29 +199,11 @@ public class AtlasDiff
         return this;
     }
 
-    /**
-     * Use geometry matching when computing diffs. This means that if we detect an added or removed
-     * {@link Edge} based on ID, we will additionally check its geometry before actually generating
-     * a diff. Sometimes, the same OSM way can be way-sectioned differently. So while the IDs for a
-     * sectioned OSM way will be different, the underlying geometry will be the same. In that case,
-     * {@link AtlasDiff#useGeometryMatching(boolean)} will cause {@link AtlasDiff} to ignore the
-     * inconsistent way sectioning.
-     *
-     * @param useGeometryMatching
-     *            use geometry matching
-     * @return a configured {@link AtlasDiff}
-     */
-    public AtlasDiff useGeometryMatching(final boolean useGeometryMatching)
-    {
-        this.useGeometryMatching = useGeometryMatching;
-        return this;
-    }
-
     private Set<FeatureChange> createFeatureChangesBasedOnEntitySets(
             final Set<AtlasEntity> addedEntities, final Set<AtlasEntity> removedEntities,
             final Set<AtlasEntity> potentiallyModifiedEntities, final Atlas beforeAtlas,
-            final Atlas afterAtlas, final boolean useGeometryMatching,
-            final boolean useBloatedEntities, final boolean saveAllGeometries)
+            final Atlas afterAtlas, final boolean useBloatedEntities,
+            final boolean saveAllGeometries)
     {
         final Set<FeatureChange> featureChanges = new HashSet<>();
 
@@ -240,7 +219,7 @@ public class AtlasDiff
 
         potentiallyModifiedEntities.stream()
                 .map(modifiedEntity -> createModifyFeatureChanges(modifiedEntity, beforeAtlas,
-                        afterAtlas, useGeometryMatching, useBloatedEntities, saveAllGeometries))
+                        afterAtlas, useBloatedEntities, saveAllGeometries))
                 .forEach(modifyFeatureChangeSet -> modifyFeatureChangeSet
                         .forEach(featureChanges::add));
 
@@ -263,8 +242,8 @@ public class AtlasDiff
      * @return a {@link Set} containing the possibly constructed {@link FeatureChange}s
      */
     private Set<FeatureChange> createModifyFeatureChanges(final AtlasEntity entity,
-            final Atlas beforeAtlas, final Atlas afterAtlas, final boolean useGeometryMatching,
-            final boolean useBloatedEntities, final boolean saveAllGeometries)
+            final Atlas beforeAtlas, final Atlas afterAtlas, final boolean useBloatedEntities,
+            final boolean saveAllGeometries)
     {
         final Set<FeatureChange> featureChanges = new HashSet<>();
 
@@ -303,10 +282,8 @@ public class AtlasDiff
          */
         if (entity instanceof Node)
         {
-            AtlasDiffHelper
-                    .getNodeChangeIfNecessary((Node) beforeEntity, (Node) afterEntity,
-                            useGeometryMatching, useBloatedEntities, saveAllGeometries)
-                    .ifPresent(featureChanges::add);
+            AtlasDiffHelper.getNodeChangeIfNecessary((Node) beforeEntity, (Node) afterEntity,
+                    useBloatedEntities, saveAllGeometries).ifPresent(featureChanges::add);
         }
 
         /*
@@ -317,7 +294,7 @@ public class AtlasDiff
         {
             AtlasDiffHelper
                     .getEdgeChangeIfNecessary((Edge) beforeEntity, (Edge) afterEntity, beforeAtlas,
-                            afterAtlas, useGeometryMatching, useBloatedEntities, saveAllGeometries)
+                            afterAtlas, useBloatedEntities, saveAllGeometries)
                     .ifPresent(featureChanges::add);
         }
 
@@ -357,9 +334,10 @@ public class AtlasDiff
          */
         if (entity instanceof Relation)
         {
-            AtlasDiffHelper.getRelationChangeIfNecessary((Relation) beforeEntity,
-                    (Relation) afterEntity, beforeAtlas, afterAtlas, useGeometryMatching,
-                    useBloatedEntities, saveAllGeometries).ifPresent(featureChanges::add);
+            AtlasDiffHelper
+                    .getRelationChangeIfNecessary((Relation) beforeEntity, (Relation) afterEntity,
+                            beforeAtlas, afterAtlas, useBloatedEntities, saveAllGeometries)
+                    .ifPresent(featureChanges::add);
         }
 
         return featureChanges;
@@ -434,35 +412,12 @@ public class AtlasDiff
      * @return if the entity was missing from the atlas
      */
     private boolean isEntityMissingFromGivenAtlas(final AtlasEntity entity,
-            final Atlas atlasToCheck, final boolean useGeometryMatching)
+            final Atlas atlasToCheck)
     {
         /*
          * Look up the given entity's ID in the atlasToCheck. If the returned entity is null, we
          * know it was NOT PRESENT in the atlasToCheck.
          */
-        if (entity.getType().entityForIdentifier(atlasToCheck, entity.getIdentifier()) == null)
-        {
-            /*
-             * We made it here because we could not find an exact identifier match for "entity" in
-             * the atlasToCheck. However, it is possible that the edge geometry is there, just with
-             * a different ID. So if the user set to useGeometryMatching, let's check to see if the
-             * edge geometry is there, based on the useGeometryMatching setting.
-             */
-            if (entity instanceof Edge && AtlasDiffHelper.edgeHasGeometryMatchInAtlas((Edge) entity,
-                    atlasToCheck, useGeometryMatching))
-            {
-                return false;
-            }
-
-            /*
-             * Ok, we made it here, so that means the entity was not in the atlasToCheck.
-             */
-            return true;
-        }
-
-        /*
-         * The entity was in the atlasToCheck!
-         */
-        return false;
+        return entity.getType().entityForIdentifier(atlasToCheck, entity.getIdentifier()) == null;
     }
 }
