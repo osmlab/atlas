@@ -23,7 +23,7 @@ import com.google.gson.JsonParser;
  *
  * @author hallahan
  */
-enum MinimumZoom
+public enum MinimumZoom
 {
     INSTANCE;
 
