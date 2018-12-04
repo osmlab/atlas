@@ -349,7 +349,7 @@ public class AtlasDiffTestRule extends CoreTestRule
 
             lines = {
 
-                    @Line(id = "6", coordinates = { @Loc(value = ONE), @Loc(value = TWO) })
+                    @Line(id = "12", coordinates = { @Loc(value = ONE), @Loc(value = TWO) })
 
             },
 
@@ -392,7 +392,7 @@ public class AtlasDiffTestRule extends CoreTestRule
 
             lines = {
 
-                    @Line(id = "6", coordinates = { @Loc(value = ONE), @Loc(value = TWO) })
+                    @Line(id = "12", coordinates = { @Loc(value = ONE), @Loc(value = TWO) })
 
             },
 
@@ -413,7 +413,7 @@ public class AtlasDiffTestRule extends CoreTestRule
 
                     @Relation(id = "33", tags = { "type=relation" }, members = {
 
-                            @Member(id = "6", role = "b", type = "line"),
+                            @Member(id = "12", role = "b", type = "line"),
 
                     })
 
