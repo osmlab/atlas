@@ -27,12 +27,6 @@ import org.slf4j.LoggerFactory;
  * Generate {@link Change} objects based on the differences between two {@link Atlas}es. The main
  * usage of this class is the {@link AtlasDiff#generateChange()} method.<br>
  * <br>
- * TODO this class could utilize parallel streams. However, all stream parallelization uses the same
- * common fork-join pool (https://stackoverflow.com/a/21172732). This could prove an issue in
- * parallel compute environments, since one parallel stream will lock all others. Also, there is
- * significant overhead with setting up parallel streams. Benchmarking is needed here. If we do
- * decide to use parallelization, we will need to convert the data structures to their
- * concurrency-safe versions.
  *
  * @author lcram
  */
@@ -101,8 +95,6 @@ public class AtlasDiff
      *
      * @return the generated {@link Change}
      */
-    // TODO this should be an optional, and return empty if no change. This is because Changes are
-    // located and so should not be empty. Also, make the changeBuilder lint this.
     public Change generateChange()
     {
         if (this.change != null)
@@ -186,8 +178,6 @@ public class AtlasDiff
      * computing the change will be faster, so this may be better for the simple printing
      * use-case.<br>
      * <br>
-     * TODO We will need to decide on the default setting, true vs. false. Right now, it is set to
-     * true.
      *
      * @param useBloatedEntities
      *            use bloated entities instead of the original entities
