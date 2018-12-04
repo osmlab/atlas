@@ -512,7 +512,7 @@ public class AtlasDiffTestRule extends CoreTestRule
             }
 
     )
-    private Atlas knownBug1;
+    private Atlas removeRelationMember1;
 
     @TestAtlas(
 
@@ -534,7 +534,7 @@ public class AtlasDiffTestRule extends CoreTestRule
             }
 
     )
-    private Atlas knownBug2;
+    private Atlas removeRelationMember2;
 
     public Atlas differentNodeAndEdgeProperties1()
     {
@@ -586,14 +586,14 @@ public class AtlasDiffTestRule extends CoreTestRule
         return this.differentTags2;
     }
 
-    public Atlas knownBug1()
+    public Atlas removeRelationMember1()
     {
-        return this.knownBug1;
+        return this.removeRelationMember1;
     }
 
-    public Atlas knownBug2()
+    public Atlas removeRelationMember2()
     {
-        return this.knownBug2;
+        return this.removeRelationMember2;
     }
 
     public Atlas simpleAtlas1()

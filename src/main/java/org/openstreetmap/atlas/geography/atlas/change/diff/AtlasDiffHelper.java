@@ -400,7 +400,8 @@ public final class AtlasDiffHelper
                 if (!geometryMatchInRelationMemberList(beforeMembers, afterMembers,
                         useGeometryMatching))
                 {
-                    bloatedRelation.withMembers(Optional.of(afterRelation),
+                    // TODO this should be beforeRelation, right?
+                    bloatedRelation.withMembers(Optional.of(beforeRelation),
                             afterRelation.members());
                     featureChangeWouldBeUseful = true;
                 }

@@ -59,6 +59,20 @@ public class AtlasDiffTest
     }
 
     @Test
+    public void testRelationMemberRemoval()
+    {
+        final Atlas atlasX = this.rule.removeRelationMember1();
+        final Atlas atlasY = this.rule.removeRelationMember2();
+
+        final Change changeXToYBloated = new AtlasDiff(atlasX, atlasY).useBloatedEntities(true)
+                .generateChange();
+        final ChangeAtlas changeAtlasYBloated = new ChangeAtlas(atlasX, changeXToYBloated);
+        Assert.assertEquals(atlasY, changeAtlasYBloated);
+        Assert.assertFalse(
+                new AtlasDiff(changeAtlasYBloated, atlasY).generateChange().hasChanges());
+    }
+
+    @Test
     public void testRelationsDiff()
     {
         Atlas atlasX = this.rule.differentRelations1();
@@ -82,24 +96,6 @@ public class AtlasDiffTest
         final int expectedNumberOfChanges = 3;
 
         assertChangeAtlasConsistency(atlasX, atlasY, expectedNumberOfChanges);
-    }
-
-    @Test
-    public void testZKnownBug()
-    {
-        final Atlas atlasX = this.rule.knownBug1();
-        final Atlas atlasY = this.rule.knownBug2();
-
-        final Change changeXToYBloated = new AtlasDiff(atlasX, atlasY).useBloatedEntities(true)
-                .generateChange();
-        changeXToYBloated.changes()
-                .forEach(change -> logger.trace("{}: {}", change, change.getReference()));
-        final ChangeAtlas changeAtlasYBloated = new ChangeAtlas(atlasX, changeXToYBloated);
-        new AtlasDiff(changeAtlasYBloated, atlasY).generateChange().changes()
-                .forEach(change -> logger.trace("{}: {}", change, change.getReference()));
-        Assert.assertEquals(atlasY, changeAtlasYBloated);
-        Assert.assertFalse(
-                new AtlasDiff(changeAtlasYBloated, atlasY).generateChange().hasChanges());
     }
 
     private void assertChangeAtlasConsistency(final Atlas atlasX, final Atlas atlasY,
