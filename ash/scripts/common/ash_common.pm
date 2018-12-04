@@ -1843,6 +1843,9 @@ sub completion_ash {
     my %subcommand_desc = get_subcommand_to_description_hash($ash_path);
     my @commands = keys %subcommand_desc;
 
+    # TODO currently this function is super basic. It would be nice if it could
+    # handle cfg:preset and the --preset,--save-preset options as well.
+
     # shift argv to remove "ash"
     shift @argv;
 
@@ -1856,17 +1859,14 @@ sub completion_ash {
         }
     }
 
-    print "foo bar baz";
+    # otherwise, complete command names
+    my $argv_len = scalar @argv;
+    my $current_word = $argv[$argv_len - 1];
+    my @completion_matches = completion_match_prefix($current_word, \@commands);
 
-
-    
-    #my @commands = keys %subcommand_desc;
-
-    #my @completion_matches = completion_match_prefix($current_word, \@commands);
-
-    #foreach my $command (@completion_matches) {
-    #    print "$command\n";
-    #}
+    foreach my $command (@completion_matches) {
+        print "$command\n";
+    }
 
     return 1;
 }
