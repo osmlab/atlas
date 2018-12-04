@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.bloated;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
@@ -134,9 +135,9 @@ public class BloatedRelationTest
         final BloatedRelation result = BloatedRelation.shallowFrom(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
-        result.withMembers(new RelationMemberList(source.members()));
+        result.withMembers(Optional.of(source), new RelationMemberList(source.members()));
         Assert.assertEquals(source.members().asBean(), result.members().asBean());
-        result.withMembers(source.members().asBean(), source.bounds());
+        result.withMembers(Optional.of(source), source.members().asBean(), source.bounds());
         Assert.assertEquals(source.bounds(), result.bounds());
         Assert.assertEquals(source.members().asBean(), result.members().asBean());
         result.withAllKnownOsmMembers(source.allKnownOsmMembers().asBean());

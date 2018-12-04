@@ -1,8 +1,10 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -11,6 +13,7 @@ import org.openstreetmap.atlas.geography.atlas.bloated.BloatedEdge;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.tags.JunctionTag;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
@@ -36,33 +39,40 @@ public class AtlasChangeGeneratorSplitRoundabout implements AtlasChangeGenerator
 
                 final long middleNodeIdentifier = identifierGenerator.incrementAndGet();
                 final long oldEdgeIdentifier = edge.getIdentifier();
-                final long newEdgeIdentifier = identifierGenerator.incrementAndGet();
-                final BloatedEdge firstEdge = BloatedEdge.from(edge).withPolyLine(shape1)
+                final long newEdgeIdentifier1 = identifierGenerator.incrementAndGet();
+                final long newEdgeIdentifier2 = identifierGenerator.incrementAndGet();
+                final BloatedEdge firstEdge = BloatedEdge.from(edge)
+                        .withIdentifier(newEdgeIdentifier1).withPolyLine(shape1)
                         .withEndNodeIdentifier(middleNodeIdentifier);
                 final BloatedEdge secondEdge = BloatedEdge.from(edge)
-                        .withIdentifier(newEdgeIdentifier).withPolyLine(shape2)
+                        .withIdentifier(newEdgeIdentifier2).withPolyLine(shape2)
                         .withStartNodeIdentifier(middleNodeIdentifier);
                 // Update relations of edge to also list second edge that has a new ID here.
-                edge.relations().stream()
-                        .map(relation -> BloatedRelation.shallowFrom(relation)
-                                .withMembers(relation.members()).withExtraMember(secondEdge, edge))
-                        .map(FeatureChange::add).forEach(featureChange ->
-                        {
-                            result.add(featureChange);
-                        });
+                edge.relations().stream().map(relation ->
+                {
+                    // newMembers exclude the old edge explicitly
+                    final RelationMemberList newMembers = new RelationMemberList(relation.members()
+                            .stream().filter(member -> member.getEntity().equals(edge))
+                            .collect(Collectors.toList()));
+                    return BloatedRelation.shallowFrom(relation)
+                            .withMembers(Optional.of(relation), newMembers)
+                            // With the new relation members
+                            .withExtraMember(firstEdge, edge).withExtraMember(secondEdge, edge);
+                }).map(FeatureChange::add).forEach(result::add);
 
-                // Add the two new edges. First one has same ID as old edge and replaces it.
+                // Add the two new edges.
+                result.add(FeatureChange.remove(edge));
                 result.add(FeatureChange.add(firstEdge));
                 result.add(FeatureChange.add(secondEdge));
 
                 // Middle node is new. Create from scratch
                 result.add(FeatureChange.add(new BloatedNode(middleNodeIdentifier, cut,
-                        Maps.hashMap(), Sets.treeSet(oldEdgeIdentifier),
-                        Sets.treeSet(newEdgeIdentifier), Sets.hashSet())));
+                        Maps.hashMap(), Sets.treeSet(newEdgeIdentifier1),
+                        Sets.treeSet(newEdgeIdentifier2), Sets.hashSet())));
 
                 // End node has a replaced start edge identifier
                 result.add(FeatureChange.add(BloatedNode.from(edge.end())
-                        .withInEdgeIdentifierReplaced(oldEdgeIdentifier, newEdgeIdentifier)));
+                        .withInEdgeIdentifierReplaced(oldEdgeIdentifier, newEdgeIdentifier2)));
             }
         }
         return result;

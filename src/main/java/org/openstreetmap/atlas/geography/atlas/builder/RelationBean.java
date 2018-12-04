@@ -2,10 +2,12 @@ package org.openstreetmap.atlas.geography.atlas.builder;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
@@ -78,11 +80,15 @@ public class RelationBean implements Serializable, Iterable<RelationBeanItem>
     private final List<String> memberRoles;
     private final List<ItemType> memberTypes;
 
+    private final Set<RelationBeanItem> explicitlyExcluded;
+
     public RelationBean()
     {
         this.memberIdentifiers = new ArrayList<>();
         this.memberRoles = new ArrayList<>();
         this.memberTypes = new ArrayList<>();
+
+        this.explicitlyExcluded = new HashSet<>();
     }
 
     public void addItem(final Long identifier, final String role, final ItemType itemType)
@@ -95,6 +101,17 @@ public class RelationBean implements Serializable, Iterable<RelationBeanItem>
     public void addItem(final RelationBeanItem item)
     {
         addItem(item.getIdentifier(), item.getRole(), item.getType());
+    }
+
+    public void addItemExplicitlyExcluded(final Long identifier, final String role,
+            final ItemType itemType)
+    {
+        addItemExplicitlyExcluded(new RelationBeanItem(identifier, role, itemType));
+    }
+
+    public void addItemExplicitlyExcluded(final RelationBeanItem item)
+    {
+        this.explicitlyExcluded.add(item);
     }
 
     /**
@@ -180,7 +197,10 @@ public class RelationBean implements Serializable, Iterable<RelationBeanItem>
         final RelationBean result = new RelationBean();
         for (final RelationBeanItem leftItem : this)
         {
-            result.addItem(leftItem);
+            if (!other.isExplicitlyExcluded(leftItem))
+            {
+                result.addItem(leftItem);
+            }
         }
         for (final RelationBeanItem rightItem : other)
         {
@@ -192,8 +212,13 @@ public class RelationBean implements Serializable, Iterable<RelationBeanItem>
                 // Role already exists, continue.
                 continue;
             }
-            result.addItem(rightItem);
+            if (!this.isExplicitlyExcluded(rightItem))
+            {
+                result.addItem(rightItem);
+            }
         }
+        this.explicitlyExcluded.forEach(result::addItemExplicitlyExcluded);
+        other.explicitlyExcluded.forEach(result::addItemExplicitlyExcluded);
         return result;
     }
 
@@ -220,5 +245,10 @@ public class RelationBean implements Serializable, Iterable<RelationBeanItem>
         }
         return new RelationBeanItem(this.memberIdentifiers.get(index), this.memberRoles.get(index),
                 this.memberTypes.get(index));
+    }
+
+    private boolean isExplicitlyExcluded(final RelationBeanItem relationBeanItem)
+    {
+        return this.explicitlyExcluded.contains(relationBeanItem);
     }
 }

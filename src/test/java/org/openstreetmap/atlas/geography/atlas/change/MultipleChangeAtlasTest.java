@@ -122,11 +122,22 @@ public class MultipleChangeAtlasTest
         resetAndChange("splitRoundaboutEdges", new AtlasChangeGeneratorSplitRoundabout());
         Assert.assertEquals(6, Iterables.size(this.atlas.edges(JunctionTag::isRoundabout)));
         Assert.assertEquals(12, Iterables.size(this.changeAtlas.edges(JunctionTag::isRoundabout)));
-        Assert.assertEquals(
-                this.atlas.edge(221434104000005L).relations().stream().map(Relation::getIdentifier)
-                        .collect(Collectors.toSet()),
-                this.changeAtlas.edge(10L).relations().stream().map(Relation::getIdentifier)
-                        .collect(Collectors.toSet()));
+        final Set<Long> extectedParentRelations = this.atlas.edge(221434104000005L).relations()
+                .stream().map(Relation::getIdentifier).collect(Collectors.toSet());
+        Assert.assertEquals(extectedParentRelations, this.changeAtlas.edge(14L).relations().stream()
+                .map(Relation::getIdentifier).collect(Collectors.toSet()));
+        Assert.assertEquals(extectedParentRelations, this.changeAtlas.edge(15L).relations().stream()
+                .map(Relation::getIdentifier).collect(Collectors.toSet()));
+        Assert.assertTrue(this.changeAtlas.relation(3001321000000L).members().asBean()
+                .getItemFor(14L, ItemType.EDGE).isPresent());
+        Assert.assertTrue(this.changeAtlas.relation(3001321000000L).members().asBean()
+                .getItemFor(15L, ItemType.EDGE).isPresent());
+        Assert.assertTrue(this.atlas.relation(3001321000000L).members().asBean()
+                .getItemFor(221434104000005L, ItemType.EDGE).isPresent());
+        // Make sure the removed edge was not added back by a mishap in the relation bean merging
+        // somewhere
+        Assert.assertFalse(this.changeAtlas.relation(3001321000000L).members().asBean()
+                .getItemFor(221434104000005L, ItemType.EDGE).isPresent());
     }
 
     /**
