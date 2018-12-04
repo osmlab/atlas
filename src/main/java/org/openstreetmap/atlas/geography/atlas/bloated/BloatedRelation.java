@@ -317,7 +317,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
      * In case this {@link BloatedRelation} is created from an existing relation, and the new member
      * list has had some existing members removed, use
      * {@link #withMembers(Optional, RelationMemberList)}
-     * 
+     *
      * @param members
      *            The full members of the Relation
      * @return This
@@ -373,7 +373,9 @@ public class BloatedRelation extends Relation implements BloatedEntity
             memberList.add(new RelationMember(item.getRole(),
                     getAtlas().entity(item.getIdentifier(), item.getType()), getIdentifier()));
         }
-        return new RelationMemberList(memberList);
+        final RelationMemberList result = new RelationMemberList(memberList);
+        bean.getExplicitlyExcluded().forEach(result::addItemExplicitlyExcluded);
+        return result;
     }
 
     private void updateBounds(final Rectangle bounds)

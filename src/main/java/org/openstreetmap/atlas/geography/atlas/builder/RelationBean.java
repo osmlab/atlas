@@ -137,6 +137,11 @@ public class RelationBean implements Serializable, Iterable<RelationBeanItem>
         return false;
     }
 
+    public Set<RelationBeanItem> getExplicitlyExcluded()
+    {
+        return this.explicitlyExcluded;
+    }
+
     public Optional<RelationBeanItem> getItemFor(final long identifier, final ItemType type)
     {
         for (int index = 0; index < this.memberIdentifiers.size(); index++)
