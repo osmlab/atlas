@@ -32,8 +32,8 @@ public class BloatedNode extends Node implements BloatedEntity
 
     /*
      * This is the aggregate feature bounds. It is a super-bound of the original bounds and the
-     * changed bounds, if preset. Each time with(Located) is called on this entity, it is recomputed
-     * from the original bounds and the new Located bounds.
+     * changed bounds, if present. Each time with(Located) is called on this entity, it is
+     * recomputed from the original bounds and the new Located bounds.
      */
     private Rectangle aggregateBounds;
 
@@ -269,20 +269,20 @@ public class BloatedNode extends Node implements BloatedEntity
         return this;
     }
 
-    public BloatedNode withTagExtra(final String key, final String value)
+    public BloatedNode withAddedTag(final String key, final String value)
     {
         return withTags(BloatedEntity.addNewTag(getTags(), key, value));
     }
 
-    public BloatedNode withTagLess(final String key)
+    public BloatedNode withRemovedTag(final String key)
     {
         return withTags(BloatedEntity.removeTag(getTags(), key));
     }
 
-    public BloatedNode withTagReplaced(final String oldKey, final String newKey,
+    public BloatedNode withReplacedTag(final String oldKey, final String newKey,
             final String newValue)
     {
-        return withTagLess(oldKey).withTagExtra(newKey, newValue);
+        return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
     }
 
     public BloatedNode withTags(final Map<String, String> tags)

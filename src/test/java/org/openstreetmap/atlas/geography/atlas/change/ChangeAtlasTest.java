@@ -1,7 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
@@ -51,8 +50,9 @@ public class ChangeAtlasTest
     public void testBounds()
     {
         final Atlas atlas = this.rule.getAtlas();
-        Assert.assertEquals("POLYGON ((-122.2450237 37.5920679, -122.2450237 37.5938783, "
-                + "-122.2412753 37.5938783, -122.2412753 37.5920679, -122.2450237 37.5920679))",
+        Assert.assertEquals(
+                "POLYGON ((-122.2450237 37.5920679, -122.2450237 37.5938783, "
+                        + "-122.2412753 37.5938783, -122.2412753 37.5920679, -122.2450237 37.5920679))",
                 atlas.bounds().toWkt());
 
         final ChangeBuilder changeBuilder = new ChangeBuilder();
@@ -69,8 +69,9 @@ public class ChangeAtlasTest
         final Change change = changeBuilder.get();
 
         final Atlas changeAtlas = new ChangeAtlas(atlas, change);
-        Assert.assertEquals("POLYGON ((-122.2450237 37.5920679, -122.2450237 37.5938873, "
-                + "-122.2412753 37.5938873, -122.2412753 37.5920679, -122.2450237 37.5920679))",
+        Assert.assertEquals(
+                "POLYGON ((-122.2450237 37.5920679, -122.2450237 37.5938873, "
+                        + "-122.2412753 37.5938873, -122.2412753 37.5920679, -122.2450237 37.5920679))",
                 changeAtlas.bounds().toWkt());
     }
 
@@ -114,12 +115,13 @@ public class ChangeAtlasTest
         changeBuilder.add(getFeatureChangeMovedNode());
 
         final Change change = changeBuilder.get();
-        Assert.assertEquals("[Edge: id=39001000001, startNode=38999000000, endNode=39002000000, "
-                + "polyLine=LINESTRING (-122.2457961 37.592796, -122.2450237 37.5926929, "
-                + "-122.2441049 37.5930666, -122.2429584 37.5926993), "
-                + "[Tags: [last_edit_user_name => myself], [last_edit_changeset => 1], "
-                + "[last_edit_time => 1513719782000], [last_edit_user_id => 1], [name => primary], "
-                + "[highway => primary], [last_edit_version => 1]]]",
+        Assert.assertEquals(
+                "[Edge: id=39001000001, startNode=38999000000, endNode=39002000000, "
+                        + "polyLine=LINESTRING (-122.2457961 37.592796, -122.2450237 37.5926929, "
+                        + "-122.2441049 37.5930666, -122.2429584 37.5926993), "
+                        + "[Tags: [last_edit_user_name => myself], [last_edit_changeset => 1], "
+                        + "[last_edit_time => 1513719782000], [last_edit_user_id => 1], [name => primary], "
+                        + "[highway => primary], [last_edit_version => 1]]]",
                 new ChangeAtlas(atlas, change).edge(39001000001L).toString());
     }
 
@@ -328,7 +330,7 @@ public class ChangeAtlasTest
                 .collect(Collectors.toList()));
         changeBuilder.add(
                 new FeatureChange(ChangeType.ADD, BloatedRelation.shallowFrom(disconnectedFeatures)
-                        .withMembers(Optional.of(disconnectedFeatures), newMembers)));
+                        .withMembersAndSource(newMembers, disconnectedFeatures)));
         changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
                 BloatedPoint.shallowFrom(atlas.point(41822000000L))));
         final Change change = changeBuilder.get();

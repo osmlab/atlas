@@ -155,6 +155,21 @@ public class RelationBean implements Serializable, Iterable<RelationBeanItem>
         return Optional.empty();
     }
 
+    public Optional<RelationBeanItem> getItemFor(final long identifier, final String role,
+            final ItemType type)
+    {
+        for (int index = 0; index < this.memberIdentifiers.size(); index++)
+        {
+            if (this.memberIdentifiers.get(index) == identifier
+                    && role.equals(this.memberRoles.get(index))
+                    && this.memberTypes.get(index) == type)
+            {
+                return Optional.of(getItemFor(index));
+            }
+        }
+        return Optional.empty();
+    }
+
     public List<Long> getMemberIdentifiers()
     {
         return this.memberIdentifiers;

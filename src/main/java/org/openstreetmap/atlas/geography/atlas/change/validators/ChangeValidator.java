@@ -35,9 +35,18 @@ public class ChangeValidator
     {
         logger.trace("Starting validation of Change {}", this.change.getName());
         final Time start = Time.now();
+        validateChangeNotEmpty();
         validateReverseEdgesHaveForwardMatchingCounterpart();
         logger.trace("Finished validation of Change {} in {}", this.change.getName(),
                 start.elapsedSince());
+    }
+
+    protected void validateChangeNotEmpty()
+    {
+        if (this.change.changeCount() == 0)
+        {
+            throw new CoreException("Change cannot be empty.");
+        }
     }
 
     protected void validateReverseEdgesHaveForwardMatchingCounterpart()

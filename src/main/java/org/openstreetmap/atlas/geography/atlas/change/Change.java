@@ -55,6 +55,11 @@ public class Change implements Located, Serializable
         return this.bounds;
     }
 
+    public int changeCount()
+    {
+        return this.featureChanges.size();
+    }
+
     public Optional<FeatureChange> changeFor(final ItemType itemType, final Long identifier)
     {
         final Tuple<ItemType, Long> key = new Tuple<>(itemType, identifier);

@@ -35,4 +35,9 @@ public class ChangeBuilder
         this.open = false;
         return this.change;
     }
+
+    public synchronized int peekNumberOfChanges()
+    {
+        return this.change.changeCount();
+    }
 }
