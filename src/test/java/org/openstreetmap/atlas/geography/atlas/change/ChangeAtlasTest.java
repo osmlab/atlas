@@ -328,8 +328,9 @@ public class ChangeAtlasTest
         final RelationMemberList newMembers = new RelationMemberList(disconnectedFeatures.members()
                 .stream().filter(member -> !(member.getEntity() instanceof Point))
                 .collect(Collectors.toList()));
-        changeBuilder.add(new FeatureChange(ChangeType.ADD, BloatedRelation
-                .shallowFrom(disconnectedFeatures).withMembers(disconnectedFeatures, newMembers)));
+        changeBuilder.add(
+                new FeatureChange(ChangeType.ADD, BloatedRelation.shallowFrom(disconnectedFeatures)
+                        .withMembersAndSource(newMembers, disconnectedFeatures)));
         changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
                 BloatedPoint.shallowFrom(atlas.point(41822000000L))));
         final Change change = changeBuilder.get();

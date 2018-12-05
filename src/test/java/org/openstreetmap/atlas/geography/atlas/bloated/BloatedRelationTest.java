@@ -134,9 +134,9 @@ public class BloatedRelationTest
         final BloatedRelation result = BloatedRelation.shallowFrom(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
-        result.withMembers(source, new RelationMemberList(source.members()));
+        result.withMembersAndSource(new RelationMemberList(source.members()), source);
         Assert.assertEquals(source.members().asBean(), result.members().asBean());
-        result.withMembers(source, source.members().asBean(), source.bounds());
+        result.withMembersAndSource(source.members().asBean(), source, source.bounds());
         Assert.assertEquals(source.bounds(), result.bounds());
         Assert.assertEquals(source.members().asBean(), result.members().asBean());
         result.withAllKnownOsmMembers(source.allKnownOsmMembers().asBean());
