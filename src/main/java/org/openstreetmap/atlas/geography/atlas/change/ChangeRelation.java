@@ -81,8 +81,7 @@ public class ChangeRelation extends Relation // NOSONAR
                 filteredAndMergedMembersBean.addItem(relationBeanItem);
             }
         });
-        final RelationMemberList list = membersFor(filteredAndMergedMembersBean);
-        return list;
+        return membersFor(filteredAndMergedMembersBean);
     }
 
     @Override

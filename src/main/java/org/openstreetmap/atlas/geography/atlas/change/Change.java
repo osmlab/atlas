@@ -99,11 +99,6 @@ public class Change implements Located, Serializable
         }
     }
 
-    public boolean hasChanges()
-    {
-        return !this.featureChanges.isEmpty();
-    }
-
     @Override
     public String toString()
     {
