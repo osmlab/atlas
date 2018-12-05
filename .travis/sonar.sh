@@ -16,7 +16,6 @@ if [ "$TRAVIS_PULL_REQUEST" != "false" ];
 then
 	echo "Running sonarqube in Pull Request $TRAVIS_PULL_REQUEST"
 	./gradlew sonarqube \
-		-Dsonar.branch.name=$TRAVIS_BRANCH \
 		-Dsonar.organization=osmlab \
 		-Dsonar.host.url=https://sonarcloud.io \
 		-Dsonar.login=$SONAR_TOKEN \
