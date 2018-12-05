@@ -174,6 +174,25 @@ public class AtlasDiff
         return this;
     }
 
+    /**
+     * Given a set of added, removed, and potentially modified entities, construct a set of
+     * {@link FeatureChange}s that transform a given before atlas into a given after atlas.
+     *
+     * @param addedEntities
+     *            the set of entities added in the after atlas
+     * @param removedEntities
+     *            the set of entities removed in the after atlas
+     * @param potentiallyModifiedEntities
+     *            the set of entities potentially modified in the after atlas (i.e. any entity, with
+     *            the same ID, found in both before and after)
+     * @param beforeAtlas
+     *            the before atlas
+     * @param afterAtlas
+     *            the after atlas
+     * @param saveAllGeometries
+     *            if we are saving all geometries, even when not modified
+     * @return the set of {@link FeatureChange}s that would turn before into after
+     */
     private Set<FeatureChange> createFeatureChangesBasedOnEntitySets(
             final Set<AtlasEntity> addedEntities, final Set<AtlasEntity> removedEntities,
             final Set<AtlasEntity> potentiallyModifiedEntities, final Atlas beforeAtlas,
@@ -189,9 +208,8 @@ public class AtlasDiff
                         removedEntity, beforeAtlas, saveAllGeometries))
                 .forEach(featureChanges::add);
 
-        potentiallyModifiedEntities.stream()
-                .map(modifiedEntity -> createModifyFeatureChanges(modifiedEntity, beforeAtlas,
-                        afterAtlas, saveAllGeometries))
+        potentiallyModifiedEntities.stream().map(
+                modifiedEntity -> createModifyFeatureChanges(modifiedEntity, saveAllGeometries))
                 .forEach(modifyFeatureChangeSet -> modifyFeatureChangeSet
                         .forEach(featureChanges::add));
 
@@ -206,15 +224,13 @@ public class AtlasDiff
      * this will come in as one feature change.<br>
      *
      * @param entity
-     * @param beforeAtlas
-     * @param afterAtlas
      * @param useGeometryMatching
      * @param useBloatedEntities
      * @param saveAllGeometries
      * @return a {@link Set} containing the possibly constructed {@link FeatureChange}s
      */
     private Set<FeatureChange> createModifyFeatureChanges(final AtlasEntity entity,
-            final Atlas beforeAtlas, final Atlas afterAtlas, final boolean saveAllGeometries)
+            final boolean saveAllGeometries)
     {
         final Set<FeatureChange> featureChanges = new HashSet<>();
 
@@ -314,10 +330,13 @@ public class AtlasDiff
      * given entity in the given atlas.
      *
      * @param changeType
+     *            the change type to use, e.g. ADD or REMOVE
      * @param entity
+     *            the entity to add or remove
      * @param atlas
-     * @param useBloatedEntities
+     *            the atlas from which to add or remove
      * @param saveAllGeometries
+     *            if we are saving all geometries, even when they are not modified
      * @return the feature change
      */
     private FeatureChange createSimpleFeatureChangeWithType(final ChangeType changeType,
