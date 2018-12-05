@@ -29,8 +29,8 @@ public class BloatedLine extends Line implements BloatedEntity
 
     /*
      * This is the aggregate feature bounds. It is a super-bound of the original bounds and the
-     * changed bounds, if preset. Each time with(Located) is called on this entity, it is recomputed
-     * from the original bounds and the new Located bounds.
+     * changed bounds, if present. Each time with(Located) is called on this entity, it is
+     * recomputed from the original bounds and the new Located bounds.
      */
     private Rectangle aggregateBounds;
 
