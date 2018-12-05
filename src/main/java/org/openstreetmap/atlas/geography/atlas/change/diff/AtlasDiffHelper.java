@@ -39,7 +39,7 @@ public final class AtlasDiffHelper
     private static final Logger logger = LoggerFactory.getLogger(AtlasDiffHelper.class);
 
     public static Optional<FeatureChange> getAreaChangeIfNecessary(final Area beforeArea,
-            final Area afterArea, final boolean saveAllGeometry)
+            final Area afterArea)
     {
         try
         {
@@ -64,8 +64,7 @@ public final class AtlasDiffHelper
     }
 
     public static Optional<FeatureChange> getEdgeChangeIfNecessary(final Edge beforeEdge,
-            final Edge afterEdge, final Atlas beforeAtlas, final Atlas afterAtlas,
-            final boolean saveAllGeometry)
+            final Edge afterEdge, final boolean saveAllGeometries)
     {
         try
         {
@@ -88,6 +87,15 @@ public final class AtlasDiffHelper
             }
             if (featureChangeWouldBeUseful)
             {
+                /*
+                 * Explicitly check for saveAllGeometry. This will resave if the featureChange was
+                 * due to a geometry change, but that is OK. We want to ensure we save in the cases
+                 * where a start/end node was changed (for visualization purposes).
+                 */
+                if (saveAllGeometries)
+                {
+                    bloatedEdge.withPolyLine(afterEdge.asPolyLine());
+                }
                 return Optional.of(new FeatureChange(ChangeType.ADD, bloatedEdge));
             }
         }
@@ -100,7 +108,7 @@ public final class AtlasDiffHelper
     }
 
     public static Optional<FeatureChange> getLineChangeIfNecessary(final Line beforeLine,
-            final Line afterLine, final boolean saveAllGeometry)
+            final Line afterLine)
     {
         try
         {
@@ -139,7 +147,7 @@ public final class AtlasDiffHelper
             if (differentEdgeSet(beforeNode.inEdges(), afterNode.inEdges()))
             {
                 bloatedNode.withInEdgeIdentifiers(new TreeSet<>(afterNode.inEdges().stream()
-                        .map(edge -> edge.getIdentifier()).collect(Collectors.toSet())));
+                        .map(Edge::getIdentifier).collect(Collectors.toSet())));
                 if (saveAllGeometries)
                 {
                     bloatedNode.withLocation(afterNode.getLocation());
@@ -149,7 +157,7 @@ public final class AtlasDiffHelper
             if (differentEdgeSet(beforeNode.outEdges(), afterNode.outEdges()))
             {
                 bloatedNode.withOutEdgeIdentifiers(new TreeSet<>(afterNode.outEdges().stream()
-                        .map(edge -> edge.getIdentifier()).collect(Collectors.toSet())));
+                        .map(Edge::getIdentifier).collect(Collectors.toSet())));
                 if (saveAllGeometries)
                 {
                     bloatedNode.withLocation(afterNode.getLocation());
@@ -170,15 +178,15 @@ public final class AtlasDiffHelper
     }
 
     public static Optional<FeatureChange> getParentRelationMembershipChangeIfNecessary(
-            final AtlasEntity beforeEntity, final AtlasEntity afterEntity, final Atlas beforeAtlas,
-            final Atlas afterAtlas, final boolean saveAllGeometries)
+            final AtlasEntity beforeEntity, final AtlasEntity afterEntity,
+            final boolean saveAllGeometries)
     {
         try
         {
             final Set<Long> beforeRelationIdentifiers = beforeEntity.relations().stream()
-                    .map(relation -> relation.getIdentifier()).collect(Collectors.toSet());
+                    .map(Relation::getIdentifier).collect(Collectors.toSet());
             final Set<Long> afterRelationIdentifiers = afterEntity.relations().stream()
-                    .map(relation -> relation.getIdentifier()).collect(Collectors.toSet());
+                    .map(Relation::getIdentifier).collect(Collectors.toSet());
 
             /*
              * We never had any parent relations. We want to explicitly return empty so as not to
@@ -193,8 +201,7 @@ public final class AtlasDiffHelper
              * Now, check to see if the afterEntity was different from the beforeEntity in any
              * relations in the afterAtlas. If they were not different, there is no feature change.
              */
-            if (!entitiesWereDifferentInRelations(beforeEntity, afterEntity, beforeAtlas,
-                    afterAtlas))
+            if (!entitiesWereDifferentInRelations(beforeEntity, afterEntity))
             {
                 return Optional.empty();
             }
@@ -271,7 +278,7 @@ public final class AtlasDiffHelper
     }
 
     public static Optional<FeatureChange> getPointChangeIfNecessary(final Point beforePoint,
-            final Point afterPoint, final boolean saveAllGeometries)
+            final Point afterPoint)
     {
         try
         {
@@ -296,8 +303,7 @@ public final class AtlasDiffHelper
     }
 
     public static Optional<FeatureChange> getRelationChangeIfNecessary(
-            final Relation beforeRelation, final Relation afterRelation, final Atlas beforeAtlas,
-            final Atlas afterAtlas, final boolean saveAllGeometry)
+            final Relation beforeRelation, final Relation afterRelation)
     {
         try
         {
@@ -486,7 +492,7 @@ public final class AtlasDiffHelper
     }
 
     public static FeatureChange simpleBloatedRelationChange(final ChangeType changeType,
-            final Atlas atlas, final AtlasEntity entity, final boolean saveAllGeometries)
+            final Atlas atlas, final AtlasEntity entity)
     {
         final Long entityIdentifier = entity.getIdentifier();
         if (changeType == ChangeType.REMOVE)
@@ -528,7 +534,7 @@ public final class AtlasDiffHelper
     }
 
     private static boolean entitiesWereDifferentInRelations(final AtlasEntity beforeEntity,
-            final AtlasEntity afterEntity, final Atlas beforeAtlas, final Atlas afterAtlas)
+            final AtlasEntity afterEntity)
     {
         try
         {

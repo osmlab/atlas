@@ -47,15 +47,6 @@ public class AtlasDiff
      */
     private boolean saveAllGeometries = true;
 
-    // Entities that were removed from the after atlas
-    private Set<AtlasEntity> removedEntities;
-
-    // Entities that were added to the after atlas
-    private Set<AtlasEntity> addedEntities;
-
-    // Entities that were modified in the after atlas
-    private Set<AtlasEntity> potentiallyModifiedEntities;
-
     /**
      * Construct an {@link AtlasDiff} with a given before {@link Atlas} and after {@link Atlas}. The
      * resulting {@link Change} will effectively transform the before atlas into the after atlas.
@@ -85,7 +76,8 @@ public class AtlasDiff
     /**
      * Generate a {@link Change} that represents a transformation from the before {@link Atlas} to
      * the after {@link Atlas}. If there were no changes (i.e. the atlases had no differences), then
-     * return an empty {@link Optional}.<br>
+     * return an empty {@link Optional}. Repeated calls to this method will return a cached
+     * {@link Change} instead of performing a re-computation.<br>
      * <br>
      * Now suppose we create a {@link ChangeAtlas} based on the before {@link Atlas} and the
      * generated {@link Change}. All of the following will be true:<br>
@@ -110,9 +102,9 @@ public class AtlasDiff
             return Optional.of(this.change);
         }
 
-        this.addedEntities = new HashSet<>();
-        this.removedEntities = new HashSet<>();
-        this.potentiallyModifiedEntities = new HashSet<>();
+        final Set<AtlasEntity> addedEntities = new HashSet<>();
+        final Set<AtlasEntity> removedEntities = new HashSet<>();
+        final Set<AtlasEntity> potentiallyModifiedEntities = new HashSet<>();
         final ChangeBuilder changeBuilder = new ChangeBuilder();
 
         /*
@@ -126,11 +118,11 @@ public class AtlasDiff
         {
             if (isEntityMissingFromGivenAtlas(beforeEntity, this.after))
             {
-                this.removedEntities.add(beforeEntity);
+                removedEntities.add(beforeEntity);
             }
             else
             {
-                this.potentiallyModifiedEntities.add(beforeEntity);
+                potentiallyModifiedEntities.add(beforeEntity);
             }
         });
 
@@ -140,14 +132,14 @@ public class AtlasDiff
          */
         Iterables.stream(this.after)
                 .filter(afterEntity -> isEntityMissingFromGivenAtlas(afterEntity, this.before))
-                .forEach(this.addedEntities::add);
+                .forEach(addedEntities::add);
 
         /*
          * Aggregate the results stored in the sets, creating the FeatureChange objects if there are
          * necessary changes.
          */
-        createFeatureChangesBasedOnEntitySets(this.addedEntities, this.removedEntities,
-                this.potentiallyModifiedEntities, this.before, this.after, this.saveAllGeometries)
+        createFeatureChangesBasedOnEntitySets(addedEntities, removedEntities,
+                potentiallyModifiedEntities, this.before, this.after, this.saveAllGeometries)
                         .stream().forEach(changeBuilder::add);
 
         if (changeBuilder.peekNumberOfChanges() == 0)
@@ -251,7 +243,7 @@ public class AtlasDiff
          * Detect if the entity changed its parent relation membership.
          */
         AtlasDiffHelper.getParentRelationMembershipChangeIfNecessary(beforeEntity, afterEntity,
-                beforeAtlas, afterAtlas, saveAllGeometries).ifPresent(featureChanges::add);
+                saveAllGeometries).ifPresent(featureChanges::add);
 
         /*
          * Detect if the entities were Nodes and some Node properties changed. We check for Node
@@ -269,7 +261,7 @@ public class AtlasDiff
         else if (entity instanceof Edge)
         {
             AtlasDiffHelper.getEdgeChangeIfNecessary((Edge) beforeEntity, (Edge) afterEntity,
-                    beforeAtlas, afterAtlas, saveAllGeometries).ifPresent(featureChanges::add);
+                    saveAllGeometries).ifPresent(featureChanges::add);
         }
         /*
          * Detect if the entities were Points and some Point properties changed. We just check the
@@ -277,8 +269,8 @@ public class AtlasDiff
          */
         else if (entity instanceof Point)
         {
-            AtlasDiffHelper.getPointChangeIfNecessary((Point) beforeEntity, (Point) afterEntity,
-                    saveAllGeometries).ifPresent(featureChanges::add);
+            AtlasDiffHelper.getPointChangeIfNecessary((Point) beforeEntity, (Point) afterEntity)
+                    .ifPresent(featureChanges::add);
         }
         /*
          * Detect if the entities were Lines and some Line properties changed. We just check the
@@ -286,8 +278,8 @@ public class AtlasDiff
          */
         else if (entity instanceof Line)
         {
-            AtlasDiffHelper.getLineChangeIfNecessary((Line) beforeEntity, (Line) afterEntity,
-                    saveAllGeometries).ifPresent(featureChanges::add);
+            AtlasDiffHelper.getLineChangeIfNecessary((Line) beforeEntity, (Line) afterEntity)
+                    .ifPresent(featureChanges::add);
         }
         /*
          * Detect if the entities were Areas and some Area properties changed. We just check the
@@ -295,8 +287,8 @@ public class AtlasDiff
          */
         else if (entity instanceof Area)
         {
-            AtlasDiffHelper.getAreaChangeIfNecessary((Area) beforeEntity, (Area) afterEntity,
-                    saveAllGeometries).ifPresent(featureChanges::add);
+            AtlasDiffHelper.getAreaChangeIfNecessary((Area) beforeEntity, (Area) afterEntity)
+                    .ifPresent(featureChanges::add);
         }
         /*
          * Detect if the entities were Relations and some Relation properties changed. We check the
@@ -309,8 +301,7 @@ public class AtlasDiff
         else if (entity instanceof Relation)
         {
             AtlasDiffHelper
-                    .getRelationChangeIfNecessary((Relation) beforeEntity, (Relation) afterEntity,
-                            beforeAtlas, afterAtlas, saveAllGeometries)
+                    .getRelationChangeIfNecessary((Relation) beforeEntity, (Relation) afterEntity)
                     .ifPresent(featureChanges::add);
         }
 
@@ -357,7 +348,7 @@ public class AtlasDiff
                 break;
             case RELATION:
                 featureChange = AtlasDiffHelper.simpleBloatedRelationChange(changeType, atlas,
-                        entity, saveAllGeometries);
+                        entity);
                 break;
             default:
                 throw new CoreException("Unknown item type {}", entity.getType());
