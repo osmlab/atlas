@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.change.diff;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -37,7 +38,14 @@ public class AtlasDiff
     private final Atlas before;
     private final Atlas after;
     private Change change;
-    private boolean saveAllGeometries = false;
+
+    /*
+     * By default, AtlasDiff will save geometries of all changed features, even if that feature's
+     * geometry was not changed. This makes it really easy to visualize changed features using
+     * GeoJSON (e.g. if a Node tag changes, we still want to be able to see it in the GeoJSON
+     * serialized Change object). This behaviour can be disabled.
+     */
+    private boolean saveAllGeometries = true;
 
     // Entities that were removed from the after atlas
     private Set<AtlasEntity> removedEntities;
@@ -76,7 +84,8 @@ public class AtlasDiff
 
     /**
      * Generate a {@link Change} that represents a transformation from the before {@link Atlas} to
-     * the after {@link Atlas}.<br>
+     * the after {@link Atlas}. If there were no changes (i.e. the atlases had no differences), then
+     * return an empty {@link Optional}.<br>
      * <br>
      * Now suppose we create a {@link ChangeAtlas} based on the before {@link Atlas} and the
      * generated {@link Change}. All of the following will be true:<br>
@@ -92,13 +101,13 @@ public class AtlasDiff
      * necessarily be byte-for-byte equivalent.<br>
      * <br>
      *
-     * @return the generated {@link Change}
+     * @return an {@link Optional} wrapping the generated {@link Change}
      */
-    public Change generateChange()
+    public Optional<Change> generateChange()
     {
         if (this.change != null)
         {
-            return this.change;
+            return Optional.of(this.change);
         }
 
         this.addedEntities = new HashSet<>();
@@ -141,8 +150,12 @@ public class AtlasDiff
                 this.potentiallyModifiedEntities, this.before, this.after, this.saveAllGeometries)
                         .stream().forEach(changeBuilder::add);
 
+        if (changeBuilder.peekNumberOfChanges() == 0)
+        {
+            return Optional.empty();
+        }
         this.change = changeBuilder.get();
-        return this.change;
+        return Optional.of(this.change);
     }
 
     public Atlas getAfterAtlas()

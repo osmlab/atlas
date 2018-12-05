@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.change.diff;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.change.Change;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeAtlas;
@@ -98,18 +99,19 @@ public class AtlasDiffTest
             final int expectedNumberOfChanges)
     {
         // First test with bloated entities.
-        final Change changeXToYBloated = new AtlasDiff(atlasX, atlasY).generateChange();
-        changeXToYBloated.changes()
+        final Change changeXToY = new AtlasDiff(atlasX, atlasY).generateChange()
+                .orElseThrow(() -> new CoreException(
+                        "This Change should never be empty. The unit test may be broken."));
+        changeXToY.changes()
                 .forEach(change -> logger.trace("{}: {}", change, change.getReference()));
-        Assert.assertEquals(expectedNumberOfChanges, changeXToYBloated.changeCount());
-        final ChangeAtlas changeAtlasYBloated = new ChangeAtlas(atlasX, changeXToYBloated);
-        Assert.assertFalse(
-                new AtlasDiff(changeAtlasYBloated, atlasY).generateChange().hasChanges());
-        Assert.assertEquals(atlasY, changeAtlasYBloated);
+        Assert.assertEquals(expectedNumberOfChanges, changeXToY.changeCount());
+        final ChangeAtlas changeAtlasY = new ChangeAtlas(atlasX, changeXToY);
+        Assert.assertFalse(new AtlasDiff(changeAtlasY, atlasY).generateChange().isPresent());
+        Assert.assertEquals(atlasY, changeAtlasY);
 
         // Now test that PackedAtlas cloning is consistent. This is guaranteed by AtlasDiff so we
         // must ensure it holds.
         Assert.assertEquals(new PackedAtlasCloner().cloneFrom(atlasY),
-                new PackedAtlasCloner().cloneFrom(changeAtlasYBloated));
+                new PackedAtlasCloner().cloneFrom(changeAtlasY));
     }
 }
