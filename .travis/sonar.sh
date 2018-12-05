@@ -4,6 +4,7 @@ if [ "$TRAVIS_EVENT_TYPE" = "cron" ];
 then
 	echo "Running sonarqube in a CRON build"
 	./gradlew sonarqube \
+		-Dsonar.branch.name=$TRAVIS_BRANCH \
 		-Dsonar.organization=osmlab \
 		-Dsonar.host.url=https://sonarcloud.io \
 		-Dsonar.login=$SONAR_TOKEN \
