@@ -31,8 +31,8 @@ ash \-- The main Atlas Shell Tools interface for running commands
 \fIash\fR [\-V | \-\-version]
 \fIash\fR [\-\-no-pager] [\-l | \-\-list]
 \fIash\fR [\-\-class\-of=<\fIcommand\fR>]
-\fIash\fR [\-\-quiet] cfg:preset <directive> [args...]
-\fIash\fR [\-\-no\-pager] [\-\-memory=<amount>] [\-\-preset=<preset>]
+\fIash\fR [\-\-quiet] [\-\-debug] cfg:preset <directive> [args...]
+\fIash\fR [\-\-no\-pager] [\-\-debug] [\-\-memory=<amount>] [\-\-preset=<preset>]
     [\-\-save\-preset=<new\-preset>] <\fIcommand\fR> [arg...]
 .fi
 
@@ -72,6 +72,14 @@ preset configuration engine. See the \fBPRESETS\fR section for more information.
 \fB\-\-class\-of\fR=<\fIcommand\fR>
 .RS 4
 Show the full classname of a given command and then exit.
+.RE
+
+.PP
+\fB\-\-debug\fR
+.RS 4
+Run \fBash\fR in debug mode. While in debug mode, \fBash\fR will not actually
+run any commands. Instead, it will print debug diagnostics and exit. Use this
+option to see what JVM command is actually running under the hood.
 .RE
 
 .PP

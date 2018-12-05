@@ -184,6 +184,7 @@ sub ash_list_subcommands_and_exit {
 }
 
 sub ash_cfgpreset {
+    my $debug = shift;
     my $argv_ref = shift;
 
     my @argv = @{$argv_ref};
@@ -201,6 +202,17 @@ sub ash_cfgpreset {
     my @split = split(":", $directive_and_context, 2);
     my $directive = $split[0];
     my $command_context = $split[1];
+
+    if ($debug) {
+        print "Would enter cfg:preset mode\n";
+        print "Directive: $directive\n";
+        print "Args: @argv\n";
+        if (defined $command_context) {
+            print "Command context: $command_context\n";
+        }
+        print "Namespace: $current_namespace\n\n";
+        return 1;
+    }
 
     if ($directive eq 'save') {
         unless (defined $command_context) {
@@ -380,6 +392,7 @@ my $all_presets;
 my $show_preset;
 my $edit_preset;
 my $cfg_preset;
+my $debug_flag;
 Getopt::Long::Configure(qw(no_ignore_case_always));
 GetOptions(
     "no-pager" => \$skip_paging,
@@ -391,6 +404,7 @@ GetOptions(
     "class-of=s" => \$class_of,
     "preset|p=s" => \$use_preset,
     "save-preset=s" => \$save_preset,
+    "debug" => \$debug_flag,
     # This callback occurs the first time we see a non-option argument.
     # In our case, this will be the either the 'cfg:preset' command or the
     # target subcommand.
@@ -457,10 +471,14 @@ unless (-f $index_path) {
     exit 1;
 }
 
+if ($debug_flag) {
+    print "---- ASH DEBUG MODE ----\n";
+}
+
 # Handle the case where the user supplied the cfg:preset arg. When this happens,
 # then any arg after it should be passed forward to the cfg:preset handler
 if (defined $cfg_preset) {
-    my $success = ash_cfgpreset(\@ARGV);
+    my $success = ash_cfgpreset($debug_flag, \@ARGV);
     unless ($success) {
         exit 1;
     }
@@ -515,14 +533,23 @@ my $current_namespace = ash_common::get_namespace($ash_path);
 # saving in a single step.
 if (defined $use_preset) {
     @new_argv = ash_common::apply_preset_or_exit($ash_path, $program_name, $quiet, $use_preset, $subcommand, $current_namespace, \@ARGV);
+    if ($debug_flag) {
+        print "Applying preset $use_preset for $subcommand in namespace $current_namespace\n\n";
+    }
 }
 
 if (defined $save_preset) {
-    my $success = ash_common::save_preset($ash_path, $program_name, $quiet, $save_preset, $subcommand, $current_namespace, \@new_argv);
-    unless ($success) {
-        exit 1;
+    if ($debug_flag) {
+        print "Would save preset $save_preset for $subcommand to namespace $current_namespace\n";
+        print "Preset ARGV: \"@new_argv\"\n\n";
     }
-    print "Launching command ${bold_stdout}${subcommand}${reset_stdout}...\n\n";
+    else {
+        my $success = ash_common::save_preset($ash_path, $program_name, $quiet, $save_preset, $subcommand, $current_namespace, \@new_argv);
+        unless ($success) {
+            exit 1;
+        }
+        print "Launching command ${bold_stdout}${subcommand}${reset_stdout}...\n\n";
+    }
 }
 
 # Set up the subcommand to execute using the JVM
@@ -563,6 +590,12 @@ else {
 my $terminal_width = ash_common::terminal_width();
 $java_command = $java_command . "$terminal_width ";
 $java_command = $java_command . "$ash_common::JAVA_MARKER_SENTINEL ";
+
+if ($debug_flag) {
+    print("Would execute JVM command:\n");
+    print("$java_command\n");
+    exit 0;
+}
 
 system($java_command);
 my $exitcode = $? >> 8;
