@@ -98,8 +98,7 @@ public class AtlasDiffTest
             final int expectedNumberOfChanges)
     {
         // First test with bloated entities.
-        final Change changeXToYBloated = new AtlasDiff(atlasX, atlasY).useBloatedEntities(true)
-                .generateChange();
+        final Change changeXToYBloated = new AtlasDiff(atlasX, atlasY).generateChange();
         changeXToYBloated.changes()
                 .forEach(change -> logger.trace("{}: {}", change, change.getReference()));
         Assert.assertEquals(expectedNumberOfChanges, changeXToYBloated.changeCount());

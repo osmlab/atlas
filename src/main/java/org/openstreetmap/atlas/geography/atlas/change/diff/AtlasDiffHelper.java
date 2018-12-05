@@ -39,7 +39,7 @@ public final class AtlasDiffHelper
     private static final Logger logger = LoggerFactory.getLogger(AtlasDiffHelper.class);
 
     public static Optional<FeatureChange> getAreaChangeIfNecessary(final Area beforeArea,
-            final Area afterArea, final boolean useBloatedEntities, final boolean saveAllGeometry)
+            final Area afterArea, final boolean saveAllGeometry)
     {
         try
         {
@@ -52,14 +52,7 @@ public final class AtlasDiffHelper
             }
             if (featureChangeWouldBeUseful)
             {
-                if (useBloatedEntities)
-                {
-                    return Optional.of(new FeatureChange(ChangeType.ADD, bloatedArea));
-                }
-                else
-                {
-                    return Optional.of(new FeatureChange(ChangeType.ADD, afterArea));
-                }
+                return Optional.of(new FeatureChange(ChangeType.ADD, bloatedArea));
             }
         }
         catch (final Exception exception)
@@ -72,7 +65,7 @@ public final class AtlasDiffHelper
 
     public static Optional<FeatureChange> getEdgeChangeIfNecessary(final Edge beforeEdge,
             final Edge afterEdge, final Atlas beforeAtlas, final Atlas afterAtlas,
-            final boolean useBloatedEntities, final boolean saveAllGeometry)
+            final boolean saveAllGeometry)
     {
         try
         {
@@ -95,14 +88,7 @@ public final class AtlasDiffHelper
             }
             if (featureChangeWouldBeUseful)
             {
-                if (useBloatedEntities)
-                {
-                    return Optional.of(new FeatureChange(ChangeType.ADD, bloatedEdge));
-                }
-                else
-                {
-                    return Optional.of(new FeatureChange(ChangeType.ADD, afterEdge));
-                }
+                return Optional.of(new FeatureChange(ChangeType.ADD, bloatedEdge));
             }
         }
         catch (final Exception exception)
@@ -114,7 +100,7 @@ public final class AtlasDiffHelper
     }
 
     public static Optional<FeatureChange> getLineChangeIfNecessary(final Line beforeLine,
-            final Line afterLine, final boolean useBloatedEntities, final boolean saveAllGeometry)
+            final Line afterLine, final boolean saveAllGeometry)
     {
         try
         {
@@ -127,14 +113,7 @@ public final class AtlasDiffHelper
             }
             if (featureChangeWouldBeUseful)
             {
-                if (useBloatedEntities)
-                {
-                    return Optional.of(new FeatureChange(ChangeType.ADD, bloatedLine));
-                }
-                else
-                {
-                    return Optional.of(new FeatureChange(ChangeType.ADD, afterLine));
-                }
+                return Optional.of(new FeatureChange(ChangeType.ADD, bloatedLine));
             }
         }
         catch (final Exception exception)
@@ -146,7 +125,7 @@ public final class AtlasDiffHelper
     }
 
     public static Optional<FeatureChange> getNodeChangeIfNecessary(final Node beforeNode,
-            final Node afterNode, final boolean useBloatedEntities, final boolean saveAllGeometries)
+            final Node afterNode, final boolean saveAllGeometries)
     {
         try
         {
@@ -179,14 +158,7 @@ public final class AtlasDiffHelper
             }
             if (featureChangeWouldBeUseful)
             {
-                if (useBloatedEntities)
-                {
-                    return Optional.of(new FeatureChange(ChangeType.ADD, bloatedNode));
-                }
-                else
-                {
-                    return Optional.of(new FeatureChange(ChangeType.ADD, afterNode));
-                }
+                return Optional.of(new FeatureChange(ChangeType.ADD, bloatedNode));
             }
         }
         catch (final Exception exception)
@@ -199,8 +171,7 @@ public final class AtlasDiffHelper
 
     public static Optional<FeatureChange> getParentRelationMembershipChangeIfNecessary(
             final AtlasEntity beforeEntity, final AtlasEntity afterEntity, final Atlas beforeAtlas,
-            final Atlas afterAtlas, final boolean useBloatedEntities,
-            final boolean saveAllGeometries)
+            final Atlas afterAtlas, final boolean saveAllGeometries)
     {
         try
         {
@@ -232,69 +203,65 @@ public final class AtlasDiffHelper
              * OK! We made it here because we have confirmed that the entities have some
              * relation-related difference. We create a feature change to reflect this.
              */
-            if (useBloatedEntities)
+            final AtlasEntity bloatedEntity;
+            switch (afterEntity.getType())
             {
-                final AtlasEntity bloatedEntity;
-                switch (afterEntity.getType())
-                {
-                    case AREA:
-                        BloatedArea area = BloatedArea.shallowFrom((Area) afterEntity)
-                                .withRelationIdentifiers(afterRelationIdentifiers);
-                        if (saveAllGeometries)
-                        {
-                            area = area.withPolygon(((Area) afterEntity).asPolygon());
-                        }
-                        bloatedEntity = area;
-                        break;
-                    case EDGE:
-                        BloatedEdge edge = BloatedEdge.shallowFrom((Edge) afterEntity)
-                                .withRelationIdentifiers(afterRelationIdentifiers);
-                        if (saveAllGeometries)
-                        {
-                            edge = edge.withPolyLine(((Edge) afterEntity).asPolyLine());
-                        }
-                        bloatedEntity = edge;
-                        break;
-                    case LINE:
-                        BloatedLine line = BloatedLine.shallowFrom((Line) afterEntity)
-                                .withRelationIdentifiers(afterRelationIdentifiers);
-                        if (saveAllGeometries)
-                        {
-                            line = line.withPolyLine(((Line) afterEntity).asPolyLine());
-                        }
-                        bloatedEntity = line;
-                        break;
-                    case NODE:
-                        BloatedNode node = BloatedNode.shallowFrom((Node) afterEntity)
-                                .withRelationIdentifiers(afterRelationIdentifiers);
-                        if (saveAllGeometries)
-                        {
-                            node = node.withLocation(((Node) afterEntity).getLocation());
-                        }
-                        bloatedEntity = node;
-                        break;
-                    case POINT:
-                        BloatedPoint point = BloatedPoint.shallowFrom((Point) afterEntity)
-                                .withRelationIdentifiers(afterRelationIdentifiers);
-                        if (saveAllGeometries)
-                        {
-                            point = point.withLocation(((Point) afterEntity).getLocation());
-                        }
-                        bloatedEntity = point;
-                        break;
-                    case RELATION:
-                        final BloatedRelation relation = BloatedRelation
-                                .shallowFrom((Relation) afterEntity)
-                                .withRelationIdentifiers(afterRelationIdentifiers);
-                        bloatedEntity = relation;
-                        break;
-                    default:
-                        throw new CoreException("Unknown item type {}", afterEntity.getType());
-                }
-                // featureChange should never be null
-                return Optional.of(new FeatureChange(ChangeType.ADD, bloatedEntity));
+                case AREA:
+                    BloatedArea area = BloatedArea.shallowFrom((Area) afterEntity)
+                            .withRelationIdentifiers(afterRelationIdentifiers);
+                    if (saveAllGeometries)
+                    {
+                        area = area.withPolygon(((Area) afterEntity).asPolygon());
+                    }
+                    bloatedEntity = area;
+                    break;
+                case EDGE:
+                    BloatedEdge edge = BloatedEdge.shallowFrom((Edge) afterEntity)
+                            .withRelationIdentifiers(afterRelationIdentifiers);
+                    if (saveAllGeometries)
+                    {
+                        edge = edge.withPolyLine(((Edge) afterEntity).asPolyLine());
+                    }
+                    bloatedEntity = edge;
+                    break;
+                case LINE:
+                    BloatedLine line = BloatedLine.shallowFrom((Line) afterEntity)
+                            .withRelationIdentifiers(afterRelationIdentifiers);
+                    if (saveAllGeometries)
+                    {
+                        line = line.withPolyLine(((Line) afterEntity).asPolyLine());
+                    }
+                    bloatedEntity = line;
+                    break;
+                case NODE:
+                    BloatedNode node = BloatedNode.shallowFrom((Node) afterEntity)
+                            .withRelationIdentifiers(afterRelationIdentifiers);
+                    if (saveAllGeometries)
+                    {
+                        node = node.withLocation(((Node) afterEntity).getLocation());
+                    }
+                    bloatedEntity = node;
+                    break;
+                case POINT:
+                    BloatedPoint point = BloatedPoint.shallowFrom((Point) afterEntity)
+                            .withRelationIdentifiers(afterRelationIdentifiers);
+                    if (saveAllGeometries)
+                    {
+                        point = point.withLocation(((Point) afterEntity).getLocation());
+                    }
+                    bloatedEntity = point;
+                    break;
+                case RELATION:
+                    final BloatedRelation relation = BloatedRelation
+                            .shallowFrom((Relation) afterEntity)
+                            .withRelationIdentifiers(afterRelationIdentifiers);
+                    bloatedEntity = relation;
+                    break;
+                default:
+                    throw new CoreException("Unknown item type {}", afterEntity.getType());
             }
-            return Optional.of(new FeatureChange(ChangeType.ADD, afterEntity));
+            // featureChange should never be null
+            return Optional.of(new FeatureChange(ChangeType.ADD, bloatedEntity));
         }
         catch (final Exception exception)
         {
@@ -304,8 +271,7 @@ public final class AtlasDiffHelper
     }
 
     public static Optional<FeatureChange> getPointChangeIfNecessary(final Point beforePoint,
-            final Point afterPoint, final boolean useBloatedEntities,
-            final boolean saveAllGeometries)
+            final Point afterPoint, final boolean saveAllGeometries)
     {
         try
         {
@@ -318,14 +284,7 @@ public final class AtlasDiffHelper
             }
             if (featureChangeWouldBeUseful)
             {
-                if (useBloatedEntities)
-                {
-                    return Optional.of(new FeatureChange(ChangeType.ADD, bloatedPoint));
-                }
-                else
-                {
-                    return Optional.of(new FeatureChange(ChangeType.ADD, afterPoint));
-                }
+                return Optional.of(new FeatureChange(ChangeType.ADD, bloatedPoint));
             }
         }
         catch (final Exception exception)
@@ -338,7 +297,7 @@ public final class AtlasDiffHelper
 
     public static Optional<FeatureChange> getRelationChangeIfNecessary(
             final Relation beforeRelation, final Relation afterRelation, final Atlas beforeAtlas,
-            final Atlas afterAtlas, final boolean useBloatedEntities, final boolean saveAllGeometry)
+            final Atlas afterAtlas, final boolean saveAllGeometry)
     {
         try
         {
@@ -353,14 +312,7 @@ public final class AtlasDiffHelper
             }
             if (featureChangeWouldBeUseful)
             {
-                if (useBloatedEntities)
-                {
-                    return Optional.of(new FeatureChange(ChangeType.ADD, bloatedRelation));
-                }
-                else
-                {
-                    return Optional.of(new FeatureChange(ChangeType.ADD, afterRelation));
-                }
+                return Optional.of(new FeatureChange(ChangeType.ADD, bloatedRelation));
             }
         }
         catch (final Exception exception)
@@ -372,75 +324,70 @@ public final class AtlasDiffHelper
     }
 
     public static Optional<FeatureChange> getTagChangeIfNecessary(final AtlasEntity beforeEntity,
-            final AtlasEntity afterEntity, final boolean useBloatedEntities,
-            final boolean saveAllGeometries)
+            final AtlasEntity afterEntity, final boolean saveAllGeometries)
     {
         if (beforeEntity.getTags().equals(afterEntity.getTags()))
         {
             return Optional.empty();
         }
 
-        if (useBloatedEntities)
+        final AtlasEntity bloatedEntity;
+        switch (afterEntity.getType())
         {
-            final AtlasEntity bloatedEntity;
-            switch (afterEntity.getType())
-            {
-                case AREA:
-                    BloatedArea area = BloatedArea.shallowFrom((Area) afterEntity)
-                            .withTags(afterEntity.getTags());
-                    if (saveAllGeometries)
-                    {
-                        area = area.withPolygon(((Area) afterEntity).asPolygon());
-                    }
-                    bloatedEntity = area;
-                    break;
-                case EDGE:
-                    BloatedEdge edge = BloatedEdge.shallowFrom((Edge) afterEntity)
-                            .withTags(afterEntity.getTags());
-                    if (saveAllGeometries)
-                    {
-                        edge = edge.withPolyLine(((Edge) afterEntity).asPolyLine());
-                    }
-                    bloatedEntity = edge;
-                    break;
-                case LINE:
-                    BloatedLine line = BloatedLine.shallowFrom((Line) afterEntity)
-                            .withTags(afterEntity.getTags());
-                    if (saveAllGeometries)
-                    {
-                        line = line.withPolyLine(((Line) afterEntity).asPolyLine());
-                    }
-                    bloatedEntity = line;
-                    break;
-                case NODE:
-                    BloatedNode node = BloatedNode.shallowFrom((Node) afterEntity)
-                            .withTags(afterEntity.getTags());
-                    if (saveAllGeometries)
-                    {
-                        node = node.withLocation(((Node) afterEntity).getLocation());
-                    }
-                    bloatedEntity = node;
-                    break;
-                case POINT:
-                    BloatedPoint point = BloatedPoint.shallowFrom((Point) afterEntity)
-                            .withTags(afterEntity.getTags());
-                    if (saveAllGeometries)
-                    {
-                        point = point.withLocation(((Point) afterEntity).getLocation());
-                    }
-                    bloatedEntity = point;
-                    break;
-                case RELATION:
-                    final BloatedRelation relation = BloatedRelation
-                            .shallowFrom((Relation) afterEntity).withTags(afterEntity.getTags());
-                    bloatedEntity = relation;
-                    break;
-                default:
-                    throw new CoreException("Unknown item type {}", afterEntity.getType());
-            }
-            return Optional.of(new FeatureChange(ChangeType.ADD, bloatedEntity));
+            case AREA:
+                BloatedArea area = BloatedArea.shallowFrom((Area) afterEntity)
+                        .withTags(afterEntity.getTags());
+                if (saveAllGeometries)
+                {
+                    area = area.withPolygon(((Area) afterEntity).asPolygon());
+                }
+                bloatedEntity = area;
+                break;
+            case EDGE:
+                BloatedEdge edge = BloatedEdge.shallowFrom((Edge) afterEntity)
+                        .withTags(afterEntity.getTags());
+                if (saveAllGeometries)
+                {
+                    edge = edge.withPolyLine(((Edge) afterEntity).asPolyLine());
+                }
+                bloatedEntity = edge;
+                break;
+            case LINE:
+                BloatedLine line = BloatedLine.shallowFrom((Line) afterEntity)
+                        .withTags(afterEntity.getTags());
+                if (saveAllGeometries)
+                {
+                    line = line.withPolyLine(((Line) afterEntity).asPolyLine());
+                }
+                bloatedEntity = line;
+                break;
+            case NODE:
+                BloatedNode node = BloatedNode.shallowFrom((Node) afterEntity)
+                        .withTags(afterEntity.getTags());
+                if (saveAllGeometries)
+                {
+                    node = node.withLocation(((Node) afterEntity).getLocation());
+                }
+                bloatedEntity = node;
+                break;
+            case POINT:
+                BloatedPoint point = BloatedPoint.shallowFrom((Point) afterEntity)
+                        .withTags(afterEntity.getTags());
+                if (saveAllGeometries)
+                {
+                    point = point.withLocation(((Point) afterEntity).getLocation());
+                }
+                bloatedEntity = point;
+                break;
+            case RELATION:
+                final BloatedRelation relation = BloatedRelation.shallowFrom((Relation) afterEntity)
+                        .withTags(afterEntity.getTags());
+                bloatedEntity = relation;
+                break;
+            default:
+                throw new CoreException("Unknown item type {}", afterEntity.getType());
         }
-        return Optional.of(new FeatureChange(ChangeType.ADD, afterEntity));
+        return Optional.of(new FeatureChange(ChangeType.ADD, bloatedEntity));
     }
 
     public static FeatureChange simpleBloatedAreaChange(final ChangeType changeType,
