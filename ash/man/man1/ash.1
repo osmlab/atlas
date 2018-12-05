@@ -31,7 +31,7 @@ ash \-- The main Atlas Shell Tools interface for running commands
 \fIash\fR [\-V | \-\-version]
 \fIash\fR [\-\-no-pager] [\-l | \-\-list]
 \fIash\fR [\-\-class\-of=<\fIcommand\fR>]
-\fIash\fR [\-\-quiet] [\-\-debug] cfg:preset <directive> [args...]
+\fIash\fR [\-\-quiet] [\-\-debug] cfg.preset <directive> [args...]
 \fIash\fR [\-\-no\-pager] [\-\-debug] [\-\-memory=<amount>] [\-\-preset=<preset>]
     [\-\-save\-preset=<new\-preset>] <\fIcommand\fR> [arg...]
 .fi
@@ -60,11 +60,11 @@ seen with the \fB--list\fR option.
 .RE
 
 .PP
-\fBcfg:preset\fR <directive> [args...]
+\fBcfg.preset\fR <directive> [args...]
 .RS 4
 This special subcommand puts \fBash\fR into preset configuration mode \- allowing
 the user to run a preset configuration directive with some arguments. When the
-option parser sees \fBcfg:preset\fR, it stops and passes any remaining ARGV elements into the
+option parser sees \fBcfg.preset\fR, it stops and passes any remaining ARGV elements into the
 preset configuration engine. See the \fBPRESETS\fR section for more information.
 .RE
 
@@ -172,7 +172,7 @@ $ ash \-\-preset=p1 MyCommand arg1 \-\-opt2=overridePresetArg
 Edit preset p1 for MyCommand:
 .sp
 .RS 4
-$ ash cfg:preset edit:MyCommand p1
+$ ash cfg.preset edit:MyCommand p1
 .RE
 
 .SH "PRESETS"
@@ -193,9 +193,9 @@ The three interface tiers are:
 .RS 4
 \fBTier 1)\fR Basic preset creation and use with the \fB\-\-save\-preset\fR and \fB\-\-preset\fR options.
 
-\fBTier 2)\fR More precise preset management with \fBcfg:preset\fR, including editing, copying, etc.
+\fBTier 2)\fR More precise preset management with \fBcfg.preset\fR, including editing, copying, etc.
 
-\fBTier 3)\fR Preset namespace management with \fBcfg:preset namespace\fR.
+\fBTier 3)\fR Preset namespace management with \fBcfg.preset namespace\fR.
 .RE
 
 \fBTIER 1\fR
@@ -274,7 +274,7 @@ supplied, the option parser will use ARGV's rightmost instance of that option.
 \fBTIER 2\fR
 .RS 4
 Tier 2 provides more precise preset management using a special argument to \fBash\fR
-called \fBcfg:preset\fR. \fBcfg:preset\fR takes a mandatory \fIdirective\fR,
+called \fBcfg.preset\fR. \fBcfg.preset\fR takes a mandatory \fIdirective\fR,
 which is just a verb specifying a configuration action. Note that many of the
 directives require additional command context, which is specified using the ':'
 operator (recall that preset names are meaningless without an associated command).
@@ -291,7 +291,7 @@ arguments when saving a preset. The following example saves preset "p1" to comma
 "MyCommand" with some options --opt1 and --opt2=opt2Arg:
 .sp
 .RS 4
-$ ash cfg:preset save:MyCommand p1 --opt1 --opt2=opt2Arg
+$ ash cfg.preset save:MyCommand p1 --opt1 --opt2=opt2Arg
 .RE
 .RE
 .RE
@@ -305,7 +305,7 @@ for \fIcommand\fR. The following example shows the contents of preset "p1"
 for command "MyCommand":
 .sp
 .RS 4
-$ ash cfg:preset show:MyCommand p1
+$ ash cfg.preset show:MyCommand p1
 .RE
 .sp
 Omitting the "p1" argument would have shown all presets for "MyCommand".
@@ -321,9 +321,9 @@ Remove all presets for a given command, or remove the preset [name] for
 then removes preset "p1" for command "AnotherCommand":
 .sp
 .RS 4
-$ ash cfg:preset remove:MyCommand
+$ ash cfg.preset remove:MyCommand
 
-$ ash cfg:preset remove:AnotherCommand p1
+$ ash cfg.preset remove:AnotherCommand p1
 .RE
 .sp
 .RE
@@ -339,7 +339,7 @@ but this can be changed by setting the \fBEDITOR\fR environment variable. The fo
 example will edit preset "p1" for command "MyCommand":
 .sp
 .RS 4
-$ ash cfg:preset edit:MyCommand p1
+$ ash cfg.preset edit:MyCommand p1
 .RE
 .RE
 .RE
@@ -353,7 +353,7 @@ Copy \fIcommand\fR preset <source> into new preset <destination>.
 copies the preset "p1" into new preset "p2", for command "MyCommand":
 .sp
 .RS 4
-$ ash cfg:preset copy:MyCommand p1 p2
+$ ash cfg.preset copy:MyCommand p1 p2
 .RE
 .sp
 The \fBcopy\fR directive is useful in combination with the \fBedit\fR directive \-
@@ -382,7 +382,7 @@ scope for the presets associated with each command. For example, preset
 "MyCommand" under "namespace2" may have completely different contents. Up to
 this point, we have been working under the default namespace, appropriately
 called "default". You can create and switch to new namespaces using the
-\fBcfg:preset namespace\fR directive, which takes a subdirective to denote
+\fBcfg.preset namespace\fR directive, which takes a subdirective to denote
 the desired action. The available subdirectives are below:
 .sp
 
@@ -393,7 +393,7 @@ List all namespaces, highlighting the current namespace with a "*". An example
 usage would look like:
 .sp
 .RS 4
-$ ash cfg:preset namespace list
+$ ash cfg.preset namespace list
 .RE
 .RE
 .RE
@@ -408,7 +408,7 @@ will be sourced from <namespace>. The following example switches to a namespace
 called "namespace1":
 .sp
 .RS 4
-$ ash cfg:preset namespace use namespace1
+$ ash cfg.preset namespace use namespace1
 .RE
 .RE
 .RE
@@ -421,7 +421,7 @@ will not actually switch to the new namespace. The following example creates a
 namespace called "namespace1":
 .sp
 .RS 4
-$ ash cfg:preset namespace create namespace1
+$ ash cfg.preset namespace create namespace1
 .RE
 .RE
 .RE
@@ -435,7 +435,7 @@ fail if <namespace> does not exist, if <namespace> is currently in-use, or if
 called "namespace1":
 .sp
 .RS 4
-$ ash cfg:preset namespace remove namespace1
+$ ash cfg.preset namespace remove namespace1
 .RE
 .RE
 .RE

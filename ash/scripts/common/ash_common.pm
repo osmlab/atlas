@@ -39,6 +39,7 @@ our @EXPORT = qw(
     JAVA_USE_PAGER
     JAVA_NO_USE_PAGER
     JAVA_MARKER_SENTINEL
+    CFGPRESET_START
     create_data_directory
     reset_log4j
     reset_namespace
@@ -79,6 +80,7 @@ our @EXPORT = qw(
     copy_preset
     apply_preset_or_exit
     read_preset
+    get_namespaces_array
     all_namespaces
     create_namespace
     use_namespace
@@ -128,6 +130,8 @@ our $JAVA_NO_COLOR_STDERR = "___atlas-shell-tools_nocolor_stderr_SPECIALARGUMENT
 our $JAVA_USE_PAGER = "___atlas-shell-tools_use_pager_SPECIALARGUMENT___";
 our $JAVA_NO_USE_PAGER = "___atlas-shell-tools_no_use_pager_SPECIALARGUMENT___";
 our $JAVA_MARKER_SENTINEL = "___atlas-shell-tools_LAST_ARG_MARKER_SENTINEL___";
+
+our $CFGPRESET_START = 'cfg.preset';
 
 # Use ASCII record separator as delimiter.
 # This is also defined in Atlas class ActiveModuleIndexWriter.
@@ -1577,18 +1581,13 @@ sub read_preset {
     return @options;
 }
 
-# Print all namespaces, and denote the current checked out namespace.
+# Get an array containing each namespace as an element.
 # Params:
 #   $ash_path: the path to the ash data folder
-#   $program_name: the name of the calling program
-#   $quiet: suppress non-essential output
-# Return: 1 on success, 0 on failure
-sub all_namespaces {
+# Return: the namespace array
+sub get_namespaces_array {
     my $ash_path = shift;
-    my $program_name = shift;
-    my $quiet = shift;
 
-    my $current_namespace = get_namespace($ash_path);
     my $preset_folder = File::Spec->catfile($ash_path, $PRESETS_FOLDER);
 
     unless (-d $preset_folder) {
@@ -1608,13 +1607,30 @@ sub all_namespaces {
         }
     }
 
-    if (scalar @filtered_namespaces == 0) {
+    return @filtered_namespaces;
+}
+
+# Print all namespaces, and denote the current checked out namespace.
+# Params:
+#   $ash_path: the path to the ash data folder
+#   $program_name: the name of the calling program
+#   $quiet: suppress non-essential output
+# Return: 1 on success, 0 on failure
+sub all_namespaces {
+    my $ash_path = shift;
+    my $program_name = shift;
+    my $quiet = shift;
+
+    my $current_namespace = get_namespace($ash_path);
+    my @namespaces = get_namespaces_array($ash_path);
+
+    if (scalar @namespaces == 0) {
         error_output($program_name, "no namespaces found");
         return 0;
     }
 
     print "${bold_stdout}Preset namespaces:${reset_stdout}\n\n";
-    for my $found_namespace (sort {lc $a cmp lc $b} @filtered_namespaces) {
+    for my $found_namespace (sort {lc $a cmp lc $b} @namespaces) {
         if ($found_namespace eq $current_namespace) {
             print "    * ${bold_stdout}${green_stdout}${found_namespace}${reset_stdout}\n";
         }
@@ -1773,6 +1789,12 @@ sub is_dir_empty {
     return 1;
 }
 
+##############
+# MISC STUFF #
+##############
+#
+# Most things defined here are related to the shell, or TTY formatting.
+#
 sub ansi_red {
     return `tput setaf 1`;
 }
@@ -1814,6 +1836,39 @@ sub terminal_width {
     return int($cols);
 }
 
+sub get_all_presets_in_current_namespace {
+    my $ash_path = shift;
+
+    my $namespace = get_namespace($ash_path);
+    my @all_presets = ();
+
+    my $preset_folder = File::Spec->catfile($ash_path, $PRESETS_FOLDER);
+    my $namespace_folder = File::Spec->catfile($preset_folder, $namespace);
+
+    opendir my $namespace_dir_handle, $namespace_folder or die "Something went wrong opening dir: $!";
+    my @command_folders = readdir $namespace_dir_handle;
+    close $namespace_dir_handle;
+
+    foreach my $found_command (@command_folders) {
+        my $command_folder = File::Spec->catfile($namespace_folder, $found_command);
+        # we need to filter '.', '..'
+        unless ($found_command eq '.' || $found_command eq '..') {
+            opendir my $command_dir_handle, $command_folder or die "Something went wrong opening dir: $!";
+            my @preset_files = readdir $command_dir_handle;
+            close $command_dir_handle;
+
+            foreach my $found_preset (@preset_files) {
+                # we need to filter '.', '..'
+                unless ($found_preset eq '.' || $found_preset eq '..') {
+                    push @all_presets, $found_preset;
+                }
+            }
+        }
+    }
+
+    return @all_presets;
+}
+
 sub completion_match_prefix {
     my $prefix_to_complete = shift;
     my $possible_words_ref = shift;
@@ -1843,26 +1898,82 @@ sub completion_ash {
     my %subcommand_desc = get_subcommand_to_description_hash($ash_path);
     my @commands = keys %subcommand_desc;
 
-    # TODO currently this function is super basic. It would be nice if it could
-    # handle cfg:preset and the --preset,--save-preset options as well.
-
-    # shift argv to remove "ash"
+    # Shift "ash" off the front of ARGV
     shift @argv;
 
-    # If we see a command anywhere on the command line, stop special completions
+    # In the completion code, we use the following conventions to name variables
+    # containing ARGV elements. Assume ARGV looks like the following:
+    #
+    # ARGV of length N:
+    # ARGV[0] ... ARGV[N - K] ... ARGV[N - 3], ARGV[N - 2], ARGV[N - 1]
+    #             ^ rargv_m(k-1)  ^ rargv_m2   ^ rargv_m1   ^ rargv
+    #
+    # Essentially, "rargv" means the "rightmost" ARGV element. Then "rargv_m1"
+    # means the "rightmost" ARGV element minus 1, and so on. Since perl plays fast
+    # and loose with array indexing, we can index into elements that may or may
+    # not actually exist, and then check if they are defined before we actually
+    # use them.
+    #
+    my $argv_len = scalar @argv;
+    my $rargv = $argv[$argv_len - 1];
+    my $rargv_m1 = $argv[$argv_len - 2];
+    my $rargv_m2 = $argv[$argv_len - 3];
+    my $rargv_m3 = $argv[$argv_len - 4];
+
+    # Add 'cfg.preset' to the list of available commands
+    push @commands, $CFGPRESET_START;
+
+    # Handle special case where user is applying a preset with "--preset"
+    if ($rargv_m1 eq '-p' || string_starts_with($rargv_m1, '--p')) {
+        my @presets = get_all_presets_in_current_namespace($ash_path);
+        my @completion_matches = completion_match_prefix($rargv, \@presets);
+
+        foreach my $command (@completion_matches) {
+            print "$command\n";
+        }
+        return 1;
+    }
+
+    # If we see a command anywhere in ARGV, stop special completions and signal
+    # the completion wrapper script to use its filename defaults. We also handle
+    # the special case where we saw the special 'cfg.preset' command. In that
+    # case, we want to do custom completions.
+    my $saw_cfgpreset = 0;
     foreach my $arg (@argv) {
         foreach my $command (@commands) {
-            if ($arg eq $command) {
+            if ($arg eq $CFGPRESET_START) {
+                $saw_cfgpreset = 1;
+                last;
+            }
+            elsif ($arg eq $command) {
                 print "__ash_sentinel_complete_filenames__";
                 return 1;
             }
         }
     }
 
-    # otherwise, complete command names
-    my $argv_len = scalar @argv;
-    my $current_word = $argv[$argv_len - 1];
-    my @completion_matches = completion_match_prefix($current_word, \@commands);
+    # If we saw the cfgpreset command anywhere in ARGV, use special complete context.
+    # This block of code is a bit of a mess :)
+    if ($saw_cfgpreset) {
+        my @directives;
+
+        if ($rargv_m1 eq 'namespace') {
+            @directives = qw(create use list remove);
+        }
+        elsif ($rargv_m1 eq $CFGPRESET_START) {
+            @directives = qw(save show remove edit copy namespace);
+        }
+
+        my @completion_matches = completion_match_prefix($rargv, \@directives);
+
+        foreach my $command (@completion_matches) {
+            print "$command\n";
+        }
+        return 1;
+    }
+
+    # Default to completing available command names
+    my @completion_matches = completion_match_prefix($rargv, \@commands);
 
     foreach my $command (@completion_matches) {
         print "$command\n";
