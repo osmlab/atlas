@@ -95,23 +95,28 @@ public class AtlasDiffTest
         assertChangeAtlasConsistency(atlasX, atlasY, expectedNumberOfChanges);
     }
 
-    private void assertChangeAtlasConsistency(final Atlas atlasX, final Atlas atlasY,
+    private void assertChangeAtlasConsistency(final Atlas beforeAtlas, final Atlas afterAtlas,
             final int expectedNumberOfChanges)
     {
-        // First test with bloated entities.
-        final Change changeXToY = new AtlasDiff(atlasX, atlasY).generateChange()
+        final Change changeBeforeToAfter = new AtlasDiff(beforeAtlas, afterAtlas).generateChange()
                 .orElseThrow(() -> new CoreException(
                         "This Change should never be empty. The unit test may be broken."));
-        changeXToY.changes()
+        changeBeforeToAfter.changes()
                 .forEach(change -> logger.trace("{}: {}", change, change.getReference()));
-        Assert.assertEquals(expectedNumberOfChanges, changeXToY.changeCount());
-        final ChangeAtlas changeAtlasY = new ChangeAtlas(atlasX, changeXToY);
-        Assert.assertFalse(new AtlasDiff(changeAtlasY, atlasY).generateChange().isPresent());
-        Assert.assertEquals(atlasY, changeAtlasY);
+        Assert.assertEquals(expectedNumberOfChanges, changeBeforeToAfter.changeCount());
+        final ChangeAtlas changeAfterAtlas = new ChangeAtlas(beforeAtlas, changeBeforeToAfter);
+
+        // test both ways to catch any slip-ups in the code
+        Assert.assertFalse(
+                new AtlasDiff(changeAfterAtlas, afterAtlas).generateChange().isPresent());
+        Assert.assertFalse(
+                new AtlasDiff(afterAtlas, changeAfterAtlas).generateChange().isPresent());
+
+        Assert.assertEquals(afterAtlas, changeAfterAtlas);
 
         // Now test that PackedAtlas cloning is consistent. This is guaranteed by AtlasDiff so we
         // must ensure it holds.
-        Assert.assertEquals(new PackedAtlasCloner().cloneFrom(atlasY),
-                new PackedAtlasCloner().cloneFrom(changeAtlasY));
+        Assert.assertEquals(new PackedAtlasCloner().cloneFrom(afterAtlas),
+                new PackedAtlasCloner().cloneFrom(changeAfterAtlas));
     }
 }
