@@ -59,7 +59,7 @@ public class AtlasChangeGeneratorSplitRoundabout implements AtlasChangeGenerator
                 }).map(FeatureChange::add).forEach(result::add);
 
                 // Add the two new edges.
-                result.add(FeatureChange.remove(edge));
+                result.add(FeatureChange.remove(BloatedEdge.shallowFrom(edge)));
                 result.add(FeatureChange.add(firstEdge));
                 result.add(FeatureChange.add(secondEdge));
 
