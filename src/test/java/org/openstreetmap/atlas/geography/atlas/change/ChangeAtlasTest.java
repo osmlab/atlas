@@ -1,7 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
@@ -329,9 +328,8 @@ public class ChangeAtlasTest
         final RelationMemberList newMembers = new RelationMemberList(disconnectedFeatures.members()
                 .stream().filter(member -> !(member.getEntity() instanceof Point))
                 .collect(Collectors.toList()));
-        changeBuilder.add(
-                new FeatureChange(ChangeType.ADD, BloatedRelation.shallowFrom(disconnectedFeatures)
-                        .withMembers(Optional.of(disconnectedFeatures), newMembers)));
+        changeBuilder.add(new FeatureChange(ChangeType.ADD, BloatedRelation
+                .shallowFrom(disconnectedFeatures).withMembers(disconnectedFeatures, newMembers)));
         changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
                 BloatedPoint.shallowFrom(atlas.point(41822000000L))));
         final Change change = changeBuilder.get();

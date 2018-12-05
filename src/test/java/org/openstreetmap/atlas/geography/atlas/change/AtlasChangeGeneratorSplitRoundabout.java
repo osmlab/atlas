@@ -1,7 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -54,8 +53,7 @@ public class AtlasChangeGeneratorSplitRoundabout implements AtlasChangeGenerator
                     final RelationMemberList newMembers = new RelationMemberList(relation.members()
                             .stream().filter(member -> member.getEntity().equals(edge))
                             .collect(Collectors.toList()));
-                    return BloatedRelation.shallowFrom(relation)
-                            .withMembers(Optional.of(relation), newMembers)
+                    return BloatedRelation.shallowFrom(relation).withMembers(relation, newMembers)
                             // With the new relation members
                             .withExtraMember(firstEdge, edge).withExtraMember(secondEdge, edge);
                 }).map(FeatureChange::add).forEach(result::add);

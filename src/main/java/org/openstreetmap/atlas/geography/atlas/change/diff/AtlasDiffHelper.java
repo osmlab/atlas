@@ -313,7 +313,7 @@ public final class AtlasDiffHelper
             final RelationMemberList afterMembers = afterRelation.members();
             if (!afterMembers.equals(beforeMembers))
             {
-                bloatedRelation.withMembers(Optional.of(beforeRelation), afterRelation.members());
+                bloatedRelation.withMembers(beforeRelation, afterRelation.members());
                 featureChangeWouldBeUseful = true;
             }
             if (featureChangeWouldBeUseful)

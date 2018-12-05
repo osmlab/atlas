@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -253,16 +252,16 @@ public class BloatedRelation extends Relation implements BloatedEntity
      *            The bounds of all the members of the relation.
      * @return This.
      */
-    public BloatedRelation withMembers(final Optional<Relation> source, final RelationBean members,
+    public BloatedRelation withMembers(final Relation source, final RelationBean members,
             final Rectangle bounds)
     {
         this.members = members;
-        if (source.isPresent())
+        if (source != null)
         {
             // This has been created from an existing relation, make sure to record the members that
             // have been intentionally omitted, so as not to add them back in the future when either
             // merging FeatureChanges or stitching MultiAtlases.
-            for (final RelationMember member : source.get().members())
+            for (final RelationMember member : source.members())
             {
                 if (!members.getItemFor(member.getEntity().getIdentifier(), member.getRole(),
                         member.getEntity().getType()).isPresent())
@@ -287,8 +286,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
      *            The full members of the Relation
      * @return This.
      */
-    public BloatedRelation withMembers(final Optional<Relation> source,
-            final RelationMemberList members)
+    public BloatedRelation withMembers(final Relation source, final RelationMemberList members)
     {
         return withMembers(source, members.asBean(), members.bounds());
     }
@@ -298,7 +296,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
      * <p>
      * In case this {@link BloatedRelation} is created from an existing relation, and the new member
      * list has had some existing members removed, use
-     * {@link #withMembers(Optional, RelationBean, Rectangle)}
+     * {@link #withMembers(Relation, RelationBean, Rectangle)}
      *
      * @param members
      *            The members of the relation
@@ -308,7 +306,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
      */
     public BloatedRelation withMembers(final RelationBean members, final Rectangle bounds)
     {
-        return withMembers(Optional.empty(), members, bounds);
+        return withMembers(null, members, bounds);
     }
 
     /**
@@ -316,7 +314,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
      * <p>
      * In case this {@link BloatedRelation} is created from an existing relation, and the new member
      * list has had some existing members removed, use
-     * {@link #withMembers(Optional, RelationMemberList)}
+     * {@link #withMembers(Relation, RelationMemberList)}
      *
      * @param members
      *            The full members of the Relation
@@ -324,7 +322,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
      */
     public BloatedRelation withMembers(final RelationMemberList members)
     {
-        return withMembers(Optional.empty(), members);
+        return withMembers(null, members);
     }
 
     public BloatedRelation withOsmRelationIdentifier(final Long osmRelationIdentifier)
