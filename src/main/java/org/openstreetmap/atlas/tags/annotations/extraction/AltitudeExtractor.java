@@ -15,11 +15,11 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
 public class AltitudeExtractor implements TagExtractor
 {
     /**
-     * Validates and converts a value to a {@link Distance}.
+     * Validates and converts a value to a {@link Altitude}.
      *
      * @param value
      *            {@link String} value.
-     * @return {@link Optional} of a {@link Distance}
+     * @return {@link Optional} of a {@link Altitude}
      */
     public static Optional<Altitude> validateAndExtract(final String value)
     {
