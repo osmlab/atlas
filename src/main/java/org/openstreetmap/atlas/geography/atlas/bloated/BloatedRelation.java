@@ -337,20 +337,20 @@ public class BloatedRelation extends Relation implements BloatedEntity
         return this;
     }
 
-    public BloatedRelation withTagExtra(final String key, final String value)
+    public BloatedRelation withAddedTag(final String key, final String value)
     {
         return withTags(BloatedEntity.addNewTag(getTags(), key, value));
     }
 
-    public BloatedRelation withTagLess(final String key)
+    public BloatedRelation withRemovedTag(final String key)
     {
         return withTags(BloatedEntity.removeTag(getTags(), key));
     }
 
-    public BloatedRelation withTagReplaced(final String oldKey, final String newKey,
+    public BloatedRelation withReplacedTag(final String oldKey, final String newKey,
             final String newValue)
     {
-        return withTagLess(oldKey).withTagExtra(newKey, newValue);
+        return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
     }
 
     public BloatedRelation withTags(final Map<String, String> tags)

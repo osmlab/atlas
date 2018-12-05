@@ -170,20 +170,20 @@ public class BloatedArea extends Area implements BloatedEntity
         return this;
     }
 
-    public BloatedArea withTagExtra(final String key, final String value)
+    public BloatedArea withAddedTag(final String key, final String value)
     {
         return withTags(BloatedEntity.addNewTag(getTags(), key, value));
     }
 
-    public BloatedArea withTagLess(final String key)
+    public BloatedArea withRemovedTag(final String key)
     {
         return withTags(BloatedEntity.removeTag(getTags(), key));
     }
 
-    public BloatedArea withTagReplaced(final String oldKey, final String newKey,
+    public BloatedArea withReplacedTag(final String oldKey, final String newKey,
             final String newValue)
     {
-        return withTagLess(oldKey).withTagExtra(newKey, newValue);
+        return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
     }
 
     public BloatedArea withTags(final Map<String, String> tags)

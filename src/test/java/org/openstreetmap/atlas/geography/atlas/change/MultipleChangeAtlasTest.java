@@ -81,7 +81,7 @@ public class MultipleChangeAtlasTest
         {
             return Iterables
                     .stream(atlas.nodes()).map(node -> BloatedNode.shallowFrom(node)
-                            .withTagExtra("highway", "traffic_signals"))
+                            .withAddedTag("highway", "traffic_signals"))
                     .map(FeatureChange::add).collectToSet();
         });
         final Predicate<Node> trafficSignal = node -> "traffic_signals".equals(node.tag("highway"));
