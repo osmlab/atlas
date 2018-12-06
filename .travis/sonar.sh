@@ -14,9 +14,10 @@ fi
 
 if [ "$TRAVIS_PULL_REQUEST" != "false" ];
 then
+	SONAR_PULLREQUEST_BRANCH="$(echo $TRAVIS_PULL_REQUEST_SLUG | awk '{split($0,a,"/"); print a[1]}')/$TRAVIS_PULL_REQUEST_BRANCH"
 	echo "Running sonarqube in Pull Request $TRAVIS_PULL_REQUEST"
 	echo "sonar.pullrequest.key=$TRAVIS_PULL_REQUEST"
-	echo "sonar.pullrequest.branch=$TRAVIS_PULL_REQUEST_SLUG"
+	echo "sonar.pullrequest.branch=$SONAR_PULLREQUEST_BRANCH"
 	echo "sonar.pullrequest.base=$TRAVIS_BRANCH"
 	./gradlew sonarqube \
 		-Dsonar.organization=osmlab \
@@ -25,7 +26,7 @@ then
 		-Dsonar.junit.reportPaths=build/test-results/test \
 		-Dsonar.jacoco.reportPaths=build/jacoco/test.exec \
 		-Dsonar.pullrequest.key=$TRAVIS_PULL_REQUEST \
-		-Dsonar.pullrequest.branch=$TRAVIS_PULL_REQUEST_SLUG \
+		-Dsonar.pullrequest.branch=$SONAR_PULLREQUEST_BRANCH \
 		-Dsonar.pullrequest.base=$TRAVIS_BRANCH \
 		-Dsonar.pullrequest.provider=github \
 		-Dsonar.pullrequest.github.repository=osmlab/atlas \
