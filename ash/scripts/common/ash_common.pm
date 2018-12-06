@@ -1895,11 +1895,11 @@ sub completion_ash {
     my $argv_ref = shift;
 
     my @argv = @{$argv_ref};
-    my %subcommand_desc = get_subcommand_to_description_hash($ash_path);
-    my @commands = keys %subcommand_desc;
-
     # Shift "ash" off the front of ARGV
     shift @argv;
+
+    my %subcommand_desc = get_subcommand_to_description_hash($ash_path);
+    my @commands = keys %subcommand_desc;
 
     # In the completion code, we use the following conventions to name variables
     # containing ARGV elements. Assume ARGV looks like the following:
@@ -1920,9 +1920,6 @@ sub completion_ash {
     my $rargv_m2 = $argv[$argv_len - 3];
     my $rargv_m3 = $argv[$argv_len - 4];
 
-    # Add 'cfg.preset' to the list of available commands
-    push @commands, $CFGPRESET_START;
-
     # Handle special case where user is applying a preset with "--preset"
     if ($rargv_m1 eq '-p' || string_starts_with($rargv_m1, '--p')) {
         my @presets = get_all_presets_in_current_namespace($ash_path);
@@ -1938,14 +1935,9 @@ sub completion_ash {
     # the completion wrapper script to use its filename defaults. We also handle
     # the special case where we saw the special 'cfg.preset' command. In that
     # case, we want to do custom completions.
-    my $saw_cfgpreset = 0;
     foreach my $arg (@argv) {
         foreach my $command (@commands) {
-            if ($arg eq $CFGPRESET_START) {
-                $saw_cfgpreset = 1;
-                last;
-            }
-            elsif ($arg eq $command) {
+            if ($arg eq $command) {
                 print "__ash_sentinel_complete_filenames__";
                 return 1;
             }
@@ -1954,27 +1946,66 @@ sub completion_ash {
 
     # If we saw the cfgpreset command anywhere in ARGV, use special complete context.
     # This block of code is a bit of a mess :)
-    if ($saw_cfgpreset) {
-        my @directives;
+    foreach my $arg (@argv) {
+        if ($arg eq $CFGPRESET_START) {
+            my @directives;
 
-        if ($rargv_m1 eq 'namespace') {
-            @directives = qw(create use list remove);
-        }
-        elsif ($rargv_m1 eq $CFGPRESET_START) {
-            @directives = qw(save show remove edit copy namespace);
-        }
+            if ($rargv_m1 eq 'namespace') {
+                @directives = qw(create use list remove);
+            }
+            elsif ($rargv_m1 eq $CFGPRESET_START) {
+                @directives = qw(save show remove edit copy namespace);
+            }
 
-        my @completion_matches = completion_match_prefix($rargv, \@directives);
+            my @completion_matches = completion_match_prefix($rargv, \@directives);
 
-        foreach my $command (@completion_matches) {
-            print "$command\n";
+            foreach my $command (@completion_matches) {
+                print "$command\n";
+            }
+            return 1;
         }
-        return 1;
     }
 
     # Default to completing available command names
+    push @commands, $CFGPRESET_START;
     my @completion_matches = completion_match_prefix($rargv, \@commands);
+    foreach my $command (@completion_matches) {
+        print "$command\n";
+    }
 
+    return 1;
+}
+
+sub completion_ashcfg {
+    my $ash_path = shift;
+    my $argv_ref = shift;
+
+    my @argv = @{$argv_ref};
+    # Shift "ash" off the front of ARGV
+    shift @argv;
+
+    my @commands = qw(activate deactivate install list log reset sync uninstall);
+
+    # In the completion code, we use the following conventions to name variables
+    # containing ARGV elements. Assume ARGV looks like the following:
+    #
+    # ARGV of length N:
+    # ARGV[0] ... ARGV[N - K] ... ARGV[N - 3], ARGV[N - 2], ARGV[N - 1]
+    #             ^ rargv_m(k-1)  ^ rargv_m2   ^ rargv_m1   ^ rargv
+    #
+    # Essentially, "rargv" means the "rightmost" ARGV element. Then "rargv_m1"
+    # means the "rightmost" ARGV element minus 1, and so on. Since perl plays fast
+    # and loose with array indexing, we can index into elements that may or may
+    # not actually exist, and then check if they are defined before we actually
+    # use them.
+    #
+    my $argv_len = scalar @argv;
+    my $rargv = $argv[$argv_len - 1];
+    my $rargv_m1 = $argv[$argv_len - 2];
+    my $rargv_m2 = $argv[$argv_len - 3];
+    my $rargv_m3 = $argv[$argv_len - 4];
+
+    my @completion_matches = completion_match_prefix($rargv, \@commands);
     foreach my $command (@completion_matches) {
         print "$command\n";
     }

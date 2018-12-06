@@ -717,6 +717,9 @@ elsif ($subcommand eq "uninstall") {
 elsif ($subcommand eq "__completion_ash__") {
     $success = ash_common::completion_ash($ash_path, \@ARGV);
 }
+elsif ($subcommand eq "__completion_ashcfg__") {
+    $success = ash_common::completion_ashcfg($ash_path, \@ARGV);
+}
 else {
     ash_common::error_output($program_name, "no such command ${bold_stderr}${subcommand}${reset_stderr}");
     print STDERR "Try '${bold_stderr}${program_name} --help${reset_stderr}' for more information.\n";

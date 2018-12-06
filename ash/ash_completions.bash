@@ -26,15 +26,30 @@ is_bash_at_least_version_4 ()
     fi
 }
 
-_ash ()
+_complete ()
 {
+    local completion_mode="default";
+    if [ "$1" == "ash" ];
+    then
+        local completion_mode="__completion_ash__"
+    elif [ "$1" == "ash-config" ];
+    then
+        local completion_mode="__completion_ashcfg__"
+    fi
+
+    if [ "$completion_mode" == "default" ];
+    then
+        echo "complete error: ${completion_mode} was still default"
+        return 1
+    fi
+
     # disable readline default autocompletion, we are going to customize
     if [ $(is_bash_at_least_version_4) == "true" ];
     then
         compopt +o default
     fi
 
-    local reply=$(ash-config __completion_ash__ "${COMP_WORDS[@]}");
+    local reply=$(ash-config "${completion_mode}" "${COMP_WORDS[@]}");
 
     if [ "$reply" = "__ash_sentinel_complete_filenames__" ];
     then
@@ -55,57 +70,9 @@ _ash ()
         fi
         return 0
     else
-        COMPREPLY=(${reply});
+        COMPREPLY=(${reply})
     fi
 }
 
-_ashconfig ()
-{
-    COMPREPLY=()
-}
-
-_closm_config_OLD ()
-{
-    # disable bash default autocompletion, we are going to customize
-    if [ $(is_bash_at_least_version_4) == "true" ];
-    then
-        compopt +o default
-    fi
-    COMPREPLY=()
-
-    local word="${COMP_WORDS[COMP_CWORD]}";
-
-    if [ "$COMP_CWORD" -eq 1 ];
-    then
-        # 'atlascfg <TAB><TAB>' completes subcommand names
-        COMPREPLY=($(compgen -W "$(closmcfg __commands__)" -- "$word"));
-    else
-        # 'atlascfg COMMAND <TAB><TAB>' contextually completes args to COMMAND
-        local words=("${COMP_WORDS[@]}")
-        local subcommand=${words[1]}
-        unset words[0]
-        unset words[$COMP_CWORD]
-
-        # 'install' is a special case, here we just want to complete filenames
-        if [ "${subcommand}" = "install" ];
-        then
-            # re-enable bash default completion for filenames
-            if [ $(is_bash_at_least_version_4) == "true" ];
-            then
-                compopt -o default
-                COMPREPLY=()
-            else
-                local cur=${COMP_WORDS[COMP_CWORD]}
-                local IFS=$'\n'
-                COMPREPLY=($(compgen -o filenames -f -- $cur))
-            fi
-            return 0
-        else
-            local completions=$(closmcfg __completions__ "${words[@]}");
-            COMPREPLY=($(compgen -W "$completions" -- "$word"));
-        fi
-    fi
-}
-
-complete -o filenames -o bashdefault -F _ash ash
-complete -o filenames -o bashdefault -F _ashconfig ash-config
+complete -o filenames -o bashdefault -F _complete ash
+complete -o filenames -o bashdefault -F _complete ash-config
