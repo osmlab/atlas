@@ -9,10 +9,15 @@ use File::Copy qw(copy);
 use File::Spec;
 use File::Path;
 
-# Pull in code from the common module
+# Pull in code from the common modules
 use FindBin;
 use lib "$FindBin::Bin/common";
-use ash_common;
+use ast_completions;
+use ast_log_subsystem;
+use ast_module_subsystem;
+use ast_preset_subsystem;
+use ast_utilities;
+use ast_tty;
 
 
 ## ORGANIZATION
@@ -23,16 +28,16 @@ use ash_common;
 ## 4) EXECUTION LOGIC - the actual command logic, ie. 'main'
 
 ########## BEGIN GLOBAL INITIALIZATION ##########
-my $ansi_red = ash_common::ansi_red();
-my $ansi_green = ash_common::ansi_green();
-my $ansi_magenta = ash_common::ansi_magenta();
-my $ansi_bold = ash_common::ansi_bold();
-my $ansi_blink = ash_common::ansi_blink();
-my $ansi_reset = ash_common::ansi_reset();
-my $ansi_bunl = ash_common::ansi_begin_underln();
-my $ansi_eunl = ash_common::ansi_end_underln();
+my $ansi_red = ast_tty::ansi_red();
+my $ansi_green = ast_tty::ansi_green();
+my $ansi_magenta = ast_tty::ansi_magenta();
+my $ansi_bold = ast_tty::ansi_bold();
+my $ansi_blink = ast_tty::ansi_blink();
+my $ansi_reset = ast_tty::ansi_reset();
+my $ansi_bunl = ast_tty::ansi_begin_underln();
+my $ansi_eunl = ast_tty::ansi_end_underln();
 
-my $no_colors_stdout = ash_common::is_no_colors_stdout();
+my $no_colors_stdout = ast_tty::is_no_colors_stdout();
 my $red_stdout = $no_colors_stdout ? "" : $ansi_red;
 my $green_stdout = $no_colors_stdout ? "" : $ansi_green;
 my $magenta_stdout = $no_colors_stdout ? "" : $ansi_magenta;
@@ -42,7 +47,7 @@ my $reset_stdout = $no_colors_stdout ? "" : $ansi_reset;
 my $bunl_stdout = $no_colors_stdout ? "" : $ansi_bunl;
 my $eunl_stdout = $no_colors_stdout ? "" : $ansi_eunl;
 
-my $no_colors_stderr = ash_common::is_no_colors_stderr();
+my $no_colors_stderr = ast_tty::is_no_colors_stderr();
 my $red_stderr = $no_colors_stderr ? "" : $ansi_red;
 my $green_stderr = $no_colors_stderr ? "" : $ansi_green;
 my $magenta_stderr = $no_colors_stderr ? "" : $ansi_magenta;
@@ -56,8 +61,8 @@ my $ash_path;
 my $skip_paging;
 my $quiet;
 
-my $program_name = 'ash-config';
-my $program_version = "$ash_common::ATLAS_SHELL_TOOLS_VERSION ($program_name program)";
+my $program_name = $ast_utilities::CONFIG_PROGRAM;
+my $program_version = "$ast_utilities::ATLAS_SHELL_TOOLS_VERSION ($program_name program)";
 
 # logging definitions
 my %valid_levels = (
@@ -94,12 +99,12 @@ sub execute_command_activate {
     my $help_flag;
     GetOptions(
         'help|h' => \$help_flag
-    ) or ash_common::getopt_failure_and_exit($program_name, "activate");
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "activate");
 
     if (defined $help_flag) {
-        my $man_command = ash_common::get_man($skip_paging);
+        my $man_command = ast_utilities::get_man($skip_paging);
         unless (defined $man_command) {
-            ash_common::error_output($program_name, "could not obtain \'man\' command");
+            ast_utilities::error_output($program_name, "could not obtain \'man\' command");
             print STDERR "Please ensure a valid \'man\' command is on your path.\n";
             exit 1;
         }
@@ -109,24 +114,24 @@ sub execute_command_activate {
 
     my $module_to_activate = shift @ARGV;
     unless (defined $module_to_activate) {
-        ash_common::error_output($program_name . ": activate", "missing required argument");
-        ash_common::getopt_failure_and_exit($program_name, "activate");
+        ast_utilities::error_output($program_name . ": activate", "missing required argument");
+        ast_utilities::getopt_failure_and_exit($program_name, "activate");
     }
 
     my %modules = get_module_to_status_hash($ash_path);
     unless (exists $modules{$module_to_activate}) {
-        ash_common::error_output($program_name . ": activate", "no such module ${bold_stderr}${module_to_activate}${reset_stderr}");
+        ast_utilities::error_output($program_name . ": activate", "no such module ${bold_stderr}${module_to_activate}${reset_stderr}");
         return 0;
     }
 
     # deactivate all other modules
     foreach my $module (keys %modules) {
-        if ($modules{$module} == $ash_common::ACTIVATED) {
-            ash_common::perform_deactivate($module, $ash_path, $program_name, $quiet);
+        if ($modules{$module} == $ast_module_subsystem::ACTIVATED) {
+            ast_module_subsystem::perform_deactivate($module, $ash_path, $program_name, $quiet);
         }
     }
 
-    my $success = ash_common::perform_activate($module_to_activate, $ash_path, $program_name, $quiet);
+    my $success = ast_module_subsystem::perform_activate($module_to_activate, $ash_path, $program_name, $quiet);
     return $success;
 }
 
@@ -134,12 +139,12 @@ sub execute_command_deactivate {
     my $help_flag;
     GetOptions(
         'help|h' => \$help_flag
-    ) or ash_common::getopt_failure_and_exit($program_name, "deactivate");
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "deactivate");
 
     if (defined $help_flag) {
-        my $man_command = ash_common::get_man($skip_paging);
+        my $man_command = ast_utilities::get_man($skip_paging);
         unless (defined $man_command) {
-            ash_common::error_output($program_name, "could not obtain \'man\' command");
+            ast_utilities::error_output($program_name, "could not obtain \'man\' command");
             print STDERR "Please ensure a valid \'man\' command is on your path.\n";
             exit 1;
         }
@@ -149,19 +154,19 @@ sub execute_command_deactivate {
 
     my $module_to_deactivate = shift @ARGV;
     unless (defined $module_to_deactivate) {
-        ash_common::error_output($program_name . ": deactivate", "missing required argument");
-        ash_common::getopt_failure_and_exit($program_name, "deactivate");
+        ast_utilities::error_output($program_name . ": deactivate", "missing required argument");
+        ast_utilities::getopt_failure_and_exit($program_name, "deactivate");
     }
 
-    my %modules = ash_common::get_module_to_status_hash($ash_path);
+    my %modules = ast_module_subsystem::get_module_to_status_hash($ash_path);
     unless (exists $modules{$module_to_deactivate}) {
-        error_output($program_name . ": deactivate", "no such module ${bold_stderr}${module_to_deactivate}${reset_stderr}");
+        ast_utilities::error_output($program_name . ": deactivate", "no such module ${bold_stderr}${module_to_deactivate}${reset_stderr}");
         return 0;
     }
 
-    my $success = ash_common::perform_deactivate($module_to_deactivate, $ash_path, $program_name, $quiet);
+    my $success = ast_module_subsystem::perform_deactivate($module_to_deactivate, $ash_path, $program_name, $quiet);
     if ($success) {
-        ash_common::remove_active_module_index($ash_path, $program_name, $quiet);
+        ast_module_subsystem::remove_active_module_index($ash_path, $program_name, $quiet);
     }
     return $success;
 }
@@ -180,12 +185,12 @@ sub execute_command_install {
         'skip' => \$skip_install,
         'name=s' => \$alternate_name,
         'help|h' => \$help_flag
-    ) or ash_common::getopt_failure_and_exit($program_name, "install");
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "install");
 
     if (defined $help_flag) {
-        my $man_command = ash_common::get_man($skip_paging);
+        my $man_command = ast_utilities::get_man($skip_paging);
         unless (defined $man_command) {
-            ash_common::error_output($program_name, "could not obtain \'man\' command");
+            ast_utilities::error_output($program_name, "could not obtain \'man\' command");
             print STDERR "Please ensure a valid \'man\' command is on your path.\n";
             exit 1;
         }
@@ -195,56 +200,56 @@ sub execute_command_install {
 
     my $module_to_install = shift @ARGV;
     unless (defined $module_to_install) {
-        ash_common::error_output($program_name . ": install", "missing required argument");
-        ash_common::getopt_failure_and_exit($program_name, "install");
+        ast_utilities::error_output($program_name . ": install", "missing required argument");
+        ast_utilities::getopt_failure_and_exit($program_name, "install");
     }
 
     unless (-f $module_to_install || -l $module_to_install) {
-        ash_common::error_output($program_name . ": install", "no such file ${bold_stderr}${module_to_install}${reset_stderr}");
+        ast_utilities::error_output($program_name . ": install", "no such file ${bold_stderr}${module_to_install}${reset_stderr}");
         return 0;
     }
 
-    my $modules_folder = File::Spec->catfile($ash_path, $ash_common::MODULES_FOLDER);
+    my $modules_folder = File::Spec->catfile($ash_path, $ast_module_subsystem::MODULES_FOLDER);
 
     # Create the module name, respecting the --name flag if present.
     my $module_basename;
     if (defined $alternate_name) {
-        $module_basename = $alternate_name . $ash_common::MODULE_SUFFIX;
+        $module_basename = $alternate_name . $ast_module_subsystem::MODULE_SUFFIX;
     }
     else {
         $module_basename = basename($module_to_install);
     }
     # TODO: figure out how to interpolate $MODULE_SUFFIX into this regex
     unless ($module_basename =~ /.*\.jar$/) {
-        ash_common::error_output($program_name . ": install", "module must end with '.jar' extension");
+        ast_utilities::error_output($program_name . ": install", "module must end with '.jar' extension");
         return 0;
     }
-    $module_basename =~ s{$ash_common::MODULE_SUFFIX}{};
+    $module_basename =~ s{$ast_module_subsystem::MODULE_SUFFIX}{};
 
     # Handle the case where the module is already installed
-    my %modules = ash_common::get_module_to_status_hash($ash_path);
+    my %modules = ast_module_subsystem::get_module_to_status_hash($ash_path);
     if (defined $modules{$module_basename}) {
-        ash_common::warn_output($program_name, "module ${bold_stderr}${module_basename}${reset_stderr} is already installed");
+        ast_utilities::warn_output($program_name, "module ${bold_stderr}${module_basename}${reset_stderr} is already installed");
         if ($skip_install) {
             print STDERR "Skipping installation.\n";
             return 0;
         }
         unless ($force_install) {
-            my $overwrite = ash_common::prompt_yn("Overwrite?");
+            my $overwrite = ast_utilities::prompt_yn("Overwrite?");
             unless ($overwrite) {
                 print STDERR "Skipping installation.\n";
                 return 0;
             }
         }
-        ash_common::warn_output($program_name, "overwriting ${bold_stderr}${module_basename}${reset_stderr}");
+        ast_utilities::warn_output($program_name, "overwriting ${bold_stderr}${module_basename}${reset_stderr}");
     }
 
     # Construct the new module paths.
     # We create a path for both an activated and deactivated version.
     my $module_new_path =
-        File::Spec->catfile($modules_folder, $module_basename . $ash_common::MODULE_SUFFIX);
+        File::Spec->catfile($modules_folder, $module_basename . $ast_module_subsystem::MODULE_SUFFIX);
     my $module_new_path_deactivated =
-        File::Spec->catfile($modules_folder, $module_basename . $ash_common::DEACTIVATED_MODULE_SUFFIX);
+        File::Spec->catfile($modules_folder, $module_basename . $ast_module_subsystem::DEACTIVATED_MODULE_SUFFIX);
 
     # If we made it here we are go to overwrite, so clean up any matching existing modules.
     unlink $module_new_path;
@@ -282,20 +287,20 @@ sub execute_command_install {
     }
     else {
         unless ($install_deactivated) {
-            my %modules = get_module_to_status_hash($ash_path);
+            my %modules = ast_module_subsystem::get_module_to_status_hash($ash_path);
             foreach my $module (keys %modules) {
-                if ($modules{$module} == $ash_common::ACTIVATED
+                if ($modules{$module} == $ast_module_subsystem::ACTIVATED
                     && $module ne $module_basename) {
-                    ash_common::perform_deactivate($module, $ash_path, $program_name, $quiet);
+                    ast_module_subsystem::perform_deactivate($module, $ash_path, $program_name, $quiet);
                 }
             }
         }
 
         unless($install_deactivated) {
-            ash_common::remove_active_module_index($ash_path, $program_name, $quiet);
-            my $success = ash_common::generate_active_module_index($ash_path, $program_name, $quiet, 0);
+            ast_module_subsystem::remove_active_module_index($ash_path, $program_name, $quiet);
+            my $success = ast_module_subsystem::generate_active_module_index($ash_path, $program_name, $quiet, 0);
             unless ($success) {
-                ash_common::warn_output($program_name . ": install", "partial installation may not function properly");
+                ast_utilities::warn_output($program_name . ": install", "partial installation may not function properly");
             }
         }
 
@@ -311,12 +316,12 @@ sub execute_command_list {
     my $help_flag;
     GetOptions(
         'help|h' => \$help_flag
-    ) or ash_common::getopt_failure_and_exit($program_name, "list");
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "list");
 
     if (defined $help_flag) {
-        my $man_command = ash_common::get_man($skip_paging);
+        my $man_command = ast_utilities::get_man($skip_paging);
         unless (defined $man_command) {
-            ash_common::error_output($program_name, "could not obtain \'man\' command");
+            ast_utilities::error_output($program_name, "could not obtain \'man\' command");
             print STDERR "Please ensure a valid \'man\' command is on your path.\n";
             exit 1;
         }
@@ -324,12 +329,12 @@ sub execute_command_list {
         exit 0;
     }
 
-    my %modules = ash_common::get_module_to_status_hash($ash_path);
-    my %symlinks = ash_common::get_module_to_symlink_hash($ash_path);
-    my %targets = ash_common::get_module_to_target_hash($ash_path);
+    my %modules = ast_module_subsystem::get_module_to_status_hash($ash_path);
+    my %symlinks = ast_module_subsystem::get_module_to_symlink_hash($ash_path);
+    my %targets = ast_module_subsystem::get_module_to_target_hash($ash_path);
 
     unless (keys %modules) {
-        ash_common::error_output($program_name . ": list", "found no installed modules");
+        ast_utilities::error_output($program_name . ": list", "found no installed modules");
         print STDERR "Try '${bold_stderr}${program_name} install /path/to/module.jar${reset_stderr}' to install a module.\n";
         return 0;
     }
@@ -352,11 +357,11 @@ sub execute_command_list {
         }
 
         # choose an appropriate color for the display
-        if ($status == $ash_common::ACTIVATED
-            && ($symlink == $ash_common::REAL_FILE || $symlink == $ash_common::GOOD_SYMLINK)) {
+        if ($status == $ast_module_subsystem::ACTIVATED
+            && ($symlink == $ast_module_subsystem::REAL_FILE || $symlink == $ast_module_subsystem::GOOD_SYMLINK)) {
             $display = $display . "${green_stdout}${bold_stdout}";
         }
-        elsif ($symlink == $ash_common::BROKEN_SYMLINK) {
+        elsif ($symlink == $ast_module_subsystem::BROKEN_SYMLINK) {
             $display = $display . "${red_stdout}${bold_stdout}";
         }
 
@@ -364,8 +369,8 @@ sub execute_command_list {
         $display = $display . " ${module}${reset_stdout}";
 
         # show a big message if the symlink is broken, blink if also activated
-        if ($symlink == $ash_common::BROKEN_SYMLINK) {
-            if ($status == $ash_common::ACTIVATED) {
+        if ($symlink == $ast_module_subsystem::BROKEN_SYMLINK) {
+            if ($status == $ast_module_subsystem::ACTIVATED) {
                 $display = $display . " ${bold_stdout}${blink_stdout}(BROKEN SYMLINK)${reset_stdout}";
             }
             else {
@@ -374,7 +379,7 @@ sub execute_command_list {
         }
 
         # if we were a symlink, show the target after the module name
-        if ($symlink != $ash_common::REAL_FILE) {
+        if ($symlink != $ast_module_subsystem::REAL_FILE) {
             $display = $display . " -> ${target}";
         }
 
@@ -399,17 +404,17 @@ sub execute_command_log {
         'set-stream=s' => \$logstream,
         'show|s' => \$show,
         'help|h' => \$help_flag
-    ) or ash_common::getopt_failure_and_exit($program_name, "log");
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "log");
 
     if ($ARGV_len == @ARGV) {
-        ash_common::error_output($program_name . ": log", "requires at least one option");
-        ash_common::getopt_failure_and_exit($program_name, "log");
+        ast_utilities::error_output($program_name . ": log", "requires at least one option");
+        ast_utilities::getopt_failure_and_exit($program_name, "log");
     }
 
     if (defined $help_flag) {
-        my $man_command = ash_common::get_man($skip_paging);
+        my $man_command = ast_utilities::get_man($skip_paging);
         unless (defined $man_command) {
-            ash_common::error_output($program_name, "could not obtain \'man\' command");
+            ast_utilities::error_output($program_name, "could not obtain \'man\' command");
             print STDERR "Please ensure a valid \'man\' command is on your path.\n";
             exit 1;
         }
@@ -417,38 +422,38 @@ sub execute_command_log {
         exit 0;
     }
 
-    my $log_folder = File::Spec->catfile($ash_path, $ash_common::LOG4J_FOLDER);
-    my $logfile_path = File::Spec->catfile($log_folder, $ash_common::LOG4J_FILE);
-    my $current_level = ash_common::read_loglevel_from_file($logfile_path);
-    my $current_stream = ash_common::read_logstream_from_file($logfile_path);
+    my $log_folder = File::Spec->catfile($ash_path, $ast_log_subsystem::LOG4J_FOLDER);
+    my $logfile_path = File::Spec->catfile($log_folder, $ast_log_subsystem::LOG4J_FILE);
+    my $current_level = ast_log_subsystem::read_loglevel_from_file($logfile_path);
+    my $current_stream = ast_log_subsystem::read_logstream_from_file($logfile_path);
 
     if ($reset) {
-        ash_common::reset_log4j($ash_path);
+        ast_log_subsystem::reset_log4j($ash_path);
     }
 
     unless ($loglevel eq '') {
         if (exists($valid_levels{$loglevel})) {
-            ash_common::replace_loglevel_in_file($logfile_path, $loglevel);
+            ast_log_subsystem::replace_loglevel_in_file($logfile_path, $loglevel);
         }
         else {
-            ash_common::error_output($program_name, "unrecognized log level ${bold_stderr}${loglevel}${reset_stderr}");
+            ast_utilities::error_output($program_name, "unrecognized log level ${bold_stderr}${loglevel}${reset_stderr}");
             return 0;
         }
     }
 
     unless ($logstream eq '') {
         if (exists($valid_streams{$logstream})) {
-            ash_common::replace_logstream_in_file($logfile_path, $logstream);
+            ast_log_subsystem::replace_logstream_in_file($logfile_path, $logstream);
         }
         else {
-            ash_common::error_output($program_name, "unrecognized log stream ${bold_stderr}${logstream}${reset_stderr}");
+            ast_utilities::error_output($program_name, "unrecognized log stream ${bold_stderr}${logstream}${reset_stderr}");
             return 0;
         }
     }
 
     if ($show) {
-        $current_level = ash_common::read_loglevel_from_file($logfile_path);
-        $current_stream = ash_common::read_logstream_from_file($logfile_path);
+        $current_level = ast_log_subsystem::read_loglevel_from_file($logfile_path);
+        $current_stream = ast_log_subsystem::read_logstream_from_file($logfile_path);
         print "Current log level:    ${bold_stdout}${current_level}${reset_stdout}\n";
         print "Current log stream:   ${bold_stdout}${current_stream}${reset_stdout}\n";
     }
@@ -474,12 +479,12 @@ sub execute_command_reset {
         'index' => \$index_flag,
         'presets' => \$presets_flag,
         'log' => \$log_flag
-    ) or ash_common::getopt_failure_and_exit($program_name, "reset");
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "reset");
 
     if (defined $help_flag) {
-        my $man_command = ash_common::get_man($skip_paging);
+        my $man_command = ast_utilities::get_man($skip_paging);
         unless (defined $man_command) {
-            ash_common::error_output($program_name, "could not obtain \'man\' command");
+            ast_utilities::error_output($program_name, "could not obtain \'man\' command");
             print STDERR "Please ensure a valid \'man\' command is on your path.\n";
             exit 1;
         }
@@ -488,36 +493,36 @@ sub execute_command_reset {
     }
 
     if ($ARGV_len == @ARGV) {
-        ash_common::error_output($program_name . ": reset", "requires at least one option");
-        ash_common::getopt_failure_and_exit($program_name, "reset");
+        ast_utilities::error_output($program_name . ": reset", "requires at least one option");
+        ast_utilities::getopt_failure_and_exit($program_name, "reset");
     }
 
     if (defined $modules_flag || defined $all_flag) {
-        my $modules_folder = File::Spec->catfile($ash_path, $ash_common::MODULES_FOLDER);
-        my %modules = ash_common::get_module_to_status_hash($ash_path);
+        my $modules_folder = File::Spec->catfile($ash_path, $ast_module_subsystem::MODULES_FOLDER);
+        my %modules = ast_module_subsystem::get_module_to_status_hash($ash_path);
 
         my $modules_length = keys %modules;
         if ($modules_length == 0) {
-            ash_common::warn_output($program_name, "found no modules to uninstall");
+            ast_utilities::warn_output($program_name, "found no modules to uninstall");
         }
         else {
             foreach my $module (keys %modules) {
                 my $confirmed = 1;
                 unless ($force_flag) {
-                     $confirmed = ash_common::prompt_yn("Uninstalling module $module. OK?");
+                     $confirmed = ast_utilities::prompt_yn("Uninstalling module $module. OK?");
                 }
                 if ($confirmed) {
-                    ash_common::perform_uninstall($module, $ash_path, $program_name, $quiet);
+                    ast_module_subsystem::perform_uninstall($module, $ash_path, $program_name, $quiet);
                 }
             }
         }
     }
 
     if (defined $presets_flag || defined $all_flag) {
-        my $presets_folder = File::Spec->catfile($ash_path, $ash_common::PRESETS_FOLDER);
+        my $presets_folder = File::Spec->catfile($ash_path, $ast_preset_subsystem::PRESETS_FOLDER);
         my $confirmed = 1;
         unless ($force_flag) {
-            $confirmed = ash_common::prompt_yn("Clearing saved presets at $presets_folder. OK?");
+            $confirmed = ast_utilities::prompt_yn("Clearing saved presets at $presets_folder. OK?");
         }
         if ($confirmed) {
             rmtree($presets_folder);
@@ -528,25 +533,25 @@ sub execute_command_reset {
     }
 
     if (defined $log_flag || defined $all_flag) {
-        my $log_folder = File::Spec->catfile($ash_path, $ash_common::LOG4J_FOLDER);
-        my $logfile_path = File::Spec->catfile($log_folder, $ash_common::LOG4J_FILE);
+        my $log_folder = File::Spec->catfile($ash_path, $ast_log_subsystem::LOG4J_FOLDER);
+        my $logfile_path = File::Spec->catfile($log_folder, $ast_log_subsystem::LOG4J_FILE);
         my $confirmed = 1;
         unless ($force_flag) {
-            $confirmed = ash_common::prompt_yn("Resetting log parameters. OK?");
+            $confirmed = ast_utilities::prompt_yn("Resetting log parameters. OK?");
         }
         if ($confirmed) {
-            ash_common::replace_loglevel_in_file($logfile_path, 'ERROR');
-            ash_common::replace_logstream_in_file($logfile_path, 'stderr');
+            ast_log_subsystem::replace_loglevel_in_file($logfile_path, 'ERROR');
+            ast_log_subsystem::replace_logstream_in_file($logfile_path, 'stderr');
         }
     }
 
     if (defined $index_flag || defined $all_flag) {
         my $confirmed = 1;
         unless ($force_flag) {
-            $confirmed = ash_common::prompt_yn("Removing active module index. OK?");
+            $confirmed = ast_utilities::prompt_yn("Removing active module index. OK?");
         }
         if ($confirmed) {
-            ash_common::remove_active_module_index($ash_path, $program_name, $quiet);
+            ast_module_subsystem::remove_active_module_index($ash_path, $program_name, $quiet);
         }
     }
 
@@ -557,12 +562,12 @@ sub execute_command_sync {
     my $help_flag;
     GetOptions(
         'help|h' => \$help_flag
-    ) or ash_common::getopt_failure_and_exit($program_name, "sync");
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "sync");
 
     if (defined $help_flag) {
-        my $man_command = ash_common::get_man($skip_paging);
+        my $man_command = ast_utilities::get_man($skip_paging);
         unless (defined $man_command) {
-            ash_common::error_output($program_name, "could not obtain \'man\' command");
+            ast_utilities::error_output($program_name, "could not obtain \'man\' command");
             print STDERR "Please ensure a valid \'man\' command is on your path.\n";
             exit 1;
         }
@@ -570,8 +575,8 @@ sub execute_command_sync {
         exit 0;
     }
 
-    ash_common::remove_active_module_index($ash_path, $program_name, $quiet);
-    ash_common::generate_active_module_index($ash_path, $program_name, $quiet, 1);
+    ast_module_subsystem::remove_active_module_index($ash_path, $program_name, $quiet);
+    ast_module_subsystem::generate_active_module_index($ash_path, $program_name, $quiet, 1);
 }
 
 sub execute_command_uninstall {
@@ -580,12 +585,12 @@ sub execute_command_uninstall {
     GetOptions(
         'all|a' => \$allflag,
         'help|h' => \$help_flag
-    ) or ash_common::getopt_failure_and_exit($program_name, "uninstall");
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "uninstall");
 
     if (defined $help_flag) {
-        my $man_command = ash_common::get_man($skip_paging);
+        my $man_command = ast_utilities::get_man($skip_paging);
         unless (defined $man_command) {
-            ash_common::error_output($program_name, "could not obtain \'man\' command");
+            ast_utilities::error_output($program_name, "could not obtain \'man\' command");
             print STDERR "Please ensure a valid \'man\' command is on your path.\n";
             exit 1;
         }
@@ -594,30 +599,30 @@ sub execute_command_uninstall {
     }
 
     if (defined $allflag) {
-        my %modules = ash_common::get_module_to_status_hash($ash_path);
+        my %modules = ast_module_subsystem::get_module_to_status_hash($ash_path);
         foreach my $module (keys %modules) {
-            ash_common::perform_uninstall($module, $ash_path, $program_name, $quiet);
+            ast_module_subsystem::perform_uninstall($module, $ash_path, $program_name, $quiet);
         }
         return 1;
     }
 
     my $module_to_uninstall = shift @ARGV;
     unless (defined $module_to_uninstall) {
-        ash_common::error_output($program_name . ": uninstall", "missing required argument");
-        ash_common::getopt_failure_and_exit($program_name, "uninstall");
+        ast_utilities::error_output($program_name . ": uninstall", "missing required argument");
+        ast_utilities::getopt_failure_and_exit($program_name, "uninstall");
     }
 
-    my %modules = ash_common::get_module_to_status_hash($ash_path);
-    my @activated_modules = ash_common::get_activated_modules(\%modules);
+    my %modules = ast_module_subsystem::get_module_to_status_hash($ash_path);
+    my @activated_modules = ast_module_subsystem::get_activated_modules(\%modules);
     my $activated_module = $activated_modules[0];
-    my $success = ash_common::perform_uninstall($module_to_uninstall, $ash_path, $program_name, $quiet);
+    my $success = ast_module_subsystem::perform_uninstall($module_to_uninstall, $ash_path, $program_name, $quiet);
     unless ($success) {
         return 0;
     }
 
     if (defined $activated_module) {
         if ($module_to_uninstall eq $activated_module) {
-            ash_common::remove_active_module_index($ash_path, $program_name, $quiet);
+            ast_module_subsystem::remove_active_module_index($ash_path, $program_name, $quiet);
         }
     }
 
@@ -629,7 +634,7 @@ sub execute_command_uninstall {
 
 ########## BEGIN EXECUTION LOGIC ##########
 
-$ash_path = ash_common::create_data_directory();
+$ash_path = ast_utilities::create_data_directory();
 
 my $help_argument;
 Getopt::Long::Configure(qw(no_ignore_case_always));
@@ -651,15 +656,15 @@ GetOptions(
         unshift @ARGV, $arg;
         die "!FINISH";
     }
-) or ash_common::getopt_failure_and_exit($program_name);
+) or ast_utilities::getopt_failure_and_exit($program_name);
 
 # Handle the cases where the user supplied a --help flag
 # 1) --help -> print the default help menu and exit
 # 2) --help=TOPIC -> print the TOPIC help menu and exit
 if (defined $help_argument) {
-    my $man_command = ash_common::get_man($skip_paging);
+    my $man_command = ast_utilities::get_man($skip_paging);
     unless (defined $man_command) {
-        ash_common::error_output($program_name, "could not obtain \'man\' command");
+        ast_utilities::error_output($program_name, "could not obtain \'man\' command");
         print STDERR "Please ensure a valid \'man\' command is on your path.\n";
         exit 1;
     }
@@ -682,7 +687,7 @@ if (defined $help_argument) {
 my $subcommand = shift @ARGV;
 
 unless (defined $subcommand) {
-    ash_common::error_output($program_name, "missing required command or option");
+    ast_utilities::error_output($program_name, "missing required command or option");
     print STDERR "Try '${bold_stderr}${program_name} --help${reset_stderr}' for more information.\n";
     exit 1;
 }
@@ -715,13 +720,13 @@ elsif ($subcommand eq "uninstall") {
 # These subcommands are "hidden", they are used by the completion script
 # to generate autocomplete suggestions.
 elsif ($subcommand eq "__completion_ash__") {
-    $success = ash_common::completion_ash($ash_path, \@ARGV);
+    $success = ast_completions::completion_ash($ash_path, \@ARGV);
 }
 elsif ($subcommand eq "__completion_ashcfg__") {
-    $success = ash_common::completion_ashcfg($ash_path, \@ARGV);
+    $success = ast_completions::completion_ashcfg($ash_path, \@ARGV);
 }
 else {
-    ash_common::error_output($program_name, "no such command ${bold_stderr}${subcommand}${reset_stderr}");
+    ast_utilities::error_output($program_name, "no such command ${bold_stderr}${subcommand}${reset_stderr}");
     print STDERR "Try '${bold_stderr}${program_name} --help${reset_stderr}' for more information.\n";
     exit 127;
 }
