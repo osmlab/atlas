@@ -2005,6 +2005,19 @@ sub completion_ashcfg {
     my $rargv_m2 = $argv[$argv_len - 3];
     my $rargv_m3 = $argv[$argv_len - 4];
 
+    foreach my $arg (@argv) {
+        if ($arg eq 'activate') {
+            @commands = qw(module1 module2 anotherModule);
+        }
+        elsif ($arg eq 'deactivate') {
+            @commands = qw(module3 module4 anotherModule2);
+        }
+        elsif ($arg eq 'install') {
+            print "__ash_sentinel_complete_filenames__";
+            return 1;
+        }
+    }
+
     my @completion_matches = completion_match_prefix($rargv, \@commands);
     foreach my $command (@completion_matches) {
         print "$command\n";
