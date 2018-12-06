@@ -109,13 +109,13 @@ sub execute_command_activate {
 
     my $module_to_activate = shift @ARGV;
     unless (defined $module_to_activate) {
-        ash_common::error_output($program_name . "-activate", "missing required argument");
+        ash_common::error_output($program_name . ": activate", "missing required argument");
         ash_common::getopt_failure_and_exit($program_name, "activate");
     }
 
     my %modules = get_module_to_status_hash($ash_path);
     unless (exists $modules{$module_to_activate}) {
-        ash_common::error_output($program_name . "-activate", "no such module ${bold_stderr}${module_to_activate}${reset_stderr}");
+        ash_common::error_output($program_name . ": activate", "no such module ${bold_stderr}${module_to_activate}${reset_stderr}");
         return 0;
     }
 
@@ -149,13 +149,13 @@ sub execute_command_deactivate {
 
     my $module_to_deactivate = shift @ARGV;
     unless (defined $module_to_deactivate) {
-        ash_common::error_output($program_name . "-deactivate", "missing required argument");
+        ash_common::error_output($program_name . ": deactivate", "missing required argument");
         ash_common::getopt_failure_and_exit($program_name, "deactivate");
     }
 
     my %modules = ash_common::get_module_to_status_hash($ash_path);
     unless (exists $modules{$module_to_deactivate}) {
-        error_output($program_name . "-deactivate", "no such module ${bold_stderr}${module_to_deactivate}${reset_stderr}");
+        error_output($program_name . ": deactivate", "no such module ${bold_stderr}${module_to_deactivate}${reset_stderr}");
         return 0;
     }
 
@@ -195,12 +195,12 @@ sub execute_command_install {
 
     my $module_to_install = shift @ARGV;
     unless (defined $module_to_install) {
-        ash_common::error_output($program_name . "-install", "missing required argument");
+        ash_common::error_output($program_name . ": install", "missing required argument");
         ash_common::getopt_failure_and_exit($program_name, "install");
     }
 
     unless (-f $module_to_install || -l $module_to_install) {
-        ash_common::error_output($program_name . "-install", "no such file ${bold_stderr}${module_to_install}${reset_stderr}");
+        ash_common::error_output($program_name . ": install", "no such file ${bold_stderr}${module_to_install}${reset_stderr}");
         return 0;
     }
 
@@ -216,7 +216,7 @@ sub execute_command_install {
     }
     # TODO: figure out how to interpolate $MODULE_SUFFIX into this regex
     unless ($module_basename =~ /.*\.jar$/) {
-        ash_common::error_output($program_name . "-install", "module must end with '.jar' extension");
+        ash_common::error_output($program_name . ": install", "module must end with '.jar' extension");
         return 0;
     }
     $module_basename =~ s{$ash_common::MODULE_SUFFIX}{};
@@ -295,7 +295,7 @@ sub execute_command_install {
             ash_common::remove_active_module_index($ash_path, $program_name, $quiet);
             my $success = ash_common::generate_active_module_index($ash_path, $program_name, $quiet, 0);
             unless ($success) {
-                ash_common::warn_output($program_name . "-install", "partial installation may not function properly");
+                ash_common::warn_output($program_name . ": install", "partial installation may not function properly");
             }
         }
 
@@ -329,7 +329,7 @@ sub execute_command_list {
     my %targets = ash_common::get_module_to_target_hash($ash_path);
 
     unless (keys %modules) {
-        ash_common::error_output($program_name . "-list", "found no installed modules");
+        ash_common::error_output($program_name . ": list", "found no installed modules");
         print STDERR "Try '${bold_stderr}${program_name} install /path/to/module.jar${reset_stderr}' to install a module.\n";
         return 0;
     }
@@ -402,7 +402,7 @@ sub execute_command_log {
     ) or ash_common::getopt_failure_and_exit($program_name, "log");
 
     if ($ARGV_len == @ARGV) {
-        ash_common::error_output($program_name . "-log", "requires at least one option");
+        ash_common::error_output($program_name . ": log", "requires at least one option");
         ash_common::getopt_failure_and_exit($program_name, "log");
     }
 
@@ -488,7 +488,7 @@ sub execute_command_reset {
     }
 
     if ($ARGV_len == @ARGV) {
-        ash_common::error_output($program_name . "-reset", "requires at least one option");
+        ash_common::error_output($program_name . ": reset", "requires at least one option");
         ash_common::getopt_failure_and_exit($program_name, "reset");
     }
 
@@ -603,7 +603,7 @@ sub execute_command_uninstall {
 
     my $module_to_uninstall = shift @ARGV;
     unless (defined $module_to_uninstall) {
-        ash_common::error_output($program_name . "-uninstall", "missing required argument");
+        ash_common::error_output($program_name . ": uninstall", "missing required argument");
         ash_common::getopt_failure_and_exit($program_name, "uninstall");
     }
 

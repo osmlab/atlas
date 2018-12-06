@@ -9,6 +9,7 @@ use File::Spec;
 use File::Path qw(make_path rmtree);
 use File::Temp qw(tempdir tempfile);
 use Cwd qw(abs_path);
+use threads;
 
 # Export symbols: variables and subroutines
 our @EXPORT = qw(
@@ -39,6 +40,8 @@ our @EXPORT = qw(
     JAVA_USE_PAGER
     JAVA_NO_USE_PAGER
     JAVA_MARKER_SENTINEL
+    COMMAND_PROGRAM
+    CONFIG_PROGRAM
     CFGPRESET_START
     create_data_directory
     reset_log4j
@@ -131,6 +134,8 @@ our $JAVA_USE_PAGER = "___atlas-shell-tools_use_pager_SPECIALARGUMENT___";
 our $JAVA_NO_USE_PAGER = "___atlas-shell-tools_no_use_pager_SPECIALARGUMENT___";
 our $JAVA_MARKER_SENTINEL = "___atlas-shell-tools_LAST_ARG_MARKER_SENTINEL___";
 
+our $COMMAND_PROGRAM = 'ash';
+our $CONFIG_PROGRAM = 'ash-config';
 our $CFGPRESET_START = 'cfg.preset';
 
 # Use ASCII record separator as delimiter.
@@ -1061,6 +1066,10 @@ sub generate_active_module_index {
         return 0;
     }
 
+    unless ($quiet) {
+        print "Generating new index...\n";
+    }
+
     system("$java_command");
     my $exitcode = $? >> 8;
     unless ($exitcode == 0) {
@@ -1071,6 +1080,7 @@ sub generate_active_module_index {
     unless ($quiet) {
         print "New index successfully generated.\n";
     }
+
     return 1;
 }
 

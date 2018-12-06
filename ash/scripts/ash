@@ -448,7 +448,7 @@ my %modules = ash_common::get_module_to_status_hash($ash_path);
 # If there are no modules, let's throw an error
 unless (keys %modules) {
     ash_common::error_output($program_name, 'found no installed modules');
-    print STDERR "Try '${bold_stderr}ash-config install /path/to/module.jar${reset_stderr}' to install a module.\n";
+    print STDERR "Try '${bold_stderr}${ash_common::CONFIG_PROGRAM} install /path/to/module.jar${reset_stderr}' to install a module.\n";
     exit 1;
 }
 
@@ -457,15 +457,15 @@ my @activated_modules = ash_common::get_activated_modules(\%modules);
 # If there are modules but none are active, let's warn the user
 if (scalar @activated_modules == 0) {
     ash_common::error_output($program_name, 'no activated module');
-    print STDERR "Try '${bold_stderr}ash-config list${reset_stderr}' to see all installed modules.\n";
-    print STDERR "Then try '${bold_stderr}ash-config activate <module>${reset_stderr}' to activate.\n";
+    print STDERR "Try '${bold_stderr}${ash_common::CONFIG_PROGRAM} list${reset_stderr}' to see all installed modules.\n";
+    print STDERR "Then try '${bold_stderr}${ash_common::CONFIG_PROGRAM} activate <module>${reset_stderr}' to activate.\n";
     exit 1;
 }
 
 my $index_path = File::Spec->catfile($ash_path, $ash_common::ACTIVE_INDEX_PATH);
 unless (-f $index_path) {
     ash_common::error_output($program_name, 'could not find active module index');
-    print STDERR "Try '${bold_stderr}ash-config sync${reset_stderr}' to resolve.\n";
+    print STDERR "Try '${bold_stderr}${ash_common::CONFIG_PROGRAM} sync${reset_stderr}' to resolve.\n";
     exit 1;
 }
 
