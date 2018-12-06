@@ -83,6 +83,12 @@ sub completion_ash {
     my $rargv_m2 = $argv[$argv_len - 3];
     my $rargv_m3 = $argv[$argv_len - 4];
 
+    # Autocomplete the '--preset' flag, since it is probably the most used flag
+    if (ast_utilities::string_starts_with($rargv, '-')) {
+        print "--preset\n";
+        return 1;
+    }
+
     # Handle special case where user is applying a preset with "--preset"
     if ($rargv_m1 eq '-p' || ast_utilities::string_starts_with($rargv_m1, '--p')) {
         my @presets = ast_preset_subsystem::get_all_presets_in_current_namespace($ash_path);
