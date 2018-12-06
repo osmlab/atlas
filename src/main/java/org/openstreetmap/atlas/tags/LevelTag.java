@@ -11,7 +11,7 @@ import org.openstreetmap.atlas.tags.annotations.extraction.LongExtractor;
  *
  * @author sayas01
  */
-@Tag(value = Tag.Validation.LONG, range = @Tag.Range(min = -3, max = 5), taginfo = "http://taginfo.openstreetmap.org/keys/level#values", osm = "http://wiki.openstreetmap.org/wiki/Level")
+@Tag(value = Tag.Validation.LONG, taginfo = "http://taginfo.openstreetmap.org/keys/level#values", osm = "http://wiki.openstreetmap.org/wiki/Level")
 
 public interface LevelTag
 {
@@ -26,6 +26,12 @@ public interface LevelTag
     static long getMinLevelValue()
     {
         return LevelTag.class.getDeclaredAnnotation(Tag.class).range().min();
+    }
+
+    static Long getTaggedOrImpliedValue(final Taggable taggable, final Long impliedValue)
+    {
+        final Optional<Long> taggedValue = getTaggedValue(taggable);
+        return taggedValue.isPresent() ? taggedValue.get() : impliedValue;
     }
 
     static Optional<Long> getTaggedValue(final Taggable taggable)
