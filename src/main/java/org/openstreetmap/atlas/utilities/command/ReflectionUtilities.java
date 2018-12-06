@@ -22,20 +22,15 @@ public final class ReflectionUtilities
         final List<Class<? extends AtlasShellToolsMarker>> subcommandClasses = new ArrayList<>();
         final Set<AbstractAtlasShellToolsCommand> instantiatedCommands = new HashSet<>();
         new FastClasspathScanner()
-                .matchClassesImplementing(AtlasShellToolsMarker.class, subcommandClasses::add).scan();
-        subcommandClasses.stream().forEach(klass ->
-        {
-            final Optional<AbstractAtlasShellToolsCommand> commandOption = instantiateSubcommand(
-                    klass.getName());
-            if (commandOption.isPresent())
-            {
-                instantiatedCommands.add(commandOption.get());
-            }
-        });
+                .matchClassesImplementing(AtlasShellToolsMarker.class, subcommandClasses::add)
+                .scan();
+        subcommandClasses.stream().forEach(klass -> instantiateSubcommand(klass.getName())
+                .ifPresent(instantiatedCommands::add));
         return instantiatedCommands;
     }
 
-    private static Optional<AbstractAtlasShellToolsCommand> instantiateSubcommand(final String classname)
+    private static Optional<AbstractAtlasShellToolsCommand> instantiateSubcommand(
+            final String classname)
     {
         final Class<?> subcommandClass;
         try
