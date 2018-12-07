@@ -16,6 +16,8 @@ our @EXPORT = qw(
     completion_ashcfg
 );
 
+my $FILE_COMPLETE_SENTINEL = "__ash_sentinel_complete_filenames__";
+
 my $no_colors_stdout = ast_tty::is_no_colors_stdout();
 my $red_stdout = $no_colors_stdout ? "" : ast_tty::ansi_red();
 my $green_stdout = $no_colors_stdout ? "" : ast_tty::ansi_green();
@@ -83,9 +85,11 @@ sub completion_ash {
     my $rargv_m2 = $argv[-3];
     my $rargv_m3 = $argv[-4];
 
-    # Autocomplete the '--preset' flag, since it is probably the most used flag
+    # Autocomplete the '--preset' and '--save-preset' flags, since they are probably the most used flags
     if (ast_utilities::string_starts_with($rargv, '-')) {
-        print "--preset\n";
+        my @flags = qw(--preset --save-preset);
+        my @completion_matches = completion_match_prefix($rargv, \@flags);
+        print "@completion_matches\n";
         return 1;
     }
 
@@ -96,19 +100,6 @@ sub completion_ash {
             my @completion_matches = completion_match_prefix($rargv, \@presets);
             print "@completion_matches\n";
             return 1;
-        }
-    }
-
-    # If we see a command anywhere in ARGV, stop special completions and signal
-    # the completion wrapper script to use its filename defaults. We also handle
-    # the special case where we saw the special 'cfg.preset' command. In that
-    # case, we want to do custom completions.
-    foreach my $arg (@argv) {
-        foreach my $command (@commands) {
-            if ($arg eq $command) {
-                print "__ash_sentinel_complete_filenames__";
-                return 1;
-            }
         }
     }
 
@@ -131,6 +122,17 @@ sub completion_ash {
         }
     }
 
+    # If we see a command anywhere in ARGV, stop special completions and signal
+    # the completion wrapper script to use its filename defaults.
+    foreach my $arg (@argv) {
+        foreach my $command (@commands) {
+            if ($arg eq $command) {
+                print $FILE_COMPLETE_SENTINEL;
+                return 1;
+            }
+        }
+    }
+
     # Default to completing available command names
     push @commands, $ast_preset_subsystem::CFGPRESET_START;
     my @completion_matches = completion_match_prefix($rargv, \@commands);
@@ -144,8 +146,21 @@ sub completion_ashcfg {
     my $argv_ref = shift;
 
     my @argv = @{$argv_ref};
-    # Shift "ash" off the front of ARGV
+
+    # Shift "ash-config" off the front of ARGV
     shift @argv;
+
+    # Shift global options off the front of ARGV
+    foreach my $element (@argv) {
+        if (ast_utilities::string_starts_with($element, '-')) {
+            shift @argv;
+        }
+    }
+
+    # If no more ARGV is left, exit
+    if (scalar @argv == 0) {
+        return 1;
+    }
 
     my @commands = ();
     my %modules = ast_module_subsystem::get_module_to_status_hash($ash_path);
@@ -163,29 +178,25 @@ sub completion_ashcfg {
     # not actually exist, and then check if they are defined before we actually
     # use them. The '-1' indexing syntax just indexes from the end of the array.
     #
-    my $argv_len = scalar @argv;
     my $rargv = $argv[-1];
     my $rargv_m1 = $argv[-2];
     my $rargv_m2 = $argv[-3];
     my $rargv_m3 = $argv[-4];
 
-    # TODO make sure this logic makes sense...
-    unless (defined $rargv_m2) {
-        @commands = qw(activate deactivate install list log reset sync uninstall);
+    unless (defined $argv[1]) {
+        @commands = qw(activate deactivate install list log reset sync uninstall update);
     }
 
     # If subcommand is 'install', just complete file names
-    if (defined $argv[0] && $argv[0] eq 'install') {
-        print "__ash_sentinel_complete_filenames__";
+    if (defined $argv[0] && $argv[0] eq 'install' && $rargv_m1 eq 'install') {
+        print $FILE_COMPLETE_SENTINEL;
         return 1;
     }
-
-    # If subcommand is 'activate' and it is just before our current ARGV pos
-    if (defined $argv[0] && $argv[0] eq 'activate' && $rargv_m1 eq 'activate') {
-        @commands = keys %modules;
+    elsif (defined $argv[0] && $argv[0] eq 'activate' && $rargv_m1 eq 'activate') {
+        @commands = ast_module_subsystem::get_deactivated_modules(\%modules);
     }
     elsif (defined $argv[0] && $argv[0] eq 'deactivate' && $rargv_m1 eq 'deactivate') {
-        @commands = keys %modules;
+        @commands = ast_module_subsystem::get_activated_modules(\%modules);
     }
     elsif (defined $argv[0] && $argv[0] eq 'uninstall' && $rargv_m1 eq 'uninstall') {
         @commands = keys %modules;

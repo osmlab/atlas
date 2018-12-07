@@ -28,6 +28,7 @@ our @EXPORT = qw(
     get_module_to_symlink_hash
     get_module_to_target_hash
     get_activated_modules
+    get_deactivated_modules
     perform_uninstall
     perform_activate
     perform_deactivate
@@ -267,6 +268,26 @@ sub get_activated_modules {
     }
 
     return @activated_modules;
+}
+
+# Get an array of all deactived modules, computed from the modules hash returned by
+# the 'get_module_to_status_hash' subroutine.
+# Params:
+#   $modules_ref: a reference to the module hash returned by 'get_module_to_status_hash'
+# Return: an array of all deactived modules
+sub get_deactivated_modules {
+    my $modules_ref = shift;
+
+    my %modules = %{$modules_ref};
+    my @deactivated_modules = ();
+
+    foreach my $module (keys %modules) {
+        if ($modules{$module} == $DEACTIVATED) {
+            push @deactivated_modules, $module;
+        }
+    }
+
+    return @deactivated_modules;
 }
 
 # Uninstall a module with a given name.
