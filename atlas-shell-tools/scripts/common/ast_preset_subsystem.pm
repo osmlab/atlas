@@ -71,7 +71,7 @@ my $PRESET_EDIT_HEADER = "# Each line in this file will become a discrete ARGV e
 # Reset the preset namespace to default. If an extra argument is supplied,
 # then reset the namespace to the supplied argument.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 #   $new_namespace: an optional namespace to swap to
 # Return: none
 sub reset_namespace {
@@ -90,7 +90,7 @@ sub reset_namespace {
 
 # Read and return the current namespace.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 # Return: the current namespace
 sub get_namespace {
     my $ast_path = shift;
@@ -104,7 +104,7 @@ sub get_namespace {
 
 # Save a preset for a given command.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output output
 #   $preset: the name of the preset
@@ -183,7 +183,7 @@ sub save_preset {
 
 # Remove a given preset for a given command.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $preset: the name of the preset
@@ -221,7 +221,7 @@ sub remove_preset {
 
 # Remove all presets for a given command.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $command: the name of the command
@@ -252,7 +252,7 @@ sub remove_all_presets_for_command {
 
 # List all presets for a given command.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $command: the name of the command
@@ -300,7 +300,7 @@ sub all_presets {
 
 # Show a given preset for a given command.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $preset: the name of the preset
@@ -336,7 +336,7 @@ sub show_preset {
 
 # Edit a given preset for a given command.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $preset: the name of the preset
@@ -464,7 +464,7 @@ sub edit_preset {
 
 # For a given command, copy a source preset to a destination preset.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $src_preset: the source preset
@@ -511,7 +511,7 @@ sub copy_preset {
 # Apply a preset for a given command. Returns an updated argv array with the
 # preset applied. If the preset does not exist, it will error and exit.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppres non-essential output
 #   $preset: the name of the preset
@@ -554,7 +554,7 @@ sub apply_preset_or_exit {
 
 # Read a preset for a given command. Returns the preset in an array
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $preset: the name of the preset
@@ -592,7 +592,7 @@ sub read_preset {
 
 # Get an array containing each namespace as an element.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 # Return: the namespace array
 sub get_namespaces_array {
     my $ast_path = shift;
@@ -621,7 +621,7 @@ sub get_namespaces_array {
 
 # Print all namespaces, and denote the current checked out namespace.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 # Return: 1 on success, 0 on failure
@@ -654,7 +654,7 @@ sub all_namespaces {
 
 # Create a new namespace.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $new_namespace: the namespace to create
@@ -692,7 +692,7 @@ sub create_namespace {
 
 # Check out a given namespace.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $namespace: the namespace to use
@@ -726,7 +726,7 @@ sub use_namespace {
 
 # Remove a namespace.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $namespace: the namespace to remove

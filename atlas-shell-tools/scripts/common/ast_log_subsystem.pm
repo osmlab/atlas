@@ -56,7 +56,7 @@ log4j.appender.stderr.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1
 
 # Reset the log4j file to default.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 # Return: none
 sub reset_log4j {
     my $ast_path = shift;

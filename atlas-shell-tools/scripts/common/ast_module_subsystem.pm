@@ -76,7 +76,7 @@ my $reset_stderr = $no_colors_stderr ? "" : ast_tty::ansi_reset();
 # Get a hash that maps subcommand names to their respective classes. The hash is
 # computed from the current active module index.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 # Return: a hash of all subcommands to their classes.
 sub get_subcommand_to_class_hash {
     my $ast_path = shift;
@@ -98,7 +98,7 @@ sub get_subcommand_to_class_hash {
 # Get a hash that maps subcommand names to their respective descriptions. The
 # hash is computed from the current active module index.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 # Return: a hash of all subcommands to their descriptions.
 sub get_subcommand_to_description_hash {
     my $ast_path = shift;
@@ -121,7 +121,7 @@ sub get_subcommand_to_description_hash {
 # Activated modules are mapped to ACTIVATED, while deactivated modules are mapped
 # to DEACTIVATED.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 # Return: a hash of all modules to their activation status.
 sub get_module_to_status_hash {
     my $ast_path = shift;
@@ -166,7 +166,7 @@ sub get_module_to_status_hash {
 # Symlinked modules are mapped to GOOD_SYMLINK, regular modules are mapped to
 # REAL_FILE. Broken symlink modules are mapped to BROKEN_SYMLINK.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 # Return: a hash of all modules to their symlink state.
 sub get_module_to_symlink_hash {
     my $ast_path = shift;
@@ -212,7 +212,7 @@ sub get_module_to_symlink_hash {
 # Get a hash that maps all present module names to their symlink target.
 # If a module is not a symlink, it maps to an empty string.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 # Return: a hash of all modules to their symlink target.
 sub get_module_to_target_hash {
     my $ast_path = shift;
@@ -293,7 +293,7 @@ sub get_deactivated_modules {
 # Uninstall a module with a given name.
 # Params:
 #   $module_to_uninstall: the name of the module to uninstall
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the running program
 #   $quiet: suppress non-essential output
 # Return: 1 on success, 0 on failure
@@ -329,7 +329,7 @@ sub perform_uninstall {
 # Activate a module with a given name.
 # Params:
 #   $module_to_activate: the name of the module to activate
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the running program
 #   $quiet: suppress non-essential messages
 # Return: 1 on success, 0 on failure
@@ -378,7 +378,7 @@ sub perform_activate {
 # Deactivate a module with a given name.
 # Params:
 #   $module_to_deactivate: the name of the module to deactivate
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the running program
 #   $quiet: suppress non-essential messages
 # Return: 1 on success, 0 on failure
@@ -424,7 +424,7 @@ sub perform_deactivate {
 
 # Create the active module index for the currently activated module.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $verbose_java: make the Java table printer use verbose output
@@ -477,7 +477,7 @@ sub generate_active_module_index {
 
 # Delete the active module index.
 # Params:
-#   $ast_path: the path to the ash data folder
+#   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 # Return: 1 on success, 0 on failure
