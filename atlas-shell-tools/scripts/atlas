@@ -433,14 +433,14 @@ GetOptions(
 # Just display the man page and exit.
 if (defined $help_argument) {
     if ($help_argument eq '') {
-        my $man_command = ast_utilities::get_man($skip_paging);
-        unless (defined $man_command) {
+        my @man_command = ast_utilities::get_man($skip_paging);
+        if (scalar @man_command == 0) {
             ast_utilities::error_output($program_name, "could not obtain \'man\' command");
             print STDERR "Please ensure a valid \'man\' command is on your path.\n";
             exit 1;
         }
         my @command = ();
-        push @command, $man_command;
+        push @command, @man_command;
         push @command, "$program_name";
         system(@command);
         my $exitcode = $? >> 8;

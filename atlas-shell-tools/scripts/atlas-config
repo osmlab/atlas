@@ -88,7 +88,27 @@ my @valid_stream_keys = keys %valid_streams;
 
 ########## BEGIN SUBROUTINES ##########
 
-# Nothing here for now
+sub show_submanpage_and_exit {
+    my $subpage = shift;
+
+    my @man_command = ast_utilities::get_man($skip_paging);
+    if (scalar @man_command == 0) {
+        ast_utilities::error_output($program_name, "could not obtain \'man\' command");
+        print STDERR "Please ensure a valid \'man\' command is on your path.\n";
+        exit 1;
+    }
+
+    my @command = ();
+    push @command, @man_command;
+    if ($subpage eq '') {
+        push @command, "$program_name";
+    }
+    else {
+        push @command, "$program_name-$subpage";
+    }
+    system(@command);
+    exit 0;
+}
 
 ########## END SUBROUTINES ##########
 
@@ -102,18 +122,7 @@ sub execute_command_activate {
     ) or ast_utilities::getopt_failure_and_exit($program_name, "activate");
 
     if (defined $help_flag) {
-        my $man_command = ast_utilities::get_man($skip_paging);
-        unless (defined $man_command) {
-            ast_utilities::error_output($program_name, "could not obtain \'man\' command");
-            print STDERR "Please ensure a valid \'man\' command is on your path.\n";
-            exit 1;
-        }
-
-        my @command = ();
-        push @command, $man_command;
-        push @command, "$program_name-activate";
-        system(@command);
-        exit 0;
+        show_submanpage_and_exit('activate');
     }
 
     my $module_to_activate = shift @ARGV;
@@ -146,17 +155,7 @@ sub execute_command_deactivate {
     ) or ast_utilities::getopt_failure_and_exit($program_name, "deactivate");
 
     if (defined $help_flag) {
-        my $man_command = ast_utilities::get_man($skip_paging);
-        unless (defined $man_command) {
-            ast_utilities::error_output($program_name, "could not obtain \'man\' command");
-            print STDERR "Please ensure a valid \'man\' command is on your path.\n";
-            exit 1;
-        }
-        my @command = ();
-        push @command, $man_command;
-        push @command, "$program_name-deactivate";
-        system(@command);
-        exit 0;
+        show_submanpage_and_exit('deactivate');
     }
 
     my $module_to_deactivate = shift @ARGV;
@@ -195,17 +194,7 @@ sub execute_command_install {
     ) or ast_utilities::getopt_failure_and_exit($program_name, "install");
 
     if (defined $help_flag) {
-        my $man_command = ast_utilities::get_man($skip_paging);
-        unless (defined $man_command) {
-            ast_utilities::error_output($program_name, "could not obtain \'man\' command");
-            print STDERR "Please ensure a valid \'man\' command is on your path.\n";
-            exit 1;
-        }
-        my @command = ();
-        push @command, $man_command;
-        push @command, "$program_name-install";
-        system(@command);
-        exit 0;
+        show_submanpage_and_exit('install');
     }
 
     my $module_to_install = shift @ARGV;
@@ -331,17 +320,7 @@ sub execute_command_list {
     ) or ast_utilities::getopt_failure_and_exit($program_name, "list");
 
     if (defined $help_flag) {
-        my $man_command = ast_utilities::get_man($skip_paging);
-        unless (defined $man_command) {
-            ast_utilities::error_output($program_name, "could not obtain \'man\' command");
-            print STDERR "Please ensure a valid \'man\' command is on your path.\n";
-            exit 1;
-        }
-        my @command = ();
-        push @command, $man_command;
-        push @command, "$program_name-list";
-        system(@command);
-        exit 0;
+        show_submanpage_and_exit('list');
     }
 
     my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
@@ -427,17 +406,7 @@ sub execute_command_log {
     }
 
     if (defined $help_flag) {
-        my $man_command = ast_utilities::get_man($skip_paging);
-        unless (defined $man_command) {
-            ast_utilities::error_output($program_name, "could not obtain \'man\' command");
-            print STDERR "Please ensure a valid \'man\' command is on your path.\n";
-            exit 1;
-        }
-        my @command = ();
-        push @command, $man_command;
-        push @command, "$program_name-log";
-        system(@command);
-        exit 0;
+        show_submanpage_and_exit('log');
     }
 
     my $log_folder = File::Spec->catfile($ast_path, $ast_log_subsystem::LOG4J_FOLDER);
@@ -500,17 +469,7 @@ sub execute_command_reset {
     ) or ast_utilities::getopt_failure_and_exit($program_name, "reset");
 
     if (defined $help_flag) {
-        my $man_command = ast_utilities::get_man($skip_paging);
-        unless (defined $man_command) {
-            ast_utilities::error_output($program_name, "could not obtain \'man\' command");
-            print STDERR "Please ensure a valid \'man\' command is on your path.\n";
-            exit 1;
-        }
-        my @command = ();
-        push @command, $man_command;
-        push @command, "$program_name-reset";
-        system(@command);
-        exit 0;
+        show_submanpage_and_exit('reset');
     }
 
     if ($ARGV_len == @ARGV) {
@@ -586,17 +545,7 @@ sub execute_command_sync {
     ) or ast_utilities::getopt_failure_and_exit($program_name, "sync");
 
     if (defined $help_flag) {
-        my $man_command = ast_utilities::get_man($skip_paging);
-        unless (defined $man_command) {
-            ast_utilities::error_output($program_name, "could not obtain \'man\' command");
-            print STDERR "Please ensure a valid \'man\' command is on your path.\n";
-            exit 1;
-        }
-        my @command = ();
-        push @command, $man_command;
-        push @command, "$program_name-sync";
-        system(@command);
-        exit 0;
+        show_submanpage_and_exit('sync');
     }
 
     ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
@@ -612,17 +561,7 @@ sub execute_command_uninstall {
     ) or ast_utilities::getopt_failure_and_exit($program_name, "uninstall");
 
     if (defined $help_flag) {
-        my $man_command = ast_utilities::get_man($skip_paging);
-        unless (defined $man_command) {
-            ast_utilities::error_output($program_name, "could not obtain \'man\' command");
-            print STDERR "Please ensure a valid \'man\' command is on your path.\n";
-            exit 1;
-        }
-        my @command = ();
-        push @command, $man_command;
-        push @command, "$program_name-uninstall";
-        system(@command);
-        exit 0;
+        show_submanpage_and_exit('uninstall');
     }
 
     if (defined $allflag) {
@@ -689,31 +628,7 @@ GetOptions(
 # 1) --help -> print the default help menu and exit
 # 2) --help=TOPIC -> print the TOPIC help menu and exit
 if (defined $help_argument) {
-    my $man_command = ast_utilities::get_man($skip_paging);
-    unless (defined $man_command) {
-        ast_utilities::error_output($program_name, "could not obtain \'man\' command");
-        print STDERR "Please ensure a valid \'man\' command is on your path.\n";
-        exit 1;
-    }
-    my $exitcode;
-    if ($help_argument eq '') {
-        my @command = ();
-        push @command, $man_command;
-        push @command, "$program_name";
-        system(@command);
-        $exitcode = $? >> 8;
-    }
-    else {
-        my @command = ();
-        push @command, $man_command;
-        push @command, "$program_name-$help_argument";
-        system(@command);
-        $exitcode = $? >> 8;
-    }
-    if ($exitcode != 0) {
-            exit 1;
-    }
-    exit 0;
+    show_submanpage_and_exit($help_argument);
 }
 
 # All global options have been processed, so shift the subcommand off of ARGV

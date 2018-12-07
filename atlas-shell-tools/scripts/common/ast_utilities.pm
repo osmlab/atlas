@@ -324,34 +324,36 @@ sub get_editor {
 # Get a man command capable of displaying some desired manpage. Checks
 # Params:
 #   $skip_paging: optionally disable paging for man
-# Return: the man command, or undef if no valid command is found
+# Return: the man command array, or undef if no valid command is found
 sub get_man {
     my $skip_paging = shift;
 
     my $man_command = `which man`;
     my $exitcode = $? >> 8;
+    my @command = ();
 
     # Make double sure we found a valid command. One some OS's,
     # the 'which' binary does not return an exit status.
     if ($man_command eq '') {
-        return undef;
+        return ();
     }
     chomp $man_command;
     if ($man_command eq '') {
-        return undef;
+        return ();
     }
 
+    push @command, $man_command;
+
     if ($skip_paging) {
-        $man_command = $man_command . ' -P cat';
+        push @command, "-P";
+        push @command, "cat";
     }
 
     if ($exitcode == 0) {
-        return $man_command;
+        return @command;
     }
 
-    # This has pitfalls, but it should be OK in this case
-    # https://perlmaven.com/how-to-return-undef-from-a-function
-    return undef;
+    return ();
 }
 
 # Check if a given string starts with a given prefix.
