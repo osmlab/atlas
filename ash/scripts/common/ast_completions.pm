@@ -75,13 +75,13 @@ sub completion_ash {
     # means the "rightmost" ARGV element minus 1, and so on. Since perl plays fast
     # and loose with array indexing, we can index into elements that may or may
     # not actually exist, and then check if they are defined before we actually
-    # use them.
+    # use them. The '-1' indexing syntax just indexes from the end of the array.
     #
     my $argv_len = scalar @argv;
-    my $rargv = $argv[$argv_len - 1];
-    my $rargv_m1 = $argv[$argv_len - 2];
-    my $rargv_m2 = $argv[$argv_len - 3];
-    my $rargv_m3 = $argv[$argv_len - 4];
+    my $rargv = $argv[-1];
+    my $rargv_m1 = $argv[-2];
+    my $rargv_m2 = $argv[-3];
+    my $rargv_m3 = $argv[-4];
 
     # Autocomplete the '--preset' flag, since it is probably the most used flag
     if (ast_utilities::string_starts_with($rargv, '-')) {
@@ -93,10 +93,7 @@ sub completion_ash {
     if ($rargv_m1 eq '-p' || ast_utilities::string_starts_with($rargv_m1, '--p')) {
         my @presets = ast_preset_subsystem::get_all_presets_in_current_namespace($ash_path);
         my @completion_matches = completion_match_prefix($rargv, \@presets);
-
-        foreach my $command (@completion_matches) {
-            print "$command\n";
-        }
+        print "@completion_matches\n";
         return 1;
     }
 
@@ -127,10 +124,7 @@ sub completion_ash {
             }
 
             my @completion_matches = completion_match_prefix($rargv, \@directives);
-
-            foreach my $command (@completion_matches) {
-                print "$command\n";
-            }
+            print "@completion_matches\n";
             return 1;
         }
     }
@@ -138,9 +132,7 @@ sub completion_ash {
     # Default to completing available command names
     push @commands, $ast_preset_subsystem::CFGPRESET_START;
     my @completion_matches = completion_match_prefix($rargv, \@commands);
-    foreach my $command (@completion_matches) {
-        print "$command\n";
-    }
+    print "@completion_matches\n";
 
     return 1;
 }
@@ -153,7 +145,8 @@ sub completion_ashcfg {
     # Shift "ash" off the front of ARGV
     shift @argv;
 
-    my @commands = qw(activate deactivate install list log reset sync uninstall);
+    my @commands = ();
+    my %modules = ast_module_subsystem::get_module_to_status_hash($ash_path);
 
     # In the completion code, we use the following conventions to name variables
     # containing ARGV elements. Assume ARGV looks like the following:
@@ -166,31 +159,38 @@ sub completion_ashcfg {
     # means the "rightmost" ARGV element minus 1, and so on. Since perl plays fast
     # and loose with array indexing, we can index into elements that may or may
     # not actually exist, and then check if they are defined before we actually
-    # use them.
+    # use them. The '-1' indexing syntax just indexes from the end of the array.
     #
     my $argv_len = scalar @argv;
-    my $rargv = $argv[$argv_len - 1];
-    my $rargv_m1 = $argv[$argv_len - 2];
-    my $rargv_m2 = $argv[$argv_len - 3];
-    my $rargv_m3 = $argv[$argv_len - 4];
+    my $rargv = $argv[-1];
+    my $rargv_m1 = $argv[-2];
+    my $rargv_m2 = $argv[-3];
+    my $rargv_m3 = $argv[-4];
 
-    foreach my $arg (@argv) {
-        if ($arg eq 'activate') {
-            @commands = qw(module1 module2 anotherModule);
-        }
-        elsif ($arg eq 'deactivate') {
-            @commands = qw(module3 module4 anotherModule2);
-        }
-        elsif ($arg eq 'install') {
-            print "__ash_sentinel_complete_filenames__";
-            return 1;
-        }
+    # TODO make sure this logic makes sense...
+    unless (defined $rargv_m2) {
+        @commands = qw(activate deactivate install list log reset sync uninstall);
+    }
+
+    # If subcommand is 'install', just complete file names
+    if (defined $argv[0] && $argv[0] eq 'install') {
+        print "__ash_sentinel_complete_filenames__";
+        return 1;
+    }
+
+    # If subcommand is 'activate' and it is just before our current ARGV pos
+    if (defined $argv[0] && $argv[0] eq 'activate' && $rargv_m1 eq 'activate') {
+        @commands = keys %modules;
+    }
+    elsif (defined $argv[0] && $argv[0] eq 'deactivate' && $rargv_m1 eq 'deactivate') {
+        @commands = keys %modules;
+    }
+    elsif (defined $argv[0] && $argv[0] eq 'uninstall' && $rargv_m1 eq 'uninstall') {
+        @commands = keys %modules;
     }
 
     my @completion_matches = completion_match_prefix($rargv, \@commands);
-    foreach my $command (@completion_matches) {
-        print "$command\n";
-    }
+    print "@completion_matches\n";
 
     return 1;
 }
