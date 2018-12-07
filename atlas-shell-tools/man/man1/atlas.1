@@ -480,20 +480,10 @@ more information.
 .SH "AUTHOR"
 .sp
 This program was written by Lucas Cram <lucaspcram@gmail.com>.
-Please report any bugs you find.
 
 .SH "BUGS"
 .sp
-Shell variable quote interactions do not quite work correctly within \fBatlas\fR.
-All variables end up being passed forward into the JVM, even those
-surrounded with single quotes. Eg:
-.sp
-.RS 4
-$ atlas MyProgram '$SHELL'
-.RE
-.sp
-This will end up passing the value of $SHELL forward as an argument to MyProgram
-when in reality it should be passing the literal text $SHELL.
+Please report any bugs you find to the \fBAUTHOR\fR.
 
 .SH "ATLAS SHELL TOOLS"
 .sp
