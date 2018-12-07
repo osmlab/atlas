@@ -801,3 +801,7 @@ sub get_all_presets_in_current_namespace {
 
     return @all_presets;
 }
+
+# Perl modules must return a value. Returning a value perl considers "truthy"
+# signals that the module loaded successfully.
+1;

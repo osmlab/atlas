@@ -12,11 +12,11 @@ use ast_tty;
 # Export symbols: variables and subroutines
 our @EXPORT = qw(
     completion_match_prefix
-    completion_ash
-    completion_ashcfg
+    completion_atlas
+    completion_atlascfg
 );
 
-my $FILE_COMPLETE_SENTINEL = "__ash_sentinel_complete_filenames__";
+my $FILE_COMPLETE_SENTINEL = "__atlas-shell-tools_sentinel_complete_filenames__";
 
 my $no_colors_stdout = ast_tty::is_no_colors_stdout();
 my $red_stdout = $no_colors_stdout ? "" : ast_tty::ansi_red();
@@ -55,7 +55,7 @@ sub completion_match_prefix {
     return @matched_words;
 }
 
-sub completion_ash {
+sub completion_atlas {
     my $ash_path = shift;
     my $argv_ref = shift;
 
@@ -85,6 +85,7 @@ sub completion_ash {
     my $rargv_m2 = $argv[-3];
     my $rargv_m3 = $argv[-4];
 
+    # TODO this will do strange things when completing subcommand options...
     # Autocomplete the '--preset' and '--save-preset' flags, since they are probably the most used flags
     if (ast_utilities::string_starts_with($rargv, '-')) {
         my @flags = qw(--preset --save-preset);
@@ -141,7 +142,7 @@ sub completion_ash {
     return 1;
 }
 
-sub completion_ashcfg {
+sub completion_atlascfg {
     my $ash_path = shift;
     my $argv_ref = shift;
 
@@ -207,3 +208,7 @@ sub completion_ashcfg {
 
     return 1;
 }
+
+# Perl modules must return a value. Returning a value perl considers "truthy"
+# signals that the module loaded successfully.
+1;

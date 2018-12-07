@@ -7,8 +7,8 @@
 # How do I use it?
 #
 # Run the following command:
-#    $ source /path/to/ash_completions.bash
-# Then add 'source /path/to/ash_completions.bash' to your '~/.bashrc'
+#    $ source /path/to/ast_completions.bash
+# Then add 'source /path/to/ast_completions.bash' to your '~/.bashrc'
 # file to pick up the completions in every new shell!
 
 
@@ -29,12 +29,12 @@ is_bash_at_least_version_4 ()
 _complete ()
 {
     local completion_mode="default";
-    if [ "$1" == "ash" ];
+    if [ "$1" == "atlas" ];
     then
-        local completion_mode="__completion_ash__"
-    elif [ "$1" == "ash-config" ];
+        local completion_mode="__completion_atlas__"
+    elif [ "$1" == "atlas-config" ];
     then
-        local completion_mode="__completion_ashcfg__"
+        local completion_mode="__completion_atlascfg__"
     fi
 
     if [ "$completion_mode" == "default" ];
@@ -49,9 +49,9 @@ _complete ()
         compopt +o default
     fi
 
-    local reply=$(ash-config "${completion_mode}" "${COMP_WORDS[@]}");
+    local reply=$(atlas-config "${completion_mode}" "${COMP_WORDS[@]}");
 
-    if [ "$reply" = "__ash_sentinel_complete_filenames__" ];
+    if [ "$reply" = "__atlas-shell-tools_sentinel_complete_filenames__" ];
     then
         # re-enable bash default completion for filenames
         if [ $(is_bash_at_least_version_4) == "true" ];
@@ -74,5 +74,6 @@ _complete ()
     fi
 }
 
-complete -o filenames -o bashdefault -F _complete ash
-complete -o filenames -o bashdefault -F _complete ash-config
+complete -o filenames -o bashdefault -F _complete atlas
+complete -o filenames -o bashdefault -F _complete atlas-config
+

@@ -6,6 +6,7 @@ use strict;
 use Exporter qw(import);
 use File::Spec;
 use ast_tty;
+use ast_utilities;
 
 # Export symbols: variables and subroutines
 our @EXPORT = qw(
@@ -43,7 +44,8 @@ our $LOG4J_FILE_PATH = File::Spec->catfile($LOG4J_FOLDER, $LOG4J_FILE);
 # The default setting for the log4j file.
 my $DEFAULT_LOG4J_CONTENTS = "log4j.rootLogger=ERROR, stderr
 # DO NOT REMOVE/MODIFY THE ABOVE LINE OR ANY OF THIS FILE
-# use 'ash-config log' subcommand to manage the log configuration
+# Use 'atlas-config log' subcommand to manage the log configuration
+# If this file is corrupted, use 'atlas-config log --reset' to fix.
 
 # Direct log messages to stderr
 log4j.appender.stderr=org.apache.log4j.ConsoleAppender
@@ -196,3 +198,7 @@ sub replace_logstream_in_file {
     close $logfileIN;
     close $logfileOUT;
 }
+
+# Perl modules must return a value. Returning a value perl considers "truthy"
+# signals that the module loaded successfully.
+1;

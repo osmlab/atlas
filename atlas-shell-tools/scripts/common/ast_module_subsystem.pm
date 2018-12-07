@@ -452,8 +452,8 @@ sub generate_active_module_index {
     if (scalar @activated_modules == 0) {
         ast_utilities::error_output($program_name, 'could not generate index');
         print STDERR "No active modules found\n";
-        print STDERR "Try '${bold_stderr}ash-config list${reset_stderr}' to see all installed modules.\n";
-        print STDERR "Then try '${bold_stderr}ash-config activate <module>${reset_stderr}' to activate.\n";
+        print STDERR "Try '${bold_stderr}${ast_utilities::CONFIG_PROGRAM} list${reset_stderr}' to see all installed modules.\n";
+        print STDERR "Then try '${bold_stderr}${ast_utilities::CONFIG_PROGRAM} activate <module>${reset_stderr}' to activate.\n";
         return 0;
     }
 
@@ -494,3 +494,6 @@ sub remove_active_module_index {
     }
 }
 
+# Perl modules must return a value. Returning a value perl considers "truthy"
+# signals that the module loaded successfully.
+1;

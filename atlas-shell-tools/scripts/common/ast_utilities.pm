@@ -38,8 +38,8 @@ our @EXPORT = qw(
 
 our $ATLAS_SHELL_TOOLS_VERSION = "atlas-shell-tools version 0.0.1";
 
-our $COMMAND_PROGRAM = 'ash';
-our $CONFIG_PROGRAM = 'ash-config';
+our $COMMAND_PROGRAM = 'atlas';
+our $CONFIG_PROGRAM = 'atlas-config';
 
 our $JAVA_COLOR_STDOUT = "___atlas-shell-tools_color_stdout_SPECIALARGUMENT___";
 our $JAVA_NO_COLOR_STDOUT = "___atlas-shell-tools_nocolor_stdout_SPECIALARGUMENT___";

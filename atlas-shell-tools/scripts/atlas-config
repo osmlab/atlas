@@ -339,7 +339,7 @@ sub execute_command_list {
         return 0;
     }
 
-    print "${bold_stdout}Installed ash modules:${reset_stdout}\n\n";
+    print "${bold_stdout}Installed ${ast_utilities::COMMAND_PROGRAM} modules:${reset_stdout}\n\n";
     # Sort the module names alphabetically. We use 'lc' to convert them to
     # lowercase, since by default 'sort' uses ASCII ordering.
     foreach my $module (sort {lc $a cmp lc $b} keys %modules) {
@@ -721,13 +721,13 @@ elsif ($subcommand eq "update") {
     # TODO implement
     print "TODO: implement update\n";
 }
-# These subcommands are "hidden", they are used by the completion script
+# These subcommands are "hidden", they are used by the completion scripts
 # to generate autocomplete suggestions.
-elsif ($subcommand eq "__completion_ash__") {
-    $success = ast_completions::completion_ash($ash_path, \@ARGV);
+elsif ($subcommand eq "__completion_atlas__") {
+    $success = ast_completions::completion_atlas($ash_path, \@ARGV);
 }
-elsif ($subcommand eq "__completion_ashcfg__") {
-    $success = ast_completions::completion_ashcfg($ash_path, \@ARGV);
+elsif ($subcommand eq "__completion_atlascfg__") {
+    $success = ast_completions::completion_atlascfg($ash_path, \@ARGV);
 }
 else {
     ast_utilities::error_output($program_name, "no such command ${bold_stderr}${subcommand}${reset_stderr}");
