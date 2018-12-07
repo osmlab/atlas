@@ -56,14 +56,14 @@ sub completion_match_prefix {
 }
 
 sub completion_atlas {
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $argv_ref = shift;
 
     my @argv = @{$argv_ref};
-    # Shift "ash" off the front of ARGV
+    # Shift "atlas" off the front of ARGV
     shift @argv;
 
-    my %subcommand_desc = ast_module_subsystem::get_subcommand_to_description_hash($ash_path);
+    my %subcommand_desc = ast_module_subsystem::get_subcommand_to_description_hash($ast_path);
     my @commands = keys %subcommand_desc;
 
     # In the completion code, we use the following conventions to name variables
@@ -97,7 +97,7 @@ sub completion_atlas {
     # Handle special case where user is applying a preset with "--preset"
     if (defined $rargv_m1) {
         if ($rargv_m1 eq '-p' || ast_utilities::string_starts_with($rargv_m1, '--p')) {
-            my @presets = ast_preset_subsystem::get_all_presets_in_current_namespace($ash_path);
+            my @presets = ast_preset_subsystem::get_all_presets_in_current_namespace($ast_path);
             my @completion_matches = completion_match_prefix($rargv, \@presets);
             print "@completion_matches\n";
             return 1;
@@ -143,12 +143,12 @@ sub completion_atlas {
 }
 
 sub completion_atlascfg {
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $argv_ref = shift;
 
     my @argv = @{$argv_ref};
 
-    # Shift "ash-config" off the front of ARGV
+    # Shift "atlas-config" off the front of ARGV
     shift @argv;
 
     # Shift global options off the front of ARGV
@@ -164,7 +164,7 @@ sub completion_atlascfg {
     }
 
     my @commands = ();
-    my %modules = ast_module_subsystem::get_module_to_status_hash($ash_path);
+    my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
 
     # In the completion code, we use the following conventions to name variables
     # containing ARGV elements. Assume ARGV looks like the following:

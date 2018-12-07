@@ -56,11 +56,11 @@ log4j.appender.stderr.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1
 
 # Reset the log4j file to default.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 # Return: none
 sub reset_log4j {
-    my $ash_path = shift;
-    my $log4j_file = File::Spec->catfile($ash_path, $LOG4J_FOLDER, $LOG4J_FILE);
+    my $ast_path = shift;
+    my $log4j_file = File::Spec->catfile($ast_path, $LOG4J_FOLDER, $LOG4J_FILE);
     open my $file_handle, '>', "$log4j_file";
     print $file_handle $DEFAULT_LOG4J_CONTENTS;
     close $file_handle;

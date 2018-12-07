@@ -57,7 +57,7 @@ my $reset_stderr = $no_colors_stderr ? "" : $ansi_reset;
 my $bunl_stderr = $no_colors_stderr ? "" : $ansi_bunl;
 my $eunl_stderr = $no_colors_stderr ? "" : $ansi_eunl;
 
-my $ash_path;
+my $ast_path;
 my $skip_paging;
 my $quiet;
 
@@ -118,7 +118,7 @@ sub execute_command_activate {
         ast_utilities::getopt_failure_and_exit($program_name, "activate");
     }
 
-    my %modules = get_module_to_status_hash($ash_path);
+    my %modules = get_module_to_status_hash($ast_path);
     unless (exists $modules{$module_to_activate}) {
         ast_utilities::error_output($program_name . ": activate", "no such module ${bold_stderr}${module_to_activate}${reset_stderr}");
         return 0;
@@ -127,11 +127,11 @@ sub execute_command_activate {
     # deactivate all other modules
     foreach my $module (keys %modules) {
         if ($modules{$module} == $ast_module_subsystem::ACTIVATED) {
-            ast_module_subsystem::perform_deactivate($module, $ash_path, $program_name, $quiet);
+            ast_module_subsystem::perform_deactivate($module, $ast_path, $program_name, $quiet);
         }
     }
 
-    my $success = ast_module_subsystem::perform_activate($module_to_activate, $ash_path, $program_name, $quiet);
+    my $success = ast_module_subsystem::perform_activate($module_to_activate, $ast_path, $program_name, $quiet);
     return $success;
 }
 
@@ -158,15 +158,15 @@ sub execute_command_deactivate {
         ast_utilities::getopt_failure_and_exit($program_name, "deactivate");
     }
 
-    my %modules = ast_module_subsystem::get_module_to_status_hash($ash_path);
+    my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
     unless (exists $modules{$module_to_deactivate}) {
         ast_utilities::error_output($program_name . ": deactivate", "no such module ${bold_stderr}${module_to_deactivate}${reset_stderr}");
         return 0;
     }
 
-    my $success = ast_module_subsystem::perform_deactivate($module_to_deactivate, $ash_path, $program_name, $quiet);
+    my $success = ast_module_subsystem::perform_deactivate($module_to_deactivate, $ast_path, $program_name, $quiet);
     if ($success) {
-        ast_module_subsystem::remove_active_module_index($ash_path, $program_name, $quiet);
+        ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
     }
     return $success;
 }
@@ -209,7 +209,7 @@ sub execute_command_install {
         return 0;
     }
 
-    my $modules_folder = File::Spec->catfile($ash_path, $ast_module_subsystem::MODULES_FOLDER);
+    my $modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER);
 
     # Create the module name, respecting the --name flag if present.
     my $module_basename;
@@ -227,7 +227,7 @@ sub execute_command_install {
     $module_basename =~ s{$ast_module_subsystem::MODULE_SUFFIX}{};
 
     # Handle the case where the module is already installed
-    my %modules = ast_module_subsystem::get_module_to_status_hash($ash_path);
+    my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
     if (defined $modules{$module_basename}) {
         ast_utilities::warn_output($program_name, "module ${bold_stderr}${module_basename}${reset_stderr} is already installed");
         if ($skip_install) {
@@ -287,18 +287,18 @@ sub execute_command_install {
     }
     else {
         unless ($install_deactivated) {
-            my %modules = ast_module_subsystem::get_module_to_status_hash($ash_path);
+            my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
             foreach my $module (keys %modules) {
                 if ($modules{$module} == $ast_module_subsystem::ACTIVATED
                     && $module ne $module_basename) {
-                    ast_module_subsystem::perform_deactivate($module, $ash_path, $program_name, $quiet);
+                    ast_module_subsystem::perform_deactivate($module, $ast_path, $program_name, $quiet);
                 }
             }
         }
 
         unless($install_deactivated) {
-            ast_module_subsystem::remove_active_module_index($ash_path, $program_name, $quiet);
-            my $success = ast_module_subsystem::generate_active_module_index($ash_path, $program_name, $quiet, 0);
+            ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
+            my $success = ast_module_subsystem::generate_active_module_index($ast_path, $program_name, $quiet, 0);
             unless ($success) {
                 ast_utilities::warn_output($program_name . ": install", "partial installation may not function properly");
             }
@@ -329,9 +329,9 @@ sub execute_command_list {
         exit 0;
     }
 
-    my %modules = ast_module_subsystem::get_module_to_status_hash($ash_path);
-    my %symlinks = ast_module_subsystem::get_module_to_symlink_hash($ash_path);
-    my %targets = ast_module_subsystem::get_module_to_target_hash($ash_path);
+    my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
+    my %symlinks = ast_module_subsystem::get_module_to_symlink_hash($ast_path);
+    my %targets = ast_module_subsystem::get_module_to_target_hash($ast_path);
 
     unless (keys %modules) {
         ast_utilities::error_output($program_name . ": list", "found no installed modules");
@@ -422,13 +422,13 @@ sub execute_command_log {
         exit 0;
     }
 
-    my $log_folder = File::Spec->catfile($ash_path, $ast_log_subsystem::LOG4J_FOLDER);
+    my $log_folder = File::Spec->catfile($ast_path, $ast_log_subsystem::LOG4J_FOLDER);
     my $logfile_path = File::Spec->catfile($log_folder, $ast_log_subsystem::LOG4J_FILE);
     my $current_level = ast_log_subsystem::read_loglevel_from_file($logfile_path);
     my $current_stream = ast_log_subsystem::read_logstream_from_file($logfile_path);
 
     if ($reset) {
-        ast_log_subsystem::reset_log4j($ash_path);
+        ast_log_subsystem::reset_log4j($ast_path);
     }
 
     unless ($loglevel eq '') {
@@ -498,8 +498,8 @@ sub execute_command_reset {
     }
 
     if (defined $modules_flag || defined $all_flag) {
-        my $modules_folder = File::Spec->catfile($ash_path, $ast_module_subsystem::MODULES_FOLDER);
-        my %modules = ast_module_subsystem::get_module_to_status_hash($ash_path);
+        my $modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER);
+        my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
 
         my $modules_length = keys %modules;
         if ($modules_length == 0) {
@@ -512,14 +512,14 @@ sub execute_command_reset {
                      $confirmed = ast_utilities::prompt_yn("Uninstalling module $module. OK?");
                 }
                 if ($confirmed) {
-                    ast_module_subsystem::perform_uninstall($module, $ash_path, $program_name, $quiet);
+                    ast_module_subsystem::perform_uninstall($module, $ast_path, $program_name, $quiet);
                 }
             }
         }
     }
 
     if (defined $presets_flag || defined $all_flag) {
-        my $presets_folder = File::Spec->catfile($ash_path, $ast_preset_subsystem::PRESETS_FOLDER);
+        my $presets_folder = File::Spec->catfile($ast_path, $ast_preset_subsystem::PRESETS_FOLDER);
         my $confirmed = 1;
         unless ($force_flag) {
             $confirmed = ast_utilities::prompt_yn("Clearing saved presets at $presets_folder. OK?");
@@ -533,7 +533,7 @@ sub execute_command_reset {
     }
 
     if (defined $log_flag || defined $all_flag) {
-        my $log_folder = File::Spec->catfile($ash_path, $ast_log_subsystem::LOG4J_FOLDER);
+        my $log_folder = File::Spec->catfile($ast_path, $ast_log_subsystem::LOG4J_FOLDER);
         my $logfile_path = File::Spec->catfile($log_folder, $ast_log_subsystem::LOG4J_FILE);
         my $confirmed = 1;
         unless ($force_flag) {
@@ -551,7 +551,7 @@ sub execute_command_reset {
             $confirmed = ast_utilities::prompt_yn("Removing active module index. OK?");
         }
         if ($confirmed) {
-            ast_module_subsystem::remove_active_module_index($ash_path, $program_name, $quiet);
+            ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
         }
     }
 
@@ -575,8 +575,8 @@ sub execute_command_sync {
         exit 0;
     }
 
-    ast_module_subsystem::remove_active_module_index($ash_path, $program_name, $quiet);
-    ast_module_subsystem::generate_active_module_index($ash_path, $program_name, $quiet, 1);
+    ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
+    ast_module_subsystem::generate_active_module_index($ast_path, $program_name, $quiet, 1);
 }
 
 sub execute_command_uninstall {
@@ -599,9 +599,9 @@ sub execute_command_uninstall {
     }
 
     if (defined $allflag) {
-        my %modules = ast_module_subsystem::get_module_to_status_hash($ash_path);
+        my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
         foreach my $module (keys %modules) {
-            ast_module_subsystem::perform_uninstall($module, $ash_path, $program_name, $quiet);
+            ast_module_subsystem::perform_uninstall($module, $ast_path, $program_name, $quiet);
         }
         return 1;
     }
@@ -612,17 +612,17 @@ sub execute_command_uninstall {
         ast_utilities::getopt_failure_and_exit($program_name, "uninstall");
     }
 
-    my %modules = ast_module_subsystem::get_module_to_status_hash($ash_path);
+    my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
     my @activated_modules = ast_module_subsystem::get_activated_modules(\%modules);
     my $activated_module = $activated_modules[0];
-    my $success = ast_module_subsystem::perform_uninstall($module_to_uninstall, $ash_path, $program_name, $quiet);
+    my $success = ast_module_subsystem::perform_uninstall($module_to_uninstall, $ast_path, $program_name, $quiet);
     unless ($success) {
         return 0;
     }
 
     if (defined $activated_module) {
         if ($module_to_uninstall eq $activated_module) {
-            ast_module_subsystem::remove_active_module_index($ash_path, $program_name, $quiet);
+            ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
         }
     }
 
@@ -634,7 +634,7 @@ sub execute_command_uninstall {
 
 ########## BEGIN EXECUTION LOGIC ##########
 
-$ash_path = ast_utilities::create_data_directory();
+$ast_path = ast_utilities::create_data_directory();
 
 my $help_argument;
 Getopt::Long::Configure(qw(no_ignore_case_always));
@@ -724,10 +724,10 @@ elsif ($subcommand eq "update") {
 # These subcommands are "hidden", they are used by the completion scripts
 # to generate autocomplete suggestions.
 elsif ($subcommand eq "__completion_atlas__") {
-    $success = ast_completions::completion_atlas($ash_path, \@ARGV);
+    $success = ast_completions::completion_atlas($ast_path, \@ARGV);
 }
 elsif ($subcommand eq "__completion_atlascfg__") {
-    $success = ast_completions::completion_atlascfg($ash_path, \@ARGV);
+    $success = ast_completions::completion_atlascfg($ast_path, \@ARGV);
 }
 else {
     ast_utilities::error_output($program_name, "no such command ${bold_stderr}${subcommand}${reset_stderr}");

@@ -71,13 +71,13 @@ my $PRESET_EDIT_HEADER = "# Each line in this file will become a discrete ARGV e
 # Reset the preset namespace to default. If an extra argument is supplied,
 # then reset the namespace to the supplied argument.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 #   $new_namespace: an optional namespace to swap to
 # Return: none
 sub reset_namespace {
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $new_namespace = shift;
-    my $namespace_file = File::Spec->catfile($ash_path, $ast_preset_subsystem::NAMESPACE_PATH);
+    my $namespace_file = File::Spec->catfile($ast_path, $ast_preset_subsystem::NAMESPACE_PATH);
     open my $file_handle, '>', "$namespace_file";
     if (defined $new_namespace) {
         print $file_handle "${new_namespace}\n";
@@ -90,11 +90,11 @@ sub reset_namespace {
 
 # Read and return the current namespace.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 # Return: the current namespace
 sub get_namespace {
-    my $ash_path = shift;
-    my $namespace_file = File::Spec->catfile($ash_path, $NAMESPACE_PATH);
+    my $ast_path = shift;
+    my $namespace_file = File::Spec->catfile($ast_path, $NAMESPACE_PATH);
     open my $file_handle, '<', "$namespace_file";
     my $firstline = <$file_handle>;
     chomp $firstline;
@@ -104,7 +104,7 @@ sub get_namespace {
 
 # Save a preset for a given command.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output output
 #   $preset: the name of the preset
@@ -113,7 +113,7 @@ sub get_namespace {
 #   $argv_ref: a reference to an array containing all the options and args
 # Return: 1 on success, 0 on failure
 sub save_preset {
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
     my $preset = shift;
@@ -123,7 +123,7 @@ sub save_preset {
 
     my @argv = @{$argv_ref};
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
+    my $preset_subfolder = File::Spec->catfile($ast_path, $PRESETS_FOLDER, $namespace, $command);
     make_path("$preset_subfolder", {
         verbose => 0,
         mode => 0755
@@ -183,7 +183,7 @@ sub save_preset {
 
 # Remove a given preset for a given command.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $preset: the name of the preset
@@ -191,14 +191,14 @@ sub save_preset {
 #   $namespace: the namespace from which to remove
 # Return: 1 on success, 0 on failure
 sub remove_preset {
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
     my $preset = shift;
     my $command = shift;
     my $namespace = shift;
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
+    my $preset_subfolder = File::Spec->catfile($ast_path, $PRESETS_FOLDER, $namespace, $command);
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
 
     unless (-f $preset_file) {
@@ -221,20 +221,20 @@ sub remove_preset {
 
 # Remove all presets for a given command.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $command: the name of the command
 #   $namespace: the namespace from which to remove
 # Return: 1 on success, 0 on failure
 sub remove_all_presets_for_command {
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
     my $command = shift;
     my $namespace = shift;
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
+    my $preset_subfolder = File::Spec->catfile($ast_path, $PRESETS_FOLDER, $namespace, $command);
 
     unless (-d $preset_subfolder) {
         ast_utilities::error_output($program_name, "no presets found for command ${bold_stderr}${command}${reset_stderr}");
@@ -252,20 +252,20 @@ sub remove_all_presets_for_command {
 
 # List all presets for a given command.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $command: the name of the command
 #   $namespace: the namespace to save to
 # Return: 1 on success, 0 on failure
 sub all_presets {
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
     my $command = shift;
     my $namespace = shift;
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
+    my $preset_subfolder = File::Spec->catfile($ast_path, $PRESETS_FOLDER, $namespace, $command);
 
     unless (-d $preset_subfolder) {
         ast_utilities::error_output($program_name, "no presets found for ${bold_stderr}${command}${reset_stderr}");
@@ -300,7 +300,7 @@ sub all_presets {
 
 # Show a given preset for a given command.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $preset: the name of the preset
@@ -308,14 +308,14 @@ sub all_presets {
 #   $namespace: the namespace to save to
 # Return: 1 on success, 0 on failure
 sub show_preset {
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
     my $preset = shift;
     my $command = shift;
     my $namespace = shift;
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
+    my $preset_subfolder = File::Spec->catfile($ast_path, $PRESETS_FOLDER, $namespace, $command);
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
 
     unless (-f $preset_file) {
@@ -323,7 +323,7 @@ sub show_preset {
         return 0;
     }
 
-    my @presets_from_file = read_preset($ash_path, $program_name, $quiet, $preset, $command, $namespace);
+    my @presets_from_file = read_preset($ast_path, $program_name, $quiet, $preset, $command, $namespace);
     print "Preset ${bold_stdout}${preset}${reset_stdout} for command ${bold_stdout}${command}${reset_stdout}:\n";
     print "\n${bunl_stdout}Preset ARGV${eunl_stdout}${reset_stdout}\n";
     for my $preset_from_file (@presets_from_file) {
@@ -336,7 +336,7 @@ sub show_preset {
 
 # Edit a given preset for a given command.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $preset: the name of the preset
@@ -344,14 +344,14 @@ sub show_preset {
 #   $namespace: the namespace
 # Return: 1 on success, 0 on failure
 sub edit_preset {
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
     my $preset = shift;
     my $command = shift;
     my $namespace = shift;
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
+    my $preset_subfolder = File::Spec->catfile($ast_path, $PRESETS_FOLDER, $namespace, $command);
     make_path("$preset_subfolder", {
         verbose => 0,
         mode => 0755
@@ -363,7 +363,7 @@ sub edit_preset {
         $creating_from_scratch = 1;
     }
 
-    my @presets_from_file = read_preset($ash_path, $program_name, $quiet, $preset, $command, $namespace);
+    my @presets_from_file = read_preset($ast_path, $program_name, $quiet, $preset, $command, $namespace);
 
     my $handle;
     my $stage_handle;
@@ -457,14 +457,14 @@ sub edit_preset {
     # like File::Copy.
     system("cp $preset_stage_file $preset_file");
     close $tmpdir;
-    show_preset($ash_path, $program_name, $quiet, $preset, $command, $namespace);
+    show_preset($ast_path, $program_name, $quiet, $preset, $command, $namespace);
 
     return 1;
 }
 
 # For a given command, copy a source preset to a destination preset.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $src_preset: the source preset
@@ -473,7 +473,7 @@ sub edit_preset {
 #   $namespace: the namespace
 # Return: 1 on success, 0 on failure
 sub copy_preset {
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
     my $src_preset = shift;
@@ -481,7 +481,7 @@ sub copy_preset {
     my $command = shift;
     my $namespace = shift;
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
+    my $preset_subfolder = File::Spec->catfile($ast_path, $PRESETS_FOLDER, $namespace, $command);
     my $source_file = File::Spec->catfile($preset_subfolder, $src_preset);
     my $dest_file = File::Spec->catfile($preset_subfolder, $dest_preset);
 
@@ -511,7 +511,7 @@ sub copy_preset {
 # Apply a preset for a given command. Returns an updated argv array with the
 # preset applied. If the preset does not exist, it will error and exit.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppres non-essential output
 #   $preset: the name of the preset
@@ -520,7 +520,7 @@ sub copy_preset {
 #   $argv_ref: a reference to an array containing all the options and args
 # Return: the updated argv array
 sub apply_preset_or_exit {
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
     my $preset = shift;
@@ -530,15 +530,15 @@ sub apply_preset_or_exit {
 
     my @argv = @{$argv_ref};
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
+    my $preset_subfolder = File::Spec->catfile($ast_path, $PRESETS_FOLDER, $namespace, $command);
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
     unless (-f $preset_file) {
         ast_utilities::error_output($program_name, "no such preset ${bold_stderr}${preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
-        all_presets($ash_path, $program_name, $quiet, $command, $namespace);
+        all_presets($ast_path, $program_name, $quiet, $command, $namespace);
         exit 1;
     }
 
-    my @argv_from_presets = read_preset($ash_path, $program_name, $quiet, $preset, $command, $namespace);
+    my @argv_from_presets = read_preset($ast_path, $program_name, $quiet, $preset, $command, $namespace);
     my @final_argv = ();
 
     foreach my $preset_argv_elem (@argv_from_presets) {
@@ -554,7 +554,7 @@ sub apply_preset_or_exit {
 
 # Read a preset for a given command. Returns the preset in an array
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $preset: the name of the preset
@@ -562,14 +562,14 @@ sub apply_preset_or_exit {
 #   $namespace: the current namespace
 # Return: the preset array, or an empty array on error
 sub read_preset {
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
     my $preset = shift;
     my $command = shift;
     my $namespace = shift;
 
-    my $preset_subfolder = File::Spec->catfile($ash_path, $PRESETS_FOLDER, $namespace, $command);
+    my $preset_subfolder = File::Spec->catfile($ast_path, $PRESETS_FOLDER, $namespace, $command);
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
 
     unless (-f $preset_file) {
@@ -592,15 +592,15 @@ sub read_preset {
 
 # Get an array containing each namespace as an element.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 # Return: the namespace array
 sub get_namespaces_array {
-    my $ash_path = shift;
+    my $ast_path = shift;
 
-    my $preset_folder = File::Spec->catfile($ash_path, $PRESETS_FOLDER);
+    my $preset_folder = File::Spec->catfile($ast_path, $PRESETS_FOLDER);
 
     unless (-d $preset_folder) {
-        die "The folder $PRESETS_FOLDER did not exist at $ash_path";
+        die "The folder $PRESETS_FOLDER did not exist at $ast_path";
     }
 
     opendir my $presets_dir_handle, $preset_folder or die "Something went wrong opening dir: $!";
@@ -621,17 +621,17 @@ sub get_namespaces_array {
 
 # Print all namespaces, and denote the current checked out namespace.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 # Return: 1 on success, 0 on failure
 sub all_namespaces {
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
 
-    my $current_namespace = get_namespace($ash_path);
-    my @namespaces = get_namespaces_array($ash_path);
+    my $current_namespace = get_namespace($ast_path);
+    my @namespaces = get_namespaces_array($ast_path);
 
     if (scalar @namespaces == 0) {
         error_output($program_name, "no namespaces found");
@@ -654,23 +654,23 @@ sub all_namespaces {
 
 # Create a new namespace.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $new_namespace: the namespace to create
 # Return: 1 on success, 0 on failure
 sub create_namespace {
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
     my $new_namespace = shift;
 
-    my $current_namespace = get_namespace($ash_path);
-    my $preset_folder = File::Spec->catfile($ash_path, $PRESETS_FOLDER);
+    my $current_namespace = get_namespace($ast_path);
+    my $preset_folder = File::Spec->catfile($ast_path, $PRESETS_FOLDER);
     my $new_namespace_folder = File::Spec->catfile($preset_folder, $new_namespace);
 
     unless (-d $preset_folder) {
-        die "The folder $PRESETS_FOLDER did not exist at $ash_path";
+        die "The folder $PRESETS_FOLDER did not exist at $ast_path";
     }
 
     if (-d $new_namespace_folder) {
@@ -692,22 +692,22 @@ sub create_namespace {
 
 # Check out a given namespace.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $namespace: the namespace to use
 # Return: 1 on success, 0 on failure
 sub use_namespace {
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
     my $namespace = shift;
 
-    my $preset_folder = File::Spec->catfile($ash_path, $PRESETS_FOLDER);
+    my $preset_folder = File::Spec->catfile($ast_path, $PRESETS_FOLDER);
     my $namespace_folder = File::Spec->catfile($preset_folder, $namespace);
 
     unless (-d $preset_folder) {
-        die "The folder $PRESETS_FOLDER did not exist at $ash_path";
+        die "The folder $PRESETS_FOLDER did not exist at $ast_path";
     }
 
     unless (-d $namespace_folder) {
@@ -715,7 +715,7 @@ sub use_namespace {
         return 0;
     }
 
-    reset_namespace($ash_path, $namespace);
+    reset_namespace($ast_path, $namespace);
 
     unless ($quiet) {
         print "Now using namespace ${bold_stdout}${namespace}${reset_stdout}.\n";
@@ -726,23 +726,23 @@ sub use_namespace {
 
 # Remove a namespace.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $namespace: the namespace to remove
 # Return: 1 on success, 0 on failure
 sub remove_namespace {
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
     my $namespace = shift;
 
-    my $current_namespace = get_namespace($ash_path);
-    my $preset_folder = File::Spec->catfile($ash_path, $PRESETS_FOLDER);
+    my $current_namespace = get_namespace($ast_path);
+    my $preset_folder = File::Spec->catfile($ast_path, $PRESETS_FOLDER);
     my $namespace_folder = File::Spec->catfile($preset_folder, $namespace);
 
     unless (-d $preset_folder) {
-        die "The folder $PRESETS_FOLDER did not exist at $ash_path";
+        die "The folder $PRESETS_FOLDER did not exist at $ast_path";
     }
 
     unless (-d $namespace_folder) {
@@ -770,12 +770,12 @@ sub remove_namespace {
 }
 
 sub get_all_presets_in_current_namespace {
-    my $ash_path = shift;
+    my $ast_path = shift;
 
-    my $namespace = get_namespace($ash_path);
+    my $namespace = get_namespace($ast_path);
     my @all_presets = ();
 
-    my $preset_folder = File::Spec->catfile($ash_path, $PRESETS_FOLDER);
+    my $preset_folder = File::Spec->catfile($ast_path, $PRESETS_FOLDER);
     my $namespace_folder = File::Spec->catfile($preset_folder, $namespace);
 
     opendir my $namespace_dir_handle, $namespace_folder or die "Something went wrong opening dir: $!";

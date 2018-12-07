@@ -50,7 +50,7 @@ my $reset_stderr = $no_colors_stderr ? "" : $ansi_reset;
 my $bunl_stderr = $no_colors_stderr ? "" : $ansi_bunl;
 my $eunl_stderr = $no_colors_stderr ? "" : $ansi_eunl;
 
-my $ash_path;
+my $ast_path;
 my $skip_paging;
 my $quiet;
 
@@ -62,7 +62,7 @@ my $program_version = "$ast_utilities::ATLAS_SHELL_TOOLS_VERSION ($program_name 
 
 ########## BEGIN SUBROUTINES ##########
 
-sub ash_unrecognized_command_message_and_exit {
+sub atlas_unrecognized_command_message_and_exit {
     my $command = shift;
     ast_utilities::error_output($program_name, "no such command ${bold_stderr}${command}${reset_stderr}");
     print STDERR "Try '${bold_stderr}${program_name} --list${reset_stderr}' for a list of commands.\n";
@@ -70,23 +70,23 @@ sub ash_unrecognized_command_message_and_exit {
     exit 127;
 }
 
-sub ash_show_contextual_help_menu_and_exit {
+sub atlas_show_contextual_help_menu_and_exit {
     my $context = shift;
     my $skip_paging = shift;
-    my $ash_path = shift;
+    my $ast_path = shift;
 
     unless (defined $skip_paging) {
         $skip_paging = 0;
     }
 
-    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ash_path);
+    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
     my $subcommand_class = $subcommand_classes{$context};
 
     unless (defined $subcommand_class) {
-        ash_unrecognized_command_message_and_exit($context);
+        atlas_unrecognized_command_message_and_exit($context);
     }
 
-    my $full_path_to_modules_folder = File::Spec->catfile($ash_path, $ast_module_subsystem::MODULES_FOLDER, '*');
+    my $full_path_to_modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER, '*');
 
     my $java_command = "java -Xms2G -Xmx2G ".
                    "-cp \"${full_path_to_modules_folder}\" ".
@@ -131,30 +131,30 @@ sub ash_show_contextual_help_menu_and_exit {
     exit 0;
 }
 
-sub ash_show_class_of_and_exit {
-    my $ash_path = shift;
+sub atlas_show_class_of_and_exit {
+    my $ast_path = shift;
     my $class_of = shift;
 
-    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ash_path);
+    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
     my $subcommand_class = $subcommand_classes{$class_of};
 
     unless (defined $subcommand_class) {
-        ash_unrecognized_command_message_and_exit($class_of);
+        atlas_unrecognized_command_message_and_exit($class_of);
     }
 
     print "$subcommand_class\n";
     exit 0;
 }
 
-sub ash_list_subcommands_and_exit {
-    my $ash_path = shift;
+sub atlas_list_subcommands_and_exit {
+    my $ast_path = shift;
     my $skip_paging = shift;
 
     unless (defined $skip_paging) {
         $skip_paging = 0;
     }
 
-    my %subcommand_desc = ast_module_subsystem::get_subcommand_to_description_hash($ash_path);
+    my %subcommand_desc = ast_module_subsystem::get_subcommand_to_description_hash($ast_path);
     my $pager_command = ast_utilities::get_pager();
 
     unless (defined $pager_command) {
@@ -175,7 +175,7 @@ sub ash_list_subcommands_and_exit {
         open PAGER, "|${pager_command}" or die $!;
         print PAGER "${bold_stdout}AVAILABLE COMMANDS${reset_stdout}\n";
         print PAGER "See the help page for a command with ${bold_stdout}${program_name} --help <command>${reset_stdout}.\n";
-        print PAGER "You can open a new page directly from this window with ${bold_stdout}!ash --help <command>${reset_stdout}.\n\n";
+        print PAGER "You can open a new page directly from this window with ${bold_stdout}!${program_name} --help <command>${reset_stdout}.\n\n";
         foreach my $subcommand (sort {lc $a cmp lc $b} keys %subcommand_desc) {
             print PAGER "    ${bold_stdout}$subcommand${reset_stdout}\n";
             print PAGER "        $subcommand_desc{$subcommand}\n\n";
@@ -185,13 +185,13 @@ sub ash_list_subcommands_and_exit {
     exit 0;
 }
 
-sub ash_cfgpreset {
+sub atlas_cfgpreset {
     my $debug = shift;
     my $argv_ref = shift;
 
     my @argv = @{$argv_ref};
-    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ash_path);
-    my $current_namespace = ast_preset_subsystem::get_namespace($ash_path);
+    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
+    my $current_namespace = ast_preset_subsystem::get_namespace($ast_path);
     my $success = 1;
 
     my $directive_and_context = shift @argv;
@@ -228,10 +228,10 @@ sub ash_cfgpreset {
         my $preset = shift @argv;
         unless (defined $preset) {
             ast_utilities::error_output($program_name, "must specify a preset name");
-            print STDERR "Try \'${bold_stderr}ash ${ast_preset_subsystem::CFGPRESET_START} save:${command_context} <preset>${reset_stderr}\'.\n";
+            print STDERR "Try \'${bold_stderr}${program_name} ${ast_preset_subsystem::CFGPRESET_START} save:${command_context} <preset>${reset_stderr}\'.\n";
             return 0;
         }
-        $success = ast_preset_subsystem::save_preset($ash_path, $program_name, $quiet, $preset, $command_context, $current_namespace, \@argv);
+        $success = ast_preset_subsystem::save_preset($ast_path, $program_name, $quiet, $preset, $command_context, $current_namespace, \@argv);
     }
     elsif ($directive eq 'show') {
         unless (defined $command_context) {
@@ -244,10 +244,10 @@ sub ash_cfgpreset {
         }
         my $preset = shift @argv;
         if (defined $preset) {
-            $success = ast_preset_subsystem::show_preset($ash_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
+            $success = ast_preset_subsystem::show_preset($ast_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
         }
         else {
-            $success = ast_preset_subsystem::all_presets($ash_path, $program_name, $quiet, $command_context, $current_namespace);
+            $success = ast_preset_subsystem::all_presets($ast_path, $program_name, $quiet, $command_context, $current_namespace);
         }
     }
     elsif ($directive eq 'remove') {
@@ -261,10 +261,10 @@ sub ash_cfgpreset {
         }
         my $preset = shift @argv;
         if (defined $preset) {
-            $success = ast_preset_subsystem::remove_preset($ash_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
+            $success = ast_preset_subsystem::remove_preset($ast_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
         }
         else {
-            $success = ast_preset_subsystem::remove_all_presets_for_command($ash_path, $program_name, $quiet, $command_context, $current_namespace);
+            $success = ast_preset_subsystem::remove_all_presets_for_command($ast_path, $program_name, $quiet, $command_context, $current_namespace);
         }
     }
     elsif ($directive eq 'edit') {
@@ -279,10 +279,10 @@ sub ash_cfgpreset {
         my $preset = shift @argv;
         unless (defined $preset) {
             ast_utilities::error_output($program_name, "must specify a preset name");
-            print STDERR "Try \'${bold_stderr}ash ${ast_preset_subsystem::CFGPRESET_START} edit:${command_context} <preset>${reset_stderr}\'.\n";
+            print STDERR "Try \'${bold_stderr}${program_name} ${ast_preset_subsystem::CFGPRESET_START} edit:${command_context} <preset>${reset_stderr}\'.\n";
             return 0;
         }
-        $success = ast_preset_subsystem::edit_preset($ash_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
+        $success = ast_preset_subsystem::edit_preset($ast_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
     }
     elsif ($directive eq 'copy') {
         unless (defined $command_context) {
@@ -297,18 +297,18 @@ sub ash_cfgpreset {
         my $dest_preset = shift @argv;
         unless (defined $src_preset) {
             ast_utilities::error_output($program_name, "must specify a source preset name");
-            print STDERR "Try \'${bold_stderr}ash ${ast_preset_subsystem::CFGPRESET_START} copy:${command_context} <source-preset> <destination-preset>${reset_stderr}\'.\n";
+            print STDERR "Try \'${bold_stderr}${program_name} ${ast_preset_subsystem::CFGPRESET_START} copy:${command_context} <source-preset> <destination-preset>${reset_stderr}\'.\n";
             return 0;
         }
         unless (defined $dest_preset) {
             ast_utilities::error_output($program_name, "must specify a destination preset name");
-            print STDERR "Try \'${bold_stderr}ash ${ast_preset_subsystem::CFGPRESET_START} copy:${command_context} <source-preset> <destination-preset>${reset_stderr}\'.\n";
+            print STDERR "Try \'${bold_stderr}${program_name} ${ast_preset_subsystem::CFGPRESET_START} copy:${command_context} <source-preset> <destination-preset>${reset_stderr}\'.\n";
             return 0;
         }
-        $success = ast_preset_subsystem::copy_preset($ash_path, $program_name, $quiet, $src_preset, $dest_preset, $command_context, $current_namespace);
+        $success = ast_preset_subsystem::copy_preset($ast_path, $program_name, $quiet, $src_preset, $dest_preset, $command_context, $current_namespace);
     }
     elsif ($directive eq 'namespace') {
-        $success = ash_cfgpreset_namespace($current_namespace, \@argv);
+        $success = atlas_cfgpreset_namespace($current_namespace, \@argv);
     }
     else {
         ast_utilities::error_output($program_name, "unrecognized ${bold_stderr}${ast_preset_subsystem::CFGPRESET_START}${reset_stderr} directive '${bold_stderr}${directive}${reset_stderr}'");
@@ -319,12 +319,12 @@ sub ash_cfgpreset {
     return $success;
 }
 
-sub ash_cfgpreset_namespace {
+sub atlas_cfgpreset_namespace {
     my $current_namespace = shift;
     my $argv_ref = shift;
 
     my @argv = @{$argv_ref};
-    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ash_path);
+    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
     my $success = 1;
 
     my $subdirective = shift @argv;
@@ -336,34 +336,34 @@ sub ash_cfgpreset_namespace {
     }
 
     if ($subdirective eq 'list') {
-        $success = ast_preset_subsystem::all_namespaces($ash_path, $program_name, $quiet);
+        $success = ast_preset_subsystem::all_namespaces($ast_path, $program_name, $quiet);
     }
     elsif ($subdirective eq 'use') {
         my $namespace = shift @argv;
         unless (defined $namespace) {
             ast_utilities::error_output($program_name, "must specify a namespace");
-            print STDERR "Try \'${bold_stderr}ash ${ast_preset_subsystem::CFGPRESET_START} namespace use <namespace>${reset_stderr}\'.\n";
+            print STDERR "Try \'${bold_stderr}${program_name} ${ast_preset_subsystem::CFGPRESET_START} namespace use <namespace>${reset_stderr}\'.\n";
             return 0;
         }
-        $success = ast_preset_subsystem::use_namespace($ash_path, $program_name, $quiet, $namespace);
+        $success = ast_preset_subsystem::use_namespace($ast_path, $program_name, $quiet, $namespace);
     }
     elsif ($subdirective eq 'create') {
         my $new_namespace = shift @argv;
         unless (defined $new_namespace) {
             ast_utilities::error_output($program_name, "must specify a new namespace");
-            print STDERR "Try \'${bold_stderr}ash ${ast_preset_subsystem::CFGPRESET_START} namespace create <new-namespace>${reset_stderr}\'.\n";
+            print STDERR "Try \'${bold_stderr}${program_name} ${ast_preset_subsystem::CFGPRESET_START} namespace create <new-namespace>${reset_stderr}\'.\n";
             return 0;
         }
-        $success = ast_preset_subsystem::create_namespace($ash_path, $program_name, $quiet, $new_namespace);
+        $success = ast_preset_subsystem::create_namespace($ast_path, $program_name, $quiet, $new_namespace);
     }
     elsif ($subdirective eq 'remove') {
         my $namespace = shift @argv;
         unless (defined $namespace) {
             ast_utilities::error_output($program_name, "must specify a namespace");
-            print STDERR "Try \'${bold_stderr}ash ${ast_preset_subsystem::CFGPRESET_START} namespace remove <namespace>${reset_stderr}\'.\n";
+            print STDERR "Try \'${bold_stderr}${program_name} ${ast_preset_subsystem::CFGPRESET_START} namespace remove <namespace>${reset_stderr}\'.\n";
             return 0;
         }
-        $success = ast_preset_subsystem::remove_namespace($ash_path, $program_name, $quiet, $namespace);
+        $success = ast_preset_subsystem::remove_namespace($ast_path, $program_name, $quiet, $namespace);
     }
     else {
         ast_utilities::error_output($program_name, "unrecognized ${bold_stderr}${ast_preset_subsystem::CFGPRESET_START} namespace${reset_stderr} subdirective '${bold_stderr}${subdirective}${reset_stderr}'");
@@ -379,9 +379,9 @@ sub ash_cfgpreset_namespace {
 
 ########## BEGIN EXECUTION LOGIC ##########
 
-$ash_path = ast_utilities::create_data_directory();
+$ast_path = ast_utilities::create_data_directory();
 
-# Handle ash global options. Global options are options that come before the
+# Handle atlas global options. Global options are options that come before the
 # supplied subcommand. Subcommand options are handled by the command implementation.
 my $memory = '8G';
 my $help_argument;
@@ -447,7 +447,7 @@ if (defined $help_argument) {
     }
 }
 
-my %modules = ast_module_subsystem::get_module_to_status_hash($ash_path);
+my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
 
 # If there are no modules, let's throw an error
 unless (keys %modules) {
@@ -466,7 +466,7 @@ if (scalar @activated_modules == 0) {
     exit 1;
 }
 
-my $index_path = File::Spec->catfile($ash_path, $ast_module_subsystem::ACTIVE_INDEX_PATH);
+my $index_path = File::Spec->catfile($ast_path, $ast_module_subsystem::ACTIVE_INDEX_PATH);
 unless (-f $index_path) {
     ast_utilities::error_output($program_name, 'could not find active module index');
     print STDERR "Try '${bold_stderr}${ast_utilities::CONFIG_PROGRAM} sync${reset_stderr}' to resolve.\n";
@@ -474,13 +474,13 @@ unless (-f $index_path) {
 }
 
 if ($debug_flag) {
-    print "---- ASH DEBUG MODE ----\n";
+    print "---- ATLAS DEBUG MODE ----\n";
 }
 
 # Handle the case where the user supplied the cfg.preset arg. When this happens,
 # then any arg after it should be passed forward to the cfg.preset handler
 if (defined $cfg_preset) {
-    my $success = ash_cfgpreset($debug_flag, \@ARGV);
+    my $success = atlas_cfgpreset($debug_flag, \@ARGV);
     unless ($success) {
         exit 1;
     }
@@ -491,20 +491,20 @@ if (defined $cfg_preset) {
 # We waited until after verifying that a command index exists
 if (defined $help_argument) {
     unless ($help_argument eq '') {
-        ash_show_contextual_help_menu_and_exit($help_argument, $skip_paging, $ash_path);
+        atlas_show_contextual_help_menu_and_exit($help_argument, $skip_paging, $ast_path);
     }
 }
 
-my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ash_path);
+my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
 
 # Handle --class-of option
 if (defined $class_of) {
-    ash_show_class_of_and_exit($ash_path, $class_of);
+    atlas_show_class_of_and_exit($ast_path, $class_of);
 }
 
 # Handle --list option
 if (defined $show_list) {
-    ash_list_subcommands_and_exit($ash_path, $skip_paging);
+    atlas_list_subcommands_and_exit($ast_path, $skip_paging);
 }
 
 # All global options have been processed, so shift the subcommand off of ARGV
@@ -521,23 +521,23 @@ my $subcommand_class = $subcommand_classes{$subcommand};
 
 # Case where the user entered an invalid subcommand
 unless (defined $subcommand_class) {
-    ash_unrecognized_command_message_and_exit($subcommand);
+    atlas_unrecognized_command_message_and_exit($subcommand);
 }
 
 # Set @new_argv to @ARGV for now. @new_argv will get overriden by an applied
 # preset if the user supplied one.
 my @new_argv = @ARGV;
-my $current_namespace = ast_preset_subsystem::get_namespace($ash_path);
+my $current_namespace = ast_preset_subsystem::get_namespace($ast_path);
 
 # Check if a preset is being saved or used. We check for preset application
 # first, and apply it if necessary. We then check for a preset save. This allows
 # users to easily extend presets they have already created by applying and
 # saving in a single step.
 if (defined $use_preset) {
-    @new_argv = ast_preset_subsystem::apply_preset_or_exit($ash_path, $program_name, $quiet, $use_preset, $subcommand, $current_namespace, \@ARGV);
+    @new_argv = ast_preset_subsystem::apply_preset_or_exit($ast_path, $program_name, $quiet, $use_preset, $subcommand, $current_namespace, \@ARGV);
     if ($debug_flag) {
         print "Applying preset ${use_preset} for ${subcommand} in namespace ${current_namespace}\n";
-        print "Try \'${bold_stdout}ash cfg.preset show:${subcommand} ${use_preset}${reset_stdout}\' to see the preset.\n\n";
+        print "Try \'${bold_stdout}${program_name} ${ast_preset_subsystem::CFGPRESET_START} show:${subcommand} ${use_preset}${reset_stdout}\' to see the preset.\n\n";
     }
 }
 
@@ -547,7 +547,7 @@ if (defined $save_preset) {
         print "Preset ARGV: \"@new_argv\"\n\n";
     }
     else {
-        my $success = ast_preset_subsystem::save_preset($ash_path, $program_name, $quiet, $save_preset, $subcommand, $current_namespace, \@new_argv);
+        my $success = ast_preset_subsystem::save_preset($ast_path, $program_name, $quiet, $save_preset, $subcommand, $current_namespace, \@new_argv);
         unless ($success) {
             exit 1;
         }
@@ -556,8 +556,8 @@ if (defined $save_preset) {
 }
 
 # Set up the subcommand to execute using the JVM
-my $full_path_to_modules_folder = File::Spec->catfile($ash_path, $ast_module_subsystem::MODULES_FOLDER, '*');
-my $full_path_to_log4j = File::Spec->catfile($ash_path, $ast_log_subsystem::LOG4J_FILE_PATH);
+my $full_path_to_modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER, '*');
+my $full_path_to_log4j = File::Spec->catfile($ast_path, $ast_log_subsystem::LOG4J_FILE_PATH);
 my $java_command = "java -Xms$memory -Xmx$memory ".
                    "-cp \"${full_path_to_modules_folder}\" ".
                    "-Dlog4j.configuration=file:${full_path_to_log4j} ".

@@ -78,7 +78,7 @@ sub create_data_directory {
     if (defined $ENV{XDG_DATA_HOME}) {
         $data_directory = $ENV{XDG_DATA_HOME};
     }
-    $data_directory = File::Spec->catfile($data_directory, 'ash');
+    $data_directory = File::Spec->catfile($data_directory, 'atlas-shell-tools');
     my $full_log4j_path = File::Spec->catfile($data_directory, $ast_log_subsystem::LOG4J_FOLDER);
     my $full_module_path = File::Spec->catfile($data_directory, $ast_module_subsystem::MODULES_FOLDER);
     my $full_presets_path = File::Spec->catfile($data_directory, $ast_preset_subsystem::PRESETS_FOLDER);

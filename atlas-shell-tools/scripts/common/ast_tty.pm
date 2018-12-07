@@ -39,7 +39,7 @@ my $reset_stderr = $no_colors_stderr ? "" : ansi_reset();
 # Determine if we should disable text/color formatting for output. Various
 # conditions are checked, and if none of them trigger then we can use colors!
 # We also make one check for explicit use of colors, to allow a case where a
-# user has set NO_COLOR, but would like to make an exception for ash.
+# user has set NO_COLOR, but would like to make an exception for atlas-shell-tools.
 # Params: none
 # Return: 1 if no colors, 0 otherwise
 sub is_no_colors {
@@ -49,8 +49,8 @@ sub is_no_colors {
         return 1;
     }
 
-    # explicitly use colors for ash
-    if (exists $ENV{'ASH_USE_COLOR'}) {
+    # explicitly use colors for atlas-shell-tools
+    if (exists $ENV{'ATLAS_SHELL_TOOLS_USE_COLOR'}) {
         return 0;
     }
 
@@ -59,8 +59,7 @@ sub is_no_colors {
         return 1;
     }
 
-    # respect the ASH_NO_COLOR env var
-    if (exists $ENV{'ASH_NO_COLOR'}) {
+    if (exists $ENV{'ATLAS_SHELL_TOOLS_NO_COLOR'}) {
         return 1;
     }
 

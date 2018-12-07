@@ -76,12 +76,12 @@ my $reset_stderr = $no_colors_stderr ? "" : ast_tty::ansi_reset();
 # Get a hash that maps subcommand names to their respective classes. The hash is
 # computed from the current active module index.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 # Return: a hash of all subcommands to their classes.
 sub get_subcommand_to_class_hash {
-    my $ash_path = shift;
+    my $ast_path = shift;
 
-    my $index_path = File::Spec->catfile($ash_path, $ACTIVE_INDEX_PATH);
+    my $index_path = File::Spec->catfile($ast_path, $ACTIVE_INDEX_PATH);
     open my $index_fileIN, '<', $index_path or die "could not read index from path $index_path";
     my %subcommand_to_class = ();
 
@@ -98,12 +98,12 @@ sub get_subcommand_to_class_hash {
 # Get a hash that maps subcommand names to their respective descriptions. The
 # hash is computed from the current active module index.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 # Return: a hash of all subcommands to their descriptions.
 sub get_subcommand_to_description_hash {
-    my $ash_path = shift;
+    my $ast_path = shift;
 
-    my $index_path = File::Spec->catfile($ash_path, $ACTIVE_INDEX_PATH);
+    my $index_path = File::Spec->catfile($ast_path, $ACTIVE_INDEX_PATH);
     open my $index_fileIN, '<', $index_path or die "could not read index from path $index_path";
     my %subcommand_to_description = ();
 
@@ -121,13 +121,13 @@ sub get_subcommand_to_description_hash {
 # Activated modules are mapped to ACTIVATED, while deactivated modules are mapped
 # to DEACTIVATED.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 # Return: a hash of all modules to their activation status.
 sub get_module_to_status_hash {
-    my $ash_path = shift;
+    my $ast_path = shift;
 
     my @find_command=(
-        "find", "${ash_path}/${MODULES_FOLDER}",
+        "find", "${ast_path}/${MODULES_FOLDER}",
         "-maxdepth", "1",
         "(", "-name", "*$MODULE_SUFFIX", "-o", "-name", "*$DEACTIVATED_SUFFIX", ")",
         "-print0"
@@ -166,13 +166,13 @@ sub get_module_to_status_hash {
 # Symlinked modules are mapped to GOOD_SYMLINK, regular modules are mapped to
 # REAL_FILE. Broken symlink modules are mapped to BROKEN_SYMLINK.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 # Return: a hash of all modules to their symlink state.
 sub get_module_to_symlink_hash {
-    my $ash_path = shift;
+    my $ast_path = shift;
 
     my @find_command=(
-        "find", "${ash_path}/${MODULES_FOLDER}",
+        "find", "${ast_path}/${MODULES_FOLDER}",
         "-maxdepth", "1",
         "(", "-name", "*$MODULE_SUFFIX", "-o", "-name", "*$DEACTIVATED_SUFFIX", ")",
         "-print0"
@@ -212,13 +212,13 @@ sub get_module_to_symlink_hash {
 # Get a hash that maps all present module names to their symlink target.
 # If a module is not a symlink, it maps to an empty string.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 # Return: a hash of all modules to their symlink target.
 sub get_module_to_target_hash {
-    my $ash_path = shift;
+    my $ast_path = shift;
 
     my @find_command=(
-        "find", "${ash_path}/${MODULES_FOLDER}",
+        "find", "${ast_path}/${MODULES_FOLDER}",
         "-maxdepth", "1",
         "(", "-name", "*$MODULE_SUFFIX", "-o", "-name", "*$DEACTIVATED_SUFFIX", ")",
         "-print0"
@@ -293,17 +293,17 @@ sub get_deactivated_modules {
 # Uninstall a module with a given name.
 # Params:
 #   $module_to_uninstall: the name of the module to uninstall
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 #   $program_name: the name of the running program
 #   $quiet: suppress non-essential output
 # Return: 1 on success, 0 on failure
 sub perform_uninstall {
     my $module_to_uninstall = shift;
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
 
-    my %modules = get_module_to_status_hash($ash_path);
+    my %modules = get_module_to_status_hash($ast_path);
 
     unless (exists $modules{$module_to_uninstall}) {
         error_output($program_name, "no such module ${bold_stderr}${module_to_uninstall}${reset_stderr}");
@@ -311,7 +311,7 @@ sub perform_uninstall {
     }
 
     # try to remove the module
-    my $modules_folder = File::Spec->catfile($ash_path, $MODULES_FOLDER);
+    my $modules_folder = File::Spec->catfile($ast_path, $MODULES_FOLDER);
     my $module_remove_path =
         File::Spec->catfile($modules_folder, $module_to_uninstall . $MODULE_SUFFIX);
     my $module_remove_path_deactivated =
@@ -329,17 +329,17 @@ sub perform_uninstall {
 # Activate a module with a given name.
 # Params:
 #   $module_to_activate: the name of the module to activate
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 #   $program_name: the name of the running program
 #   $quiet: suppress non-essential messages
 # Return: 1 on success, 0 on failure
 sub perform_activate {
     my $module_to_activate = shift;
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
 
-    my %modules = get_module_to_status_hash($ash_path);
+    my %modules = get_module_to_status_hash($ast_path);
 
     unless (exists $modules{$module_to_activate}) {
         ast_utilities::error_output($program_name, "no such module ${bold_stderr}${module_to_activate}${reset_stderr}");
@@ -354,7 +354,7 @@ sub perform_activate {
 
     # We made it here, so we are good to activate the module!
     # Effectively, this just means removing the DEACTIVATED_MODULE_SUFFIX
-    my $module_path_nosuffix = File::Spec->catfile($ash_path, $MODULES_FOLDER, $module_to_activate);
+    my $module_path_nosuffix = File::Spec->catfile($ast_path, $MODULES_FOLDER, $module_to_activate);
     my $old_module_path = $module_path_nosuffix . $DEACTIVATED_MODULE_SUFFIX;
     my $new_module_path = $module_path_nosuffix . $MODULE_SUFFIX;
 
@@ -365,8 +365,8 @@ sub perform_activate {
         return 0;
     }
     else {
-        remove_active_module_index($ash_path, $program_name, $quiet);
-        generate_active_module_index($ash_path, $program_name, $quiet, 0);
+        remove_active_module_index($ast_path, $program_name, $quiet);
+        generate_active_module_index($ast_path, $program_name, $quiet, 0);
         unless ($quiet) {
             print "Module ${green_stdout}${bold_stdout}${module_to_activate}${reset_stdout} activated.\n";
         }
@@ -378,17 +378,17 @@ sub perform_activate {
 # Deactivate a module with a given name.
 # Params:
 #   $module_to_deactivate: the name of the module to deactivate
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 #   $program_name: the name of the running program
 #   $quiet: suppress non-essential messages
 # Return: 1 on success, 0 on failure
 sub perform_deactivate {
     my $module_to_deactivate = shift;
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
 
-    my %modules = get_module_to_status_hash($ash_path);
+    my %modules = get_module_to_status_hash($ast_path);
 
     unless (exists $modules{$module_to_deactivate}) {
         ast_utilities::error_output($program_name, "no such module ${bold_stderr}${module_to_deactivate}${reset_stderr}");
@@ -403,7 +403,7 @@ sub perform_deactivate {
 
     # We made it here, so we are good to deactivate the module!
     # Effectively, this just means adding the DEACTIVATED_MODULE_SUFFIX
-    my $module_path_nosuffix = File::Spec->catfile($ash_path, $MODULES_FOLDER, $module_to_deactivate);
+    my $module_path_nosuffix = File::Spec->catfile($ast_path, $MODULES_FOLDER, $module_to_deactivate);
     my $old_module_path = $module_path_nosuffix . $MODULE_SUFFIX;
     my $new_module_path = $module_path_nosuffix . $DEACTIVATED_MODULE_SUFFIX;
 
@@ -424,19 +424,19 @@ sub perform_deactivate {
 
 # Create the active module index for the currently activated module.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 #   $verbose_java: make the Java table printer use verbose output
 # Return: 1 on success, 0 on failure
 sub generate_active_module_index {
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
     my $verbose_java = shift;
 
-    my $full_index_path = File::Spec->catfile($ash_path, $ACTIVE_INDEX_PATH);
-    my $full_path_to_modules_folder = File::Spec->catfile($ash_path, $ast_module_subsystem::MODULES_FOLDER, '*');
+    my $full_index_path = File::Spec->catfile($ast_path, $ACTIVE_INDEX_PATH);
+    my $full_path_to_modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER, '*');
     my $java_command = "java -Xms2G -Xmx2G ".
                    "-cp \"${full_path_to_modules_folder}\" ".
                    "-Dlog4j.rootLogger=ERROR ".
@@ -446,7 +446,7 @@ sub generate_active_module_index {
         $java_command = $java_command . "--verbose";
     }
 
-    my %modules = get_module_to_status_hash($ash_path);
+    my %modules = get_module_to_status_hash($ast_path);
     my @activated_modules = get_activated_modules(\%modules);
 
     if (scalar @activated_modules == 0) {
@@ -477,16 +477,16 @@ sub generate_active_module_index {
 
 # Delete the active module index.
 # Params:
-#   $ash_path: the path to the ash data folder
+#   $ast_path: the path to the ash data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output
 # Return: 1 on success, 0 on failure
 sub remove_active_module_index {
-    my $ash_path = shift;
+    my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
 
-    my $full_index_path = File::Spec->catfile($ash_path, $ACTIVE_INDEX_PATH);
+    my $full_index_path = File::Spec->catfile($ast_path, $ACTIVE_INDEX_PATH);
     unlink $full_index_path;
 
     unless ($quiet) {
