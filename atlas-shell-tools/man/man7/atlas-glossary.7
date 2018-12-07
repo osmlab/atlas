@@ -1,9 +1,9 @@
-.\"     Title: ash-glossary
+.\"     Title: atlas-glossary
 .\"    Author: Lucas Cram
 .\"    Source: atlas-shell-tools 0.0.1
 .\"  Language: English
 .\"
-.TH "ASH-GLOSSARY" "7" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
+.TH "ATLAS-GLOSSARY" "7" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -22,7 +22,7 @@
 
 .SH "NAME"
 .sp
-ash\-glossary \-- A glossary of Atlas Shell Tools terms and concepts
+atlas\-glossary \-- A glossary of Atlas Shell Tools terms and concepts
 
 .SH "SYNOPSIS"
 *
@@ -33,9 +33,9 @@ ash\-glossary \-- A glossary of Atlas Shell Tools terms and concepts
 ARGV
 .RS 4
 Throughout the Atlas Shell Tools manual, ARGV refers to the argument vector from the
-command line. In the context of \fBash\fR(1), it generally refers to the
-actual arguments passed to the command. \fBash\fR(1) converts your command line
-like "$ ash --opt MyCommand arg1 --opt1" into a JVM call, so here ARGV refers
+command line. In the context of \fBatlas\fR(1), it generally refers to the
+actual arguments passed to the command. \fBatlas\fR(1) converts your command line
+like "$ atlas --opt MyCommand arg1 --opt1" into a JVM call, so here ARGV refers
 to just ["arg1", "--opt1"], the actual arguments given to the JVM.
 .RE
 
@@ -53,8 +53,8 @@ module
 .RS 4
 Atlas Shell Tools lingo for a JARfile that contains implementations of commands
 (see "command" in this glossary). Once a JARfile has been installed into
-Atlas Shell Tools using \fBash\-config\fR(1), it is known as a module and
-is referred to using its module name, as reported by \fBash\-config\-list\fR(1).
+Atlas Shell Tools using \fBatlas\-config\fR(1), it is known as a module and
+is referred to using its module name, as reported by \fBatlas\-config\-list\fR(1).
 .RE
 
 .sp
@@ -65,8 +65,8 @@ but they are meaningless without their associated command context \- ie. the
 preset "p1" is not meaningful unless you say the preset "p1" for command
 "MyCommand". Technically speaking, presets are additionally qualified by a
 namespace, but this can be effectively ignored unless that behavior is desired.
-Presets and their namespaces are manipulated using the \fBash\fR(1) program.
-See the \fBPRESETS\fR section in \fBash\fR(1) for more information.
+Presets and their namespaces are manipulated using the \fBatlas\fR(1) program.
+See the \fBPRESETS\fR section in \fBatlas\fR(1) for more information.
 .RE
 
 .SH "ATLAS SHELL TOOLS"

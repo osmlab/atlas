@@ -1,9 +1,9 @@
-.\"     Title: ash-config
+.\"     Title: atlas-config
 .\"    Author: Lucas Cram
 .\"    Source: atlas-shell-tools 0.0.1
 .\"  Language: English
 .\"
-.TH "ASH-CONFIG" "1" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
+.TH "ATLAS-CONFIG" "1" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -22,35 +22,35 @@
 
 .SH "NAME"
 .sp
-ash\-config \-- Configure the Atlas Shell Tools installation
+atlas\-config \-- Configure the Atlas Shell Tools installation
 
 .SH "SYNOPSIS"
 .sp
 .nf
-\fIash-config\fR [\-\-no-pager] [\-\-help[=<\fIcommand\fR>]]
-\fIash-config\fR [\-V | \-\-version]
-\fIash-config\fR [\-\-no-pager] [\-\-quiet] <\fIcommand\fR> [arg...]
+\fIatlas\-config\fR [\-\-no-pager] [\-\-help[=<\fIcommand\fR>]]
+\fIatlas\-config\fR [\-V | \-\-version]
+\fIatlas\-config\fR [\-\-no-pager] [\-\-quiet] <\fIcommand\fR> [arg...]
 .fi
 
 .SH "DESCRIPTION"
 .sp
-\fBash-config\fR exposes an interface for configuring the Atlas Shell Tools
+\fBatlas\-config\fR exposes an interface for configuring the Atlas Shell Tools
 installation. It provides a way to install new modules, change the currently
-activated module, reset the installation, and more. \fBash\-config\fR operates
+activated module, reset the installation, and more. \fBatlas\-config\fR operates
 using a subcommand interface, where each subcommand performs a different
-configuration action. See the \fBASH\-CONFIG COMMANDS\fR section for more
+configuration action. See the \fBatlas\-CONFIG COMMANDS\fR section for more
 information.
 .sp
-For running actual Atlas Shell Tools commands, see \fBash\fR(1).
+For running actual Atlas Shell Tools commands, see \fBatlas\fR(1).
 .sp
-For a glossary of Atlas Shell Tools terms, see \fBash\-glossary\fR(7).
+For a glossary of Atlas Shell Tools terms, see \fBatlas\-glossary\fR(7).
 
 .SH "OPTIONS"
 
 .PP
 <\fIcommand\fR>
 .RS 4
-This indicates a command. See the \fBASH\-CONFIG COMMANDS\fR section for a list of available
+This indicates a command. See the \fBatlas\-CONFIG COMMANDS\fR section for a list of available
 commands.
 .RE
 
@@ -76,63 +76,63 @@ Suppress non-essential output.
 .PP
 \fB\-\-version\fR, \fB-V\fR
 .RS 4
-Show the \fBash\-config\fR version info and then exit.
+Show the \fBatlas\-config\fR version info and then exit.
 .RE
 .sp
 
-.SH "ASH-CONFIG COMMANDS"
+.SH "atlas-CONFIG COMMANDS"
 .sp
-\fBash-config\fR uses a set of subcommands to present a high\-level interface
+\fBatlas-config\fR uses a set of subcommands to present a high\-level interface
 for installation configuration.
 
-\fBash\-config\-activate\fR(1)
+\fBatlas\-config\-activate\fR(1)
 .RS 4
 Activate an installed module.
 .RE
 
-\fBash\-config\-deactivate\fR(1)
+\fBatlas\-config\-deactivate\fR(1)
 .RS 4
 Deactivate an installed module.
 .RE
 
-\fBash\-config\-install\fR(1)
+\fBatlas\-config\-install\fR(1)
 .RS 4
 Install a new module.
 .RE
 
-\fBash\-config\-list\fR(1)
+\fBatlas\-config\-list\fR(1)
 .RS 4
 List all installed modules and module statuses.
 .RE
 
-\fBash\-config\-log\fR(1)
+\fBatlas\-config\-log\fR(1)
 .RS 4
 Check or set log parameters.
 .RE
 
-\fBash\-config\-reset\fR(1)
+\fBatlas\-config\-reset\fR(1)
 .RS 4
 Reset the installation.
 .RE
 
-\fBash\-config\-sync\fR(1)
+\fBatlas\-config\-sync\fR(1)
 .RS 4
 Refresh the installation based on the active module.
 .RE
 
-\fBash\-config\-uninstall\fR(1)
+\fBatlas\-config\-uninstall\fR(1)
 .RS 4
 Uninstall a module.
 .RE
 
 .SH "TERMINAL AND ENVIRONMENT"
 .sp
-\fBash\-config\fR displays its various help and manual pages using \fBman\fR,
+\fBatlas\-config\fR displays its various help and manual pages using \fBman\fR,
 which is paged by default. To disable paged output for all documentation, try
 the \fB\-\-no\-pager\fR option.
 .sp
-\fBash-config\fR uses formatted output when appropriate. To change this behavior,
-\fBash-config\fR checks for existence of the following environment variables:
+\fBatlas-config\fR uses formatted output when appropriate. To change this behavior,
+\fBatlas-config\fR checks for existence of the following environment variables:
 .sp
 .RS 4
 \fBNO_COLOR\fR \-
@@ -140,21 +140,21 @@ Disable all special formatted output. Other popular CLI tools also
 respect this variable. See https://no\-color.org/
 .sp
 \fBATLAS_SHELL_TOOLS_NO_COLOR\fR \-
-Disable special formatted output for \fBash\fR and \fBash-config\fR only.
+Disable special formatted output for \fBatlas\fR and \fBatlas-config\fR only.
 .sp
 \fBATLAS_SHELL_TOOLS_USE_COLOR\fR \-
 Enable special formatted output. Overrides the setting of \fBNO_COLOR\fR and \fBATLAS_SHELL_TOOLS_NO_COLOR\fR.
 .sp
 .RE
-\fBash-config\fR stores program data in compliance with the XDG Base Directory
-specification, ie. at $HOME/.local/share/ash. It also respects the
-\fBXDG_DATA_HOME\fR environment variable - if set, \fBash-config\fR will store program
-data at the base path specified by that variable. See \fBash\-plumbing\fR(5) for
+\fBatlas-config\fR stores program data in compliance with the XDG Base Directory
+specification, ie. at $HOME/.local/share/atlas-shell-tools. It also respects the
+\fBXDG_DATA_HOME\fR environment variable - if set, \fBatlas-config\fR will store program
+data at the base path specified by that variable. See \fBatlas\-plumbing\fR(5) for
 more information.
 
 .SH "SEE ALSO"
 .sp
-\fBash\fR(1), \fBash\-plumbing\fR(5)
+\fBatlas\fR(1), \fBatlas\-plumbing\fR(5)
 
 .SH "AUTHOR"
 .sp
@@ -166,7 +166,7 @@ Please report any bugs you find.
 If you run the command:
 .sp
 .RS 4
-$ ash-config install <active\-module>
+$ atlas\-config install <active\-module>
 .RE
 .sp
 where <active\-module> is the path to the currently active module JARfile, this

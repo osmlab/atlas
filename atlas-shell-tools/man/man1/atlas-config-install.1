@@ -1,9 +1,9 @@
-.\"     Title: ash-config-install
+.\"     Title: atlas-config-install
 .\"    Author: Lucas Cram
 .\"    Source: atlas-shell-tools 0.0.1
 .\"  Language: English
 .\"
-.TH "ASH-CONFIG-INSTALL" "1" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
+.TH "ATLAS-CONFIG-INSTALL" "1" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -22,19 +22,19 @@
 
 .SH "NAME"
 .sp
-ash\-config\-install \-- Install a new Atlas Shell Tools module
+atlas\-config\-install \-- Install a new Atlas Shell Tools module
 
 .SH "SYNOPSIS"
 .sp
 .nf
-\fIash\-config\fR \fIinstall\fR [\-\-help]
-\fIash\-config\fR \fIinstall\fR [\-\-symlink] [\-\-force] [\-\-skip] [\-\-deactivated]
+\fIatlas\-config\fR \fIinstall\fR [\-\-help]
+\fIatlas\-config\fR \fIinstall\fR [\-\-symlink] [\-\-force] [\-\-skip] [\-\-deactivated]
                    [\-\-name=<\fIname\fR>] <\fIJARfile\fR>
 .fi
 
 .SH "DESCRIPTION"
 .sp
-Installs and activates a given <\fIJARfile\fR> as a new \fBash\fR module. This will
+Installs and activates a given <\fIJARfile\fR> as a new \fBatlas\fR module. This will
 deactivate any currently activated module, unless the \fB\-\-deactivated\fR flag is
 supplied.
 
@@ -45,7 +45,7 @@ development/testing).
 
 Note that once a module is installed, it should be referred to by its module
 name and not by the <\fIJARfile\fR> name. The module names are displayed by
-\fBash-config-list\fR(1). Unless the \fB\-\-name\fR option is used, the module name will be
+\fBatlas-config-list\fR(1). Unless the \fB\-\-name\fR option is used, the module name will be
 the same as the <\fIJARfile\fR> name but without the '.jar' extension.
 
 .SH "OPTIONS"
@@ -54,7 +54,7 @@ the same as the <\fIJARfile\fR> name but without the '.jar' extension.
 .PP
 <\fIJARfile\fR>
 .RS 4
-The path to a JARfile containing \fBash\fR commands. Once installed, this JARfile
+The path to a JARfile containing \fBatlas\fR commands. Once installed, this JARfile
 is referred to as a module.
 .RE
 
@@ -100,18 +100,18 @@ Install a module using a symlink as opposed to a copy.
 Install a module with custom name 'MyModule':
 .sp
 .RS 4
-$ ash\-config install \-\-name=MyModule ~/Desktop/example.jar
+$ atlas\-config install \-\-name=MyModule ~/Desktop/example.jar
 .RE
 .sp
 Install a symlinked module but do not activate it:
 .sp
 .RS 4
-$ ash\-config install \-\-symlink \-\-deactivated ~/example.jar
+$ atlas\-config install \-\-symlink \-\-deactivated ~/example.jar
 .RE
 
 .SH "SEE ALSO"
 .sp
-\fBash\-config\fR(1), \fBash\-config\-uninstall\fR(1), \fBash\-config\-activate\fR(1)
+\fBatlas\-config\fR(1), \fBatlas\-config\-uninstall\fR(1), \fBatlas\-config\-activate\fR(1)
 
 .SH "ATLAS SHELL TOOLS"
 .sp

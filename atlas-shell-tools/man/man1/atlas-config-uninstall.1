@@ -1,9 +1,9 @@
-.\"     Title: ash-config-uninstall
+.\"     Title: atlas-config-uninstall
 .\"    Author: Lucas Cram
 .\"    Source: atlas-shell-tools 0.0.1
 .\"  Language: English
 .\"
-.TH "ASH-CONFIG-UNINSTALL" "1" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
+.TH "ATLAS-CONFIG-UNINSTALL" "1" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -22,14 +22,14 @@
 
 .SH "NAME"
 .sp
-ash\-config\-uninstall \-- Uninstall an Atlas Shell Tools module
+atlas\-config\-uninstall \-- Uninstall an Atlas Shell Tools module
 
 .SH "SYNOPSIS"
 .sp
 .nf
-\fIash\-config\fR \fIuninstall\fR [\-\-help]
-\fIash\-config\fR \fIuninstall\fR [\-\-all]
-\fIash\-config\fR \fIuninstall\fR <\fImodule\fR>
+\fIatlas\-config\fR \fIuninstall\fR [\-\-help]
+\fIatlas\-config\fR \fIuninstall\fR [\-\-all]
+\fIatlas\-config\fR \fIuninstall\fR <\fImodule\fR>
 .fi
 
 .SH "DESCRIPTION"
@@ -44,14 +44,14 @@ remove the link. It will \fBnot\fR delete the linked\-to file.
 <\fImodule\fR>
 .RS 4
 This indicates a module. The module should be referred to using its name, as
-reported by \fBash-config-list\fR(1).
+reported by \fBatlas-config-list\fR(1).
 .RE
 
 .PP
 \fB\-\-all\fR, \fB\-a\fR
 .RS 4
 Uninstall all modules, ignoring the supplied <\fImodule\fR> argument if
-present. This is equivalent to running \fBash\-config reset \-\-modules\fR.
+present. This is equivalent to running \fBatlas\-config reset \-\-modules\fR.
 .RE
 
 .PP
@@ -62,7 +62,7 @@ Show this help menu.
 
 .SH "SEE ALSO"
 .sp
-\fBash\-config\fR(1), \fBash\-config\-install\fR(1)
+\fBatlas\-config\fR(1), \fBatlas\-config\-install\fR(1)
 
 .SH "ATLAS SHELL TOOLS"
 .sp

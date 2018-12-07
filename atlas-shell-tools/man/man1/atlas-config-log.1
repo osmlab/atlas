@@ -1,9 +1,9 @@
-.\"     Title: ash-config-log
+.\"     Title: atlas-config-log
 .\"    Author: Lucas Cram
 .\"    Source: atlas-shell-tools 0.0.1
 .\"  Language: English
 .\"
-.TH "ASH-CONFIG-LOG" "1" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
+.TH "ATLAS-CONFIG-LOG" "1" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -22,20 +22,20 @@
 
 .SH "NAME"
 .sp
-ash\-config\-log \-- Check or set Atlas Shell Tools log parameters
+atlas\-config\-log \-- Check or set Atlas Shell Tools log parameters
 
 .SH "SYNOPSIS"
 .sp
 .nf
-\fIash\-config\fR \fIlog\fR [\-\-help]
-\fIash\-config\fR \fIlog\fR [\-\-set-level=<level>] [\-\-set-stream=<stream>]
+\fIatlas\-config\fR \fIlog\fR [\-\-help]
+\fIatlas\-config\fR \fIlog\fR [\-\-set-level=<level>] [\-\-set-stream=<stream>]
                [\-\-reset] [\-\-show]
 .fi
 
 .SH "DESCRIPTION"
 .sp
 Use this command to check or set the current log parameters. Under the hood,
-this command is a shortcut for modifying the \fBash\fR log4j configuration
+this command is a shortcut for modifying the \fBatlas\fR log4j configuration
 file. It expects that file to follow a well-defined format. For best
 results, avoid manually updating the file.
 
@@ -54,7 +54,7 @@ Show this help menu.
 \fB\-\-reset\fR
 .RS 4
 Reset the log parameters to default, ie. level=\fBERROR\fR and stream=\fBstderr\fR.
-This is equivalent to running \fBash\-config reset \-\-log\fR.
+This is equivalent to running \fBatlas\-config reset \-\-log\fR.
 .RE
 
 .PP
@@ -82,18 +82,18 @@ Show the current log settings.
 Set the log level to \fBINFO\fR and the stream to \fBstdout\fR:
 .sp
 .RS 4
-$ ash\-config log \-\-set\-level=INFO \-\-set\-stream=stdout
+$ atlas\-config log \-\-set\-level=INFO \-\-set\-stream=stdout
 .RE
 .sp
 Reset the log parameters and then show them:
 .sp
 .RS 4
-$ ash\-config log \-\-reset \-\-show
+$ atlas\-config log \-\-reset \-\-show
 .RE
 
 .SH "SEE ALSO"
 .sp
-\fBash\-config\fR(1)
+\fBatlas\-config\fR(1)
 
 .SH "ATLAS SHELL TOOLS"
 .sp

@@ -1,9 +1,9 @@
-.\"     Title: ash-config-reset
+.\"     Title: atlas-config-reset
 .\"    Author: Lucas Cram
 .\"    Source: atlas-shell-tools 0.0.1
 .\"  Language: English
 .\"
-.TH "ASH-CONFIG-RESET" "1" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
+.TH "ATLAS-CONFIG-RESET" "1" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -22,20 +22,20 @@
 
 .SH "NAME"
 .sp
-ash\-config\-reset \-- Reset the Atlas Shell Tools installation
+atlas\-config\-reset \-- Reset the Atlas Shell Tools installation
 
 .SH "SYNOPSIS"
 .sp
 .nf
-\fIash\-config\fR \fIreset\fR [\-\-help]
-\fIash\-config\fR \fIreset\fR [\-\-force] [\-\-all]
-\fIash\-config\fR \fIreset\fR [\-\-force] [\-\-modules] [\-\-presets]
+\fIatlas\-config\fR \fIreset\fR [\-\-help]
+\fIatlas\-config\fR \fIreset\fR [\-\-force] [\-\-all]
+\fIatlas\-config\fR \fIreset\fR [\-\-force] [\-\-modules] [\-\-presets]
                  [\-\-log] [\-\-index]
 .fi
 
 .SH "DESCRIPTION"
 .sp
-Completely reset the \fBash\fR installation. A full reset (using \fB\-\-all\fR) consists
+Completely reset the \fBatlas\fR installation. A full reset (using \fB\-\-all\fR) consists
 of the following steps:
 
 .RS 4
@@ -84,13 +84,13 @@ Reset the active module index.
 \fB\-\-log\fR
 .RS 4
 Reset the log parameters to default, ie. level=\fBERROR\fR and stream=\fBstderr\fR.
-This is equivalent to running \fBash\-config log \-\-reset\fR.
+This is equivalent to running \fBatlas\-config log \-\-reset\fR.
 .RE
 
 .PP
 \fB\-\-modules\fR
 .RS 4
-Uninstall all installed modules. This is equivalent to running \fBash\-config uninstall \-\-all\fR.
+Uninstall all installed modules. This is equivalent to running \fBatlas\-config uninstall \-\-all\fR.
 .RE
 
 .PP
@@ -105,18 +105,18 @@ to 'default'.
 Reset everything and do not show any confirmation prompts:
 .sp
 .RS 4
-$ ash\-config reset \-\-all \-\-force
+$ atlas\-config reset \-\-all \-\-force
 .RE
 .sp
 Reset the preset and log parameters:
 .sp
 .RS 4
-$ ash\-config reset \-\-presets \-\-log
+$ atlas\-config reset \-\-presets \-\-log
 .RE
 
 .SH "SEE ALSO"
 .sp
-\fBash\-config\fR(1)
+\fBatlas\-config\fR(1)
 
 .SH "ATLAS SHELL TOOLS"
 .sp

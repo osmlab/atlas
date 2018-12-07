@@ -1,9 +1,9 @@
-.\"     Title: ash
+.\"     Title: atlas
 .\"    Author: Lucas Cram
 .\"    Source: atlas-shell-tools 0.0.1
 .\"  Language: English
 .\"
-.TH "ASH" "1" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
+.TH "ATLAS" "1" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -22,33 +22,33 @@
 
 .SH "NAME"
 .sp
-ash \-- The main Atlas Shell Tools interface for running commands
+atlas \-- The main Atlas Shell Tools interface for running commands
 
 .SH "SYNOPSIS"
 .sp
 .nf
-\fIash\fR [\-\-no-pager] [\-\-help[=<\fIcommand\fR>]]
-\fIash\fR [\-V | \-\-version]
-\fIash\fR [\-\-no-pager] [\-l | \-\-list]
-\fIash\fR [\-\-class\-of=<\fIcommand\fR>]
-\fIash\fR [\-\-quiet] [\-\-debug] cfg.preset <directive> [args...]
-\fIash\fR [\-\-no\-pager] [\-\-debug] [\-\-memory=<amount>] [\-\-preset=<preset>]
+\fIatlas\fR [\-\-no-pager] [\-\-help[=<\fIcommand\fR>]]
+\fIatlas\fR [\-V | \-\-version]
+\fIatlas\fR [\-\-no-pager] [\-l | \-\-list]
+\fIatlas\fR [\-\-class\-of=<\fIcommand\fR>]
+\fIatlas\fR [\-\-quiet] [\-\-debug] cfg.preset <directive> [args...]
+\fIatlas\fR [\-\-no\-pager] [\-\-debug] [\-\-memory=<amount>] [\-\-preset=<preset>]
     [\-\-save\-preset=<new\-preset>] <\fIcommand\fR> [arg...]
 .fi
 
 .SH "DESCRIPTION"
 .sp
-\fBash\fR is an easy\-to\-use wrapper for launching Atlas Shell Tools commands.
+\fBatlas\fR is an easy\-to\-use wrapper for launching Atlas Shell Tools commands.
 It provides a simple interface to find and run any commands defined in the currently
 activated module.
-\fBash\fR also implements a robust preset management system, which can save
+\fBatlas\fR also implements a robust preset management system, which can save
 you tons of typing for commands that require a lot of options. See the \fBPRESETS\fR
 section for more on this topic.
 .sp
 For advanced module management capabilites and other installation configuration
-commands, see \fBash\-config\fR(1).
+commands, see \fBatlas\-config\fR(1).
 .sp
-For a glossary of Atlas Shell Tools terms, see \fBash-glossary\fR(7).
+For a glossary of Atlas Shell Tools terms, see \fBatlas-glossary\fR(7).
 
 .SH "OPTIONS"
 
@@ -62,7 +62,7 @@ seen with the \fB--list\fR option.
 .PP
 \fBcfg.preset\fR <directive> [args...]
 .RS 4
-This special subcommand puts \fBash\fR into preset configuration mode \- allowing
+This special subcommand puts \fBatlas\fR into preset configuration mode \- allowing
 the user to run a preset configuration directive with some arguments. When the
 option parser sees \fBcfg.preset\fR, it stops and passes any remaining ARGV elements into the
 preset configuration engine. See the \fBPRESETS\fR section for more information.
@@ -77,7 +77,7 @@ Show the full classname of a given command and then exit.
 .PP
 \fB\-\-debug\fR
 .RS 4
-Run \fBash\fR in debug mode. While in debug mode, \fBash\fR will not actually
+Run \fBatlas\fR in debug mode. While in debug mode, \fBatlas\fR will not actually
 run any commands. Instead, it will print debug diagnostics and exit. Use this
 option to see what JVM command is actually running under the hood.
 .RE
@@ -94,7 +94,7 @@ a general help menu and then exit.
 .RS 4
 Display a list of all available commands and exit. Command name collision is
 resolved deterministically at module activation time. The resolution exists at
-the \fBash\fR wrapper level only, and is not reflected in the actual command
+the \fBatlas\fR wrapper level only, and is not reflected in the actual command
 class files.
 .RE
 
@@ -123,7 +123,7 @@ for more information.
 .PP
 \fB\-\-quiet\fR, \fB\-q\fR
 .RS 4
-Suppress non-essential \fBash\fR output.
+Suppress non-essential \fBatlas\fR output.
 .RE
 
 .PP
@@ -139,7 +139,7 @@ directly supplied by the user. See the \fBPRESETS\fR section for more informatio
 .PP
 \fB\-\-version\fR, \fB-V\fR
 .RS 4
-Show the \fBash\fR version info and then exit.
+Show the \fBatlas\fR version info and then exit.
 .RE
 .sp
 
@@ -148,39 +148,39 @@ Show the \fBash\fR version info and then exit.
 Run a command called MyCommand with some args and options:
 .sp
 .RS 4
-$ ash MyCommand \-\-opt1 arg1 \-\-opt2=optarg2 arg2 arg3
+$ atlas MyCommand \-\-opt1 arg1 \-\-opt2=optarg2 arg2 arg3
 .RE
 .sp
 See the manual page for MyCommand:
 .sp
 .RS 4
-$ ash \-\-help MyCommand
+$ atlas \-\-help MyCommand
 .RE
 .sp
 See a list of all available commands:
 .sp
 .RS 4
-$ ash \-\-list
+$ atlas \-\-list
 .RE
 .sp
 Run MyCommand with preset p1:
 .sp
 .RS 4
-$ ash \-\-preset=p1 MyCommand arg1 \-\-opt2=overridePresetArg
+$ atlas \-\-preset=p1 MyCommand arg1 \-\-opt2=overridePresetArg
 .RE
 .sp
 Edit preset p1 for MyCommand:
 .sp
 .RS 4
-$ ash cfg.preset edit:MyCommand p1
+$ atlas cfg.preset edit:MyCommand p1
 .RE
 
 .SH "PRESETS"
 .sp
-\fBash\fR features a robust preset management system. Presets provide a way to save
+\fBatlas\fR features a robust preset management system. Presets provide a way to save
 command options (and long option arguments) for future application or modification.
-For more information about how \fBash\fR saves and manipulates presets under
-the hood, see \fBash\-plumbing\fR(5).
+For more information about how \fBatlas\fR saves and manipulates presets under
+the hood, see \fBatlas\-plumbing\fR(5).
 .sp
 The preset interface is divided into 3 tiers. Each tier supports an increasing
 number of potential use cases at the cost of added complexity for the user. The
@@ -206,17 +206,17 @@ Tier 1 provides a simple, lightweight interface for preset usage through the
 the name of the preset you would like to create.
 .sp
 When running a command with the \fB\-\-preset\fR=\fIname\fR option,
-\fBash\fR checks the list of saved presets associated with that command.
-If one of those presets matches with \fIname\fR, \fBash\fR uses that preset. If
-\fBash\fR cannot find a match with \fIname\fR, it displays the list and exits
+\fBatlas\fR checks the list of saved presets associated with that command.
+If one of those presets matches with \fIname\fR, \fBatlas\fR uses that preset. If
+\fBatlas\fR cannot find a match with \fIname\fR, it displays the list and exits
 with an error.
 .sp
 When running a command with the \fB\-\-save\-preset\fR=\fInew\-name\fR option,
-\fBash\fR attempts to save the current ARGV to a new preset called \fInew\-name\fR.
-If \fInew\-name\fR already exists, \fBash\fR will exit with an error.
+\fBatlas\fR attempts to save the current ARGV to a new preset called \fInew\-name\fR.
+If \fInew\-name\fR already exists, \fBatlas\fR will exit with an error.
 .sp
 If both \fB\-\-preset\fR=\fIname\fR and \fB\-\-save\-preset\fR=\fInew\-name\fR
-are applied at the same time, \fBash\fR will attempt to apply \fIname\fR before
+are applied at the same time, \fBatlas\fR will attempt to apply \fIname\fR before
 saving \fInew\-name\fR. This allows you to easily save new presets that iterate
 on a previously created preset.
 .sp
@@ -229,7 +229,7 @@ Let's look at an example of the Tier 1 interface in action.
 We will run a command called "MyCommand" and assume preset "p1" does not yet exist:
 .sp
 .RS 4
-$ ash \-\-save\-preset=p1 MyCommand arg1 arg2 \-\-opt1 \-\-opt2=opt2Arg
+$ atlas \-\-save\-preset=p1 MyCommand arg1 arg2 \-\-opt1 \-\-opt2=opt2Arg
 .RE
 .sp
 This will save a preset "p1" for "MyCommand" with contents ["\-\-opt1", "\-\-opt2=opt2Arg"]
@@ -241,7 +241,7 @@ a preset.
 Now that you have saved preset "p1" for "MyCommand", you can apply it like:
 .sp
 .RS 4
-$ ash \-\-preset=p1 MyCommand arg1 arg2
+$ atlas \-\-preset=p1 MyCommand arg1 arg2
 .RE
 .sp
 This will run the exact same command as before, but it saves us from having
@@ -250,7 +250,7 @@ a preset verbatim, you can also override a saved option by specifying it again
 on the command line:
 .sp
 .RS 4
-$ ash \-\-preset=p1 MyCommand arg1 arg2 \-\-opt2=OverrideOpt2Arg
+$ atlas \-\-preset=p1 MyCommand arg1 arg2 \-\-opt2=OverrideOpt2Arg
 .RE
 .sp
 This will run the same command as the above 2 examples, except it will override
@@ -261,7 +261,7 @@ we apply our preset "p1" while also saving a new preset called "p2", based off
 the contents of "p1":
 .sp
 .RS 4
-$ ash \-\-preset=p1 \-\-save\-preset=p2 MyCommand arg1 arg2 --opt2=OverrideOpt2Arg --opt3
+$ atlas \-\-preset=p1 \-\-save\-preset=p2 MyCommand arg1 arg2 --opt2=OverrideOpt2Arg --opt3
 .RE
 .sp
 The new preset "p2" will contain the following contents:
@@ -273,7 +273,7 @@ supplied, the option parser will use ARGV's rightmost instance of that option.
 
 \fBTIER 2\fR
 .RS 4
-Tier 2 provides more precise preset management using a special argument to \fBash\fR
+Tier 2 provides more precise preset management using a special argument to \fBatlas\fR
 called \fBcfg.preset\fR. \fBcfg.preset\fR takes a mandatory \fIdirective\fR,
 which is just a verb specifying a configuration action. Note that many of the
 directives require additional command context, which is specified using the ':'
@@ -291,7 +291,7 @@ arguments when saving a preset. The following example saves preset "p1" to comma
 "MyCommand" with some options --opt1 and --opt2=opt2Arg:
 .sp
 .RS 4
-$ ash cfg.preset save:MyCommand p1 --opt1 --opt2=opt2Arg
+$ atlas cfg.preset save:MyCommand p1 --opt1 --opt2=opt2Arg
 .RE
 .RE
 .RE
@@ -305,7 +305,7 @@ for \fIcommand\fR. The following example shows the contents of preset "p1"
 for command "MyCommand":
 .sp
 .RS 4
-$ ash cfg.preset show:MyCommand p1
+$ atlas cfg.preset show:MyCommand p1
 .RE
 .sp
 Omitting the "p1" argument would have shown all presets for "MyCommand".
@@ -321,9 +321,9 @@ Remove all presets for a given command, or remove the preset [name] for
 then removes preset "p1" for command "AnotherCommand":
 .sp
 .RS 4
-$ ash cfg.preset remove:MyCommand
+$ atlas cfg.preset remove:MyCommand
 
-$ ash cfg.preset remove:AnotherCommand p1
+$ atlas cfg.preset remove:AnotherCommand p1
 .RE
 .sp
 .RE
@@ -339,7 +339,7 @@ but this can be changed by setting the \fBEDITOR\fR environment variable. The fo
 example will edit preset "p1" for command "MyCommand":
 .sp
 .RS 4
-$ ash cfg.preset edit:MyCommand p1
+$ atlas cfg.preset edit:MyCommand p1
 .RE
 .RE
 .RE
@@ -353,7 +353,7 @@ Copy \fIcommand\fR preset <source> into new preset <destination>.
 copies the preset "p1" into new preset "p2", for command "MyCommand":
 .sp
 .RS 4
-$ ash cfg.preset copy:MyCommand p1 p2
+$ atlas cfg.preset copy:MyCommand p1 p2
 .RE
 .sp
 The \fBcopy\fR directive is useful in combination with the \fBedit\fR directive \-
@@ -393,7 +393,7 @@ List all namespaces, highlighting the current namespace with a "*". An example
 usage would look like:
 .sp
 .RS 4
-$ ash cfg.preset namespace list
+$ atlas cfg.preset namespace list
 .RE
 .RE
 .RE
@@ -408,7 +408,7 @@ will be sourced from <namespace>. The following example switches to a namespace
 called "namespace1":
 .sp
 .RS 4
-$ ash cfg.preset namespace use namespace1
+$ atlas cfg.preset namespace use namespace1
 .RE
 .RE
 .RE
@@ -421,7 +421,7 @@ will not actually switch to the new namespace. The following example creates a
 namespace called "namespace1":
 .sp
 .RS 4
-$ ash cfg.preset namespace create namespace1
+$ atlas cfg.preset namespace create namespace1
 .RE
 .RE
 .RE
@@ -435,7 +435,7 @@ fail if <namespace> does not exist, if <namespace> is currently in-use, or if
 called "namespace1":
 .sp
 .RS 4
-$ ash cfg.preset namespace remove namespace1
+$ atlas cfg.preset namespace remove namespace1
 .RE
 .RE
 .RE
@@ -445,15 +445,15 @@ $ ash cfg.preset namespace remove namespace1
 
 .SH "TERMINAL AND ENVIRONMENT"
 .sp
-\fBash\fR pages the output of the various help messages using a combination of
+\fBatlas\fR pages the output of the various help messages using a combination of
 \fBless\fR and \fBman\fR. Subcommand help pages are piped through \fBless\fR
 by default, but this can be overridden with the \fBPAGER\fR environment variable.
-The actual \fBash\fR manual page (which you are currently reading) is displayed
+The actual \fBatlas\fR manual page (which you are currently reading) is displayed
 using \fBman\fR. To disable paged output for all documentation, try the
 \fB\-\-no\-pager\fR option.
 .sp
-\fBash\fR uses formatted output when appropriate. To change this behavior,
-\fBash\fR checks for existence of the following environment variables:
+\fBatlas\fR uses formatted output when appropriate. To change this behavior,
+\fBatlas\fR checks for existence of the following environment variables:
 .sp
 .RS 4
 \fBNO_COLOR\fR \-
@@ -461,21 +461,21 @@ Disable all special formatted output. Other popular CLI tools also
 respect this variable. See https://no\-color.org/
 .sp
 \fBATLAS_SHELL_TOOLS_NO_COLOR\fR \-
-Disable special formatted output for \fBash\fR and \fBash-config\fR only.
+Disable special formatted output for \fBatlas\fR and \fBatlas-config\fR only.
 .sp
 \fBATLAS_SHELL_TOOLS_USE_COLOR\fR \-
 Enable special formatted output. Overrides the setting of \fBNO_COLOR\fR and \fBATLAS_SHELL_TOOLS_NO_COLOR\fR.
 .sp
 .RE
-\fBash\fR stores program data in compliance with the XDG Base Directory
-specification, ie. at $HOME/.local/share/ash. It also respects the
-\fBXDG_DATA_HOME\fR environment variable - if set, \fBash\fR will store program
-data at the base path specified by that variable. See \fBash\-plumbing\fR(5) for
+\fBatlas\fR stores program data in compliance with the XDG Base Directory
+specification, ie. at $HOME/.local/share/atlas-shell-tools. It also respects the
+\fBXDG_DATA_HOME\fR environment variable - if set, \fBatlas\fR will store program
+data at the base path specified by that variable. See \fBatlas\-plumbing\fR(5) for
 more information.
 
 .SH "SEE ALSO"
 .sp
-\fBash-config\fR(1)
+\fBatlas-config\fR(1)
 
 .SH "AUTHOR"
 .sp
@@ -484,12 +484,12 @@ Please report any bugs you find.
 
 .SH "BUGS"
 .sp
-Shell variable quote interactions do not quite work correctly within \fBash\fR.
+Shell variable quote interactions do not quite work correctly within \fBatlas\fR.
 All variables end up being passed forward into the JVM, even those
 surrounded with single quotes. Eg:
 .sp
 .RS 4
-$ ash MyProgram '$SHELL'
+$ atlas MyProgram '$SHELL'
 .RE
 .sp
 This will end up passing the value of $SHELL forward as an argument to MyProgram
