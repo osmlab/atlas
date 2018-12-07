@@ -36,7 +36,7 @@ our @EXPORT = qw(
     is_dir_empty
 );
 
-our $ATLAS_SHELL_TOOLS_VERSION = "atlas-shell-tools version 1.0.0";
+our $ATLAS_SHELL_TOOLS_VERSION = "atlas-shell-tools version 0.0.1";
 
 our $COMMAND_PROGRAM = 'ash';
 our $CONFIG_PROGRAM = 'ash-config';
