@@ -717,6 +717,10 @@ elsif ($subcommand eq "sync") {
 elsif ($subcommand eq "uninstall") {
     $success = execute_command_uninstall();
 }
+elsif ($subcommand eq "update") {
+    # TODO implement
+    print "TODO: implement update\n";
+}
 # These subcommands are "hidden", they are used by the completion script
 # to generate autocomplete suggestions.
 elsif ($subcommand eq "__completion_ash__") {
