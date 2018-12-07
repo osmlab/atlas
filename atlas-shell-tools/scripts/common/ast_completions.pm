@@ -55,8 +55,7 @@ sub completion_match_prefix {
     return @matched_words;
 }
 
-# TODO FIXME
-# All completion printouts MUST use '\n' as a field separator.
+# TODO FIXME All completion printouts MUST use '\n' as a field separator.
 # Currently, files with whitespace in the name are totally broken
 # See note about IFS in ast_completions.bash
 
@@ -90,7 +89,7 @@ sub completion_atlas {
     my $rargv_m2 = $argv[-3];
     my $rargv_m3 = $argv[-4];
 
-    # TODO this will do strange things when completing subcommand options...
+    # TODO FIXME this will do strange things when completing subcommand options...
     # Autocomplete the '--preset' and '--save-preset' flags, since they are probably the most used flags
     if (ast_utilities::string_starts_with($rargv, '-')) {
         my @flags = qw(--preset --save-preset);
