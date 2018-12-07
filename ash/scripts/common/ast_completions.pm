@@ -89,13 +89,14 @@ sub completion_ash {
         return 1;
     }
 
-    # TODO this bugs out if $rargv_m1 is undefined...
     # Handle special case where user is applying a preset with "--preset"
-    if ($rargv_m1 eq '-p' || ast_utilities::string_starts_with($rargv_m1, '--p')) {
-        my @presets = ast_preset_subsystem::get_all_presets_in_current_namespace($ash_path);
-        my @completion_matches = completion_match_prefix($rargv, \@presets);
-        print "@completion_matches\n";
-        return 1;
+    if (defined $rargv_m1) {
+        if ($rargv_m1 eq '-p' || ast_utilities::string_starts_with($rargv_m1, '--p')) {
+            my @presets = ast_preset_subsystem::get_all_presets_in_current_namespace($ash_path);
+            my @completion_matches = completion_match_prefix($rargv, \@presets);
+            print "@completion_matches\n";
+            return 1;
+        }
     }
 
     # If we see a command anywhere in ARGV, stop special completions and signal
