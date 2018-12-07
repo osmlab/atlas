@@ -108,7 +108,11 @@ sub execute_command_activate {
             print STDERR "Please ensure a valid \'man\' command is on your path.\n";
             exit 1;
         }
-        system("$man_command $program_name-activate");
+
+        my @command = ();
+        push @command, $man_command;
+        push @command, "$program_name-activate";
+        system(@command);
         exit 0;
     }
 
@@ -148,7 +152,10 @@ sub execute_command_deactivate {
             print STDERR "Please ensure a valid \'man\' command is on your path.\n";
             exit 1;
         }
-        system("$man_command $program_name-deactivate");
+        my @command = ();
+        push @command, $man_command;
+        push @command, "$program_name-deactivate";
+        system(@command);
         exit 0;
     }
 
@@ -194,7 +201,10 @@ sub execute_command_install {
             print STDERR "Please ensure a valid \'man\' command is on your path.\n";
             exit 1;
         }
-        system("$man_command $program_name-install");
+        my @command = ();
+        push @command, $man_command;
+        push @command, "$program_name-install";
+        system(@command);
         exit 0;
     }
 
@@ -269,14 +279,16 @@ sub execute_command_install {
         $exitcode = $? >> 8;
     }
     else {
+        my @command = ();
+        push @command, "cp";
+        push @command, "$module_to_install";
         if ($install_deactivated) {
-            # FIXME this is vulnerable to code injection if a module is named something
-            # like eg. '; echo vulnerable'. For this reason, this needs to be
-            # refactored to use something safe, like File::Copy.
-            system("cp $module_to_install $module_new_path_deactivated");
+            push @command, "$module_new_path_deactivated";
+            system(@command);
         }
         else {
-            system("cp $module_to_install $module_new_path");
+            push @command, "$module_new_path";
+            system(@command);
         }
         $exitcode = $? >> 8;
     }
@@ -325,7 +337,10 @@ sub execute_command_list {
             print STDERR "Please ensure a valid \'man\' command is on your path.\n";
             exit 1;
         }
-        system("$man_command $program_name-list");
+        my @command = ();
+        push @command, $man_command;
+        push @command, "$program_name-list";
+        system(@command);
         exit 0;
     }
 
@@ -418,7 +433,10 @@ sub execute_command_log {
             print STDERR "Please ensure a valid \'man\' command is on your path.\n";
             exit 1;
         }
-        system("$man_command $program_name-log");
+        my @command = ();
+        push @command, $man_command;
+        push @command, "$program_name-log";
+        system(@command);
         exit 0;
     }
 
@@ -488,7 +506,10 @@ sub execute_command_reset {
             print STDERR "Please ensure a valid \'man\' command is on your path.\n";
             exit 1;
         }
-        system("$man_command $program_name-reset");
+        my @command = ();
+        push @command, $man_command;
+        push @command, "$program_name-reset";
+        system(@command);
         exit 0;
     }
 
@@ -571,7 +592,10 @@ sub execute_command_sync {
             print STDERR "Please ensure a valid \'man\' command is on your path.\n";
             exit 1;
         }
-        system("$man_command $program_name-sync");
+        my @command = ();
+        push @command, $man_command;
+        push @command, "$program_name-sync";
+        system(@command);
         exit 0;
     }
 
@@ -594,7 +618,10 @@ sub execute_command_uninstall {
             print STDERR "Please ensure a valid \'man\' command is on your path.\n";
             exit 1;
         }
-        system("$man_command $program_name-uninstall");
+        my @command = ();
+        push @command, $man_command;
+        push @command, "$program_name-uninstall";
+        system(@command);
         exit 0;
     }
 
@@ -670,11 +697,17 @@ if (defined $help_argument) {
     }
     my $exitcode;
     if ($help_argument eq '') {
-        system("$man_command $program_name");
+        my @command = ();
+        push @command, $man_command;
+        push @command, "$program_name";
+        system(@command);
         $exitcode = $? >> 8;
     }
     else {
-        system("$man_command $program_name-$help_argument");
+        my @command = ();
+        push @command, $man_command;
+        push @command, "$program_name-$help_argument";
+        system(@command);
         $exitcode = $? >> 8;
     }
     if ($exitcode != 0) {

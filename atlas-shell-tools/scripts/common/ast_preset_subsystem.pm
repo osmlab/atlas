@@ -400,7 +400,10 @@ sub edit_preset {
         return 0;
     }
 
-    system($editor . " $tmpfile");
+    my @command = ();
+    push @command, "$editor";
+    push @command, "$tmpfile";
+    system(@command);
 
     open $handle, '<', "$tmpfile";
     open $stage_handle, '>', "$preset_stage_file";
@@ -451,11 +454,11 @@ sub edit_preset {
         return 0;
     }
 
-    # FIXME this is vulnerable to code injection if a preset is named something
-    # like eg. '; echo vulnerable'. It will also cause editing to do unexpected
-    # things. For this reason, this needs to be refactored to use something safe,
-    # like File::Copy.
-    system("cp $preset_stage_file $preset_file");
+    @command = ();
+    push @command, "cp";
+    push @command, "$preset_stage_file";
+    push @command, "$preset_file";
+    system(@command);
     close $tmpdir;
     show_preset($ast_path, $program_name, $quiet, $preset, $command, $namespace);
 
@@ -495,11 +498,12 @@ sub copy_preset {
         return 0;
     }
 
-    # FIXME this is vulnerable to code injection if a preset is named something
-    # like eg. '; echo vulnerable'. It will also cause editing to do unexpected
-    # things. For this reason, this needs to be refactored to use something safe,
-    # like File::Copy.
-    system("cp $source_file $dest_file");
+    my @command = ();
+    push @command, "cp";
+    push @command, "$source_file";
+    push @command, "$dest_file";
+    print "@command\n";
+    system(@command);
 
     unless ($quiet) {
         print "Copied contents of preset ${bold_stdout}${src_preset}${reset_stdout} into new preset ${bold_stdout}${dest_preset}${reset_stdout}.\n";

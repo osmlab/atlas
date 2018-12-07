@@ -436,14 +436,20 @@ sub generate_active_module_index {
     my $verbose_java = shift;
 
     my $full_index_path = File::Spec->catfile($ast_path, $ACTIVE_INDEX_PATH);
+    # TODO instead of "*", get the exact name of the current module
     my $full_path_to_modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER, '*');
-    my $java_command = "java -Xms2G -Xmx2G ".
-                   "-cp \"${full_path_to_modules_folder}\" ".
-                   "-Dlog4j.rootLogger=ERROR ".
-                   "${INDEX_WRITER_CLASS} $full_index_path ";
+    my @java_command = ();
+    push @java_command, "java";
+    push @java_command, "-Xms2G";
+    push @java_command, "-Xmx2G";
+    push @java_command, "-cp";
+    push @java_command, "${full_path_to_modules_folder}";
+    push @java_command, "-Dlog4j.rootLogger=ERROR";
+    push @java_command, "${INDEX_WRITER_CLASS}";
+    push @java_command, "${full_index_path}";
 
     if ($verbose_java && !$quiet) {
-        $java_command = $java_command . "--verbose";
+        push @java_command, "--verbose";
     }
 
     my %modules = get_module_to_status_hash($ast_path);
@@ -461,7 +467,7 @@ sub generate_active_module_index {
         print "Generating new index...\n";
     }
 
-    system("$java_command");
+    system(@java_command);
     my $exitcode = $? >> 8;
     unless ($exitcode == 0) {
         ast_utilities::error_output($program_name, 'could not generate index');
