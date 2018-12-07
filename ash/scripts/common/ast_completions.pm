@@ -89,6 +89,7 @@ sub completion_ash {
         return 1;
     }
 
+    # TODO this bugs out if $rargv_m1 is undefined...
     # Handle special case where user is applying a preset with "--preset"
     if ($rargv_m1 eq '-p' || ast_utilities::string_starts_with($rargv_m1, '--p')) {
         my @presets = ast_preset_subsystem::get_all_presets_in_current_namespace($ash_path);
