@@ -274,7 +274,7 @@ sub get_pager {
 
 # Get an editor command capable of displaying and editing a text file. Checks
 # the value of the EDITOR env variable, and uses that instead if it points to an
-# editor. If no valid pager can be found, returns 'undef'.
+# editor. If no valid editor can be found, returns 'undef'.
 # Params: none
 # Return: the editor command, or undef if no valid command is found
 sub get_editor {
