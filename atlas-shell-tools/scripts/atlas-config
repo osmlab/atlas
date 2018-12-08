@@ -8,6 +8,7 @@ use File::Basename;
 use File::Copy qw(copy);
 use File::Spec;
 use File::Path;
+use POSIX;
 
 # Pull in code from the common modules
 use FindBin;
@@ -628,8 +629,11 @@ GetOptions(
 
 if (geteuid() == 0) {
     unless (defined $allow_run_as_root) {
-        print STDERR "Cannot run as root\n";
-        print STDERR "TODO fill in message here\n";
+        print STDERR "For security reasons, you are highly discouraged from running atlas-shell-tools\n";
+        print STDERR "as the root user. Atlas-shell-tools cannot guarantee that modules installed from\n";
+        print STDERR "external repositories are safe to run with root privileges.\n\n";
+        print STDERR "To disregard this warning and run as root anyway, please use the option:\n";
+        print STDERR "--allow-run-as-root\n\n";
         exit 1;
     }
 }
