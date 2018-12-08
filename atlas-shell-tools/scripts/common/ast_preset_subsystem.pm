@@ -455,7 +455,7 @@ sub edit_preset {
     }
 
     @command = ();
-    push @command, "/bin/cp";
+    push @command, "cp";
     push @command, "$preset_stage_file";
     push @command, "$preset_file";
     system(@command);
@@ -499,7 +499,7 @@ sub copy_preset {
     }
 
     my @command = ();
-    push @command, "/bin/cp";
+    push @command, "cp";
     push @command, "$source_file";
     push @command, "$dest_file";
     system(@command);
