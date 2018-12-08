@@ -603,12 +603,14 @@ sub execute_command_uninstall {
 $ast_path = ast_utilities::create_data_directory();
 
 my $help_argument;
+my $allow_run_as_root;
 Getopt::Long::Configure(qw(no_ignore_case_always));
 GetOptions(
     "no-pager" => \$skip_paging,
     "help|h:s" => \$help_argument,
     "version|V" => sub { print "$program_version\n"; exit 0; },
     "quiet|q" => \$quiet,
+    "allow-run-as-root" => \$allow_run_as_root,
     # This callback occurs the first time we see a non-option argument.
     # In our case, this will be the subcommand.
     "<>" => sub {
@@ -623,6 +625,14 @@ GetOptions(
         die "!FINISH";
     }
 ) or ast_utilities::getopt_failure_and_exit($program_name);
+
+if (geteuid() == 0) {
+    unless (defined $allow_run_as_root) {
+        print STDERR "Cannot run as root\n";
+        print STDERR "TODO fill in message here\n";
+        exit 1;
+    }
+}
 
 # Handle the cases where the user supplied a --help flag
 # 1) --help -> print the default help menu and exit

@@ -5,6 +5,7 @@ use strict;
 
 use File::Spec;
 use Getopt::Long qw(GetOptions);
+use POSIX;
 
 # Pull in code from the common modules
 use FindBin;
@@ -396,6 +397,7 @@ my $show_preset;
 my $edit_preset;
 my $cfg_preset;
 my $debug_flag;
+my $allow_run_as_root;
 Getopt::Long::Configure(qw(no_ignore_case_always));
 GetOptions(
     "no-pager" => \$skip_paging,
@@ -408,6 +410,7 @@ GetOptions(
     "preset|p=s" => \$use_preset,
     "save-preset=s" => \$save_preset,
     "debug" => \$debug_flag,
+    "allow-run-as-root" => \$allow_run_as_root,
     # This callback occurs the first time we see a non-option argument.
     # In our case, this will be the either the 'cfg.preset' command or the
     # target subcommand.
@@ -427,6 +430,17 @@ GetOptions(
         die "!FINISH";
     }
 ) or ast_utilities::getopt_failure_and_exit($program_name);
+
+# TODO testing seteuid/geteuid
+my $euid = geteuid();
+print "EUID: $euid\n";
+if (geteuid() == 0) {
+    unless (defined $allow_run_as_root) {
+        print STDERR "Cannot run as root\n";
+        print STDERR "TODO fill in message here\n";
+        exit 1;
+    }
+}
 
 # Handle the case where the user supplied a --help flag with no arg.
 # We can show this without doing any other verification.
