@@ -467,7 +467,7 @@ sub generate_active_module_index {
         print "Generating new index...\n";
     }
 
-    system(@java_command);
+    system { $java_command[0] } @java_command;
     my $exitcode = $? >> 8;
     unless ($exitcode == 0) {
         ast_utilities::error_output($program_name, 'could not generate index');

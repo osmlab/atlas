@@ -182,6 +182,7 @@ sub atlas_list_subcommands_and_exit {
             print PAGER "    ${bold_stdout}$subcommand${reset_stdout}\n";
             print PAGER "        $subcommand_desc{$subcommand}\n\n";
         }
+        close PAGER;
     }
 
     exit 0;
@@ -456,7 +457,7 @@ if (defined $help_argument) {
         my @command = ();
         push @command, @man_command;
         push @command, "$program_name";
-        system(@command);
+        system { $command[0] } @command;
         my $exitcode = $? >> 8;
         if ($exitcode != 0) {
             exit 1;
@@ -624,7 +625,7 @@ if ($debug_flag) {
     exit 0;
 }
 
-system(@java_command);
+system { $java_command[0] } @java_command;
 my $exitcode = $? >> 8;
 exit $exitcode;
 
