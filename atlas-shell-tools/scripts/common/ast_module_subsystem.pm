@@ -82,7 +82,7 @@ sub get_subcommand_to_class_hash {
     my $ast_path = shift;
 
     my $index_path = File::Spec->catfile($ast_path, $ACTIVE_INDEX_PATH);
-    open my $index_fileIN, '<', $index_path or die "could not read index from path $index_path";
+    open my $index_fileIN, '<', $index_path or return ();
     my %subcommand_to_class = ();
 
     while (<$index_fileIN>) {
@@ -104,7 +104,7 @@ sub get_subcommand_to_description_hash {
     my $ast_path = shift;
 
     my $index_path = File::Spec->catfile($ast_path, $ACTIVE_INDEX_PATH);
-    open my $index_fileIN, '<', $index_path or die "could not read index from path $index_path";
+    open my $index_fileIN, '<', $index_path or return ();
     my %subcommand_to_description = ();
 
     while (<$index_fileIN>) {
