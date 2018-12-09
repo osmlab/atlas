@@ -158,6 +158,7 @@ sub get_module_to_status_hash {
         $module =~ s{$DEACTIVATED_SUFFIX}{};
         $modules{$module} = $module_activated;
     }
+    close FIND;
 
     return %modules;
 }
@@ -205,6 +206,7 @@ sub get_module_to_symlink_hash {
         $module =~ s{$DEACTIVATED_SUFFIX}{};
         $modules{$module} = $module_islink;
     }
+    close FIND;
 
     return %modules;
 }
@@ -246,6 +248,7 @@ sub get_module_to_target_hash {
         $module =~ s{$DEACTIVATED_SUFFIX}{};
         $modules{$module} = $module_target;
     }
+    close FIND;
 
     return %modules;
 }

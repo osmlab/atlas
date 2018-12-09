@@ -70,6 +70,12 @@ my $reset_stderr = $no_colors_stderr ? "" : ast_tty::ansi_reset();
 # Params: none
 # Return: the newly set data directory
 sub create_data_directory {
+    unless (defined $ENV{HOME}) {
+        print STDERR "Error: HOME environment variable is undefined\n";
+        exit 1;
+    }
+
+
     # The directory for data storage. Client code must access this variable thru
     # create_data_directory(), which optionally modifies this variable based on the
     # XDG_DATA_HOME environment variable.
@@ -306,6 +312,8 @@ sub is_dir_empty {
     while (defined(my $entry = readdir $h)) {
         return unless $entry =~ /^[.][.]?\z/;
     }
+
+    closedir $h;
 
     return 1;
 }

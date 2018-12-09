@@ -274,7 +274,7 @@ sub all_presets {
 
     opendir my $presets_dir_handle, $preset_subfolder or die "Something went wrong opening dir: $!";
     my @presets = readdir $presets_dir_handle;
-    close $presets_dir_handle;
+    closedir $presets_dir_handle;
 
     # we need to filter '.' and '..'
     my @filtered_presets = ();
@@ -598,7 +598,7 @@ sub get_namespaces_array {
 
     opendir my $presets_dir_handle, $preset_folder or die "Something went wrong opening dir: $!";
     my @namespaces = readdir $presets_dir_handle;
-    close $presets_dir_handle;
+    closedir $presets_dir_handle;
 
     # we need to filter '.', '..', and '.current_namespace'
     my @filtered_namespaces = ();
@@ -773,7 +773,7 @@ sub get_all_presets_in_current_namespace {
 
     opendir my $namespace_dir_handle, $namespace_folder or die "Something went wrong opening dir: $!";
     my @command_folders = readdir $namespace_dir_handle;
-    close $namespace_dir_handle;
+    closedir $namespace_dir_handle;
 
     foreach my $found_command (@command_folders) {
         my $command_folder = File::Spec->catfile($namespace_folder, $found_command);
@@ -781,7 +781,7 @@ sub get_all_presets_in_current_namespace {
         unless ($found_command eq '.' || $found_command eq '..') {
             opendir my $command_dir_handle, $command_folder or die "Something went wrong opening dir: $!";
             my @preset_files = readdir $command_dir_handle;
-            close $command_dir_handle;
+            closedir $command_dir_handle;
 
             foreach my $found_preset (@preset_files) {
                 # we need to filter '.', '..'
