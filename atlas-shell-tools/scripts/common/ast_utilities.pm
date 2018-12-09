@@ -71,10 +71,19 @@ my $reset_stderr = $no_colors_stderr ? "" : ast_tty::ansi_reset();
 # Return: the newly set data directory
 sub create_data_directory {
     unless (defined $ENV{HOME}) {
-        print STDERR "Error: HOME environment variable is undefined\n";
+        print STDERR "Error: HOME environment variable is not set\n";
         exit 1;
     }
 
+    unless (-d $ENV{HOME}) {
+        print STDERR "Error: the directory referenced by HOME does not exist\n";
+        exit 1;
+    }
+
+    unless (-w $ENV{HOME}) {
+        print STDERR "Error: the directory referenced by HOME is not writable\n";
+        exit 1;
+    }
 
     # The directory for data storage. Client code must access this variable thru
     # create_data_directory(), which optionally modifies this variable based on the
