@@ -113,17 +113,17 @@ sub display_and_exit {
         $skip_paging = 0;
     }
 
-    my $pager_command = get_pager();
-    unless (defined $pager_command) {
-        $skip_paging = 1;
-    }
+    my @pager_command = get_pager();
 
     if ($skip_paging) {
         print "$message";
     }
     else {
-        open PAGER, "|${pager_command}" or die $!;
+        # NOTE: there is no easy way to prevent shell interference should the pager
+        # command array contain only one element.
+        open PAGER, "|-", @pager_command or die $!;
         print PAGER "$message";
+        close PAGER;
     }
 
     exit 0;
@@ -214,42 +214,17 @@ sub prompt_yn {
 }
 
 # Get a pager command capable of displaying formatting codes. Checks the value
-# of the PAGER env variable, and uses that instead if it points to a pager.
-# If no valid pager can be found, returns 'undef'.
+# of the PAGER env variable, and uses that instead if it is set.
 # Params: none
-# Return: the pager command, or undef if no valid command is found
+# Return: the pager command array
 sub get_pager {
-    my $pager_command;
-    my $exitcode;
+    my @pager_command = ();
 
-    if (defined $ENV{PAGER}) {
-        if ($ENV{PAGER} eq '') {
-            return undef;
-        }
-        $pager_command = `which $ENV{PAGER}`;
-        # Make double sure we found a valid command. One some OS's,
-        # the 'which' binary does not return an exit status.
-        if ($pager_command eq '') {
-            return undef;
-        }
-        chomp $pager_command;
-        if ($pager_command eq '') {
-            return undef;
-        }
-        $exitcode = $? >> 8;
+    if (defined $ENV{PAGER} && $ENV{PAGER} ne '') {
+        @pager_command = split /\s+/, $ENV{PAGER};
     }
     else {
-        $pager_command = `which less`;
-        # Make double sure we found a valid command. One some OS's,
-        # the 'which' binary does not return an exit status.
-        if ($pager_command eq '') {
-            return undef;
-        }
-        chomp $pager_command;
-        if ($pager_command eq '') {
-            return undef;
-        }
-        $exitcode = $? >> 8;
+        push @pager_command, 'less';
 
         # Options (see less(1) for more info):
         # -c -> clear the screen before displaying
@@ -260,100 +235,50 @@ sub get_pager {
         # -s -> squeeze consecutive blank lines
         # TODO consider -F, -X options here?
         # https://unix.stackexchange.com/questions/107315/less-quit-if-one-screen-without-no-init
-        $pager_command = $pager_command . ' -cSRMis';
-    }
-    
-    if ($exitcode == 0) {
-        return $pager_command;
+        push @pager_command, '-cSRMis';
     }
 
-    # This has pitfalls, but it should be OK in this case
-    # https://perlmaven.com/how-to-return-undef-from-a-function
-    return undef;
+    return @pager_command;
 }
 
 # Get an editor command capable of displaying and editing a text file. Checks
 # the value of the EDITOR env variable, and uses that instead if it points to an
-# editor. If no valid editor can be found, returns 'undef'.
+# editor.
 # Params: none
-# Return: the editor command, or undef if no valid command is found
+# Return: the editor command
 sub get_editor {
-    my $editor_command;
-    my $exitcode;
+    my @editor_command = ();
 
-    if (defined $ENV{EDITOR}) {
-        if ($ENV{EDITOR} eq '') {
-            return undef;
-        }
-        $editor_command = `which $ENV{EDITOR}`;
-        # Make double sure we found a valid command. One some OS's,
-        # the 'which' binary does not return an exit status.
-        if ($editor_command eq '') {
-            return undef;
-        }
-        chomp $editor_command;
-        if ($editor_command eq '') {
-            return undef;
-        }
-        $exitcode = $? >> 8;
+    if (defined $ENV{EDITOR} && $ENV{EDITOR} ne '') {
+        @editor_command = split /\s+/, $ENV{EDITOR};
     }
     else {
-        $editor_command = `which vim`;
-        # Make double sure we found a valid command. One some OS's,
-        # the 'which' binary does not return an exit status.
-        if ($editor_command eq '') {
-            return undef;
-        }
-        chomp $editor_command;
-        if ($editor_command eq '') {
-            return undef;
-        }
-        $exitcode = $? >> 8;
-        $editor_command = $editor_command . ' +';
+        push @editor_command, 'vim';
+
+        # The '+' option tells vim to start with the cursor at the end of the file.
+        # This is generally convenient for most atlas-shell-tools use-cases.
+        push @editor_command, '+';
     }
 
-    if ($exitcode == 0) {
-        return $editor_command;
-    }
-
-    # This has pitfalls, but it should be OK in this case
-    # https://perlmaven.com/how-to-return-undef-from-a-function
-    return undef;
+    return @editor_command;
 }
 
-# Get a man command capable of displaying some desired manpage. Checks
+# Get a man command capable of displaying some desired manpage.
 # Params:
 #   $skip_paging: optionally disable paging for man
-# Return: the man command array, or undef if no valid command is found
+# Return: the man command array
 sub get_man {
+    my @man_command = ();
     my $skip_paging = shift;
 
-    my $man_command = `which man`;
-    my $exitcode = $? >> 8;
-    my @command = ();
-
-    # Make double sure we found a valid command. One some OS's,
-    # the 'which' binary does not return an exit status.
-    if ($man_command eq '') {
-        return ();
-    }
-    chomp $man_command;
-    if ($man_command eq '') {
-        return ();
-    }
-
-    push @command, $man_command;
+    push @man_command, 'man';
 
     if ($skip_paging) {
-        push @command, "-P";
-        push @command, "cat";
+        push @man_command, '-P';
+        push @man_command, 'cat';
     }
 
-    if ($exitcode == 0) {
-        return @command;
-    }
-
-    return ();
+    return @man_command;
 }
 
 # Check if a given string starts with a given prefix.

@@ -390,20 +390,10 @@ sub edit_preset {
     }
     close $handle;
 
-    my $editor = ast_utilities::get_editor();
-    unless (defined $editor) {
-        error_output($program_name, "could not obtain a valid editor");
-        print STDERR "Please point the ${bold_stdout}EDITOR${reset_stdout} environment variable at a valid editor.\n";
-        if (ast_utilities::is_dir_empty($preset_subfolder)) {
-            rmdir($preset_subfolder);
-        }
-        return 0;
-    }
+    my @editor = ast_utilities::get_editor();
 
-    my @command = ();
-    push @command, "$editor";
-    push @command, "$tmpfile";
-    system { $command[0] } @command;
+    push @editor, "$tmpfile";
+    system { $editor[0] } @editor;
 
     open $handle, '<', "$tmpfile";
     open $stage_handle, '>', "$preset_stage_file";
@@ -454,7 +444,7 @@ sub edit_preset {
         return 0;
     }
 
-    @command = ();
+    my @command = ();
     push @command, "cp";
     push @command, "$preset_stage_file";
     push @command, "$preset_file";

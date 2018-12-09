@@ -90,44 +90,59 @@ sub atlas_show_contextual_help_menu_and_exit {
     # TODO instead of "*", get the exact name of the current module
     my $full_path_to_modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER, '*');
 
-    my $java_command = "java -Xms2G -Xmx2G ".
-                   "-cp \"${full_path_to_modules_folder}\" ".
-                   "-Dlog4j.rootLogger=ERROR ".
-                   "${subcommand_class} --help ";
+    my @java_command = ();
+    push @java_command, 'java';
+    push @java_command, '-Xms2G';
+    push @java_command, '-Xmx2G';
+    push @java_command, '-cp';
+    push @java_command, "${full_path_to_modules_folder}";
+    push @java_command, "-Dlog4j.rootLogger=ERROR";
+    push @java_command, "${subcommand_class}";
+    push @java_command, "--help";
 
     if (ast_tty::is_no_colors_stdout()) {
-        $java_command = $java_command . "$ast_utilities::JAVA_NO_COLOR_STDOUT ";
+        push @java_command, "$ast_utilities::JAVA_NO_COLOR_STDOUT";
     }
     else {
-        $java_command = $java_command . "$ast_utilities::JAVA_COLOR_STDOUT ";
+        push @java_command, "$ast_utilities::JAVA_COLOR_STDOUT";
     }
 
     if (ast_tty::is_no_colors_stderr()) {
-        $java_command = $java_command . "$ast_utilities::JAVA_NO_COLOR_STDERR ";
+        push @java_command, "$ast_utilities::JAVA_NO_COLOR_STDERR";
     }
     else {
-        $java_command = $java_command . "$ast_utilities::JAVA_COLOR_STDERR ";
+        push @java_command, "$ast_utilities::JAVA_COLOR_STDERR";
     }
 
-    $java_command = $java_command . "$ast_utilities::JAVA_NO_USE_PAGER ";
+    push @java_command, "$ast_utilities::JAVA_NO_USE_PAGER";
 
     my $terminal_width = ast_tty::terminal_width();
-    $java_command = $java_command . "$terminal_width ";
-    $java_command = $java_command . "$ast_utilities::JAVA_MARKER_SENTINEL ";
+    push @java_command, "$terminal_width";
+    push @java_command, "$ast_utilities::JAVA_MARKER_SENTINEL";
 
-    my $pager_command = ast_utilities::get_pager();
-    unless (defined $pager_command) {
-        $skip_paging = 1;
+    my @pager_command = ast_utilities::get_pager();
+
+    # NOTE: there is no easy way to prevent shell interference should the java
+    # command array contain only one element.
+    open JAVA, "-|", @java_command or die $!;
+    my $output = '';
+    while(<JAVA>) {
+        # Not the most effienct way to do things.
+        # Perhaps some kind of slurp is needed. File::Splurp could work but does
+        # have an outstanding Unicode bug. Need to investigate more.
+        $output = $output . $_;
     }
+    close JAVA;
 
     if ($skip_paging) {
-        my $output = `$java_command`;
         print "$output";
     }
     else {
-        open PAGER, "|${pager_command}" or die $!;
-        my $output = `$java_command`;
+        # NOTE: there is no easy way to prevent shell interference should the pager
+        # command array contain only one element.
+        open PAGER, "|-", @pager_command or die $!;
         print PAGER "$output";
+        close PAGER;
     }
 
     exit 0;
@@ -157,11 +172,7 @@ sub atlas_list_subcommands_and_exit {
     }
 
     my %subcommand_desc = ast_module_subsystem::get_subcommand_to_description_hash($ast_path);
-    my $pager_command = ast_utilities::get_pager();
-
-    unless (defined $pager_command) {
-        $skip_paging = 1;
-    }
+    my @pager_command = ast_utilities::get_pager();
 
     if ($skip_paging) {
         print "\n";
@@ -174,7 +185,9 @@ sub atlas_list_subcommands_and_exit {
         print "\n";
     }
     else {
-        open PAGER, "|${pager_command}" or die $!;
+        # NOTE: there is no easy way to prevent shell interference should the pager
+        # command array contain only one element.
+        open PAGER, "|-", @pager_command or die $!;
         print PAGER "${bold_stdout}AVAILABLE COMMANDS${reset_stdout}\n";
         print PAGER "See the help page for a command with ${bold_stdout}${program_name} --help <command>${reset_stdout}.\n";
         print PAGER "You can open a new page directly from this window with ${bold_stdout}!${program_name} --help <command>${reset_stdout}.\n\n";
