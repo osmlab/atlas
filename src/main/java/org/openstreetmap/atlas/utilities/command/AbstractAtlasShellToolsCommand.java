@@ -13,6 +13,7 @@ import org.openstreetmap.atlas.utilities.command.documentation.PagerHelper;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser;
+import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.AmbiguousAbbreviationException;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.ArgumentException;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.OptionParseException;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.SimpleOption;
@@ -674,6 +675,11 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             printStderr("Try \'");
             printStderr("--help", TTYAttribute.BOLD);
             printStderr("\' option for more info." + System.getProperty("line.separator"));
+            System.exit(1);
+        }
+        catch (final AmbiguousAbbreviationException exception)
+        {
+            printlnErrorMessage(exception.getMessage());
             System.exit(1);
         }
         catch (final ArgumentException exception)

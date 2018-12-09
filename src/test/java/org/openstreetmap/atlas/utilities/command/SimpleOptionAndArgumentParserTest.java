@@ -10,6 +10,7 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser;
+import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.AmbiguousAbbreviationException;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.ArgumentException;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.OptionParseException;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.UnknownOptionException;
@@ -33,6 +34,10 @@ public class SimpleOptionAndArgumentParserTest
             parser.parseOptionsAndArguments(arguments);
         }
         catch (final UnknownOptionException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final AmbiguousAbbreviationException e)
         {
             Assert.fail(e.getMessage());
         }
@@ -64,6 +69,10 @@ public class SimpleOptionAndArgumentParserTest
             Assert.fail(e.getMessage());
         }
         catch (final ArgumentException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final AmbiguousAbbreviationException e)
         {
             Assert.fail(e.getMessage());
         }
@@ -106,6 +115,10 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
+        catch (final AmbiguousAbbreviationException e)
+        {
+            Assert.fail(e.getMessage());
+        }
 
         Assert.assertEquals(true, parser.hasOption("opt1"));
         Assert.assertEquals(true, parser.hasOption("opt2"));
@@ -126,6 +139,10 @@ public class SimpleOptionAndArgumentParserTest
             Assert.fail(e.getMessage());
         }
         catch (final ArgumentException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final AmbiguousAbbreviationException e)
         {
             Assert.fail(e.getMessage());
         }
@@ -166,6 +183,10 @@ public class SimpleOptionAndArgumentParserTest
             Assert.fail(e.getMessage());
         }
         catch (final ArgumentException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final AmbiguousAbbreviationException e)
         {
             Assert.fail(e.getMessage());
         }
@@ -219,6 +240,11 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
+        catch (final AmbiguousAbbreviationException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+
         Assert.assertEquals(new Integer(2),
                 parser.getOptionArgument("two", optionArgument -> Integer.parseInt(optionArgument))
                         .get());
@@ -304,6 +330,10 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
+        catch (final AmbiguousAbbreviationException e)
+        {
+            Assert.fail(e.getMessage());
+        }
 
         Assert.assertEquals("newArg", parser.getOptionArgument("opt1").get());
         Assert.assertFalse(parser.getOptionArgument("opt2").isPresent());
@@ -332,8 +362,81 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
+        catch (final AmbiguousAbbreviationException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+
         Assert.assertEquals("defaultValue",
                 parser.getOptionArgument("opt1").orElse("defaultValue"));
+    }
+
+    @Test
+    public void testPrefixAbbreviation()
+    {
+        final SimpleOptionAndArgumentParser parser1 = new SimpleOptionAndArgumentParser();
+        parser1.registerOption("opt1", "option1");
+        parser1.registerOption("anotherOpt", "option2");
+        parser1.registerOption("option", "option3");
+        parser1.registerOption("optionSuffix", "option4");
+
+        final List<String> arguments = Arrays.asList("--opt1", "--an", "--option", "--optionSuf");
+        try
+        {
+            parser1.parseOptionsAndArguments(arguments);
+        }
+        catch (final ArgumentException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final OptionParseException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final AmbiguousAbbreviationException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final UnknownOptionException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+
+        Assert.assertTrue(parser1.hasOption("opt1"));
+        Assert.assertTrue(parser1.hasOption("anotherOpt"));
+        Assert.assertTrue(parser1.hasOption("option"));
+        Assert.assertTrue(parser1.hasOption("optionSuffix"));
+    }
+
+    @Test
+    public void testPrefixAmbiguous()
+    {
+        final SimpleOptionAndArgumentParser parser2 = new SimpleOptionAndArgumentParser();
+        parser2.registerOption("option", "option1");
+        parser2.registerOption("optionSuffix", "option2");
+
+        final List<String> arguments2 = Arrays.asList("--opt");
+        try
+        {
+            parser2.parseOptionsAndArguments(arguments2);
+        }
+        catch (final ArgumentException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final OptionParseException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final UnknownOptionException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final AmbiguousAbbreviationException e)
+        {
+            return;
+        }
+        Assert.fail();
     }
 
     @Test
@@ -364,6 +467,10 @@ public class SimpleOptionAndArgumentParserTest
             Assert.fail(e.getMessage());
         }
         catch (final ArgumentException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final AmbiguousAbbreviationException e)
         {
             Assert.fail(e.getMessage());
         }
@@ -402,6 +509,11 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
+        catch (final AmbiguousAbbreviationException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+
         Assert.assertEquals("arg1", parser.getUnaryArgument("single1").get());
 
         arguments = Arrays.asList("arg1", "arg2");
@@ -421,6 +533,11 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
+        catch (final AmbiguousAbbreviationException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+
         Assert.assertEquals("arg1", parser.getUnaryArgument("single1").get());
         Assert.assertEquals("arg2", parser.getUnaryArgument("single2").get());
     }
@@ -441,6 +558,10 @@ public class SimpleOptionAndArgumentParserTest
             Assert.fail(e.getMessage());
         }
         catch (final OptionParseException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final AmbiguousAbbreviationException e)
         {
             Assert.fail(e.getMessage());
         }
@@ -470,6 +591,11 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
+        catch (final AmbiguousAbbreviationException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+
         Assert.assertEquals("arg1", parser.getUnaryArgument("single1").get());
         Assert.assertFalse(parser.getUnaryArgument("single2").isPresent());
 
@@ -494,6 +620,11 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
+        catch (final AmbiguousAbbreviationException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+
         Assert.assertEquals("arg1", parser.getUnaryArgument("single1").get());
         Assert.assertTrue(parser.getVariadicArgument("multi1").isEmpty());
     }
@@ -524,6 +655,11 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
+        catch (final AmbiguousAbbreviationException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+
         Assert.assertEquals("arg4", parser.getUnaryArgument("single1").get());
         Assert.assertEquals("arg5", parser.getUnaryArgument("single2").get());
         Assert.assertEquals(Arrays.asList("arg1", "arg2", "arg3"),
@@ -550,6 +686,11 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
+        catch (final AmbiguousAbbreviationException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+
         Assert.assertEquals("arg1", parser.getUnaryArgument("single1").get());
         Assert.assertEquals("arg5", parser.getUnaryArgument("single2").get());
         Assert.assertEquals(Arrays.asList("arg2", "arg3", "arg4"),
@@ -576,6 +717,11 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
+        catch (final AmbiguousAbbreviationException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+
         Assert.assertEquals("arg1", parser.getUnaryArgument("single1").get());
         Assert.assertEquals("arg2", parser.getUnaryArgument("single2").get());
         Assert.assertEquals(Arrays.asList("arg3", "arg4", "arg5"),
@@ -606,6 +752,11 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
+        catch (final AmbiguousAbbreviationException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+
         Assert.assertEquals("arg1", parser.getUnaryArgument("single1").get());
 
         arguments = Arrays.asList("arg1", "arg2", "arg3");
@@ -625,6 +776,11 @@ public class SimpleOptionAndArgumentParserTest
         {
             Assert.fail(e.getMessage());
         }
+        catch (final AmbiguousAbbreviationException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+
         Assert.assertEquals("arg1", parser.getUnaryArgument("single1").get());
         Assert.assertEquals(Arrays.asList("arg2", "arg3"), parser.getVariadicArgument("multi1"));
     }
@@ -644,6 +800,10 @@ public class SimpleOptionAndArgumentParserTest
             Assert.fail(e.getMessage());
         }
         catch (final OptionParseException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+        catch (final AmbiguousAbbreviationException e)
         {
             Assert.fail(e.getMessage());
         }

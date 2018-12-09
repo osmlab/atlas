@@ -47,6 +47,27 @@ public class SimpleOptionAndArgumentParser
     /**
      * @author lcram
      */
+    public class AmbiguousAbbreviationException extends Exception
+    {
+        private static final long serialVersionUID = 8506034533362610699L;
+
+        private final String optionName;
+
+        public AmbiguousAbbreviationException(final String message)
+        {
+            super(message);
+            this.optionName = message;
+        }
+
+        public String getOptionName()
+        {
+            return this.optionName;
+        }
+    }
+
+    /**
+     * @author lcram
+     */
     public class ArgumentException extends Exception
     {
         private static final long serialVersionUID = 8506034533362610699L;
@@ -319,11 +340,19 @@ public class SimpleOptionAndArgumentParser
         {
             throw new CoreException("Cannot get options before parsing!");
         }
-        if (!registeredOptionForLongForm(longForm).isPresent())
+        final Optional<SimpleOption> option;
+        try
         {
-            throw new CoreException("{} not a registered option", longForm);
+            if (!registeredOptionForLongForm(longForm).isPresent())
+            {
+                throw new CoreException("{} not a registered option", longForm);
+            }
+            option = getParsedOptionFromLongForm(longForm);
         }
-        final Optional<SimpleOption> option = getParsedOptionFromLongForm(longForm);
+        catch (final AmbiguousAbbreviationException exception)
+        {
+            throw new CoreException("provided option long form {} was ambiguous", longForm);
+        }
         if (option.isPresent())
         {
             return this.parsedOptions.get(option.get());
@@ -353,11 +382,19 @@ public class SimpleOptionAndArgumentParser
         {
             throw new CoreException("Cannot get options before parsing!");
         }
-        if (!registeredOptionForLongForm(longForm).isPresent())
+        final Optional<SimpleOption> option;
+        try
         {
-            throw new CoreException("{} not a registered option", longForm);
+            if (!registeredOptionForLongForm(longForm).isPresent())
+            {
+                throw new CoreException("{} not a registered option", longForm);
+            }
+            option = getParsedOptionFromLongForm(longForm);
         }
-        final Optional<SimpleOption> option = getParsedOptionFromLongForm(longForm);
+        catch (final AmbiguousAbbreviationException exception)
+        {
+            throw new CoreException("provided option long form {} was ambiguous", longForm);
+        }
         if (option.isPresent())
         {
             final Optional<String> argument = this.parsedOptions.get(option.get());
@@ -466,11 +503,19 @@ public class SimpleOptionAndArgumentParser
         {
             throw new CoreException("Cannot get options before parsing!");
         }
-        if (!registeredOptionForLongForm(longForm).isPresent())
+        final Optional<SimpleOption> option;
+        try
         {
-            throw new CoreException("{} not a registered option", longForm);
+            if (!registeredOptionForLongForm(longForm).isPresent())
+            {
+                throw new CoreException("{} not a registered option", longForm);
+            }
+            option = getParsedOptionFromLongForm(longForm);
         }
-        final Optional<SimpleOption> option = getParsedOptionFromLongForm(longForm);
+        catch (final AmbiguousAbbreviationException exception)
+        {
+            throw new CoreException("provided option long form {} was ambiguous", longForm);
+        }
         if (option.isPresent())
         {
             return true;
@@ -492,7 +537,8 @@ public class SimpleOptionAndArgumentParser
      *             If supplied arguments do not match the registered argument hints
      */
     public void parseOptionsAndArguments(final List<String> allArguments)
-            throws UnknownOptionException, OptionParseException, ArgumentException
+            throws UnknownOptionException, OptionParseException, ArgumentException,
+            AmbiguousAbbreviationException
     {
         final List<String> regularArguments = new ArrayList<>();
         boolean seenEndOptionsOperator = false;
@@ -870,14 +916,38 @@ public class SimpleOptionAndArgumentParser
     }
 
     private Optional<SimpleOption> checkForLongOption(final String longForm,
-            final Set<SimpleOption> setToCheck)
+            final Set<SimpleOption> setToCheck, final boolean usePrefixMatching)
+            throws AmbiguousAbbreviationException
     {
+        final Set<SimpleOption> matchedOptions = new HashSet<>();
         for (final SimpleOption option : setToCheck)
         {
-            if (option.getLongForm().equals(longForm))
+            if (option.getLongForm().startsWith(longForm))
             {
-                return Optional.of(option);
+                /*
+                 * Break out if we find an exact match. This handles the edge case where you have
+                 * two options like "--option" and "--optionSuffix". In this case, if "--option" is
+                 * supplied, we want to return the exact match instead of throwing an ambiguity
+                 * error.
+                 */
+                if (option.getLongForm().equals(longForm))
+                {
+                    return Optional.of(option);
+                }
+                if (usePrefixMatching)
+                {
+                    matchedOptions.add(option);
+                }
             }
+        }
+        if (matchedOptions.size() > 1)
+        {
+            throw new AmbiguousAbbreviationException("TODO Ambiguous Option message");
+        }
+        else if (matchedOptions.size() == 1)
+        {
+            final SimpleOption matchedOption = matchedOptions.toArray(new SimpleOption[0])[0];
+            return Optional.of(matchedOption);
         }
         return Optional.empty();
     }
@@ -900,8 +970,9 @@ public class SimpleOptionAndArgumentParser
     }
 
     private Optional<SimpleOption> getParsedOptionFromLongForm(final String longForm)
+            throws AmbiguousAbbreviationException
     {
-        return checkForLongOption(longForm, this.parsedOptions.keySet());
+        return checkForLongOption(longForm, this.parsedOptions.keySet(), false);
     }
 
     /*
@@ -909,7 +980,7 @@ public class SimpleOptionAndArgumentParser
      * value.
      */
     private boolean parseLongFormOption(final String argument, final Optional<String> lookahead)
-            throws UnknownOptionException, OptionParseException
+            throws UnknownOptionException, OptionParseException, AmbiguousAbbreviationException
     {
         final String scrubbedPrefix = argument.substring(LONG_FORM_PREFIX.length());
         final String[] split = scrubbedPrefix.split(OPTION_ARGUMENT_DELIMITER, 2);
@@ -1147,8 +1218,9 @@ public class SimpleOptionAndArgumentParser
     }
 
     private Optional<SimpleOption> registeredOptionForLongForm(final String longForm)
+            throws AmbiguousAbbreviationException
     {
-        return checkForLongOption(longForm, this.registeredOptions);
+        return checkForLongOption(longForm, this.registeredOptions, true);
     }
 
     private Optional<SimpleOption> registeredOptionForShortForm(final Character shortForm)
