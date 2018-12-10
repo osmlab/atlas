@@ -7,8 +7,8 @@
 # How do I use it?
 #
 # Run the following command:
-#    $ source /path/to/ast_completions.bash
-# Then add 'source /path/to/ast_completions.bash' to your '~/.bashrc'
+#    $ source "$ATLAS_SHELL_TOOLS_HOME/ast_completions.bash"
+# Then add 'source "$ATLAS_SHELL_TOOLS_HOME/ast_completions.bash"' to your '~/.bashrc'
 # file to pick up the completions in every new shell!
 
 
