@@ -33,7 +33,7 @@ then
     echo "Error: atlas-shell-tools requires the 'less' paging program."
     # Unfortunately, we cannot use $LINENO in POSIX sh. Make sure to manually
     # maintain this line number.
-    echo "To install anyway, open $0 and comment out check on lines 11-18."
+    echo "To install anyway, open $0 and comment out check on lines 31-38."
     exit 1
 fi
 
@@ -42,7 +42,7 @@ then
     echo "Error: atlas-shell-tools requires the 'man' program."
     # Unfortunately, we cannot use $LINENO in POSIX sh. Make sure to manually
     # maintain this line number.
-    echo "To install anyway, open $0 and comment out check on lines 20-27."
+    echo "To install anyway, open $0 and comment out check on lines 40-47."
     exit 1
 fi
 
@@ -51,7 +51,7 @@ then
     echo "Error: atlas-shell-tools requires the 'vim' editor."
     # Unfortunately, we cannot use $LINENO in POSIX sh. Make sure to manually
     # maintain this line number.
-    echo "To install anyway, open $0 and comment out check on lines 29-36."
+    echo "To install anyway, open $0 and comment out check on lines 49-56."
     exit 1
 fi
 
