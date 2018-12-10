@@ -26,8 +26,6 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A helper class for {@link AtlasDiff}. Contains lots of static utilities.
@@ -36,8 +34,6 @@ import org.slf4j.LoggerFactory;
  */
 public final class AtlasDiffHelper
 {
-    private static final Logger logger = LoggerFactory.getLogger(AtlasDiffHelper.class);
-
     public static Optional<FeatureChange> getAreaChangeIfNecessary(final Area beforeArea,
             final Area afterArea)
     {
@@ -533,6 +529,7 @@ public final class AtlasDiffHelper
         return false;
     }
 
+    // NO SONAR
     private static boolean entitiesWereDifferentInRelations(final AtlasEntity beforeEntity,
             final AtlasEntity afterEntity)
     {

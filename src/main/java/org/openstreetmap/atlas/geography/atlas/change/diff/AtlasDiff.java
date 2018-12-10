@@ -21,8 +21,6 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Generate {@link Change} objects based on the differences between two {@link Atlas}es. The main
@@ -33,8 +31,6 @@ import org.slf4j.LoggerFactory;
  */
 public class AtlasDiff
 {
-    private static final Logger logger = LoggerFactory.getLogger(AtlasDiff.class);
-
     private final Atlas before;
     private final Atlas after;
     private Change change;

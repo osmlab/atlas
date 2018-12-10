@@ -3,7 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.change;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -281,7 +281,7 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
      * @return All the corresponding entities in this atlas.
      */
     private <M extends AtlasEntity> Iterable<M> entitiesFor(final ItemType itemType,
-            final Function<Long, M> entityForIdentifier, final Iterable<M> sourceEntities)
+            final LongFunction<M> entityForIdentifier, final Iterable<M> sourceEntities)
     {
         return new MultiIterable<>(
                 this.change.getFeatureChanges().stream()
