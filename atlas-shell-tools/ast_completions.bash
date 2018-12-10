@@ -76,4 +76,3 @@ _complete ()
 
 complete -o filenames -o bashdefault -F _complete atlas
 complete -o filenames -o bashdefault -F _complete atlas-config
-
