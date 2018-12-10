@@ -10,8 +10,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.conversion.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,17 +53,9 @@ public class SimpleOptionAndArgumentParser
     {
         private static final long serialVersionUID = 8506034533362610699L;
 
-        private final String optionName;
-
-        public AmbiguousAbbreviationException(final String message)
+        public AmbiguousAbbreviationException(final String option, final String ambiguousOptions)
         {
-            super(message);
-            this.optionName = message;
-        }
-
-        public String getOptionName()
-        {
-            return this.optionName;
+            super("option " + option + " is ambiguous (" + ambiguousOptions + ")");
         }
     }
 
@@ -245,17 +239,9 @@ public class SimpleOptionAndArgumentParser
     {
         private static final long serialVersionUID = 8506034533362610699L;
 
-        private final String optionName;
-
         public UnknownOptionException(final String message)
         {
             super(message);
-            this.optionName = message;
-        }
-
-        public String getOptionName()
-        {
-            return this.optionName;
         }
     }
 
@@ -942,7 +928,10 @@ public class SimpleOptionAndArgumentParser
         }
         if (matchedOptions.size() > 1)
         {
-            throw new AmbiguousAbbreviationException("TODO Ambiguous Option message");
+            final List<String> ambiguousOptions = matchedOptions.stream()
+                    .map(SimpleOption::getLongForm).collect(Collectors.toList());
+            throw new AmbiguousAbbreviationException(longForm,
+                    new StringList(ambiguousOptions).join(", "));
         }
         else if (matchedOptions.size() == 1)
         {
@@ -1046,7 +1035,7 @@ public class SimpleOptionAndArgumentParser
         }
         else
         {
-            throw new UnknownOptionException(optionName);
+            throw new UnknownOptionException("unknown option \'" + optionName + "\'");
         }
     }
 
@@ -1125,7 +1114,7 @@ public class SimpleOptionAndArgumentParser
 
             if (!option.isPresent())
             {
-                throw new UnknownOptionException(String.valueOf(scrubbedPrefix));
+                throw new UnknownOptionException("unknown option \'" + scrubbedPrefix + "\'");
             }
 
             // 3 cases to handle here regarding the option argument type

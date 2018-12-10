@@ -13,11 +13,7 @@ import org.openstreetmap.atlas.utilities.command.documentation.PagerHelper;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser;
-import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.AmbiguousAbbreviationException;
-import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.ArgumentException;
-import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.OptionParseException;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.SimpleOption;
-import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.UnknownOptionException;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYStringBuilder;
 import org.openstreetmap.atlas.utilities.conversion.StringConverter;
@@ -661,31 +657,10 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         {
             this.parser.parseOptionsAndArguments(Arrays.asList(argsCopy));
         }
-        catch (final UnknownOptionException exception)
-        {
-            printlnErrorMessage("unknown option \'" + exception.getMessage() + "\'");
-            printStderr("Try \'");
-            printStderr("--help", TTYAttribute.BOLD);
-            printStderr("\' option for more info." + System.getProperty("line.separator"));
-            System.exit(1);
-        }
-        catch (final OptionParseException exception)
+        catch (final Exception exception)
         {
             printlnErrorMessage(exception.getMessage());
-            printStderr("Try \'");
-            printStderr("--help", TTYAttribute.BOLD);
-            printStderr("\' option for more info." + System.getProperty("line.separator"));
-            System.exit(1);
-        }
-        catch (final AmbiguousAbbreviationException exception)
-        {
-            printlnErrorMessage(exception.getMessage());
-            System.exit(1);
-        }
-        catch (final ArgumentException exception)
-        {
-            printlnErrorMessage(exception.getMessage());
-            printStderr("Try \'");
+            printStderr("Try the \'");
             printStderr("--help", TTYAttribute.BOLD);
             printStderr("\' option for more info." + System.getProperty("line.separator"));
             System.exit(1);

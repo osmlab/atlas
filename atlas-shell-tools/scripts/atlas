@@ -412,6 +412,7 @@ my $edit_preset;
 my $cfg_preset;
 my $debug_flag;
 my $allow_run_as_root;
+my $test;
 Getopt::Long::Configure(qw(no_ignore_case_always));
 GetOptions(
     "no-pager" => \$skip_paging,
@@ -421,6 +422,7 @@ GetOptions(
     "quiet|q" => \$quiet,
     "list|l" => \$show_list,
     "class-of=s" => \$class_of,
+    "clast=s" => \$test,
     "preset|p=s" => \$use_preset,
     "save-preset=s" => \$save_preset,
     "debug" => \$debug_flag,
