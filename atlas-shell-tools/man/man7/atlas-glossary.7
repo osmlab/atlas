@@ -30,6 +30,16 @@ atlas\-glossary \-- A glossary of Atlas Shell Tools terms and concepts
 .SH "DESCRIPTION"
 
 .sp
+active module index
+.RS 4
+The active module index is the file in which Atlas Shell Tools stores metadata about
+the commands in the presently installed module. That metadata includes the command name
+as well as the full classname of the command implementation. A new index is generated
+each time a new module is activated. The index can also be regenerated with
+\fBatlas-config-sync\fR(1).
+.RE
+
+.sp
 ARGV
 .RS 4
 Throughout the Atlas Shell Tools manual, ARGV refers to the argument vector from the
@@ -55,6 +65,23 @@ Atlas Shell Tools lingo for a JARfile that contains implementations of commands
 (see "command" in this glossary). Once a JARfile has been installed into
 Atlas Shell Tools using \fBatlas\-config\fR(1), it is known as a module and
 is referred to using its module name, as reported by \fBatlas\-config\-list\fR(1).
+.RE
+
+.sp
+option
+.RS 4
+An option refers to a special command line argument prefixed with a "-"
+(a.k.a. a short option) or with a "--" (a.k.a. a long option). Options can be
+either global (i.e. they come before the subcommand on the command line), or they
+can be tied to the subcommand itself. For example, in the command
+"atlas --opt1 MyCommand --opt2", "--opt1" is a global option whereas "--opt2" is an
+option of the MyCommand subcommand. Options can also
+take their own additional optional or required arguments. For more details on
+the intricacies of option syntax, see \fBatlas-cli\fR(7).
+.sp
+Finally it should be noted that the option prefix dashes without attached options have special
+meanings. "-" on its own is treated as a regular argument, and "--" on its own is treated as
+then end-of-options marker. Again, see \fBatlas-cli\fR(7) for more information.
 .RE
 
 .sp
