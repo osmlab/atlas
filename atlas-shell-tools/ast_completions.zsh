@@ -10,3 +10,7 @@
 #    $ source "$ATLAS_SHELL_TOOLS_HOME/ast_completions.zsh"
 # Then add 'source "$ATLAS_SHELL_TOOLS_HOME/ast_completions.zsh"' to your '~/.zshrc'
 # file to pick up the completions in every new shell!
+
+autoload -U +X compinit && compinit
+autoload -U +X bashcompinit && bashcompinit
+source "$ATLAS_SHELL_TOOLS_HOME/ast_completions.bash"

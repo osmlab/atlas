@@ -17,7 +17,7 @@
 is_bash_at_least_version_4 ()
 {
     local version=$BASH_VERSION
-    local major=$(echo $version | cut -d. -f1)
+    local major=$(echo "$version" | cut -d. -f1)
     if [ "$major" -ge "4" ];
     then
         echo "true"
@@ -29,22 +29,22 @@ is_bash_at_least_version_4 ()
 _complete ()
 {
     local completion_mode="default";
-    if [ "$1" == "atlas" ];
+    if [ "$1" = "atlas" ];
     then
         local completion_mode="__completion_atlas__"
-    elif [ "$1" == "atlas-config" ];
+    elif [ "$1" = "atlas-config" ];
     then
         local completion_mode="__completion_atlascfg__"
     fi
 
-    if [ "$completion_mode" == "default" ];
+    if [ "$completion_mode" = "default" ];
     then
         echo "complete error: ${completion_mode} was still default"
         return 1
     fi
 
     # disable readline default autocompletion, we are going to customize
-    if [ $(is_bash_at_least_version_4) == "true" ];
+    if [ "$(is_bash_at_least_version_4)" = "true" ];
     then
         compopt +o default
     fi
@@ -54,7 +54,7 @@ _complete ()
     if [ "$reply" = "__atlas-shell-tools_sentinel_complete_filenames__" ];
     then
         # re-enable bash default completion for filenames
-        if [ $(is_bash_at_least_version_4) == "true" ];
+        if [ "$(is_bash_at_least_version_4)" = "true" ];
         then
             compopt -o default
             COMPREPLY=()
@@ -66,7 +66,7 @@ _complete ()
             # as 3 discrete completion options, "file", "with", and "spaces".
             local IFS=$'\n'
 
-            COMPREPLY=($(compgen -o filenames -f -- $cur))
+            COMPREPLY=($(compgen -o filenames -f -- "$cur"))
         fi
         return 0
     else
