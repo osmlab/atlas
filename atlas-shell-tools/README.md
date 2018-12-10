@@ -38,8 +38,8 @@ $ ./quick_install_zsh.sh
 
 #### Manual install
 If you are not running one of the supported shells, or you want to manually
-install `atlas-shell-tools`, please follow the below steps:
-
+install `atlas-shell-tools`, please follow the below steps.
+##### Building and Installing
 ```
 $ cd /path/to/desired/install/location
 $ git clone https://github.com/osmlab/atlas.git atlas-shell-tools
@@ -49,6 +49,7 @@ $ ./gradlew clean shaded -x check -x javadoc
 $ chmod +x ./atlas-shell-tools/scripts/atlas ./atlas-shell-tools/scripts/atlas-config
 $ ./atlas-shell-tools/scripts/atlas-config install build/libs/*-shaded.jar
 ```
+##### Setting up your shell startup file
 Next, open whichever configuration file your shell uses to set environment variables (e.g. `~/.bash_profile` for `bash`, or `~/.zshenv` for `zsh`). Export the following environment variables using your shell's equivalent `export` statement.
 ```
 # In bash we can use 'export', other shells may use different syntax
@@ -59,6 +60,7 @@ export ATLAS_SHELL_TOOLS_HOME=/path/to/atlas-shell-tools/atlas-shell-tools
 # configure your PATH
 export PATH="$PATH:$ATLAS_SHELL_TOOLS_HOME/scripts"
 ```
+##### Autocomplete support
 Additionally, `atlas-shell-tools` supports autocomplete for `bash` and `zsh` through [ast_completions.bash](https://github.com/osmlab/atlas/blob/dev/atlas-shell-tools/ast_completions.bash) and [ast_completions.zsh](https://github.com/osmlab/atlas/blob/dev/atlas-shell-tools/ast_completions.zsh), respectively. To get these set up, you'll need to source them in your shell's appropriate startup file (`~/.bashrc` for `bash` or `~/.zshrc` for `zsh`).
 An example for `bash`:
 ```
