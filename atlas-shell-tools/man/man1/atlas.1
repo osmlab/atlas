@@ -40,7 +40,7 @@ atlas \-- The main Atlas Shell Tools interface for running commands
 .sp
 \fBatlas\fR is an easy\-to\-use wrapper for launching Atlas Shell Tools commands.
 It provides a simple interface to find and run any commands defined in the currently
-activated module.
+activated Atlas Shell Tools module.
 \fBatlas\fR also implements a robust preset management system, which can save
 you tons of typing for commands that require a lot of options. See the \fBPRESETS\fR
 section for more on this topic.
@@ -145,10 +145,15 @@ Show the \fBatlas\fR version info and then exit.
 
 .SH "EXAMPLES"
 .sp
-Run a command called MyCommand with some args and options:
+Let's break down how to run a command called MyCommand with some args and options.
+Here, '--opt1' is an option that takes no arguments. '--opt2' is an option that takes
+an optional argument, so we use the '=' operator to disambiguate 'optarg2' from a regular
+argument. '--opt3' is an option that takes a required argument, so \- if desired \- we
+can omit the '=' when specifying 'optarg3'. Finally, 'arg1' and 'arg2' are regular
+program arguments:
 .sp
 .RS 4
-$ atlas MyCommand \-\-opt1 arg1 \-\-opt2=optarg2 arg2 arg3
+$ atlas MyCommand \-\-opt1 arg1 \-\-opt2=optarg2 arg2 --opt3 optarg3
 .RE
 .sp
 See the manual page for MyCommand:
@@ -163,13 +168,13 @@ See a list of all available commands:
 $ atlas \-\-list
 .RE
 .sp
-Run MyCommand with preset p1:
+Run MyCommand with preset 'p1':
 .sp
 .RS 4
-$ atlas \-\-preset=p1 MyCommand arg1 \-\-opt2=overridePresetArg
+$ atlas \-\-preset p1 MyCommand arg1 \-\-opt2=overridePresetArg
 .RE
 .sp
-Edit preset p1 for MyCommand:
+Edit preset 'p1' for MyCommand:
 .sp
 .RS 4
 $ atlas cfg.preset edit:MyCommand p1
@@ -223,7 +228,7 @@ on a previously created preset.
 Note that preset names are bound to the target command at save\-time \- 
 a preset name without its command context is meaningless. This means that preset
 "p1" for "ExampleCommand" and preset "p1" for "MyCommand" may contain
-completely different values!
+completely different values.
 .sp
 Let's look at an example of the Tier 1 interface in action.
 We will run a command called "MyCommand" and assume preset "p1" does not yet exist:
@@ -266,7 +271,7 @@ $ atlas \-\-preset=p1 \-\-save\-preset=p2 MyCommand arg1 arg2 --opt2=OverrideOpt
 .sp
 The new preset "p2" will contain the following contents:
 ["\-\-opt1", "\-\-opt2=opt2Arg", "\-\-opt2=OverrideOpt2Arg", "\-\-opt3"]. Even though
-\-\-opt2 is repeated, this is OK! When multiple instances of the same option are
+\-\-opt2 is repeated, this is OK. When multiple instances of the same option are
 supplied, the option parser will use ARGV's rightmost instance of that option.
 .RE
 .sp
@@ -468,7 +473,7 @@ Enable special formatted output. Overrides the setting of \fBNO_COLOR\fR and \fB
 .sp
 .RE
 \fBatlas\fR stores program data in compliance with the XDG Base Directory
-specification, ie. at $HOME/.local/share/atlas-shell-tools. It also respects the
+specification, i.e. at $HOME/.local/share/atlas-shell-tools. It also respects the
 \fBXDG_DATA_HOME\fR environment variable - if set, \fBatlas\fR will store program
 data at the base path specified by that variable. See \fBatlas\-plumbing\fR(5) for
 more information.
