@@ -640,6 +640,9 @@ if ($debug_flag) {
     exit 0;
 }
 
+# Here we use system's indirect object syntax to correctly handle all possible
+# edge cases regarding the configuration of @java_command.
+# See bottom of page: http://perldoc.perl.org/functions/exec.html
 system { $java_command[0] } @java_command;
 my $exitcode = $? >> 8;
 exit $exitcode;
