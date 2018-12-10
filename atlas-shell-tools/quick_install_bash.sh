@@ -1,5 +1,25 @@
 #!/bin/sh
 
+# Define a prompt function for re-use
+prompt_yn_was_yes() {
+    local prompt=$1
+    while true;
+    do
+        echo "$prompt"
+        read -r answer
+        if [ "$answer" != "${answer#[Yy]}" ];
+        then
+            # case user entered 'y'
+            return 0
+        elif [ "$answer" != "${answer#[Nn]}" ];
+        then
+            # case user entered 'n'
+            return 1
+        fi
+        echo "Please enter 'y' or 'n'..."
+    done
+}
+
 # Utilize POSIX sh features ONLY for installation. Also, we exit the script
 # on any error.
 set -e
@@ -44,9 +64,7 @@ then
     echo
     echo "    \$ $0 /install/path"
     echo
-    echo "OK to continue (y/n)? "
-    read -r answer
-    if [ "$answer" != "${answer#[Yy]}" ];
+    if prompt_yn_was_yes "OK to continue (y/n)?";
     then
         install_location="$HOME"
     else
@@ -101,9 +119,7 @@ echo "    $export_home_line";
 echo "    $export_path_line";
 echo "    $end_startup_line";
 echo
-echo "Is this OK (y/n)?"
-read -r answer
-if [ "$answer" != "${answer#[Yy]}" ];
+if prompt_yn_was_yes "Is this OK (y/n)?";
 then
     {
         echo;
@@ -121,9 +137,7 @@ echo "    $start_startup_line";
 echo "    $source_line";
 echo "    $end_startup_line";
 echo
-echo "Is this OK (y/n)?"
-read -r answer
-if [ "$answer" != "${answer#[Yy]}" ];
+if prompt_yn_was_yes "Is this OK (y/n)?";
 then
     {
         echo;
@@ -139,9 +153,7 @@ echo
 echo "    $execute_bashrc_comment"
 echo "    $execute_bashrc";
 echo
-echo "Is this OK (y/n)?"
-read -r answer
-if [ "$answer" != "${answer#[Yy]}" ];
+if prompt_yn_was_yes "Is this OK (y/n)?";
 then
     {
         echo;
