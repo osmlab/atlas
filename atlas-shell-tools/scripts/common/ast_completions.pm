@@ -118,7 +118,7 @@ sub completion_atlas {
                 @directives = qw(create use list remove);
             }
             elsif ($rargv_m1 eq $ast_preset_subsystem::CFGPRESET_START) {
-                @directives = qw(save show remove edit copy namespace);
+                @directives = qw(save list remove edit copy namespace);
             }
 
             my @completion_matches = completion_match_prefix($rargv, \@directives);
