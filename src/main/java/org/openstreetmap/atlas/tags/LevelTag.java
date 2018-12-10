@@ -11,6 +11,7 @@ import org.openstreetmap.atlas.tags.annotations.TagKey;
  * @author sayas01
  */
 @Tag(value = Tag.Validation.NON_EMPTY_STRING, taginfo = "http://taginfo.openstreetmap.org/keys/level#values", osm = "http://wiki.openstreetmap.org/wiki/Level")
+@SuppressWarnings("squid:S1214")
 public interface LevelTag
 {
     @TagKey
