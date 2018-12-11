@@ -28,7 +28,7 @@ public class HelloWorldSubcommand extends AbstractAtlasShellToolsCommand
     @Override
     public String getCommandName()
     {
-        return "HelloWorld";
+        return "hello-world";
     }
 
     @Override
