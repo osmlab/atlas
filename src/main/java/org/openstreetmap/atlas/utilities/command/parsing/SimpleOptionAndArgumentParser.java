@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -55,7 +57,7 @@ public class SimpleOptionAndArgumentParser
 
         public AmbiguousAbbreviationException(final String option, final String ambiguousOptions)
         {
-            super("option " + option + " is ambiguous (" + ambiguousOptions + ")");
+            super("long option \'" + option + "\' is ambiguous (" + ambiguousOptions + ")");
         }
     }
 
@@ -197,9 +199,7 @@ public class SimpleOptionAndArgumentParser
             final int initialPrime = 31;
             final int hashSeed = 37;
 
-            final int hash = hashSeed * initialPrime + Objects.hashCode(this.longForm);
-
-            return hash;
+            return hashSeed * initialPrime + Objects.hashCode(this.longForm);
         }
 
         @Override
@@ -222,14 +222,31 @@ public class SimpleOptionAndArgumentParser
     {
         private static final long serialVersionUID = 8506034533362610699L;
 
-        public UnknownOptionException(final String message)
+        public UnknownOptionException(final Character option)
         {
-            super(message);
+            super("unknown short option \'" + option + "\'");
+        }
+
+        public UnknownOptionException(final String option)
+        {
+            super("unknown long option \'" + option + "\'");
         }
     }
 
-    private static final Integer DEFAULT_CONTEXT_ID = 3;
-    private static final int NO_CONTEXT = 0;
+    /**
+     * @author lcram
+     */
+    public class UnparsableContextException extends Exception
+    {
+        private static final long serialVersionUID = 8204676424116770097L;
+
+        public UnparsableContextException(final SortedSet<String> exceptionMessagesWeSaw)
+        {
+            super("could not match command line to a usage context: "
+                    + System.getProperty("line.separator") + new StringList(exceptionMessagesWeSaw)
+                            .join(System.getProperty("line.separator")));
+        }
+    }
 
     private static final Logger logger = LoggerFactory
             .getLogger(SimpleOptionAndArgumentParser.class);
@@ -243,8 +260,11 @@ public class SimpleOptionAndArgumentParser
     public static final Character DEFAULT_HELP_SHORT = 'h';
     public static final String DEFAULT_VERSION_LONG = "version";
     public static final Character DEFAULT_VERSION_SHORT = 'V';
+
     public static final Integer HELP_OPTION_CONTEXT_ID = 1;
     public static final Integer VERSION_OPTION_CONTEXT_ID = 2;
+    public static final Integer DEFAULT_CONTEXT_ID = 3;
+    public static final int NO_CONTEXT = 0;
 
     private final Map<Integer, Set<SimpleOption>> contextToRegisteredOptions;
     private final Map<Integer, Map<String, ArgumentArity>> contextToArgumentHintToArity;
@@ -536,17 +556,54 @@ public class SimpleOptionAndArgumentParser
         return this.parsedOptions.isEmpty() && this.parsedArguments.isEmpty();
     }
 
-    public void parse(final List<String> allArguments)
+    public void parse(final List<String> allArguments) throws AmbiguousAbbreviationException,
+            UnknownOptionException, UnparsableContextException
     {
         this.parsedArguments.clear();
         this.parsedOptions.clear();
         this.currentContext = NO_CONTEXT;
+        boolean seenEndOptionsOperator = false;
 
+        /*
+         * First, we pre-parse arguments to see if there are any ambiguous or unknown options. This
+         * will help generate better error message for the end user. This check must happen
+         * independent of any parsing context, since you need to be able to disambiguate option
+         * prefix abbreviations before a context is selected. Consider the following example:
+         */
+        // Parser Context ID 3 has option --opt1
+        // Parser Context ID 4 has option --opt2
+        // User supplies option --opt
+        /*
+         * In this case we want to throw an error early, warning that the option is ambiguous. If we
+         * didn't, the parser context selection code would choose context 3 (since it picks the
+         * first context that does not throw a parse error). This is not intuitive behaviour for end
+         * users, who need not know about the mechanics of parser contexts.
+         */
         for (final String argument : allArguments)
         {
-            // TODO loop over arguments to see if there are any ambiguous or unknown options
+            if (END_OPTIONS_OPERATOR.equals(argument))
+            {
+                if (!seenEndOptionsOperator)
+                {
+                    seenEndOptionsOperator = true;
+                }
+            }
+            else if (argument.startsWith(LONG_FORM_PREFIX) && !seenEndOptionsOperator)
+            {
+                final String[] split = argument.substring(LONG_FORM_PREFIX.length())
+                        .split(OPTION_ARGUMENT_DELIMITER, 2);
+                final String optionName = split[0];
+                final Optional<SimpleOption> option = checkForLongOption(optionName,
+                        this.getRegisteredOptions(), true);
+                if (!option.isPresent())
+                {
+                    throw new UnknownOptionException(optionName);
+                }
+            }
         }
 
+        final SortedSet<String> exceptionMessagesWeSaw = new TreeSet<>();
+        // Now we actually parse the arguments, assigning a context.
         for (final Integer context : this.registeredContexts)
         {
             try
@@ -555,6 +612,8 @@ public class SimpleOptionAndArgumentParser
             }
             catch (final Exception exception)
             {
+                exceptionMessagesWeSaw.add(String.format("%d: %s (context %d)", context,
+                        exception.getMessage(), context));
                 continue;
             }
             this.currentContext = context;
@@ -563,7 +622,7 @@ public class SimpleOptionAndArgumentParser
 
         if (this.currentContext == NO_CONTEXT)
         {
-            throw new CoreException("could not match a context TODO fix this error message");
+            throw new UnparsableContextException(exceptionMessagesWeSaw);
         }
 
         this.parseStepRanAtLeastOnce = true;
@@ -980,7 +1039,7 @@ public class SimpleOptionAndArgumentParser
         }
         else
         {
-            throw new UnknownOptionException("unknown option \'" + optionName + "\'");
+            throw new UnknownOptionException(optionName);
         }
     }
 
@@ -1183,7 +1242,7 @@ public class SimpleOptionAndArgumentParser
 
             if (!option.isPresent())
             {
-                throw new UnknownOptionException("unknown option \'" + scrubbedPrefix + "\'");
+                throw new UnknownOptionException(scrubbedPrefix.charAt(0));
             }
 
             // 3 cases to handle here regarding the option argument type

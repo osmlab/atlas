@@ -14,7 +14,10 @@ import org.openstreetmap.atlas.utilities.command.documentation.PagerHelper;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser;
+import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.AmbiguousAbbreviationException;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.SimpleOption;
+import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.UnknownOptionException;
+import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.UnparsableContextException;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYStringBuilder;
 import org.openstreetmap.atlas.utilities.conversion.StringConverter;
@@ -233,6 +236,11 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         return this.parser.getOptionArgument(longForm, converter);
     }
 
+    protected int getParserContext()
+    {
+        return this.parser.getCurrentContext();
+    }
+
     /**
      * Get a {@link TTYStringBuilder} with the correct formatting settings for stderr.
      * Implementations of {@link AbstractAtlasShellToolsCommand} should use this method instead of
@@ -330,6 +338,38 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     }
 
     /**
+     * Print a message to STDERR with the supplied attributes. Terminates the message with a
+     * newline.
+     *
+     * @param string
+     *            the string to print
+     * @param attributes
+     *            the attributes
+     */
+    protected void printlnStderr(final String string, final TTYAttribute... attributes)
+    {
+        final TTYStringBuilder builder = this.getTTYStringBuilderForStderr();
+        builder.append(string, attributes);
+        System.err.println(builder.toString());
+    }
+
+    /**
+     * Print a message to STDOUT with the supplied attributes. Terminates the message with a
+     * newline.
+     *
+     * @param string
+     *            the string to print
+     * @param attributes
+     *            the attributes
+     */
+    protected void printlnStdout(final String string, final TTYAttribute... attributes)
+    {
+        final TTYStringBuilder builder = this.getTTYStringBuilderForStderr();
+        builder.append(string, attributes);
+        System.out.println(builder.toString());
+    }
+
+    /**
      * Prints the supplied message like "commandName: warn: message" with automatic coloring to
      * stderr. Automatically appends a newline to the output.
      *
@@ -344,7 +384,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     }
 
     /**
-     * Print a message to STDERR with the supplied attributes.
+     * Print a message (with no ending newline) to STDERR with the supplied attributes.
      *
      * @param string
      *            the string to print
@@ -359,7 +399,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     }
 
     /**
-     * Print a message to STDOUT with the supplied attributes.
+     * Print a message (with no ending newline) to STDOUT with the supplied attributes.
      *
      * @param string
      *            the string to print
@@ -388,9 +428,9 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *             if the argument could not be registered
      */
     protected void registerArgument(final String argumentHint, final ArgumentArity arity,
-            final ArgumentOptionality type)
+            final ArgumentOptionality type, final Integer... contexts)
     {
-        this.parser.registerArgument(argumentHint, arity, type);
+        this.parser.registerArgument(argumentHint, arity, type, contexts);
     }
 
     /**
@@ -407,9 +447,9 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *             if the option could not be registered
      */
     protected void registerOption(final String longForm, final Character shortForm,
-            final String description)
+            final String description, final Integer... contexts)
     {
-        this.parser.registerOption(longForm, shortForm, description);
+        this.parser.registerOption(longForm, shortForm, description, contexts);
     }
 
     /**
@@ -423,9 +463,10 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      * @throws CoreException
      *             if the option could not be registered
      */
-    protected void registerOption(final String longForm, final String description)
+    protected void registerOption(final String longForm, final String description,
+            final Integer... contexts)
     {
-        this.parser.registerOption(longForm, description);
+        this.parser.registerOption(longForm, description, contexts);
     }
 
     /**
@@ -446,10 +487,11 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *             if the option could not be registered
      */
     protected void registerOptionWithOptionalArgument(final String longForm,
-            final Character shortForm, final String description, final String argumentHint)
+            final Character shortForm, final String description, final String argumentHint,
+            final Integer... contexts)
     {
         this.parser.registerOptionWithOptionalArgument(longForm, shortForm, description,
-                argumentHint);
+                argumentHint, contexts);
     }
 
     /**
@@ -467,9 +509,10 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *             if the option could not be registered
      */
     protected void registerOptionWithOptionalArgument(final String longForm,
-            final String description, final String argumentHint)
+            final String description, final String argumentHint, final Integer... contexts)
     {
-        this.parser.registerOptionWithOptionalArgument(longForm, description, argumentHint);
+        this.parser.registerOptionWithOptionalArgument(longForm, description, argumentHint,
+                contexts);
     }
 
     /**
@@ -490,10 +533,11 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *             if the option could not be registered
      */
     protected void registerOptionWithRequiredArgument(final String longForm,
-            final Character shortForm, final String description, final String argumentHint)
+            final Character shortForm, final String description, final String argumentHint,
+            final Integer... contexts)
     {
         this.parser.registerOptionWithRequiredArgument(longForm, shortForm, description,
-                argumentHint);
+                argumentHint, contexts);
     }
 
     /**
@@ -512,9 +556,10 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *             if the option could not be registered
      */
     protected void registerOptionWithRequiredArgument(final String longForm,
-            final String description, final String argumentHint)
+            final String description, final String argumentHint, final Integer... contexts)
     {
-        this.parser.registerOptionWithRequiredArgument(longForm, description, argumentHint);
+        this.parser.registerOptionWithRequiredArgument(longForm, description, argumentHint,
+                contexts);
     }
 
     /**
@@ -583,16 +628,22 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         {
             this.parser.parse(Arrays.asList(argsCopy));
         }
-        catch (final Exception exception)
+        catch (final AmbiguousAbbreviationException | UnknownOptionException
+                | UnparsableContextException exception)
         {
             printlnErrorMessage(exception.getMessage());
+            printSimpleUsageMenu();
             printStderr("Try the \'");
             printStderr("--help", TTYAttribute.BOLD);
-            printStderr("\' option for more info." + System.getProperty("line.separator"));
+            printlnStderr("\' option for more info.");
             System.exit(1);
         }
+        catch (final Exception exception)
+        {
+            throw new CoreException("unhandled exception {}", exception);
+        }
 
-        logger.error("Command using context {}", this.parser.getCurrentContext());
+        logger.debug("Command using context {}", this.parser.getCurrentContext());
 
         if (this.parser.getCurrentContext() == SimpleOptionAndArgumentParser.HELP_OPTION_CONTEXT_ID
                 && this.parser.hasOption(SimpleOptionAndArgumentParser.DEFAULT_HELP_LONG))
@@ -604,7 +655,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             }
             else
             {
-                System.out.println(this.getHelpMenu());
+                printlnStdout(this.getHelpMenu());
             }
             System.exit(0);
         }
@@ -613,16 +664,17 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
                 .getCurrentContext() == SimpleOptionAndArgumentParser.VERSION_OPTION_CONTEXT_ID
                 && this.parser.hasOption(SimpleOptionAndArgumentParser.DEFAULT_VERSION_LONG))
         {
-            System.out.println(String.format("%s version %s", getCommandName(), this.version));
+            printlnStdout(String.format("%s version %s", getCommandName(), this.version));
             System.exit(0);
         }
 
         if (this.parser.isEmpty())
         {
             printlnErrorMessage("command line was empty");
+            printSimpleUsageMenu();
             printStderr("Try the \'");
             printStderr("--help", TTYAttribute.BOLD);
-            printStderr("\' option for more info." + System.getProperty("line.separator"));
+            printlnStderr("\' option for more info.");
             System.exit(1);
         }
 
@@ -711,5 +763,23 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         }
 
         return builder.toString();
+    }
+
+    /*
+     * TODO refactor
+     */
+    private void printSimpleUsageMenu()
+    {
+        final String name = this.getCommandName();
+        final Map<Integer, Set<SimpleOption>> optionsWithContext = this.parser
+                .getContextToRegisteredOptions();
+        final TTYStringBuilder builder = getTTYStringBuilderForStdout();
+
+        builder.append("usage:").newline();
+        DocumentationFormatter.generateTextForSynopsisSection(name, this.maximumColumn,
+                optionsWithContext, this.parser.getRegisteredContexts(),
+                this.parser.getArgumentHintToArity(), this.parser.getArgumentHintToOptionality(),
+                builder);
+        printlnStderr(builder.toString());
     }
 }

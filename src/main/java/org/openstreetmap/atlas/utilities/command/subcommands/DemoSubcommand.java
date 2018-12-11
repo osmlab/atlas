@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 import java.util.List;
 
 import org.openstreetmap.atlas.utilities.command.AbstractAtlasShellToolsCommand;
+import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
@@ -12,6 +13,8 @@ import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
  */
 public class DemoSubcommand extends AbstractAtlasShellToolsCommand
 {
+    private static final int BREAKFAST_CONTEXT = 4;
+
     public static void main(final String[] args)
     {
         new DemoSubcommand().runSubcommandAndExit(args);
@@ -20,15 +23,23 @@ public class DemoSubcommand extends AbstractAtlasShellToolsCommand
     @Override
     public int execute()
     {
+        // Check if the parser context detected the breakfast usage
+        if (getParserContext() == BREAKFAST_CONTEXT)
+        {
+            System.exit(executeBreakfastContext());
+        }
+
         // We registered favoriteFoods as variadic so it comes back as a List.
         final List<String> foods = getVariadicArgument("favoriteFoods");
 
         // We registered favoriteMeal as REQUIRED so it is safe to unwrap the Optional.
-        final String meal = getUnaryArgument("favoriteMeal").get();
+        // The orElseThrow is just there to stop Sonar from complaining.
+        final String meal = getUnaryArgument("favoriteMeal")
+                .orElseThrow(AtlasShellToolsException::new);
 
         printStdout("I like meal ");
         printStdout(meal, TTYAttribute.MAGENTA, TTYAttribute.BOLD, TTYAttribute.BLINK);
-        printStdout(" the best\n");
+        printlnStdout(" the best");
 
         final int repeatDefault = 1;
         final int repeat = getOptionArgument("repeat", value ->
@@ -46,7 +57,7 @@ public class DemoSubcommand extends AbstractAtlasShellToolsCommand
             return parsed;
         }).orElse(repeatDefault);
 
-        printStdout("Favorite foods are:\n");
+        printlnStdout("Favorite foods are:");
         for (int index = 0; index < repeat; index++)
         {
             for (final String food : foods)
@@ -56,18 +67,19 @@ public class DemoSubcommand extends AbstractAtlasShellToolsCommand
                 {
                     mutableFood = mutableFood.toUpperCase();
                 }
-                printStdout(mutableFood + "\n", TTYAttribute.BOLD);
+                printlnStdout(mutableFood, TTYAttribute.BOLD);
             }
         }
 
         if (hasOption("cheese"))
         {
-            printStdout("Using " + getOptionArgument("cheese").orElse("cheddar") + " cheese\n");
+            printlnStdout("Using " + getOptionArgument("cheese").orElse("cheddar") + " cheese");
         }
 
         if (hasOption("beer"))
         {
-            printStdout("Also ordering a beer, " + getOptionArgument("beer").get() + "\n");
+            printlnStdout("Also ordering a beer, "
+                    + getOptionArgument("beer").orElseThrow(AtlasShellToolsException::new));
         }
         else
         {
@@ -82,13 +94,13 @@ public class DemoSubcommand extends AbstractAtlasShellToolsCommand
     @Override
     public String getCommandName()
     {
-        return "demo";
+        return "ast-demo";
     }
 
     @Override
     public String getSimpleDescription()
     {
-        return "a demo of the OSM subcommand API and features";
+        return "a demo of the Atlas Shell Tools subcommand API and features";
     }
 
     @Override
@@ -136,5 +148,19 @@ public class DemoSubcommand extends AbstractAtlasShellToolsCommand
         registerOptionWithRequiredArgument("repeat", 'R', "Repeat the food list N times.", "N");
         registerArgument("favoriteMeal", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
         registerArgument("favoriteFoods", ArgumentArity.VARIADIC, ArgumentOptionality.OPTIONAL);
+
+        registerOption("breakfast", 'b', "Use breakfast mode", BREAKFAST_CONTEXT);
+        registerArgument("favoriteBreakfastFood", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED,
+                BREAKFAST_CONTEXT);
+    }
+
+    private int executeBreakfastContext()
+    {
+        final String breakfast = getUnaryArgument("favoriteBreakfastFood")
+                .orElseThrow(AtlasShellToolsException::new);
+        printlnStdout("Using special breakfast mode:");
+        printlnStdout(breakfast, TTYAttribute.BOLD);
+
+        return 0;
     }
 }
