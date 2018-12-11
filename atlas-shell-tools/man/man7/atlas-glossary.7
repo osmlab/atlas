@@ -30,7 +30,7 @@ atlas\-glossary \-- A glossary of Atlas Shell Tools terms and concepts
 .SH "DESCRIPTION"
 
 .sp
-active module index
+\fBactive module index\fR
 .RS 4
 The active module index is the file in which Atlas Shell Tools stores metadata about
 the commands in the presently installed module. That metadata includes the command name
@@ -40,7 +40,7 @@ each time a new module is activated. The index can also be regenerated with
 .RE
 
 .sp
-ARGV
+\fBARGV\fR
 .RS 4
 Throughout the Atlas Shell Tools manual, ARGV refers to the argument vector from the
 command line. In the context of \fBatlas\fR(1), it generally refers to the
@@ -50,7 +50,7 @@ to just ["arg1", "--opt1"], the actual arguments given to the JVM.
 .RE
 
 .sp
-command
+\fBcommand\fR
 .RS 4
 A command generally refers to a Java class that implements an Atlas Shell Tools
 command. In order to implement an Atlas Shell Tools command, the class must be
@@ -59,33 +59,45 @@ see https://github.com/osmlab/atlas/
 .RE
 
 .sp
-module
+\fBmodule\fR
 .RS 4
 Atlas Shell Tools lingo for a JARfile that contains implementations of commands
 (see "command" in this glossary). Once a JARfile has been installed into
 Atlas Shell Tools using \fBatlas\-config\fR(1), it is known as a module and
 is referred to using its module name, as reported by \fBatlas\-config\-list\fR(1).
+.sp
+See \fBmodule workspace\fR.
 .RE
 
 .sp
-option
+\fBmodule workspace\fR
 .RS 4
-An option refers to a special command line argument prefixed with a "-"
-(a.k.a. a short option) or with a "--" (a.k.a. a long option). Options can be
+The module workspace is where \fBatlas\-shell\-tools\fR(7) stores installed modules.
+The workspace can be displayed with \fBatlas\-config\-list\fR(1). More info about
+the workspace structure is detailed in \fBatlas\-plumbing\fR(5).
+.sp
+See \fBmodule\fR.
+.RE
+
+.sp
+\fBoption\fR
+.RS 4
+An option refers to a special command line argument prefixed with a "\-"
+(a.k.a. a short option) or with a "\-\-" (a.k.a. a long option). Options can be
 either global (i.e. they come before the subcommand on the command line), or they
 can be tied to the subcommand itself. For example, in the command
-"atlas --opt1 MyCommand --opt2", "--opt1" is a global option whereas "--opt2" is an
+"atlas \-\-opt1 MyCommand \-\-opt2", "\-\-opt1" is a global option whereas "\-\-opt2" is an
 option of the MyCommand subcommand. Options can also
 take their own additional optional or required arguments. For more details on
-the intricacies of option syntax, see \fBatlas-cli\fR(7).
+the intricacies of option syntax, see \fBatlas\-cli\fR(7).
 .sp
 Finally it should be noted that the option prefix dashes without attached options have special
-meanings. "-" on its own is treated as a regular argument, and "--" on its own is treated as
-the end-of-options marker. Again, see \fBatlas-cli\fR(7) for more information.
+meanings. "\-" on its own is treated as a regular argument, and "\-\-" on its own is treated as
+the end\-of\-options marker. Again, see \fBatlas\-cli\fR(7) for more information.
 .RE
 
 .sp
-preset
+\fBpreset\fR
 .RS 4
 A preset is a list of saved options for a given command. Presets have a name,
 but they are meaningless without their associated command context \- i.e. the
