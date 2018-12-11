@@ -127,7 +127,7 @@ sub atlas_show_contextual_help_menu_and_exit {
     open JAVA, "-|", @java_command or die $!;
     my $output = '';
     while(<JAVA>) {
-        # Not the most effienct way to do things.
+        # Not the most efficient way to do things.
         # Perhaps some kind of slurp is needed. File::Splurp could work but does
         # have an outstanding Unicode bug. Need to investigate more.
         $output = $output . $_;
