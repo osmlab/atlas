@@ -59,13 +59,6 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private static final int PAGER_OFFSET = 3;
     private static final int TERMINAL_COLUMN_OFFSET = 2;
 
-    public static final String DEFAULT_HELP_LONG = "help";
-    public static final Character DEFAULT_HELP_SHORT = 'h';
-    public static final String DEFAULT_VERBOSE_LONG = "verbose";
-    public static final Character DEFAULT_VERBOSE_SHORT = 'v';
-    public static final String DEFAULT_VERSION_LONG = "version";
-    public static final Character DEFAULT_VERSION_SHORT = 'V';
-
     private final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
     private final DocumentationRegistrar registrar = new DocumentationRegistrar();
 
@@ -380,44 +373,6 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     }
 
     /**
-     * Print a message to STDERR with the supplied attributes, but only if the command was run using
-     * the '--verbose' flag.
-     *
-     * @param string
-     *            the string to print
-     * @param attributes
-     *            the attributes
-     */
-    protected void printVerboseStderr(final String string, final TTYAttribute... attributes)
-    {
-        final TTYStringBuilder builder = this.getTTYStringBuilderForStderr();
-        builder.append(string, attributes);
-        if (hasOption(DEFAULT_VERBOSE_LONG))
-        {
-            System.err.print(builder.toString());
-        }
-    }
-
-    /**
-     * Print a message to STDERR with the supplied attributes, but only if the command was run using
-     * the '--verbose' flag.
-     *
-     * @param string
-     *            the string to print
-     * @param attributes
-     *            the attributes
-     */
-    protected void printVerboseStdout(final String string, final TTYAttribute... attributes)
-    {
-        final TTYStringBuilder builder = this.getTTYStringBuilderForStdout();
-        builder.append(string, attributes);
-        if (hasOption(DEFAULT_VERBOSE_LONG))
-        {
-            System.out.print(builder.toString());
-        }
-    }
-
-    /**
      * Register an argument with a given arity. The argument hint is used as a key to retrieve the
      * argument value(s) later. Additionally, documentation can use the hint to specify what the
      * argument should be for.
@@ -581,12 +536,6 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     {
         throwIfInvalidNameOrDescription();
 
-        this.parser.registerOption(DEFAULT_HELP_LONG, DEFAULT_HELP_SHORT, "Show this help menu.");
-        this.parser.registerOption(DEFAULT_VERBOSE_LONG, DEFAULT_VERBOSE_SHORT,
-                "Use verbose output.");
-        this.parser.registerOption(DEFAULT_VERSION_LONG, DEFAULT_VERSION_SHORT,
-                "Print the version of " + this.getCommandName() + " and exit.");
-
         String[] argsCopy = args;
 
         // check the last arg to see if we should check for other tail arguments
@@ -630,7 +579,46 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
 
         // Special case if user supplied '--help' or '-h'
         // We want to scan now, show the help menu, then abort
-        if (this.parser.scanForHelpFlag(Arrays.asList(argsCopy)))
+        // if (this.parser.scanForHelpFlag(Arrays.asList(argsCopy)))
+        // {
+        // if (this.usePager)
+        // {
+        // final PagerHelper helper = new PagerHelper();
+        // helper.pageString(this.getHelpMenu());
+        // }
+        // else
+        // {
+        // System.out.println(this.getHelpMenu());
+        // }
+        // System.exit(0);
+        // }
+
+        // Special case if user supplied '--version' or '-V'
+        // We want to scan now, show the version, then abort
+        // if (this.parser.scanForVersionFlag(Arrays.asList(argsCopy)))
+        // {
+        // System.out.println(String.format("%s version %s", getCommandName(), this.version));
+        // System.exit(0);
+        // }
+
+        // parse the options and arguments, throwing exceptions on bad input
+        try
+        {
+            this.parser.parse(Arrays.asList(argsCopy));
+        }
+        catch (final Exception exception)
+        {
+            printlnErrorMessage(exception.getMessage());
+            printStderr("Try the \'");
+            printStderr("--help", TTYAttribute.BOLD);
+            printStderr("\' option for more info." + System.getProperty("line.separator"));
+            System.exit(1);
+        }
+
+        logger.error("Command using context {}", this.parser.getCurrentContext());
+
+        if (this.parser.getCurrentContext() == SimpleOptionAndArgumentParser.HELP_OPTION_CONTEXT_ID
+                && this.parser.hasOption(SimpleOptionAndArgumentParser.DEFAULT_HELP_LONG))
         {
             if (this.usePager)
             {
@@ -644,26 +632,12 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             System.exit(0);
         }
 
-        // Special case if user supplied '--version' or '-V'
-        // We want to scan now, show the version, then abort
-        if (this.parser.scanForVersionFlag(Arrays.asList(argsCopy)))
+        if (this.parser
+                .getCurrentContext() == SimpleOptionAndArgumentParser.VERSION_OPTION_CONTEXT_ID
+                && this.parser.hasOption(SimpleOptionAndArgumentParser.DEFAULT_VERSION_LONG))
         {
             System.out.println(String.format("%s version %s", getCommandName(), this.version));
             System.exit(0);
-        }
-
-        // parse the options and arguments, throwing exceptions on bad input
-        try
-        {
-            this.parser.parseOptionsAndArguments(Arrays.asList(argsCopy));
-        }
-        catch (final Exception exception)
-        {
-            printlnErrorMessage(exception.getMessage());
-            printStderr("Try the \'");
-            printStderr("--help", TTYAttribute.BOLD);
-            printStderr("\' option for more info." + System.getProperty("line.separator"));
-            System.exit(1);
         }
 
         // run the command
@@ -721,8 +695,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
 
         builder.append("SYNOPSIS", TTYAttribute.BOLD).newline();
         DocumentationFormatter.generateTextForSynopsisSection(name, this.maximumColumn, options,
-                this.parser.getArgumentHintToArity(), this.parser.getArgumentHintToOptionality(),
-                builder);
+                this.parser.getRegisteredContexts(), this.parser.getArgumentHintToArity(),
+                this.parser.getArgumentHintToOptionality(), builder);
         builder.newline().newline();
 
         // Let's manually insert the DESCRIPTION section first, if it exists.

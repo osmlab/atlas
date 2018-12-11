@@ -2,11 +2,11 @@ package org.openstreetmap.atlas.utilities.command.documentation;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.openstreetmap.atlas.utilities.command.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionArgumentType;
@@ -38,7 +38,7 @@ public final class DocumentationFormatter
      * @param string
      *            the code block string
      * @param builder
-     *           the builder to be modified
+     *            the builder to be modified
      */
     public static void addCodeBlock(final int indentationLevel, final String string,
             final TTYStringBuilder builder)
@@ -80,7 +80,7 @@ public final class DocumentationFormatter
      * @param string
      *            the code block string
      * @param builder
-     *           the builder to be modified
+     *            the builder to be modified
      * @param indentFirstLine
      *            decide to indent the first line
      */
@@ -200,85 +200,83 @@ public final class DocumentationFormatter
     }
 
     public static void generateTextForSynopsisSection(final String programName,
-            final int maximumColumn, final Set<SimpleOption> options,
-            final Map<String, ArgumentArity> argumentArities,
-            final Map<String, ArgumentOptionality> argumentOptionalities,
+            final int maximumColumn, final Set<SimpleOption> options, final Set<Integer> contexts,
+            final Map<Integer, Map<String, ArgumentArity>> argumentArities,
+            final Map<Integer, Map<String, ArgumentOptionality>> argumentOptionalities,
             final TTYStringBuilder builder)
     {
-        indentBuilderToLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
-        builder.append(programName, TTYAttribute.UNDERLINE).append(" ")
-                .append("[" + SimpleOptionAndArgumentParser.LONG_FORM_PREFIX
-                        + AbstractAtlasShellToolsCommand.DEFAULT_HELP_LONG + "]")
-                .newline();
-        indentBuilderToLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
-        builder.append(programName, TTYAttribute.UNDERLINE).append(" ")
-                .append("[" + SimpleOptionAndArgumentParser.LONG_FORM_PREFIX
-                        + AbstractAtlasShellToolsCommand.DEFAULT_VERSION_LONG + "]")
-                .newline();
-        indentBuilderToLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
-        builder.append(programName, TTYAttribute.UNDERLINE).append(" ");
-        final StringBuilder paragraph = new StringBuilder();
-
-        // add all the options
-        final List<SimpleOption> sortedOptions = new ArrayList<>(options);
-        Collections.sort(sortedOptions);
-        for (final SimpleOption option : sortedOptions)
+        // indentBuilderToLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
+        // builder.append(programName, TTYAttribute.UNDERLINE).append(" ")
+        // .append("[" + SimpleOptionAndArgumentParser.LONG_FORM_PREFIX
+        // + AbstractAtlasShellToolsCommand.DEFAULT_HELP_LONG + "]")
+        // .newline();
+        // indentBuilderToLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
+        // builder.append(programName, TTYAttribute.UNDERLINE).append(" ")
+        // .append("[" + SimpleOptionAndArgumentParser.LONG_FORM_PREFIX
+        // + AbstractAtlasShellToolsCommand.DEFAULT_VERSION_LONG + "]")
+        // .newline();
+        for (final Integer context : contexts)
         {
-            // skip --help and --version, these are special hardcoded cases handled above
-            if (AbstractAtlasShellToolsCommand.DEFAULT_HELP_LONG.equals(option.getLongForm())
-                    || AbstractAtlasShellToolsCommand.DEFAULT_VERSION_LONG.equals(option.getLongForm()))
-            {
-                continue;
-            }
-            paragraph.append(
-                    "[" + SimpleOptionAndArgumentParser.LONG_FORM_PREFIX + option.getLongForm());
-            final OptionArgumentType argumentType = option.getArgumentType();
-            if (argumentType == OptionArgumentType.OPTIONAL)
-            {
-                // TODO is it always safe to unwrap this optional?
-                paragraph.append("[" + SimpleOptionAndArgumentParser.OPTION_ARGUMENT_DELIMITER
-                        + option.getArgumentHint().get() + "]");
-            }
-            else if (argumentType == OptionArgumentType.REQUIRED)
-            {
-                // TODO is it always safe to unwrap this optional?
-                paragraph.append(SimpleOptionAndArgumentParser.OPTION_ARGUMENT_DELIMITER + "<"
-                        + option.getArgumentHint().get() + ">");
-            }
-            paragraph.append("] ");
-        }
+            indentBuilderToLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
+            builder.append(programName, TTYAttribute.UNDERLINE).append(" ");
+            final StringBuilder paragraph = new StringBuilder();
 
-        for (final String hint : argumentArities.keySet())
-        {
-            if (argumentOptionalities.get(hint) == ArgumentOptionality.OPTIONAL)
+            // add all the options
+            final List<SimpleOption> sortedOptions = new ArrayList<>(options);
+            Collections.sort(sortedOptions);
+            for (final SimpleOption option : sortedOptions)
             {
-                paragraph.append("[");
-            }
-            else if (argumentOptionalities.get(hint) == ArgumentOptionality.REQUIRED)
-            {
-                paragraph.append("<");
-            }
-
-            paragraph.append(hint);
-            if (argumentArities.get(hint) == ArgumentArity.VARIADIC)
-            {
-                paragraph.append("...");
-            }
-
-            if (argumentOptionalities.get(hint) == ArgumentOptionality.OPTIONAL)
-            {
+                paragraph.append("[" + SimpleOptionAndArgumentParser.LONG_FORM_PREFIX
+                        + option.getLongForm());
+                final OptionArgumentType argumentType = option.getArgumentType();
+                if (argumentType == OptionArgumentType.OPTIONAL)
+                {
+                    paragraph.append("[" + SimpleOptionAndArgumentParser.OPTION_ARGUMENT_DELIMITER
+                            + option.getArgumentHint().get() + "]");
+                }
+                else if (argumentType == OptionArgumentType.REQUIRED)
+                {
+                    paragraph.append(SimpleOptionAndArgumentParser.OPTION_ARGUMENT_DELIMITER + "<"
+                            + option.getArgumentHint().get() + ">");
+                }
                 paragraph.append("] ");
             }
-            else if (argumentOptionalities.get(hint) == ArgumentOptionality.REQUIRED)
-            {
-                paragraph.append("> ");
-            }
-        }
 
-        final int exactIndentation = DEFAULT_PARAGRAPH_INDENT_LEVEL * INDENTATION_WIDTH
-                + programName.length() + " ".length();
-        addParagraphWithLineWrappingAtExactIndentation(exactIndentation, maximumColumn,
-                paragraph.toString(), builder, false);
+            for (final String hint : argumentArities.getOrDefault(context, new HashMap<>())
+                    .keySet())
+            {
+                if (argumentOptionalities.get(context).get(hint) == ArgumentOptionality.OPTIONAL)
+                {
+                    paragraph.append("[");
+                }
+                else if (argumentOptionalities.get(context)
+                        .get(hint) == ArgumentOptionality.REQUIRED)
+                {
+                    paragraph.append("<");
+                }
+
+                paragraph.append(hint);
+                if (argumentArities.get(context).get(hint) == ArgumentArity.VARIADIC)
+                {
+                    paragraph.append("...");
+                }
+
+                if (argumentOptionalities.get(context).get(hint) == ArgumentOptionality.OPTIONAL)
+                {
+                    paragraph.append("] ");
+                }
+                else if (argumentOptionalities.get(context)
+                        .get(hint) == ArgumentOptionality.REQUIRED)
+                {
+                    paragraph.append("> ");
+                }
+            }
+
+            final int exactIndentation = DEFAULT_PARAGRAPH_INDENT_LEVEL * INDENTATION_WIDTH
+                    + programName.length() + " ".length();
+            addParagraphWithLineWrappingAtExactIndentation(exactIndentation, maximumColumn,
+                    paragraph.toString(), builder, false);
+        }
     }
 
     /**

@@ -46,7 +46,7 @@ public class ConcatenateAtlasSubcommand extends AbstractAtlasShellToolsCommand
             }
             else
             {
-                printVerboseStdout("Loading " + path + "\n");
+                printStdout("Loading " + path + "\n");
                 atlasResourceList.add(file);
             }
         });
@@ -66,13 +66,13 @@ public class ConcatenateAtlasSubcommand extends AbstractAtlasShellToolsCommand
             return 1;
         }
 
-        printVerboseStdout("Cloning...\n");
+        printStdout("Cloning...\n");
         final PackedAtlas output = new PackedAtlasCloner()
                 .cloneFrom(new AtlasResourceLoader().load(atlasResourceList));
         final File outputFile = new File(outputAtlasPath);
         output.save(outputFile);
 
-        printVerboseStdout("Saved to " + outputAtlasPath + "\n");
+        printStdout("Saved to " + outputAtlasPath + "\n");
 
         return 0;
     }

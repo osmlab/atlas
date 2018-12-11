@@ -30,9 +30,6 @@ public class DemoSubcommand extends AbstractAtlasShellToolsCommand
         printStdout(meal, TTYAttribute.MAGENTA, TTYAttribute.BOLD, TTYAttribute.BLINK);
         printStdout(" the best\n");
 
-        printVerboseStdout(
-                "PS, I really like to talk, but only if you supply the \'--verbose\' option\n");
-
         final int repeatDefault = 1;
         final int repeat = getOptionArgument("repeat", value ->
         {
