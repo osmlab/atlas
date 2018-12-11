@@ -529,8 +529,7 @@ public final class AtlasDiffHelper
         return false;
     }
 
-    // NO SONAR
-    private static boolean entitiesWereDifferentInRelations(final AtlasEntity beforeEntity,
+    private static boolean entitiesWereDifferentInRelations(final AtlasEntity beforeEntity, // NOSONAR
             final AtlasEntity afterEntity)
     {
         try

@@ -275,8 +275,7 @@ public class FeatureChange implements Located, Serializable
         return result;
     }
 
-    // NO SONAR
-    private FeatureChange mergeLineItems(final FeatureChange other,
+    private FeatureChange mergeLineItems(final FeatureChange other, // NOSONAR
             final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
     {
         final AtlasEntity thisReference = this.getReference();
@@ -328,8 +327,7 @@ public class FeatureChange implements Located, Serializable
         }
     }
 
-    // NO SONAR
-    private FeatureChange mergeLocationItems(final FeatureChange other,
+    private FeatureChange mergeLocationItems(final FeatureChange other, // NOSONAR
             final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
     {
         final AtlasEntity thisReference = this.getReference();
