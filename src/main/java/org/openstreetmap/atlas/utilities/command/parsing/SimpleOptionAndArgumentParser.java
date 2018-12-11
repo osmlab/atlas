@@ -307,6 +307,11 @@ public class SimpleOptionAndArgumentParser
         return this.contextToArgumentHintToOptionality;
     }
 
+    public Map<Integer, Set<SimpleOption>> getContextToRegisteredOptions()
+    {
+        return this.contextToRegisteredOptions;
+    }
+
     public Integer getCurrentContext()
     {
         return this.currentContext;
@@ -510,7 +515,6 @@ public class SimpleOptionAndArgumentParser
             throw new CoreException("Cannot get options before parsing!");
         }
         final Optional<SimpleOption> option;
-        logger.error("in hasOption long form with context {}", this.currentContext);
         try
         {
             if (!registeredOptionForLongForm(this.currentContext, longForm).isPresent())
@@ -519,17 +523,17 @@ public class SimpleOptionAndArgumentParser
                         longForm, this.currentContext);
             }
             option = getParsedOptionFromLongForm(longForm);
-            logger.error("option is {}", option);
         }
         catch (final AmbiguousAbbreviationException exception)
         {
             throw new CoreException("provided option long form {} was ambiguous", longForm);
         }
-        if (option.isPresent())
-        {
-            return true;
-        }
-        return false;
+        return option.isPresent();
+    }
+
+    public boolean isEmpty()
+    {
+        return this.parsedOptions.isEmpty() && this.parsedArguments.isEmpty();
     }
 
     public void parse(final List<String> allArguments)
@@ -545,14 +549,12 @@ public class SimpleOptionAndArgumentParser
 
         for (final Integer context : this.registeredContexts)
         {
-            logger.error("Trying parsing with context {}", context);
             try
             {
                 this.parseOptionsAndArguments(allArguments, context);
             }
             catch (final Exception exception)
             {
-                exception.printStackTrace();
                 continue;
             }
             this.currentContext = context;

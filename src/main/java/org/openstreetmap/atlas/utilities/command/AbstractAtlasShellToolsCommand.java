@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.utilities.command;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -577,30 +578,6 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         registerOptionsAndArguments();
         registerManualPageSections();
 
-        // Special case if user supplied '--help' or '-h'
-        // We want to scan now, show the help menu, then abort
-        // if (this.parser.scanForHelpFlag(Arrays.asList(argsCopy)))
-        // {
-        // if (this.usePager)
-        // {
-        // final PagerHelper helper = new PagerHelper();
-        // helper.pageString(this.getHelpMenu());
-        // }
-        // else
-        // {
-        // System.out.println(this.getHelpMenu());
-        // }
-        // System.exit(0);
-        // }
-
-        // Special case if user supplied '--version' or '-V'
-        // We want to scan now, show the version, then abort
-        // if (this.parser.scanForVersionFlag(Arrays.asList(argsCopy)))
-        // {
-        // System.out.println(String.format("%s version %s", getCommandName(), this.version));
-        // System.exit(0);
-        // }
-
         // parse the options and arguments, throwing exceptions on bad input
         try
         {
@@ -638,6 +615,15 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         {
             System.out.println(String.format("%s version %s", getCommandName(), this.version));
             System.exit(0);
+        }
+
+        if (this.parser.isEmpty())
+        {
+            printlnErrorMessage("command line was empty");
+            printStderr("Try the \'");
+            printStderr("--help", TTYAttribute.BOLD);
+            printStderr("\' option for more info." + System.getProperty("line.separator"));
+            System.exit(1);
         }
 
         // run the command
@@ -683,7 +669,9 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     {
         final String name = this.getCommandName();
         final String simpleDescription = this.getSimpleDescription();
-        final Set<SimpleOption> options = this.parser.getRegisteredOptions();
+        final Map<Integer, Set<SimpleOption>> optionsWithContext = this.parser
+                .getContextToRegisteredOptions();
+        final Set<SimpleOption> allOptions = this.parser.getRegisteredOptions();
         final TTYStringBuilder builder = getTTYStringBuilderForStdout();
 
         builder.newline();
@@ -694,9 +682,10 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         builder.append(name + " -- " + simpleDescription).newline().newline();
 
         builder.append("SYNOPSIS", TTYAttribute.BOLD).newline();
-        DocumentationFormatter.generateTextForSynopsisSection(name, this.maximumColumn, options,
-                this.parser.getRegisteredContexts(), this.parser.getArgumentHintToArity(),
-                this.parser.getArgumentHintToOptionality(), builder);
+        DocumentationFormatter.generateTextForSynopsisSection(name, this.maximumColumn,
+                optionsWithContext, this.parser.getRegisteredContexts(),
+                this.parser.getArgumentHintToArity(), this.parser.getArgumentHintToOptionality(),
+                builder);
         builder.newline().newline();
 
         // Let's manually insert the DESCRIPTION section first, if it exists.
@@ -707,7 +696,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         }
 
         builder.append("OPTIONS", TTYAttribute.BOLD).newline();
-        DocumentationFormatter.generateTextForOptionsSection(this.maximumColumn, options, builder);
+        DocumentationFormatter.generateTextForOptionsSection(this.maximumColumn, allOptions,
+                builder);
 
         // Insert the rest of the user designed sections
         for (final String section : this.registrar.getSections())

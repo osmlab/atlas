@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.utilities.command.documentation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -200,21 +201,12 @@ public final class DocumentationFormatter
     }
 
     public static void generateTextForSynopsisSection(final String programName,
-            final int maximumColumn, final Set<SimpleOption> options, final Set<Integer> contexts,
+            final int maximumColumn, final Map<Integer, Set<SimpleOption>> optionsWithContext,
+            final Set<Integer> contexts,
             final Map<Integer, Map<String, ArgumentArity>> argumentArities,
             final Map<Integer, Map<String, ArgumentOptionality>> argumentOptionalities,
             final TTYStringBuilder builder)
     {
-        // indentBuilderToLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
-        // builder.append(programName, TTYAttribute.UNDERLINE).append(" ")
-        // .append("[" + SimpleOptionAndArgumentParser.LONG_FORM_PREFIX
-        // + AbstractAtlasShellToolsCommand.DEFAULT_HELP_LONG + "]")
-        // .newline();
-        // indentBuilderToLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
-        // builder.append(programName, TTYAttribute.UNDERLINE).append(" ")
-        // .append("[" + SimpleOptionAndArgumentParser.LONG_FORM_PREFIX
-        // + AbstractAtlasShellToolsCommand.DEFAULT_VERSION_LONG + "]")
-        // .newline();
         for (final Integer context : contexts)
         {
             indentBuilderToLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
@@ -222,7 +214,8 @@ public final class DocumentationFormatter
             final StringBuilder paragraph = new StringBuilder();
 
             // add all the options
-            final List<SimpleOption> sortedOptions = new ArrayList<>(options);
+            final List<SimpleOption> sortedOptions = new ArrayList<>(
+                    optionsWithContext.getOrDefault(context, new HashSet<>()));
             Collections.sort(sortedOptions);
             for (final SimpleOption option : sortedOptions)
             {
@@ -276,6 +269,7 @@ public final class DocumentationFormatter
                     + programName.length() + " ".length();
             addParagraphWithLineWrappingAtExactIndentation(exactIndentation, maximumColumn,
                     paragraph.toString(), builder, false);
+            builder.newline();
         }
     }
 
