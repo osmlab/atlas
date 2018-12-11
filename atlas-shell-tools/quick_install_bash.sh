@@ -2,7 +2,7 @@
 
 # Define a prompt function for re-use
 prompt_yn_was_yes() {
-    local prompt=$1
+    prompt=$1
     while true;
     do
         echo "$prompt"
