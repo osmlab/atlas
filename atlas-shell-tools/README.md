@@ -22,7 +22,7 @@ and just want to configure your startup files yourself, select 'n' at the approp
 $ curl -O https://raw.githubusercontent.com/osmlab/atlas/dev/atlas-shell-tools/quick_install_bash.sh
 # Inspect the downloaded file and ensure you are satisfied it is safe to run:
 $ vim quick_install_bash.sh
-$ ./quick_install_bash.sh
+$ sh quick_install_bash.sh
 # Answer the prompts, and restart your terminal once this finishes to get started!
 ```
 
@@ -32,7 +32,7 @@ $ ./quick_install_bash.sh
 $ curl -O https://raw.githubusercontent.com/osmlab/atlas/dev/atlas-shell-tools/quick_install_zsh.sh
 # Inspect the downloaded file and ensure you are satisfied it is safe to run:
 $ vim quick_install_zsh.sh
-$ ./quick_install_zsh.sh
+$ sh quick_install_zsh.sh
 # Answer the prompts, and restart your terminal once this finishes to get started!
 ```
 
