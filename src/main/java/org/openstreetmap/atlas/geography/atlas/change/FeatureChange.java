@@ -275,6 +275,7 @@ public class FeatureChange implements Located, Serializable
         return result;
     }
 
+    // NO SONAR
     private FeatureChange mergeLineItems(final FeatureChange other,
             final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
     {
@@ -327,6 +328,7 @@ public class FeatureChange implements Located, Serializable
         }
     }
 
+    // NO SONAR
     private FeatureChange mergeLocationItems(final FeatureChange other,
             final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
     {
