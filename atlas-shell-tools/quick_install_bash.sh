@@ -6,6 +6,7 @@ prompt_yn_was_yes() {
     while true;
     do
         echo "$prompt"
+	# TODO FIXME this infinite loops on EOF (CTRL-D)
         read -r answer
         if [ "$answer" != "${answer#[Yy]}" ];
         then
