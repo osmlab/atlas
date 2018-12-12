@@ -15,7 +15,7 @@ our @EXPORT = qw(
     configure_repo
     list_repos
     remove_repo
-    update_repo
+    install_repo
 );
 
 our $REPOS_FOLDER = 'repos';
@@ -69,16 +69,16 @@ sub create_repo {
 #
 # Add exclude packages for gradle using \"exclude\".
 # To exclude multiple packages, simply repeat this directive for each package. E.g.
-# exclude=com.example.package
-# exclude=com.example.anotherpackage
+# exclude = com.example.package
+# exclude = com.example.anotherpackage
 #
 # Add gradle task skips using \"skip\".
 # To skip multiple tasks, simply repeat this directive for each task. E.g.
-# skip=javadoc
-# skip=integrationTest
+# skip = javadoc
+# skip = integrationTest
 #
-url=${url}
-branch=${default_branch}
+url = ${url}
+branch = ${default_branch}
 ";
 
     my $repo_config_file = File::Spec->catfile($repo_subfolder, $REPO_CONFIG);
@@ -101,7 +101,60 @@ branch=${default_branch}
 #   $repo: the name of the repo
 # Return: 1 on success, 0 on failure
 sub configure_repo {
-    
+    my $ast_path = shift;
+    my $program_name = shift;
+    my $quiet = shift;
+    my $repo = shift;
+
+    my $repo_subfolder = File::Spec->catfile($ast_path, $REPOS_FOLDER, $repo);
+    unless (-d $repo_subfolder) {
+        ast_utilities::error_output($program_name, "no such repo ${bold_stderr}${repo}${reset_stderr}");
+        return 0;
+    }
+
+    my $repo_config_file = File::Spec->catfile($repo_subfolder, $REPO_CONFIG);
+    unless (-f $repo_config_file) {
+        ast_utilities::error_output($program_name, "could not find config file for repo ${bold_stderr}${repo}${reset_stderr}");
+        print STDERR "To resolve, please remove the repo and re-add.\n";
+        return 0;
+    }
+
+    # Create the staging file
+    my $handle;
+    my $staging_file;
+    my $tmpdir = tempdir(CLEANUP => 1);
+    ($handle, $staging_file) = tempfile(DIR => $tmpdir);
+    close $handle;
+
+    # copy the current config file into the staging file
+    my @command = ();
+    push @command, "cp";
+    push @command, "$repo_config_file";
+    push @command, "$staging_file";
+    system { $command[0] } @command;
+
+    # open the staging file in the user's editor
+    my @editor = ast_utilities::get_editor();
+    push @editor, "$staging_file";
+    system { $editor[0] } @editor;
+
+    # confirm that the staging file is not malformed
+    my $url = read_single_config_variable_from_arbitrary_file($staging_file, 'url');
+    my $branch = read_single_config_variable_from_arbitrary_file($staging_file, 'branch');
+    unless (defined $url && defined $branch) {
+            ast_utilities::error_output($program_name, "failed to parse \'url\' and \'branch\' config variables");
+            print STDERR "Aborting configuration without saving...\n";
+            return 0;
+        }
+
+    # copy the staging file back into the actual config file
+    @command = ();
+    push @command, "cp";
+    push @command, "$staging_file";
+    push @command, "$repo_config_file";
+    system { $command[0] } @command;
+
+    return 1;
 }
 
 # List the repos.
@@ -164,7 +217,7 @@ sub remove_repo {
 
     my $repo_subfolder = File::Spec->catfile($ast_path, $REPOS_FOLDER, $repo);
     unless (-d $repo_subfolder) {
-        ast_utilities::error_output($program_name, "repo ${bold_stderr}${repo}${reset_stderr} does not exist");
+        ast_utilities::error_output($program_name, "no such repo ${bold_stderr}${repo}${reset_stderr}");
         return 0;
     }
 
@@ -177,14 +230,14 @@ sub remove_repo {
     return 1;
 }
 
-# Update using an existing repo.
+# Install module using an existing repo.
 # Params:
 #   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output output
 #   $repo: the name of the repo
 # Return: 1 on success, 0 on failure
-sub update_repo {
+sub install_repo {
     my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
@@ -192,24 +245,26 @@ sub update_repo {
 
     my $repo_subfolder = File::Spec->catfile($ast_path, $REPOS_FOLDER, $repo);
     unless (-d $repo_subfolder) {
-        ast_utilities::error_output($program_name, "repo ${bold_stderr}${repo}${reset_stderr} does not exist");
+        ast_utilities::error_output($program_name, "no such repo ${bold_stderr}${repo}${reset_stderr}");
         return 0;
     }
 
     my $url = read_single_config_variable($ast_path, $program_name, $quiet, $repo, 'url');
     my $branch = read_single_config_variable($ast_path, $program_name, $quiet, $repo, 'branch');
     unless (defined $url && defined $branch) {
-        ast_utilities::error_output($program_name, "repo update operation failed");
+        ast_utilities::error_output($program_name, "repo install operation failed");
         return 0;
     }
 
     my $tmpdir = tempdir(CLEANUP => 1);
+
+    # TODO injection excludes into the configuration block
     my $gradle_injection = "
-    task ast(type: Jar) {
+    task atlasshelltools(type: Jar) {
         baseName = project.name
-        classifier = 'ast'
+        classifier = '${repo}-${branch}-AST'
         from {
-            configurations.ast.collect { it.isDirectory() ? it : zipTree(it) }
+            configurations.atlasshelltools.collect { it.isDirectory() ? it : zipTree(it) }
         }
         with jar
         zip64 = true
@@ -217,14 +272,20 @@ sub update_repo {
 
     configurations
     {
-        ast
+        atlasshelltools
         {
         }
     }
 
     dependencies
     {
-        ast project.configurations.getByName('compile')
+        atlasshelltools project.configurations.getByName('compile')
+        if (packages.slf4j != null) {
+            atlasshelltools packages.slf4j.log4j12
+        }
+        if (packages.log4j != null) {
+            atlasshelltools packages.log4j
+        }
     }
     ";
 
@@ -235,7 +296,7 @@ sub update_repo {
     push @command, "${tmpdir}";
     my $success = system {$command[0]} @command;
     unless ($success == 0) {
-        ast_utilities::error_output($program_name, 'update failed');
+        ast_utilities::error_output($program_name, "repo install operation failed");
         exit 1;
     }
 
@@ -247,51 +308,88 @@ sub update_repo {
     push @command, "${branch}";
     $success = system {$command[0]} @command;
     unless ($success == 0) {
-        ast_utilities::error_output($program_name, 'update failed');
+        ast_utilities::error_output($program_name, "repo install operation failed");
         exit 1;
     }
 
-    # TODO solidify and generalize, implement gradle excludes and skips
     open my $file_handle, '>>', "$tmpdir/build.gradle" or die "Could not open build.gradle $!";
     print $file_handle "${gradle_injection}\n";
     close $file_handle;
 
+    # TODO handle '-x' options using config instead of hardcoding
     @command = ();
     push @command, "./gradlew";
     push @command, "clean";
-    push @command, "ast";
+    push @command, "atlasshelltools";
     push @command, "-x";
     push @command, "check";
     push @command, "-x";
     push @command, "javadoc";
     $success = system {$command[0]} @command;
     unless ($success == 0) {
-        ast_utilities::error_output($program_name, 'update failed');
+        ast_utilities::error_output($program_name, "repo install operation failed");
         exit 1;
     }
 
-    # TODO make module name based on repo and branch
     @command = ();
     push @command, "find";
     push @command, ".";
     push @command, "-type";
     push @command, "f";
     push @command, "-name";
-    push @command, "*-ast.jar";
+    push @command, "*-AST.jar";
     push @command, "-exec";
     push @command, "atlas-config";
     push @command, "install";
     push @command, "{}";
+    push @command, "--force";
     push @command, ";";
     $success = system {$command[0]} @command;
     unless ($success == 0) {
-        ast_utilities::error_output($program_name, 'update failed');
+        ast_utilities::error_output($program_name, "repo install operation failed");
         exit 1;
     }
 
     return 1;
 }
 
+# Given an arbitrary file path, opens it and attempts to read the first config
+# variable that matches the given variable. If the value cannot be read, returns
+# undef.
+sub read_single_config_variable_from_arbitrary_file {
+    my $file = shift;
+    my $variable = shift;
+
+    my $value = undef;
+    open my $file_handle, '<', $file or die "Could not open file $file $!";
+    while (my $line = <$file_handle>) {
+        chomp $line;
+        # trim excess whitespace from left and right
+        $line =~ s/^\s+|\s+$//g;
+        if ($line eq '' || substr($line, 0, 1) eq '#') {
+            next;
+        }
+        my @line_split = split '=', $line, 2;
+        unless (defined $line_split[0]) {
+            next;
+        }
+        # trim excess whitespace from left and right
+        $line_split[0] =~ s/^\s+|\s+$//g;
+        if ($line_split[0] eq $variable) {
+            if (defined $line_split[1] && $line_split[1] !~ /^\s*$/) {
+                # trim excess whitespace from left and right
+                $line_split[1] =~ s/^\s+|\s+$//g;
+                $value = $line_split[1];
+            }
+        }
+    }
+
+    return $value;
+}
+
+# Wrapper for read_single_config_variable_from_arbitrary_file that uses a given
+# ast_path and repo name. This makes it easier for some of the repo subroutines to
+# do proper error handling.
 sub read_single_config_variable {
     my $ast_path = shift;
     my $program_name = shift;
@@ -311,25 +409,7 @@ sub read_single_config_variable {
         return 0;
     }
 
-    my $value;
-    open my $file_handle, '<', $repo_config_file;
-    while (my $line = <$file_handle>) {
-        chomp $line;
-        # trim excess whitespace from left and right
-        $line =~ s/^\s+|\s+$//g;
-        if ($line eq '' || substr($line, 0, 1) eq '#') {
-            next;
-        }
-        my @line_split = split '=', $line, 2;
-        unless (defined $line_split[0]) {
-            next;
-        }
-        if ($line_split[0] eq $variable) {
-            if (defined $line_split[1] && $line_split[1] !~ /^\s*$/) {
-                $value = $line_split[1];
-            }
-        }
-    }
+    my $value = read_single_config_variable_from_arbitrary_file($repo_config_file, $variable);
 
     unless (defined $value) {
         ast_utilities::error_output($program_name, "failed to parse config setting \'${variable}\' for repo ${bold_stderr}${repo}${reset_stderr}");

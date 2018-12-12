@@ -186,17 +186,23 @@ sub execute_command_install {
     my $install_deactivated = 0;
     my $alternate_name;
     my $help_flag;
+    my $repo;
     GetOptions(
         'symlink|s' => \$syminstall,
         'deactivated' => \$install_deactivated,
         'force' => \$force_install,
         'skip' => \$skip_install,
         'name=s' => \$alternate_name,
+        'repo=s' => \$repo,
         'help|h' => \$help_flag
     ) or ast_utilities::getopt_failure_and_exit($program_name, "install");
 
     if (defined $help_flag) {
         show_submanpage_and_exit('install');
+    }
+
+    if (defined $repo) {
+        return ast_repo_subsystem::install_repo($ast_path, $program_name, $quiet, $repo);
     }
 
     my $module_to_install = shift @ARGV;
@@ -683,16 +689,7 @@ sub execute_command_update {
         show_submanpage_and_exit('update');
     }
 
-    my $repo = shift @ARGV;
-    my $success;
-
-    unless (defined $repo) {
-        ast_utilities::error_output($program_name, "missing required repo");
-        print STDERR "Try \'${bold_stderr}${program_name} update --help${reset_stderr}\' for more information.\n";
-        return 0;
-    }
-
-    ast_repo_subsystem::update_repo($ast_path, $program_name, $quiet, $repo);
+    print "TODO: implement update!\n";
 
     return 1;
 }
