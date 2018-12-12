@@ -164,6 +164,8 @@ then
     } >> "$HOME/.bash_profile"
 fi
 
+export ATLAS_SHELL_TOOLS_HOME="$full_installation_path/atlas-shell-tools"
+export PATH="$PATH:$ATLAS_SHELL_TOOLS_HOME/scripts"
 # Install the core Atlas module
 find "$full_installation_path/build/libs" -type f -name "*-shaded.jar" -exec ./atlas-shell-tools/scripts/atlas-config install \{\} \;
 
