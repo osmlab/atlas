@@ -39,6 +39,39 @@ public final class Maps
         return hashMap(items);
     }
 
+    @SafeVarargs
+    public static <K, V> Map<K, V> withMaps(final boolean rejectCollisions,
+            final Map<K, V>... items)
+    {
+        if (items.length == 0)
+        {
+            return new HashMap<>();
+        }
+        if (items.length == 1)
+        {
+            return items[0];
+        }
+        final Map<K, V> result = new HashMap<>();
+        for (final Map<K, V> item : items)
+        {
+            for (final Map.Entry<K, V> entry : item.entrySet())
+            {
+                if (rejectCollisions && result.containsKey(entry.getKey()))
+                {
+                    throw new CoreException("Cannot merge maps! Collision on key.");
+                }
+                result.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return result;
+    }
+
+    @SafeVarargs
+    public static <K, V> Map<K, V> withMaps(final Map<K, V>... items)
+    {
+        return withMaps(true, items);
+    }
+
     private Maps()
     {
     }

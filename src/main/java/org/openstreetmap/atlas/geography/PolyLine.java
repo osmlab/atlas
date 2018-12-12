@@ -1038,6 +1038,20 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         return false;
     }
 
+    public PolyLine shiftFirstAlongGreatCircle(final Heading initialHeading,
+            final Distance distance)
+    {
+        return new PolyLine(new MultiIterable<>(
+                Iterables.from(this.first().shiftAlongGreatCircle(initialHeading, distance)),
+                this.truncate(1, 0)));
+    }
+
+    public PolyLine shiftLastAlongGreatCircle(final Heading initialHeading, final Distance distance)
+    {
+        return new PolyLine(new MultiIterable<>(this.truncate(0, 1),
+                Iterables.from(this.last().shiftAlongGreatCircle(initialHeading, distance))));
+    }
+
     /**
      * Return the smaller one between the shortest distance from this {@link PolyLine}'s shape
      * points to the other shape, and the other shape's shape points to this polyline.
