@@ -44,7 +44,7 @@ As well as other handy tools:
 * [Routing](/src/main/java/org/openstreetmap/atlas/geography/atlas/routing#routing)
 * [Higher-level entities](/src/main/java/org/openstreetmap/atlas/geography/atlas/items/complex#complex-entities)
 * [Saving](/src/main/java/org/openstreetmap/atlas/geography/atlas#saving-an-atlas) / [Loading](/src/main/java/org/openstreetmap/atlas/geography/atlas#using-atlas)
-* [Command Line Tools](ash)
+* [Command Line Tools](atlas-shell-tools)
 
 # Community
 
