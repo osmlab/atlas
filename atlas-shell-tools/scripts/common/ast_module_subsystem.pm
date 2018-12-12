@@ -8,6 +8,7 @@ use File::Basename qw(basename);
 use File::Spec;
 use ast_utilities;
 use ast_tty;
+use ast_log_subsystem;
 
 # Export symbols: variables and subroutines
 our @EXPORT = qw(
@@ -441,13 +442,14 @@ sub generate_active_module_index {
     my $full_index_path = File::Spec->catfile($ast_path, $ACTIVE_INDEX_PATH);
     # TODO instead of "*", get the exact name of the current module
     my $full_path_to_modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER, '*');
+    my $full_path_to_log4j = File::Spec->catfile($ast_path, $ast_log_subsystem::LOG4J_FILE_PATH);
     my @java_command = ();
     push @java_command, "java";
     push @java_command, "-Xms2G";
     push @java_command, "-Xmx2G";
     push @java_command, "-cp";
     push @java_command, "${full_path_to_modules_folder}";
-    push @java_command, "-Dlog4j.rootLogger=ERROR";
+    push @java_command, "-Dlog4j.configuration=file:${full_path_to_log4j}";
     push @java_command, "${INDEX_WRITER_CLASS}";
     push @java_command, "${full_index_path}";
 
