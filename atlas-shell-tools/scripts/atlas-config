@@ -674,6 +674,17 @@ sub execute_command_update {
         show_submanpage_and_exit('update');
     }
 
+    my $repo = shift @ARGV;
+    my $success;
+
+    unless (defined $repo) {
+        ast_utilities::error_output($program_name, "missing required repo");
+        print STDERR "Try \'${bold_stderr}${program_name} update --help${reset_stderr}\' for more information.\n";
+        return 0;
+    }
+
+    ast_repo_subsystem::update_repo($ast_path, $program_name, $quiet, $repo);
+
     return 1;
 }
 

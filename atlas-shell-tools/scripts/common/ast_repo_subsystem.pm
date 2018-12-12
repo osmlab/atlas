@@ -5,6 +5,7 @@ use strict;
 
 use Exporter qw(import);
 use File::Path qw(make_path rmtree);
+use File::Temp qw(tempdir tempfile);
 use ast_tty;
 
 # Export symbols: variables and subroutines
@@ -13,6 +14,7 @@ our @EXPORT = qw(
     create_repo
     list_repos
     remove_repo
+    update_repo
 );
 
 our $REPOS_FOLDER = 'repos';
@@ -122,7 +124,13 @@ sub list_repos {
 
     print "${bold_stdout}Atlas Shell Tools${reset_stdout} repos:\n\n";
     for my $found_repo (sort {lc $a cmp lc $b} @filtered_repos) {
-        print "    ${bold_stdout}${found_repo}${reset_stdout}\n";
+        my $url = read_single_config_variable($ast_path, $program_name, $quiet, $found_repo, 'url');
+        my $branch = read_single_config_variable($ast_path, $program_name, $quiet, $found_repo, 'branch');
+        unless (defined $url && defined $branch) {
+            ast_utilities::error_output($program_name, "repo list operation failed");
+            return 0;
+        }
+        print "    ${bold_stdout}${found_repo}${reset_stdout} : ${url} (${branch})\n";
     }
     print "\n";
 
@@ -155,6 +163,125 @@ sub remove_repo {
     }
 
     return 1;
+}
+
+# Update using an existing repo.
+# Params:
+#   $ast_path: the path to the atlas-shell-tools data folder
+#   $program_name: the name of the calling program
+#   $quiet: suppress non-essential output output
+#   $repo: the name of the repo
+# Return: 1 on success, 0 on failure
+sub update_repo {
+    my $ast_path = shift;
+    my $program_name = shift;
+    my $quiet = shift;
+    my $repo = shift;
+
+    my $repo_subfolder = File::Spec->catfile($ast_path, $REPOS_FOLDER, $repo);
+    unless (-d $repo_subfolder) {
+        ast_utilities::error_output($program_name, "repo ${bold_stderr}${repo}${reset_stderr} does not exist");
+        return 0;
+    }
+
+    my $url = read_single_config_variable($ast_path, $program_name, $quiet, $repo, 'url');
+    my $branch = read_single_config_variable($ast_path, $program_name, $quiet, $repo, 'branch');
+    unless (defined $url && defined $branch) {
+        ast_utilities::error_output($program_name, "repo update operation failed");
+        return 0;
+    }
+
+    my $tmpdir = tempdir(CLEANUP => 1);
+
+    my @command = ();
+    push @command, "git";
+    push @command, "clone";
+    push @command, "${url}";
+    push @command, "${tmpdir}";
+    system {$command[0]} @command;
+
+    chdir $tmpdir or die "$!";
+
+    @command = ();
+    push @command, "git";
+    push @command, "checkout";
+    push @command, "${branch}";
+    system {$command[0]} @command;
+
+    # TODO change this to use AST gradle injections
+
+    @command = ();
+    push @command, "./gradlew";
+    push @command, "clean";
+    push @command, "shaded";
+    push @command, "-x";
+    push @command, "check";
+    push @command, "-x";
+    push @command, "javadoc";
+    system {$command[0]} @command;
+
+    @command = ();
+    push @command, "find";
+    push @command, ".";
+    push @command, "-type";
+    push @command, "f";
+    push @command, "-name";
+    push @command, "*-shaded.jar";
+    push @command, "-exec";
+    push @command, "atlas-config";
+    push @command, "install";
+    push @command, "{}";
+    push @command, ";";
+    system {$command[0]} @command;
+
+    return 1;
+}
+
+sub read_single_config_variable {
+    my $ast_path = shift;
+    my $program_name = shift;
+    my $quiet = shift;
+    my $repo = shift;
+    my $variable = shift;
+
+    my $repo_subfolder = File::Spec->catfile($ast_path, $REPOS_FOLDER, $repo);
+    unless (-d $repo_subfolder) {
+        ast_utilities::error_output($program_name, "repo ${bold_stderr}${repo}${reset_stderr} does not exist");
+        return 0;
+    }
+
+    my $repo_config_file = File::Spec->catfile($repo_subfolder, $REPO_CONFIG);
+    unless (-f $repo_config_file) {
+        ast_utilities::error_output($program_name, "could not find config file for repo ${bold_stderr}${repo}${reset_stderr}");
+        return 0;
+    }
+
+    my $value;
+    open my $file_handle, '<', $repo_config_file;
+    while (my $line = <$file_handle>) {
+        chomp $line;
+        # trim excess whitespace from left and right
+        $line =~ s/^\s+|\s+$//g;
+        if ($line eq '' || substr($line, 0, 1) eq '#') {
+            next;
+        }
+        my @line_split = split '=', $line, 2;
+        unless (defined $line_split[0]) {
+            next;
+        }
+        if ($line_split[0] eq $variable) {
+            if (defined $line_split[1] && $line_split[1] !~ /^\s*$/) {
+                $value = $line_split[1];
+            }
+        }
+    }
+
+    unless (defined $value) {
+        ast_utilities::error_output($program_name, "failed to parse config setting \'${variable}\' for repo ${bold_stderr}${repo}${reset_stderr}");
+        return undef;
+    }
+
+    return $value;
 }
 
 # Perl modules must return a value. Returning a value perl considers "truthy"
