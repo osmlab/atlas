@@ -199,17 +199,17 @@ sub completion_atlascfg {
     }
 
     # If subcommand is 'install', just complete file names
-    if (defined $argv[0] && $argv[0] eq 'install' && $rargv_m1 eq 'install') {
+    if ((defined $argv[0] && $argv[0] eq 'install') && (defined $rargv_m1 && $rargv_m1 eq 'install')) {
         print $FILE_COMPLETE_SENTINEL;
         return 1;
     }
-    elsif (defined $argv[0] && $argv[0] eq 'activate' && $rargv_m1 eq 'activate') {
+    elsif ((defined $argv[0] && $argv[0]) eq 'activate' && (defined $rargv_m1 && $rargv_m1 eq 'activate')) {
         @commands = ast_module_subsystem::get_deactivated_modules(\%modules);
     }
-    elsif (defined $argv[0] && $argv[0] eq 'deactivate' && $rargv_m1 eq 'deactivate') {
+    elsif ((defined $argv[0] && $argv[0] eq 'deactivate') && (defined $rargv_m1 && $rargv_m1 eq 'deactivate')) {
         @commands = ast_module_subsystem::get_activated_modules(\%modules);
     }
-    elsif (defined $argv[0] && $argv[0] eq 'uninstall' && $rargv_m1 eq 'uninstall') {
+    elsif ((defined $argv[0] && $argv[0] eq 'uninstall') && (defined $rargv_m1 && $rargv_m1 eq 'uninstall')) {
         @commands = keys %modules;
     }
     # TODO add completions for 'repo' and 'update' subcommands
