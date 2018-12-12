@@ -78,8 +78,8 @@ Show the full classname of a given command and then exit.
 \fB\-\-debug\fR
 .RS 4
 Run \fBatlas\fR in debug mode. While in debug mode, \fBatlas\fR will not actually
-run any commands. Instead, it will print debug diagnostics and exit. Use this
-option to see what JVM command is actually running under the hood.
+run any commands. Instead, it will print debug information and exit. Use this
+option to see the full JVM launch command, preset debug diagnostics, and more.
 .RE
 
 .PP
@@ -171,7 +171,7 @@ $ atlas \-\-list
 Run MyCommand with preset 'p1':
 .sp
 .RS 4
-$ atlas \-\-preset p1 MyCommand arg1 \-\-opt2=overridePresetArg
+$ atlas \-\-preset p1 MyCommand arg1 \-\-opt2=overrideOptArg
 .RE
 .sp
 Edit preset 'p1' for MyCommand:
@@ -362,7 +362,7 @@ $ atlas cfg.preset copy:MyCommand p1 p2
 .RE
 .sp
 The \fBcopy\fR directive is useful in combination with the \fBedit\fR directive \-
-when you want to have multiple versions of a large preset, each with some minor differences.
+when you want to make multiple versions of a long preset, each with some minor differences.
 .RE
 .RE
 
