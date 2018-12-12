@@ -484,6 +484,15 @@ sub execute_command_repo {
         }
         $success = ast_repo_subsystem::create_repo($ast_path, $program_name, $quiet, $repo_name, $repo_url);
     }
+    elsif ($directive eq 'configure') {
+        my $repo_name = shift @ARGV;
+        unless (defined $repo_name) {
+            ast_utilities::error_output($program_name, "missing repo name");
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_repo_subsystem::configure_repo($ast_path, $program_name, $quiet, $repo_name);
+    }
     elsif ($directive eq 'list') {
         $success = ast_repo_subsystem::list_repos($ast_path, $program_name, $quiet);
     }

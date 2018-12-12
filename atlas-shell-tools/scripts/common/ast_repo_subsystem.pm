@@ -12,6 +12,7 @@ use ast_tty;
 our @EXPORT = qw(
     REPOS_FOLDER
     create_repo
+    configure_repo
     list_repos
     remove_repo
     update_repo
@@ -90,6 +91,17 @@ branch=${default_branch}
     }
 
     return 1;
+}
+
+# Configure a repo.
+# Params:
+#   $ast_path: the path to the atlas-shell-tools data folder
+#   $program_name: the name of the calling program
+#   $quiet: suppress non-essential output output
+#   $repo: the name of the repo
+# Return: 1 on success, 0 on failure
+sub configure_repo {
+    
 }
 
 # List the repos.
@@ -192,13 +204,40 @@ sub update_repo {
     }
 
     my $tmpdir = tempdir(CLEANUP => 1);
+    my $gradle_injection = "
+    task ast(type: Jar) {
+        baseName = project.name
+        classifier = 'ast'
+        from {
+            configurations.ast.collect { it.isDirectory() ? it : zipTree(it) }
+        }
+        with jar
+        zip64 = true
+    }
+
+    configurations
+    {
+        ast
+        {
+        }
+    }
+
+    dependencies
+    {
+        ast project.configurations.getByName('compile')
+    }
+    ";
 
     my @command = ();
     push @command, "git";
     push @command, "clone";
     push @command, "${url}";
     push @command, "${tmpdir}";
-    system {$command[0]} @command;
+    my $success = system {$command[0]} @command;
+    unless ($success == 0) {
+        ast_utilities::error_output($program_name, 'update failed');
+        exit 1;
+    }
 
     chdir $tmpdir or die "$!";
 
@@ -206,33 +245,49 @@ sub update_repo {
     push @command, "git";
     push @command, "checkout";
     push @command, "${branch}";
-    system {$command[0]} @command;
+    $success = system {$command[0]} @command;
+    unless ($success == 0) {
+        ast_utilities::error_output($program_name, 'update failed');
+        exit 1;
+    }
 
-    # TODO change this to use AST gradle injections
+    # TODO solidify and generalize, implement gradle excludes and skips
+    open my $file_handle, '>>', "$tmpdir/build.gradle" or die "Could not open build.gradle $!";
+    print $file_handle "${gradle_injection}\n";
+    close $file_handle;
 
     @command = ();
     push @command, "./gradlew";
     push @command, "clean";
-    push @command, "shaded";
+    push @command, "ast";
     push @command, "-x";
     push @command, "check";
     push @command, "-x";
     push @command, "javadoc";
-    system {$command[0]} @command;
+    $success = system {$command[0]} @command;
+    unless ($success == 0) {
+        ast_utilities::error_output($program_name, 'update failed');
+        exit 1;
+    }
 
+    # TODO make module name based on repo and branch
     @command = ();
     push @command, "find";
     push @command, ".";
     push @command, "-type";
     push @command, "f";
     push @command, "-name";
-    push @command, "*-shaded.jar";
+    push @command, "*-ast.jar";
     push @command, "-exec";
     push @command, "atlas-config";
     push @command, "install";
     push @command, "{}";
     push @command, ";";
-    system {$command[0]} @command;
+    $success = system {$command[0]} @command;
+    unless ($success == 0) {
+        ast_utilities::error_output($program_name, 'update failed');
+        exit 1;
+    }
 
     return 1;
 }
