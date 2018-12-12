@@ -202,7 +202,12 @@ sub execute_command_install {
     }
 
     if (defined $repo) {
-        return ast_repo_subsystem::install_repo($ast_path, $program_name, $quiet, $repo);
+        my $success = ast_repo_subsystem::install_repo($ast_path, $program_name, $quiet, $repo);
+        unless ($success) {
+            ast_utilities::error_output($program_name . ": install", "could not install repo ${bold_stderr}${repo}${reset_stderr}");
+            return 0;
+        }
+        return 1;
     }
 
     my $module_to_install = shift @ARGV;
@@ -703,7 +708,30 @@ sub execute_command_update {
         show_submanpage_and_exit('update');
     }
 
-    print "TODO: implement update!\n";
+    chdir $ENV{ATLAS_SHELL_TOOLS_HOME} or die "$!";
+
+    my @command = ();
+    push @command, "git";
+    push @command, "checkout";
+    # TODO change to 'master'
+    push @command, "ast";
+    my $success = system {$command[0]} @command;
+    unless ($success == 0) {
+        ast_utilities::error_output($program_name, "update operation failed");
+        return 1;
+    }
+
+    @command = ();
+    push @command, "git";
+    push @command, "pull";
+    push @command, "origin";
+    # TODO change to 'master'
+    push @command, "ast";
+    $success = system {$command[0]} @command;
+    unless ($success == 0) {
+        ast_utilities::error_output($program_name, "update operation failed");
+        return 1;
+    }
 
     return 1;
 }

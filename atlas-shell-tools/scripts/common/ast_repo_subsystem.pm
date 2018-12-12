@@ -298,7 +298,7 @@ sub install_repo {
     my $success = system {$command[0]} @command;
     unless ($success == 0) {
         ast_utilities::error_output($program_name, "repo install operation failed");
-        exit 1;
+        return 0;
     }
 
     chdir $tmpdir or die "$!";
@@ -310,7 +310,7 @@ sub install_repo {
     $success = system {$command[0]} @command;
     unless ($success == 0) {
         ast_utilities::error_output($program_name, "repo install operation failed");
-        exit 1;
+        return 0;
     }
 
     open my $file_handle, '>>', "$tmpdir/build.gradle" or die "Could not open build.gradle $!";
@@ -329,7 +329,7 @@ sub install_repo {
     $success = system {$command[0]} @command;
     unless ($success == 0) {
         ast_utilities::error_output($program_name, "repo install operation failed");
-        exit 1;
+        return 0;
     }
 
     @command = ();
@@ -348,7 +348,7 @@ sub install_repo {
     $success = system {$command[0]} @command;
     unless ($success == 0) {
         ast_utilities::error_output($program_name, "repo install operation failed");
-        exit 1;
+        return 0;
     }
 
     return 1;
