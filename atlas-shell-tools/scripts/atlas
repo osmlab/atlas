@@ -20,8 +20,8 @@ use ast_utilities;
 ## ORGANIZATION
 ## This script is organized into 3 sections:
 ## 1) GLOBAL INITIALIZATION - initialize some useful global constants
-## 2) EXECUTION LOGIC - the actual command logic, ie. 'main'
-## 3) SUBROUTINES - subroutines used by the command logic
+## 2) SUBROUTINES - subroutines used by the command logic
+## 3) EXECUTION LOGIC - the actual command logic, ie. 'main'
 
 
 ########## BEGIN GLOBAL INITIALIZATION ##########
