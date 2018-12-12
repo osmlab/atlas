@@ -93,8 +93,8 @@ a general help menu and then exit.
 \fB\-\-list\fR, \fB-l\fR
 .RS 4
 Display a list of all available commands and exit. Command name collision is
-resolved deterministically at module activation time. The resolution exists at
-the \fBatlas\fR wrapper level only, and is not reflected in the actual command
+resolved when the active module index is generated. The resolution exists at
+the index level only and is not reflected in the actual command
 class files.
 .RE
 
