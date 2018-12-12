@@ -32,8 +32,8 @@ atlas\-glossary \-- A glossary of Atlas Shell Tools terms and concepts
 .sp
 \fBactive module index\fR
 .RS 4
-The active module index is the file in which Atlas Shell Tools stores metadata about
-the commands in the presently installed module. That metadata includes the command name
+The active module index is a file containing metadata about
+the commands in the presently installed module. The metadata includes the command name
 as well as the full classname of the command implementation. A new index is generated
 each time a new module is activated. The index can also be regenerated with
 \fBatlas-config-sync\fR(1).
@@ -45,8 +45,11 @@ each time a new module is activated. The index can also be regenerated with
 Throughout the Atlas Shell Tools manual, ARGV refers to the argument vector from the
 command line. In the context of \fBatlas\fR(1), it generally refers to the
 actual arguments passed to the command. \fBatlas\fR(1) converts your command line
-like "$ atlas --globalOpt MyCommand arg1 --opt1" into a JVM call, so here ARGV refers
-to just ["arg1", "--opt1"], the actual arguments given to the JVM.
+like "$ atlas \-\-globalOpt MyCommand arg1 \-\-opt1" into a JVM call, so here ARGV refers
+to just ["arg1", "\-\-opt1"], the actual arguments given to the JVM. In the aforementioned
+example, '\-\-globalOpt' is referred to as a "global" option.
+
+See \fBoption\fR.
 .RE
 
 .sp
@@ -55,7 +58,7 @@ to just ["arg1", "--opt1"], the actual arguments given to the JVM.
 A command generally refers to a Java class that implements an Atlas Shell Tools
 command. In order to implement an Atlas Shell Tools command, the class must be
 a subclass of \fBAbstractAtlasShellToolsCommand\fR, found in the Atlas project:
-see https://github.com/osmlab/atlas/
+see <https://github.com/osmlab/atlas>.
 .RE
 
 .sp
@@ -106,6 +109,27 @@ preset "p1" is not meaningful unless you say the preset "p1" for command
 namespace, but this can be effectively ignored unless that behavior is desired.
 Presets and their namespaces are manipulated using the \fBatlas\fR(1) program.
 See the \fBPRESETS\fR section in \fBatlas\fR(1) for more information.
+.RE
+
+.sp
+\fBrepo\fR
+.RS 4
+A repo is a remote \fBgit\fR(1) repository containing Atlas Shell Tools command implementations.
+The repo management interface is exposed by \fBatlas\-config\-repo\fR(1), and repo installation
+is performed using the \fB\-\-repo\fR option of \fBatlas\-config\-install\fR(1). The repo object
+itself simply consists of some metadata \- specifically a remote URL, a branch
+name, and optional Gradle configuration data. More info on repo objects can be
+found in \fBatlas\-plumbing\fR(5).
+.RE
+
+.sp
+\fBtoolset\fR
+.RS 4
+Throughout the Atlas Shell Tools documentation, toolset generally refers to the
+\fBatlas\fR(1) and \fBatlas\-config\fR(1) programs, the manpages included
+in the \fBatlas\-shell\-tools\fR(7) suite, and anything else stored in the directory pointed to
+by the \fBATLAS_SHELL_TOOLS_HOME\fR environment variable. The toolset does \fBnot\fR refer to
+installed modules, repos, or any saved presets.
 .RE
 
 .SH "ATLAS SHELL TOOLS"
