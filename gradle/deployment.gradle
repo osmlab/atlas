@@ -1,8 +1,8 @@
 import org.gradle.plugins.signing.Sign
 
-nexusStaging {
-    delayBetweenRetriesInMillis = 5000
-}
+// nexusStaging {
+//     delayBetweenRetriesInMillis = 5000
+// }
 
 gradle.taskGraph.whenReady { taskGraph ->
     if (taskGraph.allTasks.any { it instanceof Sign }) {
@@ -35,11 +35,12 @@ uploadArchives
                 MavenDeployment deployment -> signing.signPom(deployment)
             }
 
-            repository(url: maven2_url) {
+            // Hack: Deploy to a local repository first, then upload to Sonatype using scripts.
+            repository(url: "file://localhost/$rootDir/build/deploy" /*maven2_url*/) {
                 authentication(userName: System.getenv('SONATYPE_USERNAME'), password: System.getenv('SONATYPE_PASSWORD'))
             }
 
-            snapshotRepository(url: snapshot_url) {
+            snapshotRepository(url: "file://localhost/$rootDir/build/deploy" /*snapshot_url*/) {
                 authentication(userName: System.getenv('SONATYPE_USERNAME'), password: System.getenv('SONATYPE_PASSWORD'))
             }
 
@@ -72,5 +73,27 @@ uploadArchives
                 }
             }
         }
+    }
+}
+
+// Scripted hack, inpired from:
+// https://github.com/h2oai/sparkling-water/tree/3f8fcf387a2bcc080343a8fafdc81aebc0d99fa1/gradle/publish
+// and
+// https://github.com/h2oai/sparkling-water/blob/73d2e2bd11ce35c6379f6961188fb2af1a7bc04b/build.gradle#L228
+// and
+// https://support.sonatype.com/hc/en-us/articles/213465868-Uploading-to-a-Staging-Repository-via-REST-API
+// and
+// https://support.sonatype.com/hc/en-us/articles/213465448-Automatically-dropping-old-staging-repositories
+// Until either this one works for us: https://github.com/marcphilipp/nexus-publish-plugin
+// or this issue is fixed another way:
+// https://github.com/travis-ci/travis-ci/issues/9555
+def uploadAndRelease(def username, def password, def repoDir) {
+    def proc = ['./uploadAndRelease.sh', username, password, repoDir].execute([], file("${rootDir.toString()}/gradle"))
+    proc.waitForProcessOutput(System.out, System.err)
+}
+
+task publishToNexusAndClose(dependsOn: 'publish'){
+    doLast {
+        uploadAndRelease(System.getenv('SONATYPE_USERNAME'), System.getenv('SONATYPE_PASSWORD'), "$rootDir/build/deploy")
     }
 }
