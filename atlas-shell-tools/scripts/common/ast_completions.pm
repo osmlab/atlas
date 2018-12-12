@@ -55,10 +55,6 @@ sub completion_match_prefix {
     return @matched_words;
 }
 
-# TODO FIXME All completion printouts MUST use '\n' as a field separator.
-# Currently, files with whitespace in the name are totally broken
-# See note about IFS in ast_completions.bash
-
 # TODO implement a function that takes in the current argv and returns the name
 # of the current subcommand (stripping away the global options)
 # TODO implement a function that takes in the current argv and returns an array
@@ -95,12 +91,12 @@ sub completion_atlas {
     my $rargv_m2 = $argv[-3];
     my $rargv_m3 = $argv[-4];
 
-    # TODO FIXME this will do strange things when completing subcommand options...
     # Autocomplete the '--preset' and '--save-preset' flags, since they are probably the most used flags
+    # TODO FIXME this will do strange things when completing subcommand options, since it's not positionally-aware
     if (ast_utilities::string_starts_with($rargv, '-')) {
         my @flags = qw(--preset --save-preset);
         my @completion_matches = completion_match_prefix($rargv, \@flags);
-        print "@completion_matches\n";
+        print join("\n", @completion_matches) . "\n";
         return 1;
     }
 
@@ -109,7 +105,7 @@ sub completion_atlas {
         if ($rargv_m1 eq '-p' || ast_utilities::string_starts_with($rargv_m1, '--p')) {
             my @presets = ast_preset_subsystem::get_all_presets_in_current_namespace($ast_path);
             my @completion_matches = completion_match_prefix($rargv, \@presets);
-            print "@completion_matches\n";
+            print join("\n", @completion_matches) . "\n";
             return 1;
         }
     }
@@ -128,7 +124,7 @@ sub completion_atlas {
             }
 
             my @completion_matches = completion_match_prefix($rargv, \@directives);
-            print "@completion_matches\n";
+            print join("\n", @completion_matches) . "\n";
             return 1;
         }
     }
@@ -147,7 +143,7 @@ sub completion_atlas {
     # Default to completing available command names
     push @commands, $ast_preset_subsystem::CFGPRESET_START;
     my @completion_matches = completion_match_prefix($rargv, \@commands);
-    print "@completion_matches\n";
+    print join("\n", @completion_matches) . "\n";
 
     return 1;
 }
@@ -212,10 +208,18 @@ sub completion_atlascfg {
     elsif ((defined $argv[0] && $argv[0] eq 'uninstall') && (defined $rargv_m1 && $rargv_m1 eq 'uninstall')) {
         @commands = keys %modules;
     }
-    # TODO add completions for 'repo' and 'update' subcommands
+    elsif ((defined $argv[0] && $argv[0] eq 'repo') && (defined $rargv_m1 && $rargv_m1 eq 'repo')) {
+        @commands = qw(add list remove configure);
+    }
+    elsif ((defined $argv[0] && $argv[0] eq 'repo') && (defined $rargv_m2 && $rargv_m2 eq 'repo') && (defined $rargv_m1 && $rargv_m1 eq 'remove')) {
+        @commands = ast_repo_subsystem::get_all_repos($ast_path);
+    }
+    elsif ((defined $argv[0] && $argv[0] eq 'repo') && (defined $rargv_m2 && $rargv_m2 eq 'repo') && (defined $rargv_m1 && $rargv_m1 eq 'configure')) {
+        @commands = ast_repo_subsystem::get_all_repos($ast_path);
+    }
 
     my @completion_matches = completion_match_prefix($rargv, \@commands);
-    print "@completion_matches\n";
+    print join("\n", @completion_matches) . "\n";
 
     return 1;
 }

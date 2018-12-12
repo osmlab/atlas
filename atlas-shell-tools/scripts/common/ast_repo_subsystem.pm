@@ -16,6 +16,7 @@ our @EXPORT = qw(
     list_repos
     remove_repo
     install_repo
+    get_all_repos
 );
 
 our $REPOS_FOLDER = 'repos';
@@ -169,19 +170,7 @@ sub list_repos {
     my $program_name = shift;
     my $quiet = shift;
 
-    my $repo_folder = File::Spec->catfile($ast_path, $REPOS_FOLDER);
-
-    opendir my $repo_dir_handle, $repo_folder or die "Something went wrong opening dir: $!";
-    my @repos = readdir $repo_dir_handle;
-    closedir $repo_dir_handle;
-
-    # we need to filter '.' and '..'
-    my @filtered_repos = ();
-    for my $found_repo (@repos) {
-        unless ($found_repo eq '.' || $found_repo eq '..') {
-            push @filtered_repos, $found_repo;
-        }
-    }
+    my @filtered_repos = get_all_repos($ast_path);
 
     if (scalar @filtered_repos == 0) {
         ast_utilities::error_output($program_name, "found no repos");
@@ -352,6 +341,27 @@ sub install_repo {
     }
 
     return 1;
+}
+
+# Get an array containing all repo names. Useful for autocomplete and listing code.
+sub get_all_repos {
+    my $ast_path = shift;
+
+    my $repo_folder = File::Spec->catfile($ast_path, $REPOS_FOLDER);
+
+    opendir my $repo_dir_handle, $repo_folder or die "Something went wrong opening dir: $!";
+    my @repos = readdir $repo_dir_handle;
+    closedir $repo_dir_handle;
+
+    # we need to filter '.' and '..'
+    my @filtered_repos = ();
+    for my $found_repo (@repos) {
+        unless ($found_repo eq '.' || $found_repo eq '..') {
+            push @filtered_repos, $found_repo;
+        }
+    }
+
+    return @filtered_repos;
 }
 
 # Given an arbitrary file path, opens it and attempts to read the first config
