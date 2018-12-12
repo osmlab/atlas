@@ -482,6 +482,7 @@ if (defined $help_argument) {
 }
 
 my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
+my %modules_links = ast_module_subsystem::get_module_to_symlink_hash($ast_path);
 
 # If there are no modules, let's throw an error
 unless (keys %modules) {
@@ -492,7 +493,7 @@ unless (keys %modules) {
 
 my @activated_modules = ast_module_subsystem::get_activated_modules(\%modules);
 
-# If there are modules but none are active, let's warn the user
+# If there are modules but none are active, warn the user
 if (scalar @activated_modules == 0) {
     ast_utilities::error_output($program_name, 'no activated module');
     print STDERR "Try '${bold_stderr}${ast_utilities::CONFIG_PROGRAM} list${reset_stderr}' to see all installed modules.\n";
@@ -500,6 +501,15 @@ if (scalar @activated_modules == 0) {
     exit 1;
 }
 
+# If the currently active module is a broken symlink, warn the user
+if ($modules_links{$activated_modules[0]} == $ast_module_subsystem::BROKEN_SYMLINK) {
+    ast_utilities::error_output($program_name, 'current active module is a broken symlink');
+    print STDERR "To see link value, try '${bold_stderr}${ast_utilities::CONFIG_PROGRAM} list${reset_stderr}'.\n";
+    print STDERR "Fix the link, then run '${bold_stderr}${ast_utilities::CONFIG_PROGRAM} sync${reset_stderr}' to resolve.\n";
+    exit 1;
+}
+
+# If there is no active module index, warn the user
 my $index_path = File::Spec->catfile($ast_path, $ast_module_subsystem::ACTIVE_INDEX_PATH);
 unless (-f $index_path) {
     ast_utilities::error_output($program_name, 'could not find active module index');
