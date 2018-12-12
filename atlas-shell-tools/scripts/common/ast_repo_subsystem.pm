@@ -44,6 +44,7 @@ my $reset_stderr = $no_colors_stderr ? "" : ast_tty::ansi_reset();
 #   $quiet: suppress non-essential output output
 #   $repo: the name of the repo
 #   $url: the repo URL
+#   $branch: the branch
 # Return: 1 on success, 0 on failure
 sub create_repo {
     my $ast_path = shift;
@@ -51,6 +52,7 @@ sub create_repo {
     my $quiet = shift;
     my $repo = shift;
     my $url = shift;
+    my $branch = shift;
 
     my $repo_subfolder = File::Spec->catfile($ast_path, $REPOS_FOLDER, $repo);
     if (-d $repo_subfolder) {
@@ -63,7 +65,6 @@ sub create_repo {
         mode => 0755
     });
 
-    my $default_branch = "master";
     my $config_contents = "# CONFIG file for repo ${repo}
 # Lines beginning with \"#\" are ignored
 #
@@ -78,7 +79,7 @@ sub create_repo {
 # skip = integrationTest
 #
 url = ${url}
-branch = ${default_branch}
+branch = ${branch}
 ";
 
     my $repo_config_file = File::Spec->catfile($repo_subfolder, $REPO_CONFIG);
@@ -87,7 +88,7 @@ branch = ${default_branch}
     close $file_handle;
 
     unless ($quiet) {
-        print "Created repo ${bold_stdout}${repo}${reset_stdout} with URL ${bold_stdout}${url}${reset_stdout} on branch ${bold_stdout}${default_branch}${reset_stdout}.\n";
+        print "Created repo ${bold_stdout}${repo}${reset_stdout} with URL ${bold_stdout}${url}${reset_stdout} on branch ${bold_stdout}${branch}${reset_stdout}.\n";
     }
 
     return 1;
@@ -417,6 +418,15 @@ sub read_single_config_variable {
     }
 
     return $value;
+}
+
+sub repo_regex_ok {
+    my $repo = shift;
+
+    if ($repo =~ m/^[_a-zA-Z-][_a-zA-Z0-9-]*$/) {
+        return 1;
+    }
+    return 0;
 }
 
 # Perl modules must return a value. Returning a value perl considers "truthy"

@@ -478,22 +478,35 @@ sub execute_command_repo {
     if ($directive eq 'add') {
         my $repo_name = shift @ARGV;
         my $repo_url = shift @ARGV;
-        unless (defined $repo_url) {
-            ast_utilities::error_output($program_name, "missing repo url");
-            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
-            return 0;
-        }
+        my $repo_branch = shift @ARGV;
         unless (defined $repo_name) {
             ast_utilities::error_output($program_name, "missing repo name");
+            print STDERR "Usage: ${bold_stderr}${program_name} repo add <repo_name> <URL> [branch]${reset_stderr}\n";
             print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
             return 0;
         }
-        $success = ast_repo_subsystem::create_repo($ast_path, $program_name, $quiet, $repo_name, $repo_url);
+        unless (defined $repo_url) {
+            ast_utilities::error_output($program_name, "missing repo url");
+            print STDERR "Usage: ${bold_stderr}${program_name} repo add <repo-name> <URL> [branch]${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (ast_repo_subsystem::repo_regex_ok($repo_name)) {
+            ast_utilities::error_output($program_name, "repo name ${bold_stderr}${repo_name}${reset_stderr} contains invalid characters");
+            print STDERR "Usage: ${bold_stderr}${program_name} repo add <repo-name> <URL> [branch]${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $repo_branch) {
+            $repo_branch = 'master';
+        }
+        $success = ast_repo_subsystem::create_repo($ast_path, $program_name, $quiet, $repo_name, $repo_url, $repo_branch);
     }
     elsif ($directive eq 'configure') {
         my $repo_name = shift @ARGV;
         unless (defined $repo_name) {
             ast_utilities::error_output($program_name, "missing repo name");
+            print STDERR "Usage: ${bold_stderr}${program_name} repo configure <repo-name>${reset_stderr}\n";
             print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
             return 0;
         }
@@ -506,6 +519,7 @@ sub execute_command_repo {
         my $repo_name = shift @ARGV;
         unless (defined $repo_name) {
             ast_utilities::error_output($program_name, "missing repo name");
+            print STDERR "Usage: ${bold_stderr}${program_name} repo remove <repo-name>${reset_stderr}\n";
             print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
             return 0;
         }
