@@ -26,6 +26,9 @@ build.dependsOn.remove(signArchives)
 
 uploadArchives
 {
+    doFirst {
+        mkdir "file:/$rootDir/build/deploy"
+    }
     repositories
     {
         mavenDeployer
