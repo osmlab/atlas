@@ -22,6 +22,7 @@ our @EXPORT = qw(
     JAVA_USE_PAGER
     JAVA_NO_USE_PAGER
     JAVA_MARKER_SENTINEL
+    verify_environment_or_exit
     create_data_directory
     display_and_exit
     getopt_failure_and_exit
@@ -49,6 +50,8 @@ our $JAVA_USE_PAGER = "___atlas-shell-tools_use_pager_SPECIALARGUMENT___";
 our $JAVA_NO_USE_PAGER = "___atlas-shell-tools_no_use_pager_SPECIALARGUMENT___";
 our $JAVA_MARKER_SENTINEL = "___atlas-shell-tools_LAST_ARG_MARKER_SENTINEL___";
 
+my $integrity_file = ".atlas-shell-tools-integrity-file";
+
 my $no_colors_stdout = ast_tty::is_no_colors_stdout();
 my $red_stdout = $no_colors_stdout ? "" : ast_tty::ansi_red();
 my $green_stdout = $no_colors_stdout ? "" : ast_tty::ansi_green();
@@ -65,11 +68,11 @@ my $magenta_stderr = $no_colors_stderr ? "" : ast_tty::ansi_magenta();
 my $bold_stderr = $no_colors_stderr ? "" : ast_tty::ansi_bold();
 my $reset_stderr = $no_colors_stderr ? "" : ast_tty::ansi_reset();
 
-# Create the XDG data directory. Defaults to "$HOME/.local/share" but respects
-# the XDG_DATA_HOME env variable if set.
+# Ensure that the necessary environment variables are configured. If not,
+# exit with an error.
 # Params: none
-# Return: the newly set data directory
-sub create_data_directory {
+# Return: none
+sub verify_environment_or_exit {
     unless (defined $ENV{HOME}) {
         print STDERR "Error: HOME environment variable is not set\n";
         exit 1;
@@ -85,6 +88,22 @@ sub create_data_directory {
         exit 1;
     }
 
+    unless (defined $ENV{ATLAS_SHELL_TOOLS_HOME}) {
+        print STDERR "Error: ATLAS_SHELL_TOOLS_HOME environment variable is not set\n";
+        exit 1;
+    }
+
+    unless (-f "$ENV{ATLAS_SHELL_TOOLS_HOME}/${integrity_file}") {
+        print STDERR "Error: ATLAS_SHELL_TOOLS_HOME environment variable is not a valid installation\n";
+        exit 1
+    }
+}
+
+# Create the XDG data directory. Defaults to "$HOME/.local/share" but respects
+# the XDG_DATA_HOME env variable if set.
+# Params: none
+# Return: the newly set data directory
+sub create_data_directory {
     # The directory for data storage. Client code must access this variable thru
     # create_data_directory(), which optionally modifies this variable based on the
     # XDG_DATA_HOME environment variable.

@@ -396,6 +396,7 @@ sub atlas_cfgpreset_namespace {
 
 ########## BEGIN EXECUTION LOGIC ##########
 
+ast_utilities::verify_environment_or_exit();
 $ast_path = ast_utilities::create_data_directory();
 
 # Handle atlas global options. Global options are options that come before the

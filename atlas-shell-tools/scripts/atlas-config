@@ -612,6 +612,7 @@ sub execute_command_uninstall {
 
 ########## BEGIN EXECUTION LOGIC ##########
 
+ast_utilities::verify_environment_or_exit();
 $ast_path = ast_utilities::create_data_directory();
 
 my $help_argument;
