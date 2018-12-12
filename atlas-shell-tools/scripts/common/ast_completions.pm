@@ -59,6 +59,12 @@ sub completion_match_prefix {
 # Currently, files with whitespace in the name are totally broken
 # See note about IFS in ast_completions.bash
 
+# TODO implement a function that takes in the current argv and returns the name
+# of the current subcommand (stripping away the global options)
+# TODO implement a function that takes in the current argv and returns an array
+# containing just the subcommand and its arguments
+# The above ideas would simplify all the 'rargv_mX' variables
+
 sub completion_atlas {
     my $ast_path = shift;
     my $argv_ref = shift;
@@ -189,7 +195,7 @@ sub completion_atlascfg {
     my $rargv_m3 = $argv[-4];
 
     unless (defined $argv[1]) {
-        @commands = qw(activate deactivate install list log reset sync uninstall update);
+        @commands = qw(activate deactivate install list log repo reset sync uninstall update);
     }
 
     # If subcommand is 'install', just complete file names
@@ -206,6 +212,7 @@ sub completion_atlascfg {
     elsif (defined $argv[0] && $argv[0] eq 'uninstall' && $rargv_m1 eq 'uninstall') {
         @commands = keys %modules;
     }
+    # TODO add completions for 'repo' and 'update' subcommands
 
     my @completion_matches = completion_match_prefix($rargv, \@commands);
     print "@completion_matches\n";

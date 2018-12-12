@@ -17,6 +17,7 @@ use ast_completions;
 use ast_log_subsystem;
 use ast_module_subsystem;
 use ast_preset_subsystem;
+use ast_repo_subsystem;
 use ast_utilities;
 use ast_tty;
 
@@ -449,6 +450,62 @@ sub execute_command_log {
     return 1;
 }
 
+sub execute_command_repo {
+    my $help_flag;
+    GetOptions(
+        'help|h' => \$help_flag,
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "repo");
+
+    if (defined $help_flag) {
+        show_submanpage_and_exit('repo');
+    }
+
+    my $directive = shift @ARGV;
+    my $success;
+
+    unless (defined $directive) {
+        ast_utilities::error_output($program_name, "missing required directive");
+        print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+        return 0;
+    }
+
+    if ($directive eq 'add') {
+        my $repo_name = shift @ARGV;
+        my $repo_url = shift @ARGV;
+        unless (defined $repo_url) {
+            ast_utilities::error_output($program_name, "missing repo url");
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $repo_name) {
+            ast_utilities::error_output($program_name, "missing repo name");
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_repo_subsystem::create_repo($ast_path, $program_name, $quiet, $repo_name, $repo_url);
+    }
+    elsif ($directive eq 'list') {
+        $success = ast_repo_subsystem::list_repos($ast_path, $program_name, $quiet);
+    }
+    elsif ($directive eq 'remove') {
+        my $repo_name = shift @ARGV;
+        unless (defined $repo_name) {
+            ast_utilities::error_output($program_name, "missing repo name");
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_repo_subsystem::remove_repo($ast_path, $program_name, $quiet, $repo_name);
+    }
+    else {
+        ast_utilities::error_output($program_name, "unrecognized directive '${bold_stderr}${directive}${reset_stderr}'");
+        print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+        return 0;
+    }
+
+    return 1;
+}
+
+# TODO this needs to handle repo reset
 sub execute_command_reset {
     my $ARGV_len = @ARGV;
 
@@ -607,6 +664,19 @@ sub execute_command_uninstall {
     return 1;
 }
 
+sub execute_command_update {
+    my $help_flag;
+    GetOptions(
+        'help|h' => \$help_flag,
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "update");
+
+    if (defined $help_flag) {
+        show_submanpage_and_exit('update');
+    }
+
+    return 1;
+}
+
 ########## END COMMAND SUBROUTINES ##########
 
 
@@ -682,6 +752,9 @@ elsif ($subcommand eq "list") {
 elsif ($subcommand eq "log") {
     $success = execute_command_log();
 }
+elsif ($subcommand eq "repo") {
+    $success = execute_command_repo();
+}
 elsif ($subcommand eq "reset") {
     $success = execute_command_reset();
 }
@@ -692,8 +765,7 @@ elsif ($subcommand eq "uninstall") {
     $success = execute_command_uninstall();
 }
 elsif ($subcommand eq "update") {
-    # TODO implement
-    print "TODO: implement update\n";
+    $success = execute_command_update();
 }
 # These subcommands are "hidden", they are used by the completion scripts
 # to generate autocomplete suggestions.

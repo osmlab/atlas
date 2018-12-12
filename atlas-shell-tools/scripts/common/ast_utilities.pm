@@ -8,6 +8,7 @@ use File::Path qw(make_path);
 use ast_tty;
 use ast_log_subsystem;
 use ast_preset_subsystem;
+use ast_repo_subsystem;
 
 # Export symbols: variables and subroutines
 our @EXPORT = qw(
@@ -109,27 +110,37 @@ sub create_data_directory {
     # XDG_DATA_HOME environment variable.
     my $data_directory = "$ENV{HOME}/.local/share";
 
+    # Respect XDG_DATA_HOME per the XDG Base Directory specification
+    # https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
     if (defined $ENV{XDG_DATA_HOME}) {
         $data_directory = $ENV{XDG_DATA_HOME};
     }
+
+    # Create data subdirectories if necessary
     $data_directory = File::Spec->catfile($data_directory, 'atlas-shell-tools');
     my $full_log4j_path = File::Spec->catfile($data_directory, $ast_log_subsystem::LOG4J_FOLDER);
     my $full_module_path = File::Spec->catfile($data_directory, $ast_module_subsystem::MODULES_FOLDER);
     my $full_presets_path = File::Spec->catfile($data_directory, $ast_preset_subsystem::PRESETS_FOLDER);
     my $default_namespace_path = File::Spec->catfile($data_directory, $ast_preset_subsystem::PRESETS_FOLDER, $ast_preset_subsystem::DEFAULT_NAMESPACE);
+    my $full_repos_path = File::Spec->catfile($data_directory, $ast_repo_subsystem::REPOS_FOLDER);
     make_path("$data_directory", "$full_module_path", "$full_log4j_path",
-              "$full_presets_path", "$default_namespace_path", {
+              "$full_presets_path", "$default_namespace_path", "$full_repos_path", {
         verbose => 0,
         mode => 0755
     });
+
+    # reset the log4j file if it is missing
     my $log4j_file = File::Spec->catfile($data_directory, $ast_log_subsystem::LOG4J_FOLDER, $ast_log_subsystem::LOG4J_FILE);
     unless (-f $log4j_file) {
         ast_log_subsystem::reset_log4j($data_directory);
     }
-    my $namespace_file = File::Spec->catfile($data_directory, $ast_preset_subsystem::NAMESPACE_PATH);
-    unless (-f $namespace_file) {
+
+    # reset the current namespace file if it is missing
+    my $current_namespace_file = File::Spec->catfile($data_directory, $ast_preset_subsystem::NAMESPACE_PATH);
+    unless (-f $current_namespace_file) {
         ast_preset_subsystem::reset_namespace($data_directory);
     }
+
     return $data_directory;
 }
 

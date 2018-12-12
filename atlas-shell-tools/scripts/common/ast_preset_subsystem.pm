@@ -14,7 +14,7 @@ use ast_tty;
 our @EXPORT = qw(
     PRESETS_FOLDER
     CFGPRESET_START
-    NAMESPACE_FILE
+    CURRENT_NAMESPACE_FILE
     NAMESPACE_PATH
     DEFAULT_NAMESPACE
     reset_namespace
@@ -38,8 +38,8 @@ our @EXPORT = qw(
 our $PRESETS_FOLDER = 'presets';
 our $CFGPRESET_START = 'cfg.preset';
 
-our $NAMESPACE_FILE = '.current_namespace';
-our $NAMESPACE_PATH = File::Spec->catfile($PRESETS_FOLDER, $NAMESPACE_FILE);
+our $CURRENT_NAMESPACE_FILE = '.current_namespace';
+our $NAMESPACE_PATH = File::Spec->catfile($PRESETS_FOLDER, $CURRENT_NAMESPACE_FILE);
 our $DEFAULT_NAMESPACE = 'default';
 
 my $no_colors_stdout = ast_tty::is_no_colors_stdout();
@@ -604,7 +604,7 @@ sub get_namespaces_array {
     my @filtered_namespaces = ();
     for my $found_namespace (@namespaces) {
         unless ($found_namespace eq '.' || $found_namespace eq '..'
-                || $found_namespace eq $NAMESPACE_FILE) {
+                || $found_namespace eq $CURRENT_NAMESPACE_FILE) {
             push @filtered_namespaces, $found_namespace;
         }
     }
