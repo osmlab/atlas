@@ -388,6 +388,7 @@ sub edit_preset {
     foreach my $cur_preset (@presets_from_file) {
         print $handle "${cur_preset}\n";
     }
+    print $handle "\n";
     close $handle;
 
     my @editor = ast_utilities::get_editor();
