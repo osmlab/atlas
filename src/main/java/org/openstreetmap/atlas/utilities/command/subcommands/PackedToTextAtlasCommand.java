@@ -2,6 +2,9 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import org.openstreetmap.atlas.utilities.command.AbstractAtlasShellToolsCommand;
 
+/**
+ * @author lcram
+ */
 public class PackedToTextAtlasCommand extends AbstractAtlasShellToolsCommand
 {
     @Override

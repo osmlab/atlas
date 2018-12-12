@@ -21,10 +21,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A very simple option and argument parser. Designed specifically to impose constraints on the
- * format of the options. Nothing about this class is thread safe, should you decide to parse in one
- * thread and read results in another.
+ * A simple option and argument parser, designed specifically to impose constraints on the format of
+ * the arguments and options. Non-ambiguity is enforced at registration time. Once you have
+ * successfully registered the parser, you can be sure it will parse any input command line as
+ * expected, throwing errors where appropriate. Nothing about this class is thread safe, should you
+ * decide to parse in one thread and read results in another.
  * <p>
+ * Supports multiple types of arguments:<br>
+ * OPTIONAL vs REQUIRED: if an argument marked REQUIRED is not supplied, the parser will throw an
+ * error<br>
+ * UNARY vs VARIADIC: a VARIADIC argument is one that can consist of an arbitrary number of
+ * values<br>
+ * <br>
  * Supports long and short options:<br>
  * --opt : a long option<br>
  * --opt-arg=my_argument : a long option with argument, supports optional or required arguments<br>
@@ -35,11 +43,27 @@ import org.slf4j.LoggerFactory;
  * -oarg : alternate syntax, a short option (-o) that takes a required or optional arg<br>
  * <br>
  * If an option is specified multiple times with different arguments, the parser will use the
- * version in the highest ARGV position (ie. the furthest right on the command line). Additionally,
- * this class supports easy argument parsing/fetching with unary and variadic arguments.
+ * version in the highest ARGV position (ie. the furthest right on the command line).
  * </p>
  * This class supports both the POSIX short option spec as well as the GNU long option spec. See
- * included links for details.
+ * included links for details.<br>
+ * <br>
+ * This class supports long option prefix abbreviations. This means that a long option "--option"
+ * can be abbreviated on the command line as "--o" or "--op" or any non-ambiguous prefix. If an
+ * abbreviation results in ambiguity, the parser will throw an error at parse-time.<br>
+ * <br>
+ * Note that this class also supports multiple parsing contexts, if desired. A parsing context
+ * corresponds to certain usage case. For example, you can register a context with ID 3 that takes a
+ * single argument and the option "--opt1". Then you can also define a context ID 4 that takes 2
+ * arguments and an option "--opt2". The parser will automatically figure out which context is
+ * implied from the supplied command line. If more than one context matches, the context with the
+ * lowest numberical ID is selected. If no matching contexts can be found, the parser throws an
+ * error with a diagnostic message explaining what happened.<br>
+ * <br>
+ * By default, this class pre-registers '--help, -h' and '--version, -V' options automatically
+ * (registered to parse contexts 1 and 2 respectively). It is up to calling classes to implement
+ * behaviour for these options, if present.<br>
+ * <br>
  *
  * @see "https://www.gnu.org/software/libc/manual/html_node/Argument-Syntax.html"
  * @see "http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html"
@@ -261,9 +285,9 @@ public class SimpleOptionAndArgumentParser
     public static final String DEFAULT_VERSION_LONG = "version";
     public static final Character DEFAULT_VERSION_SHORT = 'V';
 
-    public static final Integer HELP_OPTION_CONTEXT_ID = 1;
-    public static final Integer VERSION_OPTION_CONTEXT_ID = 2;
-    public static final Integer DEFAULT_CONTEXT_ID = 3;
+    public static final int HELP_OPTION_CONTEXT_ID = 1;
+    public static final int VERSION_OPTION_CONTEXT_ID = 2;
+    public static final int DEFAULT_CONTEXT_ID = 3;
     public static final int NO_CONTEXT = 0;
 
     private final Map<Integer, Set<SimpleOption>> contextToRegisteredOptions;
@@ -271,7 +295,7 @@ public class SimpleOptionAndArgumentParser
     private final Map<Integer, Map<String, ArgumentOptionality>> contextToArgumentHintToOptionality;
     private final Map<Integer, Boolean> contextToRegisteredVariadicArgument;
     private final Map<Integer, Boolean> contextToRegisteredOptionalArgument;
-    private final Set<Integer> registeredContexts;
+    private final SortedSet<Integer> registeredContexts;
 
     private final Set<String> longFormsSeen;
     private final Set<Character> shortFormsSeen;
@@ -289,7 +313,7 @@ public class SimpleOptionAndArgumentParser
         this.contextToArgumentHintToOptionality = new HashMap<>();
         this.contextToRegisteredVariadicArgument = new HashMap<>();
         this.contextToRegisteredOptionalArgument = new HashMap<>();
-        this.registeredContexts = new HashSet<>();
+        this.registeredContexts = new TreeSet<>();
 
         this.longFormsSeen = new HashSet<>();
         this.shortFormsSeen = new HashSet<>();
@@ -327,14 +351,14 @@ public class SimpleOptionAndArgumentParser
         return this.contextToArgumentHintToOptionality;
     }
 
+    public int getContext()
+    {
+        return this.currentContext;
+    }
+
     public Map<Integer, Set<SimpleOption>> getContextToRegisteredOptions()
     {
         return this.contextToRegisteredOptions;
-    }
-
-    public Integer getCurrentContext()
-    {
-        return this.currentContext;
     }
 
     /**
@@ -462,8 +486,7 @@ public class SimpleOptionAndArgumentParser
         }
         if (!this.contextToArgumentHintToArity.get(this.currentContext).containsKey(hint))
         {
-            throw new CoreException("hint \'{}\' does not correspond to a registered argument",
-                    hint);
+            return Optional.empty();
         }
         if (this.contextToArgumentHintToArity.get(this.currentContext)
                 .get(hint) != ArgumentArity.UNARY)
@@ -539,8 +562,7 @@ public class SimpleOptionAndArgumentParser
         {
             if (!registeredOptionForLongForm(this.currentContext, longForm).isPresent())
             {
-                throw new CoreException("{} not a registered option in detected context {}",
-                        longForm, this.currentContext);
+                return false;
             }
             option = getParsedOptionFromLongForm(longForm);
         }
@@ -565,8 +587,8 @@ public class SimpleOptionAndArgumentParser
         boolean seenEndOptionsOperator = false;
 
         /*
-         * First, we pre-parse arguments to see if there are any ambiguous or unknown options. This
-         * will help generate better error message for the end user. This check must happen
+         * First, we pre-parse arguments to see if there are any ambiguous or unknown long options.
+         * This will help generate better error message for the end user. This check must happen
          * independent of any parsing context, since you need to be able to disambiguate option
          * prefix abbreviations before a context is selected. Consider the following example:
          */
@@ -614,6 +636,14 @@ public class SimpleOptionAndArgumentParser
             {
                 exceptionMessagesWeSaw.add(String.format("%d: %s (context %d)", context,
                         exception.getMessage(), context));
+                continue;
+            }
+
+            // disallow parsing to stop on --help or --version contexts if the command line was
+            // empty
+            if (this.isEmpty()
+                    && (context == HELP_OPTION_CONTEXT_ID || context == VERSION_OPTION_CONTEXT_ID))
+            {
                 continue;
             }
             this.currentContext = context;

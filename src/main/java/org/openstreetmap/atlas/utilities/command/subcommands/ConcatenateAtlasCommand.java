@@ -14,7 +14,7 @@ import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 /**
  * @author lcram
  */
-public class ConcatenateAtlasSubcommand extends AbstractAtlasShellToolsCommand
+public class ConcatenateAtlasCommand extends AbstractAtlasShellToolsCommand
 {
     private static final String INPUT_HINT = "input";
     private static final String OUTPUT_HINT = "output";
@@ -27,7 +27,7 @@ public class ConcatenateAtlasSubcommand extends AbstractAtlasShellToolsCommand
 
     public static void main(final String[] args)
     {
-        new ConcatenateAtlasSubcommand().runSubcommandAndExit(args);
+        new ConcatenateAtlasCommand().runSubcommandAndExit(args);
     }
 
     @Override

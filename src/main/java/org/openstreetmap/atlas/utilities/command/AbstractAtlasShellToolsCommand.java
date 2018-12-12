@@ -238,7 +238,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
 
     protected int getParserContext()
     {
-        return this.parser.getCurrentContext();
+        return this.parser.getContext();
     }
 
     /**
@@ -424,6 +424,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *            the argument arity
      * @param type
      *            whether the argument is optional or required
+     * @param contexts
+     *            the contexts
      * @throws CoreException
      *             if the argument could not be registered
      */
@@ -443,6 +445,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *            the short form of the option, eg. -o
      * @param description
      *            a simple description
+     * @param contexts
+     *            the contexts
      * @throws CoreException
      *             if the option could not be registered
      */
@@ -460,6 +464,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *            the long form of the option, eg. --option
      * @param description
      *            a simple description
+     * @param contexts
+     *            the contexts
      * @throws CoreException
      *             if the option could not be registered
      */
@@ -483,6 +489,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *            a simple description
      * @param argumentHint
      *            the hint for the argument
+     * @param contexts
+     *            the contexts
      * @throws CoreException
      *             if the option could not be registered
      */
@@ -505,6 +513,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *            a simple description
      * @param argumentHint
      *            the hint for the argument
+     * @param contexts
+     *            the contexts
      * @throws CoreException
      *             if the option could not be registered
      */
@@ -529,6 +539,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *            a simple description
      * @param argumentHint
      *            the hint for the argument
+     * @param contexts
+     *            the contexts
      * @throws CoreException
      *             if the option could not be registered
      */
@@ -552,6 +564,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *            a simple description
      * @param argumentHint
      *            the hint for the argument
+     * @param contexts
+     *            the contexts
      * @throws CoreException
      *             if the option could not be registered
      */
@@ -643,10 +657,9 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             throw new CoreException("unhandled exception {}", exception);
         }
 
-        logger.debug("Command using context {}", this.parser.getCurrentContext());
+        logger.debug("Command using context {}", this.parser.getContext());
 
-        if (this.parser.getCurrentContext() == SimpleOptionAndArgumentParser.HELP_OPTION_CONTEXT_ID
-                && this.parser.hasOption(SimpleOptionAndArgumentParser.DEFAULT_HELP_LONG))
+        if (this.parser.hasOption(SimpleOptionAndArgumentParser.DEFAULT_HELP_LONG))
         {
             if (this.usePager)
             {
@@ -660,22 +673,10 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             System.exit(0);
         }
 
-        if (this.parser
-                .getCurrentContext() == SimpleOptionAndArgumentParser.VERSION_OPTION_CONTEXT_ID
-                && this.parser.hasOption(SimpleOptionAndArgumentParser.DEFAULT_VERSION_LONG))
+        if (this.parser.hasOption(SimpleOptionAndArgumentParser.DEFAULT_VERSION_LONG))
         {
             printlnStdout(String.format("%s version %s", getCommandName(), this.version));
             System.exit(0);
-        }
-
-        if (this.parser.isEmpty())
-        {
-            printlnErrorMessage("command line was empty");
-            printSimpleUsageMenu();
-            printStderr("Try the \'");
-            printStderr("--help", TTYAttribute.BOLD);
-            printlnStderr("\' option for more info.");
-            System.exit(1);
         }
 
         // run the command

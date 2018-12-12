@@ -7,15 +7,15 @@ import org.slf4j.LoggerFactory;
 /**
  * @author lcram
  */
-public class HelloWorldSubcommand extends AbstractAtlasShellToolsCommand
+public class HelloWorldCommand extends AbstractAtlasShellToolsCommand
 {
-    private static final Logger logger = LoggerFactory.getLogger(HelloWorldSubcommand.class);
+    private static final Logger logger = LoggerFactory.getLogger(HelloWorldCommand.class);
 
     private static final String NAME_OPTION = "name";
 
     public static void main(final String[] args)
     {
-        new HelloWorldSubcommand().runSubcommandAndExit(args);
+        new HelloWorldCommand().runSubcommandAndExit(args);
     }
 
     @Override

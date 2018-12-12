@@ -11,13 +11,13 @@ import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 /**
  * @author lcram
  */
-public class DemoSubcommand extends AbstractAtlasShellToolsCommand
+public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
 {
     private static final int BREAKFAST_CONTEXT = 4;
 
     public static void main(final String[] args)
     {
-        new DemoSubcommand().runSubcommandAndExit(args);
+        new AtlasShellToolsDemoCommand().runSubcommandAndExit(args);
     }
 
     @Override
