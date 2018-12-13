@@ -60,8 +60,7 @@ public class AtlasChangeGeneratorSplitRoundabout implements AtlasChangeGenerator
                     return BloatedRelation.shallowFrom(relation)
                             .withMembersAndSource(newMembers, relation)
                             // With the new relation members
-                            .withExtraMember(firstEdge, edge)
-                            .withExtraMember(secondEdge, edge);
+                            .withExtraMember(firstEdge, edge).withExtraMember(secondEdge, edge);
                 }).map(FeatureChange::add).forEach(result::add);
 
                 // Add the two new edges.
