@@ -271,13 +271,13 @@ sub install_repo {
         return 0;
     }
 
-    my $commit = `git rev-parse HEAD`;
-    $commit = substr($commit, 0, 7);
+    my $commit = `git rev-parse --short HEAD`;
+    chomp $commit;
     # TODO injection excludes into the configuration block
     my $gradle_injection = "
     task atlasshelltools(type: Jar) {
         baseName = project.name
-        classifier = '${repo}-${commit}-AST'
+        classifier = '-AST'
         from {
             configurations.atlasshelltools.collect { it.isDirectory() ? it : zipTree(it) }
         }
@@ -334,6 +334,8 @@ sub install_repo {
     push @command, "install";
     push @command, "{}";
     push @command, "--force";
+    push @command, "--name";
+    push @command, "${repo}-${commit}";
     push @command, ";";
     $success = system {$command[0]} @command;
     unless ($success == 0) {
