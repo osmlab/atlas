@@ -17,6 +17,10 @@ our @EXPORT = qw(
     remove_repo
     install_repo
     get_all_repos
+    add_skip_variable
+    add_exclude_variable
+    get_repo_settings
+    print_repo_settings
 );
 
 our $REPOS_FOLDER = 'repos';
@@ -37,6 +41,12 @@ my $green_stderr = $no_colors_stderr ? "" : ast_tty::ansi_green();
 my $magenta_stderr = $no_colors_stderr ? "" : ast_tty::ansi_magenta();
 my $bold_stderr = $no_colors_stderr ? "" : ast_tty::ansi_bold();
 my $reset_stderr = $no_colors_stderr ? "" : ast_tty::ansi_reset();
+
+
+#
+# TODO fix all the hardcoded stuff.
+# e.g. 'url', 'ref', 'exclude', etc.
+#
 
 # Create a new repo.
 # Params:
@@ -80,8 +90,7 @@ sub create_repo {
 # skip = integrationTest
 #
 url = ${url}
-ref = ${ref}
-";
+ref = ${ref}";
 
     my $repo_config_file = File::Spec->catfile($repo_subfolder, $REPO_CONFIG);
     open my $file_handle, '>', "$repo_config_file";
@@ -239,7 +248,6 @@ sub install_repo {
         return 0;
     }
 
-    # TODO fix all the hardcoded 'url', 'ref', etc. strings
     my $url = read_single_config_variable($ast_path, $program_name, $quiet, $repo, 'url');
     my $ref = read_single_config_variable($ast_path, $program_name, $quiet, $repo, 'ref');
     my @excludes = read_multiple_config_variables($ast_path, $program_name, $quiet, $repo, 'exclude');
@@ -374,6 +382,125 @@ sub get_all_repos {
     return @filtered_repos;
 }
 
+# TODO refactor DRY
+# Wrapper for append_config_variable_to_file. Used by UI code.
+sub add_skip_variable {
+    my $ast_path = shift;
+    my $program_name = shift;
+    my $quiet = shift;
+    my $repo = shift;
+    my $value = shift;
+
+    my $repo_subfolder = File::Spec->catfile($ast_path, $REPOS_FOLDER, $repo);
+    unless (-d $repo_subfolder) {
+        ast_utilities::error_output($program_name, "repo ${bold_stderr}${repo}${reset_stderr} does not exist");
+        return 0;
+    }
+
+    my $repo_config_file = File::Spec->catfile($repo_subfolder, $REPO_CONFIG);
+    unless (-f $repo_config_file) {
+        ast_utilities::error_output($program_name, "could not find config file for repo ${bold_stderr}${repo}${reset_stderr}");
+        return 0;
+    }
+
+    append_config_variable_to_file($repo_config_file, 'skip', $value);
+
+    return 1;
+}
+
+# TODO refactor DRY
+# Wrapper for append_config_variable_to_file. Used by UI code.
+sub add_exclude_variable {
+    my $ast_path = shift;
+    my $program_name = shift;
+    my $quiet = shift;
+    my $repo = shift;
+    my $value = shift;
+
+    my $repo_subfolder = File::Spec->catfile($ast_path, $REPOS_FOLDER, $repo);
+    unless (-d $repo_subfolder) {
+        ast_utilities::error_output($program_name, "repo ${bold_stderr}${repo}${reset_stderr} does not exist");
+        return 0;
+    }
+
+    my $repo_config_file = File::Spec->catfile($repo_subfolder, $REPO_CONFIG);
+    unless (-f $repo_config_file) {
+        ast_utilities::error_output($program_name, "could not find config file for repo ${bold_stderr}${repo}${reset_stderr}");
+        return 0;
+    }
+
+    append_config_variable_to_file($repo_config_file, 'exclude', $value);
+
+    return 1;
+}
+
+# Get an array containing string-ified repo settings. The array is useful for
+# output purposes.
+sub get_repo_settings {
+    my $ast_path = shift;
+    my $program_name = shift;
+    my $quiet = shift;
+    my $repo = shift;
+
+    my $repo_subfolder = File::Spec->catfile($ast_path, $REPOS_FOLDER, $repo);
+    unless (-d $repo_subfolder) {
+        ast_utilities::error_output($program_name, "repo ${bold_stderr}${repo}${reset_stderr} does not exist");
+        return 0;
+    }
+
+    my $repo_config_file = File::Spec->catfile($repo_subfolder, $REPO_CONFIG);
+    unless (-f $repo_config_file) {
+        ast_utilities::error_output($program_name, "could not find config file for repo ${bold_stderr}${repo}${reset_stderr}");
+        return 0;
+    }
+
+    my @settings = ();
+
+    open my $file_handle, '<', $repo_config_file or die "Could not open file $repo_config_file $!";
+    while (my $line = <$file_handle>) {
+        chomp $line;
+        if ($line eq '' || substr($line, 0, 1) eq '#') {
+            next;
+        }
+        # trim excess whitespace from left and right
+        $line =~ s/^\s+|\s+$//g;
+        if ($line eq '' || substr($line, 0, 1) eq '#') {
+            next;
+        }
+        my @line_split = split '=', $line, 2;
+        unless (defined $line_split[0]) {
+            next;
+        }
+        # trim excess whitespace from left and right
+        $line_split[0] =~ s/^\s+|\s+$//g;
+        if (defined $line_split[1] && $line_split[1] !~ /^\s*$/) {
+            # trim excess whitespace from left and right
+            $line_split[1] =~ s/^\s+|\s+$//g;
+            push @settings, "$line_split[0] = $line_split[1]";
+        }
+    }
+    close $file_handle;
+
+    return @settings;
+}
+
+# Print repo settings using get_repo_settings.
+sub print_repo_settings {
+    my $ast_path = shift;
+    my $program_name = shift;
+    my $quiet = shift;
+    my $repo = shift;
+
+    my @settings = get_repo_settings($ast_path, $program_name, $quiet, $repo);
+    if (scalar @settings != 0) {
+        print "${bold_stdout}${repo}${reset_stdout} settings:\n";
+    }
+    foreach my $setting (@settings) {
+        print "${setting}\n";
+    }
+}
+
+# TODO refactor DRY
 # Given an arbitrary file path, opens it and attempts to read the first config
 # variable that matches the given variable. If the value cannot be read, returns
 # an empty string.
@@ -404,10 +531,12 @@ sub read_single_config_variable_from_arbitrary_file {
             }
         }
     }
+    close $file_handle;
 
     return $value;
 }
 
+# TODO refactor DRY
 # Given an arbitrary file path, opens it and attempts to read the all config
 # variables that match the given variable. The values will be returned in an array.
 # If no values could be read, the array will be empty.
@@ -438,8 +567,20 @@ sub read_multiple_config_variables_from_arbitrary_file {
             }
         }
     }
+    close $file_handle;
 
     return @values;
+}
+
+# Given a file, a variable, and a value, append the variable setting to the file.
+sub append_config_variable_to_file {
+    my $file = shift;
+    my $variable = shift;
+    my $value = shift;
+
+    open my $file_handle, '>>', $file or die "Could not open file $file $!";
+    print $file_handle "${variable} = ${value}\n";
+    close $file_handle;
 }
 
 # Wrapper for read_single_config_variable_from_arbitrary_file that uses a given

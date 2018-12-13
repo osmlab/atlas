@@ -486,19 +486,19 @@ sub execute_command_repo {
         my $repo_ref = shift @ARGV;
         unless (defined $repo_name) {
             ast_utilities::error_output($program_name, "missing repo name");
-            print STDERR "Usage: ${bold_stderr}${program_name} repo add <repo_name> <URL> [branch]${reset_stderr}\n";
+            print STDERR "Usage: ${bold_stderr}${program_name} repo add <repo_name> <URL> [ref]${reset_stderr}\n";
             print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
             return 0;
         }
         unless (defined $repo_url) {
             ast_utilities::error_output($program_name, "missing repo url");
-            print STDERR "Usage: ${bold_stderr}${program_name} repo add <repo-name> <URL> [branch]${reset_stderr}\n";
+            print STDERR "Usage: ${bold_stderr}${program_name} repo add <repo-name> <URL> [ref]${reset_stderr}\n";
             print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
             return 0;
         }
         unless (ast_repo_subsystem::repo_regex_ok($repo_name)) {
             ast_utilities::error_output($program_name, "invalid repo name ${bold_stderr}${repo_name}${reset_stderr}");
-            print STDERR "Usage: ${bold_stderr}${program_name} repo add <repo-name> <URL> [branch]${reset_stderr}\n";
+            print STDERR "Usage: ${bold_stderr}${program_name} repo add <repo-name> <URL> [ref]${reset_stderr}\n";
             print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
             return 0;
         }
@@ -516,6 +516,9 @@ sub execute_command_repo {
             return 0;
         }
         $success = ast_repo_subsystem::edit_repo($ast_path, $program_name, $quiet, $repo_name);
+        if ($success) {
+            ast_repo_subsystem::print_repo_settings($ast_path, $program_name, $quiet, $repo_name);
+        }
     }
     elsif ($directive eq 'install') {
         my $repo_name = shift @ARGV;
@@ -540,9 +543,49 @@ sub execute_command_repo {
         }
         $success = ast_repo_subsystem::remove_repo($ast_path, $program_name, $quiet, $repo_name);
     }
+    elsif ($directive eq 'add-gradle-skip') {
+        my $repo_name = shift @ARGV;
+        my $skip = shift @ARGV;
+        unless (defined $repo_name) {
+            ast_utilities::error_output($program_name, "missing repo name");
+            print STDERR "Usage: ${bold_stderr}${program_name} repo add-gradle-skip <repo-name> <task>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $skip) {
+            ast_utilities::error_output($program_name, "missing skip task");
+            print STDERR "Usage: ${bold_stderr}${program_name} repo add-gradle-skip <repo-name> <task>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_repo_subsystem::add_skip_variable($ast_path, $program_name, $quiet, $repo_name, $skip);
+        if ($success) {
+            ast_repo_subsystem::print_repo_settings($ast_path, $program_name, $quiet, $repo_name);
+        }
+    }
+    elsif ($directive eq 'add-gradle-exclude') {
+        my $repo_name = shift @ARGV;
+        my $exclude = shift @ARGV;
+        unless (defined $repo_name) {
+            ast_utilities::error_output($program_name, "missing repo name");
+            print STDERR "Usage: ${bold_stderr}${program_name} repo add-gradle-exclude <repo-name> <package>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $exclude) {
+            ast_utilities::error_output($program_name, "missing exclude package");
+            print STDERR "Usage: ${bold_stderr}${program_name} repo add-gradle-exclude <repo-name> <package>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_repo_subsystem::add_exclude_variable($ast_path, $program_name, $quiet, $repo_name, $exclude);
+        if ($success) {
+            ast_repo_subsystem::print_repo_settings($ast_path, $program_name, $quiet, $repo_name);
+        }
+    }
     else {
         ast_utilities::error_output($program_name, "unrecognized directive '${bold_stderr}${directive}${reset_stderr}'");
-        print STDERR "Try ${bold_stderr}add${reset_stderr}, ${bold_stderr}install${reset_stderr}, ${bold_stderr}list${reset_stderr}, ${bold_stderr}remove${reset_stderr}, or ${bold_stderr}edit${reset_stderr}.\n";
+        print STDERR "Try ${bold_stderr}add${reset_stderr}, ${bold_stderr}install${reset_stderr}, ${bold_stderr}list${reset_stderr}, ${bold_stderr}remove${reset_stderr}, ${bold_stderr}edit${reset_stderr}, ${bold_stderr}add-gradle-skip${reset_stderr}, or ${bold_stderr}add-gradle-exclude${reset_stderr}.\n";
         print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
         return 0;
     }
