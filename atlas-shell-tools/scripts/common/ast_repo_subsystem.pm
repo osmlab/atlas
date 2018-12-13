@@ -42,6 +42,18 @@ my $magenta_stderr = $no_colors_stderr ? "" : ast_tty::ansi_magenta();
 my $bold_stderr = $no_colors_stderr ? "" : ast_tty::ansi_bold();
 my $reset_stderr = $no_colors_stderr ? "" : ast_tty::ansi_reset();
 
+my $REPO_EDIT_HEADER = "# Lines beginning with \"#\" are ignored
+#
+# Add exclude packages for gradle using \"exclude\".
+# To exclude multiple packages, simply repeat this config variable for each package. E.g.
+# exclude = com.example.package
+# exclude = com.example.anotherpackage
+#
+# Skip gradle tasks using \"skip\".
+# To skip multiple tasks, simply repeat this config variable for each task. E.g.
+# skip = javadoc
+# skip = integrationTest
+#";
 
 #
 # TODO fix all the hardcoded stuff.
@@ -76,25 +88,10 @@ sub create_repo {
         mode => 0755
     });
 
-    my $config_contents = "# CONFIG file for repo ${repo}
-# Lines beginning with \"#\" are ignored
-#
-# Add exclude packages for gradle using \"exclude\".
-# To exclude multiple packages, simply repeat this config variable for each package. E.g.
-# exclude = com.example.package
-# exclude = com.example.anotherpackage
-#
-# Skip gradle tasks using \"skip\".
-# To skip multiple tasks, simply repeat this config variable for each task. E.g.
-# skip = javadoc
-# skip = integrationTest
-#
-url = ${url}
-ref = ${ref}";
-
     my $repo_config_file = File::Spec->catfile($repo_subfolder, $REPO_CONFIG);
     open my $file_handle, '>', "$repo_config_file";
-    print $file_handle "${config_contents}\n";
+    print $file_handle "url = ${url}\n";
+    print $file_handle "ref = ${ref}\n";
     close $file_handle;
 
     unless ($quiet) {
@@ -138,32 +135,52 @@ sub edit_repo {
     close $handle;
 
     # copy the current config file into the staging file
-    my @command = ();
-    push @command, "cp";
-    push @command, "$repo_config_file";
-    push @command, "$staging_file";
-    system { $command[0] } @command;
+    open my $stage_handle, '>', "$staging_file";
+    print $stage_handle "# Config for repo ${repo}\n";
+    print $stage_handle "${REPO_EDIT_HEADER}\n";
+    my $url = read_single_config_variable_from_arbitrary_file($repo_config_file, 'url');
+    my $ref = read_single_config_variable_from_arbitrary_file($repo_config_file, 'ref');
+    my @skips = read_multiple_config_variables_from_arbitrary_file($repo_config_file, 'skip');
+    my @excludes = read_multiple_config_variables_from_arbitrary_file($repo_config_file, 'exclude');
+    print $stage_handle "url = ${url}\n";
+    print $stage_handle "ref = ${ref}\n";
+    foreach my $skip (@skips) {
+        print $stage_handle "skip = ${skip}\n";
+    }
+    foreach my $exclude (@excludes) {
+        print $stage_handle "exclude = ${exclude}\n";
+    }
+    close $stage_handle;
 
     # open the staging file in the user's editor
     my @editor = ast_utilities::get_editor();
     push @editor, "$staging_file";
     system { $editor[0] } @editor;
 
-    # confirm that the staging file is not malformed
-    my $url = read_single_config_variable_from_arbitrary_file($staging_file, 'url');
-    my $ref = read_single_config_variable_from_arbitrary_file($staging_file, 'ref');
+    # confirm that the staging file is not malformed, i.e. it must have a valid URL and ref
+    $url = read_single_config_variable_from_arbitrary_file($staging_file, 'url');
+    $ref = read_single_config_variable_from_arbitrary_file($staging_file, 'ref');
     if ($url eq '' || $ref eq '') {
         ast_utilities::error_output($program_name, "failed to parse \'url\' and \'ref\' config variables");
-        print STDERR "Aborting configuration without saving...\n";
+        print STDERR "Aborting edit without saving...\n";
         return 0;
     }
 
     # copy the staging file back into the actual config file
-    @command = ();
-    push @command, "cp";
-    push @command, "$staging_file";
-    push @command, "$repo_config_file";
-    system { $command[0] } @command;
+    open $handle, '>', "$repo_config_file";
+    $url = read_single_config_variable_from_arbitrary_file($staging_file, 'url');
+    $ref = read_single_config_variable_from_arbitrary_file($staging_file, 'ref');
+    @skips = read_multiple_config_variables_from_arbitrary_file($staging_file, 'skip');
+    @excludes = read_multiple_config_variables_from_arbitrary_file($staging_file, 'exclude');
+    print $handle "url = ${url}\n";
+    print $handle "ref = ${ref}\n";
+    foreach my $skip (@skips) {
+        print $handle "skip = ${skip}\n";
+    }
+    foreach my $exclude (@excludes) {
+        print $handle "exclude = ${exclude}\n";
+    }
+    close $handle;
 
     return 1;
 }
