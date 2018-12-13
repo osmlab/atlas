@@ -162,6 +162,11 @@ public class BloatedEdge extends Edge implements BloatedEntity
                 + this.relationIdentifiers + "]";
     }
 
+    public BloatedEdge withAddedTag(final String key, final String value)
+    {
+        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+    }
+
     public BloatedEdge withAggregateBoundsExtendedUsing(final Rectangle bounds)
     {
         if (this.aggregateBounds == null)
@@ -201,15 +206,11 @@ public class BloatedEdge extends Edge implements BloatedEntity
         return this;
     }
 
-    public BloatedEdge withStartNodeIdentifier(final Long startNodeIdentifier)
+    public BloatedEdge withRelations(final Set<Relation> relations)
     {
-        this.startNodeIdentifier = startNodeIdentifier;
+        this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
+                .collect(Collectors.toSet());
         return this;
-    }
-
-    public BloatedEdge withAddedTag(final String key, final String value)
-    {
-        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
     }
 
     public BloatedEdge withRemovedTag(final String key)
@@ -221,6 +222,12 @@ public class BloatedEdge extends Edge implements BloatedEntity
             final String newValue)
     {
         return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
+    }
+
+    public BloatedEdge withStartNodeIdentifier(final Long startNodeIdentifier)
+    {
+        this.startNodeIdentifier = startNodeIdentifier;
+        return this;
     }
 
     public BloatedEdge withTags(final Map<String, String> tags)

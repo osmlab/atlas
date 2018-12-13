@@ -5,6 +5,7 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,17 +39,31 @@ public class AtlasEdgeValidator
     {
         for (final Edge edge : this.atlas.edges())
         {
-            if (edge.start() == null)
+            final Node start = edge.start();
+            if (start == null)
             {
                 throw new CoreException(
                         "Edge {} is logically disconnected at its start. Referenced Node does not exist.",
                         edge.getIdentifier());
             }
-            if (edge.end() == null)
+            if (start.outEdges().stream()
+                    .noneMatch(edgeAtNode -> edgeAtNode.getIdentifier() == edge.getIdentifier()))
+            {
+                throw new CoreException("Edge {} references start Node {}. It is not reciprocal.",
+                        edge.getIdentifier(), start.getIdentifier());
+            }
+            final Node end = edge.end();
+            if (end == null)
             {
                 throw new CoreException(
                         "Edge {} is logically disconnected at its end. Referenced Node does not exist.",
                         edge.getIdentifier());
+            }
+            if (end.inEdges().stream()
+                    .noneMatch(edgeAtNode -> edgeAtNode.getIdentifier() == edge.getIdentifier()))
+            {
+                throw new CoreException("Edge {} references end Node {}. It is not reciprocal.",
+                        edge.getIdentifier(), end.getIdentifier());
             }
         }
     }

@@ -137,6 +137,11 @@ public class BloatedLine extends Line implements BloatedEntity
                 + ", tags=" + this.tags + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
+    public BloatedLine withAddedTag(final String key, final String value)
+    {
+        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+    }
+
     public BloatedLine withAggregateBoundsExtendedUsing(final Rectangle bounds)
     {
         if (this.aggregateBounds == null)
@@ -170,9 +175,11 @@ public class BloatedLine extends Line implements BloatedEntity
         return this;
     }
 
-    public BloatedLine withAddedTag(final String key, final String value)
+    public BloatedLine withRelations(final Set<Relation> relations)
     {
-        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+        this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
+                .collect(Collectors.toSet());
+        return this;
     }
 
     public BloatedLine withRemovedTag(final String key)
