@@ -12,7 +12,7 @@ use ast_tty;
 our @EXPORT = qw(
     REPOS_FOLDER
     create_repo
-    configure_repo
+    edit_repo
     list_repos
     remove_repo
     install_repo
@@ -45,7 +45,7 @@ my $reset_stderr = $no_colors_stderr ? "" : ast_tty::ansi_reset();
 #   $quiet: suppress non-essential output output
 #   $repo: the name of the repo
 #   $url: the repo URL
-#   $branch: the branch
+#   $ref: the ref (a branch, tag, even a commit)
 # Return: 1 on success, 0 on failure
 sub create_repo {
     my $ast_path = shift;
@@ -53,7 +53,7 @@ sub create_repo {
     my $quiet = shift;
     my $repo = shift;
     my $url = shift;
-    my $branch = shift;
+    my $ref = shift;
 
     my $repo_subfolder = File::Spec->catfile($ast_path, $REPOS_FOLDER, $repo);
     if (-d $repo_subfolder) {
@@ -80,7 +80,7 @@ sub create_repo {
 # skip = integrationTest
 #
 url = ${url}
-branch = ${branch}
+ref = ${ref}
 ";
 
     my $repo_config_file = File::Spec->catfile($repo_subfolder, $REPO_CONFIG);
@@ -89,20 +89,20 @@ branch = ${branch}
     close $file_handle;
 
     unless ($quiet) {
-        print "Created repo ${bold_stdout}${repo}${reset_stdout} with URL ${bold_stdout}${url}${reset_stdout} on branch ${bold_stdout}${branch}${reset_stdout}.\n";
+        print "Created repo ${bold_stdout}${repo}${reset_stdout} with URL ${bold_stdout}${url}${reset_stdout} at ref ${bold_stdout}${ref}${reset_stdout}.\n";
     }
 
     return 1;
 }
 
-# Configure a repo.
+# Edit a repo.
 # Params:
 #   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output output
 #   $repo: the name of the repo
 # Return: 1 on success, 0 on failure
-sub configure_repo {
+sub edit_repo {
     my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
@@ -142,12 +142,12 @@ sub configure_repo {
 
     # confirm that the staging file is not malformed
     my $url = read_single_config_variable_from_arbitrary_file($staging_file, 'url');
-    my $branch = read_single_config_variable_from_arbitrary_file($staging_file, 'branch');
-    unless (defined $url && defined $branch) {
-            ast_utilities::error_output($program_name, "failed to parse \'url\' and \'branch\' config variables");
-            print STDERR "Aborting configuration without saving...\n";
-            return 0;
-        }
+    my $ref = read_single_config_variable_from_arbitrary_file($staging_file, 'ref');
+    if ($url eq '' || $ref eq '') {
+        ast_utilities::error_output($program_name, "failed to parse \'url\' and \'ref\' config variables");
+        print STDERR "Aborting configuration without saving...\n";
+        return 0;
+    }
 
     # copy the staging file back into the actual config file
     @command = ();
@@ -180,12 +180,12 @@ sub list_repos {
     print "${bold_stdout}Atlas Shell Tools${reset_stdout} repos:\n\n";
     for my $found_repo (sort {lc $a cmp lc $b} @filtered_repos) {
         my $url = read_single_config_variable($ast_path, $program_name, $quiet, $found_repo, 'url');
-        my $branch = read_single_config_variable($ast_path, $program_name, $quiet, $found_repo, 'branch');
-        unless (defined $url && defined $branch) {
+        my $ref = read_single_config_variable($ast_path, $program_name, $quiet, $found_repo, 'ref');
+        unless (defined $url && defined $ref) {
             ast_utilities::error_output($program_name, "repo list operation failed");
             return 0;
         }
-        print "    ${bold_stdout}${found_repo}${reset_stdout} : ${url} (${branch})\n";
+        print "    ${bold_stdout}${found_repo}${reset_stdout} : ${url} (${ref})\n";
     }
     print "\n";
 
@@ -240,19 +240,44 @@ sub install_repo {
     }
 
     my $url = read_single_config_variable($ast_path, $program_name, $quiet, $repo, 'url');
-    my $branch = read_single_config_variable($ast_path, $program_name, $quiet, $repo, 'branch');
-    unless (defined $url && defined $branch) {
+    my $ref = read_single_config_variable($ast_path, $program_name, $quiet, $repo, 'ref');
+    unless (defined $url && defined $ref) {
         ast_utilities::error_output($program_name, "repo install operation failed");
         return 0;
     }
 
     my $tmpdir = tempdir(CLEANUP => 1);
 
+    my @command = ();
+    push @command, "git";
+    push @command, "clone";
+    push @command, "${url}";
+    push @command, "${tmpdir}";
+    my $success = system {$command[0]} @command;
+    unless ($success == 0) {
+        ast_utilities::error_output($program_name, "repo install operation failed");
+        return 0;
+    }
+
+    chdir $tmpdir or die "$!";
+
+    @command = ();
+    push @command, "git";
+    push @command, "checkout";
+    push @command, "${ref}";
+    $success = system {$command[0]} @command;
+    unless ($success == 0) {
+        ast_utilities::error_output($program_name, "repo install operation failed");
+        return 0;
+    }
+
+    my $commit = `git rev-parse HEAD`;
+    $commit = substr($commit, 0, 7);
     # TODO injection excludes into the configuration block
     my $gradle_injection = "
     task atlasshelltools(type: Jar) {
         baseName = project.name
-        classifier = '${repo}-${branch}-AST'
+        classifier = '${repo}-${commit}-AST'
         from {
             configurations.atlasshelltools.collect { it.isDirectory() ? it : zipTree(it) }
         }
@@ -278,30 +303,6 @@ sub install_repo {
         }
     }
     ";
-
-    my @command = ();
-    push @command, "git";
-    push @command, "clone";
-    push @command, "${url}";
-    push @command, "${tmpdir}";
-    my $success = system {$command[0]} @command;
-    unless ($success == 0) {
-        ast_utilities::error_output($program_name, "repo install operation failed");
-        return 0;
-    }
-
-    chdir $tmpdir or die "$!";
-
-    @command = ();
-    push @command, "git";
-    push @command, "checkout";
-    push @command, "${branch}";
-    $success = system {$command[0]} @command;
-    unless ($success == 0) {
-        ast_utilities::error_output($program_name, "repo install operation failed");
-        return 0;
-    }
-
     open my $file_handle, '>>', "$tmpdir/build.gradle" or die "Could not open build.gradle $!";
     print $file_handle "${gradle_injection}\n";
     close $file_handle;
@@ -366,12 +367,12 @@ sub get_all_repos {
 
 # Given an arbitrary file path, opens it and attempts to read the first config
 # variable that matches the given variable. If the value cannot be read, returns
-# undef.
+# an empty string.
 sub read_single_config_variable_from_arbitrary_file {
     my $file = shift;
     my $variable = shift;
 
-    my $value = undef;
+    my $value = '';
     open my $file_handle, '<', $file or die "Could not open file $file $!";
     while (my $line = <$file_handle>) {
         chomp $line;
@@ -422,7 +423,7 @@ sub read_single_config_variable {
 
     my $value = read_single_config_variable_from_arbitrary_file($repo_config_file, $variable);
 
-    unless (defined $value) {
+    if ($value eq '') {
         ast_utilities::error_output($program_name, "failed to parse config setting \'${variable}\' for repo ${bold_stderr}${repo}${reset_stderr}");
         return undef;
     }

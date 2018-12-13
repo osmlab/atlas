@@ -108,7 +108,7 @@ export PATH="$PATH:$ATLAS_SHELL_TOOLS_HOME/scripts"
 
 # Install the core Atlas module using a repo
 ./atlas-shell-tools/scripts/atlas-config repo add atlas https://github.com/osmlab/atlas.git master
-./atlas-shell-tools/scripts/atlas-config install --repo atlas
+./atlas-shell-tools/scripts/atlas-config repo install atlas
 
 # Modify the bash startup files with appropriate settings
 start_startup_line="# atlas-shell-tools startup: added automatically by quick_install_bash.sh"

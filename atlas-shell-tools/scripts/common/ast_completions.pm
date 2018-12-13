@@ -209,12 +209,15 @@ sub completion_atlascfg {
         @commands = keys %modules;
     }
     elsif ((defined $argv[0] && $argv[0] eq 'repo') && (defined $rargv_m1 && $rargv_m1 eq 'repo')) {
-        @commands = qw(add list remove configure);
+        @commands = qw(add list remove edit install);
     }
     elsif ((defined $argv[0] && $argv[0] eq 'repo') && (defined $rargv_m2 && $rargv_m2 eq 'repo') && (defined $rargv_m1 && $rargv_m1 eq 'remove')) {
         @commands = ast_repo_subsystem::get_all_repos($ast_path);
     }
-    elsif ((defined $argv[0] && $argv[0] eq 'repo') && (defined $rargv_m2 && $rargv_m2 eq 'repo') && (defined $rargv_m1 && $rargv_m1 eq 'configure')) {
+    elsif ((defined $argv[0] && $argv[0] eq 'repo') && (defined $rargv_m2 && $rargv_m2 eq 'repo') && (defined $rargv_m1 && $rargv_m1 eq 'edit')) {
+        @commands = ast_repo_subsystem::get_all_repos($ast_path);
+    }
+    elsif ((defined $argv[0] && $argv[0] eq 'repo') && (defined $rargv_m2 && $rargv_m2 eq 'repo') && (defined $rargv_m1 && $rargv_m1 eq 'install')) {
         @commands = ast_repo_subsystem::get_all_repos($ast_path);
     }
 
