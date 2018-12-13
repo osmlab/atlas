@@ -70,12 +70,12 @@ sub create_repo {
 # Lines beginning with \"#\" are ignored
 #
 # Add exclude packages for gradle using \"exclude\".
-# To exclude multiple packages, simply repeat this directive for each package. E.g.
+# To exclude multiple packages, simply repeat this config variable for each package. E.g.
 # exclude = com.example.package
 # exclude = com.example.anotherpackage
 #
-# Add gradle task skips using \"skip\".
-# To skip multiple tasks, simply repeat this directive for each task. E.g.
+# Skip gradle tasks using \"skip\".
+# To skip multiple tasks, simply repeat this config variable for each task. E.g.
 # skip = javadoc
 # skip = integrationTest
 #
@@ -89,7 +89,7 @@ ref = ${ref}
     close $file_handle;
 
     unless ($quiet) {
-        print "Created repo ${bold_stdout}${repo}${reset_stdout} with URL ${bold_stdout}${url}${reset_stdout} at ref ${bold_stdout}${ref}${reset_stdout}.\n";
+        print "New repo: ${bold_stdout}${repo}${reset_stdout}\nURL: ${bold_stdout}${url}${reset_stdout}\nRef: ${bold_stdout}${ref}${reset_stdout}\n";
     }
 
     return 1;
@@ -239,8 +239,11 @@ sub install_repo {
         return 0;
     }
 
+    # TODO fix all the hardcoded 'url', 'ref', etc. strings
     my $url = read_single_config_variable($ast_path, $program_name, $quiet, $repo, 'url');
     my $ref = read_single_config_variable($ast_path, $program_name, $quiet, $repo, 'ref');
+    my @excludes = read_multiple_config_variables($ast_path, $program_name, $quiet, $repo, 'exclude');
+    my @skips = read_multiple_config_variables($ast_path, $program_name, $quiet, $repo, 'skip');
     unless (defined $url && defined $ref) {
         ast_utilities::error_output($program_name, "repo install operation failed");
         return 0;
@@ -270,10 +273,9 @@ sub install_repo {
         ast_utilities::error_output($program_name, "repo install operation failed");
         return 0;
     }
-
     my $commit = `git rev-parse --short HEAD`;
     chomp $commit;
-    # TODO injection excludes into the configuration block
+
     my $gradle_injection = "
     task atlasshelltools(type: Jar) {
         baseName = project.name
@@ -289,6 +291,7 @@ sub install_repo {
     {
         atlasshelltools
         {
+            %s
         }
     }
 
@@ -303,19 +306,23 @@ sub install_repo {
         }
     }
     ";
+    my @excludes_mapped = ();
+    foreach my $exclude_element (@excludes) {
+        push @excludes_mapped, "exclude group: \'${exclude_element}\';";
+    }
+    $gradle_injection = sprintf($gradle_injection, join("\n", @excludes_mapped));
     open my $file_handle, '>>', "$tmpdir/build.gradle" or die "Could not open build.gradle $!";
     print $file_handle "${gradle_injection}\n";
     close $file_handle;
 
-    # TODO handle '-x' options using config instead of hardcoding
     @command = ();
     push @command, "./gradlew";
     push @command, "clean";
     push @command, "atlasshelltools";
-    push @command, "-x";
-    push @command, "check";
-    push @command, "-x";
-    push @command, "javadoc";
+    foreach my $skip_element (@skips) {
+        push @command, "-x";
+        push @command, "$skip_element";
+    }
     $success = system {$command[0]} @command;
     unless ($success == 0) {
         ast_utilities::error_output($program_name, "repo install operation failed");
@@ -401,6 +408,40 @@ sub read_single_config_variable_from_arbitrary_file {
     return $value;
 }
 
+# Given an arbitrary file path, opens it and attempts to read the all config
+# variables that match the given variable. The values will be returned in an array.
+# If no values could be read, the array will be empty.
+sub read_multiple_config_variables_from_arbitrary_file {
+    my $file = shift;
+    my $variable = shift;
+
+    my @values = ();
+    open my $file_handle, '<', $file or die "Could not open file $file $!";
+    while (my $line = <$file_handle>) {
+        chomp $line;
+        # trim excess whitespace from left and right
+        $line =~ s/^\s+|\s+$//g;
+        if ($line eq '' || substr($line, 0, 1) eq '#') {
+            next;
+        }
+        my @line_split = split '=', $line, 2;
+        unless (defined $line_split[0]) {
+            next;
+        }
+        # trim excess whitespace from left and right
+        $line_split[0] =~ s/^\s+|\s+$//g;
+        if ($line_split[0] eq $variable) {
+            if (defined $line_split[1] && $line_split[1] !~ /^\s*$/) {
+                # trim excess whitespace from left and right
+                $line_split[1] =~ s/^\s+|\s+$//g;
+                push @values, $line_split[1];
+            }
+        }
+    }
+
+    return @values;
+}
+
 # Wrapper for read_single_config_variable_from_arbitrary_file that uses a given
 # ast_path and repo name. This makes it easier for some of the repo subroutines to
 # do proper error handling.
@@ -431,6 +472,33 @@ sub read_single_config_variable {
     }
 
     return $value;
+}
+
+# Wrapper for read_multiple_config_variables_from_arbitrary_file that uses a given
+# ast_path and repo name. This makes it easier for some of the repo subroutines to
+# do proper error handling.
+sub read_multiple_config_variables {
+    my $ast_path = shift;
+    my $program_name = shift;
+    my $quiet = shift;
+    my $repo = shift;
+    my $variable = shift;
+
+    my $repo_subfolder = File::Spec->catfile($ast_path, $REPOS_FOLDER, $repo);
+    unless (-d $repo_subfolder) {
+        ast_utilities::error_output($program_name, "repo ${bold_stderr}${repo}${reset_stderr} does not exist");
+        return 0;
+    }
+
+    my $repo_config_file = File::Spec->catfile($repo_subfolder, $REPO_CONFIG);
+    unless (-f $repo_config_file) {
+        ast_utilities::error_output($program_name, "could not find config file for repo ${bold_stderr}${repo}${reset_stderr}");
+        return 0;
+    }
+
+    my @values = read_multiple_config_variables_from_arbitrary_file($repo_config_file, $variable);
+
+    return @values;
 }
 
 sub repo_regex_ok {
