@@ -433,7 +433,7 @@ sub read_single_config_variable {
 sub repo_regex_ok {
     my $repo = shift;
 
-    if ($repo =~ m/^[_a-zA-Z-][_a-zA-Z0-9-]*$/) {
+    if ($repo =~ m/^[_a-zA-Z0-9][_a-zA-Z0-9-]*$/) {
         return 1;
     }
     return 0;

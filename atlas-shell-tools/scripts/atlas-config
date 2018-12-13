@@ -497,7 +497,7 @@ sub execute_command_repo {
             return 0;
         }
         unless (ast_repo_subsystem::repo_regex_ok($repo_name)) {
-            ast_utilities::error_output($program_name, "repo name ${bold_stderr}${repo_name}${reset_stderr} contains invalid characters");
+            ast_utilities::error_output($program_name, "invalid repo name ${bold_stderr}${repo_name}${reset_stderr}");
             print STDERR "Usage: ${bold_stderr}${program_name} repo add <repo-name> <URL> [branch]${reset_stderr}\n";
             print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
             return 0;
