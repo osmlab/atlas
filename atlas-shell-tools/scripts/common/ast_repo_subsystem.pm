@@ -508,6 +508,10 @@ sub print_repo_settings {
     my $quiet = shift;
     my $repo = shift;
 
+    if ($quiet) {
+        return;
+    }
+
     my @settings = get_repo_settings($ast_path, $program_name, $quiet, $repo);
     if (scalar @settings != 0) {
         print "${bold_stdout}${repo}${reset_stdout} settings:\n";
