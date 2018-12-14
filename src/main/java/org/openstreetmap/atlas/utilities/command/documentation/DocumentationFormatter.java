@@ -159,9 +159,12 @@ public final class DocumentationFormatter
             }
             else if (type == DocumentationFormatType.PARAGRAPH)
             {
-                DocumentationFormatter.addParagraphWithLineWrapping(
-                        DocumentationFormatter.DEFAULT_PARAGRAPH_INDENT_LEVEL, maximumColumn, text,
-                        builder, true);
+                if (!contents.getSecond().isEmpty())
+                {
+                    DocumentationFormatter.addParagraphWithLineWrapping(
+                            DocumentationFormatter.DEFAULT_PARAGRAPH_INDENT_LEVEL, maximumColumn,
+                            text, builder, true);
+                }
             }
             builder.newline().newline();
         }

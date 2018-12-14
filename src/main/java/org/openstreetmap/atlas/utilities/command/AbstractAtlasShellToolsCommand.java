@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.utilities.command;
 
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -183,6 +184,19 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     protected void addManualPageSection(final String section)
     {
         this.registrar.addManualPageSection(section);
+    }
+
+    /**
+     * Add a section to this command's manual page. The section name will be made all capitalized.
+     * Also, use the supplied input stream to read contents into the section.
+     *
+     * @param section
+     *            the name of the section
+     */
+    protected void addManualPageSection(final String section,
+            final InputStream sectionResourceFileStream)
+    {
+        this.registrar.addManualPageSection(section, sectionResourceFileStream);
     }
 
     /**

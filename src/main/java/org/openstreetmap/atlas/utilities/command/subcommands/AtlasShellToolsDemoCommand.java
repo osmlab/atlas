@@ -14,6 +14,8 @@ import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
 {
     private static final int BREAKFAST_CONTEXT = 4;
+    private static final String DESCRIPTION_SECTION = "AtlasShellToolsDemoCommandDescriptionSection.txt";
+    private static final String EXAMPLES_SECTION = "AtlasShellToolsDemoCommandExamplesSection.txt";
 
     public static void main(final String[] args)
     {
@@ -51,30 +53,10 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
     @Override
     public void registerManualPageSections()
     {
-        final String paragraph1 = "This command serves as a demo of the subcommand API and capabilities. "
-                + "This example section is filled out to demonstrate the behavior of the "
-                + "automatic documentation formatting code.";
-        final String paragraph2 = "Here is a second follow up paragraph. Unfortunately, "
-                + "Java does not provide a way to declare multi-line string literals. Due to this "
-                + "shortcoming, declaring these paragraphs in code can be a pain. Thankfully, "
-                + "Eclipse and IntelliJ both automatically format multi-line strings when pasted "
-                + "into an empty \"\". Alternatively, you could have your subcommand read the "
-                + "paragraphs from a resource file.";
-
-        addManualPageSection("DESCRIPTION");
-        addParagraphToSection("DESCRIPTION", paragraph1);
-        addParagraphToSection("DESCRIPTION", paragraph2);
-
-        addManualPageSection("EXAMPLES");
-        addParagraphToSection("EXAMPLES",
-                "Run a dinner command with pizza and wings. Use 805 beer and the default cheese:");
-        addCodeLineToSection("EXAMPLES", "$ demo dinner pizza wings --beer=805 --cheese");
-        addParagraphToSection("EXAMPLES",
-                "Run a breakfast command with some waffles and pancakes:");
-        addCodeLineToSection("EXAMPLES", "$ demo breakfast waffles pancakes");
-        addParagraphToSection("EXAMPLES",
-                "Run a lunch command with a salad. Use some tasty parmesan cheese:");
-        addCodeLineToSection("EXAMPLES", "$ demo lunch salad --cheese=parmesan");
+        addManualPageSection("DESCRIPTION",
+                AtlasShellToolsDemoCommand.class.getResourceAsStream(DESCRIPTION_SECTION));
+        addManualPageSection("EXAMPLES",
+                AtlasShellToolsDemoCommand.class.getResourceAsStream(EXAMPLES_SECTION));
     }
 
     @Override

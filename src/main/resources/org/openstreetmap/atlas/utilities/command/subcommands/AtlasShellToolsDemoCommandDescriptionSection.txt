@@ -1,0 +1,9 @@
+This command serves as a demo of the subcommand API and capabilities.
+This example section is filled out to demonstrate the behavior of the
+automatic documentation formatting code.
+
+Here is a second follow up paragraph. Unfortunately,
+Java does not provide a way to declare multi-line string literals. Due to this
+shortcoming, declaring these paragraphs in code can be a pain. Thankfully,
+an API is provided that allows you to read in doc page sections from a resource
+file. The paragraph you are currently reading was generated in this manner.
