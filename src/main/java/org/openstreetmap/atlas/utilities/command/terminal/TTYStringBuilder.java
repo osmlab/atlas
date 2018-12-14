@@ -1,5 +1,8 @@
 package org.openstreetmap.atlas.utilities.command.terminal;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 import org.openstreetmap.atlas.exception.CoreException;
 
 /**
@@ -14,21 +17,22 @@ public class TTYStringBuilder
 
     private final StringBuilder builder;
     private final boolean useColors;
-    private int exactIndentWidth;
+    private final Deque<Integer> exactIndentWidthStack;
     private int levelWidth;
 
     public TTYStringBuilder(final boolean useColors)
     {
         this.builder = new StringBuilder();
         this.useColors = useColors;
-        this.exactIndentWidth = 0;
+        this.exactIndentWidthStack = new ArrayDeque<>();
+        this.exactIndentWidthStack.push(0);
         this.levelWidth = DEFAULT_LEVEL_WIDTH;
     }
 
     public TTYStringBuilder append(final Object object, final TTYAttribute... attributes)
     {
         // Append whitespace for the indent setting
-        for (int i = 0; i < this.exactIndentWidth; i++)
+        for (int i = 0; i < this.exactIndentWidthStack.peek(); i++)
         {
             this.builder.append(" ");
         }
@@ -63,6 +67,15 @@ public class TTYStringBuilder
         return this;
     }
 
+    public void popIndentationStack()
+    {
+        if (this.exactIndentWidthStack.size() == 1)
+        {
+            throw new CoreException("Cannot pop default indention off the stack");
+        }
+        this.exactIndentWidthStack.pop();
+    }
+
     @Override
     public String toString()
     {
@@ -75,7 +88,7 @@ public class TTYStringBuilder
         {
             throw new CoreException("Indent width ({}) must be > 0", width);
         }
-        this.exactIndentWidth = width;
+        this.exactIndentWidthStack.push(width);
         return this;
     }
 
@@ -85,7 +98,7 @@ public class TTYStringBuilder
         {
             throw new CoreException("Indent level ({}) must be > 0", level);
         }
-        this.exactIndentWidth = level * this.levelWidth;
+        this.exactIndentWidthStack.push(level * this.levelWidth);
         return this;
     }
 

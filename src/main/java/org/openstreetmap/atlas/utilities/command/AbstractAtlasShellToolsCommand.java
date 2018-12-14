@@ -737,14 +737,12 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             }
             DocumentationFormatter.generateTextForGenericSection(section, this.maximumColumn,
                     builder, this.registrar);
+            builder.newline();
         }
 
         return builder.toString();
     }
 
-    /*
-     * TODO refactor
-     */
     private void printSimpleUsageMenu()
     {
         final String name = this.getCommandName();
@@ -756,6 +754,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
                 optionsWithContext, this.parser.getRegisteredContexts(),
                 this.parser.getArgumentHintToArity(), this.parser.getArgumentHintToOptionality(),
                 builder);
+
         printlnStderr(builder.toString());
     }
 }
