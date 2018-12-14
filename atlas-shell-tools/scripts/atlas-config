@@ -346,7 +346,7 @@ sub execute_command_list {
         return 0;
     }
 
-    print "${bold_stdout}Installed Atlas Shell Tools modules:${reset_stdout}\n\n";
+    print "${bold_stdout}Installed modules:${reset_stdout}\n\n";
     # Sort the module names alphabetically. We use 'lc' to convert them to
     # lowercase, since by default 'sort' uses ASCII ordering.
     foreach my $module (sort {lc $a cmp lc $b} keys %modules) {
