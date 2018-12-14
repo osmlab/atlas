@@ -14,7 +14,7 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
  */
 public class DocumentationRegistrar
 {
-    private static String DESCRIPTION_HEADER = "DESCRIPTION";
+    private static final String DESCRIPTION_HEADER = "DESCRIPTION";
 
     private final Map<String, List<Tuple<DocumentationFormatType, String>>> sections;
 

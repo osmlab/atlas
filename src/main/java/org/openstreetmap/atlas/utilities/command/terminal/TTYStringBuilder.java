@@ -56,6 +56,13 @@ public class TTYStringBuilder
         return this;
     }
 
+    public TTYStringBuilder clearIndentationStack()
+    {
+        this.exactIndentWidthStack.clear();
+        this.exactIndentWidthStack.push(0);
+        return this;
+    }
+
     /**
      * Append a newline to this builder.
      *
@@ -67,13 +74,34 @@ public class TTYStringBuilder
         return this;
     }
 
-    public void popIndentationStack()
+    public TTYStringBuilder popIndentation()
     {
         if (this.exactIndentWidthStack.size() == 1)
         {
             throw new CoreException("Cannot pop default indention off the stack");
         }
         this.exactIndentWidthStack.pop();
+        return this;
+    }
+
+    public TTYStringBuilder pushExactIndentWidth(final int width)
+    {
+        if (width < 0)
+        {
+            throw new CoreException("Indent width ({}) must be >= 0", width);
+        }
+        this.exactIndentWidthStack.push(width);
+        return this;
+    }
+
+    public TTYStringBuilder pushIndentLevel(final int level)
+    {
+        if (level < 0)
+        {
+            throw new CoreException("Indent level ({}) must be >= 0", level);
+        }
+        this.exactIndentWidthStack.push(level * this.levelWidth);
+        return this;
     }
 
     @Override
@@ -82,31 +110,11 @@ public class TTYStringBuilder
         return this.builder.toString();
     }
 
-    public TTYStringBuilder withExactIndentWidth(final int width)
-    {
-        if (width < 0)
-        {
-            throw new CoreException("Indent width ({}) must be > 0", width);
-        }
-        this.exactIndentWidthStack.push(width);
-        return this;
-    }
-
-    public TTYStringBuilder withIndentLevel(final int level)
-    {
-        if (level < 0)
-        {
-            throw new CoreException("Indent level ({}) must be > 0", level);
-        }
-        this.exactIndentWidthStack.push(level * this.levelWidth);
-        return this;
-    }
-
     public TTYStringBuilder withLevelWidth(final int newLevelWidth)
     {
         if (newLevelWidth < 0)
         {
-            throw new CoreException("Level width ({}) must be > 0", newLevelWidth);
+            throw new CoreException("Level width ({}) must be >= 0", newLevelWidth);
         }
         this.levelWidth = newLevelWidth;
         return this;

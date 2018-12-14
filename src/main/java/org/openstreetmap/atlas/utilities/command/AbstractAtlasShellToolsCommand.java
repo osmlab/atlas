@@ -748,7 +748,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         final String name = this.getCommandName();
         final Map<Integer, Set<SimpleOption>> optionsWithContext = this.parser
                 .getContextToRegisteredOptions();
-        final TTYStringBuilder builder = getTTYStringBuilderForStdout();
+        final TTYStringBuilder builder = getTTYStringBuilderForStderr();
 
         DocumentationFormatter.generateTextForSynopsisSection(name, this.maximumColumn,
                 optionsWithContext, this.parser.getRegisteredContexts(),

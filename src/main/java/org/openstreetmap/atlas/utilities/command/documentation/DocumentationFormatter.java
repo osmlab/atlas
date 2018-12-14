@@ -67,8 +67,7 @@ public final class DocumentationFormatter
     public static void addCodeLineAtExactIndentation(final int exactIndentation,
             final String string, final TTYStringBuilder builder)
     {
-        builder.withExactIndentWidth(exactIndentation);
-        builder.append(string).popIndentationStack();
+        builder.pushExactIndentWidth(exactIndentation).append(string).popIndentation();
     }
 
     /**
@@ -108,11 +107,11 @@ public final class DocumentationFormatter
 
         if (indentFirstLine)
         {
-            builder.withExactIndentWidth(exactIndentation);
+            builder.pushExactIndentWidth(exactIndentation);
         }
         else
         {
-            builder.withExactIndentWidth(0);
+            builder.pushExactIndentWidth(0);
         }
         for (final String word : words)
         {
@@ -127,14 +126,14 @@ public final class DocumentationFormatter
                 if (!firstIteration)
                 {
                     builder.newline();
-                    builder.withExactIndentWidth(exactIndentation);
+                    builder.pushExactIndentWidth(exactIndentation);
                 }
-                builder.append(word + " ").withExactIndentWidth(0);
+                builder.append(word + " ").pushExactIndentWidth(0);
                 spaceLeft = lineWidth - word.length();
             }
             else
             {
-                builder.append(word + " ").withExactIndentWidth(0);
+                builder.append(word + " ").pushExactIndentWidth(0);
                 spaceLeft = spaceLeft - (word.length() + " ".length());
             }
             firstIteration = false;
@@ -147,6 +146,7 @@ public final class DocumentationFormatter
     {
         final List<Tuple<DocumentationFormatType, String>> sectionContents = registrar
                 .getSectionContents(sectionName);
+        builder.clearIndentationStack();
         builder.append(sectionName, TTYAttribute.BOLD).newline();
         for (final Tuple<DocumentationFormatType, String> contents : sectionContents)
         {
@@ -171,9 +171,10 @@ public final class DocumentationFormatter
             final TTYStringBuilder builder)
     {
         builder.append("NAME", TTYAttribute.BOLD).newline();
+        builder.clearIndentationStack();
         builder.withLevelWidth(DEFAULT_PARAGRAPH_INDENT_WIDTH);
-        builder.withIndentLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL)
-                .append(name + " -- " + simpleDescription).withIndentLevel(0);
+        builder.pushIndentLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL)
+                .append(name + " -- " + simpleDescription).popIndentation();
         builder.newline();
     }
 
@@ -182,14 +183,15 @@ public final class DocumentationFormatter
     {
         final List<SimpleOption> sortedOptions = new ArrayList<>(options);
         Collections.sort(sortedOptions);
+        builder.clearIndentationStack();
         builder.withLevelWidth(DEFAULT_PARAGRAPH_INDENT_WIDTH);
         builder.append("OPTIONS", TTYAttribute.BOLD).newline();
         for (final SimpleOption option : sortedOptions)
         {
-            builder.withIndentLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL)
+            builder.pushIndentLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL)
                     .append(SimpleOptionAndArgumentParser.LONG_FORM_PREFIX + option.getLongForm(),
                             TTYAttribute.BOLD)
-                    .withIndentLevel(0);
+                    .popIndentation();
             final OptionArgumentType argumentType = option.getArgumentType();
             if (argumentType == OptionArgumentType.OPTIONAL)
             {
@@ -240,11 +242,12 @@ public final class DocumentationFormatter
             final TTYStringBuilder builder)
     {
         builder.append("SYNOPSIS", TTYAttribute.BOLD).newline();
+        builder.clearIndentationStack();
         builder.withLevelWidth(DEFAULT_PARAGRAPH_INDENT_WIDTH);
         for (final Integer context : contexts)
         {
-            builder.withIndentLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL)
-                    .append(programName, TTYAttribute.UNDERLINE).withIndentLevel(0).append(" ");
+            builder.pushIndentLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL)
+                    .append(programName, TTYAttribute.UNDERLINE).popIndentation().append(" ");
             final StringBuilder paragraph = new StringBuilder();
 
             // add all the options
@@ -306,7 +309,7 @@ public final class DocumentationFormatter
                     * DEFAULT_PARAGRAPH_INDENT_WIDTH + programName.length() + " ".length();
             addParagraphWithLineWrappingAtExactIndentation(exactIndentation, maximumColumn,
                     paragraph.toString(), builder, false);
-            builder.withIndentLevel(0).newline();
+            builder.pushIndentLevel(0).newline();
         }
     }
 
