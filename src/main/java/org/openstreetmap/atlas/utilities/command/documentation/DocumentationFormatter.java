@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionArgumentType;
@@ -15,6 +16,7 @@ import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgument
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.SimpleOption;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYStringBuilder;
+import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
 /**
  * @author lcram
@@ -98,6 +100,32 @@ public final class DocumentationFormatter
     }
 
     /**
+     * Call
+     * {@link DocumentationFormatter#addParagraphWithLineWrappingAtExactIndentation(int, int, String, TTYStringBuilder, boolean)},
+     * but compute the exact indentation width by multiplying the supplied indentationLevel with the
+     * default INDENTATION_WIDTH.
+     *
+     * @param indentationLevel
+     *            the indentation level
+     * @param maximumColumn
+     *            the max column to wrap at
+     * @param string
+     *            the code block string
+     * @param builder
+     *            the builder to be modified
+     * @param indentFirstLine
+     *            decide to indent the first line
+     */
+    public static void addParagraphWithLineWrapping2(final int indentationLevel,
+            final int maximumColumn, final String string, final TTYStringBuilder builder,
+            final boolean indentFirstLine)
+    {
+        DocumentationFormatter.addParagraphWithLineWrappingAtExactIndentation2(
+                indentationLevel * DEFAULT_INDENT_WIDTH, maximumColumn, string, builder,
+                indentFirstLine);
+    }
+
+    /**
      * Add a string to the builder with a given number of indentation spaces and a given maximum
      * column width. The string will be automatically word-tokenized, ie. it will be split on
      * whitespace. This means that multiple consecutive whitespace will be lost. Uses a simple
@@ -155,6 +183,76 @@ public final class DocumentationFormatter
         }
     }
 
+    public static void addParagraphWithLineWrappingAtExactIndentation2(final int exactIndentation,
+            final int maximumColumn, final String string, final TTYStringBuilder builder,
+            final boolean indentFirstLine)
+    {
+        final int lineWidth = maximumColumn - exactIndentation;
+        int spaceLeft = lineWidth;
+        final String[] words = string.split("\\s+");
+        boolean firstIteration = true;
+
+        if (indentFirstLine)
+        {
+            builder.withExactIndentWidth(exactIndentation);
+        }
+        else
+        {
+            builder.withExactIndentWidth(0);
+        }
+        for (final String word : words)
+        {
+            if (word.length() + " ".length() > spaceLeft)
+            {
+                /*
+                 * This is a special edge case that can occur if the first word of the documentation
+                 * is longer than the line length: if we are on the first iteration, we already
+                 * indented so just skip this extra indentation step. We also do not need a newline
+                 * on the first iteration.
+                 */
+                if (!firstIteration)
+                {
+                    builder.newline();
+                    builder.withExactIndentWidth(exactIndentation);
+                }
+                builder.append(word + " ").withExactIndentWidth(0);
+                spaceLeft = lineWidth - word.length();
+            }
+            else
+            {
+                builder.append(word + " ").withExactIndentWidth(0);
+                spaceLeft = spaceLeft - (word.length() + " ".length());
+            }
+            firstIteration = false;
+        }
+    }
+
+    public static void generateTextForGenericSection(final String sectionName,
+            final int maximumColumn, final TTYStringBuilder builder,
+            final DocumentationRegistrar registrar)
+    {
+        final List<Tuple<DocumentationFormatType, String>> sectionContents = registrar
+                .getSectionContents(sectionName);
+        builder.append(sectionName, TTYAttribute.BOLD).newline();
+        for (final Tuple<DocumentationFormatType, String> contents : sectionContents)
+        {
+            final DocumentationFormatType type = contents.getFirst();
+            final String text = contents.getSecond();
+            if (type == DocumentationFormatType.CODE)
+            {
+                DocumentationFormatter.addCodeLine(DocumentationFormatter.DEFAULT_CODE_INDENT_LEVEL,
+                        text, builder);
+            }
+            else if (type == DocumentationFormatType.PARAGRAPH)
+            {
+                DocumentationFormatter.addParagraphWithLineWrapping(
+                        DocumentationFormatter.DEFAULT_PARAGRAPH_INDENT_LEVEL, maximumColumn, text,
+                        builder, true);
+            }
+            builder.newline().newline();
+        }
+    }
+
     public static void generateTextForNameSection(final String name, final String simpleDescription,
             final TTYStringBuilder builder)
     {
@@ -170,42 +268,49 @@ public final class DocumentationFormatter
     {
         final List<SimpleOption> sortedOptions = new ArrayList<>(options);
         Collections.sort(sortedOptions);
+        builder.withLevelWidth(DEFAULT_PARAGRAPH_INDENT_WIDTH);
+        builder.append("OPTIONS", TTYAttribute.BOLD).newline();
         for (final SimpleOption option : sortedOptions)
         {
-            indentBuilderToLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
-            builder.append(SimpleOptionAndArgumentParser.LONG_FORM_PREFIX + option.getLongForm(),
-                    TTYAttribute.BOLD);
+            builder.withIndentLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL)
+                    .append(SimpleOptionAndArgumentParser.LONG_FORM_PREFIX + option.getLongForm(),
+                            TTYAttribute.BOLD)
+                    .withIndentLevel(0);
             final OptionArgumentType argumentType = option.getArgumentType();
             if (argumentType == OptionArgumentType.OPTIONAL)
             {
-                // TODO is it always safe to unwrap this optional?
                 builder.append("[" + SimpleOptionAndArgumentParser.OPTION_ARGUMENT_DELIMITER
-                        + option.getArgumentHint().get() + "]");
+                        + option.getArgumentHint().orElseThrow(AtlasShellToolsException::new)
+                        + "]");
             }
             else if (argumentType == OptionArgumentType.REQUIRED)
             {
-                // TODO is it always safe to unwrap this optional?
                 builder.append(SimpleOptionAndArgumentParser.OPTION_ARGUMENT_DELIMITER + "<"
-                        + option.getArgumentHint().get() + ">");
+                        + option.getArgumentHint().orElseThrow(AtlasShellToolsException::new)
+                        + ">");
             }
             if (option.getShortForm().isPresent())
             {
                 builder.append(", ");
-                builder.append(SimpleOptionAndArgumentParser.SHORT_FORM_PREFIX
-                        + option.getShortForm().get().toString(), TTYAttribute.BOLD);
+                builder.append(
+                        SimpleOptionAndArgumentParser.SHORT_FORM_PREFIX + option.getShortForm()
+                                .orElseThrow(AtlasShellToolsException::new).toString(),
+                        TTYAttribute.BOLD);
                 if (argumentType == OptionArgumentType.OPTIONAL)
                 {
-                    // TODO is it always safe to unwrap this optional?
-                    builder.append("[" + option.getArgumentHint().get() + "]");
+                    builder.append("["
+                            + option.getArgumentHint().orElseThrow(AtlasShellToolsException::new)
+                            + "]");
                 }
                 else if (argumentType == OptionArgumentType.REQUIRED)
                 {
-                    // TODO is it always safe to unwrap this optional?
-                    builder.append("<" + option.getArgumentHint().get() + ">");
+                    builder.append("<"
+                            + option.getArgumentHint().orElseThrow(AtlasShellToolsException::new)
+                            + ">");
                 }
             }
             builder.newline();
-            addParagraphWithLineWrapping(DEFAULT_INNER_PARAGRAPH_INDENT_LEVEL, maximumColumn,
+            addParagraphWithLineWrapping2(DEFAULT_INNER_PARAGRAPH_INDENT_LEVEL, maximumColumn,
                     option.getDescription(), builder, true);
             builder.newline().newline();
         }
@@ -220,10 +325,12 @@ public final class DocumentationFormatter
             final Map<Integer, Map<String, ArgumentOptionality>> argumentOptionalities,
             final TTYStringBuilder builder)
     {
+        builder.append("SYNOPSIS", TTYAttribute.BOLD).newline();
+        builder.withLevelWidth(DEFAULT_PARAGRAPH_INDENT_WIDTH);
         for (final Integer context : contexts)
         {
-            indentBuilderToLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
-            builder.append(programName, TTYAttribute.UNDERLINE).append(" ");
+            builder.withIndentLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL)
+                    .append(programName, TTYAttribute.UNDERLINE).withIndentLevel(0).append(" ");
             final StringBuilder paragraph = new StringBuilder();
 
             // add all the options
@@ -238,16 +345,19 @@ public final class DocumentationFormatter
                 if (argumentType == OptionArgumentType.OPTIONAL)
                 {
                     paragraph.append("[" + SimpleOptionAndArgumentParser.OPTION_ARGUMENT_DELIMITER
-                            + option.getArgumentHint().get() + "]");
+                            + option.getArgumentHint().orElseThrow(AtlasShellToolsException::new)
+                            + "]");
                 }
                 else if (argumentType == OptionArgumentType.REQUIRED)
                 {
                     paragraph.append(SimpleOptionAndArgumentParser.OPTION_ARGUMENT_DELIMITER + "<"
-                            + option.getArgumentHint().get() + ">");
+                            + option.getArgumentHint().orElseThrow(AtlasShellToolsException::new)
+                            + ">");
                 }
                 paragraph.append("] ");
             }
 
+            // now add all the arguments
             for (final String hint : argumentArities.getOrDefault(context, new HashMap<>())
                     .keySet())
             {
@@ -280,9 +390,9 @@ public final class DocumentationFormatter
 
             final int exactIndentation = DEFAULT_PARAGRAPH_INDENT_LEVEL * DEFAULT_INDENT_WIDTH
                     + programName.length() + " ".length();
-            addParagraphWithLineWrappingAtExactIndentation(exactIndentation, maximumColumn,
+            addParagraphWithLineWrappingAtExactIndentation2(exactIndentation, maximumColumn,
                     paragraph.toString(), builder, false);
-            builder.newline();
+            builder.withIndentLevel(0).newline();
         }
     }
 

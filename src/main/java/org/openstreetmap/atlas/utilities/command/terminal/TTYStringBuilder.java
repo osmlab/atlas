@@ -3,7 +3,8 @@ package org.openstreetmap.atlas.utilities.command.terminal;
 import org.openstreetmap.atlas.exception.CoreException;
 
 /**
- * A simple string building class that allows for optional TTY formatting.
+ * A simple string building class that allows for optional TTY formatting and output
+ * pretty-fication.
  *
  * @author lcram
  */

@@ -7,7 +7,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.utilities.command.documentation.DocumentationFormatType;
 import org.openstreetmap.atlas.utilities.command.documentation.DocumentationFormatter;
 import org.openstreetmap.atlas.utilities.command.documentation.DocumentationRegistrar;
 import org.openstreetmap.atlas.utilities.command.documentation.PagerHelper;
@@ -21,7 +20,6 @@ import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgument
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYStringBuilder;
 import org.openstreetmap.atlas.utilities.conversion.StringConverter;
-import org.openstreetmap.atlas.utilities.tuples.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -695,30 +693,6 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         this.version = version;
     }
 
-    private void buildSection(final String section, final TTYStringBuilder builder)
-    {
-        final List<Tuple<DocumentationFormatType, String>> sectionContents = this.registrar
-                .getSectionContents(section);
-        builder.append(section, TTYAttribute.BOLD).newline();
-        for (final Tuple<DocumentationFormatType, String> contents : sectionContents)
-        {
-            final DocumentationFormatType type = contents.getFirst();
-            final String text = contents.getSecond();
-            if (type == DocumentationFormatType.CODE)
-            {
-                DocumentationFormatter.addCodeLine(DocumentationFormatter.DEFAULT_CODE_INDENT_LEVEL,
-                        text, builder);
-            }
-            else if (type == DocumentationFormatType.PARAGRAPH)
-            {
-                DocumentationFormatter.addParagraphWithLineWrapping(
-                        DocumentationFormatter.DEFAULT_PARAGRAPH_INDENT_LEVEL, this.maximumColumn,
-                        text, builder, true);
-            }
-            builder.newline().newline();
-        }
-    }
-
     private String getHelpMenu()
     {
         final String name = this.getCommandName();
@@ -731,26 +705,27 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         builder.newline();
 
         DocumentationFormatter.generateTextForNameSection(name, simpleDescription, builder);
-
         builder.newline();
 
-        builder.append("SYNOPSIS", TTYAttribute.BOLD).newline();
         DocumentationFormatter.generateTextForSynopsisSection(name, this.maximumColumn,
                 optionsWithContext, this.parser.getRegisteredContexts(),
                 this.parser.getArgumentHintToArity(), this.parser.getArgumentHintToOptionality(),
                 builder);
-        builder.newline().newline();
+        builder.newline();
 
         // Let's manually insert the DESCRIPTION section first, if it exists.
         // This is typical for manpages, DESCRIPTION always comes before OPTIONS.
         if (this.registrar.hasDescriptionSection())
         {
-            buildSection(this.registrar.getDescriptionHeader(), builder);
+            DocumentationFormatter.generateTextForGenericSection(
+                    this.registrar.getDescriptionHeader(), this.maximumColumn, builder,
+                    this.registrar);
         }
+        builder.newline();
 
-        builder.append("OPTIONS", TTYAttribute.BOLD).newline();
         DocumentationFormatter.generateTextForOptionsSection(this.maximumColumn, allOptions,
                 builder);
+        builder.newline();
 
         // Insert the rest of the user designed sections
         for (final String section : this.registrar.getSections())
@@ -760,7 +735,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             {
                 continue;
             }
-            buildSection(section, builder);
+            DocumentationFormatter.generateTextForGenericSection(section, this.maximumColumn,
+                    builder, this.registrar);
         }
 
         return builder.toString();
@@ -776,7 +752,6 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
                 .getContextToRegisteredOptions();
         final TTYStringBuilder builder = getTTYStringBuilderForStdout();
 
-        builder.append("usage:").newline();
         DocumentationFormatter.generateTextForSynopsisSection(name, this.maximumColumn,
                 optionsWithContext, this.parser.getRegisteredContexts(),
                 this.parser.getArgumentHintToArity(), this.parser.getArgumentHintToOptionality(),
