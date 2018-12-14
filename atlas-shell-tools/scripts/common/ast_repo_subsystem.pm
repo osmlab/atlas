@@ -203,7 +203,7 @@ sub list_repos {
         return 0;
     }
 
-    print "${bold_stdout}Atlas Shell Tools${reset_stdout} repos:\n\n";
+    print "${bold_stdout}Atlas Shell Tools repos:${reset_stdout}\n\n";
     for my $found_repo (sort {lc $a cmp lc $b} @filtered_repos) {
         my $url = read_single_config_variable($ast_path, $program_name, $quiet, $found_repo, 'url');
         my $ref = read_single_config_variable($ast_path, $program_name, $quiet, $found_repo, 'ref');
