@@ -22,31 +22,14 @@ import org.openstreetmap.atlas.utilities.command.terminal.TTYStringBuilder;
 public final class DocumentationFormatter
 {
     public static final int DEFAULT_MAXIMUM_COLUMN = 80;
-    public static final int INDENTATION_WIDTH = 4;
+    public static final int DEFAULT_INDENT_WIDTH = 4;
 
     public static final int DEFAULT_CODE_INDENT_LEVEL = 2;
-    public static final int DEFAULT_PARAGRAPH_INDENT_LEVEL = 1;
-    private static final int DEFAULT_INNER_PARAGRAPH_INDENT_LEVEL = 2;
+    public static final int DEFAULT_CODE_INDENT_WIDTH = 4;
 
-    /**
-     * Call
-     * {@link DocumentationFormatter#addCodeBlockAtExactIndentation(int, String, TTYStringBuilder)},
-     * but compute the exact indentation width by multiplying the supplied indentationLevel with the
-     * default INDENTATION_WIDTH.
-     *
-     * @param indentationLevel
-     *            the indentation level
-     * @param string
-     *            the code block string
-     * @param builder
-     *            the builder to be modified
-     */
-    public static void addCodeBlock(final int indentationLevel, final String string,
-            final TTYStringBuilder builder)
-    {
-        DocumentationFormatter.addCodeBlockAtExactIndentation(indentationLevel * INDENTATION_WIDTH,
-                string, builder);
-    }
+    public static final int DEFAULT_PARAGRAPH_INDENT_LEVEL = 1;
+    public static final int DEFAULT_INNER_PARAGRAPH_INDENT_LEVEL = 2;
+    public static final int DEFAULT_PARAGRAPH_INDENT_WIDTH = 4;
 
     /**
      * Add a string to the builder with a given number of indentation spaces and a given maximum
@@ -66,6 +49,26 @@ public final class DocumentationFormatter
         // TODO this currently fails for multiline codeblocks
         indentBuilderToExact(exactIndentation, builder);
         builder.append(string);
+    }
+
+    /**
+     * Call
+     * {@link DocumentationFormatter#addCodeBlockAtExactIndentation(int, String, TTYStringBuilder)},
+     * but compute the exact indentation width by multiplying the supplied indentationLevel with the
+     * default INDENTATION_WIDTH.
+     *
+     * @param indentationLevel
+     *            the indentation level
+     * @param string
+     *            the code block string
+     * @param builder
+     *            the builder to be modified
+     */
+    public static void addCodeLine(final int indentationLevel, final String string,
+            final TTYStringBuilder builder)
+    {
+        DocumentationFormatter.addCodeBlockAtExactIndentation(
+                indentationLevel * DEFAULT_INDENT_WIDTH, string, builder);
     }
 
     /**
@@ -90,7 +93,7 @@ public final class DocumentationFormatter
             final boolean indentFirstLine)
     {
         DocumentationFormatter.addParagraphWithLineWrappingAtExactIndentation(
-                indentationLevel * INDENTATION_WIDTH, maximumColumn, string, builder,
+                indentationLevel * DEFAULT_INDENT_WIDTH, maximumColumn, string, builder,
                 indentFirstLine);
     }
 
@@ -150,6 +153,16 @@ public final class DocumentationFormatter
             }
             firstIteration = false;
         }
+    }
+
+    public static void generateTextForNameSection(final String name, final String simpleDescription,
+            final TTYStringBuilder builder)
+    {
+        builder.append("NAME", TTYAttribute.BOLD).newline();
+        builder.withLevelWidth(DEFAULT_PARAGRAPH_INDENT_WIDTH);
+        builder.withIndentLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL)
+                .append(name + " -- " + simpleDescription).withIndentLevel(0);
+        builder.newline();
     }
 
     public static String generateTextForOptionsSection(final int maximumColumn,
@@ -265,7 +278,7 @@ public final class DocumentationFormatter
                 }
             }
 
-            final int exactIndentation = DEFAULT_PARAGRAPH_INDENT_LEVEL * INDENTATION_WIDTH
+            final int exactIndentation = DEFAULT_PARAGRAPH_INDENT_LEVEL * DEFAULT_INDENT_WIDTH
                     + programName.length() + " ".length();
             addParagraphWithLineWrappingAtExactIndentation(exactIndentation, maximumColumn,
                     paragraph.toString(), builder, false);
@@ -303,7 +316,8 @@ public final class DocumentationFormatter
     public static void indentBuilderToLevel(final int indentationLevel,
             final TTYStringBuilder builder)
     {
-        DocumentationFormatter.indentBuilderToExact(indentationLevel * INDENTATION_WIDTH, builder);
+        DocumentationFormatter.indentBuilderToExact(indentationLevel * DEFAULT_INDENT_WIDTH,
+                builder);
     }
 
     private DocumentationFormatter()

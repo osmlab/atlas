@@ -104,9 +104,9 @@ public class ConcatenateAtlasCommand extends AbstractAtlasShellToolsCommand
         addParagraphToSection("DESCRIPTION", descriptionParagraph1);
         addManualPageSection("EXAMPLES");
         addParagraphToSection("EXAMPLES", exampleParagraph1);
-        addCodeBlockToSection("EXAMPLES", "$ fatlas ~/Desktop/*.atlas ~/output.atlas");
+        addCodeLineToSection("EXAMPLES", "$ fatlas ~/Desktop/*.atlas ~/output.atlas");
         addParagraphToSection("EXAMPLES", exampleParagraph2);
-        addCodeBlockToSection("EXAMPLES",
+        addCodeLineToSection("EXAMPLES",
                 "$ fatlas --strict ~/file1.atlas ~/file2.atlas ~/output.atlas");
     }
 

@@ -68,13 +68,13 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
         addManualPageSection("EXAMPLES");
         addParagraphToSection("EXAMPLES",
                 "Run a dinner command with pizza and wings. Use 805 beer and the default cheese:");
-        addCodeBlockToSection("EXAMPLES", "$ demo dinner pizza wings --beer=805 --cheese");
+        addCodeLineToSection("EXAMPLES", "$ demo dinner pizza wings --beer=805 --cheese");
         addParagraphToSection("EXAMPLES",
                 "Run a breakfast command with some waffles and pancakes:");
-        addCodeBlockToSection("EXAMPLES", "$ demo breakfast waffles pancakes");
+        addCodeLineToSection("EXAMPLES", "$ demo breakfast waffles pancakes");
         addParagraphToSection("EXAMPLES",
                 "Run a lunch command with a salad. Use some tasty parmesan cheese:");
-        addCodeBlockToSection("EXAMPLES", "$ demo lunch salad --cheese=parmesan");
+        addCodeLineToSection("EXAMPLES", "$ demo lunch salad --cheese=parmesan");
     }
 
     @Override

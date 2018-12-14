@@ -160,19 +160,20 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     public abstract void registerOptionsAndArguments();
 
     /**
-     * Add a given code block to a given manual page section. Code blocks are given additional
-     * indentation and are excluded from line-wrap formatting.
+     * Add a given code line to a given manual page section. Code lines are given additional
+     * indentation and are excluded from line-wrap formatting. If a code line contains a newline,
+     * the formatting will not automatically indent after the line break.
      *
      * @param section
      *            the section to add to
-     * @param codeBlock
-     *            the code block
+     * @param codeLine
+     *            the code line
      * @throws CoreException
      *             if the section does not exist
      */
-    protected void addCodeBlockToSection(final String section, final String codeBlock)
+    protected void addCodeLineToSection(final String section, final String codeLine)
     {
-        this.registrar.addCodeBlockToSection(section, codeBlock);
+        this.registrar.addCodeLineToSection(section, codeLine);
     }
 
     /**
@@ -705,8 +706,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             final String text = contents.getSecond();
             if (type == DocumentationFormatType.CODE)
             {
-                DocumentationFormatter.addCodeBlock(
-                        DocumentationFormatter.DEFAULT_CODE_INDENT_LEVEL, text, builder);
+                DocumentationFormatter.addCodeLine(DocumentationFormatter.DEFAULT_CODE_INDENT_LEVEL,
+                        text, builder);
             }
             else if (type == DocumentationFormatType.PARAGRAPH)
             {
@@ -729,10 +730,9 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
 
         builder.newline();
 
-        builder.append("NAME", TTYAttribute.BOLD).newline();
-        DocumentationFormatter.indentBuilderToLevel(
-                DocumentationFormatter.DEFAULT_PARAGRAPH_INDENT_LEVEL, builder);
-        builder.append(name + " -- " + simpleDescription).newline().newline();
+        DocumentationFormatter.generateTextForNameSection(name, simpleDescription, builder);
+
+        builder.newline();
 
         builder.append("SYNOPSIS", TTYAttribute.BOLD).newline();
         DocumentationFormatter.generateTextForSynopsisSection(name, this.maximumColumn,

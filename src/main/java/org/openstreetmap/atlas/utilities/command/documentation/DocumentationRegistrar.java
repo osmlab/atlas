@@ -23,7 +23,7 @@ public class DocumentationRegistrar
         this.sections = new LinkedHashMap<>();
     }
 
-    public void addCodeBlockToSection(final String section, final String codeBlock)
+    public void addCodeLineToSection(final String section, final String codeLine)
     {
         final String capsSection = section.toUpperCase();
         if (!this.sections.containsKey(capsSection))
@@ -31,7 +31,7 @@ public class DocumentationRegistrar
             throw new CoreException("Section {} has not been added", capsSection);
         }
         final List<Tuple<DocumentationFormatType, String>> list = this.sections.get(capsSection);
-        list.add(new Tuple<>(DocumentationFormatType.CODE, codeBlock));
+        list.add(new Tuple<>(DocumentationFormatType.CODE, codeLine));
     }
 
     public void addManualPageSection(final String section)
