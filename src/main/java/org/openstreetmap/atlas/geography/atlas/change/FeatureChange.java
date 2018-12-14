@@ -26,6 +26,7 @@ import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedPoint;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.change.serializer.FeatureChangeJsonSerializer;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -34,6 +35,7 @@ import org.openstreetmap.atlas.geography.atlas.items.LineItem;
 import org.openstreetmap.atlas.geography.atlas.items.LocationItem;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
@@ -199,6 +201,22 @@ public class FeatureChange implements Located, Serializable
         {
             throw new CoreException("Cannot merge two feature changes {} and {}.", this, other, e);
         }
+    }
+
+    /**
+     * Save a JSON representation of that feature change.
+     *
+     * @param resource
+     *            The {@link WritableResource} to save the JSON to.
+     */
+    public void save(final WritableResource resource)
+    {
+        resource.writeAndClose(toJson());
+    }
+
+    public String toJson()
+    {
+        return new FeatureChangeJsonSerializer().convert(this);
     }
 
     @Override

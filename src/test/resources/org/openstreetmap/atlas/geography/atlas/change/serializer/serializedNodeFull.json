@@ -1,0 +1,44 @@
+{
+  "type": "ADD",
+  "boundsWKT": "POLYGON ((12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224))",
+  "atlasEntityReference": {
+    "type": "NODE",
+    "class": "org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode",
+    "identifier": 123,
+    "tags": "{tagKey1=tagValue1, tagKey2=tagValue2}",
+    "relations": "[555, 444]",
+    "inEdges": "[789, 456]",
+    "outEdges": "[789, 456]",
+    "WKT": "POINT (12.49234 41.890224)",
+    "GEOJSON": {
+      "type": "Point",
+      "coordinates": [
+        12.49234,
+        41.890224
+      ]
+    }
+  },
+  "boundsGEOJSON": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          12.49234,
+          41.890224
+        ],
+        [
+          12.49234,
+          41.890224
+        ],
+        [
+          12.49234,
+          41.890224
+        ],
+        [
+          12.49234,
+          41.890224
+        ]
+      ]
+    ]
+  }
+}

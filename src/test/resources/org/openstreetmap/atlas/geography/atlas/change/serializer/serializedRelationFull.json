@@ -1,0 +1,70 @@
+{
+  "type": "ADD",
+  "boundsWKT": "POLYGON ((-122.031905 37.328167, -122.031905 37.330394, -122.029051 37.330394, -122.029051 37.328167, -122.031905 37.328167))",
+  "atlasEntityReference": {
+    "type": "RELATION",
+    "class": "org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation",
+    "identifier": 123,
+    "tags": "{tagKey1=tagValue1, tagKey2=tagValue2}",
+    "relations": "[555, 444]",
+    "members": [
+      "{Member: ID = 456, Type = EDGE, Role = role1}",
+      "{Member: ID = 789, Type = AREA, Role = role2}"
+    ],
+    "WKT": "POLYGON ((-122.031905 37.328167, -122.031905 37.330394, -122.029051 37.330394, -122.029051 37.328167, -122.031905 37.328167))",
+    "GEOJSON": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -122.031905,
+            37.328167
+          ],
+          [
+            -122.031905,
+            37.330394
+          ],
+          [
+            -122.029051,
+            37.330394
+          ],
+          [
+            -122.029051,
+            37.328167
+          ],
+          [
+            -122.031905,
+            37.328167
+          ]
+        ]
+      ]
+    }
+  },
+  "boundsGEOJSON": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -122.031905,
+          37.328167
+        ],
+        [
+          -122.031905,
+          37.330394
+        ],
+        [
+          -122.029051,
+          37.330394
+        ],
+        [
+          -122.029051,
+          37.328167
+        ],
+        [
+          -122.031905,
+          37.328167
+        ]
+      ]
+    ]
+  }
+}
