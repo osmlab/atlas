@@ -300,12 +300,14 @@ sub get_deactivated_modules {
 #   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the running program
 #   $quiet: suppress non-essential output
+#   $force: force uninstall on activated module
 # Return: 1 on success, 0 on failure
 sub perform_uninstall {
     my $module_to_uninstall = shift;
     my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
+    my $force = shift;
 
     my %modules = get_module_to_status_hash($ast_path);
 
@@ -314,7 +316,7 @@ sub perform_uninstall {
         return 0;
     }
 
-    if ($modules{$module_to_uninstall} eq $ACTIVATED) {
+    if ($modules{$module_to_uninstall} eq $ACTIVATED && $force != 1) {
         warn_output($program_name, "skipping activated module ${bold_stderr}${module_to_uninstall}${reset_stderr}");
         return 0;
     }

@@ -593,7 +593,6 @@ sub execute_command_repo {
     return 1;
 }
 
-# TODO this needs to handle repo reset
 sub execute_command_reset {
     my $ARGV_len = @ARGV;
 
@@ -603,6 +602,7 @@ sub execute_command_reset {
     my $modules_flag;
     my $index_flag;
     my $presets_flag;
+    my $repos_flag;
     my $log_flag;
     GetOptions(
         'force|f' => \$force_flag,
@@ -611,6 +611,7 @@ sub execute_command_reset {
         'modules' => \$modules_flag,
         'index' => \$index_flag,
         'presets' => \$presets_flag,
+        'repos' => \$repos_flag,
         'log' => \$log_flag
     ) or ast_utilities::getopt_failure_and_exit($program_name, "reset");
 
@@ -638,7 +639,7 @@ sub execute_command_reset {
                      $confirmed = ast_utilities::prompt_yn("Uninstalling module $module. OK?");
                 }
                 if ($confirmed) {
-                    ast_module_subsystem::perform_uninstall($module, $ast_path, $program_name, $quiet);
+                    ast_module_subsystem::perform_uninstall($module, $ast_path, $program_name, $quiet, 1);
                 }
             }
         }
@@ -654,6 +655,20 @@ sub execute_command_reset {
             rmtree($presets_folder);
             unless ($quiet) {
                 print "Cleared presets.\n";
+            }
+        }
+    }
+
+    if (defined $repos_flag || defined $all_flag) {
+        my $repos_folder = File::Spec->catfile($ast_path, $ast_repo_subsystem::REPOS_FOLDER);
+        my $confirmed = 1;
+        unless ($force_flag) {
+            $confirmed = ast_utilities::prompt_yn("Clearing saved repos at $repos_folder. OK?");
+        }
+        if ($confirmed) {
+            rmtree($repos_folder);
+            unless ($quiet) {
+                print "Cleared repos.\n";
             }
         }
     }
@@ -711,9 +726,11 @@ sub execute_command_sync {
 
 sub execute_command_uninstall {
     my $allflag;
+    my $forceflag = 0;
     my $help_flag;
     GetOptions(
         'all|a' => \$allflag,
+        'force' => \$forceflag,
         'help|h' => \$help_flag
     ) or ast_utilities::getopt_failure_and_exit($program_name, "uninstall");
 
@@ -724,7 +741,7 @@ sub execute_command_uninstall {
     if (defined $allflag) {
         my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
         foreach my $module (keys %modules) {
-            ast_module_subsystem::perform_uninstall($module, $ast_path, $program_name, $quiet);
+            ast_module_subsystem::perform_uninstall($module, $ast_path, $program_name, $quiet, $forceflag);
         }
         return 1;
     }
@@ -738,7 +755,7 @@ sub execute_command_uninstall {
     my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
     my @activated_modules = ast_module_subsystem::get_activated_modules(\%modules);
     my $activated_module = $activated_modules[0];
-    my $success = ast_module_subsystem::perform_uninstall($module_to_uninstall, $ast_path, $program_name, $quiet);
+    my $success = ast_module_subsystem::perform_uninstall($module_to_uninstall, $ast_path, $program_name, $quiet, $forceflag);
     unless ($success) {
         return 0;
     }

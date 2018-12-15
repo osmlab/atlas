@@ -30,7 +30,7 @@ atlas\-config\-reset \-- Reset the Atlas Shell Tools installation
 \fIatlas\-config\fR \fIreset\fR [\-\-help]
 \fIatlas\-config\fR \fIreset\fR [\-\-force] [\-\-all]
 \fIatlas\-config\fR \fIreset\fR [\-\-force] [\-\-modules] [\-\-presets]
-                   [\-\-log] [\-\-index]
+                   [\-\-log] [\-\-index] [\-\-repos]
 .fi
 
 .SH "DESCRIPTION"
@@ -48,6 +48,8 @@ of the following steps:
 \fB4)\fR Setting the log stream back to \fBstderr\fR
 
 \fB5)\fR Deleting the active command index
+
+\fB6)\fR Removing all saved repos
 .RE
 
 You can apply various options to only run some subset of these steps. See
@@ -98,6 +100,12 @@ Uninstall all installed modules. This is equivalent to running \fBatlas\-config 
 .RS 4
 Remove all saved presets in all namespaces. Also resets the current namespace
 to 'default'.
+.RE
+
+.PP
+\fB\-\-repos\fR
+.RS 4
+Remove all saved repos.
 .RE
 
 .SH "EXAMPLES"
