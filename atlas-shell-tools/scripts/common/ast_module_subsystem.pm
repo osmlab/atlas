@@ -314,6 +314,11 @@ sub perform_uninstall {
         return 0;
     }
 
+    if ($modules{$module_to_uninstall} eq $ACTIVATED) {
+        warn_output($program_name, "skipping activated module ${bold_stderr}${module_to_uninstall}${reset_stderr}");
+        return 0;
+    }
+
     # try to remove the module
     my $modules_folder = File::Spec->catfile($ast_path, $MODULES_FOLDER);
     my $module_remove_path =
