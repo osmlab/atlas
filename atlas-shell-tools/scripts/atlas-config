@@ -533,7 +533,13 @@ sub execute_command_repo {
         $success = ast_repo_subsystem::install_repo($ast_path, $program_name, $quiet, $repo_name, $ref_flag);
     }
     elsif ($directive eq 'list') {
-        $success = ast_repo_subsystem::list_repos($ast_path, $program_name, $quiet);
+        my $repo_name = shift @ARGV;
+        if (defined $repo_name) {
+            $success = ast_repo_subsystem::print_repo_settings($ast_path, $program_name, $quiet, $repo_name);
+        }
+        else {
+            $success = ast_repo_subsystem::list_repos($ast_path, $program_name, $quiet);
+        }
     }
     elsif ($directive eq 'remove') {
         my $repo_name = shift @ARGV;

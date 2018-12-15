@@ -220,6 +220,9 @@ sub completion_atlascfg {
     elsif ((defined $argv[0] && $argv[0] eq 'repo') && (defined $rargv_m2 && $rargv_m2 eq 'repo') && (defined $rargv_m1 && $rargv_m1 eq 'install')) {
         @commands = ast_repo_subsystem::get_all_repos($ast_path);
     }
+    elsif ((defined $argv[0] && $argv[0] eq 'repo') && (defined $rargv_m2 && $rargv_m2 eq 'repo') && (defined $rargv_m1 && $rargv_m1 eq 'list')) {
+        @commands = ast_repo_subsystem::get_all_repos($ast_path);
+    }
     elsif ((defined $argv[0] && $argv[0] eq 'repo') && (defined $rargv_m2 && $rargv_m2 eq 'repo') && (defined $rargv_m1 && $rargv_m1 eq 'add-gradle-skip')) {
         @commands = ast_repo_subsystem::get_all_repos($ast_path);
     }

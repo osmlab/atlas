@@ -471,13 +471,13 @@ sub get_repo_settings {
     my $repo_subfolder = File::Spec->catfile($ast_path, $REPOS_FOLDER, $repo);
     unless (-d $repo_subfolder) {
         ast_utilities::error_output($program_name, "repo ${bold_stderr}${repo}${reset_stderr} does not exist");
-        return 0;
+        return ();
     }
 
     my $repo_config_file = File::Spec->catfile($repo_subfolder, $REPO_CONFIG);
     unless (-f $repo_config_file) {
         ast_utilities::error_output($program_name, "could not find config file for repo ${bold_stderr}${repo}${reset_stderr}");
-        return 0;
+        return ();
     }
 
     my @settings = ();
