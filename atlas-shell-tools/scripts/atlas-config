@@ -202,7 +202,7 @@ sub execute_command_install {
     }
 
     if (defined $repo) {
-        my $success = ast_repo_subsystem::install_repo($ast_path, $program_name, $quiet, $repo);
+        my $success = ast_repo_subsystem::install_repo($ast_path, $program_name, $quiet, $repo, '');
         unless ($success) {
             ast_utilities::error_output($program_name . ": install", "could not install repo ${bold_stderr}${repo}${reset_stderr}");
             return 0;
@@ -463,8 +463,10 @@ sub execute_command_log {
 
 sub execute_command_repo {
     my $help_flag;
+    my $ref_flag = '';
     GetOptions(
         'help|h' => \$help_flag,
+        'ref=s' => \$ref_flag,
     ) or ast_utilities::getopt_failure_and_exit($program_name, "repo");
 
     if (defined $help_flag) {
@@ -528,7 +530,7 @@ sub execute_command_repo {
             print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
             return 0;
         }
-        $success = ast_repo_subsystem::install_repo($ast_path, $program_name, $quiet, $repo_name);
+        $success = ast_repo_subsystem::install_repo($ast_path, $program_name, $quiet, $repo_name, $ref_flag);
     }
     elsif ($directive eq 'list') {
         $success = ast_repo_subsystem::list_repos($ast_path, $program_name, $quiet);

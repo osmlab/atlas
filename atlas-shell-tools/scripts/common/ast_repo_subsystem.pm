@@ -252,12 +252,14 @@ sub remove_repo {
 #   $program_name: the name of the calling program
 #   $quiet: suppress non-essential output output
 #   $repo: the name of the repo
+#   $ref_override: an optional override ref
 # Return: 1 on success, 0 on failure
 sub install_repo {
     my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
     my $repo = shift;
+    my $ref_override = shift;
 
     my $repo_subfolder = File::Spec->catfile($ast_path, $REPOS_FOLDER, $repo);
     unless (-d $repo_subfolder) {
@@ -289,10 +291,17 @@ sub install_repo {
 
     chdir $tmpdir or die "$!";
 
+    my $ref_to_use;
+    if ($ref_override eq '') {
+        $ref_to_use = $ref;
+    }
+    else {
+        $ref_to_use = $ref_override;
+    }
     @command = ();
     push @command, "git";
     push @command, "checkout";
-    push @command, "${ref}";
+    push @command, "${ref_to_use}";
     $success = system {$command[0]} @command;
     unless ($success == 0) {
         ast_utilities::error_output($program_name, "repo install operation failed");
