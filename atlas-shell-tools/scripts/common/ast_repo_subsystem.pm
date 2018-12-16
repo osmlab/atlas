@@ -523,7 +523,7 @@ sub print_repo_settings {
 
     my @settings = get_repo_settings($ast_path, $program_name, $quiet, $repo);
     if (scalar @settings != 0) {
-        print "${bold_stdout}${repo}${reset_stdout} settings:\n";
+        print "${bold_stdout}${repo} settings:${reset_stdout}\n";
     }
     foreach my $setting (@settings) {
         print "${setting}\n";
