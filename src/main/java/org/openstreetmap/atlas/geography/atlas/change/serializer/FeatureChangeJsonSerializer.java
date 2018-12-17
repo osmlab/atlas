@@ -82,7 +82,7 @@ public class FeatureChangeJsonSerializer implements Converter<FeatureChange, Str
         private static final Function<Iterable<? extends AtlasEntity>, JsonElement> identifierMapper = entity ->
         {
             final JsonArray result = new JsonArray();
-            Iterables.stream(entity).map(AtlasEntity::getIdentifier)
+            Iterables.stream(entity).map(AtlasEntity::getIdentifier).collectToSortedSet()
                     .forEach(number -> result.add(new JsonPrimitive(number)));
             return result;
         };
