@@ -13,6 +13,8 @@ public class HelloWorldCommand extends AbstractAtlasShellToolsCommand
 
     private static final String NAME_OPTION = "name";
 
+    private static final String DESCRIPTION_SECTION = "HelloWorldCommandDescriptionSection.txt";
+
     public static void main(final String[] args)
     {
         new HelloWorldCommand().runSubcommandAndExit(args);
@@ -40,9 +42,8 @@ public class HelloWorldCommand extends AbstractAtlasShellToolsCommand
     @Override
     public void registerManualPageSections()
     {
-        addManualPageSection("DESCRIPTION");
-        addParagraphToSection("DESCRIPTION",
-                "Prints a simple greeting. The greeting can be personalized with the '--name' option.");
+        addManualPageSection("DESCRIPTION",
+                HelloWorldCommand.class.getResourceAsStream(DESCRIPTION_SECTION));
     }
 
     @Override

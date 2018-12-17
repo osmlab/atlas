@@ -1,6 +1,6 @@
 Run a dinner command with pizza and wings. Use 805 beer and the default cheese:
 #$ demo dinner pizza wings --beer=805 --cheese
 Run a breakfast command with some waffles and pancakes:
-#$ demo breakfast waffles pancakes
+#$ demo --breakfast waffles pancakes
 Run a lunch command with a salad. Use some tasty parmesan cheese:
 #$ demo lunch salad --cheese=parmesan

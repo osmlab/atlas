@@ -2,8 +2,15 @@ This command serves as a demo of the subcommand API and capabilities.
 This example section is filled out to demonstrate the behavior of the
 automatic documentation formatting code.
 
-Here is a second follow up paragraph. Unfortunately,
-Java does not provide a way to declare multi-line string literals. Due to this
+Unfortunately, Java does not provide a way to declare multi-line string literals. Due to this
 shortcoming, declaring these paragraphs in code can be a pain. Thankfully,
 an API is provided that allows you to read in doc page sections from a resource
 file. The paragraph you are currently reading was generated in this manner.
+
+This command also shows off a more advanced feature of the command API, namely contexts.
+Contexts are just a way to provide multiple, mutually exclusive usage styles for a command.
+In this demo command, notice that the SYNOPSIS section has a command line for specifying a
+favorite meal along with some foods and cheese/beer options. But it also contains a command line
+for a --breakfast usage, which changes the expected number of arguments. The option parser will
+take the current command line and attempt to match it to each parse context, in the order displayed
+by SYNOPSIS.

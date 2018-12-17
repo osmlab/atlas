@@ -25,6 +25,9 @@ public class ConcatenateAtlasCommand extends AbstractAtlasShellToolsCommand
 
     private static final String VERSION = "1.0.0";
 
+    private static final String DESCRIPTION_SECTION = "ConcatenateAtlasCommandDescriptionSection.txt";
+    private static final String EXAMPLES_SECTION = "ConcatenateAtlasCommandExamplesSection.txt";
+
     public static void main(final String[] args)
     {
         new ConcatenateAtlasCommand().runSubcommandAndExit(args);
@@ -92,22 +95,10 @@ public class ConcatenateAtlasCommand extends AbstractAtlasShellToolsCommand
     @Override
     public void registerManualPageSections()
     {
-        final String descriptionParagraph1 = "The fatlas command provides an easy way to concatenate atlas files together "
-                + "using the MultiAtlas class. The command takes an arbitrary number of input atlas "
-                + "files, reads them into a MultiAtlas, and then saves that MultiAtlas to a specified "
-                + "output file. By default, it will skip over any atlas files it fails to load. "
-                + "This behavior can be modified with the '--strict' option.";
-        final String exampleParagraph1 = "Concatenate all atlas files on your desktop and write them to an output atlas "
-                + "in your home directory:";
-        final String exampleParagraph2 = "Concatenate two atlases, but fail fast if either cannot be found:";
-        addManualPageSection("DESCRIPTION");
-        addParagraphToSection("DESCRIPTION", descriptionParagraph1);
-        addManualPageSection("EXAMPLES");
-        addParagraphToSection("EXAMPLES", exampleParagraph1);
-        addCodeLineToSection("EXAMPLES", "$ fatlas ~/Desktop/*.atlas ~/output.atlas");
-        addParagraphToSection("EXAMPLES", exampleParagraph2);
-        addCodeLineToSection("EXAMPLES",
-                "$ fatlas --strict ~/file1.atlas ~/file2.atlas ~/output.atlas");
+        addManualPageSection("DESCRIPTION",
+                ConcatenateAtlasCommand.class.getResourceAsStream(DESCRIPTION_SECTION));
+        addManualPageSection("EXAMPLES",
+                ConcatenateAtlasCommand.class.getResourceAsStream(EXAMPLES_SECTION));
     }
 
     @Override

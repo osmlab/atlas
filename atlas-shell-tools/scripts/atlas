@@ -239,14 +239,9 @@ GetOptions(
     "debug" => \$debug_flag,
     "allow-run-as-root" => \$allow_run_as_root,
     # This callback occurs the first time we see a non-option argument.
-    # In our case, this will be the either the 'cfg.preset' command or the
-    # target subcommand.
+    # In our case, this will be the subcommand.
     "<>" => sub {
         my($arg) = @_;
-        if ($arg eq $ast_preset_subsystem::CFGPRESET_START) {
-            $cfg_preset = 1;
-            die "!FINISH";
-        }
         if ($arg =~ m{^-}) {
             unless ($arg eq '-') {
                 die "FATAL error: unhandled global option $arg";
@@ -392,7 +387,7 @@ if (defined $use_preset) {
     @new_argv = ast_preset_subsystem::apply_preset_or_exit($ast_path, $program_name, $quiet, $use_preset, $subcommand, $current_namespace, \@ARGV);
     if ($debug_flag) {
         print "Applying preset ${use_preset} for ${subcommand} in namespace ${current_namespace}\n";
-        print "Try \'${bold_stdout}${program_name} ${ast_preset_subsystem::CFGPRESET_START} list:${subcommand} ${use_preset}${reset_stdout}\' to see the preset.\n\n";
+        print "Try \'${bold_stdout}${ast_utilities::CONFIG_PROGRAM} preset list ${subcommand} ${use_preset}${reset_stdout}\' to see the preset.\n\n";
     }
 }
 
