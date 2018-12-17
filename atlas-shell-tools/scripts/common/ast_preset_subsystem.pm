@@ -35,6 +35,7 @@ our @EXPORT = qw(
     remove_namespace
     get_all_presets_in_current_namespace
     get_all_presets_for_command
+    preset_regex_ok
 );
 
 our $PRESETS_FOLDER = 'presets';
@@ -852,6 +853,15 @@ sub get_all_presets_for_command {
     }
 
     return @all_presets;
+}
+
+sub preset_regex_ok {
+    my $preset = shift;
+
+    if ($preset =~ m/^[_a-zA-Z0-9][_a-zA-Z0-9-]*$/) {
+        return 1;
+    }
+    return 0;
 }
 
 # Perl modules must return a value. Returning a value perl considers "truthy"

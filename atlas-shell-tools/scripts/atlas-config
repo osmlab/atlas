@@ -583,6 +583,12 @@ sub execute_command_preset {
             print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
             return 0;
         }
+        unless (ast_preset_subsystem::preset_regex_ok($preset)) {
+            ast_utilities::error_output($program_name, "invalid preset name ${bold_stderr}${preset}${reset_stderr}");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset save <command> <preset> <options ...>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
         $success = ast_preset_subsystem::save_preset($ast_path, $program_name, $quiet, $preset, $command_context, $current_namespace, \@ARGV);
     }
     elsif ($directive eq 'list') {
