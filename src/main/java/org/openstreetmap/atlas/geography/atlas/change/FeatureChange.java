@@ -26,7 +26,7 @@ import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedPoint;
 import org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
-import org.openstreetmap.atlas.geography.atlas.change.serializer.FeatureChangeJsonSerializer;
+import org.openstreetmap.atlas.geography.atlas.change.serializer.FeatureChangeGeoJsonSerializer;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -211,12 +211,12 @@ public class FeatureChange implements Located, Serializable
      */
     public void save(final WritableResource resource)
     {
-        resource.writeAndClose(toJson());
+        new FeatureChangeGeoJsonSerializer().accept(this, resource);
     }
 
     public String toJson()
     {
-        return new FeatureChangeJsonSerializer().convert(this);
+        return new FeatureChangeGeoJsonSerializer().convert(this);
     }
 
     @Override

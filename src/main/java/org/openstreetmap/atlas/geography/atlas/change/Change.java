@@ -12,7 +12,9 @@ import java.util.stream.Stream;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.change.serializer.ChangeGeoJsonSerializer;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.tuples.Tuple;
 import org.slf4j.Logger;
@@ -97,6 +99,22 @@ public class Change implements Located, Serializable
         {
             return this.name;
         }
+    }
+
+    /**
+     * Save a JSON representation of that feature change.
+     *
+     * @param resource
+     *            The {@link WritableResource} to save the JSON to.
+     */
+    public void save(final WritableResource resource)
+    {
+        new ChangeGeoJsonSerializer().accept(this, resource);
+    }
+
+    public String toJson()
+    {
+        return new ChangeGeoJsonSerializer().convert(this);
     }
 
     @Override

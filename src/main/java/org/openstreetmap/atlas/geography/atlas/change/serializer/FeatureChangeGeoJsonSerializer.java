@@ -1,9 +1,13 @@
 package org.openstreetmap.atlas.geography.atlas.change.serializer;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometryPrintable;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
@@ -14,6 +18,7 @@ import org.openstreetmap.atlas.geography.atlas.items.LineItem;
 import org.openstreetmap.atlas.geography.atlas.items.LocationItem;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.conversion.Converter;
 
@@ -29,8 +34,57 @@ import com.google.gson.JsonSerializer;
 /**
  * @author matthieun
  */
-public class FeatureChangeJsonSerializer implements Converter<FeatureChange, String>
+public class FeatureChangeGeoJsonSerializer
+        implements BiConsumer<FeatureChange, WritableResource>, Converter<FeatureChange, String>
 {
+    /**
+     * @author matthieun
+     */
+    protected static class FeatureChangeTypeHierarchyAdapter
+            implements JsonSerializer<FeatureChange>
+    {
+        private static void addGeometryGeojson(final JsonObject result,
+                final GeometryPrintable property)
+        {
+            add(result, "geometry", property, GeometryPrintable::asGeoJsonGeometry);
+        }
+
+        private static void addGeometryWkt(final JsonObject result,
+                final GeometryPrintable property)
+        {
+            addProperty(result, "WKT", property, GeometryPrintable::toWkt);
+        }
+
+        public JsonElement serialize(final FeatureChange source)
+        {
+            final JsonObject result = new JsonObject();
+
+            result.addProperty("type", "Feature");
+            final Rectangle bounds = source.bounds();
+            result.add("bbox", bounds.asGeoJsonBbox());
+
+            final GeometryPrintable geometryPrintable = new AtlasEntityGeometryPrintableConverter()
+                    .convert(source.getReference());
+            addGeometryGeojson(result, geometryPrintable);
+
+            final JsonObject properties = new JsonObject();
+            properties.addProperty("featureChangeType", source.getChangeType().toString());
+            new AtlasEntityPropertiesConverter().convert(source.getReference()).entrySet()
+                    .forEach(entry -> properties.add(entry.getKey(), entry.getValue()));
+            addGeometryWkt(properties, geometryPrintable);
+            properties.addProperty("bboxWKT", source.bounds().toWkt());
+            result.add("properties", properties);
+            return result;
+        }
+
+        @Override
+        public JsonElement serialize(final FeatureChange source, final Type typeOfSource,
+                final JsonSerializationContext context)
+        {
+            return serialize(source);
+        }
+    }
+
     /**
      * @author matthieun
      */
@@ -122,48 +176,6 @@ public class FeatureChangeJsonSerializer implements Converter<FeatureChange, Str
         }
     }
 
-    /**
-     * @author matthieun
-     */
-    private static class FeatureChangeTypeHierarchyAdapter implements JsonSerializer<FeatureChange>
-    {
-        private static void addGeometryGeojson(final JsonObject result,
-                final GeometryPrintable property)
-        {
-            add(result, "geometry", property, GeometryPrintable::asGeoJsonGeometry);
-        }
-
-        private static void addGeometryWkt(final JsonObject result,
-                final GeometryPrintable property)
-        {
-            addProperty(result, "WKT", property, GeometryPrintable::toWkt);
-        }
-
-        @Override
-        public JsonElement serialize(final FeatureChange source, final Type typeOfSource,
-                final JsonSerializationContext context)
-        {
-            final JsonObject result = new JsonObject();
-
-            result.addProperty("type", "Feature");
-            final Rectangle bounds = source.bounds();
-            result.add("bbox", bounds.asGeoJsonBbox());
-
-            final GeometryPrintable geometryPrintable = new AtlasEntityGeometryPrintableConverter()
-                    .convert(source.getReference());
-            addGeometryGeojson(result, geometryPrintable);
-
-            final JsonObject properties = new JsonObject();
-            properties.addProperty("featureChangeType", source.getChangeType().toString());
-            new AtlasEntityPropertiesConverter().convert(source.getReference()).entrySet()
-                    .forEach(entry -> properties.add(entry.getKey(), entry.getValue()));
-            addGeometryWkt(properties, geometryPrintable);
-            properties.addProperty("bboxWKT", source.bounds().toWkt());
-            result.add("properties", properties);
-            return result;
-        }
-    }
-
     private static final String NULL = "null";
     private static final Gson jsonSerializer;
     static
@@ -193,6 +205,20 @@ public class FeatureChangeJsonSerializer implements Converter<FeatureChange, Str
             final T property, final Function<T, ? extends Object> writer)
     {
         result.addProperty(name, property == null ? NULL : writer.apply(property).toString());
+    }
+
+    @Override
+    public void accept(final FeatureChange featureChange, final WritableResource resource)
+    {
+        try (Writer writer = resource.writer())
+        {
+            jsonSerializer.toJson(featureChange, writer);
+        }
+        catch (final IOException e)
+        {
+            throw new CoreException("Could not save FeatureChange to resource {}",
+                    resource.getName(), e);
+        }
     }
 
     @Override
