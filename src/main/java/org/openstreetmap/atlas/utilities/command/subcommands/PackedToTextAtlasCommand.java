@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.utilities.command.subcommands;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +39,10 @@ public class PackedToTextAtlasCommand extends AbstractAtlasShellToolsCommand
     private static final String GEOJSON_OPTION_LONG = "geojson";
     private static final Character GEOJSON_OPTION_SHORT = 'g';
     private static final String GEOJSON_OPTION_DESCRIPTION = "Save atlas as GeoJSON.";
+
+    private static final String LDGEOJSON_OPTION_LONG = "ldgeojson";
+    private static final Character LDGEOJSON_OPTION_SHORT = 'l';
+    private static final String LDGEOJSON_OPTION_DESCRIPTION = "Save atlas as line-delimited GeoJSON.";
 
     public static void main(final String[] args)
     {
@@ -78,24 +84,76 @@ public class PackedToTextAtlasCommand extends AbstractAtlasShellToolsCommand
             return 1;
         }
 
+        final Path outputParentPath = Paths
+                .get(getOptionArgument(OUTPUT_DIRECTORY_OPTION_LONG).orElse(""));
+
+        if (!outputParentPath.toFile().exists())
+        {
+            try
+            {
+                if (!new File(outputParentPath.toAbsolutePath().toString()).mkdirs())
+                {
+                    printlnErrorMessage("failed to create output directory "
+                            + outputParentPath.toAbsolutePath().toString());
+                    return 1;
+                }
+            }
+            catch (final Exception exception)
+            {
+                printlnErrorMessage("failed to create output directory "
+                        + outputParentPath.toAbsolutePath().toString());
+                return 1;
+            }
+        }
+
         atlasResourceList.stream().forEach(resource ->
         {
             printlnStdout("Converting " + resource.getFile().getAbsolutePath() + "...");
             final PackedAtlas output = new PackedAtlasCloner()
                     .cloneFrom(new AtlasResourceLoader().load(resource));
-            if (hasOption(GEOJSON_OPTION_LONG))
+            try
             {
-                final File outputFile = new File(
-                        resource.getFile().getName() + FileSuffix.GEO_JSON);
-                output.saveAsGeoJson(outputFile);
-                printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+                if (hasOption(GEOJSON_OPTION_LONG))
+                {
+                    final Path filePath = Paths
+                            .get(resource.getFile().getName() + FileSuffix.GEO_JSON);
+                    final Path concatenatedPath = Paths.get(
+                            outputParentPath.toAbsolutePath().toString(),
+                            filePath.getFileName().toString());
+                    final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
+                    output.saveAsGeoJson(outputFile);
+                    printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
 
+                }
+                else if (hasOption(LDGEOJSON_OPTION_LONG))
+                {
+                    final Path filePath = Paths
+                            .get(resource.getFile().getName() + FileSuffix.GEO_JSON);
+                    final Path concatenatedPath = Paths.get(
+                            outputParentPath.toAbsolutePath().toString(),
+                            filePath.getFileName().toString());
+                    final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
+                    output.saveAsLineDelimitedGeoJsonFeatures(outputFile, (entity, json) ->
+                    {
+                        // Dummy consumer, we don't need to mutate the JSON
+                    });
+                    printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+                }
+                else
+                {
+                    final Path filePath = Paths.get(resource.getFile().getName() + FileSuffix.TEXT);
+                    final Path concatenatedPath = Paths.get(
+                            outputParentPath.toAbsolutePath().toString(),
+                            filePath.getFileName().toString());
+                    final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
+                    output.saveAsText(outputFile);
+                    printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+                }
             }
-            else
+            catch (final Exception exception)
             {
-                final File outputFile = new File(resource.getFile().getName() + FileSuffix.TEXT);
-                output.saveAsText(outputFile);
-                printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+                printlnErrorMessage("failed to save text file for " + resource.getFile().getName()
+                        + ": " + exception.getMessage());
             }
         });
 
@@ -129,6 +187,7 @@ public class PackedToTextAtlasCommand extends AbstractAtlasShellToolsCommand
         setVersion(VERSION);
         registerOption(STRICT_OPTION_LONG, STRING_OPTION_SHORT, STRICT_OPTION_DESCRIPTION);
         registerOption(GEOJSON_OPTION_LONG, GEOJSON_OPTION_SHORT, GEOJSON_OPTION_DESCRIPTION);
+        registerOption(LDGEOJSON_OPTION_LONG, LDGEOJSON_OPTION_SHORT, LDGEOJSON_OPTION_DESCRIPTION);
         registerOptionWithRequiredArgument(OUTPUT_DIRECTORY_OPTION_LONG,
                 OUTPUT_DIRECTORY_OPTION_SHORT, OUTPUT_DIRECTORY_OPTION_DESCRIPTION,
                 OUTPUT_DIRECTORY_OPTION_HINT);

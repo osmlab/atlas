@@ -4,6 +4,9 @@ Transform all atlases on your desktop into text atlases:
 #$ packed-to-text ~/Desktop/*.atlas
 Transform all atlases in your home folder to text atlases, and save
 them to a folder on your desktop
-#$ packed-to-text ~/*.atlas ~/Desktop/my-folder
-Transform an atlas to GeoJSON, and fail fast if it does not exist:
-#$ packed-to-text file.atlas -gs
+#$ packed-to-text ~/*.atlas -o ~/Desktop/my-folder
+Transform an atlas to GeoJSON:
+#$ packed-to-text file.atlas --geojson
+Transform an atlas to line-delimited GeoJSON, and fail fast if 
+it does not exist:
+#$ packed-to-text file.atlas -ls
