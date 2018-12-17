@@ -137,6 +137,11 @@ public class BloatedArea extends Area implements BloatedEntity
                 + ", tags=" + this.tags + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
+    public BloatedArea withAddedTag(final String key, final String value)
+    {
+        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+    }
+
     public BloatedArea withAggregateBoundsExtendedUsing(final Rectangle bounds)
     {
         if (this.aggregateBounds == null)
@@ -170,9 +175,11 @@ public class BloatedArea extends Area implements BloatedEntity
         return this;
     }
 
-    public BloatedArea withAddedTag(final String key, final String value)
+    public BloatedArea withRelations(final Set<Relation> relations)
     {
-        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+        this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
+                .collect(Collectors.toSet());
+        return this;
     }
 
     public BloatedArea withRemovedTag(final String key)
