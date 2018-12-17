@@ -40,8 +40,7 @@ public class FeatureChangeJsonSerializerTest
         final BloatedArea item = new BloatedArea(123L, Polygon.TEST_BUILDING, TAGS, RELATIONS);
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, item);
         final String result = new FeatureChangeJsonSerializer().convert(featureChange);
-        Assert.assertEquals(new InputStreamResource(() -> FeatureChangeJsonSerializerTest.class
-                .getResourceAsStream("serializedAreaFull.json")).all(), result);
+        assertEquals(result, "serializedAreaFull.json");
     }
 
     @Test
@@ -51,8 +50,7 @@ public class FeatureChangeJsonSerializerTest
                 RELATIONS);
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, item);
         final String result = new FeatureChangeJsonSerializer().convert(featureChange);
-        Assert.assertEquals(new InputStreamResource(() -> FeatureChangeJsonSerializerTest.class
-                .getResourceAsStream("serializedEdgeFull.json")).all(), result);
+        assertEquals(result, "serializedEdgeFull.json");
     }
 
     @Test
@@ -61,8 +59,7 @@ public class FeatureChangeJsonSerializerTest
         final BloatedLine item = new BloatedLine(123L, PolyLine.TEST_POLYLINE, TAGS, RELATIONS);
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, item);
         final String result = new FeatureChangeJsonSerializer().convert(featureChange);
-        Assert.assertEquals(new InputStreamResource(() -> FeatureChangeJsonSerializerTest.class
-                .getResourceAsStream("serializedLineFull.json")).all(), result);
+        assertEquals(result, "serializedLineFull.json");
     }
 
     @Test
@@ -72,8 +69,7 @@ public class FeatureChangeJsonSerializerTest
                 Sets.treeSet(456L, 789L), Sets.treeSet(456L, 789L), RELATIONS);
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, item);
         final String result = new FeatureChangeJsonSerializer().convert(featureChange);
-        Assert.assertEquals(new InputStreamResource(() -> FeatureChangeJsonSerializerTest.class
-                .getResourceAsStream("serializedNodeFull.json")).all(), result);
+        assertEquals(result, "serializedNodeFull.json");
     }
 
     @Test
@@ -82,8 +78,7 @@ public class FeatureChangeJsonSerializerTest
         final BloatedPoint item = new BloatedPoint(123L, Location.COLOSSEUM, TAGS, RELATIONS);
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, item);
         final String result = new FeatureChangeJsonSerializer().convert(featureChange);
-        Assert.assertEquals(new InputStreamResource(() -> FeatureChangeJsonSerializerTest.class
-                .getResourceAsStream("serializedPointFull.json")).all(), result);
+        assertEquals(result, "serializedPointFull.json");
     }
 
     @Test
@@ -96,8 +91,7 @@ public class FeatureChangeJsonSerializerTest
                 members, Lists.newArrayList(123L), members, 123L, RELATIONS);
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, item);
         final String result = new FeatureChangeJsonSerializer().convert(featureChange);
-        Assert.assertEquals(new InputStreamResource(() -> FeatureChangeJsonSerializerTest.class
-                .getResourceAsStream("serializedRelationFull.json")).all(), result);
+        assertEquals(result, "serializedRelationFull.json");
     }
 
     @Test
@@ -106,8 +100,7 @@ public class FeatureChangeJsonSerializerTest
         final BloatedArea item = new BloatedArea(123L, Polygon.TEST_BUILDING, null, null);
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, item);
         final String result = new FeatureChangeJsonSerializer().convert(featureChange);
-        Assert.assertEquals(new InputStreamResource(() -> FeatureChangeJsonSerializerTest.class
-                .getResourceAsStream("serializedAreaNull.json")).all(), result);
+        assertEquals(result, "serializedAreaNull.json");
     }
 
     @Test
@@ -117,8 +110,7 @@ public class FeatureChangeJsonSerializerTest
                 null);
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, item);
         final String result = new FeatureChangeJsonSerializer().convert(featureChange);
-        Assert.assertEquals(new InputStreamResource(() -> FeatureChangeJsonSerializerTest.class
-                .getResourceAsStream("serializedEdgeNull.json")).all(), result);
+        assertEquals(result, "serializedEdgeNull.json");
     }
 
     @Test
@@ -127,8 +119,7 @@ public class FeatureChangeJsonSerializerTest
         final BloatedLine item = new BloatedLine(123L, PolyLine.TEST_POLYLINE, null, null);
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, item);
         final String result = new FeatureChangeJsonSerializer().convert(featureChange);
-        Assert.assertEquals(new InputStreamResource(() -> FeatureChangeJsonSerializerTest.class
-                .getResourceAsStream("serializedLineNull.json")).all(), result);
+        assertEquals(result, "serializedLineNull.json");
     }
 
     @Test
@@ -137,8 +128,7 @@ public class FeatureChangeJsonSerializerTest
         final BloatedNode item = new BloatedNode(123L, Location.COLOSSEUM, null, null, null, null);
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, item);
         final String result = new FeatureChangeJsonSerializer().convert(featureChange);
-        Assert.assertEquals(new InputStreamResource(() -> FeatureChangeJsonSerializerTest.class
-                .getResourceAsStream("serializedNodeNull.json")).all(), result);
+        assertEquals(result, "serializedNodeNull.json");
     }
 
     @Test
@@ -147,8 +137,7 @@ public class FeatureChangeJsonSerializerTest
         final BloatedPoint item = new BloatedPoint(123L, Location.COLOSSEUM, null, null);
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, item);
         final String result = new FeatureChangeJsonSerializer().convert(featureChange);
-        Assert.assertEquals(new InputStreamResource(() -> FeatureChangeJsonSerializerTest.class
-                .getResourceAsStream("serializedPointNull.json")).all(), result);
+        assertEquals(result, "serializedPointNull.json");
     }
 
     @Test
@@ -161,7 +150,77 @@ public class FeatureChangeJsonSerializerTest
                 members, null, null, null, null);
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, item);
         final String result = new FeatureChangeJsonSerializer().convert(featureChange);
-        Assert.assertEquals(new InputStreamResource(() -> FeatureChangeJsonSerializerTest.class
-                .getResourceAsStream("serializedRelationNull.json")).all(), result);
+        assertEquals(result, "serializedRelationNull.json");
+    }
+
+    @Test
+    public void testRemoveAreaSerialization()
+    {
+        final BloatedArea item = BloatedArea
+                .shallowFrom(new BloatedArea(123L, Polygon.TEST_BUILDING, null, null));
+        final FeatureChange featureChange = new FeatureChange(ChangeType.REMOVE, item);
+        final String result = new FeatureChangeJsonSerializer().convert(featureChange);
+        assertEquals(result, "serializedAreaRemove.json");
+    }
+
+    @Test
+    public void testRemoveEdgeSerialization()
+    {
+        final BloatedEdge item = BloatedEdge
+                .shallowFrom(new BloatedEdge(123L, PolyLine.TEST_POLYLINE, null, null, null, null));
+        final FeatureChange featureChange = new FeatureChange(ChangeType.REMOVE, item);
+        final String result = new FeatureChangeJsonSerializer().convert(featureChange);
+        assertEquals(result, "serializedEdgeRemove.json");
+    }
+
+    @Test
+    public void testRemoveLineSerialization()
+    {
+        final BloatedLine item = BloatedLine
+                .shallowFrom(new BloatedLine(123L, PolyLine.TEST_POLYLINE, null, null));
+        final FeatureChange featureChange = new FeatureChange(ChangeType.REMOVE, item);
+        final String result = new FeatureChangeJsonSerializer().convert(featureChange);
+        assertEquals(result, "serializedLineRemove.json");
+    }
+
+    @Test
+    public void testRemoveNodeSerialization()
+    {
+        final BloatedNode item = BloatedNode
+                .shallowFrom(new BloatedNode(123L, Location.COLOSSEUM, null, null, null, null));
+        final FeatureChange featureChange = new FeatureChange(ChangeType.REMOVE, item);
+        final String result = new FeatureChangeJsonSerializer().convert(featureChange);
+        assertEquals(result, "serializedNodeRemove.json");
+    }
+
+    @Test
+    public void testRemovePointSerialization()
+    {
+        final BloatedPoint item = BloatedPoint
+                .shallowFrom(new BloatedPoint(123L, Location.COLOSSEUM, null, null));
+        final FeatureChange featureChange = new FeatureChange(ChangeType.REMOVE, item);
+        final String result = new FeatureChangeJsonSerializer().convert(featureChange);
+        assertEquals(result, "serializedPointRemove.json");
+    }
+
+    @Test
+    public void testRemoveRelationSerialization()
+    {
+        final RelationBean members = new RelationBean();
+        members.addItem(456L, "role1", ItemType.EDGE);
+        members.addItem(789L, "role2", ItemType.AREA);
+        final BloatedRelation temporary = new BloatedRelation(123L, null, Rectangle.TEST_RECTANGLE,
+                members, null, null, null, null);
+        final BloatedRelation item = BloatedRelation.shallowFrom(temporary);
+        final FeatureChange featureChange = new FeatureChange(ChangeType.REMOVE, item);
+        final String result = new FeatureChangeJsonSerializer().convert(featureChange);
+        assertEquals(result, "serializedRelationRemove.json");
+    }
+
+    private void assertEquals(final String result, final String fileName)
+    {
+        Assert.assertEquals(new InputStreamResource(
+                () -> FeatureChangeJsonSerializerTest.class.getResourceAsStream(fileName)).all(),
+                result);
     }
 }

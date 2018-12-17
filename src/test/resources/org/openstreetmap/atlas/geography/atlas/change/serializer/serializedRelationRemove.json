@@ -34,16 +34,13 @@
     ]
   },
   "properties": {
-    "featureChangeType": "ADD",
+    "featureChangeType": "REMOVE",
     "entityType": "RELATION",
     "class": "org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation",
     "identifier": 123,
     "tags": "null",
     "relations": "null",
-    "members": [
-      "{Member: ID = 456, Type = EDGE, Role = role1}",
-      "{Member: ID = 789, Type = AREA, Role = role2}"
-    ],
+    "members": "null",
     "WKT": "POLYGON ((-122.031905 37.328167, -122.031905 37.330394, -122.029051 37.330394, -122.029051 37.328167, -122.031905 37.328167))",
     "bboxWKT": "POLYGON ((-122.031905 37.328167, -122.031905 37.330394, -122.029051 37.330394, -122.029051 37.328167, -122.031905 37.328167))"
   }

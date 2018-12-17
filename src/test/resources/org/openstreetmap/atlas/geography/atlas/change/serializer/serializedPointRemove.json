@@ -7,20 +7,36 @@
     41.890224
   ],
   "geometry": {
-    "type": "Point",
+    "type": "Polygon",
     "coordinates": [
-      12.49234,
-      41.890224
+      [
+        [
+          12.49234,
+          41.890224
+        ],
+        [
+          12.49234,
+          41.890224
+        ],
+        [
+          12.49234,
+          41.890224
+        ],
+        [
+          12.49234,
+          41.890224
+        ]
+      ]
     ]
   },
   "properties": {
-    "featureChangeType": "ADD",
+    "featureChangeType": "REMOVE",
     "entityType": "POINT",
     "class": "org.openstreetmap.atlas.geography.atlas.bloated.BloatedPoint",
     "identifier": 123,
     "tags": "null",
     "relations": "null",
-    "WKT": "POINT (12.49234 41.890224)",
+    "WKT": "POLYGON ((12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224))",
     "bboxWKT": "POLYGON ((12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224))"
   }
 }

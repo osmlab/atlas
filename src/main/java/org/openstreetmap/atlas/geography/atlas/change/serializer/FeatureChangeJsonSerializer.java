@@ -1,12 +1,11 @@
 package org.openstreetmap.atlas.geography.atlas.change.serializer;
 
 import java.lang.reflect.Type;
-import java.util.Set;
-import java.util.SortedSet;
+import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.GeometryPrintable;
+import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -15,6 +14,7 @@ import org.openstreetmap.atlas.geography.atlas.items.LineItem;
 import org.openstreetmap.atlas.geography.atlas.items.LocationItem;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.conversion.Converter;
 
 import com.google.gson.Gson;
@@ -34,83 +34,92 @@ public class FeatureChangeJsonSerializer implements Converter<FeatureChange, Str
     /**
      * @author matthieun
      */
-    private static class AtlasEntityTypeHierarchyAdapter
-            implements Converter<AtlasEntity, JsonElement>
+    private static class AtlasEntityGeometryPrintableConverter
+            implements Converter<AtlasEntity, GeometryPrintable>
     {
         @Override
-        public JsonElement convert(final AtlasEntity source)
+        public GeometryPrintable convert(final AtlasEntity source)
         {
-            final JsonObject result = new JsonObject();
-            result.addProperty("type", source.getType().toString());
-            result.addProperty("class", source.getClass().getName());
-            result.addProperty("identifier", source.getIdentifier());
-            addProperty(result, "tags", source.getTags(), map -> map);
-            addProperty(result, "relations", source.relations(), relations -> relations.stream()
-                    .map(Relation::getIdentifier).collect(Collectors.toSet()).toString());
+            GeometryPrintable result = null;
             if (source instanceof Area)
             {
-                addGeometry(result, ((Area) source).asPolygon());
+                result = ((Area) source).asPolygon();
             }
             else if (source instanceof LineItem)
             {
-                if (source instanceof Edge)
-                {
-                    addProperty(result, "startNode", ((Edge) source).start(), Node::getIdentifier);
-                    addProperty(result, "endNode", ((Edge) source).end(), Node::getIdentifier);
-                }
-                addGeometry(result, ((LineItem) source).asPolyLine());
+                result = ((LineItem) source).asPolyLine();
             }
             else if (source instanceof LocationItem)
             {
-                if (source instanceof Node)
-                {
-                    final Function<SortedSet<Edge>, Set<Long>> identifierMapper = edges -> edges
-                            .stream().map(Edge::getIdentifier).collect(Collectors.toSet());
-                    addProperty(result, "inEdges", ((Node) source).inEdges(), identifierMapper);
-                    addProperty(result, "outEdges", ((Node) source).outEdges(), identifierMapper);
-                }
-                addGeometry(result, ((LocationItem) source).getLocation());
+                result = ((LocationItem) source).getLocation();
             }
             else
             {
                 // Relation
+                result = ((Relation) source).bounds();
+            }
+            if (result == null)
+            {
+                result = source.bounds();
+            }
+            return result;
+        }
+    }
+
+    /**
+     * @author matthieun
+     */
+    private static class AtlasEntityPropertiesConverter
+            implements Converter<AtlasEntity, JsonObject>
+    {
+        private static final Function<Map<String, String>, JsonElement> tagPrinter = map ->
+        {
+            final JsonObject result = new JsonObject();
+            map.forEach(result::addProperty);
+            return result;
+        };
+
+        private static final Function<Iterable<? extends AtlasEntity>, JsonElement> identifierMapper = entity ->
+        {
+            final JsonArray result = new JsonArray();
+            Iterables.stream(entity).map(AtlasEntity::getIdentifier)
+                    .forEach(number -> result.add(new JsonPrimitive(number)));
+            return result;
+        };
+
+        @Override
+        public JsonObject convert(final AtlasEntity source)
+        {
+            final JsonObject properties = new JsonObject();
+            properties.addProperty("entityType", source.getType().toString());
+            properties.addProperty("class", source.getClass().getName());
+            properties.addProperty("identifier", source.getIdentifier());
+            add(properties, "tags", source.getTags(), tagPrinter);
+            add(properties, "relations", source.relations(), identifierMapper);
+
+            if (source instanceof Edge)
+            {
+                addProperty(properties, "startNode", ((Edge) source).start(), Node::getIdentifier);
+                addProperty(properties, "endNode", ((Edge) source).end(), Node::getIdentifier);
+            }
+            else if (source instanceof Node)
+            {
+                add(properties, "inEdges", ((Node) source).inEdges(), identifierMapper);
+                add(properties, "outEdges", ((Node) source).outEdges(), identifierMapper);
+            }
+            else if (source instanceof Relation)
+            {
+                // Relation
                 final Relation relation = (Relation) source;
-                add(result, "members", relation.members(), members ->
+                add(properties, "members", relation.members(), members ->
                 {
                     final JsonArray beanResult = new JsonArray();
                     members.forEach(member -> beanResult.add(new JsonPrimitive(member.toString())));
                     return beanResult;
                 });
-                addGeometry(result, relation.bounds());
             }
-            return result;
+            return properties;
         }
-
-        private <T> void add(final JsonObject result, final String name, final T property,
-                final Function<T, JsonElement> writer)
-        {
-            if (property == null)
-            {
-                result.addProperty(name, NULL);
-            }
-            else
-            {
-                result.add(name, writer.apply(property));
-            }
-        }
-
-        private void addGeometry(final JsonObject result, final GeometryPrintable property)
-        {
-            addProperty(result, "WKT", property, GeometryPrintable::toWkt);
-            add(result, GEOJSON, property, GeometryPrintable::asGeoJsonGeometry);
-        }
-
-        private <T> void addProperty(final JsonObject result, final String name, final T property,
-                final Function<T, ? extends Object> writer)
-        {
-            result.addProperty(name, property == null ? NULL : writer.apply(property).toString());
-        }
-
     }
 
     /**
@@ -118,25 +127,45 @@ public class FeatureChangeJsonSerializer implements Converter<FeatureChange, Str
      */
     private static class FeatureChangeTypeHierarchyAdapter implements JsonSerializer<FeatureChange>
     {
+        private static void addGeometryGeojson(final JsonObject result,
+                final GeometryPrintable property)
+        {
+            add(result, "geometry", property, GeometryPrintable::asGeoJsonGeometry);
+        }
+
+        private static void addGeometryWkt(final JsonObject result,
+                final GeometryPrintable property)
+        {
+            addProperty(result, "WKT", property, GeometryPrintable::toWkt);
+        }
+
         @Override
         public JsonElement serialize(final FeatureChange source, final Type typeOfSource,
                 final JsonSerializationContext context)
         {
             final JsonObject result = new JsonObject();
-            result.addProperty("type", source.getChangeType().toString());
-            result.addProperty("boundsWKT", source.bounds().toWkt());
-            result.add("atlasEntityReference",
-                    new AtlasEntityTypeHierarchyAdapter().convert(source.getReference()));
-            result.add("boundsGEOJSON", source.bounds().asGeoJsonGeometry());
+
+            result.addProperty("type", "Feature");
+            final Rectangle bounds = source.bounds();
+            result.add("bbox", bounds.asGeoJsonBbox());
+
+            final GeometryPrintable geometryPrintable = new AtlasEntityGeometryPrintableConverter()
+                    .convert(source.getReference());
+            addGeometryGeojson(result, geometryPrintable);
+
+            final JsonObject properties = new JsonObject();
+            properties.addProperty("featureChangeType", source.getChangeType().toString());
+            new AtlasEntityPropertiesConverter().convert(source.getReference()).entrySet()
+                    .forEach(entry -> properties.add(entry.getKey(), entry.getValue()));
+            addGeometryWkt(properties, geometryPrintable);
+            properties.addProperty("bboxWKT", source.bounds().toWkt());
+            result.add("properties", properties);
             return result;
         }
     }
 
     private static final String NULL = "null";
-    private static final String GEOJSON = "GEOJSON";
-
     private static final Gson jsonSerializer;
-
     static
     {
         final GsonBuilder gsonBuilder = new GsonBuilder();
@@ -145,6 +174,25 @@ public class FeatureChangeJsonSerializer implements Converter<FeatureChange, Str
         gsonBuilder.registerTypeHierarchyAdapter(FeatureChange.class,
                 new FeatureChangeTypeHierarchyAdapter());
         jsonSerializer = gsonBuilder.create();
+    }
+
+    private static <T> void add(final JsonObject result, final String name, final T property,
+            final Function<T, JsonElement> writer)
+    {
+        if (property == null)
+        {
+            result.addProperty(name, NULL);
+        }
+        else
+        {
+            result.add(name, writer.apply(property));
+        }
+    }
+
+    private static <T> void addProperty(final JsonObject result, final String name,
+            final T property, final Function<T, ? extends Object> writer)
+    {
+        result.addProperty(name, property == null ? NULL : writer.apply(property).toString());
     }
 
     @Override
