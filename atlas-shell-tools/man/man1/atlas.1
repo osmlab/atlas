@@ -31,7 +31,6 @@ atlas \-- Run an Atlas Shell Tools command
 \fIatlas\fR [\-V | \-\-version]
 \fIatlas\fR [\-\-no-pager] [\-l | \-\-list]
 \fIatlas\fR [\-\-class\-of=<\fIcommand\fR>]
-\fIatlas\fR [\-\-quiet] [\-\-debug] cfg.preset <directive> [args...]
 \fIatlas\fR [\-\-no\-pager] [\-\-debug] [\-\-memory=<amount>] [\-\-preset=<preset>] 
       [\-\-save\-preset=<new\-preset>] <\fIcommand\fR> [arg...]
 .fi
@@ -41,8 +40,8 @@ atlas \-- Run an Atlas Shell Tools command
 \fBatlas\fR is an easy\-to\-use wrapper for launching Atlas Shell Tools commands.
 It provides a simple interface to find and run any commands defined in the currently
 activated Atlas Shell Tools module.
-\fBatlas\fR also implements a robust preset management system, which can save
-you tons of typing for commands that require a lot of options. See the \fBPRESETS\fR
+Atlas Shell Tools also implements a robust preset management system, which can save
+you tons of typing for commands that require a lot of options. See \fBatlas-presets\fR(7)
 section for more on this topic.
 .sp
 For advanced module management capabilites and other installation configuration
@@ -57,15 +56,6 @@ For a glossary of Atlas Shell Tools terms, see \fBatlas-glossary\fR(7).
 .RS 4
 This indicates a command. A list of available commands can be
 seen with the \fB--list\fR option.
-.RE
-
-.PP
-\fBcfg.preset\fR <directive> [args...]
-.RS 4
-This special subcommand puts \fBatlas\fR into preset configuration mode \- allowing
-the user to run a preset configuration directive with some arguments. When the
-option parser sees \fBcfg.preset\fR, it stops and passes any remaining ARGV elements into the
-preset configuration engine. See the \fBPRESETS\fR section for more information.
 .RE
 
 .PP
@@ -116,7 +106,7 @@ Disable pagination for all documentation.
 .PP
 \fB\-\-preset\fR=<preset>, \fB\-p\fR<preset>
 .RS 4
-Apply the given preset before running <\fIcommand\fR>. See the \fBPRESETS\fR section
+Apply the given preset before running <\fIcommand\fR>. See \fBatlas-presets\fR(7)
 for more information.
 .RE
 
@@ -133,7 +123,7 @@ Save the command ARGV to <new\-preset> before running <\fIcommand\fR>. If
 \fB\-\-preset\fR is also supplied, the save operation will occur after the
 argument to \fB\-\-preset\fR is applied. So <new\-preset> will include ARGV
 elements inserted by the \fB\-\-preset\fR application in addition to those
-directly supplied by the user. See the \fBPRESETS\fR section for more information.
+directly supplied by the user. See \fBatlas-presets\fR(7) for more information.
 .RE
 
 .PP
@@ -168,283 +158,22 @@ See a list of all available commands:
 $ atlas \-\-list
 .RE
 .sp
+Save preset 'p1' for MyCommand and then run:
+.sp
+.RS 4
+$ atlas \-\-save\-preset p1 MyCommand arg1 \-\-opt1=opt1arg \-\-opt2=opt2arg
+.RE
+.sp
 Run MyCommand with preset 'p1':
 .sp
 .RS 4
-$ atlas \-\-preset p1 MyCommand arg1 \-\-opt2=overrideOptArg
+$ atlas \-\-preset p1 MyCommand arg1 \-\-opt2=overrideOpt2Arg
 .RE
 .sp
-Edit preset 'p1' for MyCommand:
+Run MyCommand with preset 'p1', while also saving new preset 'p2':
 .sp
 .RS 4
-$ atlas cfg.preset edit:MyCommand p1
-.RE
-
-.SH "PRESETS"
-.sp
-\fBatlas\fR features a robust preset management system. Presets provide a way to save
-command options (and long option arguments) for future application or modification.
-For more information about how \fBatlas\fR saves and manipulates presets under
-the hood, see \fBatlas\-plumbing\fR(5).
-.sp
-The preset interface is divided into 3 tiers. Each tier supports an increasing
-number of potential use cases at the cost of added complexity for the user. The
-tiers are designed such that you can stop at any tier you feel comfortable using
-\- without needing to understand how the next tier up works. Each tier builds
-on concepts introduced in the previous tiers.
-
-The three interface tiers are:
-.sp
-.RS 4
-\fBTier 1)\fR Basic preset creation and use with the \fB\-\-save\-preset\fR and \fB\-\-preset\fR options.
-
-\fBTier 2)\fR More precise preset management with \fBcfg.preset\fR, including editing, copying, etc.
-
-\fBTier 3)\fR Preset namespace management with \fBcfg.preset namespace\fR.
-.RE
-
-\fBTIER 1\fR
-.RS 4
-Tier 1 provides a simple, lightweight interface for preset usage through the
-\fB\-\-preset\fR=\fIname\fR and \fB\-\-save\-preset\fR=\fInew\-name\fR options, where
-\fIname\fR is the name of the preset you would like to apply and \fInew\-name\fR is
-the name of the preset you would like to create.
-.sp
-When running a command with the \fB\-\-preset\fR=\fIname\fR option,
-\fBatlas\fR checks the list of saved presets associated with that command.
-If one of those presets matches with \fIname\fR, \fBatlas\fR uses that preset. If
-\fBatlas\fR cannot find a match with \fIname\fR, it displays the list and exits
-with an error.
-.sp
-When running a command with the \fB\-\-save\-preset\fR=\fInew\-name\fR option,
-\fBatlas\fR attempts to save the current ARGV to a new preset called \fInew\-name\fR.
-If \fInew\-name\fR already exists, \fBatlas\fR will exit with an error.
-.sp
-If both \fB\-\-preset\fR=\fIname\fR and \fB\-\-save\-preset\fR=\fInew\-name\fR
-are applied at the same time, \fBatlas\fR will attempt to apply \fIname\fR before
-saving \fInew\-name\fR. This allows you to easily save new presets that iterate
-on a previously created preset.
-.sp
-Note that preset names are bound to the target command at save\-time \- 
-a preset name without its command context is meaningless. This means that preset
-"p1" for "ExampleCommand" and preset "p1" for "MyCommand" may contain
-completely different values.
-.sp
-Let's look at an example of the Tier 1 interface in action.
-We will run a command called "MyCommand" and assume preset "p1" does not yet exist:
-.sp
-.RS 4
-$ atlas \-\-save\-preset=p1 MyCommand arg1 arg2 \-\-opt1 \-\-opt2=opt2Arg
-.RE
-.sp
-This will save a preset "p1" for "MyCommand" with contents ["\-\-opt1", "\-\-opt2=opt2Arg"]
-and then run the command. Note that the preset engine only saves options, and so will
-automatically discard any ARGV element that does not look like an option. For this reason,
-you \fImust\fR use the long option '=' syntax for specifying option arguments when saving
-a preset.
-.sp
-Now that you have saved preset "p1" for "MyCommand", you can apply it like:
-.sp
-.RS 4
-$ atlas \-\-preset=p1 MyCommand arg1 arg2
-.RE
-.sp
-This will run the exact same command as before, but it saves us from having
-to type out "\-\-opt1" and "\-\-opt2=opt2Arg". In addition to simply applying
-a preset verbatim, you can also override a saved option by specifying it again
-on the command line:
-.sp
-.RS 4
-$ atlas \-\-preset=p1 MyCommand arg1 arg2 \-\-opt2=OverrideOpt2Arg
-.RE
-.sp
-This will run the same command as the above 2 examples, except it will override
-the preset value of \-\-opt2 with your new value "OverrideOpt2Arg".
-.sp
-Finally, you can extend presets by applying and saving at the same time. Here,
-we apply our preset "p1" while also saving a new preset called "p2", based off
-the contents of "p1":
-.sp
-.RS 4
-$ atlas \-\-preset=p1 \-\-save\-preset=p2 MyCommand arg1 arg2 --opt2=OverrideOpt2Arg --opt3
-.RE
-.sp
-The new preset "p2" will contain the following contents:
-["\-\-opt1", "\-\-opt2=opt2Arg", "\-\-opt2=OverrideOpt2Arg", "\-\-opt3"]. Even though
-\-\-opt2 is repeated, this is OK. When multiple instances of the same option are
-supplied, the option parser will use ARGV's rightmost instance of that option.
-.RE
-.sp
-
-\fBTIER 2\fR
-.RS 4
-Tier 2 provides more precise preset management using a special argument to \fBatlas\fR
-called \fBcfg.preset\fR. \fBcfg.preset\fR takes a mandatory \fIdirective\fR,
-which is just a verb specifying a configuration action. Note that many of the
-directives require additional command context, which is specified using the ':'
-operator (recall that preset names are meaningless without an associated command).
-Below are the available directives:
-
-.sp
-.RS 4
-\fBsave\fR:\fIcommand\fR <name> <args...>
-.RS 4
-Save a preset <name> for \fIcommand\fR without actually running the command.
-<args...> is a sequence of options to be saved in the preset.
-Again, recall that you must use the long option '=' syntax for specifying option
-arguments when saving a preset. The following example saves preset "p1" to command
-"MyCommand" with some options --opt1 and --opt2=opt2Arg:
-.sp
-.RS 4
-$ atlas cfg.preset save:MyCommand p1 --opt1 --opt2=opt2Arg
-.RE
-.RE
-.RE
-
-.sp
-.RS 4
-\fBlist\fR:\fIcommand\fR [name]
-.RS 4
-List all presets for a given \fIcommand\fR, or list contents of preset [name]
-for \fIcommand\fR. The following example lists the contents of preset "p1"
-for command "MyCommand":
-.sp
-.RS 4
-$ atlas cfg.preset list:MyCommand p1
-.RE
-.sp
-Omitting the "p1" argument would have listed all presets for "MyCommand".
-.RE
-.RE
-
-.sp
-.RS 4
-\fBremove\fR:\fIcommand\fR [name]
-.RS 4
-Remove all presets for a given command, or remove the preset [name] for
-\fIcommand\fR. The following example removes all presets for command "MyCommand",
-then removes preset "p1" for command "AnotherCommand":
-.sp
-.RS 4
-$ atlas cfg.preset remove:MyCommand
-
-$ atlas cfg.preset remove:AnotherCommand p1
-.RE
-.sp
-.RE
-.RE
-
-.sp
-.RS 4
-\fBedit\fR:\fIcommand\fR <name>
-.RS 4
-Edit preset <name> for \fIcommand\fR. If <name> does not exist, then it will be
-created when the edit is successfully saved. The default preset editor is \fBvim\fR,
-but this can be changed by setting the \fBEDITOR\fR environment variable. The following
-example will edit preset "p1" for command "MyCommand":
-.sp
-.RS 4
-$ atlas cfg.preset edit:MyCommand p1
-.RE
-.RE
-.RE
-
-.sp
-.RS 4
-\fBcopy\fR:\fIcommand\fR <source> <destination>
-.RS 4
-Copy \fIcommand\fR preset <source> into new preset <destination>.
-<destination> must not already exist, else the copy will fail. The following example
-copies the preset "p1" into new preset "p2", for command "MyCommand":
-.sp
-.RS 4
-$ atlas cfg.preset copy:MyCommand p1 p2
-.RE
-.sp
-The \fBcopy\fR directive is useful in combination with the \fBedit\fR directive \-
-when you want to make multiple versions of a long preset, each with some minor differences.
-.RE
-.RE
-
-.sp
-.RS 4
-\fBnamespace\fR <subdirective> [namespace]
-.RS 4
-Execute a <subdirective> on a given preset [namespace]. Available subdirectives
-are \fBlist\fR, \fBuse\fR, \fBcreate\fR, and \fBremove\fR. Preset namespaces \-
-and the \fBnamespace\fR directive \- are explained in more detail in the
-\fBTIER 3\fR section found below.
-.RE
-.RE
-.RE
-.sp
-
-\fBTIER 3\fR
-.RS 4
-Tier 3 provides preset namespaces. A namespace creates an enclosing
-scope for the presets associated with each command. For example, preset
-"p1" for command "MyCommand" under "namespace1" and preset "p1" for command
-"MyCommand" under "namespace2" may have completely different contents. Up to
-this point, we have been working under the default namespace, appropriately
-called "default". You can create and switch to new namespaces using the
-\fBcfg.preset namespace\fR directive, which takes a subdirective to denote
-the desired action. The available subdirectives are below:
-.sp
-
-.RS 4
-\fBlist\fR
-.RS 4
-List all namespaces, highlighting the current namespace with a "*". An example
-usage would look like:
-.sp
-.RS 4
-$ atlas cfg.preset namespace list
-.RE
-.RE
-.RE
-.sp
-
-.RS 4
-\fBuse\fR <namespace>
-.RS 4
-Switch to <namespace>, throwing an error if <namespace> does not exist. Any new
-presets you create will now be saved under <namespace>, and presets you apply
-will be sourced from <namespace>. The following example switches to a namespace
-called "namespace1":
-.sp
-.RS 4
-$ atlas cfg.preset namespace use namespace1
-.RE
-.RE
-.RE
-
-.RS 4
-\fBcreate\fR <namespace>
-.RS 4
-Create a new <namespace>, throwing an error if <namespace> already exists. This
-will not actually switch to the new namespace. The following example creates a
-namespace called "namespace1":
-.sp
-.RS 4
-$ atlas cfg.preset namespace create namespace1
-.RE
-.RE
-.RE
-
-.RS 4
-\fBremove\fR <namespace>
-.RS 4
-Delete a <namespace>, including all associated presets. The \fBremove\fR will
-fail if <namespace> does not exist, if <namespace> is currently in-use, or if
-<namespace> is the default namespace. The following example removes a namespace
-called "namespace1":
-.sp
-.RS 4
-$ atlas cfg.preset namespace remove namespace1
-.RE
-.RE
-.RE
-
+$ atlas \-\-preset p1 \-\-save\-preset p2 MyCommand arg1 \-\-opt2=overrideOpt2Arg
 .RE
 .sp
 
