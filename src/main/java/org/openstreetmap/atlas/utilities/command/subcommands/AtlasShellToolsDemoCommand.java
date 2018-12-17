@@ -62,6 +62,12 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
     @Override
     public void registerOptionsAndArguments()
     {
+        /*
+         * Generally, it's better practice to declare option forms, descriptions, and hints in
+         * static final Strings at the top of your class. However, this demo command declares them
+         * using literals just for ease of tutorial.
+         */
+
         final String beerDescription = "Brand of your favorite beer. "
                 + "Currently making this option description really long in"
                 + " order to test out the autoformatting capabilities of"

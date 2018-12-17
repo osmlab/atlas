@@ -49,7 +49,7 @@ public class ConcatenateAtlasCommand extends AbstractAtlasShellToolsCommand
             }
             else
             {
-                printStdout("Loading " + path + "\n");
+                printlnStdout("Loading " + path);
                 atlasResourceList.add(file);
             }
         });
@@ -69,13 +69,13 @@ public class ConcatenateAtlasCommand extends AbstractAtlasShellToolsCommand
             return 1;
         }
 
-        printStdout("Cloning...\n");
+        printlnStdout("Cloning...");
         final PackedAtlas output = new PackedAtlasCloner()
                 .cloneFrom(new AtlasResourceLoader().load(atlasResourceList));
         final File outputFile = new File(outputAtlasPath);
         output.save(outputFile);
 
-        printStdout("Saved to " + outputAtlasPath + "\n");
+        printlnStdout("Saved to " + outputAtlasPath);
 
         return 0;
     }

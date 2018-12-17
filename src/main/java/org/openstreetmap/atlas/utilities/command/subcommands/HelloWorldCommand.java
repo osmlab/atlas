@@ -11,8 +11,6 @@ public class HelloWorldCommand extends AbstractAtlasShellToolsCommand
 {
     private static final Logger logger = LoggerFactory.getLogger(HelloWorldCommand.class);
 
-    private static final String NAME_OPTION = "name";
-
     private static final String DESCRIPTION_SECTION = "HelloWorldCommandDescriptionSection.txt";
 
     public static void main(final String[] args)
@@ -23,7 +21,7 @@ public class HelloWorldCommand extends AbstractAtlasShellToolsCommand
     @Override
     public int execute()
     {
-        printStdout("Hello, " + getOptionArgument(NAME_OPTION).orElse("world") + "!\n");
+        printStdout("Hello, " + getOptionArgument("name").orElse("world") + "!\n");
         return 0;
     }
 
@@ -49,6 +47,6 @@ public class HelloWorldCommand extends AbstractAtlasShellToolsCommand
     @Override
     public void registerOptionsAndArguments()
     {
-        registerOptionWithRequiredArgument(NAME_OPTION, "Your name for the greeting.", "name");
+        registerOptionWithRequiredArgument("name", "Your name for the greeting.", "name");
     }
 }
