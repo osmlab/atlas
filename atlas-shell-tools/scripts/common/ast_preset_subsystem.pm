@@ -13,7 +13,6 @@ use ast_tty;
 # Export symbols: variables and subroutines
 our @EXPORT = qw(
     PRESETS_FOLDER
-    CFGPRESET_START
     CURRENT_NAMESPACE_FILE
     NAMESPACE_PATH
     DEFAULT_NAMESPACE
@@ -33,10 +32,11 @@ our @EXPORT = qw(
     create_namespace
     use_namespace
     remove_namespace
+    get_all_presets_in_current_namespace
+    get_all_presets_for_command
 );
 
 our $PRESETS_FOLDER = 'presets';
-our $CFGPRESET_START = 'cfg.preset';
 
 our $CURRENT_NAMESPACE_FILE = '.current_namespace';
 our $NAMESPACE_PATH = File::Spec->catfile($PRESETS_FOLDER, $CURRENT_NAMESPACE_FILE);
@@ -790,6 +790,35 @@ sub get_all_presets_in_current_namespace {
                     push @all_presets, $found_preset;
                 }
             }
+        }
+    }
+
+    return @all_presets;
+}
+
+sub get_all_presets_for_command {
+    my $ast_path = shift;
+    my $command = shift;
+
+    my $namespace = get_namespace($ast_path);
+    my @all_presets = ();
+
+    my $preset_folder = File::Spec->catfile($ast_path, $PRESETS_FOLDER);
+    my $namespace_folder = File::Spec->catfile($preset_folder, $namespace);
+    my $command_folder = File::Spec->catfile($namespace_folder, $command);
+
+    unless (-d $command_folder) {
+        return @all_presets;
+    }
+
+    opendir my $command_dir_handle, $command_folder or die "Something went wrong opening dir: $!";
+    my @preset_files = readdir $command_dir_handle;
+    closedir $command_dir_handle;
+
+    foreach my $found_preset (@preset_files) {
+        # we need to filter '.', '..'
+        unless ($found_preset eq '.' || $found_preset eq '..') {
+            push @all_presets, $found_preset;
         }
     }
 

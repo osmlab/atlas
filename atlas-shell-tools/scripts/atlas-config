@@ -112,6 +112,65 @@ sub show_submanpage_and_exit {
     exit 0;
 }
 
+# helper routine for the 'preset' subcommand
+sub atlas_cfgpreset_namespace {
+    my $current_namespace = shift;
+
+    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
+    my $success = 1;
+
+    my $subdirective = shift @ARGV;
+
+    unless (defined $subdirective) {
+        ast_utilities::error_output($program_name, "${bold_stderr}${program_name} preset namespace${reset_stderr} requires a subdirective");
+        print STDERR "Try ${bold_stderr}list${reset_stderr}, ${bold_stderr}use${reset_stderr}, ${bold_stderr}create${reset_stderr}, or ${bold_stderr}remove${reset_stderr}.\n";
+        print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+        return 0;
+    }
+
+    if ($subdirective eq 'list') {
+        $success = ast_preset_subsystem::all_namespaces($ast_path, $program_name, $quiet);
+    }
+    elsif ($subdirective eq 'use') {
+        my $namespace = shift @ARGV;
+        unless (defined $namespace) {
+            ast_utilities::error_output($program_name, "must specify a namespace");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset namespace use <namespace>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_preset_subsystem::use_namespace($ast_path, $program_name, $quiet, $namespace);
+    }
+    elsif ($subdirective eq 'create') {
+        my $new_namespace = shift @ARGV;
+        unless (defined $new_namespace) {
+            ast_utilities::error_output($program_name, "must specify a new namespace");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset namespace create <namespace>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_preset_subsystem::create_namespace($ast_path, $program_name, $quiet, $new_namespace);
+    }
+    elsif ($subdirective eq 'remove') {
+        my $namespace = shift @ARGV;
+        unless (defined $namespace) {
+            ast_utilities::error_output($program_name, "must specify a namespace");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset namespace remove <namespace>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_preset_subsystem::remove_namespace($ast_path, $program_name, $quiet, $namespace);
+    }
+    else {
+        ast_utilities::error_output($program_name, "unrecognized ${bold_stderr}${program_name} preset namespace${reset_stderr} subdirective '${bold_stderr}${subdirective}${reset_stderr}'");
+        print STDERR "Try ${bold_stderr}list${reset_stderr}, ${bold_stderr}create${reset_stderr}, ${bold_stderr}use${reset_stderr}, or ${bold_stderr}remove${reset_stderr}.\n";
+        print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+        return 0;
+    }
+
+    return 1;
+}
+
 ########## END SUBROUTINES ##########
 
 
@@ -461,12 +520,181 @@ sub execute_command_log {
     return 1;
 }
 
+sub execute_command_preset {
+    my $help_flag;
+    GetOptions(
+        'help|h' => \$help_flag,
+        # This callback occurs the first time we see a non-option argument.
+        # In our case, this will be the subcommand.
+        "<>" => sub {
+            my($arg) = @_;
+            if ($arg =~ m{^-}) {
+                unless ($arg eq '-') {
+                    die "FATAL error: unhandled global option $arg";
+                }
+            }
+            # add the subcommand to the front of ARGV
+            unshift @ARGV, $arg;
+            die "!FINISH";
+        }
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "preset");
+
+    if (defined $help_flag) {
+        show_submanpage_and_exit('preset');
+    }
+
+    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
+    my $current_namespace = ast_preset_subsystem::get_namespace($ast_path);
+
+    my $directive = shift @ARGV;
+    my $success;
+
+    unless (defined $directive) {
+        ast_utilities::error_output($program_name, "missing required directive");
+        print STDERR "Usage: ${bold_stderr}${program_name} preset <directive> <command> <args ...>${reset_stderr}\n";
+        print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+        return 0;
+    }
+
+    if ($directive eq 'save') {
+        my $command_context = shift @ARGV;
+        unless (defined $command_context) {
+            ast_utilities::error_output($program_name, "must specify a command");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset save <command> <preset> <options ...>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $subcommand_classes{$command_context}) {
+            ast_utilities::error_output($program_name, "no such command ${bold_stderr}${command_context}${reset_stderr}");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset save <command> <preset> <options ...>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        my $preset = shift @ARGV;
+        unless (defined $preset) {
+            ast_utilities::error_output($program_name, "must specify a preset");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset save <command> <preset> <options ...>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_preset_subsystem::save_preset($ast_path, $program_name, $quiet, $preset, $command_context, $current_namespace, \@ARGV);
+    }
+    elsif ($directive eq 'list') {
+        my $command_context = shift @ARGV;
+        unless (defined $command_context) {
+            ast_utilities::error_output($program_name, "must specify a command");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset list <command> [preset]${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $subcommand_classes{$command_context}) {
+            ast_utilities::error_output($program_name, "no such command ${bold_stderr}${command_context}${reset_stderr}");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset list <command> [preset]${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        my $preset = shift @ARGV;
+        if (defined $preset) {
+            $success = ast_preset_subsystem::show_preset($ast_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
+        }
+        else {
+            $success = ast_preset_subsystem::all_presets($ast_path, $program_name, $quiet, $command_context, $current_namespace);
+        }
+    }
+    elsif ($directive eq 'remove') {
+        my $command_context = shift @ARGV;
+        unless (defined $command_context) {
+            ast_utilities::error_output($program_name, "must specify a command");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset remove <command> <preset>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $subcommand_classes{$command_context}) {
+            ast_utilities::error_output($program_name, "no such command ${bold_stderr}${command_context}${reset_stderr}");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset remove <command> <preset>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        my $preset = shift @ARGV;
+        if (defined $preset) {
+            $success = ast_preset_subsystem::remove_preset($ast_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
+        }
+        else {
+            $success = ast_preset_subsystem::remove_all_presets_for_command($ast_path, $program_name, $quiet, $command_context, $current_namespace);
+        }
+    }
+    elsif ($directive eq 'edit') {
+        my $command_context = shift @ARGV;
+        unless (defined $command_context) {
+            ast_utilities::error_output($program_name, "must specify a command");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset edit <command> <preset>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $subcommand_classes{$command_context}) {
+            ast_utilities::error_output($program_name, "no such command ${bold_stderr}${command_context}${reset_stderr}");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset edit <command> <preset>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        my $preset = shift @ARGV;
+        unless (defined $preset) {
+            ast_utilities::error_output($program_name, "must specify a preset");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset edit <command> <preset>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_preset_subsystem::edit_preset($ast_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
+    }
+    elsif ($directive eq 'copy') {
+        my $command_context = shift @ARGV;
+        unless (defined $command_context) {
+            ast_utilities::error_output($program_name, "must specify a command");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset copy <command> <src> <dest>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $subcommand_classes{$command_context}) {
+            ast_utilities::error_output($program_name, "no such command ${bold_stderr}${command_context}${reset_stderr}");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset copy <command> <src> <dest>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        my $src_preset = shift @ARGV;
+        my $dest_preset = shift @ARGV;
+        unless (defined $src_preset) {
+            ast_utilities::error_output($program_name, "must specify a source preset");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset copy <command> <src> <dest>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $dest_preset) {
+            ast_utilities::error_output($program_name, "must specify a destination preset");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset copy <command> <src> <dest>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_preset_subsystem::copy_preset($ast_path, $program_name, $quiet, $src_preset, $dest_preset, $command_context, $current_namespace);
+    }
+    elsif ($directive eq 'namespace') {
+        $success = atlas_cfgpreset_namespace($current_namespace);
+    }
+    else {
+        ast_utilities::error_output($program_name, "unrecognized ${bold_stderr}${program_name} preset${reset_stderr} directive '${bold_stderr}${directive}${reset_stderr}'");
+        print STDERR "Try ${bold_stderr}save${reset_stderr}, ${bold_stderr}list${reset_stderr}, ${bold_stderr}remove${reset_stderr}, ${bold_stderr}edit${reset_stderr}, ${bold_stderr}copy${reset_stderr}, or ${bold_stderr}namespace${reset_stderr}.\n";
+        print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+        return 0;
+    }
+
+    return 1;
+}
+
 sub execute_command_repo {
     my $help_flag;
     my $ref_flag = '';
     GetOptions(
         'help|h' => \$help_flag,
-        'ref=s' => \$ref_flag,
+        'ref=s' => \$ref_flag
     ) or ast_utilities::getopt_failure_and_exit($program_name, "repo");
 
     if (defined $help_flag) {
@@ -889,6 +1117,9 @@ elsif ($subcommand eq "list") {
 }
 elsif ($subcommand eq "log") {
     $success = execute_command_log();
+}
+elsif ($subcommand eq "preset") {
+    $success = execute_command_preset();
 }
 elsif ($subcommand eq "repo") {
     $success = execute_command_repo();

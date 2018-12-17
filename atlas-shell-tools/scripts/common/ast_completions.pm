@@ -69,8 +69,8 @@ sub completion_atlas {
     # Shift "atlas" off the front of ARGV
     shift @argv;
 
-    my %subcommand_desc = ast_module_subsystem::get_subcommand_to_description_hash($ast_path);
-    my @commands = keys %subcommand_desc;
+    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
+    my @commands = keys %subcommand_classes;
 
     # In the completion code, we use the following conventions to name variables
     # containing ARGV elements. Assume ARGV looks like the following:
@@ -110,25 +110,6 @@ sub completion_atlas {
         }
     }
 
-    # If we saw the cfgpreset command anywhere in ARGV, use special complete context.
-    # This block of code is a bit of a mess :)
-    foreach my $arg (@argv) {
-        if ($arg eq $ast_preset_subsystem::CFGPRESET_START) {
-            my @directives;
-
-            if ($rargv_m1 eq 'namespace') {
-                @directives = qw(create use list remove);
-            }
-            elsif ($rargv_m1 eq $ast_preset_subsystem::CFGPRESET_START) {
-                @directives = qw(save list remove edit copy namespace);
-            }
-
-            my @completion_matches = completion_match_prefix($rargv, \@directives);
-            print join("\n", @completion_matches) . "\n";
-            return 1;
-        }
-    }
-
     # If we see a command anywhere in ARGV, stop special completions and signal
     # the completion wrapper script to use its filename defaults.
     foreach my $arg (@argv) {
@@ -141,7 +122,6 @@ sub completion_atlas {
     }
 
     # Default to completing available command names
-    push @commands, $ast_preset_subsystem::CFGPRESET_START;
     my @completion_matches = completion_match_prefix($rargv, \@commands);
     print join("\n", @completion_matches) . "\n";
 
@@ -156,6 +136,8 @@ sub completion_atlascfg {
 
     # Shift "atlas-config" off the front of ARGV
     shift @argv;
+
+    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
 
     # Shift global options off the front of ARGV
     foreach my $element (@argv) {
@@ -191,45 +173,140 @@ sub completion_atlascfg {
     my $rargv_m3 = $argv[-4];
 
     unless (defined $argv[1]) {
-        @commands = qw(activate deactivate install list log repo reset sync uninstall update);
+        @commands = qw(activate deactivate install list log preset repo reset sync uninstall update);
     }
 
-    # If subcommand is 'install', just complete file names
+    #
+    # This really long if-else handles all the possible command-lines
+    #
+
+    # 'atlas-config install' command will complete file names
     if ((defined $argv[0] && $argv[0] eq 'install') && (defined $rargv_m1 && $rargv_m1 eq 'install')) {
         print $FILE_COMPLETE_SENTINEL;
         return 1;
     }
+
+    # 'atlas-config activate' command will complete deactivated modules
     elsif ((defined $argv[0] && $argv[0]) eq 'activate' && (defined $rargv_m1 && $rargv_m1 eq 'activate')) {
         @commands = ast_module_subsystem::get_deactivated_modules(\%modules);
     }
+
+    # 'atlas-config deactivate' command will complete activated modules
     elsif ((defined $argv[0] && $argv[0] eq 'deactivate') && (defined $rargv_m1 && $rargv_m1 eq 'deactivate')) {
         @commands = ast_module_subsystem::get_activated_modules(\%modules);
     }
+
+    # 'atlas-config uninstall' command will complete all modules
     elsif ((defined $argv[0] && $argv[0] eq 'uninstall') && (defined $rargv_m1 && $rargv_m1 eq 'uninstall')) {
         @commands = keys %modules;
     }
+
+    # 'atlas-config repo' command will complete repo subcommands
     elsif ((defined $argv[0] && $argv[0] eq 'repo') && (defined $rargv_m1 && $rargv_m1 eq 'repo')) {
         @commands = qw(add list remove edit install add-gradle-skip add-gradle-exclude);
     }
+
+    # 'atlas-config repo remove' command will complete repos
     elsif ((defined $argv[0] && $argv[0] eq 'repo') && (defined $rargv_m2 && $rargv_m2 eq 'repo') && (defined $rargv_m1 && $rargv_m1 eq 'remove')) {
         @commands = ast_repo_subsystem::get_all_repos($ast_path);
     }
+
+    # 'atlas-config repo edit' command will complete repos
     elsif ((defined $argv[0] && $argv[0] eq 'repo') && (defined $rargv_m2 && $rargv_m2 eq 'repo') && (defined $rargv_m1 && $rargv_m1 eq 'edit')) {
         @commands = ast_repo_subsystem::get_all_repos($ast_path);
     }
+
+    # 'atlas-config repo install' command will complete repos
     elsif ((defined $argv[0] && $argv[0] eq 'repo') && (defined $rargv_m2 && $rargv_m2 eq 'repo') && (defined $rargv_m1 && $rargv_m1 eq 'install')) {
         @commands = ast_repo_subsystem::get_all_repos($ast_path);
     }
+
+    # 'atlas-config repo list' command will complete repos
     elsif ((defined $argv[0] && $argv[0] eq 'repo') && (defined $rargv_m2 && $rargv_m2 eq 'repo') && (defined $rargv_m1 && $rargv_m1 eq 'list')) {
         @commands = ast_repo_subsystem::get_all_repos($ast_path);
     }
+
+    # 'atlas-config repo add-gradle-skip' command will complete repos
     elsif ((defined $argv[0] && $argv[0] eq 'repo') && (defined $rargv_m2 && $rargv_m2 eq 'repo') && (defined $rargv_m1 && $rargv_m1 eq 'add-gradle-skip')) {
         @commands = ast_repo_subsystem::get_all_repos($ast_path);
     }
+
+    # 'atlas-config repo add-gradle-exclude' command will complete repos
     elsif ((defined $argv[0] && $argv[0] eq 'repo') && (defined $rargv_m2 && $rargv_m2 eq 'repo') && (defined $rargv_m1 && $rargv_m1 eq 'add-gradle-exclude')) {
         @commands = ast_repo_subsystem::get_all_repos($ast_path);
     }
 
+    # 'atlas-config preset' command will complete 'preset' subcommands
+    elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m1 && $rargv_m1 eq 'preset')) {
+        @commands = qw(save edit remove list namespace copy);
+    }
+
+    # 'atlas-config preset save' command will complete atlas shell tools commands
+    elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'preset') && (defined $rargv_m1 && $rargv_m1 eq 'save')) {
+        @commands = keys %subcommand_classes;
+    }
+
+    # 'atlas-config preset edit' command will complete atlas shell tools commands
+    elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'preset') && (defined $rargv_m1 && $rargv_m1 eq 'edit')) {
+        @commands = keys %subcommand_classes;
+    }
+
+    # 'atlas-config preset edit <command>' command will complete any presets for <command>
+    elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m3 && $rargv_m3 eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'edit') && (defined $rargv_m1)) {
+        @commands = ast_preset_subsystem::get_all_presets_for_command($ast_path, $rargv_m1);
+    }
+
+    # 'atlas-config preset remove' command will complete atlas shell tools commands
+    elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'preset') && (defined $rargv_m1 && $rargv_m1 eq 'remove')) {
+        @commands = keys %subcommand_classes;
+    }
+
+    # 'atlas-config preset remove <command>' command will complete any presets for <command>
+    elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m3 && $rargv_m3 eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'remove') && (defined $rargv_m1)) {
+        @commands = ast_preset_subsystem::get_all_presets_for_command($ast_path, $rargv_m1);
+    }
+
+    # 'atlas-config preset list' command will complete atlas shell tools commands
+    elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'preset') && (defined $rargv_m1 && $rargv_m1 eq 'list')) {
+        @commands = keys %subcommand_classes;
+    }
+
+    # 'atlas-config preset list <command>' command will complete any presets for <command>
+    elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m3 && $rargv_m3 eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'list') && (defined $rargv_m1)) {
+        @commands = ast_preset_subsystem::get_all_presets_for_command($ast_path, $rargv_m1);
+    }
+
+    # 'atlas-config preset namespace' command will complete 'namespace' subcommands
+    elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'preset') && (defined $rargv_m1 && $rargv_m1 eq 'namespace')) {
+        @commands = qw(create remove list use);
+    }
+
+    # 'atlas-config preset namespace remove' command will complete namespaces
+    elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m3 && $rargv_m3 eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'namespace') && (defined $rargv_m1 && $rargv_m1 eq 'remove')) {
+        @commands = ast_preset_subsystem::get_namespaces_array($ast_path);
+    }
+
+    # 'atlas-config preset namespace list' command will complete namespaces
+    elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m3 && $rargv_m3 eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'namespace') && (defined $rargv_m1 && $rargv_m1 eq 'list')) {
+        @commands = ast_preset_subsystem::get_namespaces_array($ast_path);
+    }
+
+    # 'atlas-config preset namespace use' command will complete namespaces
+    elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m3 && $rargv_m3 eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'namespace') && (defined $rargv_m1 && $rargv_m1 eq 'use')) {
+        @commands = ast_preset_subsystem::get_namespaces_array($ast_path);
+    }
+
+    # 'atlas-config preset copy' command will complete atlas shell tools commands
+    elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'preset') && (defined $rargv_m1 && $rargv_m1 eq 'copy')) {
+        @commands = keys %subcommand_classes;
+    }
+
+    # 'atlas-config preset copy <command>' command will complete any presets for <command>
+    elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m3 && $rargv_m3 eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'copy') && (defined $rargv_m1)) {
+        @commands = ast_preset_subsystem::get_all_presets_for_command($ast_path, $rargv_m1);
+    }
+
+    # Generate completion matches based on prefix of current word
     my @completion_matches = completion_match_prefix($rargv, \@commands);
     print join("\n", @completion_matches) . "\n";
 
