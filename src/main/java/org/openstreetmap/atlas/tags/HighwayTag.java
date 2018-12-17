@@ -64,7 +64,8 @@ public enum HighwayTag
     MILESTONE,
     TURNING_LOOP,
     CORRIDOR,
-    NO;
+    NO,
+    TOLL_GANTRY;
 
     @TagKey
     public static final String KEY = "highway";
