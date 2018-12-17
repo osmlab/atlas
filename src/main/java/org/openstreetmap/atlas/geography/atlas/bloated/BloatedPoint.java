@@ -138,6 +138,11 @@ public class BloatedPoint extends Point implements BloatedEntity
                 + ", tags=" + this.tags + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
+    public BloatedPoint withAddedTag(final String key, final String value)
+    {
+        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+    }
+
     public BloatedPoint withAggregateBoundsExtendedUsing(final Rectangle bounds)
     {
         if (this.aggregateBounds == null)
@@ -171,9 +176,11 @@ public class BloatedPoint extends Point implements BloatedEntity
         return this;
     }
 
-    public BloatedPoint withAddedTag(final String key, final String value)
+    public BloatedPoint withRelations(final Set<Relation> relations)
     {
-        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+        this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
+                .collect(Collectors.toSet());
+        return this;
     }
 
     public BloatedPoint withRemovedTag(final String key)

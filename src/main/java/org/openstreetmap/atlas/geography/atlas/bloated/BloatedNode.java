@@ -186,6 +186,11 @@ public class BloatedNode extends Node implements BloatedEntity
                 + this.relationIdentifiers + "]";
     }
 
+    public BloatedNode withAddedTag(final String key, final String value)
+    {
+        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+    }
+
     public BloatedNode withAggregateBoundsExtendedUsing(final Rectangle bounds)
     {
         if (this.aggregateBounds == null)
@@ -227,6 +232,13 @@ public class BloatedNode extends Node implements BloatedEntity
         return this;
     }
 
+    public BloatedNode withInEdges(final Set<Edge> inEdges)
+    {
+        this.inEdgeIdentifiers = inEdges.stream().map(Edge::getIdentifier)
+                .collect(Collectors.toCollection(TreeSet::new));
+        return this;
+    }
+
     public BloatedNode withLocation(final Location location)
     {
         this.location = location;
@@ -263,15 +275,24 @@ public class BloatedNode extends Node implements BloatedEntity
         return this;
     }
 
+    public BloatedNode withOutEdges(final Set<Edge> outEdges)
+    {
+        this.outEdgeIdentifiers = outEdges.stream().map(Edge::getIdentifier)
+                .collect(Collectors.toCollection(TreeSet::new));
+        return this;
+    }
+
     public BloatedNode withRelationIdentifiers(final Set<Long> relationIdentifiers)
     {
         this.relationIdentifiers = relationIdentifiers;
         return this;
     }
 
-    public BloatedNode withAddedTag(final String key, final String value)
+    public BloatedNode withRelations(final Set<Relation> relations)
     {
-        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+        this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
+                .collect(Collectors.toSet());
+        return this;
     }
 
     public BloatedNode withRemovedTag(final String key)

@@ -16,6 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * Independent {@link Relation} that contains its own data. At scale, use at your own risk.
@@ -222,12 +223,20 @@ public class BloatedRelation extends Relation implements BloatedEntity
     public BloatedRelation withExtraMember(final AtlasEntity newMember,
             final AtlasEntity memberFromWhichToCopyRole)
     {
-        final String role = this.members
+        final Relation sourceRelation = Iterables.stream(memberFromWhichToCopyRole.relations())
+                .firstMatching(relation -> relation.getIdentifier() == this.getIdentifier())
+                .orElseThrow(() -> new CoreException(
+                        "Cannot copy role from {} {} as it does not have relation {} as parent",
+                        memberFromWhichToCopyRole.getType(),
+                        memberFromWhichToCopyRole.getIdentifier(), this.getIdentifier()));
+        final String role = sourceRelation.members().asBean()
                 .getItemFor(memberFromWhichToCopyRole.getIdentifier(),
                         memberFromWhichToCopyRole.getType())
                 .orElseThrow(() -> new CoreException(
-                        "Cannot copy role from {} as it is not a member of {}",
-                        memberFromWhichToCopyRole, this))
+                        "Cannot copy role from {} {} as it is not a member of {} {}",
+                        memberFromWhichToCopyRole.getType(),
+                        memberFromWhichToCopyRole.getIdentifier(), this.getClass().getSimpleName(),
+                        this))
                 .getRole();
         return withExtraMember(newMember, role);
     }
@@ -344,6 +353,13 @@ public class BloatedRelation extends Relation implements BloatedEntity
     public BloatedRelation withRelationIdentifiers(final Set<Long> relationIdentifiers)
     {
         this.relationIdentifiers = relationIdentifiers;
+        return this;
+    }
+
+    public BloatedRelation withRelations(final Set<Relation> relations)
+    {
+        this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
+                .collect(Collectors.toSet());
         return this;
     }
 

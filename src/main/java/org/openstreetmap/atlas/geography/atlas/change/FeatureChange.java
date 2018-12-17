@@ -269,13 +269,21 @@ public class FeatureChange implements Located, Serializable
             else if (memberMergerOption.isPresent())
             {
                 // They are unequal, but we can attempt a merge
-                result = memberMergerOption.get().apply(leftMember, rightMember);
+                try
+                {
+                    result = memberMergerOption.get().apply(leftMember, rightMember);
+                }
+                catch (final CoreException e)
+                {
+                    throw new CoreException("Attempted merge failed for {}: {} and {}", memberName,
+                            leftMember, rightMember, e);
+                }
             }
             else
             {
                 // They are unequal and we do not have a tool to merge them.
-                throw new CoreException("Conflicting {}: {} and {}", memberName, leftMember,
-                        rightMember);
+                throw new CoreException("Conflicting members, no merge option for {}: {} and {}",
+                        memberName, leftMember, rightMember);
             }
         }
         else
