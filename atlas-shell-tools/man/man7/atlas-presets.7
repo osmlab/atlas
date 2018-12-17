@@ -147,13 +147,15 @@ $ atlas\-config preset save MyCommand p1 --opt1 --opt2=opt2Arg
 
 .sp
 .RS 4
-\fBlist\fR \fIcommand\fR [name]
+\fBlist\fR [\fIcommand\fR [name]]
 .RS 4
-List all presets for a given \fIcommand\fR, or list contents of preset [name]
-for \fIcommand\fR. The following example lists all presets for "MyCommand", then
+List all available presets, or list all presets for a given [\fIcommand\fR], or list contents of preset [name]
+for [\fIcommand\fR]. The following example lists all available presets, then lists all presets for "MyCommand", and finally
 lists the contents of preset "p1" for command "MyCommand":
 .sp
 .RS 4
+$ atlas\-config preset list
+
 $ atlas\-config preset list MyCommand
 
 $ atlas\-config preset list MyCommand p1
@@ -235,13 +237,15 @@ the desired action. The available subdirectives are below:
 .sp
 
 .RS 4
-\fBlist\fR
+\fBlist\fR [namespace]
 .RS 4
-List all namespaces, highlighting the current namespace with a "*". An example
-usage would look like:
+List all namespaces while highlighting the current namespace with a "*", or list the contents of namespace [namespace].
+The following example lists all namespaces, then lists the contents of namespace "namespace1".
 .sp
 .RS 4
 $ atlas\-config preset namespace list
+
+$ atlas\-config preset namespace list namespace1
 .RE
 .RE
 .RE

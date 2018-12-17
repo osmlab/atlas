@@ -129,7 +129,13 @@ sub atlas_cfgpreset_namespace {
     }
 
     if ($subdirective eq 'list') {
-        $success = ast_preset_subsystem::all_namespaces($ast_path, $program_name, $quiet);
+        my $namespace = shift @ARGV;
+        if (defined $namespace) {
+            $success = ast_preset_subsystem::all_presets($ast_path, $program_name, $quiet, $namespace);
+        }
+        else {
+            $success = ast_preset_subsystem::all_namespaces($ast_path, $program_name, $quiet);
+        }
     }
     elsif ($subdirective eq 'use') {
         my $namespace = shift @ARGV;
@@ -582,10 +588,7 @@ sub execute_command_preset {
     elsif ($directive eq 'list') {
         my $command_context = shift @ARGV;
         unless (defined $command_context) {
-            ast_utilities::error_output($program_name, "must specify a command");
-            print STDERR "Usage: ${bold_stderr}${program_name} preset list <command> [preset]${reset_stderr}\n";
-            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
-            return 0;
+            return ast_preset_subsystem::all_presets($ast_path, $program_name, $quiet, $current_namespace);
         }
         unless (defined $subcommand_classes{$command_context}) {
             ast_utilities::error_output($program_name, "no such command ${bold_stderr}${command_context}${reset_stderr}");
@@ -598,7 +601,7 @@ sub execute_command_preset {
             $success = ast_preset_subsystem::show_preset($ast_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
         }
         else {
-            $success = ast_preset_subsystem::all_presets($ast_path, $program_name, $quiet, $command_context, $current_namespace);
+            $success = ast_preset_subsystem::all_presets_for_command($ast_path, $program_name, $quiet, $command_context, $current_namespace);
         }
     }
     elsif ($directive eq 'remove') {

@@ -21,6 +21,7 @@ our @EXPORT = qw(
     save_preset
     remove_preset
     remove_all_presets_for_command
+    all_presets_for_command
     all_presets
     show_preset
     edit_preset
@@ -258,7 +259,7 @@ sub remove_all_presets_for_command {
 #   $command: the name of the command
 #   $namespace: the namespace to save to
 # Return: 1 on success, 0 on failure
-sub all_presets {
+sub all_presets_for_command {
     my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
@@ -294,6 +295,34 @@ sub all_presets {
         print "    ${bold_stdout}${found_preset}${reset_stdout}\n";
     }
     print "\n";
+
+    return 1;
+}
+
+sub all_presets {
+    my $ast_path = shift;
+    my $program_name = shift;
+    my $quiet = shift;
+    my $namespace = shift;
+
+    my $namespace_folder = File::Spec->catfile($ast_path, $PRESETS_FOLDER, $namespace);
+
+    unless (-d $namespace_folder) {
+        ast_utilities::error_output($program_name, "no such namespace ${bold_stderr}${namespace}${reset_stderr}");
+        return 0;
+    }
+
+    opendir my $namespace_dir_handle, $namespace_folder or die "Something went wrong opening dir: $!";
+    my @command_folders = readdir $namespace_dir_handle;
+    closedir $namespace_dir_handle;
+
+    foreach my $found_command (@command_folders) {
+        my $command_folder = File::Spec->catfile($namespace_folder, $found_command);
+        # we need to filter '.', '..'
+        unless ($found_command eq '.' || $found_command eq '..') {
+            all_presets_for_command($ast_path, $program_name, $quiet, $found_command, $namespace);
+        }
+    }
 
     return 1;
 }
