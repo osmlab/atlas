@@ -91,12 +91,7 @@ public class PackedToTextAtlasCommand extends AbstractAtlasShellToolsCommand
         {
             try
             {
-                if (!new File(outputParentPath.toAbsolutePath().toString()).mkdirs())
-                {
-                    printlnErrorMessage("failed to create output directory "
-                            + outputParentPath.toAbsolutePath().toString());
-                    return 1;
-                }
+                new File(outputParentPath.toAbsolutePath().toString()).mkdirs();
             }
             catch (final Exception exception)
             {
