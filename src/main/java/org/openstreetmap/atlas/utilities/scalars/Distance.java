@@ -13,6 +13,20 @@ public final class Distance implements Serializable
 {
     private static final long serialVersionUID = 3728783948477892064L;
 
+    /**
+     * An enum for distance unit abbreviations.
+     */
+    public enum UnitAbbreviations
+    {
+        M,
+        KM,
+        MI,
+        NMI
+    }
+
+    public static final String FEET_NOTATION = "'";
+    public static final String INCHES_NOTATION = "\"";
+
     protected static final long INCHES_PER_FOOT = 12L;
     protected static final long FEET_PER_MILE = 5280;
     protected static final double METERS_PER_FOOT = 0.3048;

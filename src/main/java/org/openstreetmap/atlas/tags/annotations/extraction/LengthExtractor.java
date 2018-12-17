@@ -16,10 +16,7 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
 public class LengthExtractor implements TagExtractor
 {
     private static final LengthValidator VALIDATOR = new LengthValidator();
-    private static final String METERS_SUFFIX = " m";
-    private static final String KILOMETERS_SUFFIX = " km";
-    private static final String MILES_SUFFIX = " mi";
-    private static final String NAUTICAL_MILES_SUFFIX = " nmi";
+    private static final String SINGLE_SPACE = " ";
 
     /**
      * Validates and converts a value to a {@link Distance}.
@@ -30,50 +27,55 @@ public class LengthExtractor implements TagExtractor
      */
     public static Optional<Distance> validateAndExtract(final String value)
     {
-        if (VALIDATOR.isValid(value))
+        final String uppercaseValue = value.toUpperCase();
+        if (VALIDATOR.isValid(uppercaseValue))
         {
-            if (value.endsWith(METERS_SUFFIX))
+            if (uppercaseValue.endsWith(SINGLE_SPACE + Distance.UnitAbbreviations.M))
             {
-                return Optional.of(Distance.meters(
-                        Double.valueOf(value.substring(0, value.lastIndexOf(METERS_SUFFIX)))));
+                return Optional.of(Distance.meters(Double.valueOf(uppercaseValue.substring(0,
+                        uppercaseValue.lastIndexOf(SINGLE_SPACE + Distance.UnitAbbreviations.M)))));
             }
-            else if (value.endsWith(KILOMETERS_SUFFIX))
+            else if (uppercaseValue.endsWith(SINGLE_SPACE + Distance.UnitAbbreviations.KM))
             {
-                return Optional.of(Distance.kilometers(
-                        Double.valueOf(value.substring(0, value.lastIndexOf(KILOMETERS_SUFFIX)))));
+                return Optional.of(Distance
+                        .kilometers(Double.valueOf(uppercaseValue.substring(0, uppercaseValue
+                                .lastIndexOf(SINGLE_SPACE + Distance.UnitAbbreviations.KM)))));
             }
-            else if (value.endsWith(MILES_SUFFIX))
+            else if (uppercaseValue.endsWith(SINGLE_SPACE + Distance.UnitAbbreviations.MI))
             {
-                return Optional.of(Distance.miles(
-                        Double.valueOf(value.substring(0, value.lastIndexOf(MILES_SUFFIX)))));
+                return Optional
+                        .of(Distance.miles(Double.valueOf(uppercaseValue.substring(0, uppercaseValue
+                                .lastIndexOf(SINGLE_SPACE + Distance.UnitAbbreviations.MI)))));
             }
-            else if (value.endsWith(NAUTICAL_MILES_SUFFIX))
+            else if (uppercaseValue.endsWith(SINGLE_SPACE + Distance.UnitAbbreviations.NMI))
             {
-                return Optional.of(Distance.nauticalMiles(Double
-                        .valueOf(value.substring(0, value.lastIndexOf(NAUTICAL_MILES_SUFFIX)))));
+                return Optional.of(Distance
+                        .nauticalMiles(Double.valueOf(uppercaseValue.substring(0, uppercaseValue
+                                .lastIndexOf(SINGLE_SPACE + Distance.UnitAbbreviations.NMI)))));
             }
-            else if (value.contains("\""))
+            else if (uppercaseValue.contains(Distance.INCHES_NOTATION))
             {
-                final StringList split = StringList.split(value, "\'");
+                final StringList split = StringList.split(uppercaseValue, Distance.FEET_NOTATION);
                 if (split.size() == 2)
                 {
-                    return Optional.of(Distance.feetAndInches(Double.valueOf(split.get(0)), Double
-                            .valueOf(split.get(1).substring(0, split.get(1).lastIndexOf("\"")))));
+                    return Optional.of(Distance.feetAndInches(Double.valueOf(split.get(0)),
+                            Double.valueOf(split.get(1).substring(0,
+                                    split.get(1).lastIndexOf(Distance.INCHES_NOTATION)))));
                 }
                 else if (split.size() == 1)
                 {
-                    return Optional.of(Distance.inches(Double
-                            .valueOf(split.get(0).substring(0, split.get(0).lastIndexOf("\"")))));
+                    return Optional.of(Distance.inches(Double.valueOf(split.get(0).substring(0,
+                            split.get(0).lastIndexOf(Distance.INCHES_NOTATION)))));
                 }
             }
-            else if (value.contains("'"))
+            else if (uppercaseValue.contains(Distance.FEET_NOTATION))
             {
-                return Optional.of(
-                        Distance.feet(Double.valueOf(value.substring(0, value.lastIndexOf("'")))));
+                return Optional.of(Distance.feet(Double.valueOf(uppercaseValue.substring(0,
+                        uppercaseValue.lastIndexOf(Distance.FEET_NOTATION)))));
             }
             else
             {
-                return Optional.of(Distance.meters(Double.valueOf(value)));
+                return Optional.of(Distance.meters(Double.valueOf(uppercaseValue)));
             }
         }
         return Optional.empty();

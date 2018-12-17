@@ -3,9 +3,12 @@ package org.openstreetmap.atlas.tags.annotations.validation;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.openstreetmap.atlas.geography.atlas.items.complex.buildings.HeightConverter;
+import org.openstreetmap.atlas.utilities.scalars.Distance;
+import org.openstreetmap.atlas.utilities.scalars.Distance.UnitAbbreviations;
 
 /**
  * Based on mnahoum's {@link HeightConverter} class.
@@ -19,10 +22,6 @@ import org.openstreetmap.atlas.geography.atlas.items.complex.buildings.HeightCon
 public class LengthValidator implements TagValidator
 {
     private static final DoubleValidator DOUBLE_VALIDATOR;
-    private static final String METERS_SUFFIX = "m";
-    private static final String KILOMETERS_SUFFIX = "km";
-    private static final String MILES_SUFFIX = "mi";
-    private static final String NAUTICAL_MILES_SUFFIX = "nmi";
 
     static
     {
@@ -44,12 +43,11 @@ public class LengthValidator implements TagValidator
         final boolean result;
 
         final Matcher suffixMatcher = Pattern
-                .compile(
-                        String.format("(\\d+.?\\d*) (%s)",
-                                String.join("|",
-                                        Arrays.asList(METERS_SUFFIX, KILOMETERS_SUFFIX,
-                                                MILES_SUFFIX, NAUTICAL_MILES_SUFFIX))))
-                .matcher(value);
+                .compile(String.format("(\\d+.?\\d*) (%s)",
+                        String.join("|",
+                                Arrays.stream(UnitAbbreviations.values()).map(Enum::toString)
+                                        .collect(Collectors.toList()))))
+                .matcher(value.toUpperCase());
 
         if (suffixMatcher.matches())
         {
@@ -57,7 +55,7 @@ public class LengthValidator implements TagValidator
         }
         else
         {
-            final int feetIndex = value.indexOf('\'');
+            final int feetIndex = value.indexOf(Distance.FEET_NOTATION);
             if (feetIndex > -1)
             {
                 if (DOUBLE_VALIDATOR.isValid(value.substring(0, feetIndex)))
@@ -65,7 +63,8 @@ public class LengthValidator implements TagValidator
                     // Tail?
                     if (feetIndex + 1 < value.length())
                     {
-                        final int inchesIndex = value.indexOf('\"', feetIndex + 1);
+                        final int inchesIndex = value.indexOf(Distance.INCHES_NOTATION,
+                                feetIndex + 1);
                         if (inchesIndex > -1)
                         {
                             result = this.validateInchesAndTail(value, feetIndex + 1, inchesIndex);
@@ -88,7 +87,7 @@ public class LengthValidator implements TagValidator
             }
             else
             {
-                final int inchesIndex = value.indexOf('\"');
+                final int inchesIndex = value.indexOf(Distance.INCHES_NOTATION);
                 if (inchesIndex > -1)
                 {
                     result = this.validateInchesAndTail(value, 0, inchesIndex);
