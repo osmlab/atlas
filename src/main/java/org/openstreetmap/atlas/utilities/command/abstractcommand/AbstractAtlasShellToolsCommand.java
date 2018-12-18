@@ -324,7 +324,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *            the hint for the argument
      * @param arity
      *            the argument arity
-     * @param type
+     * @param optionality
      *            whether the argument is optional or required
      * @param contexts
      *            the contexts
@@ -332,9 +332,9 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *             if the argument could not be registered
      */
     protected void registerArgument(final String argumentHint, final ArgumentArity arity,
-            final ArgumentOptionality type, final Integer... contexts)
+            final ArgumentOptionality optionality, final Integer... contexts)
     {
-        this.parser.registerArgument(argumentHint, arity, type, contexts);
+        this.parser.registerArgument(argumentHint, arity, optionality, contexts);
     }
 
     /**

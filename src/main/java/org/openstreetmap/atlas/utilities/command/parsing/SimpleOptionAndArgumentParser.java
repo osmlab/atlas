@@ -610,6 +610,10 @@ public class SimpleOptionAndArgumentParser
                     seenEndOptionsOperator = true;
                 }
             }
+            else if (SHORT_FORM_PREFIX.equals(argument))
+            {
+                continue;
+            }
             else if (argument.startsWith(LONG_FORM_PREFIX) && !seenEndOptionsOperator)
             {
                 final String[] split = argument.substring(LONG_FORM_PREFIX.length())
@@ -620,6 +624,15 @@ public class SimpleOptionAndArgumentParser
                 if (!option.isPresent())
                 {
                     throw new UnknownOptionException(optionName);
+                }
+            }
+            else if (argument.startsWith(SHORT_FORM_PREFIX) && !seenEndOptionsOperator)
+            {
+                final Optional<SimpleOption> option = checkForShortOption(argument.charAt(1),
+                        this.getRegisteredOptions());
+                if (!option.isPresent())
+                {
+                    throw new UnknownOptionException(argument.charAt(1));
                 }
             }
         }
@@ -667,7 +680,7 @@ public class SimpleOptionAndArgumentParser
      *            the hint for the argument
      * @param arity
      *            the argument arity
-     * @param type
+     * @param optionality
      *            whether the argument is optional or required
      * @param contexts
      *            the contexts for this argument, if not provided then uses a default context
@@ -675,7 +688,7 @@ public class SimpleOptionAndArgumentParser
      *             if the argument could not be registered
      */
     public void registerArgument(final String argumentHint, final ArgumentArity arity,
-            final ArgumentOptionality type, final Integer... contexts)
+            final ArgumentOptionality optionality, final Integer... contexts)
     {
         throwIfArgumentHintSeen(argumentHint);
         this.argumentHintsSeen.add(argumentHint);
@@ -693,13 +706,13 @@ public class SimpleOptionAndArgumentParser
 
         if (contexts.length == 0)
         {
-            registerArgumentHelper(DEFAULT_CONTEXT_ID, argumentHint, arity, type);
+            registerArgumentHelper(DEFAULT_CONTEXT_ID, argumentHint, arity, optionality);
         }
         else
         {
             for (int i = 0; i < contexts.length; i++)
             {
-                registerArgumentHelper(contexts[i], argumentHint, arity, type);
+                registerArgumentHelper(contexts[i], argumentHint, arity, optionality);
             }
         }
     }
@@ -1351,7 +1364,7 @@ public class SimpleOptionAndArgumentParser
                         optionCharacter);
                 if (!option.isPresent())
                 {
-                    throw new UnknownOptionException(String.valueOf(optionCharacter));
+                    throw new UnknownOptionException(String.valueOf(optionCharacter).charAt(0));
                 }
                 if (option.get().getArgumentType() == OptionArgumentType.NONE)
                 {

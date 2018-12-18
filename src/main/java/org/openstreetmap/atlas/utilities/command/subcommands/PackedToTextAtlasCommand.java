@@ -21,8 +21,6 @@ import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
  */
 public class PackedToTextAtlasCommand extends AbstractAtlasShellToolsCommand
 {
-    private static final String VERSION = "1.0.0";
-
     private static final String DESCRIPTION_SECTION = "PackedToTextAtlasCommandDescriptionSection.txt";
     private static final String EXAMPLES_SECTION = "PackedToTextAtlasCommandExamplesSection.txt";
 
@@ -190,7 +188,6 @@ public class PackedToTextAtlasCommand extends AbstractAtlasShellToolsCommand
     @Override
     public void registerOptionsAndArguments()
     {
-        setVersion(VERSION);
         registerOption(STRICT_OPTION_LONG, STRING_OPTION_SHORT, STRICT_OPTION_DESCRIPTION);
         registerOption(GEOJSON_OPTION_LONG, GEOJSON_OPTION_SHORT, GEOJSON_OPTION_DESCRIPTION);
         registerOption(LDGEOJSON_OPTION_LONG, LDGEOJSON_OPTION_SHORT, LDGEOJSON_OPTION_DESCRIPTION);

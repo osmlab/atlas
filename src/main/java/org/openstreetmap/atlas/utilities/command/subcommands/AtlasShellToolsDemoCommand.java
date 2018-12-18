@@ -84,7 +84,7 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
                 + " order to test out the autoformatting capabilities of"
                 + " the DocumentationFormatter class.";
 
-        setVersion("1.0.0");
+        setVersion("0.0.1");
 
         // Register options/arguments for default lunch/dinner context
         registerOption("capitalize", 'c', "Capitalize the foods list.");

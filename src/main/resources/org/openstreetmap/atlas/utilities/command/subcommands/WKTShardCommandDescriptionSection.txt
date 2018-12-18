@@ -1,0 +1,3 @@
+Given some supplied WKT strings and a sharding tree, spit out the shards that intersect
+each WKT entity. The '--sharding' option is required, so the command will fail if it
+is not supplied.

@@ -25,8 +25,6 @@ public class ConcatenateAtlasCommand extends AbstractAtlasShellToolsCommand
     private static final Character STRING_OPTION_SHORT = 's';
     private static final String STRICT_OPTION_DESCRIPTION = "Fail fast if any input atlases are missing.";
 
-    private static final String VERSION = "1.0.0";
-
     private static final String DESCRIPTION_SECTION = "ConcatenateAtlasCommandDescriptionSection.txt";
     private static final String EXAMPLES_SECTION = "ConcatenateAtlasCommandExamplesSection.txt";
 
@@ -115,7 +113,6 @@ public class ConcatenateAtlasCommand extends AbstractAtlasShellToolsCommand
     @Override
     public void registerOptionsAndArguments()
     {
-        setVersion(VERSION);
         registerOption(STRICT_OPTION_LONG, STRING_OPTION_SHORT, STRICT_OPTION_DESCRIPTION);
         registerArgument(INPUT_HINT, ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED);
         registerArgument(OUTPUT_HINT, ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
