@@ -2,18 +2,25 @@ package org.openstreetmap.atlas.geography.atlas.items;
 
 import java.util.AbstractCollection;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Located;
+import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * @author matthieun
  */
-public class RelationMemberList extends AbstractCollection<RelationMember>
+public class RelationMemberList extends AbstractCollection<RelationMember> implements Located
 {
     private final List<RelationMember> members;
+    private final Set<RelationBeanItem> explicitlyExcluded;
 
     public RelationMemberList(final Iterable<RelationMember> members)
     {
@@ -26,6 +33,30 @@ public class RelationMemberList extends AbstractCollection<RelationMember>
             this.members = new ArrayList<>();
             members.forEach(member -> this.members.add(member));
         }
+        this.explicitlyExcluded = new HashSet<>();
+    }
+
+    public void addItemExplicitlyExcluded(final RelationBeanItem item)
+    {
+        this.explicitlyExcluded.add(item);
+    }
+
+    public RelationBean asBean()
+    {
+        final RelationBean result = new RelationBean();
+        for (final RelationMember member : this.members)
+        {
+            result.addItem(member.getEntity().getIdentifier(), member.getRole(),
+                    member.getEntity().getType());
+        }
+        this.explicitlyExcluded.forEach(result::addItemExplicitlyExcluded);
+        return result;
+    }
+
+    @Override
+    public Rectangle bounds()
+    {
+        return Rectangle.forLocated(this.members);
     }
 
     @Override

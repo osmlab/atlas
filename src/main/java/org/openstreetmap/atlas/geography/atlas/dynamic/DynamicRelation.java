@@ -61,7 +61,7 @@ public class DynamicRelation extends Relation
     }
 
     @Override
-    public long osmRelationIdentifier()
+    public Long osmRelationIdentifier()
     {
         return subRelation().osmRelationIdentifier();
     }

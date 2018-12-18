@@ -164,7 +164,7 @@ public class MultiRelation extends Relation
     }
 
     @Override
-    public long osmRelationIdentifier()
+    public Long osmRelationIdentifier()
     {
         return getSingleSubRelation().osmRelationIdentifier();
     }
