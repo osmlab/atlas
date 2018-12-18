@@ -16,6 +16,8 @@ import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgume
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
@@ -29,6 +31,8 @@ import com.vividsolutions.jts.io.WKTReader;
  */
 public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 {
+    private static final Logger logger = LoggerFactory.getLogger(WKTShardCommand.class);
+
     private static final String DESCRIPTION_SECTION = "WKTShardCommandDescriptionSection.txt";
     private static final String EXAMPLES_SECTION = "WKTShardCommandExamplesSection.txt";
 
@@ -81,18 +85,18 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
             return 1;
         }
 
-        for (final String wkt : inputWKT)
+        for (int i = 0; i < inputWKT.size(); i++)
         {
+            final String wkt = inputWKT.get(i);
             final WKTReader reader = new WKTReader();
-            Geometry geometry;
+            Geometry geometry = null;
             try
             {
                 geometry = reader.read(wkt);
             }
             catch (final ParseException exception)
             {
-                exception.printStackTrace();
-                continue;
+                logger.error("unable to parse {}", wkt, exception);
             }
 
             if (geometry instanceof Point)
@@ -130,9 +134,14 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
             // TODO handle more geometry types
             else
             {
-                this.output.printlnErrorMessage("unknown geometry type");
+                this.output.printlnErrorMessage("unknown geometry type " + wkt);
             }
-            this.output.printlnStdout("");
+
+            // Only print a separating newline if there were multiple entries
+            if (i < inputWKT.size() - 1)
+            {
+                this.output.printlnStdout("");
+            }
         }
 
         return 0;
