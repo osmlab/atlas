@@ -127,6 +127,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
                     this.output.printlnStdout(shard.toString(), TTYAttribute.GREEN);
                 }
             }
+            // TODO handle more geometry types
             else
             {
                 this.output.printlnErrorMessage("unknown geometry type");
