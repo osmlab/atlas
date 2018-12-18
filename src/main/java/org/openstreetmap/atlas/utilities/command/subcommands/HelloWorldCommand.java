@@ -1,27 +1,35 @@
 package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentFetcher;
 
 /**
  * @author lcram
  */
 public class HelloWorldCommand extends AbstractAtlasShellToolsCommand
 {
-    private static final Logger logger = LoggerFactory.getLogger(HelloWorldCommand.class);
-
     private static final String DESCRIPTION_SECTION = "HelloWorldCommandDescriptionSection.txt";
+
+    private final OptionAndArgumentFetcher fetcher;
+    private final CommandOutputDelegate output;
 
     public static void main(final String[] args)
     {
         new HelloWorldCommand().runSubcommandAndExit(args);
     }
 
+    public HelloWorldCommand()
+    {
+        this.fetcher = this.getOptionAndArgumentFetcher();
+        this.output = this.getCommandOutputDelegate();
+    }
+
     @Override
     public int execute()
     {
-        printStdout("Hello, " + getOptionArgument("name").orElse("world") + "!\n");
+        this.output.printStdout(
+                "Hello, " + this.fetcher.getOptionArgument("name").orElse("world") + "!\n");
         return 0;
     }
 

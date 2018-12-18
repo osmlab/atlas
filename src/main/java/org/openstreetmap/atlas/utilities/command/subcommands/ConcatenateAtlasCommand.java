@@ -8,6 +8,8 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentFetcher;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 
@@ -28,16 +30,25 @@ public class ConcatenateAtlasCommand extends AbstractAtlasShellToolsCommand
     private static final String DESCRIPTION_SECTION = "ConcatenateAtlasCommandDescriptionSection.txt";
     private static final String EXAMPLES_SECTION = "ConcatenateAtlasCommandExamplesSection.txt";
 
+    private final OptionAndArgumentFetcher fetcher;
+    private final CommandOutputDelegate output;
+
     public static void main(final String[] args)
     {
         new ConcatenateAtlasCommand().runSubcommandAndExit(args);
     }
 
+    public ConcatenateAtlasCommand()
+    {
+        this.fetcher = this.getOptionAndArgumentFetcher();
+        this.output = this.getCommandOutputDelegate();
+    }
+
     @Override
     public int execute()
     {
-        final List<String> inputAtlasPaths = getVariadicArgument(INPUT_HINT);
-        final String outputAtlasPath = getUnaryArgument(OUTPUT_HINT).get();
+        final List<String> inputAtlasPaths = this.fetcher.getVariadicArgument(INPUT_HINT);
+        final String outputAtlasPath = this.fetcher.getUnaryArgument(OUTPUT_HINT).get();
         final List<File> atlasResourceList = new ArrayList<>();
 
         inputAtlasPaths.stream().forEach(path ->
@@ -45,37 +56,37 @@ public class ConcatenateAtlasCommand extends AbstractAtlasShellToolsCommand
             final File file = new File(path);
             if (!file.exists())
             {
-                printlnWarnMessage("file not found: " + path);
+                this.output.printlnWarnMessage("file not found: " + path);
             }
             else
             {
-                printlnStdout("Loading " + path);
+                this.output.printlnStdout("Loading " + path);
                 atlasResourceList.add(file);
             }
         });
 
-        if (hasOption(STRICT_OPTION_LONG))
+        if (this.fetcher.hasOption(STRICT_OPTION_LONG))
         {
-            if (atlasResourceList.size() != inputAtlasPaths.size())
+            if (atlasResourceList.size() != inputAtlasPaths.size()) // NOSONAR
             {
-                printlnErrorMessage("terminating due to missing atlas");
+                this.output.printlnErrorMessage("terminating due to missing atlas");
                 return 1;
             }
         }
 
         if (atlasResourceList.isEmpty())
         {
-            printlnErrorMessage("no valid input atlases found");
+            this.output.printlnErrorMessage("no valid input atlases found");
             return 1;
         }
 
-        printlnStdout("Cloning...");
-        final PackedAtlas output = new PackedAtlasCloner()
+        this.output.printlnStdout("Cloning...");
+        final PackedAtlas outputAtlas = new PackedAtlasCloner()
                 .cloneFrom(new AtlasResourceLoader().load(atlasResourceList));
         final File outputFile = new File(outputAtlasPath);
-        output.save(outputFile);
+        outputAtlas.save(outputFile);
 
-        printlnStdout("Saved to " + outputAtlasPath);
+        this.output.printlnStdout("Saved to " + outputAtlasPath);
 
         return 0;
     }

@@ -32,6 +32,8 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsMarkerInterface
 {
+    private static final String LINE_SEPARATOR = "line.separator";
+
     private static final Logger logger = LoggerFactory
             .getLogger(AbstractAtlasShellToolsCommand.class);
 
@@ -71,42 +73,92 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private int maximumColumn = DocumentationFormatter.DEFAULT_MAXIMUM_COLUMN;
     private String version = "default_version_value";
 
-    /**
-     * Check that the command name and description are valid. This should be called before relying
-     * on the return values of getCommandName and getDescription.
-     */
-    void throwIfInvalidNameOrDescription()
+    Optional<String> getOptionArgument(final String longForm)
     {
-        final String name = this.getCommandName();
-        if (name == null || name.isEmpty())
-        {
-            throw new CoreException("{} command name must not be null or empty",
-                    this.getClass().getName());
-        }
-        final String[] split = name.split("\\s+");
-        if (split.length > 1)
-        {
-            throw new CoreException("{} command name must not contain whitespace",
-                    this.getClass().getName());
-        }
-        for (int index = 0; index < name.length(); index++)
-        {
-            final char currentCharacter = name.charAt(index);
-            if (!Character.isLetterOrDigit(currentCharacter) && currentCharacter != '-'
-                    && currentCharacter != '_')
-            {
-                throw new CoreException(
-                        "{} command name must only contain letters, digits, hyphens, or underscores",
-                        this.getClass().getName());
-            }
-        }
+        return this.parser.getOptionArgument(longForm);
+    }
 
-        final String simpleDescription = this.getSimpleDescription();
-        if (simpleDescription == null || simpleDescription.isEmpty())
-        {
-            throw new CoreException("{} simple description must not be null or empty",
-                    this.getClass().getName());
-        }
+    <T> Optional<T> getOptionArgument(final String longForm, final StringConverter<T> converter)
+    {
+        return this.parser.getOptionArgument(longForm, converter);
+    }
+
+    int getParserContext()
+    {
+        return this.parser.getContext();
+    }
+
+    TTYStringBuilder getTTYStringBuilderForStderr()
+    {
+        return new TTYStringBuilder(this.useColorStderr);
+    }
+
+    TTYStringBuilder getTTYStringBuilderForStdout()
+    {
+        return new TTYStringBuilder(this.useColorStdout);
+    }
+
+    Optional<String> getUnaryArgument(final String hint)
+    {
+        return this.parser.getUnaryArgument(hint);
+    }
+
+    List<String> getVariadicArgument(final String hint)
+    {
+        return this.parser.getVariadicArgument(hint);
+    }
+
+    boolean hasOption(final String longForm)
+    {
+        return this.parser.hasOption(longForm);
+    }
+
+    void printlnCommandMessage(final String message)
+    {
+        printStderr(this.getCommandName() + ": ");
+        printStderr(message + System.getProperty(LINE_SEPARATOR));
+    }
+
+    void printlnErrorMessage(final String message)
+    {
+        printStderr(this.getCommandName() + ": ");
+        printStderr("error: ", TTYAttribute.BOLD, TTYAttribute.RED);
+        printStderr(message + System.getProperty(LINE_SEPARATOR));
+    }
+
+    void printlnStderr(final String string, final TTYAttribute... attributes)
+    {
+        final TTYStringBuilder builder = this.getTTYStringBuilderForStderr();
+        builder.append(string, attributes);
+        System.err.println(builder.toString()); // NOSONAR
+    }
+
+    void printlnStdout(final String string, final TTYAttribute... attributes)
+    {
+        final TTYStringBuilder builder = this.getTTYStringBuilderForStderr();
+        builder.append(string, attributes);
+        System.out.println(builder.toString()); // NOSONAR
+    }
+
+    void printlnWarnMessage(final String message)
+    {
+        printStderr(this.getCommandName() + ": ");
+        printStderr("warn: ", TTYAttribute.BOLD, TTYAttribute.MAGENTA);
+        printStderr(message + System.getProperty(LINE_SEPARATOR));
+    }
+
+    void printStderr(final String string, final TTYAttribute... attributes)
+    {
+        final TTYStringBuilder builder = this.getTTYStringBuilderForStderr();
+        builder.append(string, attributes);
+        System.err.print(builder.toString()); // NOSONAR
+    }
+
+    void printStdout(final String string, final TTYAttribute... attributes)
+    {
+        final TTYStringBuilder builder = this.getTTYStringBuilderForStdout();
+        builder.append(string, attributes);
+        System.out.print(builder.toString()); // NOSONAR
     }
 
     /**
@@ -143,20 +195,49 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      */
     public abstract void registerManualPageSections();
 
-    /*
-     * A NOTE ON THE ADAPTER OPTION/ARGUMENT PARSING INTERFACE
-     */
-    // While this may seem like duplication of the SimpleOptionAndArgumentParser interface,
-    // it actually allows us to define an immutable interface for subcommand registration. By
-    // setting up the interface this way, we are not wedded to the SimpleOptionAndArgumentParser for
-    // future changes. Should we decide to change it, any subcommands extending this class
-    // will not have to change their option registration code.
-
     /**
      * Register any necessary options and arguments for the command. Use the protected API exposed
      * by {@link AbstractAtlasShellToolsCommand}.
      */
     public abstract void registerOptionsAndArguments();
+
+    /**
+     * Check that the command name and description are valid. This should be called before relying
+     * on the return values of getCommandName and getDescription.
+     */
+    public void throwIfInvalidNameOrDescription()
+    {
+        final String name = this.getCommandName();
+        if (name == null || name.isEmpty())
+        {
+            throw new CoreException("{} command name must not be null or empty",
+                    this.getClass().getName());
+        }
+        final String[] split = name.split("\\s+");
+        if (split.length > 1)
+        {
+            throw new CoreException("{} command name must not contain whitespace",
+                    this.getClass().getName());
+        }
+        for (int index = 0; index < name.length(); index++)
+        {
+            final char currentCharacter = name.charAt(index);
+            if (!Character.isLetterOrDigit(currentCharacter) && currentCharacter != '-'
+                    && currentCharacter != '_')
+            {
+                throw new CoreException(
+                        "{} command name must only contain letters, digits, hyphens, or underscores",
+                        this.getClass().getName());
+            }
+        }
+
+        final String simpleDescription = this.getSimpleDescription();
+        if (simpleDescription == null || simpleDescription.isEmpty())
+        {
+            throw new CoreException("{} simple description must not be null or empty",
+                    this.getClass().getName());
+        }
+    }
 
     /**
      * Add a given code line to a given manual page section. Code lines are given additional
@@ -215,215 +296,23 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     }
 
     /**
-     * Get the argument of a given option, if present.
+     * Get a {@link CommandOutputDelegate} bound to this {@link AbstractAtlasShellToolsCommand}.
      *
-     * @param longForm
-     *            the long form of the option
-     * @return an {@link Optional} wrapping the argument
-     * @throws CoreException
-     *             if longForm does not refer to a registered option
+     * @return a delegate bound to this command
      */
-    protected Optional<String> getOptionArgument(final String longForm)
+    protected CommandOutputDelegate getCommandOutputDelegate()
     {
-        return this.parser.getOptionArgument(longForm);
+        return new CommandOutputDelegate(this);
     }
 
     /**
-     * Get the argument of a given option, if present. Also, convert it using the supplied
-     * converter. If the converter function returns null, then this method will return
-     * {@link Optional#empty()}.
+     * Get an {@link OptionAndArgumentFetcher} bound to this {@link AbstractAtlasShellToolsCommand}.
      *
-     * @param <T>
-     *            the type to convert to
-     * @param longForm
-     *            the long form of the option
-     * @param converter
-     *            the conversion function
-     * @return an {@link Optional} wrapping the argument
-     * @throws CoreException
-     *             if longForm does not refer to a registered option
+     * @return a fetcher bound to this command
      */
-    protected <T> Optional<T> getOptionArgument(final String longForm,
-            final StringConverter<T> converter)
+    protected OptionAndArgumentFetcher getOptionAndArgumentFetcher()
     {
-        return this.parser.getOptionArgument(longForm, converter);
-    }
-
-    protected int getParserContext()
-    {
-        return this.parser.getContext();
-    }
-
-    /**
-     * Get a {@link TTYStringBuilder} with the correct formatting settings for stderr.
-     * Implementations of {@link AbstractAtlasShellToolsCommand} should use this method instead of
-     * instantiating their own string builders.
-     *
-     * @return the string builder
-     */
-    protected TTYStringBuilder getTTYStringBuilderForStderr()
-    {
-        return new TTYStringBuilder(this.useColorStderr);
-    }
-
-    /**
-     * Get a {@link TTYStringBuilder} with the correct formatting settings for stdout.
-     * Implementations of {@link AbstractAtlasShellToolsCommand} should use this method instead of
-     * instantiating their own string builders.
-     *
-     * @return the string builder
-     */
-    protected TTYStringBuilder getTTYStringBuilderForStdout()
-    {
-        return new TTYStringBuilder(this.useColorStdout);
-    }
-
-    /**
-     * Given a hint registered as a unary argument, return an optional wrapping the argument value
-     * associated with that hint.
-     *
-     * @param hint
-     *            the hint to check
-     * @return an {@link Optional} wrapping the value
-     * @throws CoreException
-     *             if the argument hint was not registered or is not unary
-     */
-    protected Optional<String> getUnaryArgument(final String hint)
-    {
-        return this.parser.getUnaryArgument(hint);
-    }
-
-    /**
-     * Given a hint registered as a variadic argument, return the argument values associated with
-     * that hint.
-     *
-     * @param hint
-     *            the hint to check
-     * @return a list of the values
-     * @throws CoreException
-     *             if the argument hint was not registered or is not variadic
-     */
-    protected List<String> getVariadicArgument(final String hint)
-    {
-        return this.parser.getVariadicArgument(hint);
-    }
-
-    /**
-     * Check if a given option was supplied. This will return true even if only the short form was
-     * actually present on the command line.
-     *
-     * @param longForm
-     *            the option
-     * @return if the option was supplied
-     * @throws CoreException
-     *             if longForm does not refer to a registered option
-     */
-    protected boolean hasOption(final String longForm)
-    {
-        return this.parser.hasOption(longForm);
-    }
-
-    /**
-     * Prints the supplied message like "commandName: message" to stderr. Automatically appends a
-     * newline to the output.
-     *
-     * @param message
-     *            the message
-     */
-    protected void printlnCommandMessage(final String message)
-    {
-        printStderr(this.getCommandName() + ": ");
-        printStderr(message + System.getProperty("line.separator"));
-    }
-
-    /**
-     * Prints the supplied message like "commandName: error: message" with automatic coloring to
-     * stderr. Automatically appends a newline to the output.
-     *
-     * @param message
-     *            the error message
-     */
-    protected void printlnErrorMessage(final String message)
-    {
-        printStderr(this.getCommandName() + ": ");
-        printStderr("error: ", TTYAttribute.BOLD, TTYAttribute.RED);
-        printStderr(message + System.getProperty("line.separator"));
-    }
-
-    /**
-     * Print a message to STDERR with the supplied attributes. Terminates the message with a
-     * newline.
-     *
-     * @param string
-     *            the string to print
-     * @param attributes
-     *            the attributes
-     */
-    protected void printlnStderr(final String string, final TTYAttribute... attributes)
-    {
-        final TTYStringBuilder builder = this.getTTYStringBuilderForStderr();
-        builder.append(string, attributes);
-        System.err.println(builder.toString());
-    }
-
-    /**
-     * Print a message to STDOUT with the supplied attributes. Terminates the message with a
-     * newline.
-     *
-     * @param string
-     *            the string to print
-     * @param attributes
-     *            the attributes
-     */
-    protected void printlnStdout(final String string, final TTYAttribute... attributes)
-    {
-        final TTYStringBuilder builder = this.getTTYStringBuilderForStderr();
-        builder.append(string, attributes);
-        System.out.println(builder.toString());
-    }
-
-    /**
-     * Prints the supplied message like "commandName: warn: message" with automatic coloring to
-     * stderr. Automatically appends a newline to the output.
-     *
-     * @param message
-     *            the warn message
-     */
-    protected void printlnWarnMessage(final String message)
-    {
-        printStderr(this.getCommandName() + ": ");
-        printStderr("warn: ", TTYAttribute.BOLD, TTYAttribute.MAGENTA);
-        printStderr(message + System.getProperty("line.separator"));
-    }
-
-    /**
-     * Print a message (with no ending newline) to STDERR with the supplied attributes.
-     *
-     * @param string
-     *            the string to print
-     * @param attributes
-     *            the attributes
-     */
-    protected void printStderr(final String string, final TTYAttribute... attributes)
-    {
-        final TTYStringBuilder builder = this.getTTYStringBuilderForStderr();
-        builder.append(string, attributes);
-        System.err.print(builder.toString());
-    }
-
-    /**
-     * Print a message (with no ending newline) to STDOUT with the supplied attributes.
-     *
-     * @param string
-     *            the string to print
-     * @param attributes
-     *            the attributes
-     */
-    protected void printStdout(final String string, final TTYAttribute... attributes)
-    {
-        final TTYStringBuilder builder = this.getTTYStringBuilderForStdout();
-        builder.append(string, attributes);
-        System.out.print(builder.toString());
+        return new OptionAndArgumentFetcher(this);
     }
 
     /**
@@ -605,7 +494,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      * @param args
      *            the command arguments
      */
-    protected void runSubcommandAndExit(final String... args)
+    protected void runSubcommandAndExit(final String... args) // NOSONAR
     {
         throwIfInvalidNameOrDescription();
 

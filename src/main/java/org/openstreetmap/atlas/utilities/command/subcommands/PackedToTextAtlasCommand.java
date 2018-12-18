@@ -11,6 +11,8 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentFetcher;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 
@@ -44,15 +46,24 @@ public class PackedToTextAtlasCommand extends AbstractAtlasShellToolsCommand
     private static final Character LDGEOJSON_OPTION_SHORT = 'l';
     private static final String LDGEOJSON_OPTION_DESCRIPTION = "Save atlas as line-delimited GeoJSON.";
 
+    private final OptionAndArgumentFetcher fetcher;
+    private final CommandOutputDelegate output;
+
     public static void main(final String[] args)
     {
         new PackedToTextAtlasCommand().runSubcommandAndExit(args);
     }
 
-    @Override
-    public int execute()
+    public PackedToTextAtlasCommand()
     {
-        final List<String> inputAtlasPaths = getVariadicArgument(INPUT_HINT);
+        this.fetcher = this.getOptionAndArgumentFetcher();
+        this.output = this.getCommandOutputDelegate();
+    }
+
+    @Override
+    public int execute() // NOSONAR
+    {
+        final List<String> inputAtlasPaths = this.fetcher.getVariadicArgument(INPUT_HINT);
         final List<File> atlasResourceList = new ArrayList<>();
 
         inputAtlasPaths.stream().forEach(path ->
@@ -60,32 +71,32 @@ public class PackedToTextAtlasCommand extends AbstractAtlasShellToolsCommand
             final File file = new File(path);
             if (!file.exists())
             {
-                printlnWarnMessage("file not found: " + path);
+                this.output.printlnWarnMessage("file not found: " + path);
             }
             else
             {
-                printlnStdout("Loading " + path);
+                this.output.printlnStdout("Loading " + path);
                 atlasResourceList.add(file);
             }
         });
 
-        if (hasOption(STRICT_OPTION_LONG))
+        if (this.fetcher.hasOption(STRICT_OPTION_LONG))
         {
-            if (atlasResourceList.size() != inputAtlasPaths.size())
+            if (atlasResourceList.size() != inputAtlasPaths.size()) // NOSONAR
             {
-                printlnErrorMessage("terminating due to missing atlas");
+                this.output.printlnErrorMessage("terminating due to missing atlas");
                 return 1;
             }
         }
 
         if (atlasResourceList.isEmpty())
         {
-            printlnErrorMessage("no valid input atlases found");
+            this.output.printlnErrorMessage("no valid input atlases found");
             return 1;
         }
 
         final Path outputParentPath = Paths
-                .get(getOptionArgument(OUTPUT_DIRECTORY_OPTION_LONG).orElse(""));
+                .get(this.fetcher.getOptionArgument(OUTPUT_DIRECTORY_OPTION_LONG).orElse(""));
 
         if (!outputParentPath.toFile().exists())
         {
@@ -95,7 +106,7 @@ public class PackedToTextAtlasCommand extends AbstractAtlasShellToolsCommand
             }
             catch (final Exception exception)
             {
-                printlnErrorMessage("failed to create output directory "
+                this.output.printlnErrorMessage("failed to create output directory "
                         + outputParentPath.toAbsolutePath().toString());
                 return 1;
             }
@@ -103,12 +114,12 @@ public class PackedToTextAtlasCommand extends AbstractAtlasShellToolsCommand
 
         atlasResourceList.stream().forEach(resource ->
         {
-            printlnStdout("Converting " + resource.getFile().getAbsolutePath() + "...");
-            final PackedAtlas output = new PackedAtlasCloner()
+            this.output.printlnStdout("Converting " + resource.getFile().getAbsolutePath() + "...");
+            final PackedAtlas outputAtlas = new PackedAtlasCloner()
                     .cloneFrom(new AtlasResourceLoader().load(resource));
             try
             {
-                if (hasOption(GEOJSON_OPTION_LONG))
+                if (this.fetcher.hasOption(GEOJSON_OPTION_LONG))
                 {
                     final Path filePath = Paths
                             .get(resource.getFile().getName() + FileSuffix.GEO_JSON);
@@ -116,11 +127,11 @@ public class PackedToTextAtlasCommand extends AbstractAtlasShellToolsCommand
                             outputParentPath.toAbsolutePath().toString(),
                             filePath.getFileName().toString());
                     final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
-                    output.saveAsGeoJson(outputFile);
-                    printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+                    outputAtlas.saveAsGeoJson(outputFile);
+                    this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath()); // NOSONAR
 
                 }
-                else if (hasOption(LDGEOJSON_OPTION_LONG))
+                else if (this.fetcher.hasOption(LDGEOJSON_OPTION_LONG))
                 {
                     final Path filePath = Paths
                             .get(resource.getFile().getName() + FileSuffix.GEO_JSON);
@@ -128,11 +139,11 @@ public class PackedToTextAtlasCommand extends AbstractAtlasShellToolsCommand
                             outputParentPath.toAbsolutePath().toString(),
                             filePath.getFileName().toString());
                     final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
-                    output.saveAsLineDelimitedGeoJsonFeatures(outputFile, (entity, json) ->
+                    outputAtlas.saveAsLineDelimitedGeoJsonFeatures(outputFile, (entity, json) ->
                     {
                         // Dummy consumer, we don't need to mutate the JSON
                     });
-                    printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+                    this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
                 }
                 else
                 {
@@ -141,14 +152,14 @@ public class PackedToTextAtlasCommand extends AbstractAtlasShellToolsCommand
                             outputParentPath.toAbsolutePath().toString(),
                             filePath.getFileName().toString());
                     final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
-                    output.saveAsText(outputFile);
-                    printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+                    outputAtlas.saveAsText(outputFile);
+                    this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
                 }
             }
             catch (final Exception exception)
             {
-                printlnErrorMessage("failed to save text file for " + resource.getFile().getName()
-                        + ": " + exception.getMessage());
+                this.output.printlnErrorMessage("failed to save text file for "
+                        + resource.getFile().getName() + ": " + exception.getMessage());
             }
         });
 

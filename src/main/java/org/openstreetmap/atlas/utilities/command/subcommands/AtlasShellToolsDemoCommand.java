@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentFetcher;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
@@ -17,16 +19,25 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
     private static final String DESCRIPTION_SECTION = "AtlasShellToolsDemoCommandDescriptionSection.txt";
     private static final String EXAMPLES_SECTION = "AtlasShellToolsDemoCommandExamplesSection.txt";
 
+    private final OptionAndArgumentFetcher fetcher;
+    private final CommandOutputDelegate output;
+
     public static void main(final String[] args)
     {
         new AtlasShellToolsDemoCommand().runSubcommandAndExit(args);
+    }
+
+    public AtlasShellToolsDemoCommand()
+    {
+        this.fetcher = this.getOptionAndArgumentFetcher();
+        this.output = this.getCommandOutputDelegate();
     }
 
     @Override
     public int execute()
     {
         // Check if the parser context detected the breakfast usage
-        if (getParserContext() == BREAKFAST_CONTEXT)
+        if (this.fetcher.getParserContext() == BREAKFAST_CONTEXT)
         {
             executeBreakfastContext();
         }
@@ -92,28 +103,28 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
 
     private void executeBreakfastContext()
     {
-        final String breakfast = getUnaryArgument("favoriteBreakfastFood")
+        final String breakfast = this.fetcher.getUnaryArgument("favoriteBreakfastFood")
                 .orElse("Default waffles :(");
-        printlnStdout("Using special breakfast mode:");
-        printlnStdout(breakfast, TTYAttribute.BOLD);
+        this.output.printlnStdout("Using special breakfast mode:");
+        this.output.printlnStdout(breakfast, TTYAttribute.BOLD);
     }
 
     private void executeLunchDinnerContext()
     {
         // We registered favoriteFoods as variadic so it comes back as a List.
-        final List<String> foods = getVariadicArgument("favoriteFoods");
+        final List<String> foods = this.fetcher.getVariadicArgument("favoriteFoods");
 
         // We registered favoriteMeal as REQUIRED so it is safe to unwrap the Optional.
         // The orElseThrow is just there to stop Sonar from complaining.
-        final String meal = getUnaryArgument("favoriteMeal")
+        final String meal = this.fetcher.getUnaryArgument("favoriteMeal")
                 .orElseThrow(AtlasShellToolsException::new);
 
-        printStdout("I like meal ");
-        printStdout(meal, TTYAttribute.MAGENTA, TTYAttribute.BOLD, TTYAttribute.BLINK);
-        printlnStdout(" the best");
+        this.output.printStdout("I like meal ");
+        this.output.printStdout(meal, TTYAttribute.MAGENTA, TTYAttribute.BOLD, TTYAttribute.BLINK);
+        this.output.printlnStdout(" the best");
 
         final int repeatDefault = 1;
-        final int repeat = getOptionArgument("repeat", value ->
+        final int repeat = this.fetcher.getOptionArgument("repeat", value ->
         {
             final int parsed;
             try
@@ -122,42 +133,42 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
             }
             catch (final Exception exception)
             {
-                printlnWarnMessage("failed to parse repeat argument, using default");
+                this.output.printlnWarnMessage("failed to parse repeat argument, using default");
                 return null;
             }
             return parsed;
         }).orElse(repeatDefault);
 
-        printlnStdout("Favorite foods are:");
+        this.output.printlnStdout("Favorite foods are:");
         for (int index = 0; index < repeat; index++)
         {
             for (final String food : foods)
             {
                 String mutableFood = food;
-                if (hasOption("capitalize"))
+                if (this.fetcher.hasOption("capitalize"))
                 {
                     mutableFood = mutableFood.toUpperCase();
                 }
-                printlnStdout(mutableFood, TTYAttribute.BOLD);
+                this.output.printlnStdout(mutableFood, TTYAttribute.BOLD);
             }
         }
 
-        if (hasOption("cheese"))
+        if (this.fetcher.hasOption("cheese"))
         {
-            printlnStdout("Using " + getOptionArgument("cheese").orElse("cheddar") + " cheese");
+            this.output.printlnStdout("Using "
+                    + this.fetcher.getOptionArgument("cheese").orElse("cheddar") + " cheese");
         }
 
-        if (hasOption("beer"))
+        if (this.fetcher.hasOption("beer"))
         {
-            printlnStdout("Also ordering a beer, "
-                    + getOptionArgument("beer").orElseThrow(AtlasShellToolsException::new));
+            this.output.printlnStdout("Also ordering a beer, " + this.fetcher
+                    .getOptionArgument("beer").orElseThrow(AtlasShellToolsException::new));
         }
         else
         {
-            printlnWarnMessage("beer skipped");
+            this.output.printlnWarnMessage("beer skipped");
         }
 
-        printStderr("Here is a closing stderr message\n", TTYAttribute.UNDERLINE);
-
+        this.output.printStderr("Here is a closing stderr message\n", TTYAttribute.UNDERLINE);
     }
 }
