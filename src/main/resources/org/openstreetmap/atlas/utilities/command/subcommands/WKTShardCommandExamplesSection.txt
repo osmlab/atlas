@@ -1,4 +1,6 @@
-See the shard (defined in tree.txt) that covers "POINT (10 30)":
-#$ wkt-sharding --sharding=dynamic@/Users/example/path/to/tree.txt "POINT (10 30)"
-See all shards (defined in tree.txt) that intersect some given lines:
-#$ wkt-sharding --sharding=dynamic@/Users/example/path/to/tree.txt "LINESTRING (30 10, 10 30, 40 40)" "LINESTRING (40 15, 15 30, 50 50)"
+See the dynamic shard (defined in tree.txt) that covers POINT (10 30):
+#$ wkt-shard --tree=/Users/example/path/to/tree.txt "POINT (10 30)"
+See all dynamic shards (defined in tree.txt) that intersect some given lines:
+#$ wkt-shard --tree=/Users/example/path/to/tree.txt "LINESTRING (30 10, 10 30, 40 40)" "LINESTRING (40 15, 15 30, 50 50)"
+See all slippy tile shards that intersect a point, using a slippy tile sharding at zoom 10:
+#$ wkt-shard --slippy=10 "POINT (10 30)"
