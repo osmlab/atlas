@@ -6,12 +6,14 @@ import org.openstreetmap.atlas.geography.Altitude;
 import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.tags.annotations.Tag.Validation;
 import org.openstreetmap.atlas.tags.annotations.TagKey;
+import org.openstreetmap.atlas.tags.annotations.extraction.AltitudeExtractor;
 import org.openstreetmap.atlas.tags.annotations.validation.DoubleValidator;
 
 /**
  * OSM min_height tag
  *
  * @author ajayaswal
+ * @author bbreithaupt
  */
 @Tag(value = Validation.DOUBLE, taginfo = "https://taginfo.openstreetmap.org/keys/min_height#values", osm = "https://wiki.openstreetmap.org/wiki/Key:min_height")
 public interface MinHeightTag
@@ -24,10 +26,9 @@ public interface MinHeightTag
     static Optional<Altitude> get(final Taggable taggable)
     {
         final Optional<String> tagValue = taggable.getTag(KEY);
-
-        if (tagValue.isPresent() && validator.isValid(tagValue.get()))
+        if (tagValue.isPresent())
         {
-            return Optional.of(Altitude.meters(Double.valueOf(tagValue.get())));
+            return AltitudeExtractor.validateAndExtract(tagValue.get());
         }
 
         return Optional.empty();
