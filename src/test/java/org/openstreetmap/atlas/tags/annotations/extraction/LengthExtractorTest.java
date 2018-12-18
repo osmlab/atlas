@@ -80,4 +80,18 @@ public class LengthExtractorTest
     {
         Assert.assertEquals(Optional.empty(), LengthExtractor.validateAndExtract("20.s"));
     }
+
+    @Test
+    public void validMetersCapsTest()
+    {
+        Assert.assertEquals(Optional.of(Distance.meters(20)),
+                LengthExtractor.validateAndExtract("20 M"));
+    }
+
+    @Test
+    public void validNauticalMilesMixedCapsTest()
+    {
+        Assert.assertEquals(Optional.of(Distance.nauticalMiles(20.543)),
+                LengthExtractor.validateAndExtract("20.543 nMI"));
+    }
 }

@@ -40,4 +40,11 @@ public class AltitudeExtractorTest
         Assert.assertEquals(Optional.of(Altitude.meters(-20)),
                 AltitudeExtractor.validateAndExtract("-20 m"));
     }
+
+    @Test
+    public void validNegativeMetersCapsTest()
+    {
+        Assert.assertEquals(Optional.of(Altitude.meters(-20)),
+                AltitudeExtractor.validateAndExtract("-20 M"));
+    }
 }

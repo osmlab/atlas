@@ -71,4 +71,16 @@ public class LengthValidatorTest
     {
         Assert.assertFalse(VALIDATOR.isValid("123s m"));
     }
+
+    @Test
+    public void validMetersCapsTest()
+    {
+        Assert.assertTrue(VALIDATOR.isValid("123 M"));
+    }
+
+    @Test
+    public void validNauticalMilesMixedCapsTest()
+    {
+        Assert.assertTrue(VALIDATOR.isValid("123.543 nMI"));
+    }
 }
