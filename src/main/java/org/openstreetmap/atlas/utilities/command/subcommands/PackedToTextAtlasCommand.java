@@ -2,7 +2,6 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
@@ -10,31 +9,23 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
-import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentFetcher;
-import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
-import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
+import org.openstreetmap.atlas.utilities.command.subcommands.templates.AtlasLoaderCommand;
 
 /**
  * @author lcram
  */
-public class PackedToTextAtlasCommand extends AbstractAtlasShellToolsCommand
+public class PackedToTextAtlasCommand extends AtlasLoaderCommand
 {
     private static final String DESCRIPTION_SECTION = "PackedToTextAtlasCommandDescriptionSection.txt";
     private static final String EXAMPLES_SECTION = "PackedToTextAtlasCommandExamplesSection.txt";
-
-    private static final String INPUT_HINT = "input-atlases";
 
     private static final String OUTPUT_DIRECTORY_OPTION_LONG = "output";
     private static final Character OUTPUT_DIRECTORY_OPTION_SHORT = 'o';
     private static final String OUTPUT_DIRECTORY_OPTION_DESCRIPTION = "Specify an alternate output directory for the text atlas files. If the directory\n"
             + "does not exist, it will be created.";
     private static final String OUTPUT_DIRECTORY_OPTION_HINT = "dir";
-
-    private static final String STRICT_OPTION_LONG = "strict";
-    private static final Character STRING_OPTION_SHORT = 's';
-    private static final String STRICT_OPTION_DESCRIPTION = "Fail fast if any input atlases are missing.";
 
     private static final String GEOJSON_OPTION_LONG = "geojson";
     private static final Character GEOJSON_OPTION_SHORT = 'g';
@@ -54,6 +45,7 @@ public class PackedToTextAtlasCommand extends AbstractAtlasShellToolsCommand
 
     public PackedToTextAtlasCommand()
     {
+        super();
         this.fetcher = this.getOptionAndArgumentFetcher();
         this.output = this.getCommandOutputDelegate();
     }
@@ -61,37 +53,7 @@ public class PackedToTextAtlasCommand extends AbstractAtlasShellToolsCommand
     @Override
     public int execute() // NOSONAR
     {
-        final List<String> inputAtlasPaths = this.fetcher.getVariadicArgument(INPUT_HINT);
-        final List<File> atlasResourceList = new ArrayList<>();
-
-        inputAtlasPaths.stream().forEach(path ->
-        {
-            final File file = new File(path);
-            if (!file.exists())
-            {
-                this.output.printlnWarnMessage("file not found: " + path);
-            }
-            else
-            {
-                this.output.printlnStdout("Loading " + path);
-                atlasResourceList.add(file);
-            }
-        });
-
-        if (this.fetcher.hasOption(STRICT_OPTION_LONG))
-        {
-            if (atlasResourceList.size() != inputAtlasPaths.size()) // NOSONAR
-            {
-                this.output.printlnErrorMessage("terminating due to missing atlas");
-                return 1;
-            }
-        }
-
-        if (atlasResourceList.isEmpty())
-        {
-            this.output.printlnErrorMessage("no valid input atlases found");
-            return 1;
-        }
+        final List<File> atlasResourceList = this.getInputAtlasResources();
 
         final Path outputParentPath = Paths
                 .get(this.fetcher.getOptionArgument(OUTPUT_DIRECTORY_OPTION_LONG).orElse(""));
@@ -188,12 +150,11 @@ public class PackedToTextAtlasCommand extends AbstractAtlasShellToolsCommand
     @Override
     public void registerOptionsAndArguments()
     {
-        registerOption(STRICT_OPTION_LONG, STRING_OPTION_SHORT, STRICT_OPTION_DESCRIPTION);
+        super.registerOptionsAndArguments();
         registerOption(GEOJSON_OPTION_LONG, GEOJSON_OPTION_SHORT, GEOJSON_OPTION_DESCRIPTION);
         registerOption(LDGEOJSON_OPTION_LONG, LDGEOJSON_OPTION_SHORT, LDGEOJSON_OPTION_DESCRIPTION);
         registerOptionWithRequiredArgument(OUTPUT_DIRECTORY_OPTION_LONG,
                 OUTPUT_DIRECTORY_OPTION_SHORT, OUTPUT_DIRECTORY_OPTION_DESCRIPTION,
                 OUTPUT_DIRECTORY_OPTION_HINT);
-        registerArgument(INPUT_HINT, ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED);
     }
 }
