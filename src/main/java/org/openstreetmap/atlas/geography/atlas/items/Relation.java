@@ -268,7 +268,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
      *
      * @return The OSM identifier
      */
-    public abstract long osmRelationIdentifier();
+    public abstract Long osmRelationIdentifier();
 
     @Override
     public String toDiffViewFriendlyString()

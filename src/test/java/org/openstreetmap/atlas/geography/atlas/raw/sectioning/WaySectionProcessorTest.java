@@ -65,33 +65,6 @@ public class WaySectionProcessorTest
     }
 
     @Test
-    public void testBuildingAtlasWithNestedRelationRemoval()
-    {
-        // Parent Relation https://www.openstreetmap.org/relation/2446626 contains Relation
-        // https://www.openstreetmap.org/relation/2448165, which in turn contains Way
-        // https://www.openstreetmap.org/way/183853720. The Way does not make it into the Atlas, so
-        // the sub-relation becomes empty, leading it to be dropped. This test verifies that the
-        // drop happens, but that the parent Relation is still correctly built, without the dropped
-        // sub-relation as a member.
-        final Atlas slicedRawAtlas = this.setup.getNestedRelationRemovalAtlas();
-        final CountryBoundaryMap boundaryMap = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(() -> WaySectionProcessorTest.class
-                        .getResourceAsStream("nestedRelationRemovalBoundaryMap.txt")));
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
-                AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
-
-        // Validate presence of a top-most relation with no sub-relation
-        Assert.assertEquals("Assert presence of a single relation", 1,
-                finalAtlas.numberOfRelations());
-        final RelationMemberList memberList = finalAtlas.relation(2446626000000L).members();
-        Assert.assertEquals("Final relation should have one member", 1, memberList.size());
-        Assert.assertEquals("The member should be an Edge", ItemType.EDGE,
-                memberList.get(0).getEntity().getType());
-        Assert.assertNull("Explicitly check for absence of sub-relation",
-                finalAtlas.relation(2448165000000L));
-    }
-
-    @Test
     public void testCutAtShardBoundary()
     {
         final Atlas slicedRawAtlas = this.setup.getRawAtlasSpanningOutsideBoundary();

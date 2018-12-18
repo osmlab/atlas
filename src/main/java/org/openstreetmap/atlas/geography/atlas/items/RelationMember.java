@@ -1,6 +1,8 @@
 package org.openstreetmap.atlas.geography.atlas.items;
 
 import org.apache.commons.lang3.StringUtils;
+import org.openstreetmap.atlas.geography.Located;
+import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 
 /**
@@ -8,7 +10,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
  *
  * @author matthieun
  */
-public class RelationMember implements Comparable<RelationMember>
+public class RelationMember implements Comparable<RelationMember>, Located
 {
     private final String role;
     private final AtlasEntity entity;
@@ -20,6 +22,12 @@ public class RelationMember implements Comparable<RelationMember>
         this.role = role;
         this.entity = entity;
         this.relationIdentifier = relationIdentifier;
+    }
+
+    @Override
+    public Rectangle bounds()
+    {
+        return this.entity.bounds();
     }
 
     @Override

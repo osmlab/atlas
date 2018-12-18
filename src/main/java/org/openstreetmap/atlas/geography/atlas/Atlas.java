@@ -23,6 +23,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.SnappedEdge;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
@@ -126,6 +128,17 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      *         matches the given matcher
      */
     GeoJsonObject asGeoJson(Predicate<AtlasEntity> matcher);
+
+    /**
+     * Clone this {@link Atlas} to a {@link PackedAtlas}. Do not uses "clone" so as not to be
+     * confused with the clone function in {@link Cloneable}, which this interface does not extend.
+     *
+     * @return The {@link PackedAtlas} copy of this {@link Atlas}.
+     */
+    default PackedAtlas cloneToPackedAtlas()
+    {
+        return new PackedAtlasCloner().cloneFrom(this);
+    }
 
     /**
      * @param identifier

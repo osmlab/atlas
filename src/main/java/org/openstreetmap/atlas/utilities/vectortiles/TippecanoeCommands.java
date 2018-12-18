@@ -10,6 +10,7 @@ import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.geojson.LineDelimitedGeoJsonConverter;
 import org.openstreetmap.atlas.utilities.runtime.RunScript;
 import org.openstreetmap.atlas.utilities.runtime.SingleLineMonitor;
 import org.openstreetmap.atlas.utilities.time.Time;
@@ -38,6 +39,55 @@ public final class TippecanoeCommands
             return Optional.of(line);
         }
     };
+
+    /**
+     * Decompresses a directory of *.geojson.gz files recursively into *.geojson files.
+     *
+     * @param geojsonDirectory
+     *            The directory to decompress.
+     */
+    public static void decompress(final Path geojsonDirectory)
+    {
+        final Time time = Time.now();
+        final String directory = geojsonDirectory.toString();
+        final String cat = String.format(
+                "find '%s' -type f -name '*.geojson.gz' -exec gzip -dr \\{\\} +", directory);
+        final String[] bashCommandArray = new String[] { "bash", "-c", cat };
+        try
+        {
+            RunScript.run(bashCommandArray);
+            logger.info("Decompressed line-delimited GeoJSON in {}", time.elapsedSince());
+        }
+        catch (final CoreException exception)
+        {
+            logger.warn("Not finding any .geojson.gz to decompress. Continuing...", exception);
+        }
+    }
+
+    /**
+     * Concatenates all of the GeoJSON files in a directory into a single GeoJSON file. This find
+     * command is fairly sophisticated. What you see here is that it is finding everything in a
+     * certain directory with the extension of *.geojson but is not EVERYTHING.geojosn. It then
+     * pipes those files to cat which in turn outputs to EVERYTHING.geojson.
+     * 
+     * @param geojsonDirectory
+     *            The directory of GeoJSON files to concatenate.
+     */
+    public static void concatenate(final Path geojsonDirectory)
+    {
+        final Time time = Time.now();
+        logger.info("Concatenating GeoJSON...");
+        final String directory = geojsonDirectory.toString();
+        final String cat = String.format(
+                "find '%s' -type f -name '*.geojson' \\! -path '%s'/%s -exec cat \\{\\} + > '%s/'%s",
+                directory, directory, LineDelimitedGeoJsonConverter.EVERYTHING, directory,
+                LineDelimitedGeoJsonConverter.EVERYTHING);
+        logger.info(cat);
+        final String[] bashCommandArray = new String[] { "bash", "-c", cat };
+        RunScript.run(bashCommandArray);
+        logger.info("Concatenated to {} in {}", LineDelimitedGeoJsonConverter.EVERYTHING,
+                time.elapsedSince());
+    }
 
     /**
      * Allows you to check if you have installed tippecanoe on your system and if it satisfies the
