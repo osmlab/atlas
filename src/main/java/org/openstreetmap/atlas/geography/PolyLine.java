@@ -47,7 +47,7 @@ import com.google.gson.JsonObject;
  * @author mgostintsev
  * @author Sid
  */
-public class PolyLine implements Collection<Location>, Located, Serializable
+public class PolyLine implements Collection<Location>, Located, Serializable, GeometryPrintable
 {
     private static final long serialVersionUID = -3291779878869865427L;
     protected static final int SIMPLE_STRING_LENGTH = 200;
@@ -252,6 +252,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         return asGeoJson(geometries);
     }
 
+    @Override
     public JsonObject asGeoJsonGeometry()
     {
         return GeoJsonUtils.geometry(GeoJsonUtils.LINESTRING,
@@ -1146,6 +1147,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     /**
      * @return This {@link PolyLine} as Well Known Binary
      */
+    @Override
     public byte[] toWkb()
     {
         if (this.size() == 1)
@@ -1159,6 +1161,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     /**
      * @return This {@link PolyLine} as Well Known Text
      */
+    @Override
     public String toWkt()
     {
         if (this.size() == 1)
