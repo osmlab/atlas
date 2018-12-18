@@ -24,6 +24,9 @@ import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
+/**
+ * @author lcram
+ */
 public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 {
     private static final String DESCRIPTION_SECTION = "WKTShardCommandDescriptionSection.txt";
