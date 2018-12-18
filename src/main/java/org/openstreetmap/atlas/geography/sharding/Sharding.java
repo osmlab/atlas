@@ -33,7 +33,9 @@ public interface Sharding extends Serializable
         split = StringList.split(sharding, "@");
         if (split.size() != SHARDING_STRING_SPLIT)
         {
-            throw new CoreException("Invalid sharding string: {}", sharding);
+            throw new CoreException(
+                    "Invalid sharding string: {} (missing \'dynamic@\' or \'slippy@\' prefix)",
+                    sharding);
         }
         if ("slippy".equals(split.get(0)))
         {
