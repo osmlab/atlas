@@ -8,6 +8,7 @@ import java.util.Random;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Snapper.SnappedLocation;
+import org.openstreetmap.atlas.geography.converters.WkbLocationConverter;
 import org.openstreetmap.atlas.geography.converters.WktLocationConverter;
 import org.openstreetmap.atlas.geography.coordinates.EarthCenteredEarthFixedCoordinate;
 import org.openstreetmap.atlas.geography.coordinates.GeodeticCoordinate;
@@ -25,7 +26,7 @@ import com.google.gson.JsonObject;
  * @author matthieun
  * @author mgostintsev
  */
-public class Location implements Located, Iterable<Location>, Serializable
+public class Location implements Located, Iterable<Location>, Serializable, GeometryPrintable
 {
     private static final long serialVersionUID = 3770424147251047128L;
 
@@ -174,6 +175,12 @@ public class Location implements Located, Iterable<Location>, Serializable
     }
 
     @Override
+    public JsonObject asGeoJsonGeometry()
+    {
+        return GeoJsonUtils.geometry(GeoJsonUtils.POINT, GeoJsonUtils.coordinate(this));
+    }
+
+    @Override
     public Rectangle bounds()
     {
         return Rectangle.forCorners(this, this);
@@ -246,11 +253,6 @@ public class Location implements Located, Iterable<Location>, Serializable
         final double yAxis = lat2 - lat1;
 
         return Distance.AVERAGE_EARTH_RADIUS.scaleBy(Math.sqrt(xAxis * xAxis + yAxis * yAxis));
-    }
-
-    public JsonObject asGeoJsonGeometry()
-    {
-        return GeoJsonUtils.geometry(GeoJsonUtils.POINT, GeoJsonUtils.coordinate(this));
     }
 
     /**
@@ -582,6 +584,13 @@ public class Location implements Located, Iterable<Location>, Serializable
         return toWkt();
     }
 
+    @Override
+    public byte[] toWkb()
+    {
+        return new WkbLocationConverter().convert(this);
+    }
+
+    @Override
     public String toWkt()
     {
         return new WktLocationConverter().convert(this);

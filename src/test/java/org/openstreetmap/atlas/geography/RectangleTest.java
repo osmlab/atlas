@@ -9,6 +9,8 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
 
+import com.google.gson.JsonArray;
+
 /**
  * @author matthieun
  */
@@ -52,6 +54,14 @@ public class RectangleTest
                 upperRightTestRectangle2);
         Assert.assertTrue(testRectangle2.overlaps(antiMeridianRectangle2));
         Assert.assertTrue(antiMeridianRectangle2.overlaps(testRectangle2));
+    }
+
+    @Test
+    public void testAsGeoJsonBbox()
+    {
+        final Rectangle rectangle = Rectangle.TEST_RECTANGLE;
+        final JsonArray array = rectangle.asGeoJsonBbox();
+        Assert.assertEquals("[-122.031905,37.328167,-122.029051,37.330394]", array.toString());
     }
 
     @Test(expected = CoreException.class)

@@ -72,6 +72,12 @@ public class RelationBean implements Serializable, Iterable<RelationBeanItem>
         {
             return Objects.hash(this.identifier, this.role, this.type);
         }
+
+        @Override
+        public String toString()
+        {
+            return this.type + ", " + this.identifier + ", " + this.role;
+        }
     }
 
     private static final long serialVersionUID = 8511830231633569713L;

@@ -12,6 +12,8 @@ import org.openstreetmap.atlas.utilities.scalars.Angle;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonPrimitive;
 import com.vividsolutions.jts.geom.Envelope;
 
 /**
@@ -222,6 +224,16 @@ public final class Rectangle extends Polygon
                 this.upperRight.getLongitude().asDegrees(),
                 this.lowerLeft.getLatitude().asDegrees(),
                 this.upperRight.getLatitude().asDegrees());
+    }
+
+    public JsonArray asGeoJsonBbox()
+    {
+        final JsonArray array = new JsonArray();
+        array.add(new JsonPrimitive(this.lowerLeft.getLongitude().asDegrees()));
+        array.add(new JsonPrimitive(this.lowerLeft.getLatitude().asDegrees()));
+        array.add(new JsonPrimitive(this.upperRight.getLongitude().asDegrees()));
+        array.add(new JsonPrimitive(this.upperRight.getLatitude().asDegrees()));
+        return array;
     }
 
     @Override
