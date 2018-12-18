@@ -9,6 +9,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.AtlasShellToolsMarkerInterface;
 
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 
@@ -19,10 +21,10 @@ public final class ReflectionUtilities
 {
     public static Set<AbstractAtlasShellToolsCommand> getSubcommandInstances()
     {
-        final List<Class<? extends AtlasShellToolsMarker>> subcommandClasses = new ArrayList<>();
+        final List<Class<? extends AtlasShellToolsMarkerInterface>> subcommandClasses = new ArrayList<>();
         final Set<AbstractAtlasShellToolsCommand> instantiatedCommands = new HashSet<>();
         new FastClasspathScanner()
-                .matchClassesImplementing(AtlasShellToolsMarker.class, subcommandClasses::add)
+                .matchClassesImplementing(AtlasShellToolsMarkerInterface.class, subcommandClasses::add)
                 .scan();
         subcommandClasses.stream().forEach(klass -> instantiateSubcommand(klass.getName())
                 .ifPresent(instantiatedCommands::add));

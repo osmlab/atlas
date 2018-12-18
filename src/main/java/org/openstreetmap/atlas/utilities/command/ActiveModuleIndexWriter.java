@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 
 import com.google.common.base.Objects;
 

@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.utilities.command;
+package org.openstreetmap.atlas.utilities.command.abstractcommand;
 
 import java.io.InputStream;
 import java.util.Arrays;
@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author lcram
  */
-public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsMarker
+public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsMarkerInterface
 {
     private static final Logger logger = LoggerFactory
             .getLogger(AbstractAtlasShellToolsCommand.class);

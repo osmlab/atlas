@@ -1,6 +1,6 @@
 package org.openstreetmap.atlas.utilities.command.subcommands;
 
-import org.openstreetmap.atlas.utilities.command.AbstractAtlasShellToolsCommand;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

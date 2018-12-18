@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.utilities.command;
+package org.openstreetmap.atlas.utilities.command.abstractcommand;
 
 /**
  * A marker interface for the classpath scanner. No subcommands should directly implement this
@@ -6,7 +6,7 @@ package org.openstreetmap.atlas.utilities.command;
  *
  * @author lcram
  */
-public interface AtlasShellToolsMarker
+public interface AtlasShellToolsMarkerInterface
 {
 
 }
