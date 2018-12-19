@@ -105,6 +105,7 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
         catch (final IllegalArgumentException exception)
         {
             this.output.printlnErrorMessage("invalid cut type " + cutTypeString);
+            this.output.printlnStderr("Try soft_cut, hard_cut_all, or hard_cut_relations_only");
             return 1;
         }
 
