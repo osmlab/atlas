@@ -1,9 +1,10 @@
 package org.openstreetmap.atlas.geography;
 
+import java.util.Objects;
+
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
 
 /**
@@ -81,7 +82,7 @@ public class Snapper
         @Override
         public int hashCode()
         {
-            return Objects.hashCode(this.origin, this.target);
+            return Objects.hash(this.origin, this.target);
         }
     }
 

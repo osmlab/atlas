@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.items.complex.boundaries;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -32,7 +33,6 @@ import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Objects;
 import com.google.gson.JsonObject;
 
 /**
@@ -142,7 +142,7 @@ public class ComplexBoundary extends ComplexEntity implements GeometryPrintable
     @Override
     public int hashCode()
     {
-        return Objects.hashCode(this.administrativeLevel, this.outline);
+        return Objects.hash(this.administrativeLevel, this.outline);
     }
 
     public void removeOuter(final Polygon outerToRemove)
