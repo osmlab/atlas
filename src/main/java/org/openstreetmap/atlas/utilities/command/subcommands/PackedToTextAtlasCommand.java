@@ -2,6 +2,8 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
@@ -20,12 +22,6 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
 {
     private static final String DESCRIPTION_SECTION = "PackedToTextAtlasCommandDescriptionSection.txt";
     private static final String EXAMPLES_SECTION = "PackedToTextAtlasCommandExamplesSection.txt";
-
-    private static final String OUTPUT_DIRECTORY_OPTION_LONG = "output";
-    private static final Character OUTPUT_DIRECTORY_OPTION_SHORT = 'o';
-    private static final String OUTPUT_DIRECTORY_OPTION_DESCRIPTION = "Specify an alternate output directory for the text atlas files. If the directory\n"
-            + "does not exist, it will be created.";
-    private static final String OUTPUT_DIRECTORY_OPTION_HINT = "dir";
 
     private static final String GEOJSON_OPTION_LONG = "geojson";
     private static final Character GEOJSON_OPTION_SHORT = 'g';
@@ -57,24 +53,20 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     @Override
     public int execute() // NOSONAR
     {
-        final Path outputParentPath = Paths
-                .get(this.fetcher.getOptionArgument(OUTPUT_DIRECTORY_OPTION_LONG).orElse(""));
-
-        if (!outputParentPath.toFile().exists())
+        final List<File> atlasResourceList = this.getInputAtlasResources();
+        if (atlasResourceList.isEmpty())
         {
-            try
-            {
-                new File(outputParentPath.toAbsolutePath().toString()).mkdirs();
-            }
-            catch (final Exception exception)
-            {
-                this.output.printlnErrorMessage("failed to create output directory "
-                        + outputParentPath.toAbsolutePath().toString());
-                return 1;
-            }
+            this.output.printlnErrorMessage("no input atlases");
+            return 1;
         }
+        final Stream<File> atlasResourceStream = atlasResourceList.stream();
 
-        final Stream<File> atlasResourceStream = this.getInputAtlasResources().stream();
+        final Optional<Path> outputParentPath = this.getOutputPath();
+        if (!outputParentPath.isPresent())
+        {
+            this.output.printlnErrorMessage("invalid output path");
+            return 1;
+        }
 
         if (this.fetcher.hasOption(PARALLEL_OPTION_LONG))
         {
@@ -93,7 +85,7 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
                     final Path filePath = Paths
                             .get(resource.getFile().getName() + FileSuffix.GEO_JSON);
                     final Path concatenatedPath = Paths.get(
-                            outputParentPath.toAbsolutePath().toString(),
+                            outputParentPath.get().toAbsolutePath().toString(),
                             filePath.getFileName().toString());
                     final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
                     outputAtlas.saveAsGeoJson(outputFile);
@@ -105,7 +97,7 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
                     final Path filePath = Paths
                             .get(resource.getFile().getName() + FileSuffix.GEO_JSON);
                     final Path concatenatedPath = Paths.get(
-                            outputParentPath.toAbsolutePath().toString(),
+                            outputParentPath.get().toAbsolutePath().toString(),
                             filePath.getFileName().toString());
                     final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
                     outputAtlas.saveAsLineDelimitedGeoJsonFeatures(outputFile, (entity, json) ->
@@ -118,7 +110,7 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
                 {
                     final Path filePath = Paths.get(resource.getFile().getName() + FileSuffix.TEXT);
                     final Path concatenatedPath = Paths.get(
-                            outputParentPath.toAbsolutePath().toString(),
+                            outputParentPath.get().toAbsolutePath().toString(),
                             filePath.getFileName().toString());
                     final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
                     outputAtlas.saveAsText(outputFile);
@@ -164,8 +156,5 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
         registerOption(GEOJSON_OPTION_LONG, GEOJSON_OPTION_SHORT, GEOJSON_OPTION_DESCRIPTION);
         registerOption(LDGEOJSON_OPTION_LONG, LDGEOJSON_OPTION_SHORT, LDGEOJSON_OPTION_DESCRIPTION);
         registerOption(PARALLEL_OPTION_LONG, PARALLEL_OPTION_SHORT, PARALLEL_OPTION_DESCRIPTION);
-        registerOptionWithRequiredArgument(OUTPUT_DIRECTORY_OPTION_LONG,
-                OUTPUT_DIRECTORY_OPTION_SHORT, OUTPUT_DIRECTORY_OPTION_DESCRIPTION,
-                OUTPUT_DIRECTORY_OPTION_HINT);
     }
 }
