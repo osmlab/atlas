@@ -13,6 +13,6 @@ public class AtlasShellToolsException extends CoreException
 
     public AtlasShellToolsException()
     {
-        super("This should never happen, you found a bug! Please report this stack trace.");
+        super("This should never happen, you found a bug! Please report this stack trace, and the command line that caused it.");
     }
 }

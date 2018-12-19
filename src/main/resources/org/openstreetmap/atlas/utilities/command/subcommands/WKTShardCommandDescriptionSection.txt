@@ -1,3 +1,8 @@
 Given some supplied WKT strings and a sharding tree, spit out the shards that intersect
 each WKT entity. The '--tree' and '--slippy' options allow the user to select between
 a dynamic sharding tree or a static slippy tile tree based on a single zoom.
+
+Use the '--input' option to specify a file from which to read WKT,
+line-by-line. This will supplement any WKT strings provided on the
+command line. Each line in the input file will be interpreted as
+a single WKT entity.

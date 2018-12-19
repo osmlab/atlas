@@ -1,6 +1,10 @@
 package org.openstreetmap.atlas.utilities.command.subcommands;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -9,6 +13,8 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
+import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
@@ -44,6 +50,10 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     private static final String SLIPPY_OPTION_DESCRIPTION = "The slippy tile zoom level for the sharding.";
     private static final String SLIPPY_OPTION_HINT = "zoom";
 
+    private static final String INPUT_FILE_OPTION_LONG = "input";
+    private static final String INPUT_FILE_OPTION_DESCRIPTION = "An input file from which to source the WKT entities. See DESCRIPTION section for details.";
+    private static final String INPUT_FILE_OPTION_HINT = "file";
+
     private static final Integer TREE_CONTEXT = 3;
     private static final Integer SLIPPY_CONTEXT = 4;
 
@@ -66,7 +76,19 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     @Override
     public int execute()
     {
-        final List<String> inputWKT = this.fetcher.getVariadicArgument(INPUT_WKT);
+        final List<String> inputWKT = new ArrayList<>();
+        if (this.fetcher.hasOption(INPUT_FILE_OPTION_LONG))
+        {
+            inputWKT.addAll(
+                    readWKTFromFile(this.fetcher.getOptionArgument(INPUT_FILE_OPTION_LONG)));
+        }
+        inputWKT.addAll(this.fetcher.getVariadicArgument(INPUT_WKT));
+
+        if (inputWKT.isEmpty())
+        {
+            this.output.printlnWarnMessage("no input WKTs were found");
+            return 0;
+        }
 
         final Sharding sharding;
         if (this.fetcher.getParserContext() == TREE_CONTEXT)
@@ -99,7 +121,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         for (int i = 0; i < inputWKT.size(); i++)
         {
             final String wkt = inputWKT.get(i);
-            parseWKTAndOutput(wkt, sharding);
+            parseWKTAndPrintOutput(wkt, sharding);
 
             // Only print a separating newline if there were multiple entries
             if (i < inputWKT.size() - 1)
@@ -135,15 +157,17 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     @Override
     public void registerOptionsAndArguments()
     {
-        registerArgument(INPUT_WKT, ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED,
+        registerArgument(INPUT_WKT, ArgumentArity.VARIADIC, ArgumentOptionality.OPTIONAL,
                 TREE_CONTEXT, SLIPPY_CONTEXT);
+        registerOptionWithRequiredArgument(INPUT_FILE_OPTION_LONG, INPUT_FILE_OPTION_DESCRIPTION,
+                INPUT_FILE_OPTION_HINT, TREE_CONTEXT, SLIPPY_CONTEXT);
         registerOptionWithRequiredArgument(TREE_OPTION_LONG, TREE_OPTION_DESCRIPTION,
                 TREE_OPTION_HINT, TREE_CONTEXT);
         registerOptionWithRequiredArgument(SLIPPY_OPTION_LONG, SLIPPY_OPTION_DESCRIPTION,
                 SLIPPY_OPTION_HINT, SLIPPY_CONTEXT);
     }
 
-    private void parseWKTAndOutput(final String wkt, final Sharding sharding)
+    private void parseWKTAndPrintOutput(final String wkt, final Sharding sharding)
     {
         final WKTReader reader = new WKTReader();
         Geometry geometry = null;
@@ -193,5 +217,40 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         {
             this.output.printlnErrorMessage("unsupported geometry type " + wkt);
         }
+    }
+
+    private List<String> readWKTFromFile(final Optional<String> pathOptional)
+    {
+        if (!pathOptional.isPresent())
+        {
+            throw new AtlasShellToolsException();
+        }
+        final Path inputPath = Paths.get(pathOptional.get());
+        if (inputPath.toString().startsWith("~"))
+        {
+            this.output.printlnWarnMessage("the \'~\' was not expanded by your shell");
+        }
+        if (!inputPath.toAbsolutePath().toFile().canRead()
+                || !inputPath.toAbsolutePath().toFile().isFile())
+        {
+            this.output.printlnErrorMessage(
+                    inputPath.toAbsolutePath().toString() + " is not a readable file");
+            return new ArrayList<>();
+        }
+        final List<String> wktList = new ArrayList<>();
+        final StringResource resource = new StringResource();
+        resource.copyFrom(new File(inputPath.toAbsolutePath().toString()));
+        final String rawText = resource.all();
+
+        final String[] split = rawText.split(System.getProperty("line.separator"));
+        for (final String line : split)
+        {
+            if (!line.isEmpty())
+            {
+                wktList.add(line);
+            }
+        }
+
+        return wktList;
     }
 }
