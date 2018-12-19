@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.utilities.command.abstractcommand;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.SortedSet;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.conversion.StringConverter;
@@ -61,6 +62,16 @@ public class OptionAndArgumentFetcher
     public int getParserContext()
     {
         return this.parentCommand.getParserContext();
+    }
+
+    /**
+     * Get all registered contexts for this command.
+     *
+     * @return the set of registered contexts
+     */
+    public SortedSet<Integer> getFilteredRegisteredContexts()
+    {
+        return this.parentCommand.getFilteredRegisteredContexts();
     }
 
     /**

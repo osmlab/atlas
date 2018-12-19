@@ -44,6 +44,9 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     private static final String SLIPPY_OPTION_DESCRIPTION = "The slippy tile zoom level for the sharding.";
     private static final String SLIPPY_OPTION_HINT = "zoom";
 
+    private static final Integer TREE_CONTEXT = 3;
+    private static final Integer SLIPPY_CONTEXT = 4;
+
     private static final String INPUT_WKT = "wkt";
 
     private final OptionAndArgumentFetcher fetcher;
@@ -66,13 +69,23 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         final List<String> inputWKT = this.fetcher.getVariadicArgument(INPUT_WKT);
 
         final Sharding sharding;
-        if (this.fetcher.hasOption(TREE_OPTION_LONG))
+        if (this.fetcher.getParserContext() == TREE_CONTEXT)
         {
-            sharding = Sharding
-                    .forString("dynamic@" + this.fetcher.getOptionArgument(TREE_OPTION_LONG)
-                            .orElseThrow(AtlasShellToolsException::new));
+            if (this.fetcher.hasOption(TREE_OPTION_LONG))
+            {
+                sharding = Sharding
+                        .forString("dynamic@" + this.fetcher.getOptionArgument(TREE_OPTION_LONG)
+                                .orElseThrow(AtlasShellToolsException::new));
+            }
+            else
+            {
+                this.output.printlnErrorMessage("either --" + TREE_OPTION_LONG + " or --"
+                        + SLIPPY_OPTION_LONG + " is required");
+                return 1;
+            }
         }
-        else if (this.fetcher.hasOption(SLIPPY_OPTION_LONG))
+        else if (this.fetcher.getParserContext() == SLIPPY_CONTEXT
+                && this.fetcher.hasOption(SLIPPY_OPTION_LONG))
         {
             sharding = Sharding
                     .forString("slippy@" + this.fetcher.getOptionArgument(SLIPPY_OPTION_LONG)
@@ -80,9 +93,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         }
         else
         {
-            this.output.printlnErrorMessage("either --" + TREE_OPTION_LONG + " or --"
-                    + SLIPPY_OPTION_LONG + " is required");
-            return 1;
+            throw new AtlasShellToolsException();
         }
 
         for (int i = 0; i < inputWKT.size(); i++)
@@ -124,11 +135,12 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     @Override
     public void registerOptionsAndArguments()
     {
-        registerArgument(INPUT_WKT, ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED);
+        registerArgument(INPUT_WKT, ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED,
+                TREE_CONTEXT, SLIPPY_CONTEXT);
         registerOptionWithRequiredArgument(TREE_OPTION_LONG, TREE_OPTION_DESCRIPTION,
-                TREE_OPTION_HINT);
+                TREE_OPTION_HINT, TREE_CONTEXT);
         registerOptionWithRequiredArgument(SLIPPY_OPTION_LONG, SLIPPY_OPTION_DESCRIPTION,
-                SLIPPY_OPTION_HINT);
+                SLIPPY_OPTION_HINT, SLIPPY_CONTEXT);
     }
 
     private void parseWKTAndOutput(final String wkt, final Sharding sharding)

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.command.documentation.DocumentationFormatter;
@@ -72,6 +73,11 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private boolean usePager = false;
     private int maximumColumn = DocumentationFormatter.DEFAULT_MAXIMUM_COLUMN;
     private String version = "default_version_value";
+
+    SortedSet<Integer> getFilteredRegisteredContexts()
+    {
+        return this.parser.getFilteredRegisteredContexts();
+    }
 
     Optional<String> getOptionArgument(final String longForm)
     {

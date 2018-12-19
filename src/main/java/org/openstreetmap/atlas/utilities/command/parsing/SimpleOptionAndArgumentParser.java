@@ -362,6 +362,22 @@ public class SimpleOptionAndArgumentParser
     }
 
     /**
+     * Get the registered contexts, but filter out the default '--help' and '--version' contexts.
+     * 
+     * @return the filtered set
+     */
+    public SortedSet<Integer> getFilteredRegisteredContexts()
+    {
+        // filter out the default, hardcoded '--help' and '--version' contexts
+        final Set<Integer> set = this.registeredContexts.stream()
+                .filter(context -> context != HELP_OPTION_CONTEXT_ID
+                        && context != VERSION_OPTION_CONTEXT_ID)
+                .collect(Collectors.toSet());
+
+        return new TreeSet<>(set);
+    }
+
+    /**
      * Get the argument of a given option, if present.
      *
      * @param longForm
@@ -448,7 +464,7 @@ public class SimpleOptionAndArgumentParser
      *
      * @return the set
      */
-    public Set<Integer> getRegisteredContexts()
+    public SortedSet<Integer> getRegisteredContexts()
     {
         return this.registeredContexts;
     }

@@ -1,4 +1,3 @@
 Given some supplied WKT strings and a sharding tree, spit out the shards that intersect
 each WKT entity. The '--tree' and '--slippy' options allow the user to select between
-a dynamic sharding tree or a static slippy tile tree based on a single zoom. If both options
-are supplied, the '--tree' option takes precedence.
+a dynamic sharding tree or a static slippy tile tree based on a single zoom.

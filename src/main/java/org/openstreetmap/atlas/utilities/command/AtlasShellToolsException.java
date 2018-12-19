@@ -3,6 +3,8 @@ package org.openstreetmap.atlas.utilities.command;
 import org.openstreetmap.atlas.exception.CoreException;
 
 /**
+ * A special core exception for cases that should never happen. If users see this, it's a bug!
+ *
  * @author lcram
  */
 public class AtlasShellToolsException extends CoreException
@@ -11,6 +13,6 @@ public class AtlasShellToolsException extends CoreException
 
     public AtlasShellToolsException()
     {
-        super("this should never happen");
+        super("This should never happen, you found a bug! Please report this stack trace.");
     }
 }

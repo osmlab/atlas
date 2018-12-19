@@ -35,6 +35,9 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     private static final Character PARALLEL_OPTION_SHORT = 'p';
     private static final String PARALLEL_OPTION_DESCRIPTION = "Process the atlases in parallel.";
 
+    private static final Integer DEFAULT_AND_GEOJSON_CONTEXT = 3;
+    private static final Integer LDGEOJSON_CONTEXT = 4;
+
     private final OptionAndArgumentFetcher fetcher;
     private final CommandOutputDelegate output;
 
@@ -80,42 +83,7 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
                     .cloneFrom(new AtlasResourceLoader().load(resource));
             try
             {
-                if (this.fetcher.hasOption(GEOJSON_OPTION_LONG))
-                {
-                    final Path filePath = Paths
-                            .get(resource.getFile().getName() + FileSuffix.GEO_JSON);
-                    final Path concatenatedPath = Paths.get(
-                            outputParentPath.get().toAbsolutePath().toString(),
-                            filePath.getFileName().toString());
-                    final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
-                    outputAtlas.saveAsGeoJson(outputFile);
-                    this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath()); // NOSONAR
-
-                }
-                else if (this.fetcher.hasOption(LDGEOJSON_OPTION_LONG))
-                {
-                    final Path filePath = Paths
-                            .get(resource.getFile().getName() + FileSuffix.GEO_JSON);
-                    final Path concatenatedPath = Paths.get(
-                            outputParentPath.get().toAbsolutePath().toString(),
-                            filePath.getFileName().toString());
-                    final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
-                    outputAtlas.saveAsLineDelimitedGeoJsonFeatures(outputFile, (entity, json) ->
-                    {
-                        // Dummy consumer, we don't need to mutate the JSON
-                    });
-                    this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
-                }
-                else
-                {
-                    final Path filePath = Paths.get(resource.getFile().getName() + FileSuffix.TEXT);
-                    final Path concatenatedPath = Paths.get(
-                            outputParentPath.get().toAbsolutePath().toString(),
-                            filePath.getFileName().toString());
-                    final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
-                    outputAtlas.saveAsText(outputFile);
-                    this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
-                }
+                writeOutput(resource, outputParentPath, outputAtlas);
             }
             catch (final Exception exception)
             {
@@ -152,9 +120,60 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     @Override
     public void registerOptionsAndArguments()
     {
+        registerOption(GEOJSON_OPTION_LONG, GEOJSON_OPTION_SHORT, GEOJSON_OPTION_DESCRIPTION,
+                DEFAULT_AND_GEOJSON_CONTEXT);
+        registerOption(LDGEOJSON_OPTION_LONG, LDGEOJSON_OPTION_SHORT, LDGEOJSON_OPTION_DESCRIPTION,
+                LDGEOJSON_CONTEXT);
+        registerOption(PARALLEL_OPTION_LONG, PARALLEL_OPTION_SHORT, PARALLEL_OPTION_DESCRIPTION,
+                DEFAULT_AND_GEOJSON_CONTEXT, LDGEOJSON_CONTEXT);
         super.registerOptionsAndArguments();
-        registerOption(GEOJSON_OPTION_LONG, GEOJSON_OPTION_SHORT, GEOJSON_OPTION_DESCRIPTION);
-        registerOption(LDGEOJSON_OPTION_LONG, LDGEOJSON_OPTION_SHORT, LDGEOJSON_OPTION_DESCRIPTION);
-        registerOption(PARALLEL_OPTION_LONG, PARALLEL_OPTION_SHORT, PARALLEL_OPTION_DESCRIPTION);
+    }
+
+    private void writeOutput(final File resource, final Optional<Path> outputParentPath,
+            final PackedAtlas outputAtlas)
+    {
+        if (!outputParentPath.isPresent())
+        {
+            return;
+        }
+
+        if (this.fetcher.getParserContext() == DEFAULT_AND_GEOJSON_CONTEXT)
+        {
+            if (this.fetcher.hasOption(GEOJSON_OPTION_LONG))
+            {
+                final Path filePath = Paths.get(resource.getFile().getName() + FileSuffix.GEO_JSON);
+                final Path concatenatedPath = Paths.get(
+                        outputParentPath.get().toAbsolutePath().toString(),
+                        filePath.getFileName().toString());
+                final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
+                outputAtlas.saveAsGeoJson(outputFile);
+                this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath()); // NOSONAR
+
+            }
+            else
+            {
+                final Path filePath = Paths.get(resource.getFile().getName() + FileSuffix.TEXT);
+                final Path concatenatedPath = Paths.get(
+                        outputParentPath.get().toAbsolutePath().toString(),
+                        filePath.getFileName().toString());
+                final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
+                outputAtlas.saveAsText(outputFile);
+                this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+            }
+        }
+        else if (this.fetcher.getParserContext() == LDGEOJSON_CONTEXT
+                && this.fetcher.hasOption(LDGEOJSON_OPTION_LONG))
+        {
+            final Path filePath = Paths.get(resource.getFile().getName() + FileSuffix.GEO_JSON);
+            final Path concatenatedPath = Paths.get(
+                    outputParentPath.get().toAbsolutePath().toString(),
+                    filePath.getFileName().toString());
+            final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
+            outputAtlas.saveAsLineDelimitedGeoJsonFeatures(outputFile, (entity, json) ->
+            {
+                // Dummy consumer, we don't need to mutate the JSON
+            });
+            this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+        }
     }
 }
