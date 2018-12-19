@@ -2,7 +2,7 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.stream.Stream;
 
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
@@ -35,6 +35,10 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     private static final Character LDGEOJSON_OPTION_SHORT = 'l';
     private static final String LDGEOJSON_OPTION_DESCRIPTION = "Save atlas as line-delimited GeoJSON.";
 
+    private static final String PARALLEL_OPTION_LONG = "parallel";
+    private static final Character PARALLEL_OPTION_SHORT = 'p';
+    private static final String PARALLEL_OPTION_DESCRIPTION = "Process the atlases in parallel.";
+
     private final OptionAndArgumentFetcher fetcher;
     private final CommandOutputDelegate output;
 
@@ -53,8 +57,6 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     @Override
     public int execute() // NOSONAR
     {
-        final List<File> atlasResourceList = this.getInputAtlasResources();
-
         final Path outputParentPath = Paths
                 .get(this.fetcher.getOptionArgument(OUTPUT_DIRECTORY_OPTION_LONG).orElse(""));
 
@@ -72,7 +74,14 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
             }
         }
 
-        atlasResourceList.stream().forEach(resource ->
+        final Stream<File> atlasResourceStream = this.getInputAtlasResources().stream();
+
+        if (this.fetcher.hasOption(PARALLEL_OPTION_LONG))
+        {
+            atlasResourceStream.parallel();
+        }
+
+        atlasResourceStream.forEach(resource ->
         {
             this.output.printlnStdout("Converting " + resource.getFile().getAbsolutePath() + "...");
             final PackedAtlas outputAtlas = new PackedAtlasCloner()
@@ -154,6 +163,7 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
         super.registerOptionsAndArguments();
         registerOption(GEOJSON_OPTION_LONG, GEOJSON_OPTION_SHORT, GEOJSON_OPTION_DESCRIPTION);
         registerOption(LDGEOJSON_OPTION_LONG, LDGEOJSON_OPTION_SHORT, LDGEOJSON_OPTION_DESCRIPTION);
+        registerOption(PARALLEL_OPTION_LONG, PARALLEL_OPTION_SHORT, PARALLEL_OPTION_DESCRIPTION);
         registerOptionWithRequiredArgument(OUTPUT_DIRECTORY_OPTION_LONG,
                 OUTPUT_DIRECTORY_OPTION_SHORT, OUTPUT_DIRECTORY_OPTION_DESCRIPTION,
                 OUTPUT_DIRECTORY_OPTION_HINT);
