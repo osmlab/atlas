@@ -97,11 +97,9 @@ then
     exit 1
 fi
 
-# TODO: change this URL to the main atlas dev url
-git clone https://github.com/lucaspcram/atlas.git "$full_installation_path"
+git clone https://github.com/osmlab/atlas.git "$full_installation_path"
 cd "$full_installation_path"
-# TODO: change this to 'git checkout master'
-git checkout ast
+git checkout master
 chmod +x atlas-shell-tools/scripts/atlas atlas-shell-tools/scripts/atlas-config
 export ATLAS_SHELL_TOOLS_HOME="$full_installation_path/atlas-shell-tools"
 export PATH="$PATH:$ATLAS_SHELL_TOOLS_HOME/scripts"
