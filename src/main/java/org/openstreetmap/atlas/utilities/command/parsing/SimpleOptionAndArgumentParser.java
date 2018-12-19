@@ -717,6 +717,21 @@ public class SimpleOptionAndArgumentParser
         }
     }
 
+    public void registerEmptyContext(final int context)
+    {
+        if (this.registeredContexts.contains(context))
+        {
+            throw new CoreException("Cannot register empty context {}, {} is already registered",
+                    context, context);
+        }
+        this.registeredContexts.add(context);
+        this.contextToRegisteredOptions.put(context, new HashSet<>());
+        this.contextToRegisteredOptionalArgument.put(context, false);
+        this.contextToArgumentHintToArity.put(context, new HashMap<>());
+        this.contextToArgumentHintToOptionality.put(context, new HashMap<>());
+        this.contextToRegisteredVariadicArgument.put(context, false);
+    }
+
     /**
      * Register an option with a given long and short form. The option will be a flag option, ie. it
      * can take no arguments.

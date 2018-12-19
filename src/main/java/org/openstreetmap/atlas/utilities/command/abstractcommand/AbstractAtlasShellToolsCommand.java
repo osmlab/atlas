@@ -341,6 +341,18 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     }
 
     /**
+     * Register an empty context. This is useful if you want to have a defined usage case where no
+     * options or arguments are passed.
+     *
+     * @param context
+     *            the context id
+     */
+    protected void registerEmptyContext(final int context)
+    {
+        this.parser.registerEmptyContext(context);
+    }
+
+    /**
      * Register an option with a given long and short form. The option will be a flag option, ie. it
      * can take no arguments.
      *
