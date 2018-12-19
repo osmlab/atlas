@@ -15,6 +15,7 @@ import org.openstreetmap.atlas.geography.coordinates.GeodeticCoordinate;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 
@@ -50,6 +51,7 @@ public class Location implements Located, Iterable<Location>, Serializable, Geom
     private static final long INT_FULL_MASK_AS_LONG = 0xFFFFFFFFL;
     private static final int INT_SIZE = 32;
     private static final int FACTOR_OF_3 = 3;
+    private static final Random RANDOM = new Random();
 
     private final Latitude latitude;
     private final Longitude longitude;
@@ -59,10 +61,8 @@ public class Location implements Located, Iterable<Location>, Serializable, Geom
      *            The {@link Location} as a {@link String} in "latitude(degrees),longitude(degrees)"
      *            format
      * @return The corresponding {@link Location}
-     * @throws NumberFormatException
-     *             if the latitude or longitude in the string is not a valid Double
      */
-    public static Location forString(final String locationString) throws NumberFormatException
+    public static Location forString(final String locationString)
     {
         final StringList split = StringList.split(locationString, ",");
         if (split.size() != 2)
@@ -79,11 +79,8 @@ public class Location implements Located, Iterable<Location>, Serializable, Geom
      *            The {@link Location} as a {@link String} in "longitude(degrees),latitude(degrees)"
      *            format
      * @return The corresponding {@link Location}
-     * @throws NumberFormatException
-     *             if the latitude or longitude in the string is not a valid Double
      */
     public static Location forStringLongitudeLatitude(final String locationString)
-            throws NumberFormatException
     {
         final StringList split = StringList.split(locationString, ",");
         if (split.size() != 2)
@@ -112,10 +109,9 @@ public class Location implements Located, Iterable<Location>, Serializable, Geom
      */
     public static Location random(final Rectangle bounds)
     {
-        final Random random = new Random();
-        final int latitude = random.ints((int) bounds.lowerLeft().getLatitude().asDm7(),
+        final int latitude = RANDOM.ints((int) bounds.lowerLeft().getLatitude().asDm7(),
                 (int) bounds.upperRight().getLatitude().asDm7()).iterator().next();
-        final int longitude = random.ints((int) bounds.lowerLeft().getLongitude().asDm7(),
+        final int longitude = RANDOM.ints((int) bounds.lowerLeft().getLongitude().asDm7(),
                 (int) bounds.upperRight().getLongitude().asDm7()).iterator().next();
         return new Location(Latitude.dm7(latitude), Longitude.dm7(longitude));
     }
@@ -404,27 +400,7 @@ public class Location implements Located, Iterable<Location>, Serializable, Geom
     @Override
     public Iterator<Location> iterator()
     {
-        return new Iterator<Location>()
-        {
-            private boolean read = false;
-
-            @Override
-            public boolean hasNext()
-            {
-                return !this.read;
-            }
-
-            @Override
-            public Location next()
-            {
-                if (hasNext())
-                {
-                    this.read = true;
-                    return Location.this;
-                }
-                return null;
-            }
-        };
+        return Iterables.from(this).iterator();
     }
 
     /**
