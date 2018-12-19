@@ -1029,7 +1029,8 @@ sub execute_command_update {
     my @command = ();
     push @command, "git";
     push @command, "checkout";
-    push @command, "master";
+    # TODO change to 'master'
+    push @command, "ast";
     my $success = system {$command[0]} @command;
     unless ($success == 0) {
         ast_utilities::error_output($program_name, "update operation failed");
@@ -1040,7 +1041,8 @@ sub execute_command_update {
     push @command, "git";
     push @command, "pull";
     push @command, "origin";
-    push @command, "master";
+    # TODO change to 'master'
+    push @command, "ast";
     $success = system {$command[0]} @command;
     unless ($success == 0) {
         ast_utilities::error_output($program_name, "update operation failed");
