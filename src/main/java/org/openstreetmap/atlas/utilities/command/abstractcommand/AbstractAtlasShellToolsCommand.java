@@ -559,7 +559,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         }
         catch (final Exception exception)
         {
-            throw new CoreException("unhandled exception {}", exception);
+            throw new CoreException("unhandled exception", exception);
         }
 
         logger.debug("Command using context {}", this.parser.getContext());
