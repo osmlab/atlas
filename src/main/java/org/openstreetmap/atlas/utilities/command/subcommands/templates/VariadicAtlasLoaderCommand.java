@@ -88,6 +88,15 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
         final Path outputParentPath = Paths
                 .get(this.fetcher.getOptionArgument(OUTPUT_DIRECTORY_OPTION_LONG).orElse(""));
 
+        // If output path already exists and is a file, then fail
+        if (outputParentPath.toAbsolutePath().toFile().isFile())
+        {
+            this.output.printlnErrorMessage(
+                    outputParentPath.toString() + " already exists and is a file");
+            return Optional.empty();
+        }
+
+        // If output path does not exist, create it using 'mkdir -p' behaviour
         if (!outputParentPath.toAbsolutePath().toFile().exists())
         {
             try
@@ -102,6 +111,7 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
             }
         }
 
+        // If output path is not writable, fail
         if (!outputParentPath.toAbsolutePath().toFile().canWrite())
         {
             this.output.printlnErrorMessage(outputParentPath.toString() + " is not writable");
