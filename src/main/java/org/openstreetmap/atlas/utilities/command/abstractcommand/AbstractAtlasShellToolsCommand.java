@@ -273,6 +273,9 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *
      * @param section
      *            the name of the section
+     * @param sectionResourceFileStream
+     *            an input stream to the section resource file (easily specified like
+     *            CommandName.class.getResourceAsStream("resourcefile.txt"))
      */
     protected void addManualPageSection(final String section,
             final InputStream sectionResourceFileStream)

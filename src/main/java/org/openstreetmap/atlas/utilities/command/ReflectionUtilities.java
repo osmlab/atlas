@@ -23,9 +23,8 @@ public final class ReflectionUtilities
     {
         final List<Class<? extends AtlasShellToolsMarkerInterface>> subcommandClasses = new ArrayList<>();
         final Set<AbstractAtlasShellToolsCommand> instantiatedCommands = new HashSet<>();
-        new FastClasspathScanner()
-                .matchClassesImplementing(AtlasShellToolsMarkerInterface.class, subcommandClasses::add)
-                .scan();
+        new FastClasspathScanner().matchClassesImplementing(AtlasShellToolsMarkerInterface.class,
+                subcommandClasses::add).scan();
         subcommandClasses.stream().forEach(klass -> instantiateSubcommand(klass.getName())
                 .ifPresent(instantiatedCommands::add));
         return instantiatedCommands;

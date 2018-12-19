@@ -3,6 +3,9 @@ package org.openstreetmap.atlas.utilities.command.abstractcommand;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYStringBuilder;
 
+/**
+ * @author lcram
+ */
 public class CommandOutputDelegate
 {
     private final AbstractAtlasShellToolsCommand parentCommand;

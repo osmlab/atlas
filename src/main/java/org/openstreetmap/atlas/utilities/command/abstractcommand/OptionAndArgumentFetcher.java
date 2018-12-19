@@ -6,6 +6,9 @@ import java.util.Optional;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.conversion.StringConverter;
 
+/**
+ * @author lcram
+ */
 public class OptionAndArgumentFetcher
 {
     private final AbstractAtlasShellToolsCommand parentCommand;
