@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.locale;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Locale;
@@ -13,8 +14,10 @@ import java.util.stream.Collectors;
  *
  * @author robert_stack
  */
-public final class IsoCountry
+public final class IsoCountry implements Serializable
 {
+    private static final long serialVersionUID = 8686298246454085812L;
+
     // Use United States fixed Locale for display use cases
     private static final String LOCALE_LANGUAGE = Locale.ENGLISH.getLanguage();
 

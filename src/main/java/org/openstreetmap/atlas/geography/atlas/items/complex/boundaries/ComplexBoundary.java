@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.GeometryPrintable;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
@@ -16,7 +17,6 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.complex.ComplexEntity;
 import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
 import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.tags.AdministrativeLevelTag;
 import org.openstreetmap.atlas.tags.BoundaryTag;
@@ -32,12 +32,15 @@ import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Objects;
+import com.google.gson.JsonObject;
+
 /**
  * A representation of the Administrative Boundaries defined in the {@link BoundaryTag}.
  *
  * @author matthieun
  */
-public class ComplexBoundary extends ComplexEntity
+public class ComplexBoundary extends ComplexEntity implements GeometryPrintable
 {
     private static final long serialVersionUID = 3836743004772506528L;
 
@@ -46,12 +49,12 @@ public class ComplexBoundary extends ComplexEntity
 
     private MultiPolygon outline;
     private Integer administrativeLevel;
-    private Iterable<IsoCountry> countries;
+    private Set<IsoCountry> countries;
     // The sub-areas as defined by the relation member role subarea
     private Set<ComplexBoundary> subAreas = new HashSet<>();
 
     private final List<ComplexEntityError> invalidations = new ArrayList<>();
-    private final Optional<Integer> administrativeLevelFilter;
+    private final transient Optional<Integer> administrativeLevelFilter;
     private final boolean withSubAreas;
 
     protected ComplexBoundary(final AtlasEntity source, final boolean withSubAreas,
@@ -70,9 +73,11 @@ public class ComplexBoundary extends ComplexEntity
                 {
                     if (!boundary.isValid())
                     {
-                        setInvalidReason("Some subAreas are invalid",
-                                new CoreException("Some subArea(s) are invalid: {}", boundary,
-                                        boundary.getError().orElse(null).getException()));
+                        setInvalidReason("Some subAreas are invalid", new CoreException(
+                                "Some subArea(s) are invalid: {}", boundary,
+                                boundary.getError().orElseThrow(
+                                        () -> new CoreException("Should have an error here."))
+                                        .getException()));
                     }
                 }
             }
@@ -82,13 +87,25 @@ public class ComplexBoundary extends ComplexEntity
             setInvalidReason("Unable to create complex boundary from " + source, e);
             logger.warn("Unable to create complex boundary from {}, id {}. Reason: {}",
                     source.getType(), source.getIdentifier(), e.getMessage());
-            return;
         }
     }
 
-    public GeoJsonObject asGeoJson()
+    @Override
+    public JsonObject asGeoJsonGeometry()
     {
-        return this.outline.asGeoJson();
+        return this.outline.asGeoJsonGeometry();
+    }
+
+    @Override
+    public boolean equals(final Object other)
+    {
+        if (other instanceof ComplexBoundary)
+        {
+            final ComplexBoundary that = (ComplexBoundary) other;
+            return this.administrativeLevel == that.getAdministrativeLevel()
+                    && this.outline.equals(that.getOutline());
+        }
+        return false;
     }
 
     public int getAdministrativeLevel()
@@ -122,6 +139,12 @@ public class ComplexBoundary extends ComplexEntity
         return isValid() && Iterables.size(this.countries) > 0;
     }
 
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode(this.administrativeLevel, this.outline);
+    }
+
     public void removeOuter(final Polygon outerToRemove)
     {
         final MultiMap<Polygon, Polygon> outersToInners = new MultiMap<>();
@@ -143,6 +166,18 @@ public class ComplexBoundary extends ComplexEntity
     public String toString()
     {
         return toString("");
+    }
+
+    @Override
+    public byte[] toWkb()
+    {
+        return this.outline.toWkb();
+    }
+
+    @Override
+    public String toWkt()
+    {
+        return this.outline.toWkt();
     }
 
     protected String toString(final String header)
@@ -179,13 +214,11 @@ public class ComplexBoundary extends ComplexEntity
                             Iso31662CountryTag.all(source), Iso3166DefaultCountryTag.all(source)))
                     .collectToSet();
             // Don't bother if the admin level is not the one expected
-            if (this.administrativeLevelFilter.isPresent())
+            if (this.administrativeLevelFilter.isPresent()
+                    && !this.administrativeLevel.equals(this.administrativeLevelFilter.get()))
             {
-                if (!this.administrativeLevel.equals(this.administrativeLevelFilter.get()))
-                {
-                    throw new CoreException("Administrative Level {} is not being queried.",
-                            this.administrativeLevel);
-                }
+                throw new CoreException("Administrative Level {} is not being queried.",
+                        this.administrativeLevel);
             }
             this.outline = RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER.convert(source);
         }

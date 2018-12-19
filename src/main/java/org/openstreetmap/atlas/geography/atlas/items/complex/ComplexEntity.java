@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.items.complex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
@@ -27,9 +28,11 @@ public abstract class ComplexEntity implements AtlasObject
      *
      * @author cstaylor
      */
-    public static final class ComplexEntityError
+    public static final class ComplexEntityError implements Serializable
     {
-        private final ComplexEntity source;
+        private static final long serialVersionUID = 3162352792545207168L;
+
+        private final transient ComplexEntity source;
         private final String reason;
         private final Throwable oops;
 
