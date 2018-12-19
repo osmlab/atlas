@@ -88,54 +88,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         for (int i = 0; i < inputWKT.size(); i++)
         {
             final String wkt = inputWKT.get(i);
-            final WKTReader reader = new WKTReader();
-            Geometry geometry = null;
-            try
-            {
-                geometry = reader.read(wkt);
-            }
-            catch (final ParseException exception)
-            {
-                logger.error("unable to parse {}", wkt, exception);
-            }
-
-            if (geometry instanceof Point)
-            {
-                this.output.printlnStdout(wkt + " covered by:", TTYAttribute.BOLD);
-                final Location location = new JtsPointConverter().backwardConvert((Point) geometry);
-                final Iterable<? extends Shard> shards = sharding.shardsCovering(location);
-                for (final Shard shard : shards)
-                {
-                    this.output.printlnStdout(shard.toString(), TTYAttribute.GREEN);
-                }
-            }
-            else if (geometry instanceof LineString)
-            {
-                this.output.printlnStdout(wkt + " intersects:", TTYAttribute.BOLD);
-                final PolyLine polyline = new JtsPolyLineConverter()
-                        .backwardConvert((LineString) geometry);
-                final Iterable<? extends Shard> shards = sharding.shardsIntersecting(polyline);
-                for (final Shard shard : shards)
-                {
-                    this.output.printlnStdout(shard.toString(), TTYAttribute.GREEN);
-                }
-            }
-            else if (geometry instanceof Polygon)
-            {
-                this.output.printlnStdout(wkt + " intersects:", TTYAttribute.BOLD);
-                final org.openstreetmap.atlas.geography.Polygon polygon = new JtsPolygonConverter()
-                        .backwardConvert((Polygon) geometry);
-                final Iterable<? extends Shard> shards = sharding.shards(polygon);
-                for (final Shard shard : shards)
-                {
-                    this.output.printlnStdout(shard.toString(), TTYAttribute.GREEN);
-                }
-            }
-            // TODO handle more geometry types
-            else
-            {
-                this.output.printlnErrorMessage("unknown geometry type " + wkt);
-            }
+            parseWKTAndOutput(wkt, sharding);
 
             // Only print a separating newline if there were multiple entries
             if (i < inputWKT.size() - 1)
@@ -176,5 +129,57 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
                 TREE_OPTION_HINT);
         registerOptionWithRequiredArgument(SLIPPY_OPTION_LONG, SLIPPY_OPTION_DESCRIPTION,
                 SLIPPY_OPTION_HINT);
+    }
+
+    private void parseWKTAndOutput(final String wkt, final Sharding sharding)
+    {
+        final WKTReader reader = new WKTReader();
+        Geometry geometry = null;
+        try
+        {
+            geometry = reader.read(wkt);
+        }
+        catch (final ParseException exception)
+        {
+            logger.error("unable to parse {}", wkt, exception);
+        }
+
+        if (geometry instanceof Point)
+        {
+            this.output.printlnStdout(wkt + " covered by:", TTYAttribute.BOLD);
+            final Location location = new JtsPointConverter().backwardConvert((Point) geometry);
+            final Iterable<? extends Shard> shards = sharding.shardsCovering(location);
+            for (final Shard shard : shards)
+            {
+                this.output.printlnStdout(shard.toString(), TTYAttribute.GREEN);
+            }
+        }
+        else if (geometry instanceof LineString)
+        {
+            this.output.printlnStdout(wkt + " intersects:", TTYAttribute.BOLD);
+            final PolyLine polyline = new JtsPolyLineConverter()
+                    .backwardConvert((LineString) geometry);
+            final Iterable<? extends Shard> shards = sharding.shardsIntersecting(polyline);
+            for (final Shard shard : shards)
+            {
+                this.output.printlnStdout(shard.toString(), TTYAttribute.GREEN);
+            }
+        }
+        else if (geometry instanceof Polygon)
+        {
+            this.output.printlnStdout(wkt + " intersects:", TTYAttribute.BOLD);
+            final org.openstreetmap.atlas.geography.Polygon polygon = new JtsPolygonConverter()
+                    .backwardConvert((Polygon) geometry);
+            final Iterable<? extends Shard> shards = sharding.shards(polygon);
+            for (final Shard shard : shards)
+            {
+                this.output.printlnStdout(shard.toString(), TTYAttribute.GREEN);
+            }
+        }
+        // TODO handle more geometry types
+        else
+        {
+            this.output.printlnErrorMessage("unsupported geometry type " + wkt);
+        }
     }
 }
