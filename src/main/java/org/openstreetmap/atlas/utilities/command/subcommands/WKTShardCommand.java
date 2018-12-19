@@ -142,7 +142,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     @Override
     public String getSimpleDescription()
     {
-        return "Get the shards that intersect some given WKT(s)";
+        return "get the shards that intersect some given WKT(s)";
     }
 
     @Override
@@ -212,7 +212,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
                 this.output.printlnStdout(shard.toString(), TTYAttribute.GREEN);
             }
         }
-        // TODO handle more geometry types
+        // TODO handle more geometry types? e.g. MultiPoint, MultiLineString, and MultiPolygon?
         else
         {
             this.output.printlnErrorMessage("unsupported geometry type " + wkt);

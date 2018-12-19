@@ -104,7 +104,7 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     @Override
     public String getSimpleDescription()
     {
-        return "Transform a PackedAtlas into a human-readable format";
+        return "transform a PackedAtlas into a human-readable format";
     }
 
     @Override
