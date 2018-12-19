@@ -417,7 +417,7 @@ public final class TurnRestriction implements Located, Serializable
             }
             catch (final Exception e)
             {
-                logger.trace("Can't build route from {}", this.relation, e);
+                throw new CoreException("Can't build route from {}", this.relation, e);
             }
         }
         return this.route;

@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
 import org.openstreetmap.atlas.tags.HighwayTag;
@@ -39,25 +40,28 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
         super(atlas);
     }
 
-    @Override
-    public JsonObject geoJsonProperties()
-    {
-        final JsonObject properties = super.geoJsonProperties();
-
-        properties.addProperty("startNode", start().getIdentifier());
-        properties.addProperty("endNode", end().getIdentifier());
-
-        return properties;
-    }
-
     /**
      * Compare two edges on their identifier.
+     * <p>
+     * NOSONAR here as the {@link AtlasEntity} equals and hashcode are good enough. ""equals(Object
+     * obj)" should be overridden along with the "compareTo(T obj)" method (squid:S1210)"
      */
     @Override
-    public int compareTo(final Edge other)
+    public int compareTo(final Edge other) // NOSONAR
     {
         final long difference = this.getIdentifier() - other.getIdentifier();
-        return difference > 0 ? 1 : difference < 0 ? -1 : 0;
+        if (difference > 0)
+        {
+            return 1;
+        }
+        else if (difference < 0)
+        {
+            return -1;
+        }
+        else
+        {
+            return 0;
+        }
     }
 
     /**
@@ -109,12 +113,27 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
      */
     public abstract Node end();
 
+    @Override
+    public JsonObject geoJsonProperties()
+    {
+        final JsonObject properties = super.geoJsonProperties();
+
+        properties.addProperty("startNode", start().getIdentifier());
+        properties.addProperty("endNode", end().getIdentifier());
+
+        return properties;
+    }
+
     /**
      * @return the master for this {@link Edge}, which may or may not be the master.
      */
     public Edge getMasterEdge()
     {
-        return this.isMasterEdge() ? this : this.reversed().get();
+        return this.isMasterEdge() ? this
+                : this.reversed()
+                        .orElseThrow(() -> new CoreException(
+                                "Reverse edge should be available for edge {}",
+                                this.getIdentifier()));
     }
 
     public long getMasterEdgeIdentifier()
@@ -173,19 +192,13 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
     {
         for (final AtlasItem item : candidates)
         {
-            if (item instanceof Node)
+            if (item instanceof Node && end().equals(item))
             {
-                if (end().equals(item))
-                {
-                    return true;
-                }
+                return true;
             }
-            if (item instanceof Edge)
+            if (item instanceof Edge && end().equals(((Edge) item).start()))
             {
-                if (end().equals(((Edge) item).start()))
-                {
-                    return true;
-                }
+                return true;
             }
         }
         return false;
@@ -201,19 +214,13 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
     {
         for (final AtlasItem item : candidates)
         {
-            if (item instanceof Node)
+            if (item instanceof Node && start().equals(item))
             {
-                if (start().equals(item))
-                {
-                    return true;
-                }
+                return true;
             }
-            if (item instanceof Edge)
+            if (item instanceof Edge && start().equals(((Edge) item).end()))
             {
-                if (start().equals(((Edge) item).end()))
-                {
-                    return true;
-                }
+                return true;
             }
         }
         return false;

@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.tags.annotations.validation;
 
 import java.net.URI;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
@@ -9,8 +10,6 @@ import java.util.TreeSet;
 import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.tags.annotations.TagKey;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators.TagKeySearch;
-
-import com.google.common.base.Objects;
 
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 
@@ -69,16 +68,16 @@ public class TagDocumenter
             if (obj instanceof CallbackData)
             {
                 final CallbackData other = (CallbackData) obj;
-                boolean returnValue = Objects.equal(this.tagClassName, other.tagClassName);
-                returnValue = returnValue && Objects.equal(this.tagKey, other.tagKey);
+                boolean returnValue = Objects.equals(this.tagClassName, other.tagClassName);
+                returnValue = returnValue && Objects.equals(this.tagKey, other.tagKey);
                 returnValue = returnValue
-                        && Objects.equal(this.validTagValues, other.validTagValues);
-                returnValue = returnValue && Objects.equal(this.tagInfoLink, other.tagInfoLink);
-                returnValue = returnValue && Objects.equal(this.osmWikiLink, other.osmWikiLink);
+                        && Objects.equals(this.validTagValues, other.validTagValues);
+                returnValue = returnValue && Objects.equals(this.tagInfoLink, other.tagInfoLink);
+                returnValue = returnValue && Objects.equals(this.osmWikiLink, other.osmWikiLink);
                 returnValue = returnValue
-                        && Objects.equal(this.validationType, other.validationType);
-                returnValue = returnValue && Objects.equal(this.localized, other.localized);
-                returnValue = returnValue && Objects.equal(this.synthetic, other.synthetic);
+                        && Objects.equals(this.validationType, other.validationType);
+                returnValue = returnValue && Objects.equals(this.localized, other.localized);
+                returnValue = returnValue && Objects.equals(this.synthetic, other.synthetic);
                 return returnValue;
             }
             return false;
@@ -117,7 +116,7 @@ public class TagDocumenter
         @Override
         public int hashCode()
         {
-            return Objects.hashCode(this.tagKey, this.tagClassName);
+            return Objects.hash(this.tagKey, this.tagClassName);
         }
 
         public boolean isLocalized()

@@ -64,7 +64,7 @@ public class LineDelimitedGeoJsonConverter extends Command
 
     protected static final Switch<Boolean> OVERWRITE = new Switch<>("overwrite",
             "Choose to automatically overwrite a GeoJSON file if it exists at the given path.",
-            Boolean::new, Optionality.OPTIONAL, "false");
+            Boolean::parseBoolean, Optionality.OPTIONAL, "false");
 
     private static final Switch<Integer> THREADS = new Switch<>("threads",
             "The number of threads to work on processing atlas shards.", Integer::valueOf,
@@ -93,7 +93,7 @@ public class LineDelimitedGeoJsonConverter extends Command
         if (ItemType.AREA.equals(entity.getType()))
         {
             final Set<Relation> relations = entity.relations();
-            if (relations.size() > 0)
+            if (!relations.isEmpty())
             {
                 return relations.stream().noneMatch(relation -> Validators.isOfType(relation,
                         RelationTypeTag.class, RelationTypeTag.MULTIPOLYGON));
@@ -113,14 +113,15 @@ public class LineDelimitedGeoJsonConverter extends Command
     {
     };
 
-    protected void setJsonMutator(final BiConsumer<AtlasEntity, JsonObject> jsonMutator)
-    {
-        this.jsonMutator = jsonMutator;
-    }
-
     public static void main(final String[] args)
     {
         new LineDelimitedGeoJsonConverter().run(args);
+    }
+
+    private static List<File> fetchAtlasFilesInDirectory(final Path directory)
+    {
+        return new File(directory.toFile()).listFilesRecursively().stream()
+                .filter(AtlasResourceLoader.IS_ATLAS).collect(Collectors.toList());
     }
 
     @Override
@@ -148,7 +149,7 @@ public class LineDelimitedGeoJsonConverter extends Command
 
         final List<File> atlases = fetchAtlasFilesInDirectory(atlasDirectory);
 
-        if (atlases.size() == 0)
+        if (atlases.isEmpty())
         {
             logger.error("There are no atlas files in {}. Exiting...", atlasDirectory);
             System.exit(EXIT_FAILURE);
@@ -185,6 +186,11 @@ public class LineDelimitedGeoJsonConverter extends Command
         return 0;
     }
 
+    protected void setJsonMutator(final BiConsumer<AtlasEntity, JsonObject> jsonMutator)
+    {
+        this.jsonMutator = jsonMutator;
+    }
+
     @Override
     protected SwitchList switches()
     {
@@ -201,14 +207,9 @@ public class LineDelimitedGeoJsonConverter extends Command
             final String name = FilenameUtils.removeExtension(atlasFile.getName())
                     + FileSuffix.GEO_JSON.toString();
             final File geojsonFile = new File(geojsonDirectory.resolve(name).toFile());
-            atlas.saveAsLineDelimitedGeoJsonFeatures(geojsonFile, ENTITY_PREDICATE, jsonMutator);
+            atlas.saveAsLineDelimitedGeoJsonFeatures(geojsonFile, ENTITY_PREDICATE,
+                    this.jsonMutator);
             logger.info("Saved {} in {}.", name, time.elapsedSince());
         });
-    }
-
-    private static List<File> fetchAtlasFilesInDirectory(final Path directory)
-    {
-        return new File(directory.toFile()).listFilesRecursively().stream()
-                .filter(AtlasResourceLoader.IS_ATLAS).collect(Collectors.toList());
     }
 }

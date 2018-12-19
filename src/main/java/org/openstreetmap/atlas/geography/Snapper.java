@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography;
 
+import java.util.Objects;
+
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 
@@ -34,8 +36,29 @@ public class Snapper
         @Override
         public int compareTo(final SnappedLocation other)
         {
-            return getDistance().isLessThan(other.getDistance()) ? -1
-                    : getDistance().equals(other.getDistance()) ? 0 : 1;
+            if (getDistance().isLessThan(other.getDistance()))
+            {
+                return -1;
+            }
+            else if (getDistance().equals(other.getDistance()))
+            {
+                return 0;
+            }
+            else
+            {
+                return 1;
+            }
+        }
+
+        @Override
+        public boolean equals(final Object other)
+        {
+            if (other instanceof SnappedLocation)
+            {
+                return this.origin.equals(((SnappedLocation) other).getOrigin())
+                        && this.target.equals(((SnappedLocation) other).getTarget());
+            }
+            return false;
         }
 
         /**
@@ -55,6 +78,12 @@ public class Snapper
         {
             return this.target;
         }
+
+        @Override
+        public int hashCode()
+        {
+            return Objects.hash(this.origin, this.target);
+        }
     }
 
     /**
@@ -71,32 +100,7 @@ public class Snapper
         if (shape instanceof Segment)
         {
             final Segment target = (Segment) shape;
-            // Use the dot product to determine if the snapped point is within the segment, or at
-            // the edge points
-            final Segment variable = new Segment(target.start(), origin);
-            final double dotProduct = target.dotProduct(variable);
-            if (dotProduct <= 0)
-            {
-                return new SnappedLocation(origin, target.start(), target);
-            }
-            if (dotProduct >= target.dotProduct(target))
-            {
-                return new SnappedLocation(origin, target.end(), target);
-            }
-            // Find the point in the middle.
-            // Inspired from http://www.sunshine2k.de/coding/java/PointOnLine/PointOnLine.html#step5
-            // The angle between the target and variable segment is alpha
-            final double cosAlpha = dotProduct
-                    / (target.dotProductLength() * variable.dotProductLength());
-            // Cos Alpha is also defined as (offset distance on target) / (variable's length)
-            final double offsetDistance = cosAlpha * variable.dotProductLength();
-            final double latitudeAsDm7 = target.start().getLatitude().asDm7()
-                    + offsetDistance / target.dotProductLength() * target.latitudeSpan();
-            final double longitudeAsDm7 = target.start().getLongitude().asDm7()
-                    + offsetDistance / target.dotProductLength() * target.longitudeSpan();
-            final Location snapped = new Location(Latitude.dm7(Math.round(latitudeAsDm7)),
-                    Longitude.dm7(Math.round(longitudeAsDm7)));
-            return new SnappedLocation(origin, snapped, target);
+            return snapSegment(origin, target);
         }
         else if (Iterables.size(shape) > 1)
         {
@@ -146,5 +150,38 @@ public class Snapper
             }
         }
         return best;
+    }
+
+    private SnappedLocation snapSegment(final Location origin, final Segment shape)
+    {
+        // Use the dot product to determine if the snapped point is within the segment, or at
+        // the edge points
+        final Segment variable = new Segment(shape.start(), origin);
+        final double dotProduct = shape.dotProduct(variable);
+        if (dotProduct <= 0)
+        {
+            return new SnappedLocation(origin, shape.start(), shape);
+        }
+        // Here, NOSONAR to avoid "Collections should not be passed as arguments to their own
+        // methods (squid:S2114)"
+        // It is triggered because Segment is also a collection.
+        if (dotProduct >= shape.dotProduct(shape)) // NOSONAR
+        {
+            return new SnappedLocation(origin, shape.end(), shape);
+        }
+        // Find the point in the middle.
+        // Inspired from http://www.sunshine2k.de/coding/java/PointOnLine/PointOnLine.html#step5
+        // The angle between the target and variable segment is alpha
+        final double cosAlpha = dotProduct
+                / (shape.dotProductLength() * variable.dotProductLength());
+        // Cos Alpha is also defined as (offset distance on target) / (variable's length)
+        final double offsetDistance = cosAlpha * variable.dotProductLength();
+        final double latitudeAsDm7 = shape.start().getLatitude().asDm7()
+                + offsetDistance / shape.dotProductLength() * shape.latitudeSpan();
+        final double longitudeAsDm7 = shape.start().getLongitude().asDm7()
+                + offsetDistance / shape.dotProductLength() * shape.longitudeSpan();
+        final Location snapped = new Location(Latitude.dm7(Math.round(latitudeAsDm7)),
+                Longitude.dm7(Math.round(longitudeAsDm7)));
+        return new SnappedLocation(origin, snapped, shape);
     }
 }
