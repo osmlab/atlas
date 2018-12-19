@@ -11,12 +11,12 @@ import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentFetcher;
-import org.openstreetmap.atlas.utilities.command.subcommands.templates.AtlasLoaderCommand;
+import org.openstreetmap.atlas.utilities.command.subcommands.templates.VariadicAtlasLoaderCommand;
 
 /**
  * @author lcram
  */
-public class PackedToTextAtlasCommand extends AtlasLoaderCommand
+public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
 {
     private static final String DESCRIPTION_SECTION = "PackedToTextAtlasCommandDescriptionSection.txt";
     private static final String EXAMPLES_SECTION = "PackedToTextAtlasCommandExamplesSection.txt";
@@ -141,6 +141,7 @@ public class PackedToTextAtlasCommand extends AtlasLoaderCommand
     @Override
     public void registerManualPageSections()
     {
+        super.registerManualPageSections();
         addManualPageSection("DESCRIPTION",
                 PackedToTextAtlasCommand.class.getResourceAsStream(DESCRIPTION_SECTION));
         addManualPageSection("EXAMPLES",

@@ -18,9 +18,11 @@ import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
  *
  * @author lcram
  */
-public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
+public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellToolsCommand
 {
     private static final String INPUT_HINT = "input-atlases";
+
+    private static final String LOADER_SECTION = "AtlasLoaderCommandLoaderSection.txt";
 
     private static final String STRICT_OPTION_LONG = "strict";
     private static final Character STRING_OPTION_SHORT = 's';
@@ -29,7 +31,7 @@ public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
     private final OptionAndArgumentFetcher fetcher;
     private final CommandOutputDelegate output;
 
-    public AtlasLoaderCommand()
+    public VariadicAtlasLoaderCommand()
     {
         this.fetcher = this.getOptionAndArgumentFetcher();
         this.output = this.getCommandOutputDelegate();
@@ -73,6 +75,13 @@ public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
         }
 
         return atlasResourceList;
+    }
+
+    @Override
+    public void registerManualPageSections()
+    {
+        addManualPageSection("ATLAS LOADER",
+                VariadicAtlasLoaderCommand.class.getResourceAsStream(LOADER_SECTION));
     }
 
     @Override

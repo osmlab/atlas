@@ -10,12 +10,12 @@ import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDe
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentFetcher;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
-import org.openstreetmap.atlas.utilities.command.subcommands.templates.AtlasLoaderCommand;
+import org.openstreetmap.atlas.utilities.command.subcommands.templates.VariadicAtlasLoaderCommand;
 
 /**
  * @author lcram
  */
-public class ConcatenateAtlasCommand extends AtlasLoaderCommand
+public class ConcatenateAtlasCommand extends VariadicAtlasLoaderCommand
 {
     private static final String OUTPUT_HINT = "output-atlas";
 
@@ -69,6 +69,7 @@ public class ConcatenateAtlasCommand extends AtlasLoaderCommand
     @Override
     public void registerManualPageSections()
     {
+        super.registerManualPageSections();
         addManualPageSection("DESCRIPTION",
                 ConcatenateAtlasCommand.class.getResourceAsStream(DESCRIPTION_SECTION));
         addManualPageSection("EXAMPLES",

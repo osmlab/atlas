@@ -1,0 +1,9 @@
+An atlas loader command is any command that recieves an arbitrary number of input
+atlas files on the command line, through the <input-atlases...> argument. A few quick
+examples:
+#$ example-loader-command myatlas1.atlas myatlas2.atlas --opt=optarg
+#$ example-loader-command ~/*.atlas --opt=optarg
+#$ example-loader-command atlas1.atlas atlas2.atlas atlas3.atlas --strict
+If an atlas loader command cannot find one of the specified atlas files, it will
+simply skip over loading the file. This is unless the '--strict' option is applied,
+in which case the load will fail fast.
