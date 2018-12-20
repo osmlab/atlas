@@ -552,7 +552,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
                 .map(RelationMember::getEntity).filter(entity -> !(entity instanceof Relation))
                 .map(entity -> (AtlasItem) entity);
         final Stream<AtlasItem> relationMembers = members().stream().map(RelationMember::getEntity)
-                .filter(entity -> (entity instanceof Relation)).map(entity -> (Relation) entity)
+                .filter(entity -> entity instanceof Relation).map(entity -> (Relation) entity)
                 .flatMap(Relation::leafMembers);
         return Stream.concat(nonRelationMembers, relationMembers);
     }
