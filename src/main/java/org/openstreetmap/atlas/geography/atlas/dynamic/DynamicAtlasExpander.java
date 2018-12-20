@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author matthieun
  */
-public class DynamicAtlasExpander
+class DynamicAtlasExpander
 {
     private static final Logger logger = LoggerFactory.getLogger(DynamicAtlasExpander.class);
 
@@ -524,7 +524,8 @@ public class DynamicAtlasExpander
                 .filter(shard -> this.loadedShards.get(shard) != null).collect(Collectors.toSet()));
     }
 
-    private boolean relationCoveredInternal(final Relation relation,
+    // NOSONAR here as complexity 16 is ok.
+    private boolean relationCoveredInternal(final Relation relation, // NOSONAR
             final Set<Long> parentRelationIdentifierTree)
     {
         final RelationMemberList members = relation.members();
@@ -555,25 +556,8 @@ public class DynamicAtlasExpander
             }
             else if (entity instanceof Relation)
             {
-                final long newIdentifier = entity.getIdentifier();
-                if (parentRelationIdentifierTree.contains(newIdentifier))
-                {
-                    logger.error(
-                            "Skipping! Unable to expand on relation which has a loop: {}. Parent tree: {}",
-                            relation, parentRelationIdentifierTree);
-                    result = true;
-                }
-                else
-                {
-                    final Set<Long> newParentRelationIdentifierTree = new HashSet<>();
-                    newParentRelationIdentifierTree.addAll(parentRelationIdentifierTree);
-                    newParentRelationIdentifierTree.add(newIdentifier);
-                    if (!relationCoveredInternal((Relation) entity,
-                            newParentRelationIdentifierTree))
-                    {
-                        result = false;
-                    }
-                }
+                result = relationMemberCoveredInternal(relation, (Relation) entity,
+                        parentRelationIdentifierTree);
             }
             else
             {
@@ -591,7 +575,8 @@ public class DynamicAtlasExpander
         return relationCoversInitialShardBoundsInternal(relation, parentRelationIdentifierTree);
     }
 
-    private boolean relationCoversInitialShardBoundsInternal(final Relation relation,
+    // NOSONAR here as complexity 16 is ok.
+    private boolean relationCoversInitialShardBoundsInternal(final Relation relation, // NOSONAR
             final Set<Long> parentRelationIdentifierTree)
     {
         final RelationMemberList members = relation.members();
@@ -622,29 +607,61 @@ public class DynamicAtlasExpander
             }
             else if (entity instanceof Relation)
             {
-                final long newIdentifier = entity.getIdentifier();
-                if (parentRelationIdentifierTree.contains(newIdentifier))
-                {
-                    logger.error(
-                            "Skipping! Unable to expand on relation which has a loop: {}. Parent tree: {}",
-                            relation, parentRelationIdentifierTree);
-                }
-                else
-                {
-                    final Set<Long> newParentRelationIdentifierTree = new HashSet<>();
-                    newParentRelationIdentifierTree.addAll(parentRelationIdentifierTree);
-                    newParentRelationIdentifierTree.add(newIdentifier);
-                    if (relationCoversInitialShardBoundsInternal((Relation) entity,
-                            newParentRelationIdentifierTree))
-                    {
-                        result = true;
-                    }
-                }
+                result = relationMemberCoversInitialShardBoundsInternal(relation, (Relation) entity,
+                        parentRelationIdentifierTree);
             }
             else
             {
                 throw new CoreException("Unknown Relation Member Type: {}",
                         entity.getClass().getName());
+            }
+        }
+        return result;
+    }
+
+    private boolean relationMemberCoveredInternal(final Relation parentRelation,
+            final Relation relation, final Set<Long> parentRelationIdentifierTree)
+    {
+        boolean result = true;
+        final long newIdentifier = relation.getIdentifier();
+        if (parentRelationIdentifierTree.contains(newIdentifier))
+        {
+            logger.error(
+                    "Skipping! Unable to expand on relation which has a loop: {}. Parent tree: {}",
+                    parentRelation, parentRelationIdentifierTree);
+        }
+        else
+        {
+            final Set<Long> newParentRelationIdentifierTree = new HashSet<>();
+            newParentRelationIdentifierTree.addAll(parentRelationIdentifierTree);
+            newParentRelationIdentifierTree.add(newIdentifier);
+            if (!relationCoveredInternal(relation, newParentRelationIdentifierTree))
+            {
+                result = false;
+            }
+        }
+        return result;
+    }
+
+    private boolean relationMemberCoversInitialShardBoundsInternal(final Relation parentRelation,
+            final Relation relation, final Set<Long> parentRelationIdentifierTree)
+    {
+        boolean result = false;
+        final long newIdentifier = relation.getIdentifier();
+        if (parentRelationIdentifierTree.contains(newIdentifier))
+        {
+            logger.error(
+                    "Skipping! Unable to expand on relation which has a loop: {}. Parent tree: {}",
+                    parentRelation, parentRelationIdentifierTree);
+        }
+        else
+        {
+            final Set<Long> newParentRelationIdentifierTree = new HashSet<>();
+            newParentRelationIdentifierTree.addAll(parentRelationIdentifierTree);
+            newParentRelationIdentifierTree.add(newIdentifier);
+            if (relationCoversInitialShardBoundsInternal(relation, newParentRelationIdentifierTree))
+            {
+                result = true;
             }
         }
         return result;
