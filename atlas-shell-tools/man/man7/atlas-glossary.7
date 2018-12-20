@@ -36,7 +36,8 @@ The active module index is a file containing metadata about
 the commands in the presently installed module. The metadata includes the command name
 as well as the full classname of the command implementation. A new index is generated
 each time a new module is activated. The index can also be regenerated with
-\fBatlas-config-sync\fR(1).
+\fBatlas-config-sync\fR(1). See \fBatlas\-plumbing\fR(5) for info on where the index
+is stored.
 .RE
 
 .sp
@@ -116,10 +117,10 @@ See \fBatlas\-presets\fR(7) for more information.
 .RS 4
 A repo is a remote \fBgit\fR(1) repository containing Atlas Shell Tools command implementations.
 The repo management interface is exposed by \fBatlas\-config\-repo\fR(1), and repo installation
-is performed using the \fB\-\-repo\fR option of \fBatlas\-config\-install\fR(1). The repo object
-itself simply consists of some metadata \- specifically a remote URL, a branch
-name, and optional Gradle configuration data. More info on repo objects can be
-found in \fBatlas\-plumbing\fR(5).
+is performed using the \fBinstall\fR directive of \fBatlas\-config\-repo\fR(1). The repo object
+itself simply consists of some metadata \- specifically a remote URL, a ref
+name (could be a branch, commit, tag, etc.), and optional Gradle configuration data.
+More info on repo objects can be found in \fBatlas\-plumbing\fR(5).
 .RE
 
 .sp
