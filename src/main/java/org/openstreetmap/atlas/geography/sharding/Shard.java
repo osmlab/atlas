@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.sharding;
 
 import java.io.Serializable;
 
+import org.openstreetmap.atlas.geography.GeometryPrintable;
 import org.openstreetmap.atlas.geography.Located;
 
 /**
@@ -9,7 +10,7 @@ import org.openstreetmap.atlas.geography.Located;
  *
  * @author matthieun
  */
-public interface Shard extends Located, Serializable
+public interface Shard extends Located, Serializable, GeometryPrintable
 {
     String getName();
 }

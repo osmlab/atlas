@@ -32,6 +32,12 @@ public abstract class LineItem extends AtlasItem
         super(atlas);
     }
 
+    @Override
+    public JsonObject asGeoJsonGeometry()
+    {
+        return GeoJsonUtils.feature(asPolyLine().asGeoJsonGeometry(), geoJsonProperties());
+    }
+
     /**
      * @return The {@link PolyLine} that represents this {@link LineItem}
      */
@@ -133,8 +139,14 @@ public abstract class LineItem extends AtlasItem
     }
 
     @Override
-    public JsonObject asGeoJsonFeature()
+    public byte[] toWkb()
     {
-        return GeoJsonUtils.feature(asPolyLine().asGeoJsonGeometry(), geoJsonProperties());
+        return this.asPolyLine().toWkb();
+    }
+
+    @Override
+    public String toWkt()
+    {
+        return this.asPolyLine().toWkt();
     }
 }

@@ -18,6 +18,7 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.WktPrintable;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
@@ -264,7 +265,8 @@ public class DynamicAtlasExpander
         // a way intersects the initial shard without shapepoints inside the initial shards, and was
         // revealed by loading a new neighboring shard. At that point, if that way also intersects a
         // third shard which was not loaded before, that third shard might become now eligible.
-        this.dynamicAtlas.entities();
+        browseForPotentialNewShards();
+        browseForPotentialNewShardsFromAggressiveRelations();
         // Repeat the same process as long as we find some of those third party shards.
         while (!this.loadedShards.keySet().equals(currentShards))
         {
@@ -283,6 +285,7 @@ public class DynamicAtlasExpander
             currentShards = new HashSet<>(this.loadedShards.keySet());
             // Loop through the entities again to find potential shards to add.
             browseForPotentialNewShards();
+            browseForPotentialNewShardsFromAggressiveRelations();
         }
         this.preemptiveLoadDone = true;
     }
@@ -351,6 +354,10 @@ public class DynamicAtlasExpander
     {
         // Look at regular entities
         this.dynamicAtlas.entities();
+    }
+
+    private void browseForPotentialNewShardsFromAggressiveRelations()
+    {
         // In case we want to aggressively explore relations, we constrain it to only when the
         // policy is to not extend indefinitely, and to defer loading.
         if (this.policy.isAggressivelyExploreRelations() && !this.policy.isExtendIndefinitely()
@@ -361,6 +368,14 @@ public class DynamicAtlasExpander
             this.loadedShards.keySet().forEach(
                     shard -> this.sharding.neighbors(shard).forEach(onlyNeighboringShards::add));
             onlyNeighboringShards.removeAll(this.loadedShards.keySet());
+            if (logger.isTraceEnabled())
+            {
+                final Set<String> shardNames = onlyNeighboringShards.stream().map(Shard::getName)
+                        .collect(Collectors.toSet());
+                final String wktCollection = WktPrintable.toWktCollection(onlyNeighboringShards);
+                logger.trace("{}: Aggressively exploring relations in shards {} - {}",
+                        this.dynamicAtlas.getName(), shardNames, wktCollection);
+            }
             // For each of those shards, load the Atlas individually and find the relation and its
             // members if it is there too.
             final Set<Shard> neighboringShardsContainingRelation = neighboringShardsContainingInitialRelation(
@@ -423,39 +438,39 @@ public class DynamicAtlasExpander
                 .fullyGeometricallyEncloses(locationItem.getLocation());
     }
 
+    private boolean neighboringAtlasContainingInitialRelation(final Atlas atlas)
+    {
+        for (final Relation newRelation : atlas.relations())
+        {
+            final Relation currentRelation = this.dynamicAtlas
+                    .subRelation(newRelation.getIdentifier());
+            if (currentRelation != null && relationCoversInitialShardBounds(currentRelation))
+            {
+                final RelationBean newMembers = newRelation.members().asBean();
+                final RelationBean currentMembers = currentRelation.members().asBean();
+                for (final RelationBeanItem newMember : newMembers)
+                {
+                    if (!currentMembers.contains(newMember))
+                    {
+                        newShapeLog(newRelation, currentRelation);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     private Set<Shard> neighboringShardsContainingInitialRelation(
-            final Set<Shard> neighboringShards)
+            final Set<Shard> neighboringShardCandidates)
     {
         final Set<Shard> neighboringShardsContainingRelation = new HashSet<>();
-        neighboringShards
+        neighboringShardCandidates
                 .forEach(shard -> this.policy.getAtlasFetcher().apply(shard).ifPresent(atlas ->
                 {
-                    for (final Relation newRelation : atlas.relations())
+                    if (neighboringAtlasContainingInitialRelation(atlas))
                     {
-                        final Relation currentRelation = this.dynamicAtlas
-                                .subRelation(newRelation.getIdentifier());
-                        if (currentRelation != null
-                                && relationCoversInitialShardBounds(currentRelation))
-                        {
-                            final RelationBean newMembers = newRelation.members().asBean();
-                            final RelationBean currentMembers = currentRelation.members().asBean();
-                            for (final RelationBeanItem newMember : newMembers)
-                            {
-                                if (!currentMembers.contains(newMember))
-                                {
-                                    neighboringShardsContainingRelation.add(shard);
-                                    if (logger.isDebugEnabled())
-                                    {
-                                        logger.debug("{}: Triggering new shard load for {}{}",
-                                                this.dynamicAtlas.getName(),
-                                                "Atlas " + currentRelation.getType()
-                                                        + " containing ",
-                                                newMember);
-                                    }
-                                    break;
-                                }
-                            }
-                        }
+                        neighboringShardsContainingRelation.add(shard);
                     }
                 }));
         return neighboringShardsContainingRelation;
