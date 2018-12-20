@@ -10,4 +10,4 @@ simply skip over loading the file. This is unless the '--strict' option is appli
 in which case the load will fail fast. Atlas loader commands also provide an '--output' option,
 which can be used to change the default location of any output files. This example changes
 the output location of an exmaple command to your Desktop:
-#$ example-loader-command myatlas1.atlas --output=~/Desktop
+#$ example-loader-command myatlas1.atlas --output ~/Desktop
