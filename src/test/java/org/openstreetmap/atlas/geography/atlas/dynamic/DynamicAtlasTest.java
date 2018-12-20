@@ -237,7 +237,7 @@ public class DynamicAtlasTest
     {
         // Already loaded: 12-1350-1870
         Assert.assertEquals(4, this.dynamicAtlas.numberOfEdges());
-        Assert.assertNull(this.dynamicAtlas.relation(3));
+        Assert.assertEquals(1, this.dynamicAtlas.relation(3).members().size());
 
         // Prompts load of 12-1349-1870
         this.dynamicAtlas.edge(8000000);
@@ -245,7 +245,7 @@ public class DynamicAtlasTest
 
         // Prompts load of 12-1349-1869
         final Relation relation3 = this.dynamicAtlas.relation(3);
-        Assert.assertEquals(2, relation3.members().size());
+        Assert.assertEquals(3, relation3.members().size());
         Assert.assertEquals(8, this.dynamicAtlas.numberOfEdges());
     }
 
