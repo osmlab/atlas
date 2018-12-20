@@ -49,7 +49,7 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
     private static final String CUT_TYPE_OPTION_DESCRIPTION = "The cut-type of this subatlas. Valid settings are: soft_cut, hard_cut_all, hard_cut_relations_only. Defaults to soft_cut.";
     private static final String CUT_TYPE_OPTION_HINT = "type";
 
-    private static final String SUB_ATLAS_SUFFIX = ".sub";
+    private static final String SUB_ATLAS_SUFFIX = ".sub" + FileSuffix.ATLAS;
 
     private final OptionAndArgumentFetcher fetcher;
     private final CommandOutputDelegate output;
@@ -116,10 +116,8 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
             final Optional<Atlas> outputAtlas = processAtlas(fileResource, cutType);
             if (outputAtlas.isPresent())
             {
-                // TODO this is bugged because fileResource.getFile().getName() already includes the
-                // extension
-                final Path filePath = Paths.get(
-                        fileResource.getFile().getName() + SUB_ATLAS_SUFFIX + FileSuffix.ATLAS);
+                final Path filePath = Paths
+                        .get(fileResource.getFile().getName() + SUB_ATLAS_SUFFIX);
                 final Path concatenatedPath = Paths.get(
                         outputParentPath.get().toAbsolutePath().toString(),
                         filePath.getFileName().toString());
