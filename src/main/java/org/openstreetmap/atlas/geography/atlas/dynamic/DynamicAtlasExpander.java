@@ -444,7 +444,9 @@ class DynamicAtlasExpander
         {
             final Relation currentRelation = this.dynamicAtlas
                     .subRelation(newRelation.getIdentifier());
-            if (currentRelation != null && relationCoversInitialShardBounds(currentRelation))
+            if (currentRelation != null
+                    && this.policy.getAtlasEntitiesToConsiderForExpansion().test(currentRelation)
+                    && relationCoversInitialShardBounds(currentRelation))
             {
                 final RelationBean newMembers = newRelation.members().asBean();
                 final RelationBean currentMembers = currentRelation.members().asBean();
