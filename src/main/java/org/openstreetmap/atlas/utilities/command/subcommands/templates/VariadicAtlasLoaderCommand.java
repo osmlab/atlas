@@ -131,7 +131,8 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
     @Override
     public void registerOptionsAndArguments()
     {
-        final Integer[] contexts = this.fetcher.getFilteredRegisteredContexts().toArray(new Integer[0]);
+        final Integer[] contexts = this.fetcher.getFilteredRegisteredContexts()
+                .toArray(new Integer[0]);
         registerOption(STRICT_OPTION_LONG, STRING_OPTION_SHORT, STRICT_OPTION_DESCRIPTION,
                 contexts);
         registerOptionWithRequiredArgument(OUTPUT_DIRECTORY_OPTION_LONG,
