@@ -157,14 +157,11 @@ public final class DocumentationFormatter
                 DocumentationFormatter.addCodeLine(DocumentationFormatter.DEFAULT_CODE_INDENT_LEVEL,
                         text, builder);
             }
-            else if (type == DocumentationFormatType.PARAGRAPH)
+            else if (type == DocumentationFormatType.PARAGRAPH && !contents.getSecond().isEmpty())
             {
-                if (!contents.getSecond().isEmpty())
-                {
-                    DocumentationFormatter.addParagraphWithLineWrapping(
-                            DocumentationFormatter.DEFAULT_PARAGRAPH_INDENT_LEVEL, maximumColumn,
-                            text, builder, true);
-                }
+                DocumentationFormatter.addParagraphWithLineWrapping(
+                        DocumentationFormatter.DEFAULT_PARAGRAPH_INDENT_LEVEL, maximumColumn, text,
+                        builder, true);
             }
             builder.newline().newline();
         }
@@ -237,7 +234,7 @@ public final class DocumentationFormatter
         return builder.toString();
     }
 
-    public static void generateTextForSynopsisSection(final String programName,
+    public static void generateTextForSynopsisSection(final String programName, // NOSONAR
             final int maximumColumn, final Map<Integer, Set<SimpleOption>> optionsWithContext,
             final Set<Integer> contexts,
             final Map<Integer, Map<String, ArgumentArity>> argumentArities,

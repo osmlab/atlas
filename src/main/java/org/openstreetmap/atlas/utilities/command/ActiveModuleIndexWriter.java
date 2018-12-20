@@ -62,7 +62,7 @@ public class ActiveModuleIndexWriter
     {
         if (this.useVerbose)
         {
-            System.out.println(message);
+            System.out.println(message); // NOSONAR
         }
     }
 
@@ -74,7 +74,7 @@ public class ActiveModuleIndexWriter
         final PrintWriter printWriter;
         try
         {
-            printWriter = new PrintWriter(new FileWriter(this.outputPath));
+            printWriter = new PrintWriter(new FileWriter(this.outputPath)); // NOSONAR
         }
         catch (final IOException exception)
         {

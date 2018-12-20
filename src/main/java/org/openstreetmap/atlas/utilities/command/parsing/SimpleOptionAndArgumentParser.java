@@ -134,13 +134,10 @@ public class SimpleOptionAndArgumentParser
             {
                 throw new CoreException("Long option form cannot be null or empty");
             }
-            if (shortForm != null)
+            if (shortForm != null && !Character.isLetterOrDigit(shortForm))
             {
-                if (!Character.isLetterOrDigit(shortForm))
-                {
-                    throw new CoreException("Invalid short option form {}: must be letter or digit",
-                            shortForm);
-                }
+                throw new CoreException("Invalid short option form {}: must be letter or digit",
+                        shortForm);
             }
             if (description == null || description.isEmpty())
             {
@@ -272,6 +269,10 @@ public class SimpleOptionAndArgumentParser
         }
     }
 
+    private static final String PROVIDED_OPTION_LONG_FORM_WAS_AMBIGUOUS = "provided option long form {} was ambiguous";
+
+    private static final String CANNOT_GET_OPTIONS_BEFORE_PARSING = "Cannot get options before parsing!";
+
     private static final Logger logger = LoggerFactory
             .getLogger(SimpleOptionAndArgumentParser.class);
 
@@ -363,7 +364,7 @@ public class SimpleOptionAndArgumentParser
 
     /**
      * Get the registered contexts, but filter out the default '--help' and '--version' contexts.
-     * 
+     *
      * @return the filtered set
      */
     public SortedSet<Integer> getFilteredRegisteredContexts()
@@ -390,7 +391,7 @@ public class SimpleOptionAndArgumentParser
     {
         if (!this.parseStepRanAtLeastOnce)
         {
-            throw new CoreException("Cannot get options before parsing!");
+            throw new CoreException(CANNOT_GET_OPTIONS_BEFORE_PARSING);
         }
         final Optional<SimpleOption> option;
         try
@@ -403,7 +404,7 @@ public class SimpleOptionAndArgumentParser
         }
         catch (final AmbiguousAbbreviationException exception)
         {
-            throw new CoreException("provided option long form {} was ambiguous", longForm);
+            throw new CoreException(PROVIDED_OPTION_LONG_FORM_WAS_AMBIGUOUS, longForm);
         }
         if (option.isPresent())
         {
@@ -432,7 +433,7 @@ public class SimpleOptionAndArgumentParser
     {
         if (!this.parseStepRanAtLeastOnce)
         {
-            throw new CoreException("Cannot get options before parsing!");
+            throw new CoreException(CANNOT_GET_OPTIONS_BEFORE_PARSING);
         }
         final Optional<SimpleOption> option;
         try
@@ -445,7 +446,7 @@ public class SimpleOptionAndArgumentParser
         }
         catch (final AmbiguousAbbreviationException exception)
         {
-            throw new CoreException("provided option long form {} was ambiguous", longForm);
+            throw new CoreException(PROVIDED_OPTION_LONG_FORM_WAS_AMBIGUOUS, longForm);
         }
         if (option.isPresent())
         {
@@ -571,7 +572,7 @@ public class SimpleOptionAndArgumentParser
     {
         if (!this.parseStepRanAtLeastOnce)
         {
-            throw new CoreException("Cannot get options before parsing!");
+            throw new CoreException(CANNOT_GET_OPTIONS_BEFORE_PARSING);
         }
         final Optional<SimpleOption> option;
         try
@@ -584,7 +585,7 @@ public class SimpleOptionAndArgumentParser
         }
         catch (final AmbiguousAbbreviationException exception)
         {
-            throw new CoreException("provided option long form {} was ambiguous", longForm);
+            throw new CoreException(PROVIDED_OPTION_LONG_FORM_WAS_AMBIGUOUS, longForm);
         }
         return option.isPresent();
     }
@@ -594,7 +595,7 @@ public class SimpleOptionAndArgumentParser
         return this.parsedOptions.isEmpty() && this.parsedArguments.isEmpty();
     }
 
-    public void parse(final List<String> allArguments) throws AmbiguousAbbreviationException,
+    public void parse(final List<String> allArguments) throws AmbiguousAbbreviationException, // NOSONAR
             UnknownOptionException, UnparsableContextException
     {
         this.parsedArguments.clear();
@@ -628,7 +629,7 @@ public class SimpleOptionAndArgumentParser
             }
             else if (SHORT_FORM_PREFIX.equals(argument))
             {
-                continue;
+                continue; // NOSONAR
             }
             else if (argument.startsWith(LONG_FORM_PREFIX) && !seenEndOptionsOperator)
             {
@@ -655,7 +656,7 @@ public class SimpleOptionAndArgumentParser
 
         final SortedSet<String> exceptionMessagesWeSaw = new TreeSet<>();
         // Now we actually parse the arguments, assigning a context.
-        for (final Integer context : this.registeredContexts)
+        for (final Integer context : this.registeredContexts) // NOSONAR
         {
             try
             {
@@ -1024,12 +1025,9 @@ public class SimpleOptionAndArgumentParser
         for (final SimpleOption option : setToCheck)
         {
             final Optional<Character> optionalForm = option.getShortForm();
-            if (optionalForm.isPresent())
+            if (optionalForm.isPresent() && optionalForm.get().equals(shortForm))
             {
-                if (optionalForm.get().equals(shortForm))
-                {
-                    return Optional.of(option);
-                }
+                return Optional.of(option);
             }
         }
         return Optional.empty();
@@ -1045,7 +1043,7 @@ public class SimpleOptionAndArgumentParser
      * This function returns a boolean value specifying whether or not it consumed the lookahead
      * value.
      */
-    private boolean parseLongFormOption(final int tryContext, final String argument,
+    private boolean parseLongFormOption(final int tryContext, final String argument, // NOSONAR
             final Optional<String> lookahead)
             throws UnknownOptionException, OptionParseException, AmbiguousAbbreviationException
     {
@@ -1298,7 +1296,7 @@ public class SimpleOptionAndArgumentParser
      * This function returns a boolean value specifying whether or not it consumed the lookahead
      * value.
      */
-    private boolean parseShortFormOption(final int context, final String argument,
+    private boolean parseShortFormOption(final int context, final String argument, // NOSONAR
             final Optional<String> lookahead) throws OptionParseException, UnknownOptionException
     {
         final String scrubbedPrefix = argument.substring(SHORT_FORM_PREFIX.length());
@@ -1340,7 +1338,7 @@ public class SimpleOptionAndArgumentParser
                     else
                     {
                         throw new OptionParseException("option \'"
-                                + option.get().getShortForm().get() + "\' needs an argument");
+                                + option.get().getShortForm().get() + "\' needs an argument"); // NOSONAR
                     }
                 default:
                     throw new CoreException("Bad OptionArgumentType {}",
@@ -1356,7 +1354,7 @@ public class SimpleOptionAndArgumentParser
 
             // Check for case a) determine if valid bundle
             boolean isValidBundle = true;
-            for (int index = 0; index < scrubbedPrefix.length(); index++)
+            for (int index = 0; index < scrubbedPrefix.length(); index++) // NOSONAR
             {
                 final char optionCharacter = scrubbedPrefix.charAt(index);
                 final Optional<SimpleOption> option = registeredOptionForShortForm(context,
@@ -1384,7 +1382,7 @@ public class SimpleOptionAndArgumentParser
                     final char optionCharacter = scrubbedPrefix.charAt(index);
                     final Optional<SimpleOption> option = registeredOptionForShortForm(context,
                             optionCharacter);
-                    this.parsedOptions.put(option.get(), Optional.empty());
+                    this.parsedOptions.put(option.get(), Optional.empty()); // NOSONAR
                 }
             }
             else
@@ -1399,7 +1397,7 @@ public class SimpleOptionAndArgumentParser
                 }
                 if (option.get().getArgumentType() == OptionArgumentType.NONE)
                 {
-                    throw new OptionParseException("option \'" + option.get().getShortForm().get()
+                    throw new OptionParseException("option \'" + option.get().getShortForm().get() // NOSONAR
                             + "\' takes no argument");
                 }
                 final String optionArgument = scrubbedPrefix.substring(1);
@@ -1427,12 +1425,10 @@ public class SimpleOptionAndArgumentParser
             throw new CoreException("Optional argument must be the last registered argument");
         }
 
-        if (arity == ArgumentArity.VARIADIC)
+        if (arity == ArgumentArity.VARIADIC
+                && this.contextToRegisteredVariadicArgument.getOrDefault(context, false))
         {
-            if (this.contextToRegisteredVariadicArgument.getOrDefault(context, false))
-            {
-                throw new CoreException("Cannot register more than one variadic argument");
-            }
+            throw new CoreException("Cannot register more than one variadic argument");
         }
         if (optionality == ArgumentOptionality.OPTIONAL)
         {

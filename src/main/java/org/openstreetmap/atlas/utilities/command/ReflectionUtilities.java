@@ -66,7 +66,7 @@ public final class ReflectionUtilities
         final AbstractAtlasShellToolsCommand subcommand;
         try
         {
-            subcommand = (AbstractAtlasShellToolsCommand) constructor.newInstance(new Object[] {});
+            subcommand = (AbstractAtlasShellToolsCommand) constructor.newInstance(new Object[] {}); // NOSONAR
         }
         catch (final ClassCastException exception)
         {

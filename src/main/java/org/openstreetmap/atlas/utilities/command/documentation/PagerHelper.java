@@ -17,11 +17,6 @@ public class PagerHelper
     private static final String DEFAULT_PAGER = "less";
     private static final String DEFAULT_PAGER_FLAGS = "-cSRMis";
 
-    public PagerHelper()
-    {
-
-    }
-
     /**
      * Page a given string using the system paging program. Will check PAGER environment variable
      * first and use that if possible.
@@ -34,7 +29,7 @@ public class PagerHelper
         final String pagerVariable = System.getenv(PAGER_ENVIRONMENT_VARIABLE);
         if (pagerVariable != null && !pagerVariable.isEmpty())
         {
-            System.err.println("TODO: respect for PAGER env var currently unimplemented!");
+            System.err.println("TODO: respect for PAGER env var currently unimplemented!"); // NOSONAR
         }
 
         final Optional<String> pagerProgram = callWhichOnPager(DEFAULT_PAGER);
@@ -46,13 +41,13 @@ public class PagerHelper
         }
         catch (final Exception exception)
         {
-            System.out.println(string);
+            System.out.println(string); // NOSONAR
             return;
         }
 
         if (temporaryFile == null)
         {
-            System.out.println(string);
+            System.out.println(string); // NOSONAR
             return;
         }
 
@@ -70,7 +65,7 @@ public class PagerHelper
         }
         catch (final Exception exception)
         {
-            System.out.println(string);
+            System.out.println(string); // NOSONAR
         }
         finally
         {
