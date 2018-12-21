@@ -54,6 +54,7 @@ my $eunl_stderr = $no_colors_stderr ? "" : $ansi_eunl;
 my $ast_path;
 my $skip_paging;
 my $quiet;
+my $debug_flag;
 
 my $program_name = $ast_utilities::COMMAND_PROGRAM;
 my $program_version = "$ast_utilities::ATLAS_SHELL_TOOLS_VERSION ($program_name program)";
@@ -87,8 +88,10 @@ sub atlas_show_contextual_help_menu_and_exit {
         atlas_unrecognized_command_message_and_exit($context);
     }
 
-    # TODO instead of "*", get the exact name of the current module
-    my $full_path_to_modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER, '*');
+    my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
+    my @activated_modules = ast_module_subsystem::get_activated_modules(\%modules);
+    my $module = $activated_modules[0];
+    my $full_path_to_modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER, "$module" . $ast_module_subsystem::MODULE_SUFFIX);
     my $full_path_to_log4j = File::Spec->catfile($ast_path, $ast_log_subsystem::LOG4J_FILE_PATH);
 
     my @java_command = ();
@@ -122,6 +125,14 @@ sub atlas_show_contextual_help_menu_and_exit {
     push @java_command, "$ast_utilities::JAVA_MARKER_SENTINEL";
 
     my @pager_command = ast_utilities::get_pager();
+
+    if ($debug_flag) {
+        print("Would execute JVM command:\n");
+        print("@java_command\n");
+        print("Then pipe into:\n");
+        print("@pager_command\n");
+        exit 0;
+    }
 
     # NOTE: there is no easy way to prevent shell interference should the java
     # command array contain only one element.
@@ -223,7 +234,6 @@ my $all_presets;
 my $show_preset;
 my $edit_preset;
 my $cfg_preset;
-my $debug_flag;
 my $allow_run_as_root;
 Getopt::Long::Configure(qw(no_ignore_case_always));
 GetOptions(
@@ -406,8 +416,8 @@ if (defined $save_preset) {
 }
 
 # Set up the subcommand to execute using the JVM
-# TODO instead of "*", get the exact name of the current module
-my $full_path_to_modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER, '*');
+my $module = $activated_modules[0];
+my $full_path_to_modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER, "$module" . $ast_module_subsystem::MODULE_SUFFIX);
 my $full_path_to_log4j = File::Spec->catfile($ast_path, $ast_log_subsystem::LOG4J_FILE_PATH);
 
 my @java_command = ();

@@ -446,10 +446,13 @@ sub generate_active_module_index {
     my $quiet = shift;
     my $verbose_java = shift;
 
-    my $full_index_path = File::Spec->catfile($ast_path, $ACTIVE_INDEX_PATH);
-    # TODO instead of "*", get the exact name of the current module
-    my $full_path_to_modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER, '*');
+    my %modules = get_module_to_status_hash($ast_path);
+    my @activated_modules = get_activated_modules(\%modules);
+
+    my $module = $activated_modules[0];
+    my $full_path_to_modules_folder = File::Spec->catfile($ast_path, $MODULES_FOLDER, "$module" . $MODULE_SUFFIX);
     my $full_path_to_log4j = File::Spec->catfile($ast_path, $ast_log_subsystem::LOG4J_FILE_PATH);
+    my $full_index_path = File::Spec->catfile($ast_path, $ACTIVE_INDEX_PATH);
     my @java_command = ();
     push @java_command, "java";
     push @java_command, "-Xms2G";
@@ -463,9 +466,6 @@ sub generate_active_module_index {
     if ($verbose_java && !$quiet) {
         push @java_command, "--verbose";
     }
-
-    my %modules = get_module_to_status_hash($ast_path);
-    my @activated_modules = get_activated_modules(\%modules);
 
     if (scalar @activated_modules == 0) {
         ast_utilities::error_output($program_name, 'could not generate index');
