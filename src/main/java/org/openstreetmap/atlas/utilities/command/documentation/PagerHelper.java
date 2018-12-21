@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.util.Optional;
 
 import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 
 /**
  * @author lcram
@@ -55,8 +56,9 @@ public class PagerHelper
 
         try
         {
-            final ProcessBuilder processBuilder = new ProcessBuilder(pagerProgram.get(),
-                    DEFAULT_PAGER_FLAGS, temporaryFile.getAbsolutePath());
+            final ProcessBuilder processBuilder = new ProcessBuilder(
+                    pagerProgram.orElseThrow(AtlasShellToolsException::new), DEFAULT_PAGER_FLAGS,
+                    temporaryFile.getAbsolutePath());
             processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
             processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
             processBuilder.redirectInput(ProcessBuilder.Redirect.INHERIT);

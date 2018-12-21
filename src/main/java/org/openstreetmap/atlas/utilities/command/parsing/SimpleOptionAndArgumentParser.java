@@ -1079,7 +1079,7 @@ public class SimpleOptionAndArgumentParser
                         }
                         else
                         {
-                            throw new OptionParseException("option \'" + option.get().getLongForm()
+                            throw new OptionParseException("option \'" + option.get().getLongForm() // NOSONAR
                                     + "\' needs an argument");
                         }
                     default:
@@ -1128,7 +1128,7 @@ public class SimpleOptionAndArgumentParser
      * @throws ArgumentException
      *             If supplied arguments do not match the registered argument hints
      */
-    private void parseOptionsAndArguments(final List<String> allArguments, final int tryContext)
+    private void parseOptionsAndArguments(final List<String> allArguments, final int tryContext) // NOSONAR
             throws UnknownOptionException, OptionParseException, ArgumentException,
             AmbiguousAbbreviationException
     {
@@ -1206,24 +1206,18 @@ public class SimpleOptionAndArgumentParser
 
         if (this.contextToRegisteredOptionalArgument.getOrDefault(tryContext, false))
         {
-            if (this.contextToArgumentHintToArity.containsKey(tryContext))
+            if (this.contextToArgumentHintToArity.containsKey(tryContext) && regularArguments
+                    .size() < this.contextToArgumentHintToArity.get(tryContext).size() - 1)
             {
-                if (regularArguments
-                        .size() < this.contextToArgumentHintToArity.get(tryContext).size() - 1)
-                {
-                    throw new ArgumentException("missing required argument(s)");
-                }
+                throw new ArgumentException("missing required argument(s)");
             }
         }
         else
         {
-            if (this.contextToArgumentHintToArity.containsKey(tryContext))
+            if (this.contextToArgumentHintToArity.containsKey(tryContext) && regularArguments
+                    .size() < this.contextToArgumentHintToArity.get(tryContext).size())
             {
-                if (regularArguments.size() < this.contextToArgumentHintToArity.get(tryContext)
-                        .size())
-                {
-                    throw new ArgumentException("missing required argument(s)");
-                }
+                throw new ArgumentException("missing required argument(s)");
             }
         }
 

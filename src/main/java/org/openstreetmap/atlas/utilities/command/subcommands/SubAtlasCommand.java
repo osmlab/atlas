@@ -14,6 +14,7 @@ import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
+import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentFetcher;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.VariadicAtlasLoaderCommand;
@@ -175,7 +176,9 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
         {
             final PackedAtlas atlas = new PackedAtlasCloner()
                     .cloneFrom(new AtlasResourceLoader().load(resource));
-            final String wkt = this.fetcher.getOptionArgument(WKT_OPTION_LONG).get();
+            final String wkt = this.fetcher.getOptionArgument(WKT_OPTION_LONG)
+                    .orElseThrow(AtlasShellToolsException::new);
+
             final WKTReader reader = new WKTReader();
             Geometry geometry = null;
             try
