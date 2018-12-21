@@ -135,7 +135,8 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
                 outputAtlas.get().save(outputFile);
                 if (this.optargDelegate.hasVerboseOption())
                 {
-                    this.outputDelegate.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+                    this.outputDelegate
+                            .printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
                 }
             }
             else

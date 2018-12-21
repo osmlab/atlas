@@ -120,7 +120,8 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
                 .orElseThrow(AtlasShellToolsException::new);
 
         this.outputDelegate.printStdout("I like meal ");
-        this.outputDelegate.printStdout(meal, TTYAttribute.MAGENTA, TTYAttribute.BOLD, TTYAttribute.BLINK);
+        this.outputDelegate.printStdout(meal, TTYAttribute.MAGENTA, TTYAttribute.BOLD,
+                TTYAttribute.BLINK);
         this.outputDelegate.printlnStdout(" the best");
 
         final int repeatDefault = 1;
@@ -133,7 +134,8 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
             }
             catch (final Exception exception)
             {
-                this.outputDelegate.printlnWarnMessage("failed to parse repeat argument, using default");
+                this.outputDelegate
+                        .printlnWarnMessage("failed to parse repeat argument, using default");
                 return null;
             }
             return parsed;
@@ -155,8 +157,9 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
 
         if (this.optargDelegate.hasOption("cheese"))
         {
-            this.outputDelegate.printlnStdout("Using "
-                    + this.optargDelegate.getOptionArgument("cheese").orElse("cheddar") + " cheese");
+            this.outputDelegate.printlnStdout(
+                    "Using " + this.optargDelegate.getOptionArgument("cheese").orElse("cheddar")
+                            + " cheese");
         }
 
         if (this.optargDelegate.hasOption("beer"))
@@ -169,6 +172,7 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
             this.outputDelegate.printlnWarnMessage("beer skipped");
         }
 
-        this.outputDelegate.printStderr("Here is a closing stderr message\n", TTYAttribute.UNDERLINE);
+        this.outputDelegate.printStderr("Here is a closing stderr message\n",
+                TTYAttribute.UNDERLINE);
     }
 }

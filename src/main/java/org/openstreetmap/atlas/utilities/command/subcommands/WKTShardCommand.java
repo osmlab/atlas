@@ -95,8 +95,8 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         {
             if (this.optargDelegate.hasOption(TREE_OPTION_LONG))
             {
-                sharding = Sharding
-                        .forString("dynamic@" + this.optargDelegate.getOptionArgument(TREE_OPTION_LONG)
+                sharding = Sharding.forString(
+                        "dynamic@" + this.optargDelegate.getOptionArgument(TREE_OPTION_LONG)
                                 .orElseThrow(AtlasShellToolsException::new));
             }
             else

@@ -153,7 +153,8 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
                 outputAtlas.saveAsGeoJson(outputFile);
                 if (this.optargDelegate.hasVerboseOption())
                 {
-                    this.outputDelegate.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath()); // NOSONAR
+                    this.outputDelegate
+                            .printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath()); // NOSONAR
                 }
 
             }
@@ -167,7 +168,8 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
                 outputAtlas.saveAsText(outputFile);
                 if (this.optargDelegate.hasVerboseOption())
                 {
-                    this.outputDelegate.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+                    this.outputDelegate
+                            .printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
                 }
             }
         }
@@ -185,7 +187,8 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
             });
             if (this.optargDelegate.hasVerboseOption())
             {
-                this.outputDelegate.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+                this.outputDelegate
+                        .printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
             }
         }
     }

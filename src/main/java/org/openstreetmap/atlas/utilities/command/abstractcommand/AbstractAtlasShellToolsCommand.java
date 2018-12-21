@@ -324,7 +324,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     }
 
     /**
-     * Get an {@link OptionAndArgumentDelegate} bound to this {@link AbstractAtlasShellToolsCommand}.
+     * Get an {@link OptionAndArgumentDelegate} bound to this
+     * {@link AbstractAtlasShellToolsCommand}.
      *
      * @return a fetcher bound to this command
      */
