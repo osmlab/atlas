@@ -53,7 +53,9 @@ my $REPO_EDIT_HEADER = "# Lines beginning with \"#\" are ignored
 # To skip multiple tasks, simply repeat this config variable for each task. E.g.
 # skip = javadoc
 # skip = integrationTest
-#";
+#
+# If you're stuck, hit <ESC> then type :q!<Enter> to abort the edit.
+# To save your changes, hit <ESC> then type :wq<Enter>";
 
 #
 # TODO fix all the hardcoded stuff.
