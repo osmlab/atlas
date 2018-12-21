@@ -2,7 +2,7 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
-import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentFetcher;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 
 /**
  * @author lcram
@@ -11,8 +11,8 @@ public class HelloWorldCommand extends AbstractAtlasShellToolsCommand
 {
     private static final String DESCRIPTION_SECTION = "HelloWorldCommandDescriptionSection.txt";
 
-    private final OptionAndArgumentFetcher fetcher;
-    private final CommandOutputDelegate output;
+    private final OptionAndArgumentDelegate optargDelegate;
+    private final CommandOutputDelegate outputDelegate;
 
     public static void main(final String[] args)
     {
@@ -21,15 +21,15 @@ public class HelloWorldCommand extends AbstractAtlasShellToolsCommand
 
     public HelloWorldCommand()
     {
-        this.fetcher = this.getOptionAndArgumentFetcher();
-        this.output = this.getCommandOutputDelegate();
+        this.optargDelegate = this.getOptionAndArgumentDelegate();
+        this.outputDelegate = this.getCommandOutputDelegate();
     }
 
     @Override
     public int execute()
     {
-        this.output.printStdout(
-                "Hello, " + this.fetcher.getOptionArgument("name").orElse("world") + "!\n");
+        this.outputDelegate.printStdout(
+                "Hello, " + this.optargDelegate.getOptionArgument("name").orElse("world") + "!\n");
         return 0;
     }
 

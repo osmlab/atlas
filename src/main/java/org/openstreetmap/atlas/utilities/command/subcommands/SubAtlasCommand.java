@@ -19,7 +19,7 @@ import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
-import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentFetcher;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.VariadicAtlasLoaderCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,8 +58,8 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
 
     private static final String SUB_ATLAS_SUFFIX = ".sub" + FileSuffix.ATLAS;
 
-    private final OptionAndArgumentFetcher fetcher;
-    private final CommandOutputDelegate output;
+    private final OptionAndArgumentDelegate optargDelegate;
+    private final CommandOutputDelegate outputDelegate;
 
     public static void main(final String[] args)
     {
@@ -69,8 +69,8 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
     public SubAtlasCommand()
     {
         super();
-        this.fetcher = this.getOptionAndArgumentFetcher();
-        this.output = this.getCommandOutputDelegate();
+        this.optargDelegate = this.getOptionAndArgumentDelegate();
+        this.outputDelegate = this.getCommandOutputDelegate();
     }
 
     @Override
@@ -79,7 +79,7 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
         final List<File> atlasResourceList = this.getInputAtlasResources();
         if (atlasResourceList.isEmpty())
         {
-            this.output.printlnErrorMessage("no input atlases");
+            this.outputDelegate.printlnErrorMessage("no input atlases");
             return 1;
         }
         final Stream<File> atlasResourceStream = atlasResourceList.stream();
@@ -87,22 +87,22 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
         final Optional<Path> outputParentPath = this.getOutputPath();
         if (!outputParentPath.isPresent())
         {
-            this.output.printlnErrorMessage("invalid output path");
+            this.outputDelegate.printlnErrorMessage("invalid output path");
             return 1;
         }
 
-        if (!this.fetcher.hasOption(WKT_OPTION_LONG))
+        if (!this.optargDelegate.hasOption(WKT_OPTION_LONG))
         {
-            this.output.printlnErrorMessage("missing required \'--wkt\' option");
+            this.outputDelegate.printlnErrorMessage("missing required \'--wkt\' option");
             return 1;
         }
 
-        if (this.fetcher.hasOption(PARALLEL_OPTION_LONG))
+        if (this.optargDelegate.hasOption(PARALLEL_OPTION_LONG))
         {
             atlasResourceStream.parallel();
         }
 
-        final String cutTypeString = this.fetcher.getOptionArgument(CUT_TYPE_OPTION_LONG)
+        final String cutTypeString = this.optargDelegate.getOptionArgument(CUT_TYPE_OPTION_LONG)
                 .orElse("SOFT_CUT");
         final AtlasCutType cutType;
         try
@@ -111,16 +111,16 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
         }
         catch (final IllegalArgumentException exception)
         {
-            this.output.printlnErrorMessage("invalid cut type " + cutTypeString);
-            this.output.printlnStderr("Try " + new StringList(CUT_TYPE_STRINGS).join(", "));
+            this.outputDelegate.printlnErrorMessage("invalid cut type " + cutTypeString);
+            this.outputDelegate.printlnStderr("Try " + new StringList(CUT_TYPE_STRINGS).join(", "));
             return 1;
         }
 
         atlasResourceStream.forEach(fileResource ->
         {
-            if (hasVerboseOption())
+            if (this.optargDelegate.hasVerboseOption())
             {
-                this.output.printlnStdout(
+                this.outputDelegate.printlnStdout(
                         "Subatlasing " + fileResource.getFile().getAbsolutePath() + "...");
             }
             final Optional<Atlas> outputAtlas = processAtlas(fileResource, cutType);
@@ -133,14 +133,14 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
                         filePath.getFileName().toString());
                 final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
                 outputAtlas.get().save(outputFile);
-                if (hasVerboseOption())
+                if (this.optargDelegate.hasVerboseOption())
                 {
-                    this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+                    this.outputDelegate.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
                 }
             }
             else
             {
-                this.output.printlnWarnMessage("skipping save of empty subatlas cut from "
+                this.outputDelegate.printlnWarnMessage("skipping save of empty subatlas cut from "
                         + fileResource.getFile().getName());
             }
         });
@@ -184,11 +184,11 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
 
     private Optional<Atlas> processAtlas(final File resource, final AtlasCutType cutType)
     {
-        if (this.fetcher.getParserContext() == WKT_CONTEXT)
+        if (this.optargDelegate.getParserContext() == WKT_CONTEXT)
         {
             final PackedAtlas atlas = new PackedAtlasCloner()
                     .cloneFrom(new AtlasResourceLoader().load(resource));
-            final String wkt = this.fetcher.getOptionArgument(WKT_OPTION_LONG)
+            final String wkt = this.optargDelegate.getOptionArgument(WKT_OPTION_LONG)
                     .orElseThrow(AtlasShellToolsException::new);
 
             final WKTReader reader = new WKTReader();
@@ -210,7 +210,7 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
             }
             else
             {
-                this.output.printlnErrorMessage("unsupported geometry type " + wkt);
+                this.outputDelegate.printlnErrorMessage("unsupported geometry type " + wkt);
             }
         }
         return Optional.empty();

@@ -123,6 +123,11 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         return this.parser.hasOption(longForm);
     }
 
+    boolean hasVerboseOption()
+    {
+        return this.parser.hasOption(VERBOSE_OPTION_LONG);
+    }
+
     void printlnCommandMessage(final String message)
     {
         printStderr(this.getCommandName() + ": ");
@@ -319,24 +324,13 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     }
 
     /**
-     * Get an {@link OptionAndArgumentFetcher} bound to this {@link AbstractAtlasShellToolsCommand}.
+     * Get an {@link OptionAndArgumentDelegate} bound to this {@link AbstractAtlasShellToolsCommand}.
      *
      * @return a fetcher bound to this command
      */
-    protected OptionAndArgumentFetcher getOptionAndArgumentFetcher()
+    protected OptionAndArgumentDelegate getOptionAndArgumentDelegate()
     {
-        return new OptionAndArgumentFetcher(this);
-    }
-
-    /**
-     * Check if the user supplied the '--verbose' or '-v' option. This is a default option inherited
-     * by all commands.
-     *
-     * @return if --verbose was set
-     */
-    protected boolean hasVerboseOption()
-    {
-        return this.parser.hasOption(VERBOSE_OPTION_LONG);
+        return new OptionAndArgumentDelegate(this);
     }
 
     /**

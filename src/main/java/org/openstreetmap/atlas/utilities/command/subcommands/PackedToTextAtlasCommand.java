@@ -12,7 +12,7 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
-import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentFetcher;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.VariadicAtlasLoaderCommand;
 
 /**
@@ -38,8 +38,8 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     private static final Integer DEFAULT_AND_GEOJSON_CONTEXT = 3;
     private static final Integer LDGEOJSON_CONTEXT = 4;
 
-    private final OptionAndArgumentFetcher fetcher;
-    private final CommandOutputDelegate output;
+    private final OptionAndArgumentDelegate optargDelegate;
+    private final CommandOutputDelegate outputDelegate;
 
     public static void main(final String[] args)
     {
@@ -49,8 +49,8 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     public PackedToTextAtlasCommand()
     {
         super();
-        this.fetcher = this.getOptionAndArgumentFetcher();
-        this.output = this.getCommandOutputDelegate();
+        this.optargDelegate = this.getOptionAndArgumentDelegate();
+        this.outputDelegate = this.getCommandOutputDelegate();
     }
 
     @Override
@@ -59,7 +59,7 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
         final List<File> atlasResourceList = this.getInputAtlasResources();
         if (atlasResourceList.isEmpty())
         {
-            this.output.printlnErrorMessage("no input atlases");
+            this.outputDelegate.printlnErrorMessage("no input atlases");
             return 1;
         }
         final Stream<File> atlasResourceStream = atlasResourceList.stream();
@@ -67,20 +67,20 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
         final Optional<Path> outputParentPath = this.getOutputPath();
         if (!outputParentPath.isPresent())
         {
-            this.output.printlnErrorMessage("invalid output path");
+            this.outputDelegate.printlnErrorMessage("invalid output path");
             return 1;
         }
 
-        if (this.fetcher.hasOption(PARALLEL_OPTION_LONG))
+        if (this.optargDelegate.hasOption(PARALLEL_OPTION_LONG))
         {
             atlasResourceStream.parallel();
         }
 
         atlasResourceStream.forEach(resource ->
         {
-            if (hasVerboseOption())
+            if (this.optargDelegate.hasVerboseOption())
             {
-                this.output.printlnStdout(
+                this.outputDelegate.printlnStdout(
                         "Converting " + resource.getFile().getAbsolutePath() + "...");
             }
             final PackedAtlas outputAtlas = new PackedAtlasCloner()
@@ -91,7 +91,7 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
             }
             catch (final Exception exception)
             {
-                this.output.printlnErrorMessage("failed to save text file for "
+                this.outputDelegate.printlnErrorMessage("failed to save text file for "
                         + resource.getFile().getName() + ": " + exception.getMessage());
             }
         });
@@ -141,9 +141,9 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
             return;
         }
 
-        if (this.fetcher.getParserContext() == DEFAULT_AND_GEOJSON_CONTEXT)
+        if (this.optargDelegate.getParserContext() == DEFAULT_AND_GEOJSON_CONTEXT)
         {
-            if (this.fetcher.hasOption(GEOJSON_OPTION_LONG))
+            if (this.optargDelegate.hasOption(GEOJSON_OPTION_LONG))
             {
                 final Path filePath = Paths.get(resource.getFile().getName() + FileSuffix.GEO_JSON);
                 final Path concatenatedPath = Paths.get(
@@ -151,9 +151,9 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
                         filePath.getFileName().toString());
                 final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
                 outputAtlas.saveAsGeoJson(outputFile);
-                if (hasVerboseOption())
+                if (this.optargDelegate.hasVerboseOption())
                 {
-                    this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath()); // NOSONAR
+                    this.outputDelegate.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath()); // NOSONAR
                 }
 
             }
@@ -165,14 +165,14 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
                         filePath.getFileName().toString());
                 final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
                 outputAtlas.saveAsText(outputFile);
-                if (hasVerboseOption())
+                if (this.optargDelegate.hasVerboseOption())
                 {
-                    this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+                    this.outputDelegate.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
                 }
             }
         }
-        else if (this.fetcher.getParserContext() == LDGEOJSON_CONTEXT
-                && this.fetcher.hasOption(LDGEOJSON_OPTION_LONG))
+        else if (this.optargDelegate.getParserContext() == LDGEOJSON_CONTEXT
+                && this.optargDelegate.hasOption(LDGEOJSON_OPTION_LONG))
         {
             final Path filePath = Paths.get(resource.getFile().getName() + FileSuffix.GEO_JSON);
             final Path concatenatedPath = Paths.get(
@@ -183,9 +183,9 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
             {
                 // Dummy consumer, we don't need to mutate the JSON
             });
-            if (hasVerboseOption())
+            if (this.optargDelegate.hasVerboseOption())
             {
-                this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+                this.outputDelegate.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
             }
         }
     }

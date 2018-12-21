@@ -18,7 +18,7 @@ import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
-import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentFetcher;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
@@ -59,8 +59,8 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 
     private static final String INPUT_WKT = "wkt";
 
-    private final OptionAndArgumentFetcher fetcher;
-    private final CommandOutputDelegate output;
+    private final OptionAndArgumentDelegate optargDelegate;
+    private final CommandOutputDelegate outputDelegate;
 
     public static void main(final String[] args)
     {
@@ -69,48 +69,48 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 
     public WKTShardCommand()
     {
-        this.fetcher = this.getOptionAndArgumentFetcher();
-        this.output = this.getCommandOutputDelegate();
+        this.optargDelegate = this.getOptionAndArgumentDelegate();
+        this.outputDelegate = this.getCommandOutputDelegate();
     }
 
     @Override
     public int execute()
     {
         final List<String> inputWKT = new ArrayList<>();
-        if (this.fetcher.hasOption(INPUT_FILE_OPTION_LONG))
+        if (this.optargDelegate.hasOption(INPUT_FILE_OPTION_LONG))
         {
             inputWKT.addAll(
-                    readWKTFromFile(this.fetcher.getOptionArgument(INPUT_FILE_OPTION_LONG)));
+                    readWKTFromFile(this.optargDelegate.getOptionArgument(INPUT_FILE_OPTION_LONG)));
         }
-        inputWKT.addAll(this.fetcher.getVariadicArgument(INPUT_WKT));
+        inputWKT.addAll(this.optargDelegate.getVariadicArgument(INPUT_WKT));
 
         if (inputWKT.isEmpty())
         {
-            this.output.printlnWarnMessage("no input WKTs were found");
+            this.outputDelegate.printlnWarnMessage("no input WKTs were found");
             return 0;
         }
 
         final Sharding sharding;
-        if (this.fetcher.getParserContext() == TREE_CONTEXT)
+        if (this.optargDelegate.getParserContext() == TREE_CONTEXT)
         {
-            if (this.fetcher.hasOption(TREE_OPTION_LONG))
+            if (this.optargDelegate.hasOption(TREE_OPTION_LONG))
             {
                 sharding = Sharding
-                        .forString("dynamic@" + this.fetcher.getOptionArgument(TREE_OPTION_LONG)
+                        .forString("dynamic@" + this.optargDelegate.getOptionArgument(TREE_OPTION_LONG)
                                 .orElseThrow(AtlasShellToolsException::new));
             }
             else
             {
-                this.output.printlnErrorMessage("either --" + TREE_OPTION_LONG + " or --"
+                this.outputDelegate.printlnErrorMessage("either --" + TREE_OPTION_LONG + " or --"
                         + SLIPPY_OPTION_LONG + " is required");
                 return 1;
             }
         }
-        else if (this.fetcher.getParserContext() == SLIPPY_CONTEXT
-                && this.fetcher.hasOption(SLIPPY_OPTION_LONG))
+        else if (this.optargDelegate.getParserContext() == SLIPPY_CONTEXT
+                && this.optargDelegate.hasOption(SLIPPY_OPTION_LONG))
         {
             sharding = Sharding
-                    .forString("slippy@" + this.fetcher.getOptionArgument(SLIPPY_OPTION_LONG)
+                    .forString("slippy@" + this.optargDelegate.getOptionArgument(SLIPPY_OPTION_LONG)
                             .orElseThrow(AtlasShellToolsException::new));
         }
         else
@@ -126,7 +126,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
             // Only print a separating newline if there were multiple entries
             if (i < inputWKT.size() - 1)
             {
-                this.output.printlnStdout("");
+                this.outputDelegate.printlnStdout("");
             }
         }
 
@@ -182,40 +182,40 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 
         if (geometry instanceof Point)
         {
-            this.output.printlnStdout(wkt + " covered by:", TTYAttribute.BOLD);
+            this.outputDelegate.printlnStdout(wkt + " covered by:", TTYAttribute.BOLD);
             final Location location = new JtsPointConverter().backwardConvert((Point) geometry);
             final Iterable<? extends Shard> shards = sharding.shardsCovering(location);
             for (final Shard shard : shards)
             {
-                this.output.printlnStdout(shard.toString(), TTYAttribute.GREEN);
+                this.outputDelegate.printlnStdout(shard.toString(), TTYAttribute.GREEN);
             }
         }
         else if (geometry instanceof LineString)
         {
-            this.output.printlnStdout(wkt + " intersects:", TTYAttribute.BOLD);
+            this.outputDelegate.printlnStdout(wkt + " intersects:", TTYAttribute.BOLD);
             final PolyLine polyline = new JtsPolyLineConverter()
                     .backwardConvert((LineString) geometry);
             final Iterable<? extends Shard> shards = sharding.shardsIntersecting(polyline);
             for (final Shard shard : shards)
             {
-                this.output.printlnStdout(shard.toString(), TTYAttribute.GREEN);
+                this.outputDelegate.printlnStdout(shard.toString(), TTYAttribute.GREEN);
             }
         }
         else if (geometry instanceof Polygon)
         {
-            this.output.printlnStdout(wkt + " intersects:", TTYAttribute.BOLD);
+            this.outputDelegate.printlnStdout(wkt + " intersects:", TTYAttribute.BOLD);
             final org.openstreetmap.atlas.geography.Polygon polygon = new JtsPolygonConverter()
                     .backwardConvert((Polygon) geometry);
             final Iterable<? extends Shard> shards = sharding.shards(polygon);
             for (final Shard shard : shards)
             {
-                this.output.printlnStdout(shard.toString(), TTYAttribute.GREEN);
+                this.outputDelegate.printlnStdout(shard.toString(), TTYAttribute.GREEN);
             }
         }
         // TODO handle more geometry types? e.g. MultiPoint, MultiLineString, and MultiPolygon?
         else
         {
-            this.output.printlnErrorMessage("unsupported geometry type " + wkt);
+            this.outputDelegate.printlnErrorMessage("unsupported geometry type " + wkt);
         }
     }
 
@@ -228,12 +228,12 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         final Path inputPath = Paths.get(pathOptional.get());
         if (inputPath.toString().startsWith("~"))
         {
-            this.output.printlnWarnMessage("the \'~\' was not expanded by your shell");
+            this.outputDelegate.printlnWarnMessage("the \'~\' was not expanded by your shell");
         }
         if (!inputPath.toAbsolutePath().toFile().canRead()
                 || !inputPath.toAbsolutePath().toFile().isFile())
         {
-            this.output.printlnErrorMessage(
+            this.outputDelegate.printlnErrorMessage(
                     inputPath.toAbsolutePath().toString() + " is not a readable file");
             return new ArrayList<>();
         }

@@ -10,13 +10,23 @@ import org.openstreetmap.atlas.utilities.conversion.StringConverter;
 /**
  * @author lcram
  */
-public class OptionAndArgumentFetcher
+public class OptionAndArgumentDelegate
 {
     private final AbstractAtlasShellToolsCommand parentCommand;
 
-    public OptionAndArgumentFetcher(final AbstractAtlasShellToolsCommand parentCommand)
+    public OptionAndArgumentDelegate(final AbstractAtlasShellToolsCommand parentCommand)
     {
         this.parentCommand = parentCommand;
+    }
+
+    /**
+     * Get all registered contexts for this command.
+     *
+     * @return the set of registered contexts
+     */
+    public SortedSet<Integer> getFilteredRegisteredContexts()
+    {
+        return this.parentCommand.getFilteredRegisteredContexts();
     }
 
     /**
@@ -65,16 +75,6 @@ public class OptionAndArgumentFetcher
     }
 
     /**
-     * Get all registered contexts for this command.
-     *
-     * @return the set of registered contexts
-     */
-    public SortedSet<Integer> getFilteredRegisteredContexts()
-    {
-        return this.parentCommand.getFilteredRegisteredContexts();
-    }
-
-    /**
      * Given a hint registered as a unary argument, return an optional wrapping the argument value
      * associated with that hint.
      *
@@ -117,5 +117,16 @@ public class OptionAndArgumentFetcher
     public boolean hasOption(final String longForm)
     {
         return this.parentCommand.hasOption(longForm);
+    }
+
+    /**
+     * Check if the user supplied the '--verbose' or '-v' option. This is a default option inherited
+     * by all commands.
+     *
+     * @return if --verbose was set
+     */
+    public boolean hasVerboseOption()
+    {
+        return this.parentCommand.hasVerboseOption();
     }
 }

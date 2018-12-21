@@ -10,6 +10,7 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.VariadicAtlasLoaderCommand;
 
 /**
@@ -22,7 +23,8 @@ public class ConcatenateAtlasCommand extends VariadicAtlasLoaderCommand
     private static final String DESCRIPTION_SECTION = "ConcatenateAtlasCommandDescriptionSection.txt";
     private static final String EXAMPLES_SECTION = "ConcatenateAtlasCommandExamplesSection.txt";
 
-    private final CommandOutputDelegate output;
+    private final OptionAndArgumentDelegate optargDelegate;
+    private final CommandOutputDelegate outputDelegate;
 
     public static void main(final String[] args)
     {
@@ -32,7 +34,8 @@ public class ConcatenateAtlasCommand extends VariadicAtlasLoaderCommand
     public ConcatenateAtlasCommand()
     {
         super();
-        this.output = this.getCommandOutputDelegate();
+        this.optargDelegate = this.getOptionAndArgumentDelegate();
+        this.outputDelegate = this.getCommandOutputDelegate();
     }
 
     @Override
@@ -41,20 +44,20 @@ public class ConcatenateAtlasCommand extends VariadicAtlasLoaderCommand
         final List<File> atlasResourceList = this.getInputAtlasResources();
         if (atlasResourceList.isEmpty())
         {
-            this.output.printlnErrorMessage("no input atlases");
+            this.outputDelegate.printlnErrorMessage("no input atlases");
             return 1;
         }
 
         final Optional<Path> outputParentPath = this.getOutputPath();
         if (!outputParentPath.isPresent())
         {
-            this.output.printlnErrorMessage("invalid output path");
+            this.outputDelegate.printlnErrorMessage("invalid output path");
             return 1;
         }
 
-        if (hasVerboseOption())
+        if (this.optargDelegate.hasVerboseOption())
         {
-            this.output.printlnStdout("Cloning...");
+            this.outputDelegate.printlnStdout("Cloning...");
         }
         final PackedAtlas outputAtlas = new PackedAtlasCloner()
                 .cloneFrom(new AtlasResourceLoader().load(atlasResourceList));
@@ -63,9 +66,9 @@ public class ConcatenateAtlasCommand extends VariadicAtlasLoaderCommand
         final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
         outputAtlas.save(outputFile);
 
-        if (hasVerboseOption())
+        if (this.optargDelegate.hasVerboseOption())
         {
-            this.output.printlnStdout("Saved to " + concatenatedPath.toString());
+            this.outputDelegate.printlnStdout("Saved to " + concatenatedPath.toString());
         }
 
         return 0;

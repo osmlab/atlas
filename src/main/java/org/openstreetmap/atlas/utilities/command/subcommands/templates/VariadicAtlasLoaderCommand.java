@@ -9,7 +9,7 @@ import java.util.Optional;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
-import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentFetcher;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 
@@ -37,18 +37,18 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
             + "does not exist, it will be created.";
     private static final String OUTPUT_DIRECTORY_OPTION_HINT = "dir";
 
-    private final OptionAndArgumentFetcher fetcher;
-    private final CommandOutputDelegate output;
+    private final OptionAndArgumentDelegate optargDelegate;
+    private final CommandOutputDelegate outputDelegate;
 
     public VariadicAtlasLoaderCommand()
     {
-        this.fetcher = this.getOptionAndArgumentFetcher();
-        this.output = this.getCommandOutputDelegate();
+        this.optargDelegate = this.getOptionAndArgumentDelegate();
+        this.outputDelegate = this.getCommandOutputDelegate();
     }
 
     public List<File> getInputAtlasResources()
     {
-        final List<String> inputAtlasPaths = this.fetcher.getVariadicArgument(INPUT_HINT);
+        final List<String> inputAtlasPaths = this.optargDelegate.getVariadicArgument(INPUT_HINT);
         final List<File> atlasResourceList = new ArrayList<>();
 
         inputAtlasPaths.stream().forEach(path ->
@@ -56,30 +56,30 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
             final File file = new File(path);
             if (!file.exists())
             {
-                this.output.printlnWarnMessage("file not found: " + path);
+                this.outputDelegate.printlnWarnMessage("file not found: " + path);
             }
             else
             {
-                if (hasVerboseOption())
+                if (this.optargDelegate.hasVerboseOption())
                 {
-                    this.output.printlnStdout("Loading " + path);
+                    this.outputDelegate.printlnStdout("Loading " + path);
                 }
                 atlasResourceList.add(file);
             }
         });
 
-        if (this.fetcher.hasOption(STRICT_OPTION_LONG))
+        if (this.optargDelegate.hasOption(STRICT_OPTION_LONG))
         {
             if (atlasResourceList.size() != inputAtlasPaths.size()) // NOSONAR
             {
-                this.output.printlnErrorMessage("terminating due to missing atlas");
+                this.outputDelegate.printlnErrorMessage("terminating due to missing atlas");
                 return new ArrayList<>();
             }
         }
 
         if (atlasResourceList.isEmpty())
         {
-            this.output.printlnErrorMessage("no valid input atlases found");
+            this.outputDelegate.printlnErrorMessage("no valid input atlases found");
             return new ArrayList<>();
         }
 
@@ -88,13 +88,13 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
 
     public Optional<Path> getOutputPath()
     {
-        final Path outputParentPath = Paths
-                .get(this.fetcher.getOptionArgument(OUTPUT_DIRECTORY_OPTION_LONG).orElse(""));
+        final Path outputParentPath = Paths.get(
+                this.optargDelegate.getOptionArgument(OUTPUT_DIRECTORY_OPTION_LONG).orElse(""));
 
         // If output path already exists and is a file, then fail
         if (outputParentPath.toAbsolutePath().toFile().isFile())
         {
-            this.output.printlnErrorMessage(
+            this.outputDelegate.printlnErrorMessage(
                     outputParentPath.toString() + " already exists and is a file");
             return Optional.empty();
         }
@@ -108,7 +108,7 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
             }
             catch (final Exception exception)
             {
-                this.output.printlnErrorMessage(
+                this.outputDelegate.printlnErrorMessage(
                         "failed to create output directory " + outputParentPath.toString());
                 return Optional.empty();
             }
@@ -117,7 +117,8 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
         // If output path is not writable, fail
         if (!outputParentPath.toAbsolutePath().toFile().canWrite())
         {
-            this.output.printlnErrorMessage(outputParentPath.toString() + " is not writable");
+            this.outputDelegate
+                    .printlnErrorMessage(outputParentPath.toString() + " is not writable");
             return Optional.empty();
         }
 
@@ -134,7 +135,7 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
     @Override
     public void registerOptionsAndArguments()
     {
-        final Integer[] contexts = this.fetcher.getFilteredRegisteredContexts()
+        final Integer[] contexts = this.optargDelegate.getFilteredRegisteredContexts()
                 .toArray(new Integer[0]);
         registerOption(STRICT_OPTION_LONG, STRING_OPTION_SHORT, STRICT_OPTION_DESCRIPTION,
                 contexts);
