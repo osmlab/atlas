@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.geography.GeometricSurface;
+import org.openstreetmap.atlas.geography.GeometryPrintable;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
@@ -16,8 +17,6 @@ import org.openstreetmap.atlas.tags.LastEditUserNameTag;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Duration;
 import org.openstreetmap.atlas.utilities.time.Time;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -30,11 +29,9 @@ import com.google.gson.JsonObject;
  * @author Sid
  * @author hallahan
  */
-public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
+public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem, GeometryPrintable
 {
     private static final long serialVersionUID = -6072525057489468736L;
-
-    private static final Logger logger = LoggerFactory.getLogger(AtlasEntity.class);
 
     // The atlas this item belongs to
     private final Atlas atlas;
@@ -107,6 +104,37 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
                     && this.getIdentifier() == that.getIdentifier();
         }
         return false;
+    }
+
+    /**
+     * A method that creates properties for a GeoJSON Feature from the tags.
+     *
+     * @return A GeoJSON properties object that is to be put in a Feature.
+     */
+    public JsonObject geoJsonProperties()
+    {
+        final JsonObject properties = new JsonObject();
+        getTags().forEach(properties::addProperty);
+        properties.addProperty(GeoJsonUtils.IDENTIFIER, getIdentifier());
+        properties.addProperty(GeoJsonUtils.OSM_IDENTIFIER, getOsmIdentifier());
+        properties.addProperty(GeoJsonUtils.ITEM_TYPE, String.valueOf(getType()));
+
+        final Optional<String> shardName = getAtlas().metaData().getShardName();
+        shardName.ifPresent(shard -> properties.addProperty("shard", shard));
+
+        final Set<Relation> relations = relations();
+        if (relations.size() > 0)
+        {
+            final JsonArray relationsArray = new JsonArray();
+            properties.add("relations", relationsArray);
+            for (final Relation relation : relations)
+            {
+                final JsonObject relationObject = relation.geoJsonProperties();
+                relationsArray.add(relationObject);
+            }
+        }
+
+        return properties;
     }
 
     @Override
@@ -202,39 +230,6 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
      * @return The {@link LocationIterableProperties} for this {@link AtlasEntity}
      */
     public abstract LocationIterableProperties toGeoJsonBuildingBlock();
-
-    public abstract JsonObject asGeoJsonFeature();
-
-    /**
-     * A method that creates properties for a GeoJSON Feature from the tags.
-     *
-     * @return A GeoJSON properties object that is to be put in a Feature.
-     */
-    public JsonObject geoJsonProperties()
-    {
-        final JsonObject properties = new JsonObject();
-        getTags().forEach(properties::addProperty);
-        properties.addProperty(GeoJsonUtils.IDENTIFIER, getIdentifier());
-        properties.addProperty(GeoJsonUtils.OSM_IDENTIFIER, getOsmIdentifier());
-        properties.addProperty(GeoJsonUtils.ITEM_TYPE, String.valueOf(getType()));
-
-        final Optional<String> shardName = getAtlas().metaData().getShardName();
-        shardName.ifPresent(shard -> properties.addProperty("shard", shard));
-
-        final Set<Relation> relations = relations();
-        if (relations.size() > 0)
-        {
-            final JsonArray relationsArray = new JsonArray();
-            properties.add("relations", relationsArray);
-            for (final Relation relation : relations)
-            {
-                final JsonObject relationObject = relation.geoJsonProperties();
-                relationsArray.add(relationObject);
-            }
-        }
-
-        return properties;
-    }
 
     protected String parentRelationsAsDiffViewFriendlyString()
     {

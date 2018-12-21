@@ -15,6 +15,8 @@ import org.openstreetmap.atlas.geography.sharding.converters.SlippyTileConverter
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 
+import com.google.gson.JsonObject;
+
 /**
  * OSM Slippy tile
  *
@@ -189,6 +191,12 @@ public class SlippyTile implements Shard, Comparable<SlippyTile>
         this.zoom = zoom;
         this.xAxis = tileNumbers.get(0);
         this.yAxis = tileNumbers.get(1);
+    }
+
+    @Override
+    public JsonObject asGeoJsonGeometry()
+    {
+        return bounds().asGeoJsonGeometry();
     }
 
     @Override
@@ -401,6 +409,18 @@ public class SlippyTile implements Shard, Comparable<SlippyTile>
     {
         return "[SlippyTile: zoom = " + this.zoom + ", x = " + this.xAxis + ", y = " + this.yAxis
                 + "]";
+    }
+
+    @Override
+    public byte[] toWkb()
+    {
+        return bounds().toWkb();
+    }
+
+    @Override
+    public String toWkt()
+    {
+        return bounds().toWkt();
     }
 
     /**

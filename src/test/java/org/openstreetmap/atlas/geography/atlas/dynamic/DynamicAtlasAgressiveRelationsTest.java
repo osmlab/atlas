@@ -53,17 +53,13 @@ public class DynamicAtlasAgressiveRelationsTest
     public void testRelationsAggressively()
     {
         final DynamicAtlas dynamicAtlas = new DynamicAtlas(
-                this.policySupplier.get().withAggressivelyExploreRelations(true));
+                this.policySupplier.get().withAggressivelyExploreRelations(true)
+                        .withExtendIndefinitely(false).withDeferredLoading(true));
 
-        // Prompts load of 12-1350-1869
+        // Prompts load of 12-1350-1869, 12-1349-1870 and 12-1349-1869
+        dynamicAtlas.preemptiveLoad();
         Assert.assertNotNull(dynamicAtlas.relation(1));
-        Assert.assertEquals(6, dynamicAtlas.numberOfEdges());
-
-        // Prompts load of 12-1349-1870
         Assert.assertNotNull(dynamicAtlas.relation(2));
-        Assert.assertEquals(8, dynamicAtlas.numberOfEdges());
-
-        // Prompts load of 12-1349-1869
         Assert.assertNotNull(dynamicAtlas.relation(3));
         Assert.assertEquals(9, dynamicAtlas.numberOfEdges());
     }

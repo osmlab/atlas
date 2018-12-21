@@ -29,7 +29,7 @@ public abstract class LocationItem extends AtlasItem
     }
 
     @Override
-    public JsonObject asGeoJsonFeature()
+    public JsonObject asGeoJsonGeometry()
     {
         return GeoJsonUtils.feature(getLocation().asGeoJsonGeometry(), geoJsonProperties());
     }
@@ -104,5 +104,17 @@ public abstract class LocationItem extends AtlasItem
         }
 
         return new GeoJsonBuilder.LocationIterableProperties(getRawGeometry(), tags);
+    }
+
+    @Override
+    public byte[] toWkb()
+    {
+        return this.getLocation().toWkb();
+    }
+
+    @Override
+    public String toWkt()
+    {
+        return this.getLocation().toWkt();
     }
 }

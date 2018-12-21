@@ -31,7 +31,7 @@ public abstract class Area extends AtlasItem
     }
 
     @Override
-    public JsonObject asGeoJsonFeature()
+    public JsonObject asGeoJsonGeometry()
     {
         return GeoJsonUtils.feature(asPolygon().asGeoJsonGeometry(), geoJsonProperties());
     }
@@ -118,5 +118,17 @@ public abstract class Area extends AtlasItem
     {
         return "[Area: id=" + this.getIdentifier() + ", polygon=" + this.asPolygon() + ", "
                 + tagString() + "]";
+    }
+
+    @Override
+    public byte[] toWkb()
+    {
+        return this.asPolygon().toWkb();
+    }
+
+    @Override
+    public String toWkt()
+    {
+        return this.asPolygon().toWkt();
     }
 }

@@ -125,7 +125,8 @@ public class DynamicAtlasTestRule extends CoreTestRule
                     @Relation(id = "3", tags = { "type=relation" }, members = {
 
                             @Member(id = "5000000", role = "a", type = "edge"),
-                            @Member(id = "6000001", role = "b", type = "edge")
+                            @Member(id = "6000001", role = "b", type = "edge"),
+                            @Member(id = "1", role = "c", type = "area")
 
                     })
 
@@ -194,6 +195,12 @@ public class DynamicAtlasTestRule extends CoreTestRule
                     @Relation(id = "2", tags = { "type=relation" }, members = {
 
                             @Member(id = "1", role = "b", type = "area")
+
+                    }),
+
+                    @Relation(id = "3", tags = { "type=relation" }, members = {
+
+                            @Member(id = "1", role = "c", type = "area")
 
                     }),
 
