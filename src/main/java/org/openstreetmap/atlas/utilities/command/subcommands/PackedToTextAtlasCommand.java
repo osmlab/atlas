@@ -78,7 +78,11 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
 
         atlasResourceStream.forEach(resource ->
         {
-            this.output.printlnStdout("Converting " + resource.getFile().getAbsolutePath() + "...");
+            if (hasVerboseOption())
+            {
+                this.output.printlnStdout(
+                        "Converting " + resource.getFile().getAbsolutePath() + "...");
+            }
             final PackedAtlas outputAtlas = new PackedAtlasCloner()
                     .cloneFrom(new AtlasResourceLoader().load(resource));
             try
@@ -147,7 +151,10 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
                         filePath.getFileName().toString());
                 final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
                 outputAtlas.saveAsGeoJson(outputFile);
-                this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath()); // NOSONAR
+                if (hasVerboseOption())
+                {
+                    this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath()); // NOSONAR
+                }
 
             }
             else
@@ -158,7 +165,10 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
                         filePath.getFileName().toString());
                 final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
                 outputAtlas.saveAsText(outputFile);
-                this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+                if (hasVerboseOption())
+                {
+                    this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+                }
             }
         }
         else if (this.fetcher.getParserContext() == LDGEOJSON_CONTEXT
@@ -173,7 +183,10 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
             {
                 // Dummy consumer, we don't need to mutate the JSON
             });
-            this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+            if (hasVerboseOption())
+            {
+                this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+            }
         }
     }
 }

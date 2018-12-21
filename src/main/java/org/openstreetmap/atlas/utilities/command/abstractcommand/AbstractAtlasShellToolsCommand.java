@@ -65,6 +65,10 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private static final int PAGER_OFFSET = 3;
     private static final int TERMINAL_COLUMN_OFFSET = 2;
 
+    private static final String VERBOSE_OPTION_LONG = "verbose";
+    private static final Character VERBOSE_OPTION_SHORT = 'v';
+    private static final String VERBOSE_OPTION_DESCRIPTION = "Show verbose output messages.";
+
     private final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
     private final DocumentationRegistrar registrar = new DocumentationRegistrar();
 
@@ -325,6 +329,17 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     }
 
     /**
+     * Check if the user supplied the '--verbose' or '-v' option. This is a default option inherited
+     * by all commands.
+     *
+     * @return if --verbose was set
+     */
+    protected boolean hasVerboseOption()
+    {
+        return this.parser.hasOption(VERBOSE_OPTION_LONG);
+    }
+
+    /**
      * Register an argument with a given arity. The argument hint is used as a key to retrieve the
      * argument value(s) later. Additionally, documentation can use the hint to specify what the
      * argument should be for.
@@ -559,6 +574,11 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         // fill out appropriate data structures so the execute() implementation can query
         registerOptionsAndArguments();
         registerManualPageSections();
+
+        // register a default '--verbose' option in all contexts
+        final Integer[] contexts = this.getFilteredRegisteredContexts().toArray(new Integer[0]);
+        registerOption(VERBOSE_OPTION_LONG, VERBOSE_OPTION_SHORT, VERBOSE_OPTION_DESCRIPTION,
+                contexts);
 
         // parse the options and arguments, throwing exceptions on bad input
         try

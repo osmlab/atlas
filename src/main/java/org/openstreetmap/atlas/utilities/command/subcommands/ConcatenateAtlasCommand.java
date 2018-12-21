@@ -52,7 +52,10 @@ public class ConcatenateAtlasCommand extends VariadicAtlasLoaderCommand
             return 1;
         }
 
-        this.output.printlnStdout("Cloning...");
+        if (hasVerboseOption())
+        {
+            this.output.printlnStdout("Cloning...");
+        }
         final PackedAtlas outputAtlas = new PackedAtlasCloner()
                 .cloneFrom(new AtlasResourceLoader().load(atlasResourceList));
         final Path concatenatedPath = Paths.get(outputParentPath.get().toAbsolutePath().toString(),
@@ -60,7 +63,10 @@ public class ConcatenateAtlasCommand extends VariadicAtlasLoaderCommand
         final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
         outputAtlas.save(outputFile);
 
-        this.output.printlnStdout("Saved to " + concatenatedPath.toString());
+        if (hasVerboseOption())
+        {
+            this.output.printlnStdout("Saved to " + concatenatedPath.toString());
+        }
 
         return 0;
     }

@@ -310,7 +310,7 @@ if (scalar @activated_modules == 0) {
 # If the currently active module is a broken symlink, warn the user
 if ($modules_links{$activated_modules[0]} == $ast_module_subsystem::BROKEN_SYMLINK) {
     ast_utilities::error_output($program_name, 'current active module is a broken symlink');
-    print STDERR "To see link value, try '${bold_stderr}${ast_utilities::CONFIG_PROGRAM} list${reset_stderr}'.\n";
+    print STDERR "To see the link value, try '${bold_stderr}${ast_utilities::CONFIG_PROGRAM} list${reset_stderr}'.\n";
     print STDERR "Fix the link, then run '${bold_stderr}${ast_utilities::CONFIG_PROGRAM} sync${reset_stderr}' to resolve.\n";
     exit 1;
 }

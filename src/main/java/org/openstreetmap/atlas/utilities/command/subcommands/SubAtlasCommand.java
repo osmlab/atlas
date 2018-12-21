@@ -112,8 +112,11 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
 
         atlasResourceStream.forEach(fileResource ->
         {
-            this.output.printlnStdout(
-                    "Subatlasing " + fileResource.getFile().getAbsolutePath() + "...");
+            if (hasVerboseOption())
+            {
+                this.output.printlnStdout(
+                        "Subatlasing " + fileResource.getFile().getAbsolutePath() + "...");
+            }
             final Optional<Atlas> outputAtlas = processAtlas(fileResource, cutType);
             if (outputAtlas.isPresent())
             {
@@ -124,7 +127,10 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
                         filePath.getFileName().toString());
                 final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
                 outputAtlas.get().save(outputFile);
-                this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+                if (hasVerboseOption())
+                {
+                    this.output.printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
+                }
             }
             else
             {

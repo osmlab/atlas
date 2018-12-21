@@ -60,7 +60,10 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
             }
             else
             {
-                this.output.printlnStdout("Loading " + path);
+                if (hasVerboseOption())
+                {
+                    this.output.printlnStdout("Loading " + path);
+                }
                 atlasResourceList.add(file);
             }
         });
