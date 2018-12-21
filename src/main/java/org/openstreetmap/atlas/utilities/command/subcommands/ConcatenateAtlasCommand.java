@@ -86,10 +86,10 @@ public class ConcatenateAtlasCommand extends VariadicAtlasLoaderCommand
     @Override
     public void registerManualPageSections()
     {
-        super.registerManualPageSections();
         addManualPageSection("DESCRIPTION",
                 ConcatenateAtlasCommand.class.getResourceAsStream(DESCRIPTION_SECTION));
         addManualPageSection("EXAMPLES",
                 ConcatenateAtlasCommand.class.getResourceAsStream(EXAMPLES_SECTION));
+        super.registerManualPageSections();
     }
 }

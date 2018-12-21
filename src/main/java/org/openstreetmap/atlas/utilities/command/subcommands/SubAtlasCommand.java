@@ -2,8 +2,10 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -14,6 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
+import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentFetcher;
@@ -46,8 +49,11 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
     private static final String WKT_OPTION_DESCRIPTION = "WKT of the polygon with which to cut";
     private static final String WKT_OPTION_HINT = "wkt";
 
+    private static final List<String> CUT_TYPE_STRINGS = Arrays.stream(AtlasCutType.values())
+            .map(AtlasCutType::toString).collect(Collectors.toList());
     private static final String CUT_TYPE_OPTION_LONG = "cut-type";
-    private static final String CUT_TYPE_OPTION_DESCRIPTION = "The cut-type of this subatlas. Valid settings are: soft_cut, hard_cut_all, hard_cut_relations_only. Defaults to soft_cut.";
+    private static final String CUT_TYPE_OPTION_DESCRIPTION = "The cut-type of this subatlas. Valid settings are: "
+            + new StringList(CUT_TYPE_STRINGS).join(", ") + ". Defaults to SOFT_CUT.";
     private static final String CUT_TYPE_OPTION_HINT = "type";
 
     private static final String SUB_ATLAS_SUFFIX = ".sub" + FileSuffix.ATLAS;
@@ -106,7 +112,7 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
         catch (final IllegalArgumentException exception)
         {
             this.output.printlnErrorMessage("invalid cut type " + cutTypeString);
-            this.output.printlnStderr("Try soft_cut, hard_cut_all, or hard_cut_relations_only");
+            this.output.printlnStderr("Try " + new StringList(CUT_TYPE_STRINGS).join(", "));
             return 1;
         }
 

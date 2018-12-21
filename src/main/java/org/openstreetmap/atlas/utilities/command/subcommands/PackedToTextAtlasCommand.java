@@ -114,11 +114,11 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     @Override
     public void registerManualPageSections()
     {
-        super.registerManualPageSections();
         addManualPageSection("DESCRIPTION",
                 PackedToTextAtlasCommand.class.getResourceAsStream(DESCRIPTION_SECTION));
         addManualPageSection("EXAMPLES",
                 PackedToTextAtlasCommand.class.getResourceAsStream(EXAMPLES_SECTION));
+        super.registerManualPageSections();
     }
 
     @Override
