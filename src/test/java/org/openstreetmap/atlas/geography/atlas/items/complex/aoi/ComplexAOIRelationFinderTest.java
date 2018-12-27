@@ -23,7 +23,8 @@ public class ComplexAOIRelationFinderTest
         final Atlas atlas = this.rule.getMultipolygonAOIRelationAtlas();
         final ComplexAOIRelationFinder aoiRelationFinder = new ComplexAOIRelationFinder();
         final Iterable<ComplexAOIRelation> complexAOIRelations = aoiRelationFinder.find(atlas);
-        Assert.assertEquals(StreamSupport.stream(complexAOIRelations.spliterator(), false).count(),2);
+        Assert.assertEquals(StreamSupport.stream(complexAOIRelations.spliterator(), false).count(),
+                2);
     }
 
     @Test
@@ -33,7 +34,8 @@ public class ComplexAOIRelationFinderTest
         final ComplexAOIRelationFinder aoiRelationFinder = new ComplexAOIRelationFinder();
         final Iterable<ComplexAOIRelation> complexAOIRelations = aoiRelationFinder.find(atlas);
         Assert.assertFalse(complexAOIRelations.iterator().hasNext());
-        Assert.assertEquals(StreamSupport.stream(complexAOIRelations.spliterator(), false).count(),0);
+        Assert.assertEquals(StreamSupport.stream(complexAOIRelations.spliterator(), false).count(),
+                0);
     }
 
     @Test
@@ -43,6 +45,7 @@ public class ComplexAOIRelationFinderTest
         final ComplexAOIRelationFinder aoiRelationFinder = new ComplexAOIRelationFinder();
         final Iterable<ComplexAOIRelation> complexAOIRelations = aoiRelationFinder.find(atlas);
         Assert.assertFalse(complexAOIRelations.iterator().hasNext());
-        Assert.assertEquals(StreamSupport.stream(complexAOIRelations.spliterator(), false).count(),0);
+        Assert.assertEquals(StreamSupport.stream(complexAOIRelations.spliterator(), false).count(),
+                0);
     }
 }

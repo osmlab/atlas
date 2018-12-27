@@ -14,6 +14,7 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation.Member;
 
 /**
  * Test data for {@link ComplexAOIRelationFinderTest}
+ *
  * @author sayas01
  */
 public class ComplexAOIRelationFinderTestRule extends CoreTestRule
@@ -58,37 +59,36 @@ public class ComplexAOIRelationFinderTestRule extends CoreTestRule
             @Point(id = "39017", coordinates = @Loc(value = TEST_VALIDRELATION_14)),
             @Point(id = "39000", coordinates = @Loc(value = TEST_VALIDRELATION_6)),
             @Point(id = "39002", coordinates = @Loc(value = TEST_VALIDRELATION_7)),
-            @Point(id = "39004", coordinates = @Loc(value = TEST_VALIDRELATION_8)) },
-            areas = {
-            @Area(id = "39010", coordinates = { @Loc(value = TEST_VALIDRELATION_9),
-                    @Loc(value = TEST_VALIDRELATION_10),
-                    @Loc(value = TEST_VALIDRELATION_11),
-                    @Loc(value = TEST_VALIDRELATION_12),
-                    @Loc(value = TEST_VALIDRELATION_13),
-                    @Loc(value = TEST_VALIDRELATION_14),
-                    @Loc(value = TEST_VALIDRELATION_15),
-                    @Loc(value = TEST_VALIDRELATION_16),
-                    @Loc(value = TEST_VALIDRELATION_17),
-                    @Loc(value = TEST_VALIDRELATION_18),
-                    @Loc(value = TEST_VALIDRELATION_19),
-                    @Loc(value = TEST_VALIDRELATION_9) }),
-            @Area(id = "38989", coordinates = { @Loc(value = TEST_VALIDRELATION_0),
-                    @Loc(value = TEST_VALIDRELATION_1), @Loc(value = TEST_VALIDRELATION_2),
-                    @Loc(value = TEST_VALIDRELATION_3), @Loc(value = TEST_VALIDRELATION_4),
-                    @Loc(value = TEST_VALIDRELATION_5), @Loc(value = TEST_VALIDRELATION_6),
-                    @Loc(value = TEST_VALIDRELATION_7), @Loc(value = TEST_VALIDRELATION_8),
-                    @Loc(value = TEST_VALIDRELATION_0) }),
-            @Area(id = "38987", coordinates = { @Loc(value = TEST_VALIDRELATION_18),
-                    @Loc(value = TEST_VALIDRELATION_17), @Loc(value = TEST_VALIDRELATION_7),
-                    @Loc(value = TEST_VALIDRELATION_6) }) },
-            relations = {
-            @Relation(id = "39190", members = {
-                    @Member(id = "39010", type = "area", role = "outer"),
-                    @Member(id = "38989", type = "area", role = "inner") }, tags = {
-                    "type=multipolygon", "amenity=FESTIVAL_GROUNDS"} ),
-            @Relation(id = "39990", members = {
-            @Member(id = "38987", type = "area", role = "outer")}, tags = {
-            "type=boundary", "landuse=FOREST"}) })
+            @Point(id = "39004", coordinates = @Loc(value = TEST_VALIDRELATION_8)) }, areas = {
+                    @Area(id = "39010", coordinates = { @Loc(value = TEST_VALIDRELATION_9),
+                            @Loc(value = TEST_VALIDRELATION_10),
+                            @Loc(value = TEST_VALIDRELATION_11),
+                            @Loc(value = TEST_VALIDRELATION_12),
+                            @Loc(value = TEST_VALIDRELATION_13),
+                            @Loc(value = TEST_VALIDRELATION_14),
+                            @Loc(value = TEST_VALIDRELATION_15),
+                            @Loc(value = TEST_VALIDRELATION_16),
+                            @Loc(value = TEST_VALIDRELATION_17),
+                            @Loc(value = TEST_VALIDRELATION_18),
+                            @Loc(value = TEST_VALIDRELATION_19),
+                            @Loc(value = TEST_VALIDRELATION_9) }),
+                    @Area(id = "38989", coordinates = { @Loc(value = TEST_VALIDRELATION_0),
+                            @Loc(value = TEST_VALIDRELATION_1), @Loc(value = TEST_VALIDRELATION_2),
+                            @Loc(value = TEST_VALIDRELATION_3), @Loc(value = TEST_VALIDRELATION_4),
+                            @Loc(value = TEST_VALIDRELATION_5), @Loc(value = TEST_VALIDRELATION_6),
+                            @Loc(value = TEST_VALIDRELATION_7), @Loc(value = TEST_VALIDRELATION_8),
+                            @Loc(value = TEST_VALIDRELATION_0) }),
+                    @Area(id = "38987", coordinates = { @Loc(value = TEST_VALIDRELATION_18),
+                            @Loc(value = TEST_VALIDRELATION_17), @Loc(value = TEST_VALIDRELATION_7),
+                            @Loc(value = TEST_VALIDRELATION_6) }) }, relations = {
+                                    @Relation(id = "39190", members = {
+                                            @Member(id = "39010", type = "area", role = "outer"),
+                                            @Member(id = "38989", type = "area", role = "inner") }, tags = {
+                                                    "type=multipolygon",
+                                                    "amenity=FESTIVAL_GROUNDS" }),
+                                    @Relation(id = "39990", members = {
+                                            @Member(id = "38987", type = "area", role = "outer") }, tags = {
+                                                    "type=boundary", "landuse=FOREST" }) })
     private Atlas multipolygonAOIRelationAtlas;
 
     @TestAtlas(
@@ -109,14 +109,12 @@ public class ComplexAOIRelationFinderTestRule extends CoreTestRule
                     @Member(id = "12333", type = "edge", role = RelationTypeTag.RESTRICTION_ROLE_FROM),
                     @Member(id = "21001", type = "node", role = RelationTypeTag.RESTRICTION_ROLE_VIA),
                     @Member(id = "31223", type = "edge", role = RelationTypeTag.RESTRICTION_ROLE_TO) }, tags = {
-                    "restriction=no_u_turn","landuse=VILLAGE" }) })
+                            "restriction=no_u_turn", "landuse=VILLAGE" }) })
     private Atlas nonMultipolygonAOIRelationAtlas;
 
-
-    @TestAtlas(
-            areas = { @Area(id = "38987", coordinates = { @Loc(value = TEST_VALIDRELATION_18),
-                    @Loc(value = TEST_VALIDRELATION_17), @Loc(value = TEST_VALIDRELATION_7),
-                    @Loc(value = TEST_VALIDRELATION_6) }, tags="natural=WOOD") })
+    @TestAtlas(areas = { @Area(id = "38987", coordinates = { @Loc(value = TEST_VALIDRELATION_18),
+            @Loc(value = TEST_VALIDRELATION_17), @Loc(value = TEST_VALIDRELATION_7),
+            @Loc(value = TEST_VALIDRELATION_6) }, tags = "natural=WOOD") })
     private Atlas nonRelationAOIAtlas;
 
     public Atlas getMultipolygonAOIRelationAtlas()
