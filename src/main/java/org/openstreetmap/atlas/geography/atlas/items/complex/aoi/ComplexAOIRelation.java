@@ -44,8 +44,8 @@ public final class ComplexAOIRelation extends ComplexEntity
      */
     public static Optional<ComplexAOIRelation> getComplexAOIRelation(final AtlasEntity source)
     {
-        return !(source instanceof Relation && AOI_TAG_FILTER.test(source)) ? Optional.empty()
-                : Optional.of(new ComplexAOIRelation(source));
+        return source instanceof Relation && AOI_TAG_FILTER.test(source)
+                ? Optional.of(new ComplexAOIRelation(source)) : Optional.empty();
     }
 
     /**
@@ -63,9 +63,8 @@ public final class ComplexAOIRelation extends ComplexEntity
     public static Optional<ComplexAOIRelation> getComplexAOIRelation(final AtlasEntity source,
             final TaggableFilter aoiFilter)
     {
-        return !(source instanceof Relation
-                && (AOI_TAG_FILTER.test(source) || aoiFilter.test(source))) ? Optional.empty()
-                        : Optional.of(new ComplexAOIRelation(source));
+        return source instanceof Relation && (AOI_TAG_FILTER.test(source) || aoiFilter.test(source))
+                ? Optional.of(new ComplexAOIRelation(source)) : Optional.empty();
     }
 
     /**
@@ -83,8 +82,8 @@ public final class ComplexAOIRelation extends ComplexEntity
         }
         catch (final Exception exception)
         {
-            logger.warn("Unable to create complex relations from {}", source, exception);
-            setInvalidReason("Unable to create complex islands", exception);
+            logger.warn("Unable to create complex AOI relations from {}", source, exception);
+            setInvalidReason("Unable to create complex AOIs", exception);
         }
     }
 
