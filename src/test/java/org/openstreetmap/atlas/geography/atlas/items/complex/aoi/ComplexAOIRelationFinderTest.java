@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.items.complex.relation;
+package org.openstreetmap.atlas.geography.atlas.items.complex.aoi;
 
 import java.util.stream.StreamSupport;
 
