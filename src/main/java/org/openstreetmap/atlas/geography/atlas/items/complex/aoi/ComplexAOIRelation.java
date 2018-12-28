@@ -1,9 +1,11 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex.aoi;
 
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -12,6 +14,9 @@ import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMul
 import org.openstreetmap.atlas.tags.filters.TaggableFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 
 /**
  * Complex Entity for AOI Relations. AOI relations are those that are {@link MultiPolygon} and has
@@ -24,14 +29,10 @@ public final class ComplexAOIRelation extends ComplexEntity
 {
     private static final Logger logger = LoggerFactory.getLogger(ComplexAOIRelation.class);
     private static final RelationOrAreaToMultiPolygonConverter RELATION_TO_MULTI_POLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter();
-    // The default AreasOfInterest(AOI) tags
-    private static final TaggableFilter AOI_TAG_FILTER = TaggableFilter.forDefinition(
-            "amenity->FESTIVAL_GROUNDS,GRAVE_YARD|landuse->FOREST,CEMETERY,RECREATION_GROUND,VILLAGE_GREEN|\n"
-                    + "boundary->NATIONAL_PARKPROTECTED_AREA|\n"
-                    + "historic->BATTLEFIELD|natural->WOOD,BEACH|\n"
-                    + "leisure->PARK,GARDEN,RECREATION_GROUND,GOLF_COURSE,NATURE_RESERVEPARK|\n"
-                    + "sport->GOLF|tourism->ZOO");
+    private static final String AOI_RESOURCE = "aoi-tag-filter.json";
     private MultiPolygon multiPolygon;
+    // The default AreasOfInterest(AOI) tags
+    private static TaggableFilter defaultTaggableFilter = null;
 
     /**
      * This method creates a {@link ComplexAOIRelation} for the specified {@link AtlasEntity} if it
@@ -44,7 +45,12 @@ public final class ComplexAOIRelation extends ComplexEntity
      */
     public static Optional<ComplexAOIRelation> getComplexAOIRelation(final AtlasEntity source)
     {
-        return source instanceof Relation && AOI_TAG_FILTER.test(source)
+
+        if (defaultTaggableFilter == null)
+        {
+            computeDefaultFilter();
+        }
+        return source instanceof Relation && defaultTaggableFilter.test(source)
                 ? Optional.of(new ComplexAOIRelation(source)) : Optional.empty();
     }
 
@@ -63,8 +69,31 @@ public final class ComplexAOIRelation extends ComplexEntity
     public static Optional<ComplexAOIRelation> getComplexAOIRelation(final AtlasEntity source,
             final TaggableFilter aoiFilter)
     {
-        return source instanceof Relation && (AOI_TAG_FILTER.test(source) || aoiFilter.test(source))
-                ? Optional.of(new ComplexAOIRelation(source)) : Optional.empty();
+        if (defaultTaggableFilter == null)
+        {
+            computeDefaultFilter();
+        }
+        return source instanceof Relation
+                && (defaultTaggableFilter.test(source) || aoiFilter.test(source))
+                        ? Optional.of(new ComplexAOIRelation(source)) : Optional.empty();
+    }
+
+    private static void computeDefaultFilter()
+    {
+        try (InputStreamReader reader = new InputStreamReader(
+                ComplexAOIRelation.class.getResourceAsStream(AOI_RESOURCE)))
+        {
+            final JsonElement element = new JsonParser().parse(reader);
+            final String aoiTagFilter = element.getAsJsonObject().get("aoi.tag.filter")
+                    .getAsString();
+            defaultTaggableFilter = TaggableFilter.forDefinition(aoiTagFilter);
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException(
+                    "There was a problem parsing aoi-tag-filter.json. Check if the JSON file has valid structure.",
+                    exception);
+        }
     }
 
     /**
