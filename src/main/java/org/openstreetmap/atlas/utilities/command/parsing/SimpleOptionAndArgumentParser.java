@@ -611,13 +611,6 @@ public class SimpleOptionAndArgumentParser
                 continue;
             }
 
-            // disallow parsing to stop on --help or --version contexts if the command line was
-            // empty
-            // if (this.isEmpty()
-            // && (context == HELP_OPTION_CONTEXT_ID || context == VERSION_OPTION_CONTEXT_ID))
-            // {
-            // continue;
-            // }
             this.currentContext = context;
             break;
         }
@@ -1169,17 +1162,19 @@ public class SimpleOptionAndArgumentParser
         }
 
         // Check that any option registered as required is actually present. If not, throw an error.
-        // final Set<SimpleOption> registeredOptions =
-        // this.contextToRegisteredOptions.get(tryContext);
-        // for (final SimpleOption registeredOption : registeredOptions)
-        // {
-        // if (registeredOption.getOptionality() == OptionOptionality.REQUIRED
-        // && !this.parsedOptions.keySet().contains(registeredOption))
-        // {
-        // throw new OptionParseException(
-        // "missing required option " + registeredOption.longForm);
-        // }
-        // }
+        final Set<SimpleOption> registeredOptions = this.contextToRegisteredOptions.get(tryContext);
+        if (registeredOptions != null)
+        {
+            for (final SimpleOption registeredOption : registeredOptions)
+            {
+                if (registeredOption.getOptionality() == OptionOptionality.REQUIRED
+                        && !this.parsedOptions.keySet().contains(registeredOption))
+                {
+                    throw new OptionParseException(
+                            "missing required option " + registeredOption.longForm);
+                }
+            }
+        }
 
         if (this.contextToRegisteredOptionalArgument.getOrDefault(tryContext, false))
         {
