@@ -16,6 +16,11 @@ import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.collections.StringList;
+import org.openstreetmap.atlas.utilities.command.parsing.exceptions.AmbiguousAbbreviationException;
+import org.openstreetmap.atlas.utilities.command.parsing.exceptions.ArgumentException;
+import org.openstreetmap.atlas.utilities.command.parsing.exceptions.OptionParseException;
+import org.openstreetmap.atlas.utilities.command.parsing.exceptions.UnknownOptionException;
+import org.openstreetmap.atlas.utilities.command.parsing.exceptions.UnparsableContextException;
 import org.openstreetmap.atlas.utilities.conversion.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,45 +78,6 @@ import org.slf4j.LoggerFactory;
 public class SimpleOptionAndArgumentParser
 {
     /**
-     * @author lcram
-     */
-    public class AmbiguousAbbreviationException extends Exception
-    {
-        private static final long serialVersionUID = 8506034533362610699L;
-
-        public AmbiguousAbbreviationException(final String option, final String ambiguousOptions)
-        {
-            super("long option \'" + option + "\' is ambiguous (" + ambiguousOptions + ")");
-        }
-    }
-
-    /**
-     * @author lcram
-     */
-    public class ArgumentException extends Exception
-    {
-        private static final long serialVersionUID = 8506034533362610699L;
-
-        public ArgumentException(final String message)
-        {
-            super(message);
-        }
-    }
-
-    /**
-     * @author lcram
-     */
-    public class OptionParseException extends Exception
-    {
-        private static final long serialVersionUID = 2471393426772482019L;
-
-        public OptionParseException(final String message)
-        {
-            super(message);
-        }
-    }
-
-    /**
      * A simple option representation. Store the option long/short form as well as metadata about
      * the option.
      *
@@ -122,13 +88,15 @@ public class SimpleOptionAndArgumentParser
         private final String longForm;
         private final Optional<Character> shortForm;
         private final String description;
+        private final OptionOptionality optionality;
 
         // Default values for option argument fields
         private OptionArgumentType argumentType = OptionArgumentType.NONE;
         private Optional<String> argumentHint = Optional.empty();
 
         SimpleOption(final String longForm, final Character shortForm, final String description,
-                final OptionArgumentType argumentType, final String argumentHint)
+                final OptionOptionality optionality, final OptionArgumentType argumentType,
+                final String argumentHint)
         {
             if (longForm == null || longForm.isEmpty())
             {
@@ -146,8 +114,9 @@ public class SimpleOptionAndArgumentParser
             this.longForm = longForm;
             this.shortForm = Optional.ofNullable(shortForm);
             this.description = description;
-            this.argumentType = argumentType;
+            this.optionality = optionality;
 
+            this.argumentType = argumentType;
             if (this.argumentType != OptionArgumentType.NONE)
             {
                 if (argumentHint != null && !argumentHint.isEmpty())
@@ -209,6 +178,11 @@ public class SimpleOptionAndArgumentParser
             return this.longForm;
         }
 
+        public OptionOptionality getOptionality()
+        {
+            return this.optionality;
+        }
+
         public Optional<Character> getShortForm()
         {
             return this.shortForm;
@@ -233,39 +207,6 @@ public class SimpleOptionAndArgumentParser
                 builder.append(", " + this.shortForm.get());
             }
             return builder.toString();
-        }
-    }
-
-    /**
-     * @author lcram
-     */
-    public class UnknownOptionException extends Exception
-    {
-        private static final long serialVersionUID = 8506034533362610699L;
-
-        public UnknownOptionException(final Character option)
-        {
-            super("unknown short option \'" + option + "\'");
-        }
-
-        public UnknownOptionException(final String option)
-        {
-            super("unknown long option \'" + option + "\'");
-        }
-    }
-
-    /**
-     * @author lcram
-     */
-    public class UnparsableContextException extends Exception
-    {
-        private static final long serialVersionUID = 8204676424116770097L;
-
-        public UnparsableContextException(final SortedSet<String> exceptionMessagesWeSaw)
-        {
-            super("could not match command line to a usage context: "
-                    + System.getProperty("line.separator") + new StringList(exceptionMessagesWeSaw)
-                            .join(System.getProperty("line.separator")));
         }
     }
 
@@ -1517,8 +1458,8 @@ public class SimpleOptionAndArgumentParser
         final Set<SimpleOption> registeredOptionsForContext = this.contextToRegisteredOptions
                 .get(context) == null ? new HashSet<>()
                         : this.contextToRegisteredOptions.get(context);
-        registeredOptionsForContext
-                .add(new SimpleOption(longForm, shortForm, description, type, argumentHint));
+        registeredOptionsForContext.add(new SimpleOption(longForm, shortForm, description,
+                OptionOptionality.OPTIONAL, type, argumentHint));
         this.contextToRegisteredOptions.put(context, registeredOptionsForContext);
 
         this.registeredContexts.add(context);
