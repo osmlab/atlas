@@ -558,7 +558,7 @@ sub apply_preset_or_exit {
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
     unless (-f $preset_file) {
         ast_utilities::error_output($program_name, "no such preset ${bold_stderr}${preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
-        all_presets($ast_path, $program_name, $quiet, $command, $namespace);
+        all_presets_for_command($ast_path, $program_name, $quiet, $command, $namespace);
         exit 1;
     }
 
