@@ -78,7 +78,6 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
          * static final Strings at the top of your class. However, this demo command declares them
          * using literals just for ease of tutorial.
          */
-
         final String beerDescription = "Brand of your favorite beer. "
                 + "Currently making this option description really long in"
                 + " order to test out the autoformatting capabilities of"
@@ -99,6 +98,18 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
         registerOption("breakfast", 'b', "Use breakfast mode", BREAKFAST_CONTEXT);
         registerArgument("favoriteBreakfastFood", ArgumentArity.UNARY, ArgumentOptionality.OPTIONAL,
                 BREAKFAST_CONTEXT);
+
+        /*
+         * Always call super.registerOptionsAndArguments last. Some superclasses will attempt to
+         * register options to all available parser contexts. You want to ensure that each super
+         * class has access to the full set of parser contexts within its class hierarchy. For
+         * example, the global superclass AbstractAtlasShellToolsCommand registers a '--verbose'
+         * option to all parser contexts. By calling super.register... last, you ensure that the
+         * '--verbose' registry code runs for every context you registered above. Had you called
+         * super.register... first, the '--verbose' registry code would have missed any additional
+         * contexts you registered here.
+         */
+        super.registerOptionsAndArguments();
     }
 
     private void executeBreakfastContext()

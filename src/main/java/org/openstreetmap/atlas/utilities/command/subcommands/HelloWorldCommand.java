@@ -56,5 +56,6 @@ public class HelloWorldCommand extends AbstractAtlasShellToolsCommand
     public void registerOptionsAndArguments()
     {
         registerOptionWithRequiredArgument("name", "Your name for the greeting.", "name");
+        super.registerOptionsAndArguments();
     }
 }

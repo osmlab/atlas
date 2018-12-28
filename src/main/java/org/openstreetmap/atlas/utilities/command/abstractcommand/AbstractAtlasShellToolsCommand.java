@@ -211,10 +211,17 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     public abstract void registerManualPageSections();
 
     /**
-     * Register any necessary options and arguments for the command. Use the protected API exposed
-     * by {@link AbstractAtlasShellToolsCommand}.
+     * Register any necessary options and arguments for the command. Subclasses should override this
+     * method, but call super.registerOptionsAndArguments last in order to pick up super class
+     * options/args.
      */
-    public abstract void registerOptionsAndArguments();
+    public void registerOptionsAndArguments()
+    {
+        // register a default '--verbose' option in all contexts
+        final Integer[] contexts = this.getFilteredRegisteredContexts().toArray(new Integer[0]);
+        registerOption(VERBOSE_OPTION_LONG, VERBOSE_OPTION_SHORT, VERBOSE_OPTION_DESCRIPTION,
+                contexts);
+    }
 
     /**
      * Check that the command name and description are valid. This should be called before relying
@@ -569,11 +576,6 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         // fill out appropriate data structures so the execute() implementation can query
         registerOptionsAndArguments();
         registerManualPageSections();
-
-        // register a default '--verbose' option in all contexts
-        final Integer[] contexts = this.getFilteredRegisteredContexts().toArray(new Integer[0]);
-        registerOption(VERBOSE_OPTION_LONG, VERBOSE_OPTION_SHORT, VERBOSE_OPTION_DESCRIPTION,
-                contexts);
 
         // parse the options and arguments, throwing exceptions on bad input
         try

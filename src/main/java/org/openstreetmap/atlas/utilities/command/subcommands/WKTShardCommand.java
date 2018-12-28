@@ -165,6 +165,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
                 TREE_OPTION_HINT, TREE_CONTEXT);
         registerOptionWithRequiredArgument(SLIPPY_OPTION_LONG, SLIPPY_OPTION_DESCRIPTION,
                 SLIPPY_OPTION_HINT, SLIPPY_CONTEXT);
+        super.registerOptionsAndArguments();
     }
 
     private void parseWKTAndPrintOutput(final String wkt, final Sharding sharding)

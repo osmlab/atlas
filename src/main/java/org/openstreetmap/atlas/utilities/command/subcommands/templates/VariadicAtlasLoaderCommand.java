@@ -144,5 +144,6 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
                 OUTPUT_DIRECTORY_OPTION_HINT, contexts);
         registerArgument(INPUT_HINT, ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED,
                 contexts);
+        super.registerOptionsAndArguments();
     }
 }
