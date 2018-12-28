@@ -12,6 +12,7 @@ import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionArgumentType;
+import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.SimpleOption;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
@@ -256,8 +257,12 @@ public final class DocumentationFormatter
             Collections.sort(sortedOptions);
             for (final SimpleOption option : sortedOptions)
             {
-                paragraph.append("[" + SimpleOptionAndArgumentParser.LONG_FORM_PREFIX
-                        + option.getLongForm());
+                if (option.getOptionality() == OptionOptionality.OPTIONAL)
+                {
+                    paragraph.append("[");
+                }
+                paragraph.append(
+                        SimpleOptionAndArgumentParser.LONG_FORM_PREFIX + option.getLongForm());
                 final OptionArgumentType argumentType = option.getArgumentType();
                 if (argumentType == OptionArgumentType.OPTIONAL)
                 {
@@ -271,7 +276,11 @@ public final class DocumentationFormatter
                             + option.getArgumentHint().orElseThrow(AtlasShellToolsException::new)
                             + ">");
                 }
-                paragraph.append("] ");
+                if (option.getOptionality() == OptionOptionality.OPTIONAL)
+                {
+                    paragraph.append("]");
+                }
+                paragraph.append(" ");
             }
 
             // now add all the arguments

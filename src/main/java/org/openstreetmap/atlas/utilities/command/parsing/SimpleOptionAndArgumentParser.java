@@ -613,11 +613,11 @@ public class SimpleOptionAndArgumentParser
 
             // disallow parsing to stop on --help or --version contexts if the command line was
             // empty
-            if (this.isEmpty()
-                    && (context == HELP_OPTION_CONTEXT_ID || context == VERSION_OPTION_CONTEXT_ID))
-            {
-                continue;
-            }
+            // if (this.isEmpty()
+            // && (context == HELP_OPTION_CONTEXT_ID || context == VERSION_OPTION_CONTEXT_ID))
+            // {
+            // continue;
+            // }
             this.currentContext = context;
             break;
         }
