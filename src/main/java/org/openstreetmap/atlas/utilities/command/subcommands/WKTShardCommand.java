@@ -92,20 +92,12 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         }
 
         final Sharding sharding;
-        if (this.optargDelegate.getParserContext() == TREE_CONTEXT)
+        if (this.optargDelegate.getParserContext() == TREE_CONTEXT
+                && this.optargDelegate.hasOption(TREE_OPTION_LONG))
         {
-            if (this.optargDelegate.hasOption(TREE_OPTION_LONG))
-            {
-                sharding = Sharding.forString(
-                        "dynamic@" + this.optargDelegate.getOptionArgument(TREE_OPTION_LONG)
-                                .orElseThrow(AtlasShellToolsException::new));
-            }
-            else
-            {
-                this.outputDelegate.printlnErrorMessage("either --" + TREE_OPTION_LONG + " or --"
-                        + SLIPPY_OPTION_LONG + " is required");
-                return 1;
-            }
+            sharding = Sharding
+                    .forString("dynamic@" + this.optargDelegate.getOptionArgument(TREE_OPTION_LONG)
+                            .orElseThrow(AtlasShellToolsException::new));
         }
         else if (this.optargDelegate.getParserContext() == SLIPPY_CONTEXT
                 && this.optargDelegate.hasOption(SLIPPY_OPTION_LONG))

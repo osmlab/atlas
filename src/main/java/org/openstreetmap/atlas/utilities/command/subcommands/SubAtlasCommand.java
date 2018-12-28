@@ -92,12 +92,6 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
             return 1;
         }
 
-        if (!this.optargDelegate.hasOption(WKT_OPTION_LONG))
-        {
-            this.outputDelegate.printlnErrorMessage("missing required \'--wkt\' option");
-            return 1;
-        }
-
         if (this.optargDelegate.hasOption(PARALLEL_OPTION_LONG))
         {
             atlasResourceStream.parallel();

@@ -99,7 +99,7 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
         registerArgument("favoriteFoods", ArgumentArity.VARIADIC, ArgumentOptionality.OPTIONAL);
 
         // Register options/arguments for an alternate breakfast use case
-        registerOption("breakfast", 'b', "Use breakfast mode", OptionOptionality.OPTIONAL,
+        registerOption("breakfast", 'b', "Use breakfast mode", OptionOptionality.REQUIRED,
                 BREAKFAST_CONTEXT);
         registerArgument("favoriteBreakfastFood", ArgumentArity.UNARY, ArgumentOptionality.OPTIONAL,
                 BREAKFAST_CONTEXT);
