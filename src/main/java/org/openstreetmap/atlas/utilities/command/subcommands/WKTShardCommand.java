@@ -21,6 +21,7 @@ import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDe
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
+import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -160,11 +161,11 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         registerArgument(INPUT_WKT, ArgumentArity.VARIADIC, ArgumentOptionality.OPTIONAL,
                 TREE_CONTEXT, SLIPPY_CONTEXT);
         registerOptionWithRequiredArgument(INPUT_FILE_OPTION_LONG, INPUT_FILE_OPTION_DESCRIPTION,
-                INPUT_FILE_OPTION_HINT, TREE_CONTEXT, SLIPPY_CONTEXT);
+                OptionOptionality.OPTIONAL, INPUT_FILE_OPTION_HINT, TREE_CONTEXT, SLIPPY_CONTEXT);
         registerOptionWithRequiredArgument(TREE_OPTION_LONG, TREE_OPTION_DESCRIPTION,
-                TREE_OPTION_HINT, TREE_CONTEXT);
+                OptionOptionality.REQUIRED, TREE_OPTION_HINT, TREE_CONTEXT);
         registerOptionWithRequiredArgument(SLIPPY_OPTION_LONG, SLIPPY_OPTION_DESCRIPTION,
-                SLIPPY_OPTION_HINT, SLIPPY_CONTEXT);
+                OptionOptionality.REQUIRED, SLIPPY_OPTION_HINT, SLIPPY_CONTEXT);
         super.registerOptionsAndArguments();
     }
 

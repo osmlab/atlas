@@ -13,6 +13,7 @@ import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
+import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.VariadicAtlasLoaderCommand;
 
 /**
@@ -125,11 +126,11 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     public void registerOptionsAndArguments()
     {
         registerOption(GEOJSON_OPTION_LONG, GEOJSON_OPTION_SHORT, GEOJSON_OPTION_DESCRIPTION,
-                DEFAULT_AND_GEOJSON_CONTEXT);
+                OptionOptionality.REQUIRED, DEFAULT_AND_GEOJSON_CONTEXT);
         registerOption(LDGEOJSON_OPTION_LONG, LDGEOJSON_OPTION_SHORT, LDGEOJSON_OPTION_DESCRIPTION,
-                LDGEOJSON_CONTEXT);
+                OptionOptionality.REQUIRED, LDGEOJSON_CONTEXT);
         registerOption(PARALLEL_OPTION_LONG, PARALLEL_OPTION_SHORT, PARALLEL_OPTION_DESCRIPTION,
-                DEFAULT_AND_GEOJSON_CONTEXT, LDGEOJSON_CONTEXT);
+                OptionOptionality.OPTIONAL, DEFAULT_AND_GEOJSON_CONTEXT, LDGEOJSON_CONTEXT);
         super.registerOptionsAndArguments();
     }
 

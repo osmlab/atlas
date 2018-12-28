@@ -12,6 +12,7 @@ import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDe
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
+import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 
 /**
  * A helper super class for any command that wants to load atlas files from disk. Provides a builtin
@@ -138,10 +139,10 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
         final Integer[] contexts = this.optargDelegate.getFilteredRegisteredContexts()
                 .toArray(new Integer[0]);
         registerOption(STRICT_OPTION_LONG, STRING_OPTION_SHORT, STRICT_OPTION_DESCRIPTION,
-                contexts);
+                OptionOptionality.OPTIONAL, contexts);
         registerOptionWithRequiredArgument(OUTPUT_DIRECTORY_OPTION_LONG,
                 OUTPUT_DIRECTORY_OPTION_SHORT, OUTPUT_DIRECTORY_OPTION_DESCRIPTION,
-                OUTPUT_DIRECTORY_OPTION_HINT, contexts);
+                OptionOptionality.OPTIONAL, OUTPUT_DIRECTORY_OPTION_HINT, contexts);
         registerArgument(INPUT_HINT, ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED,
                 contexts);
         super.registerOptionsAndArguments();

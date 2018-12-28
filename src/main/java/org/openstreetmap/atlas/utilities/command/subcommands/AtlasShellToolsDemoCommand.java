@@ -8,6 +8,7 @@ import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDe
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
+import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 
 /**
@@ -86,16 +87,20 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
         setVersion("0.0.1");
 
         // Register options/arguments for default lunch/dinner context
-        registerOption("capitalize", 'c', "Capitalize the foods list.");
-        registerOptionWithRequiredArgument("beer", beerDescription, "brand");
+        registerOption("capitalize", 'c', "Capitalize the foods list.", OptionOptionality.OPTIONAL);
+        registerOptionWithRequiredArgument("beer", beerDescription, OptionOptionality.OPTIONAL,
+                "brand");
         registerOptionWithOptionalArgument("cheese", 'C',
-                "Use cheese. Defaults to cheddar, but will accept a supplied alternative.", "type");
-        registerOptionWithRequiredArgument("repeat", 'R', "Repeat the food list N times.", "N");
+                "Use cheese. Defaults to cheddar, but will accept a supplied alternative.",
+                OptionOptionality.OPTIONAL, "type");
+        registerOptionWithRequiredArgument("repeat", 'R', "Repeat the food list N times.",
+                OptionOptionality.OPTIONAL, "N");
         registerArgument("favoriteMeal", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
         registerArgument("favoriteFoods", ArgumentArity.VARIADIC, ArgumentOptionality.OPTIONAL);
 
         // Register options/arguments for an alternate breakfast use case
-        registerOption("breakfast", 'b', "Use breakfast mode", BREAKFAST_CONTEXT);
+        registerOption("breakfast", 'b', "Use breakfast mode", OptionOptionality.OPTIONAL,
+                BREAKFAST_CONTEXT);
         registerArgument("favoriteBreakfastFood", ArgumentArity.UNARY, ArgumentOptionality.OPTIONAL,
                 BREAKFAST_CONTEXT);
 

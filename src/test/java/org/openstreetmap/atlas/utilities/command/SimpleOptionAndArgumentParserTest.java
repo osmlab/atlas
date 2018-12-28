@@ -9,10 +9,11 @@ import org.junit.Test;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
+import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser;
-import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.AmbiguousAbbreviationException;
-import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.UnknownOptionException;
-import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.UnparsableContextException;
+import org.openstreetmap.atlas.utilities.command.parsing.exceptions.AmbiguousAbbreviationException;
+import org.openstreetmap.atlas.utilities.command.parsing.exceptions.UnknownOptionException;
+import org.openstreetmap.atlas.utilities.command.parsing.exceptions.UnparsableContextException;
 
 /**
  * @author lcram
@@ -23,9 +24,10 @@ public class SimpleOptionAndArgumentParserTest
     public void testFailOnInvalidShortOptionAbbrev() throws UnparsableContextException
     {
         final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
-        parser.registerOption("opt1", 'a', "the 1st option");
-        parser.registerOptionWithRequiredArgument("opt2", 'b', "the 2nd option", "ARG");
-        parser.registerOption("opt3", 'c', "the 3rd option");
+        parser.registerOption("opt1", 'a', "the 1st option", OptionOptionality.OPTIONAL);
+        parser.registerOptionWithRequiredArgument("opt2", 'b', "the 2nd option",
+                OptionOptionality.OPTIONAL, "ARG");
+        parser.registerOption("opt3", 'c', "the 3rd option", OptionOptionality.OPTIONAL);
 
         final List<String> arguments = Arrays.asList("-abc");
         try
@@ -66,11 +68,12 @@ public class SimpleOptionAndArgumentParserTest
     public void testMultipleParseContexts()
     {
         final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
-        parser.registerOption("opt1", 'a', "an option");
-        parser.registerOption("opt2", 'b', "an option");
-        parser.registerOption("opt3", 'c', "an option", 4);
+        parser.registerOption("opt1", 'a', "an option", OptionOptionality.OPTIONAL);
+        parser.registerOption("opt2", 'b', "an option", OptionOptionality.OPTIONAL);
+        parser.registerOption("opt3", 'c', "an option", OptionOptionality.OPTIONAL, 4);
         parser.registerArgument("single1", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED, 4);
-        parser.registerOptionWithRequiredArgument("opt4", 'd', "an option", "hint", 5);
+        parser.registerOptionWithRequiredArgument("opt4", 'd', "an option",
+                OptionOptionality.OPTIONAL, "hint", 5);
         parser.registerArgument("single2", ArgumentArity.UNARY, ArgumentOptionality.OPTIONAL, 5);
 
         List<String> arguments = Arrays.asList("--opt2");
@@ -130,11 +133,12 @@ public class SimpleOptionAndArgumentParserTest
     public void testMultipleParseContextUnparsable() throws UnparsableContextException
     {
         final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
-        parser.registerOption("opt1", 'a', "an option");
-        parser.registerOption("opt2", 'b', "an option");
-        parser.registerOption("opt3", 'c', "an option", 4);
+        parser.registerOption("opt1", 'a', "an option", OptionOptionality.OPTIONAL);
+        parser.registerOption("opt2", 'b', "an option", OptionOptionality.OPTIONAL);
+        parser.registerOption("opt3", 'c', "an option", OptionOptionality.OPTIONAL, 4);
         parser.registerArgument("single1", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED, 4);
-        parser.registerOptionWithRequiredArgument("opt4", 'd', "an option", "hint", 5);
+        parser.registerOptionWithRequiredArgument("opt4", 'd', "an option",
+                OptionOptionality.OPTIONAL, "hint", 5);
         parser.registerArgument("single2", ArgumentArity.UNARY, ArgumentOptionality.OPTIONAL, 5);
 
         final List<String> arguments = Arrays.asList("--opt2", "--opt3");
@@ -152,9 +156,9 @@ public class SimpleOptionAndArgumentParserTest
     public void testMultipleShortFormArgumentShorthand()
     {
         final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
-        parser.registerOption("opt1", 'a', "a short form");
-        parser.registerOption("opt2", 'b', "a short form");
-        parser.registerOption("opt3", 'c', "a short form");
+        parser.registerOption("opt1", 'a', "a short form", OptionOptionality.OPTIONAL);
+        parser.registerOption("opt2", 'b', "a short form", OptionOptionality.OPTIONAL);
+        parser.registerOption("opt3", 'c', "a short form", OptionOptionality.OPTIONAL);
 
         List<String> arguments = Arrays.asList("-abc");
         try
@@ -192,13 +196,17 @@ public class SimpleOptionAndArgumentParserTest
     public void testOfMixedOptionsAndArguments()
     {
         final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
-        parser.registerOption("opt1", "the 1st option");
-        parser.registerOption("opt2", "the 2nd option");
-        parser.registerOptionWithRequiredArgument("opt3", "the 3rd option", "ARG");
-        parser.registerOption("opt4", 'o', "a short form option (4th)");
-        parser.registerOptionWithOptionalArgument("opt5", "the 5th option", "ARG");
-        parser.registerOptionWithRequiredArgument("opt6", "the 6th option", "ARG");
-        parser.registerOptionWithRequiredArgument("opt7", "the 7th option", "ARG");
+        parser.registerOption("opt1", "the 1st option", OptionOptionality.OPTIONAL);
+        parser.registerOption("opt2", "the 2nd option", OptionOptionality.OPTIONAL);
+        parser.registerOptionWithRequiredArgument("opt3", "the 3rd option",
+                OptionOptionality.OPTIONAL, "ARG");
+        parser.registerOption("opt4", 'o', "a short form option (4th)", OptionOptionality.OPTIONAL);
+        parser.registerOptionWithOptionalArgument("opt5", "the 5th option",
+                OptionOptionality.OPTIONAL, "ARG");
+        parser.registerOptionWithRequiredArgument("opt6", "the 6th option",
+                OptionOptionality.OPTIONAL, "ARG");
+        parser.registerOptionWithRequiredArgument("opt7", "the 7th option",
+                OptionOptionality.OPTIONAL, "ARG");
         parser.registerArgument("single1", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
         parser.registerArgument("single2", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
         parser.registerArgument("multi1", ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED);
@@ -242,11 +250,16 @@ public class SimpleOptionAndArgumentParserTest
     public void testOptionArgumentConversion()
     {
         final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
-        parser.registerOptionWithRequiredArgument("two", "the number two", "value");
-        parser.registerOptionWithRequiredArgument("myList", "a list of numbers", "value");
-        parser.registerOptionWithRequiredArgument("three", "the number three", "value");
-        parser.registerOptionWithRequiredArgument("someOption", 'o', "another option", "value");
-        parser.registerOptionWithRequiredArgument("someOption2", 'p', "another option2", "value");
+        parser.registerOptionWithRequiredArgument("two", "the number two",
+                OptionOptionality.OPTIONAL, "value");
+        parser.registerOptionWithRequiredArgument("myList", "a list of numbers",
+                OptionOptionality.OPTIONAL, "value");
+        parser.registerOptionWithRequiredArgument("three", "the number three",
+                OptionOptionality.OPTIONAL, "value");
+        parser.registerOptionWithRequiredArgument("someOption", 'o', "another option",
+                OptionOptionality.OPTIONAL, "value");
+        parser.registerOptionWithRequiredArgument("someOption2", 'p', "another option2",
+                OptionOptionality.OPTIONAL, "value");
 
         final List<String> arguments = Arrays.asList("--two=2", "--myList=1:2:3", "-p", "3.14",
                 "--three=foo", "-ofalse");
@@ -325,8 +338,10 @@ public class SimpleOptionAndArgumentParserTest
     public void testOptionArgumentValueOverwrite()
     {
         final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
-        parser.registerOptionWithOptionalArgument("opt1", "an option", "ARG");
-        parser.registerOptionWithOptionalArgument("opt2", "an option", "ARG");
+        parser.registerOptionWithOptionalArgument("opt1", "an option", OptionOptionality.OPTIONAL,
+                "ARG");
+        parser.registerOptionWithOptionalArgument("opt2", "an option", OptionOptionality.OPTIONAL,
+                "ARG");
 
         final List<String> arguments = Arrays.asList("--opt1=optarg1", "--opt2=optarg2",
                 "--opt1=newArg", "--opt2");
@@ -349,7 +364,8 @@ public class SimpleOptionAndArgumentParserTest
     public void testOptionWithDefaultValue()
     {
         final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
-        parser.registerOptionWithOptionalArgument("opt1", "an opt with an optional arg", "optarg");
+        parser.registerOptionWithOptionalArgument("opt1", "an opt with an optional arg",
+                OptionOptionality.OPTIONAL, "optarg");
 
         final List<String> arguments = Arrays.asList("--opt1");
         try
@@ -370,10 +386,10 @@ public class SimpleOptionAndArgumentParserTest
     public void testPrefixAbbreviation()
     {
         final SimpleOptionAndArgumentParser parser1 = new SimpleOptionAndArgumentParser();
-        parser1.registerOption("opt1", "option1");
-        parser1.registerOption("anotherOpt", "option2");
-        parser1.registerOption("option", "option3");
-        parser1.registerOption("optionSuffix", "option4");
+        parser1.registerOption("opt1", "option1", OptionOptionality.OPTIONAL);
+        parser1.registerOption("anotherOpt", "option2", OptionOptionality.OPTIONAL);
+        parser1.registerOption("option", "option3", OptionOptionality.OPTIONAL);
+        parser1.registerOption("optionSuffix", "option4", OptionOptionality.OPTIONAL);
 
         final List<String> arguments = Arrays.asList("--opt1", "--an", "--option", "--optionSuf");
         try
@@ -396,8 +412,8 @@ public class SimpleOptionAndArgumentParserTest
     public void testPrefixAmbiguous() throws AmbiguousAbbreviationException
     {
         final SimpleOptionAndArgumentParser parser2 = new SimpleOptionAndArgumentParser();
-        parser2.registerOption("option", "option1");
-        parser2.registerOption("optionSuffix", "option2");
+        parser2.registerOption("option", "option1", OptionOptionality.OPTIONAL);
+        parser2.registerOption("optionSuffix", "option2", OptionOptionality.OPTIONAL);
 
         final List<String> arguments2 = Arrays.asList("--opt");
         try
@@ -414,13 +430,17 @@ public class SimpleOptionAndArgumentParserTest
     public void testShortFormOptions()
     {
         final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
-        parser.registerOption("opt1", 'a', "the 1st option");
-        parser.registerOption("opt2", 'b', "the 2nd option");
-        parser.registerOption("opt3", 'c', "the 3rd option");
-        parser.registerOptionWithRequiredArgument("opt4", 'd', "the 4th option", "ARG");
-        parser.registerOptionWithRequiredArgument("opt5", 'e', "the 5th option", "ARG");
-        parser.registerOptionWithOptionalArgument("opt6", 'f', "the 6th option", "ARG");
-        parser.registerOptionWithOptionalArgument("opt7", 'g', "the 7th option", "ARG");
+        parser.registerOption("opt1", 'a', "the 1st option", OptionOptionality.OPTIONAL);
+        parser.registerOption("opt2", 'b', "the 2nd option", OptionOptionality.OPTIONAL);
+        parser.registerOption("opt3", 'c', "the 3rd option", OptionOptionality.OPTIONAL);
+        parser.registerOptionWithRequiredArgument("opt4", 'd', "the 4th option",
+                OptionOptionality.OPTIONAL, "ARG");
+        parser.registerOptionWithRequiredArgument("opt5", 'e', "the 5th option",
+                OptionOptionality.OPTIONAL, "ARG");
+        parser.registerOptionWithOptionalArgument("opt6", 'f', "the 6th option",
+                OptionOptionality.OPTIONAL, "ARG");
+        parser.registerOptionWithOptionalArgument("opt7", 'g', "the 7th option",
+                OptionOptionality.OPTIONAL, "ARG");
         parser.registerArgument("hint1", ArgumentArity.UNARY, ArgumentOptionality.OPTIONAL);
 
         final List<String> arguments = Arrays.asList("-abc", "-doptarg1", "-e", "optarg2",
@@ -518,7 +538,7 @@ public class SimpleOptionAndArgumentParserTest
     public void testUnknownOption() throws UnknownOptionException
     {
         final SimpleOptionAndArgumentParser parser1 = new SimpleOptionAndArgumentParser();
-        parser1.registerOption("opt1", "option1");
+        parser1.registerOption("opt1", "option1", OptionOptionality.OPTIONAL);
 
         final List<String> arguments = Arrays.asList("--opt2");
         try

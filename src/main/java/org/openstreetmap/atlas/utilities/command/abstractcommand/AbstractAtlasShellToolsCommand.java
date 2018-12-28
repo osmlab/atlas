@@ -14,11 +14,12 @@ import org.openstreetmap.atlas.utilities.command.documentation.DocumentationRegi
 import org.openstreetmap.atlas.utilities.command.documentation.PagerHelper;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
+import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser;
-import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.AmbiguousAbbreviationException;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.SimpleOption;
-import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.UnknownOptionException;
-import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.UnparsableContextException;
+import org.openstreetmap.atlas.utilities.command.parsing.exceptions.AmbiguousAbbreviationException;
+import org.openstreetmap.atlas.utilities.command.parsing.exceptions.UnknownOptionException;
+import org.openstreetmap.atlas.utilities.command.parsing.exceptions.UnparsableContextException;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYStringBuilder;
 import org.openstreetmap.atlas.utilities.conversion.StringConverter;
@@ -220,7 +221,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         // register a default '--verbose' option in all contexts
         final Integer[] contexts = this.getFilteredRegisteredContexts().toArray(new Integer[0]);
         registerOption(VERBOSE_OPTION_LONG, VERBOSE_OPTION_SHORT, VERBOSE_OPTION_DESCRIPTION,
-                contexts);
+                OptionOptionality.OPTIONAL, contexts);
     }
 
     /**
@@ -385,15 +386,18 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *            the short form of the option, eg. -o
      * @param description
      *            a simple description
+     * @param optionality
+     *            the optionality
      * @param contexts
      *            the contexts
      * @throws CoreException
      *             if the option could not be registered
      */
     protected void registerOption(final String longForm, final Character shortForm,
-            final String description, final Integer... contexts)
+            final String description, final OptionOptionality optionality,
+            final Integer... contexts)
     {
-        this.parser.registerOption(longForm, shortForm, description, contexts);
+        this.parser.registerOption(longForm, shortForm, description, optionality, contexts);
     }
 
     /**
@@ -404,15 +408,17 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *            the long form of the option, eg. --option
      * @param description
      *            a simple description
+     * @param optionality
+     *            the optionality
      * @param contexts
      *            the contexts
      * @throws CoreException
      *             if the option could not be registered
      */
     protected void registerOption(final String longForm, final String description,
-            final Integer... contexts)
+            final OptionOptionality optionality, final Integer... contexts)
     {
-        this.parser.registerOption(longForm, description, contexts);
+        this.parser.registerOption(longForm, description, optionality, contexts);
     }
 
     /**
@@ -427,6 +433,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *            the short form of the option, eg. -o
      * @param description
      *            a simple description
+     * @param optionality
+     *            the optionality
      * @param argumentHint
      *            the hint for the argument
      * @param contexts
@@ -435,11 +443,12 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *             if the option could not be registered
      */
     protected void registerOptionWithOptionalArgument(final String longForm,
-            final Character shortForm, final String description, final String argumentHint,
+            final Character shortForm, final String description,
+            final OptionOptionality optionality, final String argumentHint,
             final Integer... contexts)
     {
         this.parser.registerOptionWithOptionalArgument(longForm, shortForm, description,
-                argumentHint, contexts);
+                optionality, argumentHint, contexts);
     }
 
     /**
@@ -451,6 +460,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *            the long form of the option, eg. --option
      * @param description
      *            a simple description
+     * @param optionality
+     *            the optionality
      * @param argumentHint
      *            the hint for the argument
      * @param contexts
@@ -459,10 +470,11 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *             if the option could not be registered
      */
     protected void registerOptionWithOptionalArgument(final String longForm,
-            final String description, final String argumentHint, final Integer... contexts)
+            final String description, final OptionOptionality optionality,
+            final String argumentHint, final Integer... contexts)
     {
-        this.parser.registerOptionWithOptionalArgument(longForm, description, argumentHint,
-                contexts);
+        this.parser.registerOptionWithOptionalArgument(longForm, description, optionality,
+                argumentHint, contexts);
     }
 
     /**
@@ -477,6 +489,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *            the short form of the option, eg. -o
      * @param description
      *            a simple description
+     * @param optionality
+     *            the optionality
      * @param argumentHint
      *            the hint for the argument
      * @param contexts
@@ -485,11 +499,12 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *             if the option could not be registered
      */
     protected void registerOptionWithRequiredArgument(final String longForm,
-            final Character shortForm, final String description, final String argumentHint,
+            final Character shortForm, final String description,
+            final OptionOptionality optionality, final String argumentHint,
             final Integer... contexts)
     {
         this.parser.registerOptionWithRequiredArgument(longForm, shortForm, description,
-                argumentHint, contexts);
+                optionality, argumentHint, contexts);
     }
 
     /**
@@ -510,10 +525,11 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *             if the option could not be registered
      */
     protected void registerOptionWithRequiredArgument(final String longForm,
-            final String description, final String argumentHint, final Integer... contexts)
+            final String description, final OptionOptionality optionality,
+            final String argumentHint, final Integer... contexts)
     {
-        this.parser.registerOptionWithRequiredArgument(longForm, description, argumentHint,
-                contexts);
+        this.parser.registerOptionWithRequiredArgument(longForm, description, optionality,
+                argumentHint, contexts);
     }
 
     /**

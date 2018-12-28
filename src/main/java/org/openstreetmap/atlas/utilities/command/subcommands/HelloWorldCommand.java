@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
+import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 
 /**
  * @author lcram
@@ -55,7 +56,8 @@ public class HelloWorldCommand extends AbstractAtlasShellToolsCommand
     @Override
     public void registerOptionsAndArguments()
     {
-        registerOptionWithRequiredArgument("name", "Your name for the greeting.", "name");
+        registerOptionWithRequiredArgument("name", "Your name for the greeting.",
+                OptionOptionality.OPTIONAL, "name");
         super.registerOptionsAndArguments();
     }
 }

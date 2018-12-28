@@ -267,10 +267,11 @@ public class SimpleOptionAndArgumentParser
         this.parseStepRanAtLeastOnce = false;
 
         // Manually inject the default --help and --version options
-        this.registerOption(DEFAULT_HELP_LONG, DEFAULT_HELP_SHORT, "Show this help menu.", true,
-                HELP_OPTION_CONTEXT_ID);
+        this.registerOption(DEFAULT_HELP_LONG, DEFAULT_HELP_SHORT, "Show this help menu.",
+                OptionOptionality.REQUIRED, true, HELP_OPTION_CONTEXT_ID);
         this.registerOption(DEFAULT_VERSION_LONG, DEFAULT_VERSION_SHORT,
-                "Print the command version and exit.", true, VERSION_OPTION_CONTEXT_ID);
+                "Print the command version and exit.", OptionOptionality.REQUIRED, true,
+                VERSION_OPTION_CONTEXT_ID);
     }
 
     /**
@@ -700,13 +701,16 @@ public class SimpleOptionAndArgumentParser
      *            the short form of the option, eg. -o
      * @param description
      *            a simple description
+     * @param optionality
+     *            the optionality
      * @param contexts
      *            the contexts for this option, if not provided then uses a default context
      * @throws CoreException
      *             if the option could not be registered
      */
     public void registerOption(final String longForm, final Character shortForm,
-            final String description, final Integer... contexts)
+            final String description, final OptionOptionality optionality,
+            final Integer... contexts)
     {
         if (longForm != null)
         {
@@ -715,14 +719,14 @@ public class SimpleOptionAndArgumentParser
         }
         if (contexts.length == 0)
         {
-            registerOptionHelper(DEFAULT_CONTEXT_ID, longForm, shortForm, description,
+            registerOptionHelper(DEFAULT_CONTEXT_ID, longForm, shortForm, description, optionality,
                     OptionArgumentType.NONE, null, false);
         }
         else
         {
             for (int i = 0; i < contexts.length; i++)
             {
-                registerOptionHelper(contexts[i], longForm, shortForm, description,
+                registerOptionHelper(contexts[i], longForm, shortForm, description, optionality,
                         OptionArgumentType.NONE, null, false);
             }
         }
@@ -736,15 +740,17 @@ public class SimpleOptionAndArgumentParser
      *            the long form of the option, eg. --option
      * @param description
      *            a simple description
+     * @param optionality
+     *            the optionality
      * @param contexts
      *            the contexts for this option, if not provided then uses a default context
      * @throws CoreException
      *             if the option could not be registered
      */
     public void registerOption(final String longForm, final String description,
-            final Integer... contexts)
+            final OptionOptionality optionality, final Integer... contexts)
     {
-        this.registerOption(longForm, null, description, contexts);
+        this.registerOption(longForm, null, description, optionality, contexts);
     }
 
     /**
@@ -759,6 +765,8 @@ public class SimpleOptionAndArgumentParser
      *            the short form of the option, eg. -o
      * @param description
      *            a simple description
+     * @param optionality
+     *            the optionality
      * @param argumentHint
      *            the hint for the argument
      * @param contexts
@@ -767,7 +775,8 @@ public class SimpleOptionAndArgumentParser
      *             if the option could not be registered
      */
     public void registerOptionWithOptionalArgument(final String longForm, final Character shortForm,
-            final String description, final String argumentHint, final Integer... contexts)
+            final String description, final OptionOptionality optionality,
+            final String argumentHint, final Integer... contexts)
     {
         if (longForm != null)
         {
@@ -781,14 +790,14 @@ public class SimpleOptionAndArgumentParser
         }
         if (contexts.length == 0)
         {
-            registerOptionHelper(DEFAULT_CONTEXT_ID, longForm, shortForm, description,
+            registerOptionHelper(DEFAULT_CONTEXT_ID, longForm, shortForm, description, optionality,
                     OptionArgumentType.OPTIONAL, argumentHint, false);
         }
         else
         {
             for (int i = 0; i < contexts.length; i++)
             {
-                registerOptionHelper(contexts[i], longForm, shortForm, description,
+                registerOptionHelper(contexts[i], longForm, shortForm, description, optionality,
                         OptionArgumentType.OPTIONAL, argumentHint, false);
             }
         }
@@ -803,6 +812,8 @@ public class SimpleOptionAndArgumentParser
      *            the long form of the option, eg. --option
      * @param description
      *            a simple description
+     * @param optionality
+     *            the optionality
      * @param argumentHint
      *            the hint for the argument
      * @param contexts
@@ -811,7 +822,8 @@ public class SimpleOptionAndArgumentParser
      *             if the option could not be registered
      */
     public void registerOptionWithOptionalArgument(final String longForm, final String description,
-            final String argumentHint, final Integer... contexts)
+            final OptionOptionality optionality, final String argumentHint,
+            final Integer... contexts)
     {
         if (longForm != null)
         {
@@ -820,14 +832,14 @@ public class SimpleOptionAndArgumentParser
         }
         if (contexts.length == 0)
         {
-            registerOptionHelper(DEFAULT_CONTEXT_ID, longForm, null, description,
+            registerOptionHelper(DEFAULT_CONTEXT_ID, longForm, null, description, optionality,
                     OptionArgumentType.OPTIONAL, argumentHint, false);
         }
         else
         {
             for (int i = 0; i < contexts.length; i++)
             {
-                registerOptionHelper(contexts[i], longForm, null, description,
+                registerOptionHelper(contexts[i], longForm, null, description, optionality,
                         OptionArgumentType.OPTIONAL, argumentHint, false);
             }
         }
@@ -845,6 +857,8 @@ public class SimpleOptionAndArgumentParser
      *            the short form of the option, eg. -o
      * @param description
      *            a simple description
+     * @param optionality
+     *            the optionality
      * @param argumentHint
      *            the hint for the argument
      * @param contexts
@@ -853,7 +867,8 @@ public class SimpleOptionAndArgumentParser
      *             if the option could not be registered
      */
     public void registerOptionWithRequiredArgument(final String longForm, final Character shortForm,
-            final String description, final String argumentHint, final Integer... contexts)
+            final String description, final OptionOptionality optionality,
+            final String argumentHint, final Integer... contexts)
     {
         if (longForm != null)
         {
@@ -867,14 +882,14 @@ public class SimpleOptionAndArgumentParser
         }
         if (contexts.length == 0)
         {
-            registerOptionHelper(DEFAULT_CONTEXT_ID, longForm, shortForm, description,
+            registerOptionHelper(DEFAULT_CONTEXT_ID, longForm, shortForm, description, optionality,
                     OptionArgumentType.REQUIRED, argumentHint, false);
         }
         else
         {
             for (int i = 0; i < contexts.length; i++)
             {
-                registerOptionHelper(contexts[i], longForm, shortForm, description,
+                registerOptionHelper(contexts[i], longForm, shortForm, description, optionality,
                         OptionArgumentType.REQUIRED, argumentHint, false);
             }
         }
@@ -890,6 +905,8 @@ public class SimpleOptionAndArgumentParser
      *            the long form of the option, eg. --option
      * @param description
      *            a simple description
+     * @param optionality
+     *            the optionality
      * @param argumentHint
      *            the hint for the argument
      * @param contexts
@@ -898,7 +915,8 @@ public class SimpleOptionAndArgumentParser
      *             if the option could not be registered
      */
     public void registerOptionWithRequiredArgument(final String longForm, final String description,
-            final String argumentHint, final Integer... contexts)
+            final OptionOptionality optionality, final String argumentHint,
+            final Integer... contexts)
     {
         if (longForm != null)
         {
@@ -907,14 +925,14 @@ public class SimpleOptionAndArgumentParser
         }
         if (contexts.length == 0)
         {
-            registerOptionHelper(DEFAULT_CONTEXT_ID, longForm, null, description,
+            registerOptionHelper(DEFAULT_CONTEXT_ID, longForm, null, description, optionality,
                     OptionArgumentType.REQUIRED, argumentHint, false);
         }
         else
         {
             for (int i = 0; i < contexts.length; i++)
             {
-                registerOptionHelper(contexts[i], longForm, null, description,
+                registerOptionHelper(contexts[i], longForm, null, description, optionality,
                         OptionArgumentType.REQUIRED, argumentHint, false);
             }
         }
@@ -1058,16 +1076,21 @@ public class SimpleOptionAndArgumentParser
 
     /**
      * Perform a full scan and parse of the provided arguments list. This method will populate the
-     * parser's internal data structures so they are ready to be queried for results.
+     * parser's internal data structures so they are ready to be queried for results. This method
+     * tries to parse the arguments within a supplied context.
      *
      * @param allArguments
      *            The provided arguments list
+     * @param tryContext
+     *            the context to try
      * @throws UnknownOptionException
      *             If an unknown option is detected
      * @throws OptionParseException
      *             If another parsing error occurs
      * @throws ArgumentException
      *             If supplied arguments do not match the registered argument hints
+     * @throws AmbiguousAbbreviationException
+     *             If an ambiguous long option abbreviation was used
      */
     private void parseOptionsAndArguments(final List<String> allArguments, final int tryContext) // NOSONAR
             throws UnknownOptionException, OptionParseException, ArgumentException,
@@ -1144,6 +1167,19 @@ public class SimpleOptionAndArgumentParser
                 regularArguments.add(argument);
             }
         }
+
+        // Check that any option registered as required is actually present. If not, throw an error.
+        // final Set<SimpleOption> registeredOptions =
+        // this.contextToRegisteredOptions.get(tryContext);
+        // for (final SimpleOption registeredOption : registeredOptions)
+        // {
+        // if (registeredOption.getOptionality() == OptionOptionality.REQUIRED
+        // && !this.parsedOptions.keySet().contains(registeredOption))
+        // {
+        // throw new OptionParseException(
+        // "missing required option " + registeredOption.longForm);
+        // }
+        // }
 
         if (this.contextToRegisteredOptionalArgument.getOrDefault(tryContext, false))
         {
@@ -1412,7 +1448,8 @@ public class SimpleOptionAndArgumentParser
     }
 
     private void registerOption(final String longForm, final Character shortForm,
-            final String description, final boolean ignoreContextCheck, final Integer... contexts)
+            final String description, final OptionOptionality optionality,
+            final boolean ignoreContextCheck, final Integer... contexts)
     {
         if (longForm != null)
         {
@@ -1426,21 +1463,22 @@ public class SimpleOptionAndArgumentParser
         }
         if (contexts.length == 0)
         {
-            registerOptionHelper(DEFAULT_CONTEXT_ID, longForm, shortForm, description,
+            registerOptionHelper(DEFAULT_CONTEXT_ID, longForm, shortForm, description, optionality,
                     OptionArgumentType.NONE, null, ignoreContextCheck);
         }
         else
         {
             for (int i = 0; i < contexts.length; i++)
             {
-                registerOptionHelper(contexts[i], longForm, shortForm, description,
+                registerOptionHelper(contexts[i], longForm, shortForm, description, optionality,
                         OptionArgumentType.NONE, null, ignoreContextCheck);
             }
         }
     }
 
     private void registerOptionHelper(final int context, final String longForm,
-            final Character shortForm, final String description, final OptionArgumentType type,
+            final Character shortForm, final String description,
+            final OptionOptionality optionality, final OptionArgumentType type,
             final String argumentHint, final boolean ignoreContextCheck)
     {
         if (!ignoreContextCheck)
@@ -1459,7 +1497,7 @@ public class SimpleOptionAndArgumentParser
                 .get(context) == null ? new HashSet<>()
                         : this.contextToRegisteredOptions.get(context);
         registeredOptionsForContext.add(new SimpleOption(longForm, shortForm, description,
-                OptionOptionality.OPTIONAL, type, argumentHint));
+                optionality, type, argumentHint));
         this.contextToRegisteredOptions.put(context, registeredOptionsForContext);
 
         this.registeredContexts.add(context);

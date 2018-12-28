@@ -20,6 +20,7 @@ import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
+import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.VariadicAtlasLoaderCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -175,11 +176,11 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
     public void registerOptionsAndArguments()
     {
         this.registerOptionWithRequiredArgument(WKT_OPTION_LONG, WKT_OPTION_DESCRIPTION,
-                WKT_OPTION_HINT, WKT_CONTEXT);
+                OptionOptionality.REQUIRED, WKT_OPTION_HINT, WKT_CONTEXT);
         this.registerOption(PARALLEL_OPTION_LONG, PARALLEL_OPTION_SHORT,
-                PARALLEL_OPTION_DESCRIPTION, WKT_CONTEXT);
+                PARALLEL_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL, WKT_CONTEXT);
         this.registerOptionWithRequiredArgument(CUT_TYPE_OPTION_LONG, CUT_TYPE_OPTION_DESCRIPTION,
-                CUT_TYPE_OPTION_HINT, WKT_CONTEXT);
+                OptionOptionality.OPTIONAL, CUT_TYPE_OPTION_HINT, WKT_CONTEXT);
         super.registerOptionsAndArguments();
     }
 
