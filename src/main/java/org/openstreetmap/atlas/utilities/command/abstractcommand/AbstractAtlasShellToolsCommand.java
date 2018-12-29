@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.command.documentation.DocumentationFormatter;
@@ -69,6 +71,16 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private static final String VERBOSE_OPTION_LONG = "verbose";
     private static final Character VERBOSE_OPTION_SHORT = 'v';
     private static final String VERBOSE_OPTION_DESCRIPTION = "Show verbose output messages.";
+    private static final String HELP_OPTION_LONG = "help";
+    private static final Character HELP_OPTION_SHORT = 'h';
+    private static final String HELP_OPTION_DESCRIPTION = "Show this help menu.";
+    private static final String VERSION_OPTION_LONG = "version";
+    private static final Character VERSION_OPTION_SHORT = 'V';
+    private static final String VERSION_OPTION_DESCRIPTION = "Print the command version and exit.";
+
+    private static final int HELP_OPTION_CONTEXT_ID = 1;
+    private static final int VERSION_OPTION_CONTEXT_ID = 2;
+    private static final int DEFAULT_CONTEXT_ID = 3;
 
     private final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
     private final DocumentationRegistrar registrar = new DocumentationRegistrar();
@@ -81,7 +93,13 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
 
     SortedSet<Integer> getFilteredRegisteredContexts()
     {
-        return this.parser.getFilteredRegisteredContexts();
+        // filter out the default, hardcoded '--help' and '--version' contexts
+        final Set<Integer> set = this.parser.getRegisteredContexts().stream()
+                .filter(context -> context != HELP_OPTION_CONTEXT_ID
+                        && context != VERSION_OPTION_CONTEXT_ID)
+                .collect(Collectors.toSet());
+
+        return new TreeSet<>(set);
     }
 
     Optional<String> getOptionArgument(final String longForm)
@@ -218,7 +236,14 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      */
     public void registerOptionsAndArguments()
     {
-        // register a default '--verbose' option in all contexts
+        // register --help and --version to contexts 1 and 2, respectively
+        registerOption(HELP_OPTION_LONG, HELP_OPTION_SHORT, HELP_OPTION_DESCRIPTION,
+                OptionOptionality.REQUIRED, HELP_OPTION_CONTEXT_ID);
+        registerOption(VERSION_OPTION_LONG, VERSION_OPTION_SHORT, VERSION_OPTION_DESCRIPTION,
+                OptionOptionality.REQUIRED, VERSION_OPTION_CONTEXT_ID);
+        registerEmptyContext(DEFAULT_CONTEXT_ID);
+
+        // register a default '--verbose' option in all contexts (except the --help and --version)
         final Integer[] contexts = this.getFilteredRegisteredContexts().toArray(new Integer[0]);
         registerOption(VERBOSE_OPTION_LONG, VERBOSE_OPTION_SHORT, VERBOSE_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, contexts);
@@ -361,7 +386,14 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     protected void registerArgument(final String argumentHint, final ArgumentArity arity,
             final ArgumentOptionality optionality, final Integer... contexts)
     {
-        this.parser.registerArgument(argumentHint, arity, optionality, contexts);
+        if (contexts.length == 0)
+        {
+            this.parser.registerArgument(argumentHint, arity, optionality, DEFAULT_CONTEXT_ID);
+        }
+        else
+        {
+            this.parser.registerArgument(argumentHint, arity, optionality, contexts);
+        }
     }
 
     /**
@@ -397,7 +429,15 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             final String description, final OptionOptionality optionality,
             final Integer... contexts)
     {
-        this.parser.registerOption(longForm, shortForm, description, optionality, contexts);
+        if (contexts.length == 0)
+        {
+            this.parser.registerOption(longForm, shortForm, description, optionality,
+                    DEFAULT_CONTEXT_ID);
+        }
+        else
+        {
+            this.parser.registerOption(longForm, shortForm, description, optionality, contexts);
+        }
     }
 
     /**
@@ -418,7 +458,14 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     protected void registerOption(final String longForm, final String description,
             final OptionOptionality optionality, final Integer... contexts)
     {
-        this.parser.registerOption(longForm, description, optionality, contexts);
+        if (contexts.length == 0)
+        {
+            this.parser.registerOption(longForm, description, optionality, DEFAULT_CONTEXT_ID);
+        }
+        else
+        {
+            this.parser.registerOption(longForm, description, optionality, contexts);
+        }
     }
 
     /**
@@ -447,8 +494,16 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             final OptionOptionality optionality, final String argumentHint,
             final Integer... contexts)
     {
-        this.parser.registerOptionWithOptionalArgument(longForm, shortForm, description,
-                optionality, argumentHint, contexts);
+        if (contexts.length == 0)
+        {
+            this.parser.registerOptionWithOptionalArgument(longForm, shortForm, description,
+                    optionality, argumentHint, DEFAULT_CONTEXT_ID);
+        }
+        else
+        {
+            this.parser.registerOptionWithOptionalArgument(longForm, shortForm, description,
+                    optionality, argumentHint, contexts);
+        }
     }
 
     /**
@@ -473,8 +528,16 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             final String description, final OptionOptionality optionality,
             final String argumentHint, final Integer... contexts)
     {
-        this.parser.registerOptionWithOptionalArgument(longForm, description, optionality,
-                argumentHint, contexts);
+        if (contexts.length == 0)
+        {
+            this.parser.registerOptionWithOptionalArgument(longForm, description, optionality,
+                    argumentHint, DEFAULT_CONTEXT_ID);
+        }
+        else
+        {
+            this.parser.registerOptionWithOptionalArgument(longForm, description, optionality,
+                    argumentHint, contexts);
+        }
     }
 
     /**
@@ -503,8 +566,16 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             final OptionOptionality optionality, final String argumentHint,
             final Integer... contexts)
     {
-        this.parser.registerOptionWithRequiredArgument(longForm, shortForm, description,
-                optionality, argumentHint, contexts);
+        if (contexts.length == 0)
+        {
+            this.parser.registerOptionWithRequiredArgument(longForm, shortForm, description,
+                    optionality, argumentHint, DEFAULT_CONTEXT_ID);
+        }
+        else
+        {
+            this.parser.registerOptionWithRequiredArgument(longForm, shortForm, description,
+                    optionality, argumentHint, contexts);
+        }
     }
 
     /**
@@ -530,8 +601,16 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             final String description, final OptionOptionality optionality,
             final String argumentHint, final Integer... contexts)
     {
-        this.parser.registerOptionWithRequiredArgument(longForm, description, optionality,
-                argumentHint, contexts);
+        if (contexts.length == 0)
+        {
+            this.parser.registerOptionWithRequiredArgument(longForm, description, optionality,
+                    argumentHint, DEFAULT_CONTEXT_ID);
+        }
+        else
+        {
+            this.parser.registerOptionWithRequiredArgument(longForm, description, optionality,
+                    argumentHint, contexts);
+        }
     }
 
     /**
@@ -617,7 +696,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
 
         logger.debug("Command using context {}", this.parser.getContext());
 
-        if (this.parser.hasOption(SimpleOptionAndArgumentParser.DEFAULT_HELP_LONG))
+        // handle the hardcoded --help and --version options
+        if (this.parser.hasOption(HELP_OPTION_LONG))
         {
             if (this.usePager)
             {
@@ -631,7 +711,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             System.exit(0);
         }
 
-        if (this.parser.hasOption(SimpleOptionAndArgumentParser.DEFAULT_VERSION_LONG))
+        if (this.parser.hasOption(VERSION_OPTION_LONG))
         {
             printlnStdout(String.format("%s version %s", getCommandName(), this.version));
             System.exit(0);

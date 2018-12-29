@@ -62,12 +62,8 @@ import org.slf4j.LoggerFactory;
  * single argument and the option "--opt1". Then you can also define a context ID 4 that takes 2
  * arguments and an option "--opt2". The parser will automatically figure out which context is
  * implied from the supplied command line. If more than one context matches, the context with the
- * lowest numberical ID is selected. If no matching contexts can be found, the parser throws an
- * error with a diagnostic message explaining what happened.<br>
- * <br>
- * By default, this class pre-registers '--help, -h' and '--version, -V' options automatically
- * (registered to parse contexts 1 and 2 respectively). It is up to calling classes to implement
- * behaviour for these options, if present.<br>
+ * lowest numerical ID is selected. If no matching contexts can be found, the parser throws an error
+ * with a diagnostic message explaining what happened.<br>
  * <br>
  *
  * @see "https://www.gnu.org/software/libc/manual/html_node/Argument-Syntax.html"
@@ -211,7 +207,6 @@ public class SimpleOptionAndArgumentParser
     }
 
     private static final String PROVIDED_OPTION_LONG_FORM_WAS_AMBIGUOUS = "provided option long form {} was ambiguous";
-
     private static final String CANNOT_GET_OPTIONS_BEFORE_PARSING = "Cannot get options before parsing!";
 
     private static final Logger logger = LoggerFactory
@@ -222,14 +217,6 @@ public class SimpleOptionAndArgumentParser
     public static final String OPTION_ARGUMENT_DELIMITER = "=";
     public static final String END_OPTIONS_OPERATOR = "--";
 
-    public static final String DEFAULT_HELP_LONG = "help";
-    public static final Character DEFAULT_HELP_SHORT = 'h';
-    public static final String DEFAULT_VERSION_LONG = "version";
-    public static final Character DEFAULT_VERSION_SHORT = 'V';
-
-    public static final int HELP_OPTION_CONTEXT_ID = 1;
-    public static final int VERSION_OPTION_CONTEXT_ID = 2;
-    public static final int DEFAULT_CONTEXT_ID = 3;
     public static final int NO_CONTEXT = 0;
 
     private final Map<Integer, Set<SimpleOption>> contextToRegisteredOptions;
@@ -265,13 +252,6 @@ public class SimpleOptionAndArgumentParser
         this.parsedArguments = new LinkedHashMap<>();
         this.currentContext = NO_CONTEXT;
         this.parseStepRanAtLeastOnce = false;
-
-        // Manually inject the default --help and --version options
-        this.registerOption(DEFAULT_HELP_LONG, DEFAULT_HELP_SHORT, "Show this help menu.",
-                OptionOptionality.REQUIRED, true, HELP_OPTION_CONTEXT_ID);
-        this.registerOption(DEFAULT_VERSION_LONG, DEFAULT_VERSION_SHORT,
-                "Print the command version and exit.", OptionOptionality.REQUIRED, true,
-                VERSION_OPTION_CONTEXT_ID);
     }
 
     /**
@@ -302,22 +282,6 @@ public class SimpleOptionAndArgumentParser
     public Map<Integer, Set<SimpleOption>> getContextToRegisteredOptions()
     {
         return this.contextToRegisteredOptions;
-    }
-
-    /**
-     * Get the registered contexts, but filter out the default '--help' and '--version' contexts.
-     *
-     * @return the filtered set
-     */
-    public SortedSet<Integer> getFilteredRegisteredContexts()
-    {
-        // filter out the default, hardcoded '--help' and '--version' contexts
-        final Set<Integer> set = this.registeredContexts.stream()
-                .filter(context -> context != HELP_OPTION_CONTEXT_ID
-                        && context != VERSION_OPTION_CONTEXT_ID)
-                .collect(Collectors.toSet());
-
-        return new TreeSet<>(set);
     }
 
     /**
@@ -658,20 +622,18 @@ public class SimpleOptionAndArgumentParser
 
         if (contexts.length == 0)
         {
-            registerArgumentHelper(DEFAULT_CONTEXT_ID, argumentHint, arity, optionality);
+            throw new CoreException("Must provide at least one context.");
         }
-        else
+        for (int i = 0; i < contexts.length; i++)
         {
-            for (int i = 0; i < contexts.length; i++)
-            {
-                registerArgumentHelper(contexts[i], argumentHint, arity, optionality);
-            }
+            registerArgumentHelper(contexts[i], argumentHint, arity, optionality);
         }
     }
 
     /**
-     * Register a given context with no options or arguments.
-     * 
+     * Register a given context with no options or arguments. If the context already exists, this
+     * will noop.
+     *
      * @param context
      *            the context to register
      */
@@ -679,8 +641,9 @@ public class SimpleOptionAndArgumentParser
     {
         if (this.registeredContexts.contains(context))
         {
-            throw new CoreException("Cannot register empty context {}, {} is already registered",
-                    context, context);
+            logger.info("Tried to register empty context {}, but {} is already registered", context,
+                    context);
+            return;
         }
         this.registeredContexts.add(context);
         this.contextToRegisteredOptions.put(context, new HashSet<>());
@@ -718,16 +681,12 @@ public class SimpleOptionAndArgumentParser
         }
         if (contexts.length == 0)
         {
-            registerOptionHelper(DEFAULT_CONTEXT_ID, longForm, shortForm, description, optionality,
-                    OptionArgumentType.NONE, null, false);
+            throw new CoreException("Must register at least one context.");
         }
-        else
+        for (int i = 0; i < contexts.length; i++)
         {
-            for (int i = 0; i < contexts.length; i++)
-            {
-                registerOptionHelper(contexts[i], longForm, shortForm, description, optionality,
-                        OptionArgumentType.NONE, null, false);
-            }
+            registerOptionHelper(contexts[i], longForm, shortForm, description, optionality,
+                    OptionArgumentType.NONE, null);
         }
     }
 
@@ -789,16 +748,12 @@ public class SimpleOptionAndArgumentParser
         }
         if (contexts.length == 0)
         {
-            registerOptionHelper(DEFAULT_CONTEXT_ID, longForm, shortForm, description, optionality,
-                    OptionArgumentType.OPTIONAL, argumentHint, false);
+            throw new CoreException("Must register at least one context.");
         }
-        else
+        for (int i = 0; i < contexts.length; i++)
         {
-            for (int i = 0; i < contexts.length; i++)
-            {
-                registerOptionHelper(contexts[i], longForm, shortForm, description, optionality,
-                        OptionArgumentType.OPTIONAL, argumentHint, false);
-            }
+            registerOptionHelper(contexts[i], longForm, shortForm, description, optionality,
+                    OptionArgumentType.OPTIONAL, argumentHint);
         }
     }
 
@@ -831,16 +786,12 @@ public class SimpleOptionAndArgumentParser
         }
         if (contexts.length == 0)
         {
-            registerOptionHelper(DEFAULT_CONTEXT_ID, longForm, null, description, optionality,
-                    OptionArgumentType.OPTIONAL, argumentHint, false);
+            throw new CoreException("Must register at least one context.");
         }
-        else
+        for (int i = 0; i < contexts.length; i++)
         {
-            for (int i = 0; i < contexts.length; i++)
-            {
-                registerOptionHelper(contexts[i], longForm, null, description, optionality,
-                        OptionArgumentType.OPTIONAL, argumentHint, false);
-            }
+            registerOptionHelper(contexts[i], longForm, null, description, optionality,
+                    OptionArgumentType.OPTIONAL, argumentHint);
         }
     }
 
@@ -881,16 +832,12 @@ public class SimpleOptionAndArgumentParser
         }
         if (contexts.length == 0)
         {
-            registerOptionHelper(DEFAULT_CONTEXT_ID, longForm, shortForm, description, optionality,
-                    OptionArgumentType.REQUIRED, argumentHint, false);
+            throw new CoreException("Must register at least one context.");
         }
-        else
+        for (int i = 0; i < contexts.length; i++)
         {
-            for (int i = 0; i < contexts.length; i++)
-            {
-                registerOptionHelper(contexts[i], longForm, shortForm, description, optionality,
-                        OptionArgumentType.REQUIRED, argumentHint, false);
-            }
+            registerOptionHelper(contexts[i], longForm, shortForm, description, optionality,
+                    OptionArgumentType.REQUIRED, argumentHint);
         }
     }
 
@@ -924,16 +871,12 @@ public class SimpleOptionAndArgumentParser
         }
         if (contexts.length == 0)
         {
-            registerOptionHelper(DEFAULT_CONTEXT_ID, longForm, null, description, optionality,
-                    OptionArgumentType.REQUIRED, argumentHint, false);
+            throw new CoreException("Must register at least one context.");
         }
-        else
+        for (int i = 0; i < contexts.length; i++)
         {
-            for (int i = 0; i < contexts.length; i++)
-            {
-                registerOptionHelper(contexts[i], longForm, null, description, optionality,
-                        OptionArgumentType.REQUIRED, argumentHint, false);
-            }
+            registerOptionHelper(contexts[i], longForm, null, description, optionality,
+                    OptionArgumentType.REQUIRED, argumentHint);
         }
     }
 
@@ -1387,11 +1330,6 @@ public class SimpleOptionAndArgumentParser
         {
             throw new CoreException("Context ID must be a positive integer");
         }
-        if (context == HELP_OPTION_CONTEXT_ID || context == VERSION_OPTION_CONTEXT_ID)
-        {
-            throw new CoreException("Cannot use reserved context IDs {} or {}",
-                    HELP_OPTION_CONTEXT_ID, VERSION_OPTION_CONTEXT_ID);
-        }
         if (this.contextToRegisteredOptionalArgument.getOrDefault(context, false))
         {
             throw new CoreException("Optional argument must be the last registered argument");
@@ -1448,51 +1386,14 @@ public class SimpleOptionAndArgumentParser
         return checkForShortOption(shortForm, this.contextToRegisteredOptions.get(context));
     }
 
-    private void registerOption(final String longForm, final Character shortForm,
-            final String description, final OptionOptionality optionality,
-            final boolean ignoreContextCheck, final Integer... contexts)
-    {
-        if (longForm != null)
-        {
-            throwIfDuplicateLongForm(longForm);
-            this.longFormsSeen.add(longForm);
-        }
-        if (shortForm != null)
-        {
-            throwIfDuplicateShortForm(shortForm);
-            this.shortFormsSeen.add(shortForm);
-        }
-        if (contexts.length == 0)
-        {
-            registerOptionHelper(DEFAULT_CONTEXT_ID, longForm, shortForm, description, optionality,
-                    OptionArgumentType.NONE, null, ignoreContextCheck);
-        }
-        else
-        {
-            for (int i = 0; i < contexts.length; i++)
-            {
-                registerOptionHelper(contexts[i], longForm, shortForm, description, optionality,
-                        OptionArgumentType.NONE, null, ignoreContextCheck);
-            }
-        }
-    }
-
     private void registerOptionHelper(final int context, final String longForm,
             final Character shortForm, final String description,
             final OptionOptionality optionality, final OptionArgumentType type,
-            final String argumentHint, final boolean ignoreContextCheck)
+            final String argumentHint)
     {
-        if (!ignoreContextCheck)
+        if (context <= 0)
         {
-            if (context < 0)
-            {
-                throw new CoreException("Context ID must be a positive integer");
-            }
-            if (context == HELP_OPTION_CONTEXT_ID || context == VERSION_OPTION_CONTEXT_ID)
-            {
-                throw new CoreException("Cannot use reserved context IDs {} or {}",
-                        HELP_OPTION_CONTEXT_ID, VERSION_OPTION_CONTEXT_ID);
-            }
+            throw new CoreException("Context ID must be a positive integer (>= 1)");
         }
         final Set<SimpleOption> registeredOptionsForContext = this.contextToRegisteredOptions
                 .get(context) == null ? new HashSet<>()
