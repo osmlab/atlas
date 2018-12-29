@@ -411,16 +411,35 @@ public class SimpleOptionAndArgumentParserTest
     @Test(expected = AmbiguousAbbreviationException.class)
     public void testPrefixAmbiguous() throws AmbiguousAbbreviationException
     {
-        final SimpleOptionAndArgumentParser parser2 = new SimpleOptionAndArgumentParser();
-        parser2.registerOption("option", "option1", OptionOptionality.OPTIONAL);
-        parser2.registerOption("optionSuffix", "option2", OptionOptionality.OPTIONAL);
+        final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
+        parser.registerOption("option", "option1", OptionOptionality.OPTIONAL);
+        parser.registerOption("optionSuffix", "option2", OptionOptionality.OPTIONAL);
 
         final List<String> arguments2 = Arrays.asList("--opt");
         try
         {
-            parser2.parse(arguments2);
+            parser.parse(arguments2);
         }
         catch (UnknownOptionException | UnparsableContextException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test(expected = UnparsableContextException.class)
+    public void testRequiredOptionsMissing() throws UnparsableContextException
+    {
+        final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
+        parser.registerOption("option1", "option1", OptionOptionality.REQUIRED);
+        parser.registerOption("option2", "option2", OptionOptionality.OPTIONAL);
+
+        final List<String> arguments = Arrays.asList("--option2");
+
+        try
+        {
+            parser.parse(arguments);
+        }
+        catch (AmbiguousAbbreviationException | UnknownOptionException e)
         {
             Assert.fail(e.getMessage());
         }

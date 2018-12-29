@@ -517,6 +517,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      *            the long form of the option, eg. --option
      * @param description
      *            a simple description
+     * @param optionality
+     *            the optionality
      * @param argumentHint
      *            the hint for the argument
      * @param contexts
