@@ -669,6 +669,12 @@ public class SimpleOptionAndArgumentParser
         }
     }
 
+    /**
+     * Register a given context with no options or arguments.
+     * 
+     * @param context
+     *            the context to register
+     */
     public void registerEmptyContext(final int context)
     {
         if (this.registeredContexts.contains(context))
