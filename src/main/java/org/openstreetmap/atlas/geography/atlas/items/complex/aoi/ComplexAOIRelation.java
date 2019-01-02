@@ -48,12 +48,20 @@ public final class ComplexAOIRelation extends ComplexEntity
      */
     public static Optional<ComplexAOIRelation> getComplexAOIRelation(final AtlasEntity source)
     {
-        if (defaultTaggableFilter == null)
+        try
         {
-            computeDefaultFilter();
+            if (defaultTaggableFilter == null)
+            {
+                computeDefaultFilter();
+            }
+            return source instanceof Relation && hasAOITag(source)
+                    ? Optional.of(new ComplexAOIRelation(source)) : Optional.empty();
         }
-        return source instanceof Relation && hasAOITag(source)
-                ? Optional.of(new ComplexAOIRelation(source)) : Optional.empty();
+        catch (final Exception exception)
+        {
+            logger.warn("Unable to create complex AOI relations from {}", source, exception);
+            return Optional.empty();
+        }
     }
 
     /**
@@ -71,12 +79,20 @@ public final class ComplexAOIRelation extends ComplexEntity
     public static Optional<ComplexAOIRelation> getComplexAOIRelation(final AtlasEntity source,
             final TaggableFilter aoiFilter)
     {
-        if (defaultTaggableFilter == null)
+        try
         {
-            computeDefaultFilter();
+            if (defaultTaggableFilter == null)
+            {
+                computeDefaultFilter();
+            }
+            return source instanceof Relation && (hasAOITag(source) || aoiFilter.test(source))
+                    ? Optional.of(new ComplexAOIRelation(source)) : Optional.empty();
         }
-        return source instanceof Relation && (hasAOITag(source) || aoiFilter.test(source))
-                ? Optional.of(new ComplexAOIRelation(source)) : Optional.empty();
+        catch (final Exception exception)
+        {
+            logger.warn("Unable to create complex AOI relations from {}", source, exception);
+            return Optional.empty();
+        }
     }
 
     private static void computeDefaultFilter()
@@ -126,8 +142,8 @@ public final class ComplexAOIRelation extends ComplexEntity
         }
         catch (final Exception exception)
         {
-            logger.warn("Unable to create complex AOI relations from {}", source, exception);
-            setInvalidReason("Unable to create complex AOIs", exception);
+            setInvalidReason("Unable to convert Relation to MultiPolygon", exception);
+            throw new CoreException("Unable to convert Relation to MultiPolygon", exception);
         }
     }
 
