@@ -29,7 +29,6 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
     private static final String LOADER_SECTION = "AtlasLoaderCommandLoaderSection.txt";
 
     private static final String STRICT_OPTION_LONG = "strict";
-    private static final Character STRING_OPTION_SHORT = 's';
     private static final String STRICT_OPTION_DESCRIPTION = "Fail fast if any input atlases are missing.";
 
     private static final String OUTPUT_DIRECTORY_OPTION_LONG = "output";
@@ -138,8 +137,8 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
     {
         final Integer[] contexts = this.optargDelegate.getFilteredRegisteredContexts()
                 .toArray(new Integer[0]);
-        registerOption(STRICT_OPTION_LONG, STRING_OPTION_SHORT, STRICT_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, contexts);
+        registerOption(STRICT_OPTION_LONG, STRICT_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
+                contexts);
         registerOptionWithRequiredArgument(OUTPUT_DIRECTORY_OPTION_LONG,
                 OUTPUT_DIRECTORY_OPTION_SHORT, OUTPUT_DIRECTORY_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, OUTPUT_DIRECTORY_OPTION_HINT, contexts);
