@@ -9,6 +9,7 @@ import java.util.stream.StreamSupport;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolygon;
+import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.complex.ComplexEntity;
@@ -22,31 +23,31 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
 /**
- * Complex Entity for AOI Relations. AOI relations are those that are {@link MultiPolygon} and has
- * AOI tags in it. AOI tags are checked against the {@link TaggableFilter} passed as an argument or
- * to the default {@link TaggableFilter} of AOI tags if the tags are not explicitly specified.
+ * Complex Entity for AOI Relations and AOI Areas. AOI relations are those that are
+ * {@link MultiPolygon} and have AOI tags in it and AOI Areas are those {@link Area}s that have AOI
+ * tags in it. AOI tags are checked against the {@link TaggableFilter} passed as an argument or to
+ * the default {@link TaggableFilter} of AOI tags if the tags are not explicitly specified.
  *
  * @author sayas01
  */
-public final class ComplexAOIRelation extends ComplexEntity
+public final class ComplexAOI extends ComplexEntity
 {
-    private static final Logger logger = LoggerFactory.getLogger(ComplexAOIRelation.class);
-    private static final RelationOrAreaToMultiPolygonConverter RELATION_TO_MULTI_POLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter();
+    private static final Logger logger = LoggerFactory.getLogger(ComplexAOI.class);
+    private static final RelationOrAreaToMultiPolygonConverter RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter();
     private static final String AOI_RESOURCE = "aoi-tag-filter.json";
     private MultiPolygon multiPolygon;
     // The default AreasOfInterest(AOI) tags
     private static List<TaggableFilter> defaultTaggableFilter;
 
     /**
-     * This method creates a {@link ComplexAOIRelation} for the specified {@link AtlasEntity} if it
-     * meets the requirements for Complex AOI relation. The AOI tags are checked against the default
-     * tags.
+     * This method creates a {@link ComplexAOI} for the specified {@link AtlasEntity} if it meets
+     * the requirements for Complex AOI relation. The AOI tags are checked against the default tags.
      *
      * @param source
      *            The {@link AtlasEntity} for which the ComplexEntity is created
-     * @return {@link ComplexAOIRelation} if created, else return empty.
+     * @return {@link ComplexAOI} if created, else return empty.
      */
-    public static Optional<ComplexAOIRelation> getComplexAOIRelation(final AtlasEntity source)
+    public static Optional<ComplexAOI> getComplexAOI(final AtlasEntity source)
     {
         try
         {
@@ -54,8 +55,8 @@ public final class ComplexAOIRelation extends ComplexEntity
             {
                 computeDefaultFilter();
             }
-            return source instanceof Relation && hasAOITag(source)
-                    ? Optional.of(new ComplexAOIRelation(source)) : Optional.empty();
+            return (source instanceof Relation || source instanceof Area) && hasAOITag(source)
+                    ? Optional.of(new ComplexAOI(source)) : Optional.empty();
         }
         catch (final Exception exception)
         {
@@ -65,7 +66,7 @@ public final class ComplexAOIRelation extends ComplexEntity
     }
 
     /**
-     * This method creates a {@link ComplexAOIRelation} for the specified {@link AtlasEntity} and
+     * This method creates a {@link ComplexAOI} for the specified {@link AtlasEntity} and
      * {@link TaggableFilter}. The AOI tags are checked against the aoiFilter param as well as the
      * default tags.
      *
@@ -74,9 +75,9 @@ public final class ComplexAOIRelation extends ComplexEntity
      * @param aoiFilter
      *            The {@link TaggableFilter} of AOI tags against which the relation is checked for
      *            AOI tags
-     * @return {@link ComplexAOIRelation} if created, else return empty.
+     * @return {@link ComplexAOI} if created, else return empty.
      */
-    public static Optional<ComplexAOIRelation> getComplexAOIRelation(final AtlasEntity source,
+    public static Optional<ComplexAOI> getComplexAOI(final AtlasEntity source,
             final TaggableFilter aoiFilter)
     {
         try
@@ -85,8 +86,9 @@ public final class ComplexAOIRelation extends ComplexEntity
             {
                 computeDefaultFilter();
             }
-            return source instanceof Relation && (hasAOITag(source) || aoiFilter.test(source))
-                    ? Optional.of(new ComplexAOIRelation(source)) : Optional.empty();
+            return (source instanceof Relation || source instanceof Area)
+                    && (hasAOITag(source) || aoiFilter.test(source))
+                            ? Optional.of(new ComplexAOI(source)) : Optional.empty();
         }
         catch (final Exception exception)
         {
@@ -98,7 +100,7 @@ public final class ComplexAOIRelation extends ComplexEntity
     private static void computeDefaultFilter()
     {
         try (InputStreamReader reader = new InputStreamReader(
-                ComplexAOIRelation.class.getResourceAsStream(AOI_RESOURCE)))
+                ComplexAOI.class.getResourceAsStream(AOI_RESOURCE)))
         {
             final JsonElement element = new JsonParser().parse(reader);
             final JsonArray filters = element.getAsJsonObject().get("filters").getAsJsonArray();
@@ -128,17 +130,17 @@ public final class ComplexAOIRelation extends ComplexEntity
     }
 
     /**
-     * Construct a {@link ComplexAOIRelation}
+     * Construct a {@link ComplexAOI}
      *
      * @param source
      *            the {@link AtlasEntity} to construct the ComplexAoiRelation
      */
-    private ComplexAOIRelation(final AtlasEntity source)
+    private ComplexAOI(final AtlasEntity source)
     {
         super(source);
         try
         {
-            this.multiPolygon = RELATION_TO_MULTI_POLYGON_CONVERTER.convert(source);
+            this.multiPolygon = RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER.convert(source);
         }
         catch (final Exception exception)
         {
