@@ -26,6 +26,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
+import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.geography.index.RTree;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
@@ -192,8 +193,10 @@ public class MultiAtlas extends AbstractAtlas
             throw new CoreException("Can't create an atlas from zero resources");
         }
         return new MultiAtlas(
-                Iterables.translate(resources,
-                        resource -> PackedAtlas.load(resource).subAtlas(filter).get()),
+                Iterables
+                        .translate(resources,
+                                resource -> PackedAtlas.load(resource)
+                                        .subAtlas(filter, AtlasCutType.SOFT_CUT).get()),
                 lotsOfOverlap);
     }
 

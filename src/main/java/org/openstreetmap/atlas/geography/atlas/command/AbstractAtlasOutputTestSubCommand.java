@@ -17,6 +17,7 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
+import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.runtime.Command.Optionality;
 import org.openstreetmap.atlas.utilities.runtime.Command.Switch;
@@ -149,6 +150,6 @@ abstract class AbstractAtlasOutputTestSubCommand extends AbstractAtlasSubCommand
         {
             rectangle = rectangle.expand(Distance.meters(this.distanceInMeters.get()));
         }
-        item.getAtlas().subAtlas(rectangle).ifPresent(this.subAtlases::add);
+        item.getAtlas().subAtlas(rectangle, AtlasCutType.SOFT_CUT).ifPresent(this.subAtlases::add);
     }
 }
