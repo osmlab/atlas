@@ -1,13 +1,20 @@
 {
   "filters": [
-    "amenity->FESTIVAL_GROUNDS,GRAVE_YARD",
-    "landuse->FOREST,CEMETERY,RECREATION_GROUND,VILLAGE_GREEN",
-    "boundary->NATIONAL_PARKPROTECTED_AREA|",
-    "historic->BATTLEFIELD",
-    "natural->WOOD,BEACH",
-    "leisure->PARK,GARDEN,RECREATION_GROUND,GOLF_COURSE,NATURE_RESERVEPARK",
-    "sport->GOLF",
-    "tourism->ZOO"
+    "aerialway->*",
+    "aeroway->*",
+    "amenity->*",
+    "barrier->*",
+    "historic->*",
+    "landuse->*",
+    "leisure->*",
+    "man_made->*",
+    "military->*",
+    "boundary->NATIONAL_PARK,PROTECTED_AREA",
+    "natural->*",
+    "sport->*",
+    "tourism->*",
+    "power->*",
+    "shop->*"
   ]
 }
 
