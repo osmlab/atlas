@@ -128,14 +128,10 @@ abstract class AbstractAtlasOutputTestSubCommand extends AbstractAtlasSubCommand
     {
         this.subAtlases = ConcurrentHashMap.newKeySet();
         this.distanceInMeters = (Optional<Double>) command.getOption(DISTANCE_IN_METERS_PARAMETER);
-        ((Optional<Path>) command.getOption(OUTPUT_TO_TEXT_PARAMETER)).ifPresent(path ->
-        {
-            this.outputTextPath = path;
-        });
-        ((Optional<Path>) command.getOption(OUTPUT_TO_PACKED_ATLAS_PARAMETER)).ifPresent(path ->
-        {
-            this.packedAtlasPath = path;
-        });
+        ((Optional<Path>) command.getOption(OUTPUT_TO_TEXT_PARAMETER))
+                .ifPresent(path -> this.outputTextPath = path);
+        ((Optional<Path>) command.getOption(OUTPUT_TO_PACKED_ATLAS_PARAMETER))
+                .ifPresent(path -> this.packedAtlasPath = path);
 
         if (this.outputTextPath == null && this.packedAtlasPath == null)
         {

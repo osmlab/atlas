@@ -7,11 +7,12 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.tags.annotations.TagKey;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators.TagKeySearch;
 
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassInfoList;
+import io.github.classgraph.ScanResult;
 
 /**
  * Class that walks across all Tags and generates metadata about them that can be converted into
@@ -154,21 +155,29 @@ public class TagDocumenter
          * command line we shouldn't get any TestCase tags anyways, but when running this in
          * development mode under Eclipse with core in the classpath they will be picked up.
          */
-        new FastClasspathScanner(packageName).matchClassesWithAnnotation(Tag.class, tagClass ->
+
+        // Scan the given package
+        try (ScanResult scanResult = new ClassGraph().enableAllInfo().whitelistPackages(packageName)
+                .scan())
         {
-            if (!tagClass.getName().contains("TestCase"))
+            // Look at annotated classes
+            final ClassInfoList tagClassInfoList = scanResult
+                    .getClassesWithAnnotation("org.openstreetmap.atlas.tags.annotations.Tag");
+
+            // Ignore any TestCase classes
+            tagClassInfoList.loadClasses().forEach(klass ->
             {
-                this.tagData.add(createCallbackDataFromClass(tagClass));
-            }
-        }).scan();
+                if (!klass.getName().contains("TestCase"))
+                {
+                    this.tagData.add(createCallbackDataFromClass(klass));
+                }
+            });
+        }
     }
 
     public void walk(final Callback callback)
     {
-        this.tagData.stream().forEach(metadata ->
-        {
-            callback.tagFound(metadata);
-        });
+        this.tagData.stream().forEach(callback::tagFound);
     }
 
     private CallbackData createCallbackDataFromClass(final Class<?> tagClass)
