@@ -50,8 +50,8 @@ public class ExactMatchValidator implements TagValidator
      */
     public ExactMatchValidator withRegularExpressions(final String... regexes)
     {
-        this.regexes.addAll(Arrays.asList(regexes).stream().map(regex -> Pattern.compile(regex))
-                .collect(Collectors.toSet()));
+        this.regexes.addAll(
+                Arrays.asList(regexes).stream().map(Pattern::compile).collect(Collectors.toSet()));
         return this;
     }
 
