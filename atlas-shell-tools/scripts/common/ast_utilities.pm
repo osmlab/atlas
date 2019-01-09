@@ -5,6 +5,7 @@ use strict;
 
 use Exporter qw(import);
 use File::Path qw(make_path);
+use List::Util qw(min);
 use ast_tty;
 use ast_log_subsystem;
 use ast_preset_subsystem;
@@ -355,6 +356,34 @@ sub is_dir_empty {
     closedir $h;
 
     return 1;
+}
+
+# Compute the Levenshtein distance between two strings.
+# Params:
+#   $string1: the first string
+#   $string2: the second string
+# Return: the Levenshtein distnace
+sub levenshtein {
+    my $string1 = shift;
+    my $string2 = shift;
+
+    # split the strings at each character
+    my @letters1 = split //, $string1;
+    my @letters2 = split //, $string2;
+
+    # memoization table
+    my @distance;
+    $distance[$_][0] = $_ foreach (0 .. @letters1);
+    $distance[0][$_] = $_ foreach (0 .. @letters2);
+
+    foreach my $i (1 .. @letters1) {
+        foreach my $j (1 .. @letters2) {
+            my $cost = $letters1[$i - 1] eq $letters2[$j - 1] ? 0 : 1;
+            $distance[$i][$j] = min($distance[$i - 1][$j] + 1, $distance[$i][$j - 1] + 1, $distance[$i - 1][$j - 1] + $cost);
+        }
+    }
+
+    return $distance[@letters1][@letters2];
 }
 
 # Perl modules must return a value. Returning a value perl considers "truthy"

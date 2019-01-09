@@ -68,7 +68,27 @@ sub atlas_unrecognized_command_message_and_exit {
     my $command = shift;
     ast_utilities::error_output($program_name, "no such command ${bold_stderr}${command}${reset_stderr}");
     print STDERR "Try '${bold_stderr}${program_name} --list${reset_stderr}' for a list of commands.\n";
-    print STDERR "Try '${bold_stderr}${program_name} --help${reset_stderr}' for more information.\n";
+    print STDERR "Try '${bold_stderr}${program_name} --help${reset_stderr}' for more information.\n\n";
+
+    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
+    my @subcommands = keys %subcommand_classes;
+
+    # Determine the most similar command using Levenshtein distance
+    my $closest_command;
+    my $min_distance = undef;
+    foreach my $candidate_command (@subcommands) {
+        my $distance = ast_utilities::levenshtein($command, $candidate_command);
+        if (!defined $min_distance) {
+            $closest_command = $candidate_command;
+            $min_distance = $distance;
+        }
+        elsif ($distance < $min_distance) {
+            $closest_command = $candidate_command;
+            $min_distance = $distance;
+        }
+    }
+    print STDERR "The most similar command is: ${bold_stderr}${closest_command}${reset_stderr}\n";
+
     exit 127;
 }
 
