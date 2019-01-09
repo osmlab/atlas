@@ -7,6 +7,8 @@ use Exporter qw(import);
 use File::Path qw(make_path rmtree);
 use File::Temp qw(tempdir tempfile);
 use ast_tty;
+use ast_module_subsystem;
+use ast_utilities;
 
 # Export symbols: variables and subroutines
 our @EXPORT = qw(
@@ -311,6 +313,18 @@ sub install_repo {
     }
     my $commit = `git rev-parse --short HEAD`;
     chomp $commit;
+
+    my $tentative_module_name = "${repo}-${commit}";
+    my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
+    my @module_names = keys %modules;
+    foreach my $module_name (@module_names) {
+        if ($tentative_module_name eq $module_name) {
+            print STDERR "\n";
+            ast_utilities::warn_output($ast_utilities::CONFIG_PROGRAM, "nothing to do");
+            print STDERR "Repo ${bold_stderr}${repo}${reset_stderr} with ref ${bold_stderr}${ref_to_use}${reset_stderr} already up-to-date through installed module ${bold_stderr}${tentative_module_name}${reset_stderr}\n";
+            return 1;
+        }
+    }
 
     my $gradle_injection = "
     task atlasshelltools(type: Jar) {
