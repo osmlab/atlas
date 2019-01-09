@@ -206,7 +206,10 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
                 this.outputDelegate.printlnStdout(shard.toString(), TTYAttribute.GREEN);
             }
         }
-        // TODO handle more geometry types? e.g. MultiPoint, MultiLineString, and MultiPolygon?
+        /*
+         * NOSONAR TODO handle more geometry types? e.g. MultiPoint, MultiLineString, and
+         * MultiPolygon?
+         */
         else
         {
             this.outputDelegate.printlnErrorMessage("unsupported geometry type " + wkt);

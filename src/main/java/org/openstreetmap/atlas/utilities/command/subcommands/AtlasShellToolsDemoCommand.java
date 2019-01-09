@@ -90,7 +90,7 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
         registerOption("capitalize", 'c', "Capitalize the foods list.", OptionOptionality.OPTIONAL);
         registerOptionWithRequiredArgument("beer", beerDescription, OptionOptionality.OPTIONAL,
                 "brand");
-        registerOptionWithOptionalArgument("cheese", 'C',
+        registerOptionWithOptionalArgument("cheese", 'C', // NOSONAR
                 "Use cheese. Defaults to cheddar, but will accept a supplied alternative.",
                 OptionOptionality.OPTIONAL, "type");
         registerOptionWithRequiredArgument("repeat", 'R', "Repeat the food list N times.",

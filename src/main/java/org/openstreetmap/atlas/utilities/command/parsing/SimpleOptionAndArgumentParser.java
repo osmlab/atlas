@@ -73,6 +73,8 @@ import org.slf4j.LoggerFactory;
  */
 public class SimpleOptionAndArgumentParser
 {
+    private static final String MUST_REGISTER_AT_LEAST_ONE_CONTEXT = "Must register at least one context.";
+
     /**
      * A simple option representation. Store the option long/short form as well as metadata about
      * the option.
@@ -681,7 +683,7 @@ public class SimpleOptionAndArgumentParser
         }
         if (contexts.length == 0)
         {
-            throw new CoreException("Must register at least one context.");
+            throw new CoreException(MUST_REGISTER_AT_LEAST_ONE_CONTEXT);
         }
         for (int i = 0; i < contexts.length; i++)
         {
@@ -748,7 +750,7 @@ public class SimpleOptionAndArgumentParser
         }
         if (contexts.length == 0)
         {
-            throw new CoreException("Must register at least one context.");
+            throw new CoreException(MUST_REGISTER_AT_LEAST_ONE_CONTEXT);
         }
         for (int i = 0; i < contexts.length; i++)
         {
@@ -786,7 +788,7 @@ public class SimpleOptionAndArgumentParser
         }
         if (contexts.length == 0)
         {
-            throw new CoreException("Must register at least one context.");
+            throw new CoreException(MUST_REGISTER_AT_LEAST_ONE_CONTEXT);
         }
         for (int i = 0; i < contexts.length; i++)
         {
@@ -832,7 +834,7 @@ public class SimpleOptionAndArgumentParser
         }
         if (contexts.length == 0)
         {
-            throw new CoreException("Must register at least one context.");
+            throw new CoreException(MUST_REGISTER_AT_LEAST_ONE_CONTEXT);
         }
         for (int i = 0; i < contexts.length; i++)
         {
@@ -871,7 +873,7 @@ public class SimpleOptionAndArgumentParser
         }
         if (contexts.length == 0)
         {
-            throw new CoreException("Must register at least one context.");
+            throw new CoreException(MUST_REGISTER_AT_LEAST_ONE_CONTEXT);
         }
         for (int i = 0; i < contexts.length; i++)
         {
