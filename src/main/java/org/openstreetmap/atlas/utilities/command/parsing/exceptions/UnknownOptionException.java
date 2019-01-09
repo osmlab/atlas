@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.utilities.command.parsing.exceptions;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -12,7 +13,8 @@ public class UnknownOptionException extends Exception
 {
     private static final long serialVersionUID = 8506034533362610699L;
 
-    private static String closestMatch(final String option, final Set<SimpleOption> validOptions)
+    private static Optional<String> closestMatchMessage(final String option,
+            final Set<SimpleOption> validOptions)
     {
         final Set<String> optionNames = validOptions.stream().map(SimpleOption::getLongForm)
                 .collect(Collectors.toSet());
@@ -29,7 +31,11 @@ public class UnknownOptionException extends Exception
             }
         }
 
-        return closestOption;
+        if (closestOption == null)
+        {
+            return Optional.empty();
+        }
+        return Optional.of(", did you mean " + closestOption + "?");
     }
 
     private static int levenshtein(final String string1, final String string2)
@@ -67,7 +73,7 @@ public class UnknownOptionException extends Exception
 
     public UnknownOptionException(final String option, final Set<SimpleOption> validOptions)
     {
-        super("unknown long option \'" + option + "\', did you mean "
-                + closestMatch(option, validOptions) + "?");
+        super("unknown long option \'" + option + "\'"
+                + closestMatchMessage(option, validOptions).orElse(""));
     }
 }
