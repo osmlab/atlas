@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.collections.StringList;
-import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.parsing.exceptions.AmbiguousAbbreviationException;
 import org.openstreetmap.atlas.utilities.command.parsing.exceptions.ArgumentException;
 import org.openstreetmap.atlas.utilities.command.parsing.exceptions.OptionParseException;
@@ -947,7 +946,7 @@ public class SimpleOptionAndArgumentParser
      */
     private boolean parseLongFormOption(final int tryContext, final String argument, // NOSONAR
             final Optional<String> lookahead)
-            throws OptionParseException, AmbiguousAbbreviationException
+            throws UnknownOptionException, OptionParseException, AmbiguousAbbreviationException
     {
         final String scrubbedPrefix = argument.substring(LONG_FORM_PREFIX.length());
         final String[] split = scrubbedPrefix.split(OPTION_ARGUMENT_DELIMITER, 2);
@@ -1013,7 +1012,7 @@ public class SimpleOptionAndArgumentParser
         }
         else
         {
-            throw new AtlasShellToolsException();
+            throw new UnknownOptionException(optionName);
         }
     }
 
@@ -1158,7 +1157,14 @@ public class SimpleOptionAndArgumentParser
             throws ArgumentException
     {
         int argumentCounter = regularArgumentCounter;
-        if (argumentCounter >= this.contextToArgumentHintToArity.get(context).size())
+
+        if (!this.contextToArgumentHintToArity.containsKey(context))
+        {
+            throw new ArgumentException("too many arguments");
+        }
+
+        if (this.contextToArgumentHintToArity.containsKey(context)
+                && argumentCounter >= this.contextToArgumentHintToArity.get(context).size())
         {
             throw new ArgumentException("too many arguments");
         }

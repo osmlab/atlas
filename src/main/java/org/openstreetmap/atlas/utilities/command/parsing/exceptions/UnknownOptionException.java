@@ -71,6 +71,11 @@ public class UnknownOptionException extends Exception
         super("unknown short option \'" + option + "\'");
     }
 
+    public UnknownOptionException(final String option)
+    {
+        super("unknown long option \'" + option + "\'");
+    }
+
     public UnknownOptionException(final String option, final Set<SimpleOption> validOptions)
     {
         super("unknown long option \'" + option + "\'"
