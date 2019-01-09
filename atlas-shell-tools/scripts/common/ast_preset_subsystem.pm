@@ -300,6 +300,14 @@ sub all_presets_for_command {
     return 1;
 }
 
+
+# List all presets in a given namespace.
+# Params:
+#   $ast_path: the path to the atlas-shell-tools data folder
+#   $program_name: the name of the calling program
+#   $quiet: suppress non-essential output
+#   $namespace: the namespace to display
+# Return: 1 on success, 0 on failure
 sub all_presets {
     my $ast_path = shift;
     my $program_name = shift;
@@ -800,6 +808,10 @@ sub remove_namespace {
     return 1;
 }
 
+# Get an array of all presets in the current namespace.
+# Params:
+#   $ast_path: the path to the atlas-shell-tools data folder
+# Return: the preset array
 sub get_all_presets_in_current_namespace {
     my $ast_path = shift;
 
@@ -833,6 +845,11 @@ sub get_all_presets_in_current_namespace {
     return @all_presets;
 }
 
+# Get an array of all presets in the current namespace for a given command.
+# Params:
+#   $ast_path: the path to the atlas-shell-tools data folder
+#   $command: the command from which to check presets
+# Return: the preset array
 sub get_all_presets_for_command {
     my $ast_path = shift;
     my $command = shift;
@@ -862,6 +879,10 @@ sub get_all_presets_for_command {
     return @all_presets;
 }
 
+# Check that a preset name matches the approved name regex.
+# Params:
+#   $preset: the preset to check
+# Return: if the preset name matched the regex
 sub preset_regex_ok {
     my $preset = shift;
 

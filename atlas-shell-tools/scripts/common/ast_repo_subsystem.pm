@@ -674,6 +674,10 @@ sub read_multiple_config_variables {
     return @values;
 }
 
+# Check that a repo name matches the approved name regex.
+# Params:
+#   $repo: the repo to check
+# Return: if the repo name matched the regex
 sub repo_regex_ok {
     my $repo = shift;
 
