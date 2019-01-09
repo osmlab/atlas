@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.collections.StringList;
+import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.parsing.exceptions.AmbiguousAbbreviationException;
 import org.openstreetmap.atlas.utilities.command.parsing.exceptions.ArgumentException;
 import org.openstreetmap.atlas.utilities.command.parsing.exceptions.OptionParseException;
@@ -543,16 +544,16 @@ public class SimpleOptionAndArgumentParser
                         .split(OPTION_ARGUMENT_DELIMITER, 2);
                 final String optionName = split[0];
                 final Optional<SimpleOption> option = checkForLongOption(optionName,
-                        this.getRegisteredOptions(), true);
+                        getRegisteredOptions(), true);
                 if (!option.isPresent())
                 {
-                    throw new UnknownOptionException(optionName);
+                    throw new UnknownOptionException(optionName, getRegisteredOptions());
                 }
             }
             else if (argument.startsWith(SHORT_FORM_PREFIX) && !seenEndOptionsOperator)
             {
                 final Optional<SimpleOption> option = checkForShortOption(argument.charAt(1),
-                        this.getRegisteredOptions());
+                        getRegisteredOptions());
                 if (!option.isPresent())
                 {
                     throw new UnknownOptionException(argument.charAt(1));
@@ -946,7 +947,7 @@ public class SimpleOptionAndArgumentParser
      */
     private boolean parseLongFormOption(final int tryContext, final String argument, // NOSONAR
             final Optional<String> lookahead)
-            throws UnknownOptionException, OptionParseException, AmbiguousAbbreviationException
+            throws OptionParseException, AmbiguousAbbreviationException
     {
         final String scrubbedPrefix = argument.substring(LONG_FORM_PREFIX.length());
         final String[] split = scrubbedPrefix.split(OPTION_ARGUMENT_DELIMITER, 2);
@@ -1012,7 +1013,7 @@ public class SimpleOptionAndArgumentParser
         }
         else
         {
-            throw new UnknownOptionException(optionName);
+            throw new AtlasShellToolsException();
         }
     }
 
