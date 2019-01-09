@@ -27,9 +27,11 @@ atlas\-config\-log \-- Check or set Atlas Shell Tools log parameters
 .SH "SYNOPSIS"
 .sp
 .nf
-\fIatlas\-config\fR \fIlog\fR [\-\-help]
-\fIatlas\-config\fR \fIlog\fR [\-\-set-level=<level>] [\-\-set-stream=<stream>]
-                 [\-\-reset] [\-\-show]
+\fIatlas\-config\fR \fIlog\fR \-\-help
+\fIatlas\-config\fR \fIlog\fR reset
+\fIatlas\-config\fR \fIlog\fR set\-level <new\-level>
+\fIatlas\-config\fR \fIlog\fR set\-stream <new\-stream>
+\fIatlas\-config\fR \fIlog\fR show
 .fi
 
 .SH "DESCRIPTION"
@@ -37,10 +39,7 @@ atlas\-config\-log \-- Check or set Atlas Shell Tools log parameters
 Use this command to check or set the current log parameters. Under the hood,
 this command is a shortcut for modifying the \fBatlas\fR log4j configuration
 file. It expects that file to follow a well-defined format. For best
-results, avoid manually updating the file.
-
-Note that this command requires at least one of the documented options to
-be specified.
+results, avoid manually updating the configuration file.
 
 .SH "OPTIONS"
 .sp
@@ -50,45 +49,50 @@ be specified.
 Show this help menu.
 .RE
 
+.SH "DIRECTIVES"
+\fBatlas\-config\-log\fR(1) exposes its interface through various directives,
+detailed below.
+.sp
+
 .PP
-\fB\-\-reset\fR
+\fIreset\fR
 .RS 4
 Reset the log parameters to default, i.e. level=\fBERROR\fR and stream=\fBstderr\fR.
 This is equivalent to running \fBatlas\-config reset \-\-log\fR.
 .RE
 
 .PP
-\fB\-\-set\-level\fR=<level>
+\fIset\-level\fR
 .RS 4
-Set the current logging level to <level>.
+Set the current logging level to <new\-level>.
 Valid log levels: \fBALL\fR, \fBTRACE\fR, \fBDEBUG\fR, \fBINFO\fR, \fBWARN\fR, \fBERROR\fR, \fBFATAL\fR, and \fBOFF\fR.
 .RE
 
 .PP
-\fB--set-stream\fR=<stream>
+\fIset\-stream\fR
 .RS 4
-Set the current logging stream to <stream>.
+Set the current logging stream to <new\-stream>.
 Valid stream settings: \fBstdout\fR and \fBstderr\fR.
 .RE
 
 .PP
-\fB\-\-show\fR, \fB\-s\fR
+\fIshow\fR
 .RS 4
 Show the current log settings.
 .RE
 
 .SH "EXAMPLES"
 .sp
-Set the log level to \fBINFO\fR and the stream to \fBstdout\fR:
+Set the log level to \fBINFO\fR:
 .sp
 .RS 4
-$ atlas\-config log \-\-set\-level=INFO \-\-set\-stream=stdout
+$ atlas\-config log set\-level INFO
 .RE
 .sp
-Reset the log parameters and then show them:
+Show the log parameters:
 .sp
 .RS 4
-$ atlas\-config log \-\-reset \-\-show
+$ atlas\-config log show
 .RE
 
 .SH "SEE ALSO"

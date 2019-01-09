@@ -463,28 +463,24 @@ sub execute_command_list {
 }
 
 sub execute_command_log {
-    my $ARGV_len = @ARGV;
-
-    my $loglevel = '';
-    my $logstream = '';
-    my $reset = 0;
     my $help_flag;
-    my $show;
     GetOptions(
-        'reset' => \$reset,
-        'set-level=s' => \$loglevel,
-        'set-stream=s' => \$logstream,
-        'show|s' => \$show,
         'help|h' => \$help_flag
     ) or ast_utilities::getopt_failure_and_exit($program_name, "log");
 
-    if ($ARGV_len == @ARGV) {
-        ast_utilities::error_output($program_name . ": log", "requires at least one option");
-        ast_utilities::getopt_failure_and_exit($program_name, "log");
-    }
-
     if (defined $help_flag) {
         show_submanpage_and_exit('log');
+    }
+
+    my $directive = shift @ARGV;
+    my $success;
+
+    unless (defined $directive) {
+        ast_utilities::error_output($program_name, "missing required directive");
+        print STDERR "Usage: ${bold_stderr}${program_name} log <directive> <args...>${reset_stderr}\n";
+        print STDERR "Available directives: ${bold_stderr}reset${reset_stderr}, ${bold_stderr}set-level${reset_stderr}, ${bold_stderr}set-stream${reset_stderr}, or ${bold_stderr}show${reset_stderr}\n";
+        print STDERR "Try \'${bold_stderr}${program_name} log --help${reset_stderr}\' for more information.\n";
+        return 0;
     }
 
     my $log_folder = File::Spec->catfile($ast_path, $ast_log_subsystem::LOG4J_FOLDER);
@@ -492,35 +488,54 @@ sub execute_command_log {
     my $current_level = ast_log_subsystem::read_loglevel_from_file($logfile_path);
     my $current_stream = ast_log_subsystem::read_logstream_from_file($logfile_path);
 
-    if ($reset) {
+    if ($directive eq 'reset') {
         ast_log_subsystem::reset_log4j($ast_path);
     }
-
-    unless ($loglevel eq '') {
-        if (exists($valid_levels{$loglevel})) {
-            ast_log_subsystem::replace_loglevel_in_file($logfile_path, $loglevel);
+    elsif ($directive eq 'set-level') {
+        my $new_level = shift @ARGV;
+        unless (defined $new_level) {
+            ast_utilities::error_output($program_name, "must specify a new level");
+            print STDERR "Usage: ${bold_stderr}${program_name} log set-level <new-level>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} log --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        if (exists($valid_levels{$new_level})) {
+            ast_log_subsystem::replace_loglevel_in_file($logfile_path, $new_level);
         }
         else {
-            ast_utilities::error_output($program_name, "unrecognized log level ${bold_stderr}${loglevel}${reset_stderr}");
+            ast_utilities::error_output($program_name, "unrecognized log level ${bold_stderr}${new_level}${reset_stderr}");
+            print STDERR "Try \'${bold_stderr}${program_name} log --help${reset_stderr}\' for more information.\n";
             return 0;
         }
     }
-
-    unless ($logstream eq '') {
-        if (exists($valid_streams{$logstream})) {
-            ast_log_subsystem::replace_logstream_in_file($logfile_path, $logstream);
+    elsif ($directive eq 'set-stream') {
+        my $new_stream = shift @ARGV;
+        unless (defined $new_stream) {
+            ast_utilities::error_output($program_name, "must specify a new stream");
+            print STDERR "Usage: ${bold_stderr}${program_name} log set-stream <new-stream>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} log --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        if (exists($valid_streams{$new_stream})) {
+            ast_log_subsystem::replace_logstream_in_file($logfile_path, $new_stream);
         }
         else {
-            ast_utilities::error_output($program_name, "unrecognized log stream ${bold_stderr}${logstream}${reset_stderr}");
+            ast_utilities::error_output($program_name, "unrecognized log stream ${bold_stderr}${new_stream}${reset_stderr}");
+            print STDERR "Try \'${bold_stderr}${program_name} log --help${reset_stderr}\' for more information.\n";
             return 0;
         }
     }
-
-    if ($show) {
+    elsif ($directive eq 'show') {
         $current_level = ast_log_subsystem::read_loglevel_from_file($logfile_path);
         $current_stream = ast_log_subsystem::read_logstream_from_file($logfile_path);
         print "Current log level:    ${bold_stdout}${current_level}${reset_stdout}\n";
         print "Current log stream:   ${bold_stdout}${current_stream}${reset_stdout}\n";
+    }
+    else {
+        ast_utilities::error_output($program_name, "unrecognized ${bold_stderr}${program_name} log${reset_stderr} directive '${bold_stderr}${directive}${reset_stderr}'");
+        print STDERR "Available directives: ${bold_stderr}reset${reset_stderr}, ${bold_stderr}set-level${reset_stderr}, ${bold_stderr}set-stream${reset_stderr}, or ${bold_stderr}show${reset_stderr}\n";
+        print STDERR "Try \'${bold_stderr}${program_name} log --help${reset_stderr}\' for more information.\n";
+        return 0;
     }
 
     return 1;

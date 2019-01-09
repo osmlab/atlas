@@ -306,6 +306,21 @@ sub completion_atlascfg {
         @commands = ast_preset_subsystem::get_all_presets_for_command($ast_path, $rargv_m1);
     }
 
+    # 'atlas-config log' command will complete log subcommands
+    elsif ((defined $argv[0] && $argv[0] eq 'log') && (defined $rargv_m1 && $rargv_m1 eq 'log')) {
+        @commands = qw(reset set-level set-stream show);
+    }
+
+    # 'atlas-config log set-level' command will complete log levels
+    elsif ((defined $argv[0] && $argv[0] eq 'log') && (defined $rargv_m2 && $rargv_m2 eq 'log') && (defined $rargv_m1 && $rargv_m1 eq 'set-level')) {
+        @commands = qw(ALL TRACE DEBUG INFO WARN ERROR FATAL OFF);
+    }
+
+    # 'atlas-config log set-stream' command will complete log streams
+    elsif ((defined $argv[0] && $argv[0] eq 'log') && (defined $rargv_m2 && $rargv_m2 eq 'log') && (defined $rargv_m1 && $rargv_m1 eq 'set-stream')) {
+        @commands = qw(stdout stderr);
+    }
+
     # Generate completion matches based on prefix of current word
     my @completion_matches = completion_match_prefix($rargv, \@commands);
     print join("\n", @completion_matches) . "\n";
