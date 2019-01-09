@@ -321,6 +321,11 @@ sub completion_atlascfg {
         @commands = qw(stdout stderr);
     }
 
+    # 'atlas-config reset' command will complete reset subcommands
+    elsif ((defined $argv[0] && $argv[0] eq 'reset') && (defined $rargv_m1 && $rargv_m1 eq 'reset')) {
+        @commands = qw(all index log modules presets repos);
+    }
+
     # Generate completion matches based on prefix of current word
     my @completion_matches = completion_match_prefix($rargv, \@commands);
     print join("\n", @completion_matches) . "\n";

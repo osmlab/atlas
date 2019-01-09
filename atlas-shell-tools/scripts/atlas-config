@@ -856,37 +856,43 @@ sub execute_command_repo {
 }
 
 sub execute_command_reset {
-    my $ARGV_len = @ARGV;
-
     my $help_flag;
-    my $force_flag;
-    my $all_flag;
-    my $modules_flag;
-    my $index_flag;
-    my $presets_flag;
-    my $repos_flag;
-    my $log_flag;
     GetOptions(
-        'force|f' => \$force_flag,
-        'help|h' => \$help_flag,
-        'all|a' => \$all_flag,
-        'modules' => \$modules_flag,
-        'index' => \$index_flag,
-        'presets' => \$presets_flag,
-        'repos' => \$repos_flag,
-        'log' => \$log_flag
+        'help|h' => \$help_flag
     ) or ast_utilities::getopt_failure_and_exit($program_name, "reset");
 
     if (defined $help_flag) {
         show_submanpage_and_exit('reset');
     }
 
-    if ($ARGV_len == @ARGV) {
-        ast_utilities::error_output($program_name . ": reset", "requires at least one option");
-        ast_utilities::getopt_failure_and_exit($program_name, "reset");
+    my $directive = shift @ARGV;
+    my $ran_at_least_one_directive = 0;
+
+    unless (defined $directive) {
+        ast_utilities::error_output($program_name, "missing required directive");
+        print STDERR "Usage: ${bold_stderr}${program_name} reset <directive> <args...>${reset_stderr}\n";
+        print STDERR "Available directives: ${bold_stderr}all${reset_stderr}, ${bold_stderr}index${reset_stderr}, ${bold_stderr}log${reset_stderr}, ${bold_stderr}modules${reset_stderr}, ${bold_stderr}presets${reset_stderr}, or ${bold_stderr}repos${reset_stderr}\n";
+        print STDERR "Try \'${bold_stderr}${program_name} reset --help${reset_stderr}\' for more information.\n";
+        return 0;
     }
 
-    if (defined $modules_flag || defined $all_flag) {
+    if ($directive eq 'index' || $directive eq 'all') {
+        ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
+        $ran_at_least_one_directive = 1;
+    }
+
+    if ($directive eq 'log' || $directive eq 'all') {
+        my $log_folder = File::Spec->catfile($ast_path, $ast_log_subsystem::LOG4J_FOLDER);
+        my $logfile_path = File::Spec->catfile($log_folder, $ast_log_subsystem::LOG4J_FILE);
+        ast_log_subsystem::replace_loglevel_in_file($logfile_path, 'ERROR');
+        ast_log_subsystem::replace_logstream_in_file($logfile_path, 'stderr');
+        unless ($quiet) {
+            print "Reset log parameters.\n";
+        }
+        $ran_at_least_one_directive = 1;
+    }
+
+    if ($directive eq 'modules' || $directive eq 'all') {
         my $modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER);
         my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
 
@@ -896,66 +902,35 @@ sub execute_command_reset {
         }
         else {
             foreach my $module (keys %modules) {
-                my $confirmed = 1;
-                unless ($force_flag) {
-                     $confirmed = ast_utilities::prompt_yn("Uninstalling module $module. OK?");
-                }
-                if ($confirmed) {
-                    ast_module_subsystem::perform_uninstall($module, $ast_path, $program_name, $quiet, 1);
-                }
+                ast_module_subsystem::perform_uninstall($module, $ast_path, $program_name, $quiet, 1);
             }
         }
+        $ran_at_least_one_directive = 1;
     }
 
-    if (defined $presets_flag || defined $all_flag) {
+    if ($directive eq 'presets' || $directive eq 'all') {
         my $presets_folder = File::Spec->catfile($ast_path, $ast_preset_subsystem::PRESETS_FOLDER);
-        my $confirmed = 1;
-        unless ($force_flag) {
-            $confirmed = ast_utilities::prompt_yn("Clearing saved presets at $presets_folder. OK?");
+        rmtree($presets_folder);
+        unless ($quiet) {
+            print "Cleared presets.\n";
         }
-        if ($confirmed) {
-            rmtree($presets_folder);
-            unless ($quiet) {
-                print "Cleared presets.\n";
-            }
-        }
+        $ran_at_least_one_directive = 1;
     }
 
-    if (defined $repos_flag || defined $all_flag) {
+    if ($directive eq 'repos' || $directive eq 'all') {
         my $repos_folder = File::Spec->catfile($ast_path, $ast_repo_subsystem::REPOS_FOLDER);
-        my $confirmed = 1;
-        unless ($force_flag) {
-            $confirmed = ast_utilities::prompt_yn("Clearing saved repos at $repos_folder. OK?");
+        rmtree($repos_folder);
+        unless ($quiet) {
+            print "Cleared repos.\n";
         }
-        if ($confirmed) {
-            rmtree($repos_folder);
-            unless ($quiet) {
-                print "Cleared repos.\n";
-            }
-        }
+        $ran_at_least_one_directive = 1;
     }
 
-    if (defined $log_flag || defined $all_flag) {
-        my $log_folder = File::Spec->catfile($ast_path, $ast_log_subsystem::LOG4J_FOLDER);
-        my $logfile_path = File::Spec->catfile($log_folder, $ast_log_subsystem::LOG4J_FILE);
-        my $confirmed = 1;
-        unless ($force_flag) {
-            $confirmed = ast_utilities::prompt_yn("Resetting log parameters. OK?");
-        }
-        if ($confirmed) {
-            ast_log_subsystem::replace_loglevel_in_file($logfile_path, 'ERROR');
-            ast_log_subsystem::replace_logstream_in_file($logfile_path, 'stderr');
-        }
-    }
-
-    if (defined $index_flag || defined $all_flag) {
-        my $confirmed = 1;
-        unless ($force_flag) {
-            $confirmed = ast_utilities::prompt_yn("Removing active module index. OK?");
-        }
-        if ($confirmed) {
-            ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
-        }
+    if (!$ran_at_least_one_directive) {
+        ast_utilities::error_output($program_name, "unrecognized ${bold_stderr}${program_name} reset${reset_stderr} directive '${bold_stderr}${directive}${reset_stderr}'");
+        print STDERR "Available directives: ${bold_stderr}all${reset_stderr}, ${bold_stderr}index${reset_stderr}, ${bold_stderr}log${reset_stderr}, ${bold_stderr}modules${reset_stderr}, ${bold_stderr}presets${reset_stderr}, or ${bold_stderr}repos${reset_stderr}\n";
+        print STDERR "Try \'${bold_stderr}${program_name} reset --help${reset_stderr}\' for more information.\n";
+        return 0;
     }
 
     return 1;

@@ -28,14 +28,17 @@ atlas\-config\-reset \-- Reset the Atlas Shell Tools installation
 .sp
 .nf
 \fIatlas\-config\fR \fIreset\fR \-\-help
-\fIatlas\-config\fR \fIreset\fR [\-\-force] [\-\-all]
-\fIatlas\-config\fR \fIreset\fR [\-\-force] [\-\-modules] [\-\-presets]
-                   [\-\-log] [\-\-index] [\-\-repos]
+\fIatlas\-config\fR \fIreset\fR all
+\fIatlas\-config\fR \fIreset\fR index
+\fIatlas\-config\fR \fIreset\fR log
+\fIatlas\-config\fR \fIreset\fR modules
+\fIatlas\-config\fR \fIreset\fR presets
+\fIatlas\-config\fR \fIreset\fR repos
 .fi
 
 .SH "DESCRIPTION"
 .sp
-Completely reset the \fBatlas\fR installation. A full reset (using \fB\-\-all\fR) consists
+Completely reset the \fBatlas\fR installation. A full reset (using \fIall\fR) consists
 of the following steps:
 
 .RS 4
@@ -52,23 +55,11 @@ of the following steps:
 \fB6)\fR Removing all saved repos
 .RE
 
-You can apply various options to only run some subset of these steps. See
-the \fBOPTIONS\fR section for more details.
+You can use various directives to only run some subset of these steps. See
+the \fBDIRECTIVES\fR section for more details.
 
 .SH "OPTIONS"
 .sp
-.PP
-\fB\-\-all\fR, \fB\-a\fR
-.RS 4
-Perform all the reset steps, fully resetting the environment to the
-state it was in at install time.
-.RE
-
-.PP
-\fB\-\-force\fR, \fB\-f\fR
-.RS 4
-Skip all confirmation promtps when performing the reset.
-.RE
 
 .PP
 \fB\-\-help\fR
@@ -76,50 +67,62 @@ Skip all confirmation promtps when performing the reset.
 Show this help menu.
 .RE
 
+.SH "DIRECTIVES"
+\fBatlas\-config\-reset\fR(1) exposes its interface through various directives,
+detailed below.
+.sp
+
 .PP
-\fB\-\-index\fR
+\fIall\fR
+.RS 4
+Perform all the reset steps, fully resetting the environment to the
+state it was in at install time.
+.RE
+
+.PP
+\fIindex\fR
 .RS 4
 Reset the active module index.
 .RE
 
 .PP
-\fB\-\-log\fR
+\fIlog\fR
 .RS 4
 Reset the log parameters to default, i.e. level=\fBERROR\fR and stream=\fBstderr\fR.
-This is equivalent to running \fBatlas\-config log \-\-reset\fR.
+This is equivalent to running \fBatlas\-config log reset\fR.
 .RE
 
 .PP
-\fB\-\-modules\fR
+\fImodules\fR
 .RS 4
 Uninstall all installed modules. This is equivalent to running \fBatlas\-config uninstall \-\-all\fR.
 .RE
 
 .PP
-\fB\-\-presets\fR
+\fIpresets\fR
 .RS 4
 Remove all saved presets in all namespaces. Also resets the current namespace
 to 'default'.
 .RE
 
 .PP
-\fB\-\-repos\fR
+\fIrepos\fR
 .RS 4
 Remove all saved repos.
 .RE
 
 .SH "EXAMPLES"
 .sp
-Reset everything and do not show any confirmation prompts:
+Reset everything:
 .sp
 .RS 4
-$ atlas\-config reset \-\-all \-\-force
+$ atlas\-config reset all
 .RE
 .sp
-Reset the preset and log parameters:
+Reset only the repos:
 .sp
 .RS 4
-$ atlas\-config reset \-\-presets \-\-log
+$ atlas\-config reset repos
 .RE
 
 .SH "SEE ALSO"
