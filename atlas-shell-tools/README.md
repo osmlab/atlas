@@ -73,10 +73,10 @@ source "$ATLAS_SHELL_TOOLS_HOME/ast_completions.bash"
 ```
 
 ## Creating A Command
-To create a new command for `atlas-shell-tools`, simply create a class that `extends` [AbstractAtlasShellToolsCommand](https://github.com/osmlab/atlas/blob/master/src/main/java/org/openstreetmap/atlas/utilities/command/AbstractAtlasShellToolsCommand.java). Once you fill in the abstract methods appropriately (and add a main method), you should build a fat JAR file containing your command, and install it with: 
+To create a new command for `atlas-shell-tools`, simply create a class that `extends` [AbstractAtlasShellToolsCommand](https://github.com/osmlab/atlas/blob/master/src/main/java/org/openstreetmap/atlas/utilities/command/abstractcommand/AbstractAtlasShellToolsCommand.java). Once you fill in the abstract methods appropriately (and add a main method), you should build a fat JAR file containing your command, and install it with: 
 ```
 $ atlas-config install /path/to/JARfile.jar --symlink
 ```
 This will install the JAR file to the module workspace using a symlink, so iterative changes to the JAR will be automatically picked up by `atlas-shell-tools`.
 
-For a comprehensive example of the `AbstractAtlasShellToolsCommand` API, check out the demo class [DemoSubcommand](https://github.com/osmlab/atlas/blob/master/src/main/java/org/openstreetmap/atlas/utilities/command/subcommands/DemoSubcommand.java). This class demonstrates how to implement the abstract methods, as well as how to structure the main method.
+For a comprehensive example of the `AbstractAtlasShellToolsCommand` API, check out the demo class [DemoSubcommand](https://github.com/osmlab/atlas/blob/master/src/main/java/org/openstreetmap/atlas/utilities/command/subcommands/AtlasShellToolsDemoCommand.java). This class demonstrates how to implement the abstract methods, as well as how to structure the main method.
