@@ -79,11 +79,10 @@ public class ComplexAOIFinderTestRule extends CoreTestRule
                                     @Relation(id = "39190", members = {
                                             @Member(id = "39010", type = "area", role = "outer"),
                                             @Member(id = "38989", type = "area", role = "inner") }, tags = {
-                                                    "type=multipolygon",
-                                                    "amenity=FESTIVAL_GROUNDS" }),
+                                                    "type=multipolygon", "amenity=SCHOOL" }),
                                     @Relation(id = "39990", members = {
                                             @Member(id = "38987", type = "area", role = "outer") }, tags = {
-                                                    "type=boundary", "landuse=FOREST" }) })
+                                                    "type=boundary", "landuse=CEMETERY" }) })
     private Atlas multipolygonAOIRelationAtlas;
 
     @TestAtlas(
@@ -189,7 +188,7 @@ public class ComplexAOIFinderTestRule extends CoreTestRule
                                                     @Member(id = "39010", type = "area", role = "outer"),
                                                     @Member(id = "38989", type = "area", role = "inner") }, tags = {
                                                             "type=multipolygon",
-                                                            "amenity=FESTIVAL_GROUNDS" }),
+                                                            "amenity=PARKING" }),
                                             @Relation(id = "39990", members = {
                                                     @Member(id = "38987", type = "area", role = "outer") }, tags = {
                                                             "type=boundary",
