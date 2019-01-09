@@ -313,6 +313,13 @@ sub all_presets {
         return 0;
     }
 
+    if (ast_utilities::is_dir_empty($namespace_folder)) {
+        ast_utilities::error_output($program_name, "no presets found");
+        return 0;
+    }
+
+    print "${bunl_stdout}Presets in namespace ${bold_stdout}${namespace}${reset_stdout}${eunl_stdout}\n\n";
+
     opendir my $namespace_dir_handle, $namespace_folder or die "Something went wrong opening dir: $!";
     my @command_folders = readdir $namespace_dir_handle;
     closedir $namespace_dir_handle;
