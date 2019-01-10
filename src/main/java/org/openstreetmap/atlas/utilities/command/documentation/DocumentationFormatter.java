@@ -116,13 +116,20 @@ public final class DocumentationFormatter
         }
         for (final String word : words)
         {
-            if (word.length() + " ".length() > spaceLeft)
+            // Word fits exactly in the remaining space
+            if (word.length() == spaceLeft)
+            {
+                builder.append(word).pushExactIndentWidth(0).newline()
+                        .pushExactIndentWidth(exactIndentation);
+                spaceLeft = lineWidth;
+            }
+            // Word plus a whitespace is longer than the remaining space
+            else if (word.length() + " ".length() > spaceLeft)
             {
                 /*
                  * This is a special edge case that can occur if the first word of the documentation
                  * is longer than the line length: if we are on the first iteration, we already
-                 * indented so just skip this extra indentation step. We also do not need a newline
-                 * on the first iteration.
+                 * new-lined and indented so just skip these steps.
                  */
                 if (!firstIteration)
                 {
@@ -130,8 +137,9 @@ public final class DocumentationFormatter
                     builder.pushExactIndentWidth(exactIndentation);
                 }
                 builder.append(word + " ").pushExactIndentWidth(0);
-                spaceLeft = lineWidth - word.length();
+                spaceLeft = lineWidth - (word.length() + " ".length());
             }
+            // Word plus a whitespace fits in the remaining space
             else
             {
                 builder.append(word + " ").pushExactIndentWidth(0);
