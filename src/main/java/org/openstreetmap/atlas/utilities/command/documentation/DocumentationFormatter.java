@@ -149,6 +149,7 @@ public final class DocumentationFormatter
                 .getSectionContents(sectionName);
         builder.clearIndentationStack();
         builder.append(sectionName, TTYAttribute.BOLD).newline();
+        DocumentationFormatType previousType = null;
         for (final Tuple<DocumentationFormatType, String> contents : sectionContents)
         {
             final DocumentationFormatType type = contents.getFirst();
@@ -165,6 +166,7 @@ public final class DocumentationFormatter
                         builder, true);
             }
             builder.newline().newline();
+            previousType = type;
         }
     }
 

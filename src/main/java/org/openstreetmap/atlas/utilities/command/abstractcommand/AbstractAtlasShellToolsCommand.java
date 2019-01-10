@@ -760,7 +760,10 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
                     this.registrar.getDescriptionHeader(), this.maximumColumn, builder,
                     this.registrar);
         }
-        builder.newline();
+        else
+        {
+            builder.newline();
+        }
 
         DocumentationFormatter.generateTextForOptionsSection(this.maximumColumn, allOptions,
                 builder);
