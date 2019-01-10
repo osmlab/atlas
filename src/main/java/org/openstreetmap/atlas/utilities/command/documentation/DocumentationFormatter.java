@@ -155,26 +155,42 @@ public final class DocumentationFormatter
     {
         final List<Tuple<DocumentationFormatType, String>> sectionContents = registrar
                 .getSectionContents(sectionName);
-        builder.clearIndentationStack();
-        builder.append(sectionName, TTYAttribute.BOLD).newline();
-        DocumentationFormatType previousType = null;
+        final List<Tuple<DocumentationFormatType, String>> sectionContentsFiltered = new ArrayList<>();
+        // Filter out any empty sections
         for (final Tuple<DocumentationFormatType, String> contents : sectionContents)
         {
+            if (!contents.getSecond().isEmpty())
+            {
+                sectionContentsFiltered.add(contents);
+            }
+        }
+
+        builder.clearIndentationStack();
+        builder.append(sectionName, TTYAttribute.BOLD).newline();
+        for (int index = 0; index < sectionContentsFiltered.size(); index++)
+        {
+            final Tuple<DocumentationFormatType, String> contents = sectionContentsFiltered
+                    .get(index);
             final DocumentationFormatType type = contents.getFirst();
             final String text = contents.getSecond();
             if (type == DocumentationFormatType.CODE)
             {
                 DocumentationFormatter.addCodeLine(DocumentationFormatter.DEFAULT_CODE_INDENT_LEVEL,
                         text, builder);
+                builder.newline();
             }
-            else if (type == DocumentationFormatType.PARAGRAPH && !contents.getSecond().isEmpty())
+            else if (type == DocumentationFormatType.PARAGRAPH)
             {
                 DocumentationFormatter.addParagraphWithLineWrapping(
                         DocumentationFormatter.DEFAULT_PARAGRAPH_INDENT_LEVEL, maximumColumn, text,
                         builder, true);
+                builder.newline();
             }
-            builder.newline().newline();
-            previousType = type;
+            // Add an extra newline unless we are on the last element
+            if (index < sectionContentsFiltered.size() - 1)
+            {
+                builder.newline();
+            }
         }
     }
 

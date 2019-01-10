@@ -759,9 +759,6 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             DocumentationFormatter.generateTextForGenericSection(
                     this.registrar.getDescriptionHeader(), this.maximumColumn, builder,
                     this.registrar);
-        }
-        else
-        {
             builder.newline();
         }
 
