@@ -686,7 +686,9 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             printSimpleUsageMenu();
             printStderr("Try the \'");
             printStderr("--help", TTYAttribute.BOLD);
-            printlnStderr("\' option for more info.");
+            printStderr("\' option (e.g. ");
+            printStderr("atlas " + this.getCommandName() + " --help", TTYAttribute.BOLD);
+            printlnStderr(") for more info");
             System.exit(1);
         }
         catch (final Exception exception)
