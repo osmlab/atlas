@@ -164,9 +164,9 @@ public final class ComplexAOI extends ComplexEntity
     public List<ComplexEntityError> getAllInvalidations()
     {
         final List<ComplexEntityError> returnValue = new ArrayList<>();
-        if (!isValid() && getError().isPresent())
+        if (!isValid())
         {
-            returnValue.add(getError().get());
+            getError().ifPresent(returnValue::add);
         }
         return returnValue;
     }
