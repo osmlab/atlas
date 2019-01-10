@@ -28,13 +28,12 @@ public class ComplexAOIFinder implements Finder<ComplexAOI>
     @Override
     public Iterable<ComplexAOI> find(final Atlas atlas)
     {
-        final Iterable<ComplexAOI> iterableOfComplexAOIRelations = Iterables
-                .asIterable(StreamSupport.stream(atlas.relations().spliterator(), false)
-                        .map(ComplexAOI::getComplexAOI).filter(Optional::isPresent)
-                        .map(Optional::get).collect(Collectors.toList()));
-        final Iterable<ComplexAOI> iterableOfComplexAOIAreas = Iterables.asIterable(StreamSupport
+        final Iterable<ComplexAOI> iterableOfComplexAOIRelations = StreamSupport
+                .stream(atlas.relations().spliterator(), false).map(ComplexAOI::getComplexAOI)
+                .filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
+        final Iterable<ComplexAOI> iterableOfComplexAOIAreas = StreamSupport
                 .stream(atlas.areas().spliterator(), false).map(ComplexAOI::getComplexAOI)
-                .filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList()));
+                .filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
         return new MultiIterable<>(iterableOfComplexAOIRelations, iterableOfComplexAOIAreas);
     }
 
@@ -50,15 +49,14 @@ public class ComplexAOIFinder implements Finder<ComplexAOI>
      */
     public Iterable<ComplexAOI> find(final Atlas atlas, final TaggableFilter aoiFilter)
     {
-        final Iterable<ComplexAOI> iterableOfComplexAOIRelations = Iterables
-                .asIterable(StreamSupport.stream(atlas.relations().spliterator(), false)
-                        .map(relation -> ComplexAOI.getComplexAOI(relation, aoiFilter))
-                        .filter(Optional::isPresent).map(Optional::get)
-                        .collect(Collectors.toList()));
-        final Iterable<ComplexAOI> iterableOfComplexAOIAreas = Iterables.asIterable(StreamSupport
+        final Iterable<ComplexAOI> iterableOfComplexAOIRelations = StreamSupport
+                .stream(atlas.relations().spliterator(), false)
+                .map(relation -> ComplexAOI.getComplexAOI(relation, aoiFilter))
+                .filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
+        final Iterable<ComplexAOI> iterableOfComplexAOIAreas = StreamSupport
                 .stream(atlas.areas().spliterator(), false)
                 .map(area -> ComplexAOI.getComplexAOI(area, aoiFilter)).filter(Optional::isPresent)
-                .map(Optional::get).collect(Collectors.toList()));
+                .map(Optional::get).collect(Collectors.toList());
         return new MultiIterable<>(iterableOfComplexAOIRelations, iterableOfComplexAOIAreas);
     }
 }
