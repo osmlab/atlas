@@ -24,8 +24,8 @@ public class ComplexAOIFinderTest
         final Atlas atlas = this.rule.getMultipolygonAOIRelationAtlas();
         final ComplexAOIFinder aoiRelationFinder = new ComplexAOIFinder();
         final Iterable<ComplexAOI> complexAOIRelations = aoiRelationFinder.find(atlas);
-        Assert.assertEquals(StreamSupport.stream(complexAOIRelations.spliterator(), false).count(),
-                2);
+        Assert.assertEquals(2,
+                StreamSupport.stream(complexAOIRelations.spliterator(), false).count());
     }
 
     @Test
@@ -35,8 +35,8 @@ public class ComplexAOIFinderTest
         final ComplexAOIFinder aoiRelationFinder = new ComplexAOIFinder();
         final Iterable<ComplexAOI> complexAOIRelations = aoiRelationFinder.find(atlas);
         Assert.assertFalse(complexAOIRelations.iterator().hasNext());
-        Assert.assertEquals(StreamSupport.stream(complexAOIRelations.spliterator(), false).count(),
-                0);
+        Assert.assertEquals(0,
+                StreamSupport.stream(complexAOIRelations.spliterator(), false).count());
     }
 
     @Test
@@ -45,7 +45,7 @@ public class ComplexAOIFinderTest
         final Atlas atlas = this.rule.getAoiAreaAtlas();
         final ComplexAOIFinder aoiRelationFinder = new ComplexAOIFinder();
         final Iterable<ComplexAOI> complexAOIAreas = aoiRelationFinder.find(atlas);
-        Assert.assertEquals(StreamSupport.stream(complexAOIAreas.spliterator(), false).count(), 2);
+        Assert.assertEquals(2, StreamSupport.stream(complexAOIAreas.spliterator(), false).count());
     }
 
     @Test
@@ -55,6 +55,6 @@ public class ComplexAOIFinderTest
         final ComplexAOIFinder aoiRelationFinder = new ComplexAOIFinder();
         final Iterable<ComplexAOI> complexAOIs = aoiRelationFinder.find(atlas,
                 TaggableFilter.forDefinition("landuse->VINEYARD|amenity->SCHOOL"));
-        Assert.assertEquals(StreamSupport.stream(complexAOIs.spliterator(), false).count(), 3);
+        Assert.assertEquals(3, StreamSupport.stream(complexAOIs.spliterator(), false).count());
     }
 }

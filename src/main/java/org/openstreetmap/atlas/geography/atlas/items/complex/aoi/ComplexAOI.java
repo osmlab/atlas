@@ -170,4 +170,16 @@ public final class ComplexAOI extends ComplexEntity
         }
         return returnValue;
     }
+
+    @Override
+    public boolean equals(final Object other)
+    {
+        return other instanceof ComplexAOI && super.equals(other);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return super.hashCode();
+    }
 }
