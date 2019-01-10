@@ -845,33 +845,6 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     SortedSet<SnappedEdge> snaps(Location point, Distance threshold);
 
     /**
-     * Return a sub-atlas from this Atlas. TODO Remove this call next major release.
-     * <p>
-     * This would be a soft cut, meaning:
-     * <ul>
-     * <li>{@link Node}: It is included only if it is inside the polygon, or if a valid edge (below)
-     * has it at one of its ends.
-     * <li>{@link Edge}: It is included only if it is intersecting or inside the polygon.
-     * <li>{@link Area}: It is included only if it is intersecting or inside the polygon.
-     * <li>{@link Line}: It is included only if it is intersecting or inside the polygon.
-     * <li>{@link Point}: It is included only if it is inside the polygon.
-     * <li>{@link Relation}: It is included only if at least one of its members is valid per the
-     * above. Among its members, only the ones that are valid will be included in the member list.
-     * </ul>
-     *
-     * @param boundary
-     *            The boundary within which the sub atlas will be built
-     * @return An optional sub-atlas. The optional will be empty in case the boundary would return
-     *         an empty atlas, which is not allowed.
-     * @deprecated use {@link #subAtlas(Polygon, AtlasCutType)} with SOFT_CUT cut type instead.
-     */
-    @Deprecated
-    default Optional<Atlas> subAtlas(final Polygon boundary)
-    {
-        return subAtlas(boundary, AtlasCutType.SOFT_CUT);
-    }
-
-    /**
      * Return a sub-atlas from this Atlas.
      *
      * @param boundary
@@ -882,21 +855,6 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      *         {@link Polygon} after the cut was applied. Returning an empty atlas is not allowed.
      */
     Optional<Atlas> subAtlas(Polygon boundary, AtlasCutType cutType);
-
-    /**
-     * Return a sub-atlas from this Atlas. TODO Remove this call next major release.
-     *
-     * @param matcher
-     *            The matcher to consider
-     * @return An optional sub-atlas. The optional will be empty in case there is nothing matching
-     *         the supplied predicate. Returning an empty atlas is not allowed.
-     * @deprecated use {@link #subAtlas(Predicate, AtlasCutType)} with SOFT_CUT cut type instead.
-     */
-    @Deprecated
-    default Optional<Atlas> subAtlas(final Predicate<AtlasEntity> matcher)
-    {
-        return subAtlas(matcher, AtlasCutType.SOFT_CUT);
-    }
 
     /**
      * Return a sub-atlas from this Atlas.
