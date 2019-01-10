@@ -189,8 +189,9 @@ public final class DocumentationFormatter
         builder.clearIndentationStack();
         builder.withLevelWidth(DEFAULT_PARAGRAPH_INDENT_WIDTH);
         builder.append("OPTIONS", TTYAttribute.BOLD).newline();
-        for (final SimpleOption option : sortedOptions)
+        for (int index = 0; index < sortedOptions.size(); index++)
         {
+            final SimpleOption option = sortedOptions.get(index);
             builder.pushIndentLevel(DEFAULT_PARAGRAPH_INDENT_LEVEL)
                     .append(SimpleOptionAndArgumentParser.LONG_FORM_PREFIX + option.getLongForm(),
                             TTYAttribute.BOLD)
@@ -231,7 +232,12 @@ public final class DocumentationFormatter
             builder.newline();
             addParagraphWithLineWrapping(DEFAULT_INNER_PARAGRAPH_INDENT_LEVEL, maximumColumn,
                     option.getDescription(), builder, true);
-            builder.newline().newline();
+            builder.newline();
+            // Add an extra newline when we are not on the last element
+            if (index < sortedOptions.size() - 1)
+            {
+                builder.newline();
+            }
         }
 
         return builder.toString();
