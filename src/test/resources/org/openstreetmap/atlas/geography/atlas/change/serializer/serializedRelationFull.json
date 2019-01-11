@@ -36,7 +36,7 @@
   "properties": {
     "featureChangeType": "ADD",
     "entityType": "RELATION",
-    "class": "org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation",
+    "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation",
     "identifier": 123,
     "tags": {
       "tagKey1": "tagValue1",

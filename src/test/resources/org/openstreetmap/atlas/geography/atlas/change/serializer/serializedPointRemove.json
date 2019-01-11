@@ -32,7 +32,7 @@
   "properties": {
     "featureChangeType": "REMOVE",
     "entityType": "POINT",
-    "class": "org.openstreetmap.atlas.geography.atlas.bloated.BloatedPoint",
+    "class": "org.openstreetmap.atlas.geography.atlas.complete.CompletePoint",
     "identifier": 123,
     "tags": "null",
     "relations": "null",

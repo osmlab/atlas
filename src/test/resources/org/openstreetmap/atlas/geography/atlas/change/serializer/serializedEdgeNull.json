@@ -34,7 +34,7 @@
   "properties": {
     "featureChangeType": "ADD",
     "entityType": "EDGE",
-    "class": "org.openstreetmap.atlas.geography.atlas.bloated.BloatedEdge",
+    "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge",
     "identifier": 123,
     "tags": "null",
     "relations": "null",

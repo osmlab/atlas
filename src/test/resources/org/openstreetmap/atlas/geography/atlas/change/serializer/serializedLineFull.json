@@ -34,7 +34,7 @@
   "properties": {
     "featureChangeType": "ADD",
     "entityType": "LINE",
-    "class": "org.openstreetmap.atlas.geography.atlas.bloated.BloatedLine",
+    "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteLine",
     "identifier": 123,
     "tags": {
       "tagKey1": "tagValue1",

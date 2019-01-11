@@ -36,7 +36,7 @@
   "properties": {
     "featureChangeType": "REMOVE",
     "entityType": "RELATION",
-    "class": "org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation",
+    "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation",
     "identifier": 123,
     "tags": "null",
     "relations": "null",

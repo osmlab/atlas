@@ -36,7 +36,7 @@
   "properties": {
     "featureChangeType": "REMOVE",
     "entityType": "LINE",
-    "class": "org.openstreetmap.atlas.geography.atlas.bloated.BloatedLine",
+    "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteLine",
     "identifier": 123,
     "tags": "null",
     "relations": "null",

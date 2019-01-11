@@ -16,7 +16,7 @@
   "properties": {
     "featureChangeType": "ADD",
     "entityType": "NODE",
-    "class": "org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode",
+    "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteNode",
     "identifier": 123,
     "tags": {
       "tagKey1": "tagValue1",

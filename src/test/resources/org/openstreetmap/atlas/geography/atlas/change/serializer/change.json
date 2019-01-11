@@ -45,7 +45,7 @@
       "properties": {
         "featureChangeType": "ADD",
         "entityType": "AREA",
-        "class": "org.openstreetmap.atlas.geography.atlas.bloated.BloatedArea",
+        "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteArea",
         "identifier": 123,
         "tags": {
           "tagKey1": "tagValue1",
@@ -95,7 +95,7 @@
       "properties": {
         "featureChangeType": "ADD",
         "entityType": "EDGE",
-        "class": "org.openstreetmap.atlas.geography.atlas.bloated.BloatedEdge",
+        "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge",
         "identifier": 123,
         "tags": {
           "tagKey1": "tagValue1",
@@ -147,7 +147,7 @@
       "properties": {
         "featureChangeType": "ADD",
         "entityType": "LINE",
-        "class": "org.openstreetmap.atlas.geography.atlas.bloated.BloatedLine",
+        "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteLine",
         "identifier": 123,
         "tags": {
           "tagKey1": "tagValue1",
@@ -179,7 +179,7 @@
       "properties": {
         "featureChangeType": "ADD",
         "entityType": "NODE",
-        "class": "org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode",
+        "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteNode",
         "identifier": 123,
         "tags": {
           "tagKey1": "tagValue1",
@@ -219,7 +219,7 @@
       "properties": {
         "featureChangeType": "ADD",
         "entityType": "POINT",
-        "class": "org.openstreetmap.atlas.geography.atlas.bloated.BloatedPoint",
+        "class": "org.openstreetmap.atlas.geography.atlas.complete.CompletePoint",
         "identifier": 123,
         "tags": {
           "tagKey1": "tagValue1",
@@ -271,7 +271,7 @@
       "properties": {
         "featureChangeType": "ADD",
         "entityType": "RELATION",
-        "class": "org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation",
+        "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation",
         "identifier": 123,
         "tags": {
           "tagKey1": "tagValue1",
