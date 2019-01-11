@@ -1,0 +1,1159 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+
+use Getopt::Long qw(GetOptions);
+use File::Basename;
+use File::Copy qw(copy);
+use File::Spec;
+use File::Path;
+use POSIX;
+
+# Pull in code from the common modules
+use FindBin;
+use lib "$FindBin::Bin/common";
+use ast_completions;
+use ast_log_subsystem;
+use ast_module_subsystem;
+use ast_preset_subsystem;
+use ast_repo_subsystem;
+use ast_utilities;
+use ast_tty;
+
+
+## ORGANIZATION
+## This script is organized into 3 sections:
+## 1) GLOBAL INITIALIZATION - initialize some useful global constants
+## 2) SUBROUTINES - helper subroutines
+## 3) COMMAND SUBROUTINES - subcommand execution subroutines
+## 4) EXECUTION LOGIC - the actual command logic, ie. 'main'
+
+########## BEGIN GLOBAL INITIALIZATION ##########
+my $ansi_red = ast_tty::ansi_red();
+my $ansi_green = ast_tty::ansi_green();
+my $ansi_magenta = ast_tty::ansi_magenta();
+my $ansi_bold = ast_tty::ansi_bold();
+my $ansi_blink = ast_tty::ansi_blink();
+my $ansi_reset = ast_tty::ansi_reset();
+my $ansi_bunl = ast_tty::ansi_begin_underln();
+my $ansi_eunl = ast_tty::ansi_end_underln();
+
+my $no_colors_stdout = ast_tty::is_no_colors_stdout();
+my $red_stdout = $no_colors_stdout ? "" : $ansi_red;
+my $green_stdout = $no_colors_stdout ? "" : $ansi_green;
+my $magenta_stdout = $no_colors_stdout ? "" : $ansi_magenta;
+my $bold_stdout = $no_colors_stdout ? "" : $ansi_bold;
+my $blink_stdout = $no_colors_stdout ? "" : $ansi_blink;
+my $reset_stdout = $no_colors_stdout ? "" : $ansi_reset;
+my $bunl_stdout = $no_colors_stdout ? "" : $ansi_bunl;
+my $eunl_stdout = $no_colors_stdout ? "" : $ansi_eunl;
+
+my $no_colors_stderr = ast_tty::is_no_colors_stderr();
+my $red_stderr = $no_colors_stderr ? "" : $ansi_red;
+my $green_stderr = $no_colors_stderr ? "" : $ansi_green;
+my $magenta_stderr = $no_colors_stderr ? "" : $ansi_magenta;
+my $bold_stderr = $no_colors_stderr ? "" : $ansi_bold;
+my $blink_stderr = $no_colors_stderr ? "" : $ansi_blink;
+my $reset_stderr = $no_colors_stderr ? "" : $ansi_reset;
+my $bunl_stderr = $no_colors_stderr ? "" : $ansi_bunl;
+my $eunl_stderr = $no_colors_stderr ? "" : $ansi_eunl;
+
+my $ast_path;
+my $skip_paging;
+my $quiet;
+
+my $program_name = $ast_utilities::CONFIG_PROGRAM;
+my $program_version = "$ast_utilities::ATLAS_SHELL_TOOLS_VERSION ($program_name program)";
+
+# logging definitions
+my %valid_levels = (
+    "ALL" => 1,
+    "TRACE" => 1,
+    "DEBUG" => 1,
+    "INFO" => 1,
+    "WARN" => 1,
+    "ERROR" => 1,
+    "FATAL" => 1,
+    "OFF" => 1
+);
+my @valid_level_keys = keys %valid_levels;
+
+my %valid_streams = (
+    "stdout" => 1,
+    "stderr" => 1
+);
+my @valid_stream_keys = keys %valid_streams;
+
+########## END GLOBAL INITIALIZATION ##########
+
+
+########## BEGIN SUBROUTINES ##########
+
+sub show_submanpage_and_exit {
+    my $subpage = shift;
+
+    my @man_command = ast_utilities::get_man($skip_paging);
+    if (scalar @man_command == 0) {
+        ast_utilities::error_output($program_name, "could not obtain \'man\' command");
+        print STDERR "Please ensure a valid \'man\' command is on your path.\n";
+        exit 1;
+    }
+
+    my @command = ();
+    push @command, @man_command;
+    if ($subpage eq '') {
+        push @command, "$program_name";
+    }
+    else {
+        push @command, "$program_name-$subpage";
+    }
+    system { $command[0] } @command;
+    exit 0;
+}
+
+# helper routine for the 'preset' subcommand
+sub atlas_cfgpreset_namespace {
+    my $current_namespace = shift;
+
+    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
+    my $success = 1;
+
+    my $subdirective = shift @ARGV;
+
+    unless (defined $subdirective) {
+        ast_utilities::error_output($program_name, "${bold_stderr}${program_name} preset namespace${reset_stderr} requires a subdirective");
+        print STDERR "Try ${bold_stderr}create${reset_stderr}, ${bold_stderr}list${reset_stderr}, ${bold_stderr}remove${reset_stderr}, or ${bold_stderr}use${reset_stderr}.\n";
+        print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+        return 0;
+    }
+
+    if ($subdirective eq 'list') {
+        my $namespace = shift @ARGV;
+        if (defined $namespace) {
+            $success = ast_preset_subsystem::all_presets($ast_path, $program_name, $quiet, $namespace);
+        }
+        else {
+            $success = ast_preset_subsystem::all_namespaces($ast_path, $program_name, $quiet);
+        }
+    }
+    elsif ($subdirective eq 'use') {
+        my $namespace = shift @ARGV;
+        unless (defined $namespace) {
+            ast_utilities::error_output($program_name, "must specify a namespace");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset namespace use <namespace>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_preset_subsystem::use_namespace($ast_path, $program_name, $quiet, $namespace);
+    }
+    elsif ($subdirective eq 'create') {
+        my $new_namespace = shift @ARGV;
+        unless (defined $new_namespace) {
+            ast_utilities::error_output($program_name, "must specify a new namespace");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset namespace create <namespace>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_preset_subsystem::create_namespace($ast_path, $program_name, $quiet, $new_namespace);
+    }
+    elsif ($subdirective eq 'remove') {
+        my $namespace = shift @ARGV;
+        unless (defined $namespace) {
+            ast_utilities::error_output($program_name, "must specify a namespace");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset namespace remove <namespace>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_preset_subsystem::remove_namespace($ast_path, $program_name, $quiet, $namespace);
+    }
+    else {
+        ast_utilities::error_output($program_name, "unrecognized ${bold_stderr}${program_name} preset namespace${reset_stderr} subdirective '${bold_stderr}${subdirective}${reset_stderr}'");
+        print STDERR "Try ${bold_stderr}create${reset_stderr}, ${bold_stderr}list${reset_stderr}, ${bold_stderr}remove${reset_stderr}, or ${bold_stderr}use${reset_stderr}.\n";
+        print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+        return 0;
+    }
+
+    return 1;
+}
+
+########## END SUBROUTINES ##########
+
+
+########## BEGIN COMMAND SUBROUTINES ##########
+
+sub execute_command_activate {
+    my $help_flag;
+    GetOptions(
+        'help|h' => \$help_flag
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "activate");
+
+    if (defined $help_flag) {
+        show_submanpage_and_exit('activate');
+    }
+
+    my $module_to_activate = shift @ARGV;
+    unless (defined $module_to_activate) {
+        ast_utilities::error_output($program_name . ": activate", "missing required argument");
+        ast_utilities::getopt_failure_and_exit($program_name, "activate");
+    }
+
+    my %modules = get_module_to_status_hash($ast_path);
+    unless (exists $modules{$module_to_activate}) {
+        ast_utilities::error_output($program_name . ": activate", "no such module ${bold_stderr}${module_to_activate}${reset_stderr}");
+        return 0;
+    }
+
+    # deactivate all other modules
+    foreach my $module (keys %modules) {
+        if ($modules{$module} == $ast_module_subsystem::ACTIVATED) {
+            ast_module_subsystem::perform_deactivate($module, $ast_path, $program_name, $quiet);
+        }
+    }
+
+    my $success = ast_module_subsystem::perform_activate($module_to_activate, $ast_path, $program_name, $quiet);
+    return $success;
+}
+
+sub execute_command_deactivate {
+    my $help_flag;
+    GetOptions(
+        'help|h' => \$help_flag
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "deactivate");
+
+    if (defined $help_flag) {
+        show_submanpage_and_exit('deactivate');
+    }
+
+    my $module_to_deactivate = shift @ARGV;
+    unless (defined $module_to_deactivate) {
+        ast_utilities::error_output($program_name . ": deactivate", "missing required argument");
+        ast_utilities::getopt_failure_and_exit($program_name, "deactivate");
+    }
+
+    my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
+    unless (exists $modules{$module_to_deactivate}) {
+        ast_utilities::error_output($program_name . ": deactivate", "no such module ${bold_stderr}${module_to_deactivate}${reset_stderr}");
+        return 0;
+    }
+
+    my $success = ast_module_subsystem::perform_deactivate($module_to_deactivate, $ast_path, $program_name, $quiet);
+    if ($success) {
+        ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
+    }
+    return $success;
+}
+
+sub execute_command_install {
+    my $syminstall = 0;
+    my $force_install = 0;
+    my $skip_install = 0;
+    my $install_deactivated = 0;
+    my $alternate_name;
+    my $help_flag;
+    my $repo;
+    GetOptions(
+        'symlink|s' => \$syminstall,
+        'deactivated' => \$install_deactivated,
+        'force' => \$force_install,
+        'skip' => \$skip_install,
+        'name=s' => \$alternate_name,
+        'repo=s' => \$repo,
+        'help|h' => \$help_flag
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "install");
+
+    if (defined $help_flag) {
+        show_submanpage_and_exit('install');
+    }
+
+    if (defined $repo) {
+        my $success = ast_repo_subsystem::install_repo($ast_path, $program_name, $quiet, $repo, '');
+        unless ($success) {
+            ast_utilities::error_output($program_name . ": install", "could not install repo ${bold_stderr}${repo}${reset_stderr}");
+            return 0;
+        }
+        return 1;
+    }
+
+    my $module_to_install = shift @ARGV;
+    unless (defined $module_to_install) {
+        ast_utilities::error_output($program_name . ": install", "missing required argument");
+        ast_utilities::getopt_failure_and_exit($program_name, "install");
+    }
+
+    unless (-f $module_to_install || -l $module_to_install) {
+        ast_utilities::error_output($program_name . ": install", "no such file ${bold_stderr}${module_to_install}${reset_stderr}");
+        return 0;
+    }
+
+    my $modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER);
+
+    # Create the module name, respecting the --name flag if present.
+    my $module_basename;
+    if (defined $alternate_name) {
+        $module_basename = $alternate_name . $ast_module_subsystem::MODULE_SUFFIX;
+    }
+    else {
+        $module_basename = basename($module_to_install);
+    }
+    # TODO: figure out how to interpolate $MODULE_SUFFIX into this regex
+    unless ($module_basename =~ /.*\.jar$/) {
+        ast_utilities::error_output($program_name . ": install", "module must end with '.jar' extension");
+        return 0;
+    }
+    $module_basename =~ s{$ast_module_subsystem::MODULE_SUFFIX}{};
+
+    # Handle the case where the module is already installed
+    my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
+    if (defined $modules{$module_basename}) {
+        ast_utilities::warn_output($program_name, "module ${bold_stderr}${module_basename}${reset_stderr} is already installed");
+        if ($skip_install) {
+            print STDERR "Skipping installation.\n";
+            return 0;
+        }
+        unless ($force_install) {
+            my $overwrite = ast_utilities::prompt_yn("Overwrite?");
+            unless ($overwrite) {
+                print STDERR "Skipping installation.\n";
+                return 0;
+            }
+        }
+        ast_utilities::warn_output($program_name, "overwriting ${bold_stderr}${module_basename}${reset_stderr}");
+    }
+
+    # Construct the new module paths.
+    # We create a path for both an activated and deactivated version.
+    my $module_new_path =
+        File::Spec->catfile($modules_folder, $module_basename . $ast_module_subsystem::MODULE_SUFFIX);
+    my $module_new_path_deactivated =
+        File::Spec->catfile($modules_folder, $module_basename . $ast_module_subsystem::DEACTIVATED_MODULE_SUFFIX);
+
+    # If we made it here we are go to overwrite, so clean up any matching existing modules.
+    unlink $module_new_path;
+    unlink $module_new_path_deactivated;
+
+    my $exitcode;
+    if ($syminstall) {
+        my $module_to_install_abs = Cwd::realpath($module_to_install);
+        my $module_to_install_rel = File::Spec->abs2rel($module_to_install_abs, $modules_folder);
+
+        if ($install_deactivated) {
+            symlink($module_to_install_rel, $module_new_path_deactivated);
+        }
+        else {
+            symlink($module_to_install_rel, $module_new_path);
+        }
+        $exitcode = $? >> 8;
+    }
+    else {
+        my @command = ();
+        push @command, "cp";
+        push @command, "$module_to_install";
+        if ($install_deactivated) {
+            push @command, "$module_new_path_deactivated";
+            system { $command[0] } @command;
+        }
+        else {
+            push @command, "$module_new_path";
+            system { $command[0] } @command;
+        }
+        $exitcode = $? >> 8;
+    }
+
+    if ($exitcode) {
+        print STDERR "${red_stderr}${bold_stderr}Installation failed.${reset_stderr} Operation exited with $exitcode.\n";
+        return 0;
+    }
+    else {
+        unless ($install_deactivated) {
+            my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
+            foreach my $module (keys %modules) {
+                if ($modules{$module} == $ast_module_subsystem::ACTIVATED
+                    && $module ne $module_basename) {
+                    ast_module_subsystem::perform_deactivate($module, $ast_path, $program_name, $quiet);
+                }
+            }
+        }
+
+        unless($install_deactivated) {
+            ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
+            my $success = ast_module_subsystem::generate_active_module_index($ast_path, $program_name, $quiet, 0);
+            unless ($success) {
+                ast_utilities::warn_output($program_name . ": install", "partial installation may not function properly");
+            }
+        }
+
+        unless ($quiet) {
+            print "Module ${green_stdout}${bold_stdout}${module_basename}${reset_stdout} installed.\n";
+        }
+    }
+
+    return 1;
+}
+
+sub execute_command_list {
+    my $help_flag;
+    GetOptions(
+        'help|h' => \$help_flag
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "list");
+
+    if (defined $help_flag) {
+        show_submanpage_and_exit('list');
+    }
+
+    my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
+    my %symlinks = ast_module_subsystem::get_module_to_symlink_hash($ast_path);
+    my %targets = ast_module_subsystem::get_module_to_target_hash($ast_path);
+
+    unless (keys %modules) {
+        ast_utilities::error_output($program_name . ": list", "found no installed modules");
+        print STDERR "Try '${bold_stderr}${program_name} install /path/to/module.jar${reset_stderr}' to install a module.\n";
+        return 0;
+    }
+
+    print "${bold_stdout}Installed modules:${reset_stdout}\n\n";
+    # Sort the module names alphabetically. We use 'lc' to convert them to
+    # lowercase, since by default 'sort' uses ASCII ordering.
+    foreach my $module (sort {lc $a cmp lc $b} keys %modules) {
+        my $status = $modules{$module};
+        my $symlink = $symlinks{$module};
+        my $target = $targets{$module};
+        my $display = '    ';
+
+        # if activated, place a star next to the name
+        if ($status == 1) {
+            $display = $display . '*';
+        }
+        else {
+            $display = $display . ' ';
+        }
+
+        # choose an appropriate color for the display
+        if ($status == $ast_module_subsystem::ACTIVATED
+            && ($symlink == $ast_module_subsystem::REAL_FILE || $symlink == $ast_module_subsystem::GOOD_SYMLINK)) {
+            $display = $display . "${green_stdout}${bold_stdout}";
+        }
+        elsif ($symlink == $ast_module_subsystem::BROKEN_SYMLINK) {
+            $display = $display . "${red_stdout}${bold_stdout}";
+        }
+
+        # show the module name!
+        $display = $display . " ${module}${reset_stdout}";
+
+        # show a big message if the symlink is broken, blink if also activated
+        if ($symlink == $ast_module_subsystem::BROKEN_SYMLINK) {
+            if ($status == $ast_module_subsystem::ACTIVATED) {
+                $display = $display . " ${bold_stdout}${blink_stdout}(BROKEN SYMLINK)${reset_stdout}";
+            }
+            else {
+                $display = $display . " ${bold_stdout}(BROKEN SYMLINK)${reset_stdout}";
+            }
+        }
+
+        # if we were a symlink, show the target after the module name
+        if ($symlink != $ast_module_subsystem::REAL_FILE) {
+            $display = $display . " -> ${target}";
+        }
+
+        print "$display\n";
+    }
+    print "\n";
+
+    return 1;
+}
+
+sub execute_command_log {
+    my $help_flag;
+    GetOptions(
+        'help|h' => \$help_flag
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "log");
+
+    if (defined $help_flag) {
+        show_submanpage_and_exit('log');
+    }
+
+    my $directive = shift @ARGV;
+    my $success;
+
+    unless (defined $directive) {
+        ast_utilities::error_output($program_name, "missing required directive");
+        print STDERR "Usage: ${bold_stderr}${program_name} log <directive> <args...>${reset_stderr}\n";
+        print STDERR "Available directives: ${bold_stderr}reset${reset_stderr}, ${bold_stderr}set-level${reset_stderr}, ${bold_stderr}set-stream${reset_stderr}, or ${bold_stderr}show${reset_stderr}\n";
+        print STDERR "Try \'${bold_stderr}${program_name} log --help${reset_stderr}\' for more information.\n";
+        return 0;
+    }
+
+    my $log_folder = File::Spec->catfile($ast_path, $ast_log_subsystem::LOG4J_FOLDER);
+    my $logfile_path = File::Spec->catfile($log_folder, $ast_log_subsystem::LOG4J_FILE);
+    my $current_level = ast_log_subsystem::read_loglevel_from_file($logfile_path);
+    my $current_stream = ast_log_subsystem::read_logstream_from_file($logfile_path);
+
+    if ($directive eq 'reset') {
+        ast_log_subsystem::reset_log4j($ast_path);
+    }
+    elsif ($directive eq 'set-level') {
+        my $new_level = shift @ARGV;
+        unless (defined $new_level) {
+            ast_utilities::error_output($program_name, "must specify a new level");
+            print STDERR "Usage: ${bold_stderr}${program_name} log set-level <new-level>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} log --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        if (exists($valid_levels{$new_level})) {
+            ast_log_subsystem::replace_loglevel_in_file($logfile_path, $new_level);
+        }
+        else {
+            ast_utilities::error_output($program_name, "unrecognized log level ${bold_stderr}${new_level}${reset_stderr}");
+            print STDERR "Try \'${bold_stderr}${program_name} log --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+    }
+    elsif ($directive eq 'set-stream') {
+        my $new_stream = shift @ARGV;
+        unless (defined $new_stream) {
+            ast_utilities::error_output($program_name, "must specify a new stream");
+            print STDERR "Usage: ${bold_stderr}${program_name} log set-stream <new-stream>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} log --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        if (exists($valid_streams{$new_stream})) {
+            ast_log_subsystem::replace_logstream_in_file($logfile_path, $new_stream);
+        }
+        else {
+            ast_utilities::error_output($program_name, "unrecognized log stream ${bold_stderr}${new_stream}${reset_stderr}");
+            print STDERR "Try \'${bold_stderr}${program_name} log --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+    }
+    elsif ($directive eq 'show') {
+        $current_level = ast_log_subsystem::read_loglevel_from_file($logfile_path);
+        $current_stream = ast_log_subsystem::read_logstream_from_file($logfile_path);
+        print "Current log level:    ${bold_stdout}${current_level}${reset_stdout}\n";
+        print "Current log stream:   ${bold_stdout}${current_stream}${reset_stdout}\n";
+    }
+    else {
+        ast_utilities::error_output($program_name, "unrecognized ${bold_stderr}${program_name} log${reset_stderr} directive '${bold_stderr}${directive}${reset_stderr}'");
+        print STDERR "Available directives: ${bold_stderr}reset${reset_stderr}, ${bold_stderr}set-level${reset_stderr}, ${bold_stderr}set-stream${reset_stderr}, or ${bold_stderr}show${reset_stderr}\n";
+        print STDERR "Try \'${bold_stderr}${program_name} log --help${reset_stderr}\' for more information.\n";
+        return 0;
+    }
+
+    return 1;
+}
+
+sub execute_command_preset {
+    my $help_flag;
+    GetOptions(
+        'help|h' => \$help_flag,
+        # This callback occurs the first time we see a non-option argument.
+        # In our case, this will be the subcommand.
+        "<>" => sub {
+            my($arg) = @_;
+            if ($arg =~ m{^-}) {
+                unless ($arg eq '-') {
+                    die "FATAL error: unhandled global option $arg";
+                }
+            }
+            # add the subcommand to the front of ARGV
+            unshift @ARGV, $arg;
+            die "!FINISH";
+        }
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "preset");
+
+    if (defined $help_flag) {
+        show_submanpage_and_exit('preset');
+    }
+
+    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
+    my $current_namespace = ast_preset_subsystem::get_namespace($ast_path);
+
+    my $directive = shift @ARGV;
+    my $success;
+
+    unless (defined $directive) {
+        ast_utilities::error_output($program_name, "missing required directive");
+        print STDERR "Usage: ${bold_stderr}${program_name} preset <directive> <args...>${reset_stderr}\n";
+        print STDERR "Available directives: ${bold_stderr}copy${reset_stderr}, ${bold_stderr}edit${reset_stderr}, ${bold_stderr}list${reset_stderr}, ${bold_stderr}namespace${reset_stderr}, ${bold_stderr}remove${reset_stderr}, or ${bold_stderr}save${reset_stderr}\n";
+        print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+        return 0;
+    }
+
+    if ($directive eq 'copy') {
+        my $command_context = shift @ARGV;
+        unless (defined $command_context) {
+            ast_utilities::error_output($program_name, "must specify a command");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset copy <command> <src> <dest>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $subcommand_classes{$command_context}) {
+            ast_utilities::error_output($program_name, "no such command ${bold_stderr}${command_context}${reset_stderr}");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset copy <command> <src> <dest>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        my $src_preset = shift @ARGV;
+        my $dest_preset = shift @ARGV;
+        unless (defined $src_preset) {
+            ast_utilities::error_output($program_name, "must specify a source preset");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset copy <command> <src> <dest>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $dest_preset) {
+            ast_utilities::error_output($program_name, "must specify a destination preset");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset copy <command> <src> <dest>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_preset_subsystem::copy_preset($ast_path, $program_name, $quiet, $src_preset, $dest_preset, $command_context, $current_namespace);
+    }
+    elsif ($directive eq 'edit') {
+        my $command_context = shift @ARGV;
+        unless (defined $command_context) {
+            ast_utilities::error_output($program_name, "must specify a command");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset edit <command> <preset>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $subcommand_classes{$command_context}) {
+            ast_utilities::error_output($program_name, "no such command ${bold_stderr}${command_context}${reset_stderr}");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset edit <command> <preset>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        my $preset = shift @ARGV;
+        unless (defined $preset) {
+            ast_utilities::error_output($program_name, "must specify a preset");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset edit <command> <preset>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_preset_subsystem::edit_preset($ast_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
+    }
+    elsif ($directive eq 'list') {
+        my $command_context = shift @ARGV;
+        unless (defined $command_context) {
+            return ast_preset_subsystem::all_presets($ast_path, $program_name, $quiet, $current_namespace);
+        }
+        unless (defined $subcommand_classes{$command_context}) {
+            ast_utilities::error_output($program_name, "no such command ${bold_stderr}${command_context}${reset_stderr}");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset list [command [preset]]${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        my $preset = shift @ARGV;
+        if (defined $preset) {
+            $success = ast_preset_subsystem::show_preset($ast_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
+        }
+        else {
+            $success = ast_preset_subsystem::all_presets_for_command($ast_path, $program_name, $quiet, $command_context, $current_namespace);
+        }
+    }
+    elsif ($directive eq 'namespace') {
+        $success = atlas_cfgpreset_namespace($current_namespace);
+    }
+    elsif ($directive eq 'remove') {
+        my $command_context = shift @ARGV;
+        unless (defined $command_context) {
+            ast_utilities::error_output($program_name, "must specify a command");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset remove <command> [preset]${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $subcommand_classes{$command_context}) {
+            ast_utilities::error_output($program_name, "no such command ${bold_stderr}${command_context}${reset_stderr}");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset remove <command> [preset]${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        my $preset = shift @ARGV;
+        if (defined $preset) {
+            $success = ast_preset_subsystem::remove_preset($ast_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
+        }
+        else {
+            $success = ast_preset_subsystem::remove_all_presets_for_command($ast_path, $program_name, $quiet, $command_context, $current_namespace);
+        }
+    }
+    elsif ($directive eq 'save') {
+        my $command_context = shift @ARGV;
+        unless (defined $command_context) {
+            ast_utilities::error_output($program_name, "must specify a command");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset save <command> <preset> <options...>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $subcommand_classes{$command_context}) {
+            ast_utilities::error_output($program_name, "no such command ${bold_stderr}${command_context}${reset_stderr}");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset save <command> <preset> <options...>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        my $preset = shift @ARGV;
+        unless (defined $preset) {
+            ast_utilities::error_output($program_name, "must specify a preset");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset save <command> <preset> <options...>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (ast_preset_subsystem::preset_regex_ok($preset)) {
+            ast_utilities::error_output($program_name, "invalid preset name ${bold_stderr}${preset}${reset_stderr}");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset save <command> <preset> <options...>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_preset_subsystem::save_preset($ast_path, $program_name, $quiet, $preset, $command_context, $current_namespace, \@ARGV);
+    }
+    else {
+        ast_utilities::error_output($program_name, "unrecognized ${bold_stderr}${program_name} preset${reset_stderr} directive '${bold_stderr}${directive}${reset_stderr}'");
+        print STDERR "Available directives: ${bold_stderr}copy${reset_stderr}, ${bold_stderr}edit${reset_stderr}, ${bold_stderr}list${reset_stderr}, ${bold_stderr}namespace${reset_stderr}, ${bold_stderr}remove${reset_stderr}, or ${bold_stderr}save${reset_stderr}\n";
+        print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+        return 0;
+    }
+
+    return 1;
+}
+
+sub execute_command_repo {
+    my $help_flag;
+    my $ref_flag = '';
+    GetOptions(
+        'help|h' => \$help_flag,
+        'ref=s' => \$ref_flag
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "repo");
+
+    if (defined $help_flag) {
+        show_submanpage_and_exit('repo');
+    }
+
+    my $directive = shift @ARGV;
+    my $success;
+
+    unless (defined $directive) {
+        ast_utilities::error_output($program_name, "missing required directive");
+        print STDERR "Available directives: ${bold_stderr}add${reset_stderr}, ${bold_stderr}add-gradle-exclude${reset_stderr}, ${bold_stderr}add-gradle-skip${reset_stderr}, ${bold_stderr}edit${reset_stderr}, ${bold_stderr}install${reset_stderr}, ${bold_stderr}list${reset_stderr}, or ${bold_stderr}remove${reset_stderr}\n";
+        print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+        return 0;
+    }
+
+    if ($directive eq 'add') {
+        my $repo_name = shift @ARGV;
+        my $repo_url = shift @ARGV;
+        my $repo_ref = shift @ARGV;
+        unless (defined $repo_name) {
+            ast_utilities::error_output($program_name, "missing repo name");
+            print STDERR "Usage: ${bold_stderr}${program_name} repo add <repo-name> <URL> [ref]${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $repo_url) {
+            ast_utilities::error_output($program_name, "missing repo url");
+            print STDERR "Usage: ${bold_stderr}${program_name} repo add <repo-name> <URL> [ref]${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (ast_repo_subsystem::repo_regex_ok($repo_name)) {
+            ast_utilities::error_output($program_name, "invalid repo name ${bold_stderr}${repo_name}${reset_stderr}");
+            print STDERR "Usage: ${bold_stderr}${program_name} repo add <repo-name> <URL> [ref]${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $repo_ref) {
+            $repo_ref = 'master';
+        }
+        $success = ast_repo_subsystem::create_repo($ast_path, $program_name, $quiet, $repo_name, $repo_url, $repo_ref);
+    }
+    elsif ($directive eq 'add-gradle-exclude') {
+        my $repo_name = shift @ARGV;
+        my $exclude = shift @ARGV;
+        unless (defined $repo_name) {
+            ast_utilities::error_output($program_name, "missing repo name");
+            print STDERR "Usage: ${bold_stderr}${program_name} repo add-gradle-exclude <repo-name> <package>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $exclude) {
+            ast_utilities::error_output($program_name, "missing exclude package");
+            print STDERR "Usage: ${bold_stderr}${program_name} repo add-gradle-exclude <repo-name> <package>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_repo_subsystem::add_exclude_variable($ast_path, $program_name, $quiet, $repo_name, $exclude);
+        if ($success) {
+            ast_repo_subsystem::print_repo_settings($ast_path, $program_name, $quiet, $repo_name);
+        }
+    }
+    elsif ($directive eq 'add-gradle-skip') {
+        my $repo_name = shift @ARGV;
+        my $skip = shift @ARGV;
+        unless (defined $repo_name) {
+            ast_utilities::error_output($program_name, "missing repo name");
+            print STDERR "Usage: ${bold_stderr}${program_name} repo add-gradle-skip <repo-name> <task>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $skip) {
+            ast_utilities::error_output($program_name, "missing skip task");
+            print STDERR "Usage: ${bold_stderr}${program_name} repo add-gradle-skip <repo-name> <task>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_repo_subsystem::add_skip_variable($ast_path, $program_name, $quiet, $repo_name, $skip);
+        if ($success) {
+            ast_repo_subsystem::print_repo_settings($ast_path, $program_name, $quiet, $repo_name);
+        }
+    }
+    elsif ($directive eq 'edit') {
+        my $repo_name = shift @ARGV;
+        unless (defined $repo_name) {
+            ast_utilities::error_output($program_name, "missing repo name");
+            print STDERR "Usage: ${bold_stderr}${program_name} repo edit <repo-name>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_repo_subsystem::edit_repo($ast_path, $program_name, $quiet, $repo_name);
+        if ($success) {
+            ast_repo_subsystem::print_repo_settings($ast_path, $program_name, $quiet, $repo_name);
+        }
+    }
+    elsif ($directive eq 'install') {
+        my $repo_name = shift @ARGV;
+        unless (defined $repo_name) {
+            ast_utilities::error_output($program_name, "missing repo name");
+            print STDERR "Usage: ${bold_stderr}${program_name} repo install <repo-name>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_repo_subsystem::install_repo($ast_path, $program_name, $quiet, $repo_name, $ref_flag);
+    }
+    elsif ($directive eq 'list') {
+        my $repo_name = shift @ARGV;
+        if (defined $repo_name) {
+            $success = ast_repo_subsystem::print_repo_settings($ast_path, $program_name, $quiet, $repo_name);
+        }
+        else {
+            $success = ast_repo_subsystem::list_repos($ast_path, $program_name, $quiet);
+        }
+    }
+    elsif ($directive eq 'remove') {
+        my $repo_name = shift @ARGV;
+        unless (defined $repo_name) {
+            ast_utilities::error_output($program_name, "missing repo name");
+            print STDERR "Usage: ${bold_stderr}${program_name} repo remove <repo-name>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_repo_subsystem::remove_repo($ast_path, $program_name, $quiet, $repo_name);
+    }
+    else {
+        ast_utilities::error_output($program_name, "unrecognized directive '${bold_stderr}${directive}${reset_stderr}'");
+        print STDERR "Available directives: ${bold_stderr}add${reset_stderr}, ${bold_stderr}add-gradle-exclude${reset_stderr}, ${bold_stderr}add-gradle-skip${reset_stderr}, ${bold_stderr}edit${reset_stderr}, ${bold_stderr}install${reset_stderr}, ${bold_stderr}list${reset_stderr}, or ${bold_stderr}remove${reset_stderr}\n";
+        print STDERR "Try \'${bold_stderr}${program_name} repo --help${reset_stderr}\' for more information.\n";
+        return 0;
+    }
+
+    return 1;
+}
+
+sub execute_command_reset {
+    my $help_flag;
+    GetOptions(
+        'help|h' => \$help_flag
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "reset");
+
+    if (defined $help_flag) {
+        show_submanpage_and_exit('reset');
+    }
+
+    my $directive = shift @ARGV;
+    my $ran_at_least_one_directive = 0;
+
+    unless (defined $directive) {
+        ast_utilities::error_output($program_name, "missing required directive");
+        print STDERR "Usage: ${bold_stderr}${program_name} reset <directive> <args...>${reset_stderr}\n";
+        print STDERR "Available directives: ${bold_stderr}all${reset_stderr}, ${bold_stderr}index${reset_stderr}, ${bold_stderr}log${reset_stderr}, ${bold_stderr}modules${reset_stderr}, ${bold_stderr}presets${reset_stderr}, or ${bold_stderr}repos${reset_stderr}\n";
+        print STDERR "Try \'${bold_stderr}${program_name} reset --help${reset_stderr}\' for more information.\n";
+        return 0;
+    }
+
+    if ($directive eq 'index' || $directive eq 'all') {
+        ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
+        $ran_at_least_one_directive = 1;
+    }
+
+    if ($directive eq 'log' || $directive eq 'all') {
+        my $log_folder = File::Spec->catfile($ast_path, $ast_log_subsystem::LOG4J_FOLDER);
+        my $logfile_path = File::Spec->catfile($log_folder, $ast_log_subsystem::LOG4J_FILE);
+        ast_log_subsystem::replace_loglevel_in_file($logfile_path, 'ERROR');
+        ast_log_subsystem::replace_logstream_in_file($logfile_path, 'stderr');
+        unless ($quiet) {
+            print "Reset log parameters.\n";
+        }
+        $ran_at_least_one_directive = 1;
+    }
+
+    if ($directive eq 'modules' || $directive eq 'all') {
+        my $modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER);
+        my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
+
+        my $modules_length = keys %modules;
+        if ($modules_length == 0) {
+            ast_utilities::warn_output($program_name, "found no modules to uninstall");
+        }
+        else {
+            foreach my $module (keys %modules) {
+                ast_module_subsystem::perform_uninstall($module, $ast_path, $program_name, $quiet, 1);
+            }
+        }
+        $ran_at_least_one_directive = 1;
+    }
+
+    if ($directive eq 'presets' || $directive eq 'all') {
+        my $presets_folder = File::Spec->catfile($ast_path, $ast_preset_subsystem::PRESETS_FOLDER);
+        rmtree($presets_folder);
+        unless ($quiet) {
+            print "Cleared presets.\n";
+        }
+        $ran_at_least_one_directive = 1;
+    }
+
+    if ($directive eq 'repos' || $directive eq 'all') {
+        my $repos_folder = File::Spec->catfile($ast_path, $ast_repo_subsystem::REPOS_FOLDER);
+        rmtree($repos_folder);
+        unless ($quiet) {
+            print "Cleared repos.\n";
+        }
+        $ran_at_least_one_directive = 1;
+    }
+
+    if (!$ran_at_least_one_directive) {
+        ast_utilities::error_output($program_name, "unrecognized ${bold_stderr}${program_name} reset${reset_stderr} directive '${bold_stderr}${directive}${reset_stderr}'");
+        print STDERR "Available directives: ${bold_stderr}all${reset_stderr}, ${bold_stderr}index${reset_stderr}, ${bold_stderr}log${reset_stderr}, ${bold_stderr}modules${reset_stderr}, ${bold_stderr}presets${reset_stderr}, or ${bold_stderr}repos${reset_stderr}\n";
+        print STDERR "Try \'${bold_stderr}${program_name} reset --help${reset_stderr}\' for more information.\n";
+        return 0;
+    }
+
+    return 1;
+}
+
+sub execute_command_sync {
+    my $help_flag;
+    GetOptions(
+        'help|h' => \$help_flag
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "sync");
+
+    if (defined $help_flag) {
+        show_submanpage_and_exit('sync');
+    }
+
+    my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
+    my %modules_links = ast_module_subsystem::get_module_to_symlink_hash($ast_path);
+    my @activated_modules = ast_module_subsystem::get_activated_modules(\%modules);
+    # If the currently active module is a broken symlink, warn the user
+    if ($modules_links{$activated_modules[0]} == $ast_module_subsystem::BROKEN_SYMLINK) {
+        ast_utilities::error_output($program_name, 'current active module is a broken symlink');
+        print STDERR "To see link value, try '${bold_stderr}${ast_utilities::CONFIG_PROGRAM} list${reset_stderr}'.\n";
+        print STDERR "Fix the link, then run '${bold_stderr}${ast_utilities::CONFIG_PROGRAM} sync${reset_stderr}' to resolve.\n";
+        return 1;
+    }
+
+    ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
+    ast_module_subsystem::generate_active_module_index($ast_path, $program_name, $quiet, 1);
+}
+
+sub execute_command_uninstall {
+    my $allflag;
+    my $forceflag = 0;
+    my $help_flag;
+    GetOptions(
+        'all|a' => \$allflag,
+        'force' => \$forceflag,
+        'help|h' => \$help_flag
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "uninstall");
+
+    if (defined $help_flag) {
+        show_submanpage_and_exit('uninstall');
+    }
+
+    if (defined $allflag) {
+        my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
+        foreach my $module (keys %modules) {
+            ast_module_subsystem::perform_uninstall($module, $ast_path, $program_name, $quiet, $forceflag);
+        }
+        return 1;
+    }
+
+    my $module_to_uninstall = shift @ARGV;
+    unless (defined $module_to_uninstall) {
+        ast_utilities::error_output($program_name . ": uninstall", "missing required argument");
+        ast_utilities::getopt_failure_and_exit($program_name, "uninstall");
+    }
+
+    my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
+    my @activated_modules = ast_module_subsystem::get_activated_modules(\%modules);
+    my $activated_module = $activated_modules[0];
+    my $success = ast_module_subsystem::perform_uninstall($module_to_uninstall, $ast_path, $program_name, $quiet, $forceflag);
+    unless ($success) {
+        return 0;
+    }
+
+    if (defined $activated_module) {
+        if ($module_to_uninstall eq $activated_module) {
+            ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
+        }
+    }
+
+    return 1;
+}
+
+sub execute_command_update {
+    my $help_flag;
+    GetOptions(
+        'help|h' => \$help_flag,
+    ) or ast_utilities::getopt_failure_and_exit($program_name, "update");
+
+    if (defined $help_flag) {
+        show_submanpage_and_exit('update');
+    }
+
+    chdir $ENV{ATLAS_SHELL_TOOLS_HOME} or die "$!";
+
+    my @command = ();
+    push @command, "git";
+    push @command, "checkout";
+    push @command, "master";
+    my $success = system {$command[0]} @command;
+    unless ($success == 0) {
+        ast_utilities::error_output($program_name, "update operation failed");
+        return 1;
+    }
+
+    @command = ();
+    push @command, "git";
+    push @command, "pull";
+    push @command, "origin";
+    push @command, "master";
+    $success = system {$command[0]} @command;
+    unless ($success == 0) {
+        ast_utilities::error_output($program_name, "update operation failed");
+        return 1;
+    }
+
+    return 1;
+}
+
+########## END COMMAND SUBROUTINES ##########
+
+
+########## BEGIN EXECUTION LOGIC ##########
+
+ast_utilities::verify_environment_or_exit();
+$ast_path = ast_utilities::create_data_directory();
+
+my $help_argument;
+my $allow_run_as_root;
+Getopt::Long::Configure(qw(no_ignore_case_always));
+GetOptions(
+    "no-pager" => \$skip_paging,
+    "help|h:s" => \$help_argument,
+    "version|V" => sub { print "$program_version\n"; exit 0; },
+    "quiet|q" => \$quiet,
+    "allow-run-as-root" => \$allow_run_as_root,
+    # This callback occurs the first time we see a non-option argument.
+    # In our case, this will be the subcommand.
+    "<>" => sub {
+        my($arg) = @_;
+        if ($arg =~ m{^-}) {
+            unless ($arg eq '-') {
+                die "FATAL error: unhandled global option $arg";
+            }
+        }
+        # add the subcommand to the front of ARGV
+        unshift @ARGV, $arg;
+        die "!FINISH";
+    }
+) or ast_utilities::getopt_failure_and_exit($program_name);
+
+if (geteuid() == 0) {
+    unless (defined $allow_run_as_root) {
+        print STDERR "For security reasons, you are highly discouraged from running atlas-shell-tools\n";
+        print STDERR "as the root user. Atlas-shell-tools cannot guarantee that modules installed from\n";
+        print STDERR "external repositories are safe to run with root privileges.\n\n";
+        print STDERR "To disregard this warning and run as root anyway, please use the option:\n";
+        print STDERR "--allow-run-as-root\n\n";
+        exit 1;
+    }
+}
+
+# Handle the cases where the user supplied a --help flag
+# 1) --help -> print the default help menu and exit
+# 2) --help=TOPIC -> print the TOPIC help menu and exit
+if (defined $help_argument) {
+    show_submanpage_and_exit($help_argument);
+}
+
+# All global options have been processed, so shift the subcommand off of ARGV
+my $subcommand = shift @ARGV;
+
+unless (defined $subcommand) {
+    ast_utilities::error_output($program_name, "missing required command or option");
+    print STDERR "Try '${bold_stderr}${program_name} --help${reset_stderr}' for more information.\n";
+    exit 1;
+}
+
+my $success = 0;
+if ($subcommand eq "activate") {
+    $success = execute_command_activate();
+}
+elsif ($subcommand eq "deactivate") {
+    $success = execute_command_deactivate();
+}
+elsif ($subcommand eq "install") {
+    $success = execute_command_install();
+}
+elsif ($subcommand eq "list") {
+    $success = execute_command_list();
+}
+elsif ($subcommand eq "log") {
+    $success = execute_command_log();
+}
+elsif ($subcommand eq "preset") {
+    $success = execute_command_preset();
+}
+elsif ($subcommand eq "repo") {
+    $success = execute_command_repo();
+}
+elsif ($subcommand eq "reset") {
+    $success = execute_command_reset();
+}
+elsif ($subcommand eq "sync") {
+    $success = execute_command_sync();
+}
+elsif ($subcommand eq "uninstall") {
+    $success = execute_command_uninstall();
+}
+elsif ($subcommand eq "update") {
+    $success = execute_command_update();
+}
+# These subcommands are "hidden", they are used by the completion scripts
+# to generate autocomplete suggestions.
+elsif ($subcommand eq "__completion_atlas__") {
+    $success = ast_completions::completion_atlas($ast_path, \@ARGV);
+}
+elsif ($subcommand eq "__completion_atlascfg__") {
+    $success = ast_completions::completion_atlascfg($ast_path, \@ARGV);
+}
+else {
+    ast_utilities::error_output($program_name, "no such command ${bold_stderr}${subcommand}${reset_stderr}");
+    print STDERR "Try '${bold_stderr}${program_name} --help${reset_stderr}' for more information.\n";
+    exit 127;
+}
+
+if ($success) {
+    exit 0;
+}
+else {
+    exit 1;
+}
+
+########## END EXECUTION LOGIC ##########

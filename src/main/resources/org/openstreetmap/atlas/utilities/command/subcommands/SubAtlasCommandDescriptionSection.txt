@@ -1,0 +1,21 @@
+Cut a subatlas using some given parameters. The atlas will be cut to a
+polygon boundary, given by a supplied WKT. The type of cut can be specified
+using the '--cut-type' option, which utilizes the AtlasCutType enum.
+
+The available cut types are:
+
+SOFT_CUT: Perform a cut and keep all entities that match the filter or bound. However, bring
+in additional atlas entities that did not meet the original criteria, in order to satisfy atlas
+integrity. Example: An Atlas Edge is brought in via boundary or filter match, but one of its
+Nodes is not. The Node would be brought in, despite not meeting initial criteria, in order to
+maintain Atlas integrity.
+
+HARD_CUT_ALL: Perform a cut, only keep entities that match the bound or filter. If including
+the item in the final Atlas breaks Atlas integrity, exclude that entity. Example: An Edge is
+brought in via boundary or filter match, but its start or end Node is omitted. As a result, the
+Edge is left out of the final Atlas.
+
+HARD_CUT_RELATIONS_ONLY: Perform a soft cut and maintain Atlas integrity for all Atlas Items.
+For all Relations - perform a hard cut and only include members that satisfy the given predicate
+or bound. This case will remove Relations altogether if no members satisfy the required
+conditions.

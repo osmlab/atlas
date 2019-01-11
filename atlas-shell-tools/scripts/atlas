@@ -1,0 +1,497 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+
+use File::Spec;
+use Getopt::Long qw(GetOptions);
+use POSIX;
+
+# Pull in code from the common modules
+use FindBin;
+use lib "$FindBin::Bin/common";
+use ast_log_subsystem;
+use ast_preset_subsystem;
+use ast_module_subsystem;
+use ast_tty;
+use ast_utilities;
+
+
+## ORGANIZATION
+## This script is organized into 3 sections:
+## 1) GLOBAL INITIALIZATION - initialize some useful global constants
+## 2) SUBROUTINES - subroutines used by the command logic
+## 3) EXECUTION LOGIC - the actual command logic, ie. 'main'
+
+
+########## BEGIN GLOBAL INITIALIZATION ##########
+my $ansi_red = ast_tty::ansi_red();
+my $ansi_green = ast_tty::ansi_green();
+my $ansi_magenta = ast_tty::ansi_magenta();
+my $ansi_bold = ast_tty::ansi_bold();
+my $ansi_reset = ast_tty::ansi_reset();
+my $ansi_bunl = ast_tty::ansi_begin_underln();
+my $ansi_eunl = ast_tty::ansi_end_underln();
+
+my $no_colors_stdout = ast_tty::is_no_colors_stdout();
+my $red_stdout = $no_colors_stdout ? "" : $ansi_red;
+my $green_stdout = $no_colors_stdout ? "" : $ansi_green;
+my $magenta_stdout = $no_colors_stdout ? "" : $ansi_magenta;
+my $bold_stdout = $no_colors_stdout ? "" : $ansi_bold;
+my $reset_stdout = $no_colors_stdout ? "" : $ansi_reset;
+my $bunl_stdout = $no_colors_stdout ? "" : $ansi_bunl;
+my $eunl_stdout = $no_colors_stdout ? "" : $ansi_eunl;
+
+my $no_colors_stderr = ast_tty::is_no_colors_stderr();
+my $red_stderr = $no_colors_stderr ? "" : $ansi_red;
+my $green_stderr = $no_colors_stderr ? "" : $ansi_green;
+my $magenta_stderr = $no_colors_stderr ? "" : $ansi_magenta;
+my $bold_stderr = $no_colors_stderr ? "" : $ansi_bold;
+my $reset_stderr = $no_colors_stderr ? "" : $ansi_reset;
+my $bunl_stderr = $no_colors_stderr ? "" : $ansi_bunl;
+my $eunl_stderr = $no_colors_stderr ? "" : $ansi_eunl;
+
+my $ast_path;
+my $skip_paging;
+my $quiet;
+my $debug_flag;
+
+my $program_name = $ast_utilities::COMMAND_PROGRAM;
+my $program_version = "$ast_utilities::ATLAS_SHELL_TOOLS_VERSION ($program_name program)";
+
+########## END GLOBAL INITIALIZATION ##########
+
+
+########## BEGIN SUBROUTINES ##########
+
+sub atlas_unrecognized_command_message_and_exit {
+    my $command = shift;
+    ast_utilities::error_output($program_name, "no such command ${bold_stderr}${command}${reset_stderr}");
+    print STDERR "Try '${bold_stderr}${program_name} --list${reset_stderr}' for a list of commands.\n";
+    print STDERR "Try '${bold_stderr}${program_name} --help${reset_stderr}' for more information.\n\n";
+
+    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
+    my @subcommands = keys %subcommand_classes;
+
+    # Determine the most similar command using Levenshtein distance
+    my $closest_command;
+    my $min_distance = undef;
+    foreach my $candidate_command (@subcommands) {
+        my $distance = ast_utilities::levenshtein($command, $candidate_command);
+        if (!defined $min_distance) {
+            $closest_command = $candidate_command;
+            $min_distance = $distance;
+        }
+        elsif ($distance < $min_distance) {
+            $closest_command = $candidate_command;
+            $min_distance = $distance;
+        }
+    }
+    print STDERR "The most similar command is: ${bold_stderr}${closest_command}${reset_stderr}\n";
+
+    exit 127;
+}
+
+sub atlas_show_contextual_help_menu_and_exit {
+    my $context = shift;
+    my $skip_paging = shift;
+    my $ast_path = shift;
+
+    unless (defined $skip_paging) {
+        $skip_paging = 0;
+    }
+
+    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
+    my $subcommand_class = $subcommand_classes{$context};
+
+    unless (defined $subcommand_class) {
+        atlas_unrecognized_command_message_and_exit($context);
+    }
+
+    my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
+    my @activated_modules = ast_module_subsystem::get_activated_modules(\%modules);
+    my $module = $activated_modules[0];
+    my $full_path_to_modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER, "$module" . $ast_module_subsystem::MODULE_SUFFIX);
+    my $full_path_to_log4j = File::Spec->catfile($ast_path, $ast_log_subsystem::LOG4J_FILE_PATH);
+
+    my @java_command = ();
+    push @java_command, 'java';
+    push @java_command, '-Xms2G';
+    push @java_command, '-Xmx2G';
+    push @java_command, '-cp';
+    push @java_command, "${full_path_to_modules_folder}";
+    push @java_command, "-Dlog4j.configuration=file:${full_path_to_log4j}";
+    push @java_command, "${subcommand_class}";
+    push @java_command, "--help";
+
+    if (ast_tty::is_no_colors_stdout()) {
+        push @java_command, "$ast_utilities::JAVA_NO_COLOR_STDOUT";
+    }
+    else {
+        push @java_command, "$ast_utilities::JAVA_COLOR_STDOUT";
+    }
+
+    if (ast_tty::is_no_colors_stderr()) {
+        push @java_command, "$ast_utilities::JAVA_NO_COLOR_STDERR";
+    }
+    else {
+        push @java_command, "$ast_utilities::JAVA_COLOR_STDERR";
+    }
+
+    push @java_command, "$ast_utilities::JAVA_NO_USE_PAGER";
+
+    my $terminal_width = ast_tty::terminal_width();
+    push @java_command, "$terminal_width";
+    push @java_command, "$ast_utilities::JAVA_MARKER_SENTINEL";
+
+    my @pager_command = ast_utilities::get_pager();
+
+    if ($debug_flag) {
+        print("Would execute JVM command:\n");
+        print("@java_command\n");
+        print("Then pipe into:\n");
+        print("@pager_command\n");
+        exit 0;
+    }
+
+    # NOTE: there is no easy way to prevent shell interference should the java
+    # command array contain only one element.
+    open JAVA, "-|", @java_command or die $!;
+    my $output = '';
+    while(<JAVA>) {
+        # Not the most efficient way to do things.
+        # Perhaps some kind of slurp is needed. File::Slurp could work but does
+        # have an outstanding Unicode bug. Need to investigate more.
+        $output = $output . $_;
+    }
+    close JAVA;
+
+    if ($skip_paging) {
+        print "$output";
+    }
+    else {
+        # NOTE: there is no easy way to prevent shell interference should the pager
+        # command array contain only one element.
+        open PAGER, "|-", @pager_command or die $!;
+        print PAGER "$output";
+        close PAGER;
+    }
+
+    exit 0;
+}
+
+sub atlas_show_class_of_and_exit {
+    my $ast_path = shift;
+    my $class_of = shift;
+
+    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
+    my $subcommand_class = $subcommand_classes{$class_of};
+
+    unless (defined $subcommand_class) {
+        atlas_unrecognized_command_message_and_exit($class_of);
+    }
+
+    print "$subcommand_class\n";
+    exit 0;
+}
+
+sub atlas_list_subcommands_and_exit {
+    my $ast_path = shift;
+    my $skip_paging = shift;
+
+    unless (defined $skip_paging) {
+        $skip_paging = 0;
+    }
+
+    my %subcommand_desc = ast_module_subsystem::get_subcommand_to_description_hash($ast_path);
+    my @pager_command = ast_utilities::get_pager();
+
+    if ($skip_paging) {
+        print "\n";
+        print "${bold_stdout}AVAILABLE COMMANDS${reset_stdout}\n";
+        print "See the help page for a command with ${bold_stdout}${program_name} --help <command>${reset_stdout}.\n\n";
+        foreach my $subcommand (sort {lc $a cmp lc $b} keys %subcommand_desc) {
+            print "    ${bold_stdout}$subcommand${reset_stdout}\n";
+            print "        $subcommand_desc{$subcommand}\n\n";
+        }
+        print "\n";
+    }
+    else {
+        # NOTE: there is no easy way to prevent shell interference should the pager
+        # command array contain only one element.
+        open PAGER, "|-", @pager_command or die $!;
+        print PAGER "${bold_stdout}AVAILABLE COMMANDS${reset_stdout}\n";
+        print PAGER "See the help page for a command with ${bold_stdout}${program_name} --help <command>${reset_stdout}.\n";
+        print PAGER "You can open a new page directly from this window with ${bold_stdout}!${program_name} --help <command>${reset_stdout}.\n\n";
+        foreach my $subcommand (sort {lc $a cmp lc $b} keys %subcommand_desc) {
+            print PAGER "    ${bold_stdout}$subcommand${reset_stdout}\n";
+            print PAGER "        $subcommand_desc{$subcommand}\n\n";
+        }
+        close PAGER;
+    }
+
+    exit 0;
+}
+
+########## END SUBROUTINES ##########
+
+
+########## BEGIN EXECUTION LOGIC ##########
+
+ast_utilities::verify_environment_or_exit();
+$ast_path = ast_utilities::create_data_directory();
+
+# Handle atlas global options. Global options are options that come before the
+# supplied subcommand. Subcommand options are handled by the command implementation.
+my $memory = '8G';
+my $help_argument;
+my $show_list;
+my $class_of;
+my $save_preset;
+my $use_preset;
+my $remove_preset;
+my $all_presets;
+my $show_preset;
+my $edit_preset;
+my $cfg_preset;
+my $allow_run_as_root;
+Getopt::Long::Configure(qw(no_ignore_case_always));
+GetOptions(
+    "no-pager" => \$skip_paging,
+    "memory|m=s" => \$memory,
+    "help|h:s" => \$help_argument,
+    "version|V" => sub { print "$program_version\n"; exit 0; },
+    "quiet|q" => \$quiet,
+    "list|l" => \$show_list,
+    "class-of=s" => \$class_of,
+    "preset|p=s" => \$use_preset,
+    "save-preset=s" => \$save_preset,
+    "debug" => \$debug_flag,
+    "allow-run-as-root" => \$allow_run_as_root,
+    # This callback occurs the first time we see a non-option argument.
+    # In our case, this will be the subcommand.
+    "<>" => sub {
+        my($arg) = @_;
+        if ($arg =~ m{^-}) {
+            unless ($arg eq '-') {
+                die "FATAL error: unhandled global option $arg";
+            }
+        }
+        # add the subcommand to the front of ARGV
+        unshift @ARGV, $arg;
+        die "!FINISH";
+    }
+) or ast_utilities::getopt_failure_and_exit($program_name);
+
+if (geteuid() == 0) {
+    unless (defined $allow_run_as_root) {
+        print STDERR "For security reasons, you are highly discouraged from running atlas-shell-tools\n";
+        print STDERR "as the root user. Atlas-shell-tools cannot guarantee that modules installed from\n";
+        print STDERR "external repositories are safe to run with root privileges.\n\n";
+        print STDERR "To disregard this warning and run as root anyway, please use the option:\n";
+        print STDERR "--allow-run-as-root\n\n";
+        exit 1;
+    }
+}
+
+# Handle the case where the user supplied a --help flag with no arg.
+# We can show this without doing any other verification.
+# Just display the man page and exit.
+if (defined $help_argument) {
+    if ($help_argument eq '') {
+        my @man_command = ast_utilities::get_man($skip_paging);
+        if (scalar @man_command == 0) {
+            ast_utilities::error_output($program_name, "could not obtain \'man\' command");
+            print STDERR "Please ensure a valid \'man\' command is on your path.\n";
+            exit 1;
+        }
+        my @command = ();
+        push @command, @man_command;
+        push @command, "$program_name";
+        system { $command[0] } @command;
+        my $exitcode = $? >> 8;
+        if ($exitcode != 0) {
+            exit 1;
+        }
+        exit 0;
+    }
+}
+
+my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
+my %modules_links = ast_module_subsystem::get_module_to_symlink_hash($ast_path);
+
+# If there are no modules, let's throw an error
+unless (keys %modules) {
+    ast_utilities::error_output($program_name, 'found no installed modules');
+    print STDERR "Try '${bold_stderr}${ast_utilities::CONFIG_PROGRAM} install /path/to/module.jar${reset_stderr}' to install a module.\n";
+    exit 1;
+}
+
+my @activated_modules = ast_module_subsystem::get_activated_modules(\%modules);
+
+# If there are modules but none are active, warn the user
+if (scalar @activated_modules == 0) {
+    ast_utilities::error_output($program_name, 'no activated module');
+    print STDERR "Try '${bold_stderr}${ast_utilities::CONFIG_PROGRAM} list${reset_stderr}' to see all installed modules.\n";
+    print STDERR "Then try '${bold_stderr}${ast_utilities::CONFIG_PROGRAM} activate <module>${reset_stderr}' to activate.\n";
+    exit 1;
+}
+
+# If the currently active module is a broken symlink, warn the user
+if ($modules_links{$activated_modules[0]} == $ast_module_subsystem::BROKEN_SYMLINK) {
+    ast_utilities::error_output($program_name, 'current active module is a broken symlink');
+    print STDERR "To see the link value, try '${bold_stderr}${ast_utilities::CONFIG_PROGRAM} list${reset_stderr}'.\n";
+    print STDERR "Fix the link, then run '${bold_stderr}${ast_utilities::CONFIG_PROGRAM} sync${reset_stderr}' to resolve.\n";
+    exit 1;
+}
+
+# If there is no active module index, warn the user
+my $index_path = File::Spec->catfile($ast_path, $ast_module_subsystem::ACTIVE_INDEX_PATH);
+unless (-f $index_path) {
+    ast_utilities::error_output($program_name, 'could not find active module index');
+    print STDERR "Try '${bold_stderr}${ast_utilities::CONFIG_PROGRAM} sync${reset_stderr}' to resolve.\n";
+    exit 1;
+}
+
+if ($debug_flag) {
+    print "---- ATLAS DEBUG MODE ----\n";
+}
+
+# Handle the case where the user supplied the cfg.preset arg. When this happens,
+# then any arg after it should be passed forward to the cfg.preset handler
+if (defined $cfg_preset) {
+    my $success = atlas_cfgpreset($debug_flag, \@ARGV);
+    unless ($success) {
+        exit 1;
+    }
+    exit 0;
+}
+
+# Handle case where user entered --help=TOPIC flag
+# We waited until after verifying that a command index exists
+if (defined $help_argument) {
+    unless ($help_argument eq '') {
+        atlas_show_contextual_help_menu_and_exit($help_argument, $skip_paging, $ast_path);
+    }
+}
+
+my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
+
+# Handle --class-of option
+if (defined $class_of) {
+    atlas_show_class_of_and_exit($ast_path, $class_of);
+}
+
+# Handle --list option
+if (defined $show_list) {
+    atlas_list_subcommands_and_exit($ast_path, $skip_paging);
+}
+
+# All global options have been processed, so shift the subcommand off of ARGV
+my $subcommand = shift @ARGV;
+
+unless (defined $subcommand) {
+    ast_utilities::error_output($program_name, "missing required command or option");
+    print STDERR "Try '${bold_stderr}${program_name} --list${reset_stderr}' for a list of commands.\n";
+    print STDERR "Try '${bold_stderr}${program_name} --help${reset_stderr}' for more information.\n";
+    exit 1;
+}
+
+my $subcommand_class = $subcommand_classes{$subcommand};
+
+# Case where the user entered an invalid subcommand
+unless (defined $subcommand_class) {
+    atlas_unrecognized_command_message_and_exit($subcommand);
+}
+
+# Set @new_argv to @ARGV for now. @new_argv will get overriden by an applied
+# preset if the user supplied one.
+my @new_argv = @ARGV;
+my $current_namespace = ast_preset_subsystem::get_namespace($ast_path);
+
+# Check if a preset is being saved or used. We check for preset application
+# first, and apply it if necessary. We then check for a preset save. This allows
+# users to easily extend presets they have already created by applying and
+# saving in a single step.
+if (defined $use_preset) {
+    @new_argv = ast_preset_subsystem::apply_preset_or_exit($ast_path, $program_name, $quiet, $use_preset, $subcommand, $current_namespace, \@ARGV);
+    if ($debug_flag) {
+        print "Applying preset ${use_preset} for ${subcommand} in namespace ${current_namespace}\n";
+        print "Try \'${bold_stdout}${ast_utilities::CONFIG_PROGRAM} preset list ${subcommand} ${use_preset}${reset_stdout}\' to see the preset.\n\n";
+    }
+}
+
+if (defined $save_preset) {
+    if ($debug_flag) {
+        print "Would save preset ${save_preset} for ${subcommand} to namespace ${current_namespace}\n";
+        print "Preset ARGV: \"@new_argv\"\n\n";
+    }
+    else {
+        my $success = ast_preset_subsystem::save_preset($ast_path, $program_name, $quiet, $save_preset, $subcommand, $current_namespace, \@new_argv);
+        unless ($success) {
+            exit 1;
+        }
+        print "Launching command ${bold_stdout}${subcommand}${reset_stdout}...\n\n";
+    }
+}
+
+# Set up the subcommand to execute using the JVM
+my $module = $activated_modules[0];
+my $full_path_to_modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER, "$module" . $ast_module_subsystem::MODULE_SUFFIX);
+my $full_path_to_log4j = File::Spec->catfile($ast_path, $ast_log_subsystem::LOG4J_FILE_PATH);
+
+my @java_command = ();
+push @java_command, "java";
+push @java_command, "-Xms$memory";
+push @java_command, "-Xmx$memory";
+push @java_command, "-cp";
+push @java_command, "${full_path_to_modules_folder}";
+push @java_command, "-Dlog4j.configuration=file:${full_path_to_log4j}";
+push @java_command, "${subcommand_class}";
+
+# Surround each arg in quotes in case it contains whitespace
+foreach my $arg (@new_argv) {
+    push @java_command, "$arg";
+}
+
+# Append the special TTY formatting sentinel arguments
+if (ast_tty::is_no_colors_stdout()) {
+    push @java_command, "${ast_utilities::JAVA_NO_COLOR_STDOUT}";
+}
+else {
+    push @java_command, "${ast_utilities::JAVA_COLOR_STDOUT}";
+}
+
+if (ast_tty::is_no_colors_stderr()) {
+    push @java_command, "${ast_utilities::JAVA_NO_COLOR_STDERR}";
+}
+else {
+    push @java_command, "${ast_utilities::JAVA_COLOR_STDERR}";
+}
+
+if ($skip_paging) {
+    push @java_command, "${ast_utilities::JAVA_NO_USE_PAGER}";
+}
+else {
+    push @java_command, "${ast_utilities::JAVA_USE_PAGER}";
+}
+
+my $terminal_width = ast_tty::terminal_width();
+push @java_command, "${terminal_width}";
+push @java_command, "${ast_utilities::JAVA_MARKER_SENTINEL}";
+
+if ($debug_flag) {
+    print("Would execute JVM command:\n");
+    print("@java_command\n");
+    exit 0;
+}
+
+# Here we use system's indirect object syntax to correctly handle all possible
+# edge cases regarding the configuration of @java_command.
+# See bottom of page: http://perldoc.perl.org/functions/exec.html
+system { $java_command[0] } @java_command;
+my $exitcode = $? >> 8;
+exit $exitcode;
+
+
+########## END EXECUTION LOGIC ##########

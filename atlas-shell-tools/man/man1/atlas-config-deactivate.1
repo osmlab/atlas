@@ -1,0 +1,64 @@
+.\"     Title: atlas-config-deactivate
+.\"    Author: Lucas Cram
+.\"    Source: atlas-shell-tools 0.0.1
+.\"  Language: English
+.\"
+.TH "ATLAS-CONFIG-DEACTIVATE" "1" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+
+.SH "NAME"
+.sp
+atlas\-config\-deactivate \-- Deactivate an installed Atlas Shell Tools module
+
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIatlas-config deactivate\fR \-\-help
+\fIatlas-config deactivate\fR <\fImodule\fR>
+.fi
+
+.SH "DESCRIPTION"
+.sp
+Deactivate the provided <\fImodule\fR>. Commands defined in a deactivated module
+cannot be run by the \fBatlas\fR tool until the module is reactivated.
+Deactivating a module will also prevent the commands from showing in the
+\fBatlas\fR tool command list.
+
+.SH "OPTIONS"
+.sp
+
+.PP
+<\fImodule\fR>
+.RS 4
+This indicates a module. The module should be referred to using its name, as
+reported by \fBatlas-config-list\fR(1).
+.RE
+
+.PP
+\fB\-\-help\fR
+.RS 4
+Show this help menu.
+.RE
+
+.SH "SEE ALSO"
+.sp
+\fBatlas\-config\fR(1), \fBatlas\-config\-activate\fR(1)
+
+.SH "ATLAS SHELL TOOLS"
+.sp
+Part of the \fBatlas\-shell\-tools\fR(7) suite
+
