@@ -42,8 +42,9 @@ public final class ComplexAreaOfInterest extends ComplexEntity
     private static List<TaggableFilter> defaultTaggableFilter;
 
     /**
-     * This method creates a {@link ComplexAreaOfInterest} for the specified {@link AtlasEntity} if it meets
-     * the requirements for Complex AOI relation. The AOI tags are checked against the default tags.
+     * This method creates a {@link ComplexAreaOfInterest} for the specified {@link AtlasEntity} if
+     * it meets the requirements for Complex AOI relation. The AOI tags are checked against the
+     * default tags.
      *
      * @param source
      *            The {@link AtlasEntity} for which the ComplexEntity is created
@@ -51,7 +52,7 @@ public final class ComplexAreaOfInterest extends ComplexEntity
      */
     public static Optional<ComplexAreaOfInterest> getComplexAOI(final AtlasEntity source)
     {
-        return getComplexAOI(source,  customAoiFilter -> false);
+        return getComplexAOI(source, customAoiFilter -> false);
     }
 
     /**
