@@ -82,6 +82,12 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private static final int VERSION_OPTION_CONTEXT_ID = 2;
     private static final int DEFAULT_CONTEXT_ID = 3;
 
+    /*
+     * Maximum allowed column width. If the user's terminal is very wide, we don't want to display
+     * documentation all the way to the max column, since it may become hard to read.
+     */
+    private static final int MAXIMUM_ALLOWED_COLUMN = 225;
+
     private final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
     private final DocumentationRegistrar registrar = new DocumentationRegistrar();
 
@@ -667,6 +673,10 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
                 this.usePager = false;
             }
             this.maximumColumn = Integer.parseInt(terminalColumnArg);
+            if (this.maximumColumn > MAXIMUM_ALLOWED_COLUMN)
+            {
+                this.maximumColumn = MAXIMUM_ALLOWED_COLUMN;
+            }
             argsCopy = Arrays.copyOf(argsCopy, argsCopy.length - NUMBER_SENTINELS);
         }
 
