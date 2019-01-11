@@ -4,6 +4,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -14,6 +15,7 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.complex.ComplexEntity;
 import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
+import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.tags.filters.TaggableFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +32,9 @@ import com.google.gson.JsonParser;
  *
  * @author sayas01
  */
-public final class ComplexAOI extends ComplexEntity
+public final class ComplexAreaOfInterest extends ComplexEntity
 {
-    private static final Logger logger = LoggerFactory.getLogger(ComplexAOI.class);
+    private static final Logger logger = LoggerFactory.getLogger(ComplexAreaOfInterest.class);
     private static final RelationOrAreaToMultiPolygonConverter RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter();
     private static final String AOI_RESOURCE = "aoi-tag-filter.json";
     private MultiPolygon multiPolygon;
@@ -40,33 +42,20 @@ public final class ComplexAOI extends ComplexEntity
     private static List<TaggableFilter> defaultTaggableFilter;
 
     /**
-     * This method creates a {@link ComplexAOI} for the specified {@link AtlasEntity} if it meets
+     * This method creates a {@link ComplexAreaOfInterest} for the specified {@link AtlasEntity} if it meets
      * the requirements for Complex AOI relation. The AOI tags are checked against the default tags.
      *
      * @param source
      *            The {@link AtlasEntity} for which the ComplexEntity is created
-     * @return {@link ComplexAOI} if created, else return empty.
+     * @return {@link ComplexAreaOfInterest} if created, else return empty.
      */
-    public static Optional<ComplexAOI> getComplexAOI(final AtlasEntity source)
+    public static Optional<ComplexAreaOfInterest> getComplexAOI(final AtlasEntity source)
     {
-        try
-        {
-            if (defaultTaggableFilter == null)
-            {
-                computeDefaultFilter();
-            }
-            return (source instanceof Relation || source instanceof Area) && hasAOITag(source)
-                    ? Optional.of(new ComplexAOI(source)) : Optional.empty();
-        }
-        catch (final Exception exception)
-        {
-            logger.warn("Unable to create complex AOI relations from {}", source, exception);
-            return Optional.empty();
-        }
+        return getComplexAOI(source,  customAoiFilter -> false);
     }
 
     /**
-     * This method creates a {@link ComplexAOI} for the specified {@link AtlasEntity} and
+     * This method creates a {@link ComplexAreaOfInterest} for the specified {@link AtlasEntity} and
      * {@link TaggableFilter}. The AOI tags are checked against the aoiFilter param as well as the
      * default tags.
      *
@@ -75,10 +64,10 @@ public final class ComplexAOI extends ComplexEntity
      * @param aoiFilter
      *            The {@link TaggableFilter} of AOI tags against which the relation is checked for
      *            AOI tags
-     * @return {@link ComplexAOI} if created, else return empty.
+     * @return {@link ComplexAreaOfInterest} if created, else return empty.
      */
-    public static Optional<ComplexAOI> getComplexAOI(final AtlasEntity source,
-            final TaggableFilter aoiFilter)
+    public static Optional<ComplexAreaOfInterest> getComplexAOI(final AtlasEntity source,
+            final Predicate<Taggable> aoiFilter)
     {
         try
         {
@@ -86,9 +75,9 @@ public final class ComplexAOI extends ComplexEntity
             {
                 computeDefaultFilter();
             }
-            return (source instanceof Relation || source instanceof Area)
-                    && (hasAOITag(source) || aoiFilter.test(source))
-                            ? Optional.of(new ComplexAOI(source)) : Optional.empty();
+            return ((source instanceof Relation || source instanceof Area)
+                    && (hasAOITag(source) || aoiFilter.test(source)))
+                            ? Optional.of(new ComplexAreaOfInterest(source)) : Optional.empty();
         }
         catch (final Exception exception)
         {
@@ -100,7 +89,7 @@ public final class ComplexAOI extends ComplexEntity
     private static void computeDefaultFilter()
     {
         try (InputStreamReader reader = new InputStreamReader(
-                ComplexAOI.class.getResourceAsStream(AOI_RESOURCE)))
+                ComplexAreaOfInterest.class.getResourceAsStream(AOI_RESOURCE)))
         {
             final JsonElement element = new JsonParser().parse(reader);
             final JsonArray filters = element.getAsJsonObject().get("filters").getAsJsonArray();
@@ -130,12 +119,12 @@ public final class ComplexAOI extends ComplexEntity
     }
 
     /**
-     * Construct a {@link ComplexAOI}
+     * Construct a {@link ComplexAreaOfInterest}
      *
      * @param source
      *            the {@link AtlasEntity} to construct the ComplexAoiRelation
      */
-    private ComplexAOI(final AtlasEntity source)
+    private ComplexAreaOfInterest(final AtlasEntity source)
     {
         super(source);
         try
@@ -144,8 +133,8 @@ public final class ComplexAOI extends ComplexEntity
         }
         catch (final Exception exception)
         {
-            setInvalidReason("Unable to convert Relation to MultiPolygon", exception);
-            throw new CoreException("Unable to convert Relation to MultiPolygon", exception);
+            setInvalidReason("Unable to convert the AtlasEntity to MultiPolygon", exception);
+            throw new CoreException("Unable to convert the AtlasEntity to MultiPolygon", exception);
         }
     }
 
@@ -174,7 +163,7 @@ public final class ComplexAOI extends ComplexEntity
     @Override
     public boolean equals(final Object other)
     {
-        return other instanceof ComplexAOI && super.equals(other);
+        return other instanceof ComplexAreaOfInterest && super.equals(other);
     }
 
     @Override

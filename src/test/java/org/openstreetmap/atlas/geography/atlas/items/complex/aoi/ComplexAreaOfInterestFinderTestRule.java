@@ -13,11 +13,11 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation.Member;
 
 /**
- * Test data for {@link ComplexAOIFinderTest}
+ * Test data for {@link ComplexAreaOfInterestFinderTest}
  *
  * @author sayas01
  */
-public class ComplexAOIFinderTestRule extends CoreTestRule
+public class ComplexAreaOfInterestFinderTestRule extends CoreTestRule
 {
     private static final String LOCATION_ONE = "1.43958970913, 103.91306306772";
     private static final String LOCATION_TWO = "1.42773565932, 103.90488839864";
