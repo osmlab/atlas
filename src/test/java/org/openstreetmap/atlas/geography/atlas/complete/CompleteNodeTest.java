@@ -21,10 +21,10 @@ import org.openstreetmap.atlas.utilities.collections.Sets;
 /**
  * @author matthieun
  */
-public class BloatedNodeTest
+public class CompleteNodeTest
 {
     @Rule
-    public BloatedTestRule rule = new BloatedTestRule();
+    public CompleteTestRule rule = new CompleteTestRule();
 
     @Test
     public void testBloatedEquals()

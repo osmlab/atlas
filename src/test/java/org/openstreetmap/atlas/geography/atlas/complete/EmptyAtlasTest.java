@@ -14,7 +14,7 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 /**
  * @author matthieun
  */
-public class BloatedAtlasTest
+public class EmptyAtlasTest
 {
     @Test
     public void testAssignment()

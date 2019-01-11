@@ -15,7 +15,7 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation.Member;
 /**
  * @author matthieun
  */
-public class BloatedTestRule extends CoreTestRule
+public class CompleteTestRule extends CoreTestRule
 {
     public static final String POINT_1_LOCATION = "37.331417,-122.0304871";
     public static final String POINT_2_LOCATION = "37.333364,-122.0200268";
