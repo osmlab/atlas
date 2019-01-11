@@ -1,1 +1,6 @@
-TODO placeholder
+Soft cut an atlas along a polygon:
+#$ subatlas --wkt='POLYGON((-61 15,-61 16,-60 16,-60 15,-61 15))' file.atlas 
+Hard cut an atlas along a polygon:
+#$ subatlas --wkt='POLYGON((-61 15,-61 16,-60 16,-60 15,-61 15))' --cut-type=HARD_CUT file.atlas
+Hard cut all atlases in a directory, in parallel:
+#$ subatlas --wkt='POLYGON((-61 15,-61 16,-60 16,-60 15,-61 15))' --parallel --cut-type=HARD_CUT dir/*.atlas
