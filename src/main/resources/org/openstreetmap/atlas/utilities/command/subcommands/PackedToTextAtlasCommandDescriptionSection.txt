@@ -1,0 +1,9 @@
+Transform a PackedAtlas (or multiple PackedAtlases) into a TextAtlas (or multiple TextAtlases).
+By default, the created text atlas files will be written to the current working directory.
+The names of the new text atlas files will be the same as the input files, but with an extra
+'.txt' extension.
+
+To save as GeoJSON instead of using the TextAtlas format, use the '--geojson' option.
+You can use line-delimited GeoJSON instead with '--ldgeojson'. Line-delimited GeoJSON
+is much easier to read, since the regular GeoJSON format is all on one line. When using
+GeoJSON, the new text atlas files will be created with the extra extension '.geojson'.
