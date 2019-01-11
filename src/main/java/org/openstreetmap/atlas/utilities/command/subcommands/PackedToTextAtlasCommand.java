@@ -55,7 +55,7 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     }
 
     @Override
-    public int execute() // NOSONAR
+    public int execute()
     {
         final List<File> atlasResourceList = this.getInputAtlasResources();
         if (atlasResourceList.isEmpty())

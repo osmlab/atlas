@@ -207,8 +207,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
             }
         }
         /*
-         * NOSONAR TODO handle more geometry types? e.g. MultiPoint, MultiLineString, and
-         * MultiPolygon?
+         * TODO handle more geometry types? e.g. MultiPoint, MultiLineString, and MultiPolygon?
          */
         else
         {

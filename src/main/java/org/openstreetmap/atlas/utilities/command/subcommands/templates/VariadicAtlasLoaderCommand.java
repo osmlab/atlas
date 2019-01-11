@@ -68,13 +68,11 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
             }
         });
 
-        if (this.optargDelegate.hasOption(STRICT_OPTION_LONG))
+        if (this.optargDelegate.hasOption(STRICT_OPTION_LONG)
+                && atlasResourceList.size() != inputAtlasPaths.size())
         {
-            if (atlasResourceList.size() != inputAtlasPaths.size()) // NOSONAR
-            {
-                this.outputDelegate.printlnErrorMessage("terminating due to missing atlas");
-                return new ArrayList<>();
-            }
+            this.outputDelegate.printlnErrorMessage("terminating due to missing atlas");
+            return new ArrayList<>();
         }
 
         if (atlasResourceList.isEmpty())

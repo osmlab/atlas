@@ -635,49 +635,14 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      * @param args
      *            the command arguments
      */
-    protected void runSubcommandAndExit(final String... args) // NOSONAR
+    protected void runSubcommandAndExit(final String... args)
     {
         throwIfInvalidNameOrDescription();
 
-        String[] argsCopy = args;
-
-        // check the last arg to see if we should check for other tail arguments
-        if (argsCopy.length > 0 && JAVA_MARKER_SENTINEL.equals(argsCopy[argsCopy.length - 1]))
+        String[] argsCopy = unpackTailSentinelArguments(args);
+        if (argsCopy == null)
         {
-            final String stdoutColorArg = argsCopy[argsCopy.length - STDOUT_COLOR_OFFSET];
-            final String stderrColorArg = argsCopy[argsCopy.length - STDERR_COLOR_OFFSET];
-            final String usePagerArg = argsCopy[argsCopy.length - PAGER_OFFSET];
-            final String terminalColumnArg = argsCopy[argsCopy.length - TERMINAL_COLUMN_OFFSET];
-            if (JAVA_COLOR_STDOUT.equals(stdoutColorArg))
-            {
-                this.useColorStdout = true;
-            }
-            else if (JAVA_NO_COLOR_STDOUT.equals(stdoutColorArg))
-            {
-                this.useColorStdout = false;
-            }
-            if (JAVA_COLOR_STDERR.equals(stderrColorArg))
-            {
-                this.useColorStderr = true;
-            }
-            else if (JAVA_NO_COLOR_STDERR.equals(stderrColorArg))
-            {
-                this.useColorStderr = false;
-            }
-            if (JAVA_USE_PAGER.equals(usePagerArg))
-            {
-                this.usePager = true;
-            }
-            else if (JAVA_NO_USE_PAGER.equals(usePagerArg))
-            {
-                this.usePager = false;
-            }
-            this.maximumColumn = Integer.parseInt(terminalColumnArg);
-            if (this.maximumColumn > MAXIMUM_ALLOWED_COLUMN)
-            {
-                this.maximumColumn = MAXIMUM_ALLOWED_COLUMN;
-            }
-            argsCopy = Arrays.copyOf(argsCopy, argsCopy.length - NUMBER_SENTINELS);
+            argsCopy = args;
         }
 
         // fill out appropriate data structures so the execute() implementation can query
@@ -807,5 +772,48 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
                 builder);
 
         printlnStderr(builder.toString());
+    }
+
+    private String[] unpackTailSentinelArguments(final String[] args)
+    {
+        // check the last arg to see if we should check for other tail arguments
+        if (args.length > 0 && JAVA_MARKER_SENTINEL.equals(args[args.length - 1]))
+        {
+            final String stdoutColorArg = args[args.length - STDOUT_COLOR_OFFSET];
+            final String stderrColorArg = args[args.length - STDERR_COLOR_OFFSET];
+            final String usePagerArg = args[args.length - PAGER_OFFSET];
+            final String terminalColumnArg = args[args.length - TERMINAL_COLUMN_OFFSET];
+            if (JAVA_COLOR_STDOUT.equals(stdoutColorArg))
+            {
+                this.useColorStdout = true;
+            }
+            else if (JAVA_NO_COLOR_STDOUT.equals(stdoutColorArg))
+            {
+                this.useColorStdout = false;
+            }
+            if (JAVA_COLOR_STDERR.equals(stderrColorArg))
+            {
+                this.useColorStderr = true;
+            }
+            else if (JAVA_NO_COLOR_STDERR.equals(stderrColorArg))
+            {
+                this.useColorStderr = false;
+            }
+            if (JAVA_USE_PAGER.equals(usePagerArg))
+            {
+                this.usePager = true;
+            }
+            else if (JAVA_NO_USE_PAGER.equals(usePagerArg))
+            {
+                this.usePager = false;
+            }
+            this.maximumColumn = Integer.parseInt(terminalColumnArg);
+            if (this.maximumColumn > MAXIMUM_ALLOWED_COLUMN)
+            {
+                this.maximumColumn = MAXIMUM_ALLOWED_COLUMN;
+            }
+            return Arrays.copyOf(args, args.length - NUMBER_SENTINELS);
+        }
+        return null;
     }
 }

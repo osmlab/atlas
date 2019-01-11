@@ -71,56 +71,53 @@ public class ActiveModuleIndexWriter
         final Set<AbstractAtlasShellToolsCommand> commands = ReflectionUtilities
                 .getSubcommandInstances();
         final Set<String> namesWeHaveAlreadySeen = new HashSet<>();
-        final PrintWriter printWriter;
-        try
+
+        try (PrintWriter printWriter = new PrintWriter(new FileWriter(this.outputPath)))
         {
-            printWriter = new PrintWriter(new FileWriter(this.outputPath)); // NOSONAR
+            // print a line break
+            diagnosticIfVerbose("");
+
+            for (final AbstractAtlasShellToolsCommand command : commands)
+            {
+                diagnosticIfVerbose("Found command definition in " + command.getClass().getName());
+                diagnosticIfVerbose("Validating command definition...");
+
+                // validate the command name and description
+                command.throwIfInvalidNameOrDescription();
+
+                // Validate the command options/args/manpage - will throw if something is awry
+                command.registerOptionsAndArguments();
+                command.registerManualPageSections();
+
+                diagnosticIfVerbose("Generating index entry...");
+                final StringBuilder builder = new StringBuilder();
+                String name = command.getCommandName();
+                String nameWithSuffix = name;
+                int uniqueSuffix = 2;
+
+                while (namesWeHaveAlreadySeen.contains(nameWithSuffix))
+                {
+                    nameWithSuffix = name + uniqueSuffix;
+                    uniqueSuffix++;
+                }
+                name = nameWithSuffix;
+
+                builder.append(name);
+                namesWeHaveAlreadySeen.add(name);
+                builder.append(DELIMITER);
+                builder.append(command.getClass().getName());
+                builder.append(DELIMITER);
+                builder.append(command.getSimpleDescription());
+                printWriter.println(builder.toString());
+                diagnosticIfVerbose("Command " + command.getCommandName() + " registered OK.");
+
+                // print a line break
+                diagnosticIfVerbose("");
+            }
         }
         catch (final IOException exception)
         {
             throw new CoreException("Could not write index", exception);
         }
-
-        // print a line break
-        diagnosticIfVerbose("");
-
-        for (final AbstractAtlasShellToolsCommand command : commands)
-        {
-            diagnosticIfVerbose("Found command definition in " + command.getClass().getName());
-            diagnosticIfVerbose("Validating command definition...");
-
-            // validate the command name and description
-            command.throwIfInvalidNameOrDescription();
-
-            // Validate the command options/args/manpage - will throw if something is awry
-            command.registerOptionsAndArguments();
-            command.registerManualPageSections();
-
-            diagnosticIfVerbose("Generating index entry...");
-            final StringBuilder builder = new StringBuilder();
-            String name = command.getCommandName();
-            String nameWithSuffix = name;
-            int uniqueSuffix = 2;
-
-            while (namesWeHaveAlreadySeen.contains(nameWithSuffix))
-            {
-                nameWithSuffix = name + uniqueSuffix;
-                uniqueSuffix++;
-            }
-            name = nameWithSuffix;
-
-            builder.append(name);
-            namesWeHaveAlreadySeen.add(name);
-            builder.append(DELIMITER);
-            builder.append(command.getClass().getName());
-            builder.append(DELIMITER);
-            builder.append(command.getSimpleDescription());
-            printWriter.println(builder.toString());
-            diagnosticIfVerbose("Command " + command.getCommandName() + " registered OK.");
-
-            // print a line break
-            diagnosticIfVerbose("");
-        }
-        printWriter.close();
     }
 }
