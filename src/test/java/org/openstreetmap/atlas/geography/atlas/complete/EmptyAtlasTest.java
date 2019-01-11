@@ -2,13 +2,6 @@ package org.openstreetmap.atlas.geography.atlas.complete;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
-import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
-import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
-import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
-import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
-import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
-import org.openstreetmap.atlas.geography.atlas.complete.EmptyAtlas;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 
 /**

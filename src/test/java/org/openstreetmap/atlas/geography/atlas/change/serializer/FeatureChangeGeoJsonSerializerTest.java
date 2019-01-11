@@ -117,7 +117,8 @@ public class FeatureChangeGeoJsonSerializerTest
     @Test
     public void testNullNodeSerialization()
     {
-        final CompleteNode item = new CompleteNode(123L, Location.COLOSSEUM, null, null, null, null);
+        final CompleteNode item = new CompleteNode(123L, Location.COLOSSEUM, null, null, null,
+                null);
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, item);
         assertEquals(featureChange, "serializedNodeNull.json");
     }
@@ -154,8 +155,8 @@ public class FeatureChangeGeoJsonSerializerTest
     @Test
     public void testRemoveEdgeSerialization()
     {
-        final CompleteEdge item = CompleteEdge
-                .shallowFrom(new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, null, null, null));
+        final CompleteEdge item = CompleteEdge.shallowFrom(
+                new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, null, null, null));
         final FeatureChange featureChange = new FeatureChange(ChangeType.REMOVE, item);
         assertEquals(featureChange, "serializedEdgeRemove.json");
     }
@@ -193,8 +194,8 @@ public class FeatureChangeGeoJsonSerializerTest
         final RelationBean members = new RelationBean();
         members.addItem(456L, "role1", ItemType.EDGE);
         members.addItem(789L, "role2", ItemType.AREA);
-        final CompleteRelation temporary = new CompleteRelation(123L, null, Rectangle.TEST_RECTANGLE,
-                members, null, null, null, null);
+        final CompleteRelation temporary = new CompleteRelation(123L, null,
+                Rectangle.TEST_RECTANGLE, members, null, null, null, null);
         final CompleteRelation item = CompleteRelation.shallowFrom(temporary);
         final FeatureChange featureChange = new FeatureChange(ChangeType.REMOVE, item);
         assertEquals(featureChange, "serializedRelationRemove.json");

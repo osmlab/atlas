@@ -382,8 +382,8 @@ public final class AtlasDiffHelper
                 bloatedEntity = point;
                 break;
             case RELATION:
-                final CompleteRelation relation = CompleteRelation.shallowFrom((Relation) afterEntity)
-                        .withTags(afterEntity.getTags());
+                final CompleteRelation relation = CompleteRelation
+                        .shallowFrom((Relation) afterEntity).withTags(afterEntity.getTags());
                 bloatedEntity = relation;
                 break;
             default:

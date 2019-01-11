@@ -75,8 +75,8 @@ public class AtlasChangeGeneratorAddTurnRestrictions implements AtlasChangeGener
                                         .withRelationIdentifiers(mergeRelationMembers(
                                                 inEdge.relations(), relationIdentifier))));
                     }
-                    result.add(
-                            FeatureChange.add(CompleteNode.shallowFrom(node).withRelationIdentifiers(
+                    result.add(FeatureChange
+                            .add(CompleteNode.shallowFrom(node).withRelationIdentifiers(
                                     mergeRelationMembers(node.relations(), relationIdentifier))));
                     result.add(FeatureChange.add(CompleteEdge.shallowFrom(outEdge)
                             .withRelationIdentifiers(mergeRelationMembers(outEdge.relations(),

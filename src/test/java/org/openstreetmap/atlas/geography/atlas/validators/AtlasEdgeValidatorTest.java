@@ -73,7 +73,8 @@ public class AtlasEdgeValidatorTest
                     @Override
                     public Node start()
                     {
-                        return new CompleteNode(456L, Location.EIFFEL_TOWER, null, null, null, null);
+                        return new CompleteNode(456L, Location.EIFFEL_TOWER, null, null, null,
+                                null);
                     }
                 });
             }

@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.utilities.collections.Maps;
@@ -32,8 +31,8 @@ public class CompleteEdgeTest
                 null);
         final CompleteEdge edge22 = new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, null, null,
                 null);
-        final CompleteEdge edge23 = new CompleteEdge(123L, Polygon.SILICON_VALLEY_2, null, null, null,
-                null);
+        final CompleteEdge edge23 = new CompleteEdge(123L, Polygon.SILICON_VALLEY_2, null, null,
+                null, null);
         final CompleteEdge edge31 = new CompleteEdge(123L, null, Maps.hashMap("key", "value"), null,
                 null, null);
         final CompleteEdge edge32 = new CompleteEdge(123L, null, Maps.hashMap("key", "value"), null,
@@ -43,7 +42,8 @@ public class CompleteEdgeTest
                 Sets.hashSet(1L, 2L));
         final CompleteEdge edge42 = new CompleteEdge(123L, null, null, null, null,
                 Sets.hashSet(1L, 2L));
-        final CompleteEdge edge43 = new CompleteEdge(123L, null, null, null, null, Sets.hashSet(1L));
+        final CompleteEdge edge43 = new CompleteEdge(123L, null, null, null, null,
+                Sets.hashSet(1L));
         final CompleteEdge edge51 = new CompleteEdge(123L, null, null, 1L, null, null);
         final CompleteEdge edge52 = new CompleteEdge(123L, null, null, 1L, null, null);
         final CompleteEdge edge53 = new CompleteEdge(123L, null, null, 2L, null, null);

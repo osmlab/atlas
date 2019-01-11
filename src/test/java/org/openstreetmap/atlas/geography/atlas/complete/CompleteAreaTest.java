@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.utilities.collections.Maps;
@@ -31,8 +30,10 @@ public class CompleteAreaTest
         final CompleteArea area21 = new CompleteArea(123L, Polygon.SILICON_VALLEY, null, null);
         final CompleteArea area22 = new CompleteArea(123L, Polygon.SILICON_VALLEY, null, null);
         final CompleteArea area23 = new CompleteArea(123L, Polygon.SILICON_VALLEY_2, null, null);
-        final CompleteArea area31 = new CompleteArea(123L, null, Maps.hashMap("key", "value"), null);
-        final CompleteArea area32 = new CompleteArea(123L, null, Maps.hashMap("key", "value"), null);
+        final CompleteArea area31 = new CompleteArea(123L, null, Maps.hashMap("key", "value"),
+                null);
+        final CompleteArea area32 = new CompleteArea(123L, null, Maps.hashMap("key", "value"),
+                null);
         final CompleteArea area33 = new CompleteArea(123L, null, Maps.hashMap(), null);
         final CompleteArea area41 = new CompleteArea(123L, null, null, Sets.hashSet(1L, 2L));
         final CompleteArea area42 = new CompleteArea(123L, null, null, Sets.hashSet(1L, 2L));

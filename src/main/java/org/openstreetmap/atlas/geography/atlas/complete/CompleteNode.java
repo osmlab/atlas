@@ -71,7 +71,8 @@ public class CompleteNode extends Node implements CompleteEntity
      */
     public static CompleteNode shallowFrom(final Node node)
     {
-        return new CompleteNode(node.getIdentifier()).withInitialBounds(node.getLocation().bounds());
+        return new CompleteNode(node.getIdentifier())
+                .withInitialBounds(node.getLocation().bounds());
     }
 
     CompleteNode(final long identifier)

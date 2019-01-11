@@ -159,10 +159,10 @@ public class FeatureChangeTest
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("Cannot merge two feature changes");
 
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, new CompleteLine(123L,
-                new PolyLine(Location.COLOSSEUM, Location.EIFFEL_TOWER), null, null));
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, new CompleteLine(123L,
-                new PolyLine(Location.EIFFEL_TOWER, Location.COLOSSEUM), null, null));
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, new CompleteLine(
+                123L, new PolyLine(Location.COLOSSEUM, Location.EIFFEL_TOWER), null, null));
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, new CompleteLine(
+                123L, new PolyLine(Location.EIFFEL_TOWER, Location.COLOSSEUM), null, null));
         featureChange1.merge(featureChange2);
     }
 

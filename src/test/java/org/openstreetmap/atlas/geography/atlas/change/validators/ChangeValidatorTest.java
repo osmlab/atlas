@@ -47,8 +47,8 @@ public class ChangeValidatorTest
         final ChangeBuilder builder = new ChangeBuilder();
         builder.add(new FeatureChange(ChangeType.ADD,
                 new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, null, null, null)));
-        builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(-123L, PolyLine.TEST_POLYLINE.reversed(), null, null, null, null)));
+        builder.add(new FeatureChange(ChangeType.ADD, new CompleteEdge(-123L,
+                PolyLine.TEST_POLYLINE.reversed(), null, null, null, null)));
         builder.get();
     }
 

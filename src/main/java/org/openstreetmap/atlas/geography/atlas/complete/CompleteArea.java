@@ -55,8 +55,8 @@ public class CompleteArea extends Area implements CompleteEntity
         this(identifier, null, null, null);
     }
 
-    public CompleteArea(final Long identifier, final Polygon polygon, final Map<String, String> tags,
-            final Set<Long> relationIdentifiers)
+    public CompleteArea(final Long identifier, final Polygon polygon,
+            final Map<String, String> tags, final Set<Long> relationIdentifiers)
     {
         super(new EmptyAtlas());
 

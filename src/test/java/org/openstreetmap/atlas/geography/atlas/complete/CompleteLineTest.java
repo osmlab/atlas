@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.utilities.collections.Maps;
@@ -31,8 +30,10 @@ public class CompleteLineTest
         final CompleteLine line21 = new CompleteLine(123L, PolyLine.TEST_POLYLINE, null, null);
         final CompleteLine line22 = new CompleteLine(123L, PolyLine.TEST_POLYLINE, null, null);
         final CompleteLine line23 = new CompleteLine(123L, Polygon.SILICON_VALLEY_2, null, null);
-        final CompleteLine line31 = new CompleteLine(123L, null, Maps.hashMap("key", "value"), null);
-        final CompleteLine line32 = new CompleteLine(123L, null, Maps.hashMap("key", "value"), null);
+        final CompleteLine line31 = new CompleteLine(123L, null, Maps.hashMap("key", "value"),
+                null);
+        final CompleteLine line32 = new CompleteLine(123L, null, Maps.hashMap("key", "value"),
+                null);
         final CompleteLine line33 = new CompleteLine(123L, null, Maps.hashMap(), null);
         final CompleteLine line41 = new CompleteLine(123L, null, null, Sets.hashSet(1L, 2L));
         final CompleteLine line42 = new CompleteLine(123L, null, null, Sets.hashSet(1L, 2L));

@@ -11,7 +11,6 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -46,17 +45,20 @@ public class CompleteNodeTest
                 Sets.hashSet(1L, 2L));
         final CompleteNode node42 = new CompleteNode(123L, null, null, null, null,
                 Sets.hashSet(1L, 2L));
-        final CompleteNode node43 = new CompleteNode(123L, null, null, null, null, Sets.hashSet(1L));
+        final CompleteNode node43 = new CompleteNode(123L, null, null, null, null,
+                Sets.hashSet(1L));
         final CompleteNode node51 = new CompleteNode(123L, null, null, Sets.treeSet(1L, 2L), null,
                 null);
         final CompleteNode node52 = new CompleteNode(123L, null, null, Sets.treeSet(1L, 2L), null,
                 null);
-        final CompleteNode node53 = new CompleteNode(123L, null, null, Sets.treeSet(1L), null, null);
+        final CompleteNode node53 = new CompleteNode(123L, null, null, Sets.treeSet(1L), null,
+                null);
         final CompleteNode node61 = new CompleteNode(123L, null, null, null, Sets.treeSet(1L, 2L),
                 null);
         final CompleteNode node62 = new CompleteNode(123L, null, null, null, Sets.treeSet(1L, 2L),
                 null);
-        final CompleteNode node63 = new CompleteNode(123L, null, null, null, Sets.treeSet(1L), null);
+        final CompleteNode node63 = new CompleteNode(123L, null, null, null, Sets.treeSet(1L),
+                null);
 
         Assert.assertEquals(node11, node12);
         Assert.assertEquals(node21, node22);

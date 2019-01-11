@@ -258,8 +258,8 @@ public class CompleteRelation extends Relation implements CompleteEntity
     /**
      * Assign this {@link CompleteRelation} with members.
      * <p>
-     * In case this {@link CompleteRelation} is created from an existing relation, and the new member
-     * list has had some existing members removed, use
+     * In case this {@link CompleteRelation} is created from an existing relation, and the new
+     * member list has had some existing members removed, use
      * {@link #withMembersAndSource(RelationBean, Relation, Rectangle)}
      *
      * @param members
@@ -278,8 +278,8 @@ public class CompleteRelation extends Relation implements CompleteEntity
     /**
      * Assign this {@link CompleteRelation} with members.
      * <p>
-     * In case this {@link CompleteRelation} is created from an existing relation, and the new member
-     * list has had some existing members removed, use
+     * In case this {@link CompleteRelation} is created from an existing relation, and the new
+     * member list has had some existing members removed, use
      * {@link #withMembersAndSource(RelationMemberList, Relation)}
      *
      * @param members
