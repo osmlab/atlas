@@ -73,8 +73,6 @@ import org.slf4j.LoggerFactory;
  */
 public class SimpleOptionAndArgumentParser
 {
-    private static final String MUST_REGISTER_AT_LEAST_ONE_CONTEXT = "Must register at least one context.";
-
     /**
      * A simple option representation. Store the option long/short form as well as metadata about
      * the option.
@@ -208,6 +206,8 @@ public class SimpleOptionAndArgumentParser
         }
     }
 
+    private static final String MUST_REGISTER_AT_LEAST_ONE_CONTEXT = "Must register at least one context.";
+
     private static final String PROVIDED_OPTION_LONG_FORM_WAS_AMBIGUOUS = "provided option long form {} was ambiguous";
     private static final String CANNOT_GET_OPTIONS_BEFORE_PARSING = "Cannot get options before parsing!";
 
@@ -287,7 +287,8 @@ public class SimpleOptionAndArgumentParser
     }
 
     /**
-     * Get the argument of a given option, if present.
+     * Get the argument of a given option, if present. If the option is not a registered option,
+     * this will throw an exception.
      *
      * @param longForm
      *            the long form of the option
@@ -297,22 +298,14 @@ public class SimpleOptionAndArgumentParser
      */
     public Optional<String> getOptionArgument(final String longForm)
     {
-        if (!this.parseStepRanAtLeastOnce)
-        {
-            throw new CoreException(CANNOT_GET_OPTIONS_BEFORE_PARSING);
-        }
         final Optional<SimpleOption> option;
         try
         {
-            if (!registeredOptionForLongForm(this.currentContext, longForm).isPresent())
-            {
-                throw new CoreException("{} not a registered option", longForm);
-            }
             option = getParsedOptionFromLongForm(longForm);
         }
-        catch (final AmbiguousAbbreviationException exception)
+        catch (final UnknownOptionException exception)
         {
-            throw new CoreException(PROVIDED_OPTION_LONG_FORM_WAS_AMBIGUOUS, longForm);
+            throw new CoreException("{} not a registered option", longForm);
         }
         if (option.isPresent())
         {
@@ -324,7 +317,8 @@ public class SimpleOptionAndArgumentParser
     /**
      * Get the argument of a given option, if present. Also, convert it using the supplied
      * converter. If the converter function returns null, then this method will return
-     * {@link Optional#empty()}.
+     * {@link Optional#empty()}. If the option is not a registered option, this will throw an
+     * exception.
      *
      * @param <T>
      *            the type to convert to
@@ -339,22 +333,14 @@ public class SimpleOptionAndArgumentParser
     public <T> Optional<T> getOptionArgument(final String longForm,
             final StringConverter<T> converter)
     {
-        if (!this.parseStepRanAtLeastOnce)
-        {
-            throw new CoreException(CANNOT_GET_OPTIONS_BEFORE_PARSING);
-        }
         final Optional<SimpleOption> option;
         try
         {
-            if (!registeredOptionForLongForm(this.currentContext, longForm).isPresent())
-            {
-                throw new CoreException("{} not a registered option", longForm);
-            }
             option = getParsedOptionFromLongForm(longForm);
         }
-        catch (final AmbiguousAbbreviationException exception)
+        catch (final UnknownOptionException exception)
         {
-            throw new CoreException(PROVIDED_OPTION_LONG_FORM_WAS_AMBIGUOUS, longForm);
+            throw new CoreException("{} not a registered option", longForm);
         }
         if (option.isPresent())
         {
@@ -468,32 +454,23 @@ public class SimpleOptionAndArgumentParser
 
     /**
      * Check if a given long form option was supplied. This will return true even if only the short
-     * form was actually present on the command line.
+     * form was actually present on the command line. If the option is not a registered option, this
+     * will return false.
      *
      * @param longForm
      *            the long form option
      * @return if the option was supplied
-     * @throws CoreException
-     *             if longForm does not refer to a registered option
      */
     public boolean hasOption(final String longForm)
     {
-        if (!this.parseStepRanAtLeastOnce)
-        {
-            throw new CoreException(CANNOT_GET_OPTIONS_BEFORE_PARSING);
-        }
-        final Optional<SimpleOption> option;
+        Optional<SimpleOption> option;
         try
         {
-            if (!registeredOptionForLongForm(this.currentContext, longForm).isPresent())
-            {
-                return false;
-            }
             option = getParsedOptionFromLongForm(longForm);
         }
-        catch (final AmbiguousAbbreviationException exception)
+        catch (final UnknownOptionException exception)
         {
-            throw new CoreException(PROVIDED_OPTION_LONG_FORM_WAS_AMBIGUOUS, longForm);
+            option = Optional.empty();
         }
         return option.isPresent();
     }
@@ -937,9 +914,26 @@ public class SimpleOptionAndArgumentParser
     }
 
     private Optional<SimpleOption> getParsedOptionFromLongForm(final String longForm)
-            throws AmbiguousAbbreviationException
+            throws UnknownOptionException
     {
-        return checkForLongOption(longForm, this.parsedOptions.keySet(), false);
+        if (!this.parseStepRanAtLeastOnce)
+        {
+            throw new CoreException(CANNOT_GET_OPTIONS_BEFORE_PARSING);
+        }
+        final Optional<SimpleOption> option;
+        try
+        {
+            if (!registeredOptionForLongForm(this.currentContext, longForm).isPresent())
+            {
+                throw new UnknownOptionException(longForm);
+            }
+            option = checkForLongOption(longForm, this.parsedOptions.keySet(), false);
+        }
+        catch (final AmbiguousAbbreviationException exception)
+        {
+            throw new CoreException(PROVIDED_OPTION_LONG_FORM_WAS_AMBIGUOUS, longForm);
+        }
+        return option;
     }
 
     /*

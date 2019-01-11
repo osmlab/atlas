@@ -35,7 +35,7 @@ public class UnknownOptionException extends Exception
         {
             return Optional.empty();
         }
-        return Optional.of(", did you mean " + closestOption + "?");
+        return Optional.of(", did you mean \'" + closestOption + "\'?");
     }
 
     private static int levenshtein(final String string1, final String string2)
