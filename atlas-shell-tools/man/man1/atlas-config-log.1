@@ -1,0 +1,104 @@
+.\"     Title: atlas-config-log
+.\"    Author: Lucas Cram
+.\"    Source: atlas-shell-tools 0.0.1
+.\"  Language: English
+.\"
+.TH "ATLAS-CONFIG-LOG" "1" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+
+.SH "NAME"
+.sp
+atlas\-config\-log \-- Check or set Atlas Shell Tools log parameters
+
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIatlas\-config\fR \fIlog\fR \-\-help
+\fIatlas\-config\fR \fIlog\fR reset
+\fIatlas\-config\fR \fIlog\fR set\-level <new\-level>
+\fIatlas\-config\fR \fIlog\fR set\-stream <new\-stream>
+\fIatlas\-config\fR \fIlog\fR show
+.fi
+
+.SH "DESCRIPTION"
+.sp
+Use this command to check or set the current log parameters. Under the hood,
+this command is a shortcut for modifying the \fBatlas\fR log4j configuration
+file. It expects that file to follow a well-defined format. For best
+results, avoid manually updating the configuration file.
+
+.SH "OPTIONS"
+.sp
+.PP
+\fB\-\-help\fR
+.RS 4
+Show this help menu.
+.RE
+
+.SH "DIRECTIVES"
+\fBatlas\-config\-log\fR(1) exposes its interface through various directives,
+detailed below.
+.sp
+
+.PP
+\fIreset\fR
+.RS 4
+Reset the log parameters to default, i.e. level=\fBERROR\fR and stream=\fBstderr\fR.
+This is equivalent to running \fBatlas\-config reset log\fR.
+.RE
+
+.PP
+\fIset\-level\fR
+.RS 4
+Set the current logging level to <new\-level>.
+Valid log levels: \fBALL\fR, \fBTRACE\fR, \fBDEBUG\fR, \fBINFO\fR, \fBWARN\fR, \fBERROR\fR, \fBFATAL\fR, and \fBOFF\fR.
+.RE
+
+.PP
+\fIset\-stream\fR
+.RS 4
+Set the current logging stream to <new\-stream>.
+Valid stream settings: \fBstdout\fR and \fBstderr\fR.
+.RE
+
+.PP
+\fIshow\fR
+.RS 4
+Show the current log settings.
+.RE
+
+.SH "EXAMPLES"
+.sp
+Set the log level to \fBINFO\fR:
+.sp
+.RS 4
+$ atlas\-config log set\-level INFO
+.RE
+.sp
+Show the log parameters:
+.sp
+.RS 4
+$ atlas\-config log show
+.RE
+
+.SH "SEE ALSO"
+.sp
+\fBatlas\-config\fR(1)
+
+.SH "ATLAS SHELL TOOLS"
+.sp
+Part of the \fBatlas\-shell\-tools\fR(7) suite

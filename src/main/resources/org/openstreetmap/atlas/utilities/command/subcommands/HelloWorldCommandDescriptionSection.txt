@@ -1,0 +1,2 @@
+Prints a simple greeting. The greeting can be personalized with the
+'--name' option.
