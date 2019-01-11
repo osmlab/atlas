@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.bloated;
+package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.Map;
 import java.util.SortedSet;
@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -28,34 +29,34 @@ public class BloatedNodeTest
     @Test
     public void testBloatedEquals()
     {
-        final BloatedNode node11 = new BloatedNode(123L, null, null, null, null, null);
-        final BloatedNode node12 = new BloatedNode(123L, null, null, null, null, null);
-        final BloatedNode node21 = new BloatedNode(123L, Location.COLOSSEUM, null, null, null,
+        final CompleteNode node11 = new CompleteNode(123L, null, null, null, null, null);
+        final CompleteNode node12 = new CompleteNode(123L, null, null, null, null, null);
+        final CompleteNode node21 = new CompleteNode(123L, Location.COLOSSEUM, null, null, null,
                 null);
-        final BloatedNode node22 = new BloatedNode(123L, Location.COLOSSEUM, null, null, null,
+        final CompleteNode node22 = new CompleteNode(123L, Location.COLOSSEUM, null, null, null,
                 null);
-        final BloatedNode node23 = new BloatedNode(123L, Location.EIFFEL_TOWER, null, null, null,
+        final CompleteNode node23 = new CompleteNode(123L, Location.EIFFEL_TOWER, null, null, null,
                 null);
-        final BloatedNode node31 = new BloatedNode(123L, null, Maps.hashMap("key", "value"), null,
+        final CompleteNode node31 = new CompleteNode(123L, null, Maps.hashMap("key", "value"), null,
                 null, null);
-        final BloatedNode node32 = new BloatedNode(123L, null, Maps.hashMap("key", "value"), null,
+        final CompleteNode node32 = new CompleteNode(123L, null, Maps.hashMap("key", "value"), null,
                 null, null);
-        final BloatedNode node33 = new BloatedNode(123L, null, Maps.hashMap(), null, null, null);
-        final BloatedNode node41 = new BloatedNode(123L, null, null, null, null,
+        final CompleteNode node33 = new CompleteNode(123L, null, Maps.hashMap(), null, null, null);
+        final CompleteNode node41 = new CompleteNode(123L, null, null, null, null,
                 Sets.hashSet(1L, 2L));
-        final BloatedNode node42 = new BloatedNode(123L, null, null, null, null,
+        final CompleteNode node42 = new CompleteNode(123L, null, null, null, null,
                 Sets.hashSet(1L, 2L));
-        final BloatedNode node43 = new BloatedNode(123L, null, null, null, null, Sets.hashSet(1L));
-        final BloatedNode node51 = new BloatedNode(123L, null, null, Sets.treeSet(1L, 2L), null,
+        final CompleteNode node43 = new CompleteNode(123L, null, null, null, null, Sets.hashSet(1L));
+        final CompleteNode node51 = new CompleteNode(123L, null, null, Sets.treeSet(1L, 2L), null,
                 null);
-        final BloatedNode node52 = new BloatedNode(123L, null, null, Sets.treeSet(1L, 2L), null,
+        final CompleteNode node52 = new CompleteNode(123L, null, null, Sets.treeSet(1L, 2L), null,
                 null);
-        final BloatedNode node53 = new BloatedNode(123L, null, null, Sets.treeSet(1L), null, null);
-        final BloatedNode node61 = new BloatedNode(123L, null, null, null, Sets.treeSet(1L, 2L),
+        final CompleteNode node53 = new CompleteNode(123L, null, null, Sets.treeSet(1L), null, null);
+        final CompleteNode node61 = new CompleteNode(123L, null, null, null, Sets.treeSet(1L, 2L),
                 null);
-        final BloatedNode node62 = new BloatedNode(123L, null, null, null, Sets.treeSet(1L, 2L),
+        final CompleteNode node62 = new CompleteNode(123L, null, null, null, Sets.treeSet(1L, 2L),
                 null);
-        final BloatedNode node63 = new BloatedNode(123L, null, null, null, Sets.treeSet(1L), null);
+        final CompleteNode node63 = new CompleteNode(123L, null, null, null, Sets.treeSet(1L), null);
 
         Assert.assertEquals(node11, node12);
         Assert.assertEquals(node21, node22);
@@ -81,7 +82,7 @@ public class BloatedNodeTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Node source = atlas.node(1);
-        final BloatedNode result = BloatedNode.from(source);
+        final CompleteNode result = CompleteNode.from(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         Assert.assertEquals(source.getLocation(), result.getLocation());
@@ -108,7 +109,7 @@ public class BloatedNodeTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Node source = atlas.node(1);
-        final BloatedNode result = BloatedNode.shallowFrom(source);
+        final CompleteNode result = CompleteNode.shallowFrom(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         result.withLocation(Location.CENTER);

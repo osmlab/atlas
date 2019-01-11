@@ -1,7 +1,14 @@
-package org.openstreetmap.atlas.geography.atlas.bloated;
+package org.openstreetmap.atlas.geography.atlas.complete;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
+import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
+import org.openstreetmap.atlas.geography.atlas.complete.EmptyAtlas;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 
 /**
@@ -13,27 +20,27 @@ public class BloatedAtlasTest
     public void testAssignment()
     {
         Assert.assertTrue(
-                new BloatedNode(123).equals(new BloatedAtlas().entity(123, ItemType.NODE)));
+                new CompleteNode(123).equals(new EmptyAtlas().entity(123, ItemType.NODE)));
         Assert.assertTrue(
-                new BloatedEdge(123).equals(new BloatedAtlas().entity(123, ItemType.EDGE)));
+                new CompleteEdge(123).equals(new EmptyAtlas().entity(123, ItemType.EDGE)));
         Assert.assertTrue(
-                new BloatedArea(123).equals(new BloatedAtlas().entity(123, ItemType.AREA)));
+                new CompleteArea(123).equals(new EmptyAtlas().entity(123, ItemType.AREA)));
         Assert.assertTrue(
-                new BloatedLine(123).equals(new BloatedAtlas().entity(123, ItemType.LINE)));
+                new CompleteLine(123).equals(new EmptyAtlas().entity(123, ItemType.LINE)));
         Assert.assertTrue(
-                new BloatedPoint(123).equals(new BloatedAtlas().entity(123, ItemType.POINT)));
+                new CompletePoint(123).equals(new EmptyAtlas().entity(123, ItemType.POINT)));
         Assert.assertTrue(
-                new BloatedRelation(123).equals(new BloatedAtlas().entity(123, ItemType.RELATION)));
+                new CompleteRelation(123).equals(new EmptyAtlas().entity(123, ItemType.RELATION)));
     }
 
     @SuppressWarnings("unlikely-arg-type")
     @Test
     public void testMemberEquality()
     {
-        final BloatedPoint point1 = new BloatedPoint(123);
-        final BloatedPoint point11 = new BloatedPoint(123);
-        final BloatedPoint point2 = new BloatedPoint(124);
-        final BloatedArea area = new BloatedArea(777);
+        final CompletePoint point1 = new CompletePoint(123);
+        final CompletePoint point11 = new CompletePoint(123);
+        final CompletePoint point2 = new CompletePoint(124);
+        final CompleteArea area = new CompleteArea(777);
 
         Assert.assertTrue(point1.equals(point11));
         Assert.assertFalse(point1.equals(point2));

@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.bloated;
+package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
@@ -37,51 +38,51 @@ public class BloatedRelationTest
         final List<Long> allRelationsWithSameOsmIdentifier2 = new ArrayList<>();
         allRelationsWithSameOsmIdentifier2.add(789L);
 
-        final BloatedRelation relation11 = new BloatedRelation(123L, null, null, null, null, null,
+        final CompleteRelation relation11 = new CompleteRelation(123L, null, null, null, null, null,
                 null, null);
-        final BloatedRelation relation12 = new BloatedRelation(123L, null, null, null, null, null,
+        final CompleteRelation relation12 = new CompleteRelation(123L, null, null, null, null, null,
                 null, null);
-        final BloatedRelation relation21 = new BloatedRelation(123L, null,
+        final CompleteRelation relation21 = new CompleteRelation(123L, null,
                 Polygon.SILICON_VALLEY.bounds(), null, null, null, null, null);
-        final BloatedRelation relation22 = new BloatedRelation(123L, null,
+        final CompleteRelation relation22 = new CompleteRelation(123L, null,
                 Polygon.SILICON_VALLEY.bounds(), null, null, null, null, null);
-        final BloatedRelation relation23 = new BloatedRelation(123L, null,
+        final CompleteRelation relation23 = new CompleteRelation(123L, null,
                 Polygon.SILICON_VALLEY_2.bounds(), null, null, null, null, null);
-        final BloatedRelation relation31 = new BloatedRelation(123L, Maps.hashMap("key", "value"),
+        final CompleteRelation relation31 = new CompleteRelation(123L, Maps.hashMap("key", "value"),
                 null, null, null, null, null, null);
-        final BloatedRelation relation32 = new BloatedRelation(123L, Maps.hashMap("key", "value"),
+        final CompleteRelation relation32 = new CompleteRelation(123L, Maps.hashMap("key", "value"),
                 null, null, null, null, null, null);
-        final BloatedRelation relation33 = new BloatedRelation(123L, Maps.hashMap(), null, null,
+        final CompleteRelation relation33 = new CompleteRelation(123L, Maps.hashMap(), null, null,
                 null, null, null, null);
-        final BloatedRelation relation41 = new BloatedRelation(123L, null, null, null, null, null,
+        final CompleteRelation relation41 = new CompleteRelation(123L, null, null, null, null, null,
                 null, Sets.hashSet(1L, 2L));
-        final BloatedRelation relation42 = new BloatedRelation(123L, null, null, null, null, null,
+        final CompleteRelation relation42 = new CompleteRelation(123L, null, null, null, null, null,
                 null, Sets.hashSet(1L, 2L));
-        final BloatedRelation relation43 = new BloatedRelation(123L, null, null, null, null, null,
+        final CompleteRelation relation43 = new CompleteRelation(123L, null, null, null, null, null,
                 null, Sets.hashSet(1L));
-        final BloatedRelation relation51 = new BloatedRelation(123L, null, null, members1, null,
+        final CompleteRelation relation51 = new CompleteRelation(123L, null, null, members1, null,
                 null, null, null);
-        final BloatedRelation relation52 = new BloatedRelation(123L, null, null, members1, null,
+        final CompleteRelation relation52 = new CompleteRelation(123L, null, null, members1, null,
                 null, null, null);
-        final BloatedRelation relation53 = new BloatedRelation(123L, null, null, members2, null,
+        final CompleteRelation relation53 = new CompleteRelation(123L, null, null, members2, null,
                 null, null, null);
-        final BloatedRelation relation61 = new BloatedRelation(123L, null, null, null,
+        final CompleteRelation relation61 = new CompleteRelation(123L, null, null, null,
                 allRelationsWithSameOsmIdentifier1, null, null, null);
-        final BloatedRelation relation62 = new BloatedRelation(123L, null, null, null,
+        final CompleteRelation relation62 = new CompleteRelation(123L, null, null, null,
                 allRelationsWithSameOsmIdentifier1, null, null, null);
-        final BloatedRelation relation63 = new BloatedRelation(123L, null, null, null,
+        final CompleteRelation relation63 = new CompleteRelation(123L, null, null, null,
                 allRelationsWithSameOsmIdentifier2, null, null, null);
-        final BloatedRelation relation71 = new BloatedRelation(123L, null, null, null, null,
+        final CompleteRelation relation71 = new CompleteRelation(123L, null, null, null, null,
                 members1, null, null);
-        final BloatedRelation relation72 = new BloatedRelation(123L, null, null, null, null,
+        final CompleteRelation relation72 = new CompleteRelation(123L, null, null, null, null,
                 members1, null, null);
-        final BloatedRelation relation73 = new BloatedRelation(123L, null, null, null, null,
+        final CompleteRelation relation73 = new CompleteRelation(123L, null, null, null, null,
                 members2, null, null);
-        final BloatedRelation relation81 = new BloatedRelation(123L, null, null, null, null, null,
+        final CompleteRelation relation81 = new CompleteRelation(123L, null, null, null, null, null,
                 456L, null);
-        final BloatedRelation relation82 = new BloatedRelation(123L, null, null, null, null, null,
+        final CompleteRelation relation82 = new CompleteRelation(123L, null, null, null, null, null,
                 456L, null);
-        final BloatedRelation relation83 = new BloatedRelation(123L, null, null, null, null, null,
+        final CompleteRelation relation83 = new CompleteRelation(123L, null, null, null, null, null,
                 789L, null);
 
         Assert.assertEquals(relation11, relation12);
@@ -112,7 +113,7 @@ public class BloatedRelationTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Relation source = atlas.relation(22);
-        final BloatedRelation result = BloatedRelation.from(source);
+        final CompleteRelation result = CompleteRelation.from(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         Assert.assertEquals(source.members().asBean(), result.members().asBean());
@@ -131,7 +132,7 @@ public class BloatedRelationTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Relation source = atlas.relation(22);
-        final BloatedRelation result = BloatedRelation.shallowFrom(source);
+        final CompleteRelation result = CompleteRelation.shallowFrom(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         result.withMembersAndSource(new RelationMemberList(source.members()), source);

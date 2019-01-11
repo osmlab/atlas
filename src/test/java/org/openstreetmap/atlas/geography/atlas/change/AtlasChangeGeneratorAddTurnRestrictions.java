@@ -8,10 +8,10 @@ import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedEdge;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
@@ -61,30 +61,30 @@ public class AtlasChangeGeneratorAddTurnRestrictions implements AtlasChangeGener
                         parentBounds = Rectangle.forLocated(parentBounds, bounds);
                     }
                     parentMembers.addItem(relationIdentifier, "addition", ItemType.RELATION);
-                    result.add(FeatureChange.add(new BloatedRelation(relationIdentifier,
+                    result.add(FeatureChange.add(new CompleteRelation(relationIdentifier,
                             Maps.hashMap("type", "restriction", "restriction", "no_left_turn"),
                             bounds, members, Lists.newArrayList(relationIdentifier), members,
                             relationIdentifier, Sets.hashSet(parentRelationIdentifier))));
                     result.add(FeatureChange
-                            .add(BloatedEdge.shallowFrom(inEdge).withRelationIdentifiers(
+                            .add(CompleteEdge.shallowFrom(inEdge).withRelationIdentifiers(
                                     mergeRelationMembers(inEdge.relations(), relationIdentifier))));
                     if (inEdge.hasReverseEdge())
                     {
                         result.add(
-                                FeatureChange.add(BloatedEdge.shallowFrom(inEdge.reversed().get())
+                                FeatureChange.add(CompleteEdge.shallowFrom(inEdge.reversed().get())
                                         .withRelationIdentifiers(mergeRelationMembers(
                                                 inEdge.relations(), relationIdentifier))));
                     }
                     result.add(
-                            FeatureChange.add(BloatedNode.shallowFrom(node).withRelationIdentifiers(
+                            FeatureChange.add(CompleteNode.shallowFrom(node).withRelationIdentifiers(
                                     mergeRelationMembers(node.relations(), relationIdentifier))));
-                    result.add(FeatureChange.add(BloatedEdge.shallowFrom(outEdge)
+                    result.add(FeatureChange.add(CompleteEdge.shallowFrom(outEdge)
                             .withRelationIdentifiers(mergeRelationMembers(outEdge.relations(),
                                     relationIdentifier))));
                     if (outEdge.hasReverseEdge())
                     {
                         result.add(
-                                FeatureChange.add(BloatedEdge.shallowFrom(outEdge.reversed().get())
+                                FeatureChange.add(CompleteEdge.shallowFrom(outEdge.reversed().get())
                                         .withRelationIdentifiers(mergeRelationMembers(
                                                 outEdge.relations(), relationIdentifier))));
                     }
@@ -99,7 +99,7 @@ public class AtlasChangeGeneratorAddTurnRestrictions implements AtlasChangeGener
         }
         if (!result.isEmpty())
         {
-            result.add(FeatureChange.add(new BloatedRelation(parentRelationIdentifier,
+            result.add(FeatureChange.add(new CompleteRelation(parentRelationIdentifier,
                     Maps.hashMap("name", "parent_of_new_restrictions"), parentBounds, parentMembers,
                     Lists.newArrayList(parentRelationIdentifier), parentMembers,
                     parentRelationIdentifier, Sets.hashSet())));

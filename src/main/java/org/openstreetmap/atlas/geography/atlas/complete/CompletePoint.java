@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.bloated;
+package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.Map;
 import java.util.Objects;
@@ -16,7 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  *
  * @author matthieun
  */
-public class BloatedPoint extends Point implements BloatedEntity
+public class CompletePoint extends Point implements CompleteEntity
 {
     private static final long serialVersionUID = 309534717673911086L;
 
@@ -39,27 +39,27 @@ public class BloatedPoint extends Point implements BloatedEntity
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
 
-    public static BloatedPoint from(final Point point)
+    public static CompletePoint from(final Point point)
     {
-        return new BloatedPoint(point.getIdentifier(), point.getLocation(), point.getTags(), point
+        return new CompletePoint(point.getIdentifier(), point.getLocation(), point.getTags(), point
                 .relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
-    public static BloatedPoint shallowFrom(final Point point)
+    public static CompletePoint shallowFrom(final Point point)
     {
-        return new BloatedPoint(point.getIdentifier())
+        return new CompletePoint(point.getIdentifier())
                 .withInitialBounds(point.getLocation().bounds());
     }
 
-    BloatedPoint(final long identifier)
+    CompletePoint(final long identifier)
     {
         this(identifier, null, null, null);
     }
 
-    public BloatedPoint(final Long identifier, final Location location,
+    public CompletePoint(final Long identifier, final Location location,
             final Map<String, String> tags, final Set<Long> relationIdentifiers)
     {
-        super(new BloatedAtlas());
+        super(new EmptyAtlas());
 
         if (identifier == null)
         {
@@ -84,10 +84,10 @@ public class BloatedPoint extends Point implements BloatedEntity
     @Override
     public boolean equals(final Object other)
     {
-        if (other instanceof BloatedPoint)
+        if (other instanceof CompletePoint)
         {
-            final BloatedPoint that = (BloatedPoint) other;
-            return BloatedEntity.basicEqual(this, that)
+            final CompletePoint that = (CompletePoint) other;
+            return CompleteEntity.basicEqual(this, that)
                     && Objects.equals(this.getLocation(), that.getLocation());
         }
         return false;
@@ -127,7 +127,7 @@ public class BloatedPoint extends Point implements BloatedEntity
     public Set<Relation> relations()
     {
         return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(BloatedRelation::new)
+                : this.relationIdentifiers.stream().map(CompleteRelation::new)
                         .collect(Collectors.toSet());
     }
 
@@ -138,12 +138,12 @@ public class BloatedPoint extends Point implements BloatedEntity
                 + ", tags=" + this.tags + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
-    public BloatedPoint withAddedTag(final String key, final String value)
+    public CompletePoint withAddedTag(final String key, final String value)
     {
-        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+        return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
-    public BloatedPoint withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    public CompletePoint withAggregateBoundsExtendedUsing(final Rectangle bounds)
     {
         if (this.aggregateBounds == null)
         {
@@ -153,13 +153,13 @@ public class BloatedPoint extends Point implements BloatedEntity
         return this;
     }
 
-    public BloatedPoint withIdentifier(final long identifier)
+    public CompletePoint withIdentifier(final long identifier)
     {
         this.identifier = identifier;
         return this;
     }
 
-    public BloatedPoint withLocation(final Location location)
+    public CompletePoint withLocation(final Location location)
     {
         this.location = location;
         if (this.originalBounds == null)
@@ -170,37 +170,37 @@ public class BloatedPoint extends Point implements BloatedEntity
         return this;
     }
 
-    public BloatedPoint withRelationIdentifiers(final Set<Long> relationIdentifiers)
+    public CompletePoint withRelationIdentifiers(final Set<Long> relationIdentifiers)
     {
         this.relationIdentifiers = relationIdentifiers;
         return this;
     }
 
-    public BloatedPoint withRelations(final Set<Relation> relations)
+    public CompletePoint withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
         return this;
     }
 
-    public BloatedPoint withRemovedTag(final String key)
+    public CompletePoint withRemovedTag(final String key)
     {
-        return withTags(BloatedEntity.removeTag(getTags(), key));
+        return withTags(CompleteEntity.removeTag(getTags(), key));
     }
 
-    public BloatedPoint withReplacedTag(final String oldKey, final String newKey,
+    public CompletePoint withReplacedTag(final String oldKey, final String newKey,
             final String newValue)
     {
         return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
     }
 
-    public BloatedPoint withTags(final Map<String, String> tags)
+    public CompletePoint withTags(final Map<String, String> tags)
     {
         this.tags = tags;
         return this;
     }
 
-    private BloatedPoint withInitialBounds(final Rectangle bounds)
+    private CompletePoint withInitialBounds(final Rectangle bounds)
     {
         this.originalBounds = bounds;
         this.aggregateBounds = bounds;

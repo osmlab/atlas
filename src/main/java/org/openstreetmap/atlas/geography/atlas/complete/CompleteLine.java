@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.bloated;
+package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.Map;
 import java.util.Objects;
@@ -16,7 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  *
  * @author matthieun
  */
-public class BloatedLine extends Line implements BloatedEntity
+public class CompleteLine extends Line implements CompleteEntity
 {
     private static final long serialVersionUID = 309534717673911086L;
 
@@ -39,26 +39,26 @@ public class BloatedLine extends Line implements BloatedEntity
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
 
-    public static BloatedLine from(final Line line)
+    public static CompleteLine from(final Line line)
     {
-        return new BloatedLine(line.getIdentifier(), line.asPolyLine(), line.getTags(),
+        return new CompleteLine(line.getIdentifier(), line.asPolyLine(), line.getTags(),
                 line.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
-    public static BloatedLine shallowFrom(final Line line)
+    public static CompleteLine shallowFrom(final Line line)
     {
-        return new BloatedLine(line.getIdentifier()).withInitialBounds(line.asPolyLine().bounds());
+        return new CompleteLine(line.getIdentifier()).withInitialBounds(line.asPolyLine().bounds());
     }
 
-    BloatedLine(final long identifier)
+    CompleteLine(final long identifier)
     {
         this(identifier, null, null, null);
     }
 
-    public BloatedLine(final Long identifier, final PolyLine polyLine,
+    public CompleteLine(final Long identifier, final PolyLine polyLine,
             final Map<String, String> tags, final Set<Long> relationIdentifiers)
     {
-        super(new BloatedAtlas());
+        super(new EmptyAtlas());
 
         if (identifier == null)
         {
@@ -89,10 +89,10 @@ public class BloatedLine extends Line implements BloatedEntity
     @Override
     public boolean equals(final Object other)
     {
-        if (other instanceof BloatedLine)
+        if (other instanceof CompleteLine)
         {
-            final BloatedLine that = (BloatedLine) other;
-            return BloatedEntity.basicEqual(this, that)
+            final CompleteLine that = (CompleteLine) other;
+            return CompleteEntity.basicEqual(this, that)
                     && Objects.equals(this.asPolyLine(), that.asPolyLine());
         }
         return false;
@@ -126,7 +126,7 @@ public class BloatedLine extends Line implements BloatedEntity
     public Set<Relation> relations()
     {
         return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(BloatedRelation::new)
+                : this.relationIdentifiers.stream().map(CompleteRelation::new)
                         .collect(Collectors.toSet());
     }
 
@@ -137,12 +137,12 @@ public class BloatedLine extends Line implements BloatedEntity
                 + ", tags=" + this.tags + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
-    public BloatedLine withAddedTag(final String key, final String value)
+    public CompleteLine withAddedTag(final String key, final String value)
     {
-        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+        return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
-    public BloatedLine withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    public CompleteLine withAggregateBoundsExtendedUsing(final Rectangle bounds)
     {
         if (this.aggregateBounds == null)
         {
@@ -152,13 +152,13 @@ public class BloatedLine extends Line implements BloatedEntity
         return this;
     }
 
-    public BloatedLine withIdentifier(final long identifier)
+    public CompleteLine withIdentifier(final long identifier)
     {
         this.identifier = identifier;
         return this;
     }
 
-    public BloatedLine withPolyLine(final PolyLine polyLine)
+    public CompleteLine withPolyLine(final PolyLine polyLine)
     {
         this.polyLine = polyLine;
         if (this.originalBounds == null)
@@ -169,37 +169,37 @@ public class BloatedLine extends Line implements BloatedEntity
         return this;
     }
 
-    public BloatedLine withRelationIdentifiers(final Set<Long> relationIdentifiers)
+    public CompleteLine withRelationIdentifiers(final Set<Long> relationIdentifiers)
     {
         this.relationIdentifiers = relationIdentifiers;
         return this;
     }
 
-    public BloatedLine withRelations(final Set<Relation> relations)
+    public CompleteLine withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
         return this;
     }
 
-    public BloatedLine withRemovedTag(final String key)
+    public CompleteLine withRemovedTag(final String key)
     {
-        return withTags(BloatedEntity.removeTag(getTags(), key));
+        return withTags(CompleteEntity.removeTag(getTags(), key));
     }
 
-    public BloatedLine withReplacedTag(final String oldKey, final String newKey,
+    public CompleteLine withReplacedTag(final String oldKey, final String newKey,
             final String newValue)
     {
         return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
     }
 
-    public BloatedLine withTags(final Map<String, String> tags)
+    public CompleteLine withTags(final Map<String, String> tags)
     {
         this.tags = tags;
         return this;
     }
 
-    private BloatedLine withInitialBounds(final Rectangle bounds)
+    private CompleteLine withInitialBounds(final Rectangle bounds)
     {
         this.originalBounds = bounds;
         this.aggregateBounds = bounds;

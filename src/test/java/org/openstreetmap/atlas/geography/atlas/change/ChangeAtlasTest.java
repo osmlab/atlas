@@ -13,13 +13,13 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedArea;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedEdge;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedLine;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedPoint;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
+import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
@@ -62,10 +62,10 @@ public class ChangeAtlasTest
                 Distance.ONE_METER);
         final Location end = newPolyLine.last();
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD,
-                BloatedEdge.shallowFrom(source).withPolyLine(newPolyLine));
+                CompleteEdge.shallowFrom(source).withPolyLine(newPolyLine));
         changeBuilder.add(featureChange);
         changeBuilder.add(new FeatureChange(ChangeType.ADD,
-                BloatedNode.shallowFrom(atlas.node(38990000000L)).withLocation(end)));
+                CompleteNode.shallowFrom(atlas.node(38990000000L)).withLocation(end)));
         final Change change = changeBuilder.get();
 
         final Atlas changeAtlas = new ChangeAtlas(atlas, change);
@@ -84,7 +84,7 @@ public class ChangeAtlasTest
         final Map<String, String> tags = disconnectedFeatures.getTags();
         tags.put("newKey", "newValue");
         changeBuilder.add(FeatureChange
-                .add(BloatedRelation.shallowFrom(disconnectedFeatures).withTags(tags)));
+                .add(CompleteRelation.shallowFrom(disconnectedFeatures).withTags(tags)));
         final Change change = changeBuilder.get();
 
         final Atlas changeAtlas = new ChangeAtlas(atlas, change);
@@ -155,7 +155,7 @@ public class ChangeAtlasTest
         final PolyLine oldPolyLine = edge.asPolyLine();
         final PolyLine newPolyLine = new PolyLine(oldPolyLine.first(), NEW_LOCATION,
                 oldPolyLine.last());
-        final BloatedEdge bloatedEdge = BloatedEdge.shallowFrom(edge).withPolyLine(newPolyLine);
+        final CompleteEdge bloatedEdge = CompleteEdge.shallowFrom(edge).withPolyLine(newPolyLine);
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, bloatedEdge);
         changeBuilder.add(featureChange);
 
@@ -173,7 +173,7 @@ public class ChangeAtlasTest
         final Polygon newPolygon = new Polygon(
                 origin.shiftFirstAlongGreatCircle(Heading.NORTH, Distance.ONE_METER));
         changeBuilder.add(new FeatureChange(ChangeType.ADD,
-                BloatedArea.shallowFrom(source).withPolygon(newPolygon)));
+                CompleteArea.shallowFrom(source).withPolygon(newPolygon)));
         final Change change = changeBuilder.get();
 
         final Atlas changeAtlas = new ChangeAtlas(atlas, change);
@@ -196,10 +196,10 @@ public class ChangeAtlasTest
                 Distance.ONE_METER);
         final Location newLocation = newPolyLine.last();
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD,
-                BloatedEdge.shallowFrom(source).withPolyLine(newPolyLine));
+                CompleteEdge.shallowFrom(source).withPolyLine(newPolyLine));
         changeBuilder.add(featureChange);
         changeBuilder.add(new FeatureChange(ChangeType.ADD,
-                BloatedNode.shallowFrom(atlas.node(38990000000L)).withLocation(newLocation)));
+                CompleteNode.shallowFrom(atlas.node(38990000000L)).withLocation(newLocation)));
         final Change change = changeBuilder.get();
 
         final Atlas changeAtlas = new ChangeAtlas(atlas, change);
@@ -229,7 +229,7 @@ public class ChangeAtlasTest
         final PolyLine newPolyLine = origin.shiftFirstAlongGreatCircle(Heading.NORTH,
                 Distance.ONE_METER);
         changeBuilder.add(new FeatureChange(ChangeType.ADD,
-                BloatedLine.shallowFrom(source).withPolyLine(newPolyLine)));
+                CompleteLine.shallowFrom(source).withPolyLine(newPolyLine)));
         final Change change = changeBuilder.get();
 
         final Atlas changeAtlas = new ChangeAtlas(atlas, change);
@@ -250,7 +250,7 @@ public class ChangeAtlasTest
         final Location newLocation = source.getLocation().shiftAlongGreatCircle(Heading.NORTH,
                 Distance.ONE_METER);
         changeBuilder.add(new FeatureChange(ChangeType.ADD,
-                BloatedPoint.shallowFrom(source).withLocation(newLocation)));
+                CompletePoint.shallowFrom(source).withLocation(newLocation)));
         final Change change = changeBuilder.get();
 
         final Atlas changeAtlas = new ChangeAtlas(atlas, change);
@@ -271,7 +271,7 @@ public class ChangeAtlasTest
         // should also trigger an indirect removal of these members from any relation member lists.
         final ChangeBuilder changeBuilder = new ChangeBuilder();
         changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
-                BloatedNode.shallowFrom(atlas.node(38984000000L))));
+                CompleteNode.shallowFrom(atlas.node(38984000000L))));
         final Atlas changeAtlas = new ChangeAtlas(atlas, changeBuilder.get());
         final RelationMemberList memberList = changeAtlas.relation(39008000000L).members();
         final RelationMemberList newMembers = new RelationMemberList(
@@ -285,9 +285,9 @@ public class ChangeAtlasTest
         // indirect removal of all the relation's members - so we should see the relation disappear.
         final ChangeBuilder changeBuilder2 = new ChangeBuilder();
         changeBuilder2.add(new FeatureChange(ChangeType.REMOVE,
-                BloatedNode.shallowFrom(atlas.node(38984000000L))));
+                CompleteNode.shallowFrom(atlas.node(38984000000L))));
         changeBuilder2.add(new FeatureChange(ChangeType.REMOVE,
-                BloatedNode.shallowFrom(atlas.node(38982000000L))));
+                CompleteNode.shallowFrom(atlas.node(38982000000L))));
         final Atlas changeAtlas2 = new ChangeAtlas(atlas, changeBuilder2.get());
         Assert.assertNull(changeAtlas2.relation(39008000000L));
     }
@@ -298,7 +298,7 @@ public class ChangeAtlasTest
         final Atlas atlas = this.rule.getAtlas();
         final ChangeBuilder changeBuilder = new ChangeBuilder();
         changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
-                BloatedNode.shallowFrom(atlas.node(38982000000L))));
+                CompleteNode.shallowFrom(atlas.node(38982000000L))));
         final Atlas changeAtlas = new ChangeAtlas(atlas, changeBuilder.get());
 
         // Check that appropriate edges were deleted, triggered by removal of the node
@@ -329,10 +329,10 @@ public class ChangeAtlasTest
                 .stream().filter(member -> !(member.getEntity() instanceof Point))
                 .collect(Collectors.toList()));
         changeBuilder.add(
-                new FeatureChange(ChangeType.ADD, BloatedRelation.shallowFrom(disconnectedFeatures)
+                new FeatureChange(ChangeType.ADD, CompleteRelation.shallowFrom(disconnectedFeatures)
                         .withMembersAndSource(newMembers, disconnectedFeatures)));
         changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
-                BloatedPoint.shallowFrom(atlas.point(41822000000L))));
+                CompletePoint.shallowFrom(atlas.point(41822000000L))));
         final Change change = changeBuilder.get();
 
         final Atlas changeAtlas = new ChangeAtlas(atlas, change);
@@ -358,7 +358,7 @@ public class ChangeAtlasTest
         // Here only remove the point. Do not remove the member in the relation. It should
         // automatically be removed.
         changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
-                BloatedPoint.shallowFrom(atlas.point(41822000000L))));
+                CompletePoint.shallowFrom(atlas.point(41822000000L))));
         final Change change = changeBuilder.get();
 
         final Atlas changeAtlas = new ChangeAtlas(atlas, change);
@@ -383,21 +383,21 @@ public class ChangeAtlasTest
         // aforementioned empty relations. Finally. relation 41861000000 will also be dropped, since
         // its only member was relation 41860000000, which was dropped due to becoming shallow.
         changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
-                BloatedEdge.shallowFrom(atlas.edge(39002000001L))));
+                CompleteEdge.shallowFrom(atlas.edge(39002000001L))));
         changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
-                BloatedEdge.shallowFrom(atlas.edge(-39002000001L))));
+                CompleteEdge.shallowFrom(atlas.edge(-39002000001L))));
         changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
-                BloatedEdge.shallowFrom(atlas.edge(39002000002L))));
+                CompleteEdge.shallowFrom(atlas.edge(39002000002L))));
         changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
-                BloatedEdge.shallowFrom(atlas.edge(-39002000002L))));
+                CompleteEdge.shallowFrom(atlas.edge(-39002000002L))));
         changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
-                BloatedEdge.shallowFrom(atlas.edge(39006000001L))));
+                CompleteEdge.shallowFrom(atlas.edge(39006000001L))));
         changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
-                BloatedPoint.shallowFrom(atlas.point(41822000000L))));
+                CompletePoint.shallowFrom(atlas.point(41822000000L))));
         changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
-                BloatedLine.shallowFrom(atlas.line(41771000000L))));
+                CompleteLine.shallowFrom(atlas.line(41771000000L))));
         changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
-                BloatedArea.shallowFrom(atlas.area(41795000000L))));
+                CompleteArea.shallowFrom(atlas.area(41795000000L))));
 
         // Now, we are going to add a new relation 41862000000 to the changeset. However, the new
         // relation will only have a single member, which is a shallow relation that will be
@@ -405,7 +405,7 @@ public class ChangeAtlasTest
         final RelationBean newBean = new RelationBean();
         newBean.addItem(41861000000L, "someChild", ItemType.RELATION);
         changeBuilder.add(
-                new FeatureChange(ChangeType.ADD, new BloatedRelation(41862000000L, Maps.hashMap(),
+                new FeatureChange(ChangeType.ADD, new CompleteRelation(41862000000L, Maps.hashMap(),
                         atlas.relation(41861000000L).bounds(), newBean, null, null, null, null)));
 
         // Build the ChangeAtlas and verify relations were removed correctly
@@ -430,7 +430,7 @@ public class ChangeAtlasTest
         final Atlas atlas = this.rule.getAtlasEdge();
 
         final Node originalNode = atlas.node(38999000000L);
-        final BloatedNode bloatedNode = BloatedNode.shallowFrom(originalNode)
+        final CompleteNode bloatedNode = CompleteNode.shallowFrom(originalNode)
                 .withLocation(NEW_LOCATION);
         return new FeatureChange(ChangeType.ADD, bloatedNode);
     }
@@ -449,7 +449,7 @@ public class ChangeAtlasTest
         final PolyLine originalPolyLine1 = originalEdge1.asPolyLine();
         final PolyLine originalPolyLine1Modified = new PolyLine(
                 originalPolyLine1.prepend(new PolyLine(NEW_LOCATION, originalPolyLine1.first())));
-        final BloatedEdge bloatedEdge1 = BloatedEdge.shallowFrom(originalEdge1)
+        final CompleteEdge bloatedEdge1 = CompleteEdge.shallowFrom(originalEdge1)
                 .withPolyLine(originalPolyLine1Modified);
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, bloatedEdge1);
 
@@ -457,7 +457,7 @@ public class ChangeAtlasTest
         final PolyLine originalPolyLine1Reverse = originalEdge1Reverse.asPolyLine();
         final PolyLine originalPolyLine1ModifiedReverse = new PolyLine(originalPolyLine1Reverse
                 .append(new PolyLine(originalPolyLine1Reverse.last(), NEW_LOCATION)));
-        final BloatedEdge bloatedEdge1Reverse = BloatedEdge.shallowFrom(originalEdge1Reverse)
+        final CompleteEdge bloatedEdge1Reverse = CompleteEdge.shallowFrom(originalEdge1Reverse)
                 .withPolyLine(originalPolyLine1ModifiedReverse);
         final FeatureChange featureChange1Reverse = new FeatureChange(ChangeType.ADD,
                 bloatedEdge1Reverse);

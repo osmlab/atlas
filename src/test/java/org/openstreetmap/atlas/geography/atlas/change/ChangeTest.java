@@ -6,8 +6,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Polygon;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedArea;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedLine;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.utilities.collections.Maps;
@@ -24,9 +24,9 @@ public class ChangeTest
     public void testAdd()
     {
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new BloatedArea(123L, null, Maps.hashMap(), null));
+                new CompleteArea(123L, null, Maps.hashMap(), null));
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.REMOVE,
-                new BloatedLine(123L, null, null, null));
+                new CompleteLine(123L, null, null, null));
         final ChangeBuilder builder = new ChangeBuilder();
         builder.add(featureChange1);
         builder.add(featureChange2);
@@ -43,9 +43,9 @@ public class ChangeTest
         this.expectedException.expectMessage("Cannot merge two feature changes");
 
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new BloatedArea(123L, null, Maps.hashMap(), null));
+                new CompleteArea(123L, null, Maps.hashMap(), null));
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.REMOVE,
-                new BloatedArea(123L, null, null, null));
+                new CompleteArea(123L, null, null, null));
         final ChangeBuilder builder = new ChangeBuilder();
         builder.add(featureChange1);
         builder.add(featureChange2);
@@ -55,9 +55,9 @@ public class ChangeTest
     public void testAddSameIdentifierMerge()
     {
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new BloatedArea(123L, null, Maps.hashMap("key", "value"), null));
+                new CompleteArea(123L, null, Maps.hashMap("key", "value"), null));
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
-                new BloatedArea(123L, Polygon.TEST_BUILDING, null, null));
+                new CompleteArea(123L, Polygon.TEST_BUILDING, null, null));
         final ChangeBuilder builder = new ChangeBuilder();
         builder.add(featureChange1);
         builder.add(featureChange2);

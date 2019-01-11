@@ -9,17 +9,17 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedArea;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedEdge;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedLine;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedPoint;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.change.Change;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeBuilder;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
+import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
@@ -40,22 +40,22 @@ public class ChangeGeoJsonSerializerTest
     @Test
     public void testSerialization()
     {
-        final BloatedArea area = new BloatedArea(123L, Polygon.TEST_BUILDING, TAGS, RELATIONS);
+        final CompleteArea area = new CompleteArea(123L, Polygon.TEST_BUILDING, TAGS, RELATIONS);
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, area);
-        final BloatedEdge edge = new BloatedEdge(123L, PolyLine.TEST_POLYLINE, TAGS, 456L, 789L,
+        final CompleteEdge edge = new CompleteEdge(123L, PolyLine.TEST_POLYLINE, TAGS, 456L, 789L,
                 RELATIONS);
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, edge);
-        final BloatedLine line = new BloatedLine(123L, PolyLine.TEST_POLYLINE, TAGS, RELATIONS);
+        final CompleteLine line = new CompleteLine(123L, PolyLine.TEST_POLYLINE, TAGS, RELATIONS);
         final FeatureChange featureChange3 = new FeatureChange(ChangeType.ADD, line);
-        final BloatedNode node = new BloatedNode(123L, Location.COLOSSEUM, TAGS,
+        final CompleteNode node = new CompleteNode(123L, Location.COLOSSEUM, TAGS,
                 Sets.treeSet(456L, 789L), Sets.treeSet(456L, 789L), RELATIONS);
         final FeatureChange featureChange4 = new FeatureChange(ChangeType.ADD, node);
-        final BloatedPoint point = new BloatedPoint(123L, Location.COLOSSEUM, TAGS, RELATIONS);
+        final CompletePoint point = new CompletePoint(123L, Location.COLOSSEUM, TAGS, RELATIONS);
         final FeatureChange featureChange5 = new FeatureChange(ChangeType.ADD, point);
         final RelationBean members = new RelationBean();
         members.addItem(456L, "role1", ItemType.EDGE);
         members.addItem(789L, "role2", ItemType.AREA);
-        final BloatedRelation relation = new BloatedRelation(123L, TAGS, Rectangle.TEST_RECTANGLE,
+        final CompleteRelation relation = new CompleteRelation(123L, TAGS, Rectangle.TEST_RECTANGLE,
                 members, Lists.newArrayList(123L), members, 123L, RELATIONS);
         final FeatureChange featureChange6 = new FeatureChange(ChangeType.ADD, relation);
 

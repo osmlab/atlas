@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.bloated;
+package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.utilities.collections.Maps;
@@ -25,30 +26,30 @@ public class BloatedEdgeTest
     @Test
     public void testBloatedEquals()
     {
-        final BloatedEdge edge11 = new BloatedEdge(123L, null, null, null, null, null);
-        final BloatedEdge edge12 = new BloatedEdge(123L, null, null, null, null, null);
-        final BloatedEdge edge21 = new BloatedEdge(123L, PolyLine.TEST_POLYLINE, null, null, null,
+        final CompleteEdge edge11 = new CompleteEdge(123L, null, null, null, null, null);
+        final CompleteEdge edge12 = new CompleteEdge(123L, null, null, null, null, null);
+        final CompleteEdge edge21 = new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, null, null,
                 null);
-        final BloatedEdge edge22 = new BloatedEdge(123L, PolyLine.TEST_POLYLINE, null, null, null,
+        final CompleteEdge edge22 = new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, null, null,
                 null);
-        final BloatedEdge edge23 = new BloatedEdge(123L, Polygon.SILICON_VALLEY_2, null, null, null,
+        final CompleteEdge edge23 = new CompleteEdge(123L, Polygon.SILICON_VALLEY_2, null, null, null,
                 null);
-        final BloatedEdge edge31 = new BloatedEdge(123L, null, Maps.hashMap("key", "value"), null,
+        final CompleteEdge edge31 = new CompleteEdge(123L, null, Maps.hashMap("key", "value"), null,
                 null, null);
-        final BloatedEdge edge32 = new BloatedEdge(123L, null, Maps.hashMap("key", "value"), null,
+        final CompleteEdge edge32 = new CompleteEdge(123L, null, Maps.hashMap("key", "value"), null,
                 null, null);
-        final BloatedEdge edge33 = new BloatedEdge(123L, null, Maps.hashMap(), null, null, null);
-        final BloatedEdge edge41 = new BloatedEdge(123L, null, null, null, null,
+        final CompleteEdge edge33 = new CompleteEdge(123L, null, Maps.hashMap(), null, null, null);
+        final CompleteEdge edge41 = new CompleteEdge(123L, null, null, null, null,
                 Sets.hashSet(1L, 2L));
-        final BloatedEdge edge42 = new BloatedEdge(123L, null, null, null, null,
+        final CompleteEdge edge42 = new CompleteEdge(123L, null, null, null, null,
                 Sets.hashSet(1L, 2L));
-        final BloatedEdge edge43 = new BloatedEdge(123L, null, null, null, null, Sets.hashSet(1L));
-        final BloatedEdge edge51 = new BloatedEdge(123L, null, null, 1L, null, null);
-        final BloatedEdge edge52 = new BloatedEdge(123L, null, null, 1L, null, null);
-        final BloatedEdge edge53 = new BloatedEdge(123L, null, null, 2L, null, null);
-        final BloatedEdge edge61 = new BloatedEdge(123L, null, null, null, 1L, null);
-        final BloatedEdge edge62 = new BloatedEdge(123L, null, null, null, 1L, null);
-        final BloatedEdge edge63 = new BloatedEdge(123L, null, null, null, 2L, null);
+        final CompleteEdge edge43 = new CompleteEdge(123L, null, null, null, null, Sets.hashSet(1L));
+        final CompleteEdge edge51 = new CompleteEdge(123L, null, null, 1L, null, null);
+        final CompleteEdge edge52 = new CompleteEdge(123L, null, null, 1L, null, null);
+        final CompleteEdge edge53 = new CompleteEdge(123L, null, null, 2L, null, null);
+        final CompleteEdge edge61 = new CompleteEdge(123L, null, null, null, 1L, null);
+        final CompleteEdge edge62 = new CompleteEdge(123L, null, null, null, 1L, null);
+        final CompleteEdge edge63 = new CompleteEdge(123L, null, null, null, 2L, null);
 
         Assert.assertEquals(edge11, edge12);
         Assert.assertEquals(edge21, edge22);
@@ -74,7 +75,7 @@ public class BloatedEdgeTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Edge source = atlas.edge(3);
-        final BloatedEdge result = BloatedEdge.from(source);
+        final CompleteEdge result = CompleteEdge.from(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         Assert.assertEquals(source.asPolyLine(), result.asPolyLine());
@@ -93,7 +94,7 @@ public class BloatedEdgeTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Edge source = atlas.edge(3);
-        final BloatedEdge result = BloatedEdge.shallowFrom(source);
+        final CompleteEdge result = CompleteEdge.shallowFrom(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         result.withPolyLine(PolyLine.TEST_POLYLINE);

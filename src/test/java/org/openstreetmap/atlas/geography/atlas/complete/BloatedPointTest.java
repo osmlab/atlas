@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.bloated;
+package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.utilities.collections.Maps;
@@ -25,19 +26,19 @@ public class BloatedPointTest
     @Test
     public void testBloatedEquals()
     {
-        final BloatedPoint point11 = new BloatedPoint(123L, null, null, null);
-        final BloatedPoint point12 = new BloatedPoint(123L, null, null, null);
-        final BloatedPoint point21 = new BloatedPoint(123L, Location.COLOSSEUM, null, null);
-        final BloatedPoint point22 = new BloatedPoint(123L, Location.COLOSSEUM, null, null);
-        final BloatedPoint point23 = new BloatedPoint(123L, Location.EIFFEL_TOWER, null, null);
-        final BloatedPoint point31 = new BloatedPoint(123L, null, Maps.hashMap("key", "value"),
+        final CompletePoint point11 = new CompletePoint(123L, null, null, null);
+        final CompletePoint point12 = new CompletePoint(123L, null, null, null);
+        final CompletePoint point21 = new CompletePoint(123L, Location.COLOSSEUM, null, null);
+        final CompletePoint point22 = new CompletePoint(123L, Location.COLOSSEUM, null, null);
+        final CompletePoint point23 = new CompletePoint(123L, Location.EIFFEL_TOWER, null, null);
+        final CompletePoint point31 = new CompletePoint(123L, null, Maps.hashMap("key", "value"),
                 null);
-        final BloatedPoint point32 = new BloatedPoint(123L, null, Maps.hashMap("key", "value"),
+        final CompletePoint point32 = new CompletePoint(123L, null, Maps.hashMap("key", "value"),
                 null);
-        final BloatedPoint point33 = new BloatedPoint(123L, null, Maps.hashMap(), null);
-        final BloatedPoint point41 = new BloatedPoint(123L, null, null, Sets.hashSet(1L, 2L));
-        final BloatedPoint point42 = new BloatedPoint(123L, null, null, Sets.hashSet(1L, 2L));
-        final BloatedPoint point43 = new BloatedPoint(123L, null, null, Sets.hashSet(1L));
+        final CompletePoint point33 = new CompletePoint(123L, null, Maps.hashMap(), null);
+        final CompletePoint point41 = new CompletePoint(123L, null, null, Sets.hashSet(1L, 2L));
+        final CompletePoint point42 = new CompletePoint(123L, null, null, Sets.hashSet(1L, 2L));
+        final CompletePoint point43 = new CompletePoint(123L, null, null, Sets.hashSet(1L));
 
         Assert.assertEquals(point11, point12);
         Assert.assertEquals(point21, point22);
@@ -57,7 +58,7 @@ public class BloatedPointTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Point source = atlas.point(33);
-        final BloatedPoint result = BloatedPoint.from(source);
+        final CompletePoint result = CompletePoint.from(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         Assert.assertEquals(source.getLocation(), result.getLocation());
@@ -74,7 +75,7 @@ public class BloatedPointTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Point source = atlas.point(33);
-        final BloatedPoint result = BloatedPoint.shallowFrom(source);
+        final CompletePoint result = CompletePoint.shallowFrom(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         result.withLocation(Location.CENTER);

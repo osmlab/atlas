@@ -8,8 +8,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedAtlas;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedPoint;
+import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
+import org.openstreetmap.atlas.geography.atlas.complete.EmptyAtlas;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -25,14 +25,14 @@ public class AtlasValidatorTest
     @Test
     public void testParentRelations()
     {
-        final BloatedAtlas atlas = new BloatedAtlas()
+        final EmptyAtlas atlas = new EmptyAtlas()
         {
             private static final long serialVersionUID = -1162255036446588163L;
 
             @Override
             public Iterable<AtlasEntity> entities()
             {
-                return Iterables.from(new BloatedPoint(456L, null, null, null)
+                return Iterables.from(new CompletePoint(456L, null, null, null)
                 {
                     private static final long serialVersionUID = 3282284682633937718L;
 
@@ -56,14 +56,14 @@ public class AtlasValidatorTest
     @Test
     public void testTagsPresent()
     {
-        final BloatedAtlas atlas = new BloatedAtlas()
+        final EmptyAtlas atlas = new EmptyAtlas()
         {
             private static final long serialVersionUID = -2478701330988023398L;
 
             @Override
             public Iterable<AtlasEntity> entities()
             {
-                return Iterables.from(new BloatedPoint(456L, null, null, null)
+                return Iterables.from(new CompletePoint(456L, null, null, null)
                 {
                     private static final long serialVersionUID = -3850622600530001863L;
 

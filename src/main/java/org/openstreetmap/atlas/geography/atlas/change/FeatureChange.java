@@ -18,15 +18,15 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedArea;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedEdge;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedEntity;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedLine;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedPoint;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.change.serializer.FeatureChangeGeoJsonSerializer;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
+import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -82,7 +82,7 @@ public class FeatureChange implements Located, Serializable
         {
             throw new CoreException("reference cannot be null.");
         }
-        if (!(reference instanceof BloatedEntity))
+        if (!(reference instanceof CompleteEntity))
         {
             throw new CoreException(
                     "FeatureChange requires BloatedEntity, found reference of type {}",
@@ -235,7 +235,7 @@ public class FeatureChange implements Located, Serializable
         final Polygon mergedPolygon = mergedMember("polygon", thisReference, thatReference,
                 atlasEntity -> ((Area) atlasEntity).asPolygon(), Optional.empty());
 
-        BloatedArea result = new BloatedArea(getIdentifier(), mergedPolygon, mergedTags,
+        CompleteArea result = new CompleteArea(getIdentifier(), mergedPolygon, mergedTags,
                 mergedParentRelations);
         if (result.bounds() == null)
         {
@@ -318,7 +318,7 @@ public class FeatureChange implements Located, Serializable
                     thatReference, edge -> ((Edge) edge).end() == null ? null
                             : ((Edge) edge).end().getIdentifier(),
                     Optional.empty());
-            BloatedEdge result = new BloatedEdge(getIdentifier(), mergedPolyLine, mergedTags,
+            CompleteEdge result = new CompleteEdge(getIdentifier(), mergedPolyLine, mergedTags,
                     mergedStartNodeIdentifier, mergedEndNodeIdentifier, mergedParentRelations);
             if (result.bounds() == null)
             {
@@ -336,7 +336,7 @@ public class FeatureChange implements Located, Serializable
         else
         {
             // Line
-            BloatedLine result = new BloatedLine(getIdentifier(), mergedPolyLine, mergedTags,
+            CompleteLine result = new CompleteLine(getIdentifier(), mergedPolyLine, mergedTags,
                     mergedParentRelations);
             if (result.bounds() == null)
             {
@@ -374,7 +374,7 @@ public class FeatureChange implements Located, Serializable
                             : ((Node) atlasEntity).outEdges().stream().map(Edge::getIdentifier)
                                     .collect(Collectors.toCollection(TreeSet::new)),
                     Optional.of(directReferenceMerger));
-            BloatedNode result = new BloatedNode(getIdentifier(), mergedLocation, mergedTags,
+            CompleteNode result = new CompleteNode(getIdentifier(), mergedLocation, mergedTags,
                     mergedInEdgeIdentifiers, mergedOutEdgeIdentifiers, mergedParentRelations);
             if (result.bounds() == null)
             {
@@ -392,7 +392,7 @@ public class FeatureChange implements Located, Serializable
         else
         {
             // Point
-            BloatedPoint result = new BloatedPoint(getIdentifier(), mergedLocation, mergedTags,
+            CompletePoint result = new CompletePoint(getIdentifier(), mergedLocation, mergedTags,
                     mergedParentRelations);
             if (result.bounds() == null)
             {
@@ -439,15 +439,15 @@ public class FeatureChange implements Located, Serializable
                         : ((Relation) entity).allKnownOsmMembers().asBean(),
                 Optional.of(relationBeanMerger));
 
-        return FeatureChange.add(new BloatedRelation(getIdentifier(), mergedTags, mergedBounds,
+        return FeatureChange.add(new CompleteRelation(getIdentifier(), mergedTags, mergedBounds,
                 mergedMembers, mergedAllRelationsWithSameOsmIdentifier, mergedAllKnownMembers,
                 mergedOsmRelationIdentifier, mergedParentRelations));
     }
 
     private void validateUsefulFeatureChange()
     {
-        if (this.changeType == ChangeType.ADD && this.reference instanceof BloatedEntity
-                && ((BloatedEntity) this.reference).isSuperShallow())
+        if (this.changeType == ChangeType.ADD && this.reference instanceof CompleteEntity
+                && ((CompleteEntity) this.reference).isSuperShallow())
         {
             throw new CoreException("{} does not contain anything useful.", this);
         }

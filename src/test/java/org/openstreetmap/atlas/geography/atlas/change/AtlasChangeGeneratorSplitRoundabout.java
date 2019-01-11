@@ -8,9 +8,9 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedEdge;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedRelation;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.tags.JunctionTag;
@@ -42,11 +42,11 @@ public class AtlasChangeGeneratorSplitRoundabout implements AtlasChangeGenerator
                 final long newEdgeIdentifier2 = identifierGenerator.incrementAndGet();
 
                 // This is a new Edge, use "from" instead of "shallowFrom"
-                final BloatedEdge firstEdge = BloatedEdge.from(edge)
+                final CompleteEdge firstEdge = CompleteEdge.from(edge)
                         .withIdentifier(newEdgeIdentifier1).withPolyLine(shape1)
                         .withEndNodeIdentifier(middleNodeIdentifier);
                 // This is a new Edge, use "from" instead of "shallowFrom"
-                final BloatedEdge secondEdge = BloatedEdge.from(edge)
+                final CompleteEdge secondEdge = CompleteEdge.from(edge)
                         .withIdentifier(newEdgeIdentifier2).withPolyLine(shape2)
                         .withStartNodeIdentifier(middleNodeIdentifier);
 
@@ -57,28 +57,28 @@ public class AtlasChangeGeneratorSplitRoundabout implements AtlasChangeGenerator
                     final RelationMemberList newMembers = new RelationMemberList(relation.members()
                             .stream().filter(member -> !member.getEntity().equals(edge))
                             .collect(Collectors.toList()));
-                    return BloatedRelation.shallowFrom(relation)
+                    return CompleteRelation.shallowFrom(relation)
                             .withMembersAndSource(newMembers, relation)
                             // With the new relation members
                             .withExtraMember(firstEdge, edge).withExtraMember(secondEdge, edge);
                 }).map(FeatureChange::add).forEach(result::add);
 
                 // Add the two new edges.
-                result.add(FeatureChange.remove(BloatedEdge.shallowFrom(edge)));
+                result.add(FeatureChange.remove(CompleteEdge.shallowFrom(edge)));
                 result.add(FeatureChange.add(firstEdge));
                 result.add(FeatureChange.add(secondEdge));
 
                 // Middle node is new. Create from scratch
-                result.add(FeatureChange.add(new BloatedNode(middleNodeIdentifier, cut,
+                result.add(FeatureChange.add(new CompleteNode(middleNodeIdentifier, cut,
                         Maps.hashMap(), Sets.treeSet(newEdgeIdentifier1),
                         Sets.treeSet(newEdgeIdentifier2), Sets.hashSet())));
 
                 // End node has a replaced start edge identifier
-                result.add(FeatureChange.add(BloatedNode.shallowFrom(edge.end())
+                result.add(FeatureChange.add(CompleteNode.shallowFrom(edge.end())
                         .withInEdges(edge.end().inEdges())
                         .withInEdgeIdentifierReplaced(oldEdgeIdentifier, newEdgeIdentifier2)));
                 // Start node has a replaced end edge identifier
-                result.add(FeatureChange.add(BloatedNode.shallowFrom(edge.start())
+                result.add(FeatureChange.add(CompleteNode.shallowFrom(edge.start())
                         .withOutEdges(edge.start().outEdges())
                         .withOutEdgeIdentifierReplaced(oldEdgeIdentifier, newEdgeIdentifier1)));
             }

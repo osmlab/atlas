@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.bloated;
+package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.Map;
 import java.util.Objects;
@@ -17,7 +17,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  *
  * @author matthieun
  */
-public class BloatedEdge extends Edge implements BloatedEntity
+public class CompleteEdge extends Edge implements CompleteEntity
 {
     private static final long serialVersionUID = 309534717673911086L;
 
@@ -42,28 +42,28 @@ public class BloatedEdge extends Edge implements BloatedEntity
     private Long endNodeIdentifier;
     private Set<Long> relationIdentifiers;
 
-    public static BloatedEdge from(final Edge edge)
+    public static CompleteEdge from(final Edge edge)
     {
-        return new BloatedEdge(edge.getIdentifier(), edge.asPolyLine(), edge.getTags(),
+        return new CompleteEdge(edge.getIdentifier(), edge.asPolyLine(), edge.getTags(),
                 edge.start().getIdentifier(), edge.end().getIdentifier(),
                 edge.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
-    public static BloatedEdge shallowFrom(final Edge edge)
+    public static CompleteEdge shallowFrom(final Edge edge)
     {
-        return new BloatedEdge(edge.getIdentifier()).withInitialBounds(edge.asPolyLine().bounds());
+        return new CompleteEdge(edge.getIdentifier()).withInitialBounds(edge.asPolyLine().bounds());
     }
 
-    BloatedEdge(final long identifier)
+    CompleteEdge(final long identifier)
     {
         this(identifier, null, null, null, null, null);
     }
 
-    public BloatedEdge(final Long identifier, final PolyLine polyLine,
+    public CompleteEdge(final Long identifier, final PolyLine polyLine,
             final Map<String, String> tags, final Long startNodeIdentifier,
             final Long endNodeIdentifier, final Set<Long> relationIdentifiers)
     {
-        super(new BloatedAtlas());
+        super(new EmptyAtlas());
 
         if (identifier == null)
         {
@@ -96,20 +96,20 @@ public class BloatedEdge extends Edge implements BloatedEntity
     @Override
     public Node end()
     {
-        return this.endNodeIdentifier == null ? null : new BloatedNode(this.endNodeIdentifier);
+        return this.endNodeIdentifier == null ? null : new CompleteNode(this.endNodeIdentifier);
     }
 
     @Override
     public boolean equals(final Object other)
     {
-        if (other instanceof BloatedEdge)
+        if (other instanceof CompleteEdge)
         {
-            final BloatedEdge that = (BloatedEdge) other;
-            return BloatedEntity.basicEqual(this, that)
+            final CompleteEdge that = (CompleteEdge) other;
+            return CompleteEntity.basicEqual(this, that)
                     && Objects.equals(this.asPolyLine(), that.asPolyLine())
-                    && BloatedEntity.equalThroughGet(this.start(), that.start(),
+                    && CompleteEntity.equalThroughGet(this.start(), that.start(),
                             Node::getIdentifier)
-                    && BloatedEntity.equalThroughGet(this.end(), that.end(), Node::getIdentifier);
+                    && CompleteEntity.equalThroughGet(this.end(), that.end(), Node::getIdentifier);
         }
         return false;
     }
@@ -143,14 +143,14 @@ public class BloatedEdge extends Edge implements BloatedEntity
     public Set<Relation> relations()
     {
         return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(BloatedRelation::new)
+                : this.relationIdentifiers.stream().map(CompleteRelation::new)
                         .collect(Collectors.toSet());
     }
 
     @Override
     public Node start()
     {
-        return this.startNodeIdentifier == null ? null : new BloatedNode(this.startNodeIdentifier);
+        return this.startNodeIdentifier == null ? null : new CompleteNode(this.startNodeIdentifier);
     }
 
     @Override
@@ -162,12 +162,12 @@ public class BloatedEdge extends Edge implements BloatedEntity
                 + this.relationIdentifiers + "]";
     }
 
-    public BloatedEdge withAddedTag(final String key, final String value)
+    public CompleteEdge withAddedTag(final String key, final String value)
     {
-        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+        return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
-    public BloatedEdge withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    public CompleteEdge withAggregateBoundsExtendedUsing(final Rectangle bounds)
     {
         if (this.aggregateBounds == null)
         {
@@ -177,19 +177,19 @@ public class BloatedEdge extends Edge implements BloatedEntity
         return this;
     }
 
-    public BloatedEdge withEndNodeIdentifier(final Long endNodeIdentifier)
+    public CompleteEdge withEndNodeIdentifier(final Long endNodeIdentifier)
     {
         this.endNodeIdentifier = endNodeIdentifier;
         return this;
     }
 
-    public BloatedEdge withIdentifier(final long identifier)
+    public CompleteEdge withIdentifier(final long identifier)
     {
         this.identifier = identifier;
         return this;
     }
 
-    public BloatedEdge withPolyLine(final PolyLine polyLine)
+    public CompleteEdge withPolyLine(final PolyLine polyLine)
     {
         this.polyLine = polyLine;
         if (this.originalBounds == null)
@@ -200,43 +200,43 @@ public class BloatedEdge extends Edge implements BloatedEntity
         return this;
     }
 
-    public BloatedEdge withRelationIdentifiers(final Set<Long> relationIdentifiers)
+    public CompleteEdge withRelationIdentifiers(final Set<Long> relationIdentifiers)
     {
         this.relationIdentifiers = relationIdentifiers;
         return this;
     }
 
-    public BloatedEdge withRelations(final Set<Relation> relations)
+    public CompleteEdge withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
         return this;
     }
 
-    public BloatedEdge withRemovedTag(final String key)
+    public CompleteEdge withRemovedTag(final String key)
     {
-        return withTags(BloatedEntity.removeTag(getTags(), key));
+        return withTags(CompleteEntity.removeTag(getTags(), key));
     }
 
-    public BloatedEdge withReplacedTag(final String oldKey, final String newKey,
+    public CompleteEdge withReplacedTag(final String oldKey, final String newKey,
             final String newValue)
     {
         return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
     }
 
-    public BloatedEdge withStartNodeIdentifier(final Long startNodeIdentifier)
+    public CompleteEdge withStartNodeIdentifier(final Long startNodeIdentifier)
     {
         this.startNodeIdentifier = startNodeIdentifier;
         return this;
     }
 
-    public BloatedEdge withTags(final Map<String, String> tags)
+    public CompleteEdge withTags(final Map<String, String> tags)
     {
         this.tags = tags;
         return this;
     }
 
-    private BloatedEdge withInitialBounds(final Rectangle bounds)
+    private CompleteEdge withInitialBounds(final Rectangle bounds)
     {
         this.originalBounds = bounds;
         this.aggregateBounds = bounds;

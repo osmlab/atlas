@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.bloated;
+package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,12 +16,12 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
 /**
- * Simple interface for all the Bloated entities. As each one extends its parent class already
+ * Simple interface for all the Complete entities. As each one extends its parent class already
  * (Node, Edge, Area, ...) this cannot be an abstract class.
  *
  * @author matthieun
  */
-public interface BloatedEntity
+public interface CompleteEntity
 {
     static Map<String, String> addNewTag(final Map<String, String> tags, final String key,
             final String value)
@@ -64,17 +64,17 @@ public interface BloatedEntity
         switch (type)
         {
             case NODE:
-                return BloatedNode.from((Node) reference);
+                return CompleteNode.from((Node) reference);
             case EDGE:
-                return BloatedEdge.from((Edge) reference);
+                return CompleteEdge.from((Edge) reference);
             case AREA:
-                return BloatedArea.from((Area) reference);
+                return CompleteArea.from((Area) reference);
             case LINE:
-                return BloatedLine.from((Line) reference);
+                return CompleteLine.from((Line) reference);
             case POINT:
-                return BloatedPoint.from((Point) reference);
+                return CompletePoint.from((Point) reference);
             case RELATION:
-                return BloatedRelation.from((Relation) reference);
+                return CompleteRelation.from((Relation) reference);
             default:
                 throw new CoreException("Unknown ItemType {}", type);
         }
@@ -97,17 +97,17 @@ public interface BloatedEntity
         switch (type)
         {
             case NODE:
-                return BloatedNode.shallowFrom((Node) reference);
+                return CompleteNode.shallowFrom((Node) reference);
             case EDGE:
-                return BloatedEdge.shallowFrom((Edge) reference);
+                return CompleteEdge.shallowFrom((Edge) reference);
             case AREA:
-                return BloatedArea.shallowFrom((Area) reference);
+                return CompleteArea.shallowFrom((Area) reference);
             case LINE:
-                return BloatedLine.shallowFrom((Line) reference);
+                return CompleteLine.shallowFrom((Line) reference);
             case POINT:
-                return BloatedPoint.shallowFrom((Point) reference);
+                return CompletePoint.shallowFrom((Point) reference);
             case RELATION:
-                return BloatedRelation.shallowFrom((Relation) reference);
+                return CompleteRelation.shallowFrom((Relation) reference);
             default:
                 throw new CoreException("Unknown ItemType {}", type);
         }

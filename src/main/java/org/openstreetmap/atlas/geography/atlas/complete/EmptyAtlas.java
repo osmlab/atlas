@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.bloated;
+package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.Iterator;
 import java.util.Optional;
@@ -38,7 +38,7 @@ import com.google.gson.JsonObject;
  *
  * @author matthieun
  */
-public class BloatedAtlas implements Atlas
+public class EmptyAtlas implements Atlas
 {
     private static final long serialVersionUID = 5265300513234306056L;
 
@@ -194,17 +194,17 @@ public class BloatedAtlas implements Atlas
         switch (type)
         {
             case NODE:
-                return new BloatedNode(identifier);
+                return new CompleteNode(identifier);
             case EDGE:
-                return new BloatedEdge(identifier);
+                return new CompleteEdge(identifier);
             case AREA:
-                return new BloatedArea(identifier);
+                return new CompleteArea(identifier);
             case LINE:
-                return new BloatedLine(identifier);
+                return new CompleteLine(identifier);
             case POINT:
-                return new BloatedPoint(identifier);
+                return new CompletePoint(identifier);
             case RELATION:
-                return new BloatedRelation(identifier);
+                return new CompleteRelation(identifier);
             default:
                 throw new CoreException("Unknown ItemType {}", type);
         }

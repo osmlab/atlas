@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.bloated;
+package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.utilities.collections.Maps;
@@ -25,17 +26,17 @@ public class BloatedAreaTest
     @Test
     public void testBloatedEquals()
     {
-        final BloatedArea area11 = new BloatedArea(123L, null, null, null);
-        final BloatedArea area12 = new BloatedArea(123L, null, null, null);
-        final BloatedArea area21 = new BloatedArea(123L, Polygon.SILICON_VALLEY, null, null);
-        final BloatedArea area22 = new BloatedArea(123L, Polygon.SILICON_VALLEY, null, null);
-        final BloatedArea area23 = new BloatedArea(123L, Polygon.SILICON_VALLEY_2, null, null);
-        final BloatedArea area31 = new BloatedArea(123L, null, Maps.hashMap("key", "value"), null);
-        final BloatedArea area32 = new BloatedArea(123L, null, Maps.hashMap("key", "value"), null);
-        final BloatedArea area33 = new BloatedArea(123L, null, Maps.hashMap(), null);
-        final BloatedArea area41 = new BloatedArea(123L, null, null, Sets.hashSet(1L, 2L));
-        final BloatedArea area42 = new BloatedArea(123L, null, null, Sets.hashSet(1L, 2L));
-        final BloatedArea area43 = new BloatedArea(123L, null, null, Sets.hashSet(1L));
+        final CompleteArea area11 = new CompleteArea(123L, null, null, null);
+        final CompleteArea area12 = new CompleteArea(123L, null, null, null);
+        final CompleteArea area21 = new CompleteArea(123L, Polygon.SILICON_VALLEY, null, null);
+        final CompleteArea area22 = new CompleteArea(123L, Polygon.SILICON_VALLEY, null, null);
+        final CompleteArea area23 = new CompleteArea(123L, Polygon.SILICON_VALLEY_2, null, null);
+        final CompleteArea area31 = new CompleteArea(123L, null, Maps.hashMap("key", "value"), null);
+        final CompleteArea area32 = new CompleteArea(123L, null, Maps.hashMap("key", "value"), null);
+        final CompleteArea area33 = new CompleteArea(123L, null, Maps.hashMap(), null);
+        final CompleteArea area41 = new CompleteArea(123L, null, null, Sets.hashSet(1L, 2L));
+        final CompleteArea area42 = new CompleteArea(123L, null, null, Sets.hashSet(1L, 2L));
+        final CompleteArea area43 = new CompleteArea(123L, null, null, Sets.hashSet(1L));
 
         Assert.assertEquals(area11, area12);
         Assert.assertEquals(area21, area22);
@@ -55,7 +56,7 @@ public class BloatedAreaTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Area source = atlas.area(27);
-        final BloatedArea result = BloatedArea.from(source);
+        final CompleteArea result = CompleteArea.from(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         Assert.assertEquals(source.asPolygon(), result.asPolygon());
@@ -72,7 +73,7 @@ public class BloatedAreaTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Area source = atlas.area(27);
-        final BloatedArea result = BloatedArea.shallowFrom(source);
+        final CompleteArea result = CompleteArea.shallowFrom(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         result.withPolygon(Polygon.TEST_BUILDING);

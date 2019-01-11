@@ -9,9 +9,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedEdge;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
@@ -60,7 +60,7 @@ public class MultipleChangeAtlasTest
         {
             return Iterables.stream(atlas.edges()).filter(straight.negate()).map(edge ->
             {
-                return BloatedEdge.shallowFrom(edge).withPolyLine(
+                return CompleteEdge.shallowFrom(edge).withPolyLine(
                         new PolyLine(edge.start().getLocation(), edge.end().getLocation()));
             }).map(FeatureChange::add).collectToSet();
         });
@@ -80,7 +80,7 @@ public class MultipleChangeAtlasTest
         resetAndChange("allNodesAreTrafficLights", atlas ->
         {
             return Iterables
-                    .stream(atlas.nodes()).map(node -> BloatedNode.shallowFrom(node)
+                    .stream(atlas.nodes()).map(node -> CompleteNode.shallowFrom(node)
                             .withAddedTag("highway", "traffic_signals"))
                     .map(FeatureChange::add).collectToSet();
         });

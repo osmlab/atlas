@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.bloated;
+package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.Map;
 import java.util.Objects;
@@ -16,7 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  *
  * @author matthieun
  */
-public class BloatedArea extends Area implements BloatedEntity
+public class CompleteArea extends Area implements CompleteEntity
 {
     private static final long serialVersionUID = 309534717673911086L;
 
@@ -39,26 +39,26 @@ public class BloatedArea extends Area implements BloatedEntity
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
 
-    public static BloatedArea from(final Area area)
+    public static CompleteArea from(final Area area)
     {
-        return new BloatedArea(area.getIdentifier(), area.asPolygon(), area.getTags(),
+        return new CompleteArea(area.getIdentifier(), area.asPolygon(), area.getTags(),
                 area.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
-    public static BloatedArea shallowFrom(final Area area)
+    public static CompleteArea shallowFrom(final Area area)
     {
-        return new BloatedArea(area.getIdentifier()).withInitialBounds(area.asPolygon().bounds());
+        return new CompleteArea(area.getIdentifier()).withInitialBounds(area.asPolygon().bounds());
     }
 
-    BloatedArea(final long identifier)
+    CompleteArea(final long identifier)
     {
         this(identifier, null, null, null);
     }
 
-    public BloatedArea(final Long identifier, final Polygon polygon, final Map<String, String> tags,
+    public CompleteArea(final Long identifier, final Polygon polygon, final Map<String, String> tags,
             final Set<Long> relationIdentifiers)
     {
-        super(new BloatedAtlas());
+        super(new EmptyAtlas());
 
         if (identifier == null)
         {
@@ -89,10 +89,10 @@ public class BloatedArea extends Area implements BloatedEntity
     @Override
     public boolean equals(final Object other)
     {
-        if (other instanceof BloatedArea)
+        if (other instanceof CompleteArea)
         {
-            final BloatedArea that = (BloatedArea) other;
-            return BloatedEntity.basicEqual(this, that)
+            final CompleteArea that = (CompleteArea) other;
+            return CompleteEntity.basicEqual(this, that)
                     && Objects.equals(this.asPolygon(), that.asPolygon());
         }
         return false;
@@ -126,7 +126,7 @@ public class BloatedArea extends Area implements BloatedEntity
     public Set<Relation> relations()
     {
         return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(BloatedRelation::new)
+                : this.relationIdentifiers.stream().map(CompleteRelation::new)
                         .collect(Collectors.toSet());
     }
 
@@ -137,12 +137,12 @@ public class BloatedArea extends Area implements BloatedEntity
                 + ", tags=" + this.tags + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
-    public BloatedArea withAddedTag(final String key, final String value)
+    public CompleteArea withAddedTag(final String key, final String value)
     {
-        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+        return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
-    public BloatedArea withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    public CompleteArea withAggregateBoundsExtendedUsing(final Rectangle bounds)
     {
         if (this.aggregateBounds == null)
         {
@@ -152,13 +152,13 @@ public class BloatedArea extends Area implements BloatedEntity
         return this;
     }
 
-    public BloatedArea withIdentifier(final long identifier)
+    public CompleteArea withIdentifier(final long identifier)
     {
         this.identifier = identifier;
         return this;
     }
 
-    public BloatedArea withPolygon(final Polygon polygon)
+    public CompleteArea withPolygon(final Polygon polygon)
     {
         this.polygon = polygon;
         if (this.originalBounds == null)
@@ -169,37 +169,37 @@ public class BloatedArea extends Area implements BloatedEntity
         return this;
     }
 
-    public BloatedArea withRelationIdentifiers(final Set<Long> relationIdentifiers)
+    public CompleteArea withRelationIdentifiers(final Set<Long> relationIdentifiers)
     {
         this.relationIdentifiers = relationIdentifiers;
         return this;
     }
 
-    public BloatedArea withRelations(final Set<Relation> relations)
+    public CompleteArea withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
         return this;
     }
 
-    public BloatedArea withRemovedTag(final String key)
+    public CompleteArea withRemovedTag(final String key)
     {
-        return withTags(BloatedEntity.removeTag(getTags(), key));
+        return withTags(CompleteEntity.removeTag(getTags(), key));
     }
 
-    public BloatedArea withReplacedTag(final String oldKey, final String newKey,
+    public CompleteArea withReplacedTag(final String oldKey, final String newKey,
             final String newValue)
     {
         return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
     }
 
-    public BloatedArea withTags(final Map<String, String> tags)
+    public CompleteArea withTags(final Map<String, String> tags)
     {
         this.tags = tags;
         return this;
     }
 
-    private BloatedArea withInitialBounds(final Rectangle bounds)
+    private CompleteArea withInitialBounds(final Rectangle bounds)
     {
         this.originalBounds = bounds;
         this.aggregateBounds = bounds;

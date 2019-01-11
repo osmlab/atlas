@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.bloated;
+package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.Map;
 import java.util.Objects;
@@ -19,7 +19,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  *
  * @author matthieun
  */
-public class BloatedNode extends Node implements BloatedEntity
+public class CompleteNode extends Node implements CompleteEntity
 {
     private static final long serialVersionUID = -8229589987121555419L;
 
@@ -49,11 +49,11 @@ public class BloatedNode extends Node implements BloatedEntity
      *
      * @param node
      *            the {@link Node} to deep copy
-     * @return the new {@link BloatedNode}
+     * @return the new {@link CompleteNode}
      */
-    public static BloatedNode from(final Node node)
+    public static CompleteNode from(final Node node)
     {
-        return new BloatedNode(node.getIdentifier(), node.getLocation(), node.getTags(),
+        return new CompleteNode(node.getIdentifier(), node.getLocation(), node.getTags(),
                 node.inEdges().stream().map(Edge::getIdentifier)
                         .collect(Collectors.toCollection(TreeSet::new)),
                 node.outEdges().stream().map(Edge::getIdentifier)
@@ -67,23 +67,23 @@ public class BloatedNode extends Node implements BloatedEntity
      *
      * @param node
      *            the {@link Node} to copy
-     * @return the new {@link BloatedNode}
+     * @return the new {@link CompleteNode}
      */
-    public static BloatedNode shallowFrom(final Node node)
+    public static CompleteNode shallowFrom(final Node node)
     {
-        return new BloatedNode(node.getIdentifier()).withInitialBounds(node.getLocation().bounds());
+        return new CompleteNode(node.getIdentifier()).withInitialBounds(node.getLocation().bounds());
     }
 
-    BloatedNode(final long identifier)
+    CompleteNode(final long identifier)
     {
         this(identifier, null, null, null, null, null);
     }
 
-    public BloatedNode(final Long identifier, final Location location,
+    public CompleteNode(final Long identifier, final Location location,
             final Map<String, String> tags, final SortedSet<Long> inEdgeIdentifiers,
             final SortedSet<Long> outEdgeIdentifiers, final Set<Long> relationIdentifiers)
     {
-        super(new BloatedAtlas());
+        super(new EmptyAtlas());
 
         if (identifier == null)
         {
@@ -110,10 +110,10 @@ public class BloatedNode extends Node implements BloatedEntity
     @Override
     public boolean equals(final Object other)
     {
-        if (other instanceof BloatedNode)
+        if (other instanceof CompleteNode)
         {
-            final BloatedNode that = (BloatedNode) other;
-            return BloatedEntity.basicEqual(this, that)
+            final CompleteNode that = (CompleteNode) other;
+            return CompleteEntity.basicEqual(this, that)
                     && Objects.equals(this.getLocation(), that.getLocation())
                     && Objects.equals(this.inEdges(), that.inEdges())
                     && Objects.equals(this.outEdges(), that.outEdges());
@@ -149,7 +149,7 @@ public class BloatedNode extends Node implements BloatedEntity
     public SortedSet<Edge> inEdges()
     {
         return this.inEdgeIdentifiers == null ? null
-                : this.inEdgeIdentifiers.stream().map(BloatedEdge::new)
+                : this.inEdgeIdentifiers.stream().map(CompleteEdge::new)
                         .collect(Collectors.toCollection(TreeSet::new));
     }
 
@@ -165,7 +165,7 @@ public class BloatedNode extends Node implements BloatedEntity
     public SortedSet<Edge> outEdges()
     {
         return this.outEdgeIdentifiers == null ? null
-                : this.outEdgeIdentifiers.stream().map(BloatedEdge::new)
+                : this.outEdgeIdentifiers.stream().map(CompleteEdge::new)
                         .collect(Collectors.toCollection(TreeSet::new));
     }
 
@@ -173,7 +173,7 @@ public class BloatedNode extends Node implements BloatedEntity
     public Set<Relation> relations()
     {
         return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(BloatedRelation::new)
+                : this.relationIdentifiers.stream().map(CompleteRelation::new)
                         .collect(Collectors.toSet());
     }
 
@@ -186,12 +186,12 @@ public class BloatedNode extends Node implements BloatedEntity
                 + this.relationIdentifiers + "]";
     }
 
-    public BloatedNode withAddedTag(final String key, final String value)
+    public CompleteNode withAddedTag(final String key, final String value)
     {
-        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+        return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
-    public BloatedNode withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    public CompleteNode withAggregateBoundsExtendedUsing(final Rectangle bounds)
     {
         if (this.aggregateBounds == null)
         {
@@ -201,45 +201,45 @@ public class BloatedNode extends Node implements BloatedEntity
         return this;
     }
 
-    public BloatedNode withIdentifier(final long identifier)
+    public CompleteNode withIdentifier(final long identifier)
     {
         this.identifier = identifier;
         return this;
     }
 
-    public BloatedNode withInEdgeIdentifierExtra(final Long extraInEdgeIdentifier)
+    public CompleteNode withInEdgeIdentifierExtra(final Long extraInEdgeIdentifier)
     {
         this.inEdgeIdentifiers.add(extraInEdgeIdentifier);
         return this;
     }
 
-    public BloatedNode withInEdgeIdentifierLess(final Long lessInEdgeIdentifier)
+    public CompleteNode withInEdgeIdentifierLess(final Long lessInEdgeIdentifier)
     {
         this.inEdgeIdentifiers.remove(lessInEdgeIdentifier);
         return this;
     }
 
-    public BloatedNode withInEdgeIdentifierReplaced(final Long beforeInEdgeIdentifier,
+    public CompleteNode withInEdgeIdentifierReplaced(final Long beforeInEdgeIdentifier,
             final Long afterInEdgeIdentifier)
     {
         return this.withInEdgeIdentifierLess(beforeInEdgeIdentifier)
                 .withInEdgeIdentifierExtra(afterInEdgeIdentifier);
     }
 
-    public BloatedNode withInEdgeIdentifiers(final SortedSet<Long> inEdgeIdentifiers)
+    public CompleteNode withInEdgeIdentifiers(final SortedSet<Long> inEdgeIdentifiers)
     {
         this.inEdgeIdentifiers = inEdgeIdentifiers;
         return this;
     }
 
-    public BloatedNode withInEdges(final Set<Edge> inEdges)
+    public CompleteNode withInEdges(final Set<Edge> inEdges)
     {
         this.inEdgeIdentifiers = inEdges.stream().map(Edge::getIdentifier)
                 .collect(Collectors.toCollection(TreeSet::new));
         return this;
     }
 
-    public BloatedNode withLocation(final Location location)
+    public CompleteNode withLocation(final Location location)
     {
         this.location = location;
         if (this.originalBounds == null)
@@ -250,69 +250,69 @@ public class BloatedNode extends Node implements BloatedEntity
         return this;
     }
 
-    public BloatedNode withOutEdgeIdentifierExtra(final Long extraOutEdgeIdentifier)
+    public CompleteNode withOutEdgeIdentifierExtra(final Long extraOutEdgeIdentifier)
     {
         this.outEdgeIdentifiers.add(extraOutEdgeIdentifier);
         return this;
     }
 
-    public BloatedNode withOutEdgeIdentifierLess(final Long lessOutEdgeIdentifier)
+    public CompleteNode withOutEdgeIdentifierLess(final Long lessOutEdgeIdentifier)
     {
         this.outEdgeIdentifiers.remove(lessOutEdgeIdentifier);
         return this;
     }
 
-    public BloatedNode withOutEdgeIdentifierReplaced(final Long beforeOutEdgeIdentifier,
+    public CompleteNode withOutEdgeIdentifierReplaced(final Long beforeOutEdgeIdentifier,
             final Long afterOutEdgeIdentifier)
     {
         return this.withOutEdgeIdentifierLess(beforeOutEdgeIdentifier)
                 .withOutEdgeIdentifierExtra(afterOutEdgeIdentifier);
     }
 
-    public BloatedNode withOutEdgeIdentifiers(final SortedSet<Long> outEdgeIdentifiers)
+    public CompleteNode withOutEdgeIdentifiers(final SortedSet<Long> outEdgeIdentifiers)
     {
         this.outEdgeIdentifiers = outEdgeIdentifiers;
         return this;
     }
 
-    public BloatedNode withOutEdges(final Set<Edge> outEdges)
+    public CompleteNode withOutEdges(final Set<Edge> outEdges)
     {
         this.outEdgeIdentifiers = outEdges.stream().map(Edge::getIdentifier)
                 .collect(Collectors.toCollection(TreeSet::new));
         return this;
     }
 
-    public BloatedNode withRelationIdentifiers(final Set<Long> relationIdentifiers)
+    public CompleteNode withRelationIdentifiers(final Set<Long> relationIdentifiers)
     {
         this.relationIdentifiers = relationIdentifiers;
         return this;
     }
 
-    public BloatedNode withRelations(final Set<Relation> relations)
+    public CompleteNode withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
         return this;
     }
 
-    public BloatedNode withRemovedTag(final String key)
+    public CompleteNode withRemovedTag(final String key)
     {
-        return withTags(BloatedEntity.removeTag(getTags(), key));
+        return withTags(CompleteEntity.removeTag(getTags(), key));
     }
 
-    public BloatedNode withReplacedTag(final String oldKey, final String newKey,
+    public CompleteNode withReplacedTag(final String oldKey, final String newKey,
             final String newValue)
     {
         return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
     }
 
-    public BloatedNode withTags(final Map<String, String> tags)
+    public CompleteNode withTags(final Map<String, String> tags)
     {
         this.tags = tags;
         return this;
     }
 
-    private BloatedNode withInitialBounds(final Rectangle bounds)
+    private CompleteNode withInitialBounds(final Rectangle bounds)
     {
         this.originalBounds = bounds;
         this.aggregateBounds = bounds;

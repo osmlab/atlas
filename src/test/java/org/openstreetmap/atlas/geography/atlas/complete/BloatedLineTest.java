@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.bloated;
+package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.utilities.collections.Maps;
@@ -25,17 +26,17 @@ public class BloatedLineTest
     @Test
     public void testBloatedEquals()
     {
-        final BloatedLine line11 = new BloatedLine(123L, null, null, null);
-        final BloatedLine line12 = new BloatedLine(123L, null, null, null);
-        final BloatedLine line21 = new BloatedLine(123L, PolyLine.TEST_POLYLINE, null, null);
-        final BloatedLine line22 = new BloatedLine(123L, PolyLine.TEST_POLYLINE, null, null);
-        final BloatedLine line23 = new BloatedLine(123L, Polygon.SILICON_VALLEY_2, null, null);
-        final BloatedLine line31 = new BloatedLine(123L, null, Maps.hashMap("key", "value"), null);
-        final BloatedLine line32 = new BloatedLine(123L, null, Maps.hashMap("key", "value"), null);
-        final BloatedLine line33 = new BloatedLine(123L, null, Maps.hashMap(), null);
-        final BloatedLine line41 = new BloatedLine(123L, null, null, Sets.hashSet(1L, 2L));
-        final BloatedLine line42 = new BloatedLine(123L, null, null, Sets.hashSet(1L, 2L));
-        final BloatedLine line43 = new BloatedLine(123L, null, null, Sets.hashSet(1L));
+        final CompleteLine line11 = new CompleteLine(123L, null, null, null);
+        final CompleteLine line12 = new CompleteLine(123L, null, null, null);
+        final CompleteLine line21 = new CompleteLine(123L, PolyLine.TEST_POLYLINE, null, null);
+        final CompleteLine line22 = new CompleteLine(123L, PolyLine.TEST_POLYLINE, null, null);
+        final CompleteLine line23 = new CompleteLine(123L, Polygon.SILICON_VALLEY_2, null, null);
+        final CompleteLine line31 = new CompleteLine(123L, null, Maps.hashMap("key", "value"), null);
+        final CompleteLine line32 = new CompleteLine(123L, null, Maps.hashMap("key", "value"), null);
+        final CompleteLine line33 = new CompleteLine(123L, null, Maps.hashMap(), null);
+        final CompleteLine line41 = new CompleteLine(123L, null, null, Sets.hashSet(1L, 2L));
+        final CompleteLine line42 = new CompleteLine(123L, null, null, Sets.hashSet(1L, 2L));
+        final CompleteLine line43 = new CompleteLine(123L, null, null, Sets.hashSet(1L));
 
         Assert.assertEquals(line11, line12);
         Assert.assertEquals(line21, line22);
@@ -55,7 +56,7 @@ public class BloatedLineTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Line source = atlas.line(18);
-        final BloatedLine result = BloatedLine.from(source);
+        final CompleteLine result = CompleteLine.from(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         Assert.assertEquals(source.asPolyLine(), result.asPolyLine());
@@ -72,7 +73,7 @@ public class BloatedLineTest
     {
         final Atlas atlas = this.rule.getAtlas();
         final Line source = atlas.line(18);
-        final BloatedLine result = BloatedLine.shallowFrom(source);
+        final CompleteLine result = CompleteLine.shallowFrom(source);
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         result.withPolyLine(PolyLine.TEST_POLYLINE);

@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedEntity;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
@@ -19,6 +19,6 @@ public class AtlasChangeGeneratorRemoveReverseEdges implements AtlasChangeGenera
         return Iterables.stream(atlas.edges()).filter(Edge::isMasterEdge)
                 .filter(Edge::hasReverseEdge).map(Edge::reversed).filter(Optional::isPresent)
                 .map(Optional::get)
-                .map(edge -> FeatureChange.remove(BloatedEntity.shallowFrom(edge))).collectToSet();
+                .map(edge -> FeatureChange.remove(CompleteEntity.shallowFrom(edge))).collectToSet();
     }
 }

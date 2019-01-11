@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.bloated;
+package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +23,7 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
  *
  * @author matthieun
  */
-public class BloatedRelation extends Relation implements BloatedEntity
+public class CompleteRelation extends Relation implements CompleteEntity
 {
     private static final long serialVersionUID = -8295865049110084558L;
 
@@ -49,9 +49,9 @@ public class BloatedRelation extends Relation implements BloatedEntity
     private Long osmRelationIdentifier;
     private Set<Long> relationIdentifiers;
 
-    public static BloatedRelation from(final Relation relation)
+    public static CompleteRelation from(final Relation relation)
     {
-        return new BloatedRelation(relation.getIdentifier(), relation.getTags(), relation.bounds(),
+        return new CompleteRelation(relation.getIdentifier(), relation.getTags(), relation.bounds(),
                 relation.members().asBean(),
                 relation.allRelationsWithSameOsmIdentifier().stream().map(Relation::getIdentifier)
                         .collect(Collectors.toList()),
@@ -60,23 +60,23 @@ public class BloatedRelation extends Relation implements BloatedEntity
                         .collect(Collectors.toSet()));
     }
 
-    public static BloatedRelation shallowFrom(final Relation relation)
+    public static CompleteRelation shallowFrom(final Relation relation)
     {
-        return new BloatedRelation(relation.getIdentifier()).withInitialBounds(relation.bounds());
+        return new CompleteRelation(relation.getIdentifier()).withInitialBounds(relation.bounds());
     }
 
-    BloatedRelation(final long identifier)
+    CompleteRelation(final long identifier)
     {
         this(identifier, null, null, null, null, null, null, null);
     }
 
-    public BloatedRelation(final Long identifier, final Map<String, String> tags, // NOSONAR
+    public CompleteRelation(final Long identifier, final Map<String, String> tags, // NOSONAR
             final Rectangle bounds, final RelationBean members,
             final List<Long> allRelationsWithSameOsmIdentifier,
             final RelationBean allKnownOsmMembers, final Long osmRelationIdentifier,
             final Set<Long> relationIdentifiers)
     {
-        super(new BloatedAtlas());
+        super(new EmptyAtlas());
 
         if (identifier == null)
         {
@@ -95,7 +95,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
         this.relationIdentifiers = relationIdentifiers;
     }
 
-    protected BloatedRelation(final Atlas atlas)
+    protected CompleteRelation(final Atlas atlas)
     {
         super(atlas);
     }
@@ -110,7 +110,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
     public List<Relation> allRelationsWithSameOsmIdentifier()
     {
         return this.allRelationsWithSameOsmIdentifier == null ? null
-                : this.allRelationsWithSameOsmIdentifier.stream().map(BloatedRelation::new)
+                : this.allRelationsWithSameOsmIdentifier.stream().map(CompleteRelation::new)
                         .collect(Collectors.toList());
     }
 
@@ -123,15 +123,15 @@ public class BloatedRelation extends Relation implements BloatedEntity
     @Override
     public boolean equals(final Object other)
     {
-        if (other instanceof BloatedRelation)
+        if (other instanceof CompleteRelation)
         {
-            final BloatedRelation that = (BloatedRelation) other;
-            return BloatedEntity.basicEqual(this, that)
-                    && BloatedEntity.equalThroughGet(this.members(), that.members(),
+            final CompleteRelation that = (CompleteRelation) other;
+            return CompleteEntity.basicEqual(this, that)
+                    && CompleteEntity.equalThroughGet(this.members(), that.members(),
                             RelationMemberList::asBean)
                     && Objects.equals(this.allRelationsWithSameOsmIdentifier(),
                             that.allRelationsWithSameOsmIdentifier())
-                    && BloatedEntity.equalThroughGet(this.allKnownOsmMembers(),
+                    && CompleteEntity.equalThroughGet(this.allKnownOsmMembers(),
                             that.allKnownOsmMembers(), RelationMemberList::asBean)
                     && Objects.equals(this.osmRelationIdentifier(), that.osmRelationIdentifier());
         }
@@ -180,7 +180,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
     public Set<Relation> relations()
     {
         return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(BloatedRelation::new)
+                : this.relationIdentifiers.stream().map(CompleteRelation::new)
                         .collect(Collectors.toSet());
     }
 
@@ -192,12 +192,12 @@ public class BloatedRelation extends Relation implements BloatedEntity
                 + "]";
     }
 
-    public BloatedRelation withAddedTag(final String key, final String value)
+    public CompleteRelation withAddedTag(final String key, final String value)
     {
-        return withTags(BloatedEntity.addNewTag(getTags(), key, value));
+        return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
-    public BloatedRelation withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    public CompleteRelation withAggregateBoundsExtendedUsing(final Rectangle bounds)
     {
         if (this.aggregateBounds == null)
         {
@@ -207,20 +207,20 @@ public class BloatedRelation extends Relation implements BloatedEntity
         return this;
     }
 
-    public BloatedRelation withAllKnownOsmMembers(final RelationBean allKnownOsmMembers)
+    public CompleteRelation withAllKnownOsmMembers(final RelationBean allKnownOsmMembers)
     {
         this.allKnownOsmMembers = allKnownOsmMembers;
         return this;
     }
 
-    public BloatedRelation withAllRelationsWithSameOsmIdentifier(
+    public CompleteRelation withAllRelationsWithSameOsmIdentifier(
             final List<Long> allRelationsWithSameOsmIdentifier)
     {
         this.allRelationsWithSameOsmIdentifier = allRelationsWithSameOsmIdentifier;
         return this;
     }
 
-    public BloatedRelation withExtraMember(final AtlasEntity newMember,
+    public CompleteRelation withExtraMember(final AtlasEntity newMember,
             final AtlasEntity memberFromWhichToCopyRole)
     {
         final Relation sourceRelation = Iterables.stream(memberFromWhichToCopyRole.relations())
@@ -241,7 +241,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
         return withExtraMember(newMember, role);
     }
 
-    public BloatedRelation withExtraMember(final AtlasEntity newMember, final String role)
+    public CompleteRelation withExtraMember(final AtlasEntity newMember, final String role)
     {
         this.members.addItem(
                 new RelationBeanItem(newMember.getIdentifier(), role, newMember.getType()));
@@ -249,16 +249,16 @@ public class BloatedRelation extends Relation implements BloatedEntity
         return this;
     }
 
-    public BloatedRelation withIdentifier(final long identifier)
+    public CompleteRelation withIdentifier(final long identifier)
     {
         this.identifier = identifier;
         return this;
     }
 
     /**
-     * Assign this {@link BloatedRelation} with members.
+     * Assign this {@link CompleteRelation} with members.
      * <p>
-     * In case this {@link BloatedRelation} is created from an existing relation, and the new member
+     * In case this {@link CompleteRelation} is created from an existing relation, and the new member
      * list has had some existing members removed, use
      * {@link #withMembersAndSource(RelationBean, Relation, Rectangle)}
      *
@@ -268,7 +268,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
      *            The bounds of all the members of the relation.
      * @return This
      */
-    public BloatedRelation withMembers(final RelationBean members, final Rectangle bounds)
+    public CompleteRelation withMembers(final RelationBean members, final Rectangle bounds)
     {
         this.members = members;
         updateBounds(bounds);
@@ -276,9 +276,9 @@ public class BloatedRelation extends Relation implements BloatedEntity
     }
 
     /**
-     * Assign this {@link BloatedRelation} with members.
+     * Assign this {@link CompleteRelation} with members.
      * <p>
-     * In case this {@link BloatedRelation} is created from an existing relation, and the new member
+     * In case this {@link CompleteRelation} is created from an existing relation, and the new member
      * list has had some existing members removed, use
      * {@link #withMembersAndSource(RelationMemberList, Relation)}
      *
@@ -286,7 +286,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
      *            The full members of the Relation
      * @return This
      */
-    public BloatedRelation withMembers(final RelationMemberList members)
+    public CompleteRelation withMembers(final RelationMemberList members)
     {
         return withMembers(members.asBean(), members.bounds());
     }
@@ -302,7 +302,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
      *            The bounds of all the members of the relation.
      * @return This.
      */
-    public BloatedRelation withMembersAndSource(final RelationBean members, final Relation source,
+    public CompleteRelation withMembersAndSource(final RelationBean members, final Relation source,
             final Rectangle bounds)
     {
         if (source == null)
@@ -338,43 +338,43 @@ public class BloatedRelation extends Relation implements BloatedEntity
      *            relation members are forcibly removed if any.
      * @return This.
      */
-    public BloatedRelation withMembersAndSource(final RelationMemberList members,
+    public CompleteRelation withMembersAndSource(final RelationMemberList members,
             final Relation source)
     {
         return withMembersAndSource(members.asBean(), source, members.bounds());
     }
 
-    public BloatedRelation withOsmRelationIdentifier(final Long osmRelationIdentifier)
+    public CompleteRelation withOsmRelationIdentifier(final Long osmRelationIdentifier)
     {
         this.osmRelationIdentifier = osmRelationIdentifier;
         return this;
     }
 
-    public BloatedRelation withRelationIdentifiers(final Set<Long> relationIdentifiers)
+    public CompleteRelation withRelationIdentifiers(final Set<Long> relationIdentifiers)
     {
         this.relationIdentifiers = relationIdentifiers;
         return this;
     }
 
-    public BloatedRelation withRelations(final Set<Relation> relations)
+    public CompleteRelation withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
         return this;
     }
 
-    public BloatedRelation withRemovedTag(final String key)
+    public CompleteRelation withRemovedTag(final String key)
     {
-        return withTags(BloatedEntity.removeTag(getTags(), key));
+        return withTags(CompleteEntity.removeTag(getTags(), key));
     }
 
-    public BloatedRelation withReplacedTag(final String oldKey, final String newKey,
+    public CompleteRelation withReplacedTag(final String oldKey, final String newKey,
             final String newValue)
     {
         return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
     }
 
-    public BloatedRelation withTags(final Map<String, String> tags)
+    public CompleteRelation withTags(final Map<String, String> tags)
     {
         this.tags = tags;
         return this;
@@ -406,7 +406,7 @@ public class BloatedRelation extends Relation implements BloatedEntity
         this.aggregateBounds = Rectangle.forLocated(this.originalBounds, bounds);
     }
 
-    private BloatedRelation withInitialBounds(final Rectangle bounds)
+    private CompleteRelation withInitialBounds(final Rectangle bounds)
     {
         this.originalBounds = bounds;
         this.aggregateBounds = bounds;
