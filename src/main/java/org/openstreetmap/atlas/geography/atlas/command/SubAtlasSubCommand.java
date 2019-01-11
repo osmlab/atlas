@@ -14,6 +14,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
+import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.runtime.Command.Flag;
 import org.openstreetmap.atlas.utilities.runtime.Command.Optionality;
@@ -70,8 +71,8 @@ public class SubAtlasSubCommand extends AbstractAtlasSubCommand
         final Rectangle rectangle = (Rectangle) command.get(SUB);
         try
         {
-            final Atlas saveMe = new PackedAtlasCloner().cloneFrom(atlas).subAtlas(rectangle)
-                    .orElseThrow(
+            final Atlas saveMe = new PackedAtlasCloner().cloneFrom(atlas)
+                    .subAtlas(rectangle, AtlasCutType.SOFT_CUT).orElseThrow(
                             () -> new CoreException("There are no features in the sub rectangle."));
             final Path path = (Path) command.get(OUTPUT);
             Files.createDirectories(path.getParent());

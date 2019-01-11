@@ -609,28 +609,8 @@ public class BloatedAtlas implements Atlas
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * @deprecated
-     */
-    @Deprecated
-    @Override
-    public Optional<Atlas> subAtlas(final Polygon boundary)
-    {
-        throw new UnsupportedOperationException();
-    }
-
     @Override
     public Optional<Atlas> subAtlas(final Polygon boundary, final AtlasCutType cutType)
-    {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * @deprecated
-     */
-    @Deprecated
-    @Override
-    public Optional<Atlas> subAtlas(final Predicate<AtlasEntity> matcher)
     {
         throw new UnsupportedOperationException();
     }

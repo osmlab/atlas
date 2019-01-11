@@ -537,7 +537,7 @@ public class WaySectionProcessor
             {
                 // The first shard is always the initial one. Use its bounds to build the atlas.
                 final Rectangle originalShardBounds = this.loadedShards.get(0).bounds();
-                return atlas.subAtlas(originalShardBounds)
+                return atlas.subAtlas(originalShardBounds, AtlasCutType.SOFT_CUT)
                         .orElseThrow(() -> new CoreException(
                                 "Cannot have an empty atlas after way sectioning {}",
                                 this.loadedShards.get(0).getName()));

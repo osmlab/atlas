@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
@@ -20,6 +22,7 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.WktPrintable;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
@@ -83,7 +86,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     public abstract List<Relation> allRelationsWithSameOsmIdentifier();
 
     @Override
-    public JsonObject asGeoJsonFeature()
+    public JsonObject asGeoJsonGeometry()
     {
         final JsonObject properties = geoJsonProperties();
 
@@ -332,6 +335,18 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         return configurableString("", "");
     }
 
+    @Override
+    public byte[] toWkb()
+    {
+        throw new UnsupportedOperationException("Relation.toWkb not implemented yet.");
+    }
+
+    @Override
+    public String toWkt()
+    {
+        return WktPrintable.toWktCollection(leafMembers().collect(Collectors.toList()));
+    }
+
     /**
      * Return {@code true} if this Relation has all members fully within the supplied
      * {@link Polygon}.
@@ -529,5 +544,16 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
                 memberObject.addProperty("role", role);
             }
         }
+    }
+
+    private Stream<AtlasItem> leafMembers()
+    {
+        final Stream<AtlasItem> nonRelationMembers = members().stream()
+                .map(RelationMember::getEntity).filter(entity -> !(entity instanceof Relation))
+                .map(entity -> (AtlasItem) entity);
+        final Stream<AtlasItem> relationMembers = members().stream().map(RelationMember::getEntity)
+                .filter(entity -> entity instanceof Relation).map(entity -> (Relation) entity)
+                .flatMap(Relation::leafMembers);
+        return Stream.concat(nonRelationMembers, relationMembers);
     }
 }

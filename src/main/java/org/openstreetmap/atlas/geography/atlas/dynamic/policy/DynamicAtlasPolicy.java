@@ -131,7 +131,8 @@ public class DynamicAtlasPolicy
         }
         final MultiMap<Polygon, Polygon> outerToInners = new MultiMap<>();
         this.initialShards.forEach(shard -> outerToInners.put(shard.bounds(), new ArrayList<>()));
-        return new MultiPolygon(outerToInners);
+        this.shapeCoveringInitialShards = Optional.of(new MultiPolygon(outerToInners));
+        return this.shapeCoveringInitialShards.get();
     }
 
     public Polygon getMaximumBounds()

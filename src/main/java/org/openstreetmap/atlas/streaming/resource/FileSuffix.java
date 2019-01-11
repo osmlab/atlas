@@ -20,6 +20,8 @@ public enum FileSuffix
     // extended csv
     EXTENDED(".ext"),
     JSON(".json"),
+    NONE(""),
+    OSMPBF(".osm.pbf"),
     PBF(".pbf"),
     PROTOATLAS(".patlas"),
     TEMPORARY(".tmp"),

@@ -99,7 +99,7 @@ public abstract class HttpResource extends AbstractResource
     {
         // make sure that a connection attempt has been made
         final StringBuilder builder = new StringBuilder();
-        lines().forEach(x -> builder.append(x));
+        lines().forEach(builder::append);
         return builder.toString();
     }
     // ------------------------------------//

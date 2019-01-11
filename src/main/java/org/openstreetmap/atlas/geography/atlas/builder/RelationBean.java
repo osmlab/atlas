@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.builder;
 
 import java.io.Serializable;
+import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -19,7 +20,7 @@ import com.google.common.collect.HashMultiset;
 /**
  * @author matthieun
  */
-public class RelationBean implements Serializable, Iterable<RelationBeanItem>
+public class RelationBean extends AbstractCollection<RelationBeanItem> implements Serializable
 {
     /**
      * @author matthieun
@@ -201,6 +202,7 @@ public class RelationBean implements Serializable, Iterable<RelationBeanItem>
     /**
      * @return True if this bean has no members
      */
+    @Override
     public boolean isEmpty()
     {
         return this.memberIdentifiers.isEmpty();
@@ -251,6 +253,7 @@ public class RelationBean implements Serializable, Iterable<RelationBeanItem>
     /**
      * @return The number of members in this {@link RelationBean}
      */
+    @Override
     public int size()
     {
         return this.memberIdentifiers.size();

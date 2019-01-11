@@ -9,7 +9,9 @@ import java.util.stream.Stream;
 
 import org.openstreetmap.atlas.exception.CoreException;
 
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassInfoList;
+import io.github.classgraph.ScanResult;
 
 /**
  * Shell for running subcommands. Reflections is used to find commands and their switchlists are
@@ -81,11 +83,17 @@ public class FlexibleCommand extends Command
      *
      * @return a stream containing all of the subcommands we want to support
      */
+    @SuppressWarnings("unchecked")
     protected Stream<Class<? extends FlexibleSubCommand>> getSupportedCommands()
     {
         final List<Class<? extends FlexibleSubCommand>> returnValue = new ArrayList<>();
-        new FastClasspathScanner()
-                .matchClassesImplementing(FlexibleSubCommand.class, returnValue::add).scan();
+        try (ScanResult scanResult = new ClassGraph().enableAllInfo().scan())
+        {
+            final ClassInfoList classInfoList = scanResult
+                    .getClassesImplementing(FlexibleSubCommand.class.getName());
+            classInfoList.loadClasses()
+                    .forEach(klass -> returnValue.add((Class<? extends FlexibleSubCommand>) klass));
+        }
         return returnValue.stream();
     }
 
