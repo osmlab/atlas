@@ -331,7 +331,15 @@ sub install_repo {
         baseName = project.name
         classifier = '-AST'
         from {
-            configurations.atlasshelltools.collect { it.isDirectory() ? it : zipTree(it) }
+            configurations.atlasshelltools.collect
+            {
+                it.isDirectory() ? it : zipTree(it).matching {
+                    exclude
+                    {
+                        it.path.contains('META-INF') && (it.path.endsWith('.SF') || it.path.endsWith('.DSA') || it.path.endsWith('.RSA'))
+                    }
+                }
+            }
         }
         with jar
         zip64 = true
