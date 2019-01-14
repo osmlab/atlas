@@ -5,8 +5,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedAtlas;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedLine;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
+import org.openstreetmap.atlas.geography.atlas.complete.EmptyAtlas;
 import org.openstreetmap.atlas.geography.atlas.items.LineItem;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
@@ -21,14 +21,14 @@ public class AtlasLineItemValidatorTest
     @Test
     public void testMissingPolyLineValidation()
     {
-        final Atlas atlas = new BloatedAtlas()
+        final Atlas atlas = new EmptyAtlas()
         {
             private static final long serialVersionUID = 3421885788588156857L;
 
             @Override
             public Iterable<LineItem> lineItems()
             {
-                return Iterables.from(new BloatedLine(123L, null, null, null));
+                return Iterables.from(new CompleteLine(123L, null, null, null));
             }
         };
 

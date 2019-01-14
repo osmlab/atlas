@@ -10,9 +10,9 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedAtlas;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedEdge;
-import org.openstreetmap.atlas.geography.atlas.bloated.BloatedNode;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
+import org.openstreetmap.atlas.geography.atlas.complete.EmptyAtlas;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -28,14 +28,14 @@ public class AtlasEdgeValidatorTest
     @Test
     public void testEdgeToNodeConnectivity()
     {
-        final Atlas atlas = new BloatedAtlas()
+        final Atlas atlas = new EmptyAtlas()
         {
             private static final long serialVersionUID = 2810137078529598434L;
 
             @Override
             public Iterable<Edge> edges()
             {
-                return Iterables.from(new BloatedEdge(123L, null, null, null, null, null)
+                return Iterables.from(new CompleteEdge(123L, null, null, null, null, null)
                 {
                     private static final long serialVersionUID = 8238381291474515199L;
 
@@ -57,14 +57,14 @@ public class AtlasEdgeValidatorTest
     @Test
     public void testEdgeToNodeLocationAccuracy()
     {
-        final Atlas atlas = new BloatedAtlas()
+        final Atlas atlas = new EmptyAtlas()
         {
             private static final long serialVersionUID = -3111613839268225792L;
 
             @Override
             public Iterable<Edge> edges()
             {
-                return Iterables.from(new BloatedEdge(123L,
+                return Iterables.from(new CompleteEdge(123L,
                         new PolyLine(Location.COLOSSEUM, Location.EIFFEL_TOWER), null, null, null,
                         null)
                 {
@@ -73,7 +73,8 @@ public class AtlasEdgeValidatorTest
                     @Override
                     public Node start()
                     {
-                        return new BloatedNode(456L, Location.EIFFEL_TOWER, null, null, null, null);
+                        return new CompleteNode(456L, Location.EIFFEL_TOWER, null, null, null,
+                                null);
                     }
                 });
             }
@@ -84,14 +85,14 @@ public class AtlasEdgeValidatorTest
 
         new AtlasEdgeValidator(atlas).validateEdgeToNodeLocationAccuracy();
 
-        final Atlas atlas2 = new BloatedAtlas()
+        final Atlas atlas2 = new EmptyAtlas()
         {
             private static final long serialVersionUID = -3557437996775535655L;
 
             @Override
             public Iterable<Edge> edges()
             {
-                return Iterables.from(new BloatedEdge(123L,
+                return Iterables.from(new CompleteEdge(123L,
                         new PolyLine(Location.COLOSSEUM, Location.EIFFEL_TOWER), null, null, null,
                         null)
                 {
@@ -100,7 +101,7 @@ public class AtlasEdgeValidatorTest
                     @Override
                     public Node end()
                     {
-                        return new BloatedNode(456L, Location.COLOSSEUM, null, null, null, null);
+                        return new CompleteNode(456L, Location.COLOSSEUM, null, null, null, null);
                     }
                 });
             }
@@ -115,20 +116,20 @@ public class AtlasEdgeValidatorTest
     @Test
     public void testReverseEdgePolyLineUpdated()
     {
-        final Atlas atlas = new BloatedAtlas()
+        final Atlas atlas = new EmptyAtlas()
         {
             private static final long serialVersionUID = -1125897101453459977L;
 
             @Override
             public Edge edge(final long identifier)
             {
-                return new BloatedEdge(-123L, null, null, null, null, null);
+                return new CompleteEdge(-123L, null, null, null, null, null);
             }
 
             @Override
             public Iterable<Edge> edges(final Predicate<Edge> matcher)
             {
-                return Iterables.from(new BloatedEdge(123L,
+                return Iterables.from(new CompleteEdge(123L,
                         new PolyLine(Location.COLOSSEUM, Location.EIFFEL_TOWER), null, null, null,
                         null)
                 {
@@ -137,7 +138,7 @@ public class AtlasEdgeValidatorTest
                     @Override
                     public Optional<Edge> reversed()
                     {
-                        return Optional.of(new BloatedEdge(-123L,
+                        return Optional.of(new CompleteEdge(-123L,
                                 new PolyLine(Location.COLOSSEUM, Location.EIFFEL_TOWER), null, null,
                                 null, null));
                     }
