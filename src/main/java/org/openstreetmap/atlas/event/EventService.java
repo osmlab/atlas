@@ -16,6 +16,7 @@ import com.google.common.eventbus.EventBus;
  * A simple in-memory publish-subscribe service built on top of {@link EventBus}
  *
  * @author mkalender
+ * @author jklamer
  */
 public final class EventService
 {
