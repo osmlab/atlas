@@ -84,6 +84,6 @@ public class JavaToProtoSerializationCommand extends VariadicAtlasLoaderCommand
     @Override
     public void registerManualPageSections()
     {
-        // TODO Auto-generated method stub
+        super.registerManualPageSections();
     }
 }
