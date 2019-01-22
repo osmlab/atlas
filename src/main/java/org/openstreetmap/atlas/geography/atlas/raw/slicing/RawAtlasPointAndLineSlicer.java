@@ -26,12 +26,8 @@ import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryLine;
 import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryPoint;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
-import org.openstreetmap.atlas.tags.ManMadeTag;
-import org.openstreetmap.atlas.tags.RouteTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
-import org.openstreetmap.atlas.tags.Taggable;
-import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
@@ -498,13 +494,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         // ferry that extends into the ocean. Because the ocean isn't viewed as another country, the
         // pier and ferries are not sliced at the country boundary and ocean. This should be fixed
         // for consistency issues.
-        final boolean slicesAreSingleCountry = slices.size() == 1
-                || CountryBoundaryMap.isSameCountry(slices);
-        final Map<String, String> tags = CountryBoundaryMap.getGeometryProperties(slices.get(0));
-        final boolean slicesAreFerryOrPier = Validators.isOfType(Taggable.with(tags),
-                RouteTag.class, RouteTag.FERRY)
-                || Validators.isOfType(Taggable.with(tags), ManMadeTag.class, ManMadeTag.PIER);
-        return slicesAreSingleCountry && !slicesAreFerryOrPier;
+        return slices.size() == 1 || CountryBoundaryMap.isSameCountry(slices);
     }
 
     /**
