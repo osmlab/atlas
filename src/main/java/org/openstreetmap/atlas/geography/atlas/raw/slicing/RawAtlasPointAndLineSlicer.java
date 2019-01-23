@@ -490,10 +490,6 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      */
     private boolean slicesBelongToSingleCountry(final List<Geometry> slices)
     {
-        // TODO - this is an optimization that hides the corner case of not slicing any pier or
-        // ferry that extends into the ocean. Because the ocean isn't viewed as another country, the
-        // pier and ferries are not sliced at the country boundary and ocean. This should be fixed
-        // for consistency issues.
         return slices.size() == 1 || CountryBoundaryMap.isSameCountry(slices);
     }
 
