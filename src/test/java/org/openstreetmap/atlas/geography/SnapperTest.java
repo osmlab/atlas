@@ -54,6 +54,7 @@ public class SnapperTest
     }
 
     @Test
+    @SuppressWarnings("squid:S3415")
     public void testSnappedLocationEqualsSnappedLocationTrue()
     {
         Assert.assertEquals(SNAP_1, SNAP_1);
@@ -66,6 +67,7 @@ public class SnapperTest
     }
 
     @Test
+    @SuppressWarnings("squid:S3415")
     public void testSnappedLocationEqualsLocationTrue()
     {
         Assert.assertEquals(SNAP_1, Location.TEST_2);
