@@ -40,6 +40,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.complex.boundaries.ComplexBoundary;
 import org.openstreetmap.atlas.geography.atlas.items.complex.boundaries.ComplexBoundaryFinder;
+import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.CountryCodeProperties;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RuntimeCounter;
 import org.openstreetmap.atlas.geography.boundary.converters.CountryListTwoWayStringConverter;
@@ -1220,6 +1221,12 @@ public class CountryBoundaryMap implements Serializable
             return null;
         }
 
+        if (new ReverseIdentifierFactory().getOsmIdentifier(identifier) == 112715914L)
+        {
+            logger.error("countryBoundaryMap slice line {}", identifier);
+            logger.error("geom {}", geometry);
+        }
+
         Geometry target = geometry;
         final List<Geometry> results = new ArrayList<>();
         List<Polygon> candidates = this.query(target.getEnvelopeInternal());
@@ -1229,6 +1236,10 @@ public class CountryBoundaryMap implements Serializable
         // In this method, source contains only one element.
         if (shouldSkipSlicing(candidates, source))
         {
+            if (new ReverseIdentifierFactory().getOsmIdentifier(identifier) == 112715914L)
+            {
+                logger.error("skipping slicing line {}, WHY 1", identifier);
+            }
             final String countryCode = getGeometryProperty(candidates.get(0), ISOCountryTag.KEY);
             setGeometryProperty(target, ISOCountryTag.KEY, countryCode);
             addResult(target, results);
@@ -1262,6 +1273,12 @@ public class CountryBoundaryMap implements Serializable
                         .groupingBy(polygon -> getGeometryProperty(polygon, ISOCountryTag.KEY)));
                 countries.forEach((key, value) -> logger.trace("{} : {}", key, value.size()));
             }
+        }
+
+        if (new ReverseIdentifierFactory().getOsmIdentifier(identifier) == 112715914L)
+        {
+            logger.error("countryBoundaryMap still slicing line {}", identifier);
+            logger.error("candidates: {}", candidates);
         }
 
         // Check relation of target to all polygons
@@ -1317,6 +1334,10 @@ public class CountryBoundaryMap implements Serializable
         // (except when geometry has to be sliced at all costs)
         if (shouldSkipSlicing(candidates, source))
         {
+            if (new ReverseIdentifierFactory().getOsmIdentifier(identifier) == 112715914L)
+            {
+                logger.error("skipping slicing line {}, WHY 2", identifier);
+            }
             final String countryCode = getGeometryProperty(candidates.get(0), ISOCountryTag.KEY);
             setGeometryProperty(target, ISOCountryTag.KEY, countryCode);
             this.addResult(target, results);
@@ -1371,8 +1392,16 @@ public class CountryBoundaryMap implements Serializable
         // Part or all of the geometry is not inside any country, assign with nearest country.
         if (!fullyMatched)
         {
+            if (new ReverseIdentifierFactory().getOsmIdentifier(identifier) == 112715914L)
+            {
+                logger.error("NOT fullyMatched line {}", identifier);
+            }
             final Geometry nearestGeometry = nearestNeighbour(target.getEnvelopeInternal(), target,
                     new GeometryItemDistance());
+            if (new ReverseIdentifierFactory().getOsmIdentifier(identifier) == 112715914L)
+            {
+                logger.error("nearest geom for line {}: {}", identifier, nearestGeometry);
+            }
             if (nearestGeometry != null)
             {
                 final String nearestCountryCode = getGeometryProperty(nearestGeometry,
@@ -1381,6 +1410,13 @@ public class CountryBoundaryMap implements Serializable
                 setGeometryProperty(target, SyntheticNearestNeighborCountryCodeTag.KEY,
                         SyntheticNearestNeighborCountryCodeTag.YES.toString());
                 this.addResult(target, results);
+            }
+        }
+        else
+        {
+            if (new ReverseIdentifierFactory().getOsmIdentifier(identifier) == 112715914L)
+            {
+                logger.error("fullyMatched line {}", identifier);
             }
         }
 

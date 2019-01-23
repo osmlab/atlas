@@ -129,6 +129,11 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         List<Geometry> result;
         final long lineIdentifier = line.getIdentifier();
 
+        if (line.getOsmIdentifier() == 112715914L)
+        {
+            logger.error("convertToJtsGeomAndSlice line {}", line.getIdentifier());
+        }
+
         // Create the JTS Geometry from Line
         Geometry geometry;
 
@@ -144,14 +149,18 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         }
 
         // Slice the JTS Geometry
-        result = sliceGeometry(geometry, lineIdentifier);
+        result = sliceGeometry(geometry, line);
+        if (line.getOsmIdentifier() == 112715914L)
+        {
+            logger.error("result: {}", result);
+        }
 
         if ((result == null || result.isEmpty()) && line.isClosed())
         {
             // If we failed to slice an invalid Polygon (self-intersecting for example), let's try
             // to slice it as a PolyLine. Only if we cannot do that, then return an empty list.
             geometry = JTS_POLYLINE_CONVERTER.convert(line.asPolyLine());
-            result = sliceGeometry(geometry, lineIdentifier);
+            result = sliceGeometry(geometry, line);
         }
 
         if (result == null || result.isEmpty())
@@ -236,6 +245,14 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         else if (slicesBelongToSingleCountry(slices)
                 && !getCountryBoundaryMap().shouldForceSlicing(line))
         {
+            if (line.getOsmIdentifier() == 112715914L)
+            {
+                logger.error("Processing line {} CASE BAD", line.getIdentifier());
+                logger.error("slicesBelongToSingleCountry: {}",
+                        slicesBelongToSingleCountry(slices));
+                logger.error("getCountryBoundaryMap().shouldForceSlicing(line): {}",
+                        getCountryBoundaryMap().shouldForceSlicing(line));
+            }
             // This line belongs to a single country, check to make sure it's the right one
             if (isOutsideWorkingBound(slices.get(0)))
             {
@@ -251,6 +268,14 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         }
         else if (slices.size() < AbstractIdentifierFactory.IDENTIFIER_SCALE)
         {
+            if (line.getOsmIdentifier() == 112715914L)
+            {
+                logger.error("Processing line {} CASE GOOD", line.getIdentifier());
+                logger.error("slicesBelongToSingleCountry: {}",
+                        slicesBelongToSingleCountry(slices));
+                logger.error("getCountryBoundaryMap().shouldForceSlicing(line): {}",
+                        getCountryBoundaryMap().shouldForceSlicing(line));
+            }
             // Used to generate identifiers for new points and lines
             final CountrySlicingIdentifierFactory lineIdentifierFactory = new CountrySlicingIdentifierFactory(
                     line.getIdentifier());
@@ -407,19 +432,19 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      *
      * @param geometry
      *            The {@link Geometry} to slice
-     * @param identifier
-     *            The {@link Line} identifier being sliced
+     * @param line
+     *            The {@link Line} being sliced
      * @return a list of {@link Geometry} slices
      */
-    private List<Geometry> sliceGeometry(final Geometry geometry, final long identifier)
+    private List<Geometry> sliceGeometry(final Geometry geometry, final Line line)
     {
         try
         {
-            return getCountryBoundaryMap().slice(identifier, geometry);
+            return getCountryBoundaryMap().slice(line.getIdentifier(), geometry, line);
         }
         catch (final TopologyException e)
         {
-            logger.error("Topology Exception when slicing Line {}", identifier, e);
+            logger.error("Topology Exception when slicing Line {}", line.getIdentifier(), e);
             return Collections.emptyList();
         }
     }
@@ -433,6 +458,10 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      */
     private void sliceLine(final Line line)
     {
+        if (line.getOsmIdentifier() == 112715914L)
+        {
+            logger.error("Slicing line {}", line.getIdentifier());
+        }
         getStatistics().recordProcessedLine();
         final List<Geometry> slices = convertToJtsGeometryAndSlice(line);
         processLineSlices(line, slices);
