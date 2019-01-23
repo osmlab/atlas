@@ -144,14 +144,14 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         }
 
         // Slice the JTS Geometry
-        result = sliceGeometry(geometry, lineIdentifier);
+        result = sliceGeometry(geometry, line);
 
         if ((result == null || result.isEmpty()) && line.isClosed())
         {
             // If we failed to slice an invalid Polygon (self-intersecting for example), let's try
             // to slice it as a PolyLine. Only if we cannot do that, then return an empty list.
             geometry = JTS_POLYLINE_CONVERTER.convert(line.asPolyLine());
-            result = sliceGeometry(geometry, lineIdentifier);
+            result = sliceGeometry(geometry, line);
         }
 
         if (result == null || result.isEmpty())
@@ -407,19 +407,19 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      *
      * @param geometry
      *            The {@link Geometry} to slice
-     * @param identifier
-     *            The {@link Line} identifier being sliced
+     * @param line
+     *            The {@link Line} being sliced
      * @return a list of {@link Geometry} slices
      */
-    private List<Geometry> sliceGeometry(final Geometry geometry, final long identifier)
+    private List<Geometry> sliceGeometry(final Geometry geometry, final Line line)
     {
         try
         {
-            return getCountryBoundaryMap().slice(identifier, geometry);
+            return getCountryBoundaryMap().slice(line.getIdentifier(), geometry, line);
         }
         catch (final TopologyException e)
         {
-            logger.error("Topology Exception when slicing Line {}", identifier, e);
+            logger.error("Topology Exception when slicing Line {}", line.getIdentifier(), e);
             return Collections.emptyList();
         }
     }
@@ -490,10 +490,6 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      */
     private boolean slicesBelongToSingleCountry(final List<Geometry> slices)
     {
-        // TODO - this is an optimization that hides the corner case of not slicing any pier or
-        // ferry that extends into the ocean. Because the ocean isn't viewed as another country, the
-        // pier and ferries are not sliced at the country boundary and ocean. This should be fixed
-        // for consistency issues.
         return slices.size() == 1 || CountryBoundaryMap.isSameCountry(slices);
     }
 
