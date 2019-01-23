@@ -11,6 +11,7 @@ import com.google.common.collect.Iterables;
  * Snap a {@link Location} to a {@link PolyLine}.
  *
  * @author matthieun
+ * @author bbreithaupt
  */
 public class Snapper
 {
@@ -57,6 +58,10 @@ public class Snapper
             {
                 return this.origin.equals(((SnappedLocation) other).getOrigin())
                         && this.target.equals(((SnappedLocation) other).getTarget());
+            }
+            if (other instanceof Location)
+            {
+                return super.equals(other);
             }
             return false;
         }

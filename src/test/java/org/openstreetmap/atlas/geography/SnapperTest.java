@@ -5,9 +5,15 @@ import org.junit.Test;
 
 /**
  * @author matthieun
+ * @author bbreithaupt
  */
 public class SnapperTest
 {
+    private static final Snapper.SnappedLocation SNAP_1 = new Snapper.SnappedLocation(
+            Location.TEST_1, Location.TEST_2, new PolyLine(Location.TEST_2, Location.TEST_3));
+    private static final Snapper.SnappedLocation SNAP_2 = new Snapper.SnappedLocation(
+            Location.TEST_2, Location.TEST_1, new PolyLine(Location.TEST_3, Location.TEST_2));
+
     @Test
     public void testMultiPolygon()
     {
@@ -45,5 +51,31 @@ public class SnapperTest
         Assert.assertEquals(Location.forString("37.3268107,-122.030562"), origin.snapTo(shape));
         Assert.assertEquals(Location.TEST_6, shape.snapFrom(Location.TEST_3));
         Assert.assertEquals(Location.TEST_1, shape.snapFrom(Location.EIFFEL_TOWER));
+    }
+
+    @Test
+    @SuppressWarnings("squid:S3415")
+    public void testSnappedLocationEqualsSnappedLocationTrue()
+    {
+        Assert.assertEquals(SNAP_1, SNAP_1);
+    }
+
+    @Test
+    public void testSnappedLocationEqualsSnappedLocationFalse()
+    {
+        Assert.assertNotEquals(SNAP_1, SNAP_2);
+    }
+
+    @Test
+    @SuppressWarnings("squid:S3415")
+    public void testSnappedLocationEqualsLocationTrue()
+    {
+        Assert.assertEquals(SNAP_1, Location.TEST_2);
+    }
+
+    @Test
+    public void testSnappedLocationEqualsLocationFalse()
+    {
+        Assert.assertNotEquals(SNAP_1, Location.TEST_1);
     }
 }
