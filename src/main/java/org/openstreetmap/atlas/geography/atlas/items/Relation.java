@@ -18,7 +18,6 @@ import java.util.stream.Stream;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Located;
-import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
@@ -308,7 +307,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         final Optional<String> shardName = getAtlas().metaData().getShardName();
         shardName.ifPresent(shard -> tags.put("shard", shard));
 
-        return new GeoJsonBuilder.LocationIterableProperties(Location.CENTER, tags);
+        return new GeoJsonBuilder.LocationIterableProperties(bounds().center(), tags);
     }
 
     public String toSimpleString()
