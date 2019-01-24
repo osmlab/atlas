@@ -1,0 +1,2 @@
+Compute a diff between two atlases:
+#$ atlas-diff folder/atlas1.atlas atlas2.atlas

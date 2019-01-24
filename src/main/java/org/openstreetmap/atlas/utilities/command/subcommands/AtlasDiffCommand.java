@@ -16,8 +16,8 @@ import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 
 public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
 {
-    private static final String AFTER_ATLAS_ARGUMENT = "after-atlas";
     private static final String BEFORE_ATLAS_ARGUMENT = "before-atlas";
+    private static final String AFTER_ATLAS_ARGUMENT = "after-atlas";
     private static final String DIFF_FILE = "diff.geojson";
 
     private final OptionAndArgumentDelegate optArgDelegate;
@@ -47,10 +47,12 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
         if (!beforeAtlasFile.exists())
         {
             this.outputDelegate.printlnWarnMessage("file not found: " + beforeAtlasPath);
+            return 1;
         }
         if (!afterAtlasFile.exists())
         {
             this.outputDelegate.printlnWarnMessage("file not found: " + afterAtlasPath);
+            return 1;
         }
 
         final Atlas beforeAtlas = new AtlasResourceLoader().load(beforeAtlasFile);
@@ -88,7 +90,10 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
     @Override
     public void registerManualPageSections()
     {
-
+        addManualPageSection("DESCRIPTION", AtlasDiffCommand.class
+                .getResourceAsStream("AtlasDiffCommandDescriptionSection.txt"));
+        addManualPageSection("EXAMPLES",
+                AtlasDiffCommand.class.getResourceAsStream("AtlasDiffCommandExamplesSection.txt"));
     }
 
     @Override

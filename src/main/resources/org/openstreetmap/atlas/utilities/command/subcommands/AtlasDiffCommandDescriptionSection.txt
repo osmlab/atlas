@@ -1,0 +1,3 @@
+Compute a diff between two atlases using the ChangeAtlas API. The command
+will write a geoJSON serialization of the diff to a file called 'diff.geojson' 
+in the current working directory.
