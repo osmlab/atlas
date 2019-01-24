@@ -14,6 +14,9 @@ import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgume
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 
+/**
+ * @author lcram
+ */
 public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
 {
     private static final String BEFORE_ATLAS_ARGUMENT = "before-atlas";
