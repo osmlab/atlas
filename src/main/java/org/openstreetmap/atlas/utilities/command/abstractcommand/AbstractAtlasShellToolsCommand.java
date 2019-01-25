@@ -100,9 +100,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     SortedSet<Integer> getFilteredRegisteredContexts()
     {
         // filter out the default, hardcoded '--help' and '--version' contexts
-        final Set<Integer> set = this.parser.getRegisteredContexts().stream()
-                .filter(context -> context != HELP_OPTION_CONTEXT
-                        && context != VERSION_OPTION_CONTEXT)
+        final Set<Integer> set = this.parser.getRegisteredContexts().stream().filter(
+                context -> context != HELP_OPTION_CONTEXT && context != VERSION_OPTION_CONTEXT)
                 .collect(Collectors.toSet());
 
         return new TreeSet<>(set);
