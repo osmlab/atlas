@@ -47,9 +47,26 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
         this.outputDelegate = this.getCommandOutputDelegate();
     }
 
+    public String getFileName(final File atlasResource)
+    {
+        return atlasResource.getName();
+    }
+
+    public String getFileNameNoSuffix(final File atlasResource)
+    {
+        final String name = getFileName(atlasResource);
+        final String[] split = name.split("\\.");
+        return split[0];
+    }
+
     public List<String> getFileNames(final List<File> atlasResources)
     {
-        return atlasResources.stream().map(File::getName).collect(Collectors.toList());
+        return atlasResources.stream().map(this::getFileName).collect(Collectors.toList());
+    }
+
+    public List<String> getFileNamesWithoutSuffixes(final List<File> atlasResources)
+    {
+        return atlasResources.stream().map(this::getFileNameNoSuffix).collect(Collectors.toList());
     }
 
     public List<File> getInputAtlasResources()
