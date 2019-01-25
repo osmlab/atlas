@@ -96,6 +96,20 @@ class Location(Boundable):
         """
         return self.latitude == other.latitude and self.longitude == other.longitude
 
+    def __ne__(self, other):
+        """
+        Check if two Locations are NOT equal.
+        """
+        return not (self.latitude == other.latitude and self.longitude == other.longitude)
+
+    def __hash__(self):
+        """
+        Compute a hashcode for this Location.
+        """
+        hash_value = self.latitude * 31
+        hash_value = hash_value * 31 + self.longitude
+        return hash_value
+
     def get_as_packed_int(self):
         """
         Pack this Location into a 64 bit integer. The higher order 32 bits are
@@ -182,6 +196,26 @@ class PolyLine(Boundable):
             if not point == other_point:
                 return False
         return True
+
+    def __ne__(self, other):
+        """
+        Check if this PolyLine is NOT the same as another PolyLine.
+        """
+        if len(self.location_list) != len(other.location_list):
+            return True
+        for point, other_point in zip(self.locations(), other.locations()):
+            if not point == other_point:
+                return True
+        return False
+
+    def __hash__(self):
+        """
+        Compute a hashcode for this PolyLine.
+        """
+        hash_value = 31
+        for point in self.locations():
+            hash_value = hash_value * 31 + point.__hash__()
+        return hash_value
 
     def compress(self):
         """
