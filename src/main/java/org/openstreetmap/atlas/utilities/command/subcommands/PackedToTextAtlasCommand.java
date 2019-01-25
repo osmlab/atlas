@@ -103,7 +103,7 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     @Override
     public String getCommandName()
     {
-        return "packed-to-text";
+        return "packed2text";
     }
 
     @Override
