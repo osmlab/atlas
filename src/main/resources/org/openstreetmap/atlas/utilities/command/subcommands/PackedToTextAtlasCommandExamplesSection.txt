@@ -1,12 +1,12 @@
 Transform 'file.atlas' into a text atlas:
-#$ packed-to-text file.atlas
+#$ packed2text file.atlas
 Transform all atlases on your desktop into text atlases, in parallel:
-#$ packed-to-text ~/Desktop/*.atlas --parallel
+#$ packed2text ~/Desktop/*.atlas --parallel
 Transform all atlases in your home folder to text atlases, and save
 them to a folder on your desktop
-#$ packed-to-text ~/*.atlas -o ~/Desktop/my-folder
+#$ packed2text ~/*.atlas -o ~/Desktop/my-folder
 Transform an atlas to GeoJSON:
-#$ packed-to-text file.atlas --geojson
+#$ packed2text file.atlas --geojson
 Transform an atlas to line-delimited GeoJSON, and fail fast if 
 it does not exist:
-#$ packed-to-text file.atlas -ls
+#$ packed2text file.atlas -l --strict

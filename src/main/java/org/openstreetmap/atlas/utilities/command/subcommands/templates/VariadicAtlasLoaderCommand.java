@@ -33,7 +33,7 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
 
     private static final String OUTPUT_DIRECTORY_OPTION_LONG = "output";
     private static final Character OUTPUT_DIRECTORY_OPTION_SHORT = 'o';
-    private static final String OUTPUT_DIRECTORY_OPTION_DESCRIPTION = "Specify an alternate output directory for any output files. If the directory\n"
+    private static final String OUTPUT_DIRECTORY_OPTION_DESCRIPTION = "Specify an alternate output directory for any output files. If the directory "
             + "does not exist, it will be created.";
     private static final String OUTPUT_DIRECTORY_OPTION_HINT = "dir";
 
