@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
@@ -44,6 +45,11 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
     {
         this.optargDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
+    }
+
+    public List<String> getFileNames(final List<File> atlasResources)
+    {
+        return atlasResources.stream().map(File::getName).collect(Collectors.toList());
     }
 
     public List<File> getInputAtlasResources()

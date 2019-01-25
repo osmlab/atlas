@@ -100,7 +100,7 @@ public final class PackedAtlasSerializer
         determineAtlasLoadFormat(atlas);
 
         return atlas;
-    };
+    }
 
     /*
      * Try loading the meta data to make sure the data format is appropriate. Keep trying formats

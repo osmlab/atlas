@@ -13,14 +13,19 @@ import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDe
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.VariadicAtlasLoaderCommand;
+import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 
 public class JavaToProtoSerializationCommand extends VariadicAtlasLoaderCommand
 {
+    private static final String CHECK_OPTION_LONG = "check";
+    private static final Character CHECK_OPTION_SHORT = 'c';
+    private static final String CHECK_OPTION_DESCRIPTION = "Check the serialization format of the atlas without converting.";
+
     private static final String REVERSE_OPTION_LONG = "reverse";
     private static final Character REVERSE_OPTION_SHORT = 'R';
     private static final String REVERSE_OPTION_DESCRIPTION = "Convert a Protocol Buffers atlas back to Java serialization.";
 
-    private static final String OUTPUT_ATLAS = "output.atlas";
+    private static final Integer CHECK_CONTEXT = 4;
 
     private final OptionAndArgumentDelegate optargDelegate;
     private final CommandOutputDelegate outputDelegate;
@@ -41,6 +46,7 @@ public class JavaToProtoSerializationCommand extends VariadicAtlasLoaderCommand
     public int execute()
     {
         final List<File> atlasResourceList = this.getInputAtlasResources();
+        final List<String> atlasNames = this.getFileNames(atlasResourceList);
         if (atlasResourceList.isEmpty())
         {
             this.outputDelegate.printlnErrorMessage("no input atlases");
@@ -58,24 +64,42 @@ public class JavaToProtoSerializationCommand extends VariadicAtlasLoaderCommand
         {
             this.outputDelegate.printlnStdout("Cloning...");
         }
-        final PackedAtlas outputAtlas = (PackedAtlas) new AtlasResourceLoader()
-                .load(atlasResourceList);
-        if (this.optargDelegate.hasOption(REVERSE_OPTION_LONG))
-        {
-            outputAtlas.setSaveSerializationFormat(AtlasSerializationFormat.JAVA);
-        }
-        else
-        {
-            outputAtlas.setSaveSerializationFormat(AtlasSerializationFormat.PROTOBUF);
-        }
-        final Path concatenatedPath = Paths.get(outputParentPath.get().toAbsolutePath().toString(),
-                OUTPUT_ATLAS);
-        final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
-        outputAtlas.save(outputFile);
 
-        if (this.optargDelegate.hasVerboseOption())
+        int index = 0;
+        for (final File atlasResource : atlasResourceList)
         {
-            this.outputDelegate.printlnStdout("Saved to " + concatenatedPath.toString());
+            final PackedAtlas outputAtlas = (PackedAtlas) new AtlasResourceLoader()
+                    .load(atlasResource);
+            if (this.optargDelegate.getParserContext() == CHECK_CONTEXT)
+            {
+                this.outputDelegate.printStdout("atlas ");
+                this.outputDelegate.printStdout(atlasResource.getAbsolutePath(), TTYAttribute.BOLD);
+                this.outputDelegate.printStdout(" format: ");
+                this.outputDelegate.printlnStdout(outputAtlas.getSerializationFormat().toString(),
+                        TTYAttribute.BOLD);
+            }
+            else
+            {
+                if (this.optargDelegate.hasOption(REVERSE_OPTION_LONG))
+                {
+                    outputAtlas.setSaveSerializationFormat(AtlasSerializationFormat.JAVA);
+                }
+                else
+                {
+                    outputAtlas.setSaveSerializationFormat(AtlasSerializationFormat.PROTOBUF);
+                }
+                final Path concatenatedPath = Paths.get(
+                        outputParentPath.get().toAbsolutePath().toString(), atlasNames.get(index));
+                final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
+                outputAtlas.save(outputFile);
+
+                if (this.optargDelegate.hasVerboseOption())
+                {
+                    this.outputDelegate.printlnStdout("Saved to " + concatenatedPath.toString());
+                }
+            }
+
+            index++;
         }
 
         return 0;
@@ -108,6 +132,8 @@ public class JavaToProtoSerializationCommand extends VariadicAtlasLoaderCommand
     {
         registerOption(REVERSE_OPTION_LONG, REVERSE_OPTION_SHORT, REVERSE_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL);
+        registerOption(CHECK_OPTION_LONG, CHECK_OPTION_SHORT, CHECK_OPTION_DESCRIPTION,
+                OptionOptionality.REQUIRED, CHECK_CONTEXT);
         super.registerOptionsAndArguments();
     }
 }
