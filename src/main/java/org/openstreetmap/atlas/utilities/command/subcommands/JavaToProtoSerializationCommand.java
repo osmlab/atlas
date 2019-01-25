@@ -15,6 +15,9 @@ import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.VariadicAtlasLoaderCommand;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 
+/**
+ * @author lcram
+ */
 public class JavaToProtoSerializationCommand extends VariadicAtlasLoaderCommand
 {
     private static final String CHECK_OPTION_LONG = "check";
