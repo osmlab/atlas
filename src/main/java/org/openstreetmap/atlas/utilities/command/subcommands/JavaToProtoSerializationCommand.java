@@ -11,10 +11,15 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas.AtlasSerializa
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
+import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.VariadicAtlasLoaderCommand;
 
 public class JavaToProtoSerializationCommand extends VariadicAtlasLoaderCommand
 {
+    private static final String REVERSE_OPTION_LONG = "reverse";
+    private static final Character REVERSE_OPTION_SHORT = 'R';
+    private static final String REVERSE_OPTION_DESCRIPTION = "Convert a Protocol Buffers atlas back to Java serialization.";
+
     private static final String OUTPUT_ATLAS = "output.atlas";
 
     private final OptionAndArgumentDelegate optargDelegate;
@@ -55,7 +60,14 @@ public class JavaToProtoSerializationCommand extends VariadicAtlasLoaderCommand
         }
         final PackedAtlas outputAtlas = (PackedAtlas) new AtlasResourceLoader()
                 .load(atlasResourceList);
-        outputAtlas.setSaveSerializationFormat(AtlasSerializationFormat.PROTOBUF);
+        if (this.optargDelegate.hasOption(REVERSE_OPTION_LONG))
+        {
+            outputAtlas.setSaveSerializationFormat(AtlasSerializationFormat.JAVA);
+        }
+        else
+        {
+            outputAtlas.setSaveSerializationFormat(AtlasSerializationFormat.PROTOBUF);
+        }
         final Path concatenatedPath = Paths.get(outputParentPath.get().toAbsolutePath().toString(),
                 OUTPUT_ATLAS);
         final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
@@ -72,18 +84,30 @@ public class JavaToProtoSerializationCommand extends VariadicAtlasLoaderCommand
     @Override
     public String getCommandName()
     {
-        return "java-to-proto";
+        return "java2proto";
     }
 
     @Override
     public String getSimpleDescription()
     {
-        return "convert Java serialized atlases to protobuf format";
+        return "convert Java-serialized atlases to Protocol Buffers format";
     }
 
     @Override
     public void registerManualPageSections()
     {
+        addManualPageSection("DESCRIPTION", JavaToProtoSerializationCommand.class
+                .getResourceAsStream("JavaToProtoSerializationCommandDescriptionSection.txt"));
+        addManualPageSection("EXAMPLES", JavaToProtoSerializationCommand.class
+                .getResourceAsStream("JavaToProtoSerializationCommandExamplesSection.txt"));
         super.registerManualPageSections();
+    }
+
+    @Override
+    public void registerOptionsAndArguments()
+    {
+        registerOption(REVERSE_OPTION_LONG, REVERSE_OPTION_SHORT, REVERSE_OPTION_DESCRIPTION,
+                OptionOptionality.OPTIONAL);
+        super.registerOptionsAndArguments();
     }
 }

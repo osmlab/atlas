@@ -1,0 +1,2 @@
+Convert Java-serialized atlas(es) to Protocol Buffers format, in place. If desired, the reverse
+conversion can be performed using the '--reverse' option.
