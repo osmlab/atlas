@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
@@ -33,7 +34,7 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
 
     private static final String OUTPUT_DIRECTORY_OPTION_LONG = "output";
     private static final Character OUTPUT_DIRECTORY_OPTION_SHORT = 'o';
-    private static final String OUTPUT_DIRECTORY_OPTION_DESCRIPTION = "Specify an alternate output directory for any output files. If the directory\n"
+    private static final String OUTPUT_DIRECTORY_OPTION_DESCRIPTION = "Specify an alternate output directory for any output files. If the directory "
             + "does not exist, it will be created.";
     private static final String OUTPUT_DIRECTORY_OPTION_HINT = "dir";
 
@@ -44,6 +45,28 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
     {
         this.optargDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
+    }
+
+    public String getFileName(final File atlasResource)
+    {
+        return atlasResource.getName();
+    }
+
+    public String getFileNameNoSuffix(final File atlasResource)
+    {
+        final String name = getFileName(atlasResource);
+        final String[] split = name.split("\\.");
+        return split[0];
+    }
+
+    public List<String> getFileNames(final List<File> atlasResources)
+    {
+        return atlasResources.stream().map(this::getFileName).collect(Collectors.toList());
+    }
+
+    public List<String> getFileNamesWithoutSuffixes(final List<File> atlasResources)
+    {
+        return atlasResources.stream().map(this::getFileNameNoSuffix).collect(Collectors.toList());
     }
 
     public List<File> getInputAtlasResources()

@@ -78,9 +78,9 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private static final Character VERSION_OPTION_SHORT = 'V';
     private static final String VERSION_OPTION_DESCRIPTION = "Print the command version and exit.";
 
-    private static final int HELP_OPTION_CONTEXT_ID = 1;
-    private static final int VERSION_OPTION_CONTEXT_ID = 2;
-    private static final int DEFAULT_CONTEXT_ID = 3;
+    private static final int HELP_OPTION_CONTEXT = 1;
+    private static final int VERSION_OPTION_CONTEXT = 2;
+    public static final int DEFAULT_CONTEXT = 3;
 
     /*
      * Maximum allowed column width. If the user's terminal is very wide, we don't want to display
@@ -100,9 +100,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     SortedSet<Integer> getFilteredRegisteredContexts()
     {
         // filter out the default, hardcoded '--help' and '--version' contexts
-        final Set<Integer> set = this.parser.getRegisteredContexts().stream()
-                .filter(context -> context != HELP_OPTION_CONTEXT_ID
-                        && context != VERSION_OPTION_CONTEXT_ID)
+        final Set<Integer> set = this.parser.getRegisteredContexts().stream().filter(
+                context -> context != HELP_OPTION_CONTEXT && context != VERSION_OPTION_CONTEXT)
                 .collect(Collectors.toSet());
 
         return new TreeSet<>(set);
@@ -244,10 +243,10 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     {
         // register --help and --version to contexts 1 and 2, respectively
         registerOption(HELP_OPTION_LONG, HELP_OPTION_SHORT, HELP_OPTION_DESCRIPTION,
-                OptionOptionality.REQUIRED, HELP_OPTION_CONTEXT_ID);
+                OptionOptionality.REQUIRED, HELP_OPTION_CONTEXT);
         registerOption(VERSION_OPTION_LONG, VERSION_OPTION_SHORT, VERSION_OPTION_DESCRIPTION,
-                OptionOptionality.REQUIRED, VERSION_OPTION_CONTEXT_ID);
-        registerEmptyContext(DEFAULT_CONTEXT_ID);
+                OptionOptionality.REQUIRED, VERSION_OPTION_CONTEXT);
+        registerEmptyContext(DEFAULT_CONTEXT);
 
         // register a default '--verbose' option in all contexts (except the --help and --version)
         final Integer[] contexts = this.getFilteredRegisteredContexts().toArray(new Integer[0]);
@@ -394,7 +393,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     {
         if (contexts.length == 0)
         {
-            this.parser.registerArgument(argumentHint, arity, optionality, DEFAULT_CONTEXT_ID);
+            this.parser.registerArgument(argumentHint, arity, optionality, DEFAULT_CONTEXT);
         }
         else
         {
@@ -438,7 +437,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         if (contexts.length == 0)
         {
             this.parser.registerOption(longForm, shortForm, description, optionality,
-                    DEFAULT_CONTEXT_ID);
+                    DEFAULT_CONTEXT);
         }
         else
         {
@@ -466,7 +465,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     {
         if (contexts.length == 0)
         {
-            this.parser.registerOption(longForm, description, optionality, DEFAULT_CONTEXT_ID);
+            this.parser.registerOption(longForm, description, optionality, DEFAULT_CONTEXT);
         }
         else
         {
@@ -503,7 +502,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         if (contexts.length == 0)
         {
             this.parser.registerOptionWithOptionalArgument(longForm, shortForm, description,
-                    optionality, argumentHint, DEFAULT_CONTEXT_ID);
+                    optionality, argumentHint, DEFAULT_CONTEXT);
         }
         else
         {
@@ -537,7 +536,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         if (contexts.length == 0)
         {
             this.parser.registerOptionWithOptionalArgument(longForm, description, optionality,
-                    argumentHint, DEFAULT_CONTEXT_ID);
+                    argumentHint, DEFAULT_CONTEXT);
         }
         else
         {
@@ -575,7 +574,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         if (contexts.length == 0)
         {
             this.parser.registerOptionWithRequiredArgument(longForm, shortForm, description,
-                    optionality, argumentHint, DEFAULT_CONTEXT_ID);
+                    optionality, argumentHint, DEFAULT_CONTEXT);
         }
         else
         {
@@ -610,7 +609,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         if (contexts.length == 0)
         {
             this.parser.registerOptionWithRequiredArgument(longForm, description, optionality,
-                    argumentHint, DEFAULT_CONTEXT_ID);
+                    argumentHint, DEFAULT_CONTEXT);
         }
         else
         {

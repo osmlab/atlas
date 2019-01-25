@@ -18,7 +18,7 @@ import org.openstreetmap.atlas.utilities.command.subcommands.templates.VariadicA
  */
 public class ConcatenateAtlasCommand extends VariadicAtlasLoaderCommand
 {
-    private static final String OUTPUT_ATLAS = "output_fatlas.atlas";
+    private static final String OUTPUT_ATLAS = "output.atlas";
 
     private static final String DESCRIPTION_SECTION = "ConcatenateAtlasCommandDescriptionSection.txt";
     private static final String EXAMPLES_SECTION = "ConcatenateAtlasCommandExamplesSection.txt";
