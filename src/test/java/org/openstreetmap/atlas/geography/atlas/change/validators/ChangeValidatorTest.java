@@ -10,6 +10,7 @@ import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.utilities.collections.Maps;
+import org.openstreetmap.atlas.utilities.collections.Sets;
 
 /**
  * @author matthieun
@@ -75,6 +76,15 @@ public class ChangeValidatorTest
     }
 
     @Test
+    public void testMismatchingEdgeAsymmetricParentRelations()
+    {
+        final ChangeBuilder builder = new ChangeBuilder();
+        builder.add(new FeatureChange(ChangeType.ADD,
+                new CompleteEdge(-123L, null, null, null, null, Sets.hashSet(13L))));
+        builder.get();
+    }
+
+    @Test
     public void testMismatchingEdgeEndNodes()
     {
         this.expectedException.expect(CoreException.class);
@@ -99,6 +109,17 @@ public class ChangeValidatorTest
                 new CompleteEdge(123L, null, Maps.hashMap(), null, 456L, null)));
         builder.add(new FeatureChange(ChangeType.ADD,
                 new CompleteEdge(-123L, null, Maps.hashMap(), null, null, null)));
+        builder.get();
+    }
+
+    @Test
+    public void testMismatchingEdgeParentRelations()
+    {
+        final ChangeBuilder builder = new ChangeBuilder();
+        builder.add(new FeatureChange(ChangeType.ADD,
+                new CompleteEdge(123L, null, null, null, null, Sets.hashSet(12L))));
+        builder.add(new FeatureChange(ChangeType.ADD,
+                new CompleteEdge(-123L, null, null, null, null, Sets.hashSet(13L))));
         builder.get();
     }
 
@@ -133,9 +154,6 @@ public class ChangeValidatorTest
     @Test
     public void testMismatchingEdgeTags()
     {
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("do not match its backward edge tags");
-
         final ChangeBuilder builder = new ChangeBuilder();
         builder.add(new FeatureChange(ChangeType.ADD,
                 new CompleteEdge(123L, null, Maps.hashMap("key1", "value1"), null, null, null)));
