@@ -61,36 +61,25 @@ public class ChangeValidator
                     final long forwardEdgeIdentifier = -backwardEdgeIdentifier;
 
                     final Edge backwardEdge = (Edge) backwardFeatureChange.getReference();
-                    final boolean backwardGeometryChange = backwardEdge.asPolyLine() != null
-                            || backwardEdge.start() != null || backwardEdge.end() != null;
                     final Optional<FeatureChange> forwardFeatureChangeOption = this.change
                             .changeFor(ItemType.EDGE, forwardEdgeIdentifier);
-                    if (backwardGeometryChange && !forwardFeatureChangeOption.isPresent())
+                    if (forwardFeatureChangeOption.isPresent())
                     {
-                        throw new CoreException(
-                                "Backward edge {} is {} but does not have a forward edge change reference present.",
-                                backwardEdgeIdentifier, backwardFeatureChange.getChangeType());
-                    }
-                    else if (!backwardGeometryChange && !forwardFeatureChangeOption.isPresent())
-                    {
-                        // This case is a non-geometry change on the backward edge only, which can
-                        // be ok.
-                        return;
-                    }
-
-                    final FeatureChange forwardFeatureChange = forwardFeatureChangeOption.get();
-                    if (forwardFeatureChange.getChangeType() != backwardFeatureChange
-                            .getChangeType())
-                    {
-                        throw new CoreException("Forward edge {} is {} when backward edge is {}",
-                                forwardEdgeIdentifier, forwardFeatureChange.getChangeType(),
-                                backwardFeatureChange.getChangeType());
-                    }
-                    if (forwardFeatureChange.getChangeType() == ChangeType.ADD)
-                    {
-                        final Edge forwardEdge = (Edge) forwardFeatureChange.getReference();
-                        validateEdgeConnectedNodesMatch(forwardEdge, backwardEdge);
-                        validateEdgePolyLinesMatch(forwardEdge, backwardEdge);
+                        final FeatureChange forwardFeatureChange = forwardFeatureChangeOption.get();
+                        if (forwardFeatureChange.getChangeType() != backwardFeatureChange
+                                .getChangeType())
+                        {
+                            throw new CoreException(
+                                    "Forward edge {} is {} when backward edge is {}",
+                                    forwardEdgeIdentifier, forwardFeatureChange.getChangeType(),
+                                    backwardFeatureChange.getChangeType());
+                        }
+                        if (forwardFeatureChange.getChangeType() == ChangeType.ADD)
+                        {
+                            final Edge forwardEdge = (Edge) forwardFeatureChange.getReference();
+                            validateEdgeConnectedNodesMatch(forwardEdge, backwardEdge);
+                            validateEdgePolyLinesMatch(forwardEdge, backwardEdge);
+                        }
                     }
                 });
     }

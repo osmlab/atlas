@@ -161,4 +161,13 @@ public class ChangeValidatorTest
                 new CompleteEdge(-123L, null, Maps.hashMap("key2", "value2"), null, null, null)));
         builder.get();
     }
+
+    @Test
+    public void testMissingForwardEdge()
+    {
+        final ChangeBuilder builder = new ChangeBuilder();
+        builder.add(new FeatureChange(ChangeType.ADD,
+                new CompleteEdge(-123L, PolyLine.TEST_POLYLINE, Maps.hashMap(), null, null, null)));
+        builder.get();
+    }
 }
