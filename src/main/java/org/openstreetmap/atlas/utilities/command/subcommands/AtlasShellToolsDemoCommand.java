@@ -17,8 +17,6 @@ import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
 {
     private static final int BREAKFAST_CONTEXT = 4;
-    private static final String DESCRIPTION_SECTION = "AtlasShellToolsDemoCommandDescriptionSection.txt";
-    private static final String EXAMPLES_SECTION = "AtlasShellToolsDemoCommandExamplesSection.txt";
 
     private final OptionAndArgumentDelegate optargDelegate;
     private final CommandOutputDelegate outputDelegate;
@@ -65,10 +63,10 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
     @Override
     public void registerManualPageSections()
     {
-        addManualPageSection("DESCRIPTION",
-                AtlasShellToolsDemoCommand.class.getResourceAsStream(DESCRIPTION_SECTION));
-        addManualPageSection("EXAMPLES",
-                AtlasShellToolsDemoCommand.class.getResourceAsStream(EXAMPLES_SECTION));
+        addManualPageSection("DESCRIPTION", AtlasShellToolsDemoCommand.class
+                .getResourceAsStream("AtlasShellToolsDemoCommandDescriptionSection.txt"));
+        addManualPageSection("EXAMPLES", AtlasShellToolsDemoCommand.class
+                .getResourceAsStream("AtlasShellToolsDemoCommandExamplesSection.txt"));
     }
 
     @Override

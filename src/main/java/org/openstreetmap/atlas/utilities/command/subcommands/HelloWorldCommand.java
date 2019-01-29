@@ -10,8 +10,6 @@ import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
  */
 public class HelloWorldCommand extends AbstractAtlasShellToolsCommand
 {
-    private static final String DESCRIPTION_SECTION = "HelloWorldCommandDescriptionSection.txt";
-
     private final OptionAndArgumentDelegate optargDelegate;
     private final CommandOutputDelegate outputDelegate;
 
@@ -49,8 +47,8 @@ public class HelloWorldCommand extends AbstractAtlasShellToolsCommand
     @Override
     public void registerManualPageSections()
     {
-        addManualPageSection("DESCRIPTION",
-                HelloWorldCommand.class.getResourceAsStream(DESCRIPTION_SECTION));
+        addManualPageSection("DESCRIPTION", HelloWorldCommand.class
+                .getResourceAsStream("HelloWorldCommandDescriptionSection.txt"));
     }
 
     @Override

@@ -20,9 +20,6 @@ public class ConcatenateAtlasCommand extends VariadicAtlasLoaderCommand
 {
     private static final String OUTPUT_ATLAS = "output.atlas";
 
-    private static final String DESCRIPTION_SECTION = "ConcatenateAtlasCommandDescriptionSection.txt";
-    private static final String EXAMPLES_SECTION = "ConcatenateAtlasCommandExamplesSection.txt";
-
     private final OptionAndArgumentDelegate optargDelegate;
     private final CommandOutputDelegate outputDelegate;
 
@@ -89,10 +86,10 @@ public class ConcatenateAtlasCommand extends VariadicAtlasLoaderCommand
     @Override
     public void registerManualPageSections()
     {
-        addManualPageSection("DESCRIPTION",
-                ConcatenateAtlasCommand.class.getResourceAsStream(DESCRIPTION_SECTION));
-        addManualPageSection("EXAMPLES",
-                ConcatenateAtlasCommand.class.getResourceAsStream(EXAMPLES_SECTION));
+        addManualPageSection("DESCRIPTION", ConcatenateAtlasCommand.class
+                .getResourceAsStream("ConcatenateAtlasCommandDescriptionSection.txt"));
+        addManualPageSection("EXAMPLES", ConcatenateAtlasCommand.class
+                .getResourceAsStream("ConcatenateAtlasCommandExamplesSection.txt"));
         super.registerManualPageSections();
     }
 }

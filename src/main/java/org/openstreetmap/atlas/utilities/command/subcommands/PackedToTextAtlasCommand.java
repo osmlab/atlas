@@ -24,8 +24,6 @@ import org.openstreetmap.atlas.utilities.command.subcommands.templates.VariadicA
 public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
 {
     private static final String SAVED_TO = "Saved to ";
-    private static final String DESCRIPTION_SECTION = "PackedToTextAtlasCommandDescriptionSection.txt";
-    private static final String EXAMPLES_SECTION = "PackedToTextAtlasCommandExamplesSection.txt";
 
     private static final String GEOJSON_OPTION_LONG = "geojson";
     private static final Character GEOJSON_OPTION_SHORT = 'g';
@@ -118,10 +116,10 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     @Override
     public void registerManualPageSections()
     {
-        addManualPageSection("DESCRIPTION",
-                PackedToTextAtlasCommand.class.getResourceAsStream(DESCRIPTION_SECTION));
-        addManualPageSection("EXAMPLES",
-                PackedToTextAtlasCommand.class.getResourceAsStream(EXAMPLES_SECTION));
+        addManualPageSection("DESCRIPTION", PackedToTextAtlasCommand.class
+                .getResourceAsStream("PackedToTextAtlasCommandDescriptionSection.txt"));
+        addManualPageSection("EXAMPLES", PackedToTextAtlasCommand.class
+                .getResourceAsStream("PackedToTextAtlasCommandExamplesSection.txt"));
         super.registerManualPageSections();
     }
 

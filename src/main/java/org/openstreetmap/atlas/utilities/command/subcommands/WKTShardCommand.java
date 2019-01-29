@@ -40,9 +40,6 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 {
     private static final Logger logger = LoggerFactory.getLogger(WKTShardCommand.class);
 
-    private static final String DESCRIPTION_SECTION = "WKTShardCommandDescriptionSection.txt";
-    private static final String EXAMPLES_SECTION = "WKTShardCommandExamplesSection.txt";
-
     private static final String TREE_OPTION_LONG = "tree";
     private static final String TREE_OPTION_DESCRIPTION = "The path to the dynamic sharding tree file. E.g. /Users/example/path/to/tree.txt";
     private static final String TREE_OPTION_HINT = "path";
@@ -142,9 +139,9 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     public void registerManualPageSections()
     {
         addManualPageSection("DESCRIPTION",
-                WKTShardCommand.class.getResourceAsStream(DESCRIPTION_SECTION));
+                WKTShardCommand.class.getResourceAsStream("WKTShardCommandDescriptionSection.txt"));
         addManualPageSection("EXAMPLES",
-                WKTShardCommand.class.getResourceAsStream(EXAMPLES_SECTION));
+                WKTShardCommand.class.getResourceAsStream("WKTShardCommandExamplesSection.txt"));
     }
 
     @Override

@@ -37,9 +37,6 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
 {
     private static final Logger logger = LoggerFactory.getLogger(SubAtlasCommand.class);
 
-    private static final String DESCRIPTION_SECTION = "SubAtlasCommandDescriptionSection.txt";
-    private static final String EXAMPLES_SECTION = "SubAtlasCommandExamplesSection.txt";
-
     private static final String PARALLEL_OPTION_LONG = "parallel";
     private static final Character PARALLEL_OPTION_SHORT = 'p';
     private static final String PARALLEL_OPTION_DESCRIPTION = "Process the atlases in parallel.";
@@ -155,9 +152,9 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
     public void registerManualPageSections()
     {
         addManualPageSection("DESCRIPTION",
-                SubAtlasCommand.class.getResourceAsStream(DESCRIPTION_SECTION));
+                SubAtlasCommand.class.getResourceAsStream("SubAtlasCommandDescriptionSection.txt"));
         addManualPageSection("EXAMPLES",
-                SubAtlasCommand.class.getResourceAsStream(EXAMPLES_SECTION));
+                SubAtlasCommand.class.getResourceAsStream("SubAtlasCommandExamplesSection.txt"));
         super.registerManualPageSections();
     }
 
