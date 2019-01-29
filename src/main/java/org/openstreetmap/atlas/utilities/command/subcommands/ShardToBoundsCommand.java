@@ -21,7 +21,7 @@ public class ShardToBoundsCommand extends AbstractAtlasShellToolsCommand
 
     private static final String INPUT_SHARDS = "shards";
 
-    private final OptionAndArgumentDelegate optargDelegate;
+    private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
     public static void main(final String[] args)
@@ -31,14 +31,15 @@ public class ShardToBoundsCommand extends AbstractAtlasShellToolsCommand
 
     public ShardToBoundsCommand()
     {
-        this.optargDelegate = new OptionAndArgumentDelegate(this);
+        this.optionAndArgumentDelegate = new OptionAndArgumentDelegate(this);
         this.outputDelegate = new CommandOutputDelegate(this);
     }
 
     @Override
     public int execute()
     {
-        final List<String> shards = this.optargDelegate.getVariadicArgument(INPUT_SHARDS);
+        final List<String> shards = this.optionAndArgumentDelegate
+                .getVariadicArgument(INPUT_SHARDS);
 
         for (int i = 0; i < shards.size(); i++)
         {

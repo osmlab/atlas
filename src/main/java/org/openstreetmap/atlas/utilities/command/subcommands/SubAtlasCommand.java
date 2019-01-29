@@ -52,7 +52,7 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
             + new StringList(CUT_TYPE_STRINGS).join(", ") + ". Defaults to SOFT_CUT.";
     private static final String CUT_TYPE_OPTION_HINT = "type";
 
-    private final OptionAndArgumentDelegate optargDelegate;
+    private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
     public static void main(final String[] args)
@@ -63,7 +63,7 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
     public SubAtlasCommand()
     {
         super();
-        this.optargDelegate = this.getOptionAndArgumentDelegate();
+        this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
     }
 
@@ -85,13 +85,13 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
             return 1;
         }
 
-        if (this.optargDelegate.hasOption(PARALLEL_OPTION_LONG))
+        if (this.optionAndArgumentDelegate.hasOption(PARALLEL_OPTION_LONG))
         {
             atlasResourceStream.parallel();
         }
 
-        final String cutTypeString = this.optargDelegate.getOptionArgument(CUT_TYPE_OPTION_LONG)
-                .orElse("SOFT_CUT");
+        final String cutTypeString = this.optionAndArgumentDelegate
+                .getOptionArgument(CUT_TYPE_OPTION_LONG).orElse("SOFT_CUT");
         final AtlasCutType cutType;
         try
         {
@@ -106,7 +106,7 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
 
         atlasResourceStream.forEach(fileResource ->
         {
-            if (this.optargDelegate.hasVerboseOption())
+            if (this.optionAndArgumentDelegate.hasVerboseOption())
             {
                 this.outputDelegate.printlnStdout(
                         "Subatlasing " + fileResource.getFile().getAbsolutePath() + "...");
@@ -120,7 +120,7 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
                 final File outputFile = new File(
                         concatenatedPath.toAbsolutePath().toString() + "_sub" + FileSuffix.ATLAS);
                 outputAtlas.get().save(outputFile);
-                if (this.optargDelegate.hasVerboseOption())
+                if (this.optionAndArgumentDelegate.hasVerboseOption())
                 {
                     this.outputDelegate
                             .printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
@@ -174,7 +174,7 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
     {
         final PackedAtlas atlas = new PackedAtlasCloner()
                 .cloneFrom(new AtlasResourceLoader().load(resource));
-        final String wkt = this.optargDelegate.getOptionArgument(WKT_OPTION_LONG)
+        final String wkt = this.optionAndArgumentDelegate.getOptionArgument(WKT_OPTION_LONG)
                 .orElseThrow(AtlasShellToolsException::new);
 
         final WKTReader reader = new WKTReader();

@@ -57,7 +57,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 
     private static final String INPUT_WKT = "wkt";
 
-    private final OptionAndArgumentDelegate optargDelegate;
+    private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
     public static void main(final String[] args)
@@ -67,7 +67,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 
     public WKTShardCommand()
     {
-        this.optargDelegate = this.getOptionAndArgumentDelegate();
+        this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
     }
 
@@ -75,12 +75,12 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     public int execute()
     {
         final List<String> inputWKT = new ArrayList<>();
-        if (this.optargDelegate.hasOption(INPUT_FILE_OPTION_LONG))
+        if (this.optionAndArgumentDelegate.hasOption(INPUT_FILE_OPTION_LONG))
         {
-            inputWKT.addAll(
-                    readWKTFromFile(this.optargDelegate.getOptionArgument(INPUT_FILE_OPTION_LONG)));
+            inputWKT.addAll(readWKTFromFile(
+                    this.optionAndArgumentDelegate.getOptionArgument(INPUT_FILE_OPTION_LONG)));
         }
-        inputWKT.addAll(this.optargDelegate.getVariadicArgument(INPUT_WKT));
+        inputWKT.addAll(this.optionAndArgumentDelegate.getVariadicArgument(INPUT_WKT));
 
         if (inputWKT.isEmpty())
         {
@@ -89,18 +89,18 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         }
 
         final Sharding sharding;
-        if (this.optargDelegate.getParserContext() == TREE_CONTEXT
-                && this.optargDelegate.hasOption(TREE_OPTION_LONG))
+        if (this.optionAndArgumentDelegate.getParserContext() == TREE_CONTEXT
+                && this.optionAndArgumentDelegate.hasOption(TREE_OPTION_LONG))
         {
-            sharding = Sharding
-                    .forString("dynamic@" + this.optargDelegate.getOptionArgument(TREE_OPTION_LONG)
+            sharding = Sharding.forString(
+                    "dynamic@" + this.optionAndArgumentDelegate.getOptionArgument(TREE_OPTION_LONG)
                             .orElseThrow(AtlasShellToolsException::new));
         }
-        else if (this.optargDelegate.getParserContext() == SLIPPY_CONTEXT
-                && this.optargDelegate.hasOption(SLIPPY_OPTION_LONG))
+        else if (this.optionAndArgumentDelegate.getParserContext() == SLIPPY_CONTEXT
+                && this.optionAndArgumentDelegate.hasOption(SLIPPY_OPTION_LONG))
         {
-            sharding = Sharding
-                    .forString("slippy@" + this.optargDelegate.getOptionArgument(SLIPPY_OPTION_LONG)
+            sharding = Sharding.forString(
+                    "slippy@" + this.optionAndArgumentDelegate.getOptionArgument(SLIPPY_OPTION_LONG)
                             .orElseThrow(AtlasShellToolsException::new));
         }
         else

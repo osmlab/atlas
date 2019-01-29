@@ -20,7 +20,7 @@ public class ConcatenateAtlasCommand extends VariadicAtlasLoaderCommand
 {
     private static final String OUTPUT_ATLAS = "output.atlas";
 
-    private final OptionAndArgumentDelegate optargDelegate;
+    private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
     public static void main(final String[] args)
@@ -31,7 +31,7 @@ public class ConcatenateAtlasCommand extends VariadicAtlasLoaderCommand
     public ConcatenateAtlasCommand()
     {
         super();
-        this.optargDelegate = this.getOptionAndArgumentDelegate();
+        this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
     }
 
@@ -52,7 +52,7 @@ public class ConcatenateAtlasCommand extends VariadicAtlasLoaderCommand
             return 1;
         }
 
-        if (this.optargDelegate.hasVerboseOption())
+        if (this.optionAndArgumentDelegate.hasVerboseOption())
         {
             this.outputDelegate.printlnStdout("Cloning...");
         }
@@ -63,7 +63,7 @@ public class ConcatenateAtlasCommand extends VariadicAtlasLoaderCommand
         final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
         outputAtlas.save(outputFile);
 
-        if (this.optargDelegate.hasVerboseOption())
+        if (this.optionAndArgumentDelegate.hasVerboseOption())
         {
             this.outputDelegate.printlnStdout("Saved to " + concatenatedPath.toString());
         }

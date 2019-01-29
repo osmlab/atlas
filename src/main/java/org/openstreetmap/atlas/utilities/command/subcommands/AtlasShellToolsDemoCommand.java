@@ -18,7 +18,7 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
 {
     private static final int BREAKFAST_CONTEXT = 4;
 
-    private final OptionAndArgumentDelegate optargDelegate;
+    private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
     public static void main(final String[] args)
@@ -28,7 +28,7 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
 
     public AtlasShellToolsDemoCommand()
     {
-        this.optargDelegate = this.getOptionAndArgumentDelegate();
+        this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
     }
 
@@ -36,7 +36,7 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
     public int execute()
     {
         // Check if the parser context detected the breakfast usage
-        if (this.optargDelegate.getParserContext() == BREAKFAST_CONTEXT)
+        if (this.optionAndArgumentDelegate.getParserContext() == BREAKFAST_CONTEXT)
         {
             executeBreakfastContext();
         }
@@ -117,8 +117,8 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
 
     private void executeBreakfastContext()
     {
-        final String breakfast = this.optargDelegate.getUnaryArgument("favoriteBreakfastFood")
-                .orElse("Default waffles :(");
+        final String breakfast = this.optionAndArgumentDelegate
+                .getUnaryArgument("favoriteBreakfastFood").orElse("Default waffles :(");
         this.outputDelegate.printlnStdout("Using special breakfast mode:");
         this.outputDelegate.printlnStdout(breakfast, TTYAttribute.BOLD);
     }
@@ -126,11 +126,12 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
     private void executeLunchDinnerContext()
     {
         // We registered favoriteFoods as variadic so it comes back as a List.
-        final List<String> foods = this.optargDelegate.getVariadicArgument("favoriteFoods");
+        final List<String> foods = this.optionAndArgumentDelegate
+                .getVariadicArgument("favoriteFoods");
 
         // We registered favoriteMeal as REQUIRED so it is safe to unwrap the Optional.
         // The orElseThrow is just there to stop Sonar from complaining.
-        final String meal = this.optargDelegate.getUnaryArgument("favoriteMeal")
+        final String meal = this.optionAndArgumentDelegate.getUnaryArgument("favoriteMeal")
                 .orElseThrow(AtlasShellToolsException::new);
 
         this.outputDelegate.printStdout("I like meal ");
@@ -139,7 +140,7 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
         this.outputDelegate.printlnStdout(" the best");
 
         final int repeatDefault = 1;
-        final int repeat = this.optargDelegate.getOptionArgument("repeat", value ->
+        final int repeat = this.optionAndArgumentDelegate.getOptionArgument("repeat", value ->
         {
             final int parsed;
             try
@@ -161,7 +162,7 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
             for (final String food : foods)
             {
                 String mutableFood = food;
-                if (this.optargDelegate.hasOption("capitalize"))
+                if (this.optionAndArgumentDelegate.hasOption("capitalize"))
                 {
                     mutableFood = mutableFood.toUpperCase();
                 }
@@ -169,17 +170,18 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
             }
         }
 
-        if (this.optargDelegate.hasOption("cheese"))
+        if (this.optionAndArgumentDelegate.hasOption("cheese"))
         {
-            this.outputDelegate.printlnStdout(
-                    "Using " + this.optargDelegate.getOptionArgument("cheese").orElse("cheddar")
-                            + " cheese");
+            this.outputDelegate.printlnStdout("Using "
+                    + this.optionAndArgumentDelegate.getOptionArgument("cheese").orElse("cheddar")
+                    + " cheese");
         }
 
-        if (this.optargDelegate.hasOption("beer"))
+        if (this.optionAndArgumentDelegate.hasOption("beer"))
         {
-            this.outputDelegate.printlnStdout("Also ordering a beer, " + this.optargDelegate
-                    .getOptionArgument("beer").orElseThrow(AtlasShellToolsException::new));
+            this.outputDelegate
+                    .printlnStdout("Also ordering a beer, " + this.optionAndArgumentDelegate
+                            .getOptionArgument("beer").orElseThrow(AtlasShellToolsException::new));
         }
         else
         {
