@@ -19,6 +19,7 @@ import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgume
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
+import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
 /**
  * A helper super class for any command that wants to load atlas files from disk. Provides a builtin
@@ -55,15 +56,19 @@ public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
-    private List<File> atlasResourceList;
-    private List<Atlas> atlasList;
+    private List<Tuple<File, Atlas>> atlases;
+
+    public static String removeSuffixFromFileName(final String fileName)
+    {
+        final String[] split = fileName.split("\\.");
+        return split[0];
+    }
 
     public AtlasLoaderCommand()
     {
         this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
-        this.atlasResourceList = null;
-        this.atlasList = null;
+        this.atlases = null;
     }
 
     @Override
@@ -76,45 +81,27 @@ public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
             return code;
         }
 
-        Stream<Atlas> atlasStream = getInputAtlases().stream();
+        Stream<Tuple<File, Atlas>> atlasTupleStream = getInputAtlases().stream();
         if (this.optionAndArgumentDelegate.hasOption(PARALLEL_OPTION_LONG))
         {
-            atlasStream = atlasStream.parallel();
+            atlasTupleStream = atlasTupleStream.parallel();
         }
 
         if (this.optionAndArgumentDelegate.hasOption(COMBINE_OPTION_LONG))
         {
-            processAtlas(new MultiAtlas(atlasStream.collect(Collectors.toList())));
+            processAtlas(
+                    new MultiAtlas(
+                            atlasTupleStream.map(Tuple::getSecond).collect(Collectors.toList())),
+                    "multiatlas.atlas");
         }
         else
         {
-            atlasStream.forEach(this::processAtlas);
+            atlasTupleStream.forEach(atlasTuple -> processAtlas(atlasTuple.getSecond(),
+                    atlasTuple.getFirst().getName()));
         }
 
         // return the user's finish implementation
         return finish();
-    }
-
-    public String getFileName(final File file)
-    {
-        return file.getName();
-    }
-
-    public String getFileNameNoSuffix(final File file)
-    {
-        final String name = getFileName(file);
-        final String[] split = name.split("\\.");
-        return split[0];
-    }
-
-    public List<String> getFileNames(final List<File> files)
-    {
-        return files.stream().map(this::getFileName).collect(Collectors.toList());
-    }
-
-    public List<String> getFileNamesWithoutSuffixes(final List<File> files)
-    {
-        return files.stream().map(this::getFileNameNoSuffix).collect(Collectors.toList());
     }
 
     public Optional<Path> getOutputPath()
@@ -198,8 +185,10 @@ public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
      *
      * @param atlas
      *            the atlas to process
+     * @param atlasFileName
+     *            name of the atlas file resource
      */
-    protected abstract void processAtlas(Atlas atlas);
+    protected abstract void processAtlas(Atlas atlas, String atlasFileName);
 
     /**
      * Subclasses can override this method if they want to do something once before processing the
@@ -211,64 +200,31 @@ public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
      */
     protected int start()
     {
-        return 0;
+        return 0; // NOSONAR
     }
 
     /**
-     * Get a list of atlas objects, one for each atlas loaded from the input-atlases parameter. This
-     * method can be used when overriding the execute method, in place of the standard start(),
-     * handle(), finish() semantics.
+     * Get a list of input atlas resources with their associated atlases, one for each atlas loaded
+     * from the input-atlases parameter. This method can be used when overriding the execute method,
+     * in place of the standard start(), handle(), finish() semantics.
      *
      * @return the list of atlases
      */
-    private List<Atlas> getInputAtlases()
+    private List<Tuple<File, Atlas>> getInputAtlases()
     {
-        if (this.atlasList == null)
+        if (this.atlases == null)
         {
-            this.atlasList = new ArrayList<>();
+            this.atlases = new ArrayList<>();
         }
         else
         {
-            return this.atlasList;
+            return this.atlases;
         }
 
-        // populate the list of atlas resources
-        getInputAtlasResources();
-
-        final AtlasResourceLoader loader = new AtlasResourceLoader();
-        this.atlasResourceList.stream().forEach(atlasFile ->
-        {
-            final Atlas atlas = loader.load(atlasFile);
-            if (atlas != null)
-            {
-                this.atlasList.add(atlas);
-            }
-        });
-
-        return this.atlasList;
-    }
-
-    /**
-     * Get a list of {@link File} resources, one for each atlas loaded from the input-atlases
-     * parameter. This method can be used when overriding the execute method, in place of the
-     * standard start(), handle(), finish() semantics.
-     *
-     * @return the list of atlas resources
-     */
-    private List<File> getInputAtlasResources()
-    {
         final List<String> inputAtlasPaths = this.optionAndArgumentDelegate
                 .getVariadicArgument(INPUT_HINT);
 
-        if (this.atlasResourceList == null)
-        {
-            this.atlasResourceList = new ArrayList<>();
-        }
-        else
-        {
-            return this.atlasResourceList;
-        }
-
+        final AtlasResourceLoader loader = new AtlasResourceLoader();
         inputAtlasPaths.stream().forEach(path ->
         {
             final File file = new File(path);
@@ -282,17 +238,25 @@ public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
                 {
                     this.outputDelegate.printlnCommandMessage("loading " + path);
                 }
-                this.atlasResourceList.add(file);
+                final Atlas atlas = loader.load(file);
+                if (atlas != null)
+                {
+                    this.atlases.add(new Tuple<>(file, atlas));
+                }
+                else
+                {
+                    this.outputDelegate.printlnWarnMessage("could not load: " + file);
+                }
             }
         });
 
         if (this.optionAndArgumentDelegate.hasOption(STRICT_OPTION_LONG)
-                && this.atlasResourceList.size() != inputAtlasPaths.size())
+                && this.atlases.size() != inputAtlasPaths.size())
         {
             this.outputDelegate.printlnErrorMessage("strict load is some missing atlas(es)");
-            this.atlasResourceList = new ArrayList<>();
+            this.atlases = new ArrayList<>();
         }
 
-        return this.atlasResourceList;
+        return this.atlases;
     }
 }

@@ -94,7 +94,7 @@ public class ConcatenateAtlasCommand extends AtlasLoaderCommand
     }
 
     @Override
-    protected void processAtlas(final Atlas atlas)
+    protected void processAtlas(final Atlas atlas, final String atlasFileName)
     {
         this.atlases.add(atlas);
     }
