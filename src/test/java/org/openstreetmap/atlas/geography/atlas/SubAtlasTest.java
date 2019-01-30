@@ -445,17 +445,14 @@ public class SubAtlasTest
     public void testSubAtlasSoftCutWithMultiPolygon()
     {
         final Atlas source = this.rule.getAtlas();
-        // This Rectangle covers only the Node 1, Edge 0, Area 0, Line 0 and Point 0.
         final Rectangle rectangle1 = Rectangle.forCorners(
                 Location.forString("37.780400, -122.473149"),
                 Location.forString("37.780785, -122.472631"));
         final Rectangle rectangle2 = Rectangle.forCorners(
                 Location.forString("37.780422500976194, -122.47218757867812"),
                 Location.forString("37.781049995371575, -122.47145265340805"));
-
         final Atlas sub1 = source.subAtlas(rectangle1, AtlasCutType.SOFT_CUT)
                 .orElseThrow(() -> new CoreException("SubAtlas was not present."));
-
         final Atlas sub2 = source.subAtlas(rectangle2, AtlasCutType.SOFT_CUT)
                 .orElseThrow(() -> new CoreException("SubAtlas was not present."));
 
