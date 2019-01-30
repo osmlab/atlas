@@ -23,6 +23,7 @@ import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
  *
  * @author lcram
  */
+@Deprecated
 public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellToolsCommand
 {
     private static final String INPUT_HINT = "input-atlases";

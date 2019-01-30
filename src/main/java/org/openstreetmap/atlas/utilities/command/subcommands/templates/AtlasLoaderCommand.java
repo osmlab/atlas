@@ -59,6 +59,7 @@ public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
     private final CommandOutputDelegate outputDelegate;
 
     private List<Tuple<File, Atlas>> atlases;
+    private Path outputPath;
 
     public static String removeSuffixFromFileName(final String fileName)
     {
@@ -71,11 +72,23 @@ public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
         this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
         this.atlases = null;
+        this.outputPath = null;
     }
 
     @Override
     public int execute()
     {
+        final Optional<Path> outputPathOptional = parseOutputPath();
+        if (!outputPathOptional.isPresent())
+        {
+            this.outputDelegate.printlnErrorMessage("invalid output path");
+            return 1;
+        }
+        else
+        {
+            this.outputPath = outputPathOptional.get();
+        }
+
         // call the user start implementation
         final int code = start();
         if (code != 0)
@@ -106,43 +119,9 @@ public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
         return finish();
     }
 
-    public Optional<Path> getOutputPath()
+    public Path getOutputPath()
     {
-        final Path outputParentPath = Paths.get(this.optionAndArgumentDelegate
-                .getOptionArgument(OUTPUT_DIRECTORY_OPTION_LONG).orElse(""));
-
-        // If output path already exists and is a file, then fail
-        if (outputParentPath.toAbsolutePath().toFile().isFile())
-        {
-            this.outputDelegate.printlnErrorMessage(
-                    outputParentPath.toString() + " already exists and is a file");
-            return Optional.empty();
-        }
-
-        // If output path does not exist, create it using 'mkdir -p' behaviour
-        if (!outputParentPath.toAbsolutePath().toFile().exists())
-        {
-            try
-            {
-                new File(outputParentPath.toAbsolutePath().toString()).mkdirs();
-            }
-            catch (final Exception exception)
-            {
-                this.outputDelegate.printlnErrorMessage(
-                        "failed to create output directory " + outputParentPath.toString());
-                return Optional.empty();
-            }
-        }
-
-        // If output path is not writable, fail
-        if (!outputParentPath.toAbsolutePath().toFile().canWrite())
-        {
-            this.outputDelegate
-                    .printlnErrorMessage(outputParentPath.toString() + " is not writable");
-            return Optional.empty();
-        }
-
-        return Optional.ofNullable(outputParentPath);
+        return this.outputPath;
     }
 
     @Override
@@ -260,5 +239,44 @@ public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
         }
 
         return this.atlases;
+    }
+
+    private Optional<Path> parseOutputPath()
+    {
+        final Path outputParentPath = Paths.get(this.optionAndArgumentDelegate
+                .getOptionArgument(OUTPUT_DIRECTORY_OPTION_LONG).orElse(""));
+
+        // If output path already exists and is a file, then fail
+        if (outputParentPath.toAbsolutePath().toFile().isFile())
+        {
+            this.outputDelegate.printlnErrorMessage(
+                    outputParentPath.toString() + " already exists and is a file");
+            return Optional.empty();
+        }
+
+        // If output path does not exist, create it using 'mkdir -p' behaviour
+        if (!outputParentPath.toAbsolutePath().toFile().exists())
+        {
+            try
+            {
+                new File(outputParentPath.toAbsolutePath().toString()).mkdirs();
+            }
+            catch (final Exception exception)
+            {
+                this.outputDelegate.printlnErrorMessage(
+                        "failed to create output directory " + outputParentPath.toString());
+                return Optional.empty();
+            }
+        }
+
+        // If output path is not writable, fail
+        if (!outputParentPath.toAbsolutePath().toFile().canWrite())
+        {
+            this.outputDelegate
+                    .printlnErrorMessage(outputParentPath.toString() + " is not writable");
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(outputParentPath);
     }
 }

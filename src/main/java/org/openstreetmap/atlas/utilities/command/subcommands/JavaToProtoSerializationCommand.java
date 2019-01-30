@@ -2,14 +2,12 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas.AtlasSerializationFormat;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.streaming.resource.File;
-import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
@@ -33,7 +31,6 @@ public class JavaToProtoSerializationCommand extends AtlasLoaderCommand
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
-    private Optional<Path> outputParentPath;
 
     public static void main(final String[] args)
     {
@@ -110,8 +107,7 @@ public class JavaToProtoSerializationCommand extends AtlasLoaderCommand
             {
                 outputAtlas.setSaveSerializationFormat(AtlasSerializationFormat.PROTOBUF);
             }
-            final Path concatenatedPath = Paths.get(this.outputParentPath
-                    .orElseThrow(AtlasShellToolsException::new).toAbsolutePath().toString(),
+            final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
                     atlasFileName);
             final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
             outputAtlas.save(outputFile);
@@ -121,17 +117,5 @@ public class JavaToProtoSerializationCommand extends AtlasLoaderCommand
                 this.outputDelegate.printlnStdout("Saved to " + concatenatedPath.toString());
             }
         }
-    }
-
-    @Override
-    protected int start()
-    {
-        this.outputParentPath = this.getOutputPath();
-        if (!this.outputParentPath.isPresent())
-        {
-            this.outputDelegate.printlnErrorMessage("invalid output path");
-            return 1;
-        }
-        return 0;
     }
 }
