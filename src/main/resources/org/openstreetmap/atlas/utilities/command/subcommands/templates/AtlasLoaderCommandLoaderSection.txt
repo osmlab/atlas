@@ -13,7 +13,7 @@ the output location of an example command to your Desktop:
 #$ example-loader-command myatlas1.atlas --output ~/Desktop
 The '--combine' option forces the atlas loader command to process their input atlases as a single MultiAtlas.
 The MultiAtlas construction step will occur before the process step, and then the processing will be applied to
-the newly combined MultiAtlas.
+the newly combined MultiAtlas. The combined MultiAtlas will always have the name 'combined.atlas'.
 
 The '--parallel' option forces the atlas loader command to process the input atlases in parallel.
 

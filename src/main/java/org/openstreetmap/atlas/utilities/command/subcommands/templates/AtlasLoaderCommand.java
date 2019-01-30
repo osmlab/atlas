@@ -35,6 +35,8 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
  */
 public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
 {
+    private static final String COMBINED_ATLAS_NAME = "combined.atlas";
+
     private static final String INPUT_HINT = "input-atlases";
 
     private static final String COMBINE_OPTION_LONG = "combine";
@@ -92,7 +94,7 @@ public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
             processAtlas(
                     new MultiAtlas(
                             atlasTupleStream.map(Tuple::getSecond).collect(Collectors.toList())),
-                    "multiatlas.atlas");
+                    COMBINED_ATLAS_NAME);
         }
         else
         {
