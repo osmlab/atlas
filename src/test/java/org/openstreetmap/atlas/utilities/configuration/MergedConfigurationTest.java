@@ -18,31 +18,59 @@ import org.openstreetmap.atlas.utilities.scalars.Angle;
  *
  * @author brian_l_davis
  * @author jklamer
+ * @author cameron_frenette
  */
 public class MergedConfigurationTest
 {
+    private static final String BASE_CONFIGURATION_JSON = "org/openstreetmap/atlas/utilities/configuration/application.json";
+    private static final String BASE_CONFIGURATION_YAML = "org/openstreetmap/atlas/utilities/configuration/application.json";
 
-    private static final String BASE_CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/application.json";
-    private static final String KEYWORD_OVERRIDDEN_CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/keywordOverridingApplication.json";
-    private static final String KEYWORD_OVERRIDDEN_DEV_CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/developmentOverriding.json";
-    private static final String OVERRIDE_CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/development.json";
-    private static final String PARTIAL_CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/feature.json";
+    private static final String KEYWORD_OVERRIDDEN_CONFIGURATION_JSON = "org/openstreetmap/atlas/utilities/configuration/keywordOverridingApplication.json";
+    private static final String KEYWORD_OVERRIDDEN_CONFIGURATION_YAML = "org/openstreetmap/atlas/utilities/configuration/keywordOverridingApplication.yml";
+
+    private static final String KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_JSON = "org/openstreetmap/atlas/utilities/configuration/developmentOverriding.json";
+    private static final String KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_YAML = "org/openstreetmap/atlas/utilities/configuration/developmentOverriding.yml";
+
+    private static final String OVERRIDE_CONFIGURATION_JSON = "org/openstreetmap/atlas/utilities/configuration/development.json";
+    private static final String OVERRIDE_CONFIGURATION_YAML = "org/openstreetmap/atlas/utilities/configuration/development.yml";
+
+    private static final String PARTIAL_CONFIGURATION_JSON = "org/openstreetmap/atlas/utilities/configuration/feature.json";
+    private static final String PARTIAL_CONFIGURATION_YAML = "org/openstreetmap/atlas/utilities/configuration/feature.yml";
 
     @Test
-    public void testConfigurationDataKeySet() throws IOException
+    public void testConfigurationDataKeySetAllJson() throws IOException
     {
         final ClassLoader loader = Thread.currentThread().getContextClassLoader();
 
-        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION);
-                InputStream override = loader.getResourceAsStream(OVERRIDE_CONFIGURATION))
+        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION_JSON);
+                InputStream override = loader.getResourceAsStream(OVERRIDE_CONFIGURATION_JSON))
         {
-            final Configuration configuration = new MergedConfiguration(
-                    new InputStreamResource(base), new InputStreamResource(override));
-
-            final Set<String> compareTo = new HashSet<>();
-            compareTo.add("feature");
-            Assert.assertEquals(configuration.configurationDataKeySet(), compareTo);
+            testConfigurationDataKeySet(base, override);
         }
+    }
+
+    @Test
+    public void testConfigurationDataKeySetAllYaml() throws IOException
+    {
+        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+
+        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION_YAML);
+                InputStream override = loader.getResourceAsStream(OVERRIDE_CONFIGURATION_YAML))
+        {
+            testConfigurationDataKeySet(base, override);
+        }
+    }
+
+    private void testConfigurationDataKeySet(final InputStream base, final InputStream override)
+    {
+
+        final Configuration configuration = new MergedConfiguration(new InputStreamResource(base),
+                new InputStreamResource(override));
+
+        final Set<String> compareTo = new HashSet<>();
+        compareTo.add("feature");
+        Assert.assertEquals(configuration.configurationDataKeySet(), compareTo);
+
     }
 
     @Test
@@ -60,99 +88,207 @@ public class MergedConfigurationTest
     }
 
     @Test
-    public void testLayered() throws IOException
+    public void testLayeredJson() throws IOException
     {
         final ClassLoader loader = Thread.currentThread().getContextClassLoader();
 
-        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION);
-                InputStream override = loader.getResourceAsStream(OVERRIDE_CONFIGURATION))
+        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION_JSON);
+                InputStream override = loader.getResourceAsStream(OVERRIDE_CONFIGURATION_JSON))
         {
-            final Configuration configuration = new MergedConfiguration(
-                    new InputStreamResource(base), new InputStreamResource(override));
-
-            final String keyword = "ABC";
-            final String key = String.format("feature.%s.range", keyword);
-
-            final Optional<Map<String, Double>> rangeOption = configuration.get(key).valueOption();
-
-            Assert.assertTrue(rangeOption.isPresent());
-            rangeOption.ifPresent(range ->
-            {
-                Assert.assertEquals(5.0, range.get("min"), 0.1);
-                Assert.assertEquals(30.0, range.get("max"), 0.1);
-            });
-
-            final String baseKeyword = "ABC";
-            final String baseKey = String.format("feature.%s.range", baseKeyword);
-            final Double max = configuration.get(baseKey + ".min", Double.NaN).value();
-            Assert.assertNotEquals(Double.NaN, max);
-
-            Assert.assertFalse(configuration.get("foo").valueOption().isPresent());
+            testLayered(base, override);
         }
     }
 
     @Test
-    public void testMergedOverriddenConfigurations() throws IOException
+    public void testLayeredYaml() throws IOException
+    {
+        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+
+        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION_YAML);
+                InputStream override = loader.getResourceAsStream(OVERRIDE_CONFIGURATION_YAML))
+        {
+            testLayered(base, override);
+        }
+    }
+
+    @Test
+    public void testLayeredYamlOnJson() throws IOException
+    {
+        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+
+        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION_JSON);
+                InputStream override = loader.getResourceAsStream(OVERRIDE_CONFIGURATION_YAML))
+        {
+            testLayered(base, override);
+        }
+    }
+
+    @Test
+    public void testLayeredJsonOnYaml() throws IOException
+    {
+        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+
+        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION_YAML);
+                InputStream override = loader.getResourceAsStream(OVERRIDE_CONFIGURATION_JSON))
+        {
+            testLayered(base, override);
+        }
+    }
+
+    private void testLayered(final InputStream base, final InputStream override)
+    {
+
+        final Configuration configuration = new MergedConfiguration(new InputStreamResource(base),
+                new InputStreamResource(override));
+
+        final String keyword = "ABC";
+        final String key = String.format("feature.%s.range", keyword);
+
+        final Optional<Map<String, Double>> rangeOption = configuration.get(key).valueOption();
+
+        Assert.assertTrue(rangeOption.isPresent());
+        rangeOption.ifPresent(range ->
+        {
+            Assert.assertEquals(5.0, range.get("min"), 0.1);
+            Assert.assertEquals(30.0, range.get("max"), 0.1);
+        });
+
+        final String baseKeyword = "ABC";
+        final String baseKey = String.format("feature.%s.range", baseKeyword);
+        final Double max = configuration.get(baseKey + ".min", Double.NaN).value();
+        Assert.assertNotEquals(Double.NaN, max);
+
+        Assert.assertFalse(configuration.get("foo").valueOption().isPresent());
+    }
+
+    @Test
+    public void testMergedOverriddenConfigurationsJson() throws IOException
     {
         final ClassLoader loader = Thread.currentThread().getContextClassLoader();
         try (InputStream keywordOverriddenBaseConfiguration = loader
-                .getResourceAsStream(KEYWORD_OVERRIDDEN_CONFIGURATION);
+                .getResourceAsStream(KEYWORD_OVERRIDDEN_CONFIGURATION_JSON);
                 InputStream developmentConfiguration = loader
-                        .getResourceAsStream(KEYWORD_OVERRIDDEN_DEV_CONFIGURATION))
+                        .getResourceAsStream(KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_JSON))
         {
-            final Configuration configuration = new MergedConfiguration(
-                    new InputStreamResource(keywordOverriddenBaseConfiguration),
-                    new InputStreamResource(developmentConfiguration));
-
-            final String keyword1 = "ABC";
-            final String keyword2 = "XYZ";
-            final String keyword3 = "ZZZ";
-            final Configuration configuration1 = configuration.configurationForKeyword(keyword1);
-            final Configuration configuration2 = configuration.configurationForKeyword(keyword2);
-
-            final String minKey = "feature.range.min";
-            final String maxKey = "feature.range.max";
-
-            // Assert that configuration not changed for not overriding keywords.
-            Assert.assertEquals(configuration, configuration.configurationForKeyword(keyword3));
-            // value derived from default of higher layer development configuration instead of
-            // keyword specific view of base configuration
-            Assert.assertEquals(Angle.degrees(35.0),
-                    configuration2.get(maxKey, Angle::degrees).value());
-            // value derived from keyword specific view of development configuration
-            Assert.assertEquals(Angle.degrees(70.0),
-                    configuration1.get(maxKey, Angle::degrees).value());
-            // value derived from default of base configuration
-            Assert.assertEquals(Angle.degrees(10.0),
-                    configuration1.get(minKey, Angle::degrees).value());
-            Assert.assertEquals(Angle.degrees(10.0),
-                    configuration2.get(minKey, Angle::degrees).value());
+            testMergedOverriddenConfigurations(keywordOverriddenBaseConfiguration,
+                    developmentConfiguration);
         }
     }
 
     @Test
-    public void testPartial() throws IOException
+    public void testMergedOverriddenConfigurationsYaml() throws IOException
     {
         final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION);
-                InputStream partial = loader.getResourceAsStream(PARTIAL_CONFIGURATION))
+        try (InputStream keywordOverriddenBaseConfiguration = loader
+                .getResourceAsStream(KEYWORD_OVERRIDDEN_CONFIGURATION_YAML);
+                InputStream developmentConfiguration = loader
+                        .getResourceAsStream(KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_YAML))
         {
-            final Configuration configuration = new MergedConfiguration(
-                    new InputStreamResource(base), new InputStreamResource(partial));
-
-            final String keyword = "XYZ";
-            final String key = String.format("feature.%s.range", keyword);
-
-            final Optional<Map<String, Double>> rangeOption = configuration.get(key).valueOption();
-
-            Assert.assertTrue(rangeOption.isPresent());
-            rangeOption.ifPresent(range ->
-            {
-                Assert.assertEquals(20.0, range.get("min"), 0.1);
-                Assert.assertEquals(40.0, range.get("max"), 0.1);
-            });
-            Assert.assertFalse(configuration.get("foo").valueOption().isPresent());
+            testMergedOverriddenConfigurations(keywordOverriddenBaseConfiguration,
+                    developmentConfiguration);
         }
+    }
+
+    @Test
+    public void testMergedOverriddenConfigurationsYamlOnJson() throws IOException
+    {
+        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        try (InputStream keywordOverriddenBaseConfiguration = loader
+                .getResourceAsStream(KEYWORD_OVERRIDDEN_CONFIGURATION_JSON);
+                InputStream developmentConfiguration = loader
+                        .getResourceAsStream(KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_YAML))
+        {
+            testMergedOverriddenConfigurations(keywordOverriddenBaseConfiguration,
+                    developmentConfiguration);
+        }
+    }
+
+    private void testMergedOverriddenConfigurations(
+            final InputStream keywordOverriddenBaseConfiguration,
+            final InputStream developmentConfiguration) throws IOException
+    {
+
+        final Configuration configuration = new MergedConfiguration(
+                new InputStreamResource(keywordOverriddenBaseConfiguration),
+                new InputStreamResource(developmentConfiguration));
+
+        final String keyword1 = "ABC";
+        final String keyword2 = "XYZ";
+        final String keyword3 = "ZZZ";
+        final Configuration configuration1 = configuration.configurationForKeyword(keyword1);
+        final Configuration configuration2 = configuration.configurationForKeyword(keyword2);
+
+        final String minKey = "feature.range.min";
+        final String maxKey = "feature.range.max";
+
+        // Assert that configuration not changed for not overriding keywords.
+        Assert.assertEquals(configuration, configuration.configurationForKeyword(keyword3));
+        // value derived from default of higher layer development configuration instead of
+        // keyword specific view of base configuration
+        Assert.assertEquals(Angle.degrees(35.0),
+                configuration2.get(maxKey, Angle::degrees).value());
+        // value derived from keyword specific view of development configuration
+        Assert.assertEquals(Angle.degrees(70.0),
+                configuration1.get(maxKey, Angle::degrees).value());
+        // value derived from default of base configuration
+        Assert.assertEquals(Angle.degrees(10.0),
+                configuration1.get(minKey, Angle::degrees).value());
+        Assert.assertEquals(Angle.degrees(10.0),
+                configuration2.get(minKey, Angle::degrees).value());
+
+    }
+
+    @Test
+    public void testPartialJson() throws IOException
+    {
+        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION_JSON);
+                InputStream partial = loader.getResourceAsStream(PARTIAL_CONFIGURATION_JSON))
+        {
+            testPartial(base, partial);
+        }
+    }
+
+    @Test
+    public void testPartialYaml() throws IOException
+    {
+        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION_YAML);
+                InputStream partial = loader.getResourceAsStream(PARTIAL_CONFIGURATION_YAML))
+        {
+            testPartial(base, partial);
+        }
+    }
+
+    @Test
+    public void testPartialYamlOnJson() throws IOException
+    {
+        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION_JSON);
+                InputStream partial = loader.getResourceAsStream(PARTIAL_CONFIGURATION_YAML))
+        {
+            testPartial(base, partial);
+        }
+    }
+
+    private void testPartial(final InputStream base, final InputStream partial)
+    {
+        final Configuration configuration = new MergedConfiguration(new InputStreamResource(base),
+                new InputStreamResource(partial));
+
+        final String keyword = "XYZ";
+        final String key = String.format("feature.%s.range", keyword);
+
+        final Optional<Map<String, Double>> rangeOption = configuration.get(key).valueOption();
+
+        Assert.assertTrue(rangeOption.isPresent());
+        rangeOption.ifPresent(range ->
+        {
+            Assert.assertEquals(20.0, range.get("min"), 0.1);
+            Assert.assertEquals(40.0, range.get("max"), 0.1);
+        });
+        Assert.assertFalse(configuration.get("foo").valueOption().isPresent());
+
     }
 
     private void validateSame(final String leftBase, final String leftOverride,

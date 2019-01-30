@@ -1,6 +1,6 @@
 package org.openstreetmap.atlas.utilities.configuration;
 
-import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,7 +10,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.resource.Resource;
@@ -21,6 +24,8 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLParser;
 import com.google.common.base.Joiner;
 
 /**
@@ -33,6 +38,16 @@ import com.google.common.base.Joiner;
 public class StandardConfiguration implements Configuration
 {
     /**
+     * Enum for the supported configuration file formats
+     */
+    public enum ConfigurationFormat
+    {
+        JSON,
+        YAML,
+        UNKNOWN
+    }
+
+    /**
      * Configurable implementation that pulls from the outer class's data table
      *
      * @param <Raw>
@@ -41,6 +56,7 @@ public class StandardConfiguration implements Configuration
      *            transformed type
      * @author cstaylor
      * @author brian_l_davis
+     * @author cameron_frenette
      */
     private final class StandardConfigurable<Raw, Transformed> implements Configurable
     {
@@ -90,20 +106,38 @@ public class StandardConfiguration implements Configuration
     @SuppressWarnings("unchecked")
     public StandardConfiguration(final Resource resource)
     {
-        this.name = resource.getName();
-        try (InputStream read = resource.read())
-        {
-            final ObjectMapper objectMapper = new ObjectMapper();
-            final SimpleModule simpleModule = new SimpleModule();
-            simpleModule.addDeserializer(Map.class, new ConfigurationDeserializer());
-            objectMapper.registerModule(simpleModule);
-            final JsonParser parser = new JsonFactory().createParser(read);
+        this(resource, ConfigurationFormat.UNKNOWN);
+    }
 
-            this.configurationData = objectMapper.readValue(parser, Map.class);
-        }
-        catch (final Exception oops)
+    @SuppressWarnings("unchecked")
+    public StandardConfiguration(final Resource resource, final ConfigurationFormat configFormat)
+    {
+        this.name = resource.getName();
+        final byte[] configBytes = resource.readBytesAndClose();
+
+        switch (configFormat)
         {
-            throw new CoreException("Failure to load configuration", oops);
+            case JSON:
+                this.configurationData = this.readConfigMapFromJSON(configBytes)
+                        .orElseThrow(() -> new CoreException("Unable to load JSON configuration."));
+                return;
+            case YAML:
+                this.configurationData = this.readConfigMapFromYAML(configBytes)
+                        .orElseThrow(() -> new CoreException("Unable to load YAML configuration."));
+                return;
+            case UNKNOWN:
+            default:
+                // If the config format is unknown, attempt to load the config with each format
+                // until one finds some data
+                final Optional<Map<String, Object>> loadedConfigMap = Stream
+                        .<Supplier<Optional<Map<String, Object>>>> of(
+                                () -> this.readConfigMapFromJSON(configBytes),
+                                () -> this.readConfigMapFromYAML(configBytes))
+                        .map(Supplier::get).filter(Optional::isPresent).map(Optional::get)
+                        .findFirst();
+
+                this.configurationData = loadedConfigMap.orElseThrow(
+                        () -> new CoreException("Unable to load UNKNOWN configuration."));
         }
     }
 
@@ -222,4 +256,54 @@ public class StandardConfiguration implements Configuration
         }
         return null;
     }
+
+    @SuppressWarnings("unchecked")
+    private Optional<Map<String, Object>> readConfigMapFromJSON(final byte[] readBytes)
+    {
+        logger.info("Attempting to load configuration as JSON");
+        try (ByteArrayInputStream read = new ByteArrayInputStream(readBytes))
+        {
+            final ObjectMapper objectMapper = new ObjectMapper();
+            final SimpleModule simpleModule = new SimpleModule();
+            simpleModule.addDeserializer(Map.class, new ConfigurationDeserializer());
+            objectMapper.registerModule(simpleModule);
+            final JsonParser parser = new JsonFactory().createParser(read);
+            final Map readConfig = objectMapper.readValue(parser, Map.class);
+            logger.info("Success! Loaded JSON configuration");
+            return Optional.of(readConfig);
+        }
+        catch (final Exception jsonReadException)
+        {
+            logger.error("Failure to load JSON configuration", jsonReadException.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Optional<Map<String, Object>> readConfigMapFromYAML(final byte[] readBytes)
+    {
+        final ByteArrayInputStream read = new ByteArrayInputStream(readBytes);
+        logger.info("Attempting to load configuration as YAML.");
+        try
+        {
+            final ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+            final SimpleModule simpleModule = new SimpleModule();
+            simpleModule.addDeserializer(Map.class, new ConfigurationDeserializer());
+            objectMapper.registerModule(simpleModule);
+            final YAMLParser parser = new YAMLFactory().createParser(read);
+            final Map readConfig = objectMapper.readValue(parser, Map.class);
+            logger.info("Success! Loaded YAML configuration.");
+            return Optional.of(readConfig);
+        }
+        catch (final Exception yamlReadException)
+        {
+            logger.error("Failure to load configuration as YAML", yamlReadException.getMessage());
+            return Optional.empty();
+        }
+        finally
+        {
+            IOUtils.closeQuietly(read);
+        }
+    }
+
 }
