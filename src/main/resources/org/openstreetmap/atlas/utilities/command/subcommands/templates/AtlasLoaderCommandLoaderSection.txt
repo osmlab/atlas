@@ -1,5 +1,5 @@
 This man section is generated for any command which inherits atlas loader behaviour.
-An atlas loader command is any command that recieves an arbitrary number of input
+An atlas loader command is any command that receives an arbitrary number of input
 atlas files on the command line, through the <input-atlases...> argument. A few quick
 examples:
 #$ example-loader-command myatlas1.atlas myatlas2.atlas --opt=optarg
@@ -9,5 +9,14 @@ If an atlas loader command cannot find one of the specified atlas files, it will
 simply skip over loading the file. This is unless the '--strict' option is applied,
 in which case the load will fail fast. Atlas loader commands also provide an '--output' option,
 which can be used to change the default location of any output files. This example changes
-the output location of an exmaple command to your Desktop:
+the output location of an example command to your Desktop:
 #$ example-loader-command myatlas1.atlas --output ~/Desktop
+The '--combine' option forces the atlas loader command to process their input atlases as a single MultiAtlas.
+The MultiAtlas construction step will occur before the process step, and then the processing will be applied to
+the newly combined MultiAtlas.
+
+The '--parallel' option forces the atlas loader command to process the input atlases in parallel.
+
+In this final example, we strictly process all atlases in your home folder in parallel, and output the results
+to your desktop.
+#$ example-loader-command --strict ~/*.atlas --parallel --output=/Users/$(whoami)/Desktop
