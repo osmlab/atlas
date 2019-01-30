@@ -1,10 +1,7 @@
 package org.openstreetmap.atlas.utilities.command.subcommands.templates;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -13,7 +10,6 @@ import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.geography.atlas.command.AbstractAtlasSubCommand;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.streaming.resource.File;
-import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
@@ -23,17 +19,16 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
 /**
  * A helper super class for any command that wants to load atlas files from disk. Provides a builtin
- * variadic input argument, as well as automatic conversion from paths to resources with a
- * '--strict' option to fail fast. Also provides an '--output' flag, which allows users to specify
- * an alternate directory for any output.<br>
- * Subclasses can override the start(), handle(), and finish() methods, which provide a way to
- * operate on the input atlases without having to deal with resource loading and iterating.<br>
+ * variadic input argument, as well as automatic conversion from paths to resources with various
+ * options for increased flexibility. Subclasses can override the start(), handle(), and finish()
+ * methods, which provide a way to operate on the input atlases without having to deal with resource
+ * loading and iterating.<br>
  * This class is based off the {@link AbstractAtlasSubCommand} by cstaylor.
  *
  * @author lcram
  * @author cstaylor
  */
-public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
+public abstract class AtlasLoaderCommand extends MultipleOutputCommand
 {
     private static final String COMBINED_ATLAS_NAME = "combined.atlas";
 
@@ -45,12 +40,6 @@ public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
     private static final String STRICT_OPTION_LONG = "strict";
     private static final String STRICT_OPTION_DESCRIPTION = "Fail fast if any input atlases are missing.";
 
-    private static final String OUTPUT_DIRECTORY_OPTION_LONG = "output";
-    private static final Character OUTPUT_DIRECTORY_OPTION_SHORT = 'o';
-    private static final String OUTPUT_DIRECTORY_OPTION_DESCRIPTION = "Specify an alternate output directory for any output files. If the directory "
-            + "does not exist, it will be created.";
-    private static final String OUTPUT_DIRECTORY_OPTION_HINT = "dir";
-
     private static final String PARALLEL_OPTION_LONG = "parallel";
     private static final Character PARALLEL_OPTION_SHORT = 'p';
     private static final String PARALLEL_OPTION_DESCRIPTION = "Process the atlases in parallel.";
@@ -59,7 +48,6 @@ public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
     private final CommandOutputDelegate outputDelegate;
 
     private List<Tuple<File, Atlas>> atlases;
-    private Path outputPath;
 
     public static String removeSuffixFromFileName(final String fileName)
     {
@@ -72,25 +60,20 @@ public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
         this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
         this.atlases = null;
-        this.outputPath = null;
     }
 
     @Override
     public int execute()
     {
-        final Optional<Path> outputPathOptional = parseOutputPath();
-        if (!outputPathOptional.isPresent())
+        // set up the output path from the parent class
+        int code = super.execute();
+        if (code != 0)
         {
-            this.outputDelegate.printlnErrorMessage("invalid output path");
-            return 1;
-        }
-        else
-        {
-            this.outputPath = outputPathOptional.get();
+            return code;
         }
 
         // call the user start implementation
-        final int code = start();
+        code = start();
         if (code != 0)
         {
             return code;
@@ -115,20 +98,16 @@ public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
                     atlasTuple.getFirst().getName()));
         }
 
-        // return the user's finish implementation
+        // return the exit code from the user's finish implementation
         return finish();
-    }
-
-    public Path getOutputPath()
-    {
-        return this.outputPath;
     }
 
     @Override
     public void registerManualPageSections()
     {
-        addManualPageSection("ATLAS LOADER", AtlasLoaderCommand.class
-                .getResourceAsStream("AtlasLoaderCommandLoaderSection.txt"));
+        addManualPageSection("ATLAS LOADER",
+                AtlasLoaderCommand.class.getResourceAsStream("AtlasLoaderCommandSection.txt"));
+        super.registerManualPageSections();
     }
 
     @Override
@@ -138,9 +117,6 @@ public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
                 .toArray(new Integer[0]);
         registerOption(STRICT_OPTION_LONG, STRICT_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
                 contexts);
-        registerOptionWithRequiredArgument(OUTPUT_DIRECTORY_OPTION_LONG,
-                OUTPUT_DIRECTORY_OPTION_SHORT, OUTPUT_DIRECTORY_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, OUTPUT_DIRECTORY_OPTION_HINT, contexts);
         registerOption(PARALLEL_OPTION_LONG, PARALLEL_OPTION_SHORT, PARALLEL_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, contexts);
         registerOption(COMBINE_OPTION_LONG, COMBINE_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
@@ -239,44 +215,5 @@ public abstract class AtlasLoaderCommand extends AbstractAtlasShellToolsCommand
         }
 
         return this.atlases;
-    }
-
-    private Optional<Path> parseOutputPath()
-    {
-        final Path outputParentPath = Paths.get(this.optionAndArgumentDelegate
-                .getOptionArgument(OUTPUT_DIRECTORY_OPTION_LONG).orElse(""));
-
-        // If output path already exists and is a file, then fail
-        if (outputParentPath.toAbsolutePath().toFile().isFile())
-        {
-            this.outputDelegate.printlnErrorMessage(
-                    outputParentPath.toString() + " already exists and is a file");
-            return Optional.empty();
-        }
-
-        // If output path does not exist, create it using 'mkdir -p' behaviour
-        if (!outputParentPath.toAbsolutePath().toFile().exists())
-        {
-            try
-            {
-                new File(outputParentPath.toAbsolutePath().toString()).mkdirs();
-            }
-            catch (final Exception exception)
-            {
-                this.outputDelegate.printlnErrorMessage(
-                        "failed to create output directory " + outputParentPath.toString());
-                return Optional.empty();
-            }
-        }
-
-        // If output path is not writable, fail
-        if (!outputParentPath.toAbsolutePath().toFile().canWrite())
-        {
-            this.outputDelegate
-                    .printlnErrorMessage(outputParentPath.toString() + " is not writable");
-            return Optional.empty();
-        }
-
-        return Optional.ofNullable(outputParentPath);
     }
 }
