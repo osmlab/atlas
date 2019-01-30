@@ -350,13 +350,13 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
      * Return {@code true} if this Relation has all members fully within the supplied
      * {@link Polygon}.
      *
-     * @param polygon
+     * @param surface
      *            The {@link Polygon} to check for
      * @return {@code true} if the relation has all members within the given {@link Polygon}
      */
-    public boolean within(final Polygon polygon)
+    public boolean within(final GeometricSurface surface)
     {
-        return withinInternal(polygon, new LinkedHashSet<>());
+        return withinInternal(surface, new LinkedHashSet<>());
     }
 
     /**
@@ -454,13 +454,13 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
      * {@link PackedAtlas} but could happen when two {@link Atlas} are combined into a
      * {@link MultiAtlas}.
      *
-     * @param polygon
-     *            The {@link Polygon} to check for
+     * @param surface
+     *            The {@link GeometricSurface} to check for
      * @param parentRelationIdentifiers
      *            The identifiers of the parent relations that have already been visited.
      * @return {@code true} if the relation has all members within the given {@link Polygon}
      */
-    protected boolean withinInternal(final Polygon polygon,
+    protected boolean withinInternal(final GeometricSurface surface,
             final Set<Long> parentRelationIdentifiers)
     {
         for (final RelationMember member : this)
@@ -476,24 +476,24 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
                 else
                 {
                     parentRelationIdentifiers.add(identifier);
-                    if (!((Relation) entity).withinInternal(polygon, parentRelationIdentifiers))
+                    if (!((Relation) entity).withinInternal(surface, parentRelationIdentifiers))
                     {
                         return false;
                     }
                 }
             }
             else if (entity instanceof LineItem
-                    && !polygon.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine()))
+                    && !surface.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine()))
             {
                 return false;
             }
             else if (entity instanceof LocationItem
-                    && !polygon.fullyGeometricallyEncloses(((LocationItem) entity).getLocation()))
+                    && !surface.fullyGeometricallyEncloses(((LocationItem) entity).getLocation()))
             {
                 return false;
             }
             else if (entity instanceof Area
-                    && !polygon.fullyGeometricallyEncloses(((Area) entity).asPolygon()))
+                    && !surface.fullyGeometricallyEncloses(((Area) entity).asPolygon()))
             {
                 return false;
             }
