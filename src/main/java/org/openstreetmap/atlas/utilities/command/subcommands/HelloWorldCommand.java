@@ -10,9 +10,7 @@ import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
  */
 public class HelloWorldCommand extends AbstractAtlasShellToolsCommand
 {
-    private static final String DESCRIPTION_SECTION = "HelloWorldCommandDescriptionSection.txt";
-
-    private final OptionAndArgumentDelegate optargDelegate;
+    private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
     public static void main(final String[] args)
@@ -22,15 +20,15 @@ public class HelloWorldCommand extends AbstractAtlasShellToolsCommand
 
     public HelloWorldCommand()
     {
-        this.optargDelegate = this.getOptionAndArgumentDelegate();
+        this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
     }
 
     @Override
     public int execute()
     {
-        this.outputDelegate.printStdout(
-                "Hello, " + this.optargDelegate.getOptionArgument("name").orElse("world") + "!\n");
+        this.outputDelegate.printStdout("Hello, "
+                + this.optionAndArgumentDelegate.getOptionArgument("name").orElse("world") + "!\n");
         return 0;
     }
 
@@ -49,8 +47,8 @@ public class HelloWorldCommand extends AbstractAtlasShellToolsCommand
     @Override
     public void registerManualPageSections()
     {
-        addManualPageSection("DESCRIPTION",
-                HelloWorldCommand.class.getResourceAsStream(DESCRIPTION_SECTION));
+        addManualPageSection("DESCRIPTION", HelloWorldCommand.class
+                .getResourceAsStream("HelloWorldCommandDescriptionSection.txt"));
     }
 
     @Override

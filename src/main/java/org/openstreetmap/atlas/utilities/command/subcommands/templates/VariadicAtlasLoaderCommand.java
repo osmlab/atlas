@@ -27,8 +27,6 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
 {
     private static final String INPUT_HINT = "input-atlases";
 
-    private static final String LOADER_SECTION = "AtlasLoaderCommandLoaderSection.txt";
-
     private static final String STRICT_OPTION_LONG = "strict";
     private static final String STRICT_OPTION_DESCRIPTION = "Fail fast if any input atlases are missing.";
 
@@ -38,12 +36,12 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
             + "does not exist, it will be created.";
     private static final String OUTPUT_DIRECTORY_OPTION_HINT = "dir";
 
-    private final OptionAndArgumentDelegate optargDelegate;
+    private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
     public VariadicAtlasLoaderCommand()
     {
-        this.optargDelegate = this.getOptionAndArgumentDelegate();
+        this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
     }
 
@@ -71,7 +69,8 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
 
     public List<File> getInputAtlasResources()
     {
-        final List<String> inputAtlasPaths = this.optargDelegate.getVariadicArgument(INPUT_HINT);
+        final List<String> inputAtlasPaths = this.optionAndArgumentDelegate
+                .getVariadicArgument(INPUT_HINT);
         final List<File> atlasResourceList = new ArrayList<>();
 
         inputAtlasPaths.stream().forEach(path ->
@@ -83,7 +82,7 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
             }
             else
             {
-                if (this.optargDelegate.hasVerboseOption())
+                if (this.optionAndArgumentDelegate.hasVerboseOption())
                 {
                     this.outputDelegate.printlnStdout("Loading " + path);
                 }
@@ -91,7 +90,7 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
             }
         });
 
-        if (this.optargDelegate.hasOption(STRICT_OPTION_LONG)
+        if (this.optionAndArgumentDelegate.hasOption(STRICT_OPTION_LONG)
                 && atlasResourceList.size() != inputAtlasPaths.size())
         {
             this.outputDelegate.printlnErrorMessage("terminating due to missing atlas");
@@ -109,8 +108,8 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
 
     public Optional<Path> getOutputPath()
     {
-        final Path outputParentPath = Paths.get(
-                this.optargDelegate.getOptionArgument(OUTPUT_DIRECTORY_OPTION_LONG).orElse(""));
+        final Path outputParentPath = Paths.get(this.optionAndArgumentDelegate
+                .getOptionArgument(OUTPUT_DIRECTORY_OPTION_LONG).orElse(""));
 
         // If output path already exists and is a file, then fail
         if (outputParentPath.toAbsolutePath().toFile().isFile())
@@ -149,14 +148,14 @@ public abstract class VariadicAtlasLoaderCommand extends AbstractAtlasShellTools
     @Override
     public void registerManualPageSections()
     {
-        addManualPageSection("ATLAS LOADER",
-                VariadicAtlasLoaderCommand.class.getResourceAsStream(LOADER_SECTION));
+        addManualPageSection("ATLAS LOADER", VariadicAtlasLoaderCommand.class
+                .getResourceAsStream("AtlasLoaderCommandLoaderSection.txt"));
     }
 
     @Override
     public void registerOptionsAndArguments()
     {
-        final Integer[] contexts = this.optargDelegate.getFilteredRegisteredContexts()
+        final Integer[] contexts = this.optionAndArgumentDelegate.getFilteredRegisteredContexts()
                 .toArray(new Integer[0]);
         registerOption(STRICT_OPTION_LONG, STRICT_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
                 contexts);
