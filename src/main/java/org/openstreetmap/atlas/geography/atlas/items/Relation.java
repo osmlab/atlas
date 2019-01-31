@@ -19,7 +19,6 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.MultiPolygon;
-import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.WktPrintable;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -348,11 +347,12 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
 
     /**
      * Return {@code true} if this Relation has all members fully within the supplied
-     * {@link Polygon}.
+     * {@link GeometricSurface}.
      *
      * @param surface
-     *            The {@link Polygon} to check for
-     * @return {@code true} if the relation has all members within the given {@link Polygon}
+     *            The {@link GeometricSurface} to check for
+     * @return {@code true} if the relation has all members within the given
+     *         {@link GeometricSurface}
      */
     public boolean within(final GeometricSurface surface)
     {
@@ -458,7 +458,8 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
      *            The {@link GeometricSurface} to check for
      * @param parentRelationIdentifiers
      *            The identifiers of the parent relations that have already been visited.
-     * @return {@code true} if the relation has all members within the given {@link Polygon}
+     * @return {@code true} if the relation has all members within the given
+     *         {@link GeometricSurface}
      */
     protected boolean withinInternal(final GeometricSurface surface,
             final Set<Long> parentRelationIdentifiers)
