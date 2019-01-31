@@ -23,7 +23,7 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
     private static final String AFTER_ATLAS_ARGUMENT = "after-atlas";
     private static final String DIFF_FILE = "diff.geojson";
 
-    private final OptionAndArgumentDelegate optArgDelegate;
+    private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
     public static void main(final String[] args)
@@ -33,17 +33,17 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
 
     public AtlasDiffCommand()
     {
-        this.optArgDelegate = this.getOptionAndArgumentDelegate();
+        this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
     }
 
     @Override
     public int execute()
     {
-        final String beforeAtlasPath = this.optArgDelegate.getUnaryArgument(BEFORE_ATLAS_ARGUMENT)
-                .orElseThrow(AtlasShellToolsException::new);
-        final String afterAtlasPath = this.optArgDelegate.getUnaryArgument(AFTER_ATLAS_ARGUMENT)
-                .orElseThrow(AtlasShellToolsException::new);
+        final String beforeAtlasPath = this.optionAndArgumentDelegate
+                .getUnaryArgument(BEFORE_ATLAS_ARGUMENT).orElseThrow(AtlasShellToolsException::new);
+        final String afterAtlasPath = this.optionAndArgumentDelegate
+                .getUnaryArgument(AFTER_ATLAS_ARGUMENT).orElseThrow(AtlasShellToolsException::new);
         final File beforeAtlasFile = new File(beforeAtlasPath);
         final File afterAtlasFile = new File(afterAtlasPath);
 

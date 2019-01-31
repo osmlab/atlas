@@ -40,9 +40,6 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 {
     private static final Logger logger = LoggerFactory.getLogger(WKTShardCommand.class);
 
-    private static final String DESCRIPTION_SECTION = "WKTShardCommandDescriptionSection.txt";
-    private static final String EXAMPLES_SECTION = "WKTShardCommandExamplesSection.txt";
-
     private static final String TREE_OPTION_LONG = "tree";
     private static final String TREE_OPTION_DESCRIPTION = "The path to the dynamic sharding tree file. E.g. /Users/example/path/to/tree.txt";
     private static final String TREE_OPTION_HINT = "path";
@@ -60,7 +57,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 
     private static final String INPUT_WKT = "wkt";
 
-    private final OptionAndArgumentDelegate optargDelegate;
+    private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
     public static void main(final String[] args)
@@ -70,7 +67,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 
     public WKTShardCommand()
     {
-        this.optargDelegate = this.getOptionAndArgumentDelegate();
+        this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
     }
 
@@ -78,12 +75,12 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     public int execute()
     {
         final List<String> inputWKT = new ArrayList<>();
-        if (this.optargDelegate.hasOption(INPUT_FILE_OPTION_LONG))
+        if (this.optionAndArgumentDelegate.hasOption(INPUT_FILE_OPTION_LONG))
         {
-            inputWKT.addAll(
-                    readWKTFromFile(this.optargDelegate.getOptionArgument(INPUT_FILE_OPTION_LONG)));
+            inputWKT.addAll(readWKTFromFile(
+                    this.optionAndArgumentDelegate.getOptionArgument(INPUT_FILE_OPTION_LONG)));
         }
-        inputWKT.addAll(this.optargDelegate.getVariadicArgument(INPUT_WKT));
+        inputWKT.addAll(this.optionAndArgumentDelegate.getVariadicArgument(INPUT_WKT));
 
         if (inputWKT.isEmpty())
         {
@@ -92,18 +89,18 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         }
 
         final Sharding sharding;
-        if (this.optargDelegate.getParserContext() == TREE_CONTEXT
-                && this.optargDelegate.hasOption(TREE_OPTION_LONG))
+        if (this.optionAndArgumentDelegate.getParserContext() == TREE_CONTEXT
+                && this.optionAndArgumentDelegate.hasOption(TREE_OPTION_LONG))
         {
-            sharding = Sharding
-                    .forString("dynamic@" + this.optargDelegate.getOptionArgument(TREE_OPTION_LONG)
+            sharding = Sharding.forString(
+                    "dynamic@" + this.optionAndArgumentDelegate.getOptionArgument(TREE_OPTION_LONG)
                             .orElseThrow(AtlasShellToolsException::new));
         }
-        else if (this.optargDelegate.getParserContext() == SLIPPY_CONTEXT
-                && this.optargDelegate.hasOption(SLIPPY_OPTION_LONG))
+        else if (this.optionAndArgumentDelegate.getParserContext() == SLIPPY_CONTEXT
+                && this.optionAndArgumentDelegate.hasOption(SLIPPY_OPTION_LONG))
         {
-            sharding = Sharding
-                    .forString("slippy@" + this.optargDelegate.getOptionArgument(SLIPPY_OPTION_LONG)
+            sharding = Sharding.forString(
+                    "slippy@" + this.optionAndArgumentDelegate.getOptionArgument(SLIPPY_OPTION_LONG)
                             .orElseThrow(AtlasShellToolsException::new));
         }
         else
@@ -142,9 +139,9 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     public void registerManualPageSections()
     {
         addManualPageSection("DESCRIPTION",
-                WKTShardCommand.class.getResourceAsStream(DESCRIPTION_SECTION));
+                WKTShardCommand.class.getResourceAsStream("WKTShardCommandDescriptionSection.txt"));
         addManualPageSection("EXAMPLES",
-                WKTShardCommand.class.getResourceAsStream(EXAMPLES_SECTION));
+                WKTShardCommand.class.getResourceAsStream("WKTShardCommandExamplesSection.txt"));
     }
 
     @Override
