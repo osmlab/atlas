@@ -30,7 +30,7 @@ public class JavaToProtoSerializationCommand extends VariadicAtlasLoaderCommand
 
     private static final Integer CHECK_CONTEXT = 4;
 
-    private final OptionAndArgumentDelegate optargDelegate;
+    private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
     public static void main(final String[] args)
@@ -41,7 +41,7 @@ public class JavaToProtoSerializationCommand extends VariadicAtlasLoaderCommand
     public JavaToProtoSerializationCommand()
     {
         super();
-        this.optargDelegate = this.getOptionAndArgumentDelegate();
+        this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
     }
 
@@ -63,7 +63,7 @@ public class JavaToProtoSerializationCommand extends VariadicAtlasLoaderCommand
             return 1;
         }
 
-        if (this.optargDelegate.hasVerboseOption())
+        if (this.optionAndArgumentDelegate.hasVerboseOption())
         {
             this.outputDelegate.printlnStdout("Cloning...");
         }
@@ -73,7 +73,7 @@ public class JavaToProtoSerializationCommand extends VariadicAtlasLoaderCommand
         {
             final PackedAtlas outputAtlas = (PackedAtlas) new AtlasResourceLoader()
                     .load(atlasResource);
-            if (this.optargDelegate.getParserContext() == CHECK_CONTEXT)
+            if (this.optionAndArgumentDelegate.getParserContext() == CHECK_CONTEXT)
             {
                 this.outputDelegate.printStdout("atlas ");
                 this.outputDelegate.printStdout(atlasResource.getAbsolutePath(), TTYAttribute.BOLD);
@@ -83,7 +83,7 @@ public class JavaToProtoSerializationCommand extends VariadicAtlasLoaderCommand
             }
             else
             {
-                if (this.optargDelegate.hasOption(REVERSE_OPTION_LONG))
+                if (this.optionAndArgumentDelegate.hasOption(REVERSE_OPTION_LONG))
                 {
                     outputAtlas.setSaveSerializationFormat(AtlasSerializationFormat.JAVA);
                 }
@@ -96,7 +96,7 @@ public class JavaToProtoSerializationCommand extends VariadicAtlasLoaderCommand
                 final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
                 outputAtlas.save(outputFile);
 
-                if (this.optargDelegate.hasVerboseOption())
+                if (this.optionAndArgumentDelegate.hasVerboseOption())
                 {
                     this.outputDelegate.printlnStdout("Saved to " + concatenatedPath.toString());
                 }

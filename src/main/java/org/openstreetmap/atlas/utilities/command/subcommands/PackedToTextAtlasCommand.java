@@ -24,8 +24,6 @@ import org.openstreetmap.atlas.utilities.command.subcommands.templates.VariadicA
 public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
 {
     private static final String SAVED_TO = "Saved to ";
-    private static final String DESCRIPTION_SECTION = "PackedToTextAtlasCommandDescriptionSection.txt";
-    private static final String EXAMPLES_SECTION = "PackedToTextAtlasCommandExamplesSection.txt";
 
     private static final String GEOJSON_OPTION_LONG = "geojson";
     private static final Character GEOJSON_OPTION_SHORT = 'g';
@@ -42,7 +40,7 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     private static final Integer GEOJSON_CONTEXT = 4;
     private static final Integer LDGEOJSON_CONTEXT = 5;
 
-    private final OptionAndArgumentDelegate optargDelegate;
+    private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
     public static void main(final String[] args)
@@ -53,7 +51,7 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     public PackedToTextAtlasCommand()
     {
         super();
-        this.optargDelegate = this.getOptionAndArgumentDelegate();
+        this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
     }
 
@@ -75,14 +73,14 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
             return 1;
         }
 
-        if (this.optargDelegate.hasOption(PARALLEL_OPTION_LONG))
+        if (this.optionAndArgumentDelegate.hasOption(PARALLEL_OPTION_LONG))
         {
             atlasResourceStream.parallel();
         }
 
         atlasResourceStream.forEach(resource ->
         {
-            if (this.optargDelegate.hasVerboseOption())
+            if (this.optionAndArgumentDelegate.hasVerboseOption())
             {
                 this.outputDelegate.printlnStdout(
                         "Converting " + resource.getFile().getAbsolutePath() + "...");
@@ -118,10 +116,10 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     @Override
     public void registerManualPageSections()
     {
-        addManualPageSection("DESCRIPTION",
-                PackedToTextAtlasCommand.class.getResourceAsStream(DESCRIPTION_SECTION));
-        addManualPageSection("EXAMPLES",
-                PackedToTextAtlasCommand.class.getResourceAsStream(EXAMPLES_SECTION));
+        addManualPageSection("DESCRIPTION", PackedToTextAtlasCommand.class
+                .getResourceAsStream("PackedToTextAtlasCommandDescriptionSection.txt"));
+        addManualPageSection("EXAMPLES", PackedToTextAtlasCommand.class
+                .getResourceAsStream("PackedToTextAtlasCommandExamplesSection.txt"));
         super.registerManualPageSections();
     }
 
@@ -151,19 +149,19 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
                 filePath);
         File outputFile = null;
 
-        if (this.optargDelegate
+        if (this.optionAndArgumentDelegate
                 .getParserContext() == AbstractAtlasShellToolsCommand.DEFAULT_CONTEXT)
         {
             outputFile = new File(concatenatedPath.toAbsolutePath().toString() + FileSuffix.TEXT);
             outputAtlas.saveAsText(outputFile);
         }
-        else if (this.optargDelegate.getParserContext() == GEOJSON_CONTEXT)
+        else if (this.optionAndArgumentDelegate.getParserContext() == GEOJSON_CONTEXT)
         {
             outputFile = new File(
                     concatenatedPath.toAbsolutePath().toString() + FileSuffix.GEO_JSON);
             outputAtlas.saveAsGeoJson(outputFile);
         }
-        else if (this.optargDelegate.getParserContext() == LDGEOJSON_CONTEXT)
+        else if (this.optionAndArgumentDelegate.getParserContext() == LDGEOJSON_CONTEXT)
         {
             outputFile = new File(
                     concatenatedPath.toAbsolutePath().toString() + FileSuffix.GEO_JSON);
@@ -178,7 +176,7 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
             throw new AtlasShellToolsException();
         }
 
-        if (this.optargDelegate.hasVerboseOption())
+        if (this.optionAndArgumentDelegate.hasVerboseOption())
         {
             this.outputDelegate.printlnStdout(SAVED_TO + outputFile.getFile().getAbsolutePath());
         }
