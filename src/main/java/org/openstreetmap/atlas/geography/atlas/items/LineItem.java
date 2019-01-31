@@ -23,7 +23,7 @@ import com.google.gson.JsonObject;
  * @author matthieun
  * @author mgostintsev
  */
-public abstract class LineItem extends AtlasItem
+public abstract class LineItem extends AtlasItem implements Containable
 {
     private static final long serialVersionUID = -2053566750957119655L;
 
@@ -95,6 +95,11 @@ public abstract class LineItem extends AtlasItem
     public int numberOfShapePoints()
     {
         return asPolyLine().size();
+    }
+
+    @Override
+    public boolean within(final GeometricSurface surface) {
+        return this.asPolyLine().within(surface);
     }
 
     /**

@@ -11,4 +11,5 @@ public interface Located
      * @return The bounds around this located object
      */
     Rectangle bounds();
+
 }

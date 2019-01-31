@@ -15,6 +15,7 @@ import java.util.stream.IntStream;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Snapper.SnappedLocation;
+import org.openstreetmap.atlas.geography.atlas.items.Containable;
 import org.openstreetmap.atlas.geography.clipping.Clip;
 import org.openstreetmap.atlas.geography.clipping.Clip.ClipType;
 import org.openstreetmap.atlas.geography.converters.WkbLocationConverter;
@@ -47,7 +48,7 @@ import com.google.gson.JsonObject;
  * @author mgostintsev
  * @author Sid
  */
-public class PolyLine implements Collection<Location>, Located, Serializable, GeometryPrintable
+public class PolyLine implements Collection<Location>, Located, Serializable, GeometryPrintable, Containable
 {
     private static final long serialVersionUID = -3291779878869865427L;
     protected static final int SIMPLE_STRING_LENGTH = 200;
@@ -243,6 +244,11 @@ public class PolyLine implements Collection<Location>, Located, Serializable, Ge
                     "Cannot append {} to {} - the end and start points do not match.",
                     other.toWkt(), this.toWkt());
         }
+    }
+
+    @Override
+    public boolean within(final GeometricSurface surface) {
+        return surface.fullyGeometricallyEncloses(this);
     }
 
     public GeoJsonObject asGeoJson()

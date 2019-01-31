@@ -19,7 +19,7 @@ import com.google.gson.JsonObject;
  *
  * @author matthieun
  */
-public abstract class LocationItem extends AtlasItem
+public abstract class LocationItem extends AtlasItem implements Containable
 {
     private static final long serialVersionUID = -2616559591051747286L;
 
@@ -104,6 +104,11 @@ public abstract class LocationItem extends AtlasItem
         }
 
         return new GeoJsonBuilder.LocationIterableProperties(getRawGeometry(), tags);
+    }
+
+    @Override
+    public boolean within(final GeometricSurface surface) {
+        return this.getLocation().within(surface);
     }
 
     @Override

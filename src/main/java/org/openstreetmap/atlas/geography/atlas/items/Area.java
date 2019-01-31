@@ -21,7 +21,7 @@ import com.google.gson.JsonObject;
  *
  * @author matthieun
  */
-public abstract class Area extends AtlasItem
+public abstract class Area extends AtlasItem implements Containable
 {
     private static final long serialVersionUID = 5244165133018408045L;
 
@@ -76,6 +76,11 @@ public abstract class Area extends AtlasItem
     public boolean intersects(final GeometricSurface surface)
     {
         return surface.overlaps(asPolygon());
+    }
+
+    @Override
+    public boolean within(final GeometricSurface surface) {
+        return this.asPolygon().within(surface);
     }
 
     @Override
