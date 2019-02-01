@@ -62,8 +62,21 @@ public class IsoCountryTest
 
         Assert.assertEquals("USA",
                 IsoCountry.forDisplayCountry("United States").get().getIso3CountryCode());
-        Assert.assertTrue(IsoCountry.forDisplayCountry("united states").isPresent());
+        Assert.assertFalse(IsoCountry.forDisplayCountry("united states").isPresent());
         Assert.assertFalse(IsoCountry.forDisplayCountry("ZZzz zzzzz").isPresent());
+        Assert.assertEquals("USA",
+                IsoCountry.forDisplayCountryIgnoreCase("united states").get().getIso3CountryCode());
+        Assert.assertEquals("USA",
+                IsoCountry.forDisplayCountryIgnoreCase("UnITeD STatEs").get().getIso3CountryCode());
+        Assert.assertEquals("USA", IsoCountry.forDisplayCountryClosestMatch("UnitedStates").get()
+                .getIso3CountryCode());
+        Assert.assertEquals("USA", IsoCountry.forDisplayCountryClosestMatch("united States").get()
+                .getIso3CountryCode());
+        Assert.assertEquals("USA", IsoCountry.forDisplayCountryClosestMatch("united stats").get()
+                .getIso3CountryCode());
+        Assert.assertEquals("GBR", IsoCountry.forDisplayCountryClosestMatch("unitde kindgdom").get()
+                .getIso3CountryCode());
+        Assert.assertFalse(IsoCountry.forDisplayCountryIgnoreCase("ZZzz zzzzz").isPresent());
 
         Assert.assertTrue(IsoCountry.allDisplayCountries().contains("United States"));
     }

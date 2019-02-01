@@ -186,12 +186,60 @@ public final class IsoCountry implements Serializable
     /**
      * Provides IsoCountry for a valid country display name. Ignores capitalization (e.g. "united
      * stAtes" and "United States" are the same)
+     * Provides IsoCountry for a valid country display name.
      *
      * @param displayCountry
      *            the display country name, e.g. "United States"
      * @return an Optional containing the IsoCountry if present
      */
     public static Optional<IsoCountry> forDisplayCountry(final String displayCountry)
+    {
+        if (displayCountry != null && DISPLAY_COUNTRY_TO_ISO2.containsKey(displayCountry))
+        {
+            return Optional
+                    .ofNullable(ISO_COUNTRIES.get(DISPLAY_COUNTRY_TO_ISO2.get(displayCountry)));
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Provides IsoCountry for a country display name. If the given display name does not perfectly
+     * match a valid IsoCountry, this will return the closest string match.
+     *
+     * @param displayCountry
+     *            the display country name, e.g. "united stats"
+     * @return an Optional containing the IsoCountry if present
+     */
+    public static Optional<IsoCountry> forDisplayCountryClosestMatch(final String displayCountry)
+    {
+        if (displayCountry != null)
+        {
+            if (DISPLAY_COUNTRY_TO_ISO2.containsKey(displayCountry))
+            {
+                return Optional
+                        .ofNullable(ISO_COUNTRIES.get(DISPLAY_COUNTRY_TO_ISO2.get(displayCountry)));
+            }
+            else
+            {
+                final Optional<String> closestCountry = closestIsoCountry(displayCountry);
+                if (closestCountry.isPresent())
+                {
+                    return Optional.ofNullable(
+                            ISO_COUNTRIES.get(DISPLAY_COUNTRY_TO_ISO2.get(closestCountry.get())));
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Provides IsoCountry for a valid country display name, ignoring case.
+     *
+     * @param displayCountry
+     *            the display country name, e.g. "united states"
+     * @return an Optional containing the IsoCountry if present
+     */
+    public static Optional<IsoCountry> forDisplayCountryIgnoreCase(final String displayCountry)
     {
         if (displayCountry != null)
         {
@@ -270,6 +318,23 @@ public final class IsoCountry implements Serializable
             }
         }
         return false;
+    }
+
+    private static Optional<String> closestIsoCountry(final String displayCountry)
+    {
+        String closestCountry = null;
+        int minimumDistance = Integer.MAX_VALUE;
+        for (final String countryName : ALL_DISPLAY_COUNTRIES)
+        {
+            final int distance = Levenshtein.levenshtein(displayCountry, countryName);
+            if (distance < minimumDistance)
+            {
+                closestCountry = countryName;
+                minimumDistance = distance;
+            }
+        }
+
+        return Optional.ofNullable(closestCountry);
     }
 
     private IsoCountry(final String iso2)
