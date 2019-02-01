@@ -79,7 +79,8 @@ public abstract class Area extends AtlasItem implements Containable
     }
 
     @Override
-    public boolean within(final GeometricSurface surface) {
+    public boolean within(final GeometricSurface surface)
+    {
         return this.asPolygon().within(surface);
     }
 

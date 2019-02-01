@@ -48,7 +48,8 @@ import com.google.gson.JsonObject;
  * @author mgostintsev
  * @author Sid
  */
-public class PolyLine implements Collection<Location>, Located, Serializable, GeometryPrintable, Containable
+public class PolyLine
+        implements Collection<Location>, Located, Serializable, GeometryPrintable, Containable
 {
     private static final long serialVersionUID = -3291779878869865427L;
     protected static final int SIMPLE_STRING_LENGTH = 200;
@@ -247,7 +248,8 @@ public class PolyLine implements Collection<Location>, Located, Serializable, Ge
     }
 
     @Override
-    public boolean within(final GeometricSurface surface) {
+    public boolean within(final GeometricSurface surface)
+    {
         return surface.fullyGeometricallyEncloses(this);
     }
 

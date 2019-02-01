@@ -47,7 +47,7 @@ import com.google.gson.JsonObject;
  * @author Sid
  * @author hallahan
  */
-public abstract class Relation extends AtlasEntity implements Iterable<RelationMember>
+public abstract class Relation extends AtlasEntity implements Iterable<RelationMember>, Containable
 {
     /**
      * The ring type of a {@link MultiPolygon} member.
@@ -354,6 +354,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
      *            The {@link Polygon} to check for
      * @return {@code true} if the relation has all members within the given {@link Polygon}
      */
+    @Override
     public boolean within(final GeometricSurface surface)
     {
         return withinInternal(surface, new LinkedHashSet<>());

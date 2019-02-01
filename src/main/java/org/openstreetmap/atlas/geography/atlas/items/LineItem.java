@@ -98,7 +98,8 @@ public abstract class LineItem extends AtlasItem implements Containable
     }
 
     @Override
-    public boolean within(final GeometricSurface surface) {
+    public boolean within(final GeometricSurface surface)
+    {
         return this.asPolyLine().within(surface);
     }
 

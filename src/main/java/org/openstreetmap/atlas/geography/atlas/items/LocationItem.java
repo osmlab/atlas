@@ -107,7 +107,8 @@ public abstract class LocationItem extends AtlasItem implements Containable
     }
 
     @Override
-    public boolean within(final GeometricSurface surface) {
+    public boolean within(final GeometricSurface surface)
+    {
         return this.getLocation().within(surface);
     }
 

@@ -28,7 +28,8 @@ import com.google.gson.JsonObject;
  * @author matthieun
  * @author mgostintsev
  */
-public class Location implements Located, Iterable<Location>, Serializable, GeometryPrintable, Containable
+public class Location
+        implements Located, Iterable<Location>, Serializable, GeometryPrintable, Containable
 {
     private static final long serialVersionUID = 3770424147251047128L;
 
@@ -167,7 +168,8 @@ public class Location implements Located, Iterable<Location>, Serializable, Geom
     }
 
     @Override
-    public boolean within(final GeometricSurface surface) {
+    public boolean within(final GeometricSurface surface)
+    {
         return surface.fullyGeometricallyEncloses(this);
     }
 
