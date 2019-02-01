@@ -224,8 +224,11 @@ public final class IsoCountry implements Serializable
                 final Optional<String> closestCountry = closestIsoCountry(displayCountry);
                 if (closestCountry.isPresent())
                 {
-                    return Optional.ofNullable(
+                    final Optional<IsoCountry> closestMatch = Optional.ofNullable(
                             ISO_COUNTRIES.get(DISPLAY_COUNTRY_TO_ISO2.get(closestCountry.get())));
+                    logger.info("Exact match for {} was not found, returning closest match {}",
+                            displayCountry, closestMatch);
+                    return closestMatch;
                 }
             }
         }
@@ -326,7 +329,7 @@ public final class IsoCountry implements Serializable
         int minimumDistance = Integer.MAX_VALUE;
         for (final String countryName : ALL_DISPLAY_COUNTRIES)
         {
-            final int distance = Levenshtein.levenshtein(displayCountry, countryName);
+            final int distance = StringUtils.getLevenshteinDistance(displayCountry, countryName);
             if (distance < minimumDistance)
             {
                 closestCountry = countryName;
