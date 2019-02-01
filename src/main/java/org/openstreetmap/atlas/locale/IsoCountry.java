@@ -9,6 +9,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.openstreetmap.atlas.utilities.command.Levenshtein;
+
 /**
  * Java Locale based countries, including ISO2, ISO3, and descriptive country name representations.
  *
@@ -25,7 +27,9 @@ public final class IsoCountry implements Serializable
     private static final int ISO3_LENGTH = 3;
 
     private static Set<String> ALL_COUNTRY_CODES;
+    private static Set<String> ALL_DISPLAY_COUNTRIES;
     private static final Map<String, String> ISO2_TO_DISPLAY_COUNTRY;
+    private static final Map<String, String> DISPLAY_COUNTRY_TO_ISO2;
     private static final Map<String, String> ISO2_TO_ISO3;
     private static final Map<String, String> ISO3_TO_ISO2;
     // private static final BiMap<String, String> ISO2_ISO3_MAP;
@@ -44,6 +48,12 @@ public final class IsoCountry implements Serializable
         ISO2_TO_DISPLAY_COUNTRY = Collections.unmodifiableMap(
                 Arrays.stream(countries).collect(Collectors.toMap(iso2 -> iso2.intern(),
                         iso2 -> new Locale(LOCALE_LANGUAGE, iso2).getDisplayCountry().intern())));
+
+        // Map from full country name to ISO2
+        DISPLAY_COUNTRY_TO_ISO2 = Collections.unmodifiableMap(Arrays.stream(countries)
+                .collect(Collectors.toMap(
+                        iso2 -> new Locale(LOCALE_LANGUAGE, iso2).getDisplayCountry().intern(),
+                        iso2 -> iso2.intern())));
 
         // Map from ISO2 to ISO3
         ISO2_TO_ISO3 = Collections.unmodifiableMap(
@@ -64,6 +74,10 @@ public final class IsoCountry implements Serializable
         // Map from ISO2 to IsoCountry
         ISO_COUNTRIES = Collections.unmodifiableMap(Arrays.stream(countries)
                 .collect(Collectors.toMap(iso2 -> iso2.intern(), iso2 -> new IsoCountry(iso2))));
+
+        // Set of display country names, do this one last since it relies on the other maps
+        ALL_DISPLAY_COUNTRIES = Collections.unmodifiableSet(ALL_COUNTRY_CODES.stream()
+                .map(IsoCountry::displayCountry).map(Optional::get).collect(Collectors.toSet()));
     }
 
     // This validated country code
@@ -80,6 +94,16 @@ public final class IsoCountry implements Serializable
     public static Set<String> allCountryCodes()
     {
         return ALL_COUNTRY_CODES;
+    }
+
+    /**
+     * Provides a set of all Locale based country long names.
+     *
+     * @return Set of country long names
+     */
+    public static Set<String> allDisplayCountries()
+    {
+        return ALL_DISPLAY_COUNTRIES;
     }
 
     /**
@@ -131,6 +155,82 @@ public final class IsoCountry implements Serializable
             {
                 return Optional.ofNullable(ISO_COUNTRIES.get(ISO3_TO_ISO2.get(countryCode)));
             }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Provides IsoCountry for a valid country display name.
+     *
+     * @param displayCountry
+     *            the display country name, e.g. "United States"
+     * @return an Optional containing the IsoCountry if present
+     */
+    public static Optional<IsoCountry> forDisplayCountry(final String displayCountry)
+    {
+        if (displayCountry != null && DISPLAY_COUNTRY_TO_ISO2.containsKey(displayCountry))
+        {
+            return Optional
+                    .ofNullable(ISO_COUNTRIES.get(DISPLAY_COUNTRY_TO_ISO2.get(displayCountry)));
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Provides IsoCountry for a country display name. If the given display name does not perfectly
+     * match a valid IsoCountry, this will return the closest string match.
+     *
+     * @param displayCountry
+     *            the display country name, e.g. "united stats"
+     * @return an Optional containing the IsoCountry if present
+     */
+    public static Optional<IsoCountry> forDisplayCountryClosestMatch(final String displayCountry)
+    {
+        if (displayCountry != null)
+        {
+            if (DISPLAY_COUNTRY_TO_ISO2.containsKey(displayCountry))
+            {
+                return Optional
+                        .ofNullable(ISO_COUNTRIES.get(DISPLAY_COUNTRY_TO_ISO2.get(displayCountry)));
+            }
+            else
+            {
+                final Optional<String> closestCountry = closestIsoCountry(displayCountry);
+                if (closestCountry.isPresent())
+                {
+                    return Optional.ofNullable(
+                            ISO_COUNTRIES.get(DISPLAY_COUNTRY_TO_ISO2.get(closestCountry.get())));
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Provides IsoCountry for a valid country display name, ignoring case.
+     *
+     * @param displayCountry
+     *            the display country name, e.g. "united states"
+     * @return an Optional containing the IsoCountry if present
+     */
+    public static Optional<IsoCountry> forDisplayCountryIgnoreCase(final String displayCountry)
+    {
+        if (displayCountry != null)
+        {
+            /*
+             * We want to allow the displayCountry parameter to have inconsistent case. E.g.
+             * displayCountry="united States" should match IsoCountry<"United States">
+             */
+            String foundKey = null;
+            for (final String key : DISPLAY_COUNTRY_TO_ISO2.keySet())
+            {
+                if (displayCountry.equalsIgnoreCase(key))
+                {
+                    foundKey = key;
+                    break;
+                }
+            }
+            return Optional.ofNullable(ISO_COUNTRIES.get(DISPLAY_COUNTRY_TO_ISO2.get(foundKey)));
         }
         return Optional.empty();
     }
@@ -191,6 +291,23 @@ public final class IsoCountry implements Serializable
             }
         }
         return false;
+    }
+
+    private static Optional<String> closestIsoCountry(final String displayCountry)
+    {
+        String closestCountry = null;
+        int minimumDistance = Integer.MAX_VALUE;
+        for (final String countryName : ALL_DISPLAY_COUNTRIES)
+        {
+            final int distance = Levenshtein.levenshtein(displayCountry, countryName);
+            if (distance < minimumDistance)
+            {
+                closestCountry = countryName;
+                minimumDistance = distance;
+            }
+        }
+
+        return Optional.ofNullable(closestCountry);
     }
 
     private IsoCountry(final String iso2)
