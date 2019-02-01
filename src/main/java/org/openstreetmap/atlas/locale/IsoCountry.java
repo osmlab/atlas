@@ -26,8 +26,8 @@ public final class IsoCountry implements Serializable
     private static final int ISO2_LENGTH = 2;
     private static final int ISO3_LENGTH = 3;
 
-    private static Set<String> ALL_COUNTRY_CODES;
-    private static Set<String> ALL_DISPLAY_COUNTRIES;
+    private static final Set<String> ALL_COUNTRY_CODES;
+    private static final Set<String> ALL_DISPLAY_COUNTRIES;
     private static final Map<String, String> ISO2_TO_DISPLAY_COUNTRY;
     private static final Map<String, String> DISPLAY_COUNTRY_TO_ISO2;
     private static final Map<String, String> ISO2_TO_ISO3;
