@@ -9,7 +9,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.openstreetmap.atlas.utilities.command.Levenshtein;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Java Locale based countries, including ISO2, ISO3, and descriptive country name representations.
@@ -19,6 +21,8 @@ import org.openstreetmap.atlas.utilities.command.Levenshtein;
 public final class IsoCountry implements Serializable
 {
     private static final long serialVersionUID = 8686298246454085812L;
+
+    private static final Logger logger = LoggerFactory.getLogger(IsoCountry.class);
 
     // Use United States fixed Locale for display use cases
     private static final String LOCALE_LANGUAGE = Locale.ENGLISH.getLanguage();
@@ -198,8 +202,11 @@ public final class IsoCountry implements Serializable
                 final Optional<String> closestCountry = closestIsoCountry(displayCountry);
                 if (closestCountry.isPresent())
                 {
-                    return Optional.ofNullable(
+                    final Optional<IsoCountry> closestMatch = Optional.ofNullable(
                             ISO_COUNTRIES.get(DISPLAY_COUNTRY_TO_ISO2.get(closestCountry.get())));
+                    logger.info("Exact match for {} was not found, returning closest match {}",
+                            displayCountry, closestMatch);
+                    return closestMatch;
                 }
             }
         }
@@ -299,7 +306,7 @@ public final class IsoCountry implements Serializable
         int minimumDistance = Integer.MAX_VALUE;
         for (final String countryName : ALL_DISPLAY_COUNTRIES)
         {
-            final int distance = Levenshtein.levenshtein(displayCountry, countryName);
+            final int distance = StringUtils.getLevenshteinDistance(displayCountry, countryName);
             if (distance < minimumDistance)
             {
                 closestCountry = countryName;

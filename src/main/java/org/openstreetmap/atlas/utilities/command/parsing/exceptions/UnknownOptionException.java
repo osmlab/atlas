@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.openstreetmap.atlas.utilities.command.Levenshtein;
+import org.apache.commons.lang3.StringUtils;
 import org.openstreetmap.atlas.utilities.command.parsing.SimpleOptionAndArgumentParser.SimpleOption;
 
 /**
@@ -24,7 +24,7 @@ public class UnknownOptionException extends Exception
         int minimumDistance = Integer.MAX_VALUE;
         for (final String optionName : optionNames)
         {
-            final int distance = Levenshtein.levenshtein(option, optionName);
+            final int distance = StringUtils.getLevenshteinDistance(option, optionName);
             if (distance < minimumDistance)
             {
                 closestOption = optionName;
