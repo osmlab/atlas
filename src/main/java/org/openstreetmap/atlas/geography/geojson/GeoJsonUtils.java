@@ -7,6 +7,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonType.POLYGON;
+
 /**
  * These are utility functions that well help you create GeoJSON!
  *
@@ -19,11 +21,6 @@ public final class GeoJsonUtils
     public static final String GEOMETRY = "geometry";
     public static final String PROPERTIES = "properties";
     public static final String TYPE = "type";
-
-    public static final String POINT = "Point";
-    public static final String LINESTRING = "LineString";
-    public static final String POLYGON = "Polygon";
-    public static final String MULTIPOLYGON = "MultiPolygon";
 
     public static final String IDENTIFIER = "identifier";
     public static final String OSM_IDENTIFIER = "osmIdentifier";
@@ -70,7 +67,7 @@ public final class GeoJsonUtils
         final JsonArray coordinates = new JsonArray();
         coordinates.add(outerRing);
 
-        return geometry(POLYGON, coordinates);
+        return geometry(POLYGON.getTypeString(), coordinates);
     }
 
     public static JsonObject geometry(final String type, final JsonArray coordinates)
