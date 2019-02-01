@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.items;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Latitude;
@@ -9,6 +10,7 @@ import org.openstreetmap.atlas.geography.Longitude;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.Atlas;
 
 /**
  * @author Yazad Khambata
@@ -17,6 +19,9 @@ public class ContainableTest
 {
 
     public static final int NUMBER_POINTS = 5;
+
+    @Rule
+    public ContainableTestRule containableTestRule = new ContainableTestRule();
 
     @Test
     public void testLocationIsWithin()
@@ -69,6 +74,24 @@ public class ContainableTest
         Assert.assertFalse(polygon2.within(surface1));
     }
 
+    @Test
+    public void testAtlasEntities()
+    {
+        final long identifier = ContainableTestRule.ID;
+
+        final Atlas atlas = this.containableTestRule.getAtlas();
+
+        Assert.assertTrue(atlas.node(identifier).within(rectThree()));
+        Assert.assertTrue(atlas.edge(identifier).within(rectThree()));
+        Assert.assertTrue(atlas.area(identifier).within(rectThree()));
+        Assert.assertTrue(atlas.relation(identifier).within(rectThree()));
+
+        Assert.assertFalse(atlas.node(identifier).within(rectTwo()));
+        Assert.assertFalse(atlas.edge(identifier).within(rectTwo()));
+        Assert.assertFalse(atlas.area(identifier).within(rectTwo()));
+        Assert.assertFalse(atlas.relation(identifier).within(rectTwo()));
+    }
+
     private GeometricSurface rectOne()
     {
         final Location lowerLeft = new Location(Latitude.degrees(10), Longitude.degrees(10));
@@ -83,6 +106,14 @@ public class ContainableTest
         final Location upperRight2 = new Location(Latitude.degrees(-10), Longitude.degrees(-10));
 
         return Rectangle.forCorners(lowerLeft2, upperRight2);
+    }
+
+    private GeometricSurface rectThree()
+    {
+        final Location lowerLeft = new Location(Latitude.degrees(10), Longitude.degrees(100));
+        final Location upperRight = new Location(Latitude.degrees(20), Longitude.degrees(150));
+
+        return Rectangle.forCorners(lowerLeft, upperRight);
     }
 
 }
