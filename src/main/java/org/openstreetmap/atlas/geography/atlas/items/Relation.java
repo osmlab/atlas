@@ -516,45 +516,6 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         return entity instanceof LineItem
                 && !surface.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine());
     }
-            final Set<Long> parentRelationIdentifiers)
-    {
-        for (final RelationMember member : this)
-        {
-            final AtlasEntity entity = member.getEntity();
-            if (entity instanceof Relation)
-            {
-                final long identifier = entity.getIdentifier();
-                if (parentRelationIdentifiers.contains(identifier))
-                {
-                    continue;
-                }
-                else
-                {
-                    parentRelationIdentifiers.add(identifier);
-                    if (!((Relation) entity).withinInternal(surface, parentRelationIdentifiers))
-                    {
-                        return false;
-                    }
-                }
-            }
-            else if (entity instanceof LineItem
-                    && !surface.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine()))
-            {
-                return false;
-            }
-            else if (entity instanceof LocationItem
-                    && !surface.fullyGeometricallyEncloses(((LocationItem) entity).getLocation()))
-            {
-                return false;
-            }
-            else if (entity instanceof Area
-                    && !surface.fullyGeometricallyEncloses(((Area) entity).asPolygon()))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
 
     /**
      * We explicitly want to add member metadata to the properties of Relations, but only when we
