@@ -483,6 +483,60 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
                     }
                 }
             }
+            else if (isUnenclosedNonRelationEntity(surface, entity))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isUnenclosedNonRelationEntity(final GeometricSurface surface,
+            final AtlasEntity entity)
+    {
+        return isUnenclosedLineItem(entity, surface) || isUnenclosedLocationItem(entity, surface)
+                || isUnenclosedArea(entity, surface);
+    }
+
+    private boolean isUnenclosedArea(final AtlasEntity entity, final GeometricSurface surface)
+    {
+        return entity instanceof Area
+                && !surface.fullyGeometricallyEncloses(((Area) entity).asPolygon());
+    }
+
+    private boolean isUnenclosedLocationItem(final AtlasEntity entity,
+            final GeometricSurface surface)
+    {
+        return entity instanceof LocationItem
+                && !surface.fullyGeometricallyEncloses(((LocationItem) entity).getLocation());
+    }
+
+    private boolean isUnenclosedLineItem(final AtlasEntity entity, final GeometricSurface surface)
+    {
+        return entity instanceof LineItem
+                && !surface.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine());
+    }
+            final Set<Long> parentRelationIdentifiers)
+    {
+        for (final RelationMember member : this)
+        {
+            final AtlasEntity entity = member.getEntity();
+            if (entity instanceof Relation)
+            {
+                final long identifier = entity.getIdentifier();
+                if (parentRelationIdentifiers.contains(identifier))
+                {
+                    continue;
+                }
+                else
+                {
+                    parentRelationIdentifiers.add(identifier);
+                    if (!((Relation) entity).withinInternal(surface, parentRelationIdentifiers))
+                    {
+                        return false;
+                    }
+                }
+            }
             else if (entity instanceof LineItem
                     && !surface.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine()))
             {
