@@ -1,6 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.change.validators;
 
-import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiPredicate;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -59,25 +59,27 @@ public class ChangeValidator
                     final long backwardEdgeIdentifier = backwardFeatureChange.getReference()
                             .getIdentifier();
                     final long forwardEdgeIdentifier = -backwardEdgeIdentifier;
-                    final FeatureChange forwardFeatureChange = this.change
-                            .changeFor(ItemType.EDGE, forwardEdgeIdentifier)
-                            .orElseThrow(() -> new CoreException(
-                                    "Backward edge {} is {} but does not have a forward edge change reference present.",
-                                    backwardEdgeIdentifier, backwardFeatureChange.getChangeType()));
-                    if (forwardFeatureChange.getChangeType() != backwardFeatureChange
-                            .getChangeType())
+
+                    final Edge backwardEdge = (Edge) backwardFeatureChange.getReference();
+                    final Optional<FeatureChange> forwardFeatureChangeOption = this.change
+                            .changeFor(ItemType.EDGE, forwardEdgeIdentifier);
+                    if (forwardFeatureChangeOption.isPresent())
                     {
-                        throw new CoreException("Forward edge {} is {} when backward edge is {}",
-                                forwardEdgeIdentifier, forwardFeatureChange.getChangeType(),
-                                backwardFeatureChange.getChangeType());
-                    }
-                    if (forwardFeatureChange.getChangeType() == ChangeType.ADD)
-                    {
-                        final Edge forwardEdge = (Edge) forwardFeatureChange.getReference();
-                        final Edge backwardEdge = (Edge) backwardFeatureChange.getReference();
-                        validateEdgeConnectedNodesMatch(forwardEdge, backwardEdge);
-                        validateEdgePolyLinesMatch(forwardEdge, backwardEdge);
-                        validateEdgeTagsMatch(forwardEdge, backwardEdge);
+                        final FeatureChange forwardFeatureChange = forwardFeatureChangeOption.get();
+                        if (forwardFeatureChange.getChangeType() != backwardFeatureChange
+                                .getChangeType())
+                        {
+                            throw new CoreException(
+                                    "Forward edge {} is {} when backward edge is {}",
+                                    forwardEdgeIdentifier, forwardFeatureChange.getChangeType(),
+                                    backwardFeatureChange.getChangeType());
+                        }
+                        if (forwardFeatureChange.getChangeType() == ChangeType.ADD)
+                        {
+                            final Edge forwardEdge = (Edge) forwardFeatureChange.getReference();
+                            validateEdgeConnectedNodesMatch(forwardEdge, backwardEdge);
+                            validateEdgePolyLinesMatch(forwardEdge, backwardEdge);
+                        }
                     }
                 });
     }
@@ -133,21 +135,6 @@ public class ChangeValidator
             throw new CoreException(
                     "Forward edge {} polyline {} does not match its backward edge polyline {}",
                     forwardEdgeIdentifier, forwardPolyLine, backwardPolyLine);
-        }
-    }
-
-    private void validateEdgeTagsMatch(final Edge forwardEdge, final Edge backwardEdge)
-    {
-        final BiPredicate<Map<String, String>, Map<String, String>> equal = (left, right) -> left
-                .equals(right);
-        final long forwardEdgeIdentifier = forwardEdge.getIdentifier();
-        final Map<String, String> forwardTags = forwardEdge.getTags();
-        final Map<String, String> backwardTags = backwardEdge.getTags();
-        if (differ(forwardTags, backwardTags, equal))
-        {
-            throw new CoreException(
-                    "Forward edge {} tags {} do not match its backward edge tags {}",
-                    forwardEdgeIdentifier, forwardTags, backwardTags);
         }
     }
 }

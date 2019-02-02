@@ -510,6 +510,16 @@ public final class PackedAtlas extends AbstractAtlas
         return this.saveSerializationFormat;
     }
 
+    /**
+     * Get the serialization format with which this atlas was loaded.
+     *
+     * @return the format
+     */
+    public AtlasSerializationFormat getSerializationFormat()
+    {
+        return this.loadSerializationFormat;
+    }
+
     @Override
     public Line line(final long identifier)
     {

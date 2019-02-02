@@ -11,6 +11,8 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
+import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
@@ -21,8 +23,7 @@ import org.openstreetmap.atlas.utilities.command.subcommands.templates.VariadicA
  */
 public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
 {
-    private static final String DESCRIPTION_SECTION = "PackedToTextAtlasCommandDescriptionSection.txt";
-    private static final String EXAMPLES_SECTION = "PackedToTextAtlasCommandExamplesSection.txt";
+    private static final String SAVED_TO = "Saved to ";
 
     private static final String GEOJSON_OPTION_LONG = "geojson";
     private static final Character GEOJSON_OPTION_SHORT = 'g';
@@ -36,10 +37,10 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     private static final Character PARALLEL_OPTION_SHORT = 'p';
     private static final String PARALLEL_OPTION_DESCRIPTION = "Process the atlases in parallel.";
 
-    private static final Integer DEFAULT_AND_GEOJSON_CONTEXT = 3;
-    private static final Integer LDGEOJSON_CONTEXT = 4;
+    private static final Integer GEOJSON_CONTEXT = 4;
+    private static final Integer LDGEOJSON_CONTEXT = 5;
 
-    private final OptionAndArgumentDelegate optargDelegate;
+    private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
     public static void main(final String[] args)
@@ -50,7 +51,7 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     public PackedToTextAtlasCommand()
     {
         super();
-        this.optargDelegate = this.getOptionAndArgumentDelegate();
+        this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
     }
 
@@ -72,14 +73,14 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
             return 1;
         }
 
-        if (this.optargDelegate.hasOption(PARALLEL_OPTION_LONG))
+        if (this.optionAndArgumentDelegate.hasOption(PARALLEL_OPTION_LONG))
         {
             atlasResourceStream.parallel();
         }
 
         atlasResourceStream.forEach(resource ->
         {
-            if (this.optargDelegate.hasVerboseOption())
+            if (this.optionAndArgumentDelegate.hasVerboseOption())
             {
                 this.outputDelegate.printlnStdout(
                         "Converting " + resource.getFile().getAbsolutePath() + "...");
@@ -103,7 +104,7 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     @Override
     public String getCommandName()
     {
-        return "packed-to-text";
+        return "packed2text";
     }
 
     @Override
@@ -115,10 +116,10 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     @Override
     public void registerManualPageSections()
     {
-        addManualPageSection("DESCRIPTION",
-                PackedToTextAtlasCommand.class.getResourceAsStream(DESCRIPTION_SECTION));
-        addManualPageSection("EXAMPLES",
-                PackedToTextAtlasCommand.class.getResourceAsStream(EXAMPLES_SECTION));
+        addManualPageSection("DESCRIPTION", PackedToTextAtlasCommand.class
+                .getResourceAsStream("PackedToTextAtlasCommandDescriptionSection.txt"));
+        addManualPageSection("EXAMPLES", PackedToTextAtlasCommand.class
+                .getResourceAsStream("PackedToTextAtlasCommandExamplesSection.txt"));
         super.registerManualPageSections();
     }
 
@@ -126,11 +127,12 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     public void registerOptionsAndArguments()
     {
         registerOption(GEOJSON_OPTION_LONG, GEOJSON_OPTION_SHORT, GEOJSON_OPTION_DESCRIPTION,
-                OptionOptionality.REQUIRED, DEFAULT_AND_GEOJSON_CONTEXT);
+                OptionOptionality.REQUIRED, GEOJSON_CONTEXT);
         registerOption(LDGEOJSON_OPTION_LONG, LDGEOJSON_OPTION_SHORT, LDGEOJSON_OPTION_DESCRIPTION,
                 OptionOptionality.REQUIRED, LDGEOJSON_CONTEXT);
         registerOption(PARALLEL_OPTION_LONG, PARALLEL_OPTION_SHORT, PARALLEL_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, DEFAULT_AND_GEOJSON_CONTEXT, LDGEOJSON_CONTEXT);
+                OptionOptionality.OPTIONAL, AbstractAtlasShellToolsCommand.DEFAULT_CONTEXT,
+                GEOJSON_CONTEXT, LDGEOJSON_CONTEXT);
         super.registerOptionsAndArguments();
     }
 
@@ -142,55 +144,41 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
             return;
         }
 
-        if (this.optargDelegate.getParserContext() == DEFAULT_AND_GEOJSON_CONTEXT)
-        {
-            if (this.optargDelegate.hasOption(GEOJSON_OPTION_LONG))
-            {
-                final Path filePath = Paths.get(resource.getFile().getName() + FileSuffix.GEO_JSON);
-                final Path concatenatedPath = Paths.get(
-                        outputParentPath.get().toAbsolutePath().toString(),
-                        filePath.getFileName().toString());
-                final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
-                outputAtlas.saveAsGeoJson(outputFile);
-                if (this.optargDelegate.hasVerboseOption())
-                {
-                    this.outputDelegate
-                            .printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath()); // NOSONAR
-                }
+        final String filePath = this.getFileNameNoSuffix(resource);
+        final Path concatenatedPath = Paths.get(outputParentPath.get().toAbsolutePath().toString(),
+                filePath);
+        File outputFile = null;
 
-            }
-            else
-            {
-                final Path filePath = Paths.get(resource.getFile().getName() + FileSuffix.TEXT);
-                final Path concatenatedPath = Paths.get(
-                        outputParentPath.get().toAbsolutePath().toString(),
-                        filePath.getFileName().toString());
-                final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
-                outputAtlas.saveAsText(outputFile);
-                if (this.optargDelegate.hasVerboseOption())
-                {
-                    this.outputDelegate
-                            .printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
-                }
-            }
-        }
-        else if (this.optargDelegate.getParserContext() == LDGEOJSON_CONTEXT
-                && this.optargDelegate.hasOption(LDGEOJSON_OPTION_LONG))
+        if (this.optionAndArgumentDelegate
+                .getParserContext() == AbstractAtlasShellToolsCommand.DEFAULT_CONTEXT)
         {
-            final Path filePath = Paths.get(resource.getFile().getName() + FileSuffix.GEO_JSON);
-            final Path concatenatedPath = Paths.get(
-                    outputParentPath.get().toAbsolutePath().toString(),
-                    filePath.getFileName().toString());
-            final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
+            outputFile = new File(concatenatedPath.toAbsolutePath().toString() + FileSuffix.TEXT);
+            outputAtlas.saveAsText(outputFile);
+        }
+        else if (this.optionAndArgumentDelegate.getParserContext() == GEOJSON_CONTEXT)
+        {
+            outputFile = new File(
+                    concatenatedPath.toAbsolutePath().toString() + FileSuffix.GEO_JSON);
+            outputAtlas.saveAsGeoJson(outputFile);
+        }
+        else if (this.optionAndArgumentDelegate.getParserContext() == LDGEOJSON_CONTEXT)
+        {
+            outputFile = new File(
+                    concatenatedPath.toAbsolutePath().toString() + FileSuffix.GEO_JSON);
             outputAtlas.saveAsLineDelimitedGeoJsonFeatures(outputFile, (entity, json) ->
             {
                 // Dummy consumer, we don't need to mutate the JSON
             });
-            if (this.optargDelegate.hasVerboseOption())
-            {
-                this.outputDelegate
-                        .printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
-            }
+
+        }
+        else
+        {
+            throw new AtlasShellToolsException();
+        }
+
+        if (this.optionAndArgumentDelegate.hasVerboseOption())
+        {
+            this.outputDelegate.printlnStdout(SAVED_TO + outputFile.getFile().getAbsolutePath());
         }
     }
 }

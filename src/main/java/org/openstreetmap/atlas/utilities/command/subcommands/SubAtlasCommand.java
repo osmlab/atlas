@@ -37,11 +37,6 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
 {
     private static final Logger logger = LoggerFactory.getLogger(SubAtlasCommand.class);
 
-    private static final String DESCRIPTION_SECTION = "SubAtlasCommandDescriptionSection.txt";
-    private static final String EXAMPLES_SECTION = "SubAtlasCommandExamplesSection.txt";
-
-    private static final Integer WKT_CONTEXT = 3;
-
     private static final String PARALLEL_OPTION_LONG = "parallel";
     private static final Character PARALLEL_OPTION_SHORT = 'p';
     private static final String PARALLEL_OPTION_DESCRIPTION = "Process the atlases in parallel.";
@@ -57,9 +52,7 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
             + new StringList(CUT_TYPE_STRINGS).join(", ") + ". Defaults to SOFT_CUT.";
     private static final String CUT_TYPE_OPTION_HINT = "type";
 
-    private static final String SUB_ATLAS_SUFFIX = ".sub" + FileSuffix.ATLAS;
-
-    private final OptionAndArgumentDelegate optargDelegate;
+    private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
     public static void main(final String[] args)
@@ -70,7 +63,7 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
     public SubAtlasCommand()
     {
         super();
-        this.optargDelegate = this.getOptionAndArgumentDelegate();
+        this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
     }
 
@@ -92,13 +85,13 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
             return 1;
         }
 
-        if (this.optargDelegate.hasOption(PARALLEL_OPTION_LONG))
+        if (this.optionAndArgumentDelegate.hasOption(PARALLEL_OPTION_LONG))
         {
             atlasResourceStream.parallel();
         }
 
-        final String cutTypeString = this.optargDelegate.getOptionArgument(CUT_TYPE_OPTION_LONG)
-                .orElse("SOFT_CUT");
+        final String cutTypeString = this.optionAndArgumentDelegate
+                .getOptionArgument(CUT_TYPE_OPTION_LONG).orElse("SOFT_CUT");
         final AtlasCutType cutType;
         try
         {
@@ -113,7 +106,7 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
 
         atlasResourceStream.forEach(fileResource ->
         {
-            if (this.optargDelegate.hasVerboseOption())
+            if (this.optionAndArgumentDelegate.hasVerboseOption())
             {
                 this.outputDelegate.printlnStdout(
                         "Subatlasing " + fileResource.getFile().getAbsolutePath() + "...");
@@ -121,14 +114,13 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
             final Optional<Atlas> outputAtlas = processAtlas(fileResource, cutType);
             if (outputAtlas.isPresent())
             {
-                final Path filePath = Paths
-                        .get(fileResource.getFile().getName() + SUB_ATLAS_SUFFIX);
-                final Path concatenatedPath = Paths.get(
-                        outputParentPath.get().toAbsolutePath().toString(),
-                        filePath.getFileName().toString());
-                final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
+                final String filePath = this.getFileNameNoSuffix(fileResource);
+                final Path concatenatedPath = Paths
+                        .get(outputParentPath.get().toAbsolutePath().toString(), filePath);
+                final File outputFile = new File(
+                        concatenatedPath.toAbsolutePath().toString() + "_sub" + FileSuffix.ATLAS);
                 outputAtlas.get().save(outputFile);
-                if (this.optargDelegate.hasVerboseOption())
+                if (this.optionAndArgumentDelegate.hasVerboseOption())
                 {
                     this.outputDelegate
                             .printlnStdout("Saved to " + outputFile.getFile().getAbsolutePath());
@@ -160,9 +152,9 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
     public void registerManualPageSections()
     {
         addManualPageSection("DESCRIPTION",
-                SubAtlasCommand.class.getResourceAsStream(DESCRIPTION_SECTION));
+                SubAtlasCommand.class.getResourceAsStream("SubAtlasCommandDescriptionSection.txt"));
         addManualPageSection("EXAMPLES",
-                SubAtlasCommand.class.getResourceAsStream(EXAMPLES_SECTION));
+                SubAtlasCommand.class.getResourceAsStream("SubAtlasCommandExamplesSection.txt"));
         super.registerManualPageSections();
     }
 
@@ -170,45 +162,43 @@ public class SubAtlasCommand extends VariadicAtlasLoaderCommand
     public void registerOptionsAndArguments()
     {
         this.registerOptionWithRequiredArgument(WKT_OPTION_LONG, WKT_OPTION_DESCRIPTION,
-                OptionOptionality.REQUIRED, WKT_OPTION_HINT, WKT_CONTEXT);
+                OptionOptionality.REQUIRED, WKT_OPTION_HINT);
         this.registerOption(PARALLEL_OPTION_LONG, PARALLEL_OPTION_SHORT,
-                PARALLEL_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL, WKT_CONTEXT);
+                PARALLEL_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL);
         this.registerOptionWithRequiredArgument(CUT_TYPE_OPTION_LONG, CUT_TYPE_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, CUT_TYPE_OPTION_HINT, WKT_CONTEXT);
+                OptionOptionality.OPTIONAL, CUT_TYPE_OPTION_HINT);
         super.registerOptionsAndArguments();
     }
 
     private Optional<Atlas> processAtlas(final File resource, final AtlasCutType cutType)
     {
-        if (this.optargDelegate.getParserContext() == WKT_CONTEXT)
+        final PackedAtlas atlas = new PackedAtlasCloner()
+                .cloneFrom(new AtlasResourceLoader().load(resource));
+        final String wkt = this.optionAndArgumentDelegate.getOptionArgument(WKT_OPTION_LONG)
+                .orElseThrow(AtlasShellToolsException::new);
+
+        final WKTReader reader = new WKTReader();
+        Geometry geometry = null;
+        try
         {
-            final PackedAtlas atlas = new PackedAtlasCloner()
-                    .cloneFrom(new AtlasResourceLoader().load(resource));
-            final String wkt = this.optargDelegate.getOptionArgument(WKT_OPTION_LONG)
-                    .orElseThrow(AtlasShellToolsException::new);
-
-            final WKTReader reader = new WKTReader();
-            Geometry geometry = null;
-            try
-            {
-                geometry = reader.read(wkt);
-            }
-            catch (final ParseException exception)
-            {
-                logger.error("unable to parse {}", wkt, exception);
-            }
-
-            if (geometry instanceof Polygon)
-            {
-                final org.openstreetmap.atlas.geography.Polygon polygon = new JtsPolygonConverter()
-                        .backwardConvert((Polygon) geometry);
-                return atlas.subAtlas(polygon, cutType);
-            }
-            else
-            {
-                this.outputDelegate.printlnErrorMessage("unsupported geometry type " + wkt);
-            }
+            geometry = reader.read(wkt);
         }
+        catch (final ParseException exception)
+        {
+            logger.error("unable to parse {}", wkt, exception);
+        }
+
+        if (geometry instanceof Polygon)
+        {
+            final org.openstreetmap.atlas.geography.Polygon polygon = new JtsPolygonConverter()
+                    .backwardConvert((Polygon) geometry);
+            return atlas.subAtlas(polygon, cutType);
+        }
+        else
+        {
+            this.outputDelegate.printlnErrorMessage("unsupported geometry type " + wkt);
+        }
+
         return Optional.empty();
     }
 }

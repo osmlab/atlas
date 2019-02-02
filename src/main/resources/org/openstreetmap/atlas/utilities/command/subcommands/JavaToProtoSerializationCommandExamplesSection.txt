@@ -1,0 +1,6 @@
+Convert all atlases on your desktop to Protocol Buffers format:
+#$ java2proto ~/Desktop/*.atlas
+Convert an atlas from Protocol Buffers format back to Java format:
+#$ java2proto java.atlas --reverse
+Check the serialization format of some atlases in some folder:
+#$ java2proto --check some-folder/*.atlas
