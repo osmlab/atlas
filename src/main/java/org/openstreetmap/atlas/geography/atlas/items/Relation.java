@@ -494,8 +494,20 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     private boolean isUnenclosedNonRelationEntity(final GeometricSurface surface,
             final AtlasEntity entity)
     {
-        return isUnenclosedLineItem(entity, surface) || isUnenclosedLocationItem(entity, surface)
-                || isUnenclosedArea(entity, surface);
+        switch (entity.getType())
+        {
+            case NODE:
+            case POINT:
+                return isUnenclosedLocationItem(entity, surface);
+            case EDGE:
+            case LINE:
+                return isUnenclosedLineItem(entity, surface);
+            case AREA:
+                return isUnenclosedArea(entity, surface);
+            case RELATION:
+            default:
+                throw new CoreException("Relations not supported in this method");
+        }
     }
 
     private boolean isUnenclosedArea(final AtlasEntity entity, final GeometricSurface surface)
