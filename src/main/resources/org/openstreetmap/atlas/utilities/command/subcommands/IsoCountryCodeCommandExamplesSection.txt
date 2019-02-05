@@ -1,0 +1,8 @@
+Get the ISO country associated with code 'USA':
+#$ iso-country-code USA
+Get the ISO country associated with display name 'United Kingdom':
+#$ iso-country-code 'United Kingdom'
+Get the ISO country associated with misspelled display name 'gernamy', showing top 5 matches:
+#$ iso-country-code -n 5 'gernamy'
+Make multiple queries:
+#$ iso-country-code 'USA' 'GB' 'gernamy' 'France'
