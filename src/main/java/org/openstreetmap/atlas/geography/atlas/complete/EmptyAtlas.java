@@ -7,8 +7,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
@@ -73,19 +73,20 @@ public class EmptyAtlas implements Atlas
     }
 
     @Override
-    public Iterable<Area> areasIntersecting(final Polygon polygon)
+    public Iterable<Area> areasIntersecting(final GeometricSurface surface)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterable<Area> areasIntersecting(final Polygon polygon, final Predicate<Area> matcher)
+    public Iterable<Area> areasIntersecting(final GeometricSurface surface,
+            final Predicate<Area> matcher)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterable<Area> areasWithin(final Polygon polygon)
+    public Iterable<Area> areasWithin(final GeometricSurface surface)
     {
         throw new UnsupportedOperationException();
     }
@@ -139,19 +140,20 @@ public class EmptyAtlas implements Atlas
     }
 
     @Override
-    public Iterable<Edge> edgesIntersecting(final Polygon polygon)
+    public Iterable<Edge> edgesIntersecting(final GeometricSurface surface)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterable<Edge> edgesIntersecting(final Polygon polygon, final Predicate<Edge> matcher)
+    public Iterable<Edge> edgesIntersecting(final GeometricSurface surface,
+            final Predicate<Edge> matcher)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterable<Edge> edgesWithin(final Polygon polygon)
+    public Iterable<Edge> edgesWithin(final GeometricSurface surface)
     {
         throw new UnsupportedOperationException();
     }
@@ -176,13 +178,13 @@ public class EmptyAtlas implements Atlas
     }
 
     @Override
-    public Iterable<AtlasEntity> entitiesIntersecting(final Polygon polygon)
+    public Iterable<AtlasEntity> entitiesIntersecting(final GeometricSurface surface)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterable<AtlasEntity> entitiesIntersecting(final Polygon polygon,
+    public Iterable<AtlasEntity> entitiesIntersecting(final GeometricSurface surface,
             final Predicate<AtlasEntity> matcher)
     {
         throw new UnsupportedOperationException();
@@ -248,20 +250,20 @@ public class EmptyAtlas implements Atlas
     }
 
     @Override
-    public Iterable<AtlasItem> itemsIntersecting(final Polygon polygon)
+    public Iterable<AtlasItem> itemsIntersecting(final GeometricSurface surface)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterable<AtlasItem> itemsIntersecting(final Polygon polygon,
+    public Iterable<AtlasItem> itemsIntersecting(final GeometricSurface surface,
             final Predicate<AtlasItem> matcher)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterable<AtlasItem> itemsWithin(final Polygon polygon)
+    public Iterable<AtlasItem> itemsWithin(final GeometricSurface surface)
     {
         throw new UnsupportedOperationException();
     }
@@ -304,20 +306,20 @@ public class EmptyAtlas implements Atlas
     }
 
     @Override
-    public Iterable<LineItem> lineItemsIntersecting(final Polygon polygon)
+    public Iterable<LineItem> lineItemsIntersecting(final GeometricSurface surface)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterable<LineItem> lineItemsIntersecting(final Polygon polygon,
+    public Iterable<LineItem> lineItemsIntersecting(final GeometricSurface surface,
             final Predicate<LineItem> matcher)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterable<LineItem> lineItemsWithin(final Polygon polygon)
+    public Iterable<LineItem> lineItemsWithin(final GeometricSurface surface)
     {
         throw new UnsupportedOperationException();
     }
@@ -347,19 +349,20 @@ public class EmptyAtlas implements Atlas
     }
 
     @Override
-    public Iterable<Line> linesIntersecting(final Polygon polygon)
+    public Iterable<Line> linesIntersecting(final GeometricSurface surface)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterable<Line> linesIntersecting(final Polygon polygon, final Predicate<Line> matcher)
+    public Iterable<Line> linesIntersecting(final GeometricSurface surface,
+            final Predicate<Line> matcher)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterable<Line> linesWithin(final Polygon polygon)
+    public Iterable<Line> linesWithin(final GeometricSurface surface)
     {
         throw new UnsupportedOperationException();
     }
@@ -377,13 +380,13 @@ public class EmptyAtlas implements Atlas
     }
 
     @Override
-    public Iterable<LocationItem> locationItemsWithin(final Polygon polygon)
+    public Iterable<LocationItem> locationItemsWithin(final GeometricSurface surface)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterable<LocationItem> locationItemsWithin(final Polygon polygon,
+    public Iterable<LocationItem> locationItemsWithin(final GeometricSurface surface,
             final Predicate<LocationItem> matcher)
     {
         throw new UnsupportedOperationException();
@@ -420,13 +423,13 @@ public class EmptyAtlas implements Atlas
     }
 
     @Override
-    public Iterable<Node> nodesWithin(final Polygon polygon)
+    public Iterable<Node> nodesWithin(final GeometricSurface surface)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterable<Node> nodesWithin(final Polygon polygon, final Predicate<Node> matcher)
+    public Iterable<Node> nodesWithin(final GeometricSurface surface, final Predicate<Node> matcher)
     {
         throw new UnsupportedOperationException();
     }
@@ -492,13 +495,14 @@ public class EmptyAtlas implements Atlas
     }
 
     @Override
-    public Iterable<Point> pointsWithin(final Polygon polygon)
+    public Iterable<Point> pointsWithin(final GeometricSurface surface)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterable<Point> pointsWithin(final Polygon polygon, final Predicate<Point> matcher)
+    public Iterable<Point> pointsWithin(final GeometricSurface surface,
+            final Predicate<Point> matcher)
     {
         throw new UnsupportedOperationException();
     }
@@ -528,20 +532,20 @@ public class EmptyAtlas implements Atlas
     }
 
     @Override
-    public Iterable<Relation> relationsWithEntitiesIntersecting(final Polygon polygon)
+    public Iterable<Relation> relationsWithEntitiesIntersecting(final GeometricSurface surface)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterable<Relation> relationsWithEntitiesIntersecting(final Polygon polygon,
+    public Iterable<Relation> relationsWithEntitiesIntersecting(final GeometricSurface surface,
             final Predicate<Relation> matcher)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterable<Relation> relationsWithEntitiesWithin(final Polygon polygon)
+    public Iterable<Relation> relationsWithEntitiesWithin(final GeometricSurface surface)
     {
         throw new UnsupportedOperationException();
     }
@@ -610,7 +614,7 @@ public class EmptyAtlas implements Atlas
     }
 
     @Override
-    public Optional<Atlas> subAtlas(final Polygon boundary, final AtlasCutType cutType)
+    public Optional<Atlas> subAtlas(final GeometricSurface boundary, final AtlasCutType cutType)
     {
         throw new UnsupportedOperationException();
     }

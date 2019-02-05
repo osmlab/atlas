@@ -7,6 +7,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -147,28 +148,29 @@ public abstract class AbstractAtlas extends BareAtlas
     }
 
     @Override
-    public Iterable<Area> areasIntersecting(final Polygon polygon)
+    public Iterable<Area> areasIntersecting(final GeometricSurface surface)
     {
-        return Iterables.stream(this.getAreaSpatialIndex().get(polygon.bounds())).filter(area ->
+        return Iterables.stream(this.getAreaSpatialIndex().get(surface.bounds())).filter(area ->
         {
             final Polygon areaPolygon = area.asPolygon();
-            return polygon.overlaps(areaPolygon);
+            return surface.overlaps(areaPolygon);
         });
     }
 
     @Override
-    public Iterable<Area> areasIntersecting(final Polygon polygon, final Predicate<Area> matcher)
+    public Iterable<Area> areasIntersecting(final GeometricSurface surface,
+            final Predicate<Area> matcher)
     {
-        return Iterables.filterTranslate(areasIntersecting(polygon), item -> item, matcher);
+        return Iterables.filterTranslate(areasIntersecting(surface), item -> item, matcher);
     }
 
     @Override
-    public Iterable<Area> areasWithin(final Polygon polygon)
+    public Iterable<Area> areasWithin(final GeometricSurface surface)
     {
-        return Iterables.stream(this.getAreaSpatialIndex().get(polygon.bounds())).filter(area ->
+        return Iterables.stream(this.getAreaSpatialIndex().get(surface.bounds())).filter(area ->
         {
             final Polygon areaPolygon = area.asPolygon();
-            return polygon.fullyGeometricallyEncloses(areaPolygon);
+            return surface.fullyGeometricallyEncloses(areaPolygon);
         });
     }
 
@@ -189,28 +191,29 @@ public abstract class AbstractAtlas extends BareAtlas
     }
 
     @Override
-    public Iterable<Edge> edgesIntersecting(final Polygon polygon)
+    public Iterable<Edge> edgesIntersecting(final GeometricSurface surface)
     {
-        return Iterables.stream(this.getEdgeSpatialIndex().get(polygon.bounds())).filter(edge ->
+        return Iterables.stream(this.getEdgeSpatialIndex().get(surface.bounds())).filter(edge ->
         {
             final PolyLine polyline = edge.asPolyLine();
-            return polygon.overlaps(polyline);
+            return surface.overlaps(polyline);
         });
     }
 
     @Override
-    public Iterable<Edge> edgesIntersecting(final Polygon polygon, final Predicate<Edge> matcher)
+    public Iterable<Edge> edgesIntersecting(final GeometricSurface surface,
+            final Predicate<Edge> matcher)
     {
-        return Iterables.filter(edgesIntersecting(polygon), matcher);
+        return Iterables.filter(edgesIntersecting(surface), matcher);
     }
 
     @Override
-    public Iterable<Edge> edgesWithin(final Polygon polygon)
+    public Iterable<Edge> edgesWithin(final GeometricSurface surface)
     {
-        return Iterables.stream(this.getEdgeSpatialIndex().get(polygon.bounds())).filter(edge ->
+        return Iterables.stream(this.getEdgeSpatialIndex().get(surface.bounds())).filter(edge ->
         {
             final PolyLine polyline = edge.asPolyLine();
-            return polygon.fullyGeometricallyEncloses(polyline);
+            return surface.fullyGeometricallyEncloses(polyline);
         });
     }
 
@@ -267,28 +270,29 @@ public abstract class AbstractAtlas extends BareAtlas
     }
 
     @Override
-    public Iterable<Line> linesIntersecting(final Polygon polygon)
+    public Iterable<Line> linesIntersecting(final GeometricSurface surface)
     {
-        return Iterables.stream(this.getLineSpatialIndex().get(polygon.bounds())).filter(line ->
+        return Iterables.stream(this.getLineSpatialIndex().get(surface.bounds())).filter(line ->
         {
             final PolyLine polyline = line.asPolyLine();
-            return polygon.overlaps(polyline);
+            return surface.overlaps(polyline);
         });
     }
 
     @Override
-    public Iterable<Line> linesIntersecting(final Polygon polygon, final Predicate<Line> matcher)
+    public Iterable<Line> linesIntersecting(final GeometricSurface surface,
+            final Predicate<Line> matcher)
     {
-        return Iterables.filter(linesIntersecting(polygon), matcher);
+        return Iterables.filter(linesIntersecting(surface), matcher);
     }
 
     @Override
-    public Iterable<Line> linesWithin(final Polygon polygon)
+    public Iterable<Line> linesWithin(final GeometricSurface surface)
     {
-        return Iterables.stream(this.getLineSpatialIndex().get(polygon.bounds())).filter(line ->
+        return Iterables.stream(this.getLineSpatialIndex().get(surface.bounds())).filter(line ->
         {
             final PolyLine polyline = line.asPolyLine();
-            return polygon.fullyGeometricallyEncloses(polyline);
+            return surface.fullyGeometricallyEncloses(polyline);
         });
     }
 
@@ -299,21 +303,21 @@ public abstract class AbstractAtlas extends BareAtlas
     }
 
     @Override
-    public Iterable<Node> nodesWithin(final Polygon polygon)
+    public Iterable<Node> nodesWithin(final GeometricSurface surface)
     {
-        final Iterable<Node> nodes = this.getNodeSpatialIndex().get(polygon.bounds());
-        if (polygon instanceof Rectangle)
+        final Iterable<Node> nodes = this.getNodeSpatialIndex().get(surface.bounds());
+        if (surface instanceof Rectangle)
         {
             return nodes;
         }
         return Iterables.filter(nodes,
-                node -> polygon.fullyGeometricallyEncloses(node.getLocation()));
+                node -> surface.fullyGeometricallyEncloses(node.getLocation()));
     }
 
     @Override
-    public Iterable<Node> nodesWithin(final Polygon polygon, final Predicate<Node> matcher)
+    public Iterable<Node> nodesWithin(final GeometricSurface surface, final Predicate<Node> matcher)
     {
-        return Iterables.filter(nodesWithin(polygon), matcher);
+        return Iterables.filter(nodesWithin(surface), matcher);
     }
 
     @Override
@@ -323,42 +327,43 @@ public abstract class AbstractAtlas extends BareAtlas
     }
 
     @Override
-    public Iterable<Point> pointsWithin(final Polygon polygon)
+    public Iterable<Point> pointsWithin(final GeometricSurface surface)
     {
-        final Iterable<Point> points = this.getPointSpatialIndex().get(polygon.bounds());
-        if (polygon instanceof Rectangle)
+        final Iterable<Point> points = this.getPointSpatialIndex().get(surface.bounds());
+        if (surface instanceof Rectangle)
         {
             return points;
         }
         return Iterables.filter(points,
-                point -> polygon.fullyGeometricallyEncloses(point.getLocation()));
+                point -> surface.fullyGeometricallyEncloses(point.getLocation()));
     }
 
     @Override
-    public Iterable<Point> pointsWithin(final Polygon polygon, final Predicate<Point> matcher)
+    public Iterable<Point> pointsWithin(final GeometricSurface surface,
+            final Predicate<Point> matcher)
     {
-        return Iterables.filterTranslate(pointsWithin(polygon), item -> item, matcher);
+        return Iterables.filterTranslate(pointsWithin(surface), item -> item, matcher);
     }
 
     @Override
-    public Iterable<Relation> relationsWithEntitiesIntersecting(final Polygon polygon)
+    public Iterable<Relation> relationsWithEntitiesIntersecting(final GeometricSurface surface)
     {
-        final Iterable<Relation> relations = this.getRelationSpatialIndex().get(polygon.bounds());
-        return Iterables.filter(relations, relation -> relation.intersects(polygon));
+        final Iterable<Relation> relations = this.getRelationSpatialIndex().get(surface.bounds());
+        return Iterables.filter(relations, relation -> relation.intersects(surface));
     }
 
     @Override
-    public Iterable<Relation> relationsWithEntitiesIntersecting(final Polygon polygon,
+    public Iterable<Relation> relationsWithEntitiesIntersecting(final GeometricSurface surface,
             final Predicate<Relation> matcher)
     {
-        return Iterables.filter(relationsWithEntitiesIntersecting(polygon), matcher);
+        return Iterables.filter(relationsWithEntitiesIntersecting(surface), matcher);
     }
 
     @Override
-    public Iterable<Relation> relationsWithEntitiesWithin(final Polygon polygon)
+    public Iterable<Relation> relationsWithEntitiesWithin(final GeometricSurface surface)
     {
-        final Iterable<Relation> relations = this.getRelationSpatialIndex().get(polygon.bounds());
-        return Iterables.filter(relations, relation -> relation.within(polygon));
+        final Iterable<Relation> relations = this.getRelationSpatialIndex().get(surface.bounds());
+        return Iterables.filter(relations, relation -> relation.within(surface));
     }
 
     @Override

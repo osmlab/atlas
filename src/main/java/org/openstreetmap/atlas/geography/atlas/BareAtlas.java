@@ -18,6 +18,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -148,17 +149,17 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public Iterable<AtlasEntity> entitiesIntersecting(final Polygon polygon)
+    public Iterable<AtlasEntity> entitiesIntersecting(final GeometricSurface surface)
     {
-        return new MultiIterable<>(itemsIntersecting(polygon),
-                relationsWithEntitiesIntersecting(polygon));
+        return new MultiIterable<>(itemsIntersecting(surface),
+                relationsWithEntitiesIntersecting(surface));
     }
 
     @Override
-    public Iterable<AtlasEntity> entitiesIntersecting(final Polygon polygon,
+    public Iterable<AtlasEntity> entitiesIntersecting(final GeometricSurface surface,
             final Predicate<AtlasEntity> matcher)
     {
-        return Iterables.filter(entitiesIntersecting(polygon), matcher);
+        return Iterables.filter(entitiesIntersecting(surface), matcher);
     }
 
     @Override
@@ -301,24 +302,24 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public Iterable<AtlasItem> itemsIntersecting(final Polygon polygon)
+    public Iterable<AtlasItem> itemsIntersecting(final GeometricSurface surface)
     {
-        return new MultiIterable<>(edgesIntersecting(polygon), nodesWithin(polygon),
-                areasIntersecting(polygon), linesIntersecting(polygon), pointsWithin(polygon));
+        return new MultiIterable<>(edgesIntersecting(surface), nodesWithin(surface),
+                areasIntersecting(surface), linesIntersecting(surface), pointsWithin(surface));
     }
 
     @Override
-    public Iterable<AtlasItem> itemsIntersecting(final Polygon polygon,
+    public Iterable<AtlasItem> itemsIntersecting(final GeometricSurface surface,
             final Predicate<AtlasItem> matcher)
     {
-        return Iterables.filter(itemsIntersecting(polygon), matcher);
+        return Iterables.filter(itemsIntersecting(surface), matcher);
     }
 
     @Override
-    public Iterable<AtlasItem> itemsWithin(final Polygon polygon)
+    public Iterable<AtlasItem> itemsWithin(final GeometricSurface surface)
     {
-        return new MultiIterable<>(locationItemsWithin(polygon), lineItemsWithin(polygon),
-                areasWithin(polygon));
+        return new MultiIterable<>(locationItemsWithin(surface), lineItemsWithin(surface),
+                areasWithin(surface));
     }
 
     @Override
@@ -354,22 +355,22 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public Iterable<LineItem> lineItemsIntersecting(final Polygon polygon)
+    public Iterable<LineItem> lineItemsIntersecting(final GeometricSurface surface)
     {
-        return new MultiIterable<>(edgesIntersecting(polygon), linesIntersecting(polygon));
+        return new MultiIterable<>(edgesIntersecting(surface), linesIntersecting(surface));
     }
 
     @Override
-    public Iterable<LineItem> lineItemsIntersecting(final Polygon polygon,
+    public Iterable<LineItem> lineItemsIntersecting(final GeometricSurface surface,
             final Predicate<LineItem> matcher)
     {
-        return Iterables.filter(lineItemsIntersecting(polygon), matcher);
+        return Iterables.filter(lineItemsIntersecting(surface), matcher);
     }
 
     @Override
-    public Iterable<LineItem> lineItemsWithin(final Polygon polygon)
+    public Iterable<LineItem> lineItemsWithin(final GeometricSurface surface)
     {
-        return new MultiIterable<>(edgesWithin(polygon), linesWithin(polygon));
+        return new MultiIterable<>(edgesWithin(surface), linesWithin(surface));
     }
 
     @Override
@@ -391,16 +392,16 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public Iterable<LocationItem> locationItemsWithin(final Polygon polygon)
+    public Iterable<LocationItem> locationItemsWithin(final GeometricSurface surface)
     {
-        return new MultiIterable<>(nodesWithin(polygon), pointsWithin(polygon));
+        return new MultiIterable<>(nodesWithin(surface), pointsWithin(surface));
     }
 
     @Override
-    public Iterable<LocationItem> locationItemsWithin(final Polygon polygon,
+    public Iterable<LocationItem> locationItemsWithin(final GeometricSurface surface,
             final Predicate<LocationItem> matcher)
     {
-        return Iterables.filter(locationItemsWithin(polygon), matcher);
+        return Iterables.filter(locationItemsWithin(surface), matcher);
     }
 
     @Override
@@ -574,7 +575,7 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public Optional<Atlas> subAtlas(final Polygon boundary, final AtlasCutType cutType)
+    public Optional<Atlas> subAtlas(final GeometricSurface boundary, final AtlasCutType cutType)
     {
         switch (cutType)
         {

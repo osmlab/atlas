@@ -19,7 +19,6 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.MultiPolygon;
-import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.WktPrintable;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -348,15 +347,16 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
 
     /**
      * Return {@code true} if this Relation has all members fully within the supplied
-     * {@link Polygon}.
+     * {@link GeometricSurface}.
      *
-     * @param polygon
-     *            The {@link Polygon} to check for
-     * @return {@code true} if the relation has all members within the given {@link Polygon}
+     * @param surface
+     *            The {@link GeometricSurface} to check for
+     * @return {@code true} if the relation has all members within the given
+     *         {@link GeometricSurface}
      */
-    public boolean within(final Polygon polygon)
+    public boolean within(final GeometricSurface surface)
     {
-        return withinInternal(polygon, new LinkedHashSet<>());
+        return withinInternal(surface, new LinkedHashSet<>());
     }
 
     /**
@@ -454,13 +454,14 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
      * {@link PackedAtlas} but could happen when two {@link Atlas} are combined into a
      * {@link MultiAtlas}.
      *
-     * @param polygon
-     *            The {@link Polygon} to check for
+     * @param surface
+     *            The {@link GeometricSurface} to check for
      * @param parentRelationIdentifiers
      *            The identifiers of the parent relations that have already been visited.
-     * @return {@code true} if the relation has all members within the given {@link Polygon}
+     * @return {@code true} if the relation has all members within the given
+     *         {@link GeometricSurface}
      */
-    protected boolean withinInternal(final Polygon polygon,
+    protected boolean withinInternal(final GeometricSurface surface,
             final Set<Long> parentRelationIdentifiers)
     {
         for (final RelationMember member : this)
@@ -476,29 +477,56 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
                 else
                 {
                     parentRelationIdentifiers.add(identifier);
-                    if (!((Relation) entity).withinInternal(polygon, parentRelationIdentifiers))
+                    if (!((Relation) entity).withinInternal(surface, parentRelationIdentifiers))
                     {
                         return false;
                     }
                 }
             }
-            else if (entity instanceof LineItem
-                    && !polygon.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine()))
-            {
-                return false;
-            }
-            else if (entity instanceof LocationItem
-                    && !polygon.fullyGeometricallyEncloses(((LocationItem) entity).getLocation()))
-            {
-                return false;
-            }
-            else if (entity instanceof Area
-                    && !polygon.fullyGeometricallyEncloses(((Area) entity).asPolygon()))
+            else if (isUnenclosedNonRelationEntity(surface, entity))
             {
                 return false;
             }
         }
         return true;
+    }
+
+    private boolean isUnenclosedNonRelationEntity(final GeometricSurface surface,
+            final AtlasEntity entity)
+    {
+        switch (entity.getType())
+        {
+            case NODE:
+            case POINT:
+                return isUnenclosedLocationItem(entity, surface);
+            case EDGE:
+            case LINE:
+                return isUnenclosedLineItem(entity, surface);
+            case AREA:
+                return isUnenclosedArea(entity, surface);
+            case RELATION:
+            default:
+                throw new CoreException("Relations not supported in this method");
+        }
+    }
+
+    private boolean isUnenclosedArea(final AtlasEntity entity, final GeometricSurface surface)
+    {
+        return entity instanceof Area
+                && !surface.fullyGeometricallyEncloses(((Area) entity).asPolygon());
+    }
+
+    private boolean isUnenclosedLocationItem(final AtlasEntity entity,
+            final GeometricSurface surface)
+    {
+        return entity instanceof LocationItem
+                && !surface.fullyGeometricallyEncloses(((LocationItem) entity).getLocation());
+    }
+
+    private boolean isUnenclosedLineItem(final AtlasEntity entity, final GeometricSurface surface)
+    {
+        return entity instanceof LineItem
+                && !surface.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine());
     }
 
     /**
