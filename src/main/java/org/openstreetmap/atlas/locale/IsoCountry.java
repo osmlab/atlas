@@ -352,17 +352,17 @@ public final class IsoCountry implements Serializable
             throw new CoreException(
                     "number " + number + " out of range (0, " + ALL_DISPLAY_COUNTRIES.size() + ")");
         }
-        final Map<Integer, String> countryRankings = new HashMap<>();
+        final Map<String, Integer> countryRankings = new HashMap<>();
         for (final String countryName : ALL_DISPLAY_COUNTRIES)
         {
             final int distance = StringUtils.getLevenshteinDistance(displayCountry, countryName);
-            countryRankings.put(distance, countryName);
+            countryRankings.put(countryName, distance);
         }
-        final List<Entry<Integer, String>> entries = new ArrayList<>(countryRankings.entrySet());
-        Collections.sort(entries, (entry1, entry2) -> entry1.getKey().compareTo(entry2.getKey()));
+        final List<Entry<String, Integer>> entries = new ArrayList<>(countryRankings.entrySet());
+        Collections.sort(entries,
+                (entry1, entry2) -> entry1.getValue().compareTo(entry2.getValue()));
 
-        return entries.subList(0, number).stream().map(Entry::getValue)
-                .collect(Collectors.toList());
+        return entries.subList(0, number).stream().map(Entry::getKey).collect(Collectors.toList());
     }
 
     private static Optional<String> closestIsoCountry(final String displayCountry)

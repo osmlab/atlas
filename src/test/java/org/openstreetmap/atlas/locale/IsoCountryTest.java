@@ -86,7 +86,7 @@ public class IsoCountryTest
 
         Assert.assertTrue(IsoCountry.allDisplayCountries().contains("United States"));
 
-        Assert.assertEquals(Lists.arrayList("Sweden", "Macao", "Mexico"),
+        Assert.assertEquals(Lists.arrayList("Sweden", "Cambodia", "Yemen"),
                 IsoCountry.forDisplayCountryTopMatches(3, "abcdefg").stream()
                         .map(IsoCountry::getDisplayCountry).collect(Collectors.toList()));
     }
