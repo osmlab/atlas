@@ -1,9 +1,13 @@
 package org.openstreetmap.atlas.locale;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.utilities.collections.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Test case for IsoCountry
@@ -13,6 +17,8 @@ import org.junit.Test;
  */
 public class IsoCountryTest
 {
+    private static final Logger logger = LoggerFactory.getLogger(IsoCountry.class);
+
     @Test
     public void testIsoCountry()
     {
@@ -79,5 +85,9 @@ public class IsoCountryTest
         Assert.assertFalse(IsoCountry.forDisplayCountryIgnoreCase("ZZzz zzzzz").isPresent());
 
         Assert.assertTrue(IsoCountry.allDisplayCountries().contains("United States"));
+
+        Assert.assertEquals(Lists.arrayList("Sweden", "Macao", "Mexico"),
+                IsoCountry.forDisplayCountryTopMatches(3, "abcdefg").stream()
+                        .map(IsoCountry::getDisplayCountry).collect(Collectors.toList()));
     }
 }

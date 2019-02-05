@@ -1,15 +1,20 @@
 package org.openstreetmap.atlas.locale;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -243,6 +248,46 @@ public final class IsoCountry implements Serializable
     }
 
     /**
+     * Provides closest IsoCountries for a country display name. If the given display name does not
+     * perfectly match a valid IsoCountry, this will return the closest string match up to number of
+     * matches.
+     *
+     * @param number
+     *            the number of matches to show
+     * @param displayCountry
+     *            the display country name, e.g. "united stats"
+     * @return an Optional containing the IsoCountry if present
+     */
+    public static List<IsoCountry> forDisplayCountryTopMatches(final int number,
+            final String displayCountry)
+    {
+        if (displayCountry != null)
+        {
+            final List<IsoCountry> results = new ArrayList<>();
+            if (DISPLAY_COUNTRY_TO_ISO2.containsKey(displayCountry))
+            {
+
+                results.add(ISO_COUNTRIES.get(DISPLAY_COUNTRY_TO_ISO2.get(displayCountry)));
+            }
+            else
+            {
+                final List<String> closestCountries = closestIsoCountries(number, displayCountry);
+                if (!closestCountries.isEmpty())
+                {
+                    logger.info("Exact match for {} was not found, returning closest {} matches {}",
+                            displayCountry, number, closestCountries);
+                    results.addAll(closestCountries.stream()
+                            .map(countryString -> ISO_COUNTRIES
+                                    .get(DISPLAY_COUNTRY_TO_ISO2.get(countryString)))
+                            .collect(Collectors.toList()));
+                }
+            }
+            return results;
+        }
+        return new ArrayList<>();
+    }
+
+    /**
      * Provides ISO2 string for ISO3
      *
      * @param iso3
@@ -298,6 +343,26 @@ public final class IsoCountry implements Serializable
             }
         }
         return false;
+    }
+
+    private static List<String> closestIsoCountries(final int number, final String displayCountry)
+    {
+        if (number <= 0 || number > ALL_DISPLAY_COUNTRIES.size())
+        {
+            throw new CoreException(
+                    "number " + number + " out of range (0, " + ALL_DISPLAY_COUNTRIES.size() + ")");
+        }
+        final Map<Integer, String> countryRankings = new HashMap<>();
+        for (final String countryName : ALL_DISPLAY_COUNTRIES)
+        {
+            final int distance = StringUtils.getLevenshteinDistance(displayCountry, countryName);
+            countryRankings.put(distance, countryName);
+        }
+        final List<Entry<Integer, String>> entries = new ArrayList<>(countryRankings.entrySet());
+        Collections.sort(entries, (entry1, entry2) -> entry1.getKey().compareTo(entry2.getKey()));
+
+        return entries.subList(0, number).stream().map(entry -> entry.getValue())
+                .collect(Collectors.toList());
     }
 
     private static Optional<String> closestIsoCountry(final String displayCountry)
