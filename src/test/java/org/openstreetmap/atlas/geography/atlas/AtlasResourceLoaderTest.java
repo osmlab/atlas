@@ -196,9 +196,10 @@ public class AtlasResourceLoaderTest
     {
         final String atlasFileName = "ECU_6-16-31.atlas";
 
-        final PackedAtlas atlas = (PackedAtlas) new AtlasResourceLoader().load(new InputStreamResource(
-                () -> AtlasResourceLoaderTest.class.getResourceAsStream(atlasFileName))
-                        .withName("ECU_6-16-31.atlas"));
+        final PackedAtlas atlas = (PackedAtlas) new AtlasResourceLoader()
+                .load(new InputStreamResource(
+                        () -> AtlasResourceLoaderTest.class.getResourceAsStream(atlasFileName))
+                                .withName("ECU_6-16-31.atlas"));
         final UUID identifier = atlas.getIdentifier();
         final long numOfEdges = atlas.numberOfEdges();
         final long numOfNodes = atlas.numberOfNodes();
