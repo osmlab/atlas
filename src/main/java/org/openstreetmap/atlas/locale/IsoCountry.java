@@ -361,7 +361,7 @@ public final class IsoCountry implements Serializable
         final List<Entry<Integer, String>> entries = new ArrayList<>(countryRankings.entrySet());
         Collections.sort(entries, (entry1, entry2) -> entry1.getKey().compareTo(entry2.getKey()));
 
-        return entries.subList(0, number).stream().map(entry -> entry.getValue())
+        return entries.subList(0, number).stream().map(Entry::getValue)
                 .collect(Collectors.toList());
     }
 
