@@ -45,12 +45,15 @@ public class IsoCountryCodeCommand extends AbstractAtlasShellToolsCommand
             // check for exact country code first
             if (forCode.isPresent())
             {
+                this.outputDelegate.printlnStdout("ISO code \'" + query + "\' matched: ");
                 this.outputDelegate.printlnStdout(
                         forCode.get().toString() + ", " + forCode.get().getIso3CountryCode(),
                         TTYAttribute.BOLD);
             }
             else if (forDisplay.isPresent())
             {
+                this.outputDelegate
+                        .printlnStdout("Display country name \'" + query + "\' matched: ");
                 this.outputDelegate.printlnStdout(
                         forDisplay.get().toString() + ", " + forDisplay.get().getIso3CountryCode(),
                         TTYAttribute.BOLD);
