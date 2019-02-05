@@ -194,40 +194,40 @@ public class AtlasResourceLoaderTest
     @Test
     public void testAtlasSerialization() throws IOException, ClassNotFoundException
     {
-        final String ATLAS_FILE_NAME = "ECU_6-16-31.atlas";
+        final String atlasFileName = "ECU_6-16-31.atlas";
 
-        PackedAtlas atlas = (PackedAtlas) new AtlasResourceLoader().load(new InputStreamResource(
-                () -> AtlasResourceLoaderTest.class.getResourceAsStream(ATLAS_FILE_NAME))
+        final PackedAtlas atlas = (PackedAtlas) new AtlasResourceLoader().load(new InputStreamResource(
+                () -> AtlasResourceLoaderTest.class.getResourceAsStream(atlasFileName))
                         .withName("ECU_6-16-31.atlas"));
         final UUID identifier = atlas.getIdentifier();
         final long numOfEdges = atlas.numberOfEdges();
         final long numOfNodes = atlas.numberOfNodes();
 
         // plain simple serialization and deserialization
-        byte[] serialized = serialize(atlas);
-        PackedAtlas deserialized = (PackedAtlas) deserialize(serialized);
+        final byte[] serialized = serialize(atlas);
+        final PackedAtlas deserialized = (PackedAtlas) deserialize(serialized);
 
         final UUID deserializedIdentifier = deserialized.getIdentifier();
         final long deserializedNumOfEdges = deserialized.numberOfEdges();
         final long deserializedNumOfNodes = deserialized.numberOfNodes();
 
-        assert (identifier.equals(deserializedIdentifier));
-        assert (numOfEdges == deserializedNumOfEdges);
-        assert (numOfNodes == deserializedNumOfNodes);
+        assert identifier.equals(deserializedIdentifier);
+        assert numOfEdges == deserializedNumOfEdges;
+        assert numOfNodes == deserializedNumOfNodes;
     }
 
-    private static byte[] serialize(Object obj) throws IOException
+    private static byte[] serialize(final Object obj) throws IOException
     {
-        ByteArrayOutputStream b = new ByteArrayOutputStream();
-        ObjectOutputStream o = new ObjectOutputStream(b);
-        o.writeObject(obj);
-        return b.toByteArray();
+        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        final ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+        objectOutputStream.writeObject(obj);
+        return byteArrayOutputStream.toByteArray();
     }
 
-    private static Object deserialize(byte[] bytes) throws IOException, ClassNotFoundException
+    private static Object deserialize(final byte[] bytes) throws IOException, ClassNotFoundException
     {
-        ByteArrayInputStream b = new ByteArrayInputStream(bytes);
-        ObjectInputStream o = new ObjectInputStream(b);
-        return o.readObject();
+        final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+        final ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
+        return objectInputStream.readObject();
     }
 }
