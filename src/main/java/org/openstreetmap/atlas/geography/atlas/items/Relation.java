@@ -484,23 +484,50 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
                     }
                 }
             }
-            else if (entity instanceof LineItem
-                    && !surface.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine()))
-            {
-                return false;
-            }
-            else if (entity instanceof LocationItem
-                    && !surface.fullyGeometricallyEncloses(((LocationItem) entity).getLocation()))
-            {
-                return false;
-            }
-            else if (entity instanceof Area
-                    && !surface.fullyGeometricallyEncloses(((Area) entity).asPolygon()))
+            else if (isUnenclosedNonRelationEntity(surface, entity))
             {
                 return false;
             }
         }
         return true;
+    }
+
+    private boolean isUnenclosedNonRelationEntity(final GeometricSurface surface,
+            final AtlasEntity entity)
+    {
+        switch (entity.getType())
+        {
+            case NODE:
+            case POINT:
+                return isUnenclosedLocationItem(entity, surface);
+            case EDGE:
+            case LINE:
+                return isUnenclosedLineItem(entity, surface);
+            case AREA:
+                return isUnenclosedArea(entity, surface);
+            case RELATION:
+            default:
+                throw new CoreException("Relations not supported in this method");
+        }
+    }
+
+    private boolean isUnenclosedArea(final AtlasEntity entity, final GeometricSurface surface)
+    {
+        return entity instanceof Area
+                && !surface.fullyGeometricallyEncloses(((Area) entity).asPolygon());
+    }
+
+    private boolean isUnenclosedLocationItem(final AtlasEntity entity,
+            final GeometricSurface surface)
+    {
+        return entity instanceof LocationItem
+                && !surface.fullyGeometricallyEncloses(((LocationItem) entity).getLocation());
+    }
+
+    private boolean isUnenclosedLineItem(final AtlasEntity entity, final GeometricSurface surface)
+    {
+        return entity instanceof LineItem
+                && !surface.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine());
     }
 
     /**
