@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.complete;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.SortedSet;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
@@ -211,7 +212,7 @@ public class EmptyAtlas implements Atlas
     }
 
     @Override
-    public int getIdentifier()
+    public UUID getIdentifier()
     {
         throw new UnsupportedOperationException();
     }

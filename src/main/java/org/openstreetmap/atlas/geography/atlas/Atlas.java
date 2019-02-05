@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas;
 import java.io.Serializable;
 import java.util.Optional;
 import java.util.SortedSet;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
@@ -279,7 +280,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     /**
      * @return This Atlas' identifier
      */
-    int getIdentifier();
+    UUID getIdentifier();
 
     /**
      * @return This Atlas' optional name. If not specified, should return a String version of the

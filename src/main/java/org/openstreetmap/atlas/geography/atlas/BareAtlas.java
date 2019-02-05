@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
@@ -62,7 +62,6 @@ public abstract class BareAtlas implements Atlas
     private static final long serialVersionUID = 4733707438968864018L;
     public static final int MAXIMUM_RELATION_DEPTH = 500;
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
-    private static final AtomicInteger ATLAS_IDENTIFIER_FACTORY = new AtomicInteger();
 
     static
     {
@@ -71,13 +70,13 @@ public abstract class BareAtlas implements Atlas
 
     // Transient name
     private transient String name;
+    private final UUID identifier;
 
-    private final transient int identifier;
     private final transient SubAtlasCreator subAtlas;
 
     protected BareAtlas()
     {
-        this.identifier = ATLAS_IDENTIFIER_FACTORY.getAndIncrement();
+        this.identifier = UUID.randomUUID();
         this.subAtlas = new SubAtlasCreator(this);
     }
 
@@ -249,7 +248,7 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public int getIdentifier()
+    public UUID getIdentifier()
     {
         return this.identifier;
     }

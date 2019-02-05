@@ -1,7 +1,13 @@
 package org.openstreetmap.atlas.geography.atlas;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 import org.junit.Assert;
@@ -15,6 +21,7 @@ import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader.AtlasFileSele
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
@@ -182,5 +189,45 @@ public class AtlasResourceLoaderTest
                 .load(new InputStreamResource(() -> AtlasResourceLoaderTest.class
                         .getResourceAsStream("ECU_6-16-31.atlas")).withName("ECU_6-16-31.atlas"));
         Assert.assertEquals(null, atlasWithEdgesTertiaryOrGreater);
+    }
+
+    @Test
+    public void testAtlasSerialization() throws IOException, ClassNotFoundException
+    {
+        final String ATLAS_FILE_NAME = "ECU_6-16-31.atlas";
+
+        PackedAtlas atlas = (PackedAtlas) new AtlasResourceLoader().load(new InputStreamResource(
+                () -> AtlasResourceLoaderTest.class.getResourceAsStream(ATLAS_FILE_NAME))
+                        .withName("ECU_6-16-31.atlas"));
+        final UUID identifier = atlas.getIdentifier();
+        final long numOfEdges = atlas.numberOfEdges();
+        final long numOfNodes = atlas.numberOfNodes();
+
+        // plain simple serialization and deserialization
+        byte[] serialized = serialize(atlas);
+        PackedAtlas deserialized = (PackedAtlas) deserialize(serialized);
+
+        final UUID deserializedIdentifier = deserialized.getIdentifier();
+        final long deserializedNumOfEdges = deserialized.numberOfEdges();
+        final long deserializedNumOfNodes = deserialized.numberOfNodes();
+
+        assert (identifier.equals(deserializedIdentifier));
+        assert (numOfEdges == deserializedNumOfEdges);
+        assert (numOfNodes == deserializedNumOfNodes);
+    }
+
+    private static byte[] serialize(Object obj) throws IOException
+    {
+        ByteArrayOutputStream b = new ByteArrayOutputStream();
+        ObjectOutputStream o = new ObjectOutputStream(b);
+        o.writeObject(obj);
+        return b.toByteArray();
+    }
+
+    private static Object deserialize(byte[] bytes) throws IOException, ClassNotFoundException
+    {
+        ByteArrayInputStream b = new ByteArrayInputStream(bytes);
+        ObjectInputStream o = new ObjectInputStream(b);
+        return o.readObject();
     }
 }
