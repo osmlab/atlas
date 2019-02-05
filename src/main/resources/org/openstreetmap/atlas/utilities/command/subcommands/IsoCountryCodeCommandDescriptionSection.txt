@@ -1,3 +1,4 @@
 Query the ISO country specification using a country code or a country display name.
 The command will automatically differentiate between the ISO2/3 code and the display name.
-Additionally, the command is able to understand mild misspellings in display names.
+Additionally, the command is able to understand mild misspellings in display names. Use
+the '--all' option to display all available ISO countries.

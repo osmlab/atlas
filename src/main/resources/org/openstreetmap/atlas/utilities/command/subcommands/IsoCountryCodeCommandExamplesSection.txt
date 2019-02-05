@@ -6,3 +6,5 @@ Get the ISO country associated with misspelled display name 'gernamy', showing t
 #$ iso-country-code -n 5 'gernamy'
 Make multiple queries:
 #$ iso-country-code 'USA' 'GB' 'gernamy' 'France'
+Show all countries:
+#$ iso-country-code --all

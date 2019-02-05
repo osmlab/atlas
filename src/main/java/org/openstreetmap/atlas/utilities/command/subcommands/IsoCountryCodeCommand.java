@@ -2,8 +2,10 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.openstreetmap.atlas.locale.IsoCountry;
+import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
@@ -25,6 +27,11 @@ public class IsoCountryCodeCommand extends AbstractAtlasShellToolsCommand
             + DEFAULT_MATCH_NUMBER + ".";
     private static final String NUMBER_OPTION_HINT = "n";
 
+    private static final char ALL_OPTION_SHORT = 'a';
+    private static final String ALL_OPTION_LONG = "all";
+    private static final String ALL_OPTION_DESCRIPTION = "Show the entire ISO country listing.";
+    private static final Integer ALL_OPTION_CONTEXT = 4;
+
     private static final String QUERY_HINT = "query";
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
@@ -44,6 +51,11 @@ public class IsoCountryCodeCommand extends AbstractAtlasShellToolsCommand
     @Override
     public int execute()
     {
+        if (this.optionAndArgumentDelegate.getParserContext() == ALL_OPTION_CONTEXT)
+        {
+            return allExecute();
+        }
+
         final List<String> queries = this.optionAndArgumentDelegate.getVariadicArgument(QUERY_HINT);
 
         for (int i = 0; i < queries.size(); i++)
@@ -57,21 +69,24 @@ public class IsoCountryCodeCommand extends AbstractAtlasShellToolsCommand
                             .getOptionArgument(NUMBER_OPTION_LONG, Integer::parseInt)
                             .orElse(DEFAULT_MATCH_NUMBER), query);
 
+            if (!forCode.isPresent() && IsoCountry.forCountryCode(query.toUpperCase()).isPresent())
+            {
+                this.outputDelegate.printlnWarnMessage(
+                        "did you mean case-sensitive ISO code \'" + query.toUpperCase() + "\'?");
+            }
+
             // check for exact country code first
             if (forCode.isPresent())
             {
                 this.outputDelegate.printlnStdout("ISO code \'" + query + "\' matched: ",
                         TTYAttribute.BOLD);
-                this.outputDelegate.printlnStdout(
-                        forCode.get().toString() + ", " + forCode.get().getIso3CountryCode(),
-                        TTYAttribute.GREEN);
+                printCountry(forCode.get());
             }
             else if (forDisplayExact.isPresent())
             {
                 this.outputDelegate.printlnStdout(
                         "Display country name \'" + query + "\' matched: ", TTYAttribute.BOLD);
-                this.outputDelegate.printlnStdout(forDisplayExact.get().toString() + ", "
-                        + forDisplayExact.get().getIso3CountryCode(), TTYAttribute.GREEN);
+                printCountry(forDisplayExact.get());
             }
             else if (!forDisplayTopMatches.isEmpty())
             {
@@ -81,9 +96,7 @@ public class IsoCountryCodeCommand extends AbstractAtlasShellToolsCommand
                         TTYAttribute.BOLD);
                 for (final IsoCountry country : forDisplayTopMatches)
                 {
-                    this.outputDelegate.printlnStdout(
-                            country.toString() + ", " + country.getIso3CountryCode(),
-                            TTYAttribute.GREEN);
+                    printCountry(country);
                 }
             }
             else
@@ -124,9 +137,35 @@ public class IsoCountryCodeCommand extends AbstractAtlasShellToolsCommand
     @Override
     public void registerOptionsAndArguments()
     {
-        registerArgument(QUERY_HINT, ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED);
+        registerArgument(QUERY_HINT, ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED,
+                AbstractAtlasShellToolsCommand.DEFAULT_CONTEXT);
         registerOptionWithRequiredArgument(NUMBER_OPTION_LONG, NUMBER_OPTION_SHORT,
-                NUMBER_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL, NUMBER_OPTION_HINT);
+                NUMBER_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL, NUMBER_OPTION_HINT,
+                AbstractAtlasShellToolsCommand.DEFAULT_CONTEXT);
+        registerOption(ALL_OPTION_LONG, ALL_OPTION_SHORT, ALL_OPTION_DESCRIPTION,
+                OptionOptionality.REQUIRED, ALL_OPTION_CONTEXT);
         super.registerOptionsAndArguments();
+    }
+
+    private int allExecute()
+    {
+        final Set<String> countries = IsoCountry.allCountryCodes();
+        this.outputDelegate.printlnStdout("Displaying all countries:", TTYAttribute.BOLD);
+        for (final String country : countries)
+        {
+            final Optional<IsoCountry> forCode = IsoCountry.forCountryCode(country);
+            if (!forCode.isPresent())
+            {
+                throw new AtlasShellToolsException();
+            }
+            printCountry(forCode.get());
+        }
+        return 0;
+    }
+
+    private void printCountry(final IsoCountry country)
+    {
+        this.outputDelegate.printlnStdout(country.getCountryCode() + "   "
+                + country.getIso3CountryCode() + "   " + country.toString(), TTYAttribute.GREEN);
     }
 }
