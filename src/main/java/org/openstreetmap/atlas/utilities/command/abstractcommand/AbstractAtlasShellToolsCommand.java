@@ -174,7 +174,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
 
     void printlnStdout(final String string, final TTYAttribute... attributes)
     {
-        final TTYStringBuilder builder = this.getTTYStringBuilderForStderr();
+        final TTYStringBuilder builder = this.getTTYStringBuilderForStdout();
         builder.append(string, attributes);
         System.out.println(builder.toString()); // NOSONAR
     }
