@@ -66,6 +66,15 @@ class PolyLinePolygonTest(unittest.TestCase):
         computed_rect = Polygon(loclist).bounds()
         self.assertEqual(expected_rect, computed_rect)
 
+    def test_poly_length(self):
+        loclist = [Location(0, 0), Location(5000000, 5000000)]
+        polyline = PolyLine(loclist, deep=True)
+        self.assertEqual(78626, int(polyline.length()))
+
+        loclist2 = [Location(0, 0), Location(20000000, 20000000)]
+        polyline = PolyLine(loclist2, deep=True)
+        self.assertEqual(314474, int(polyline.length()))
+
     def test_fully_geometrically_encloses_location(self):
         loclist = [
             Location(0, 0),
