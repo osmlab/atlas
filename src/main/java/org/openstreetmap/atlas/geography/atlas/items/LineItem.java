@@ -97,6 +97,12 @@ public abstract class LineItem extends AtlasItem
         return asPolyLine().size();
     }
 
+    @Override
+    public boolean within(final GeometricSurface surface)
+    {
+        return this.asPolyLine().within(surface);
+    }
+
     /**
      * @return The overall heading of the {@link PolyLine}: the heading between the start point and
      *         the end point.

@@ -354,6 +354,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
      * @return {@code true} if the relation has all members within the given
      *         {@link GeometricSurface}
      */
+    @Override
     public boolean within(final GeometricSurface surface)
     {
         return withinInternal(surface, new LinkedHashSet<>());

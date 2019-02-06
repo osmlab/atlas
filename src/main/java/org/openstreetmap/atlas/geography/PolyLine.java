@@ -245,6 +245,12 @@ public class PolyLine implements Collection<Location>, Located, Serializable, Ge
         }
     }
 
+    @Override
+    public boolean within(final GeometricSurface surface)
+    {
+        return surface.fullyGeometricallyEncloses(this);
+    }
+
     public GeoJsonObject asGeoJson()
     {
         final List<Iterable<Location>> geometries = new ArrayList<>();
