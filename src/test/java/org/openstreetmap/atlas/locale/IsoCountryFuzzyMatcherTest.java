@@ -1,6 +1,5 @@
 package org.openstreetmap.atlas.locale;
 
-import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
