@@ -19,7 +19,7 @@ import com.google.gson.JsonObject;
  *
  * @author matthieun
  */
-public abstract class LocationItem extends AtlasItem implements Containable
+public abstract class LocationItem extends AtlasItem
 {
     private static final long serialVersionUID = -2616559591051747286L;
 

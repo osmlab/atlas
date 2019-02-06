@@ -29,7 +29,8 @@ import com.google.gson.JsonObject;
  * @author Sid
  * @author hallahan
  */
-public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem, GeometryPrintable
+public abstract class AtlasEntity
+        implements AtlasObject, DiffViewFriendlyItem, GeometryPrintable, Containable
 {
     private static final long serialVersionUID = -6072525057489468736L;
 

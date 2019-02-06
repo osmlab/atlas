@@ -21,7 +21,7 @@ import com.google.gson.JsonObject;
  *
  * @author matthieun
  */
-public abstract class Area extends AtlasItem implements Containable
+public abstract class Area extends AtlasItem
 {
     private static final long serialVersionUID = 5244165133018408045L;
 

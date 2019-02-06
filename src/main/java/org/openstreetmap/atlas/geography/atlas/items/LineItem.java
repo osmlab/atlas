@@ -23,7 +23,7 @@ import com.google.gson.JsonObject;
  * @author matthieun
  * @author mgostintsev
  */
-public abstract class LineItem extends AtlasItem implements Containable
+public abstract class LineItem extends AtlasItem
 {
     private static final long serialVersionUID = -2053566750957119655L;
 

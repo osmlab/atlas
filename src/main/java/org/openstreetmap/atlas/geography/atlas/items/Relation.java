@@ -46,7 +46,7 @@ import com.google.gson.JsonObject;
  * @author Sid
  * @author hallahan
  */
-public abstract class Relation extends AtlasEntity implements Iterable<RelationMember>, Containable
+public abstract class Relation extends AtlasEntity implements Iterable<RelationMember>
 {
     /**
      * The ring type of a {@link MultiPolygon} member.
