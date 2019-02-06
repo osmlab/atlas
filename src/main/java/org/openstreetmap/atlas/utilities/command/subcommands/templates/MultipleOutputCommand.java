@@ -40,7 +40,7 @@ public abstract class MultipleOutputCommand extends AbstractAtlasShellToolsComma
      * Populate the output path field. Subclasses should override this method, but invoke it with
      * super.execute to populate the outputPath field. The subclass can check the return code of
      * this method to see if the output path was parsed successfully.
-     * 
+     *
      * @return the exit status, 0 indicates success while 1 indicates that the output path was
      *         invalid
      */

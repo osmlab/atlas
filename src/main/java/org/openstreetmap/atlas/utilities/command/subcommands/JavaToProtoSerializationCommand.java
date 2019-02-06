@@ -15,6 +15,8 @@ import org.openstreetmap.atlas.utilities.command.subcommands.templates.AtlasLoad
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 
 /**
+ * TODO change this so it saves in place
+ * 
  * @author lcram
  */
 public class JavaToProtoSerializationCommand extends AtlasLoaderCommand

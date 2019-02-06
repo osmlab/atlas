@@ -79,7 +79,14 @@ public abstract class AtlasLoaderCommand extends MultipleOutputCommand
             return code;
         }
 
-        Stream<Tuple<File, Atlas>> atlasTupleStream = getInputAtlases().stream();
+        final List<Tuple<File, Atlas>> atlasTuples = getInputAtlases();
+        if (atlasTuples.isEmpty())
+        {
+            this.outputDelegate.printlnErrorMessage("no atlas files were loaded");
+            return 1;
+        }
+
+        Stream<Tuple<File, Atlas>> atlasTupleStream = atlasTuples.stream();
         if (this.optionAndArgumentDelegate.hasOption(PARALLEL_OPTION_LONG))
         {
             atlasTupleStream = atlasTupleStream.parallel();

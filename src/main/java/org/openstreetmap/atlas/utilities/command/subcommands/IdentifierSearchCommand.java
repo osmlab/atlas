@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.utilities.command.subcommands;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -9,6 +11,8 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 import org.openstreetmap.atlas.utilities.collections.StringList;
@@ -20,7 +24,9 @@ import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 
 /**
  * Search atlases for some given feature identifiers, with various options and restrictions. Based
- * on similar identifier locater commands by cstaylor and bbreithaupt.
+ * on similar identifier locater commands by cstaylor and bbreithaupt. TODO bug occurs if path is
+ * something like MyFolder/*.atlas and this does not exist. It will create an empty folder called
+ * MyFolder. Why?
  *
  * @author lcram
  * @author cstaylor
@@ -36,6 +42,10 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
     private static final String OSMID_OPTION_DESCRIPTION = "A comma separated list of OSM ids for which to search.";
     private static final String OSMID_OPTION_HINT = "osmids";
 
+    private static final String OUTPUT_ATLAS = "collected-multi.atlas";
+    private static final String COLLECT_OPTION_LONG = "collect-matching";
+    private static final String COLLECT_OPTION_DESCRIPTION = "Collect all matching atlas files and save to a file using the MultiAtlas.";
+
     private static final List<String> ITEM_TYPE_STRINGS = Arrays.stream(ItemType.values())
             .map(ItemType::toString).collect(Collectors.toList());
     private static final String TYPES_OPTION_LONG = "types";
@@ -46,6 +56,7 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
     private Set<Long> ids;
     private Set<Long> osmIds;
     private Set<ItemType> typesToCheck;
+    private Set<Atlas> matchingAtlases;
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
@@ -58,6 +69,22 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
     {
         this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
+    }
+
+    @Override
+    public int finish()
+    {
+        if (this.optionAndArgumentDelegate.hasOption(COLLECT_OPTION_LONG)
+                && !this.matchingAtlases.isEmpty())
+        {
+            final Atlas outputAtlas = new MultiAtlas(this.matchingAtlases);
+            final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
+                    OUTPUT_ATLAS);
+            final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
+            new PackedAtlasCloner().cloneFrom(outputAtlas).save(outputFile);
+        }
+
+        return 0;
     }
 
     @Override
@@ -91,6 +118,7 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
                 OptionOptionality.OPTIONAL, OSMID_OPTION_HINT);
         registerOptionWithRequiredArgument(TYPES_OPTION_LONG, TYPES_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, TYPES_OPTION_HINT);
+        registerOption(COLLECT_OPTION_LONG, COLLECT_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL);
         super.registerOptionsAndArguments();
     }
 
@@ -104,6 +132,7 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
         this.typesToCheck = this.optionAndArgumentDelegate
                 .getOptionArgument(TYPES_OPTION_LONG, this::parseItemTypes)
                 .orElse(Sets.hashSet(ItemType.values()));
+        this.matchingAtlases = new HashSet<>();
 
         if (this.typesToCheck.isEmpty())
         {
@@ -135,6 +164,7 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
                             + " in " + atlasResource.getPath() + ":", TTYAttribute.BOLD);
                     this.outputDelegate.printlnStdout(entity.toString(), TTYAttribute.GREEN);
                     this.outputDelegate.printlnStdout("");
+                    this.matchingAtlases.add(atlas);
                 }
             }
         }
@@ -154,6 +184,7 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
                             + atlasResource.getPath() + ":", TTYAttribute.BOLD);
                     this.outputDelegate.printlnStdout(entity.toString(), TTYAttribute.GREEN);
                     this.outputDelegate.printlnStdout("");
+                    this.matchingAtlases.add(atlas);
                 }
             }
         }
