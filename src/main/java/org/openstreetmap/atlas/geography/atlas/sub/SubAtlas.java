@@ -3,7 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.sub;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 
@@ -15,13 +15,13 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
  */
 public interface SubAtlas
 {
-    Optional<Atlas> hardCutAllEntities(Polygon boundary);
+    Optional<Atlas> hardCutAllEntities(GeometricSurface boundary);
 
     Optional<Atlas> hardCutAllEntities(Predicate<AtlasEntity> matcher);
 
     Optional<Atlas> hardCutRelationsOnly(Predicate<AtlasEntity> matcher);
 
-    Optional<Atlas> softCut(Polygon boundary, boolean hardCutRelations);
+    Optional<Atlas> softCut(GeometricSurface boundary, boolean hardCutRelations);
 
     Optional<Atlas> softCut(Predicate<AtlasEntity> matcher);
 }

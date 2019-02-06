@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -424,7 +425,7 @@ public class MultiAtlasBorderFixer implements Serializable
      *            nodes to be created
      * @param newEdges
      *            edges to be created
-     * @param relationIdentifiersToNewMembers
+     * @param newRelations
      *            relation identifiers to edges to be used for new relation creation
      */
     private Optional<Atlas> applyFixesToAtlas(final Map<Long, Node> newNodes,
@@ -634,7 +635,7 @@ public class MultiAtlasBorderFixer implements Serializable
     private List<TemporaryRoad> createRoadsPerSubAtlas(final long osmIdentifier,
             final List<Edge> edges)
     {
-        final Map<Integer, TemporaryRoad> edgesPerSubAtlas = new HashMap<>();
+        final Map<UUID, TemporaryRoad> edgesPerSubAtlas = new HashMap<>();
         for (final Atlas subAtlas : this.subAtlases)
         {
             edgesPerSubAtlas.put(subAtlas.getIdentifier(),
