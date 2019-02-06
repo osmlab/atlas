@@ -4,8 +4,6 @@ import java.util.Optional;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Test case for IsoCountry
@@ -15,8 +13,6 @@ import org.slf4j.LoggerFactory;
  */
 public class IsoCountryTest
 {
-    private static final Logger logger = LoggerFactory.getLogger(IsoCountry.class);
-
     @Test
     public void testIsoCountry()
     {

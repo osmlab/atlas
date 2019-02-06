@@ -3,11 +3,15 @@ package org.openstreetmap.atlas.locale;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Java Locale based countries, including ISO2, ISO3, and descriptive country name representations.
@@ -18,6 +22,8 @@ import java.util.stream.Collectors;
 public final class IsoCountry implements Serializable
 {
     private static final long serialVersionUID = 8686298246454085812L;
+
+    private static final Logger logger = LoggerFactory.getLogger(IsoCountry.class);
 
     // Use United States fixed Locale for display use cases
     private static final String LOCALE_LANGUAGE = Locale.ENGLISH.getLanguage();
