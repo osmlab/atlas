@@ -1,10 +1,12 @@
 package org.openstreetmap.atlas.utilities.command.subcommands;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import org.openstreetmap.atlas.locale.IsoCountry;
+import org.openstreetmap.atlas.locale.IsoCountryFuzzyMatcher;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
@@ -61,40 +63,40 @@ public class IsoCountryCodeCommand extends AbstractAtlasShellToolsCommand
         for (int i = 0; i < queries.size(); i++)
         {
             final String query = queries.get(i);
-            final Optional<IsoCountry> forCode = IsoCountry.forCountryCode(query);
-            final Optional<IsoCountry> forDisplayExact = IsoCountry
-                    .forDisplayCountryIgnoreCase(query);
-            final List<IsoCountry> forDisplayTopMatches = IsoCountry
+            final Optional<IsoCountry> forIsoCode = IsoCountry.forCountryCode(query);
+            final Optional<IsoCountry> forDisplayNameExact = IsoCountry.forDisplayCountry(query);
+            final List<IsoCountry> forDisplayNameTopMatches = IsoCountryFuzzyMatcher
                     .forDisplayCountryTopMatches(this.optionAndArgumentDelegate
                             .getOptionArgument(NUMBER_OPTION_LONG, Integer::parseInt)
                             .orElse(DEFAULT_MATCH_NUMBER), query);
 
-            if (!forCode.isPresent() && IsoCountry.forCountryCode(query.toUpperCase()).isPresent())
+            if (!forIsoCode.isPresent()
+                    && IsoCountry.forCountryCode(query.toUpperCase()).isPresent())
             {
                 this.outputDelegate.printlnWarnMessage(
                         "did you mean case-sensitive ISO code \'" + query.toUpperCase() + "\'?");
             }
 
             // check for exact country code first
-            if (forCode.isPresent())
+            if (forIsoCode.isPresent())
             {
                 this.outputDelegate.printlnStdout("ISO code \'" + query + "\' matched: ",
                         TTYAttribute.BOLD);
-                printCountry(forCode.get());
+                printCountry(forIsoCode.get());
             }
-            else if (forDisplayExact.isPresent())
+            else if (forDisplayNameExact.isPresent())
             {
                 this.outputDelegate.printlnStdout(
                         "Display country name \'" + query + "\' matched: ", TTYAttribute.BOLD);
-                printCountry(forDisplayExact.get());
+                printCountry(forDisplayNameExact.get());
             }
-            else if (!forDisplayTopMatches.isEmpty())
+            else if (!forDisplayNameTopMatches.isEmpty())
             {
                 this.outputDelegate.printlnStdout(
                         "Display country name \'" + query + "\' had no exact matches. "
-                                + forDisplayTopMatches.size() + " closest matches are:",
+                                + forDisplayNameTopMatches.size() + " closest matches are:",
                         TTYAttribute.BOLD);
-                for (final IsoCountry country : forDisplayTopMatches)
+                for (final IsoCountry country : forDisplayNameTopMatches)
                 {
                     printCountry(country);
                 }
@@ -149,7 +151,9 @@ public class IsoCountryCodeCommand extends AbstractAtlasShellToolsCommand
 
     private int allExecute()
     {
-        final Set<String> countries = IsoCountry.allCountryCodes();
+        final List<String> countries = new ArrayList<>(IsoCountry.allCountryCodes());
+        Collections.sort(countries);
+
         this.outputDelegate.printlnStdout("Displaying all countries:", TTYAttribute.BOLD);
         for (final String country : countries)
         {
