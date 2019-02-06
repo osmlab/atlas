@@ -95,7 +95,8 @@ public class SubAtlasCommand extends AtlasLoaderCommand
     }
 
     @Override
-    protected void processAtlas(final Atlas atlas, final String atlasFileName)
+    protected void processAtlas(final Atlas atlas, final String atlasFileName,
+            final File atlasResource)
     {
         final String wkt = this.optionAndArgumentDelegate.getOptionArgument(WKT_OPTION_LONG)
                 .orElseThrow(AtlasShellToolsException::new);
@@ -141,7 +142,7 @@ public class SubAtlasCommand extends AtlasLoaderCommand
         else
         {
             this.outputDelegate.printlnWarnMessage(
-                    "skipping save of empty subatlas cut from " + atlasFileName);
+                    "skipping save of empty subatlas cut from " + atlasResource.getPath());
         }
     }
 

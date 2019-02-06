@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
@@ -120,7 +121,8 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
     }
 
     @Override
-    protected void processAtlas(final Atlas atlas, final String atlasFileName)
+    protected void processAtlas(final Atlas atlas, final String atlasFileName,
+            final File atlasResource)
     {
         for (final Long atlasId : this.ids)
         {
@@ -129,9 +131,8 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
                 final AtlasEntity entity = atlas.entity(atlasId, type);
                 if (entity != null)
                 {
-                    this.outputDelegate.printlnStdout(
-                            "Found entity with atlas ID " + atlasId + " in " + atlasFileName + ":",
-                            TTYAttribute.BOLD);
+                    this.outputDelegate.printlnStdout("Found entity with atlas ID " + atlasId
+                            + " in " + atlasResource.getPath() + ":", TTYAttribute.BOLD);
                     this.outputDelegate.printlnStdout(entity.toString(), TTYAttribute.GREEN);
                     this.outputDelegate.printlnStdout("");
                 }
@@ -149,9 +150,8 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
                 if (osmId.longValue() == entity.getOsmIdentifier()
                         && this.typesToCheck.contains(entity.getType()))
                 {
-                    this.outputDelegate.printlnStdout(
-                            "Found entity with OSM ID " + osmId + " in " + atlasFileName + ":",
-                            TTYAttribute.BOLD);
+                    this.outputDelegate.printlnStdout("Found entity with OSM ID " + osmId + " in "
+                            + atlasResource.getPath() + ":", TTYAttribute.BOLD);
                     this.outputDelegate.printlnStdout(entity.toString(), TTYAttribute.GREEN);
                     this.outputDelegate.printlnStdout("");
                 }

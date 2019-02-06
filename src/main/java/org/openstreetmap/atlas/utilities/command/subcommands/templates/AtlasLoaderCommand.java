@@ -20,9 +20,9 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
 /**
  * A helper super class for any command that wants to load atlas files from disk. Provides a builtin
  * variadic input argument, as well as automatic conversion from paths to resources with various
- * options for increased flexibility. Subclasses can override the start(), handle(), and finish()
- * methods, which provide a way to operate on the input atlases without having to deal with resource
- * loading and iterating.<br>
+ * options for increased flexibility. Subclasses can override the start(), processAtlas(), and
+ * finish() methods, which provide a way to operate on the input atlases without having to deal with
+ * resource loading and iterating.<br>
  * This class is based off the {@link AbstractAtlasSubCommand} by cstaylor.
  *
  * @author lcram
@@ -90,12 +90,12 @@ public abstract class AtlasLoaderCommand extends MultipleOutputCommand
             processAtlas(
                     new MultiAtlas(
                             atlasTupleStream.map(Tuple::getSecond).collect(Collectors.toList())),
-                    COMBINED_ATLAS_NAME);
+                    COMBINED_ATLAS_NAME, new File(COMBINED_ATLAS_NAME));
         }
         else
         {
             atlasTupleStream.forEach(atlasTuple -> processAtlas(atlasTuple.getSecond(),
-                    atlasTuple.getFirst().getName()));
+                    atlasTuple.getFirst().getName(), atlasTuple.getFirst()));
         }
 
         // return the exit code from the user's finish implementation
@@ -144,8 +144,10 @@ public abstract class AtlasLoaderCommand extends MultipleOutputCommand
      *            the atlas to process
      * @param atlasFileName
      *            name of the atlas file resource
+     * @param atlasResource
+     *            the {@link File} resource from which the atlas was loaded
      */
-    protected abstract void processAtlas(Atlas atlas, String atlasFileName);
+    protected abstract void processAtlas(Atlas atlas, String atlasFileName, File atlasResource);
 
     /**
      * Subclasses can override this method if they want to do something once before processing the

@@ -80,11 +80,13 @@ public class PackedToTextAtlasCommand extends AtlasLoaderCommand
     }
 
     @Override
-    protected void processAtlas(final Atlas atlas, final String atlasFileName)
+    protected void processAtlas(final Atlas atlas, final String atlasFileName,
+            final File atlasResource)
     {
         if (this.optionAndArgumentDelegate.hasVerboseOption())
         {
-            this.outputDelegate.printlnCommandMessage("converting " + atlasFileName + "...");
+            this.outputDelegate
+                    .printlnCommandMessage("converting " + atlasResource.getPath() + "...");
         }
         try
         {
@@ -92,8 +94,8 @@ public class PackedToTextAtlasCommand extends AtlasLoaderCommand
         }
         catch (final Exception exception)
         {
-            this.outputDelegate.printlnErrorMessage("failed to save text file for " + atlasFileName
-                    + ": " + exception.getMessage());
+            this.outputDelegate.printlnErrorMessage("failed to save text file for "
+                    + atlasResource.getPath() + ": " + exception.getMessage());
         }
     }
 
