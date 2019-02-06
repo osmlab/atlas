@@ -3,11 +3,15 @@ package org.openstreetmap.atlas.locale;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Java Locale based countries, including ISO2, ISO3, and descriptive country name representations.
@@ -18,6 +22,8 @@ import java.util.stream.Collectors;
 public final class IsoCountry implements Serializable
 {
     private static final long serialVersionUID = 8686298246454085812L;
+
+    private static final Logger logger = LoggerFactory.getLogger(IsoCountry.class);
 
     // Use United States fixed Locale for display use cases
     private static final String LOCALE_LANGUAGE = Locale.ENGLISH.getLanguage();
@@ -48,6 +54,24 @@ public final class IsoCountry implements Serializable
         ISO2_TO_DISPLAY_COUNTRY = Collections.unmodifiableMap(
                 Arrays.stream(countries).collect(Collectors.toMap(iso2 -> iso2.intern(),
                         iso2 -> new Locale(LOCALE_LANGUAGE, iso2).getDisplayCountry().intern())));
+
+        /*
+         * Check that country names are actually unique, and log an error if not. NOTE that this
+         * relies on English country names. If you are updating this code to handle
+         * internationalization, these assumptions may not hold.
+         */
+        final Map<String, String> countriesSeen = new HashMap<>();
+        for (final String iso2Country : countries)
+        {
+            final String countryName = new Locale(LOCALE_LANGUAGE, iso2Country).getDisplayCountry()
+                    .intern();
+            if (countriesSeen.containsKey(countryName))
+            {
+                logger.error("Detected duplicate country name {} -> {} AND {}", countryName,
+                        iso2Country, countriesSeen.get(countryName));
+            }
+            countriesSeen.put(countryName, iso2Country);
+        }
 
         // Map from full country name to ISO2
         DISPLAY_COUNTRY_TO_ISO2 = Collections.unmodifiableMap(Arrays.stream(countries)
