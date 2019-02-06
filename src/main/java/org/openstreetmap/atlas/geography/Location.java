@@ -8,7 +8,6 @@ import java.util.Random;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Snapper.SnappedLocation;
-import org.openstreetmap.atlas.geography.atlas.items.Containable;
 import org.openstreetmap.atlas.geography.converters.WkbLocationConverter;
 import org.openstreetmap.atlas.geography.converters.WktLocationConverter;
 import org.openstreetmap.atlas.geography.coordinates.EarthCenteredEarthFixedCoordinate;
@@ -28,8 +27,7 @@ import com.google.gson.JsonObject;
  * @author matthieun
  * @author mgostintsev
  */
-public class Location
-        implements Located, Iterable<Location>, Serializable, GeometryPrintable, Containable
+public class Location implements Located, Iterable<Location>, Serializable, GeometryPrintable
 {
     private static final long serialVersionUID = 3770424147251047128L;
 

@@ -5,6 +5,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Latitude;
+import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Longitude;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -15,7 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 /**
  * @author Yazad Khambata
  */
-public class ContainableTest
+public class WithinTest
 {
 
     public static final int NUMBER_POINTS = 5;
@@ -92,6 +93,12 @@ public class ContainableTest
         Assert.assertFalse(atlas.relation(identifier).within(rectTwo()));
     }
 
+    @Test(expected = UnsupportedOperationException.class)
+    public void testDefaultBehavior()
+    {
+        ((Located) () -> null).within(null);
+    }
+
     private GeometricSurface rectOne()
     {
         final Location lowerLeft = new Location(Latitude.degrees(10), Longitude.degrees(10));
@@ -115,5 +122,4 @@ public class ContainableTest
 
         return Rectangle.forCorners(lowerLeft, upperRight);
     }
-
 }

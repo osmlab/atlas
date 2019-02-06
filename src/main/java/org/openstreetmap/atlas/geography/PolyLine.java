@@ -15,7 +15,6 @@ import java.util.stream.IntStream;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Snapper.SnappedLocation;
-import org.openstreetmap.atlas.geography.atlas.items.Containable;
 import org.openstreetmap.atlas.geography.clipping.Clip;
 import org.openstreetmap.atlas.geography.clipping.Clip.ClipType;
 import org.openstreetmap.atlas.geography.converters.WkbLocationConverter;
@@ -48,8 +47,7 @@ import com.google.gson.JsonObject;
  * @author mgostintsev
  * @author Sid
  */
-public class PolyLine
-        implements Collection<Location>, Located, Serializable, GeometryPrintable, Containable
+public class PolyLine implements Collection<Location>, Located, Serializable, GeometryPrintable
 {
     private static final long serialVersionUID = -3291779878869865427L;
     protected static final int SIMPLE_STRING_LENGTH = 200;
