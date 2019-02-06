@@ -189,6 +189,10 @@ public abstract class AtlasLoaderCommand extends MultipleOutputCommand
             {
                 this.outputDelegate.printlnWarnMessage("file not found: " + path);
             }
+            else if (file.isDirectory())
+            {
+                this.outputDelegate.printlnWarnMessage("skipping directory: " + path);
+            }
             else
             {
                 if (this.optionAndArgumentDelegate.hasVerboseOption())
@@ -210,7 +214,7 @@ public abstract class AtlasLoaderCommand extends MultipleOutputCommand
         if (this.optionAndArgumentDelegate.hasOption(STRICT_OPTION_LONG)
                 && this.atlases.size() != inputAtlasPaths.size())
         {
-            this.outputDelegate.printlnErrorMessage("strict load is some missing atlas(es)");
+            this.outputDelegate.printlnErrorMessage("strict load is missing some atlas(es)");
             this.atlases = new ArrayList<>();
         }
 
