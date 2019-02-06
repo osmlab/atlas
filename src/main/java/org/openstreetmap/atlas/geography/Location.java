@@ -165,6 +165,12 @@ public class Location implements Located, Iterable<Location>, Serializable, Geom
         return result;
     }
 
+    @Override
+    public boolean within(final GeometricSurface surface)
+    {
+        return surface.fullyGeometricallyEncloses(this);
+    }
+
     public GeoJsonObject asGeoJson()
     {
         return new GeoJsonBuilder().create(this);

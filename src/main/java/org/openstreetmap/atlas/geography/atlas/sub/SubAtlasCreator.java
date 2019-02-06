@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.BareAtlas;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
@@ -56,7 +56,7 @@ public class SubAtlasCreator implements SubAtlas
     }
 
     @Override
-    public Optional<Atlas> hardCutAllEntities(final Polygon boundary)
+    public Optional<Atlas> hardCutAllEntities(final GeometricSurface boundary)
     {
         logger.debug(CUT_START_MESSAGE, AtlasCutType.HARD_CUT_ALL, this.atlas.getName(),
                 this.atlas.metaData());
@@ -402,7 +402,7 @@ public class SubAtlasCreator implements SubAtlas
     }
 
     @Override
-    public Optional<Atlas> softCut(final Polygon boundary, final boolean hardCutRelations)
+    public Optional<Atlas> softCut(final GeometricSurface boundary, final boolean hardCutRelations)
     {
         logger.debug(CUT_START_MESSAGE,
                 !hardCutRelations ? AtlasCutType.SOFT_CUT : AtlasCutType.HARD_CUT_RELATIONS_ONLY,
