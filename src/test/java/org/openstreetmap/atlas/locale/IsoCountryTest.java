@@ -66,7 +66,7 @@ public class IsoCountryTest
 
         Assert.assertEquals("USA",
                 IsoCountry.forDisplayCountry("United States").get().getIso3CountryCode());
-        Assert.assertFalse(IsoCountry.forDisplayCountry("united states").isPresent());
+        Assert.assertTrue(IsoCountry.forDisplayCountry("united states").isPresent());
         Assert.assertFalse(IsoCountry.forDisplayCountry("ZZzz zzzzz").isPresent());
 
         Assert.assertTrue(IsoCountry.allDisplayCountries().contains("United States"));
