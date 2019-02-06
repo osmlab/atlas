@@ -208,7 +208,8 @@ public final class IsoCountry implements Serializable
                     break;
                 }
             }
-            return Optional.ofNullable(ISO_COUNTRIES.get(DISPLAY_COUNTRY_TO_ISO2.get(foundKey)));
+            return Optional.ofNullable(foundKey).map(DISPLAY_COUNTRY_TO_ISO2::get)
+                    .map(ISO_COUNTRIES::get);
         }
         return Optional.empty();
     }

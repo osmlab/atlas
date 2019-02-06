@@ -1,10 +1,10 @@
 package org.openstreetmap.atlas.locale;
 
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.openstreetmap.atlas.utilities.collections.Lists;
 
 /**
  * @author lcram
@@ -23,7 +23,7 @@ public class IsoCountryFuzzyMatcherTest
         Assert.assertEquals("GBR", IsoCountryFuzzyMatcher
                 .forDisplayCountryClosestMatch("unitde kindgdom").get().getIso3CountryCode());
 
-        Assert.assertEquals(Lists.arrayList("Sweden", "Cambodia", "Yemen"),
+        Assert.assertEquals(Arrays.asList("Sweden", "Cambodia", "Yemen"),
                 IsoCountryFuzzyMatcher.forDisplayCountryTopMatches(3, "abcdefg").stream()
                         .map(IsoCountry::getDisplayCountry).collect(Collectors.toList()));
     }
