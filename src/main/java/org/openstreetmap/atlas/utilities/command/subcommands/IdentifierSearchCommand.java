@@ -1,11 +1,16 @@
 package org.openstreetmap.atlas.utilities.command.subcommands;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.utilities.collections.Sets;
+import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
@@ -30,8 +35,16 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
     private static final String OSMID_OPTION_DESCRIPTION = "A comma separated list of OSM ids for which to search.";
     private static final String OSMID_OPTION_HINT = "osmids";
 
+    private static final List<String> ITEM_TYPE_STRINGS = Arrays.stream(ItemType.values())
+            .map(ItemType::toString).collect(Collectors.toList());
+    private static final String TYPES_OPTION_LONG = "types";
+    private static final String TYPES_OPTION_DESCRIPTION = "A comma separated list of ItemTypes by which to narrow the search. Valid types are: "
+            + new StringList(ITEM_TYPE_STRINGS).join(", ") + ". Defaults to including all values.";
+    private static final String TYPES_OPTION_HINT = "types";
+
     private Set<Long> ids;
     private Set<Long> osmIds;
+    private Set<ItemType> typesToCheck;
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
@@ -75,6 +88,8 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
                 OptionOptionality.OPTIONAL, ID_OPTION_HINT);
         registerOptionWithRequiredArgument(OSMID_OPTION_LONG, OSMID_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, OSMID_OPTION_HINT);
+        registerOptionWithRequiredArgument(TYPES_OPTION_LONG, TYPES_OPTION_DESCRIPTION,
+                OptionOptionality.OPTIONAL, TYPES_OPTION_HINT);
         super.registerOptionsAndArguments();
     }
 
@@ -85,6 +100,15 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
                 .orElse(new HashSet<>());
         this.osmIds = this.optionAndArgumentDelegate
                 .getOptionArgument(OSMID_OPTION_LONG, this::parseIds).orElse(new HashSet<>());
+        this.typesToCheck = this.optionAndArgumentDelegate
+                .getOptionArgument(TYPES_OPTION_LONG, this::parseItemTypes)
+                .orElse(Sets.hashSet(ItemType.values()));
+
+        if (this.typesToCheck.isEmpty())
+        {
+            this.outputDelegate.printlnErrorMessage("no ItemTypes were successfully parsed");
+            return 1;
+        }
 
         if (this.ids.isEmpty() && this.osmIds.isEmpty())
         {
@@ -100,7 +124,7 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
     {
         for (final Long atlasId : this.ids)
         {
-            for (final ItemType type : ItemType.values())
+            for (final ItemType type : this.typesToCheck)
             {
                 final AtlasEntity entity = atlas.entity(atlasId, type);
                 if (entity != null)
@@ -122,7 +146,8 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
         {
             for (final Long osmId : this.osmIds)
             {
-                if (osmId.longValue() == entity.getOsmIdentifier())
+                if (osmId.longValue() == entity.getOsmIdentifier()
+                        && this.typesToCheck.contains(entity.getType()))
                 {
                     this.outputDelegate.printlnStdout(
                             "Found entity with OSM ID " + osmId + " in " + atlasFileName + ":",
@@ -159,5 +184,32 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
             }
         }
         return idSet;
+    }
+
+    private Set<ItemType> parseItemTypes(final String typeString)
+    {
+        final Set<ItemType> typeSet = new HashSet<>();
+
+        if (typeString.isEmpty())
+        {
+            return typeSet;
+        }
+
+        final String[] typeStringSplit = typeString.split(",");
+        for (final String typeElement : typeStringSplit)
+        {
+            ItemType type;
+            try
+            {
+                type = ItemType.valueOf(typeElement.toUpperCase());
+                typeSet.add(type);
+            }
+            catch (final IllegalArgumentException exception)
+            {
+                this.outputDelegate.printlnWarnMessage(
+                        "could not parse ItemType " + typeElement + ": skipping...");
+            }
+        }
+        return typeSet;
     }
 }

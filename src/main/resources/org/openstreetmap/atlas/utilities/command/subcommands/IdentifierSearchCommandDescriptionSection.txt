@@ -1,0 +1,4 @@
+Search a collection of atlases for given sets of either Atlas or OSM identifiers.
+Features that match the given IDs are reported in string form, along with the
+atlas file that contained them. You can narrow the search to specific ItemTypes
+by specifying the '--types' option.
