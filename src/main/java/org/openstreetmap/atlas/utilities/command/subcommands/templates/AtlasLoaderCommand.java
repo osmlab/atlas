@@ -193,7 +193,7 @@ public abstract class AtlasLoaderCommand extends MultipleOutputCommand
         final AtlasResourceLoader loader = new AtlasResourceLoader();
         inputAtlasPaths.stream().forEach(path ->
         {
-            final File file = new File(path);
+            final File file = new File(path, false);
             if (!file.exists())
             {
                 this.outputDelegate.printlnWarnMessage("file not found: " + path);

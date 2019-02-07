@@ -24,9 +24,7 @@ import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 
 /**
  * Search atlases for some given feature identifiers, with various options and restrictions. Based
- * on similar identifier locater commands by cstaylor and bbreithaupt. TODO bug occurs if path is
- * something like MyFolder/*.atlas and this does not exist. It will create an empty folder called
- * MyFolder. Why?
+ * on similar identifier locater commands by cstaylor and bbreithaupt.
  *
  * @author lcram
  * @author cstaylor

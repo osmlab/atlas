@@ -16,7 +16,7 @@ import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 
 /**
  * TODO change this so it saves in place
- * 
+ *
  * @author lcram
  */
 public class JavaToProtoSerializationCommand extends AtlasLoaderCommand
@@ -95,7 +95,7 @@ public class JavaToProtoSerializationCommand extends AtlasLoaderCommand
         if (this.optionAndArgumentDelegate.getParserContext() == CHECK_CONTEXT)
         {
             this.outputDelegate.printStdout("atlas ");
-            this.outputDelegate.printStdout(atlasFileName, TTYAttribute.BOLD);
+            this.outputDelegate.printStdout(atlasResource.getPath(), TTYAttribute.BOLD);
             this.outputDelegate.printStdout(" format: ");
             this.outputDelegate.printlnStdout(outputAtlas.getSerializationFormat().toString(),
                     TTYAttribute.BOLD);

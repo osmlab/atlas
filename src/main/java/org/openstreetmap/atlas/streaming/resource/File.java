@@ -88,6 +88,11 @@ public class File extends AbstractWritableResource implements Comparable<File>
 
     public File(final java.io.File file)
     {
+        this(file, true);
+    }
+
+    public File(final java.io.File file, final boolean createParentDirectories)
+    {
         this.javaFile = file;
         if (file.getAbsolutePath().endsWith(FileSuffix.GZIP.toString()))
         {
@@ -96,7 +101,10 @@ public class File extends AbstractWritableResource implements Comparable<File>
         }
         if (this.javaFile.getParentFile() != null)
         {
-            this.javaFile.getParentFile().mkdirs();
+            if (createParentDirectories)
+            {
+                this.javaFile.getParentFile().mkdirs();
+            }
         }
     }
 
@@ -113,7 +121,12 @@ public class File extends AbstractWritableResource implements Comparable<File>
      */
     public File(final String path)
     {
-        this(new java.io.File(path));
+        this(new java.io.File(path), true);
+    }
+
+    public File(final String path, final boolean createParentDirectories)
+    {
+        this(new java.io.File(path), createParentDirectories);
     }
 
     public File child(final String name)
