@@ -3,20 +3,27 @@ package org.openstreetmap.atlas.locale;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Java Locale based countries, including ISO2, ISO3, and descriptive country name representations.
  *
  * @author robert_stack
+ * @author lcram
  */
 public final class IsoCountry implements Serializable
 {
     private static final long serialVersionUID = 8686298246454085812L;
+
+    private static final Logger logger = LoggerFactory.getLogger(IsoCountry.class);
 
     // Use United States fixed Locale for display use cases
     private static final String LOCALE_LANGUAGE = Locale.ENGLISH.getLanguage();
@@ -24,12 +31,15 @@ public final class IsoCountry implements Serializable
     private static final int ISO2_LENGTH = 2;
     private static final int ISO3_LENGTH = 3;
 
-    private static Set<String> ALL_COUNTRY_CODES;
-    private static final Map<String, String> ISO2_TO_DISPLAY_COUNTRY;
-    private static final Map<String, String> ISO2_TO_ISO3;
-    private static final Map<String, String> ISO3_TO_ISO2;
+    // Package private fields used by other classes in the locale package
+    static final Set<String> ALL_COUNTRY_CODES;
+    static final Set<String> ALL_DISPLAY_COUNTRIES;
+    static final Map<String, String> ISO2_TO_DISPLAY_COUNTRY;
+    static final Map<String, String> DISPLAY_COUNTRY_TO_ISO2;
+    static final Map<String, String> ISO2_TO_ISO3;
+    static final Map<String, String> ISO3_TO_ISO2;
     // private static final BiMap<String, String> ISO2_ISO3_MAP;
-    private static final Map<String, IsoCountry> ISO_COUNTRIES;
+    static final Map<String, IsoCountry> ISO_COUNTRIES;
 
     static
     {
@@ -44,6 +54,30 @@ public final class IsoCountry implements Serializable
         ISO2_TO_DISPLAY_COUNTRY = Collections.unmodifiableMap(
                 Arrays.stream(countries).collect(Collectors.toMap(iso2 -> iso2.intern(),
                         iso2 -> new Locale(LOCALE_LANGUAGE, iso2).getDisplayCountry().intern())));
+
+        /*
+         * Check that country names are actually unique, and log an error if not. NOTE that this
+         * relies on English country names. If you are updating this code to handle
+         * internationalization, these assumptions may not hold.
+         */
+        final Map<String, String> countriesSeen = new HashMap<>();
+        for (final String iso2Country : countries)
+        {
+            final String countryName = new Locale(LOCALE_LANGUAGE, iso2Country).getDisplayCountry()
+                    .intern();
+            if (countriesSeen.containsKey(countryName))
+            {
+                logger.error("Detected duplicate country name {} -> {} AND {}", countryName,
+                        iso2Country, countriesSeen.get(countryName));
+            }
+            countriesSeen.put(countryName, iso2Country);
+        }
+
+        // Map from full country name to ISO2
+        DISPLAY_COUNTRY_TO_ISO2 = Collections.unmodifiableMap(Arrays.stream(countries)
+                .collect(Collectors.toMap(
+                        iso2 -> new Locale(LOCALE_LANGUAGE, iso2).getDisplayCountry().intern(),
+                        iso2 -> iso2.intern())));
 
         // Map from ISO2 to ISO3
         ISO2_TO_ISO3 = Collections.unmodifiableMap(
@@ -64,6 +98,10 @@ public final class IsoCountry implements Serializable
         // Map from ISO2 to IsoCountry
         ISO_COUNTRIES = Collections.unmodifiableMap(Arrays.stream(countries)
                 .collect(Collectors.toMap(iso2 -> iso2.intern(), iso2 -> new IsoCountry(iso2))));
+
+        // Set of display country names, do this one last since it relies on the other maps
+        ALL_DISPLAY_COUNTRIES = Collections.unmodifiableSet(ALL_COUNTRY_CODES.stream()
+                .map(IsoCountry::displayCountry).map(Optional::get).collect(Collectors.toSet()));
     }
 
     // This validated country code
@@ -80,6 +118,16 @@ public final class IsoCountry implements Serializable
     public static Set<String> allCountryCodes()
     {
         return ALL_COUNTRY_CODES;
+    }
+
+    /**
+     * Provides a set of all Locale based country long names.
+     *
+     * @return Set of country long names
+     */
+    public static Set<String> allDisplayCountries()
+    {
+        return ALL_DISPLAY_COUNTRIES;
     }
 
     /**
@@ -131,6 +179,37 @@ public final class IsoCountry implements Serializable
             {
                 return Optional.ofNullable(ISO_COUNTRIES.get(ISO3_TO_ISO2.get(countryCode)));
             }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Provides IsoCountry for a valid country display name. Ignores capitalization (e.g. "united
+     * stAtes" and "United States" are the same)
+     *
+     * @param displayCountry
+     *            the display country name, e.g. "United States"
+     * @return an Optional containing the IsoCountry if present
+     */
+    public static Optional<IsoCountry> forDisplayCountry(final String displayCountry)
+    {
+        if (displayCountry != null)
+        {
+            /*
+             * We want to allow the displayCountry parameter to have inconsistent case. E.g.
+             * displayCountry="united States" should match IsoCountry<"United States">
+             */
+            String foundKey = null;
+            for (final String key : DISPLAY_COUNTRY_TO_ISO2.keySet())
+            {
+                if (displayCountry.equalsIgnoreCase(key))
+                {
+                    foundKey = key;
+                    break;
+                }
+            }
+            return Optional.ofNullable(foundKey).map(DISPLAY_COUNTRY_TO_ISO2::get)
+                    .map(ISO_COUNTRIES::get);
         }
         return Optional.empty();
     }
