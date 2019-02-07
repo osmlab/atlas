@@ -21,7 +21,8 @@ public class InputStreamResource extends AbstractResource
      * to many gotchas, since the resource becomes read-once. For e.g. loading an atlas from an
      * InputStreamResource will fail, since atlas uses an under-the-hood read to determine the
      * serialization format.
-     *
+     * 
+     * @deprecated
      * @param input
      *            the input stream
      */
