@@ -80,6 +80,11 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
                     OUTPUT_ATLAS);
             final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
             new PackedAtlasCloner().cloneFrom(outputAtlas).save(outputFile);
+            if (this.optionAndArgumentDelegate.hasVerboseOption())
+            {
+                this.outputDelegate
+                        .printlnCommandMessage("saved to " + concatenatedPath.toString());
+            }
         }
 
         return 0;
