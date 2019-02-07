@@ -10,6 +10,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.CountrySlicingIdentifierFactory;
+import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.PointIdentifierFactory;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
@@ -200,7 +201,9 @@ public class LineAndPointSlicingTest
         final CountrySlicingIdentifierFactory lineIdentifierFactory = new CountrySlicingIdentifierFactory(
                 1);
 
-        final Line firstCreatedLine = slicedAtlas.line(lineIdentifierFactory.nextIdentifier());
+        final long firstLineId = lineIdentifierFactory.nextIdentifier();
+
+        final Line firstCreatedLine = slicedAtlas.line(firstLineId);
         Assert.assertNotNull("Check new way addition", firstCreatedLine);
         Assert.assertEquals("Expect the first segment to be on the Ivory Coast side", "CIV",
                 firstCreatedLine.getTag(ISOCountryTag.KEY).get());
@@ -215,11 +218,12 @@ public class LineAndPointSlicingTest
         Assert.assertEquals("Three points exist in the sliced Atlas", 3,
                 slicedAtlas.numberOfPoints());
 
-        final CountrySlicingIdentifierFactory pointIdentifierFactory = new CountrySlicingIdentifierFactory(
-                1);
+        final PointIdentifierFactory pointIdentifierFactory = new PointIdentifierFactory(
+                firstLineId);
         final long newPointIdentifier = pointIdentifierFactory.nextIdentifier();
         slicedAtlas.points().forEach(point ->
         {
+            System.out.println(point);
             if (point.getIdentifier() == newPointIdentifier)
             {
                 // Make specific checks for the new added point

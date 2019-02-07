@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -19,6 +21,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.AbstractIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.CountrySlicingIdentifierFactory;
+import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.PointIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.ChangeSetHandler;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.SimpleChangeSet;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.SimpleChangeSetHandler;
@@ -58,12 +61,11 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
     private final Set<Long> pointsMarkedForRemoval = new HashSet<>();
 
     public RawAtlasPointAndLineSlicer(final Set<String> countries,
-            final CountryBoundaryMap countryBoundaryMap, final Atlas atlas,
-            final SimpleChangeSet changeSet, final CoordinateToNewPointMapping newPointCoordinates)
+            final CountryBoundaryMap countryBoundaryMap, final Atlas atlas)
     {
-        super(countries, countryBoundaryMap, newPointCoordinates);
+        super(countries, countryBoundaryMap, new CoordinateToNewPointMapping());
+        this.slicedPointAndLineChanges = new SimpleChangeSet();
         this.rawAtlas = atlas;
-        this.slicedPointAndLineChanges = changeSet;
     }
 
     /**
@@ -252,17 +254,46 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         else if (slices.size() < AbstractIdentifierFactory.IDENTIFIER_SCALE)
         {
             // Used to generate identifiers for new points and lines
+
             final CountrySlicingIdentifierFactory lineIdentifierFactory = new CountrySlicingIdentifierFactory(
                     line.getIdentifier());
-            final CountrySlicingIdentifierFactory pointIdentifierFactory = new CountrySlicingIdentifierFactory(
-                    line.getIdentifier());
+
+            final Map<String, Queue<Long>> lineIdsByCountry = new HashMap<>();
+            final List<String> countryCodesForSlices = new ArrayList<>();
+
+            // Before processing slices, sort them and record country codes. Then, alphabetize the
+            // country codes and pre-generate identifiers assigned to the country codes. This way,
+            // all lines are deterministically assigned the same identifier regardless of what order
+            // the slices are returned in or which country is slicing the line.
+            for (final Geometry slice : slices)
+            {
+
+                final String countryCode = CountryBoundaryMap.getGeometryProperty(slice,
+                        ISOCountryTag.KEY);
+                countryCodesForSlices.add(countryCode);
+            }
+            Collections.sort(countryCodesForSlices);
+
+            countryCodesForSlices.forEach(countryCode ->
+            {
+                if (lineIdsByCountry.containsKey(countryCode))
+                {
+                    lineIdsByCountry.get(countryCode).add(lineIdentifierFactory.nextIdentifier());
+                }
+                else
+                {
+                    final LinkedList<Long> idsForCountry = new LinkedList<>();
+                    idsForCountry.add(lineIdentifierFactory.nextIdentifier());
+                    lineIdsByCountry.put(countryCode, idsForCountry);
+                }
+            });
 
             final List<TemporaryLine> createdLines = new ArrayList<>();
-
             try
             {
                 for (final Geometry slice : slices)
                 {
+
                     // Check if the slice is within the working bound and mark all points for this
                     // slice for removal if so
                     if (isOutsideWorkingBound(slice))
@@ -271,6 +302,9 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                         continue;
                     }
 
+                    final String countryCode = CountryBoundaryMap.getGeometryProperty(slice,
+                            ISOCountryTag.KEY);
+
                     // Keep track of identifiers that form the geometry of the new line
                     final List<Long> newLineShapePoints = new ArrayList<>(slice.getNumPoints());
 
@@ -278,6 +312,10 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                     // the geometry
                     final Coordinate[] jtsSliceCoordinates = PRECISION_REDUCER
                             .edit(slice.getCoordinates(), slice);
+
+                    final Long countryLineId = lineIdsByCountry.get(countryCode).poll();
+                    final PointIdentifierFactory pointIdentifierFactory = new PointIdentifierFactory(
+                            countryLineId);
                     for (final Coordinate coordinate : jtsSliceCoordinates)
                     {
                         final Location coordinateLocation = JTS_LOCATION_CONVERTER
@@ -342,8 +380,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                     final Map<String, String> lineTags = createLineTags(slice, line.getTags());
 
                     // Create and store the new line
-                    final TemporaryLine createdLine = new TemporaryLine(
-                            lineIdentifierFactory.nextIdentifier(), newLineShapePoints, lineTags);
+                    final TemporaryLine createdLine = new TemporaryLine(countryLineId.longValue(),
+                            newLineShapePoints, lineTags);
                     createdLines.add(createdLine);
                 }
 

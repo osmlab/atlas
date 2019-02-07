@@ -1,7 +1,9 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.junit.Assert;
@@ -14,9 +16,16 @@ import org.openstreetmap.atlas.geography.atlas.items.complex.buildings.ComplexBu
 import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWaterEntity;
 import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWaterEntityFinder;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
+import org.openstreetmap.atlas.geography.sharding.Shard;
+import org.openstreetmap.atlas.geography.sharding.SlippyTile;
+import org.openstreetmap.atlas.geography.sharding.SlippyTileSharding;
+import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.tags.BuildingTag;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
+import org.openstreetmap.atlas.tags.NaturalTag;
+import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
@@ -49,6 +58,95 @@ public class RelationSlicingTest
     public RelationSlicingTestRule setup = new RelationSlicingTestRule();
 
     // TODO - test with multiple inners across boundary
+
+    @Test
+    public void testDynamicSlicingFollowsWaterRelations()
+    {
+        final Map<Shard, Atlas> store;
+        store = new HashMap<>();
+        store.put(new SlippyTile(15624, 15756, 15),
+                RAW_ATLAS_SLICER.sliceLines(this.setup.getSingleOuterWaterSpanningTwoAtlases1()));
+        store.put(new SlippyTile(15625, 15756, 15),
+                RAW_ATLAS_SLICER.sliceLines(this.setup.getSingleOuterWaterSpanningTwoAtlases2()));
+
+        final RawAtlasCountrySlicer dynamicSlicer = new RawAtlasCountrySlicer(COUNTRIES,
+                COUNTRY_BOUNDARY_MAP, new SlippyTileSharding(15), shard ->
+                {
+                    if (store.containsKey(shard))
+                    {
+                        return Optional.of(store.get(shard));
+                    }
+                    else
+                    {
+                        return Optional.empty();
+                    }
+                });
+        final Atlas slicedAtlas = dynamicSlicer
+                .sliceRelations(SlippyTile.forName("15-15625-15756"));
+        Assert.assertEquals(2, slicedAtlas.numberOfRelations());
+        Assert.assertEquals(1, Iterables.size(slicedAtlas.relations(relation ->
+        {
+            return relation.isMultiPolygon()
+                    && Validators.isOfType(relation, NaturalTag.class, NaturalTag.WATER)
+                    && ISOCountryTag.isIn(IsoCountry.forCountryCode("LBR").get()).test(relation);
+        })));
+        Assert.assertEquals(1, Iterables.size(slicedAtlas.relations(relation ->
+        {
+            return relation.isMultiPolygon()
+                    && Validators.isOfType(relation, NaturalTag.class, NaturalTag.WATER)
+                    && ISOCountryTag.isIn(IsoCountry.forCountryCode("CIV").get()).test(relation);
+        })));
+
+        Assert.assertEquals(2,
+                Iterables.size(new ComplexWaterEntityFinder().find(slicedAtlas, Finder::ignore)));
+        Assert.assertEquals(0,
+                Iterables.size(new ComplexBuildingFinder().find(slicedAtlas, Finder::ignore)));
+    }
+
+    @Test
+    public void testDynamicSlicingIgnoresNonWaterRelations()
+    {
+        final Map<Shard, Atlas> store;
+        store = new HashMap<>();
+        store.put(new SlippyTile(15624, 15756, 15), RAW_ATLAS_SLICER
+                .sliceLines(this.setup.getSingleOuterNonWaterSpanningTwoAtlases1()));
+        store.put(new SlippyTile(15625, 15756, 15), RAW_ATLAS_SLICER
+                .sliceLines(this.setup.getSingleOuterNonWaterSpanningTwoAtlases2()));
+
+        final RawAtlasCountrySlicer dynamicSlicer = new RawAtlasCountrySlicer(COUNTRIES,
+                COUNTRY_BOUNDARY_MAP, new SlippyTileSharding(15), shard ->
+                {
+                    if (store.containsKey(shard))
+                    {
+                        return Optional.of(store.get(shard));
+                    }
+                    else
+                    {
+                        return Optional.empty();
+                    }
+                });
+        final Atlas slicedAtlas = dynamicSlicer
+                .sliceRelations(SlippyTile.forName("15-15625-15756"));
+
+        Assert.assertEquals(2, slicedAtlas.numberOfRelations());
+        Assert.assertEquals(1, Iterables.size(slicedAtlas.relations(relation ->
+        {
+            return relation.isMultiPolygon()
+                    && Validators.isOfType(relation, BuildingTag.class, BuildingTag.YES)
+                    && ISOCountryTag.isIn(IsoCountry.forCountryCode("LBR").get()).test(relation);
+        })));
+        Assert.assertEquals(1, Iterables.size(slicedAtlas.relations(relation ->
+        {
+            return relation.isMultiPolygon()
+                    && Validators.isOfType(relation, BuildingTag.class, BuildingTag.YES)
+                    && ISOCountryTag.isIn(IsoCountry.forCountryCode("CIV").get()).test(relation);
+        })));
+        Assert.assertEquals(0,
+                Iterables.size(new ComplexWaterEntityFinder().find(slicedAtlas, Finder::ignore)));
+        Assert.assertEquals(0,
+                Iterables.size(new ComplexBuildingFinder().find(slicedAtlas, Finder::ignore)));
+
+    }
 
     @Test
     public void testMultiPolygonRelationSpanningTwoCountries()

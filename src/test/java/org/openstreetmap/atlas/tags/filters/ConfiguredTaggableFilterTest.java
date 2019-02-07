@@ -58,7 +58,7 @@ public class ConfiguredTaggableFilterTest
     {
         final Resource relationResource = new InputStreamResource(
                 getClass().getClassLoader().getResourceAsStream(
-                        "org/openstreetmap/atlas/geography/atlas/pbf/osm-pbf-relation.json"));
+                        "org/openstreetmap/atlas/geography/atlas/pbf/osm-pbf-way.json"));
         final Configuration relationConfiguration = new StandardConfiguration(relationResource);
         final ConfiguredTaggableFilter relationFilter = new ConfiguredTaggableFilter(
                 relationConfiguration);

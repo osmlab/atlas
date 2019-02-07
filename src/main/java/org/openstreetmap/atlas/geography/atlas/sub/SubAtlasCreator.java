@@ -402,6 +402,170 @@ public class SubAtlasCreator implements SubAtlas
     }
 
     @Override
+    public Optional<Atlas> silkCut(final Polygon boundary)
+    {
+        logger.debug(CUT_START_MESSAGE, AtlasCutType.SILK_CUT, this.atlas.getName(),
+                this.atlas.metaData());
+        final Time begin = Time.now();
+
+        final Supplier<Iterable<Node>> nodesWithin = getIntersectingCachingSupplier(
+                this.atlas.nodesWithin(boundary), ItemType.NODE);
+        final Supplier<Iterable<Edge>> edgesIntersecting = getIntersectingCachingSupplier(
+                this.atlas.edgesIntersecting(boundary), ItemType.EDGE);
+        final Supplier<Iterable<Area>> areasIntersecting = getIntersectingCachingSupplier(
+                this.atlas.areasIntersecting(boundary), ItemType.AREA);
+        final Supplier<Iterable<Line>> linesIntersecting = getIntersectingCachingSupplier(
+                this.atlas.linesIntersecting(boundary), ItemType.LINE);
+        final Supplier<Iterable<Point>> pointsWithin = getIntersectingCachingSupplier(
+                this.atlas.pointsWithin(boundary), ItemType.POINT);
+
+        // Generate the size estimates, then the builder.
+        // Nodes estimating is a bit tricky. We want to include all the nodes within the polygon,
+        // but we also want to include those attached to edges that span outside the polygon.
+        // Instead of doing a count to have an exact number, we choose here to have an arbitrary 20%
+        // buffer on top of the nodes inside the polygon. This mostly avoids resizing.
+        final double ratioBuffer = 1.2;
+        final long nodeNumber = Math.round(Iterables.size(nodesWithin.get()) * ratioBuffer);
+        final long edgeNumber = Math.round(Iterables.size(edgesIntersecting.get()) * ratioBuffer);
+        final long areaNumber = Math.round(Iterables.size(areasIntersecting.get()) * ratioBuffer);
+        final long lineNumber = Math.round(Iterables.size(linesIntersecting.get()) * ratioBuffer);
+        final long pointNumber = Math.round(Iterables.size(pointsWithin.get()) * ratioBuffer);
+        final long relationNumber = Math
+                .round(Iterables.size(this.atlas.relationsWithEntitiesIntersecting(boundary))
+                        * ratioBuffer);
+        final AtlasSize size = new AtlasSize(edgeNumber, nodeNumber, areaNumber, lineNumber,
+                pointNumber, relationNumber);
+        final PackedAtlasBuilder builder = new PackedAtlasBuilder().withSizeEstimates(size)
+                .withMetaData(this.atlas.metaData());
+
+        // Predicates to test if some items have already been added.
+        final Predicate<Node> hasNode = item -> builder.peek().node(item.getIdentifier()) != null;
+        final Predicate<Edge> hasEdge = item -> builder.peek().edge(item.getIdentifier()) != null;
+        final Predicate<Area> hasArea = item -> builder.peek().area(item.getIdentifier()) != null;
+        final Predicate<Line> hasLine = item -> builder.peek().line(item.getIdentifier()) != null;
+        final Predicate<Point> hasPoint = item -> builder.peek()
+                .point(item.getIdentifier()) != null;
+        final Predicate<Relation> hasRelation = item -> builder.peek()
+                .relation(item.getIdentifier()) != null;
+
+        // Add the nodes needed for Edges.
+        edgesIntersecting.get().forEach(edge ->
+        {
+            final Node start = edge.start();
+            final Node end = edge.end();
+            if (!hasNode.test(start))
+            {
+                builder.addNode(start.getIdentifier(), start.getLocation(), start.getTags());
+            }
+            if (!hasNode.test(end))
+            {
+                builder.addNode(end.getIdentifier(), end.getLocation(), end.getTags());
+            }
+        });
+
+        // Add the remaining Nodes if any.
+        Iterables.stream(nodesWithin.get()).filter(hasNode.negate()).forEach(
+                node -> builder.addNode(node.getIdentifier(), node.getLocation(), node.getTags()));
+
+        // Add the edges. Use a consumer that makes sure master edges are always added first.
+        final Consumer<Edge> edgeAdder = edge ->
+        {
+            if (builder.peek().edge(edge.getIdentifier()) == null)
+            {
+                // Here, making sure that edge identifiers are not 0 to work around an issue in unit
+                // tests: https://github.com/osmlab/atlas/issues/252
+                if (edge.getIdentifier() != 0 && edge.hasReverseEdge())
+                {
+                    final Edge reverse = edge.reversed().get();
+                    if (builder.peek().edge(reverse.getIdentifier()) == null)
+                    {
+                        builder.addEdge(reverse.getIdentifier(), reverse.asPolyLine(),
+                                reverse.getTags());
+                    }
+                }
+                builder.addEdge(edge.getIdentifier(), edge.asPolyLine(), edge.getTags());
+            }
+        };
+        edgesIntersecting.get().forEach(edgeAdder::accept);
+
+        // Add the Areas
+        areasIntersecting.get().forEach(
+                area -> builder.addArea(area.getIdentifier(), area.asPolygon(), area.getTags()));
+
+        // Add the Lines
+        linesIntersecting.get().forEach(
+                line -> builder.addLine(line.getIdentifier(), line.asPolyLine(), line.getTags()));
+
+        // Add the Points
+        pointsWithin.get().forEach(point -> builder.addPoint(point.getIdentifier(),
+                point.getLocation(), point.getTags()));
+
+        // Add the Points for all included Lines
+        linesIntersecting.get().forEach(line ->
+        {
+            line.getRawGeometry().forEach(location ->
+            {
+                this.atlas.pointsAt(location).forEach(point ->
+                {
+                    if (!hasPoint.test(point))
+                    {
+                        builder.addPoint(point.getIdentifier(), point.getLocation(),
+                                point.getTags());
+                    }
+                });
+            });
+        });
+
+        Iterables.stream(this.atlas.relationsLowerOrderFirst()).filter(hasRelation.negate())
+                .forEach(relation ->
+                {
+                    final RelationMemberList members = relation.members();
+                    final List<RelationMember> validMembers = new ArrayList<>();
+                    // And consider them only if they have members that have already been added
+                    // to the sub atlas.
+                    members.forEach(member ->
+                    {
+                        final AtlasEntity entity = member.getEntity();
+                        // Non-Relation members
+                        if (entity instanceof Node && hasNode.test((Node) entity)
+                                || entity instanceof Edge && hasEdge.test((Edge) entity)
+                                || entity instanceof Area && hasArea.test((Area) entity)
+                                || entity instanceof Line && hasLine.test((Line) entity)
+                                || entity instanceof Point && hasPoint.test((Point) entity))
+                        {
+                            validMembers.add(member);
+                        }
+                        // Relation members
+                        if (entity instanceof Relation && hasRelation.test((Relation) entity))
+                        {
+                            validMembers.add(member);
+                        }
+                    });
+                    if (!validMembers.isEmpty())
+                    {
+                        // If there are legitimate members, we need to add the relation to the
+                        // sub atlas
+                        final RelationBean structure = new RelationBean();
+                        validMembers.forEach(validMember -> structure.addItem(
+                                validMember.getEntity().getIdentifier(), validMember.getRole(),
+                                ItemType.forEntity(validMember.getEntity())));
+                        builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(),
+                                structure, relation.getTags());
+                    }
+                });
+
+        final PackedAtlas result = (PackedAtlas) builder.get();
+        if (result != null)
+        {
+            result.trim();
+        }
+
+        logger.info(CUT_STOP_MESSAGE, AtlasCutType.SILK_CUT, this.atlas.getName(),
+                begin.elapsedSince());
+        return Optional.ofNullable(result);
+    }
+
+    @Override
     public Optional<Atlas> softCut(final GeometricSurface boundary, final boolean hardCutRelations)
     {
         logger.debug(CUT_START_MESSAGE,

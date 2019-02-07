@@ -111,7 +111,7 @@ public abstract class RawAtlasSlicer
      * @return the {@link TemporaryPoint}
      */
     protected static TemporaryPoint createNewPoint(final Coordinate coordinate,
-            final CountrySlicingIdentifierFactory pointIdentifierFactory,
+            final AbstractIdentifierFactory pointIdentifierFactory,
             final Map<String, String> pointTags)
     {
         if (!pointIdentifierFactory.hasMore())
@@ -153,10 +153,10 @@ public abstract class RawAtlasSlicer
             firstCountries.retainAll(new HashSet<>(secondCountries));
             return !firstCountries.isEmpty();
         }
-
-        throw new CoreException(
-                "All raw Atlas lines must have a country code by the time Relation slicing is done. One of the two Lines {} or {} does not!",
-                one.getIdentifier(), two.getIdentifier());
+        else
+        {
+            return false;
+        }
     }
 
     public RawAtlasSlicer(final Set<String> countries, final CountryBoundaryMap countryBoundaryMap,

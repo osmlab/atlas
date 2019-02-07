@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,14 +29,15 @@ import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIde
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.ChangeSetHandler;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.RelationChangeSet;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.RelationChangeSetHandler;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.SimpleChangeSet;
 import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryEntity;
 import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryLine;
 import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryPoint;
 import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryRelation;
 import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryRelationMember;
+import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.converters.jts.JtsUtility;
+import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
@@ -59,6 +61,7 @@ import com.vividsolutions.jts.geom.LinearRing;
  * raw Atlas and produces a fully country-sliced Atlas as output.
  *
  * @author mgostintsev
+ * @author samg
  */
 public class RawAtlasRelationSlicer extends RawAtlasSlicer
 {
@@ -67,8 +70,10 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
     // The raw Atlas to slice
     private final Atlas partiallySlicedRawAtlas;
 
+    // The initial Shard being sliced
+    private final Shard initialShard;
+
     // Keep track of changes made during Point/Line and Relation slicing
-    private final SimpleChangeSet slicedPointAndLineChanges;
     private final RelationChangeSet slicedRelationChanges;
 
     // Keep track of any points that may have to be removed after relation merging
@@ -95,20 +100,31 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         return false;
     }
 
-    public RawAtlasRelationSlicer(final Atlas atlas, final Set<String> countries,
-            final CountryBoundaryMap countryBoundaryMap, final SimpleChangeSet simpleChangeSet,
-            final RelationChangeSet relationChangeSet,
-            final CoordinateToNewPointMapping newPointCoordinates)
+    /**
+     * Standard constructor
+     *
+     * @param atlas
+     *            The Atlas file to sliced-- should be line sliced
+     * @param initialShard
+     *            The initial shard being sliced-- should be the same as the line sliced Atlas
+     *            passed in
+     * @param countries
+     *            The list of countries to slice
+     * @param countryBoundaryMap
+     *            The country boundaries
+     */
+    public RawAtlasRelationSlicer(final Atlas atlas, final Shard initialShard,
+            final Set<String> countries, final CountryBoundaryMap countryBoundaryMap)
     {
-        super(countries, countryBoundaryMap, newPointCoordinates);
+        super(countries, countryBoundaryMap, new CoordinateToNewPointMapping());
         this.partiallySlicedRawAtlas = atlas;
-        this.slicedPointAndLineChanges = simpleChangeSet;
-        this.slicedRelationChanges = relationChangeSet;
+        this.initialShard = initialShard;
+        this.slicedRelationChanges = new RelationChangeSet();
         this.pointCandidatesForRemoval = new HashSet<>();
     }
 
     /**
-     * Country-slice the Relations for the given Atlas.
+     * Country-slice the relations for the given Atlas.
      *
      * @return a country-sliced {@link Atlas}
      */
@@ -133,7 +149,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 time.elapsedSince());
 
         getStatistics().summary();
-        return fullySlicedAtlas;
+        return cutSubAtlasForOriginalShard(fullySlicedAtlas);
     }
 
     /**
@@ -173,6 +189,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         catch (final Exception e)
         {
             // Could not form closed rings for some of the members. Keep them in the Atlas.
+
             logger.error(
                     "One of the members for relation {} is invalid and does not form a closed ring!",
                     relationIdentifier, e);
@@ -191,24 +208,30 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
     {
         // Assume any member can be split, so create a seed for each one
         final long[] seeds = new long[relation.members().size()];
+        final long[] identifiers = new long[relation.members().size()];
         for (int seedIndex = 0; seedIndex < seeds.length; seedIndex++)
         {
-            long identifier = relation.members().get(seedIndex).getEntity().getIdentifier();
-            final long originalAtlasIdentifier = new ReverseIdentifierFactory()
-                    .getFirstAtlasIdentifier(identifier);
+            final long identifier = relation.members().get(seedIndex).getEntity().getIdentifier();
+            identifiers[seedIndex] = identifier;
+        }
 
-            final Set<Long> createdWaysForIdentifier = this.slicedPointAndLineChanges
-                    .getDeletedToCreatedLineMapping().get(originalAtlasIdentifier);
-            if (createdWaysForIdentifier != null)
+        final Set<Long> generatedIds = new HashSet<>();
+        for (int seedIndex = 0; seedIndex < seeds.length; seedIndex++)
+        {
+            long identifier = identifiers[seedIndex];
+            final CountrySlicingIdentifierFactory identifierFactory = new CountrySlicingIdentifierFactory(
+                    identifier);
+            while (this.partiallySlicedRawAtlas.line(identifier) != null
+                    || generatedIds.contains(identifier))
             {
-                // Grab the first Atlas identifier for this entity and increment at offset
-                identifier = identifier + createdWaysForIdentifier.size()
-                        * CountrySlicingIdentifierFactory.IDENTIFIER_SCALE;
+                identifier = identifierFactory.nextIdentifier();
             }
             seeds[seedIndex] = identifier;
+            generatedIds.add(identifier);
         }
 
         return seeds;
+
     }
 
     /**
@@ -237,6 +260,11 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         final List<Long> newLineShapePoints = new ArrayList<>(lineString.getNumPoints());
         final Coordinate[] lineCoordinates = PRECISION_REDUCER.edit(lineString.getCoordinates(),
                 lineString);
+
+        if (isOutsideWorkingBound(lineString))
+        {
+            return;
+        }
         for (final Coordinate pointCoordinate : lineCoordinates)
         {
             final Location pointLocation = JTS_LOCATION_CONVERTER.backwardConvert(pointCoordinate);
@@ -315,6 +343,17 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         updateSyntheticRelationMemberTag(relationIdentifier, newLineIdentifier);
     }
 
+    /**
+     * A method to handle creating new point identifiers. It's important to use this method as it
+     * will test the generated identifier to ensure no collisions with other entities and
+     * re-generate if needed.
+     *
+     * @param pointIdentifierFactory
+     *            A factory for generating point identifiers
+     * @param coordinate
+     *            The coordinate that needs an identifier
+     * @return A valid point identifier
+     */
     private long createNewPointIdentifier(
             final CountrySlicingIdentifierFactory pointIdentifierFactory,
             final Coordinate coordinate)
@@ -328,8 +367,62 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         else
         {
             final long identifier = pointIdentifierFactory.nextIdentifier();
-            return this.partiallySlicedRawAtlas.point(identifier) == null ? identifier
-                    : createNewPointIdentifier(pointIdentifierFactory, coordinate);
+            return this.partiallySlicedRawAtlas.point(identifier) == null
+                    && !this.slicedRelationChanges.getCreatedPoints().containsKey(identifier)
+                            ? identifier
+                            : createNewPointIdentifier(pointIdentifierFactory, coordinate);
+        }
+    }
+
+    /**
+     * Cuts out data outside the shard boundary, since we don't need any data beyond that.
+     *
+     * @param atlas
+     *            The {@link Atlas} file we need to trim
+     * @return the {@link Atlas} for the bounds of the input shard
+     */
+    private Atlas cutSubAtlasForOriginalShard(final Atlas atlas)
+    {
+        try
+        {
+            if (this.initialShard != null)
+            {
+
+                final Atlas countrySubAtlas = atlas.subAtlas(entity ->
+                {
+                    final Optional<String> countriesTag = entity.getTag(ISOCountryTag.KEY);
+                    if (countriesTag.isPresent())
+                    {
+                        final Set<String> countries = new HashSet<>(Arrays
+                                .asList(countriesTag.get().split(ISOCountryTag.COUNTRY_DELIMITER)));
+                        for (final String country : countries)
+                        {
+                            if (this.getCountries().contains(country))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+
+                }, AtlasCutType.SOFT_CUT)
+                        .orElseThrow(() -> new CoreException(
+                                "Cannot have an empty atlas after way sectioning {}",
+                                this.initialShard.getName()));
+
+                return countrySubAtlas.subAtlas(this.initialShard.bounds(), AtlasCutType.SILK_CUT)
+                        .orElseThrow(() -> new CoreException(
+                                "Cannot have an empty atlas after way sectioning {}",
+                                this.initialShard.getName()));
+            }
+            else
+            {
+                return atlas;
+            }
+        }
+        catch (final Exception e)
+        {
+            throw new CoreException("Error creating sub-atlas for original shard bounds", e);
         }
     }
 
@@ -577,6 +670,28 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
     }
 
     /**
+     * Check if the {@link Geometry} should be filtered out based on the provided bound.
+     *
+     * @param geometry
+     *            The {@link Geometry} to check.
+     * @return {@code true} if the given geometry should be filtered out.
+     */
+    private boolean isOutsideWorkingBound(final Geometry geometry)
+    {
+        final String countryCode = CountryBoundaryMap.getGeometryProperty(geometry,
+                ISOCountryTag.KEY);
+
+        if (countryCode != null)
+        {
+            return getCountries() != null && !getCountries().isEmpty()
+                    && !getCountries().contains(countryCode);
+        }
+
+        // Assume it's inside the bound
+        return false;
+    }
+
+    /**
      * Marks a line for deletion, if that line is being removed as a relation member. This is safe
      * to do when the line member was merged with another member to maintain a valid relation and
      * the merged line is not part of any other relation.
@@ -669,7 +784,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
 
             // Use the index of the outer to determine the new line identifier
             final CountrySlicingIdentifierFactory lineIdentifierGenerator = new CountrySlicingIdentifierFactory(
-                    +identifierSeeds[outerIndex]);
+                    identifierSeeds[outerIndex]);
             Geometry mergedMembers = null;
 
             // Convert outer to ring
@@ -907,6 +1022,8 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         mergeOverlappingClosedMembers(relation, outers, inners);
     }
 
+    // TODO come back and verify we're keeping track of all required statistics
+
     /**
      * Taking our pool of candidate points to delete, we check two cases before marking the point
      * for deletion: 1. No remaining lines rely on the point 2. No new lines rely on the point
@@ -940,8 +1057,6 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
             }
         }
     }
-
-    // TODO come back and verify we're keeping track of all required statistics
 
     /**
      * Slice a given {@link Relation}. In case it's a multipolygon relation, we do some

@@ -28,6 +28,46 @@ public class RawAtlasTest
     private static final Logger logger = LoggerFactory.getLogger(RawAtlasTest.class);
 
     @Test
+    public void testBringInConnectedBridgeNodesOutsideCountryBoundaries()
+    {
+        final Resource osmFromJosm = new InputStreamResource(
+                () -> RawAtlasTest.class.getResourceAsStream("outsideConnectedOneWayWays.osm"));
+        final WritableResource osmFile = new StringResource();
+        final WritableResource pbfFile = new StringResource();
+        final Resource boundaries = new InputStreamResource(
+                () -> RawAtlasTest.class.getResourceAsStream("DNK_SWE_boundary.txt"));
+        new OsmFileParser().update(osmFromJosm, osmFile);
+        new OsmFileToPbf().update(osmFile, pbfFile);
+        final CountryBoundaryMap countryBoundaryMap = CountryBoundaryMap.fromPlainText(boundaries);
+        final MultiPolygon boundary = countryBoundaryMap.countryBoundary("DNK").get(0)
+                .getBoundary();
+        logger.debug("Boundary: {}", boundary.toWkt());
+        final AtlasLoadingOption option = AtlasLoadingOption
+                .createOptionWithAllEnabled(countryBoundaryMap);
+        final RawAtlasGenerator generator = new RawAtlasGenerator(pbfFile, option, boundary);
+        final Atlas rawAtlas = generator.build();
+        logger.debug("Raw Atlas: {}", rawAtlas);
+
+        final Atlas slicedAtlas = new RawAtlasCountrySlicer("DNK", countryBoundaryMap)
+                .slice(rawAtlas);
+        logger.debug("Sliced Atlas: {}", slicedAtlas);
+
+        // Check the top node 3089123457 has the proper tagging - nearest neighbor and on the
+        // boundary
+        Assert.assertEquals(SyntheticNearestNeighborCountryCodeTag.YES.name(), slicedAtlas
+                .point(3739700937000000L).tag(SyntheticNearestNeighborCountryCodeTag.KEY));
+        Assert.assertEquals(SyntheticBoundaryNodeTag.EXISTING.name(),
+                slicedAtlas.point(3739700937000000L).tag(SyntheticBoundaryNodeTag.KEY));
+
+        // Check the bottom node 3089123458 has the proper tagging - nearest neighbor and on the
+        // boundary
+        Assert.assertEquals(SyntheticNearestNeighborCountryCodeTag.YES.name(), slicedAtlas
+                .point(3739700960000000L).tag(SyntheticNearestNeighborCountryCodeTag.KEY));
+        Assert.assertEquals(SyntheticBoundaryNodeTag.EXISTING.name(),
+                slicedAtlas.point(3739700960000000L).tag(SyntheticBoundaryNodeTag.KEY));
+    }
+
+    @Test
     public void testBringInConnectedOutsideWays()
     {
         final Resource osmFromJosm = new InputStreamResource(() -> RawAtlasTest.class
@@ -82,45 +122,5 @@ public class RawAtlasTest
                 slicedAtlas.point(39018000000L).tag(SyntheticNearestNeighborCountryCodeTag.KEY));
         Assert.assertEquals(SyntheticNearestNeighborCountryCodeTag.YES.name(),
                 slicedAtlas.point(39000000000L).tag(SyntheticNearestNeighborCountryCodeTag.KEY));
-    }
-
-    @Test
-    public void testBringInConnectedBridgeNodesOutsideCountryBoundaries()
-    {
-        final Resource osmFromJosm = new InputStreamResource(
-                () -> RawAtlasTest.class.getResourceAsStream("outsideConnectedOneWayWays.osm"));
-        final WritableResource osmFile = new StringResource();
-        final WritableResource pbfFile = new StringResource();
-        final Resource boundaries = new InputStreamResource(
-                () -> RawAtlasTest.class.getResourceAsStream("DNK_SWE_boundary.txt"));
-        new OsmFileParser().update(osmFromJosm, osmFile);
-        new OsmFileToPbf().update(osmFile, pbfFile);
-        final CountryBoundaryMap countryBoundaryMap = CountryBoundaryMap.fromPlainText(boundaries);
-        final MultiPolygon boundary = countryBoundaryMap.countryBoundary("DNK").get(0)
-                .getBoundary();
-        logger.debug("Boundary: {}", boundary.toWkt());
-        final AtlasLoadingOption option = AtlasLoadingOption
-                .createOptionWithAllEnabled(countryBoundaryMap);
-        final RawAtlasGenerator generator = new RawAtlasGenerator(pbfFile, option, boundary);
-        final Atlas rawAtlas = generator.build();
-        logger.debug("Raw Atlas: {}", rawAtlas);
-
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer("DNK", countryBoundaryMap)
-                .slice(rawAtlas);
-        logger.debug("Sliced Atlas: {}", slicedAtlas);
-
-        // Check the top node 3089123457 has the proper tagging - nearest neighbor and on the
-        // boundary
-        Assert.assertEquals(SyntheticNearestNeighborCountryCodeTag.YES.name(), slicedAtlas
-                .point(3089123457000000L).tag(SyntheticNearestNeighborCountryCodeTag.KEY));
-        Assert.assertEquals(SyntheticBoundaryNodeTag.EXISTING.name(),
-                slicedAtlas.point(3089123457000000L).tag(SyntheticBoundaryNodeTag.KEY));
-
-        // Check the bottom node 3089123458 has the proper tagging - nearest neighbor and on the
-        // boundary
-        Assert.assertEquals(SyntheticNearestNeighborCountryCodeTag.YES.name(), slicedAtlas
-                .point(3089123458000000L).tag(SyntheticNearestNeighborCountryCodeTag.KEY));
-        Assert.assertEquals(SyntheticBoundaryNodeTag.EXISTING.name(),
-                slicedAtlas.point(3089123458000000L).tag(SyntheticBoundaryNodeTag.KEY));
     }
 }

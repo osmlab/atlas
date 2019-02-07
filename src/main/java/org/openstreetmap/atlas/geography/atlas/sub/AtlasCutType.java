@@ -32,6 +32,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  * its members will be included in the member list, even if not matched by the given matcher.
  * </ul>
  * </li>
+ * <li>Silk-cut: Same as a soft-cut, but always soft-cuts relations and keeps all points on line
+ * geometries kept by the slice.
  * <li>Hard-cut-all: Perform a cut, only keep entities that match the bound or filter. If including
  * the item in the final Atlas breaks Atlas integrity, exclude that entity. Example: An Edge is
  * brought in via boundary or filter match, but its start or end Node is omitted. As a result, the
@@ -47,6 +49,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 public enum AtlasCutType
 {
     SOFT_CUT,
+    SILK_CUT,
     HARD_CUT_ALL,
     HARD_CUT_RELATIONS_ONLY;
 }
