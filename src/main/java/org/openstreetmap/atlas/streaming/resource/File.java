@@ -99,12 +99,9 @@ public class File extends AbstractWritableResource implements Comparable<File>
             this.setCompressor(Compressor.GZIP);
             this.setDecompressor(Decompressor.GZIP);
         }
-        if (this.javaFile.getParentFile() != null)
+        if (this.javaFile.getParentFile() != null && createParentDirectories)
         {
-            if (createParentDirectories)
-            {
-                this.javaFile.getParentFile().mkdirs();
-            }
+            this.javaFile.getParentFile().mkdirs();
         }
     }
 
