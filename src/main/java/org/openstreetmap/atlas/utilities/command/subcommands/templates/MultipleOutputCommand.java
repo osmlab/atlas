@@ -19,7 +19,7 @@ import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
  */
 public abstract class MultipleOutputCommand extends AbstractAtlasShellToolsCommand
 {
-    private static final String OUTPUT_DIRECTORY_OPTION_LONG = "output";
+    public static final String OUTPUT_DIRECTORY_OPTION_LONG = "output";
     private static final Character OUTPUT_DIRECTORY_OPTION_SHORT = 'o';
     private static final String OUTPUT_DIRECTORY_OPTION_DESCRIPTION = "Specify an alternate output directory for any output files. If the directory "
             + "does not exist, it will be created.";

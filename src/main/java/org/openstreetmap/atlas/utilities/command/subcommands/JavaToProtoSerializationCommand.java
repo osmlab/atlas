@@ -12,11 +12,10 @@ import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDe
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.AtlasLoaderCommand;
+import org.openstreetmap.atlas.utilities.command.subcommands.templates.MultipleOutputCommand;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 
 /**
- * TODO change this so it saves in place
- *
  * @author lcram
  */
 public class JavaToProtoSerializationCommand extends AtlasLoaderCommand
@@ -110,8 +109,19 @@ public class JavaToProtoSerializationCommand extends AtlasLoaderCommand
             {
                 outputAtlas.setSaveSerializationFormat(AtlasSerializationFormat.PROTOBUF);
             }
-            final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
-                    atlasFileName);
+            final Path concatenatedPath;
+            if (this.optionAndArgumentDelegate
+                    .hasOption(MultipleOutputCommand.OUTPUT_DIRECTORY_OPTION_LONG))
+            {
+                // save atlas to user specified output directory
+                concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
+                        atlasFileName);
+            }
+            else
+            {
+                // save atlas in place
+                concatenatedPath = Paths.get(atlasResource.getAbsolutePath());
+            }
             final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
             outputAtlas.save(outputFile);
 
