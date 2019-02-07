@@ -185,8 +185,8 @@ public final class IsoCountry implements Serializable
 
     /**
      * Provides IsoCountry for a valid country display name. Ignores capitalization (e.g. "united
-     * stAtes" and "United States" are the same)
-     * Provides IsoCountry for a valid country display name.
+     * stAtes" and "United States" are the same) Provides IsoCountry for a valid country display
+     * name.
      *
      * @param displayCountry
      *            the display country name, e.g. "United States"

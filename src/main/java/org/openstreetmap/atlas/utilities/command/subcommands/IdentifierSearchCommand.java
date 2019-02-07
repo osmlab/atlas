@@ -205,11 +205,11 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
         final String[] idStringSplit = idString.split(",");
         for (final String idElement : idStringSplit)
         {
-            Long id;
+            final Long identifier;
             try
             {
-                id = Long.parseLong(idElement);
-                idSet.add(id);
+                identifier = Long.parseLong(idElement);
+                idSet.add(identifier);
             }
             catch (final NumberFormatException exception)
             {
@@ -232,7 +232,7 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
         final String[] typeStringSplit = typeString.split(",");
         for (final String typeElement : typeStringSplit)
         {
-            ItemType type;
+            final ItemType type;
             try
             {
                 type = ItemType.valueOf(typeElement.toUpperCase());

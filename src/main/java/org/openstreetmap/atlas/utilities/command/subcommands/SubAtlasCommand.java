@@ -112,7 +112,7 @@ public class SubAtlasCommand extends AtlasLoaderCommand
             logger.error("unable to parse {}", wkt, exception);
         }
 
-        Optional<Atlas> subbedAtlas;
+        final Optional<Atlas> subbedAtlas;
         if (geometry instanceof Polygon)
         {
             final org.openstreetmap.atlas.geography.Polygon polygon = new JtsPolygonConverter()
