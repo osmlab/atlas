@@ -33,7 +33,7 @@ public class InputStreamResource extends AbstractResource
 
     /**
      * The supplier given to this constructor should return a new input stream at each invocation to
-     * avoid any read-once gotchas. E.g. of a good supplier: () -> new FileInputStream("foo.txt")
+     * avoid any read-once gotchas. E.g. of a good supplier: () -&gt; new FileInputStream("foo.txt")
      *
      * @param inputStreamSupplier
      *            the stream supplier
