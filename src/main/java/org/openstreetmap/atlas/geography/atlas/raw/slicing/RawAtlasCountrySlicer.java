@@ -56,18 +56,17 @@ public class RawAtlasCountrySlicer
 
     // Bring in all points -- this is important for proper sectioning later downstream, otherwise we
     // will bring in geometry definitions with no underlying points
-    private final Predicate<AtlasEntity> pointPredicate = entity -> entity instanceof Point;
+    private static final Predicate<AtlasEntity> pointPredicate = entity -> entity instanceof Point;
 
     // Bring in all relations that are tagged as Water or Coastline
-    private final Predicate<AtlasEntity> relationPredicate = entity ->
-    {
-        return entity.getType().equals(ItemType.RELATION) && Validators.isOfType(entity,
-                NaturalTag.class, NaturalTag.WATER, NaturalTag.COASTLINE);
-    };
+    private static final Predicate<AtlasEntity> relationPredicate = entity -> entity.getType()
+            .equals(ItemType.RELATION)
+            && Validators.isOfType(entity, NaturalTag.class, NaturalTag.WATER,
+                    NaturalTag.COASTLINE);
 
     // Dynamic expansion filter will be a combination of the water relations and points
-    private final Predicate<AtlasEntity> dynamicAtlasExpansionFilter = entity -> this.pointPredicate
-            .test(entity) || this.relationPredicate.test(entity);
+    private static final Predicate<AtlasEntity> dynamicAtlasExpansionFilter = entity -> pointPredicate
+            .test(entity) || relationPredicate.test(entity);
 
     /**
      * The default constructor for the old, pre-water relation pipeline-- this method will slice
@@ -269,8 +268,7 @@ public class RawAtlasCountrySlicer
         final DynamicAtlasPolicy policy = new DynamicAtlasPolicy(this.atlasFetcher, this.sharding,
                 initialShard, Rectangle.MAXIMUM).withDeferredLoading(true)
                         .withExtendIndefinitely(false).withAggressivelyExploreRelations(true)
-                        .withAtlasEntitiesToConsiderForExpansion(
-                                this.dynamicAtlasExpansionFilter::test);
+                        .withAtlasEntitiesToConsiderForExpansion(dynamicAtlasExpansionFilter::test);
 
         final DynamicAtlas atlas = new DynamicAtlas(policy);
         atlas.preemptiveLoad();

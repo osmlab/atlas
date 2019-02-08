@@ -401,8 +401,9 @@ public class SubAtlasCreator implements SubAtlas
         return Optional.ofNullable(result);
     }
 
+    @SuppressWarnings("squid:S3776")
     @Override
-    public Optional<Atlas> silkCut(final Polygon boundary)
+    public Optional<Atlas> silkCut(final GeometricSurface boundary)
     {
         logger.debug(CUT_START_MESSAGE, AtlasCutType.SILK_CUT, this.atlas.getName(),
                 this.atlas.metaData());
@@ -501,20 +502,15 @@ public class SubAtlasCreator implements SubAtlas
                 point.getLocation(), point.getTags()));
 
         // Add the Points for all included Lines
-        linesIntersecting.get().forEach(line ->
-        {
-            line.getRawGeometry().forEach(location ->
-            {
-                this.atlas.pointsAt(location).forEach(point ->
+        linesIntersecting.get().forEach(line -> line.getRawGeometry()
+                .forEach(location -> this.atlas.pointsAt(location).forEach(point ->
                 {
                     if (!hasPoint.test(point))
                     {
                         builder.addPoint(point.getIdentifier(), point.getLocation(),
                                 point.getTags());
                     }
-                });
-            });
-        });
+                })));
 
         Iterables.stream(this.atlas.relationsLowerOrderFirst()).filter(hasRelation.negate())
                 .forEach(relation ->
