@@ -61,6 +61,7 @@ dependencies
     compile packages.protobuf_java
     compile packages.protoc
     compile packages.artifact
+    compile packages.groovy
 
     shaded project.configurations.getByName('compile')
     shaded packages.slf4j.log4j12
