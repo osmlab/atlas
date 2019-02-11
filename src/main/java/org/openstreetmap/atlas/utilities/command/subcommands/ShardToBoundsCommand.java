@@ -31,8 +31,8 @@ public class ShardToBoundsCommand extends AbstractAtlasShellToolsCommand
 
     public ShardToBoundsCommand()
     {
-        this.optionAndArgumentDelegate = new OptionAndArgumentDelegate(this);
-        this.outputDelegate = new CommandOutputDelegate(this);
+        this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
+        this.outputDelegate = this.getCommandOutputDelegate();
     }
 
     @Override

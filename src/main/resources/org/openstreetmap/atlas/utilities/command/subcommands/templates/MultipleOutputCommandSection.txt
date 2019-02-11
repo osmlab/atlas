@@ -1,0 +1,5 @@
+This man section is generated for any command which inherits multiple output behaviour. 
+This behaviour provides an '--output' option, which can be used to change the default
+location of any output files. This example changes the output location of an example
+command to your desktop:
+#$ example-output-command myatlas1.atlas --output ~/Desktop
