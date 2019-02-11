@@ -169,28 +169,6 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         return this.rawAtlas.metaData().getShardName().orElse(this.rawAtlas.getName());
     }
 
-    /**
-     * Check if the {@link Geometry} should be filtered out based on the provided bound.
-     *
-     * @param geometry
-     *            The {@link Geometry} to check.
-     * @return {@code true} if the given geometry should be filtered out.
-     */
-    private boolean isOutsideWorkingBound(final Geometry geometry)
-    {
-        final String countryCode = CountryBoundaryMap.getGeometryProperty(geometry,
-                ISOCountryTag.KEY);
-
-        if (countryCode != null)
-        {
-            return getCountries() != null && !getCountries().isEmpty()
-                    && !getCountries().contains(countryCode);
-        }
-
-        // Assume it's inside the bound
-        return false;
-    }
-
     private boolean isOutsideWorkingBound(final Map<String, String> tags)
     {
         if (getCountries() != null && !getCountries().isEmpty())
@@ -267,7 +245,6 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             // the slices are returned in or which country is slicing the line.
             for (final Geometry slice : slices)
             {
-
                 final String countryCode = CountryBoundaryMap.getGeometryProperty(slice,
                         ISOCountryTag.KEY);
                 countryCodesForSlices.add(countryCode);
@@ -293,7 +270,6 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             {
                 for (final Geometry slice : slices)
                 {
-
                     // Check if the slice is within the working bound and mark all points for this
                     // slice for removal if so
                     if (isOutsideWorkingBound(slice))

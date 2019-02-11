@@ -69,7 +69,7 @@ public class RawAtlasCountrySlicer
             .test(entity) || relationPredicate.test(entity);
 
     /**
-     * The default constructor for the old, pre-water relation pipeline-- this method will slice
+     * The default constructor from before water relations were handled -- this method will slice
      * without dynamic expansion along water relations. Left in for legacy compatibility.
      *
      * @param countries
@@ -87,9 +87,9 @@ public class RawAtlasCountrySlicer
     }
 
     /**
-     * Updated constructor for the water relation pipeline-- this method will use the Atlas fetcher
-     * function and sharding tree to dynamically expand on all water relations so they can be sliced
-     * appropriately.
+     * Updated constructor for generating Atlases with water relations-- this method will use the
+     * Atlas fetcher function and sharding tree to dynamically expand on all water relations so they
+     * can be sliced appropriately.
      *
      * @param country
      *            The list of countries to slice. Should really just be one country?
@@ -110,7 +110,7 @@ public class RawAtlasCountrySlicer
         if (sharding == null || atlasFetcher == null)
         {
             throw new IllegalArgumentException(
-                    "Must supply a valid sharding and fetcher function for sectioning!");
+                    "Must supply a valid sharding and fetcher function for slicing!");
         }
         this.countryBoundaryMap = countryBoundaryMap;
         this.countries.addAll(country);
@@ -119,8 +119,8 @@ public class RawAtlasCountrySlicer
     }
 
     /**
-     * The default constructor for the old, pre-water relation pipeline-- this method will slice
-     * without dynamic expansion along water relations. Left in for legacy compatibility.
+     * The default constructor before water relations were handled -- this method will slice without
+     * dynamic expansion along water relations. Left in for legacy compatibility.
      *
      * @param country
      *            The country to slice
@@ -136,9 +136,9 @@ public class RawAtlasCountrySlicer
     }
 
     /**
-     * Updated constructor for the water relation pipeline-- this method will use the Atlas fetcher
-     * function and sharding tree to dynamically expand on all water relations so they can be sliced
-     * appropriately.
+     * Updated constructor for generating Atlases that expand and slice water relations-- this
+     * method will use the Atlas fetcher function and sharding tree to dynamically expand on all
+     * water relations so they can be sliced appropriately.
      *
      * @param country
      *            The country to slice.
@@ -158,7 +158,7 @@ public class RawAtlasCountrySlicer
         if (sharding == null || atlasFetcher == null)
         {
             throw new IllegalArgumentException(
-                    "Must supply a valid sharding and fetcher function for sectioning!");
+                    "Must supply a valid sharding and fetcher function for slicing!");
         }
         this.countryBoundaryMap = countryBoundaryMap;
         this.countries.add(country);
@@ -167,9 +167,9 @@ public class RawAtlasCountrySlicer
     }
 
     /**
-     * Legacy pipeline for compatibility that slices lines and relations in one go, without dynamic
-     * expansion on water relations. Please slice lines and relations individually now using the
-     * sliceLines and sliceRelations methods.
+     * Legacy entrypoint that slices lines and relations in one go, without dynamic expansion on
+     * water relations. Please slice lines and relations individually now using the sliceLines and
+     * sliceRelations methods.
      *
      * @param rawAtlas
      *            An unsliced Atlas
@@ -262,7 +262,7 @@ public class RawAtlasCountrySlicer
                 initialShard.getName());
 
         // Keep track of all loaded shards. This will be used to cut the sub-atlas for the shard
-        // we're processing after all sectioning is completed. Initial shard will always be first!
+        // we're processing after all slicing is completed. Initial shard will always be first!
         this.loadedShards.add(initialShard);
 
         final DynamicAtlasPolicy policy = new DynamicAtlasPolicy(this.atlasFetcher, this.sharding,

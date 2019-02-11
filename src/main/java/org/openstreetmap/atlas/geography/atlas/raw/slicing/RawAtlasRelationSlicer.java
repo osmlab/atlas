@@ -407,12 +407,12 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
 
                 }, AtlasCutType.SOFT_CUT)
                         .orElseThrow(() -> new CoreException(
-                                "Cannot have an empty atlas after way sectioning {}",
+                                "Cannot have an empty atlas after relation slicing {}",
                                 this.initialShard.getName()));
 
                 return countrySubAtlas.subAtlas(this.initialShard.bounds(), AtlasCutType.SILK_CUT)
                         .orElseThrow(() -> new CoreException(
-                                "Cannot have an empty atlas after way sectioning {}",
+                                "Cannot have an empty atlas after relation slicing {}",
                                 this.initialShard.getName()));
             }
             else
@@ -667,28 +667,6 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         }
 
         return countryEntityMap;
-    }
-
-    /**
-     * Check if the {@link Geometry} should be filtered out based on the provided bound.
-     *
-     * @param geometry
-     *            The {@link Geometry} to check.
-     * @return {@code true} if the given geometry should be filtered out.
-     */
-    private boolean isOutsideWorkingBound(final Geometry geometry)
-    {
-        final String countryCode = CountryBoundaryMap.getGeometryProperty(geometry,
-                ISOCountryTag.KEY);
-
-        if (countryCode != null)
-        {
-            return getCountries() != null && !getCountries().isEmpty()
-                    && !getCountries().contains(countryCode);
-        }
-
-        // Assume it's inside the bound
-        return false;
     }
 
     /**

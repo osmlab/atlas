@@ -29,7 +29,6 @@ public class SeaHandler extends AbstractWaterHandler
          */
         return Validators.isOfType(atlasEntity, NaturalTag.class, NaturalTag.WATER)
                 && Validators.isOfType(atlasEntity, WaterTag.class, WaterTag.SEA);
-
     }
 
     @Override

@@ -54,23 +54,6 @@ public class ConfiguredTaggableFilterTest
     }
 
     @Test
-    public void testDefaultOsmosisRelationConfiguration()
-    {
-        final Resource relationResource = new InputStreamResource(
-                getClass().getClassLoader().getResourceAsStream(
-                        "org/openstreetmap/atlas/geography/atlas/pbf/osm-pbf-way.json"));
-        final Configuration relationConfiguration = new StandardConfiguration(relationResource);
-        final ConfiguredTaggableFilter relationFilter = new ConfiguredTaggableFilter(
-                relationConfiguration);
-
-        final Taggable nonBoundaryRelationTags = Taggable.with("type", "restriction");
-        final Taggable boundaryRelationTags = Taggable.with("boundary", "administrative");
-
-        Assert.assertTrue(relationFilter.test(nonBoundaryRelationTags));
-        Assert.assertFalse(relationFilter.test(boundaryRelationTags));
-    }
-
-    @Test
     public void testDefaultOsmosisWayConfiguration()
     {
         final Resource wayResource = new InputStreamResource(
