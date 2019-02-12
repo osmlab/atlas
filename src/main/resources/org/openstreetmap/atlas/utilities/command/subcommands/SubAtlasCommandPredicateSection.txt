@@ -1,0 +1,12 @@
+The subatlas command supports predicate slicing using Groovy integration. When you supply
+code to the '--predicate' option, you are supplying a Groovy closure which will be applied
+as a Predicate<AtlasEntity>. Your closure will be wrapped in some Groovy code that handles
+imports for you, as well as conversion from the closure to the Java Predicate<AtlasEntity>.
+See the following examples.
+
+Filter down to only points:
+#--predicate 'entity -> entity.getType() == ItemType.POINT'
+Filter down to only primary highways:
+#--predicate 'entity -> entity.getTag("highway").orElse("").equals("primary")'
+Filter out all entities that are not members of at least one relation:
+#--predicate 'entity -> !entity.relations().isEmpty()'
