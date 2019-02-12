@@ -46,6 +46,8 @@ public class SubAtlasCommand extends AtlasLoaderCommand
             + new StringList(CUT_TYPE_STRINGS).join(", ") + ". Defaults to SOFT_CUT.";
     private static final String CUT_TYPE_OPTION_HINT = "type";
 
+    private static final String SCRIPT = "import java.util.function.*; import org.openstreetmap.atlas.geography.atlas.items.*; Predicate<AtlasEntity> pred = { %s }; return pred;";
+
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
@@ -110,8 +112,9 @@ public class SubAtlasCommand extends AtlasLoaderCommand
         // works, but you have to do
         // "java.util.function.Predicate<org.openstreetmap.foo.AtlasEntity> pred = { blah -> true }"
         // and you need to specify the full package and class name of everything
-        final Predicate<AtlasEntity> matcher = (Predicate<AtlasEntity>) shell.evaluate(
-                this.optionAndArgumentDelegate.getOptionArgument(PREDICATE_OPTION_LONG).get());
+        final Predicate<AtlasEntity> matcher = (Predicate<AtlasEntity>) shell
+                .evaluate(String.format(SCRIPT, this.optionAndArgumentDelegate
+                        .getOptionArgument(PREDICATE_OPTION_LONG).get()));
         final Optional<Atlas> subbedAtlas;
         subbedAtlas = atlas.subAtlas(matcher, AtlasCutType.SOFT_CUT);
 
