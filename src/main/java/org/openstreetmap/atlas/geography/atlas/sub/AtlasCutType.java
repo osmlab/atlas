@@ -32,8 +32,13 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  * its members will be included in the member list, even if not matched by the given matcher.
  * </ul>
  * </li>
- * <li>Silk-cut: Same as a soft-cut, but always soft-cuts relations and keeps all points on line
- * geometries kept by the slice.
+ * <li>Silk-cut: Largely the same as a Soft-cut, however there is one important difference. During
+ * soft-cuts, Points are only brought in if they match an Edge. However, this filter is too
+ * restrictive if the cut is being performed before way-sectioning, as in this case all Lines are
+ * potential Edge candidates and must have Points associated with their coordinates preserved.
+ * Silk-cut will perform an extra check so that all Lines being included will have any Points
+ * associated with their coordinates preserved as well, allowing way-sectioning to run on these
+ * Atlases.
  * <li>Hard-cut-all: Perform a cut, only keep entities that match the bound or filter. If including
  * the item in the final Atlas breaks Atlas integrity, exclude that entity. Example: An Edge is
  * brought in via boundary or filter match, but its start or end Node is omitted. As a result, the

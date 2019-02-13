@@ -401,7 +401,6 @@ public class SubAtlasCreator implements SubAtlas
         return Optional.ofNullable(result);
     }
 
-    @SuppressWarnings("squid:S3776")
     @Override
     public Optional<Atlas> silkCut(final GeometricSurface boundary)
     {

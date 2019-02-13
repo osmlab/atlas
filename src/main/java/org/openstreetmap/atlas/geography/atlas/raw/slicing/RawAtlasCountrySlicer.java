@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -7,8 +8,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.apache.commons.lang3.StringUtils;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.dynamic.DynamicAtlas;
@@ -19,12 +23,14 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
-import org.openstreetmap.atlas.tags.NaturalTag;
-import org.openstreetmap.atlas.tags.annotations.validation.Validators;
+import org.openstreetmap.atlas.tags.filters.TaggableFilter;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.helpers.MessageFormatter;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 
 /**
  * Main entry point to initiate raw {@link Atlas} country-slicing.
@@ -38,9 +44,30 @@ public class RawAtlasCountrySlicer
     // Logging constants
     private static final String STARTED_TASK_MESSAGE = "Started {} for Shard {}";
     private static final String COMPLETED_TASK_MESSAGE = "Finished {} for Shard {} in {}";
-    private static final String DYNAMIC_ATLAS_CREATION_TASK = "Dynamic Atlas Creation";
+    private static final String DYNAMIC_ATLAS_CREATION_TASK = "dynamic Atlas creation";
+    private static final String POINT_AND_LINE_SLICING_TASK = "point and line slicing";
+    private static final String RELATION_SLICING_TASK = "relation slicing";
 
     private static final Logger logger = LoggerFactory.getLogger(RawAtlasCountrySlicer.class);
+
+    // Resource defining the filter for Relations that will be expanded on
+    private static final String DYNAMIC_RELATION_TAG_FILTER_RESOURCE = "dynamic-relation-tag-filter.json";
+
+    // The default dynamically expanded Relation tags
+    private static List<TaggableFilter> defaultTaggableFilter = computeDefaultFilter();
+
+    // Bring in all points -- this is important for proper sectioning later downstream, otherwise we
+    // will bring in geometry definitions with no underlying points
+    private static final Predicate<AtlasEntity> pointPredicate = entity -> entity instanceof Point;
+
+    // Bring in all Relations that are tagged as Water or Coastline
+    private static final Predicate<AtlasEntity> relationPredicate = entity -> entity.getType()
+            .equals(ItemType.RELATION)
+            && defaultTaggableFilter.stream().allMatch(filter -> filter.test(entity));
+
+    // Dynamic expansion filter will be a combination of the water Relations and Points
+    private static final Predicate<AtlasEntity> dynamicAtlasExpansionFilter = entity -> pointPredicate
+            .test(entity) || relationPredicate.test(entity);
 
     private final Sharding sharding;
 
@@ -54,19 +81,24 @@ public class RawAtlasCountrySlicer
 
     private final List<Shard> loadedShards = new ArrayList<>();
 
-    // Bring in all points -- this is important for proper sectioning later downstream, otherwise we
-    // will bring in geometry definitions with no underlying points
-    private static final Predicate<AtlasEntity> pointPredicate = entity -> entity instanceof Point;
-
-    // Bring in all relations that are tagged as Water or Coastline
-    private static final Predicate<AtlasEntity> relationPredicate = entity -> entity.getType()
-            .equals(ItemType.RELATION)
-            && Validators.isOfType(entity, NaturalTag.class, NaturalTag.WATER,
-                    NaturalTag.COASTLINE);
-
-    // Dynamic expansion filter will be a combination of the water relations and points
-    private static final Predicate<AtlasEntity> dynamicAtlasExpansionFilter = entity -> pointPredicate
-            .test(entity) || relationPredicate.test(entity);
+    private static List<TaggableFilter> computeDefaultFilter()
+    {
+        try (InputStreamReader reader = new InputStreamReader(RawAtlasCountrySlicer.class
+                .getResourceAsStream(DYNAMIC_RELATION_TAG_FILTER_RESOURCE)))
+        {
+            final JsonElement element = new JsonParser().parse(reader);
+            final JsonArray filters = element.getAsJsonObject().get("filters").getAsJsonArray();
+            return StreamSupport.stream(filters.spliterator(), false)
+                    .map(jsonElement -> TaggableFilter.forDefinition(jsonElement.getAsString()))
+                    .collect(Collectors.toList());
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException(
+                    "There was a problem parsing {}. Check if the JSON file has valid structure.",
+                    DYNAMIC_RELATION_TAG_FILTER_RESOURCE, exception);
+        }
+    }
 
     /**
      * The default constructor from before water relations were handled -- this method will slice
@@ -192,11 +224,11 @@ public class RawAtlasCountrySlicer
     {
         final Time time = Time.now();
         final String shardName = getShardOrAtlasName(rawAtlas);
-        logger.info("Started point and line slicing for shard {}", shardName);
+        logger.info(STARTED_TASK_MESSAGE, POINT_AND_LINE_SLICING_TASK, shardName);
 
         final RawAtlasSlicer pointAndLineSlicer = new RawAtlasPointAndLineSlicer(this.countries,
                 this.countryBoundaryMap, rawAtlas);
-        logger.info("Finished point and line slicing for shard {} in {}", shardName,
+        logger.info(COMPLETED_TASK_MESSAGE, POINT_AND_LINE_SLICING_TASK, shardName,
                 time.elapsedSince());
         return pointAndLineSlicer.slice();
     }
@@ -214,10 +246,10 @@ public class RawAtlasCountrySlicer
     {
         final Time time = Time.now();
         final String shardName = getShardOrAtlasName(partiallySlicedAtlas);
-        logger.info("Started relation slicing for shard {}", shardName);
+        logger.info(STARTED_TASK_MESSAGE, RELATION_SLICING_TASK, shardName);
         final RawAtlasSlicer relationSlicer = new RawAtlasRelationSlicer(partiallySlicedAtlas, null,
                 this.countries, this.countryBoundaryMap);
-        logger.info("Finished relation slicing for shard {} in {}", shardName, time.elapsedSince());
+        logger.info(COMPLETED_TASK_MESSAGE, RELATION_SLICING_TASK, shardName, time.elapsedSince());
         return relationSlicer.slice();
     }
 
@@ -234,12 +266,12 @@ public class RawAtlasCountrySlicer
         final Time time = Time.now();
         final Atlas partiallySlicedExpandedAtlas = buildExpandedAtlas(initialShard);
         final String shardName = getShardOrAtlasName(partiallySlicedExpandedAtlas);
-        logger.info("Started relation slicing for shard {}", shardName);
+        logger.info(STARTED_TASK_MESSAGE, RELATION_SLICING_TASK, shardName);
 
         final RawAtlasSlicer relationSlicer = new RawAtlasRelationSlicer(
                 partiallySlicedExpandedAtlas, initialShard, this.countries,
                 this.countryBoundaryMap);
-        logger.info("Finished relation slicing for shard {} in {}", shardName, time.elapsedSince());
+        logger.info(COMPLETED_TASK_MESSAGE, RELATION_SLICING_TASK, shardName, time.elapsedSince());
         return relationSlicer.slice();
     }
 
@@ -258,8 +290,8 @@ public class RawAtlasCountrySlicer
      */
     private Atlas buildExpandedAtlas(final Shard initialShard)
     {
-        final Time dynamicAtlasTime = logTaskStartedAsInfo(DYNAMIC_ATLAS_CREATION_TASK,
-                initialShard.getName());
+        final Time dynamicAtlasTime = Time.now();
+        logger.info(DYNAMIC_ATLAS_CREATION_TASK, initialShard.getName());
 
         // Keep track of all loaded shards. This will be used to cut the sub-atlas for the shard
         // we're processing after all slicing is completed. Initial shard will always be first!
@@ -268,12 +300,12 @@ public class RawAtlasCountrySlicer
         final DynamicAtlasPolicy policy = new DynamicAtlasPolicy(this.atlasFetcher, this.sharding,
                 initialShard, Rectangle.MAXIMUM).withDeferredLoading(true)
                         .withExtendIndefinitely(false).withAggressivelyExploreRelations(true)
-                        .withAtlasEntitiesToConsiderForExpansion(dynamicAtlasExpansionFilter::test);
+                        .withAtlasEntitiesToConsiderForExpansion(dynamicAtlasExpansionFilter);
 
         final DynamicAtlas atlas = new DynamicAtlas(policy);
         atlas.preemptiveLoad();
 
-        logTaskAsInfo(COMPLETED_TASK_MESSAGE, DYNAMIC_ATLAS_CREATION_TASK, getShardOrAtlasName(),
+        logger.info(COMPLETED_TASK_MESSAGE, DYNAMIC_ATLAS_CREATION_TASK, getShardOrAtlasName(),
                 dynamicAtlasTime.elapsedSince());
         return atlas;
     }
@@ -295,17 +327,4 @@ public class RawAtlasCountrySlicer
     {
         return atlas.metaData().getShardName().orElse(atlas.getName());
     }
-
-    private void logTaskAsInfo(final String message, final Object... arguments)
-    {
-        logger.info(MessageFormatter.arrayFormat(message, arguments).getMessage());
-    }
-
-    private Time logTaskStartedAsInfo(final String taskname, final String shardName)
-    {
-        final Time time = Time.now();
-        logger.info(STARTED_TASK_MESSAGE, taskname, shardName);
-        return time;
-    }
-
 }

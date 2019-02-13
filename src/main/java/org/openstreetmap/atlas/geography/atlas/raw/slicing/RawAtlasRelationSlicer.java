@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -261,6 +262,11 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         final Coordinate[] lineCoordinates = PRECISION_REDUCER.edit(lineString.getCoordinates(),
                 lineString);
 
+        // Some larger relations will load in significant amounts of data from other countries in
+        // order to get the complete data for the relation. These are necessary for deciding how to
+        // slice, but the actual slicing of parts of the relation outside the working set of
+        // countries can be skipped-- they will be cut out of the final Atlas returned via subatlas
+        // calls anyway.
         if (isOutsideWorkingBound(lineString))
         {
             return;
@@ -375,7 +381,15 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
     }
 
     /**
-     * Cuts out data outside the shard boundary, since we don't need any data beyond that.
+     * Used to cut out unnecessary data loaded in during DynamicAtlas exploration from the final
+     * shard. First, a subatlas is called to remove lines loaded in from countries not being
+     * sliced-- this is important because when dynamically exploring water relations, line sliced
+     * data from other countries is loaded so the whole relation can be loaded. That data is not
+     * necessary once the relation has been sliced, so it is removed. Then, a separate subatlas call
+     * is made to trim out geometry outside the shard bounds. Note that SILK_CUT is used so that any
+     * lines that expand past the borders of the shard have their underlying point geometries kept.
+     * This inclusion is critical for way-sectioning, which needs all lines to have their points for
+     * purposes of edge detection.
      *
      * @param atlas
      *            The {@link Atlas} file we need to trim
@@ -387,8 +401,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         {
             if (this.initialShard != null)
             {
-
-                final Atlas countrySubAtlas = atlas.subAtlas(entity ->
+                final Predicate<AtlasEntity> isInCountry = entity ->
                 {
                     final Optional<String> countriesTag = entity.getTag(ISOCountryTag.KEY);
                     if (countriesTag.isPresent())
@@ -404,12 +417,16 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                         }
                     }
                     return false;
+                };
 
-                }, AtlasCutType.SOFT_CUT)
+                // filter out all AtlasEntities that are not in the list of countries being sliced
+                // for this shard
+                final Atlas countrySubAtlas = atlas.subAtlas(isInCountry, AtlasCutType.SOFT_CUT)
                         .orElseThrow(() -> new CoreException(
                                 "Cannot have an empty atlas after relation slicing {}",
                                 this.initialShard.getName()));
 
+                // then, filter out all remaining entities based on the shard bounds
                 return countrySubAtlas.subAtlas(this.initialShard.bounds(), AtlasCutType.SILK_CUT)
                         .orElseThrow(() -> new CoreException(
                                 "Cannot have an empty atlas after relation slicing {}",
