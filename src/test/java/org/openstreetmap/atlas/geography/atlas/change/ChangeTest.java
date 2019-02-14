@@ -14,26 +14,21 @@ import org.openstreetmap.atlas.utilities.collections.Maps;
 
 /**
  * @author matthieun
+ * @author Yazad Khambata
  */
 public class ChangeTest
 {
+    public static final long TEST_IDENTIFIER = 123L;
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
 
     @Test
     public void testAdd()
     {
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L, null, Maps.hashMap(), null));
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.REMOVE,
-                new CompleteLine(123L, null, null, null));
-        final ChangeBuilder builder = new ChangeBuilder();
-        builder.add(featureChange1);
-        builder.add(featureChange2);
-        final Change change = builder.get();
+        final Change change = newChangeWithAreaAndLine();
 
-        Assert.assertTrue(change.changeFor(ItemType.AREA, 123L).isPresent());
-        Assert.assertTrue(change.changeFor(ItemType.LINE, 123L).isPresent());
+        Assert.assertTrue(change.changeFor(ItemType.AREA, TEST_IDENTIFIER).isPresent());
+        Assert.assertTrue(change.changeFor(ItemType.LINE, TEST_IDENTIFIER).isPresent());
     }
 
     @Test
@@ -43,9 +38,9 @@ public class ChangeTest
         this.expectedException.expectMessage("Cannot merge two feature changes");
 
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L, null, Maps.hashMap(), null));
+                new CompleteArea(TEST_IDENTIFIER, null, Maps.hashMap(), null));
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.REMOVE,
-                new CompleteArea(123L, null, null, null));
+                new CompleteArea(TEST_IDENTIFIER, null, null, null));
         final ChangeBuilder builder = new ChangeBuilder();
         builder.add(featureChange1);
         builder.add(featureChange2);
@@ -54,17 +49,57 @@ public class ChangeTest
     @Test
     public void testAddSameIdentifierMerge()
     {
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L, null, Maps.hashMap("key", "value"), null));
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L, Polygon.TEST_BUILDING, null, null));
-        final ChangeBuilder builder = new ChangeBuilder();
-        builder.add(featureChange1);
-        builder.add(featureChange2);
-        final Change result = builder.get();
-        final FeatureChange merged = result.changeFor(ItemType.AREA, 123L).get();
+        final Change result = newChangeWith2Areas();
+        final FeatureChange merged = result.changeFor(ItemType.AREA, TEST_IDENTIFIER).get();
         final Area area = (Area) merged.getReference();
         Assert.assertEquals(Polygon.TEST_BUILDING, area.asPolygon());
         Assert.assertEquals(Maps.hashMap("key", "value"), area.getTags());
+    }
+
+    @Test
+    public void testEqualsAndHashCode()
+    {
+        final Change changeWithAreaAndLine1 = newChangeWithAreaAndLine();
+        final Change changeWithAreaAndLine2 = newChangeWithAreaAndLine();
+
+        Assert.assertTrue(changeWithAreaAndLine1 != changeWithAreaAndLine2);
+
+        Assert.assertEquals(changeWithAreaAndLine1, changeWithAreaAndLine2);
+        Assert.assertEquals(changeWithAreaAndLine1.hashCode(), changeWithAreaAndLine2.hashCode());
+
+        final Change changeWith2Areas1 = newChangeWith2Areas();
+        final Change changeWith2Areas2 = newChangeWith2Areas();
+
+        Assert.assertTrue(changeWith2Areas1 != changeWith2Areas2);
+
+        Assert.assertEquals(changeWith2Areas1, changeWith2Areas2);
+        Assert.assertEquals(changeWith2Areas1.hashCode(), changeWith2Areas2.hashCode());
+
+        Assert.assertNotEquals(changeWithAreaAndLine1, changeWith2Areas1);
+        Assert.assertNotEquals(changeWithAreaAndLine1.hashCode(), changeWith2Areas1.hashCode());
+    }
+
+    private Change newChangeWithAreaAndLine()
+    {
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteArea(TEST_IDENTIFIER, null, Maps.hashMap(), null));
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.REMOVE,
+                new CompleteLine(TEST_IDENTIFIER, null, null, null));
+        final ChangeBuilder builder = new ChangeBuilder();
+        builder.add(featureChange1);
+        builder.add(featureChange2);
+        return builder.get();
+    }
+
+    private Change newChangeWith2Areas()
+    {
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteArea(TEST_IDENTIFIER, null, Maps.hashMap("key", "value"), null));
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
+                new CompleteArea(TEST_IDENTIFIER, Polygon.TEST_BUILDING, null, null));
+        final ChangeBuilder builder = new ChangeBuilder();
+        builder.add(featureChange1);
+        builder.add(featureChange2);
+        return builder.get();
     }
 }
