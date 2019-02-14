@@ -188,13 +188,19 @@ public class Change implements Located, Serializable
     {
         // self check
         if (this == other)
+        {
             return true;
+        }
         // null check
         if (other == null)
+        {
             return false;
+        }
         // type check and cast
         if (getClass() != other.getClass())
+        {
             return false;
+        }
 
         final Change that = (Change) other;
 
