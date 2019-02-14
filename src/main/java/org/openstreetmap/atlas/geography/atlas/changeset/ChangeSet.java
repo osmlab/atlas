@@ -16,6 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
  * @deprecated - see new API under org.openstreetmap.atlas.geography.atlas.change package.
  */
 @Deprecated
+@SuppressWarnings("squid:S1874")
 public interface ChangeSet extends Set<ChangeItem>, Serializable
 {
     /**
