@@ -7,7 +7,7 @@ package org.openstreetmap.atlas.geography.atlas.changeset;
  * @deprecated - see new API under org.openstreetmap.atlas.geography.atlas.change package.
  */
 @Deprecated
-public enum ChangeAction
+public enum ChangeAction // NOSONAR
 {
     CREATE,
     UPDATE,

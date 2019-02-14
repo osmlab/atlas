@@ -11,7 +11,7 @@ import java.util.function.Supplier;
  * @deprecated - see new API under org.openstreetmap.atlas.geography.atlas.change package.
  */
 @Deprecated
-public interface ChangeSetDeserializer extends Supplier<Optional<ChangeSet>>, AutoCloseable
+public interface ChangeSetDeserializer extends Supplier<Optional<ChangeSet>>, AutoCloseable // NOSONAR
 {
 
 }

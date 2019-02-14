@@ -16,7 +16,7 @@ import org.openstreetmap.atlas.tags.Taggable;
  * @deprecated - see new API under org.openstreetmap.atlas.geography.atlas.change package.
  */
 @Deprecated
-public interface ChangeItem extends Taggable, Serializable
+public interface ChangeItem extends Taggable, Serializable // NOSONAR
 {
     /**
      * @return action type of this change item

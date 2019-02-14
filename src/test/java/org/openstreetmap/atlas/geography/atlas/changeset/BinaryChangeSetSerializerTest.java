@@ -22,7 +22,7 @@ import org.openstreetmap.atlas.utilities.random.RandomTagsSupplier;
  * @deprecated - see new API under org.openstreetmap.atlas.geography.atlas.change package.
  */
 @Deprecated
-public class BinaryChangeSetSerializerTest
+public class BinaryChangeSetSerializerTest // NOSONAR
 {
     private static final Random RANDOM_GENERATOR = new Random();
     private static final List<ItemType> ITEM_TYPES = Arrays.asList(ItemType.values());
