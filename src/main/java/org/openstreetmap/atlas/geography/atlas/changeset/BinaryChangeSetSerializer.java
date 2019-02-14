@@ -12,7 +12,9 @@ import org.slf4j.LoggerFactory;
  * Serializes {@link ChangeSet} objects and writes them into {@link OutputStream}s in binary format.
  *
  * @author mkalender
+ * @deprecated - see new API under org.openstreetmap.atlas.geography.atlas.change package.
  */
+@Deprecated
 public class BinaryChangeSetSerializer implements ChangeSetSerializer
 {
     private static final Logger logger = LoggerFactory.getLogger(BinaryChangeSetSerializer.class);
