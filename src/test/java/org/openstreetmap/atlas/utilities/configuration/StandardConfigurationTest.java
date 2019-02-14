@@ -115,8 +115,8 @@ public class StandardConfigurationTest
             final StandardConfiguration flattened = new StandardConfiguration(
                     new InputStreamResource(flattenedSource));
 
-            Assert.assertEquals((long) expanded.get("a.b.c").value(), 0);
-            Assert.assertEquals((long) expanded.get("a.b.d").value(), 1);
+            Assert.assertEquals(0, (long) expanded.get("a.b.c").value());
+            Assert.assertEquals(1, (long) expanded.get("a.b.d").value());
             Assert.assertEquals((long) expanded.get("a.b.c").value(),
                     (long) flattened.get("a.b.c").value());
             Assert.assertEquals((long) expanded.get("a.b.d").value(),
@@ -145,15 +145,15 @@ public class StandardConfigurationTest
                     new InputStreamResource(flattenedSource2),
                     StandardConfiguration.ConfigurationFormat.YAML);
 
-            Assert.assertEquals((long) expanded1.get("a.b.c").value(), 0);
-            Assert.assertEquals((long) expanded1.get("a.b.d").value(), 1);
+            Assert.assertEquals(0, (long) expanded1.get("a.b.c").value());
+            Assert.assertEquals(1, (long) expanded1.get("a.b.d").value());
             Assert.assertEquals((long) expanded1.get("a.b.c").value(),
                     (long) flattened1.get("a.b.c").value());
             Assert.assertEquals((long) expanded1.get("a.b.d").value(),
                     (long) flattened1.get("a.b.d").value());
 
-            Assert.assertEquals((long) expanded2.get("a.b.c").value(), 0);
-            Assert.assertEquals((long) expanded2.get("a.b.d").value(), 1);
+            Assert.assertEquals(0, (long) expanded2.get("a.b.c").value());
+            Assert.assertEquals(1, (long) expanded2.get("a.b.d").value());
             Assert.assertEquals((long) expanded2.get("a.b.c").value(),
                     (long) flattened2.get("a.b.c").value());
             Assert.assertEquals((long) expanded2.get("a.b.d").value(),

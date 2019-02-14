@@ -274,7 +274,7 @@ public class StandardConfiguration implements Configuration
         }
         catch (final Exception jsonReadException)
         {
-            logger.error("Failure to load JSON configuration", jsonReadException.getMessage());
+            logger.warn("Unable to parse config file as JSON");
             return Optional.empty();
         }
     }
@@ -297,7 +297,7 @@ public class StandardConfiguration implements Configuration
         }
         catch (final Exception yamlReadException)
         {
-            logger.error("Failure to load configuration as YAML", yamlReadException.getMessage());
+            logger.warn("Unable to parse config file as YAML");
             return Optional.empty();
         }
         finally
