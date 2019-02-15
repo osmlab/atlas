@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
  * @deprecated - see new API under org.openstreetmap.atlas.geography.atlas.change package.
  */
 @Deprecated
-public class BinaryChangeSetSerializer implements ChangeSetSerializer // NOSONAR
+public class BinaryChangeSetSerializer implements ChangeSetSerializer
 {
     private static final Logger logger = LoggerFactory.getLogger(BinaryChangeSetSerializer.class);
 

@@ -16,7 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
  * @deprecated - see new API under org.openstreetmap.atlas.geography.atlas.change package.
  */
 @Deprecated
-public interface ChangeSet extends Set<ChangeItem>, Serializable // NOSONAR
+public interface ChangeSet extends Set<ChangeItem>, Serializable
 {
     /**
      * @param identifier

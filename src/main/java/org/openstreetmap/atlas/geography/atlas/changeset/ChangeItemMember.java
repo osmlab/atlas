@@ -10,7 +10,7 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
  * @deprecated - see new API under org.openstreetmap.atlas.geography.atlas.change package.
  */
 @Deprecated
-public interface ChangeItemMember // NOSONAR
+public interface ChangeItemMember
 {
     /**
      * @return id of the item member, which is a reference of the member's entity id.

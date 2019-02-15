@@ -14,7 +14,7 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
  * @deprecated - see new API under org.openstreetmap.atlas.geography.atlas.change package.
  */
 @Deprecated
-public interface MutableChangeItem extends ChangeItem // NOSONAR
+public interface MutableChangeItem extends ChangeItem
 {
     void addAllMembers(Iterable<ChangeItemMember> members) throws CoreException;
 
