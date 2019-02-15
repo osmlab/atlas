@@ -118,11 +118,11 @@ public class StandardConfiguration implements Configuration
         switch (configFormat)
         {
             case JSON:
-                this.configurationData = this.readConfigMapFromJSON(configBytes)
+                this.configurationData = this.readConfigurationMapFromJSON(configBytes)
                         .orElseThrow(() -> new CoreException("Unable to load JSON configuration."));
                 return;
             case YAML:
-                this.configurationData = this.readConfigMapFromYAML(configBytes)
+                this.configurationData = this.readConfigurationMapFromYAML(configBytes)
                         .orElseThrow(() -> new CoreException("Unable to load YAML configuration."));
                 return;
             case UNKNOWN:
@@ -131,8 +131,8 @@ public class StandardConfiguration implements Configuration
                 // until one finds some data
                 final Optional<Map<String, Object>> loadedConfigMap = Stream
                         .<Supplier<Optional<Map<String, Object>>>> of(
-                                () -> this.readConfigMapFromJSON(configBytes),
-                                () -> this.readConfigMapFromYAML(configBytes))
+                                () -> this.readConfigurationMapFromJSON(configBytes),
+                                () -> this.readConfigurationMapFromYAML(configBytes))
                         .map(Supplier::get).filter(Optional::isPresent).map(Optional::get)
                         .findFirst();
 
@@ -258,7 +258,7 @@ public class StandardConfiguration implements Configuration
     }
 
     @SuppressWarnings("unchecked")
-    private Optional<Map<String, Object>> readConfigMapFromJSON(final byte[] readBytes)
+    private Optional<Map<String, Object>> readConfigurationMapFromJSON(final byte[] readBytes)
     {
         logger.info("Attempting to load configuration as JSON");
         try (ByteArrayInputStream read = new ByteArrayInputStream(readBytes))
@@ -280,7 +280,7 @@ public class StandardConfiguration implements Configuration
     }
 
     @SuppressWarnings("unchecked")
-    private Optional<Map<String, Object>> readConfigMapFromYAML(final byte[] readBytes)
+    private Optional<Map<String, Object>> readConfigurationMapFromYAML(final byte[] readBytes)
     {
         final ByteArrayInputStream read = new ByteArrayInputStream(readBytes);
         logger.info("Attempting to load configuration as YAML.");

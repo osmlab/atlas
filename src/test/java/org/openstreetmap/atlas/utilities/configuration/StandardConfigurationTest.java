@@ -25,19 +25,20 @@ import org.openstreetmap.atlas.utilities.scalars.Angle;
  */
 public class StandardConfigurationTest
 {
-    public static final String CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/application.json";
-    public static final String KEYWORD_OVERRIDDEN_CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/keywordOverridingApplication.json";
-    public static final String YAML_CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/application.yml";
-    public static final String YAML_DOT_EXPANDED = "org/openstreetmap/atlas/utilities/configuration/yaml_dot_expanded.yml";
-    public static final String YAML_DOT_COMPRESSED = "org/openstreetmap/atlas/utilities/configuration/yaml_dot_compressed.yml";
-    public static final String YAML_KEYWORD_OVERRIDDEN_CONFIGURATION = "org/openstreetmap/atlas/utilities/configuration/keywordOverridingApplication.yml";
+    public static final String JSON_CONFIGURATION = "application.json";
+    public static final String YAML_CONFIGURATION = "application.yml";
+
+    public static final String YAML_DOT_EXPANDED = "yaml_dot_expanded.yml";
+    public static final String YAML_DOT_COMPRESSED = "yaml_dot_compressed.yml";
+
+    public static final String JSON_KEYWORD_OVERRIDDEN_CONFIGURATION = "keywordOverridingApplication.json";
+    public static final String YAML_KEYWORD_OVERRIDDEN_CONFIGURATION = "keywordOverridingApplication.yml";
 
     @Test
     public void testConfigurationDataKeySetYaml() throws IOException
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-
-        try (InputStream stream = loader.getResourceAsStream(YAML_CONFIGURATION))
+        try (InputStream stream = StandardConfigurationTest.class
+                .getResourceAsStream(YAML_CONFIGURATION))
         {
             testConfigurationDataKeySet(stream);
         }
@@ -46,9 +47,8 @@ public class StandardConfigurationTest
     @Test
     public void testConfigurationDataKeySetJson() throws IOException
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-
-        try (InputStream stream = loader.getResourceAsStream(CONFIGURATION))
+        try (InputStream stream = StandardConfigurationTest.class
+                .getResourceAsStream(JSON_CONFIGURATION))
         {
             testConfigurationDataKeySet(stream);
         }
@@ -106,9 +106,10 @@ public class StandardConfigurationTest
     @Test
     public void testDotFormatYaml() throws IOException
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        try (InputStream expandedSource = loader.getResourceAsStream(YAML_DOT_EXPANDED);
-                InputStream flattenedSource = loader.getResourceAsStream(YAML_DOT_COMPRESSED))
+        try (InputStream expandedSource = StandardConfigurationTest.class
+                .getResourceAsStream(YAML_DOT_EXPANDED);
+                InputStream flattenedSource = StandardConfigurationTest.class
+                        .getResourceAsStream(YAML_DOT_COMPRESSED))
         {
             final StandardConfiguration expanded = new StandardConfiguration(
                     new InputStreamResource(expandedSource));
@@ -127,11 +128,14 @@ public class StandardConfigurationTest
     @Test
     public void testSpecificFormatLoad() throws IOException
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        try (InputStream expandedSource1 = loader.getResourceAsStream(YAML_DOT_EXPANDED);
-                InputStream flattenedSource1 = loader.getResourceAsStream(YAML_DOT_COMPRESSED);
-                InputStream expandedSource2 = loader.getResourceAsStream(YAML_DOT_EXPANDED);
-                InputStream flattenedSource2 = loader.getResourceAsStream(YAML_DOT_COMPRESSED))
+        try (InputStream expandedSource1 = StandardConfigurationTest.class
+                .getResourceAsStream(YAML_DOT_EXPANDED);
+                InputStream flattenedSource1 = StandardConfigurationTest.class
+                        .getResourceAsStream(YAML_DOT_COMPRESSED);
+                InputStream expandedSource2 = StandardConfigurationTest.class
+                        .getResourceAsStream(YAML_DOT_EXPANDED);
+                InputStream flattenedSource2 = StandardConfigurationTest.class
+                        .getResourceAsStream(YAML_DOT_COMPRESSED))
         {
             final StandardConfiguration expanded1 = new StandardConfiguration(
                     new InputStreamResource(expandedSource1));
@@ -164,8 +168,8 @@ public class StandardConfigurationTest
     @Test
     public void testInFileOverrideJson() throws IOException
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        try (InputStream stream = loader.getResourceAsStream(KEYWORD_OVERRIDDEN_CONFIGURATION))
+        try (InputStream stream = StandardConfigurationTest.class
+                .getResourceAsStream(JSON_KEYWORD_OVERRIDDEN_CONFIGURATION))
         {
             testInFileOverride(stream);
         }
@@ -174,8 +178,8 @@ public class StandardConfigurationTest
     @Test
     public void testInFileOverrideYaml() throws IOException
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        try (InputStream stream = loader.getResourceAsStream(YAML_KEYWORD_OVERRIDDEN_CONFIGURATION))
+        try (InputStream stream = StandardConfigurationTest.class
+                .getResourceAsStream(YAML_KEYWORD_OVERRIDDEN_CONFIGURATION))
         {
             testInFileOverride(stream);
         }
@@ -235,9 +239,8 @@ public class StandardConfigurationTest
     @Test
     public void testStandardConfigurationJson() throws IOException
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-
-        try (InputStream stream = loader.getResourceAsStream(CONFIGURATION))
+        try (InputStream stream = StandardConfigurationTest.class
+                .getResourceAsStream(JSON_CONFIGURATION))
         {
             testStandardConfiguration(stream);
         }
@@ -246,9 +249,8 @@ public class StandardConfigurationTest
     @Test
     public void testStandardConfigurationYaml() throws IOException
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-
-        try (InputStream stream = loader.getResourceAsStream(YAML_CONFIGURATION))
+        try (InputStream stream = StandardConfigurationTest.class
+                .getResourceAsStream(YAML_CONFIGURATION))
         {
             testStandardConfiguration(stream);
         }
@@ -275,9 +277,8 @@ public class StandardConfigurationTest
     @Test
     public void testTransformationJson() throws IOException
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-
-        try (InputStream stream = loader.getResourceAsStream(CONFIGURATION))
+        try (InputStream stream = StandardConfigurationTest.class
+                .getResourceAsStream(JSON_CONFIGURATION))
         {
             testTransformation(stream);
         }
@@ -286,9 +287,8 @@ public class StandardConfigurationTest
     @Test
     public void testTransformationYaml() throws IOException
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-
-        try (InputStream stream = loader.getResourceAsStream(YAML_CONFIGURATION))
+        try (InputStream stream = StandardConfigurationTest.class
+                .getResourceAsStream(YAML_CONFIGURATION))
         {
             testTransformation(stream);
         }
@@ -296,7 +296,6 @@ public class StandardConfigurationTest
 
     private void testTransformation(final InputStream stream)
     {
-
         final StandardConfiguration configuration = new StandardConfiguration(
                 new InputStreamResource(stream));
         final String keyword = "ABC";

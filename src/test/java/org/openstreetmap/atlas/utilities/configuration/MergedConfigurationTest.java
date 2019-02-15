@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,46 +23,61 @@ import org.openstreetmap.atlas.utilities.scalars.Angle;
  */
 public class MergedConfigurationTest
 {
-    private static final String BASE_CONFIGURATION_JSON = "org/openstreetmap/atlas/utilities/configuration/application.json";
-    private static final String BASE_CONFIGURATION_YAML = "org/openstreetmap/atlas/utilities/configuration/application.json";
+    private static final String BASE_CONFIGURATION_JSON = StandardConfigurationTest.JSON_CONFIGURATION;
+    private static final String BASE_CONFIGURATION_YAML = StandardConfigurationTest.YAML_CONFIGURATION;
 
-    private static final String KEYWORD_OVERRIDDEN_CONFIGURATION_JSON = "org/openstreetmap/atlas/utilities/configuration/keywordOverridingApplication.json";
-    private static final String KEYWORD_OVERRIDDEN_CONFIGURATION_YAML = "org/openstreetmap/atlas/utilities/configuration/keywordOverridingApplication.yml";
+    private static final String KEYWORD_OVERRIDDEN_CONFIGURATION_JSON = StandardConfigurationTest.JSON_KEYWORD_OVERRIDDEN_CONFIGURATION;
+    private static final String KEYWORD_OVERRIDDEN_CONFIGURATION_YAML = StandardConfigurationTest.YAML_KEYWORD_OVERRIDDEN_CONFIGURATION;
 
-    private static final String KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_JSON = "org/openstreetmap/atlas/utilities/configuration/developmentOverriding.json";
-    private static final String KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_YAML = "org/openstreetmap/atlas/utilities/configuration/developmentOverriding.yml";
+    private static final String KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_JSON = "developmentOverriding.json";
+    private static final String KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_YAML = "developmentOverriding.yml";
 
-    private static final String OVERRIDE_CONFIGURATION_JSON = "org/openstreetmap/atlas/utilities/configuration/development.json";
-    private static final String OVERRIDE_CONFIGURATION_YAML = "org/openstreetmap/atlas/utilities/configuration/development.yml";
+    private static final String OVERRIDE_CONFIGURATION_JSON = "development.json";
+    private static final String OVERRIDE_CONFIGURATION_YAML = "development.yml";
 
-    private static final String PARTIAL_CONFIGURATION_JSON = "org/openstreetmap/atlas/utilities/configuration/feature.json";
-    private static final String PARTIAL_CONFIGURATION_YAML = "org/openstreetmap/atlas/utilities/configuration/feature.yml";
+    private static final String PARTIAL_CONFIGURATION_JSON = "feature.json";
+    private static final String PARTIAL_CONFIGURATION_YAML = "feature.yml";
 
-    @Test
-    public void testConfigurationDataKeySetAllJson() throws IOException
+    /**
+     * Create a Supplier to return an input stream of a named resource.
+     * 
+     * @param name
+     *            the name of the resource local to the class.
+     * @return a Supplier that will get an InputStream of the resource.
+     */
+    private Supplier<InputStream> getResourceInputStreamSupplier(final String name)
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        return () -> MergedConfigurationTest.class.getResourceAsStream(name);
+    }
 
-        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION_JSON);
-                InputStream override = loader.getResourceAsStream(OVERRIDE_CONFIGURATION_JSON))
-        {
-            testConfigurationDataKeySet(base, override);
-        }
+    /**
+     * Create a Supplier to return an Input Stream of a string
+     * 
+     * @param value
+     *            the string value
+     * @return a Supplier that will return an InputStream of the string
+     */
+    private Supplier<InputStream> getStringInputStreamsSupplier(final String value)
+    {
+        return () -> new StringInputStream(value);
     }
 
     @Test
-    public void testConfigurationDataKeySetAllYaml() throws IOException
+    public void testConfigurationDataKeySetAllJson()
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-
-        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION_YAML);
-                InputStream override = loader.getResourceAsStream(OVERRIDE_CONFIGURATION_YAML))
-        {
-            testConfigurationDataKeySet(base, override);
-        }
+        testConfigurationDataKeySet(getResourceInputStreamSupplier(BASE_CONFIGURATION_JSON),
+                getResourceInputStreamSupplier(OVERRIDE_CONFIGURATION_JSON));
     }
 
-    private void testConfigurationDataKeySet(final InputStream base, final InputStream override)
+    @Test
+    public void testConfigurationDataKeySetAllYaml()
+    {
+        testConfigurationDataKeySet(getResourceInputStreamSupplier(BASE_CONFIGURATION_YAML),
+                getResourceInputStreamSupplier(OVERRIDE_CONFIGURATION_YAML));
+    }
+
+    private void testConfigurationDataKeySet(final Supplier<InputStream> base,
+            final Supplier<InputStream> override)
     {
 
         final Configuration configuration = new MergedConfiguration(new InputStreamResource(base),
@@ -88,54 +104,34 @@ public class MergedConfigurationTest
     }
 
     @Test
-    public void testLayeredJson() throws IOException
+    public void testLayeredJson()
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-
-        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION_JSON);
-                InputStream override = loader.getResourceAsStream(OVERRIDE_CONFIGURATION_JSON))
-        {
-            testLayered(base, override);
-        }
+        testLayered(getResourceInputStreamSupplier(BASE_CONFIGURATION_JSON),
+                getResourceInputStreamSupplier(OVERRIDE_CONFIGURATION_JSON));
     }
 
     @Test
-    public void testLayeredYaml() throws IOException
+    public void testLayeredYaml()
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-
-        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION_YAML);
-                InputStream override = loader.getResourceAsStream(OVERRIDE_CONFIGURATION_YAML))
-        {
-            testLayered(base, override);
-        }
+        testLayered(getResourceInputStreamSupplier(BASE_CONFIGURATION_YAML),
+                getResourceInputStreamSupplier(OVERRIDE_CONFIGURATION_YAML));
     }
 
     @Test
-    public void testLayeredYamlOnJson() throws IOException
+    public void testLayeredYamlOnJson()
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-
-        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION_JSON);
-                InputStream override = loader.getResourceAsStream(OVERRIDE_CONFIGURATION_YAML))
-        {
-            testLayered(base, override);
-        }
+        testLayered(getResourceInputStreamSupplier(BASE_CONFIGURATION_JSON),
+                getResourceInputStreamSupplier(OVERRIDE_CONFIGURATION_YAML));
     }
 
     @Test
-    public void testLayeredJsonOnYaml() throws IOException
+    public void testLayeredJsonOnYaml()
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-
-        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION_YAML);
-                InputStream override = loader.getResourceAsStream(OVERRIDE_CONFIGURATION_JSON))
-        {
-            testLayered(base, override);
-        }
+        testLayered(getResourceInputStreamSupplier(BASE_CONFIGURATION_YAML),
+                getResourceInputStreamSupplier(OVERRIDE_CONFIGURATION_JSON));
     }
 
-    private void testLayered(final InputStream base, final InputStream override)
+    private void testLayered(final Supplier<InputStream> base, final Supplier<InputStream> override)
     {
 
         final Configuration configuration = new MergedConfiguration(new InputStreamResource(base),
@@ -164,48 +160,30 @@ public class MergedConfigurationTest
     @Test
     public void testMergedOverriddenConfigurationsJson() throws IOException
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        try (InputStream keywordOverriddenBaseConfiguration = loader
-                .getResourceAsStream(KEYWORD_OVERRIDDEN_CONFIGURATION_JSON);
-                InputStream developmentConfiguration = loader
-                        .getResourceAsStream(KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_JSON))
-        {
-            testMergedOverriddenConfigurations(keywordOverriddenBaseConfiguration,
-                    developmentConfiguration);
-        }
+        testMergedOverriddenConfigurations(
+                getResourceInputStreamSupplier(KEYWORD_OVERRIDDEN_CONFIGURATION_JSON),
+                getResourceInputStreamSupplier(KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_JSON));
     }
 
     @Test
     public void testMergedOverriddenConfigurationsYaml() throws IOException
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        try (InputStream keywordOverriddenBaseConfiguration = loader
-                .getResourceAsStream(KEYWORD_OVERRIDDEN_CONFIGURATION_YAML);
-                InputStream developmentConfiguration = loader
-                        .getResourceAsStream(KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_YAML))
-        {
-            testMergedOverriddenConfigurations(keywordOverriddenBaseConfiguration,
-                    developmentConfiguration);
-        }
+        testMergedOverriddenConfigurations(
+                getResourceInputStreamSupplier(KEYWORD_OVERRIDDEN_CONFIGURATION_YAML),
+                getResourceInputStreamSupplier(KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_YAML));
     }
 
     @Test
     public void testMergedOverriddenConfigurationsYamlOnJson() throws IOException
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        try (InputStream keywordOverriddenBaseConfiguration = loader
-                .getResourceAsStream(KEYWORD_OVERRIDDEN_CONFIGURATION_JSON);
-                InputStream developmentConfiguration = loader
-                        .getResourceAsStream(KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_YAML))
-        {
-            testMergedOverriddenConfigurations(keywordOverriddenBaseConfiguration,
-                    developmentConfiguration);
-        }
+        testMergedOverriddenConfigurations(
+                getResourceInputStreamSupplier(KEYWORD_OVERRIDDEN_CONFIGURATION_JSON),
+                getResourceInputStreamSupplier(KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_YAML));
     }
 
     private void testMergedOverriddenConfigurations(
-            final InputStream keywordOverriddenBaseConfiguration,
-            final InputStream developmentConfiguration) throws IOException
+            final Supplier<InputStream> keywordOverriddenBaseConfiguration,
+            final Supplier<InputStream> developmentConfiguration) throws IOException
     {
 
         final Configuration configuration = new MergedConfiguration(
@@ -241,37 +219,25 @@ public class MergedConfigurationTest
     @Test
     public void testPartialJson() throws IOException
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION_JSON);
-                InputStream partial = loader.getResourceAsStream(PARTIAL_CONFIGURATION_JSON))
-        {
-            testPartial(base, partial);
-        }
+        testPartial(getResourceInputStreamSupplier(BASE_CONFIGURATION_JSON),
+                getResourceInputStreamSupplier(PARTIAL_CONFIGURATION_JSON));
     }
 
     @Test
     public void testPartialYaml() throws IOException
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION_YAML);
-                InputStream partial = loader.getResourceAsStream(PARTIAL_CONFIGURATION_YAML))
-        {
-            testPartial(base, partial);
-        }
+        testPartial(getResourceInputStreamSupplier(BASE_CONFIGURATION_YAML),
+                getResourceInputStreamSupplier(PARTIAL_CONFIGURATION_YAML));
     }
 
     @Test
     public void testPartialYamlOnJson() throws IOException
     {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        try (InputStream base = loader.getResourceAsStream(BASE_CONFIGURATION_JSON);
-                InputStream partial = loader.getResourceAsStream(PARTIAL_CONFIGURATION_YAML))
-        {
-            testPartial(base, partial);
-        }
+        testPartial(getResourceInputStreamSupplier(BASE_CONFIGURATION_JSON),
+                getResourceInputStreamSupplier(PARTIAL_CONFIGURATION_YAML));
     }
 
-    private void testPartial(final InputStream base, final InputStream partial)
+    private void testPartial(final Supplier<InputStream> base, final Supplier<InputStream> partial)
     {
         final Configuration configuration = new MergedConfiguration(new InputStreamResource(base),
                 new InputStreamResource(partial));
@@ -294,32 +260,25 @@ public class MergedConfigurationTest
     private void validateSame(final String leftBase, final String leftOverride,
             final String rightBase, final String rightOverride) throws IOException
     {
-        try (InputStream leftBaseStream = new StringInputStream(leftBase);
-                InputStream leftOverrideStream = new StringInputStream(leftOverride);
-                InputStream rightBaseStream = new StringInputStream(rightBase);
-                InputStream rightOverrideStream = new StringInputStream(rightOverride))
-        {
-            final Configuration left = new MergedConfiguration(
-                    new InputStreamResource(leftBaseStream),
-                    new InputStreamResource(leftOverrideStream));
-            final Configuration right = new MergedConfiguration(
-                    new InputStreamResource(rightBaseStream),
-                    new InputStreamResource(rightOverrideStream));
+        final Configuration left = new MergedConfiguration(
+                new InputStreamResource(getStringInputStreamsSupplier(leftBase)),
+                new InputStreamResource(getStringInputStreamsSupplier(leftOverride)));
 
-            Assert.assertEquals(2L, (long) left.get("a.b.c").value());
-            Assert.assertEquals(1L, (long) left.get("a.b.d").value());
-            Assert.assertEquals((long) left.get("a.b.c").value(),
-                    (long) right.get("a.b.c").value());
-            Assert.assertEquals((long) left.get("a.b.d").value(),
-                    (long) right.get("a.b.d").value());
+        final Configuration right = new MergedConfiguration(
+                new InputStreamResource(getStringInputStreamsSupplier(rightBase)),
+                new InputStreamResource(getStringInputStreamsSupplier(rightOverride)));
 
-            final Map<String, Object> leftMap = left.get("a.b").value();
-            final Map<String, Object> rightMap = right.get("a.b").value();
+        Assert.assertEquals(2L, (long) left.get("a.b.c").value());
+        Assert.assertEquals(1L, (long) left.get("a.b.d").value());
+        Assert.assertEquals((long) left.get("a.b.c").value(), (long) right.get("a.b.c").value());
+        Assert.assertEquals((long) left.get("a.b.d").value(), (long) right.get("a.b.d").value());
 
-            Assert.assertEquals(2L, leftMap.get("c"));
-            Assert.assertEquals(2L, rightMap.get("c"));
-            Assert.assertEquals(1L, leftMap.get("d"));
-            Assert.assertEquals(1L, rightMap.get("d"));
-        }
+        final Map<String, Object> leftMap = left.get("a.b").value();
+        final Map<String, Object> rightMap = right.get("a.b").value();
+
+        Assert.assertEquals(2L, leftMap.get("c"));
+        Assert.assertEquals(2L, rightMap.get("c"));
+        Assert.assertEquals(1L, leftMap.get("d"));
+        Assert.assertEquals(1L, rightMap.get("d"));
     }
 }
