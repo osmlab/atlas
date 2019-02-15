@@ -117,7 +117,7 @@ public class TagChangeTestRule extends CoreTestRule {
                     )
             }
     )
-    private Atlas atlas;
+    private Atlas atlas = null;
 
     public Atlas getAtlas() {
         return atlas;
