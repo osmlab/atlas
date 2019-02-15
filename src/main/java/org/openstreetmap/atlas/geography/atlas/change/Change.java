@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -170,5 +171,53 @@ public class Change implements Located, Serializable
         {
             this.bounds = featureBounds;
         }
+    }
+
+    /**
+     * An Object{@link #equals(Object)} implementation based on {@link #featureChanges} in the
+     * {@link Change} objects being compared.
+     *
+     * @param other
+     *            - the object to compare.
+     * @return boolean - true if the objects are equal
+     * @see Objects#equals(Object, Object)
+     * @see Object#equals(Object)
+     */
+    @Override
+    public boolean equals(final Object other)
+    {
+        // self check
+        if (this == other)
+        {
+            return true;
+        }
+        // null check
+        if (other == null)
+        {
+            return false;
+        }
+        // type check and cast
+        if (getClass() != other.getClass())
+        {
+            return false;
+        }
+
+        final Change that = (Change) other;
+
+        return Objects.equals(this.featureChanges, that.featureChanges);
+    }
+
+    /**
+     * An Object{@link #hashCode()} implementation based on {@link #featureChanges} in the
+     * {@link Change}.
+     *
+     * @return - the hash code.
+     * @see Objects#hashCode(Object)
+     * @see Object#hashCode()
+     */
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode(this.featureChanges);
     }
 }
