@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
  */
 public class TagChangeTest
 {
-
     private static final String KEY_MARS = "mars";
     private static final String KEY_OPPORTUNITY = "opportunity";
     private static final String VALUE_ROVER = "rover";
@@ -40,7 +39,6 @@ public class TagChangeTest
     private static final int ORIGINAL_TAG_COUNT_2 = 2;
     @Rule
     public TagChangeTestRule tagChangeTestRule = new TagChangeTestRule();
-
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
@@ -55,32 +53,20 @@ public class TagChangeTest
             final String value)
     {
         final Atlas atlas = tagChangeTestRule.getAtlas();
-
         final ItemType itemType = completeItemType.getItemType();
-
         final AtlasEntity originalAtlasEntity = itemType.entityForIdentifier(atlas,
                 TagChangeTestRule.ID_1);
-
         log.info("Original: {}", originalAtlasEntity);
-
         final Map<String, String> originalTags = originalAtlasEntity.getTags();
-
         Assert.assertEquals(ORIGINAL_TAG_COUNT_1, originalTags.size());
-
         final CompleteEntity completeEntity = completeItemType
                 .completeEntityFrom(originalAtlasEntity).withAddedTag(key, value);
-
         final FeatureChange featureChange1 = FeatureChange.add((AtlasEntity) completeEntity);
-
         final Change change = ChangeBuilder.newInstance().add(featureChange1).get();
-
         final Atlas changeAtlas = new ChangeAtlas(atlas, change);
-
         final AtlasEntity changedAtlasEntity = itemType.entityForIdentifier(changeAtlas,
                 TagChangeTestRule.ID_1);
-
         log.info("Changed:  {}", changedAtlasEntity);
-
         Assert.assertEquals(changedAtlasEntity.tag(key), value);
         Assert.assertEquals(ORIGINAL_TAG_COUNT_1 + 1, changedAtlasEntity.getTags().size());
 
@@ -94,9 +80,7 @@ public class TagChangeTest
         checkAllCompleteEntities(completeItemType ->
         {
             final String key = ADDED_TAG_KEY;
-
             final String value = ADDED_TAG_VALUE_1;
-
             insertNewTag(completeItemType, key, value);
         });
     }
@@ -107,37 +91,24 @@ public class TagChangeTest
         checkAllCompleteEntities(completeItemType ->
         {
             final Atlas atlas = tagChangeTestRule.getAtlas();
-
             final ItemType itemType = completeItemType.getItemType();
-
             final AtlasEntity originalAtlasEntity = itemType.entityForIdentifier(atlas,
                     TagChangeTestRule.ID_1);
-
             log.info("Original: {}", originalAtlasEntity);
-
             final Map<String, String> originalTags = originalAtlasEntity.getTags();
-
             Assert.assertEquals(ORIGINAL_TAG_COUNT_1, originalTags.size());
-
             final CompleteEntity completeEntity = completeItemType
                     .completeEntityFrom(originalAtlasEntity)
                     .withAddedTag(ADDED_TAG_KEY, ADDED_TAG_VALUE_1)
                     .withAddedTag(ADDED_TAG_KEY, ADDED_TAG_VALUE_2);
-
             final FeatureChange featureChange1 = FeatureChange.add((AtlasEntity) completeEntity);
-
             final Change change = ChangeBuilder.newInstance().add(featureChange1).get();
-
             final Atlas changeAtlas = new ChangeAtlas(atlas, change);
-
             final AtlasEntity changedAtlasEntity = itemType.entityForIdentifier(changeAtlas,
                     TagChangeTestRule.ID_1);
-
             log.info("Changed:  {}", changedAtlasEntity);
-
             Assert.assertEquals(ADDED_TAG_VALUE_2, changedAtlasEntity.tag(ADDED_TAG_KEY));
             Assert.assertEquals(ORIGINAL_TAG_COUNT_1 + 1, changedAtlasEntity.getTags().size());
-
             originalTags.forEach((key, value) -> Assert.assertEquals(originalAtlasEntity.tag(key),
                     changedAtlasEntity.tag(key)));
         });
@@ -149,41 +120,28 @@ public class TagChangeTest
         checkAllCompleteEntities(completeItemType ->
         {
             final Atlas atlas = tagChangeTestRule.getAtlas();
-
             final ItemType itemType = completeItemType.getItemType();
-
             final AtlasEntity originalAtlasEntity = itemType.entityForIdentifier(atlas,
                     TagChangeTestRule.ID_1);
-
             log.info("Original: {}", originalAtlasEntity);
-
             final Map<String, String> originalTags = originalAtlasEntity.getTags();
-
             Assert.assertEquals(ORIGINAL_TAG_COUNT_1, originalTags.size());
-
             final CompleteEntity completeEntity1 = completeItemType
                     .completeEntityFrom(originalAtlasEntity)
                     .withAddedTag(ADDED_TAG_KEY, ADDED_TAG_VALUE_1);
             final CompleteEntity completeEntity2 = completeItemType
                     .completeEntityFrom(originalAtlasEntity)
                     .withAddedTag(ADDED_TAG_KEY, ADDED_TAG_VALUE_1);
-
             final FeatureChange featureChange1 = FeatureChange.add((AtlasEntity) completeEntity1);
             final FeatureChange featureChange2 = FeatureChange.add((AtlasEntity) completeEntity2);
-
             final Change change = ChangeBuilder.newInstance().add(featureChange1)
                     .add(featureChange2).get();
-
             final Atlas changeAtlas = new ChangeAtlas(atlas, change);
-
             final AtlasEntity changedAtlasEntity = itemType.entityForIdentifier(changeAtlas,
                     TagChangeTestRule.ID_1);
-
             log.info("Changed:  {}", changedAtlasEntity);
-
             Assert.assertEquals(ADDED_TAG_VALUE_1, changedAtlasEntity.tag(ADDED_TAG_KEY));
             Assert.assertEquals(ORIGINAL_TAG_COUNT_1 + 1, changedAtlasEntity.getTags().size());
-
             originalTags.forEach((key, value) -> Assert.assertEquals(originalAtlasEntity.tag(key),
                     changedAtlasEntity.tag(key)));
         });
@@ -199,43 +157,32 @@ public class TagChangeTest
             try
             {
                 final ItemType itemType = completeItemType.getItemType();
-
                 final AtlasEntity originalAtlasEntity = itemType.entityForIdentifier(atlas,
                         TagChangeTestRule.ID_1);
-
                 log.info("Original: {}", originalAtlasEntity);
-
                 final Map<String, String> originalTags = originalAtlasEntity.getTags();
-
                 Assert.assertEquals(ORIGINAL_TAG_COUNT_1, originalTags.size());
-
                 final CompleteEntity completeEntity1 = completeItemType
                         .completeEntityFrom(originalAtlasEntity)
                         .withAddedTag(ADDED_TAG_KEY, ADDED_TAG_VALUE_1);
-
                 final CompleteEntity completeEntity2 = completeItemType
                         .completeEntityFrom(originalAtlasEntity)
                         .withAddedTag(ADDED_TAG_KEY, ADDED_TAG_VALUE_2);
-
                 final FeatureChange featureChange1 = FeatureChange
                         .add((AtlasEntity) completeEntity1);
                 final FeatureChange featureChange2 = FeatureChange
                         .add((AtlasEntity) completeEntity2);
-
                 ChangeBuilder.newInstance().add(featureChange1).add(featureChange2).get();
             }
             catch (final CoreException e)
             {
                 Assert.assertTrue(e.getMessage()
                         .startsWith("Cannot merge two feature changes FeatureChange"));
-
                 Assert.assertEquals(e.getCause().getClass(), CoreException.class);
-
                 Assert.assertTrue(e.getCause().getMessage()
                         .equals("Attempted merge failed for tags: {added=this, "
                                 + "change=me, hello=world, delete=me} and {added=that, change=me, hello=world, "
                                 + "delete=me}"));
-
                 return;
             }
 
@@ -263,33 +210,21 @@ public class TagChangeTest
     {
         checkAllCompleteEntities(completeItemType ->
         {
-
             final ItemType itemType = completeItemType.getItemType();
-
             final Atlas atlas = tagChangeTestRule.getAtlas();
-
             final AtlasEntity originalAtlasEntity = atlas.entity(TagChangeTestRule.ID_2, itemType);
-
             log.info("Original: {}.", originalAtlasEntity);
-
             Assert.assertEquals(ORIGINAL_TAG_COUNT_2, originalAtlasEntity.getTags().size());
-
             final CompleteEntity completeEntity = completeItemType
                     .completeEntityFrom(originalAtlasEntity)
                     .withReplacedTag(KEY_MARS, KEY_OPPORTUNITY, VALUE_ROVER)
                     .withReplacedTag(KEY_SINGLETON, KEY_SINGLETON, VALUE_ONE);
-
             final FeatureChange featureChange = FeatureChange.add((AtlasEntity) completeEntity);
-
             final Change change = ChangeBuilder.newInstance().add(featureChange).get();
-
             final Atlas changeAtlas = new ChangeAtlas(atlas, change);
-
             final AtlasEntity changedAtlasEntity = changeAtlas.entity(TagChangeTestRule.ID_2,
                     itemType);
-
             log.info("Changed: {}.", changedAtlasEntity);
-
             Assert.assertEquals(VALUE_ROVER, changedAtlasEntity.tag(KEY_OPPORTUNITY));
             Assert.assertEquals(VALUE_ONE, changedAtlasEntity.tag(KEY_SINGLETON));
             Assert.assertEquals(ORIGINAL_TAG_COUNT_2, changedAtlasEntity.getTags().size());
@@ -303,33 +238,21 @@ public class TagChangeTest
         {
 
             final ItemType itemType = completeItemType.getItemType();
-
             final Atlas atlas = tagChangeTestRule.getAtlas();
-
             final AtlasEntity originalAtlasEntity = atlas.entity(TagChangeTestRule.ID_2, itemType);
-
             log.info("Original: {}.", originalAtlasEntity);
-
             Assert.assertEquals(ORIGINAL_TAG_COUNT_2, originalAtlasEntity.getTags().size());
-
             final CompleteEntity completeEntity = completeItemType
                     .completeEntityFrom(originalAtlasEntity)
                     .withReplacedTag(KEY_OPPORTUNITY, KEY_OPPORTUNITY, VALUE_ROVER);
-
             final FeatureChange featureChange = FeatureChange.add((AtlasEntity) completeEntity);
-
             final Change change = ChangeBuilder.newInstance().add(featureChange).get();
-
             final Atlas changeAtlas = new ChangeAtlas(atlas, change);
-
             final AtlasEntity changedAtlasEntity = changeAtlas.entity(TagChangeTestRule.ID_2,
                     itemType);
-
             log.info("Changed: {}.", changedAtlasEntity);
-
             Assert.assertEquals(VALUE_ROVER, changedAtlasEntity.tag(KEY_MARS));
             Assert.assertEquals(VALUE_ROVER, changedAtlasEntity.tag(KEY_OPPORTUNITY));
-
             Assert.assertEquals(ORIGINAL_TAG_COUNT_2 + 1, changedAtlasEntity.getTags().size());
         });
     }
@@ -342,32 +265,20 @@ public class TagChangeTest
     {
         checkAllCompleteEntities(completeItemType ->
         {
-
             final ItemType itemType = completeItemType.getItemType();
-
             final Atlas atlas = tagChangeTestRule.getAtlas();
-
             final AtlasEntity originalAtlasEntity = atlas.entity(TagChangeTestRule.ID_2, itemType);
-
             log.info("Original: {}.", originalAtlasEntity);
-
             Assert.assertEquals(ORIGINAL_TAG_COUNT_2, originalAtlasEntity.getTags().size());
-
             final CompleteEntity completeEntity = completeItemType
                     .completeEntityFrom(originalAtlasEntity).withRemovedTag(KEY_MARS)
                     .withRemovedTag(KEY_SINGLETON);
-
             final FeatureChange featureChange = FeatureChange.add((AtlasEntity) completeEntity);
-
             final Change change = ChangeBuilder.newInstance().add(featureChange).get();
-
             final Atlas changeAtlas = new ChangeAtlas(atlas, change);
-
             final AtlasEntity changedAtlasEntity = changeAtlas.entity(TagChangeTestRule.ID_2,
                     itemType);
-
             log.info("Changed: {}.", changedAtlasEntity);
-
             Assert.assertEquals(ORIGINAL_TAG_COUNT_2 - 2, changedAtlasEntity.getTags().size());
         });
     }
@@ -377,33 +288,21 @@ public class TagChangeTest
     {
         checkAllCompleteEntities(completeItemType ->
         {
-
             final ItemType itemType = completeItemType.getItemType();
-
             final Atlas atlas = tagChangeTestRule.getAtlas();
-
             final AtlasEntity originalAtlasEntity = atlas.entity(TagChangeTestRule.ID_2, itemType);
-
             log.info("Original: {}.", originalAtlasEntity);
-
             Assert.assertEquals(ORIGINAL_TAG_COUNT_2, originalAtlasEntity.getTags().size());
-
             final String junk = "XYZ";
             final CompleteEntity completeEntity = completeItemType
                     .completeEntityFrom(originalAtlasEntity).withRemovedTag(KEY_MARS + junk)
                     .withRemovedTag(KEY_SINGLETON + junk);
-
             final FeatureChange featureChange = FeatureChange.add((AtlasEntity) completeEntity);
-
             final Change change = ChangeBuilder.newInstance().add(featureChange).get();
-
             final Atlas changeAtlas = new ChangeAtlas(atlas, change);
-
             final AtlasEntity changedAtlasEntity = changeAtlas.entity(TagChangeTestRule.ID_2,
                     itemType);
-
             log.info("Changed: {}.", changedAtlasEntity);
-
             Assert.assertEquals(ORIGINAL_TAG_COUNT_2, changedAtlasEntity.getTags().size());
             Assert.assertEquals(VALUE_ROVER, changedAtlasEntity.tag(KEY_MARS));
             Assert.assertNotNull(changedAtlasEntity.tag(KEY_SINGLETON));
@@ -418,33 +317,23 @@ public class TagChangeTest
     {
         checkAllCompleteEntities(completeItemType ->
         {
-
             final ItemType itemType = completeItemType.getItemType();
-
             final Atlas atlas = tagChangeTestRule.getAtlas();
-
             final AtlasEntity originalAtlasEntity1 = atlas.entity(TagChangeTestRule.ID_1, itemType);
             final AtlasEntity originalAtlasEntity2 = atlas.entity(TagChangeTestRule.ID_2, itemType);
-
             final Map<String, String> tags1 = originalAtlasEntity1.getTags();
             final Map<String, String> tags2 = originalAtlasEntity2.getTags();
-
             Assert.assertEquals(ORIGINAL_TAG_COUNT_1, tags1.size());
             Assert.assertEquals(ORIGINAL_TAG_COUNT_2, tags2.size());
-
             final CompleteEntity completeEntity1 = completeItemType
                     .completeEntityFrom(originalAtlasEntity1).withTags(tags2);
             final CompleteEntity completeEntity2 = completeItemType
                     .completeEntityFrom(originalAtlasEntity2).withTags(tags1);
-
             final FeatureChange featureChange1 = FeatureChange.add((AtlasEntity) completeEntity1);
             final FeatureChange featureChange2 = FeatureChange.add((AtlasEntity) completeEntity2);
-
             final Change change = ChangeBuilder.newInstance().add(featureChange1)
                     .add(featureChange2).get();
-
             final Atlas changeAtlas = new ChangeAtlas(atlas, change);
-
             Assert.assertEquals(tags2,
                     changeAtlas.entity(TagChangeTestRule.ID_1, itemType).getTags());
             Assert.assertEquals(tags1,
@@ -452,5 +341,4 @@ public class TagChangeTest
         });
     }
     // Overwrite All Tags - End
-
 }
