@@ -69,7 +69,6 @@ public class TagChangeTest
         log.info("Changed:  {}", changedAtlasEntity);
         Assert.assertEquals(changedAtlasEntity.tag(key), value);
         Assert.assertEquals(ORIGINAL_TAG_COUNT_1 + 1, changedAtlasEntity.getTags().size());
-
         originalTags.forEach((key1, value1) -> Assert.assertEquals(originalAtlasEntity.tag(key1),
                 changedAtlasEntity.tag(key1)));
     }
@@ -185,7 +184,6 @@ public class TagChangeTest
                                 + "delete=me}"));
                 return;
             }
-
             Assert.fail("The test didn't fail - but was expected to fail. completeItemType: "
                     + completeItemType);
         });
@@ -236,7 +234,6 @@ public class TagChangeTest
     {
         checkAllCompleteEntities(completeItemType ->
         {
-
             final ItemType itemType = completeItemType.getItemType();
             final Atlas atlas = tagChangeTestRule.getAtlas();
             final AtlasEntity originalAtlasEntity = atlas.entity(TagChangeTestRule.ID_2, itemType);
