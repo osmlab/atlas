@@ -192,6 +192,7 @@ public class CompleteRelation extends Relation implements CompleteEntity
                 + "]";
     }
 
+    @Override
     public CompleteRelation withAddedTag(final String key, final String value)
     {
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
@@ -363,17 +364,20 @@ public class CompleteRelation extends Relation implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteRelation withRemovedTag(final String key)
     {
         return withTags(CompleteEntity.removeTag(getTags(), key));
     }
 
+    @Override
     public CompleteRelation withReplacedTag(final String oldKey, final String newKey,
             final String newValue)
     {
         return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
     }
 
+    @Override
     public CompleteRelation withTags(final Map<String, String> tags)
     {
         this.tags = tags;

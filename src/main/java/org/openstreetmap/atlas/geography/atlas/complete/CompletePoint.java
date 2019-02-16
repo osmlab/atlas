@@ -138,6 +138,7 @@ public class CompletePoint extends Point implements CompleteEntity
                 + ", tags=" + this.tags + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
+    @Override
     public CompletePoint withAddedTag(final String key, final String value)
     {
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
@@ -183,17 +184,20 @@ public class CompletePoint extends Point implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompletePoint withRemovedTag(final String key)
     {
         return withTags(CompleteEntity.removeTag(getTags(), key));
     }
 
+    @Override
     public CompletePoint withReplacedTag(final String oldKey, final String newKey,
             final String newValue)
     {
         return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
     }
 
+    @Override
     public CompletePoint withTags(final Map<String, String> tags)
     {
         this.tags = tags;

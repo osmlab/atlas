@@ -162,6 +162,7 @@ public class CompleteEdge extends Edge implements CompleteEntity
                 + this.relationIdentifiers + "]";
     }
 
+    @Override
     public CompleteEdge withAddedTag(final String key, final String value)
     {
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
@@ -213,11 +214,13 @@ public class CompleteEdge extends Edge implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteEdge withRemovedTag(final String key)
     {
         return withTags(CompleteEntity.removeTag(getTags(), key));
     }
 
+    @Override
     public CompleteEdge withReplacedTag(final String oldKey, final String newKey,
             final String newValue)
     {
@@ -230,6 +233,7 @@ public class CompleteEdge extends Edge implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteEdge withTags(final Map<String, String> tags)
     {
         this.tags = tags;
