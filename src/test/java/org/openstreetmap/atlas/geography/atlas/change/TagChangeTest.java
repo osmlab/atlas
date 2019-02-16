@@ -135,7 +135,7 @@ public class TagChangeTest
 
             log.info("Changed:  {}", changedAtlasEntity);
 
-            Assert.assertEquals(changedAtlasEntity.tag(ADDED_TAG_KEY), ADDED_TAG_VALUE_2);
+            Assert.assertEquals(ADDED_TAG_VALUE_2, changedAtlasEntity.tag(ADDED_TAG_KEY));
             Assert.assertEquals(ORIGINAL_TAG_COUNT_1 + 1, changedAtlasEntity.getTags().size());
 
             originalTags.forEach((key, value) -> Assert.assertEquals(originalAtlasEntity.tag(key),
@@ -181,7 +181,7 @@ public class TagChangeTest
 
             log.info("Changed:  {}", changedAtlasEntity);
 
-            Assert.assertEquals(changedAtlasEntity.tag(ADDED_TAG_KEY), ADDED_TAG_VALUE_1);
+            Assert.assertEquals(ADDED_TAG_VALUE_1, changedAtlasEntity.tag(ADDED_TAG_KEY));
             Assert.assertEquals(ORIGINAL_TAG_COUNT_1 + 1, changedAtlasEntity.getTags().size());
 
             originalTags.forEach((key, value) -> Assert.assertEquals(originalAtlasEntity.tag(key),
@@ -290,8 +290,8 @@ public class TagChangeTest
 
             log.info("Changed: {}.", changedAtlasEntity);
 
-            Assert.assertEquals(changedAtlasEntity.tag(KEY_OPPORTUNITY), VALUE_ROVER);
-            Assert.assertEquals(changedAtlasEntity.tag(KEY_SINGLETON), VALUE_ONE);
+            Assert.assertEquals(VALUE_ROVER, changedAtlasEntity.tag(KEY_OPPORTUNITY));
+            Assert.assertEquals(VALUE_ONE, changedAtlasEntity.tag(KEY_SINGLETON));
             Assert.assertEquals(ORIGINAL_TAG_COUNT_2, changedAtlasEntity.getTags().size());
         });
     }
@@ -327,8 +327,8 @@ public class TagChangeTest
 
             log.info("Changed: {}.", changedAtlasEntity);
 
-            Assert.assertEquals(changedAtlasEntity.tag(KEY_MARS), VALUE_ROVER);
-            Assert.assertEquals(changedAtlasEntity.tag(KEY_OPPORTUNITY), VALUE_ROVER);
+            Assert.assertEquals(VALUE_ROVER, changedAtlasEntity.tag(KEY_MARS));
+            Assert.assertEquals(VALUE_ROVER, changedAtlasEntity.tag(KEY_OPPORTUNITY));
 
             Assert.assertEquals(ORIGINAL_TAG_COUNT_2 + 1, changedAtlasEntity.getTags().size());
         });
@@ -405,7 +405,7 @@ public class TagChangeTest
             log.info("Changed: {}.", changedAtlasEntity);
 
             Assert.assertEquals(ORIGINAL_TAG_COUNT_2, changedAtlasEntity.getTags().size());
-            Assert.assertEquals(changedAtlasEntity.tag(KEY_MARS), VALUE_ROVER);
+            Assert.assertEquals(VALUE_ROVER, changedAtlasEntity.tag(KEY_MARS));
             Assert.assertNotNull(changedAtlasEntity.tag(KEY_SINGLETON));
             Assert.assertTrue(changedAtlasEntity.tag(KEY_SINGLETON).isEmpty());
         });
