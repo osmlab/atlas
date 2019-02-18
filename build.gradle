@@ -58,6 +58,7 @@ dependencies
     compile packages.jsonassert
     compile packages.jackson.core
     compile packages.jackson.databind
+    compile packages.jackson.dataformat
     compile packages.protobuf_java
     compile packages.protoc
     compile packages.artifact
