@@ -135,5 +135,4 @@ public interface CompleteEntity
     CompleteEntity withIdentifier(long identifier);
 
     CompleteEntity withRelationIdentifiers(Set<Long> relationIdentifiers);
-
 }
