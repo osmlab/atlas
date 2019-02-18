@@ -130,10 +130,10 @@ public interface CompleteEntity
 
     CompleteEntity withTags(Map<String, String> tags);
 
-    CompleteEntity withRelations(final Set<Relation> relations);
+    CompleteEntity withRelations(Set<Relation> relations);
 
-    CompleteEntity withIdentifier(final long identifier);
+    CompleteEntity withIdentifier(long identifier);
 
-    CompleteEntity withRelationIdentifiers(final Set<Long> relationIdentifiers);
+    CompleteEntity withRelationIdentifiers(Set<Long> relationIdentifiers);
 
 }
