@@ -16,7 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  *
  * @author matthieun
  */
-public class CompleteLine extends Line implements CompleteEntity
+public class CompleteLine extends Line implements CompleteLineItem
 {
     private static final long serialVersionUID = 309534717673911086L;
 
@@ -143,6 +143,7 @@ public class CompleteLine extends Line implements CompleteEntity
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
+    @Override
     public CompleteLine withAggregateBoundsExtendedUsing(final Rectangle bounds)
     {
         if (this.aggregateBounds == null)
@@ -153,12 +154,14 @@ public class CompleteLine extends Line implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteLine withIdentifier(final long identifier)
     {
         this.identifier = identifier;
         return this;
     }
 
+    @Override
     public CompleteLine withPolyLine(final PolyLine polyLine)
     {
         this.polyLine = polyLine;
@@ -170,12 +173,14 @@ public class CompleteLine extends Line implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteLine withRelationIdentifiers(final Set<Long> relationIdentifiers)
     {
         this.relationIdentifiers = relationIdentifiers;
         return this;
     }
 
+    @Override
     public CompleteLine withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
