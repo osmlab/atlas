@@ -17,7 +17,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  *
  * @author matthieun
  */
-public class CompleteEdge extends Edge implements CompleteEntity
+public class CompleteEdge extends Edge implements CompleteLineItem
 {
     private static final long serialVersionUID = 309534717673911086L;
 
@@ -168,6 +168,7 @@ public class CompleteEdge extends Edge implements CompleteEntity
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
+    @Override
     public CompleteEdge withAggregateBoundsExtendedUsing(final Rectangle bounds)
     {
         if (this.aggregateBounds == null)
@@ -184,12 +185,14 @@ public class CompleteEdge extends Edge implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteEdge withIdentifier(final long identifier)
     {
         this.identifier = identifier;
         return this;
     }
 
+    @Override
     public CompleteEdge withPolyLine(final PolyLine polyLine)
     {
         this.polyLine = polyLine;
@@ -201,12 +204,14 @@ public class CompleteEdge extends Edge implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteEdge withRelationIdentifiers(final Set<Long> relationIdentifiers)
     {
         this.relationIdentifiers = relationIdentifiers;
         return this;
     }
 
+    @Override
     public CompleteEdge withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)

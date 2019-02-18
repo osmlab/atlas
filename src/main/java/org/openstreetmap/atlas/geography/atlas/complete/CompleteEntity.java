@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.complete;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -128,4 +129,10 @@ public interface CompleteEntity
     CompleteEntity withReplacedTag(String oldKey, String newKey, String newValue);
 
     CompleteEntity withTags(Map<String, String> tags);
+
+    CompleteEntity withRelations(Set<Relation> relations);
+
+    CompleteEntity withIdentifier(long identifier);
+
+    CompleteEntity withRelationIdentifiers(Set<Long> relationIdentifiers);
 }

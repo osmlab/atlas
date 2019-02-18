@@ -19,7 +19,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  *
  * @author matthieun
  */
-public class CompleteNode extends Node implements CompleteEntity
+public class CompleteNode extends Node implements CompleteLocationItem
 {
     private static final long serialVersionUID = -8229589987121555419L;
 
@@ -203,6 +203,7 @@ public class CompleteNode extends Node implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteNode withIdentifier(final long identifier)
     {
         this.identifier = identifier;
@@ -284,12 +285,14 @@ public class CompleteNode extends Node implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteNode withRelationIdentifiers(final Set<Long> relationIdentifiers)
     {
         this.relationIdentifiers = relationIdentifiers;
         return this;
     }
 
+    @Override
     public CompleteNode withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)

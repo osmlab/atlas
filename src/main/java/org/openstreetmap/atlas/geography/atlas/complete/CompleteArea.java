@@ -153,6 +153,7 @@ public class CompleteArea extends Area implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteArea withIdentifier(final long identifier)
     {
         this.identifier = identifier;
@@ -170,12 +171,14 @@ public class CompleteArea extends Area implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteArea withRelationIdentifiers(final Set<Long> relationIdentifiers)
     {
         this.relationIdentifiers = relationIdentifiers;
         return this;
     }
 
+    @Override
     public CompleteArea withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)

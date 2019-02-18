@@ -250,6 +250,7 @@ public class CompleteRelation extends Relation implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteRelation withIdentifier(final long identifier)
     {
         this.identifier = identifier;
@@ -351,12 +352,14 @@ public class CompleteRelation extends Relation implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteRelation withRelationIdentifiers(final Set<Long> relationIdentifiers)
     {
         this.relationIdentifiers = relationIdentifiers;
         return this;
     }
 
+    @Override
     public CompleteRelation withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
