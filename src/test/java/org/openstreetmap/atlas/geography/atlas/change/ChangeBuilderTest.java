@@ -32,6 +32,23 @@ public class ChangeBuilderTest
         Assert.assertEquals(verboseChange, fluentChange);
     }
 
+    @Test
+    public void addAll()
+    {
+        final FeatureChange featureChange1 = newAreaFeatureChange();
+        final FeatureChange featureChange2 = newLineFeatureChange();
+        final FeatureChange featureChange3 = newNodeFeatureChange();
+        final FeatureChange featureChange4 = newPointFeatureChange();
+
+        final Change change1 = ChangeBuilder.newInstance().add(featureChange1).add(featureChange2)
+                .add(featureChange3).add(featureChange4).get();
+
+        final Change change2 = ChangeBuilder.newInstance().addAll(featureChange1, featureChange2)
+                .addAll(Arrays.asList(featureChange3, featureChange4)).get();
+
+        Assert.assertEquals(change1, change2);
+    }
+
     private FeatureChange newLineFeatureChange()
     {
         return new FeatureChange(ChangeType.REMOVE,
@@ -54,22 +71,5 @@ public class ChangeBuilderTest
     {
         return new FeatureChange(ChangeType.ADD,
                 new CompletePoint(TEST_IDENTIFIER, null, Maps.hashMap(), null));
-    }
-
-    @Test
-    public void addAll()
-    {
-        final FeatureChange featureChange1 = newAreaFeatureChange();
-        final FeatureChange featureChange2 = newLineFeatureChange();
-        final FeatureChange featureChange3 = newNodeFeatureChange();
-        final FeatureChange featureChange4 = newPointFeatureChange();
-
-        final Change change1 = ChangeBuilder.newInstance().add(featureChange1).add(featureChange2)
-                .add(featureChange3).add(featureChange4).get();
-
-        final Change change2 = ChangeBuilder.newInstance().addAll(featureChange1, featureChange2)
-                .addAll(Arrays.asList(featureChange3, featureChange4)).get();
-
-        Assert.assertEquals(change1, change2);
     }
 }
