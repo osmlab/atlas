@@ -13,5 +13,5 @@ public interface CompleteLineItem extends CompleteEntity
 {
     CompleteLineItem withPolyLine(PolyLine polyLine);
 
-    CompleteLineItem withAggregateBoundsExtendedUsing(final Rectangle bounds);
+    CompleteLineItem withAggregateBoundsExtendedUsing(Rectangle bounds);
 }
