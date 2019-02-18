@@ -7,7 +7,7 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas;
 /**
  * @author Yazad Khambata
  */
-public class ContainableTestRule extends CoreTestRule
+public class WithinTestRule extends CoreTestRule
 {
 
     private static final String ID_STR = "1";
@@ -30,7 +30,7 @@ public class ContainableTestRule extends CoreTestRule
     @TestAtlas(
 
             nodes = {
-                    @TestAtlas.Node(id = ContainableTestRule.ID_STR, coordinates = @TestAtlas.Loc(value = NODE)),
+                    @TestAtlas.Node(id = WithinTestRule.ID_STR, coordinates = @TestAtlas.Loc(value = NODE)),
 
                     @TestAtlas.Node(id = "2", coordinates = @TestAtlas.Loc(value = EDGE_1)),
                     @TestAtlas.Node(id = "3", coordinates = @TestAtlas.Loc(value = EDGE_2)),
