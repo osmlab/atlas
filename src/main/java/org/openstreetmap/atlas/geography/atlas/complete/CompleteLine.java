@@ -137,6 +137,7 @@ public class CompleteLine extends Line implements CompleteEntity
                 + ", tags=" + this.tags + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
+    @Override
     public CompleteLine withAddedTag(final String key, final String value)
     {
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
@@ -182,17 +183,20 @@ public class CompleteLine extends Line implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteLine withRemovedTag(final String key)
     {
         return withTags(CompleteEntity.removeTag(getTags(), key));
     }
 
+    @Override
     public CompleteLine withReplacedTag(final String oldKey, final String newKey,
             final String newValue)
     {
         return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
     }
 
+    @Override
     public CompleteLine withTags(final Map<String, String> tags)
     {
         this.tags = tags;
