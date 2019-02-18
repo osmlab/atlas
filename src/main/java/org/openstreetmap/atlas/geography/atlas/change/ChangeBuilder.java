@@ -1,12 +1,11 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
-import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.atlas.change.validators.ChangeValidator;
-
 import java.util.Arrays;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.change.validators.ChangeValidator;
 
 /**
  * Construct a {@link Change}. This is a gatekeeper that ensures validation.
@@ -54,13 +53,14 @@ public class ChangeBuilder
     }
 
     /**
-     *
      * Iteratively {@link #add(FeatureChange)} all the FeatureChanges.
      *
-     * @param featureChanges - The featureChanges to add.
+     * @param featureChanges
+     *            - The featureChanges to add.
      * @return ChangeBuilder - returns itself to allow fluency in calls.
      */
-    public synchronized ChangeBuilder addAll(final Stream<FeatureChange> featureChanges) {
+    public synchronized ChangeBuilder addAll(final Stream<FeatureChange> featureChanges)
+    {
         featureChanges.map(this::add).reduce((first, second) -> second);
 
         return this;
@@ -68,21 +68,23 @@ public class ChangeBuilder
 
     /**
      * @see #addAll(Stream)
-     *
-     * @param featureChanges - The featureChanges to add.
+     * @param featureChanges
+     *            - The featureChanges to add.
      * @return ChangeBuilder - returns itself to allow fluency in calls.
      */
-    public synchronized ChangeBuilder addAll(final Iterable<FeatureChange> featureChanges) {
+    public synchronized ChangeBuilder addAll(final Iterable<FeatureChange> featureChanges)
+    {
         return addAll(StreamSupport.stream(featureChanges.spliterator(), false));
     }
 
     /**
      * @see #addAll(Stream)
-     *
-     * @param featureChanges - The featureChanges to add.
+     * @param featureChanges
+     *            - The featureChanges to add.
      * @return ChangeBuilder - returns itself to allow fluency in calls.
      */
-    public synchronized ChangeBuilder addAll(final FeatureChange...featureChanges) {
+    public synchronized ChangeBuilder addAll(final FeatureChange... featureChanges)
+    {
         return addAll(Arrays.stream(featureChanges));
     }
 
