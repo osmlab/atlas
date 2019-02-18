@@ -16,7 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  *
  * @author matthieun
  */
-public class CompletePoint extends Point implements CompleteEntity
+public class CompletePoint extends Point implements CompleteLocationItem
 {
     private static final long serialVersionUID = 309534717673911086L;
 
@@ -138,6 +138,7 @@ public class CompletePoint extends Point implements CompleteEntity
                 + ", tags=" + this.tags + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
+    @Override
     public CompletePoint withAddedTag(final String key, final String value)
     {
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
@@ -153,12 +154,14 @@ public class CompletePoint extends Point implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompletePoint withIdentifier(final long identifier)
     {
         this.identifier = identifier;
         return this;
     }
 
+    @Override
     public CompletePoint withLocation(final Location location)
     {
         this.location = location;
@@ -170,12 +173,14 @@ public class CompletePoint extends Point implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompletePoint withRelationIdentifiers(final Set<Long> relationIdentifiers)
     {
         this.relationIdentifiers = relationIdentifiers;
         return this;
     }
 
+    @Override
     public CompletePoint withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
@@ -183,17 +188,20 @@ public class CompletePoint extends Point implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompletePoint withRemovedTag(final String key)
     {
         return withTags(CompleteEntity.removeTag(getTags(), key));
     }
 
+    @Override
     public CompletePoint withReplacedTag(final String oldKey, final String newKey,
             final String newValue)
     {
         return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
     }
 
+    @Override
     public CompletePoint withTags(final Map<String, String> tags)
     {
         this.tags = tags;

@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.complete;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -20,6 +21,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  * (Node, Edge, Area, ...) this cannot be an abstract class.
  *
  * @author matthieun
+ * @author Yazad Khambata
  */
 public interface CompleteEntity
 {
@@ -119,4 +121,18 @@ public interface CompleteEntity
      * @return True when that entity contains only its identifier as effective data.
      */
     boolean isSuperShallow();
+
+    CompleteEntity withAddedTag(String key, String value);
+
+    CompleteEntity withRemovedTag(String key);
+
+    CompleteEntity withReplacedTag(String oldKey, String newKey, String newValue);
+
+    CompleteEntity withTags(Map<String, String> tags);
+
+    CompleteEntity withRelations(Set<Relation> relations);
+
+    CompleteEntity withIdentifier(long identifier);
+
+    CompleteEntity withRelationIdentifiers(Set<Long> relationIdentifiers);
 }

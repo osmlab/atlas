@@ -22,7 +22,7 @@ public class WithinTest
     public static final int NUMBER_POINTS = 5;
 
     @Rule
-    public ContainableTestRule containableTestRule = new ContainableTestRule();
+    public WithinTestRule containableTestRule = new WithinTestRule();
 
     @Test
     public void testLocationIsWithin()
@@ -78,7 +78,7 @@ public class WithinTest
     @Test
     public void testAtlasEntities()
     {
-        final long identifier = ContainableTestRule.ID;
+        final long identifier = WithinTestRule.ID;
 
         final Atlas atlas = this.containableTestRule.getAtlas();
 

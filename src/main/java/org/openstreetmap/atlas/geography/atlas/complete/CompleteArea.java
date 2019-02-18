@@ -137,6 +137,7 @@ public class CompleteArea extends Area implements CompleteEntity
                 + ", tags=" + this.tags + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
+    @Override
     public CompleteArea withAddedTag(final String key, final String value)
     {
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
@@ -152,6 +153,7 @@ public class CompleteArea extends Area implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteArea withIdentifier(final long identifier)
     {
         this.identifier = identifier;
@@ -169,12 +171,14 @@ public class CompleteArea extends Area implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteArea withRelationIdentifiers(final Set<Long> relationIdentifiers)
     {
         this.relationIdentifiers = relationIdentifiers;
         return this;
     }
 
+    @Override
     public CompleteArea withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
@@ -182,17 +186,20 @@ public class CompleteArea extends Area implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteArea withRemovedTag(final String key)
     {
         return withTags(CompleteEntity.removeTag(getTags(), key));
     }
 
+    @Override
     public CompleteArea withReplacedTag(final String oldKey, final String newKey,
             final String newValue)
     {
         return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
     }
 
+    @Override
     public CompleteArea withTags(final Map<String, String> tags)
     {
         this.tags = tags;
