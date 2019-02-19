@@ -47,8 +47,5 @@ public class AtlasStatisticsTestRule extends CoreTestRule
         return this.waterAtlas;
     }
 
-    public Atlas getAoiAtlas()
-    {
-        return this.aoiAtlas;
-    }
+    public Atlas getAoiAtlas() { return this.aoiAtlas; }
 }
