@@ -13,6 +13,7 @@ import org.openstreetmap.atlas.geography.atlas.statistics.AtlasStatistics.Statis
  * Test the {@link AtlasStatistics} range of classes.
  *
  * @author matthieun
+ * @author patrick-mi
  */
 public class AtlasStatisticsTest
 {
@@ -212,6 +213,78 @@ public class AtlasStatisticsTest
                 statistics.get(new StatisticKey("", "pier_distance", "true")).getCount(), 0.01);
         Assert.assertEquals(0.11,
                 statistics.get(new StatisticKey("", "pier_surface", "true")).getCount(), 0.01);
+    }
+
+    @Test
+    public void testCountingAois()
+    {
+        final Atlas atlas = this.rule.getAoiAtlas();
+        final AtlasStatistics statistics = new Counter().processAtlas(atlas);
+
+        // natural_areas
+        Assert.assertEquals(3.0,
+                statistics.get(new StatisticKey("", "natural_areas", "true")).getCount(), 0.01);
+
+        // airfield_areas
+        Assert.assertEquals(1.0,
+                statistics.get(new StatisticKey("", "airfield_areas", "true")).getCount(), 0.01);
+        Assert.assertEquals(0.4084847279972836,
+                statistics.get(new StatisticKey("", "airfield_areas_surface", "true")).getCount(),
+                0.01);
+
+        // airfield_relations
+        Assert.assertEquals(1.0,
+                statistics.get(new StatisticKey("", "airfield_relations", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(
+                1.5860808721221027, statistics
+                        .get(new StatisticKey("", "airfield_relations_surface", "true")).getCount(),
+                0.01);
+
+        // airport_areas
+        Assert.assertEquals(1.0,
+                statistics.get(new StatisticKey("", "airport_areas", "true")).getCount(), 0.01);
+        Assert.assertEquals(0.40845810837601526,
+                statistics.get(new StatisticKey("", "airport_areas_surface", "true")).getCount(),
+                0.01);
+
+        // runway_lines
+        Assert.assertEquals(4.2820480000000005,
+                statistics.get(new StatisticKey("", "runway_lines_distance", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(2.0,
+                statistics.get(new StatisticKey("", "runway_lines", "true")).getCount(), 0.01);
+
+        // runway_relations
+        Assert.assertEquals(2.245368, statistics
+                .get(new StatisticKey("", "runway_relations_distance", "true")).getCount(), 0.01);
+        Assert.assertEquals(1.0,
+                statistics.get(new StatisticKey("", "runway_relations", "true")).getCount(), 0.01);
+        Assert.assertEquals(0.10788901440886413,
+                statistics.get(new StatisticKey("", "runway_relations_surface", "true")).getCount(),
+                0.01);
+
+        // national park areas
+        Assert.assertEquals(1.0,
+                statistics.get(new StatisticKey("", "national_park_areas", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(0.5355297484173871, statistics
+                .get(new StatisticKey("", "national_park_areas_surface", "true")).getCount(), 0.01);
+
+        // national park relations
+        Assert.assertEquals(1.0,
+                statistics.get(new StatisticKey("", "national_park_relations", "true")).getCount(),
+                0.01);
+        Assert.assertEquals(1.524581804213072, statistics
+                .get(new StatisticKey("", "national_park_relations_surface", "true")).getCount(),
+                0.01);
+
+        // glacier_areas
+        Assert.assertEquals(1.0,
+                statistics.get(new StatisticKey("", "glacier_areas", "true")).getCount(), 0.01);
+        Assert.assertEquals(0.6508549851979776,
+                statistics.get(new StatisticKey("", "glacier_areas_surface", "true")).getCount(),
+                0.01);
     }
 
     @Test
