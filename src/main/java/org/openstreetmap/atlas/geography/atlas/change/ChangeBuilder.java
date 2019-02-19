@@ -1,5 +1,9 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
+import java.util.Arrays;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.change.validators.ChangeValidator;
 
@@ -33,7 +37,7 @@ public class ChangeBuilder
 
     /**
      * @param featureChange
-     *            - teh {@link FeatureChange} to add to the builder.
+     *            - the {@link FeatureChange} to add to the builder.
      * @return ChangeBuilder - returns itself to allow fluency in calls.
      */
     public synchronized ChangeBuilder add(final FeatureChange featureChange)
@@ -46,6 +50,41 @@ public class ChangeBuilder
         this.change.add(featureChange);
 
         return this;
+    }
+
+    /**
+     * Iteratively {@link #add(FeatureChange)} all the FeatureChanges.
+     *
+     * @param featureChanges
+     *            - The featureChanges to add.
+     * @return ChangeBuilder - returns itself to allow fluency in calls.
+     */
+    public synchronized ChangeBuilder addAll(final Stream<FeatureChange> featureChanges)
+    {
+        featureChanges.forEach(this::add);
+        return this;
+    }
+
+    /**
+     * @see #addAll(Stream)
+     * @param featureChanges
+     *            - The featureChanges to add.
+     * @return ChangeBuilder - returns itself to allow fluency in calls.
+     */
+    public synchronized ChangeBuilder addAll(final Iterable<FeatureChange> featureChanges)
+    {
+        return addAll(StreamSupport.stream(featureChanges.spliterator(), false));
+    }
+
+    /**
+     * @see #addAll(Stream)
+     * @param featureChanges
+     *            - The featureChanges to add.
+     * @return ChangeBuilder - returns itself to allow fluency in calls.
+     */
+    public synchronized ChangeBuilder addAll(final FeatureChange... featureChanges)
+    {
+        return addAll(Arrays.stream(featureChanges));
     }
 
     public synchronized Change get()
