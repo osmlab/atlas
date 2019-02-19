@@ -61,8 +61,7 @@ public class ChangeBuilder
      */
     public synchronized ChangeBuilder addAll(final Stream<FeatureChange> featureChanges)
     {
-        featureChanges.map(this::add).reduce((first, second) -> second);
-
+        featureChanges.forEach(this::add);
         return this;
     }
 
