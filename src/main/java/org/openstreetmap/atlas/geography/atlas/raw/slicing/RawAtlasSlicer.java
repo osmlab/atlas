@@ -111,7 +111,7 @@ public abstract class RawAtlasSlicer
      * @return the {@link TemporaryPoint}
      */
     protected static TemporaryPoint createNewPoint(final Coordinate coordinate,
-            final CountrySlicingIdentifierFactory pointIdentifierFactory,
+            final AbstractIdentifierFactory pointIdentifierFactory,
             final Map<String, String> pointTags)
     {
         if (!pointIdentifierFactory.hasMore())
@@ -153,7 +153,6 @@ public abstract class RawAtlasSlicer
             firstCountries.retainAll(new HashSet<>(secondCountries));
             return !firstCountries.isEmpty();
         }
-
         throw new CoreException(
                 "All raw Atlas lines must have a country code by the time Relation slicing is done. One of the two Lines {} or {} does not!",
                 one.getIdentifier(), two.getIdentifier());
@@ -254,5 +253,27 @@ public abstract class RawAtlasSlicer
     protected RawAtlasSlicingStatistic getStatistics()
     {
         return this.statistics;
+    }
+
+    /**
+     * Check if the {@link Geometry} should be filtered out based on the provided bound.
+     *
+     * @param geometry
+     *            The {@link Geometry} to check.
+     * @return {@code true} if the given geometry should be filtered out.
+     */
+    protected boolean isOutsideWorkingBound(final Geometry geometry)
+    {
+        final String countryCode = CountryBoundaryMap.getGeometryProperty(geometry,
+                ISOCountryTag.KEY);
+
+        if (countryCode != null)
+        {
+            return this.getCountries() != null && !this.getCountries().isEmpty()
+                    && !this.getCountries().contains(countryCode);
+        }
+
+        // Assume it's inside the bound
+        return false;
     }
 }

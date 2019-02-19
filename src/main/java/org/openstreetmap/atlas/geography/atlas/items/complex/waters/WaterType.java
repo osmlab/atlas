@@ -15,5 +15,6 @@ public enum WaterType
     POND,
     RESERVOIR,
     RIVER,
+    SEA,
     WETLAND;
 }

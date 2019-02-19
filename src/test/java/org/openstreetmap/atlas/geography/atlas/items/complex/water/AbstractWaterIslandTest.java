@@ -47,6 +47,12 @@ public abstract class AbstractWaterIslandTest
                         NaturalTag.WATER.name().toLowerCase(), WaterTag.KEY,
                         WaterTag.LAKE.name().toLowerCase()));
 
+        // Sea
+        this.atlasBuilder.addRelation(7L, 0L, multipolygon,
+                Maps.hashMap(RelationTypeTag.KEY, RelationTypeTag.MULTIPOLYGON_TYPE, NaturalTag.KEY,
+                        NaturalTag.WATER.name().toLowerCase(), WaterTag.KEY,
+                        WaterTag.SEA.name().toLowerCase()));
+
         // Reservoir
         this.atlasBuilder.addRelation(1L, 1L, multipolygon,
                 Maps.hashMap(RelationTypeTag.KEY, RelationTypeTag.MULTIPOLYGON_TYPE, NaturalTag.KEY,

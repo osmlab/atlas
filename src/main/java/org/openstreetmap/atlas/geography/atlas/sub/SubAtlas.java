@@ -21,6 +21,8 @@ public interface SubAtlas
 
     Optional<Atlas> hardCutRelationsOnly(Predicate<AtlasEntity> matcher);
 
+    Optional<Atlas> silkCut(GeometricSurface boundary);
+
     Optional<Atlas> softCut(GeometricSurface boundary, boolean hardCutRelations);
 
     Optional<Atlas> softCut(Predicate<AtlasEntity> matcher);
