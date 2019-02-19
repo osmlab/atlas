@@ -376,6 +376,84 @@ public class SubAtlasTest
     }
 
     @Test
+    public void testSubAtlasSilkCutWithPolygon()
+    {
+        final Atlas source = this.rule.getAtlas();
+        // This Rectangle covers only the Node 1, Edge 0, Area 0, Line 0 and Point 0.
+        final Atlas sub = source
+                .subAtlas(
+                        Rectangle.forCorners(Location.forString("37.780400, -122.473149"),
+                                Location.forString("37.780785, -122.472631")),
+                        AtlasCutType.SILK_CUT)
+                .orElseThrow(() -> new CoreException("SubAtlas was not present."));
+        // Nodes
+        Assert.assertNotNull(source.node(1));
+        Assert.assertNotNull(sub.node(1));
+        Assert.assertNotNull(source.node(2));
+        Assert.assertNotNull(sub.node(2));
+        Assert.assertNotNull(source.node(3));
+        Assert.assertNull(sub.node(3));
+
+        // Edges
+        Assert.assertNotNull(source.edge(0));
+        Assert.assertNotNull(sub.edge(0));
+        Assert.assertNotNull(source.edge(1));
+        Assert.assertNull(sub.edge(1));
+
+        // Areas
+        Assert.assertNotNull(source.area(0));
+        Assert.assertNotNull(sub.area(0));
+        Assert.assertNotNull(source.area(1));
+        Assert.assertNull(sub.area(1));
+
+        // Lines
+        Assert.assertNotNull(source.line(0));
+        Assert.assertNotNull(sub.line(0));
+        Assert.assertNotNull(source.line(1));
+        Assert.assertNull(sub.line(1));
+
+        // Check that points for line coordinates were preserved
+        sub.lines().forEach(line ->
+        {
+            line.asPolyLine().forEach(location ->
+            {
+                source.pointsAt(location).forEach(point ->
+                {
+                    Assert.assertTrue(sub.point(point.getIdentifier()) != null);
+                });
+            });
+        });
+
+        // Points
+        Assert.assertNotNull(source.point(0));
+        Assert.assertNotNull(sub.point(0));
+        Assert.assertNotNull(source.point(1));
+        Assert.assertNotNull(sub.point(1));
+        Assert.assertNotNull(source.point(2));
+        Assert.assertNull(sub.point(2));
+        Assert.assertNotNull(source.point(3));
+        Assert.assertNull(sub.point(3));
+
+        // Relations
+        Assert.assertNotNull(source.relation(1));
+        Assert.assertNotNull(sub.relation(1));
+        Assert.assertNotNull(source.relation(2));
+        Assert.assertEquals(2, source.relation(2).members().size());
+        Assert.assertNotNull(sub.relation(2));
+        Assert.assertEquals(1, sub.relation(2).members().size());
+        Assert.assertNotNull(source.relation(3));
+        Assert.assertNull(sub.relation(3));
+        Assert.assertNotNull(source.relation(4));
+        Assert.assertEquals(2, source.relation(4).members().size());
+        Assert.assertNotNull(sub.relation(4));
+        Assert.assertEquals(1, sub.relation(4).members().size());
+        Assert.assertNotNull(source.relation(5));
+        Assert.assertEquals(1, source.relation(5).members().size());
+        Assert.assertNotNull(sub.relation(5));
+        Assert.assertEquals(1, sub.relation(5).members().size());
+    }
+
+    @Test
     public void testSubAtlasSoftCutWithPolygon()
     {
         final Atlas source = this.rule.getAtlas();

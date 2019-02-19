@@ -1,6 +1,4 @@
 {
     "filters": [
-    	"natural->!coastline",
-    	"boundary->!|natural->water"
     ]
 }
