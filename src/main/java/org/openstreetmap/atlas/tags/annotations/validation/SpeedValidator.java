@@ -1,6 +1,12 @@
 package org.openstreetmap.atlas.tags.annotations.validation;
 
+import java.io.InputStreamReader;
+
 import org.openstreetmap.atlas.utilities.scalars.Speed;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.stream.JsonReader;
 
 /**
  * Checks if the value of the tag matches the OSM conventions for denoting speed. See more on the
@@ -15,6 +21,11 @@ import org.openstreetmap.atlas.utilities.scalars.Speed;
 public class SpeedValidator implements TagValidator
 {
     private static final DoubleValidator DOUBLE_VALIDATOR;
+    private static final JsonObject IMPLICIT_SPEED_MAP = new Gson().fromJson(
+            new JsonReader(
+                    new InputStreamReader(SpeedValidator.class.getClassLoader().getResourceAsStream(
+                            "org/openstreetmap/atlas/tags/annotations/implicit-speed-values.json"))),
+            JsonObject.class);
 
     static
     {
@@ -39,6 +50,14 @@ public class SpeedValidator implements TagValidator
         {
             return DOUBLE_VALIDATOR.isValid(
                     value.substring(0, value.length() - Speed.KILOMETERS_PER_HOUR.length()).trim());
+        }
+        else if ("none".equals(value))
+        {
+            return true;
+        }
+        else if (IMPLICIT_SPEED_MAP.has(value.toLowerCase()))
+        {
+            return true;
         }
         else
         {
