@@ -331,6 +331,8 @@ public final class TurnRestriction implements Located, Serializable
                 viaMember = Route.buildFullRouteIgnoringReverseEdges(viaEdges,
                         fromMember.end().end(), toMember.start().start());
             }
+            // Make sure building the route works.
+            route();
         }
         catch (final CoreException e)
         {
