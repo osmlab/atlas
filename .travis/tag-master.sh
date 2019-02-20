@@ -28,6 +28,7 @@ then
 fi
 
 : ${GITHUB_SECRET_TOKEN:?"GITHUB_SECRET_TOKEN needs to be set in .travis.yml!"}
+: ${TRAVIS_COMMIT:?"TRAVIS_COMMIT needs to be available to tag the right commit!"}
 
 export GIT_COMMITTER_EMAIL="travis@travis.org"
 export GIT_COMMITTER_NAME="Travis CI"
@@ -36,13 +37,13 @@ TEMPORARY_REPOSITORY=$(mktemp -d)
 git clone "https://github.com/$GITHUB_REPO" "$TEMPORARY_REPOSITORY"
 cd $TEMPORARY_REPOSITORY
 
-echo "Checking out $RELEASE_BRANCH"
-git checkout $RELEASE_BRANCH
+echo "Checking out $RELEASE_BRANCH (commit $TRAVIS_COMMIT)"
+git checkout $TRAVIS_COMMIT
 
 PROJECT_VERSION=$(cat gradle.properties | grep "\-SNAPSHOT" | awk -F '=' '{print $2}' | awk -F '-' '{print $1}')
 : ${PROJECT_VERSION:?"PROJECT_VERSION could not be found."}
 
-echo "Tagging $RELEASE_BRANCH at version $PROJECT_VERSION"
+echo "Tagging $RELEASE_BRANCH (commit $TRAVIS_COMMIT) at version $PROJECT_VERSION"
 git tag -a $PROJECT_VERSION -m "Release $PROJECT_VERSION"
 
 echo "Pushing tag $PROJECT_VERSION to $GITHUB_REPO"
