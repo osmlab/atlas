@@ -416,21 +416,22 @@ public class Validators
      *
      * @param <T>
      *            the enum-type tag's class object
-     * @param one
+     * @param firstTaggable
      *            one taggable we are comparing
-     * @param two
+     * @param secondTaggable
      *            the other taggable we are comparing against
      * @param type
      *            the class of the enum-type tag we are looking for
-     * @return true if the tag exists in one AND two, AND the value of one is equal to the value of
-     *         two.
+     * @return true if the tag exists in firstTaggable AND secondTaggable, AND the value of
+     *         firstTaggable is equal to the value of secondTaggable.
      */
-    public static <T extends Enum<T>> boolean areOfSameType(final Taggable one, final Taggable two,
-            final Class<T> type)
+    public static <T extends Enum<T>> boolean areOfSameType(final Taggable firstTaggable,
+            final Taggable secondTaggable, final Class<T> type)
     {
         final String key = findTagNameIn(type);
 
-        return one.getTag(key).flatMap(oneTag -> two.getTag(key).map(oneTag::equals)).orElse(false);
+        return firstTaggable.getTag(key)
+                .flatMap(oneTag -> secondTaggable.getTag(key).map(oneTag::equals)).orElse(false);
     }
 
     /**
