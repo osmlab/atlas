@@ -66,6 +66,32 @@ public final class Sets
         return withSets(true, items);
     }
 
+    @SafeVarargs
+    public static <V> SortedSet<V> withSortedSets(final SortedSet<V>... items)
+    {
+        if (items.length == 0)
+        {
+            return new TreeSet<>();
+        }
+        if (items.length == 1)
+        {
+            return items[0];
+        }
+        final SortedSet<V> result = new TreeSet<>();
+        for (final SortedSet<V> item : items)
+        {
+            for (final V entry : item)
+            {
+                if (result.contains(entry))
+                {
+                    throw new CoreException("Cannot merge sets! Collision on element.");
+                }
+                result.add(entry);
+            }
+        }
+        return result;
+    }
+
     private Sets()
     {
     }
