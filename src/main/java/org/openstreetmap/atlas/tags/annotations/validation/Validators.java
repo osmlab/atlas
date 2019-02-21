@@ -411,6 +411,29 @@ public class Validators
     }
 
     /**
+     * Use this method to check if a tag exists on two {@link Taggable} objects, and those values
+     * are the same.
+     *
+     * @param <T>
+     *            the enum-type tag's class object
+     * @param one
+     *            one taggable we are comparing
+     * @param two
+     *            the other taggable we are comparing against
+     * @param type
+     *            the class of the enum-type tag we are looking for
+     * @return true if the tag exists in one AND two, AND the value of one is equal to the value of
+     *         two.
+     */
+    public static <T extends Enum<T>> boolean areOfSameType(final Taggable one, final Taggable two,
+            final Class<T> type)
+    {
+        final String key = findTagNameIn(type);
+
+        return one.getTag(key).flatMap(oneTag -> two.getTag(key).map(oneTag::equals)).orElse(false);
+    }
+
+    /**
      * Convenience method for creating the localized name of a tag if and only if tagType is a Tag
      * and the TagKey is localizable
      *

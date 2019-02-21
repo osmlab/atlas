@@ -8,6 +8,7 @@ import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.NaturalTag;
 import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.tags.WaterTag;
+import org.openstreetmap.atlas.tags.WaterwayTag;
 import org.openstreetmap.atlas.tags.names.NameTag;
 import org.openstreetmap.atlas.utilities.testing.TestTaggable;
 
@@ -104,5 +105,33 @@ public class ValidatorsHasValuesForTestCase
         Assert.assertFalse(
                 Validators.hasValuesFor(new TestTaggable(WaterTag.CANAL, NaturalTag.WATER),
                         NaturalTag.class, HighwayTag.class, WaterTag.class));
+    }
+
+    @Test
+    public void keyPresentDifferentValues()
+    {
+        Assert.assertFalse(Validators.areOfSameType(new TestTaggable(HighwayTag.BUS_STOP),
+                new TestTaggable(HighwayTag.CYCLEWAY), HighwayTag.class));
+    }
+
+    @Test
+    public void keyPresentSameValue()
+    {
+        Assert.assertTrue(Validators.areOfSameType(new TestTaggable(WaterTag.LAKE),
+                new TestTaggable(WaterTag.LAKE), WaterTag.class));
+    }
+
+    @Test
+    public void oneMissingKey()
+    {
+        Assert.assertFalse(Validators.areOfSameType(new TestTaggable(WaterTag.CANAL),
+                new TestTaggable(WaterwayTag.CANAL), WaterTag.class));
+    }
+
+    @Test
+    public void twoMissingKeys()
+    {
+        Assert.assertFalse(Validators.areOfSameType(new TestTaggable(WaterwayTag.CANAL),
+                new TestTaggable(WaterwayTag.CANAL), WaterTag.class));
     }
 }
