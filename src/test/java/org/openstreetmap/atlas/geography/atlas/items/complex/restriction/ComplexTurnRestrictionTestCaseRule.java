@@ -31,7 +31,15 @@ public class ComplexTurnRestrictionTestCaseRule extends CoreTestRule
                     @Node(id = "4", coordinates = @Loc(value = FOUR)),
                     @Node(id = "5", coordinates = @Loc(value = SIX)),
 
-            }, edges = { @Edge(id = "102", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }, tags = { "highway=trunk" }), @Edge(id = "203", coordinates = { @Loc(value = TWO), @Loc(value = THREE) }, tags = { "highway=trunk" }), @Edge(id = "204", coordinates = { @Loc(value = TWO), @Loc(value = FOUR) }, tags = { "highway=trunk" }), @Edge(id = "205", coordinates = { @Loc(value = TWO), @Loc(value = SIX) }, tags = { "highway=trunk" })
+            }, edges = {
+                    @Edge(id = "102", coordinates = { @Loc(value = ONE),
+                            @Loc(value = TWO) }, tags = { "highway=trunk" }),
+                    @Edge(id = "203", coordinates = { @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "highway=trunk" }),
+                    @Edge(id = "204", coordinates = { @Loc(value = TWO),
+                            @Loc(value = FOUR) }, tags = { "highway=trunk" }),
+                    @Edge(id = "205", coordinates = { @Loc(value = TWO),
+                            @Loc(value = SIX) }, tags = { "highway=trunk" })
 
             }, relations = {
 
@@ -54,7 +62,17 @@ public class ComplexTurnRestrictionTestCaseRule extends CoreTestRule
                     @Node(id = "4", coordinates = @Loc(value = FOUR)),
                     @Node(id = "5", coordinates = @Loc(value = FIVE))
 
-            }, edges = { @Edge(id = "102", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }, tags = { "highway=trunk" }), @Edge(id = "-102", coordinates = { @Loc(value = TWO), @Loc(value = ONE) }, tags = { "highway=trunk" }), @Edge(id = "203", coordinates = { @Loc(value = TWO), @Loc(value = THREE) }, tags = { "highway=trunk" }), @Edge(id = "204", coordinates = { @Loc(value = TWO), @Loc(value = FOUR) }, tags = { "highway=trunk" }), @Edge(id = "205", coordinates = { @Loc(value = TWO), @Loc(value = FIVE) }, tags = { "highway=trunk" })
+            }, edges = {
+                    @Edge(id = "102", coordinates = { @Loc(value = ONE),
+                            @Loc(value = TWO) }, tags = { "highway=trunk" }),
+                    @Edge(id = "-102", coordinates = { @Loc(value = TWO),
+                            @Loc(value = ONE) }, tags = { "highway=trunk" }),
+                    @Edge(id = "203", coordinates = { @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "highway=trunk" }),
+                    @Edge(id = "204", coordinates = { @Loc(value = TWO),
+                            @Loc(value = FOUR) }, tags = { "highway=trunk" }),
+                    @Edge(id = "205", coordinates = { @Loc(value = TWO),
+                            @Loc(value = FIVE) }, tags = { "highway=trunk" })
 
             }, relations = {
 
@@ -77,7 +95,11 @@ public class ComplexTurnRestrictionTestCaseRule extends CoreTestRule
                     @Node(id = "1", coordinates = @Loc(value = ONE)),
                     @Node(id = "2", coordinates = @Loc(value = TWO)),
 
-            }, edges = { @Edge(id = "102", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }, tags = { "highway=trunk" }), @Edge(id = "-102", coordinates = { @Loc(value = TWO), @Loc(value = ONE) }, tags = { "highway=trunk" })
+            }, edges = {
+                    @Edge(id = "102", coordinates = { @Loc(value = ONE),
+                            @Loc(value = TWO) }, tags = { "highway=trunk" }),
+                    @Edge(id = "-102", coordinates = { @Loc(value = TWO),
+                            @Loc(value = ONE) }, tags = { "highway=trunk" })
 
             }, relations = {
 
@@ -101,7 +123,15 @@ public class ComplexTurnRestrictionTestCaseRule extends CoreTestRule
                     @Node(id = "4", coordinates = @Loc(value = FOUR)),
                     @Node(id = "6", coordinates = @Loc(value = SIX))
 
-            }, edges = { @Edge(id = "102", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }, tags = { "highway=trunk" }), @Edge(id = "203", coordinates = { @Loc(value = TWO), @Loc(value = THREE) }, tags = { "highway=trunk" }), @Edge(id = "304", coordinates = { @Loc(value = THREE), @Loc(value = FOUR) }, tags = { "highway=trunk" }), @Edge(id = "205", coordinates = { @Loc(value = TWO), @Loc(value = SIX) }, tags = { "highway=trunk" })
+            }, edges = {
+                    @Edge(id = "102", coordinates = { @Loc(value = ONE),
+                            @Loc(value = TWO) }, tags = { "highway=trunk" }),
+                    @Edge(id = "203", coordinates = { @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "highway=trunk" }),
+                    @Edge(id = "304", coordinates = { @Loc(value = THREE),
+                            @Loc(value = FOUR) }, tags = { "highway=trunk" }),
+                    @Edge(id = "205", coordinates = { @Loc(value = TWO),
+                            @Loc(value = SIX) }, tags = { "highway=trunk" })
 
             }, relations = {
 
@@ -114,9 +144,22 @@ public class ComplexTurnRestrictionTestCaseRule extends CoreTestRule
             })
     private Atlas atlasNoUTurn;
 
+    @TestAtlas(loadFromJosmOsmResource = "atlasBrokenTurnRestrictionRoute.josm.osm")
+    private Atlas atlasBrokenTurnRestrictionRoute;
+
+    public Atlas getAtlasBrokenTurnRestrictionRoute()
+    {
+        return this.atlasBrokenTurnRestrictionRoute;
+    }
+
     public Atlas getAtlasNo()
     {
         return this.atlasNo;
+    }
+
+    public Atlas getAtlasNoUTurn()
+    {
+        return this.atlasNoUTurn;
     }
 
     public Atlas getAtlasOnly()
@@ -132,10 +175,5 @@ public class ComplexTurnRestrictionTestCaseRule extends CoreTestRule
     public Atlas getRelationWithTwoViaNodes()
     {
         return this.relationWithTwoViaNodes;
-    }
-
-    public Atlas getAtlasNoUTurn()
-    {
-        return this.atlasNoUTurn;
     }
 }
