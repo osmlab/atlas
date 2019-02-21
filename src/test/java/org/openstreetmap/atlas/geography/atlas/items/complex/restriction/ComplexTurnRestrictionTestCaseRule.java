@@ -32,6 +32,7 @@ public class ComplexTurnRestrictionTestCaseRule extends CoreTestRule
                     @Node(id = "5", coordinates = @Loc(value = SIX)),
 
             }, edges = {
+
                     @Edge(id = "102", coordinates = { @Loc(value = ONE),
                             @Loc(value = TWO) }, tags = { "highway=trunk" }),
                     @Edge(id = "203", coordinates = { @Loc(value = TWO),
@@ -63,6 +64,7 @@ public class ComplexTurnRestrictionTestCaseRule extends CoreTestRule
                     @Node(id = "5", coordinates = @Loc(value = FIVE))
 
             }, edges = {
+
                     @Edge(id = "102", coordinates = { @Loc(value = ONE),
                             @Loc(value = TWO) }, tags = { "highway=trunk" }),
                     @Edge(id = "-102", coordinates = { @Loc(value = TWO),
@@ -96,6 +98,7 @@ public class ComplexTurnRestrictionTestCaseRule extends CoreTestRule
                     @Node(id = "2", coordinates = @Loc(value = TWO)),
 
             }, edges = {
+
                     @Edge(id = "102", coordinates = { @Loc(value = ONE),
                             @Loc(value = TWO) }, tags = { "highway=trunk" }),
                     @Edge(id = "-102", coordinates = { @Loc(value = TWO),
@@ -124,6 +127,7 @@ public class ComplexTurnRestrictionTestCaseRule extends CoreTestRule
                     @Node(id = "6", coordinates = @Loc(value = SIX))
 
             }, edges = {
+
                     @Edge(id = "102", coordinates = { @Loc(value = ONE),
                             @Loc(value = TWO) }, tags = { "highway=trunk" }),
                     @Edge(id = "203", coordinates = { @Loc(value = TWO),
