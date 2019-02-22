@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-53448' action='modify' visible='true' lat='34.62756192874' lon='18.16333885978' />
+  <node id='-53450' action='modify' visible='true' lat='34.62784735183' lon='18.16365936012' />
+  <node id='-53452' action='modify' visible='true' lat='34.62764199447' lon='18.16434643406'>
+    <tag k='highway' v='traffic_signals' />
+  </node>
+  <node id='-53454' action='modify' visible='true' lat='34.62837215166' lon='18.16493183339' />
+  <node id='-53456' action='modify' visible='true' lat='34.62822003611' lon='18.16460524219' />
+  <way id='-53458' action='modify' visible='true'>
+    <nd ref='-53448' />
+    <nd ref='-53450' />
+    <nd ref='-53452' />
+    <tag k='highway' v='primary' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='-53460' action='modify' visible='true'>
+    <nd ref='-53452' />
+    <nd ref='-53456' />
+    <nd ref='-53454' />
+    <tag k='highway' v='secondary' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <relation id='-53462' action='modify' visible='true'>
+    <member type='way' ref='-53460' role='via' />
+    <member type='way' ref='-53460' role='to' />
+    <member type='way' ref='-53458' role='from' />
+    <tag k='restriction' v='no_left_turn' />
+    <tag k='type' v='restriction' />
+  </relation>
+</osm>
