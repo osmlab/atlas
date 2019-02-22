@@ -187,9 +187,9 @@ public class CompleteRelation extends Relation implements CompleteEntity
     @Override
     public String toString()
     {
-        return "BloatedRelation [identifier=" + this.identifier + ", tags=" + this.tags
-                + ", members=" + this.members + ", relationIdentifiers=" + this.relationIdentifiers
-                + "]";
+        return this.getClass().getSimpleName() + " [identifier=" + this.identifier + ", tags="
+                + this.tags + ", members=" + this.members + ", relationIdentifiers="
+                + this.relationIdentifiers + "]";
     }
 
     @Override

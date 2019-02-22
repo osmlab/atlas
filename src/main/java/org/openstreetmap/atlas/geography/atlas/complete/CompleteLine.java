@@ -133,8 +133,9 @@ public class CompleteLine extends Line implements CompleteLineItem
     @Override
     public String toString()
     {
-        return "BloatedLine [identifier=" + this.identifier + ", polyLine=" + this.polyLine
-                + ", tags=" + this.tags + ", relationIdentifiers=" + this.relationIdentifiers + "]";
+        return this.getClass().getSimpleName() + " [identifier=" + this.identifier + ", polyLine="
+                + this.polyLine + ", tags=" + this.tags + ", relationIdentifiers="
+                + this.relationIdentifiers + "]";
     }
 
     @Override
