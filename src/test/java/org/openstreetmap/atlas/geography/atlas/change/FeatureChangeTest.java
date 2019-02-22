@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
@@ -311,5 +313,16 @@ public class FeatureChangeTest
 
         new FeatureChange(ChangeType.ADD,
                 new CompleteRelation(123L, null, null, null, null, null, null, null));
+    }
+
+    @Test
+    public void testTags() {
+        final String key = "key1";
+        final String value = "value1";
+        final Map<String, String> tags = Maps.hashMap(key, value, "key2", "value2");
+        final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, new CompleteArea(123L, null, tags, null));
+        Assert.assertEquals(new HashMap<>(tags), featureChange.getTags());
+        Assert.assertEquals(value, featureChange.getTag(key).get());
+        Assert.assertTrue(featureChange.toString().contains(tags.toString()));
     }
 }
