@@ -297,9 +297,9 @@ public class CompleteRelation extends Relation implements CompleteEntity
      * @param members
      *            The members of the relation
      * @param source
-     *            The relation that was used as a base to create that BloatedRelation, if any. Due
-     *            to the weak nature of relation membership across Atlas(es), this helps decide what
-     *            relation members are forcibly removed if any.
+     *            The relation that was used as a base to create that {@link CompleteRelation}, if
+     *            any. Due to the weak nature of relation membership across Atlas(es), this helps
+     *            decide what relation members are forcibly removed if any.
      * @param bounds
      *            The bounds of all the members of the relation.
      * @return This.
@@ -335,9 +335,9 @@ public class CompleteRelation extends Relation implements CompleteEntity
      * @param members
      *            The full members of the Relation
      * @param source
-     *            The relation that was used as a base to create that BloatedRelation, if any. Due
-     *            to the weak nature of relation membership across Atlas(es), this helps decide what
-     *            relation members are forcibly removed if any.
+     *            The relation that was used as a base to create that {@link CompleteRelation}, if
+     *            any. Due to the weak nature of relation membership across Atlas(es), this helps
+     *            decide what relation members are forcibly removed if any.
      * @return This.
      */
     public CompleteRelation withMembersAndSource(final RelationMemberList members,

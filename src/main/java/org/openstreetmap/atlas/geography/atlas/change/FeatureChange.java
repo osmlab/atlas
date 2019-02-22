@@ -86,7 +86,7 @@ public class FeatureChange implements Located, Serializable
         if (!(reference instanceof CompleteEntity))
         {
             throw new CoreException(
-                    "FeatureChange requires BloatedEntity, found reference of type {}",
+                    "FeatureChange requires CompleteEntity, found reference of type {}",
                     reference.getClass().getName());
         }
         if (changeType == null)
