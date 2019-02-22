@@ -73,12 +73,9 @@ public abstract class BareAtlas implements Atlas
     private transient String name;
     private final UUID identifier;
 
-    private final transient SubAtlasCreator subAtlas;
-
     protected BareAtlas()
     {
         this.identifier = UUID.randomUUID();
-        this.subAtlas = new SubAtlasCreator(this);
     }
 
     @Override
@@ -579,13 +576,13 @@ public abstract class BareAtlas implements Atlas
         switch (cutType)
         {
             case SILK_CUT:
-                return this.subAtlas.silkCut(boundary);
+                return SubAtlasCreator.silkCut(this, boundary);
             case SOFT_CUT:
-                return this.subAtlas.softCut(boundary, false);
+                return SubAtlasCreator.softCut(this, boundary, false);
             case HARD_CUT_ALL:
-                return this.subAtlas.hardCutAllEntities(boundary);
+                return SubAtlasCreator.hardCutAllEntities(this, boundary);
             case HARD_CUT_RELATIONS_ONLY:
-                return this.subAtlas.softCut(boundary, true);
+                return SubAtlasCreator.softCut(this, boundary, true);
             default:
                 throw new CoreException("Unsupported Atlas cut type: {}", cutType);
         }
@@ -598,11 +595,11 @@ public abstract class BareAtlas implements Atlas
         switch (cutType)
         {
             case SOFT_CUT:
-                return this.subAtlas.softCut(matcher);
+                return SubAtlasCreator.softCut(this, matcher);
             case HARD_CUT_ALL:
-                return this.subAtlas.hardCutAllEntities(matcher);
+                return SubAtlasCreator.hardCutAllEntities(this, matcher);
             case HARD_CUT_RELATIONS_ONLY:
-                return this.subAtlas.hardCutRelationsOnly(matcher);
+                return SubAtlasCreator.hardCutRelationsOnly(this, matcher);
             default:
                 throw new CoreException("Unsupported Atlas cut type: {}", cutType);
         }
