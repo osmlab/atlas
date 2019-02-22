@@ -411,7 +411,7 @@ public class Validators
     }
 
     /**
-     * Use this method to check if a tag exists on two {@link Taggable} objects, and those values
+     * Use this method to check if a tag exists in two {@link Taggable} objects, and those values
      * are the same.
      *
      * @param <T>
@@ -425,7 +425,7 @@ public class Validators
      * @return true if the tag exists in firstTaggable AND secondTaggable, AND the value of
      *         firstTaggable is equal to the value of secondTaggable.
      */
-    public static <T extends Enum<T>> boolean areOfSameType(final Taggable firstTaggable,
+    public static <T extends Enum<T>> boolean isOfSameType(final Taggable firstTaggable,
             final Taggable secondTaggable, final Class<T> type)
     {
         final String key = findTagNameIn(type);

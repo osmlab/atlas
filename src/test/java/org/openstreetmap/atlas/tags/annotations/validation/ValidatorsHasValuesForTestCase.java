@@ -110,28 +110,28 @@ public class ValidatorsHasValuesForTestCase
     @Test
     public void keyPresentDifferentValues()
     {
-        Assert.assertFalse(Validators.areOfSameType(new TestTaggable(HighwayTag.BUS_STOP),
+        Assert.assertFalse(Validators.isOfSameType(new TestTaggable(HighwayTag.BUS_STOP),
                 new TestTaggable(HighwayTag.CYCLEWAY), HighwayTag.class));
     }
 
     @Test
     public void keyPresentSameValue()
     {
-        Assert.assertTrue(Validators.areOfSameType(new TestTaggable(WaterTag.LAKE),
+        Assert.assertTrue(Validators.isOfSameType(new TestTaggable(WaterTag.LAKE),
                 new TestTaggable(WaterTag.LAKE), WaterTag.class));
     }
 
     @Test
     public void oneMissingKey()
     {
-        Assert.assertFalse(Validators.areOfSameType(new TestTaggable(WaterTag.CANAL),
+        Assert.assertFalse(Validators.isOfSameType(new TestTaggable(WaterTag.CANAL),
                 new TestTaggable(WaterwayTag.CANAL), WaterTag.class));
     }
 
     @Test
     public void twoMissingKeys()
     {
-        Assert.assertFalse(Validators.areOfSameType(new TestTaggable(WaterwayTag.CANAL),
+        Assert.assertFalse(Validators.isOfSameType(new TestTaggable(WaterwayTag.CANAL),
                 new TestTaggable(WaterwayTag.CANAL), WaterTag.class));
     }
 }
