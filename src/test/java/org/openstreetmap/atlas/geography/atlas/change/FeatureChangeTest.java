@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
+import java.util.stream.Collectors;
+
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -21,6 +23,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.LineItem;
 import org.openstreetmap.atlas.geography.atlas.items.LocationItem;
+import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.Maps;
@@ -109,6 +112,25 @@ public class FeatureChangeTest
                 new CompletePoint(123L, Location.COLOSSEUM, null, null));
         Assert.assertEquals(Location.COLOSSEUM,
                 ((LocationItem) featureChange1.merge(featureChange2).getReference()).getLocation());
+    }
+
+    @Test
+    public void testMergeNodes()
+    {
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteNode(123L, Location.COLOSSEUM, null, Sets.treeSet(1L, 2L, 3L),
+                        Sets.treeSet(10L, 11L, 13L), null));
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
+                new CompleteNode(123L, Location.COLOSSEUM, null, Sets.treeSet(1L, 2L, 3L),
+                        Sets.treeSet(10L, 11L, 13L), null));
+
+        // Testing with a hashset instead of a treeset for ease of typing
+        Assert.assertEquals(Sets.hashSet(1L, 2L, 3L),
+                ((Node) featureChange1.merge(featureChange2).getReference()).inEdges().stream()
+                        .map(edge -> edge.getIdentifier()).collect(Collectors.toSet()));
+        Assert.assertEquals(Sets.hashSet(10L, 11L, 13L),
+                ((Node) featureChange1.merge(featureChange2).getReference()).outEdges().stream()
+                        .map(edge -> edge.getIdentifier()).collect(Collectors.toSet()));
     }
 
     @Test
