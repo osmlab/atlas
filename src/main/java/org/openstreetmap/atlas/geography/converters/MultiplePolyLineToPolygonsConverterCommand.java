@@ -1,7 +1,7 @@
 package org.openstreetmap.atlas.geography.converters;
 
-import java.io.FileNotFoundException;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -9,6 +9,8 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.streaming.resource.Resource;
+import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.streaming.writers.SafeBufferedWriter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.StringList;
@@ -35,6 +37,7 @@ public class MultiplePolyLineToPolygonsConverterCommand extends Command
             StringConverter.IDENTITY, Optionality.OPTIONAL, ";");
 
     private static final WktPolyLineConverter WKT_POLY_LINE_CONVERTER = new WktPolyLineConverter();
+    private static final WktMultiPolyLineConverter WKT_MULTI_POLY_LINE_CONVERTER = new WktMultiPolyLineConverter();
     private static final MultiplePolyLineToPolygonsConverter MULTIPLE_POLY_LINE_TO_POLYGONS_CONVERTER = new MultiplePolyLineToPolygonsConverter();
 
     public static void main(final String[] args)
@@ -46,24 +49,9 @@ public class MultiplePolyLineToPolygonsConverterCommand extends Command
     protected int onRun(final CommandMap command)
     {
         final String delimiter = (String) command.get(DELIMITER);
-        final File inputFile = (File) command.get(POLYLINES);
-        final Iterable<List<PolyLine>> inputs = Iterables.stream(inputFile.lines())
-                .map(line -> StringList.split(line, delimiter).stream()
-                        .map(WKT_POLY_LINE_CONVERTER::backwardConvert)
-                        .collect(Collectors.toList()));
-        try (SafeBufferedWriter writer = writer(command))
-        {
-            for (final List<PolyLine> input : inputs)
-            {
-                writer.writeLine(new StringList(
-                        Iterables.stream(MULTIPLE_POLY_LINE_TO_POLYGONS_CONVERTER.convert(input))
-                                .map(Polygon::toWkt)).join(delimiter));
-            }
-        }
-        catch (final Exception e)
-        {
-            throw new CoreException("Unable to convert polylines from {}", inputFile.getName(), e);
-        }
+        final File input = (File) command.get(POLYLINES);
+        final File output = (File) command.get(POLYGONS);
+        translate(input, output, delimiter);
         return 0;
     }
 
@@ -73,9 +61,42 @@ public class MultiplePolyLineToPolygonsConverterCommand extends Command
         return new SwitchList().with(POLYLINES, POLYGONS, DELIMITER);
     }
 
-    private SafeBufferedWriter writer(final CommandMap command) throws FileNotFoundException
+    protected void translate(final Resource input, final WritableResource output,
+            final String delimiter)
     {
-        final File output = (File) command.get(POLYGONS);
+        final Iterable<List<PolyLine>> inputs = Iterables.stream(input.lines())
+                .map(line -> StringList.split(line, delimiter).stream()
+                        .filter(wkt -> wkt != null && !wkt.isEmpty()).flatMap(wkt ->
+                        {
+                            final List<PolyLine> result = new ArrayList<>();
+                            if (wkt.toLowerCase().contains("multi"))
+                            {
+                                WKT_MULTI_POLY_LINE_CONVERTER.backwardConvert(wkt)
+                                        .forEach(result::add);
+                            }
+                            else
+                            {
+                                result.add(WKT_POLY_LINE_CONVERTER.backwardConvert(wkt));
+                            }
+                            return result.stream();
+                        }).collect(Collectors.toList()));
+        try (SafeBufferedWriter writer = writer(output))
+        {
+            for (final List<PolyLine> inputPolyLines : inputs)
+            {
+                writer.writeLine(new StringList(Iterables
+                        .stream(MULTIPLE_POLY_LINE_TO_POLYGONS_CONVERTER.convert(inputPolyLines))
+                        .map(Polygon::toWkt)).join(delimiter));
+            }
+        }
+        catch (final Exception e)
+        {
+            throw new CoreException("Unable to convert polylines from {}", input.getName(), e);
+        }
+    }
+
+    private SafeBufferedWriter writer(final WritableResource output)
+    {
         return output != null ? output.writer()
                 : new SafeBufferedWriter(new OutputStreamWriter(System.out));
     }
