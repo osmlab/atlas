@@ -316,11 +316,13 @@ public class FeatureChangeTest
     }
 
     @Test
-    public void testTags() {
+    public void testTags()
+    {
         final String key = "key1";
         final String value = "value1";
         final Map<String, String> tags = Maps.hashMap(key, value, "key2", "value2");
-        final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, new CompleteArea(123L, null, tags, null));
+        final FeatureChange featureChange = new FeatureChange(ChangeType.ADD,
+                new CompleteArea(123L, null, tags, null));
         Assert.assertEquals(new HashMap<>(tags), featureChange.getTags());
         Assert.assertEquals(value, featureChange.getTag(key).get());
         Assert.assertTrue(featureChange.toString().contains(tags.toString()));

@@ -141,17 +141,20 @@ public class FeatureChange implements Located, Serializable
      *
      * @return Map - the changed tags.
      */
-    public Map<String, String> getTags() {
+    public Map<String, String> getTags()
+    {
         return this.getReference().getTags();
     }
 
     /**
      * Get a tag based on key post changes.
      *
-     * @param key - The tag key to look for.
+     * @param key
+     *            - The tag key to look for.
      * @return - the changed value of the tag, if available.
      */
-    public Optional<String> getTag(final String key) {
+    public Optional<String> getTag(final String key)
+    {
         return this.getReference().getTag(key);
     }
 
