@@ -55,7 +55,13 @@ Anything without water=pond
 water->!pond,!lake
 ```
 
-Anything without water=pond or water=lake
+Anything without water=pond or without water=lake. That one is not very useful as it is always true because one of the two will always be true (The water tag can have only one value).
+
+```
+water->!pond&water->!lake
+```
+
+Anything without water=pond and without water=lake.
 
 ```
 water->!

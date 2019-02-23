@@ -136,6 +136,28 @@ public class FeatureChange implements Located, Serializable
         return this.reference;
     }
 
+    /**
+     * Get the changed tags.
+     *
+     * @return Map - the changed tags.
+     */
+    public Map<String, String> getTags()
+    {
+        return this.getReference().getTags();
+    }
+
+    /**
+     * Get a tag based on key post changes.
+     *
+     * @param key
+     *            - The tag key to look for.
+     * @return - the changed value of the tag, if available.
+     */
+    public Optional<String> getTag(final String key)
+    {
+        return this.getReference().getTag(key);
+    }
+
     @Override
     public int hashCode()
     {
@@ -224,8 +246,8 @@ public class FeatureChange implements Located, Serializable
     public String toString()
     {
         return "FeatureChange [changeType=" + this.changeType + ", reference={"
-                + this.reference.getType() + "," + this.reference.getIdentifier() + "}, bounds="
-                + bounds() + "]";
+                + this.reference.getType() + "," + this.reference.getIdentifier() + "}, tags="
+                + getTags() + ", bounds=" + bounds() + "]";
     }
 
     private FeatureChange mergeAreas(final FeatureChange other,
