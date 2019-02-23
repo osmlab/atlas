@@ -34,8 +34,8 @@ import com.google.gson.JsonObject;
 
 /**
  * Simple Atlas that supports single temporary entities. It does not do anything by design, as all
- * the Bloated entities are self-contained. They just need an Atlas to refer to, so they comply with
- * the Edge, Node, Area etc. definitions.
+ * the {@link CompleteEntity} are self-contained. They just need an Atlas to refer to, so they
+ * comply with the Edge, Node, Area etc. definitions.
  *
  * @author matthieun
  */
@@ -222,7 +222,7 @@ public class EmptyAtlas implements Atlas
     @Override
     public String getName()
     {
-        return "BloatedAtlas";
+        return "EmptyAtlas";
     }
 
     @Override

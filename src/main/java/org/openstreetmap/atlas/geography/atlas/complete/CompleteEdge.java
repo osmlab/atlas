@@ -156,10 +156,10 @@ public class CompleteEdge extends Edge implements CompleteLineItem
     @Override
     public String toString()
     {
-        return "BloatedEdge [identifier=" + this.identifier + ", startNodeIdentifier="
-                + this.startNodeIdentifier + ", endNodeIdentifier=" + this.endNodeIdentifier
-                + ", polyLine=" + this.polyLine + ", tags=" + this.tags + ", relationIdentifiers="
-                + this.relationIdentifiers + "]";
+        return this.getClass().getSimpleName() + " [identifier=" + this.identifier
+                + ", startNodeIdentifier=" + this.startNodeIdentifier + ", endNodeIdentifier="
+                + this.endNodeIdentifier + ", polyLine=" + this.polyLine + ", tags=" + this.tags
+                + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
     @Override

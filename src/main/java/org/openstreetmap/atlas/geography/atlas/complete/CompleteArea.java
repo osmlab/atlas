@@ -133,8 +133,9 @@ public class CompleteArea extends Area implements CompleteEntity
     @Override
     public String toString()
     {
-        return "BloatedArea [identifier=" + this.identifier + ", polygon=" + this.polygon
-                + ", tags=" + this.tags + ", relationIdentifiers=" + this.relationIdentifiers + "]";
+        return this.getClass().getSimpleName() + " [identifier=" + this.identifier + ", polygon="
+                + this.polygon + ", tags=" + this.tags + ", relationIdentifiers="
+                + this.relationIdentifiers + "]";
     }
 
     @Override

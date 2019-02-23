@@ -181,10 +181,10 @@ public class CompleteNode extends Node implements CompleteLocationItem
     @Override
     public String toString()
     {
-        return "BloatedNode [identifier=" + this.identifier + ", inEdgeIdentifiers="
-                + this.inEdgeIdentifiers + ", outEdgeIdentifiers=" + this.outEdgeIdentifiers
-                + ", location=" + this.location + ", tags=" + this.tags + ", relationIdentifiers="
-                + this.relationIdentifiers + "]";
+        return this.getClass().getSimpleName() + " [identifier=" + this.identifier
+                + ", inEdgeIdentifiers=" + this.inEdgeIdentifiers + ", outEdgeIdentifiers="
+                + this.outEdgeIdentifiers + ", location=" + this.location + ", tags=" + this.tags
+                + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
     @Override

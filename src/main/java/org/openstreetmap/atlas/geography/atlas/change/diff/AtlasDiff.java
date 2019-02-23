@@ -157,7 +157,7 @@ public class AtlasDiff
     }
 
     /**
-     * Saving all geometries means that we bloat features with their geometry even if they do not
+     * Saving all geometries means that we enrich features with their geometry even if they do not
      * change the geometry. This is useful for visualization.
      *
      * @param saveAllGeometries
@@ -220,8 +220,6 @@ public class AtlasDiff
      * this will come in as one feature change.<br>
      *
      * @param entity
-     * @param useGeometryMatching
-     * @param useBloatedEntities
      * @param saveAllGeometries
      * @return a {@link Set} containing the possibly constructed {@link FeatureChange}s
      */
@@ -342,27 +340,27 @@ public class AtlasDiff
         switch (entity.getType())
         {
             case NODE:
-                featureChange = AtlasDiffHelper.simpleBloatedNodeChange(changeType, atlas, entity,
+                featureChange = AtlasDiffHelper.simpleCompleteNodeChange(changeType, atlas, entity,
                         saveAllGeometries);
                 break;
             case EDGE:
-                featureChange = AtlasDiffHelper.simpleBloatedEdgeChange(changeType, atlas, entity,
+                featureChange = AtlasDiffHelper.simpleCompleteEdgeChange(changeType, atlas, entity,
                         saveAllGeometries);
                 break;
             case POINT:
-                featureChange = AtlasDiffHelper.simpleBloatedPointChange(changeType, atlas, entity,
+                featureChange = AtlasDiffHelper.simpleCompletePointChange(changeType, atlas, entity,
                         saveAllGeometries);
                 break;
             case LINE:
-                featureChange = AtlasDiffHelper.simpleBloatedLineChange(changeType, atlas, entity,
+                featureChange = AtlasDiffHelper.simpleCompleteLineChange(changeType, atlas, entity,
                         saveAllGeometries);
                 break;
             case AREA:
-                featureChange = AtlasDiffHelper.simpleBloatedAreaChange(changeType, atlas, entity,
+                featureChange = AtlasDiffHelper.simpleCompleteAreaChange(changeType, atlas, entity,
                         saveAllGeometries);
                 break;
             case RELATION:
-                featureChange = AtlasDiffHelper.simpleBloatedRelationChange(changeType, atlas,
+                featureChange = AtlasDiffHelper.simpleCompleteRelationChange(changeType, atlas,
                         entity);
                 break;
             default:
@@ -379,8 +377,6 @@ public class AtlasDiff
      *            the entity to check for
      * @param atlasToCheck
      *            the atlas to check
-     * @param useGeometryMatching
-     *            use geometry matching
      * @return if the entity was missing from the atlas
      */
     private boolean isEntityMissingFromGivenAtlas(final AtlasEntity entity,

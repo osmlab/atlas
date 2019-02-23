@@ -134,8 +134,9 @@ public class CompletePoint extends Point implements CompleteLocationItem
     @Override
     public String toString()
     {
-        return "BloatedPoint [identifier=" + this.identifier + ", location=" + this.location
-                + ", tags=" + this.tags + ", relationIdentifiers=" + this.relationIdentifiers + "]";
+        return this.getClass().getSimpleName() + " [identifier=" + this.identifier + ", location="
+                + this.location + ", tags=" + this.tags + ", relationIdentifiers="
+                + this.relationIdentifiers + "]";
     }
 
     @Override
