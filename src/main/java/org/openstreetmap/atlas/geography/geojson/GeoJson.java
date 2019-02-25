@@ -18,10 +18,13 @@ import com.google.gson.JsonObject;
  *
  *    o  A GeoJSON object MAY have other members (see Section 6).
  * </pre>
+ * This interface is for all classes with a geojson object representation.
+ *
+ * @author jklamer
  */
-public interface GeoJsonRepresentation
+public interface GeoJson
 {
-    JsonObject asGeojson();
+    JsonObject asGeoJson();
 
-    GeoJsonType geoJsonType();
+    GeoJsonType getGeoJsonType();
 }
