@@ -720,7 +720,7 @@ public class Polygon extends PolyLine implements GeometricSurface
     }
 
     /**
-     * This method will return cartesian equivqlent coordinates for earth coordinates
+     * This method will return cartesian equivalent coordinates for earth coordinates
      * 
      * @return Tuple which represents X and Y on catesian plane
      * @see <a href=
