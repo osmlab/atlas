@@ -18,7 +18,9 @@ import org.openstreetmap.atlas.geography.converters.WkbMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.WktMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonGeometry;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.geography.index.RTree;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
@@ -39,7 +41,8 @@ import com.google.gson.JsonObject;
  *
  * @author matthieun
  */
-public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serializable
+public class MultiPolygon
+        implements Iterable<Polygon>, GeometricSurface, Serializable, GeoJsonGeometry
 {
     private static final Logger logger = LoggerFactory.getLogger(MultiPolygon.class);
     private static final long serialVersionUID = 4198234682870043547L;
@@ -90,15 +93,10 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
         this.outerToInners = outerToInners;
     }
 
-    /**
-     * @deprecated use {@link MultiPolygon#asGeoJsonFeatureCollection()} instead, for geojson that
-     *             represents the same geometry
-     * @return multiple geojson polygon features in a feature collection
-     */
-    @Deprecated
-    public GeoJsonObject asGeoJson()
+    @Override
+    public JsonObject asGeoJson()
     {
-        return new GeoJsonBuilder().create(asLocationIterableProperties());
+        return this.asGeoJsonGeometry();
     }
 
     public GeoJsonObject asGeoJsonFeatureCollection()
@@ -140,7 +138,7 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
             polygons.add(polygon);
         }
 
-        return GeoJsonUtils.geometry(GeoJsonUtils.MULTIPOLYGON, polygons);
+        return GeoJsonUtils.geometry(GeoJsonType.MULTI_POLYGON, polygons);
     }
 
     public Iterable<LocationIterableProperties> asLocationIterableProperties()
@@ -335,6 +333,12 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
     }
 
     @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.MULTI_POLYGON;
+    }
+
+    @Override
     public int hashCode()
     {
         int result = 0;
@@ -437,7 +441,7 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
     public void saveAsGeoJson(final WritableResource resource)
     {
         final JsonWriter writer = new JsonWriter(resource);
-        writer.write(asGeoJson().jsonObject());
+        writer.write(asGeoJson());
         writer.close();
     }
 

@@ -8,18 +8,26 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.converters.WkbMultiPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.WktMultiPolyLineConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonGeometry;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
+import org.openstreetmap.atlas.streaming.readers.json.converters.PolyLineCoordinateConverter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 import com.google.common.collect.Lists;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * A MultiPolyLine is a set of {@link PolyLine}s in a specific order
  *
  * @author yalimu
  */
-public class MultiPolyLine implements Iterable<PolyLine>, Located, Serializable
+public class MultiPolyLine
+        implements Iterable<PolyLine>, Located, Serializable, GeometryPrintable, GeoJsonGeometry
 {
     private static final long serialVersionUID = 5907807607388840698L;
     private final List<PolyLine> polyLineList;
@@ -53,6 +61,39 @@ public class MultiPolyLine implements Iterable<PolyLine>, Located, Serializable
     public MultiPolyLine(final PolyLine... polyLines)
     {
         this(Iterables.iterable(polyLines));
+    }
+
+    @Override
+    public byte[] toWkb()
+    {
+        return new WkbMultiPolyLineConverter().convert(this);
+    }
+
+    @Override
+    public String toWkt()
+    {
+        return new WktMultiPolyLineConverter().convert(this);
+    }
+
+    @Override
+    public JsonObject asGeoJsonGeometry()
+    {
+        final PolyLineCoordinateConverter converter = new PolyLineCoordinateConverter();
+        final JsonArray coordinateArray = new JsonArray();
+        Iterables.stream(this).map(converter::convert).forEach(coordinateArray::add);
+        return GeoJsonUtils.geometry(this.getGeoJsonType(), coordinateArray);
+    }
+
+    @Override
+    public JsonObject asGeoJson()
+    {
+        return this.asGeoJsonGeometry();
+    }
+
+    @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.MULTI_LINESTRING;
     }
 
     public Iterable<GeoJsonBuilder.LocationIterableProperties> asLocationIterableProperties()

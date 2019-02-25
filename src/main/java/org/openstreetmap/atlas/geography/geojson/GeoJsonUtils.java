@@ -1,13 +1,19 @@
 package org.openstreetmap.atlas.geography.geojson;
 
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonConstants.COORDINATES;
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonConstants.FEATURE;
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonConstants.GEOMETRY;
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonConstants.PROPERTIES;
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonConstants.TYPE;
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonType.POLYGON;
+
+import org.apache.commons.lang3.Validate;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-
-import static org.openstreetmap.atlas.geography.geojson.GeoJsonType.POLYGON;
 
 /**
  * These are utility functions that well help you create GeoJSON!
@@ -16,12 +22,6 @@ import static org.openstreetmap.atlas.geography.geojson.GeoJsonType.POLYGON;
  */
 public final class GeoJsonUtils
 {
-    public static final String COORDINATES = "coordinates";
-    public static final String FEATURE = "Feature";
-    public static final String GEOMETRY = "geometry";
-    public static final String PROPERTIES = "properties";
-    public static final String TYPE = "type";
-
     public static final String IDENTIFIER = "identifier";
     public static final String OSM_IDENTIFIER = "osmIdentifier";
     public static final String ITEM_TYPE = "itemType";
@@ -67,13 +67,16 @@ public final class GeoJsonUtils
         final JsonArray coordinates = new JsonArray();
         coordinates.add(outerRing);
 
-        return geometry(POLYGON.getTypeString(), coordinates);
+        return geometry(POLYGON, coordinates);
     }
 
-    public static JsonObject geometry(final String type, final JsonArray coordinates)
+    public static JsonObject geometry(final GeoJsonType type, final JsonArray coordinates)
     {
+        Validate.isTrue(GeoJsonType.isGeometryType(type), "Type is not geometry type. ");
+        Validate.isTrue(!type.equals(GeoJsonType.GEOMETRY_COLLECTION),
+                "Geometry Collection cannot be represented by a single \"geometry\" field.");
         final JsonObject geometry = new JsonObject();
-        geometry.addProperty(TYPE, type);
+        geometry.addProperty(TYPE, type.toString());
         geometry.add(COORDINATES, coordinates);
         return geometry;
     }

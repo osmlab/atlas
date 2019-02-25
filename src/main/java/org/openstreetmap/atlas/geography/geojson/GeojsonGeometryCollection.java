@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.geojson;
 
 /**
  * From the spec https://tools.ietf.org/html/rfc7946#section-3.1.8
+ * 
  * <pre>
  *      A GeoJSON object with type "GeometryCollection" is a Geometry object.
  *    A GeometryCollection has a member with the name "geometries".  The

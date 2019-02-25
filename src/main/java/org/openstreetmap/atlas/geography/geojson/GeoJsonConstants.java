@@ -10,7 +10,7 @@ public final class GeoJsonConstants
     public static final String FEATURE = "feature";
     public static final String FEATURES = "features";
 
-    private  GeoJsonConstants()
+    private GeoJsonConstants()
     {
     }
 }

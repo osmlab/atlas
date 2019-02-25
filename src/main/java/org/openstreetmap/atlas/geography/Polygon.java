@@ -15,6 +15,7 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
@@ -290,7 +291,13 @@ public class Polygon extends PolyLine implements GeometricSurface
         final JsonArray subCoordinatesArray = GeoJsonUtils.locationsToCoordinates(closedLoop());
         coordinates.add(subCoordinatesArray);
 
-        return GeoJsonUtils.geometry(GeoJsonUtils.POLYGON, coordinates);
+        return GeoJsonUtils.geometry(GeoJsonType.POLYGON, coordinates);
+    }
+
+    @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.POLYGON;
     }
 
     /**

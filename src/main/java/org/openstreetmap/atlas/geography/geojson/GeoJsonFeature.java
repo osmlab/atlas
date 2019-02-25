@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.geojson;
 
 /**
  * From the spec https://tools.ietf.org/html/rfc7946#section-3.2
+ * 
  * <pre>
  *  A Feature object represents a spatially bounded thing.  Every Feature
  *    object is a GeoJSON object no matter where it occurs in a GeoJSON
@@ -23,7 +24,9 @@ package org.openstreetmap.atlas.geography.geojson;
  *       "id", and the value of this member is either a JSON string or
  *       number.
  * </pre>
- * This interface is for all classes with a geojson feature representation. Because a fully formed geojson geometry is a part of a geojosn feature this interface extends from that.
+ * 
+ * This interface is for all classes with a geojson feature representation. Because a fully formed
+ * geojson geometry is a part of a geojosn feature this interface extends from that.
  *
  * @author jklamer
  */

@@ -3,7 +3,9 @@ package org.openstreetmap.atlas.geography.geojson;
 import com.google.gson.JsonObject;
 
 /**
- * For all classed with a GeoJson representation. From the spec https://tools.ietf.org/html/rfc7946#section-3
+ * For all classed with a GeoJson representation. From the spec
+ * https://tools.ietf.org/html/rfc7946#section-3
+ * 
  * <pre>
  *      A GeoJSON object represents a Geometry, Feature, or collection of
  *    Features.
@@ -18,6 +20,7 @@ import com.google.gson.JsonObject;
  *
  *    o  A GeoJSON object MAY have other members (see Section 6).
  * </pre>
+ * 
  * This interface is for all classes with a geojson object representation.
  *
  * @author jklamer
