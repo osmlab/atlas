@@ -20,6 +20,7 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.scalars.Angle;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
+import org.openstreetmap.atlas.utilities.tuples.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -383,19 +384,22 @@ public class Polygon extends PolyLine implements GeometricSurface
      */
     public boolean isClockwise()
     {
-        long sum = 0;
-        long lastLatitude = Long.MIN_VALUE;
-        long lastLongitude = Long.MIN_VALUE;
-        for (final Location point : this)
+        double sum = 0;
+        Tuple<Double, Double> previousCartesianPoint = null;
+
+        for (final Location point : this.closedLoop())
         {
-            if (lastLongitude != Long.MIN_VALUE)
+            final Tuple<Double, Double> newCartesianPoint = getCartesianCoordinates(
+                    point.getLatitude(), point.getLongitude());
+
+            if (previousCartesianPoint != null)
             {
-                sum += (point.getLongitude().asDm7() - lastLongitude)
-                        * (point.getLatitude().asDm7() + lastLatitude);
+                sum += (newCartesianPoint.getFirst() - previousCartesianPoint.getFirst())
+                        * (newCartesianPoint.getSecond() + previousCartesianPoint.getSecond());
             }
-            lastLongitude = point.getLongitude().asDm7();
-            lastLatitude = point.getLatitude().asDm7();
+            previousCartesianPoint = newCartesianPoint;
         }
+
         return sum >= 0;
     }
 
@@ -714,4 +718,29 @@ public class Polygon extends PolyLine implements GeometricSurface
             throw new CoreException("Invalid Vertex Index {}.", index);
         }
     }
+
+    /**
+     * This method will return cartesian equivqlent coordinates for earth coordinates
+     * 
+     * @return Tuple which represents X and Y on catesian plane
+     * @see <a href=
+     *      "https://www.grasshopper3d.com/forum/topics/best-way-to-translate-latitude-longitude-data-into-xyz-points?commentId=2985220%3AComment%3A1804229"></a>
+     * @see <a href=
+     *      "https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_geodetic_to_ECEF_coordinates"></a>
+     * @see <a href="https://en.wikipedia.org/wiki/Earth_radius"></a>
+     */
+    private Tuple<Double, Double> getCartesianCoordinates(final Latitude latitude,
+            final Longitude longitude)
+    {
+        // mean earth radius
+        final double earthRadius = 6371;
+
+        final double pointX = earthRadius * Math.cos(latitude.asRadians())
+                * Math.cos(longitude.asRadians());
+        final double pointY = earthRadius * Math.cos(latitude.asRadians())
+                * Math.sin(longitude.asRadians());
+
+        return new Tuple<>(pointX, pointY);
+    }
+
 }
