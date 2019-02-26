@@ -11,6 +11,7 @@ import org.openstreetmap.atlas.geography.Latitude;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Longitude;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.geography.sharding.converters.SlippyTileConverter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
@@ -194,7 +195,7 @@ public class SlippyTile implements Shard, Comparable<SlippyTile>
     }
 
     @Override
-    public JsonObject asGeoJsonGeometry()
+    public JsonObject asGeoJson()
     {
         return bounds().asGeoJsonGeometry();
     }
@@ -262,6 +263,12 @@ public class SlippyTile implements Shard, Comparable<SlippyTile>
                     && this.getY() == that.getY();
         }
         return false;
+    }
+
+    @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.POLYGON;
     }
 
     @Override

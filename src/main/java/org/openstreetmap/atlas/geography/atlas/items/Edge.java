@@ -114,9 +114,9 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
     public abstract Node end();
 
     @Override
-    public JsonObject geoJsonProperties()
+    public JsonObject getGeoJsonProperties()
     {
-        final JsonObject properties = super.geoJsonProperties();
+        final JsonObject properties = super.getGeoJsonProperties();
 
         properties.addProperty("startNode", start().getIdentifier());
         properties.addProperty("endNode", end().getIdentifier());

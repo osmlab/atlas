@@ -10,5 +10,5 @@ package org.openstreetmap.atlas.geography.geojson;
  */
 public interface GeoJsonCollection<Type extends GeoJsonGeometry> extends GeoJson
 {
-    Iterable<Type> getObjects();
+    Iterable<Type> getGeoJsonObjects();
 }

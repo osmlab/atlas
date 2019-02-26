@@ -10,5 +10,5 @@ import com.google.gson.JsonObject;
  */
 public interface GeoJsonProperties
 {
-    JsonObject getGeojsonProperties();
+    JsonObject getGeoJsonProperties();
 }

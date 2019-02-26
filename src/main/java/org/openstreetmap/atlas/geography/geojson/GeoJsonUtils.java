@@ -1,15 +1,18 @@
 package org.openstreetmap.atlas.geography.geojson;
 
 import static org.openstreetmap.atlas.geography.geojson.GeoJsonConstants.COORDINATES;
-import static org.openstreetmap.atlas.geography.geojson.GeoJsonConstants.FEATURE;
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonConstants.FEATURES;
 import static org.openstreetmap.atlas.geography.geojson.GeoJsonConstants.GEOMETRY;
 import static org.openstreetmap.atlas.geography.geojson.GeoJsonConstants.PROPERTIES;
 import static org.openstreetmap.atlas.geography.geojson.GeoJsonConstants.TYPE;
 import static org.openstreetmap.atlas.geography.geojson.GeoJsonType.POLYGON;
 
+import java.util.List;
+
 import org.apache.commons.lang3.Validate;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -42,10 +45,41 @@ public final class GeoJsonUtils
     public static JsonObject feature(final JsonObject geometry, final JsonObject properties)
     {
         final JsonObject feature = new JsonObject();
-        feature.addProperty(TYPE, FEATURE);
+        feature.addProperty(TYPE, GeoJsonType.FEATURE.getTypeString());
         feature.add(GEOMETRY, geometry);
         feature.add(PROPERTIES, properties);
         return feature;
+    }
+
+    public static JsonObject featureCollection(final GeoJsonFeatureCollection featureCollection)
+    {
+        return GeoJsonUtils.featureCollection(featureCollection.getGeoJsonObjects(),
+                featureCollection.getGeoJsonProperties());
+    }
+
+    public static JsonObject featureCollection(final Iterable<GeoJsonFeature> featureObjects,
+            final JsonObject properties)
+    {
+        return GeoJsonUtils
+                .featureCollection(
+                        Iterables.stream(featureObjects)
+                                .map(featureObject -> GeoJsonUtils.feature(
+                                        featureObject.asGeoJsonGeometry(),
+                                        featureObject.getGeoJsonProperties()))
+                                .collectToList(),
+                        properties);
+    }
+
+    public static JsonObject featureCollection(final List<JsonObject> featureObjects,
+            final JsonObject properties)
+    {
+        final JsonObject featureCollection = new JsonObject();
+        featureCollection.addProperty(TYPE, GeoJsonType.FEATURE_COLLECTION.getTypeString());
+        final JsonArray features = new JsonArray();
+        featureObjects.forEach(features::add);
+        featureCollection.add(FEATURES, features);
+        featureCollection.add(PROPERTIES, properties);
+        return featureCollection;
     }
 
     /**
@@ -74,9 +108,9 @@ public final class GeoJsonUtils
     {
         Validate.isTrue(GeoJsonType.isGeometryType(type), "Type is not geometry type. ");
         Validate.isTrue(!type.equals(GeoJsonType.GEOMETRY_COLLECTION),
-                "Geometry Collection cannot be represented by a single \"geometry\" field.");
+                "Geometry Collection cannot be represented by coordinate array");
         final JsonObject geometry = new JsonObject();
-        geometry.addProperty(TYPE, type.toString());
+        geometry.addProperty(TYPE, type.getTypeString());
         geometry.add(COORDINATES, coordinates);
         return geometry;
     }

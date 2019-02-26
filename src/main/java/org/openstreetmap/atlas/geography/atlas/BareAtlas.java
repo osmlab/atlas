@@ -510,7 +510,7 @@ public abstract class BareAtlas implements Atlas
         {
             entities(matcher).forEach(entity ->
             {
-                final JsonObject feature = entity.asGeoJsonGeometry();
+                final JsonObject feature = entity.asGeoJson();
                 jsonMutator.accept(entity, feature);
                 writer.writeLine(feature);
             });
