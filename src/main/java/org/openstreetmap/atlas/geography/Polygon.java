@@ -297,7 +297,7 @@ public class Polygon extends PolyLine implements GeometricSurface
      * Returns a location that is the closest point within the polygon to the centroid. The function
      * delegates to the Geometry class which delegates to the InteriorPointPoint class. You can see
      * the javadocs in the link below. <a href=
-     * "https://locationtech.github.io/jts/javadoc/org/locationtech/jts/algorithm/InteriorPointPoint.html"/>
+     * "https://locationtech.github.io/jts/javadoc/org/locationtech/jts/algorithm/InteriorPointPoint.html"></a>
      *
      * @return location that is the closest point within the polygon to the centroid
      */
