@@ -3,15 +3,14 @@ package org.openstreetmap.atlas.geography.converters.jts;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.Polygon;
-import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
-
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LinearRing;
 import org.locationtech.jts.geom.impl.CoordinateArraySequence;
+import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
 /**
  * Convert a {@link Polygon} to a {@link LinearRing} from the JTS library. It is worth noting that a

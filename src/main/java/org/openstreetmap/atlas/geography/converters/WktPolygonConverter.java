@@ -1,14 +1,13 @@
 package org.openstreetmap.atlas.geography.converters;
 
-import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.Polygon;
-import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
-import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
-
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.locationtech.jts.io.WKTWriter;
+import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
+import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
 /**
  * Given an WKT string generate a Polygon and vice-versa

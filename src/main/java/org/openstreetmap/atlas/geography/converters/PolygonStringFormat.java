@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.locationtech.jts.io.WKBReader;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.streaming.readers.GeoJsonReader;
@@ -14,8 +15,6 @@ import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.conversion.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.locationtech.jts.io.WKBReader;
 
 /**
  * The enum for supported Polygon and Multipolygon string formats. Contains functions to return

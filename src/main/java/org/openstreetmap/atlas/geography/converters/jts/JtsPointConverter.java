@@ -1,14 +1,13 @@
 package org.openstreetmap.atlas.geography.converters.jts;
 
-import org.openstreetmap.atlas.geography.Latitude;
-import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.Longitude;
-import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
-
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.impl.CoordinateArraySequence;
+import org.openstreetmap.atlas.geography.Latitude;
+import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.Longitude;
+import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
 /**
  * Convert a {@link Location} to a {@link Point} from the JTS library. The {@link Location}'s

@@ -6,16 +6,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
 
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.LineString;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
-
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryCollection;
-import org.locationtech.jts.geom.LineString;
 
 /**
  * Wrapper around the JTS library for {@link Polygon} and {@link PolyLine} clipping with

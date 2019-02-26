@@ -4,13 +4,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.utilities.collections.Iterables;
-import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
-
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.impl.CoordinateArraySequence;
+import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
 /**
  * Convert an {@link Iterable} of {@link Location} to a {@link CoordinateSequence} from the JTS

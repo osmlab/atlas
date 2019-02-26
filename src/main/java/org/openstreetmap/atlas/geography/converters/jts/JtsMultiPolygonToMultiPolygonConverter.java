@@ -3,11 +3,10 @@ package org.openstreetmap.atlas.geography.converters.jts;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.openstreetmap.atlas.geography.MultiPolygon;
-import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
-
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Polygon;
+import org.openstreetmap.atlas.geography.MultiPolygon;
+import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
 /**
  * @author matthieun

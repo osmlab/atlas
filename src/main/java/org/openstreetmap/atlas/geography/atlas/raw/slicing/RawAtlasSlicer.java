@@ -7,6 +7,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.PrecisionModel;
+import org.locationtech.jts.precision.PrecisionReducerCoordinateOperation;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -29,10 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.PrecisionModel;
-import org.locationtech.jts.precision.PrecisionReducerCoordinateOperation;
 
 /**
  * The abstract class that contains all common raw Atlas slicing functionality.

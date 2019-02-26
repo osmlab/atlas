@@ -28,6 +28,23 @@ import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFinder;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.measure.Longitude;
+import org.locationtech.jts.algorithm.distance.DiscreteHausdorffDistance;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.IntersectionMatrix;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.TopologyException;
+import org.locationtech.jts.index.strtree.AbstractNode;
+import org.locationtech.jts.index.strtree.GeometryItemDistance;
+import org.locationtech.jts.index.strtree.ItemBoundable;
+import org.locationtech.jts.index.strtree.ItemDistance;
+import org.locationtech.jts.index.strtree.STRtree;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
+import org.locationtech.jts.io.WKTWriter;
+import org.locationtech.jts.precision.GeometryPrecisionReducer;
 import org.opengis.feature.Feature;
 import org.opengis.feature.Property;
 import org.opengis.feature.simple.SimpleFeature;
@@ -65,23 +82,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import org.locationtech.jts.algorithm.distance.DiscreteHausdorffDistance;
-import org.locationtech.jts.geom.Envelope;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryCollection;
-import org.locationtech.jts.geom.IntersectionMatrix;
-import org.locationtech.jts.geom.LineString;
-import org.locationtech.jts.geom.Polygon;
-import org.locationtech.jts.geom.TopologyException;
-import org.locationtech.jts.index.strtree.AbstractNode;
-import org.locationtech.jts.index.strtree.GeometryItemDistance;
-import org.locationtech.jts.index.strtree.ItemBoundable;
-import org.locationtech.jts.index.strtree.ItemDistance;
-import org.locationtech.jts.index.strtree.STRtree;
-import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKTReader;
-import org.locationtech.jts.io.WKTWriter;
-import org.locationtech.jts.precision.GeometryPrecisionReducer;
 
 /**
  * This {@link CountryBoundaryMap} loads boundaries from given country boundary shape file into
@@ -407,8 +407,7 @@ public class CountryBoundaryMap implements Serializable
         this.reducer.setChangePrecisionModel(true);
     }
 
-    void addCountry(final String country,
-            final org.locationtech.jts.geom.MultiPolygon multiPolygon)
+    void addCountry(final String country, final org.locationtech.jts.geom.MultiPolygon multiPolygon)
     {
         if (!this.envelope.intersects(multiPolygon.getEnvelopeInternal()))
         {
@@ -424,8 +423,7 @@ public class CountryBoundaryMap implements Serializable
         }
 
         final List<Geometry> parts = geometries(
-                (org.locationtech.jts.geom.MultiPolygon) fixedPolygon)
-                        .collect(Collectors.toList());
+                (org.locationtech.jts.geom.MultiPolygon) fixedPolygon).collect(Collectors.toList());
         int polygonIdentifier = -1;
         for (final Geometry part : parts)
         {
@@ -1058,15 +1056,14 @@ public class CountryBoundaryMap implements Serializable
 
     /**
      * Create a secondary spatial index with data intersecting the given
-     * {@link org.locationtech.jts.geom.MultiPolygon}. This will accelerate performance of
-     * geometry check by reducing unnecessary operations.
+     * {@link org.locationtech.jts.geom.MultiPolygon}. This will accelerate performance of geometry
+     * check by reducing unnecessary operations.
      *
      * @param area
      *            Area for grid index initialization
      */
     @SuppressWarnings("unchecked")
-    public synchronized void initializeGridIndex(
-            final org.locationtech.jts.geom.MultiPolygon area)
+    public synchronized void initializeGridIndex(final org.locationtech.jts.geom.MultiPolygon area)
     {
         if (Objects.isNull(area))
         {

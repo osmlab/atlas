@@ -2,11 +2,10 @@ package org.openstreetmap.atlas.geography.converters.jts;
 
 import java.util.Iterator;
 
-import org.openstreetmap.atlas.utilities.collections.Iterables;
-
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.Polygon;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * Transform a JTS {@link GeometryCollection} into a real {@link Iterable}.

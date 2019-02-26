@@ -1,8 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
-import org.openstreetmap.atlas.tags.ISOCountryTag;
-
 import org.locationtech.jts.geom.Geometry;
+import org.openstreetmap.atlas.tags.ISOCountryTag;
 
 /**
  * Simple container that tracks country code and nearest neighbor values returned from a JTS

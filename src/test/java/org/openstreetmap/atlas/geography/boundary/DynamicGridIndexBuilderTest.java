@@ -7,16 +7,15 @@ import java.util.Set;
 import org.geotools.measure.Longitude;
 import org.junit.Assert;
 import org.junit.Test;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.index.strtree.STRtree;
 import org.openstreetmap.atlas.geography.Latitude;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.utilities.threads.Pool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.locationtech.jts.geom.Envelope;
-import org.locationtech.jts.geom.Polygon;
-import org.locationtech.jts.index.strtree.STRtree;
 
 /**
  * Tests for {@link DynamicGridIndexBuilder}.

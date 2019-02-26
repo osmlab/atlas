@@ -3,19 +3,18 @@ package org.openstreetmap.atlas.geography.converters;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.Latitude;
-import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.Longitude;
-import org.openstreetmap.atlas.geography.PolyLine;
-import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
-
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
 import org.locationtech.jts.io.WKBWriter;
+import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Latitude;
+import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.Longitude;
+import org.openstreetmap.atlas.geography.PolyLine;
+import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
 /**
  * Conversion from a {@link PolyLine} into a Well Known Binary (WKB) byte array. Uses JTS for

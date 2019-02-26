@@ -1,10 +1,9 @@
 package org.openstreetmap.atlas.geography.converters.jts;
 
-import org.openstreetmap.atlas.geography.Polygon;
-import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
-
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LinearRing;
+import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
 /**
  * Convert a {@link Polygon} to a JTS {@link org.locationtech.jts.geom.Polygon}. Here the inner

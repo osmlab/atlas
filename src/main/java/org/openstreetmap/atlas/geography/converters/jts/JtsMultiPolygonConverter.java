@@ -5,18 +5,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LinearRing;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.LinearRing;
-
 /**
- * Convert a {@link MultiPolygon} to a {@link Set} of {@link org.locationtech.jts.geom.Polygon}
- * form the JTS library. As a {@link MultiPolygon} can contain many outer bounds, each outer bound
- * is translated to a {@link org.locationtech.jts.geom.Polygon}. A JTS
+ * Convert a {@link MultiPolygon} to a {@link Set} of {@link org.locationtech.jts.geom.Polygon} form
+ * the JTS library. As a {@link MultiPolygon} can contain many outer bounds, each outer bound is
+ * translated to a {@link org.locationtech.jts.geom.Polygon}. A JTS
  * {@link org.locationtech.jts.geom.Polygon} is one single outer bound and many inner bounds.
  *
  * @author matthieun

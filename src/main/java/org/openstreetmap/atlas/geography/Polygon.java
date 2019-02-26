@@ -8,6 +8,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.triangulate.ConformingDelaunayTriangulationBuilder;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.converters.WktPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.GeometryStreamer;
@@ -26,9 +29,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.locationtech.jts.geom.GeometryCollection;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.triangulate.ConformingDelaunayTriangulationBuilder;
 
 /**
  * A {@link Polygon} is a {@link PolyLine} with an extra {@link Segment} between the last

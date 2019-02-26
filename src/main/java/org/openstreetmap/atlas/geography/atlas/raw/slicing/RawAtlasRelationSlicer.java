@@ -13,6 +13,10 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.LinearRing;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -52,10 +56,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.LineString;
-import org.locationtech.jts.geom.LinearRing;
 
 /**
  * The {@link RawAtlasRelationSlicer} consumes a partially sliced (only points and lines are sliced)
@@ -815,8 +815,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
             // outer contained within an inner. If that's the case, we want to abort the merge and
             // leave the members as they are. We are also ignoring MultiPolygons as those have merge
             // complications.
-            if (mergedMembers != null
-                    && mergedMembers instanceof org.locationtech.jts.geom.Polygon)
+            if (mergedMembers != null && mergedMembers instanceof org.locationtech.jts.geom.Polygon)
             {
                 final LineString exteriorRing = ((org.locationtech.jts.geom.Polygon) mergedMembers)
                         .getExteriorRing();

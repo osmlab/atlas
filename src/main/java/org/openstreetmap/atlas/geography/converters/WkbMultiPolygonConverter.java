@@ -1,14 +1,13 @@
 package org.openstreetmap.atlas.geography.converters;
 
-import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.MultiPolygon;
-import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
-import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
-
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
 import org.locationtech.jts.io.WKBWriter;
+import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.MultiPolygon;
+import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
+import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
 /**
  * Converter class for conversion between Wkb byte array and {@link MultiPolygon}

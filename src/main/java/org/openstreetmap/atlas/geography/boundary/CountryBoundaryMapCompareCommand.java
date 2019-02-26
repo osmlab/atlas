@@ -5,6 +5,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.index.strtree.STRtree;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
@@ -12,10 +15,6 @@ import org.openstreetmap.atlas.utilities.runtime.Command;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.locationtech.jts.geom.Envelope;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.index.strtree.STRtree;
 
 /**
  * Compares given {@link CountryBoundaryMap}s to find if there are any differences between them.

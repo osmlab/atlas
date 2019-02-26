@@ -5,10 +5,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.locationtech.jts.index.quadtree.Quadtree;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
-
-import org.locationtech.jts.index.quadtree.Quadtree;
 
 /**
  * A JTS Quadtree wrapper.

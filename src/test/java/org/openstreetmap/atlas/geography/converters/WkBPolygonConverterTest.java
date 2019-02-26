@@ -2,10 +2,9 @@ package org.openstreetmap.atlas.geography.converters;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.locationtech.jts.util.Assert;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Polygon;
-
-import org.locationtech.jts.util.Assert;
 
 /**
  * @author Sid
