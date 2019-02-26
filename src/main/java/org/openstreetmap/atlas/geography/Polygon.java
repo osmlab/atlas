@@ -18,6 +18,7 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
+import org.openstreetmap.atlas.geography.coordinates.EarthCenteredEarthFixedCoordinate;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
@@ -378,21 +379,28 @@ public class Polygon extends PolyLine implements GeometricSurface
     /**
      * @return True if this {@link Polygon} is arranged clockwise, false otherwise.
      * @see <a href="http://stackoverflow.com/questions/1165647"></a>
+     * @see <a href=
+     *      "https://www.grasshopper3d.com/forum/topics/best-way-to-translate-latitude-longitude-data-into-xyz-points?commentId=2985220%3AComment%3A1804229"></a>
+     * @see <a href=
+     *      "https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_geodetic_to_ECEF_coordinates"></a>
      */
     public boolean isClockwise()
     {
-        long sum = 0;
-        long lastLatitude = Long.MIN_VALUE;
-        long lastLongitude = Long.MIN_VALUE;
-        for (final Location point : this)
+        double sum = 0;
+        EarthCenteredEarthFixedCoordinate previousCartesianPoint = null;
+
+        for (final Location point : this.closedLoop())
         {
-            if (lastLongitude != Long.MIN_VALUE)
+            // This will return earth centered cartesian coordinates for a location
+            final EarthCenteredEarthFixedCoordinate newCartesianPoint = new EarthCenteredEarthFixedCoordinate(
+                    point);
+
+            if (previousCartesianPoint != null)
             {
-                sum += (point.getLongitude().asDm7() - lastLongitude)
-                        * (point.getLatitude().asDm7() + lastLatitude);
+                sum += (newCartesianPoint.getX() - previousCartesianPoint.getX())
+                        * (newCartesianPoint.getY() + previousCartesianPoint.getY());
             }
-            lastLongitude = point.getLongitude().asDm7();
-            lastLatitude = point.getLatitude().asDm7();
+            previousCartesianPoint = newCartesianPoint;
         }
         return sum >= 0;
     }

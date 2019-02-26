@@ -81,8 +81,10 @@ public class PolygonTest
     @Test
     public void testClockwise()
     {
-        Assert.assertTrue(this.quadrant.isClockwise());
-        Assert.assertFalse(this.quadrant.reversed().isClockwise());
+        final String polygonWkt = "POLYGON ((-70.0020146 12.5265405, -70.0019978 12.5265112, -70.0019564 12.526534, -70.0019733 12.5265633, -70.0020146 12.5265405))";
+        final Polygon polygon = Polygon.wkt(polygonWkt);
+        Assert.assertFalse(polygon.isClockwise());
+        Assert.assertTrue(polygon.reversed().isClockwise());
     }
 
     @Test
