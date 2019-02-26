@@ -5,9 +5,9 @@ import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
-import com.vividsolutions.jts.io.WKTWriter;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
+import org.locationtech.jts.io.WKTWriter;
 
 /**
  * Given an WKT string generate a {@link MultiPolygon} and vice-versa
@@ -19,11 +19,11 @@ public class WktMultiPolygonConverter implements TwoWayConverter<MultiPolygon, S
     @Override
     public MultiPolygon backwardConvert(final String wkt)
     {
-        com.vividsolutions.jts.geom.MultiPolygon geometry = null;
+        org.locationtech.jts.geom.MultiPolygon geometry = null;
         final WKTReader myReader = new WKTReader();
         try
         {
-            geometry = (com.vividsolutions.jts.geom.MultiPolygon) myReader.read(wkt);
+            geometry = (org.locationtech.jts.geom.MultiPolygon) myReader.read(wkt);
         }
         catch (final ParseException | ClassCastException e)
         {
@@ -35,7 +35,7 @@ public class WktMultiPolygonConverter implements TwoWayConverter<MultiPolygon, S
     @Override
     public String convert(final MultiPolygon multiPolygon)
     {
-        final com.vividsolutions.jts.geom.MultiPolygon geometry = new JtsMultiPolygonToMultiPolygonConverter()
+        final org.locationtech.jts.geom.MultiPolygon geometry = new JtsMultiPolygonToMultiPolygonConverter()
                 .backwardConvert(multiPolygon);
         return new WKTWriter().write(geometry);
     }

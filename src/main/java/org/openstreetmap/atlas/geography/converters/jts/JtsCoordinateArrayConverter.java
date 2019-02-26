@@ -8,9 +8,9 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateSequence;
-import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateSequence;
+import org.locationtech.jts.geom.impl.CoordinateArraySequence;
 
 /**
  * Convert an {@link Iterable} of {@link Location} to a {@link CoordinateSequence} from the JTS

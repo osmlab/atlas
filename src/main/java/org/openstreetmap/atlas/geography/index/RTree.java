@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 
-import com.vividsolutions.jts.index.strtree.STRtree;
+import org.locationtech.jts.index.strtree.STRtree;
 
 /**
  * A wrapper of JTS STRtree.

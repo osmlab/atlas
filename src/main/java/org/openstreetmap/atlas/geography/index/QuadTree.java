@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 
-import com.vividsolutions.jts.index.quadtree.Quadtree;
+import org.locationtech.jts.index.quadtree.Quadtree;
 
 /**
  * A JTS Quadtree wrapper.

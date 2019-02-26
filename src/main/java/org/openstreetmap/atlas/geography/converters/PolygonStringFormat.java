@@ -15,7 +15,7 @@ import org.openstreetmap.atlas.utilities.conversion.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.vividsolutions.jts.io.WKBReader;
+import org.locationtech.jts.io.WKBReader;
 
 /**
  * The enum for supported Polygon and Multipolygon string formats. Contains functions to return

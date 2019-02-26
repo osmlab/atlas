@@ -5,10 +5,10 @@ import org.openstreetmap.atlas.geography.MultiPolyLine;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolyLineConverter;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
-import com.vividsolutions.jts.geom.MultiLineString;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
-import com.vividsolutions.jts.io.WKTWriter;
+import org.locationtech.jts.geom.MultiLineString;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
+import org.locationtech.jts.io.WKTWriter;
 
 /**
  * Given an WKT string generate a {@link MultiLineString} and vice-versa

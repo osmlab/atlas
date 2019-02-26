@@ -5,7 +5,7 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Longitude;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Convert a {@link Location} to a {@link Coordinate} from the JTS library. The {@link Location}'s

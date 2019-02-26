@@ -32,7 +32,7 @@ import org.openstreetmap.atlas.utilities.configuration.StandardConfiguration;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.testing.FreezeDryFunction;
 
-import com.vividsolutions.jts.io.WKBWriter;
+import org.locationtech.jts.io.WKBWriter;
 
 /**
  * Tests for {@link AtlasEntityPolygonsFilter}

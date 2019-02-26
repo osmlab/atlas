@@ -5,10 +5,10 @@ import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKBReader;
-import com.vividsolutions.jts.io.WKBWriter;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKBReader;
+import org.locationtech.jts.io.WKBWriter;
 
 /**
  * Converter class for conversion between Wkb byte array and {@link MultiPolygon}
@@ -22,10 +22,10 @@ public class WkbMultiPolygonConverter implements TwoWayConverter<MultiPolygon, b
     @Override
     public MultiPolygon backwardConvert(final byte[] wkb)
     {
-        com.vividsolutions.jts.geom.MultiPolygon geometry = null;
+        org.locationtech.jts.geom.MultiPolygon geometry = null;
         try
         {
-            geometry = (com.vividsolutions.jts.geom.MultiPolygon) WKB_READER.read(wkb);
+            geometry = (org.locationtech.jts.geom.MultiPolygon) WKB_READER.read(wkb);
         }
         catch (final ParseException | ClassCastException e)
         {

@@ -5,10 +5,10 @@ import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
-import com.vividsolutions.jts.io.WKTWriter;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
+import org.locationtech.jts.io.WKTWriter;
 
 /**
  * Given an WKT string generate a Polygon and vice-versa
@@ -20,11 +20,11 @@ public class WktPolygonConverter implements TwoWayConverter<Polygon, String>
     @Override
     public Polygon backwardConvert(final String wkt)
     {
-        com.vividsolutions.jts.geom.Polygon geometry = null;
+        org.locationtech.jts.geom.Polygon geometry = null;
         final WKTReader myReader = new WKTReader();
         try
         {
-            geometry = (com.vividsolutions.jts.geom.Polygon) myReader.read(wkt);
+            geometry = (org.locationtech.jts.geom.Polygon) myReader.read(wkt);
         }
         catch (final ParseException | ClassCastException e)
         {

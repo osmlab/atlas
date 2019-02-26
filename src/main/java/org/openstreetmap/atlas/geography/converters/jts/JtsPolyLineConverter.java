@@ -3,8 +3,8 @@ package org.openstreetmap.atlas.geography.converters.jts;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
 
 /**
  * Convert a {@link PolyLine} to a JTS {@link LineString}.

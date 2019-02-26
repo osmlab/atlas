@@ -26,9 +26,9 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.vividsolutions.jts.geom.GeometryCollection;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.triangulate.ConformingDelaunayTriangulationBuilder;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.triangulate.ConformingDelaunayTriangulationBuilder;
 
 /**
  * A {@link Polygon} is a {@link PolyLine} with an extra {@link Segment} between the last
@@ -188,7 +188,7 @@ public class Polygon extends PolyLine implements GeometricSurface
         // if this value overflows, use JTS to correctly calculate covers
         if (awtOverflows())
         {
-            final com.vividsolutions.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
+            final org.locationtech.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
             final Point point = new JtsPointConverter().convert(location);
             return polygon.covers(point);
         }
@@ -251,7 +251,7 @@ public class Polygon extends PolyLine implements GeometricSurface
         // if this value overflows, use JTS to correctly calculate covers
         if (awtOverflows())
         {
-            final com.vividsolutions.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
+            final org.locationtech.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
             return polygon.covers(JTS_POLYGON_CONVERTER.convert(rectangle));
         }
         // for most cases use the faster awt covers
@@ -297,8 +297,8 @@ public class Polygon extends PolyLine implements GeometricSurface
      * Returns a location that is the closest point within the polygon to the centroid. The function
      * delegates to the Geometry class which delegates to the InteriorPointPoint class. You can see
      * the javadocs in the link below. <a href=
-     * "http://www.vividsolutions.com/jts/javadoc/com/vividsolutions/jts/algorithm/InteriorPointPoint">
-     * http://www.vividsolutions.com/jts/javadoc/com/vividsolutions/jts/algorithm/InteriorPointPoint
+     * "http://www.vividsolutions.com/jts/javadoc/org.locationtech.jts.algorithm/InteriorPointPoint">
+     * http://www.vividsolutions.com/jts/javadoc/org.locationtech.jts.algorithm/InteriorPointPoint
      * </a> .html
      *
      * @return location that is the closest point within the polygon to the centroid

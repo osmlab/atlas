@@ -14,7 +14,7 @@ import org.openstreetmap.atlas.utilities.scalars.Surface;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
-import com.vividsolutions.jts.geom.Envelope;
+import org.locationtech.jts.geom.Envelope;
 
 /**
  * A rectangle on the surface of earth. It cannot span the date change line (longitude -180)

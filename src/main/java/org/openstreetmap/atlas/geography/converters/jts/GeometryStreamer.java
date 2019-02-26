@@ -4,9 +4,9 @@ import java.util.Iterator;
 
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryCollection;
-import com.vividsolutions.jts.geom.Polygon;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.Polygon;
 
 /**
  * Transform a JTS {@link GeometryCollection} into a real {@link Iterable}.

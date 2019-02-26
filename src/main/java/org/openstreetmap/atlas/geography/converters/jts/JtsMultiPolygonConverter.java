@@ -10,29 +10,29 @@ import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LinearRing;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LinearRing;
 
 /**
- * Convert a {@link MultiPolygon} to a {@link Set} of {@link com.vividsolutions.jts.geom.Polygon}
+ * Convert a {@link MultiPolygon} to a {@link Set} of {@link org.locationtech.jts.geom.Polygon}
  * form the JTS library. As a {@link MultiPolygon} can contain many outer bounds, each outer bound
- * is translated to a {@link com.vividsolutions.jts.geom.Polygon}. A JTS
- * {@link com.vividsolutions.jts.geom.Polygon} is one single outer bound and many inner bounds.
+ * is translated to a {@link org.locationtech.jts.geom.Polygon}. A JTS
+ * {@link org.locationtech.jts.geom.Polygon} is one single outer bound and many inner bounds.
  *
  * @author matthieun
  */
 public class JtsMultiPolygonConverter
-        implements TwoWayConverter<MultiPolygon, Set<com.vividsolutions.jts.geom.Polygon>>
+        implements TwoWayConverter<MultiPolygon, Set<org.locationtech.jts.geom.Polygon>>
 {
     private static final JtsLinearRingConverter LINEAR_RING_CONVERTER = new JtsLinearRingConverter();
     private static final JtsPolygonConverter POLYGON_CONVERTER = new JtsPolygonConverter();
     private static final GeometryFactory FACTORY = JtsPrecisionManager.getGeometryFactory();
 
     @Override
-    public MultiPolygon backwardConvert(final Set<com.vividsolutions.jts.geom.Polygon> object)
+    public MultiPolygon backwardConvert(final Set<org.locationtech.jts.geom.Polygon> object)
     {
         final MultiMap<Polygon, Polygon> result = new MultiMap<>();
-        for (final com.vividsolutions.jts.geom.Polygon polygon : object)
+        for (final org.locationtech.jts.geom.Polygon polygon : object)
         {
             final Polygon outer = POLYGON_CONVERTER.backwardConvert(polygon);
             if (outer == null)
@@ -56,9 +56,9 @@ public class JtsMultiPolygonConverter
     }
 
     @Override
-    public Set<com.vividsolutions.jts.geom.Polygon> convert(final MultiPolygon object)
+    public Set<org.locationtech.jts.geom.Polygon> convert(final MultiPolygon object)
     {
-        final Set<com.vividsolutions.jts.geom.Polygon> result = new HashSet<>();
+        final Set<org.locationtech.jts.geom.Polygon> result = new HashSet<>();
         for (final Polygon outer : object.outers())
         {
             final List<Polygon> inners = object.innersOf(outer);
@@ -68,7 +68,7 @@ public class JtsMultiPolygonConverter
             {
                 holes[index++] = LINEAR_RING_CONVERTER.convert(inner);
             }
-            result.add(new com.vividsolutions.jts.geom.Polygon(LINEAR_RING_CONVERTER.convert(outer),
+            result.add(new org.locationtech.jts.geom.Polygon(LINEAR_RING_CONVERTER.convert(outer),
                     holes, FACTORY));
         }
         return result;
