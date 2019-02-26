@@ -109,6 +109,16 @@ public class Polygon extends PolyLine implements GeometricSurface
         this(Iterables.iterable(points));
     }
 
+    @Override
+    public JsonObject asGeoJsonGeometry()
+    {
+        final JsonArray coordinates = new JsonArray();
+        final JsonArray subCoordinatesArray = GeoJsonUtils.locationsToCoordinates(closedLoop());
+        coordinates.add(subCoordinatesArray);
+
+        return GeoJsonUtils.geometry(GeoJsonUtils.POLYGON, coordinates);
+    }
+
     /**
      * The segments that belong to this {@link Polygon} that are attached to this vertex
      *
@@ -283,23 +293,11 @@ public class Polygon extends PolyLine implements GeometricSurface
         return this.fullyGeometricallyEncloses(segment.middle());
     }
 
-    @Override
-    public JsonObject asGeoJsonGeometry()
-    {
-        final JsonArray coordinates = new JsonArray();
-        final JsonArray subCoordinatesArray = GeoJsonUtils.locationsToCoordinates(closedLoop());
-        coordinates.add(subCoordinatesArray);
-
-        return GeoJsonUtils.geometry(GeoJsonUtils.POLYGON, coordinates);
-    }
-
     /**
      * Returns a location that is the closest point within the polygon to the centroid. The function
      * delegates to the Geometry class which delegates to the InteriorPointPoint class. You can see
      * the javadocs in the link below. <a href=
-     * "http://www.vividsolutions.com/jts/javadoc/org.locationtech.jts.algorithm/InteriorPointPoint">
-     * http://www.vividsolutions.com/jts/javadoc/org.locationtech.jts.algorithm/InteriorPointPoint
-     * </a> .html
+     * "https://locationtech.github.io/jts/javadoc/org/locationtech/jts/algorithm/InteriorPointPoint.html">`
      *
      * @return location that is the closest point within the polygon to the centroid
      */
