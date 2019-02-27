@@ -18,19 +18,12 @@ import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.MultipleOutputCommand;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author samgass
  */
 public class PbfToRawAtlasCommand extends MultipleOutputCommand
 {
-    private static final Logger logger = LoggerFactory.getLogger(PbfToRawAtlasCommand.class);
-
-    // The filetype for PBFs-- will strip this from the filename to make the Atlas filename
-    private static final String PBF_FILETYPE = ".pbf";
-
     // The hint for the input path for the PBF file(s) to convert
     private static final String PBF_PATH_HINT = "pbf";
 
@@ -72,7 +65,7 @@ public class PbfToRawAtlasCommand extends MultipleOutputCommand
         this.pbfs.forEach(pbf ->
         {
             final PackedAtlas rawAtlas = (PackedAtlas) new RawAtlasGenerator(pbf).build();
-            final String pbfName = pbf.getName().replace(PBF_FILETYPE, "");
+            final String pbfName = pbf.getName().replace(FileSuffix.PBF.toString(), "");
             final String rawAtlasFilename = String.format("%s%s%s%s", countryName,
                     CountryShard.COUNTRY_SHARD_SEPARATOR, pbfName, FileSuffix.ATLAS);
             rawAtlas.setSaveSerializationFormat(AtlasSerializationFormat.PROTOBUF);
