@@ -12,17 +12,24 @@ import org.junit.Test;
  */
 public class ChangeMergeTest extends AbstractChangeTest
 {
+    @Test
+    public void testNoMerge()
+    {
+        final Change changeWithAreaAndLine1 = newChangeWithAreaAndLine();
+        final Change merged = Change.merge(changeWithAreaAndLine1);
+        log.info("merged: {}", merged);
+        log.info("changeWithAreaAndLine1: {}", changeWithAreaAndLine1);
+        // Ensures order.
+        Assert.assertEquals(changeWithAreaAndLine1, merged);
+    }
 
     @Test
     public void testMergeEmptySelf()
     {
         final Change changeWithAreaAndLine1 = newChangeWithAreaAndLine();
-
         final Change merged = Change.merge(changeWithAreaAndLine1, changeWithAreaAndLine1);
-
         log.info("merged: {}", merged);
         log.info("changeWithAreaAndLine1: {}", changeWithAreaAndLine1);
-
         // Ensures order.
         Assert.assertEquals(changeWithAreaAndLine1, merged);
     }
@@ -32,18 +39,25 @@ public class ChangeMergeTest extends AbstractChangeTest
     {
         final Change changeWithAreaAndLine1 = newChangeWithAreaAndLine();
         final Change changeWithAreaAndLine2 = newChangeWithAreaAndLine();
-
         final Change merged = Change.merge(changeWithAreaAndLine1, changeWithAreaAndLine2);
-
         Assert.assertEquals(changeWithAreaAndLine1, merged);
         Assert.assertEquals(changeWithAreaAndLine2, merged);
+    }
+
+    @Test
+    public void testMergeDifferentItemTypes()
+    {
+        final Change changeWithAreaAndLine1 = newChangeWithAreaAndLine(1, 2);
+        final Change changeWithAreaAndLine2 = newChangeWith2Areas(1, 2, "key1", "value1");
+        final Change merged = Change.merge(changeWithAreaAndLine1, changeWithAreaAndLine2);
+        log.info("merged: {}", merged);
+        Assert.assertEquals(3, merged.changes().count());
     }
 
     @Test
     public void testMergeSameChangeTypeAndItemType()
     {
         final int identifier1 = 1;
-
         final Change[] changes = IntStream.range(0, 3).boxed()
                 .map(index -> newChangeWith2Areas(identifier1, 2, "access" + index, "private"))
                 .toArray(Change[]::new);

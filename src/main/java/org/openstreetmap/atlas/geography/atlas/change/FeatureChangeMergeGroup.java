@@ -14,7 +14,7 @@ class FeatureChangeMergeGroup
     private final Long identifier;
     private final ChangeType changeType;
 
-    public FeatureChangeMergeGroup(final ItemType itemType, final Long identifier,
+    FeatureChangeMergeGroup(final ItemType itemType, final Long identifier,
             final ChangeType changeType)
     {
         super();
@@ -23,7 +23,7 @@ class FeatureChangeMergeGroup
         this.changeType = changeType;
     }
 
-    public static FeatureChangeMergeGroup from(final FeatureChange featureChange)
+    static FeatureChangeMergeGroup from(final FeatureChange featureChange)
     {
         return new FeatureChangeMergeGroup(featureChange.getItemType(),
                 featureChange.getIdentifier(), featureChange.getChangeType());
