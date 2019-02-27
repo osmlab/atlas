@@ -193,6 +193,38 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     }
 
     /**
+     * "Flattens" the relation by returning the set of non-Relation members. Adds any non-Relation
+     * members to the set, then loops on any Relation members to add their non-Relation members as
+     * well. Keeps track of Relations whose identifiers have already been operated on, so that
+     * recursively defined relations don't cause problems.
+     *
+     * @return a Set of AtlasObjects all related to this Relation, with no Relations.
+     */
+    public Set<Long> flattenRelations()
+    {
+        final Deque<AtlasObject> toProcess = new LinkedList<>();
+        final Set<Long> relationsSeen = new HashSet<>();
+        AtlasObject polledMember;
+
+        toProcess.add(this);
+        while (!toProcess.isEmpty())
+        {
+            polledMember = toProcess.poll();
+            if (polledMember instanceof Relation)
+            {
+                if (relationsSeen.contains(polledMember.getIdentifier()))
+                {
+                    continue;
+                }
+                ((Relation) polledMember).members()
+                        .forEach(member -> toProcess.add(member.getEntity()));
+                relationsSeen.add(polledMember.getIdentifier());
+            }
+        }
+        return relationsSeen;
+    }
+
+    /**
      * @return the {@link RelationBean} representation of the Relation
      */
     public RelationBean getBean()
@@ -492,44 +524,6 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         return true;
     }
 
-    private boolean isUnenclosedNonRelationEntity(final GeometricSurface surface,
-            final AtlasEntity entity)
-    {
-        switch (entity.getType())
-        {
-            case NODE:
-            case POINT:
-                return isUnenclosedLocationItem(entity, surface);
-            case EDGE:
-            case LINE:
-                return isUnenclosedLineItem(entity, surface);
-            case AREA:
-                return isUnenclosedArea(entity, surface);
-            case RELATION:
-            default:
-                throw new CoreException("Relations not supported in this method");
-        }
-    }
-
-    private boolean isUnenclosedArea(final AtlasEntity entity, final GeometricSurface surface)
-    {
-        return entity instanceof Area
-                && !surface.fullyGeometricallyEncloses(((Area) entity).asPolygon());
-    }
-
-    private boolean isUnenclosedLocationItem(final AtlasEntity entity,
-            final GeometricSurface surface)
-    {
-        return entity instanceof LocationItem
-                && !surface.fullyGeometricallyEncloses(((LocationItem) entity).getLocation());
-    }
-
-    private boolean isUnenclosedLineItem(final AtlasEntity entity, final GeometricSurface surface)
-    {
-        return entity instanceof LineItem
-                && !surface.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine());
-    }
-
     /**
      * We explicitly want to add member metadata to the properties of Relations, but only when we
      * are serializing relation entities. Overriding geoJsonProperties() would not work properly,
@@ -571,6 +565,44 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
                 // And sometimes the role is "", but we should keep it that way...
                 memberObject.addProperty("role", role);
             }
+        }
+    }
+
+    private boolean isUnenclosedArea(final AtlasEntity entity, final GeometricSurface surface)
+    {
+        return entity instanceof Area
+                && !surface.fullyGeometricallyEncloses(((Area) entity).asPolygon());
+    }
+
+    private boolean isUnenclosedLineItem(final AtlasEntity entity, final GeometricSurface surface)
+    {
+        return entity instanceof LineItem
+                && !surface.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine());
+    }
+
+    private boolean isUnenclosedLocationItem(final AtlasEntity entity,
+            final GeometricSurface surface)
+    {
+        return entity instanceof LocationItem
+                && !surface.fullyGeometricallyEncloses(((LocationItem) entity).getLocation());
+    }
+
+    private boolean isUnenclosedNonRelationEntity(final GeometricSurface surface,
+            final AtlasEntity entity)
+    {
+        switch (entity.getType())
+        {
+            case NODE:
+            case POINT:
+                return isUnenclosedLocationItem(entity, surface);
+            case EDGE:
+            case LINE:
+                return isUnenclosedLineItem(entity, surface);
+            case AREA:
+                return isUnenclosedArea(entity, surface);
+            case RELATION:
+            default:
+                throw new CoreException("Relations not supported in this method");
         }
     }
 

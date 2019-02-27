@@ -89,7 +89,8 @@ public final class SubAtlasCreator
 
         // Checks all relations not currently in the subatlas and adds in all that have valid
         // members (basically filters out empty relations)
-        addRelations(atlas.relationsLowerOrderFirst(), relation -> !hasEntity(relation, builder),
+        addRelations(atlas, atlas.relationsLowerOrderFirst(),
+                relation -> !hasEntity(relation, builder),
                 member -> hasEntity(member.getEntity(), builder), builder,
                 AtlasCutType.HARD_CUT_ALL);
 
@@ -138,7 +139,7 @@ public final class SubAtlasCreator
 
         // Add all relations that matched, as long as they have at least one member left in the
         // subatlas (i.e. aren't empty)
-        addRelations(atlas.relationsLowerOrderFirst(), matcher::test,
+        addRelations(atlas, atlas.relationsLowerOrderFirst(), matcher::test,
                 member -> hasEntity(member.getEntity(), builder), builder,
                 AtlasCutType.HARD_CUT_ALL);
 
@@ -177,7 +178,7 @@ public final class SubAtlasCreator
 
         // Add all relations that matched, as long as they have at least one member left in the
         // subatlas (i.e. aren't empty)
-        addRelations(atlas.relationsLowerOrderFirst(), matcher::test,
+        addRelations(atlas, atlas.relationsLowerOrderFirst(), matcher::test,
                 member -> hasEntity(member.getEntity(), builder), builder,
                 AtlasCutType.HARD_CUT_RELATIONS_ONLY);
 
@@ -242,7 +243,8 @@ public final class SubAtlasCreator
         // Check all relations and filter out either hard-cut (filter out members not entirely
         // enclosed in the boundaries) or soft-cut (allow any members that intersected or were
         // within the boundaries)
-        addRelations(atlas.relationsLowerOrderFirst(), relation -> !hasEntity(relation, builder),
+        addRelations(atlas, atlas.relationsLowerOrderFirst(),
+                relation -> !hasEntity(relation, builder),
                 member -> hasEntity(member.getEntity(), builder), builder, AtlasCutType.SILK_CUT);
 
         final PackedAtlas result = (PackedAtlas) builder.get();
@@ -337,8 +339,9 @@ public final class SubAtlasCreator
         // Check all relations and filter out either hard-cut (filter out members not entirely
         // enclosed in the boundaries) or soft-cut (allow any members that intersected or were
         // within the boundaries)
-        addRelations(atlas.relationsLowerOrderFirst(), relation -> !hasEntity(relation, builder),
-                validMemberTest, builder, AtlasCutType.SOFT_CUT);
+        addRelations(atlas, atlas.relationsLowerOrderFirst(),
+                relation -> !hasEntity(relation, builder), validMemberTest, builder,
+                AtlasCutType.SOFT_CUT);
 
         final PackedAtlas result = (PackedAtlas) builder.get();
         if (result != null)
@@ -395,8 +398,8 @@ public final class SubAtlasCreator
         // them.
         Iterables.filter(atlas.relationsLowerOrderFirst(), matcher::test)
                 .forEach(relation -> addRelationMembers(relation, builder));
-        addRelations(atlas.relationsLowerOrderFirst(), matcher::test, member -> true, builder,
-                AtlasCutType.SOFT_CUT);
+        addRelations(atlas, atlas.relationsLowerOrderFirst(), matcher::test, member -> true,
+                builder, AtlasCutType.SOFT_CUT);
 
         final PackedAtlas result = (PackedAtlas) builder.get();
         if (result != null)
@@ -406,6 +409,27 @@ public final class SubAtlasCreator
 
         logger.info(CUT_STOP_MESSAGE, AtlasCutType.SOFT_CUT, atlas.getName(), begin.elapsedSince());
         return Optional.ofNullable(result);
+    }
+
+    private static void addAllSubRelations(final Atlas atlas, final Relation parentRelation,
+            final PackedAtlasBuilder builder)
+    {
+        final Set<Long> subrelations = parentRelation.flattenRelations();
+        for (final Relation relation : atlas.relationsLowerOrderFirst())
+        {
+            final Long relationId = relation.getIdentifier();
+            if (subrelations.contains(relationId))
+            {
+                builder.addRelation(relationId, relation.getOsmIdentifier(), relation.getBean(),
+                        relation.getTags());
+            }
+            // we shouldn't ever have lower order subrelations after the parent relation!
+            // returning here prevents infintite loops and unecessary computations
+            if (relationId == parentRelation.getIdentifier())
+            {
+                return;
+            }
+        }
     }
 
     /**
@@ -619,7 +643,7 @@ public final class SubAtlasCreator
      * @param cutType
      *            The {@link AtlasCutType} representing the kind of cut being performed
      */
-    private static void addRelations(final Iterable<Relation> relations,
+    private static void addRelations(final Atlas atlas, final Iterable<Relation> relations,
             final Predicate<Relation> validRelationTest,
             final Predicate<RelationMember> validMemberTest, final PackedAtlasBuilder builder,
             final AtlasCutType cutType)
@@ -637,10 +661,9 @@ public final class SubAtlasCreator
                         if (member.getEntity() instanceof Relation
                                 && !hasEntity(member.getEntity(), builder))
                         {
-                            final Relation memberRelation = (Relation) member.getEntity();
-                            builder.addRelation(memberRelation.getIdentifier(),
-                                    memberRelation.getOsmIdentifier(), memberRelation.getBean(),
-                                    memberRelation.getTags());
+                            System.out.println("Adding subrelations for "
+                                    + member.getEntity().getIdentifier());
+                            addAllSubRelations(atlas, (Relation) member.getEntity(), builder);
                         }
                     });
                 }
