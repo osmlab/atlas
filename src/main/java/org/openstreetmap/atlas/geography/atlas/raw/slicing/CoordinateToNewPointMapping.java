@@ -3,10 +3,9 @@ package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.PrecisionModel;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
-
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.PrecisionModel;
 
 /**
  * {@link CoordinateToNewPointMapping} is responsible for storing a mapping between a JTS
