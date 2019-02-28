@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.geojson;
 
+import com.google.gson.JsonObject;
+
 /**
  * From the spec https://tools.ietf.org/html/rfc7946#section-3.2
  * 
@@ -32,4 +34,15 @@ package org.openstreetmap.atlas.geography.geojson;
  */
 public interface GeoJsonFeature extends GeoJsonGeometry, GeoJsonProperties
 {
+    @Override
+    default JsonObject asGeoJson()
+    {
+        return GeoJsonUtils.feature(this);
+    }
+
+    @Override
+    default GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.FEATURE;
+    }
 }

@@ -129,9 +129,6 @@ public abstract class AtlasEntity
         properties.addProperty(GeoJsonUtils.OSM_IDENTIFIER, getOsmIdentifier());
         properties.addProperty(GeoJsonUtils.ITEM_TYPE, String.valueOf(getType()));
 
-        final Optional<String> shardName = getAtlas().metaData().getShardName();
-        shardName.ifPresent(shard -> properties.addProperty("shard", shard));
-
         final Set<Relation> relations = relations();
         if (relations.size() > 0)
         {

@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.geojson;
 
+import com.google.gson.JsonObject;
+
 /**
  * From the spec https://tools.ietf.org/html/rfc7946#section-3.3
  * 
@@ -11,9 +13,23 @@ package org.openstreetmap.atlas.geography.geojson;
  *    is possible for this array to be empty.
  * </pre>
  *
+ * @param <T>
+ *            The Type of object that implements the {@link GeoJsonFeature} interface that is
+ *            returned by this implementation
  * @author jklamer
  */
-public interface GeoJsonFeatureCollection
-        extends GeoJsonCollection<GeoJsonFeature>, GeoJsonProperties
+public interface GeoJsonFeatureCollection<T extends GeoJsonFeature>
+        extends GeoJsonCollection<T>, GeoJsonProperties
 {
+    @Override
+    default JsonObject asGeoJson()
+    {
+        return GeoJsonUtils.featureCollection(this);
+    }
+
+    @Override
+    default GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.FEATURE_COLLECTION;
+    }
 }

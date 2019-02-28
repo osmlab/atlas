@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.geojson;
 
+import com.google.gson.JsonObject;
+
 /**
  * From the spec https://tools.ietf.org/html/rfc7946#section-3.1.8
  * 
@@ -31,10 +33,32 @@ package org.openstreetmap.atlas.geography.geojson;
  *    (MultiPoint, MultiLineString, or MultiPolygon) could be used instead.
  * </pre>
  *
- * This interface is for all classes with a GeoJsonGeometryCollection representation
+ * This interface is for all classes with a GeoJsonGeometryCollection representation.
  *
+ * @param <T>
+ *            The Type of object that implements the {@link GeoJsonGeometry} interface that is
+ *            returned by this implementation
  * @author jklamer
  */
-public interface GeojsonGeometryCollection extends GeoJsonCollection<GeoJsonGeometry>
+public interface GeojsonGeometryCollection<T extends GeoJsonGeometry>
+        extends GeoJsonCollection<T>, GeoJsonGeometry
 {
+
+    @Override
+    default JsonObject asGeoJson()
+    {
+        return this.asGeoJsonGeometry();
+    }
+
+    @Override
+    default JsonObject asGeoJsonGeometry()
+    {
+        return GeoJsonUtils.geometry(this);
+    }
+
+    @Override
+    default GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.GEOMETRY_COLLECTION;
+    }
 }

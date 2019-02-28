@@ -26,6 +26,7 @@ import org.openstreetmap.atlas.geography.converters.PolygonStringConverter;
 import org.openstreetmap.atlas.geography.converters.WkbMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.WkbPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.WktMultiPolygonConverter;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonFeature;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -229,16 +230,22 @@ public class AtlasEntityPolygonsFilterTest
                 this.constructConfiguredFilter(atlasConfigurationStringFormat,
                         new PolygonStringConverter().backwardConvert(includeBoundary)),
                 2, 2, 2, 0);
-        this.assertCounts(
-                this.setup.getTestForm(), this
-                        .constructConfiguredFilter(geojsonConfigurationStringFormat,
-                                GeoJsonUtils
-                                        .featureCollection(Collections.singletonList(
-                                                GeoJsonUtils.feature(includeBoundary.asGeoJson(),
-                                                        new JsonObject())),
-                                                new JsonObject())
-                                        .toString().replaceAll("\"", "\\\\\"")),
-                2, 2, 2, 0);
+        this.assertCounts(this.setup.getTestForm(), this.constructConfiguredFilter(
+                geojsonConfigurationStringFormat,
+                GeoJsonUtils.featureCollection(Collections.singletonList(new GeoJsonFeature()
+                {
+                    @Override
+                    public JsonObject asGeoJsonGeometry()
+                    {
+                        return includeBoundary.asGeoJson();
+                    }
+
+                    @Override
+                    public JsonObject getGeoJsonProperties()
+                    {
+                        return new JsonObject();
+                    }
+                }), new JsonObject()).toString().replaceAll("\"", "\\\\\"")), 2, 2, 2, 0);
     }
 
     /**

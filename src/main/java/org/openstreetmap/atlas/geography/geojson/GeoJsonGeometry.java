@@ -11,14 +11,18 @@ import com.google.gson.JsonObject;
  *    matter where it occurs in a GeoJSON text.
  * </pre>
  * 
- * This interface is for all objects with a geojson geometry representation. <b>This breaks from the
- * spec in that this will not include Geometry collections even though that is technically a
- * geometry object. This is because the spec also calls for no nested GeoJsonGeometryCollections. We
- * can enforce that rule and design better by excluding GeometryCollection here.</b>
+ * This interface is for all objects with a geojson Geometry object representation. This encompasses
+ * all the Geojson Geometry types in {@link GeoJsonType#isGeometryType(GeoJsonType)}.
  *
  * @author jklamer
  */
 public interface GeoJsonGeometry extends GeoJson
 {
+    @Override
+    default JsonObject asGeoJson()
+    {
+        return this.asGeoJsonGeometry();
+    }
+
     JsonObject asGeoJsonGeometry();
 }
