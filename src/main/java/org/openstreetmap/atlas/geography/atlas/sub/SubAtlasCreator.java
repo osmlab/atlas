@@ -661,8 +661,6 @@ public final class SubAtlasCreator
                         if (member.getEntity() instanceof Relation
                                 && !hasEntity(member.getEntity(), builder))
                         {
-                            System.out.println("Adding subrelations for "
-                                    + member.getEntity().getIdentifier());
                             addAllSubRelations(atlas, (Relation) member.getEntity(), builder);
                         }
                     });

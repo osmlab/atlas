@@ -165,10 +165,10 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
      */
     public Set<AtlasObject> flatten()
     {
-        final Set<AtlasObject> relationMembers = new HashSet<>();
         final Deque<AtlasObject> toProcess = new LinkedList<>();
         final Set<Long> relationsSeen = new HashSet<>();
         AtlasObject polledMember;
+        final Set<AtlasObject> relationMembers = new HashSet<>();
 
         toProcess.add(this);
         while (!toProcess.isEmpty())
@@ -193,17 +193,14 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     }
 
     /**
-     * "Flattens" the relation by returning the set of non-Relation members. Adds any non-Relation
-     * members to the set, then loops on any Relation members to add their non-Relation members as
-     * well. Keeps track of Relations whose identifiers have already been operated on, so that
-     * recursively defined relations don't cause problems.
+     * "Flattens" the relation by returning the set of child Relation members, recursively.
      *
-     * @return a Set of AtlasObjects all related to this Relation, with no Relations.
+     * @return a Set of IDs for all sub Relations.
      */
     public Set<Long> flattenRelations()
     {
         final Deque<AtlasObject> toProcess = new LinkedList<>();
-        final Set<Long> relationsSeen = new HashSet<>();
+        final Set<Long> subrelations = new HashSet<>();
         AtlasObject polledMember;
 
         toProcess.add(this);
@@ -212,16 +209,16 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
             polledMember = toProcess.poll();
             if (polledMember instanceof Relation)
             {
-                if (relationsSeen.contains(polledMember.getIdentifier()))
+                if (subrelations.contains(polledMember.getIdentifier()))
                 {
                     continue;
                 }
                 ((Relation) polledMember).members()
                         .forEach(member -> toProcess.add(member.getEntity()));
-                relationsSeen.add(polledMember.getIdentifier());
+                subrelations.add(polledMember.getIdentifier());
             }
         }
-        return relationsSeen;
+        return subrelations;
     }
 
     /**
