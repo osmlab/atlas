@@ -29,7 +29,6 @@ import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonFeature;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonFeatureCollection;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
@@ -51,7 +50,7 @@ import com.google.gson.JsonObject;
  * @author hallahan
  */
 public abstract class Relation extends AtlasEntity
-        implements Iterable<RelationMember>, GeoJsonFeatureCollection
+        implements Iterable<RelationMember>, GeoJsonFeatureCollection<RelationMember>
 {
     /**
      * The ring type of a {@link MultiPolygon} member.
@@ -87,6 +86,12 @@ public abstract class Relation extends AtlasEntity
     public abstract RelationMemberList allKnownOsmMembers();
 
     public abstract List<Relation> allRelationsWithSameOsmIdentifier();
+
+    @Override
+    public JsonObject asGeoJson()
+    {
+        return GeoJsonUtils.feature(this);
+    }
 
     @Override
     public JsonObject asGeoJsonGeometry()
@@ -208,7 +213,7 @@ public abstract class Relation extends AtlasEntity
     @Override
     public GeoJsonType getGeoJsonType()
     {
-        return GeoJsonType.forJson(this.asGeoJson());
+        return GeoJsonType.FEATURE;
     }
 
     @Override
@@ -225,9 +230,9 @@ public abstract class Relation extends AtlasEntity
     }
 
     @Override
-    public Iterable<GeoJsonFeature> getGeoJsonObjects()
+    public Iterable<RelationMember> getGeoJsonObjects()
     {
-        return new ArrayList<>(this.members());
+        return this;
     }
 
     @Override

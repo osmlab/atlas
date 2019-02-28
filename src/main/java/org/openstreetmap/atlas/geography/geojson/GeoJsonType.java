@@ -20,6 +20,15 @@ import com.google.gson.JsonObject;
  *       the geometry types listed above.
  * </pre>
  *
+ * The reasoning for this being an enum also comes from the spec section 7:
+ * https://tools.ietf.org/html/rfc7946#section-7
+ * 
+ * <pre>
+ *      Implementations MUST NOT extend the fixed set of GeoJSON types:
+ *    FeatureCollection, Feature, Point, LineString, MultiPoint, Polygon,
+ *    MultiLineString, MultiPolygon, and GeometryCollection.
+ * </pre>
+ *
  * @author matthieun
  * @author mgostintsev
  * @author jklamer

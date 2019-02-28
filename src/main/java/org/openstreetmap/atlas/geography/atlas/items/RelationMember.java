@@ -5,8 +5,6 @@ import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonFeature;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 
 import com.google.gson.JsonObject;
 
@@ -39,12 +37,6 @@ public class RelationMember implements Comparable<RelationMember>, Located, GeoJ
     public JsonObject asGeoJsonGeometry()
     {
         return this.entity.asGeoJsonGeometry();
-    }
-
-    @Override
-    public JsonObject asGeoJson()
-    {
-        return GeoJsonUtils.feature(this.asGeoJsonGeometry(), this.getGeoJsonProperties());
     }
 
     @Override
@@ -107,12 +99,6 @@ public class RelationMember implements Comparable<RelationMember>, Located, GeoJ
                     && this.entity.getIdentifier() == that.getEntity().getIdentifier();
         }
         return false;
-    }
-
-    @Override
-    public GeoJsonType getGeoJsonType()
-    {
-        return GeoJsonType.FEATURE;
     }
 
     @Override

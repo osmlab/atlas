@@ -24,5 +24,11 @@ public interface GeoJsonGeometry extends GeoJson
         return this.asGeoJsonGeometry();
     }
 
+    /**
+     * This returns a Geojson object that is one of the Geometry types
+     * (https://tools.ietf.org/html/rfc7946#section-3.1)
+     * 
+     * @return Geojson geometry representation.
+     */
     JsonObject asGeoJsonGeometry();
 }

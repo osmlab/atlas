@@ -44,12 +44,6 @@ public abstract class AtlasEntity
         this.atlas = atlas;
     }
 
-    @Override
-    public JsonObject asGeoJson()
-    {
-        return GeoJsonUtils.feature(asGeoJsonGeometry(), getGeoJsonProperties());
-    }
-
     /**
      * Utility function to test if an entity's tags match some given tag keys.
      *
