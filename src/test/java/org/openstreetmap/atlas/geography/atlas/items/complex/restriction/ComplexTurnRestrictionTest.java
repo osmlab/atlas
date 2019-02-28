@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex.restriction;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -54,6 +55,16 @@ public class ComplexTurnRestrictionTest
 
         Assert.assertTrue(!bigNode.allPaths().isEmpty());
         Assert.assertTrue(bigNode.turnRestrictions().isEmpty());
+    }
+
+    @Test
+    public void testBrokenRoute()
+    {
+        final List<Integer> counter = new ArrayList<>();
+        counter.add(0);
+        new ComplexTurnRestrictionFinder(null).find(this.rule.getAtlasBrokenTurnRestrictionRoute(),
+                broken -> counter.set(0, counter.get(0) + 1)).forEach(System.out::println);
+        Assert.assertEquals(new Integer(1), counter.get(0));
     }
 
     @Test
@@ -171,6 +182,16 @@ public class ComplexTurnRestrictionTest
     }
 
     @Test
+    public void testTurnRestrictionNoUTurn()
+    {
+        // Test edge as via member
+        final Atlas testAtlas = this.rule.getAtlasNoUTurn();
+        final Optional<TurnRestriction> possibleTurnRestriction = TurnRestriction
+                .from(testAtlas.relation(1L));
+        Assert.assertTrue(possibleTurnRestriction.isPresent());
+    }
+
+    @Test
     public void testTurnRestrictionsFromComplexBigNodes()
     {
         final int expectedCountOfRestrictedRoutes = 302;
@@ -206,15 +227,5 @@ public class ComplexTurnRestrictionTest
         final Optional<TurnRestriction> possibleTurnRestriction = TurnRestriction
                 .from(testAtlas.relation(1L));
         Assert.assertEquals(Optional.empty(), possibleTurnRestriction);
-    }
-
-    @Test
-    public void testTurnRestrictionNoUTurn()
-    {
-        // Test edge as via member
-        final Atlas testAtlas = this.rule.getAtlasNoUTurn();
-        final Optional<TurnRestriction> possibleTurnRestriction = TurnRestriction
-                .from(testAtlas.relation(1L));
-        Assert.assertTrue(possibleTurnRestriction.isPresent());
     }
 }

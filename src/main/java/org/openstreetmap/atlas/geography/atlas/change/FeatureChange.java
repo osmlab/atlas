@@ -59,6 +59,7 @@ public class FeatureChange implements Located, Serializable
     private static final long serialVersionUID = 9172045162819925515L;
     private static final BinaryOperator<Map<String, String>> tagMerger = Maps::withMaps;
     private static final BinaryOperator<Set<Long>> directReferenceMerger = Sets::withSets;
+    private static final BinaryOperator<SortedSet<Long>> directReferenceMergerSorted = Sets::withSortedSets;
     private static final BinaryOperator<Set<Long>> directReferenceMergerLoose = (left,
             right) -> Sets.withSets(false, left, right);
     private static final BinaryOperator<RelationBean> relationBeanMerger = RelationBean::merge;
@@ -85,7 +86,7 @@ public class FeatureChange implements Located, Serializable
         if (!(reference instanceof CompleteEntity))
         {
             throw new CoreException(
-                    "FeatureChange requires BloatedEntity, found reference of type {}",
+                    "FeatureChange requires CompleteEntity, found reference of type {}",
                     reference.getClass().getName());
         }
         if (changeType == null)
@@ -133,6 +134,28 @@ public class FeatureChange implements Located, Serializable
     public AtlasEntity getReference()
     {
         return this.reference;
+    }
+
+    /**
+     * Get the changed tags.
+     *
+     * @return Map - the changed tags.
+     */
+    public Map<String, String> getTags()
+    {
+        return this.getReference().getTags();
+    }
+
+    /**
+     * Get a tag based on key post changes.
+     *
+     * @param key
+     *            - The tag key to look for.
+     * @return - the changed value of the tag, if available.
+     */
+    public Optional<String> getTag(final String key)
+    {
+        return this.getReference().getTag(key);
     }
 
     @Override
@@ -223,8 +246,8 @@ public class FeatureChange implements Located, Serializable
     public String toString()
     {
         return "FeatureChange [changeType=" + this.changeType + ", reference={"
-                + this.reference.getType() + "," + this.reference.getIdentifier() + "}, bounds="
-                + bounds() + "]";
+                + this.reference.getType() + "," + this.reference.getIdentifier() + "}, tags="
+                + getTags() + ", bounds=" + bounds() + "]";
     }
 
     private FeatureChange mergeAreas(final FeatureChange other,
@@ -362,18 +385,18 @@ public class FeatureChange implements Located, Serializable
                 atlasEntity -> ((LocationItem) atlasEntity).getLocation(), Optional.empty());
         if (thisReference instanceof Node)
         {
-            final SortedSet<Long> mergedInEdgeIdentifiers = (SortedSet<Long>) mergedMember(
-                    "inEdgeIdentifiers", thisReference, thatReference,
+            final SortedSet<Long> mergedInEdgeIdentifiers = mergedMember("inEdgeIdentifiers",
+                    thisReference, thatReference,
                     atlasEntity -> ((Node) atlasEntity).inEdges() == null ? null
                             : ((Node) atlasEntity).inEdges().stream().map(Edge::getIdentifier)
                                     .collect(Collectors.toCollection(TreeSet::new)),
-                    Optional.of(directReferenceMerger));
-            final SortedSet<Long> mergedOutEdgeIdentifiers = (SortedSet<Long>) mergedMember(
-                    "outEdgeIdentifiers", thisReference, thatReference,
+                    Optional.of(directReferenceMergerSorted));
+            final SortedSet<Long> mergedOutEdgeIdentifiers = mergedMember("outEdgeIdentifiers",
+                    thisReference, thatReference,
                     atlasEntity -> ((Node) atlasEntity).outEdges() == null ? null
                             : ((Node) atlasEntity).outEdges().stream().map(Edge::getIdentifier)
                                     .collect(Collectors.toCollection(TreeSet::new)),
-                    Optional.of(directReferenceMerger));
+                    Optional.of(directReferenceMergerSorted));
             CompleteNode result = new CompleteNode(getIdentifier(), mergedLocation, mergedTags,
                     mergedInEdgeIdentifiers, mergedOutEdgeIdentifiers, mergedParentRelations);
             if (result.bounds() == null)

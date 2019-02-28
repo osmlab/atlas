@@ -6,6 +6,8 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.MultiLineString;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonConstants;
@@ -19,6 +21,7 @@ import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
+
 
 /**
  * {@link MultiPolyLine} tests.

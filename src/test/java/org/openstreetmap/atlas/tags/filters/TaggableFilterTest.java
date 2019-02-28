@@ -60,6 +60,21 @@ public class TaggableFilterTest
     }
 
     @Test
+    public void testDoubleNegative()
+    {
+        final String definition = "water->!pond,!lake";
+        final TaggableFilter filter = TaggableFilter.forDefinition(definition);
+
+        Assert.assertTrue(filter.test(Taggable.with()));
+        // Pond, but not lake -> true
+        Assert.assertTrue(filter.test(Taggable.with("water", "pond")));
+        // Lake, but not pond -> true
+        Assert.assertTrue(filter.test(Taggable.with("water", "lake")));
+        // Not ponf, not lake. -> true
+        Assert.assertTrue(filter.test(Taggable.with("water", "sea")));
+    }
+
+    @Test
     public void testParsing()
     {
         // amenity=bus_station OR highway=bus_stop OR ( (bus=* OR trolleybus=*) AND

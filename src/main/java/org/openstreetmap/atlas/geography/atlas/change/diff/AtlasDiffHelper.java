@@ -40,15 +40,15 @@ public final class AtlasDiffHelper
         try
         {
             boolean featureChangeWouldBeUseful = false;
-            final CompleteArea bloatedArea = CompleteArea.shallowFrom(afterArea);
+            final CompleteArea completeArea = CompleteArea.shallowFrom(afterArea);
             if (!beforeArea.asPolygon().equals(afterArea.asPolygon()))
             {
-                bloatedArea.withPolygon(afterArea.asPolygon());
+                completeArea.withPolygon(afterArea.asPolygon());
                 featureChangeWouldBeUseful = true;
             }
             if (featureChangeWouldBeUseful)
             {
-                return Optional.of(new FeatureChange(ChangeType.ADD, bloatedArea));
+                return Optional.of(new FeatureChange(ChangeType.ADD, completeArea));
             }
         }
         catch (final Exception exception)
@@ -65,20 +65,20 @@ public final class AtlasDiffHelper
         try
         {
             boolean featureChangeWouldBeUseful = false;
-            final CompleteEdge bloatedEdge = CompleteEdge.shallowFrom(afterEdge);
+            final CompleteEdge completeEdge = CompleteEdge.shallowFrom(afterEdge);
             if (!beforeEdge.asPolyLine().equals(afterEdge.asPolyLine()))
             {
-                bloatedEdge.withPolyLine(afterEdge.asPolyLine());
+                completeEdge.withPolyLine(afterEdge.asPolyLine());
                 featureChangeWouldBeUseful = true;
             }
             if (beforeEdge.start().getIdentifier() != afterEdge.start().getIdentifier())
             {
-                bloatedEdge.withStartNodeIdentifier(afterEdge.start().getIdentifier());
+                completeEdge.withStartNodeIdentifier(afterEdge.start().getIdentifier());
                 featureChangeWouldBeUseful = true;
             }
             if (beforeEdge.end().getIdentifier() != afterEdge.end().getIdentifier())
             {
-                bloatedEdge.withEndNodeIdentifier(afterEdge.end().getIdentifier());
+                completeEdge.withEndNodeIdentifier(afterEdge.end().getIdentifier());
                 featureChangeWouldBeUseful = true;
             }
             if (featureChangeWouldBeUseful)
@@ -90,9 +90,9 @@ public final class AtlasDiffHelper
                  */
                 if (saveAllGeometries)
                 {
-                    bloatedEdge.withPolyLine(afterEdge.asPolyLine());
+                    completeEdge.withPolyLine(afterEdge.asPolyLine());
                 }
-                return Optional.of(new FeatureChange(ChangeType.ADD, bloatedEdge));
+                return Optional.of(new FeatureChange(ChangeType.ADD, completeEdge));
             }
         }
         catch (final Exception exception)
@@ -109,15 +109,15 @@ public final class AtlasDiffHelper
         try
         {
             boolean featureChangeWouldBeUseful = false;
-            final CompleteLine bloatedLine = CompleteLine.shallowFrom(afterLine);
+            final CompleteLine completeLine = CompleteLine.shallowFrom(afterLine);
             if (!beforeLine.asPolyLine().equals(afterLine.asPolyLine()))
             {
-                bloatedLine.withPolyLine(afterLine.asPolyLine());
+                completeLine.withPolyLine(afterLine.asPolyLine());
                 featureChangeWouldBeUseful = true;
             }
             if (featureChangeWouldBeUseful)
             {
-                return Optional.of(new FeatureChange(ChangeType.ADD, bloatedLine));
+                return Optional.of(new FeatureChange(ChangeType.ADD, completeLine));
             }
         }
         catch (final Exception exception)
@@ -134,35 +134,35 @@ public final class AtlasDiffHelper
         try
         {
             boolean featureChangeWouldBeUseful = false;
-            final CompleteNode bloatedNode = CompleteNode.shallowFrom(afterNode);
+            final CompleteNode completeNode = CompleteNode.shallowFrom(afterNode);
             if (!beforeNode.getLocation().equals(afterNode.getLocation()))
             {
-                bloatedNode.withLocation(afterNode.getLocation());
+                completeNode.withLocation(afterNode.getLocation());
                 featureChangeWouldBeUseful = true;
             }
             if (differentEdgeSet(beforeNode.inEdges(), afterNode.inEdges()))
             {
-                bloatedNode.withInEdgeIdentifiers(new TreeSet<>(afterNode.inEdges().stream()
+                completeNode.withInEdgeIdentifiers(new TreeSet<>(afterNode.inEdges().stream()
                         .map(Edge::getIdentifier).collect(Collectors.toSet())));
                 if (saveAllGeometries)
                 {
-                    bloatedNode.withLocation(afterNode.getLocation());
+                    completeNode.withLocation(afterNode.getLocation());
                 }
                 featureChangeWouldBeUseful = true;
             }
             if (differentEdgeSet(beforeNode.outEdges(), afterNode.outEdges()))
             {
-                bloatedNode.withOutEdgeIdentifiers(new TreeSet<>(afterNode.outEdges().stream()
+                completeNode.withOutEdgeIdentifiers(new TreeSet<>(afterNode.outEdges().stream()
                         .map(Edge::getIdentifier).collect(Collectors.toSet())));
                 if (saveAllGeometries)
                 {
-                    bloatedNode.withLocation(afterNode.getLocation());
+                    completeNode.withLocation(afterNode.getLocation());
                 }
                 featureChangeWouldBeUseful = true;
             }
             if (featureChangeWouldBeUseful)
             {
-                return Optional.of(new FeatureChange(ChangeType.ADD, bloatedNode));
+                return Optional.of(new FeatureChange(ChangeType.ADD, completeNode));
             }
         }
         catch (final Exception exception)
@@ -206,7 +206,7 @@ public final class AtlasDiffHelper
              * OK! We made it here because we have confirmed that the entities have some
              * relation-related difference. We create a feature change to reflect this.
              */
-            final AtlasEntity bloatedEntity;
+            final AtlasEntity completeEntity;
             switch (afterEntity.getType())
             {
                 case AREA:
@@ -216,7 +216,7 @@ public final class AtlasDiffHelper
                     {
                         area = area.withPolygon(((Area) afterEntity).asPolygon());
                     }
-                    bloatedEntity = area;
+                    completeEntity = area;
                     break;
                 case EDGE:
                     CompleteEdge edge = CompleteEdge.shallowFrom((Edge) afterEntity)
@@ -225,7 +225,7 @@ public final class AtlasDiffHelper
                     {
                         edge = edge.withPolyLine(((Edge) afterEntity).asPolyLine());
                     }
-                    bloatedEntity = edge;
+                    completeEntity = edge;
                     break;
                 case LINE:
                     CompleteLine line = CompleteLine.shallowFrom((Line) afterEntity)
@@ -234,7 +234,7 @@ public final class AtlasDiffHelper
                     {
                         line = line.withPolyLine(((Line) afterEntity).asPolyLine());
                     }
-                    bloatedEntity = line;
+                    completeEntity = line;
                     break;
                 case NODE:
                     CompleteNode node = CompleteNode.shallowFrom((Node) afterEntity)
@@ -243,7 +243,7 @@ public final class AtlasDiffHelper
                     {
                         node = node.withLocation(((Node) afterEntity).getLocation());
                     }
-                    bloatedEntity = node;
+                    completeEntity = node;
                     break;
                 case POINT:
                     CompletePoint point = CompletePoint.shallowFrom((Point) afterEntity)
@@ -252,19 +252,19 @@ public final class AtlasDiffHelper
                     {
                         point = point.withLocation(((Point) afterEntity).getLocation());
                     }
-                    bloatedEntity = point;
+                    completeEntity = point;
                     break;
                 case RELATION:
                     final CompleteRelation relation = CompleteRelation
                             .shallowFrom((Relation) afterEntity)
                             .withRelationIdentifiers(afterRelationIdentifiers);
-                    bloatedEntity = relation;
+                    completeEntity = relation;
                     break;
                 default:
                     throw new CoreException("Unknown item type {}", afterEntity.getType());
             }
             // featureChange should never be null
-            return Optional.of(new FeatureChange(ChangeType.ADD, bloatedEntity));
+            return Optional.of(new FeatureChange(ChangeType.ADD, completeEntity));
         }
         catch (final Exception exception)
         {
@@ -279,15 +279,15 @@ public final class AtlasDiffHelper
         try
         {
             boolean featureChangeWouldBeUseful = false;
-            final CompletePoint bloatedPoint = CompletePoint.shallowFrom(afterPoint);
+            final CompletePoint completePoint = CompletePoint.shallowFrom(afterPoint);
             if (!beforePoint.getLocation().equals(afterPoint.getLocation()))
             {
-                bloatedPoint.withLocation(afterPoint.getLocation());
+                completePoint.withLocation(afterPoint.getLocation());
                 featureChangeWouldBeUseful = true;
             }
             if (featureChangeWouldBeUseful)
             {
-                return Optional.of(new FeatureChange(ChangeType.ADD, bloatedPoint));
+                return Optional.of(new FeatureChange(ChangeType.ADD, completePoint));
             }
         }
         catch (final Exception exception)
@@ -304,17 +304,17 @@ public final class AtlasDiffHelper
         try
         {
             boolean featureChangeWouldBeUseful = false;
-            final CompleteRelation bloatedRelation = CompleteRelation.shallowFrom(afterRelation);
+            final CompleteRelation completeRelation = CompleteRelation.shallowFrom(afterRelation);
             final RelationMemberList beforeMembers = beforeRelation.members();
             final RelationMemberList afterMembers = afterRelation.members();
             if (!afterMembers.equals(beforeMembers))
             {
-                bloatedRelation.withMembersAndSource(afterRelation.members(), beforeRelation);
+                completeRelation.withMembersAndSource(afterRelation.members(), beforeRelation);
                 featureChangeWouldBeUseful = true;
             }
             if (featureChangeWouldBeUseful)
             {
-                return Optional.of(new FeatureChange(ChangeType.ADD, bloatedRelation));
+                return Optional.of(new FeatureChange(ChangeType.ADD, completeRelation));
             }
         }
         catch (final Exception exception)
@@ -333,7 +333,7 @@ public final class AtlasDiffHelper
             return Optional.empty();
         }
 
-        final AtlasEntity bloatedEntity;
+        final AtlasEntity completeEntity;
         switch (afterEntity.getType())
         {
             case AREA:
@@ -343,7 +343,7 @@ public final class AtlasDiffHelper
                 {
                     area = area.withPolygon(((Area) afterEntity).asPolygon());
                 }
-                bloatedEntity = area;
+                completeEntity = area;
                 break;
             case EDGE:
                 CompleteEdge edge = CompleteEdge.shallowFrom((Edge) afterEntity)
@@ -352,7 +352,7 @@ public final class AtlasDiffHelper
                 {
                     edge = edge.withPolyLine(((Edge) afterEntity).asPolyLine());
                 }
-                bloatedEntity = edge;
+                completeEntity = edge;
                 break;
             case LINE:
                 CompleteLine line = CompleteLine.shallowFrom((Line) afterEntity)
@@ -361,7 +361,7 @@ public final class AtlasDiffHelper
                 {
                     line = line.withPolyLine(((Line) afterEntity).asPolyLine());
                 }
-                bloatedEntity = line;
+                completeEntity = line;
                 break;
             case NODE:
                 CompleteNode node = CompleteNode.shallowFrom((Node) afterEntity)
@@ -370,7 +370,7 @@ public final class AtlasDiffHelper
                 {
                     node = node.withLocation(((Node) afterEntity).getLocation());
                 }
-                bloatedEntity = node;
+                completeEntity = node;
                 break;
             case POINT:
                 CompletePoint point = CompletePoint.shallowFrom((Point) afterEntity)
@@ -379,31 +379,31 @@ public final class AtlasDiffHelper
                 {
                     point = point.withLocation(((Point) afterEntity).getLocation());
                 }
-                bloatedEntity = point;
+                completeEntity = point;
                 break;
             case RELATION:
                 final CompleteRelation relation = CompleteRelation
                         .shallowFrom((Relation) afterEntity).withTags(afterEntity.getTags());
-                bloatedEntity = relation;
+                completeEntity = relation;
                 break;
             default:
                 throw new CoreException("Unknown item type {}", afterEntity.getType());
         }
-        return Optional.of(new FeatureChange(ChangeType.ADD, bloatedEntity));
+        return Optional.of(new FeatureChange(ChangeType.ADD, completeEntity));
     }
 
-    public static FeatureChange simpleBloatedAreaChange(final ChangeType changeType,
+    public static FeatureChange simpleCompleteAreaChange(final ChangeType changeType,
             final Atlas atlas, final AtlasEntity entity, final boolean saveAllGeometries)
     {
         final Long entityIdentifier = entity.getIdentifier();
         if (changeType == ChangeType.REMOVE)
         {
-            CompleteArea bloatedArea = CompleteArea.shallowFrom(atlas.area(entityIdentifier));
+            CompleteArea completeArea = CompleteArea.shallowFrom(atlas.area(entityIdentifier));
             if (saveAllGeometries)
             {
-                bloatedArea = bloatedArea.withPolygon(((Area) entity).asPolygon());
+                completeArea = completeArea.withPolygon(((Area) entity).asPolygon());
             }
-            return new FeatureChange(changeType, bloatedArea);
+            return new FeatureChange(changeType, completeArea);
         }
         else
         {
@@ -411,18 +411,18 @@ public final class AtlasDiffHelper
         }
     }
 
-    public static FeatureChange simpleBloatedEdgeChange(final ChangeType changeType,
+    public static FeatureChange simpleCompleteEdgeChange(final ChangeType changeType,
             final Atlas atlas, final AtlasEntity entity, final boolean saveAllGeometries)
     {
         final Long entityIdentifier = entity.getIdentifier();
         if (changeType == ChangeType.REMOVE)
         {
-            CompleteEdge bloatedEdge = CompleteEdge.shallowFrom(atlas.edge(entityIdentifier));
+            CompleteEdge completeEdge = CompleteEdge.shallowFrom(atlas.edge(entityIdentifier));
             if (saveAllGeometries)
             {
-                bloatedEdge = bloatedEdge.withPolyLine(((Edge) entity).asPolyLine());
+                completeEdge = completeEdge.withPolyLine(((Edge) entity).asPolyLine());
             }
-            return new FeatureChange(changeType, bloatedEdge);
+            return new FeatureChange(changeType, completeEdge);
         }
         else
         {
@@ -430,18 +430,18 @@ public final class AtlasDiffHelper
         }
     }
 
-    public static FeatureChange simpleBloatedLineChange(final ChangeType changeType,
+    public static FeatureChange simpleCompleteLineChange(final ChangeType changeType,
             final Atlas atlas, final AtlasEntity entity, final boolean saveAllGeometries)
     {
         final Long entityIdentifier = entity.getIdentifier();
         if (changeType == ChangeType.REMOVE)
         {
-            CompleteLine bloatedLine = CompleteLine.shallowFrom(atlas.line(entityIdentifier));
+            CompleteLine completeLine = CompleteLine.shallowFrom(atlas.line(entityIdentifier));
             if (saveAllGeometries)
             {
-                bloatedLine = bloatedLine.withPolyLine(((Line) entity).asPolyLine());
+                completeLine = completeLine.withPolyLine(((Line) entity).asPolyLine());
             }
-            return new FeatureChange(changeType, bloatedLine);
+            return new FeatureChange(changeType, completeLine);
         }
         else
         {
@@ -449,18 +449,18 @@ public final class AtlasDiffHelper
         }
     }
 
-    public static FeatureChange simpleBloatedNodeChange(final ChangeType changeType,
+    public static FeatureChange simpleCompleteNodeChange(final ChangeType changeType,
             final Atlas atlas, final AtlasEntity entity, final boolean saveAllGeometries)
     {
         final Long entityIdentifier = entity.getIdentifier();
         if (changeType == ChangeType.REMOVE)
         {
-            CompleteNode bloatedNode = CompleteNode.shallowFrom(atlas.node(entityIdentifier));
+            CompleteNode completeNode = CompleteNode.shallowFrom(atlas.node(entityIdentifier));
             if (saveAllGeometries)
             {
-                bloatedNode = bloatedNode.withLocation(((Node) entity).getLocation());
+                completeNode = completeNode.withLocation(((Node) entity).getLocation());
             }
-            return new FeatureChange(changeType, bloatedNode);
+            return new FeatureChange(changeType, completeNode);
         }
         else
         {
@@ -468,18 +468,18 @@ public final class AtlasDiffHelper
         }
     }
 
-    public static FeatureChange simpleBloatedPointChange(final ChangeType changeType,
+    public static FeatureChange simpleCompletePointChange(final ChangeType changeType,
             final Atlas atlas, final AtlasEntity entity, final boolean saveAllGeometries)
     {
         final Long entityIdentifier = entity.getIdentifier();
         if (changeType == ChangeType.REMOVE)
         {
-            CompletePoint bloatedPoint = CompletePoint.shallowFrom(atlas.point(entityIdentifier));
+            CompletePoint completePoint = CompletePoint.shallowFrom(atlas.point(entityIdentifier));
             if (saveAllGeometries)
             {
-                bloatedPoint = bloatedPoint.withLocation(((Point) entity).getLocation());
+                completePoint = completePoint.withLocation(((Point) entity).getLocation());
             }
-            return new FeatureChange(changeType, bloatedPoint);
+            return new FeatureChange(changeType, completePoint);
         }
         else
         {
@@ -487,15 +487,15 @@ public final class AtlasDiffHelper
         }
     }
 
-    public static FeatureChange simpleBloatedRelationChange(final ChangeType changeType,
+    public static FeatureChange simpleCompleteRelationChange(final ChangeType changeType,
             final Atlas atlas, final AtlasEntity entity)
     {
         final Long entityIdentifier = entity.getIdentifier();
         if (changeType == ChangeType.REMOVE)
         {
-            final CompleteRelation bloatedRelation = CompleteRelation
+            final CompleteRelation completeRelation = CompleteRelation
                     .shallowFrom(atlas.relation(entityIdentifier));
-            return new FeatureChange(changeType, bloatedRelation);
+            return new FeatureChange(changeType, completeRelation);
         }
         else
         {

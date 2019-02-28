@@ -4,6 +4,7 @@ functions for manipulating the geometry. These primitives are built using
 lat-long locations on the Earth.
 """
 
+import math
 import shapely.geometry
 
 # --- Location definition constants ---
@@ -95,6 +96,20 @@ class Location(Boundable):
         """
         return self.latitude == other.latitude and self.longitude == other.longitude
 
+    def __ne__(self, other):
+        """
+        Check if two Locations are NOT equal.
+        """
+        return not (self.latitude == other.latitude and self.longitude == other.longitude)
+
+    def __hash__(self):
+        """
+        Compute a hashcode for this Location.
+        """
+        hash_value = self.latitude * 31
+        hash_value = hash_value * 31 + self.longitude
+        return hash_value
+
     def get_as_packed_int(self):
         """
         Pack this Location into a 64 bit integer. The higher order 32 bits are
@@ -182,6 +197,26 @@ class PolyLine(Boundable):
                 return False
         return True
 
+    def __ne__(self, other):
+        """
+        Check if this PolyLine is NOT the same as another PolyLine.
+        """
+        if len(self.location_list) != len(other.location_list):
+            return True
+        for point, other_point in zip(self.locations(), other.locations()):
+            if not point == other_point:
+                return True
+        return False
+
+    def __hash__(self):
+        """
+        Compute a hashcode for this PolyLine.
+        """
+        hash_value = 31
+        for point in self.locations():
+            hash_value = hash_value * 31 + point.__hash__()
+        return hash_value
+
     def compress(self):
         """
         Transform this PolyLine into its compressed representation. The
@@ -230,6 +265,20 @@ class PolyLine(Boundable):
         Get the underlying Location list for this PolyLine.
         """
         return self.location_list
+
+    def length(self):
+        """
+        Get the length of this PolyLine along the surface of the Earth, in meters.
+        """
+        prev_location = None
+        sum_distance = 0
+
+        for cur_location in self.locations():
+            if prev_location is not None:
+                sum_distance += location_haversine_distance(cur_location, prev_location)
+            prev_location = cur_location
+
+        return sum_distance
 
     def locations(self):
         """
@@ -456,6 +505,40 @@ def bounds_atlasentities(entities):
         raise ValueError('entity iterable must yield at least one value')
 
     return Rectangle(Location(lower_lat, left_lon), Location(upper_lat, right_lon))
+
+
+def location_haversine_distance(location1, location2):
+    """
+    Given two locations, compute the Haversine distance between them. This is
+    the great circle distance between the points on the sphere of the Earth.
+    See https://en.wikipedia.org/wiki/Haversine_formula.
+    """
+    mean_radius = 6371000  # meters
+    lat1 = convert_to_radians(location1.get_latitude_deg())
+    lat2 = convert_to_radians(location2.get_latitude_deg())
+    delta_lat = lat2 - lat1
+    delta_lon = convert_to_radians(location2.get_longitude_deg()) - convert_to_radians(
+        location1.get_longitude_deg())
+
+    hav = (math.sin(delta_lat / 2)**
+           2) + math.cos(lat1) * math.cos(lat2) * (math.sin(delta_lon / 2)**2)
+    constant = 2 * math.atan2(math.sqrt(hav), math.sqrt(1 - hav))
+
+    return constant * mean_radius
+
+
+def convert_to_radians(degree):
+    """
+    Convert an angle in degrees to the equivalent angle in radians.
+    """
+    return degree * (math.pi / 180)
+
+
+def convert_to_degrees(radian):
+    """
+    Convert an angle in radians to the equivalent angle in degrees.
+    """
+    return radian * (180 / math.pi)
 
 
 def boundable_to_shapely_box(boundable):

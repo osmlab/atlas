@@ -98,7 +98,10 @@ public interface Taggable
                     if (candidate.length() > 1)
                     {
                         final String forbiddenValue = candidate.substring(1);
-                        return !value.equalsIgnoreCase(forbiddenValue);
+                        if (!value.equalsIgnoreCase(forbiddenValue))
+                        {
+                            return true;
+                        }
                     }
                     else
                     {

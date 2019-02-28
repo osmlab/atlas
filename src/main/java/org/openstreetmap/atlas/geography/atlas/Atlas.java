@@ -3,12 +3,13 @@ package org.openstreetmap.atlas.geography.atlas;
 import java.io.Serializable;
 import java.util.Optional;
 import java.util.SortedSet;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
@@ -88,35 +89,35 @@ public interface Atlas
     Iterable<Area> areasCovering(Location location, Predicate<Area> matcher);
 
     /**
-     * Return all the {@link Area}s within and/or intersecting some polygon.
+     * Return all the {@link Area}s within and/or intersecting some surface.
      *
-     * @param polygon
-     *            The polygon to consider
-     * @return All the {@link Area}s within and/or intersecting the polygon.
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Area}s within and/or intersecting the surface.
      */
-    Iterable<Area> areasIntersecting(Polygon polygon);
+    Iterable<Area> areasIntersecting(GeometricSurface surface);
 
     /**
      * Return all the {@link Area}s matching a {@link Predicate}, and within and/or intersecting
-     * some polygon.
+     * some surface.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link Area}s matching the {@link Predicate}, and within and/or intersecting
-     *         the polygon.
+     *         the surface.
      */
-    Iterable<Area> areasIntersecting(Polygon polygon, Predicate<Area> matcher);
+    Iterable<Area> areasIntersecting(GeometricSurface surface, Predicate<Area> matcher);
 
     /**
-     * Return all the {@link Area}s fully within some polygon.
+     * Return all the {@link Area}s fully within some surface.
      *
-     * @param polygon
-     *            The polygon to consider
-     * @return All the {@link Area}s fully within the polygon.
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Area}s fully within the surface.
      */
-    Iterable<Area> areasWithin(Polygon polygon);
+    Iterable<Area> areasWithin(GeometricSurface surface);
 
     /**
      * @param matcher
@@ -181,35 +182,35 @@ public interface Atlas
     Iterable<Edge> edgesContaining(Location location, Predicate<Edge> matcher);
 
     /**
-     * Return all the {@link Edge}s within and/or intersecting some polygon.
+     * Return all the {@link Edge}s within and/or intersecting some surface.
      *
-     * @param polygon
-     *            The polygon to consider
-     * @return All the {@link Edge}s within and/or intersecting the polygon.
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Edge}s within and/or intersecting the surface.
      */
-    Iterable<Edge> edgesIntersecting(Polygon polygon);
+    Iterable<Edge> edgesIntersecting(GeometricSurface surface);
 
     /**
      * Return all the {@link Edge}s matching a {@link Predicate}, and within and/or intersecting
-     * some polygon.
+     * some surface.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link Edge}s matching the {@link Predicate}, and within and/or intersecting
-     *         the polygon.
+     *         the surface.
      */
-    Iterable<Edge> edgesIntersecting(Polygon polygon, Predicate<Edge> matcher);
+    Iterable<Edge> edgesIntersecting(GeometricSurface surface, Predicate<Edge> matcher);
 
     /**
-     * Return all the {@link Edge}s fully within some polygon.
+     * Return all the {@link Edge}s fully within some surface.
      *
-     * @param polygon
-     *            The polygon to consider
-     * @return All the {@link Edge}s fully within the polygon.
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Edge}s fully within the surface.
      */
-    Iterable<Edge> edgesWithin(Polygon polygon);
+    Iterable<Edge> edgesWithin(GeometricSurface surface);
 
     /**
      * Return all the {@link AtlasEntity}s
@@ -241,26 +242,27 @@ public interface Atlas
     Iterable<AtlasEntity> entities(Predicate<AtlasEntity> matcher);
 
     /**
-     * Return all the {@link AtlasEntity}s within and/or intersecting some polygon.
+     * Return all the {@link AtlasEntity}s within and/or intersecting some surface.
      *
-     * @param polygon
-     *            The {@link Polygon} to consider
-     * @return All the {@link AtlasEntity}s within and/or intersecting the {@link Polygon}.
+     * @param surface
+     *            The {@link GeometricSurface} to consider
+     * @return All the {@link AtlasEntity}s within and/or intersecting the {@link GeometricSurface}.
      */
-    Iterable<AtlasEntity> entitiesIntersecting(Polygon polygon);
+    Iterable<AtlasEntity> entitiesIntersecting(GeometricSurface surface);
 
     /**
      * Return all the {@link AtlasEntity}s matching a {@link Predicate}, and within and/or
-     * intersecting some polygon.
+     * intersecting some surface.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link AtlasEntity}s matching the {@link Predicate}, and within and/or
-     *         intersecting the polygon.
+     *         intersecting the surface.
      */
-    Iterable<AtlasEntity> entitiesIntersecting(Polygon polygon, Predicate<AtlasEntity> matcher);
+    Iterable<AtlasEntity> entitiesIntersecting(GeometricSurface surface,
+            Predicate<AtlasEntity> matcher);
 
     /**
      * Get an entity from identifier and type
@@ -276,7 +278,7 @@ public interface Atlas
     /**
      * @return This Atlas' identifier
      */
-    int getIdentifier();
+    UUID getIdentifier();
 
     /**
      * @return This Atlas' optional name. If not specified, should return a String version of the
@@ -323,35 +325,35 @@ public interface Atlas
     Iterable<AtlasItem> itemsContaining(Location location, Predicate<AtlasItem> matcher);
 
     /**
-     * Return all the {@link AtlasItem}s within and/or intersecting some polygon.
+     * Return all the {@link AtlasItem}s within and/or intersecting some surface.
      *
-     * @param polygon
-     *            The {@link Polygon} to consider
-     * @return All the {@link AtlasItem}s within and/or intersecting the {@link Polygon}.
+     * @param surface
+     *            The {@link GeometricSurface} to consider
+     * @return All the {@link AtlasItem}s within and/or intersecting the {@link GeometricSurface}.
      */
-    Iterable<AtlasItem> itemsIntersecting(Polygon polygon);
+    Iterable<AtlasItem> itemsIntersecting(GeometricSurface surface);
 
     /**
      * Return all the {@link AtlasItem}s matching a {@link Predicate}, and within and/or
-     * intersecting some polygon.
+     * intersecting some surface.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link AtlasItem}s matching the {@link Predicate}, and within and/or
-     *         intersecting the polygon.
+     *         intersecting the surface.
      */
-    Iterable<AtlasItem> itemsIntersecting(Polygon polygon, Predicate<AtlasItem> matcher);
+    Iterable<AtlasItem> itemsIntersecting(GeometricSurface surface, Predicate<AtlasItem> matcher);
 
     /**
-     * Return all the {@link AtlasItem}s fully within some polygon.
+     * Return all the {@link AtlasItem}s fully within some surface.
      *
-     * @param polygon
-     *            The polygon to consider
-     * @return All the {@link AtlasItem}s fully within the polygon.
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link AtlasItem}s fully within the surface.
      */
-    Iterable<AtlasItem> itemsWithin(Polygon polygon);
+    Iterable<AtlasItem> itemsWithin(GeometricSurface surface);
 
     /**
      * @param identifier
@@ -399,35 +401,35 @@ public interface Atlas
     Iterable<LineItem> lineItemsContaining(Location location, Predicate<LineItem> matcher);
 
     /**
-     * Return all the {@link LineItem}s within and/or intersecting some polygon.
+     * Return all the {@link LineItem}s within and/or intersecting some surface.
      *
-     * @param polygon
-     *            The {@link Polygon} to consider
-     * @return All the {@link LineItem}s within and/or intersecting the {@link Polygon}.
+     * @param surface
+     *            The {@link GeometricSurface} to consider
+     * @return All the {@link LineItem}s within and/or intersecting the {@link GeometricSurface}.
      */
-    Iterable<LineItem> lineItemsIntersecting(Polygon polygon);
+    Iterable<LineItem> lineItemsIntersecting(GeometricSurface surface);
 
     /**
      * Return all the {@link LineItem}s matching a {@link Predicate}, and within and/or intersecting
-     * some polygon.
+     * some surface.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link LineItem}s matching the {@link Predicate}, and within and/or
-     *         intersecting the polygon.
+     *         intersecting the surface.
      */
-    Iterable<LineItem> lineItemsIntersecting(Polygon polygon, Predicate<LineItem> matcher);
+    Iterable<LineItem> lineItemsIntersecting(GeometricSurface surface, Predicate<LineItem> matcher);
 
     /**
-     * Return all the {@link LineItem}s fully within some polygon.
+     * Return all the {@link LineItem}s fully within some surface.
      *
-     * @param polygon
-     *            The {@link Polygon} to consider
-     * @return All the {@link LineItem}s within and/or intersecting the {@link Polygon}.
+     * @param surface
+     *            The {@link GeometricSurface} to consider
+     * @return All the {@link LineItem}s within and/or intersecting the {@link GeometricSurface}.
      */
-    Iterable<LineItem> lineItemsWithin(Polygon polygon);
+    Iterable<LineItem> lineItemsWithin(GeometricSurface surface);
 
     /**
      * @return All the {@link Line}s in this {@link Atlas}
@@ -466,35 +468,35 @@ public interface Atlas
     Iterable<Line> linesContaining(Location location, Predicate<Line> matcher);
 
     /**
-     * Return all the {@link Line}s within and/or intersecting some polygon.
+     * Return all the {@link Line}s within and/or intersecting some surface.
      *
-     * @param polygon
-     *            The polygon to consider
-     * @return All the {@link Line}s within and/or intersecting the polygon.
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Line}s within and/or intersecting the surface.
      */
-    Iterable<Line> linesIntersecting(Polygon polygon);
+    Iterable<Line> linesIntersecting(GeometricSurface surface);
 
     /**
      * Return all the {@link Line}s matching a {@link Predicate}, and within and/or intersecting
-     * some polygon.
+     * some surface.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link Line}s matching the {@link Predicate}, and within and/or intersecting
-     *         the polygon.
+     *         the surface.
      */
-    Iterable<Line> linesIntersecting(Polygon polygon, Predicate<Line> matcher);
+    Iterable<Line> linesIntersecting(GeometricSurface surface, Predicate<Line> matcher);
 
     /**
-     * Return all the {@link Line}s fully within some polygon.
+     * Return all the {@link Line}s fully within some surface.
      *
-     * @param polygon
-     *            The polygon to consider
-     * @return All the {@link Line}s fully within the polygon.
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Line}s fully within the surface.
      */
-    Iterable<Line> linesWithin(Polygon polygon);
+    Iterable<Line> linesWithin(GeometricSurface surface);
 
     /**
      * Return all the {@link LocationItem}s
@@ -513,26 +515,28 @@ public interface Atlas
     Iterable<LocationItem> locationItems(Predicate<LocationItem> matcher);
 
     /**
-     * Return all the {@link LocationItem}s within and/or intersecting some polygon.
+     * Return all the {@link LocationItem}s within and/or intersecting some surface.
      *
-     * @param polygon
-     *            The {@link Polygon} to consider
-     * @return All the {@link LocationItem}s within and/or intersecting the {@link Polygon}.
+     * @param surface
+     *            The {@link GeometricSurface} to consider
+     * @return All the {@link LocationItem}s within and/or intersecting the
+     *         {@link GeometricSurface}.
      */
-    Iterable<LocationItem> locationItemsWithin(Polygon polygon);
+    Iterable<LocationItem> locationItemsWithin(GeometricSurface surface);
 
     /**
      * Return all the {@link LocationItem}s matching a {@link Predicate}, and within and/or
-     * intersecting some polygon.
+     * intersecting some surface.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link LocationItem}s matching the {@link Predicate}, and within and/or
-     *         intersecting the polygon.
+     *         intersecting the surface.
      */
-    Iterable<LocationItem> locationItemsWithin(Polygon polygon, Predicate<LocationItem> matcher);
+    Iterable<LocationItem> locationItemsWithin(GeometricSurface surface,
+            Predicate<LocationItem> matcher);
 
     /**
      * @return The meta data for this {@link Atlas}.
@@ -570,28 +574,29 @@ public interface Atlas
     Iterable<Node> nodesAt(Location location);
 
     /**
-     * Return all the {@link Node}s within and/or intersecting some polygon. Note: results may vary,
-     * for an identical boundary, depending on the type, {@link Rectangle} or {@link Polygon} of the
-     * input. This is due to an underlying dependency on the awt definition of insideness.
+     * Return all the {@link Node}s within and/or intersecting some surface. Note: results may vary,
+     * for an identical boundary, depending on the type, {@link Rectangle} or
+     * {@link GeometricSurface} of the input. This is due to an underlying dependency on the awt
+     * definition of insideness.
      *
-     * @param polygon
-     *            The polygon to consider
-     * @return All the {@link Node}s within and/or intersecting the polygon.
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Node}s within and/or intersecting the surface.
      */
-    Iterable<Node> nodesWithin(Polygon polygon);
+    Iterable<Node> nodesWithin(GeometricSurface surface);
 
     /**
      * Return all the {@link Node}s matching a {@link Predicate}, and within and/or intersecting
-     * some polygon.
+     * some surface.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link Node}s matching the {@link Predicate}, and within and/or intersecting
-     *         the polygon.
+     *         the surface.
      */
-    Iterable<Node> nodesWithin(Polygon polygon, Predicate<Node> matcher);
+    Iterable<Node> nodesWithin(GeometricSurface surface, Predicate<Node> matcher);
 
     /**
      * @return The number of {@link Area}s
@@ -654,29 +659,29 @@ public interface Atlas
     Iterable<Point> pointsAt(Location location);
 
     /**
-     * Return all the {@link Point}s within some polygon. Note: results may vary, for an identical
-     * boundary, depending on the type, {@link Rectangle} or {@link Polygon} of the input. This is
-     * due to an underlying dependency on the awt definition of insideness.
+     * Return all the {@link Point}s within some surface. Note: results may vary, for an identical
+     * boundary, depending on the type, {@link Rectangle} or {@link GeometricSurface} of the input.
+     * This is due to an underlying dependency on the awt definition of insideness.
      *
-     * @param polygon
-     *            The polygon to consider
-     * @return All the {@link Point}s within the polygon.
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Point}s within the surface.
      */
-    Iterable<Point> pointsWithin(Polygon polygon);
+    Iterable<Point> pointsWithin(GeometricSurface surface);
 
     /**
      * Return all the {@link Point}s matching a {@link Predicate}. Note: results may vary, for an
-     * identical boundary, depending on the type, {@link Rectangle} or {@link Polygon} of the input.
-     * This is due to an underlying dependency on the awt definition of insideness.
+     * identical boundary, depending on the type, {@link Rectangle} or {@link GeometricSurface} of
+     * the input. This is due to an underlying dependency on the awt definition of insideness.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link Point}s matching the {@link Predicate}, and within and/or intersecting
-     *         the polygon.
+     *         the surface.
      */
-    Iterable<Point> pointsWithin(Polygon polygon, Predicate<Point> matcher);
+    Iterable<Point> pointsWithin(GeometricSurface surface, Predicate<Point> matcher);
 
     /**
      * @param identifier
@@ -707,35 +712,35 @@ public interface Atlas
     Iterable<Relation> relationsLowerOrderFirst();
 
     /**
-     * Return all the {@link Relation}s which have at least one feature intersecting some polygon.
+     * Return all the {@link Relation}s which have at least one feature intersecting some surface.
      *
-     * @param polygon
-     *            The polygon to consider
-     * @return All the {@link Relation}s which have at least one feature intersecting the polygon.
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Relation}s which have at least one feature intersecting the surface.
      */
-    Iterable<Relation> relationsWithEntitiesIntersecting(Polygon polygon);
+    Iterable<Relation> relationsWithEntitiesIntersecting(GeometricSurface surface);
 
     /**
-     * Return all the {@link Relation}s which have at least one feature intersecting some polygon.
+     * Return all the {@link Relation}s which have at least one feature intersecting some surface.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link Relation}s matching the {@link Predicate}, and which have at least one
-     *         feature intersecting the polygon.
+     *         feature intersecting the surface.
      */
-    Iterable<Relation> relationsWithEntitiesIntersecting(Polygon polygon,
+    Iterable<Relation> relationsWithEntitiesIntersecting(GeometricSurface surface,
             Predicate<Relation> matcher);
 
     /**
-     * Return all the {@link Relation}s which have all features within some polygon.
+     * Return all the {@link Relation}s which have all features within some surface.
      *
-     * @param polygon
-     *            The polygon to consider
-     * @return All the {@link Relation}s which have all features within the polygon.
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Relation}s which have all features within the surface.
      */
-    Iterable<Relation> relationsWithEntitiesWithin(Polygon polygon);
+    Iterable<Relation> relationsWithEntitiesWithin(GeometricSurface surface);
 
     /**
      * Serialize this {@link Atlas} to a {@link WritableResource}
@@ -849,9 +854,10 @@ public interface Atlas
      * @param cutType
      *            The type of cut to perform
      * @return An optional sub-atlas. The optional will be empty in case there is nothing in the
-     *         {@link Polygon} after the cut was applied. Returning an empty atlas is not allowed.
+     *         {@link GeometricSurface} after the cut was applied. Returning an empty atlas is not
+     *         allowed.
      */
-    Optional<Atlas> subAtlas(Polygon boundary, AtlasCutType cutType);
+    Optional<Atlas> subAtlas(GeometricSurface boundary, AtlasCutType cutType);
 
     /**
      * Return a sub-atlas from this Atlas.

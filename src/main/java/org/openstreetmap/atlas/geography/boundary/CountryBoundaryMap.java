@@ -28,6 +28,23 @@ import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFinder;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.measure.Longitude;
+import org.locationtech.jts.algorithm.distance.DiscreteHausdorffDistance;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.IntersectionMatrix;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.TopologyException;
+import org.locationtech.jts.index.strtree.AbstractNode;
+import org.locationtech.jts.index.strtree.GeometryItemDistance;
+import org.locationtech.jts.index.strtree.ItemBoundable;
+import org.locationtech.jts.index.strtree.ItemDistance;
+import org.locationtech.jts.index.strtree.STRtree;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
+import org.locationtech.jts.io.WKTWriter;
+import org.locationtech.jts.precision.GeometryPrecisionReducer;
 import org.opengis.feature.Feature;
 import org.opengis.feature.Property;
 import org.opengis.feature.simple.SimpleFeature;
@@ -65,23 +82,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.vividsolutions.jts.algorithm.distance.DiscreteHausdorffDistance;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryCollection;
-import com.vividsolutions.jts.geom.IntersectionMatrix;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.geom.TopologyException;
-import com.vividsolutions.jts.index.strtree.AbstractNode;
-import com.vividsolutions.jts.index.strtree.GeometryItemDistance;
-import com.vividsolutions.jts.index.strtree.ItemBoundable;
-import com.vividsolutions.jts.index.strtree.ItemDistance;
-import com.vividsolutions.jts.index.strtree.STRtree;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
-import com.vividsolutions.jts.io.WKTWriter;
-import com.vividsolutions.jts.precision.GeometryPrecisionReducer;
 
 /**
  * This {@link CountryBoundaryMap} loads boundaries from given country boundary shape file into
@@ -407,8 +407,7 @@ public class CountryBoundaryMap implements Serializable
         this.reducer.setChangePrecisionModel(true);
     }
 
-    void addCountry(final String country,
-            final com.vividsolutions.jts.geom.MultiPolygon multiPolygon)
+    void addCountry(final String country, final org.locationtech.jts.geom.MultiPolygon multiPolygon)
     {
         if (!this.envelope.intersects(multiPolygon.getEnvelopeInternal()))
         {
@@ -418,14 +417,13 @@ public class CountryBoundaryMap implements Serializable
         Geometry fixedPolygon = this.reducer.reduce(multiPolygon);
         if (fixedPolygon instanceof Polygon)
         {
-            fixedPolygon = new com.vividsolutions.jts.geom.MultiPolygon(
+            fixedPolygon = new org.locationtech.jts.geom.MultiPolygon(
                     new Polygon[] { (Polygon) fixedPolygon },
                     JtsPrecisionManager.getGeometryFactory());
         }
 
         final List<Geometry> parts = geometries(
-                (com.vividsolutions.jts.geom.MultiPolygon) fixedPolygon)
-                        .collect(Collectors.toList());
+                (org.locationtech.jts.geom.MultiPolygon) fixedPolygon).collect(Collectors.toList());
         int polygonIdentifier = -1;
         for (final Geometry part : parts)
         {
@@ -493,7 +491,7 @@ public class CountryBoundaryMap implements Serializable
                 try
                 {
                     final MultiPolygon outline = complexBoundary.getOutline();
-                    final com.vividsolutions.jts.geom.MultiPolygon multiPolygon = JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER
+                    final org.locationtech.jts.geom.MultiPolygon multiPolygon = JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER
                             .backwardConvert(outline);
                     complexBoundary.getCountries().forEach(isoCountry -> this
                             .addCountry(isoCountry.getIso3CountryCode(), multiPolygon));
@@ -640,10 +638,10 @@ public class CountryBoundaryMap implements Serializable
                             }
                             this.addCountry(country, (Polygon) geometry);
                         }
-                        else if (geometry instanceof com.vividsolutions.jts.geom.MultiPolygon)
+                        else if (geometry instanceof org.locationtech.jts.geom.MultiPolygon)
                         {
                             this.addCountry(country,
-                                    (com.vividsolutions.jts.geom.MultiPolygon) geometry);
+                                    (org.locationtech.jts.geom.MultiPolygon) geometry);
                         }
                     }
                 }
@@ -688,7 +686,7 @@ public class CountryBoundaryMap implements Serializable
                 final Property geometry = feature.getProperty(GEOMETRY_FIELD);
                 final String nameValue = (String) name.orElseThrow(() -> new CoreException(
                         "Can't read country code attribute from shape file")).getValue();
-                final com.vividsolutions.jts.geom.MultiPolygon multiPolygon = (com.vividsolutions.jts.geom.MultiPolygon) geometry
+                final org.locationtech.jts.geom.MultiPolygon multiPolygon = (org.locationtech.jts.geom.MultiPolygon) geometry
                         .getValue();
                 this.addCountry(nameValue, multiPolygon);
             }
@@ -1058,15 +1056,14 @@ public class CountryBoundaryMap implements Serializable
 
     /**
      * Create a secondary spatial index with data intersecting the given
-     * {@link com.vividsolutions.jts.geom.MultiPolygon}. This will accelerate performance of
-     * geometry check by reducing unnecessary operations.
+     * {@link org.locationtech.jts.geom.MultiPolygon}. This will accelerate performance of geometry
+     * check by reducing unnecessary operations.
      *
      * @param area
      *            Area for grid index initialization
      */
     @SuppressWarnings("unchecked")
-    public synchronized void initializeGridIndex(
-            final com.vividsolutions.jts.geom.MultiPolygon area)
+    public synchronized void initializeGridIndex(final org.locationtech.jts.geom.MultiPolygon area)
     {
         if (Objects.isNull(area))
         {
@@ -1087,7 +1084,7 @@ public class CountryBoundaryMap implements Serializable
      *
      * @param countries
      *            Country codes of countries to build index for
-     * @see #initializeGridIndex(com.vividsolutions.jts.geom.MultiPolygon)
+     * @see #initializeGridIndex(org.locationtech.jts.geom.MultiPolygon)
      */
     public void initializeGridIndex(final Set<String> countries)
     {
@@ -1104,7 +1101,7 @@ public class CountryBoundaryMap implements Serializable
                 }
             }
         }
-        final com.vividsolutions.jts.geom.MultiPolygon area = JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER
+        final org.locationtech.jts.geom.MultiPolygon area = JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER
                 .backwardConvert(multiPolygon);
         this.initializeGridIndex(area);
 

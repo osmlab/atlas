@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -62,6 +63,24 @@ public class MultiPolygon
 
     private final MultiMap<Polygon, Polygon> outerToInners;
     private Rectangle bounds;
+
+    /**
+     * @param polygons
+     *            The outers of the multipolygon
+     * @return A {@link MultiPolygon} with the provided {@link Polygon} as a single outer
+     *         {@link Polygon}, with no inner {@link Polygon}
+     */
+    public static MultiPolygon forOuters(final Iterable<Polygon> polygons)
+    {
+        final MultiMap<Polygon, Polygon> multiMap = new MultiMap<>();
+        polygons.forEach(polygon -> multiMap.put(polygon, Collections.emptyList()));
+        return new MultiPolygon(multiMap);
+    }
+
+    public static MultiPolygon forOuters(final Polygon... polygons)
+    {
+        return MultiPolygon.forOuters(Arrays.asList(polygons));
+    }
 
     /**
      * @param polygon

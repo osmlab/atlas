@@ -19,7 +19,6 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.MultiPolygon;
-import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.WktPrintable;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -169,10 +168,10 @@ public abstract class Relation extends AtlasEntity
      */
     public Set<AtlasObject> flatten()
     {
-        final Set<AtlasObject> relationMembers = new HashSet<>();
         final Deque<AtlasObject> toProcess = new LinkedList<>();
         final Set<Long> relationsSeen = new HashSet<>();
         AtlasObject polledMember;
+        final Set<AtlasObject> relationMembers = new HashSet<>();
 
         toProcess.add(this);
         while (!toProcess.isEmpty())
@@ -194,6 +193,35 @@ public abstract class Relation extends AtlasEntity
             }
         }
         return relationMembers;
+    }
+
+    /**
+     * "Flattens" the relation by returning the set of child Relation members, recursively.
+     *
+     * @return a Set of IDs for all sub Relations.
+     */
+    public Set<Long> flattenRelations()
+    {
+        final Deque<AtlasObject> toProcess = new LinkedList<>();
+        final Set<Long> subrelations = new HashSet<>();
+        AtlasObject polledMember;
+
+        toProcess.add(this);
+        while (!toProcess.isEmpty())
+        {
+            polledMember = toProcess.poll();
+            if (polledMember instanceof Relation)
+            {
+                if (subrelations.contains(polledMember.getIdentifier()))
+                {
+                    continue;
+                }
+                ((Relation) polledMember).members()
+                        .forEach(member -> toProcess.add(member.getEntity()));
+                subrelations.add(polledMember.getIdentifier());
+            }
+        }
+        return subrelations;
     }
 
     /**
@@ -376,15 +404,17 @@ public abstract class Relation extends AtlasEntity
 
     /**
      * Return {@code true} if this Relation has all members fully within the supplied
-     * {@link Polygon}.
+     * {@link GeometricSurface}.
      *
-     * @param polygon
-     *            The {@link Polygon} to check for
-     * @return {@code true} if the relation has all members within the given {@link Polygon}
+     * @param surface
+     *            The {@link GeometricSurface} to check for
+     * @return {@code true} if the relation has all members within the given
+     *         {@link GeometricSurface}
      */
-    public boolean within(final Polygon polygon)
+    @Override
+    public boolean within(final GeometricSurface surface)
     {
-        return withinInternal(polygon, new LinkedHashSet<>());
+        return withinInternal(surface, new LinkedHashSet<>());
     }
 
     /**
@@ -482,13 +512,14 @@ public abstract class Relation extends AtlasEntity
      * {@link PackedAtlas} but could happen when two {@link Atlas} are combined into a
      * {@link MultiAtlas}.
      *
-     * @param polygon
-     *            The {@link Polygon} to check for
+     * @param surface
+     *            The {@link GeometricSurface} to check for
      * @param parentRelationIdentifiers
      *            The identifiers of the parent relations that have already been visited.
-     * @return {@code true} if the relation has all members within the given {@link Polygon}
+     * @return {@code true} if the relation has all members within the given
+     *         {@link GeometricSurface}
      */
-    protected boolean withinInternal(final Polygon polygon,
+    protected boolean withinInternal(final GeometricSurface surface,
             final Set<Long> parentRelationIdentifiers)
     {
         for (final RelationMember member : this)
@@ -504,24 +535,13 @@ public abstract class Relation extends AtlasEntity
                 else
                 {
                     parentRelationIdentifiers.add(identifier);
-                    if (!((Relation) entity).withinInternal(polygon, parentRelationIdentifiers))
+                    if (!((Relation) entity).withinInternal(surface, parentRelationIdentifiers))
                     {
                         return false;
                     }
                 }
             }
-            else if (entity instanceof LineItem
-                    && !polygon.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine()))
-            {
-                return false;
-            }
-            else if (entity instanceof LocationItem
-                    && !polygon.fullyGeometricallyEncloses(((LocationItem) entity).getLocation()))
-            {
-                return false;
-            }
-            else if (entity instanceof Area
-                    && !polygon.fullyGeometricallyEncloses(((Area) entity).asPolygon()))
+            else if (isUnenclosedNonRelationEntity(surface, entity))
             {
                 return false;
             }
@@ -570,6 +590,44 @@ public abstract class Relation extends AtlasEntity
                 // And sometimes the role is "", but we should keep it that way...
                 memberObject.addProperty("role", role);
             }
+        }
+    }
+
+    private boolean isUnenclosedArea(final AtlasEntity entity, final GeometricSurface surface)
+    {
+        return entity instanceof Area
+                && !surface.fullyGeometricallyEncloses(((Area) entity).asPolygon());
+    }
+
+    private boolean isUnenclosedLineItem(final AtlasEntity entity, final GeometricSurface surface)
+    {
+        return entity instanceof LineItem
+                && !surface.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine());
+    }
+
+    private boolean isUnenclosedLocationItem(final AtlasEntity entity,
+            final GeometricSurface surface)
+    {
+        return entity instanceof LocationItem
+                && !surface.fullyGeometricallyEncloses(((LocationItem) entity).getLocation());
+    }
+
+    private boolean isUnenclosedNonRelationEntity(final GeometricSurface surface,
+            final AtlasEntity entity)
+    {
+        switch (entity.getType())
+        {
+            case NODE:
+            case POINT:
+                return isUnenclosedLocationItem(entity, surface);
+            case EDGE:
+            case LINE:
+                return isUnenclosedLineItem(entity, surface);
+            case AREA:
+                return isUnenclosedArea(entity, surface);
+            case RELATION:
+            default:
+                throw new CoreException("Relations not supported in this method");
         }
     }
 

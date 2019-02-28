@@ -11,6 +11,7 @@ import java.util.stream.StreamSupport;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.locationtech.jts.io.WKBWriter;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;

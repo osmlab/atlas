@@ -167,6 +167,12 @@ public class Location
     }
 
     @Override
+    public boolean within(final GeometricSurface surface)
+    {
+        return surface.fullyGeometricallyEncloses(this);
+    }
+
+    @Override
     public JsonObject asGeoJsonGeometry()
     {
         return GeoJsonUtils.geometry(GeoJsonType.POINT, GeoJsonUtils.coordinate(this));

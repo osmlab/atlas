@@ -61,6 +61,8 @@ public class GeodeticEarthCenteredEarthFixedConverter
 
         final double height = coordinate.getAltitude().asMeters();
 
+        // getting positive angles for latitude/longitude is okay as the angles would be the same.
+        // For example, cos(-30) == cos(330) and sin(-30) == sin(330)
         final double xValue = (radiusOfCurviture + height)
                 * Math.cos(coordinate.getLatitude().asPositiveRadians())
                 * Math.cos(coordinate.getLongitude().asPositiveRadians());

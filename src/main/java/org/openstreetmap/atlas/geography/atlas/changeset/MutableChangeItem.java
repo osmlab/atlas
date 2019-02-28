@@ -11,7 +11,9 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
  * require frequently changing values on the fly.
  *
  * @author Yiqing Jin
+ * @deprecated - see new API under org.openstreetmap.atlas.geography.atlas.change package.
  */
+@Deprecated
 public interface MutableChangeItem extends ChangeItem
 {
     void addAllMembers(Iterable<ChangeItemMember> members) throws CoreException;

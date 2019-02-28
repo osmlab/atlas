@@ -7,11 +7,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.delta.AtlasDelta;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
@@ -373,6 +376,110 @@ public class SubAtlasTest
     }
 
     @Test
+    public void testSubAtlasSilkCutWithPolygon()
+    {
+        final Atlas source = this.rule.getAtlas();
+        // This Rectangle covers only the Node 1, Edge 0, Area 0, Line 0 and Point 0.
+        final Atlas sub = source
+                .subAtlas(
+                        Rectangle.forCorners(Location.forString("37.780400, -122.473149"),
+                                Location.forString("37.780785, -122.472631")),
+                        AtlasCutType.SILK_CUT)
+                .orElseThrow(() -> new CoreException("SubAtlas was not present."));
+        // Nodes
+        Assert.assertNotNull(source.node(1));
+        Assert.assertNotNull(sub.node(1));
+        Assert.assertNotNull(source.node(2));
+        Assert.assertNotNull(sub.node(2));
+        Assert.assertNotNull(source.node(3));
+        Assert.assertNull(sub.node(3));
+
+        // Edges
+        Assert.assertNotNull(source.edge(0));
+        Assert.assertNotNull(sub.edge(0));
+        Assert.assertNotNull(source.edge(1));
+        Assert.assertNull(sub.edge(1));
+
+        // Areas
+        Assert.assertNotNull(source.area(0));
+        Assert.assertNotNull(sub.area(0));
+        Assert.assertNotNull(source.area(1));
+        Assert.assertNull(sub.area(1));
+
+        // Lines
+        Assert.assertNotNull(source.line(0));
+        Assert.assertNotNull(sub.line(0));
+        Assert.assertNotNull(source.line(1));
+        Assert.assertNull(sub.line(1));
+
+        // Check that points for line coordinates were preserved
+        sub.lines().forEach(line ->
+        {
+            line.asPolyLine().forEach(location ->
+            {
+                source.pointsAt(location).forEach(point ->
+                {
+                    Assert.assertTrue(sub.point(point.getIdentifier()) != null);
+                });
+            });
+        });
+
+        // Points
+        Assert.assertNotNull(source.point(0));
+        Assert.assertNotNull(sub.point(0));
+        Assert.assertNotNull(source.point(1));
+        Assert.assertNotNull(sub.point(1));
+        Assert.assertNotNull(source.point(2));
+        Assert.assertNull(sub.point(2));
+        Assert.assertNotNull(source.point(3));
+        Assert.assertNull(sub.point(3));
+
+        // Relations
+        Assert.assertNotNull(source.relation(1));
+        Assert.assertNotNull(sub.relation(1));
+        Assert.assertNotNull(source.relation(2));
+        Assert.assertEquals(2, source.relation(2).members().size());
+        Assert.assertNotNull(sub.relation(2));
+        Assert.assertEquals(1, sub.relation(2).members().size());
+        Assert.assertNotNull(source.relation(3));
+        Assert.assertNull(sub.relation(3));
+        Assert.assertNotNull(source.relation(4));
+        Assert.assertEquals(2, source.relation(4).members().size());
+        Assert.assertNotNull(sub.relation(4));
+        Assert.assertEquals(1, sub.relation(4).members().size());
+        Assert.assertNotNull(source.relation(5));
+        Assert.assertEquals(1, source.relation(5).members().size());
+        Assert.assertNotNull(sub.relation(5));
+        Assert.assertEquals(1, sub.relation(5).members().size());
+    }
+
+    @Test
+    public void testSubAtlasSoftCutWithMultiPolygon()
+    {
+        final Atlas source = this.rule.getAtlas();
+        final Rectangle rectangle1 = Rectangle.forCorners(
+                Location.forString("37.780400, -122.473149"),
+                Location.forString("37.780785, -122.472631"));
+        final Rectangle rectangle2 = Rectangle.forCorners(
+                Location.forString("37.780422500976194, -122.47218757867812"),
+                Location.forString("37.781049995371575, -122.47145265340805"));
+        final Atlas sub1 = source.subAtlas(rectangle1, AtlasCutType.SOFT_CUT)
+                .orElseThrow(() -> new CoreException("SubAtlas was not present."));
+        final Atlas sub2 = source.subAtlas(rectangle2, AtlasCutType.SOFT_CUT)
+                .orElseThrow(() -> new CoreException("SubAtlas was not present."));
+
+        // cut an atlas with a multipolygon of the two rectangles
+        final MultiPolygon bothRectangles = MultiPolygon.forOuters(rectangle1, rectangle2);
+        final Atlas subBoth = source.subAtlas(bothRectangles, AtlasCutType.SOFT_CUT)
+                .orElseThrow(() -> new CoreException("SubAtlas was not present."));
+
+        // assert no differences between subAtlas with MultiPolygon and MultiAtlas of subAtlases
+        // with the Multipolygon's outer Polygons
+        final AtlasDelta delta = new AtlasDelta(subBoth, new MultiAtlas(sub1, sub2));
+        Assert.assertTrue(delta.getDifferences().isEmpty());
+    }
+
+    @Test
     public void testSubAtlasSoftCutWithPolygon()
     {
         final Atlas source = this.rule.getAtlas();
@@ -493,5 +600,42 @@ public class SubAtlasTest
         Assert.assertNotNull(result.edge(76));
         // Does not clip with JTS
         Assert.assertNotNull(result.edge(-76));
+    }
+
+    @Test
+    public void testSubAtlasWithRelationNestedWithinRelationCase()
+    {
+        final Atlas source = this.rule.getRelationNestedWithinRelationAtlas();
+
+        final Predicate<AtlasEntity> entitiesWithIdentifierZero = entity -> entity
+                .getIdentifier() == 2;
+
+        final Atlas subAtlasWithTwoBasedIdentifiers = source
+                .subAtlas(entitiesWithIdentifierZero, AtlasCutType.SOFT_CUT)
+                .orElseThrow(() -> new CoreException("SubAtlas was not present."));
+
+        // Nodes
+        Assert.assertNotNull(source.node(1));
+        Assert.assertNotNull(subAtlasWithTwoBasedIdentifiers.node(1));
+        Assert.assertNotNull(source.node(2));
+        Assert.assertNotNull(subAtlasWithTwoBasedIdentifiers.node(2));
+        Assert.assertNotNull(source.node(3));
+        Assert.assertNotNull(subAtlasWithTwoBasedIdentifiers.node(3));
+        Assert.assertNotNull(source.node(4));
+        Assert.assertNotNull(subAtlasWithTwoBasedIdentifiers.node(4));
+
+        // Edges
+        Assert.assertNotNull(source.edge(0));
+        Assert.assertNull(subAtlasWithTwoBasedIdentifiers.edge(0));
+        Assert.assertNotNull(source.edge(1));
+        Assert.assertNull(subAtlasWithTwoBasedIdentifiers.edge(1));
+
+        // Relations
+        Assert.assertNotNull(source.relation(1));
+        Assert.assertEquals(1, source.relation(1).members().size());
+        Assert.assertNotNull(subAtlasWithTwoBasedIdentifiers.relation(1));
+        Assert.assertEquals(1, subAtlasWithTwoBasedIdentifiers.relation(1).members().size());
+        Assert.assertNotNull(subAtlasWithTwoBasedIdentifiers.relation(2));
+        Assert.assertEquals(3, subAtlasWithTwoBasedIdentifiers.relation(2).members().size());
     }
 }

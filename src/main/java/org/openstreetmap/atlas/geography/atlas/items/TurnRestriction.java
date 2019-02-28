@@ -331,17 +331,19 @@ public final class TurnRestriction implements Located, Serializable
                 viaMember = Route.buildFullRouteIgnoringReverseEdges(viaEdges,
                         fromMember.end().end(), toMember.start().start());
             }
+            this.from = fromMember;
+            this.via = viaMember;
+            this.too = toMember;
+            // Make sure that the route can be built
+            route();
         }
         catch (final CoreException e)
         {
             logger.trace("Could not build TurnRestriction from relation {}", relation, e);
-            fromMember = null;
-            viaMember = null;
-            toMember = null;
+            this.from = null;
+            this.via = null;
+            this.too = null;
         }
-        this.from = fromMember;
-        this.via = viaMember;
-        this.too = toMember;
     }
 
     @SuppressWarnings("deprecation")

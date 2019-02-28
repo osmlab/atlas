@@ -23,7 +23,7 @@ public class RunScriptTest
             @Override
             protected Optional<String> parseResult(final String line)
             {
-                if (line.startsWith("java version"))
+                if (line.contains(" version"))
                 {
                     final StringList spaceSplit = StringList.split(line, " ");
                     for (final String item : spaceSplit)

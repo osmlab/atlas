@@ -78,6 +78,12 @@ public abstract class Area extends AtlasItem
     }
 
     @Override
+    public boolean within(final GeometricSurface surface)
+    {
+        return this.asPolygon().within(surface);
+    }
+
+    @Override
     public String toDiffViewFriendlyString()
     {
         final String relationsString = this.parentRelationsAsDiffViewFriendlyString();

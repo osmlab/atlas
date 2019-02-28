@@ -8,6 +8,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.triangulate.ConformingDelaunayTriangulationBuilder;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.converters.WktPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.GeometryStreamer;
@@ -16,6 +19,8 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
+import org.openstreetmap.atlas.geography.coordinates.EarthCenteredEarthFixedCoordinate;
+
 import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
@@ -27,9 +32,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.vividsolutions.jts.geom.GeometryCollection;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.triangulate.ConformingDelaunayTriangulationBuilder;
 
 /**
  * A {@link Polygon} is a {@link PolyLine} with an extra {@link Segment} between the last
@@ -108,6 +110,16 @@ public class Polygon extends PolyLine implements GeometricSurface
     public Polygon(final Location... points)
     {
         this(Iterables.iterable(points));
+    }
+
+    @Override
+    public JsonObject asGeoJsonGeometry()
+    {
+        final JsonArray coordinates = new JsonArray();
+        final JsonArray subCoordinatesArray = GeoJsonUtils.locationsToCoordinates(closedLoop());
+        coordinates.add(subCoordinatesArray);
+
+        return GeoJsonUtils.geometry(GeoJsonUtils.POLYGON, coordinates);
     }
 
     /**
@@ -189,7 +201,7 @@ public class Polygon extends PolyLine implements GeometricSurface
         // if this value overflows, use JTS to correctly calculate covers
         if (awtOverflows())
         {
-            final com.vividsolutions.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
+            final org.locationtech.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
             final Point point = new JtsPointConverter().convert(location);
             return polygon.covers(point);
         }
@@ -252,7 +264,7 @@ public class Polygon extends PolyLine implements GeometricSurface
         // if this value overflows, use JTS to correctly calculate covers
         if (awtOverflows())
         {
-            final com.vividsolutions.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
+            final org.locationtech.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
             return polygon.covers(JTS_POLYGON_CONVERTER.convert(rectangle));
         }
         // for most cases use the faster awt covers
@@ -304,9 +316,7 @@ public class Polygon extends PolyLine implements GeometricSurface
      * Returns a location that is the closest point within the polygon to the centroid. The function
      * delegates to the Geometry class which delegates to the InteriorPointPoint class. You can see
      * the javadocs in the link below. <a href=
-     * "http://www.vividsolutions.com/jts/javadoc/com/vividsolutions/jts/algorithm/InteriorPointPoint">
-     * http://www.vividsolutions.com/jts/javadoc/com/vividsolutions/jts/algorithm/InteriorPointPoint
-     * </a> .html
+     * "https://locationtech.github.io/jts/javadoc/org/locationtech/jts/algorithm/InteriorPointPoint.html"></a>
      *
      * @return location that is the closest point within the polygon to the centroid
      */
@@ -387,21 +397,28 @@ public class Polygon extends PolyLine implements GeometricSurface
     /**
      * @return True if this {@link Polygon} is arranged clockwise, false otherwise.
      * @see <a href="http://stackoverflow.com/questions/1165647"></a>
+     * @see <a href=
+     *      "https://www.grasshopper3d.com/forum/topics/best-way-to-translate-latitude-longitude-data-into-xyz-points?commentId=2985220%3AComment%3A1804229"></a>
+     * @see <a href=
+     *      "https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_geodetic_to_ECEF_coordinates"></a>
      */
     public boolean isClockwise()
     {
-        long sum = 0;
-        long lastLatitude = Long.MIN_VALUE;
-        long lastLongitude = Long.MIN_VALUE;
-        for (final Location point : this)
+        double sum = 0;
+        EarthCenteredEarthFixedCoordinate previousCartesianPoint = null;
+
+        for (final Location point : this.closedLoop())
         {
-            if (lastLongitude != Long.MIN_VALUE)
+            // This will return earth centered cartesian coordinates for a location
+            final EarthCenteredEarthFixedCoordinate newCartesianPoint = new EarthCenteredEarthFixedCoordinate(
+                    point);
+
+            if (previousCartesianPoint != null)
             {
-                sum += (point.getLongitude().asDm7() - lastLongitude)
-                        * (point.getLatitude().asDm7() + lastLatitude);
+                sum += (newCartesianPoint.getX() - previousCartesianPoint.getX())
+                        * (newCartesianPoint.getY() + previousCartesianPoint.getY());
             }
-            lastLongitude = point.getLongitude().asDm7();
-            lastLatitude = point.getLatitude().asDm7();
+            previousCartesianPoint = newCartesianPoint;
         }
         return sum >= 0;
     }
