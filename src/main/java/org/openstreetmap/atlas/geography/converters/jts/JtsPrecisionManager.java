@@ -1,7 +1,7 @@
 package org.openstreetmap.atlas.geography.converters.jts;
 
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.PrecisionModel;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.PrecisionModel;
 
 /**
  * JTS Precision utility class.

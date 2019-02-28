@@ -13,6 +13,10 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.LinearRing;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -52,10 +56,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.LinearRing;
 
 /**
  * The {@link RawAtlasRelationSlicer} consumes a partially sliced (only points and lines are sliced)
@@ -463,7 +463,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
             for (int outerIndex = 0; outerIndex < outerRings.size(); outerIndex++)
             {
                 final LinearRing outer = outerRings.get(outerIndex);
-                final com.vividsolutions.jts.geom.Polygon outerPolygon = new com.vividsolutions.jts.geom.Polygon(
+                final org.locationtech.jts.geom.Polygon outerPolygon = new org.locationtech.jts.geom.Polygon(
                         outer, null, JtsUtility.GEOMETRY_FACTORY);
                 if (outerPolygon.contains(inner))
                 {
@@ -786,7 +786,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
             final Line outer = closedOuterLines.get(outerIndex);
             final LinearRing outerRing = JTS_LINEAR_RING_CONVERTER
                     .convert(new Polygon(outer.getRawGeometry()));
-            final com.vividsolutions.jts.geom.Polygon outerPolygon = new com.vividsolutions.jts.geom.Polygon(
+            final org.locationtech.jts.geom.Polygon outerPolygon = new org.locationtech.jts.geom.Polygon(
                     outerRing, null, JtsUtility.GEOMETRY_FACTORY);
 
             for (final int innerIndex : innerIndices)
@@ -796,7 +796,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
 
                 final LinearRing innerRing = JTS_LINEAR_RING_CONVERTER
                         .convert(new Polygon(inner.getRawGeometry()));
-                final com.vividsolutions.jts.geom.Polygon innerPolygon = new com.vividsolutions.jts.geom.Polygon(
+                final org.locationtech.jts.geom.Polygon innerPolygon = new org.locationtech.jts.geom.Polygon(
                         innerRing, null, JtsUtility.GEOMETRY_FACTORY);
 
                 try
@@ -815,10 +815,9 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
             // outer contained within an inner. If that's the case, we want to abort the merge and
             // leave the members as they are. We are also ignoring MultiPolygons as those have merge
             // complications.
-            if (mergedMembers != null
-                    && mergedMembers instanceof com.vividsolutions.jts.geom.Polygon)
+            if (mergedMembers != null && mergedMembers instanceof org.locationtech.jts.geom.Polygon)
             {
-                final LineString exteriorRing = ((com.vividsolutions.jts.geom.Polygon) mergedMembers)
+                final LineString exteriorRing = ((org.locationtech.jts.geom.Polygon) mergedMembers)
                         .getExteriorRing();
 
                 // Check if the new ring is valid
@@ -938,7 +937,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                         }
                     }
 
-                    final com.vividsolutions.jts.geom.Polygon polygon = new com.vividsolutions.jts.geom.Polygon(
+                    final org.locationtech.jts.geom.Polygon polygon = new org.locationtech.jts.geom.Polygon(
                             outerRing, holes, JtsUtility.GEOMETRY_FACTORY);
 
                     // Check if the polygon is valid. Sometimes polygons from relations can be
