@@ -93,12 +93,6 @@ public class MultiPolygon
         this.outerToInners = outerToInners;
     }
 
-    @Override
-    public JsonObject asGeoJson()
-    {
-        return this.asGeoJsonGeometry();
-    }
-
     public GeoJsonObject asGeoJsonFeatureCollection()
     {
         final GeoJsonBuilder builder = new GeoJsonBuilder();

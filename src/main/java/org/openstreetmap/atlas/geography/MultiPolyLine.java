@@ -85,12 +85,6 @@ public class MultiPolyLine
     }
 
     @Override
-    public JsonObject asGeoJson()
-    {
-        return this.asGeoJsonGeometry();
-    }
-
-    @Override
     public GeoJsonType getGeoJsonType()
     {
         return GeoJsonType.MULTI_LINESTRING;

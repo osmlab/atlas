@@ -285,12 +285,6 @@ public class Polygon extends PolyLine implements GeometricSurface
     }
 
     @Override
-    public JsonObject asGeoJson()
-    {
-        return this.asGeoJsonGeometry();
-    }
-
-    @Override
     public JsonObject asGeoJsonGeometry()
     {
         final JsonArray coordinates = new JsonArray();

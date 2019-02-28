@@ -39,7 +39,7 @@ public final class GeoJsonUtils
     {
         if (!geoJsonFeature.getGeoJsonType().equals(GeoJsonType.FEATURE))
         {
-            logger.error(
+            logger.warn(
                     "Constructing GeoJson Feature Json for something with incorrect Geojson type: object {} with type {}",
                     geoJsonFeature, geoJsonFeature.getGeoJsonType());
         }
@@ -70,7 +70,7 @@ public final class GeoJsonUtils
     {
         if (!featureCollection.getGeoJsonType().equals(GeoJsonType.FEATURE_COLLECTION))
         {
-            logger.error(
+            logger.warn(
                     "Constructing GeoJson Feature Json for something with incorrect Geojson type: object {} with type {}",
                     featureCollection, featureCollection.getGeoJsonType());
         }
@@ -117,7 +117,7 @@ public final class GeoJsonUtils
     {
         if (!geojsonGeometryCollection.getGeoJsonType().equals(GeoJsonType.GEOMETRY_COLLECTION))
         {
-            logger.error(
+            logger.warn(
                     "Constructing GeoJson Geometry Collection Json for something with incorrect Geojson type: object {} with type {}",
                     geojsonGeometryCollection, geojsonGeometryCollection.getGeoJsonType());
         }

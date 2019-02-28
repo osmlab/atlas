@@ -249,12 +249,6 @@ public class PolyLine
     }
 
     @Override
-    public JsonObject asGeoJson()
-    {
-        return this.asGeoJsonGeometry();
-    }
-
-    @Override
     public JsonObject asGeoJsonGeometry()
     {
         return GeoJsonUtils.geometry(GeoJsonType.LINESTRING,
