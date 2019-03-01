@@ -61,7 +61,7 @@ public class AtlasGeoJSONSubCommand extends AbstractAtlasSubCommand
     @Override
     protected void handle(final Atlas atlas, final CommandMap command)
     {
-        getWriter(command).write(atlas.asGeoJson(x -> true));
+        getWriter(command).write(atlas.asGeoJson());
     }
 
     @SuppressWarnings("unchecked")

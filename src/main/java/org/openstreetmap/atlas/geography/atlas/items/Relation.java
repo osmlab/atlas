@@ -117,7 +117,7 @@ public abstract class Relation extends AtlasEntity
             {
                 final String message = String.format("%s - %s",
                         exception.getClass().getSimpleName(), exception.getMessage());
-                logger.error("Unable to recreate multipolygon for relation {}.", getIdentifier(),
+                logger.error("Unable to recreate multipolygon for relation {}. {}", getIdentifier(),
                         message);
                 geometry = GeoJsonUtils.boundsToPolygonGeometry(bounds());
             }

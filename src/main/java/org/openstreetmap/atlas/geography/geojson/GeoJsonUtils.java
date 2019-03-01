@@ -123,10 +123,8 @@ public final class GeoJsonUtils
         }
         final JsonObject geometry = new JsonObject();
         final JsonArray geometries = new JsonArray();
-        geojsonGeometryCollection.getGeoJsonObjects().forEach(geoJsonGeometry ->
-        {
-            geometries.add(geoJsonGeometry.asGeoJsonGeometry());
-        });
+        geojsonGeometryCollection.getGeoJsonObjects()
+                .forEach(geoJsonGeometry -> geometries.add(geoJsonGeometry.asGeoJsonGeometry()));
         geometry.addProperty(TYPE, GeoJsonType.GEOMETRY_COLLECTION.getTypeString());
         geometry.add(GEOMETRIES, geometries);
         return geometry;

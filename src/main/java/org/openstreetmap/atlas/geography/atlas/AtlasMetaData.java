@@ -156,7 +156,8 @@ public final class AtlasMetaData
                 .ifPresent(versionString -> properties.addProperty("Data Version", versionString));
         this.getCountry()
                 .ifPresent(countryString -> properties.addProperty("Country", countryString));
-        this.getShardName().ifPresent(shardName -> properties.addProperty("Shard Name", shardName));
+        this.getShardName()
+                .ifPresent(theShardName -> properties.addProperty("Shard Name", theShardName));
         this.getTags().forEach((key, value) ->
         {
             if (!properties.has(key))

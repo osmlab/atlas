@@ -4,11 +4,11 @@ package org.openstreetmap.atlas.geography.geojson;
  * Interface for all GeoJson collection types {@link GeojsonGeometryCollection} and
  * {@link GeoJsonFeatureCollection}
  * 
- * @param <Type>
+ * @param <T>
  *            The type of GeoJsonGeometry in the collection
  * @author jklamer
  */
-public interface GeoJsonCollection<Type extends GeoJsonGeometry> extends GeoJson
+public interface GeoJsonCollection<T extends GeoJsonGeometry> extends GeoJson
 {
-    Iterable<Type> getGeoJsonObjects();
+    Iterable<T> getGeoJsonObjects();
 }
