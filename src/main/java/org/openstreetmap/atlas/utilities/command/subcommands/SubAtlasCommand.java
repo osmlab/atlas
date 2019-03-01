@@ -8,6 +8,9 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.control.customizers.ImportCustomizer;
+import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
@@ -228,8 +231,31 @@ public class SubAtlasCommand extends AtlasLoaderCommand
 
         if (predicateParameter.isPresent())
         {
+            // TODO add 'AtlasEntity e' to binding?
+            // TODO this will allow users to do 'e.getTags().size() == 3' instead of 'e ->
+            // e.getTags().size() == 3'
             final Binding binding = new Binding();
-            final GroovyShell shell = new GroovyShell(binding);
+
+            final SecureASTCustomizer securityCustomizer = new SecureASTCustomizer();
+            securityCustomizer.setImportsWhitelist(
+                    Arrays.asList("java.lang.Object", "java.lang.Object.isPreset"));
+            securityCustomizer.setStarImportsWhitelist(Arrays.asList("java.util.function",
+                    "org.openstreetmap.atlas.geography.atlas.items", "java.lang"));
+            securityCustomizer.setStaticImportsWhitelist(Arrays.asList("java.lang.Math"));
+            securityCustomizer.setPackageAllowed(false);
+            securityCustomizer.setMethodDefinitionAllowed(false);
+            securityCustomizer.setIndirectImportCheckEnabled(true);
+
+            final ImportCustomizer importCustomizer = new ImportCustomizer();
+            importCustomizer.addStaticStars(java.lang.Math.class.getName());
+            importCustomizer.addStarImports("java.util.function",
+                    "org.openstreetmap.atlas.geography.atlas.items", "java.lang");
+
+            final CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
+            compilerConfiguration.addCompilationCustomizers(securityCustomizer);
+            compilerConfiguration.addCompilationCustomizers(importCustomizer);
+
+            final GroovyShell shell = new GroovyShell(binding, compilerConfiguration);
             this.matcher = Optional.ofNullable((Predicate<AtlasEntity>) shell
                     .evaluate(String.format(this.scriptTemplate, predicateParameter.get())));
         }
