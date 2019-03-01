@@ -145,6 +145,13 @@ public final class GeoJsonUtils
         return geometry;
     }
 
+    /**
+     * Convert an atlas {@link MultiPolygon} into it's geojson coordinate representation
+     * 
+     * @param multiPolygon
+     *            the multiPolygon
+     * @return the coordinate array
+     */
     public static JsonArray multiPolygonToCoordinates(final MultiPolygon multiPolygon)
     {
         final JsonArray polygons = new JsonArray();
@@ -153,6 +160,13 @@ public final class GeoJsonUtils
         return polygons;
     }
 
+    /**
+     * Convert an atlas {@link Polygon} into it's geojson coordinate representation
+     * 
+     * @param polygon
+     *            the polygon
+     * @return the coordinate array
+     */
     public static JsonArray polygonToCoordinates(final Polygon polygon)
     {
         return GeoJsonUtils.polygonToCoordinates(polygon, Optional.empty());
