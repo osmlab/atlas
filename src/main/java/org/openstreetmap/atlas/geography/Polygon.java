@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 /**
@@ -114,11 +113,7 @@ public class Polygon extends PolyLine implements GeometricSurface
     @Override
     public JsonObject asGeoJsonGeometry()
     {
-        final JsonArray coordinates = new JsonArray();
-        final JsonArray subCoordinatesArray = GeoJsonUtils.locationsToCoordinates(closedLoop());
-        coordinates.add(subCoordinatesArray);
-
-        return GeoJsonUtils.geometry(GeoJsonType.POLYGON, coordinates);
+        return GeoJsonUtils.geometry(GeoJsonType.POLYGON, GeoJsonUtils.polygonToCoordinates(this));
     }
 
     /**

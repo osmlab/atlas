@@ -8,8 +8,12 @@ import static org.openstreetmap.atlas.geography.geojson.GeoJsonConstants.PROPERT
 import static org.openstreetmap.atlas.geography.geojson.GeoJsonConstants.TYPE;
 import static org.openstreetmap.atlas.geography.geojson.GeoJsonType.POLYGON;
 
+import java.util.Optional;
+
 import org.apache.commons.lang3.Validate;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.MultiPolygon;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.slf4j.Logger;
@@ -139,6 +143,29 @@ public final class GeoJsonUtils
         geometry.addProperty(TYPE, type.getTypeString());
         geometry.add(COORDINATES, coordinates);
         return geometry;
+    }
+
+    public static JsonArray multiPolygonToCoordinates(final MultiPolygon multiPolygon)
+    {
+        final JsonArray polygons = new JsonArray();
+        multiPolygon.getOuterToInners().forEach((outer, inners) -> polygons
+                .add(GeoJsonUtils.polygonToCoordinates(outer, Optional.of(inners))));
+        return polygons;
+    }
+
+    public static JsonArray polygonToCoordinates(final Polygon polygon)
+    {
+        return GeoJsonUtils.polygonToCoordinates(polygon, Optional.empty());
+    }
+
+    private static JsonArray polygonToCoordinates(final Polygon outer,
+            final Optional<Iterable<Polygon>> inners)
+    {
+        final JsonArray polygon = new JsonArray();
+        polygon.add(GeoJsonUtils.locationsToCoordinates(outer.closedLoop()));
+        inners.ifPresent(innerPolygons -> innerPolygons.forEach(innerPolygon -> polygon
+                .add(GeoJsonUtils.locationsToCoordinates(innerPolygon.closedLoop()))));
+        return polygon;
     }
 
     /**

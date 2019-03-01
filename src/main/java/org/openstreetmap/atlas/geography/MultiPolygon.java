@@ -34,7 +34,6 @@ import org.openstreetmap.atlas.utilities.scalars.Surface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 /**
@@ -129,29 +128,8 @@ public class MultiPolygon
     @Override
     public JsonObject asGeoJsonGeometry()
     {
-        // An array of polygons. An OGC polygon is an outer ring with 0..n inner rings.
-        final JsonArray polygons = new JsonArray();
-
-        for (final Map.Entry<Polygon, List<Polygon>> entry : this.outerToInners.entrySet())
-        {
-            final Polygon outer = entry.getKey();
-            final List<Polygon> inners = entry.getValue();
-
-            final JsonArray polygon = new JsonArray();
-            final JsonArray outerRingCoordinates = GeoJsonUtils
-                    .locationsToCoordinates(outer.closedLoop());
-            polygon.add(outerRingCoordinates);
-
-            for (final Polygon inner : inners)
-            {
-                final JsonArray innerRingCoordinates = GeoJsonUtils
-                        .locationsToCoordinates(inner.closedLoop());
-                polygon.add(innerRingCoordinates);
-            }
-            polygons.add(polygon);
-        }
-
-        return GeoJsonUtils.geometry(GeoJsonType.MULTI_POLYGON, polygons);
+        return GeoJsonUtils.geometry(GeoJsonType.MULTI_POLYGON,
+                GeoJsonUtils.multiPolygonToCoordinates(this));
     }
 
     public Iterable<LocationIterableProperties> asLocationIterableProperties()
@@ -540,7 +518,7 @@ public class MultiPolygon
         return new WktMultiPolygonConverter().convert(this);
     }
 
-    protected MultiMap<Polygon, Polygon> getOuterToInners()
+    public MultiMap<Polygon, Polygon> getOuterToInners()
     {
         return this.outerToInners;
     }
