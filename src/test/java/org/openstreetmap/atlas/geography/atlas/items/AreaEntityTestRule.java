@@ -3,7 +3,6 @@ package org.openstreetmap.atlas.geography.atlas.items;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.utilities.testing.CoreTestRule;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas;
-import org.openstreetmap.atlas.utilities.testing.TestAtlas.Area;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Loc;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Node;
 
@@ -17,10 +16,8 @@ public class AreaEntityTestRule extends CoreTestRule
 
     @TestAtlas(
 
-            nodes = {
-                    @Node(id = "1", coordinates = @Loc(value = ONE), tags = {"name=abc"}),
-                    @Node(id = "2", coordinates = @Loc(value = TWO)),
-            })
+            nodes = { @Node(id = "1", coordinates = @Loc(value = ONE), tags = { "name=abc" }),
+                    @Node(id = "2", coordinates = @Loc(value = TWO)), })
     private Atlas atlas;
 
     public Atlas getAtlas()

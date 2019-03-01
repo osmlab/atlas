@@ -2,7 +2,6 @@ package org.openstreetmap.atlas.geography.atlas.items;
 
 import java.io.Serializable;
 import java.util.Map;
-import java.util.Optional;
 
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
