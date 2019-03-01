@@ -31,6 +31,7 @@ public enum WaterTag
     MOAT,
     WASTEWATER,
     STREAM_POOL,
+    SEA,
     TIDAL,
     SALT_POOL,
     POOL;

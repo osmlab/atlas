@@ -109,8 +109,8 @@ public class WaySectionProcessorIntegrationTest extends AtlasIntegrationTest
         Assert.assertEquals(0, rawAtlas.numberOfEdges());
         Assert.assertEquals(2841, sectionedAtlas.numberOfEdges());
 
-        Assert.assertEquals(917, rawAtlas.numberOfLines());
-        Assert.assertEquals(8, sectionedAtlas.numberOfLines());
+        Assert.assertEquals(918, rawAtlas.numberOfLines());
+        Assert.assertEquals(9, sectionedAtlas.numberOfLines());
 
         Assert.assertEquals(0, rawAtlas.numberOfNodes());
         Assert.assertEquals(1165, sectionedAtlas.numberOfNodes());
@@ -121,7 +121,7 @@ public class WaySectionProcessorIntegrationTest extends AtlasIntegrationTest
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
         Assert.assertEquals(1, sectionedAtlas.numberOfRelations());
 
-        Assert.assertEquals(5165, rawAtlas.numberOfPoints());
+        Assert.assertEquals(5380, rawAtlas.numberOfPoints());
         Assert.assertEquals(82, sectionedAtlas.numberOfPoints());
     }
 

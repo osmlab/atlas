@@ -132,6 +132,38 @@ public class SubAtlasRule extends CoreTestRule
                     @Node(id = "1", coordinates = @Loc(value = ONE)),
                     @Node(id = "2", coordinates = @Loc(value = TWO)),
                     @Node(id = "3", coordinates = @Loc(value = THREE)),
+                    @Node(id = "4", coordinates = @Loc(value = FOUR))
+
+            }, edges = {
+
+                    @Edge(id = "0", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }, tags = {
+                            "highway=trunk", "fixme=please" }),
+                    @Edge(id = "1", coordinates = { @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "highway=trunk" })
+
+            }, relations = {
+
+                    @Relation(id = "0", tags = { "type=outside" }, members = {
+                            @Member(id = "3", role = "to", type = "node") }),
+                    @Relation(id = "1", tags = { "type=outside" }, members = {
+                            @Member(id = "0", role = "something", type = "relation") }),
+                    // Must have a node that wasn't indexed by the above edges.
+                    @Relation(id = "2", tags = { "type=outside" }, members = {
+                            @Member(id = "1", role = "to", type = "node"),
+                            @Member(id = "4", role = "via", type = "node"),
+                            @Member(id = "1", role = "something", type = "relation") })
+
+            })
+
+    private Atlas nestedUnindexedRelationWithinRelationAtlas;
+
+    @TestAtlas(
+
+            nodes = {
+
+                    @Node(id = "1", coordinates = @Loc(value = ONE)),
+                    @Node(id = "2", coordinates = @Loc(value = TWO)),
+                    @Node(id = "3", coordinates = @Loc(value = THREE)),
                     @Node(id = "4", coordinates = @Loc(value = FOUR), tags = { "type=excluded" }),
                     @Node(id = "5", coordinates = @Loc(value = FIVE), tags = { "type=excluded" })
 
@@ -257,5 +289,10 @@ public class SubAtlasRule extends CoreTestRule
     public Atlas getNodeNestedWithinRelationAtlas()
     {
         return this.nestedUnindexedNodeWithinRelationAtlas;
+    }
+
+    public Atlas getRelationNestedWithinRelationAtlas()
+    {
+        return this.nestedUnindexedRelationWithinRelationAtlas;
     }
 }

@@ -22,6 +22,7 @@ import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.Pond
 import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.PoolHandler;
 import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.ReservoirHandler;
 import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.RiverHandler;
+import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.SeaHandler;
 import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.WaterHandler;
 import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.WetlandHandler;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
@@ -54,6 +55,7 @@ public class ComplexWaterEntityFinder implements Finder<ComplexWaterEntity>
         this.handlers.put(WaterType.POOL, new PoolHandler());
         this.handlers.put(WaterType.RESERVOIR, new ReservoirHandler());
         this.handlers.put(WaterType.RIVER, new RiverHandler());
+        this.handlers.put(WaterType.SEA, new SeaHandler());
         this.handlers.put(WaterType.WETLAND, new WetlandHandler());
     }
 

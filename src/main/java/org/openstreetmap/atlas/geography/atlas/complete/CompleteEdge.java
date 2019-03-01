@@ -17,7 +17,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  *
  * @author matthieun
  */
-public class CompleteEdge extends Edge implements CompleteEntity
+public class CompleteEdge extends Edge implements CompleteLineItem
 {
     private static final long serialVersionUID = 309534717673911086L;
 
@@ -156,17 +156,19 @@ public class CompleteEdge extends Edge implements CompleteEntity
     @Override
     public String toString()
     {
-        return "BloatedEdge [identifier=" + this.identifier + ", startNodeIdentifier="
-                + this.startNodeIdentifier + ", endNodeIdentifier=" + this.endNodeIdentifier
-                + ", polyLine=" + this.polyLine + ", tags=" + this.tags + ", relationIdentifiers="
-                + this.relationIdentifiers + "]";
+        return this.getClass().getSimpleName() + " [identifier=" + this.identifier
+                + ", startNodeIdentifier=" + this.startNodeIdentifier + ", endNodeIdentifier="
+                + this.endNodeIdentifier + ", polyLine=" + this.polyLine + ", tags=" + this.tags
+                + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
+    @Override
     public CompleteEdge withAddedTag(final String key, final String value)
     {
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
+    @Override
     public CompleteEdge withAggregateBoundsExtendedUsing(final Rectangle bounds)
     {
         if (this.aggregateBounds == null)
@@ -183,12 +185,14 @@ public class CompleteEdge extends Edge implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteEdge withIdentifier(final long identifier)
     {
         this.identifier = identifier;
         return this;
     }
 
+    @Override
     public CompleteEdge withPolyLine(final PolyLine polyLine)
     {
         this.polyLine = polyLine;
@@ -200,12 +204,14 @@ public class CompleteEdge extends Edge implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteEdge withRelationIdentifiers(final Set<Long> relationIdentifiers)
     {
         this.relationIdentifiers = relationIdentifiers;
         return this;
     }
 
+    @Override
     public CompleteEdge withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
@@ -213,11 +219,13 @@ public class CompleteEdge extends Edge implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteEdge withRemovedTag(final String key)
     {
         return withTags(CompleteEntity.removeTag(getTags(), key));
     }
 
+    @Override
     public CompleteEdge withReplacedTag(final String oldKey, final String newKey,
             final String newValue)
     {
@@ -230,6 +238,7 @@ public class CompleteEdge extends Edge implements CompleteEntity
         return this;
     }
 
+    @Override
     public CompleteEdge withTags(final Map<String, String> tags)
     {
         this.tags = tags;

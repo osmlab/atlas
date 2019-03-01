@@ -13,7 +13,9 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
  * data quality and/or coverage.
  *
  * @author Yiqing Jin
+ * @deprecated - see new API under org.openstreetmap.atlas.geography.atlas.change package.
  */
+@Deprecated
 public interface ChangeSet extends Set<ChangeItem>, Serializable
 {
     /**

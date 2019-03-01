@@ -3,14 +3,13 @@ package org.openstreetmap.atlas.geography.clipping;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.LineString;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
-
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryCollection;
-import com.vividsolutions.jts.geom.LineString;
 
 /**
  * Clip {@link Polygon}s using the JTS library
@@ -74,10 +73,10 @@ public class PolygonClipper
                 result.addAll(processResult(geometry));
             }
         }
-        else if (intersections instanceof com.vividsolutions.jts.geom.Polygon)
+        else if (intersections instanceof org.locationtech.jts.geom.Polygon)
         {
             result.add(new JtsPolygonConverter()
-                    .backwardConvert((com.vividsolutions.jts.geom.Polygon) intersections));
+                    .backwardConvert((org.locationtech.jts.geom.Polygon) intersections));
         }
         else if (intersections instanceof LineString)
         {
