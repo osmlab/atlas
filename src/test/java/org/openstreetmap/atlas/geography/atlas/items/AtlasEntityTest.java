@@ -17,6 +17,6 @@ public class AtlasEntityTest
     public void getName()
     {
         Assert.assertEquals("abc", rule.getAtlas().node(1).getName().get());
-        Assert.assertTrue(!rule.getAtlas().node(2).getName().isPresent());
+        Assert.assertFalse(rule.getAtlas().node(2).getName().isPresent());
     }
 }
