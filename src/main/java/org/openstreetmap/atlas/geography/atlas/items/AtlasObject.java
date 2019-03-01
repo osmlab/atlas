@@ -34,13 +34,6 @@ public interface AtlasObject extends Located, Taggable, Serializable
     long getOsmIdentifier();
 
     /**
-     * The value in the "name" attribute.
-     *
-     * @return an optional string representing the value of the name tag.
-     */
-    Optional<String> getName();
-
-    /**
      * Atlas objects contain OSM tags plus tags inserted during Atlas generation. This function will
      * remove all but the OSM tags.
      *

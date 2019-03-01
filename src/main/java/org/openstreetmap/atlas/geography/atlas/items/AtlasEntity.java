@@ -61,7 +61,11 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem, 
         return false;
     }
 
-    @Override
+    /**
+     * The value in the "name" attribute.
+     *
+     * @return an optional string representing the value of the name tag.
+     */
     public Optional<String> getName() {
         return this.getTag("name");
     }
