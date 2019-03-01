@@ -9,9 +9,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
@@ -26,10 +26,6 @@ import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.AtlasLoaderCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
@@ -217,10 +213,10 @@ public class SubAtlasCommand extends AtlasLoaderCommand
                 return 1;
             }
 
-            if (geometry instanceof com.vividsolutions.jts.geom.Polygon)
+            if (geometry instanceof org.locationtech.jts.geom.Polygon)
             {
                 this.polygon = Optional.ofNullable(new JtsPolygonConverter()
-                        .backwardConvert((com.vividsolutions.jts.geom.Polygon) geometry));
+                        .backwardConvert((org.locationtech.jts.geom.Polygon) geometry));
             }
             else
             {
