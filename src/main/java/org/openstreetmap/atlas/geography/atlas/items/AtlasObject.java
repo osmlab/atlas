@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.items;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Optional;
 
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -31,6 +32,13 @@ public interface AtlasObject extends Located, Taggable, Serializable
      * @return This item's OSM identifier
      */
     long getOsmIdentifier();
+
+    /**
+     * The value in the "name" attribute.
+     *
+     * @return an optional string representing the value of the name tag.
+     */
+    Optional<String> getName();
 
     /**
      * Atlas objects contain OSM tags plus tags inserted during Atlas generation. This function will

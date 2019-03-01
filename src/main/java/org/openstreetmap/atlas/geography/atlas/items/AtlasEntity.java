@@ -61,6 +61,11 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem, 
         return false;
     }
 
+    @Override
+    public Optional<String> getName() {
+        return this.getTag("name");
+    }
+
     /**
      * Utility function to test if an entity's tags start with some given tag keys.
      *
