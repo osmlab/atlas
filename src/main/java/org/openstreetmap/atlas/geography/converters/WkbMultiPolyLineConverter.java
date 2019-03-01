@@ -1,14 +1,14 @@
 package org.openstreetmap.atlas.geography.converters;
 
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.MultiLineString;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKBReader;
+import org.locationtech.jts.io.WKBWriter;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolyLine;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolyLineConverter;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
-
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKBReader;
-import com.vividsolutions.jts.io.WKBWriter;
 
 /**
  * A class for converting between MultiLineStrings in WKB format and {@link MultiPolyLine}
@@ -22,10 +22,10 @@ public class WkbMultiPolyLineConverter implements TwoWayConverter<MultiPolyLine,
     @Override
     public MultiPolyLine backwardConvert(final byte[] wkb)
     {
-        com.vividsolutions.jts.geom.MultiLineString geometry = null;
+        MultiLineString geometry = null;
         try
         {
-            geometry = (com.vividsolutions.jts.geom.MultiLineString) WKB_READER.read(wkb);
+            geometry = (MultiLineString) WKB_READER.read(wkb);
         }
         catch (final ParseException | ClassCastException e)
         {

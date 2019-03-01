@@ -273,6 +273,7 @@ public abstract class BareAtlas implements Atlas
         return properties;
     }
 
+    @Override
     public UUID getIdentifier()
     {
         return this.identifier;

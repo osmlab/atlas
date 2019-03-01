@@ -36,7 +36,6 @@ import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.testing.FreezeDryFunction;
 
 import com.google.gson.JsonObject;
-import com.vividsolutions.jts.io.WKBWriter;
 
 /**
  * Tests for {@link AtlasEntityPolygonsFilter}
