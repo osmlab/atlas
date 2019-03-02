@@ -237,17 +237,15 @@ public class SubAtlasCommand extends AtlasLoaderCommand
             final Binding binding = new Binding();
 
             final SecureASTCustomizer securityCustomizer = new SecureASTCustomizer();
-            securityCustomizer.setImportsWhitelist(
-                    Arrays.asList("java.lang.Object", "java.lang.Object.isPreset"));
-            securityCustomizer.setStarImportsWhitelist(Arrays.asList("java.util.function",
-                    "org.openstreetmap.atlas.geography.atlas.items", "java.lang"));
-            securityCustomizer.setStaticImportsWhitelist(Arrays.asList("java.lang.Math"));
+            securityCustomizer.setStarImportsWhitelist(Arrays.asList("java.lang",
+                    "java.math.BigDecimal", "java.math.BigInteger", "java.util", "groovy.lang",
+                    "groovy.util", "org.codehaus.groovy.runtime.DefaultGroovyMethods",
+                    "java.util.function", "org.openstreetmap.atlas.geography.atlas.items"));
             securityCustomizer.setPackageAllowed(false);
             securityCustomizer.setMethodDefinitionAllowed(false);
             securityCustomizer.setIndirectImportCheckEnabled(true);
 
             final ImportCustomizer importCustomizer = new ImportCustomizer();
-            importCustomizer.addStaticStars(java.lang.Math.class.getName());
             importCustomizer.addStarImports("java.util.function",
                     "org.openstreetmap.atlas.geography.atlas.items", "java.lang");
 
