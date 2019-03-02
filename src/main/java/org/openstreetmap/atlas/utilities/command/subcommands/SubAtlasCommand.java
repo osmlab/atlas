@@ -234,7 +234,7 @@ public class SubAtlasCommand extends AtlasLoaderCommand
             // TODO add 'AtlasEntity e' to binding?
             // TODO this will allow users to do 'e.getTags().size() == 3' instead of 'e ->
             // e.getTags().size() == 3'
-            final Binding binding = new Binding();
+            // final Binding binding = new Binding();
 
             final SecureASTCustomizer securityCustomizer = new SecureASTCustomizer();
             securityCustomizer.setStarImportsWhitelist(Arrays.asList("java.lang",
@@ -253,9 +253,14 @@ public class SubAtlasCommand extends AtlasLoaderCommand
             compilerConfiguration.addCompilationCustomizers(securityCustomizer);
             compilerConfiguration.addCompilationCustomizers(importCustomizer);
 
-            final GroovyShell shell = new GroovyShell(binding, compilerConfiguration);
-            this.matcher = Optional.ofNullable((Predicate<AtlasEntity>) shell
-                    .evaluate(String.format(this.scriptTemplate, predicateParameter.get())));
+            final Predicate<AtlasEntity> predicate = entity ->
+            {
+                final Binding binding = new Binding();
+                binding.setVariable("e", entity);
+                final GroovyShell shell = new GroovyShell(binding, compilerConfiguration);
+                return (boolean) shell.evaluate(predicateParameter.get());
+            };
+            this.matcher = Optional.ofNullable(predicate);
         }
 
         return 0;
