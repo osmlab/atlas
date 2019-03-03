@@ -18,11 +18,11 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
-import org.openstreetmap.atlas.geography.coordinates.EarthCenteredEarthFixedCoordinate;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.scalars.Angle;
+import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -386,23 +386,44 @@ public class Polygon extends PolyLine implements GeometricSurface
      */
     public boolean isClockwise()
     {
-        double sum = 0;
-        EarthCenteredEarthFixedCoordinate previousCartesianPoint = null;
+        // Formula to calculate the area of triangle on a sphere is (A + B + C - Pi) * radius *
+        // radius.
+        // Equation (A + B + C - Pi) is called the spherical excess. We are going to divide our
+        // polygon in triangles and then calculate the signed area of each triangle. Sum of the
+        // areas of these triangles will be the area of this polygon
+        double sphericalExcess = 0;
+        Location previousLocation = null;
 
         for (final Location point : this.closedLoop())
         {
-            // This will return earth centered cartesian coordinates for a location
-            final EarthCenteredEarthFixedCoordinate newCartesianPoint = new EarthCenteredEarthFixedCoordinate(
-                    point);
+            final Location currentLocation = point;
 
-            if (previousCartesianPoint != null)
+            if (previousLocation != null)
             {
-                sum += (newCartesianPoint.getX() - previousCartesianPoint.getX())
-                        * (newCartesianPoint.getY() + previousCartesianPoint.getY());
+                // for the sake of simplicity we are using two vertices from the polygon and the
+                // third vertex would be North Pole.
+                // Please refer "Spherical Trigonometry by I.Todhunter".
+                // Section starting on page 7 and 17 for triangle identities and trigonometric
+                // functions.
+                // Also look on page 71 for getting the area of triangle
+                final double latitudeOne = previousLocation.getLatitude().asRadians();
+                final double latitudeTwo = currentLocation.getLatitude().asRadians();
+                final double deltaLongitude = currentLocation.getLongitude().asRadians()
+                        - previousLocation.getLongitude().asRadians();
+
+                final double alpha = Math
+                        .sqrt((1 - Math.sin(latitudeOne)) / (1 + Math.sin(latitudeOne)))
+                        * Math.sqrt((1 - Math.sin(latitudeTwo)) / (1 + Math.sin(latitudeTwo)));
+
+                // You can derive this from the formula on Page 74, point 102 of the book
+                sphericalExcess += 2 * Math.atan2(alpha * Math.sin(deltaLongitude),
+                        1 + alpha * Math.cos(deltaLongitude));
             }
-            previousCartesianPoint = newCartesianPoint;
+            previousLocation = currentLocation;
         }
-        return sum >= 0;
+
+        return sphericalExcess * Distance.AVERAGE_EARTH_RADIUS.asKilometers()
+                * Distance.AVERAGE_EARTH_RADIUS.asKilometers() <= 0;
     }
 
     public int nextSegmentIndex(final int currentVertexIndex)
