@@ -454,6 +454,32 @@ public class SubAtlasTest
     }
 
     @Test
+    public void testSubAtlasSoftCutWithMultiPolygon()
+    {
+        final Atlas source = this.rule.getAtlas();
+        final Rectangle rectangle1 = Rectangle.forCorners(
+                Location.forString("37.780400, -122.473149"),
+                Location.forString("37.780785, -122.472631"));
+        final Rectangle rectangle2 = Rectangle.forCorners(
+                Location.forString("37.780422500976194, -122.47218757867812"),
+                Location.forString("37.781049995371575, -122.47145265340805"));
+        final Atlas sub1 = source.subAtlas(rectangle1, AtlasCutType.SOFT_CUT)
+                .orElseThrow(() -> new CoreException("SubAtlas was not present."));
+        final Atlas sub2 = source.subAtlas(rectangle2, AtlasCutType.SOFT_CUT)
+                .orElseThrow(() -> new CoreException("SubAtlas was not present."));
+
+        // cut an atlas with a multipolygon of the two rectangles
+        final MultiPolygon bothRectangles = MultiPolygon.forOuters(rectangle1, rectangle2);
+        final Atlas subBoth = source.subAtlas(bothRectangles, AtlasCutType.SOFT_CUT)
+                .orElseThrow(() -> new CoreException("SubAtlas was not present."));
+
+        // assert no differences between subAtlas with MultiPolygon and MultiAtlas of subAtlases
+        // with the Multipolygon's outer Polygons
+        final AtlasDelta delta = new AtlasDelta(subBoth, new MultiAtlas(sub1, sub2));
+        Assert.assertTrue(delta.getDifferences().isEmpty());
+    }
+
+    @Test
     public void testSubAtlasSoftCutWithPolygon()
     {
         final Atlas source = this.rule.getAtlas();
@@ -520,32 +546,6 @@ public class SubAtlasTest
     }
 
     @Test
-    public void testSubAtlasSoftCutWithMultiPolygon()
-    {
-        final Atlas source = this.rule.getAtlas();
-        final Rectangle rectangle1 = Rectangle.forCorners(
-                Location.forString("37.780400, -122.473149"),
-                Location.forString("37.780785, -122.472631"));
-        final Rectangle rectangle2 = Rectangle.forCorners(
-                Location.forString("37.780422500976194, -122.47218757867812"),
-                Location.forString("37.781049995371575, -122.47145265340805"));
-        final Atlas sub1 = source.subAtlas(rectangle1, AtlasCutType.SOFT_CUT)
-                .orElseThrow(() -> new CoreException("SubAtlas was not present."));
-        final Atlas sub2 = source.subAtlas(rectangle2, AtlasCutType.SOFT_CUT)
-                .orElseThrow(() -> new CoreException("SubAtlas was not present."));
-
-        // cut an atlas with a multipolygon of the two rectangles
-        final MultiPolygon bothRectangles = MultiPolygon.forOuters(rectangle1, rectangle2);
-        final Atlas subBoth = source.subAtlas(bothRectangles, AtlasCutType.SOFT_CUT)
-                .orElseThrow(() -> new CoreException("SubAtlas was not present."));
-
-        // assert no differences between subAtlas with MultiPolygon and MultiAtlas of subAtlases
-        // with the Multipolygon's outer Polygons
-        final AtlasDelta delta = new AtlasDelta(subBoth, new MultiAtlas(sub1, sub2));
-        Assert.assertTrue(delta.getDifferences().isEmpty());
-    }
-
-    @Test
     public void testSubAtlasWithNodeNestedWithinRelationCase()
     {
         final Atlas source = this.rule.getNodeNestedWithinRelationAtlas();
@@ -600,5 +600,42 @@ public class SubAtlasTest
         Assert.assertNotNull(result.edge(76));
         // Does not clip with JTS
         Assert.assertNotNull(result.edge(-76));
+    }
+
+    @Test
+    public void testSubAtlasWithRelationNestedWithinRelationCase()
+    {
+        final Atlas source = this.rule.getRelationNestedWithinRelationAtlas();
+
+        final Predicate<AtlasEntity> entitiesWithIdentifierZero = entity -> entity
+                .getIdentifier() == 2;
+
+        final Atlas subAtlasWithTwoBasedIdentifiers = source
+                .subAtlas(entitiesWithIdentifierZero, AtlasCutType.SOFT_CUT)
+                .orElseThrow(() -> new CoreException("SubAtlas was not present."));
+
+        // Nodes
+        Assert.assertNotNull(source.node(1));
+        Assert.assertNotNull(subAtlasWithTwoBasedIdentifiers.node(1));
+        Assert.assertNotNull(source.node(2));
+        Assert.assertNotNull(subAtlasWithTwoBasedIdentifiers.node(2));
+        Assert.assertNotNull(source.node(3));
+        Assert.assertNotNull(subAtlasWithTwoBasedIdentifiers.node(3));
+        Assert.assertNotNull(source.node(4));
+        Assert.assertNotNull(subAtlasWithTwoBasedIdentifiers.node(4));
+
+        // Edges
+        Assert.assertNotNull(source.edge(0));
+        Assert.assertNull(subAtlasWithTwoBasedIdentifiers.edge(0));
+        Assert.assertNotNull(source.edge(1));
+        Assert.assertNull(subAtlasWithTwoBasedIdentifiers.edge(1));
+
+        // Relations
+        Assert.assertNotNull(source.relation(1));
+        Assert.assertEquals(1, source.relation(1).members().size());
+        Assert.assertNotNull(subAtlasWithTwoBasedIdentifiers.relation(1));
+        Assert.assertEquals(1, subAtlasWithTwoBasedIdentifiers.relation(1).members().size());
+        Assert.assertNotNull(subAtlasWithTwoBasedIdentifiers.relation(2));
+        Assert.assertEquals(3, subAtlasWithTwoBasedIdentifiers.relation(2).members().size());
     }
 }
