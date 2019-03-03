@@ -378,11 +378,10 @@ public class Polygon extends PolyLine implements GeometricSurface
 
     /**
      * @return True if this {@link Polygon} is arranged clockwise, false otherwise.
-     * @see <a href="http://stackoverflow.com/questions/1165647"></a>
      * @see <a href=
-     *      "https://www.grasshopper3d.com/forum/topics/best-way-to-translate-latitude-longitude-data-into-xyz-points?commentId=2985220%3AComment%3A1804229"></a>
-     * @see <a href=
-     *      "https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_geodetic_to_ECEF_coordinates"></a>
+     *      "http://www.gutenberg.org/files/19770/19770-pdf.pdf?session_id=374cbf5aca81b1a742aac0879dbea5eb35f914ea"></a>
+     * @see <a href="http://mathforum.org/library/drmath/view/51879.html"></a>
+     * @see <a href="http://mathforum.org/library/drmath/view/65316.html"></a>
      */
     public boolean isClockwise()
     {
