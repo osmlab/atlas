@@ -152,6 +152,111 @@ public class Segment extends PolyLine
      */
     public boolean intersects(final Segment that)
     {
+        final long xAxis1 = this.start().getLongitude().asDm7();
+        final long yAxis1 = this.start().getLatitude().asDm7();
+        final long xAxis2 = this.end().getLongitude().asDm7();
+        final long yAxis2 = this.end().getLatitude().asDm7();
+        final long xAxis3 = that.start().getLongitude().asDm7();
+        final long yAxis3 = that.start().getLatitude().asDm7();
+        final long xAxis4 = that.end().getLongitude().asDm7();
+        final long yAxis4 = that.end().getLatitude().asDm7();
+
+        // Return false if either of the lines have zero length
+        if (xAxis1 == xAxis2 && yAxis1 == yAxis2 || xAxis3 == xAxis4 && yAxis3 == yAxis4)
+        {
+            return false;
+        }
+        // Fastest method, based on Franklin Antonio's "Faster Line Segment Intersection" topic
+        // "in Graphics Gems III" book (http://www.graphicsgems.org/)
+        final long axAxis = xAxis2 - xAxis1;
+        final long ayAxis = yAxis2 - yAxis1;
+        final long bxAxis = xAxis3 - xAxis4;
+        final long byAxis = yAxis3 - yAxis4;
+        final long cxAxis = xAxis1 - xAxis3;
+        final long cyAxis = yAxis1 - yAxis3;
+
+        try
+        {
+            final long alphaNumerator = Math.subtractExact(byAxis * cxAxis, bxAxis * cyAxis);
+            final long commonDenominator = Math.subtractExact(ayAxis * bxAxis, axAxis * byAxis);
+            if (commonDenominator > 0)
+            {
+                if (alphaNumerator < 0 || alphaNumerator > commonDenominator)
+                {
+                    return false;
+                }
+            }
+            else if (commonDenominator < 0)
+            {
+                if (alphaNumerator > 0 || alphaNumerator < commonDenominator)
+                {
+                    return false;
+                }
+            }
+            final long betaNumerator = Math.subtractExact(axAxis * cyAxis, ayAxis * cxAxis);
+            if (commonDenominator > 0)
+            {
+                if (betaNumerator < 0 || betaNumerator > commonDenominator)
+                {
+                    return false;
+                }
+            }
+            else if (commonDenominator < 0)
+            {
+                if (betaNumerator > 0 || betaNumerator < commonDenominator)
+                {
+                    return false;
+                }
+            }
+            if (commonDenominator == 0)
+            {
+                // This code wasn't in Franklin Antonio's method. It was added by Keith Woodward.
+                // The
+                // lines are parallel. Check if they're collinear.
+                // see "http://mathworld.wolfram.com/Collinear.html"
+                final long collinearityTestForP3 = xAxis1 * (yAxis2 - yAxis3)
+                        + xAxis2 * (yAxis3 - yAxis1) + xAxis3 * (yAxis1 - yAxis2);
+                // If p3 is collinear with p1 and p2 then p4 will also be collinear, since p1-p2 is
+                // parallel with p3-p4
+                if (collinearityTestForP3 == 0)
+                {
+                    // The lines are collinear. Now check if they overlap.
+                    if (xAxis1 >= xAxis3 && xAxis1 <= xAxis4 || xAxis1 <= xAxis3 && xAxis1 >= xAxis4
+                            || xAxis2 >= xAxis3 && xAxis2 <= xAxis4
+                            || xAxis2 <= xAxis3 && xAxis2 >= xAxis4
+                            || xAxis3 >= xAxis1 && xAxis3 <= xAxis2
+                            || xAxis3 <= xAxis1 && xAxis3 >= xAxis2)
+                    {
+                        if (yAxis1 >= yAxis3 && yAxis1 <= yAxis4
+                                || yAxis1 <= yAxis3 && yAxis1 >= yAxis4
+                                || yAxis2 >= yAxis3 && yAxis2 <= yAxis4
+                                || yAxis2 <= yAxis3 && yAxis2 >= yAxis4
+                                || yAxis3 >= yAxis1 && yAxis3 <= yAxis2
+                                || yAxis3 <= yAxis1 && yAxis3 >= yAxis2)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+            return true;
+        }
+        catch (final ArithmeticException overflow)
+        {
+            return this.intersectsApproximate(that);
+        }
+    }
+
+    /**
+     * Implements the same function as intersects but with doubles to avoid overlflow issues. Should
+     * only happen for cross world intersection.
+     * 
+     * @param that
+     * @return
+     */
+    private boolean intersectsApproximate(final Segment that)
+    {
         final double xAxis1 = this.start().getLongitude().asDegrees();
         final double yAxis1 = this.start().getLatitude().asDegrees();
         final double xAxis2 = this.end().getLongitude().asDegrees();
