@@ -40,10 +40,9 @@ public class SubAtlasCommandTest extends Object {
         final String expression = "atlasEntity.getTag('highway').isPresent()";
 
         final GroovyCodeSource groovyCodeSource = new GroovyCodeSource(expression, "ThePredicate", GroovyShell.DEFAULT_CODE_BASE);
-
         groovyCodeSource.setCachable(true);
 
-        final GroovyClassLoader groovyClassLoader = new GroovyClassLoader(this.getClass().getClassLoader());
+        final GroovyClassLoader groovyClassLoader = new GroovyClassLoader(this.getClass().getClassLoader(), new CompilerConfiguration());
 
         final Class<Script> scriptClass = groovyClassLoader.parseClass(groovyCodeSource);
 
