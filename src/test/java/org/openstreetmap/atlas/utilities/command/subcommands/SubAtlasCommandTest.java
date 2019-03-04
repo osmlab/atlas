@@ -42,7 +42,7 @@ public class SubAtlasCommandTest extends Object {
         final GroovyCodeSource groovyCodeSource = new GroovyCodeSource(expression, "ThePredicate", GroovyShell.DEFAULT_CODE_BASE);
         groovyCodeSource.setCachable(true);
 
-        final GroovyClassLoader groovyClassLoader = new GroovyClassLoader(this.getClass().getClassLoader(), new CompilerConfiguration());
+        final GroovyClassLoader groovyClassLoader = new GroovyClassLoader(this.getClass().getClassLoader(), getCompilerConfiguration());
 
         final Class<Script> scriptClass = groovyClassLoader.parseClass(groovyCodeSource);
 
@@ -75,6 +75,18 @@ public class SubAtlasCommandTest extends Object {
     public void test() {
         final Binding binding = new Binding();
 
+        final CompilerConfiguration compilerConfiguration = getCompilerConfiguration();
+
+        final GroovyShell shell = new GroovyShell(binding, compilerConfiguration);
+        final Closure<AtlasEntity> predicate = (Closure) shell.evaluate(
+                "{ e -> println e; println e.getTag(\"highway\") println e.getTag(\"highway\").isPresent()}");
+
+        System.out.println(predicate.call(new CompleteNode(1L, null, Maps.hashMap("highway", "lucas"), null, null,
+                null)));
+        ;
+    }
+
+    private CompilerConfiguration getCompilerConfiguration() {
         final SecureASTCustomizer securityCustomizer = new SecureASTCustomizer();
 
         securityCustomizer.setIndirectImportCheckEnabled(true);
@@ -90,22 +102,15 @@ public class SubAtlasCommandTest extends Object {
         securityCustomizer.setPackageAllowed(false);
         securityCustomizer.setMethodDefinitionAllowed(false);
 
-                final ImportCustomizer importCustomizer = new ImportCustomizer();
-        importCustomizer.addStaticStars(java.lang.Math.class.getName());
+        final ImportCustomizer importCustomizer = new ImportCustomizer();
+        importCustomizer.addStaticStars(Math.class.getName());
         importCustomizer.addStarImports("java.util.function",
                 "org.openstreetmap.atlas.geography.atlas.items", "java.lang");
 
         final CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
         compilerConfiguration.addCompilationCustomizers(securityCustomizer);
         compilerConfiguration.addCompilationCustomizers(importCustomizer);
-
-        final GroovyShell shell = new GroovyShell(binding, compilerConfiguration);
-        final Closure<AtlasEntity> predicate = (Closure) shell.evaluate(
-                "{ e -> println e; println e.getTag(\"highway\") println e.getTag(\"highway\").isPresent()}");
-
-        System.out.println(predicate.call(new CompleteNode(1L, null, Maps.hashMap("highway", "lucas"), null, null,
-                null)));
-        ;
+        return compilerConfiguration;
     }
 
     // GROOVY-8135
