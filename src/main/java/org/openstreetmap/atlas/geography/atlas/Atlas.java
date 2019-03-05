@@ -64,7 +64,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      */
     default Iterable<Area> areas(final Long... identifiers)
     {
-        return (Iterable<Area>) entitiesMatchingId(identifiers, this::area);
+        return entitiesMatchingId(identifiers, this::area);
     }
 
     /**
@@ -173,7 +173,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      */
     default Iterable<Edge> edges(final Long... identifiers)
     {
-        return (Iterable<Edge>) entitiesMatchingId(identifiers, this::edge);
+        return entitiesMatchingId(identifiers, this::edge);
     }
 
     /**
@@ -402,7 +402,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      */
     default Iterable<Line> lines(final Long... identifiers)
     {
-        return (Iterable<Line>) entitiesMatchingId(identifiers, this::line);
+        return entitiesMatchingId(identifiers, this::line);
     }
 
     /**
@@ -609,7 +609,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      */
     default Iterable<Node> nodes(final Long... identifiers)
     {
-        return (Iterable<Node>) entitiesMatchingId(identifiers, this::node);
+        return entitiesMatchingId(identifiers, this::node);
     }
 
     /**
@@ -706,7 +706,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      */
     default Iterable<Point> points(final Long... identifiers)
     {
-        return (Iterable<Point>) entitiesMatchingId(identifiers, this::point);
+        return entitiesMatchingId(identifiers, this::point);
     }
 
     /**
@@ -773,7 +773,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      */
     default Iterable<Relation> relations(final Long... identifiers)
     {
-        return (Iterable<Relation>) entitiesMatchingId(identifiers, this::relation);
+        return entitiesMatchingId(identifiers, this::relation);
     }
 
     /**
