@@ -53,7 +53,7 @@ public class AtlasTest
             atlasEntities.forEach(atlasEntity ->
             {
                 final Class<AtlasEntity> memberClass = itemType.getMemberClass();
-                Class<? extends AtlasEntity> atlasEntityClass = atlasEntity.getClass();
+                final Class<? extends AtlasEntity> atlasEntityClass = atlasEntity.getClass();
                 Assert.assertTrue(
                         "itemType: " + itemType + "; memberClass: " + memberClass
                                 + "; atlasEntityClass: " + atlasEntityClass,
