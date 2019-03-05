@@ -1,11 +1,15 @@
 package org.openstreetmap.atlas.geography.atlas;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.UUID;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Located;
@@ -50,6 +54,16 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      * @return The {@link Area} that corresponds to the provided identifier
      */
     Area area(long identifier);
+
+    /**
+     * A wrapper over {@link #area(long)} for multiple ids.
+     *
+     * @param identifiers - The area identifiers to fetch.
+     * @return The {@link Area}s that corresponds to the provided identifier.
+     */
+    default Iterable<Area> areas(final Long...identifiers) {
+        return (Iterable<Area>) entitiesMatchingId(identifiers, this::relation);
+    }
 
     /**
      * @return All the {@link Area}s in this {@link Atlas}
@@ -147,6 +161,16 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      * @return The {@link Edge} that corresponds to the provided identifier
      */
     Edge edge(long identifier);
+
+    /**
+     * A wrapper over {@link #edge(long)} for multiple ids.
+     *
+     * @param identifiers - The edge identifiers to fetch.
+     * @return The {@link Edge}s that corresponds to the provided identifier.
+     */
+    default Iterable<Edge> edges(final Long...identifiers) {
+        return (Iterable<Edge>) entitiesMatchingId(identifiers, this::relation);
+    }
 
     /**
      * @return All the {@link Edge}s in this {@link Atlas}
@@ -366,6 +390,16 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Line line(long identifier);
 
     /**
+     * A wrapper over {@link #line(long)} for multiple ids.
+     *
+     * @param identifiers - The line identifiers to fetch.
+     * @return The {@link Line}s that corresponds to the provided identifier.
+     */
+    default Iterable<Line> lines(final Long...identifiers) {
+        return (Iterable<Line>) entitiesMatchingId(identifiers, this::relation);
+    }
+
+    /**
      * Return all the {@link LineItem}s
      *
      * @return All the {@link LineItem}s
@@ -546,12 +580,26 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      */
     AtlasMetaData metaData();
 
+    static Iterable<? extends AtlasEntity> entitiesMatchingId(final Long[] identifiers, final Function<Long, ? extends AtlasEntity> function) {
+        return Arrays.stream(identifiers).map(function).collect(Collectors.toSet());
+    }
+
     /**
      * @param identifier
      *            The {@link Node}'s identifier
      * @return The {@link Node} that corresponds to the provided identifier
      */
     Node node(long identifier);
+
+    /**
+     * A wrapper over {@link #node(long)} for multiple ids.
+     *
+     * @param identifiers - The node identifiers to fetch.
+     * @return The {@link Node}s that corresponds to the provided identifier.
+     */
+    default Iterable<Node> nodes(final Long...identifiers) {
+        return (Iterable<Node>) entitiesMatchingId(identifiers, this::node);
+    }
 
     /**
      * @return All the {@link Node}s in this Atlas
@@ -639,6 +687,16 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Point point(long identifier);
 
     /**
+     * A wrapper over {@link #point(long)} for multiple ids.
+     *
+     * @param identifiers - The point identifiers to fetch.
+     * @return The {@link Point}s that corresponds to the provided identifier.
+     */
+    default Iterable<Point> points(final Long...identifiers) {
+        return (Iterable<Point>) entitiesMatchingId(identifiers, this::point);
+    }
+
+    /**
      * @return All the {@link Point}s in this Atlas
      */
     Iterable<Point> points();
@@ -692,6 +750,16 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      * @return The {@link Relation} that corresponds to the provided identifier
      */
     Relation relation(long identifier);
+
+    /**
+     * A wrapper over {@link #relation(long)} for multiple ids.
+     *
+     * @param identifiers - The relation identifiers to fetch.
+     * @return The {@link Relation}s that corresponds to the provided identifier.
+     */
+    default Iterable<Relation> relations(final Long...identifiers) {
+        return (Iterable<Relation>) entitiesMatchingId(identifiers, this::relation);
+    }
 
     /**
      * @return All the {@link Relation}s in this Atlas
