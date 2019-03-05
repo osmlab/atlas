@@ -586,8 +586,8 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      */
     AtlasMetaData metaData();
 
-    static Iterable<? extends AtlasEntity> entitiesMatchingId(final Long[] identifiers,
-            final Function<Long, ? extends AtlasEntity> function)
+    static <E extends AtlasEntity> Iterable<E> entitiesMatchingId(final Long[] identifiers,
+            final Function<Long, E> function)
     {
         return Arrays.stream(identifiers).map(function).filter(Objects::nonNull)
                 .collect(Collectors.toSet());
