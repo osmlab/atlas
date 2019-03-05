@@ -8,6 +8,7 @@ import java.util.SortedSet;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.LongFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -587,9 +588,9 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     AtlasMetaData metaData();
 
     static <E extends AtlasEntity> Iterable<E> entitiesMatchingId(final Long[] identifiers,
-            final Function<Long, E> function)
+                                                                  final LongFunction<E> function)
     {
-        return Arrays.stream(identifiers).map(function).filter(Objects::nonNull)
+        return Arrays.stream(identifiers).map(function::apply).filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
 
