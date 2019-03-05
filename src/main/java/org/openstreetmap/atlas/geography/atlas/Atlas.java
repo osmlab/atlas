@@ -3,7 +3,6 @@ package org.openstreetmap.atlas.geography.atlas;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -58,10 +57,12 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     /**
      * A wrapper over {@link #area(long)} for multiple ids.
      *
-     * @param identifiers - The area identifiers to fetch.
+     * @param identifiers
+     *            - The area identifiers to fetch.
      * @return The {@link Area}s that corresponds to the provided identifier.
      */
-    default Iterable<Area> areas(final Long...identifiers) {
+    default Iterable<Area> areas(final Long... identifiers)
+    {
         return (Iterable<Area>) entitiesMatchingId(identifiers, this::relation);
     }
 
@@ -165,10 +166,12 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     /**
      * A wrapper over {@link #edge(long)} for multiple ids.
      *
-     * @param identifiers - The edge identifiers to fetch.
+     * @param identifiers
+     *            - The edge identifiers to fetch.
      * @return The {@link Edge}s that corresponds to the provided identifier.
      */
-    default Iterable<Edge> edges(final Long...identifiers) {
+    default Iterable<Edge> edges(final Long... identifiers)
+    {
         return (Iterable<Edge>) entitiesMatchingId(identifiers, this::relation);
     }
 
@@ -392,10 +395,12 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     /**
      * A wrapper over {@link #line(long)} for multiple ids.
      *
-     * @param identifiers - The line identifiers to fetch.
+     * @param identifiers
+     *            - The line identifiers to fetch.
      * @return The {@link Line}s that corresponds to the provided identifier.
      */
-    default Iterable<Line> lines(final Long...identifiers) {
+    default Iterable<Line> lines(final Long... identifiers)
+    {
         return (Iterable<Line>) entitiesMatchingId(identifiers, this::relation);
     }
 
@@ -580,7 +585,9 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      */
     AtlasMetaData metaData();
 
-    static Iterable<? extends AtlasEntity> entitiesMatchingId(final Long[] identifiers, final Function<Long, ? extends AtlasEntity> function) {
+    static Iterable<? extends AtlasEntity> entitiesMatchingId(final Long[] identifiers,
+            final Function<Long, ? extends AtlasEntity> function)
+    {
         return Arrays.stream(identifiers).map(function).collect(Collectors.toSet());
     }
 
@@ -594,10 +601,12 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     /**
      * A wrapper over {@link #node(long)} for multiple ids.
      *
-     * @param identifiers - The node identifiers to fetch.
+     * @param identifiers
+     *            - The node identifiers to fetch.
      * @return The {@link Node}s that corresponds to the provided identifier.
      */
-    default Iterable<Node> nodes(final Long...identifiers) {
+    default Iterable<Node> nodes(final Long... identifiers)
+    {
         return (Iterable<Node>) entitiesMatchingId(identifiers, this::node);
     }
 
@@ -689,10 +698,12 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     /**
      * A wrapper over {@link #point(long)} for multiple ids.
      *
-     * @param identifiers - The point identifiers to fetch.
+     * @param identifiers
+     *            - The point identifiers to fetch.
      * @return The {@link Point}s that corresponds to the provided identifier.
      */
-    default Iterable<Point> points(final Long...identifiers) {
+    default Iterable<Point> points(final Long... identifiers)
+    {
         return (Iterable<Point>) entitiesMatchingId(identifiers, this::point);
     }
 
@@ -754,10 +765,12 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     /**
      * A wrapper over {@link #relation(long)} for multiple ids.
      *
-     * @param identifiers - The relation identifiers to fetch.
+     * @param identifiers
+     *            - The relation identifiers to fetch.
      * @return The {@link Relation}s that corresponds to the provided identifier.
      */
-    default Iterable<Relation> relations(final Long...identifiers) {
+    default Iterable<Relation> relations(final Long... identifiers)
+    {
         return (Iterable<Relation>) entitiesMatchingId(identifiers, this::relation);
     }
 
