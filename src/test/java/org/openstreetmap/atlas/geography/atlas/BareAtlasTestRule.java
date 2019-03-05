@@ -31,57 +31,57 @@ public class BareAtlasTestRule extends CoreTestRule
 
             }, edges = {
 
-            @Edge(id = "0", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }, tags = {
-                    "highway=trunk", "fixme=please" }),
-            @Edge(id = "1", coordinates = { @Loc(value = TWO),
-                    @Loc(value = THREE) }, tags = { "highway=trunk" })
+                    @Edge(id = "0", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }, tags = {
+                            "highway=trunk", "fixme=please" }),
+                    @Edge(id = "1", coordinates = { @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "highway=trunk" })
 
-    }, areas = {
+            }, areas = {
 
-            @Area(id = "0", coordinates = { @Loc(value = ONE), @Loc(value = TWO),
-                    @Loc(value = THREE) }, tags = { "addr:housenumber=25" }),
-            @Area(id = "1", coordinates = { @Loc(value = TWO), @Loc(value = THREE),
-                    @Loc(value = FOUR) }, tags = { "natural=water", "water=lake" })
+                    @Area(id = "0", coordinates = { @Loc(value = ONE), @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "addr:housenumber=25" }),
+                    @Area(id = "1", coordinates = { @Loc(value = TWO), @Loc(value = THREE),
+                            @Loc(value = FOUR) }, tags = { "natural=water", "water=lake" })
 
-    }, lines = {
+            }, lines = {
 
-            @Line(id = "0", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }, tags = {
-                    "railway=station", "FIXME=0" }),
-            @Line(id = "1", coordinates = { @Loc(value = TWO),
-                    @Loc(value = FOUR) }, tags = { "train=yes",
-                    "public_transport=stop_position" })
+                    @Line(id = "0", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }, tags = {
+                            "railway=station", "FIXME=0" }),
+                    @Line(id = "1", coordinates = { @Loc(value = TWO),
+                            @Loc(value = FOUR) }, tags = { "train=yes",
+                                    "public_transport=stop_position" })
 
-    }, points = {
+            }, points = {
 
-            @Point(id = "0", coordinates = @Loc(value = ONE), tags = { "addr:street=coco",
-                    "addr:housenumber=25" }),
-            @Point(id = "1", coordinates = @Loc(value = TWO), tags = {
-                    "fixme=wrong name" }),
-            @Point(id = "2", coordinates = @Loc(value = THREE), tags = { "landuse=basin" }),
-            @Point(id = "3", coordinates = @Loc(value = FOUR), tags = { "amenity=school" })
+                    @Point(id = "0", coordinates = @Loc(value = ONE), tags = { "addr:street=coco",
+                            "addr:housenumber=25" }),
+                    @Point(id = "1", coordinates = @Loc(value = TWO), tags = {
+                            "fixme=wrong name" }),
+                    @Point(id = "2", coordinates = @Loc(value = THREE), tags = { "landuse=basin" }),
+                    @Point(id = "3", coordinates = @Loc(value = FOUR), tags = { "amenity=school" })
 
-    }, relations = {
+            }, relations = {
 
-            @Relation(id = "1", tags = { "type=restriction",
-                    "restriction=no_left_turn" }, members = {
-                    @Member(id = "0", role = "from", type = "edge"),
-                    @Member(id = "2", role = "via", type = "node"),
-                    @Member(id = "1", role = "to", type = "edge") }),
-            @Relation(id = "2", tags = { "type=half_inside" }, members = {
-                    @Member(id = "0", role = "inside", type = "area"),
-                    @Member(id = "1", role = "outside", type = "line") }),
-            @Relation(id = "3", tags = { "type=outside" }, members = {
-                    @Member(id = "1", role = "outside", type = "area"),
-                    @Member(id = "1", role = "outside", type = "line") }),
-            @Relation(id = "5", tags = {
-                    "type=inside_because_of_relation_inside" }, members = {
-                    @Member(id = "1", role = "inside", type = "relation"),
-                    @Member(id = "1", role = "outside", type = "line") }),
-            @Relation(id = "4", tags = {
-                    "type=inside_because_of_level_2_relation_inside" }, members = {
-                    @Member(id = "5", role = "inside", type = "relation") })
+                    @Relation(id = "1", tags = { "type=restriction",
+                            "restriction=no_left_turn" }, members = {
+                                    @Member(id = "0", role = "from", type = "edge"),
+                                    @Member(id = "2", role = "via", type = "node"),
+                                    @Member(id = "1", role = "to", type = "edge") }),
+                    @Relation(id = "2", tags = { "type=half_inside" }, members = {
+                            @Member(id = "0", role = "inside", type = "area"),
+                            @Member(id = "1", role = "outside", type = "line") }),
+                    @Relation(id = "3", tags = { "type=outside" }, members = {
+                            @Member(id = "1", role = "outside", type = "area"),
+                            @Member(id = "1", role = "outside", type = "line") }),
+                    @Relation(id = "5", tags = {
+                            "type=inside_because_of_relation_inside" }, members = {
+                                    @Member(id = "1", role = "inside", type = "relation"),
+                                    @Member(id = "1", role = "outside", type = "line") }),
+                    @Relation(id = "4", tags = {
+                            "type=inside_because_of_level_2_relation_inside" }, members = {
+                                    @Member(id = "5", role = "inside", type = "relation") })
 
-    })
+            })
     private Atlas atlas;
 
     public Atlas getAtlas()
