@@ -179,34 +179,25 @@ public class Segment extends PolyLine
         {
             final long alphaNumerator = Math.subtractExact(byAxis * cxAxis, bxAxis * cyAxis);
             final long commonDenominator = Math.subtractExact(ayAxis * bxAxis, axAxis * byAxis);
-            if (commonDenominator > 0)
+            if (commonDenominator > 0 && (alphaNumerator < 0 || alphaNumerator > commonDenominator))
             {
-                if (alphaNumerator < 0 || alphaNumerator > commonDenominator)
-                {
-                    return false;
-                }
+                return false;
+
             }
-            else if (commonDenominator < 0)
+            else if (commonDenominator < 0
+                    && (alphaNumerator > 0 || alphaNumerator < commonDenominator))
             {
-                if (alphaNumerator > 0 || alphaNumerator < commonDenominator)
-                {
-                    return false;
-                }
+                return false;
             }
             final long betaNumerator = Math.subtractExact(axAxis * cyAxis, ayAxis * cxAxis);
-            if (commonDenominator > 0)
+            if (commonDenominator > 0 && (betaNumerator < 0 || betaNumerator > commonDenominator))
             {
-                if (betaNumerator < 0 || betaNumerator > commonDenominator)
-                {
-                    return false;
-                }
+                return false;
             }
-            else if (commonDenominator < 0)
+            else if (commonDenominator < 0
+                    && (betaNumerator > 0 || betaNumerator < commonDenominator))
             {
-                if (betaNumerator > 0 || betaNumerator < commonDenominator)
-                {
-                    return false;
-                }
+                return false;
             }
             if (commonDenominator == 0)
             {
@@ -221,21 +212,20 @@ public class Segment extends PolyLine
                 if (collinearityTestForP3 == 0)
                 {
                     // The lines are collinear. Now check if they overlap.
-                    if (xAxis1 >= xAxis3 && xAxis1 <= xAxis4 || xAxis1 <= xAxis3 && xAxis1 >= xAxis4
+                    if ((xAxis1 >= xAxis3 && xAxis1 <= xAxis4
+                            || xAxis1 <= xAxis3 && xAxis1 >= xAxis4
                             || xAxis2 >= xAxis3 && xAxis2 <= xAxis4
                             || xAxis2 <= xAxis3 && xAxis2 >= xAxis4
                             || xAxis3 >= xAxis1 && xAxis3 <= xAxis2
                             || xAxis3 <= xAxis1 && xAxis3 >= xAxis2)
+                            && (yAxis1 >= yAxis3 && yAxis1 <= yAxis4
+                                    || yAxis1 <= yAxis3 && yAxis1 >= yAxis4
+                                    || yAxis2 >= yAxis3 && yAxis2 <= yAxis4
+                                    || yAxis2 <= yAxis3 && yAxis2 >= yAxis4
+                                    || yAxis3 >= yAxis1 && yAxis3 <= yAxis2
+                                    || yAxis3 <= yAxis1 && yAxis3 >= yAxis2))
                     {
-                        if (yAxis1 >= yAxis3 && yAxis1 <= yAxis4
-                                || yAxis1 <= yAxis3 && yAxis1 >= yAxis4
-                                || yAxis2 >= yAxis3 && yAxis2 <= yAxis4
-                                || yAxis2 <= yAxis3 && yAxis2 >= yAxis4
-                                || yAxis3 >= yAxis1 && yAxis3 <= yAxis2
-                                || yAxis3 <= yAxis1 && yAxis3 >= yAxis2)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
                 return false;
@@ -282,34 +272,24 @@ public class Segment extends PolyLine
 
         final double alphaNumerator = byAxis * cxAxis - bxAxis * cyAxis;
         final double commonDenominator = ayAxis * bxAxis - axAxis * byAxis;
-        if (commonDenominator > 0)
+        if (commonDenominator > 0 && (alphaNumerator < 0 || alphaNumerator > commonDenominator))
         {
-            if (alphaNumerator < 0 || alphaNumerator > commonDenominator)
-            {
-                return false;
-            }
+            return false;
+
         }
-        else if (commonDenominator < 0)
+        else if (commonDenominator < 0
+                && (alphaNumerator > 0 || alphaNumerator < commonDenominator))
         {
-            if (alphaNumerator > 0 || alphaNumerator < commonDenominator)
-            {
-                return false;
-            }
+            return false;
         }
         final double betaNumerator = axAxis * cyAxis - ayAxis * cxAxis;
-        if (commonDenominator > 0)
+        if (commonDenominator > 0 && (betaNumerator < 0 || betaNumerator > commonDenominator))
         {
-            if (betaNumerator < 0 || betaNumerator > commonDenominator)
-            {
-                return false;
-            }
+            return false;
         }
-        else if (commonDenominator < 0)
+        else if (commonDenominator < 0 && (betaNumerator > 0 || betaNumerator < commonDenominator))
         {
-            if (betaNumerator > 0 || betaNumerator < commonDenominator)
-            {
-                return false;
-            }
+            return false;
         }
         if (commonDenominator == 0)
         {
@@ -323,20 +303,19 @@ public class Segment extends PolyLine
             if (collinearityTestForP3 == 0)
             {
                 // The lines are collinear. Now check if they overlap.
-                if (xAxis1 >= xAxis3 && xAxis1 <= xAxis4 || xAxis1 <= xAxis3 && xAxis1 >= xAxis4
+                if ((xAxis1 >= xAxis3 && xAxis1 <= xAxis4 || xAxis1 <= xAxis3 && xAxis1 >= xAxis4
                         || xAxis2 >= xAxis3 && xAxis2 <= xAxis4
                         || xAxis2 <= xAxis3 && xAxis2 >= xAxis4
                         || xAxis3 >= xAxis1 && xAxis3 <= xAxis2
                         || xAxis3 <= xAxis1 && xAxis3 >= xAxis2)
+                        && (yAxis1 >= yAxis3 && yAxis1 <= yAxis4
+                                || yAxis1 <= yAxis3 && yAxis1 >= yAxis4
+                                || yAxis2 >= yAxis3 && yAxis2 <= yAxis4
+                                || yAxis2 <= yAxis3 && yAxis2 >= yAxis4
+                                || yAxis3 >= yAxis1 && yAxis3 <= yAxis2
+                                || yAxis3 <= yAxis1 && yAxis3 >= yAxis2))
                 {
-                    if (yAxis1 >= yAxis3 && yAxis1 <= yAxis4 || yAxis1 <= yAxis3 && yAxis1 >= yAxis4
-                            || yAxis2 >= yAxis3 && yAxis2 <= yAxis4
-                            || yAxis2 <= yAxis3 && yAxis2 >= yAxis4
-                            || yAxis3 >= yAxis1 && yAxis3 <= yAxis2
-                            || yAxis3 <= yAxis1 && yAxis3 >= yAxis2)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
             return false;
