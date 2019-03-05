@@ -23,7 +23,7 @@ public class AtlasTest
 {
 
     @Rule
-    public final BareAtlasTestRule rule = new BareAtlasTestRule();
+    public final AtlasTestRule rule = new AtlasTestRule();
 
     @Test
     public void nodesByIds()
