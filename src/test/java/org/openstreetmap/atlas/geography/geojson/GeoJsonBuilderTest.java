@@ -12,7 +12,6 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.GeoJsonType;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.GeometryWithProperties;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.streaming.readers.GeoJsonReader;
@@ -82,11 +81,6 @@ public class GeoJsonBuilderTest
                     featureCollection.jsonObject().get("features").getAsJsonArray().get(i)
                             .getAsJsonObject().get("geometry").getAsJsonObject().get("type")
                             .getAsString());
-            Assert.assertEquals(
-                    PolyLine.TEST_POLYLINE.asGeoJson().jsonObject().get("features").getAsJsonArray()
-                            .get(0).getAsJsonObject().get("geometry"),
-                    featureCollection.jsonObject().get("features").getAsJsonArray().get(i)
-                            .getAsJsonObject().get("geometry").getAsJsonObject());
             Assert.assertEquals(properties.get("prop1"),
                     featureCollection.jsonObject().get("features").getAsJsonArray().get(i)
                             .getAsJsonObject().get("properties").getAsJsonObject().get("prop1")

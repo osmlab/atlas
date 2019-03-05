@@ -34,9 +34,9 @@ public abstract class Node extends LocationItem
     }
 
     @Override
-    public JsonObject geoJsonProperties()
+    public JsonObject getGeoJsonProperties()
     {
-        final JsonObject properties = super.geoJsonProperties();
+        final JsonObject properties = super.getGeoJsonProperties();
 
         final JsonArray inEdgesArray = new JsonArray();
         final JsonArray outEdgesArray = new JsonArray();
