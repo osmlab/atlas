@@ -2,12 +2,15 @@ package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.openstreetmap.atlas.geography.Located;
@@ -36,8 +39,8 @@ public class Change implements Located, Serializable
 
     private final List<FeatureChange> featureChanges;
     private final Map<Tuple<ItemType, Long>, Integer> identifierToIndex;
-    private Rectangle bounds;
     private final int identifier;
+    private Rectangle bounds;
     private String name;
 
     protected Change()
@@ -45,6 +48,32 @@ public class Change implements Located, Serializable
         this.featureChanges = new ArrayList<>();
         this.identifierToIndex = new HashMap<>();
         this.identifier = CHANGE_IDENTIFIER_FACTORY.getAndIncrement();
+    }
+
+    public static Change newInstance()
+    {
+        return new Change();
+    }
+
+    /**
+     * Merge {@link FeatureChange}s inside {@link Change} objects and create a
+     * {@link Change#newInstance()} with the merged {@link FeatureChange}s. The
+     * {@link #merge(Change...)} is guided by groupings based on {@link FeatureChangeMergeGroup}.
+     *
+     * @param changeInstances
+     *            - the {@link Change} instances to merge.
+     * @return - A {@link #newInstance()} of Change with {@link FeatureChange}s
+     *         {@link FeatureChange#merge(FeatureChange)}-ed.
+     */
+    public static Change merge(final Change... changeInstances)
+    {
+        final FeatureChange[] mergedFeatureChanges = Arrays.stream(changeInstances)
+                .flatMap(Change::changes)
+                .collect(Collectors.groupingBy(FeatureChangeMergeGroup::from, LinkedHashMap::new,
+                        Collectors.reducing(FeatureChange::merge)))
+                .values().stream().map(Optional::get).toArray(FeatureChange[]::new);
+
+        return Change.newInstance().withName("Merged Change").addAll(mergedFeatureChanges);
     }
 
     List<FeatureChange> getFeatureChanges()
@@ -141,7 +170,7 @@ public class Change implements Located, Serializable
         return this;
     }
 
-    protected void add(final FeatureChange featureChange)
+    protected Change add(final FeatureChange featureChange)
     {
         final int currentIndex = this.featureChanges.size();
         final Tuple<ItemType, Long> key = new Tuple<>(featureChange.getItemType(),
@@ -165,12 +194,20 @@ public class Change implements Located, Serializable
         final Rectangle featureBounds = chosen.bounds();
         if (this.bounds != null)
         {
-            this.bounds = this.bounds.combine(featureBounds);
+            this.bounds = featureBounds != null ? this.bounds.combine(featureBounds) : this.bounds;
         }
         else
         {
             this.bounds = featureBounds;
         }
+
+        return this;
+    }
+
+    protected Change addAll(final FeatureChange... featureChanges)
+    {
+        Arrays.stream(featureChanges).forEach(this::add);
+        return this;
     }
 
     /**
