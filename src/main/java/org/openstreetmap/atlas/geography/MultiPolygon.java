@@ -19,7 +19,9 @@ import org.openstreetmap.atlas.geography.converters.WkbMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.WktMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonGeometry;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.geography.index.RTree;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
@@ -32,7 +34,6 @@ import org.openstreetmap.atlas.utilities.scalars.Surface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 /**
@@ -40,7 +41,8 @@ import com.google.gson.JsonObject;
  *
  * @author matthieun
  */
-public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serializable
+public class MultiPolygon
+        implements Iterable<Polygon>, GeometricSurface, Serializable, GeoJsonGeometry
 {
     private static final Logger logger = LoggerFactory.getLogger(MultiPolygon.class);
     private static final long serialVersionUID = 4198234682870043547L;
@@ -109,17 +111,6 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
         this.outerToInners = outerToInners;
     }
 
-    /**
-     * @deprecated use {@link MultiPolygon#asGeoJsonFeatureCollection()} instead, for geojson that
-     *             represents the same geometry
-     * @return multiple geojson polygon features in a feature collection
-     */
-    @Deprecated
-    public GeoJsonObject asGeoJson()
-    {
-        return new GeoJsonBuilder().create(asLocationIterableProperties());
-    }
-
     public GeoJsonObject asGeoJsonFeatureCollection()
     {
         final GeoJsonBuilder builder = new GeoJsonBuilder();
@@ -137,29 +128,8 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
     @Override
     public JsonObject asGeoJsonGeometry()
     {
-        // An array of polygons. An OGC polygon is an outer ring with 0..n inner rings.
-        final JsonArray polygons = new JsonArray();
-
-        for (final Map.Entry<Polygon, List<Polygon>> entry : this.outerToInners.entrySet())
-        {
-            final Polygon outer = entry.getKey();
-            final List<Polygon> inners = entry.getValue();
-
-            final JsonArray polygon = new JsonArray();
-            final JsonArray outerRingCoordinates = GeoJsonUtils
-                    .locationsToCoordinates(outer.closedLoop());
-            polygon.add(outerRingCoordinates);
-
-            for (final Polygon inner : inners)
-            {
-                final JsonArray innerRingCoordinates = GeoJsonUtils
-                        .locationsToCoordinates(inner.closedLoop());
-                polygon.add(innerRingCoordinates);
-            }
-            polygons.add(polygon);
-        }
-
-        return GeoJsonUtils.geometry(GeoJsonUtils.MULTIPOLYGON, polygons);
+        return GeoJsonUtils.geometry(GeoJsonType.MULTI_POLYGON,
+                GeoJsonUtils.multiPolygonToCoordinates(this));
     }
 
     public Iterable<LocationIterableProperties> asLocationIterableProperties()
@@ -354,6 +324,12 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
     }
 
     @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.MULTI_POLYGON;
+    }
+
+    @Override
     public int hashCode()
     {
         int result = 0;
@@ -456,7 +432,7 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
     public void saveAsGeoJson(final WritableResource resource)
     {
         final JsonWriter writer = new JsonWriter(resource);
-        writer.write(asGeoJson().jsonObject());
+        writer.write(asGeoJson());
         writer.close();
     }
 
@@ -542,7 +518,7 @@ public class MultiPolygon implements Iterable<Polygon>, GeometricSurface, Serial
         return new WktMultiPolygonConverter().convert(this);
     }
 
-    protected MultiMap<Polygon, Polygon> getOuterToInners()
+    public MultiMap<Polygon, Polygon> getOuterToInners()
     {
         return this.outerToInners;
     }

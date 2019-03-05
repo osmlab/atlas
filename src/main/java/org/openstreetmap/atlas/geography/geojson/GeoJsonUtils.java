@@ -1,7 +1,23 @@
 package org.openstreetmap.atlas.geography.geojson;
 
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonConstants.COORDINATES;
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonConstants.FEATURES;
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonConstants.GEOMETRIES;
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonConstants.GEOMETRY;
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonConstants.PROPERTIES;
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonConstants.TYPE;
+import static org.openstreetmap.atlas.geography.geojson.GeoJsonType.POLYGON;
+
+import java.util.Optional;
+
+import org.apache.commons.lang3.Validate;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.MultiPolygon;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -14,23 +30,25 @@ import com.google.gson.JsonPrimitive;
  */
 public final class GeoJsonUtils
 {
-    public static final String COORDINATES = "coordinates";
-    public static final String FEATURE = "Feature";
-    public static final String GEOMETRY = "geometry";
-    public static final String PROPERTIES = "properties";
-    public static final String TYPE = "type";
-
-    public static final String POINT = "Point";
-    public static final String LINESTRING = "LineString";
-    public static final String POLYGON = "Polygon";
-    public static final String MULTIPOLYGON = "MultiPolygon";
-
+    private static final Logger logger = LoggerFactory.getLogger(GeoJsonUtils.class);
     public static final String IDENTIFIER = "identifier";
     public static final String OSM_IDENTIFIER = "osmIdentifier";
     public static final String ITEM_TYPE = "itemType";
 
     private GeoJsonUtils()
     {
+    }
+
+    public static JsonObject feature(final GeoJsonFeature geoJsonFeature)
+    {
+        if (!geoJsonFeature.getGeoJsonType().equals(GeoJsonType.FEATURE))
+        {
+            logger.warn(
+                    "Constructing GeoJson Feature Json for something with incorrect Geojson type: object {} with type {}",
+                    geoJsonFeature, geoJsonFeature.getGeoJsonType());
+        }
+        return GeoJsonUtils.feature(geoJsonFeature.asGeoJsonGeometry(),
+                geoJsonFeature.getGeoJsonProperties());
     }
 
     /**
@@ -45,10 +63,35 @@ public final class GeoJsonUtils
     public static JsonObject feature(final JsonObject geometry, final JsonObject properties)
     {
         final JsonObject feature = new JsonObject();
-        feature.addProperty(TYPE, FEATURE);
+        feature.addProperty(TYPE, GeoJsonType.FEATURE.getTypeString());
         feature.add(GEOMETRY, geometry);
         feature.add(PROPERTIES, properties);
         return feature;
+    }
+
+    public static JsonObject featureCollection(
+            final GeoJsonFeatureCollection<? extends GeoJsonFeature> featureCollection)
+    {
+        if (!featureCollection.getGeoJsonType().equals(GeoJsonType.FEATURE_COLLECTION))
+        {
+            logger.warn(
+                    "Constructing GeoJson Feature Json for something with incorrect Geojson type: object {} with type {}",
+                    featureCollection, featureCollection.getGeoJsonType());
+        }
+        return GeoJsonUtils.featureCollection(featureCollection.getGeoJsonObjects(),
+                featureCollection.getGeoJsonProperties());
+    }
+
+    public static JsonObject featureCollection(
+            final Iterable<? extends GeoJsonFeature> featureObjects, final JsonObject properties)
+    {
+        final JsonObject featureCollection = new JsonObject();
+        featureCollection.addProperty(TYPE, GeoJsonType.FEATURE_COLLECTION.getTypeString());
+        final JsonArray features = new JsonArray();
+        Iterables.stream(featureObjects).map(GeoJsonUtils::feature).forEach(features::add);
+        featureCollection.add(FEATURES, features);
+        featureCollection.add(PROPERTIES, properties);
+        return featureCollection;
     }
 
     /**
@@ -73,12 +116,70 @@ public final class GeoJsonUtils
         return geometry(POLYGON, coordinates);
     }
 
-    public static JsonObject geometry(final String type, final JsonArray coordinates)
+    public static JsonObject geometry(
+            final GeojsonGeometryCollection<? extends GeoJsonGeometry> geojsonGeometryCollection)
     {
+        if (!geojsonGeometryCollection.getGeoJsonType().equals(GeoJsonType.GEOMETRY_COLLECTION))
+        {
+            logger.warn(
+                    "Constructing GeoJson Geometry Collection Json for something with incorrect Geojson type: object {} with type {}",
+                    geojsonGeometryCollection, geojsonGeometryCollection.getGeoJsonType());
+        }
         final JsonObject geometry = new JsonObject();
-        geometry.addProperty(TYPE, type);
+        final JsonArray geometries = new JsonArray();
+        geojsonGeometryCollection.getGeoJsonObjects()
+                .forEach(geoJsonGeometry -> geometries.add(geoJsonGeometry.asGeoJsonGeometry()));
+        geometry.addProperty(TYPE, GeoJsonType.GEOMETRY_COLLECTION.getTypeString());
+        geometry.add(GEOMETRIES, geometries);
+        return geometry;
+    }
+
+    public static JsonObject geometry(final GeoJsonType type, final JsonArray coordinates)
+    {
+        Validate.isTrue(GeoJsonType.isGeometryType(type), "Type is not geometry type. ");
+        Validate.isTrue(!type.equals(GeoJsonType.GEOMETRY_COLLECTION),
+                "Geometry Collection cannot be represented by coordinate array");
+        final JsonObject geometry = new JsonObject();
+        geometry.addProperty(TYPE, type.getTypeString());
         geometry.add(COORDINATES, coordinates);
         return geometry;
+    }
+
+    /**
+     * Convert an atlas {@link MultiPolygon} into it's geojson coordinate representation
+     * 
+     * @param multiPolygon
+     *            the multiPolygon
+     * @return the coordinate array
+     */
+    public static JsonArray multiPolygonToCoordinates(final MultiPolygon multiPolygon)
+    {
+        final JsonArray polygons = new JsonArray();
+        multiPolygon.getOuterToInners().forEach((outer, inners) -> polygons
+                .add(GeoJsonUtils.polygonToCoordinates(outer, Optional.of(inners))));
+        return polygons;
+    }
+
+    /**
+     * Convert an atlas {@link Polygon} into it's geojson coordinate representation
+     * 
+     * @param polygon
+     *            the polygon
+     * @return the coordinate array
+     */
+    public static JsonArray polygonToCoordinates(final Polygon polygon)
+    {
+        return GeoJsonUtils.polygonToCoordinates(polygon, Optional.empty());
+    }
+
+    private static JsonArray polygonToCoordinates(final Polygon outer,
+            final Optional<Iterable<Polygon>> inners)
+    {
+        final JsonArray polygon = new JsonArray();
+        polygon.add(GeoJsonUtils.locationsToCoordinates(outer.closedLoop()));
+        inners.ifPresent(innerPolygons -> innerPolygons.forEach(innerPolygon -> polygon
+                .add(GeoJsonUtils.locationsToCoordinates(innerPolygon.closedLoop()))));
+        return polygon;
     }
 
     /**
