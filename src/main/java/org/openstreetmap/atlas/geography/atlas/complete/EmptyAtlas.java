@@ -26,7 +26,6 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.SnappedEdge;
 import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 
@@ -93,13 +92,13 @@ public class EmptyAtlas implements Atlas
     }
 
     @Override
-    public GeoJsonObject asGeoJson()
+    public JsonObject asGeoJson()
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public GeoJsonObject asGeoJson(final Predicate<AtlasEntity> matcher)
+    public JsonObject asGeoJson(final Predicate<AtlasEntity> matcher)
     {
         throw new UnsupportedOperationException();
     }
@@ -211,6 +210,18 @@ public class EmptyAtlas implements Atlas
             default:
                 throw new CoreException("Unknown ItemType {}", type);
         }
+    }
+
+    @Override
+    public Iterable<AtlasEntity> getGeoJsonObjects()
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public JsonObject getGeoJsonProperties()
+    {
+        throw new UnsupportedOperationException();
     }
 
     @Override

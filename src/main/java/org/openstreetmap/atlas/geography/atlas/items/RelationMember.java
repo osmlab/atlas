@@ -4,13 +4,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonFeature;
+
+import com.google.gson.JsonObject;
 
 /**
  * A {@link Relation} member. It has a role and an {@link AtlasEntity}.
  *
  * @author matthieun
  */
-public class RelationMember implements Comparable<RelationMember>, Located
+public class RelationMember implements Comparable<RelationMember>, Located, GeoJsonFeature
 {
     private final String role;
     private final AtlasEntity entity;
@@ -28,6 +31,12 @@ public class RelationMember implements Comparable<RelationMember>, Located
     public Rectangle bounds()
     {
         return this.entity.bounds();
+    }
+
+    @Override
+    public JsonObject asGeoJsonGeometry()
+    {
+        return this.entity.asGeoJsonGeometry();
     }
 
     @Override
@@ -90,6 +99,14 @@ public class RelationMember implements Comparable<RelationMember>, Located
                     && this.entity.getIdentifier() == that.getEntity().getIdentifier();
         }
         return false;
+    }
+
+    @Override
+    public JsonObject getGeoJsonProperties()
+    {
+        final JsonObject properties = this.entity.getGeoJsonProperties();
+        properties.addProperty("role", this.role);
+        return properties;
     }
 
     /**

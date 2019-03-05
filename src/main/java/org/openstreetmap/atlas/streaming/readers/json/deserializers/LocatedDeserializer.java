@@ -4,12 +4,11 @@ import java.lang.reflect.Type;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Located;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.GeoJsonType;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 
 /**
@@ -23,7 +22,7 @@ public class LocatedDeserializer implements JsonDeserializer<Located>
     public Located deserialize(final JsonElement json, final Type typeOfT,
             final JsonDeserializationContext context) throws JsonParseException
     {
-        final GeoJsonType type = GeoJsonType.forType(((JsonObject) json).get("type").getAsString());
+        final GeoJsonType type = GeoJsonType.forJson(json.getAsJsonObject());
         if (GeoJsonType.POINT == type)
         {
             return new LocationDeserializer().deserialize(json, typeOfT, context);

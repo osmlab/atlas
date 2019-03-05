@@ -18,6 +18,7 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
@@ -27,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 /**
@@ -112,11 +112,7 @@ public class Polygon extends PolyLine implements GeometricSurface
     @Override
     public JsonObject asGeoJsonGeometry()
     {
-        final JsonArray coordinates = new JsonArray();
-        final JsonArray subCoordinatesArray = GeoJsonUtils.locationsToCoordinates(closedLoop());
-        coordinates.add(subCoordinatesArray);
-
-        return GeoJsonUtils.geometry(GeoJsonUtils.POLYGON, coordinates);
+        return GeoJsonUtils.geometry(GeoJsonType.POLYGON, GeoJsonUtils.polygonToCoordinates(this));
     }
 
     /**
@@ -291,6 +287,12 @@ public class Polygon extends PolyLine implements GeometricSurface
             }
         }
         return this.fullyGeometricallyEncloses(segment.middle());
+    }
+
+    @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.POLYGON;
     }
 
     /**
