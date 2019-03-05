@@ -22,7 +22,6 @@ import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.scalars.Angle;
-import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -421,8 +420,9 @@ public class Polygon extends PolyLine implements GeometricSurface
             previousLocation = currentLocation;
         }
 
-        return sphericalExcess * Distance.AVERAGE_EARTH_RADIUS.asKilometers()
-                * Distance.AVERAGE_EARTH_RADIUS.asKilometers() <= 0;
+        // Instead of area of polygon this method returns the spherical access as multiplying with
+        // Earth (radius) ^ 2 is not going to change the sign of the area
+        return sphericalExcess <= 0;
     }
 
     public int nextSegmentIndex(final int currentVertexIndex)
