@@ -47,11 +47,11 @@ public class SubAtlasCommandTest extends Object
         starImportsWhitelist.add("java.lang");
         customizer.setStarImportsWhitelist(starImportsWhitelist);
 
-        final CompilerConfiguration cc = new CompilerConfiguration();
-        cc.addCompilationCustomizers(customizer);
+        final CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
+        compilerConfiguration.addCompilationCustomizers(customizer);
 
         final ClassLoader parent = getClass().getClassLoader();
-        final GroovyShell shell = new GroovyShell(parent, cc);
+        final GroovyShell shell = new GroovyShell(parent, compilerConfiguration);
         shell.evaluate("Object object = new Object(); println 'Hello'");
         shell.evaluate("Object object = new Object(); object.hashCode()");
         shell.evaluate("Object[] array = new Object[0]; array.size()");
