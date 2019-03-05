@@ -127,8 +127,8 @@ public enum ItemType
         }
     }
 
-    public abstract <E extends AtlasEntity> Iterable<E> entitiesForIdentifiers(final Atlas atlas,
-            final Long... identifiers);
+    public abstract <E extends AtlasEntity> Iterable<E> entitiesForIdentifiers(Atlas atlas,
+            Long... identifiers);
 
     @SuppressWarnings("unchecked")
     public <M extends AtlasEntity> Class<M> getMemberClass()
