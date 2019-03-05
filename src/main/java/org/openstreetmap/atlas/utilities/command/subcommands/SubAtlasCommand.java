@@ -14,6 +14,7 @@ import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -21,8 +22,8 @@ import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
-import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.collections.StringList;
+import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
@@ -31,7 +32,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import groovy.lang.Binding;
+import groovy.lang.GroovyClassLoader;
+import groovy.lang.GroovyCodeSource;
 import groovy.lang.GroovyShell;
+import groovy.lang.Script;
 
 /**
  * @author lcram
@@ -64,7 +68,6 @@ public class SubAtlasCommand extends AtlasLoaderCommand
     private AtlasCutType cutType;
     private Optional<Polygon> polygon;
     private Optional<Predicate<AtlasEntity>> matcher;
-    private final String scriptTemplate;
 
     public static void main(final String[] args)
     {
@@ -79,9 +82,6 @@ public class SubAtlasCommand extends AtlasLoaderCommand
         this.cutType = AtlasCutType.SOFT_CUT;
         this.polygon = Optional.empty();
         this.matcher = Optional.empty();
-        this.scriptTemplate = new StringResource(
-                SubAtlasCommand.class.getResourceAsStream("SubAtlasCommandScriptTemplate.groovy"))
-                        .all();
     }
 
     @Override
@@ -175,7 +175,6 @@ public class SubAtlasCommand extends AtlasLoaderCommand
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected int start()
     {
@@ -231,38 +230,69 @@ public class SubAtlasCommand extends AtlasLoaderCommand
 
         if (predicateParameter.isPresent())
         {
-            // TODO add 'AtlasEntity e' to binding?
-            // TODO this will allow users to do 'e.getTags().size() == 3' instead of 'e ->
-            // e.getTags().size() == 3'
-            // final Binding binding = new Binding();
-
-            final SecureASTCustomizer securityCustomizer = new SecureASTCustomizer();
-            securityCustomizer.setStarImportsWhitelist(Arrays.asList("java.lang",
-                    "java.math.BigDecimal", "java.math.BigInteger", "java.util", "groovy.lang",
-                    "groovy.util", "org.codehaus.groovy.runtime.DefaultGroovyMethods",
-                    "java.util.function", "org.openstreetmap.atlas.geography.atlas.items"));
-            securityCustomizer.setPackageAllowed(false);
-            securityCustomizer.setMethodDefinitionAllowed(false);
-            securityCustomizer.setIndirectImportCheckEnabled(true);
-
-            final ImportCustomizer importCustomizer = new ImportCustomizer();
-            importCustomizer.addStarImports("java.util.function",
-                    "org.openstreetmap.atlas.geography.atlas.items", "java.lang");
-
-            final CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
-            compilerConfiguration.addCompilationCustomizers(securityCustomizer);
-            compilerConfiguration.addCompilationCustomizers(importCustomizer);
-
-            final Predicate<AtlasEntity> predicate = entity ->
+            final Optional<Predicate<AtlasEntity>> predicate = getPredicateFromCommandLineClosure(
+                    predicateParameter);
+            if (!predicate.isPresent())
             {
-                final Binding binding = new Binding();
-                binding.setVariable("e", entity);
-                final GroovyShell shell = new GroovyShell(binding, compilerConfiguration);
-                return (boolean) shell.evaluate(predicateParameter.get());
-            };
-            this.matcher = Optional.ofNullable(predicate);
+                this.outputDelegate.printlnErrorMessage("could not parse predicate");
+                return 1;
+            }
+            this.matcher = predicate;
         }
 
         return 0;
+    }
+
+    private Optional<Predicate<AtlasEntity>> getPredicateFromCommandLineClosure(
+            final Optional<String> predicateParameter)
+    {
+        final SecureASTCustomizer securityCustomizer = new SecureASTCustomizer();
+        securityCustomizer.setStarImportsWhitelist(Arrays.asList("java.lang",
+                "java.math.BigDecimal", "java.math.BigInteger", "java.util", "groovy.lang",
+                "groovy.util", "org.codehaus.groovy.runtime.DefaultGroovyMethods",
+                "java.util.function", "org.openstreetmap.atlas.geography.atlas.items"));
+        securityCustomizer.setPackageAllowed(false);
+        securityCustomizer.setMethodDefinitionAllowed(false);
+        securityCustomizer.setIndirectImportCheckEnabled(true);
+
+        final ImportCustomizer importCustomizer = new ImportCustomizer();
+        importCustomizer.addStarImports("java.util.function",
+                "org.openstreetmap.atlas.geography.atlas.items", "java.lang");
+
+        final CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
+        compilerConfiguration.addCompilationCustomizers(securityCustomizer);
+        compilerConfiguration.addCompilationCustomizers(importCustomizer);
+
+        final GroovyCodeSource groovyCodeSource = new GroovyCodeSource(
+                predicateParameter.orElseThrow(AtlasShellToolsException::new), "ThePredicate",
+                GroovyShell.DEFAULT_CODE_BASE);
+        groovyCodeSource.setCachable(true);
+        try (GroovyClassLoader groovyClassLoader = new GroovyClassLoader(
+                this.getClass().getClassLoader(), compilerConfiguration);)
+        {
+            @SuppressWarnings("unchecked")
+            final Class<Script> scriptClass = groovyClassLoader.parseClass(groovyCodeSource);
+            final Predicate<AtlasEntity> predicate = entity ->
+            {
+                try
+                {
+                    final Binding binding = new Binding();
+                    binding.setProperty("e", entity);
+                    final Script script = scriptClass.getDeclaredConstructor(Binding.class)
+                            .newInstance(binding);
+                    return (boolean) script.run();
+                }
+                catch (final Exception exception)
+                {
+                    throw new CoreException("Something went wrong with this predicate ", exception);
+                }
+            };
+            return Optional.ofNullable(predicate);
+        }
+        catch (final Exception exception)
+        {
+            logger.error("Something went wrong creating the predicate", exception);
+            return Optional.empty();
+        }
     }
 }
