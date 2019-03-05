@@ -25,6 +25,7 @@ public class BareAtlasTestRule extends CoreTestRule
 
             nodes = {
 
+                    @Node(id = "0", coordinates = @Loc(value = FOUR)),
                     @Node(id = "1", coordinates = @Loc(value = ONE)),
                     @Node(id = "2", coordinates = @Loc(value = TWO)),
                     @Node(id = "3", coordinates = @Loc(value = THREE))
@@ -60,26 +61,7 @@ public class BareAtlasTestRule extends CoreTestRule
                     @Point(id = "2", coordinates = @Loc(value = THREE), tags = { "landuse=basin" }),
                     @Point(id = "3", coordinates = @Loc(value = FOUR), tags = { "amenity=school" })
 
-            }, relations = {
-
-                    @Relation(id = "1", tags = { "type=restriction",
-                            "restriction=no_left_turn" }, members = {
-                                    @Member(id = "0", role = "from", type = "edge"),
-                                    @Member(id = "2", role = "via", type = "node"),
-                                    @Member(id = "1", role = "to", type = "edge") }),
-                    @Relation(id = "2", tags = { "type=half_inside" }, members = {
-                            @Member(id = "0", role = "inside", type = "area"),
-                            @Member(id = "1", role = "outside", type = "line") }),
-                    @Relation(id = "3", tags = { "type=outside" }, members = {
-                            @Member(id = "1", role = "outside", type = "area"),
-                            @Member(id = "1", role = "outside", type = "line") }),
-                    @Relation(id = "5", tags = {
-                            "type=inside_because_of_relation_inside" }, members = {
-                                    @Member(id = "1", role = "inside", type = "relation"),
-                                    @Member(id = "1", role = "outside", type = "line") }),
-                    @Relation(id = "4", tags = {
-                            "type=inside_because_of_level_2_relation_inside" }, members = {
-                                    @Member(id = "5", role = "inside", type = "relation") })
+            }, relations = { @Relation(id = "0", tags = { "type=restriction", "restriction=no_left_turn" }, members = { @Member(id = "0", role = "from", type = "edge"), @Member(id = "2", role = "via", type = "node"), @Member(id = "1", role = "to", type = "edge") }), @Relation(id = "1", tags = { "type=restriction", "restriction=no_left_turn" }, members = { @Member(id = "0", role = "from", type = "edge"), @Member(id = "2", role = "via", type = "node"), @Member(id = "1", role = "to", type = "edge") }), @Relation(id = "2", tags = { "type=half_inside" }, members = { @Member(id = "0", role = "inside", type = "area"), @Member(id = "1", role = "outside", type = "line") }), @Relation(id = "3", tags = { "type=outside" }, members = { @Member(id = "1", role = "outside", type = "area"), @Member(id = "1", role = "outside", type = "line") }), @Relation(id = "5", tags = { "type=inside_because_of_relation_inside" }, members = { @Member(id = "1", role = "inside", type = "relation"), @Member(id = "1", role = "outside", type = "line") }), @Relation(id = "4", tags = { "type=inside_because_of_level_2_relation_inside" }, members = { @Member(id = "5", role = "inside", type = "relation") })
 
             })
     private Atlas atlas;

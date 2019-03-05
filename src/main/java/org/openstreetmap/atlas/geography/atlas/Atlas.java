@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.UUID;
@@ -63,7 +64,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      */
     default Iterable<Area> areas(final Long... identifiers)
     {
-        return (Iterable<Area>) entitiesMatchingId(identifiers, this::relation);
+        return (Iterable<Area>) entitiesMatchingId(identifiers, this::area);
     }
 
     /**
@@ -172,7 +173,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      */
     default Iterable<Edge> edges(final Long... identifiers)
     {
-        return (Iterable<Edge>) entitiesMatchingId(identifiers, this::relation);
+        return (Iterable<Edge>) entitiesMatchingId(identifiers, this::edge);
     }
 
     /**
@@ -401,7 +402,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      */
     default Iterable<Line> lines(final Long... identifiers)
     {
-        return (Iterable<Line>) entitiesMatchingId(identifiers, this::relation);
+        return (Iterable<Line>) entitiesMatchingId(identifiers, this::line);
     }
 
     /**
@@ -588,7 +589,8 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     static Iterable<? extends AtlasEntity> entitiesMatchingId(final Long[] identifiers,
             final Function<Long, ? extends AtlasEntity> function)
     {
-        return Arrays.stream(identifiers).map(function).collect(Collectors.toSet());
+        return Arrays.stream(identifiers).map(function).filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 
     /**

@@ -84,6 +84,29 @@ public enum ItemType
         }
     }
 
+    public Iterable<? extends AtlasEntity> entitiesForIdentifiers(final Atlas atlas,
+            final Long... identifiers)
+    {
+        switch (this)
+        {
+            case NODE:
+                return atlas.nodes(identifiers);
+            case EDGE:
+                return atlas.edges(identifiers);
+            case AREA:
+                return atlas.areas(identifiers);
+            case LINE:
+                return atlas.lines(identifiers);
+            case POINT:
+                return atlas.points(identifiers);
+            case RELATION:
+                return atlas.relations(identifiers);
+
+            default:
+                throw new CoreException("Invalid type {}", this);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public <M extends AtlasEntity> Class<M> getMemberClass()
     {
