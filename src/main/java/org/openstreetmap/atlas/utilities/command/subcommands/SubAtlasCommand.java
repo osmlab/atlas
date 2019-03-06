@@ -247,9 +247,7 @@ public class SubAtlasCommand extends AtlasLoaderCommand
             final Optional<String> predicateParameter)
     {
         final SecureASTCustomizer securityCustomizer = new SecureASTCustomizer();
-        securityCustomizer.setStarImportsWhitelist(Arrays.asList("java.lang",
-                "java.math.BigDecimal", "java.math.BigInteger", "java.util", "groovy.lang",
-                "groovy.util", "org.codehaus.groovy.runtime.DefaultGroovyMethods",
+        securityCustomizer.setStarImportsWhitelist(Arrays.asList("java.lang", "groovy.lang",
                 "java.util.function", "org.openstreetmap.atlas.geography.atlas.items"));
         securityCustomizer.setPackageAllowed(false);
         securityCustomizer.setMethodDefinitionAllowed(false);
