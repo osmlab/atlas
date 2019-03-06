@@ -46,7 +46,7 @@ public class FeatureChangeGeoJsonSerializer
         private static void addGeometryGeojson(final JsonObject result,
                 final GeometryPrintable property)
         {
-            add(result, "geometry", property, GeometryPrintable::asGeoJsonGeometry);
+            add(result, "geometry", property, GeometryPrintable::asGeoJson);
         }
 
         private static void addGeometryWkt(final JsonObject result,

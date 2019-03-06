@@ -39,8 +39,8 @@ import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.geography.atlas.items.SnappedEdge;
 import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.geography.atlas.sub.SubAtlasCreator;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonFeatureCollection;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.proto.builder.ProtoAtlasBuilder;
 import org.openstreetmap.atlas.streaming.Streams;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
@@ -85,16 +85,30 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public GeoJsonObject asGeoJson()
+    public JsonObject asGeoJson()
     {
-        return asGeoJson(entity -> true);
+        return GeoJsonUtils.featureCollection(this);
     }
 
     @Override
-    public GeoJsonObject asGeoJson(final Predicate<AtlasEntity> matcher)
+    public JsonObject asGeoJson(final Predicate<AtlasEntity> matcher)
     {
-        return new GeoJsonBuilder().create(Iterables.filterTranslate(entities(),
-                atlasEntity -> atlasEntity.toGeoJsonBuildingBlock(), matcher));
+        return GeoJsonUtils.featureCollection(new GeoJsonFeatureCollection<AtlasEntity>()
+        {
+            @Override
+            public Iterable<AtlasEntity> getGeoJsonObjects()
+            {
+                return entities(matcher);
+            }
+
+            @Override
+            public JsonObject getGeoJsonProperties()
+            {
+                final JsonObject properties = BareAtlas.this.getGeoJsonProperties();
+                properties.addProperty("Entity filter used", true);
+                return properties;
+            }
+        });
     }
 
     @Override
@@ -243,6 +257,20 @@ public abstract class BareAtlas implements Atlas
             return true;
         }
         return false;
+    }
+
+    @Override
+    public Iterable<AtlasEntity> getGeoJsonObjects()
+    {
+        return entities();
+    }
+
+    @Override
+    public JsonObject getGeoJsonProperties()
+    {
+        final JsonObject properties = this.metaData().getGeoJsonProperties();
+        properties.addProperty("name", this.getName());
+        return properties;
     }
 
     @Override
@@ -487,7 +515,7 @@ public abstract class BareAtlas implements Atlas
     {
         try (JsonWriter writer = new JsonWriter(resource))
         {
-            writer.write(this.asGeoJson(matcher).jsonObject());
+            writer.write(this.asGeoJson(matcher));
         }
     }
 
@@ -507,7 +535,7 @@ public abstract class BareAtlas implements Atlas
         {
             entities(matcher).forEach(entity ->
             {
-                final JsonObject feature = entity.asGeoJsonGeometry();
+                final JsonObject feature = entity.asGeoJson();
                 jsonMutator.accept(entity, feature);
                 writer.writeLine(feature);
             });
