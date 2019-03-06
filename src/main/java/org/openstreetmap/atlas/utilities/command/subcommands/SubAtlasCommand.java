@@ -230,7 +230,7 @@ public class SubAtlasCommand extends AtlasLoaderCommand
 
         if (predicateParameter.isPresent())
         {
-            final Optional<Predicate<AtlasEntity>> predicate = getPredicateFromCommandLineClosure(
+            final Optional<Predicate<AtlasEntity>> predicate = getPredicateFromCommandLineExpression(
                     predicateParameter);
             if (!predicate.isPresent())
             {
@@ -243,7 +243,7 @@ public class SubAtlasCommand extends AtlasLoaderCommand
         return 0;
     }
 
-    private Optional<Predicate<AtlasEntity>> getPredicateFromCommandLineClosure(
+    private Optional<Predicate<AtlasEntity>> getPredicateFromCommandLineExpression(
             final Optional<String> predicateParameter)
     {
         final SecureASTCustomizer securityCustomizer = new SecureASTCustomizer();
