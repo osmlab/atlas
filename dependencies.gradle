@@ -23,7 +23,8 @@ project.ext.versions = [
     jackson_dataformat_yaml:'2.8.8',
     protobuf_java:'2.6.1',
     protoc:'2.6.1',
-    artifact:'3.5.4'
+    artifact:'3.5.4',
+    groovy: '2.5.4'
 ]
 
 project.ext.packages = [
@@ -63,5 +64,6 @@ project.ext.packages = [
     ],
     protobuf_java: "com.google.protobuf:protobuf-java:${versions.protobuf_java}",
     protoc: "com.google.protobuf:protoc:${versions.protoc}",
-    artifact: "org.apache.maven:maven-artifact:${versions.artifact}"
+    artifact: "org.apache.maven:maven-artifact:${versions.artifact}",
+    groovy: "org.codehaus.groovy:groovy:${versions.groovy}"
 ]
