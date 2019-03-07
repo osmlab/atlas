@@ -230,7 +230,7 @@ public final class SubAtlasCreator
 
         final PackedAtlasBuilder builder = getPackedAtlasBuilder(atlas, sizeEstimates);
 
-        // Add all the individual nodes and edge start/stop nodes coming from the predicate
+        // Add all the individual nodes and edge start and end nodes coming from the predicate
         addNodes(nodesWithin, node -> !hasEntity(node, builder), builder);
         addNodesFromEdges(edgesIntersecting, builder);
 
@@ -254,6 +254,63 @@ public final class SubAtlasCreator
         }
 
         logger.info(CUT_STOP_MESSAGE, AtlasCutType.SILK_CUT, atlas.getName(), begin.elapsedSince());
+        return Optional.ofNullable(result);
+    }
+
+    /**
+     * @param matcher
+     *            The matcher to consider
+     * @param atlas
+     *            The {@link Atlas} to cut
+     * @return a sub-atlas from this Atlas.
+     */
+    public static Optional<Atlas> silkCut(final Atlas atlas, final Predicate<AtlasEntity> matcher)
+    {
+        logger.debug(CUT_START_MESSAGE, AtlasCutType.SOFT_CUT, atlas.getName(), atlas.metaData());
+        final Time begin = Time.now();
+
+        // Using a predicate here can create wild changes in entity counts. For example a predicate
+        // would include only edges, but all the nodes would have to be pulled in. In that case, we
+        // use the same size as the source Atlas, but we trim it at the end.
+        final PackedAtlasBuilder builder = getPackedAtlasBuilder(atlas, atlas.size());
+
+        // First, add all the nodes contained by relations and all start and end nodes from edges
+        // contained by relations
+        atlas.relations(matcher::test).forEach(relation -> addNodesFromRelation(relation, builder));
+
+        // Next, add all the individual nodes and edge start and end nodes coming from the predicate
+        addNodes(atlas.nodes(matcher::test), node -> !hasEntity(node, builder), builder);
+        addNodesFromEdges(atlas.edges(matcher::test), builder);
+
+        // Next, add the Lines, Points, Areas and Edges. Edges are a little trickier - 1) They rely
+        // on their start/end nodes to have already been added 2) They can potentially pull in nodes
+        // that weren't matched by the given predicate. These two cases are handled above.
+        // Similarly, Relations depend on all other entities to have been added, since they make up
+        // the member list. For this pass, add all entities, except Relations, that match the given
+        // Predicate to the builder.
+        addEdges(atlas.edges(matcher::test), edge -> !hasEntity(edge, builder), builder);
+        addPoints(atlas.points(matcher::test), builder);
+        addAreas(atlas.areas(matcher::test), builder);
+        addLines(atlas.lines(matcher::test), builder);
+        addPointsForLines(atlas, atlas.lines(matcher::test), builder);
+
+        // It's now safe to add Relations. There are two caveats: 1. A Relation member may not
+        // have been pulled in by the given predicate. In order to maintain Relation validity, we
+        // need to pull in those members. 2. The member may be a Relation that hasn't been
+        // added yet. We check if any of the members are unadded relations and if so, we add
+        // them.
+        Iterables.filter(atlas.relationsLowerOrderFirst(), matcher::test)
+                .forEach(relation -> addRelationMembers(relation, builder));
+        addRelations(atlas, atlas.relationsLowerOrderFirst(), matcher::test, member -> true,
+                builder, AtlasCutType.SOFT_CUT);
+
+        final PackedAtlas result = (PackedAtlas) builder.get();
+        if (result != null)
+        {
+            result.trim();
+        }
+
+        logger.info(CUT_STOP_MESSAGE, AtlasCutType.SOFT_CUT, atlas.getName(), begin.elapsedSince());
         return Optional.ofNullable(result);
     }
 
@@ -297,7 +354,7 @@ public final class SubAtlasCreator
 
         final PackedAtlasBuilder builder = getPackedAtlasBuilder(atlas, sizeEstimates);
 
-        // Add all the individual nodes and edge start/stop nodes coming from the predicate
+        // Add all the individual nodes and edge start and end nodes coming from the predicate
         addNodes(nodesWithin, node -> !hasEntity(node, builder), builder);
         addNodesFromEdges(edgesIntersecting, builder);
 
@@ -372,11 +429,11 @@ public final class SubAtlasCreator
         // use the same size as the source Atlas, but we trim it at the end.
         final PackedAtlasBuilder builder = getPackedAtlasBuilder(atlas, atlas.size());
 
-        // First, add all the nodes contained by relations and all start/stop nodes from edges
+        // First, add all the nodes contained by relations and all start and end nodes from edges
         // contained by relations
         atlas.relations(matcher::test).forEach(relation -> addNodesFromRelation(relation, builder));
 
-        // Next, add all the individual nodes and edge start/stop nodes coming from the predicate
+        // Next, add all the individual nodes and edge start and end nodes coming from the predicate
         addNodes(atlas.nodes(matcher::test), node -> !hasEntity(node, builder), builder);
         addNodesFromEdges(atlas.edges(matcher::test), builder);
 

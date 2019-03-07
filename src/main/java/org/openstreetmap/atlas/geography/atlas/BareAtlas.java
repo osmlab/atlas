@@ -622,6 +622,8 @@ public abstract class BareAtlas implements Atlas
     {
         switch (cutType)
         {
+            case SILK_CUT:
+                return SubAtlasCreator.silkCut(this, matcher);
             case SOFT_CUT:
                 return SubAtlasCreator.softCut(this, matcher);
             case HARD_CUT_ALL:

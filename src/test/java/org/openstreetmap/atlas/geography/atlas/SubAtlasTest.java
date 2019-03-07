@@ -251,13 +251,137 @@ public class SubAtlasTest
     }
 
     @Test
+    public void testSubAtlasPredicateSilkCut()
+    {
+        final Atlas source = this.rule.getAtlas();
+
+        // Should return back all entities in this atlas
+        final Predicate<AtlasEntity> allEntities = entity -> true;
+
+        // Should return back only Entities with identifier 0
+        final Predicate<AtlasEntity> entitiesWithIdentifierZero = (
+                entity) -> entity.getIdentifier() == 0;
+
+        final Atlas identicalSubAtlas = source.subAtlas(allEntities, AtlasCutType.SILK_CUT)
+                .orElseThrow(() -> new CoreException("SubAtlas was not present."));
+
+        final Atlas subAtlasWithZeroBasedIdentifiers = source
+                .subAtlas(entitiesWithIdentifierZero, AtlasCutType.SILK_CUT)
+                .orElseThrow(() -> new CoreException("SubAtlas was not present."));
+
+        // Nodes
+        Assert.assertNotNull(source.node(1));
+        Assert.assertNotNull(identicalSubAtlas.node(1));
+        Assert.assertNotNull(source.node(2));
+        Assert.assertNotNull(identicalSubAtlas.node(2));
+        Assert.assertNotNull(source.node(3));
+        Assert.assertNotNull(identicalSubAtlas.node(3));
+
+        // Edges
+        Assert.assertNotNull(source.edge(0));
+        Assert.assertNotNull(identicalSubAtlas.edge(0));
+        Assert.assertNotNull(source.edge(1));
+        Assert.assertNotNull(identicalSubAtlas.edge(1));
+
+        // Areas
+        Assert.assertNotNull(source.area(0));
+        Assert.assertNotNull(identicalSubAtlas.area(0));
+        Assert.assertNotNull(source.area(1));
+        Assert.assertNotNull(identicalSubAtlas.area(1));
+
+        // Lines
+        Assert.assertNotNull(source.line(0));
+        Assert.assertNotNull(identicalSubAtlas.line(0));
+        Assert.assertNotNull(source.line(1));
+        Assert.assertNotNull(identicalSubAtlas.line(1));
+
+        // Points
+        Assert.assertNotNull(source.point(0));
+        Assert.assertNotNull(identicalSubAtlas.point(0));
+        Assert.assertNotNull(source.point(1));
+        Assert.assertNotNull(identicalSubAtlas.point(1));
+        Assert.assertNotNull(source.point(2));
+        Assert.assertNotNull(identicalSubAtlas.point(2));
+        Assert.assertNotNull(source.point(3));
+        Assert.assertNotNull(identicalSubAtlas.point(3));
+
+        // Relations
+        Assert.assertNotNull(source.relation(1));
+        Assert.assertNotNull(identicalSubAtlas.relation(1));
+        Assert.assertNotNull(source.relation(2));
+        Assert.assertEquals(2, source.relation(2).members().size());
+        Assert.assertNotNull(identicalSubAtlas.relation(2));
+        Assert.assertEquals(2, identicalSubAtlas.relation(2).members().size());
+        Assert.assertNotNull(source.relation(3));
+        Assert.assertNotNull(identicalSubAtlas.relation(3));
+        Assert.assertNotNull(source.relation(4));
+        Assert.assertEquals(2, source.relation(4).members().size());
+        Assert.assertNotNull(identicalSubAtlas);
+        Assert.assertEquals(2, identicalSubAtlas.relation(4).members().size());
+        Assert.assertNotNull(source.relation(5));
+        Assert.assertEquals(1, source.relation(5).members().size());
+        Assert.assertNotNull(identicalSubAtlas.relation(5));
+        Assert.assertEquals(1, identicalSubAtlas.relation(5).members().size());
+
+        // Nodes
+        Assert.assertNotNull(source.node(1));
+        // Node 1 gets pulled in by Edge 0
+        Assert.assertNotNull(subAtlasWithZeroBasedIdentifiers.node(1));
+        Assert.assertNotNull(source.node(2));
+        // Node 2 gets pulled in by Edge 0
+        Assert.assertNotNull(subAtlasWithZeroBasedIdentifiers.node(2));
+        Assert.assertNotNull(source.node(3));
+        Assert.assertNull(subAtlasWithZeroBasedIdentifiers.node(3));
+
+        // Edges
+        Assert.assertNotNull(source.edge(0));
+        Assert.assertNotNull(subAtlasWithZeroBasedIdentifiers.edge(0));
+        Assert.assertNotNull(source.edge(1));
+        Assert.assertNull(subAtlasWithZeroBasedIdentifiers.edge(1));
+
+        // Areas
+        Assert.assertNotNull(source.area(0));
+        Assert.assertNotNull(subAtlasWithZeroBasedIdentifiers.area(0));
+        Assert.assertNotNull(source.area(1));
+        Assert.assertNull(subAtlasWithZeroBasedIdentifiers.area(1));
+
+        // Lines
+        Assert.assertNotNull(source.line(0));
+        Assert.assertNotNull(subAtlasWithZeroBasedIdentifiers.line(0));
+        Assert.assertNotNull(source.line(1));
+        Assert.assertNull(subAtlasWithZeroBasedIdentifiers.line(1));
+
+        // Points
+        Assert.assertNotNull(source.point(0));
+        Assert.assertNotNull(subAtlasWithZeroBasedIdentifiers.point(0));
+        // Point1 gets pulled in because it is part of the geometry of line0
+        Assert.assertNotNull(source.point(1));
+        Assert.assertNotNull(subAtlasWithZeroBasedIdentifiers.point(1));
+        Assert.assertNotNull(source.point(2));
+        Assert.assertNull(subAtlasWithZeroBasedIdentifiers.point(2));
+        Assert.assertNotNull(source.point(3));
+        Assert.assertNull(subAtlasWithZeroBasedIdentifiers.point(3));
+
+        // Relations
+        Assert.assertNotNull(source.relation(1));
+        Assert.assertNull(subAtlasWithZeroBasedIdentifiers.relation(1));
+        Assert.assertNotNull(source.relation(2));
+        Assert.assertNull(subAtlasWithZeroBasedIdentifiers.relation(2));
+        Assert.assertNotNull(source.relation(3));
+        Assert.assertNull(subAtlasWithZeroBasedIdentifiers.relation(3));
+        Assert.assertNotNull(source.relation(4));
+        Assert.assertNull(subAtlasWithZeroBasedIdentifiers.relation(4));
+        Assert.assertNotNull(source.relation(5));
+        Assert.assertNull(subAtlasWithZeroBasedIdentifiers.relation(5));
+    }
+
+    @Test
     public void testSubAtlasPredicateSoftCut()
     {
         final Atlas source = this.rule.getAtlas();
 
         // Should return back all entities in this atlas
-        final Predicate<AtlasEntity> allEntities = entity -> entity.getIdentifier() > 0
-                || entity.getIdentifier() < 0 || entity.getIdentifier() == 0;
+        final Predicate<AtlasEntity> allEntities = entity -> true;
 
         // Should return back only Entities with identifier 0
         final Predicate<AtlasEntity> entitiesWithIdentifierZero = entity -> entity
