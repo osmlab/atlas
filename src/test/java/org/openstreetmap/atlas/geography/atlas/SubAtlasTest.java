@@ -256,8 +256,7 @@ public class SubAtlasTest
         final Atlas source = this.rule.getAtlas();
 
         // Should return back all entities in this atlas
-        final Predicate<AtlasEntity> allEntities = (entity) -> entity.getIdentifier() > 0
-                || entity.getIdentifier() < 0 || entity.getIdentifier() == 0;
+        final Predicate<AtlasEntity> allEntities = entity -> true;
 
         // Should return back only Entities with identifier 0
         final Predicate<AtlasEntity> entitiesWithIdentifierZero = (
@@ -382,8 +381,7 @@ public class SubAtlasTest
         final Atlas source = this.rule.getAtlas();
 
         // Should return back all entities in this atlas
-        final Predicate<AtlasEntity> allEntities = (entity) -> entity.getIdentifier() > 0
-                || entity.getIdentifier() < 0 || entity.getIdentifier() == 0;
+        final Predicate<AtlasEntity> allEntities = entity -> true;
 
         // Should return back only Entities with identifier 0
         final Predicate<AtlasEntity> entitiesWithIdentifierZero = (

@@ -230,7 +230,7 @@ public final class SubAtlasCreator
 
         final PackedAtlasBuilder builder = getPackedAtlasBuilder(atlas, sizeEstimates);
 
-        // Add all the individual nodes and edge start/stop nodes coming from the predicate
+        // Add all the individual nodes and edge start and end nodes coming from the predicate
         addNodes(nodesWithin, node -> !hasEntity(node, builder), builder);
         addNodesFromEdges(edgesIntersecting, builder);
 
@@ -274,11 +274,11 @@ public final class SubAtlasCreator
         // use the same size as the source Atlas, but we trim it at the end.
         final PackedAtlasBuilder builder = getPackedAtlasBuilder(atlas, atlas.size());
 
-        // First, add all the nodes contained by relations and all start/stop nodes from edges
+        // First, add all the nodes contained by relations and all start and end nodes from edges
         // contained by relations
         atlas.relations(matcher::test).forEach(relation -> addNodesFromRelation(relation, builder));
 
-        // Next, add all the individual nodes and edge start/stop nodes coming from the predicate
+        // Next, add all the individual nodes and edge start and end nodes coming from the predicate
         addNodes(atlas.nodes(matcher::test), node -> !hasEntity(node, builder), builder);
         addNodesFromEdges(atlas.edges(matcher::test), builder);
 
@@ -354,7 +354,7 @@ public final class SubAtlasCreator
 
         final PackedAtlasBuilder builder = getPackedAtlasBuilder(atlas, sizeEstimates);
 
-        // Add all the individual nodes and edge start/stop nodes coming from the predicate
+        // Add all the individual nodes and edge start and end nodes coming from the predicate
         addNodes(nodesWithin, node -> !hasEntity(node, builder), builder);
         addNodesFromEdges(edgesIntersecting, builder);
 
@@ -429,11 +429,11 @@ public final class SubAtlasCreator
         // use the same size as the source Atlas, but we trim it at the end.
         final PackedAtlasBuilder builder = getPackedAtlasBuilder(atlas, atlas.size());
 
-        // First, add all the nodes contained by relations and all start/stop nodes from edges
+        // First, add all the nodes contained by relations and all start and end nodes from edges
         // contained by relations
         atlas.relations(matcher::test).forEach(relation -> addNodesFromRelation(relation, builder));
 
-        // Next, add all the individual nodes and edge start/stop nodes coming from the predicate
+        // Next, add all the individual nodes and edge start and end nodes coming from the predicate
         addNodes(atlas.nodes(matcher::test), node -> !hasEntity(node, builder), builder);
         addNodesFromEdges(atlas.edges(matcher::test), builder);
 
