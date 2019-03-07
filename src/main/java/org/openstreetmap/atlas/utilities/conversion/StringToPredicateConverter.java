@@ -18,7 +18,7 @@ import groovy.lang.Script;
 /**
  * Convert a boolean expression string to a {@link Predicate}. While the converter can handle
  * generic predicates, it includes some default imports that make it ideal for use as
- * Predicate&ltAtlasEntity&gt. The converter uses the Groovy interpreter to create a
+ * Predicate&lt;AtlasEntity&gt;. The converter uses the Groovy interpreter to create a
  * {@link Predicate} from the boolean input expression. The type T is bound to a variable called
  * 'e', and so the expression string should use 'e'. E.g. "e.getType() == ItemType.POINT" (if T is
  * {@link AtlasEntity}) or 'e.equals("foo")' (if T is {@link String}).
