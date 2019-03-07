@@ -26,20 +26,81 @@ import org.slf4j.LoggerFactory;
  * includePolygons polygons or anything that doesn't intersect with exclude polygons. Exclude
  * polygons are looked at only if no includePolygons polygons exist. Include takes precedence and
  * polygons intersecting with previously read polygons are dropped with a warning.
- * 
+ *
  * @author jklamer
  */
 public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, Serializable
 {
+    /**
+     * The filter Type, either {@link Type#INCLUDE} or {@link Type#EXCLUDE}. Used for filter
+     * construction.
+     */
+    public enum Type
+    {
+        INCLUDE,
+        EXCLUDE;
+
+        public AtlasEntityPolygonsFilter geometricSurfaces(
+                final Collection<GeometricSurface> geometricSurfaces)
+        {
+            return new AtlasEntityPolygonsFilter(this, geometricSurfaces);
+        }
+
+        public AtlasEntityPolygonsFilter geometricSurfaces(
+                final IntersectionPolicy intersectionPolicy,
+                final Collection<GeometricSurface> geometricSurfaces)
+        {
+            return new AtlasEntityPolygonsFilter(this, intersectionPolicy, geometricSurfaces);
+        }
+
+        public AtlasEntityPolygonsFilter multiPolygons(final Collection<MultiPolygon> multiPolygons)
+        {
+            return new AtlasEntityPolygonsFilter(this, multiPolygons);
+        }
+
+        public AtlasEntityPolygonsFilter multiPolygons(final IntersectionPolicy intersectionPolicy,
+                final Collection<MultiPolygon> multiPolygons)
+        {
+            return new AtlasEntityPolygonsFilter(this, intersectionPolicy, multiPolygons);
+        }
+
+        public AtlasEntityPolygonsFilter polygons(final Collection<Polygon> polygons)
+        {
+            return new AtlasEntityPolygonsFilter(this, polygons);
+        }
+
+        public AtlasEntityPolygonsFilter polygons(final IntersectionPolicy intersectionPolicy,
+                final Collection<Polygon> polygons)
+        {
+            return new AtlasEntityPolygonsFilter(this, intersectionPolicy, polygons);
+        }
+
+        public AtlasEntityPolygonsFilter polygonsAndMultiPolygons(
+                final Collection<Polygon> polygons, final Collection<MultiPolygon> multiPolygons)
+        {
+            return new AtlasEntityPolygonsFilter(this,
+                    createSurfaceCollection(polygons, multiPolygons));
+        }
+
+        public AtlasEntityPolygonsFilter polygonsAndMultiPolygons(
+                final IntersectionPolicy intersectionPolicy, final Collection<Polygon> polygons,
+                final Collection<MultiPolygon> multiPolygons)
+        {
+            return new AtlasEntityPolygonsFilter(this, intersectionPolicy,
+                    createSurfaceCollection(polygons, multiPolygons));
+        }
+    }
+
     public static final String EXCLUDED_MULTIPOLYGONS_KEY = "filter.multipolygons.exclude";
     public static final String EXCLUDED_POLYGONS_KEY = "filter.polygons.exclude";
     public static final String INCLUDED_MULTIPOLYGONS_KEY = "filter.multipolygons.include";
     public static final String INCLUDED_POLYGONS_KEY = "filter.polygons.include";
     private static final Logger logger = LoggerFactory.getLogger(AtlasEntityPolygonsFilter.class);
     private static final long serialVersionUID = -3474748398986569205L;
-    private Type filterType;
+    private final Type filterType;
     private RTree<GeometricSurface> geometricSurfaces = new RTree<>();
-    private IntersectionPolicy intersectionPolicy;
+
+    private final IntersectionPolicy intersectionPolicy;
 
     public static Collection<GeometricSurface> createSurfaceCollection(
             final Collection<? extends GeometricSurface> collection1,
@@ -51,6 +112,11 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
         return returnCollection;
     }
 
+    public static AtlasEntityPolygonsFilter forConfiguration(final Configuration configuration)
+    {
+        return forConfiguration(configuration, IntersectionPolicy.DEFAULT_INTERSECTION_POLICY);
+    }
+
     public static AtlasEntityPolygonsFilter forConfiguration(final Configuration configuration,
             final IntersectionPolicy intersectionPolicy)
     {
@@ -58,11 +124,6 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
                 configuration.get(INCLUDED_MULTIPOLYGONS_KEY).value(),
                 configuration.get(EXCLUDED_POLYGONS_KEY).value(),
                 configuration.get(EXCLUDED_MULTIPOLYGONS_KEY).value(), intersectionPolicy);
-    }
-
-    public static AtlasEntityPolygonsFilter forConfiguration(final Configuration configuration)
-    {
-        return forConfiguration(configuration, IntersectionPolicy.DEFAULT_INTERSECTION_POLICY);
     }
 
     public static AtlasEntityPolygonsFilter forConfigurationValues(
@@ -88,15 +149,15 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
         final List<MultiPolygon> excludeMultiPolygons;
 
         includePolygons = includePolygonMap != null ? getPolygonsFromFormatMap(includePolygonMap)
-                : Collections.EMPTY_LIST;
+                : Collections.emptyList();
         includeMultiPolygons = includeMultiPolygonMap != null
                 ? getMultiPolygonsFromFormatMap(includeMultiPolygonMap)
-                : Collections.EMPTY_LIST;
+                : Collections.emptyList();
         excludePolygons = excludePolygonMap != null ? getPolygonsFromFormatMap(excludePolygonMap)
-                : Collections.EMPTY_LIST;
+                : Collections.emptyList();
         excludeMultiPolygons = excludeMultiPolygonMap != null
                 ? getMultiPolygonsFromFormatMap(excludeMultiPolygonMap)
-                : Collections.EMPTY_LIST;
+                : Collections.emptyList();
 
         if (!includePolygons.isEmpty() || !includeMultiPolygons.isEmpty())
         {
@@ -160,7 +221,7 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
     {
         this.filterType = filterType;
         this.intersectionPolicy = intersectionPolicy;
-        this.geometricSurfaces = (RTree<GeometricSurface>) RTree
+        this.geometricSurfaces = RTree
                 .forLocated(geometricSurfaces == null ? Collections.EMPTY_SET : geometricSurfaces);
         // initialize underlying STR tree
         this.geometricSurfaces.get(Rectangle.MAXIMUM);
@@ -174,9 +235,9 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
 
     private Predicate<AtlasEntity> isIncluded()
     {
-        return entity -> this.filterType == Type.INCLUDE && (this.geometricSurfaces
+        return entity -> this.filterType == Type.INCLUDE && this.geometricSurfaces
                 .get(entity.bounds()).stream().anyMatch(geometricSurface -> this.intersectionPolicy
-                        .geometricSurfaceEntityIntersecting(geometricSurface, entity)));
+                        .geometricSurfaceEntityIntersecting(geometricSurface, entity));
     }
 
     private Predicate<AtlasEntity> isNotExcluded()
@@ -189,65 +250,5 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
     private Predicate<AtlasEntity> noSurfaces()
     {
         return entity -> this.geometricSurfaces.isEmpty();
-    }
-
-    /**
-     * The filter Type, either {@link Type#INCLUDE} or {@link Type#EXCLUDE}. Used for filter
-     * construction.
-     */
-    public enum Type
-    {
-        INCLUDE,
-        EXCLUDE;
-
-        public AtlasEntityPolygonsFilter geometricSurfaces(
-                final IntersectionPolicy intersectionPolicy,
-                final Collection<GeometricSurface> geometricSurfaces)
-        {
-            return new AtlasEntityPolygonsFilter(this, intersectionPolicy, geometricSurfaces);
-        }
-
-        public AtlasEntityPolygonsFilter geometricSurfaces(
-                final Collection<GeometricSurface> geometricSurfaces)
-        {
-            return new AtlasEntityPolygonsFilter(this, geometricSurfaces);
-        }
-
-        public AtlasEntityPolygonsFilter multiPolygons(final Collection<MultiPolygon> multiPolygons)
-        {
-            return new AtlasEntityPolygonsFilter(this, multiPolygons);
-        }
-
-        public AtlasEntityPolygonsFilter multiPolygons(final IntersectionPolicy intersectionPolicy,
-                final Collection<MultiPolygon> multiPolygons)
-        {
-            return new AtlasEntityPolygonsFilter(this, intersectionPolicy, multiPolygons);
-        }
-
-        public AtlasEntityPolygonsFilter polygons(final Collection<Polygon> polygons)
-        {
-            return new AtlasEntityPolygonsFilter(this, polygons);
-        }
-
-        public AtlasEntityPolygonsFilter polygons(final IntersectionPolicy intersectionPolicy,
-                final Collection<Polygon> polygons)
-        {
-            return new AtlasEntityPolygonsFilter(this, intersectionPolicy, polygons);
-        }
-
-        public AtlasEntityPolygonsFilter polygonsAndMultiPolygons(
-                final Collection<Polygon> polygons, final Collection<MultiPolygon> multiPolygons)
-        {
-            return new AtlasEntityPolygonsFilter(this,
-                    createSurfaceCollection(polygons, multiPolygons));
-        }
-
-        public AtlasEntityPolygonsFilter polygonsAndMultiPolygons(
-                final IntersectionPolicy intersectionPolicy, final Collection<Polygon> polygons,
-                final Collection<MultiPolygon> multiPolygons)
-        {
-            return new AtlasEntityPolygonsFilter(this, intersectionPolicy,
-                    createSurfaceCollection(polygons, multiPolygons));
-        }
     }
 }
