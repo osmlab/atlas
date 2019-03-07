@@ -16,11 +16,11 @@ project.ext.versions = [
     csv: '1.2',
     lang: '3.4',
     classgraph: '4.6.32',
-    guava: '18.0',
+    guava: '27.0.1-jre',
     jsonassert:'1.3.0',
     jackson_core:'2.8.8',
     jackson_databind:'2.8.8.1',
-    jackson_dataformat_yaml:'2.8.8',    
+    jackson_dataformat_yaml:'2.8.8',
     protobuf_java:'2.6.1',
     protoc:'2.6.1',
     artifact:'3.5.4',
@@ -67,4 +67,3 @@ project.ext.packages = [
     artifact: "org.apache.maven:maven-artifact:${versions.artifact}",
     groovy: "org.codehaus.groovy:groovy:${versions.groovy}"
 ]
-
