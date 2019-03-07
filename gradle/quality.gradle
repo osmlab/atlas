@@ -1,5 +1,5 @@
 jacoco {
-    toolVersion = "0.8.1"
+    toolVersion = "0.8.3"
 }
 
 sourceSets
@@ -65,7 +65,10 @@ spotless {
             exclude 'src/generated/**/*.java'
         }
         importOrder(['static java', 'static javax', 'static org', 'static com', 'static scala', 'java', 'javax', 'org', 'com', 'scala'])
-        removeUnusedImports()
+        // JDK 11 Hack: https://github.com/junit-team/junit5/commit/f39ba8d1e7b479bfd2f137f3b85cdeeb91ded22c
+        if (org.gradle.api.JavaVersion.current() == org.gradle.api.JavaVersion.VERSION_1_8) {
+            removeUnusedImports()
+        }
         eclipse().configFile 'config/format/code_format.xml'
     }
 }

@@ -18,6 +18,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.complex.ComplexEntity;
 import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.tags.AdministrativeLevelTag;
 import org.openstreetmap.atlas.tags.BoundaryTag;
@@ -91,7 +92,7 @@ public class ComplexBoundary extends ComplexEntity implements GeometryPrintable
     }
 
     @Override
-    public JsonObject asGeoJsonGeometry()
+    public JsonObject asGeoJson()
     {
         return this.outline.asGeoJsonGeometry();
     }
@@ -122,6 +123,12 @@ public class ComplexBoundary extends ComplexEntity implements GeometryPrintable
     public Iterable<IsoCountry> getCountries()
     {
         return this.countries;
+    }
+
+    @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.forJson(this.asGeoJson());
     }
 
     public MultiPolygon getOutline()

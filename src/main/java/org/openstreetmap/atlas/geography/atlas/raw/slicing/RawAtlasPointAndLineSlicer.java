@@ -13,6 +13,9 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.TopologyException;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -37,9 +40,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Joiner;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.TopologyException;
 
 /**
  * The {@link RawAtlasPointAndLineSlicer} consumes an un-sliced raw Atlas and produces an Atlas with

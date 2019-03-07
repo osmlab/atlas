@@ -69,4 +69,24 @@ public class RelationFlatteningTest
             Assert.fail("Member was not the expected type of 'Node'!");
         }
     }
+
+    @Test
+    public void testSubRelationsOfLoopingRelations()
+    {
+        final Relation loopingRelation = this.rule.getAtlas().relation(8);
+        logger.info("Looping (self-containing) Relation: {}", loopingRelation);
+        final Set<Long> subrelations = loopingRelation.flattenRelations();
+        logger.info("Flattened: {}", subrelations);
+        assertEquals(1, subrelations.size());
+    }
+
+    @Test
+    public void testSubRelationsOfNestedRelation()
+    {
+        final Relation nestedRelation = this.rule.getAtlas().relation(10);
+        logger.info("Nested Relation: {}", nestedRelation);
+        final Set<Long> subrelations = nestedRelation.flattenRelations();
+        logger.info("Flattened: {}", subrelations);
+        assertEquals(4, subrelations.size());
+    }
 }
