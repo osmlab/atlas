@@ -128,9 +128,9 @@
 
 		<!-- Miscellaneous other checks. -->
 		<module name="ArrayTypeStyle" />
-        <module name="AvoidEscapedUnicodeCharacters">
-            <property name="allowEscapesForControlCharacters" value="true"/>
-        </module>
+		<module name="AvoidEscapedUnicodeCharacters">
+			<property name="allowEscapesForControlCharacters" value="true"/>
+		</module>
 		<module name="CommentsIndentation"/>
 		<module name="FinalParameters" />
 		<!-- Skipping indentation until https://github.com/checkstyle/checkstyle/issues/3342 is resolved
