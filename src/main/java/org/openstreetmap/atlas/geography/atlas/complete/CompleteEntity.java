@@ -124,15 +124,15 @@ public interface CompleteEntity
 
     CompleteEntity withAddedTag(String key, String value);
 
+    CompleteEntity withIdentifier(long identifier);
+
+    CompleteEntity withRelationIdentifiers(Set<Long> relationIdentifiers);
+
+    CompleteEntity withRelations(Set<Relation> relations);
+
     CompleteEntity withRemovedTag(String key);
 
     CompleteEntity withReplacedTag(String oldKey, String newKey, String newValue);
 
     CompleteEntity withTags(Map<String, String> tags);
-
-    CompleteEntity withRelations(Set<Relation> relations);
-
-    CompleteEntity withIdentifier(long identifier);
-
-    CompleteEntity withRelationIdentifiers(Set<Long> relationIdentifiers);
 }

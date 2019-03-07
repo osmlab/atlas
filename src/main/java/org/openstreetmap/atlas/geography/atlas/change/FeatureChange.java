@@ -31,9 +31,11 @@ import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.LineItem;
 import org.openstreetmap.atlas.geography.atlas.items.LocationItem;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
+import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.Taggable;
@@ -66,18 +68,187 @@ public class FeatureChange implements Located, Serializable
 
     private final ChangeType changeType;
     private final AtlasEntity reference;
+    private final CompleteEntity beforeView;
 
     public static FeatureChange add(final AtlasEntity reference)
     {
         return new FeatureChange(ChangeType.ADD, reference);
     }
 
-    public static FeatureChange remove(final AtlasEntity reference)
+    public static FeatureChange add2(final AtlasEntity updatedView, final AtlasEntity beforeView)
     {
-        return new FeatureChange(ChangeType.REMOVE, reference);
+        final CompleteEntity beforeViewUpdatesOnly;
+
+        /*
+         * This is the case where we are adding a brand new feature. There is no beforeView. Callers
+         * indicate this by passing "null" for the before view.
+         */
+        if (beforeView == null)
+        {
+            return new FeatureChange(ChangeType.ADD, updatedView, null);
+        }
+
+        /*
+         * If the user indicated an update-like ADD (by specifying a non-null beforeView) but the
+         * identifiers don't match, we have a problem.
+         */
+        if (updatedView.getIdentifier() != beforeView.getIdentifier())
+        {
+            throw new CoreException(
+                    "Update-like ADD attempted but updatedView ID ({}) did not match beforeView ID ({})",
+                    updatedView.getIdentifier(), beforeView.getIdentifier());
+        }
+
+        /*
+         * Same check as above, but for ItemType. Here, we are guaranteed that at least the IDs
+         * match due to the above check.
+         */
+        if (updatedView.getType() != beforeView.getType())
+        {
+            throw new CoreException(
+                    "Update-like ADD attempted on ID ({}) but updatedView ItemType ({}) did not match beforeView ItemType ({})",
+                    beforeView.getIdentifier(), updatedView.getType(), beforeView.getType());
+        }
+
+        /*
+         * Make type specific updates first.
+         */
+        switch (updatedView.getType())
+        {
+            /*
+             * Area specific updates. The only Area-specific field is the polygon.
+             */
+            case AREA:
+                final Area updatedAreaView = (Area) updatedView;
+                final Area beforeAreaView = (Area) beforeView;
+                beforeViewUpdatesOnly = CompleteArea.shallowFrom(beforeAreaView);
+                if (updatedAreaView.asPolygon() != null)
+                {
+                    ((CompleteArea) beforeViewUpdatesOnly).withPolygon(beforeAreaView.asPolygon());
+                }
+                break;
+            /*
+             * Edge specific updates. The Edge-specific fields are the polyline and the start/end
+             * nodes.
+             */
+            case EDGE:
+                final Edge updatedEdgeView = (Edge) updatedView;
+                final Edge beforeEdgeView = (Edge) beforeView;
+                beforeViewUpdatesOnly = CompleteEdge.shallowFrom(updatedEdgeView);
+                if (updatedEdgeView.asPolyLine() != null)
+                {
+                    ((CompleteEdge) beforeViewUpdatesOnly)
+                            .withPolyLine(beforeEdgeView.asPolyLine());
+                }
+                if (updatedEdgeView.start() != null)
+                {
+                    ((CompleteEdge) beforeViewUpdatesOnly)
+                            .withStartNodeIdentifier(beforeEdgeView.start().getIdentifier());
+                }
+                if (updatedEdgeView.end() != null)
+                {
+                    ((CompleteEdge) beforeViewUpdatesOnly)
+                            .withEndNodeIdentifier(beforeEdgeView.end().getIdentifier());
+                }
+                break;
+            /*
+             * Line specific updates. The only Line-specific field is the polyline.
+             */
+            case LINE:
+                final Line updatedLineView = (Line) updatedView;
+                final Line beforeLineView = (Line) beforeView;
+                beforeViewUpdatesOnly = CompleteLine.shallowFrom(updatedLineView);
+                if (updatedLineView.asPolyLine() != null)
+                {
+                    ((CompleteLine) beforeViewUpdatesOnly)
+                            .withPolyLine(beforeLineView.asPolyLine());
+                }
+                break;
+            /*
+             * Node specific updates. The Node-specific fields are the location and the in/out edge
+             * sets.
+             */
+            case NODE:
+                final Node updatedNodeView = (Node) updatedView;
+                final Node beforeNodeView = (Node) beforeView;
+                beforeViewUpdatesOnly = CompleteNode.shallowFrom(updatedNodeView);
+                if (updatedNodeView.getLocation() != null)
+                {
+                    ((CompleteNode) beforeViewUpdatesOnly)
+                            .withLocation(beforeNodeView.getLocation());
+                }
+                if (updatedNodeView.inEdges() != null)
+                {
+                    ((CompleteNode) beforeViewUpdatesOnly).withInEdges(beforeNodeView.inEdges());
+                }
+                if (updatedNodeView.outEdges() != null)
+                {
+                    ((CompleteNode) beforeViewUpdatesOnly).withOutEdges(beforeNodeView.outEdges());
+                }
+                break;
+            /*
+             * Point specific updates. The only Point-specific field is the location.
+             */
+            case POINT:
+                final Point updatedPointView = (Point) updatedView;
+                final Point beforePointView = (Point) beforeView;
+                beforeViewUpdatesOnly = CompletePoint.shallowFrom(updatedPointView);
+                if (updatedPointView.getLocation() != null)
+                {
+                    ((CompletePoint) beforeViewUpdatesOnly)
+                            .withLocation(beforePointView.getLocation());
+                }
+                break;
+            /*
+             * Relation specific updates. The only Relation-specific field is the member list.
+             */
+            /*
+             * TODO do we need to handle the allKnownOsmMembers case? I am not convinced we even
+             * need this field in Relation. I don't see it called anywhere in the codebase (except
+             * in a few tests).
+             */
+            case RELATION:
+                final Relation updatedRelationView = (Relation) updatedView;
+                final Relation beforeRelationView = (Relation) beforeView;
+                beforeViewUpdatesOnly = CompleteRelation.shallowFrom(updatedRelationView);
+                if (updatedRelationView.members() != null)
+                {
+                    ((CompleteRelation) beforeViewUpdatesOnly)
+                            .withMembers(beforeRelationView.members());
+                }
+                break;
+            default:
+                throw new CoreException("Unknown entity type {}", updatedView.getType());
+        }
+
+        /*
+         * Add before view of the tags if the updatedView updated the tags.
+         */
+        final Map<String, String> updatedViewTags = updatedView.getTags();
+        if (updatedViewTags != null)
+        {
+            beforeViewUpdatesOnly.withTags(beforeView.getTags());
+        }
+
+        /*
+         * Add before view of relations if updatedView updated relations.
+         */
+        final Set<Relation> updatedViewRelations = updatedView.relations();
+        if (updatedViewRelations != null)
+        {
+            beforeViewUpdatesOnly.withRelations(beforeView.relations());
+        }
+
+        return new FeatureChange(ChangeType.ADD, updatedView, beforeViewUpdatesOnly);
     }
 
-    public FeatureChange(final ChangeType changeType, final AtlasEntity reference)
+    public static FeatureChange remove(final AtlasEntity reference)
+    {
+        return new FeatureChange(ChangeType.REMOVE, reference, null);
+    }
+
+    private FeatureChange(final ChangeType changeType, final AtlasEntity reference,
+            final CompleteEntity beforeView)
     {
         if (reference == null)
         {
@@ -95,6 +266,7 @@ public class FeatureChange implements Located, Serializable
         }
         this.changeType = changeType;
         this.reference = reference;
+        this.beforeView = beforeView;
         this.validateUsefulFeatureChange();
     }
 
@@ -137,16 +309,6 @@ public class FeatureChange implements Located, Serializable
     }
 
     /**
-     * Get the changed tags.
-     *
-     * @return Map - the changed tags.
-     */
-    public Map<String, String> getTags()
-    {
-        return this.getReference().getTags();
-    }
-
-    /**
      * Get a tag based on key post changes.
      *
      * @param key
@@ -156,6 +318,16 @@ public class FeatureChange implements Located, Serializable
     public Optional<String> getTag(final String key)
     {
         return this.getReference().getTag(key);
+    }
+
+    /**
+     * Get the changed tags.
+     *
+     * @return Map - the changed tags.
+     */
+    public Map<String, String> getTags()
+    {
+        return this.getReference().getTags();
     }
 
     @Override
@@ -227,17 +399,17 @@ public class FeatureChange implements Located, Serializable
     }
 
     /**
-     * Save a JSON representation of that feature change.
+     * Save a GeoJSON representation of that feature change.
      *
      * @param resource
-     *            The {@link WritableResource} to save the JSON to.
+     *            The {@link WritableResource} to save the GeoJSON to.
      */
     public void save(final WritableResource resource)
     {
         new FeatureChangeGeoJsonSerializer().accept(this, resource);
     }
 
-    public String toJson()
+    public String toGeoJson()
     {
         return new FeatureChangeGeoJsonSerializer().convert(this);
     }

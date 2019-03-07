@@ -205,7 +205,7 @@ public class FeatureChangeGeoJsonSerializerTest
     {
         final String expected = new InputStreamResource(
                 () -> FeatureChangeGeoJsonSerializerTest.class.getResourceAsStream(fileName)).all();
-        Assert.assertEquals(expected, featureChange.toJson());
+        Assert.assertEquals(expected, featureChange.toGeoJson());
         final File temporary = File.temporary();
         try
         {
