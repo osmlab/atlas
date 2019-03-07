@@ -55,6 +55,7 @@ import org.openstreetmap.atlas.utilities.collections.Sets;
  * feature that needs to match the existing feature is the identifier.
  *
  * @author matthieun
+ * @author lcram
  */
 public class FeatureChange implements Located, Serializable
 {
@@ -67,17 +68,27 @@ public class FeatureChange implements Located, Serializable
     private static final BinaryOperator<RelationBean> relationBeanMerger = RelationBean::merge;
 
     private final ChangeType changeType;
-    private final AtlasEntity reference;
-    private final CompleteEntity beforeView;
+    private final AtlasEntity updatedView;
+    private final AtlasEntity beforeView;
 
-    public static FeatureChange add(final AtlasEntity reference)
+    /**
+     * Create a new ADD {@link FeatureChange} with a given complete entity. TODO should we leave
+     * this, or remove it?
+     *
+     * @param updatedView
+     *            the updated reference
+     * @return a new ADD {@link FeatureChange}
+     * @deprecated please use {@link FeatureChange#add2} instead
+     */
+    @Deprecated
+    public static FeatureChange add(final AtlasEntity updatedView)
     {
-        return new FeatureChange(ChangeType.ADD, reference);
+        return FeatureChange.add2(updatedView, null);
     }
 
     public static FeatureChange add2(final AtlasEntity updatedView, final AtlasEntity beforeView)
     {
-        final CompleteEntity beforeViewUpdatesOnly;
+        final AtlasEntity beforeViewUpdatesOnly;
 
         /*
          * This is the case where we are adding a brand new feature. There is no beforeView. Callers
@@ -227,7 +238,7 @@ public class FeatureChange implements Located, Serializable
         final Map<String, String> updatedViewTags = updatedView.getTags();
         if (updatedViewTags != null)
         {
-            beforeViewUpdatesOnly.withTags(beforeView.getTags());
+            ((CompleteEntity) beforeViewUpdatesOnly).withTags(beforeView.getTags());
         }
 
         /*
@@ -236,7 +247,7 @@ public class FeatureChange implements Located, Serializable
         final Set<Relation> updatedViewRelations = updatedView.relations();
         if (updatedViewRelations != null)
         {
-            beforeViewUpdatesOnly.withRelations(beforeView.relations());
+            ((CompleteEntity) beforeViewUpdatesOnly).withRelations(beforeView.relations());
         }
 
         return new FeatureChange(ChangeType.ADD, updatedView, beforeViewUpdatesOnly);
@@ -247,25 +258,30 @@ public class FeatureChange implements Located, Serializable
         return new FeatureChange(ChangeType.REMOVE, reference, null);
     }
 
-    private FeatureChange(final ChangeType changeType, final AtlasEntity reference,
-            final CompleteEntity beforeView)
+    public FeatureChange(final ChangeType changeType, final AtlasEntity updatedView)
     {
-        if (reference == null)
+        this(changeType, updatedView, null);
+    }
+
+    public FeatureChange(final ChangeType changeType, final AtlasEntity updatedView,
+            final AtlasEntity beforeView)
+    {
+        if (updatedView == null)
         {
             throw new CoreException("reference cannot be null.");
         }
-        if (!(reference instanceof CompleteEntity))
+        if (!(updatedView instanceof CompleteEntity))
         {
             throw new CoreException(
                     "FeatureChange requires CompleteEntity, found reference of type {}",
-                    reference.getClass().getName());
+                    updatedView.getClass().getName());
         }
         if (changeType == null)
         {
             throw new CoreException("changeType cannot be null.");
         }
         this.changeType = changeType;
-        this.reference = reference;
+        this.updatedView = updatedView;
         this.beforeView = beforeView;
         this.validateUsefulFeatureChange();
     }
@@ -273,7 +289,7 @@ public class FeatureChange implements Located, Serializable
     @Override
     public Rectangle bounds()
     {
-        return this.reference.bounds();
+        return this.updatedView.bounds();
     }
 
     @Override
@@ -305,7 +321,7 @@ public class FeatureChange implements Located, Serializable
 
     public AtlasEntity getReference()
     {
-        return this.reference;
+        return this.updatedView;
     }
 
     /**
@@ -333,7 +349,7 @@ public class FeatureChange implements Located, Serializable
     @Override
     public int hashCode()
     {
-        return Objects.hash(this.changeType, this.reference);
+        return Objects.hash(this.changeType, this.updatedView);
     }
 
     /**
@@ -418,7 +434,7 @@ public class FeatureChange implements Located, Serializable
     public String toString()
     {
         return "FeatureChange [changeType=" + this.changeType + ", reference={"
-                + this.reference.getType() + "," + this.reference.getIdentifier() + "}, tags="
+                + this.updatedView.getType() + "," + this.updatedView.getIdentifier() + "}, tags="
                 + getTags() + ", bounds=" + bounds() + "]";
     }
 
@@ -641,8 +657,8 @@ public class FeatureChange implements Located, Serializable
 
     private void validateUsefulFeatureChange()
     {
-        if (this.changeType == ChangeType.ADD && this.reference instanceof CompleteEntity
-                && ((CompleteEntity) this.reference).isSuperShallow())
+        if (this.changeType == ChangeType.ADD && this.updatedView instanceof CompleteEntity
+                && ((CompleteEntity) this.updatedView).isSuperShallow())
         {
             throw new CoreException("{} does not contain anything useful.", this);
         }
