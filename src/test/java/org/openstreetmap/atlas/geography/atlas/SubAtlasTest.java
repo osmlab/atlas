@@ -259,8 +259,8 @@ public class SubAtlasTest
         final Predicate<AtlasEntity> allEntities = entity -> true;
 
         // Should return back only Entities with identifier 0
-        final Predicate<AtlasEntity> entitiesWithIdentifierZero = (
-                entity) -> entity.getIdentifier() == 0;
+        final Predicate<AtlasEntity> entitiesWithIdentifierZero = entity -> entity
+                .getIdentifier() == 0;
 
         final Atlas identicalSubAtlas = source.subAtlas(allEntities, AtlasCutType.SILK_CUT)
                 .orElseThrow(() -> new CoreException("SubAtlas was not present."));
