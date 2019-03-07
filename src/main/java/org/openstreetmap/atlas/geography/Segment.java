@@ -179,26 +179,24 @@ public class Segment extends PolyLine
         {
             final long alphaNumerator = Math.subtractExact(byAxis * cxAxis, bxAxis * cyAxis);
             final long commonDenominator = Math.subtractExact(ayAxis * bxAxis, axAxis * byAxis);
-            if (commonDenominator > 0 && (alphaNumerator < 0 || alphaNumerator > commonDenominator))
+            // ensures that alpha is within the range [0,1] without doing the division
+            if ((commonDenominator > 0
+                    && (alphaNumerator < 0 || alphaNumerator > commonDenominator))
+                    || (commonDenominator < 0
+                            && (alphaNumerator > 0 || alphaNumerator < commonDenominator)))
             {
                 return false;
 
             }
-            else if (commonDenominator < 0
-                    && (alphaNumerator > 0 || alphaNumerator < commonDenominator))
-            {
-                return false;
-            }
             final long betaNumerator = Math.subtractExact(axAxis * cyAxis, ayAxis * cxAxis);
-            if (commonDenominator > 0 && (betaNumerator < 0 || betaNumerator > commonDenominator))
+            // ensures that beta is within the range [0,1] without doing the division
+            if ((commonDenominator > 0 && (betaNumerator < 0 || betaNumerator > commonDenominator))
+                    || (commonDenominator < 0
+                            && (betaNumerator > 0 || betaNumerator < commonDenominator)))
             {
                 return false;
             }
-            else if (commonDenominator < 0
-                    && (betaNumerator > 0 || betaNumerator < commonDenominator))
-            {
-                return false;
-            }
+
             if (commonDenominator == 0)
             {
                 // This code wasn't in Franklin Antonio's method. It was added by Keith Woodward.
@@ -272,25 +270,23 @@ public class Segment extends PolyLine
 
         final double alphaNumerator = byAxis * cxAxis - bxAxis * cyAxis;
         final double commonDenominator = ayAxis * bxAxis - axAxis * byAxis;
-        if (commonDenominator > 0 && (alphaNumerator < 0 || alphaNumerator > commonDenominator))
+        // ensures that alpha is within the range [0,1] without doing the division
+        if ((commonDenominator > 0 && (alphaNumerator < 0 || alphaNumerator > commonDenominator))
+                || (commonDenominator < 0
+                        && (alphaNumerator > 0 || alphaNumerator < commonDenominator)))
         {
             return false;
 
         }
-        else if (commonDenominator < 0
-                && (alphaNumerator > 0 || alphaNumerator < commonDenominator))
-        {
-            return false;
-        }
         final double betaNumerator = axAxis * cyAxis - ayAxis * cxAxis;
-        if (commonDenominator > 0 && (betaNumerator < 0 || betaNumerator > commonDenominator))
+        // ensures that beta is within the range [0,1] without doing the division
+        if ((commonDenominator > 0 && (betaNumerator < 0 || betaNumerator > commonDenominator))
+                || (commonDenominator < 0
+                        && (betaNumerator > 0 || betaNumerator < commonDenominator)))
         {
             return false;
         }
-        else if (commonDenominator < 0 && (betaNumerator > 0 || betaNumerator < commonDenominator))
-        {
-            return false;
-        }
+
         if (commonDenominator == 0)
         {
             // This code wasn't in Franklin Antonio's method. It was added by Keith Woodward. The
