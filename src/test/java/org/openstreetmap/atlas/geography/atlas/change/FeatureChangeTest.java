@@ -119,15 +119,20 @@ public class FeatureChangeTest
     @Test
     public void testMergeNodes()
     {
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteNode(123L, Location.COLOSSEUM, null, Sets.treeSet(1L, 2L, 3L),
-                        Sets.treeSet(10L, 11L, 13L), null));
+        final CompleteNode beforeNode = new CompleteNode(123L, Location.COLOSSEUM, null,
+                Sets.treeSet(1L, 2L, 3L), Sets.treeSet(10L, 11L, 12L), null);
+
+        final FeatureChange featureChange1 = new FeatureChange(
+                ChangeType.ADD, new CompleteNode(123L, Location.COLOSSEUM, null,
+                        Sets.treeSet(1L, 2L, 3L, 4L), Sets.treeSet(10L, 11L, 12L, 13L), null),
+                beforeNode);
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
-                new CompleteNode(123L, Location.COLOSSEUM, null, Sets.treeSet(1L, 2L, 3L),
-                        Sets.treeSet(10L, 11L, 13L), null));
+                new CompleteNode(123L, Location.COLOSSEUM, null, Sets.treeSet(1L, 2L, 3L, 5L),
+                        Sets.treeSet(10L, 11L), null),
+                beforeNode);
 
         // Testing with a hashset instead of a treeset for ease of typing
-        Assert.assertEquals(Sets.hashSet(1L, 2L, 3L),
+        Assert.assertEquals(Sets.hashSet(1L, 2L, 3L, 4L, 5L),
                 ((Node) featureChange1.merge(featureChange2).getReference()).inEdges().stream()
                         .map(edge -> edge.getIdentifier()).collect(Collectors.toSet()));
         Assert.assertEquals(Sets.hashSet(10L, 11L, 13L),

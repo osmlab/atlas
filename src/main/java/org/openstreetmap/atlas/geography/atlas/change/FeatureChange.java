@@ -63,6 +63,8 @@ public class FeatureChange implements Located, Serializable
     private static final BinaryOperator<Map<String, String>> tagMerger = Maps::withMaps;
     private static final BinaryOperator<Set<Long>> directReferenceMerger = Sets::withSets;
     private static final BinaryOperator<SortedSet<Long>> directReferenceMergerSorted = Sets::withSortedSets;
+    private static final BinaryOperator<SortedSet<Long>> directReferenceMergerLooseSorted = (left,
+            right) -> Sets.withSortedSets(false, left, right);
     private static final BinaryOperator<Set<Long>> directReferenceMergerLoose = (left,
             right) -> Sets.withSets(false, left, right);
     private static final BinaryOperator<RelationBean> relationBeanMerger = RelationBean::merge;
@@ -408,9 +410,10 @@ public class FeatureChange implements Located, Serializable
             }
             throw new CoreException("Unable to merge {} and {}", this, other);
         }
-        catch (final Exception e)
+        catch (final Exception exception)
         {
-            throw new CoreException("Cannot merge two feature changes {} and {}.", this, other, e);
+            throw new CoreException("Cannot merge two feature changes {} and {}.", this, other,
+                    exception);
         }
     }
 
