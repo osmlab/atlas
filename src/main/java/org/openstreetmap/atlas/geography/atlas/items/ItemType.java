@@ -10,12 +10,55 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
  */
 public enum ItemType
 {
-    NODE(0),
-    EDGE(1),
-    AREA(2),
-    LINE(3),
-    POINT(4),
-    RELATION(5);
+    NODE(0)
+    {
+        @Override
+        public Iterable<Node> entitiesForIdentifiers(final Atlas atlas, final Long... identifiers)
+        {
+            return atlas.nodes(identifiers);
+        }
+    },
+    EDGE(1)
+    {
+        @Override
+        public Iterable<Edge> entitiesForIdentifiers(final Atlas atlas, final Long... identifiers)
+        {
+            return atlas.edges(identifiers);
+        }
+    },
+    AREA(2)
+    {
+        @Override
+        public Iterable<Area> entitiesForIdentifiers(final Atlas atlas, final Long... identifiers)
+        {
+            return atlas.areas(identifiers);
+        }
+    },
+    LINE(3)
+    {
+        @Override
+        public Iterable<Line> entitiesForIdentifiers(final Atlas atlas, final Long... identifiers)
+        {
+            return atlas.lines(identifiers);
+        }
+    },
+    POINT(4)
+    {
+        @Override
+        public Iterable<Point> entitiesForIdentifiers(final Atlas atlas, final Long... identifiers)
+        {
+            return atlas.points(identifiers);
+        }
+    },
+    RELATION(5)
+    {
+        @Override
+        public Iterable<Relation> entitiesForIdentifiers(final Atlas atlas,
+                final Long... identifiers)
+        {
+            return atlas.relations(identifiers);
+        }
+    };
 
     private final int value;
 
@@ -83,6 +126,9 @@ public enum ItemType
                 throw new CoreException("Invalid type {}", this);
         }
     }
+
+    public abstract <E extends AtlasEntity> Iterable<E> entitiesForIdentifiers(Atlas atlas,
+            Long... identifiers);
 
     @SuppressWarnings("unchecked")
     public <M extends AtlasEntity> Class<M> getMemberClass()
