@@ -8,13 +8,9 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import org.codehaus.groovy.control.CompilerConfiguration;
-import org.codehaus.groovy.control.customizers.ImportCustomizer;
-import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
-import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -23,19 +19,13 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.utilities.collections.StringList;
-import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.AtlasLoaderCommand;
+import org.openstreetmap.atlas.utilities.conversion.StringToPredicateConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import groovy.lang.Binding;
-import groovy.lang.GroovyClassLoader;
-import groovy.lang.GroovyCodeSource;
-import groovy.lang.GroovyShell;
-import groovy.lang.Script;
 
 /**
  * @author lcram
@@ -246,51 +236,11 @@ public class SubAtlasCommand extends AtlasLoaderCommand
     private Optional<Predicate<AtlasEntity>> getPredicateFromCommandLineExpression(
             final Optional<String> predicateParameter)
     {
-        final SecureASTCustomizer securityCustomizer = new SecureASTCustomizer();
-        securityCustomizer.setStarImportsWhitelist(Arrays.asList("java.lang", "groovy.lang",
-                "java.util.function", "org.openstreetmap.atlas.geography.atlas.items"));
-        securityCustomizer.setPackageAllowed(false);
-        securityCustomizer.setMethodDefinitionAllowed(false);
-        securityCustomizer.setIndirectImportCheckEnabled(true);
-
-        final ImportCustomizer importCustomizer = new ImportCustomizer();
-        importCustomizer.addStarImports("java.util.function",
-                "org.openstreetmap.atlas.geography.atlas.items", "java.lang");
-
-        final CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
-        compilerConfiguration.addCompilationCustomizers(securityCustomizer);
-        compilerConfiguration.addCompilationCustomizers(importCustomizer);
-
-        final GroovyCodeSource groovyCodeSource = new GroovyCodeSource(
-                predicateParameter.orElseThrow(AtlasShellToolsException::new), "ThePredicate",
-                GroovyShell.DEFAULT_CODE_BASE);
-        groovyCodeSource.setCachable(true);
-        try (GroovyClassLoader groovyClassLoader = new GroovyClassLoader(
-                this.getClass().getClassLoader(), compilerConfiguration);)
+        if (predicateParameter.isPresent())
         {
-            @SuppressWarnings("unchecked")
-            final Class<Script> scriptClass = groovyClassLoader.parseClass(groovyCodeSource);
-            final Predicate<AtlasEntity> predicate = entity ->
-            {
-                try
-                {
-                    final Binding binding = new Binding();
-                    binding.setProperty("e", entity);
-                    final Script script = scriptClass.getDeclaredConstructor(Binding.class)
-                            .newInstance(binding);
-                    return (boolean) script.run();
-                }
-                catch (final Exception exception)
-                {
-                    throw new CoreException("Something went wrong with this predicate ", exception);
-                }
-            };
-            return Optional.ofNullable(predicate);
+            return Optional.ofNullable(new StringToPredicateConverter<AtlasEntity>()
+                    .convert(predicateParameter.get()));
         }
-        catch (final Exception exception)
-        {
-            logger.error("Something went wrong creating the predicate", exception);
-            return Optional.empty();
-        }
+        return Optional.empty();
     }
 }
