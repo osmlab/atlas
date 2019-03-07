@@ -17,7 +17,7 @@ public class JsonWriterTest
         final StringResource resource = new StringResource();
         final JsonWriter writer = new JsonWriter(resource);
         final PolyLine polyLine = new PolyLine(Location.TEST_6, Location.TEST_2, Location.TEST_2);
-        writer.write(polyLine.asGeoJson().jsonObject());
+        writer.write(polyLine.asGeoJson());
         writer.close();
         Assert.assertEquals(polyLine.asGeoJson().toString(), resource.writtenString());
     }

@@ -10,11 +10,15 @@ import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.MultiLineString;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonConstants;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
+import org.openstreetmap.atlas.streaming.readers.json.converters.PointCoordinateConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.gson.JsonObject;
 
 /**
  * {@link MultiPolyLine} tests.
@@ -54,6 +58,20 @@ public class MultiPolyLineTest
         locations.add(Location.forString("7.3215225281339456, 113.99803847074506"));
         multiPolyLine.asLocationIterableProperties().forEach(property -> property.getLocations()
                 .forEach(location -> Assert.assertTrue(locations.contains(location))));
+    }
+
+    @Test
+    public void testConvertMultiPloyLineToGeoJson()
+    {
+        final String wkt = "MULTILINESTRING ((113.9980787038803 7.3216002915048872, "
+                + "113.99803847074506 7.3215225281339456))";
+        final MultiPolyLine multiPolyLine = MultiPolyLine.wkt(wkt);
+        final JsonObject geojson = multiPolyLine.asGeoJson();
+        Assert.assertEquals(GeoJsonType.MULTI_LINESTRING, GeoJsonType.forJson(geojson));
+        Assert.assertEquals(Location.forString("7.3216002915048872, 113.9980787038803"),
+                new PointCoordinateConverter().revert()
+                        .apply(geojson.get(GeoJsonConstants.COORDINATES).getAsJsonArray().get(0)
+                                .getAsJsonArray().get(0).getAsJsonArray()));
     }
 
     @Test

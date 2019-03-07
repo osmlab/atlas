@@ -13,13 +13,16 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonProperties;
+
+import com.google.gson.JsonObject;
 
 /**
  * Size estimates for an {@link AtlasBuilder}
  *
  * @author matthieun
  */
-public class AtlasSize implements Serializable
+public class AtlasSize implements Serializable, GeoJsonProperties
 {
     /**
      * A simple builder class for creating {@link AtlasSize} objects with custom sizes.
@@ -224,6 +227,19 @@ public class AtlasSize implements Serializable
             return true;
         }
         return false;
+    }
+
+    @Override
+    public JsonObject getGeoJsonProperties()
+    {
+        final JsonObject properties = new JsonObject();
+        properties.addProperty("Number of Edges", this.getEdgeNumber());
+        properties.addProperty("Number of Nodes", this.getNodeNumber());
+        properties.addProperty("Number of Areas", this.getAreaNumber());
+        properties.addProperty("Number of Lines", this.getLineNumber());
+        properties.addProperty("Number of Points", this.getPointNumber());
+        properties.addProperty("Number of Relations", this.getRelationNumber());
+        return properties;
     }
 
     public long getAreaNumber()

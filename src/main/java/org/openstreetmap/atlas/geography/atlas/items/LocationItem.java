@@ -9,7 +9,6 @@ import org.openstreetmap.atlas.geography.Snapper.SnappedLocation;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 
 import com.google.gson.JsonObject;
@@ -31,7 +30,7 @@ public abstract class LocationItem extends AtlasItem
     @Override
     public JsonObject asGeoJsonGeometry()
     {
-        return GeoJsonUtils.feature(getLocation().asGeoJsonGeometry(), geoJsonProperties());
+        return getLocation().asGeoJsonGeometry();
     }
 
     @Override

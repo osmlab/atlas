@@ -31,6 +31,7 @@ import org.openstreetmap.atlas.geography.atlas.items.SnappedEdge;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonFeatureCollection;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
@@ -46,7 +47,8 @@ import com.google.gson.JsonObject;
  * @author matthieun
  * @author tony
  */
-public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
+public interface Atlas
+        extends Located, Iterable<AtlasEntity>, Serializable, GeoJsonFeatureCollection<AtlasEntity>
 {
     /**
      * @param identifier
@@ -134,17 +136,12 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<Area> areasWithin(GeometricSurface surface);
 
     /**
-     * @return A {@link GeoJsonObject} that contains all the features in this {@link Atlas}
-     */
-    GeoJsonObject asGeoJson();
-
-    /**
      * @param matcher
      *            The matcher to consider
      * @return A {@link GeoJsonObject} that contains part the features in this {@link Atlas} which
      *         matches the given matcher
      */
-    GeoJsonObject asGeoJson(Predicate<AtlasEntity> matcher);
+    JsonObject asGeoJson(Predicate<AtlasEntity> matcher);
 
     /**
      * Clone this {@link Atlas} to a {@link PackedAtlas}. Do not uses "clone" so as not to be

@@ -29,44 +29,6 @@ import com.google.gson.JsonPrimitive;
 public class GeoJsonBuilder
 {
     /**
-     * @author matthieun
-     * @author mgostintsev
-     */
-    public enum GeoJsonType
-    {
-        POINT("Point"),
-        LINESTRING("LineString"),
-        POLYGON("Polygon"),
-        MULTI_POINT("MultiPoint"),
-        MULTI_LINESTRING("MultiLineString"),
-        MULTI_POLYGON("MultiPolygon");
-
-        private final String type;
-
-        public static GeoJsonType forType(final String type)
-        {
-            for (final GeoJsonType value : values())
-            {
-                if (value.getType().equals(type))
-                {
-                    return value;
-                }
-            }
-            throw new CoreException("Invalid geoJson type: {}", type);
-        }
-
-        GeoJsonType(final String type)
-        {
-            this.type = type;
-        }
-
-        public String getType()
-        {
-            return this.type;
-        }
-    }
-
-    /**
      * Java bean to store geometry (as an {@link Iterable} of {@link Location}s) and properties as a
      * {@link String} to {@link Object} {@link Map}
      *
@@ -264,7 +226,7 @@ public class GeoJsonBuilder
         }
 
         final JsonObject geometry = new JsonObject();
-        geometry.addProperty(TYPE, type.getType());
+        geometry.addProperty(TYPE, type.getTypeString());
         geometry.add(COORDINATES, coordinates);
         result.add(GEOMETRY, geometry);
         return new GeoJsonObject(result);
@@ -614,7 +576,7 @@ public class GeoJsonBuilder
         }
 
         final JsonObject geometry = new JsonObject();
-        geometry.addProperty(TYPE, GeoJsonType.MULTI_LINESTRING.getType());
+        geometry.addProperty(TYPE, GeoJsonType.MULTI_LINESTRING.getTypeString());
         geometry.add(COORDINATES, coordinates);
         result.add(GEOMETRY, geometry);
         return new GeoJsonObject(result);
@@ -650,7 +612,7 @@ public class GeoJsonBuilder
         }
 
         final JsonObject geometry = new JsonObject();
-        geometry.addProperty(TYPE, GeoJsonType.MULTI_POLYGON.getType());
+        geometry.addProperty(TYPE, GeoJsonType.MULTI_POLYGON.getTypeString());
         geometry.add(COORDINATES, coordinates);
         result.add(GEOMETRY, geometry);
         return new GeoJsonObject(result);
@@ -689,7 +651,7 @@ public class GeoJsonBuilder
         final JsonArray newCoordinates = new JsonArray();
         newCoordinates.add(coordinates);
         final JsonObject geometry = new JsonObject();
-        geometry.addProperty(TYPE, GeoJsonType.MULTI_POLYGON.getType());
+        geometry.addProperty(TYPE, GeoJsonType.MULTI_POLYGON.getTypeString());
         geometry.add(COORDINATES, newCoordinates);
         result.add(GEOMETRY, geometry);
         result.add(PROPERTIES, new JsonObject());

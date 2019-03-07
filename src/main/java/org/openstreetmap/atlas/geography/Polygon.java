@@ -18,7 +18,7 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
-import org.openstreetmap.atlas.geography.coordinates.EarthCenteredEarthFixedCoordinate;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 /**
@@ -113,11 +112,7 @@ public class Polygon extends PolyLine implements GeometricSurface
     @Override
     public JsonObject asGeoJsonGeometry()
     {
-        final JsonArray coordinates = new JsonArray();
-        final JsonArray subCoordinatesArray = GeoJsonUtils.locationsToCoordinates(closedLoop());
-        coordinates.add(subCoordinatesArray);
-
-        return GeoJsonUtils.geometry(GeoJsonUtils.POLYGON, coordinates);
+        return GeoJsonUtils.geometry(GeoJsonType.POLYGON, GeoJsonUtils.polygonToCoordinates(this));
     }
 
     /**
@@ -294,6 +289,12 @@ public class Polygon extends PolyLine implements GeometricSurface
         return this.fullyGeometricallyEncloses(segment.middle());
     }
 
+    @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.POLYGON;
+    }
+
     /**
      * Returns a location that is the closest point within the polygon to the centroid. The function
      * delegates to the Geometry class which delegates to the InteriorPointPoint class. You can see
@@ -378,31 +379,52 @@ public class Polygon extends PolyLine implements GeometricSurface
 
     /**
      * @return True if this {@link Polygon} is arranged clockwise, false otherwise.
-     * @see <a href="http://stackoverflow.com/questions/1165647"></a>
      * @see <a href=
-     *      "https://www.grasshopper3d.com/forum/topics/best-way-to-translate-latitude-longitude-data-into-xyz-points?commentId=2985220%3AComment%3A1804229"></a>
-     * @see <a href=
-     *      "https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_geodetic_to_ECEF_coordinates"></a>
+     *      "http://www.gutenberg.org/files/19770/19770-pdf.pdf?session_id=374cbf5aca81b1a742aac0879dbea5eb35f914ea"></a>
+     * @see <a href="http://mathforum.org/library/drmath/view/51879.html"></a>
+     * @see <a href="http://mathforum.org/library/drmath/view/65316.html"></a>
      */
     public boolean isClockwise()
     {
-        double sum = 0;
-        EarthCenteredEarthFixedCoordinate previousCartesianPoint = null;
+        // Formula to calculate the area of triangle on a sphere is (A + B + C - Pi) * radius *
+        // radius.
+        // Equation (A + B + C - Pi) is called the spherical excess. We are going to divide our
+        // polygon in triangles and then calculate the signed area of each triangle. Sum of the
+        // areas of these triangles will be the area of this polygon
+        double sphericalExcess = 0;
+        Location previousLocation = null;
 
         for (final Location point : this.closedLoop())
         {
-            // This will return earth centered cartesian coordinates for a location
-            final EarthCenteredEarthFixedCoordinate newCartesianPoint = new EarthCenteredEarthFixedCoordinate(
-                    point);
+            final Location currentLocation = point;
 
-            if (previousCartesianPoint != null)
+            if (previousLocation != null)
             {
-                sum += (newCartesianPoint.getX() - previousCartesianPoint.getX())
-                        * (newCartesianPoint.getY() + previousCartesianPoint.getY());
+                // for the sake of simplicity we are using two vertices from the polygon and the
+                // third vertex would be North Pole.
+                // Please refer "Spherical Trigonometry by I.Todhunter".
+                // Section starting on page 7 and 17 for triangle identities and trigonometric
+                // functions.
+                // Also look on page 71 for getting the area of triangle
+                final double latitudeOne = previousLocation.getLatitude().asRadians();
+                final double latitudeTwo = currentLocation.getLatitude().asRadians();
+                final double deltaLongitude = currentLocation.getLongitude().asRadians()
+                        - previousLocation.getLongitude().asRadians();
+
+                final double alpha = Math
+                        .sqrt((1 - Math.sin(latitudeOne)) / (1 + Math.sin(latitudeOne)))
+                        * Math.sqrt((1 - Math.sin(latitudeTwo)) / (1 + Math.sin(latitudeTwo)));
+
+                // You can derive this from the formula on Page 74, point 102 of the book
+                sphericalExcess += 2 * Math.atan2(alpha * Math.sin(deltaLongitude),
+                        1 + alpha * Math.cos(deltaLongitude));
             }
-            previousCartesianPoint = newCartesianPoint;
+            previousLocation = currentLocation;
         }
-        return sum >= 0;
+
+        // Instead of area of polygon this method returns the spherical access as multiplying with
+        // Earth (radius) ^ 2 is not going to change the sign of the area
+        return sphericalExcess <= 0;
     }
 
     public int nextSegmentIndex(final int currentVertexIndex)
