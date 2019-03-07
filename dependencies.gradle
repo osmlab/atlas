@@ -1,5 +1,5 @@
 project.ext.versions = [
-    checkstyle: '7.6.1',
+    checkstyle: '8.18',
     junit: '4.12',
     slf4j: '1.7.12',
     log4j: '1.2.17',

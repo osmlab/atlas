@@ -47,7 +47,7 @@ public class ImmutableListCollector<T extends Comparable<T>>
     @Override
     public Function<Builder<T>, ImmutableList<T>> finisher()
     {
-        return (builder) -> builder.build();
+        return builder -> builder.build();
     }
 
     @Override

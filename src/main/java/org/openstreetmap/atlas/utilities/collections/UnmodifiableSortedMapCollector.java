@@ -63,7 +63,7 @@ public class UnmodifiableSortedMapCollector<T, K extends Comparable<K>, U>
     @Override
     public Function<SortedMap<K, U>, SortedMap<K, U>> finisher()
     {
-        return (original) -> Collections.unmodifiableSortedMap(original);
+        return original -> Collections.unmodifiableSortedMap(original);
     }
 
     @Override
