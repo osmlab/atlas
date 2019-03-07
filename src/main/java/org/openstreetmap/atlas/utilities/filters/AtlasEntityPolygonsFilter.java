@@ -90,11 +90,13 @@ public final class AtlasEntityPolygonsFilter implements Predicate<AtlasEntity>, 
         includePolygons = includePolygonMap != null ? getPolygonsFromFormatMap(includePolygonMap)
                 : Collections.EMPTY_LIST;
         includeMultiPolygons = includeMultiPolygonMap != null
-                ? getMultiPolygonsFromFormatMap(includeMultiPolygonMap) : Collections.EMPTY_LIST;
+                ? getMultiPolygonsFromFormatMap(includeMultiPolygonMap)
+                : Collections.EMPTY_LIST;
         excludePolygons = excludePolygonMap != null ? getPolygonsFromFormatMap(excludePolygonMap)
                 : Collections.EMPTY_LIST;
         excludeMultiPolygons = excludeMultiPolygonMap != null
-                ? getMultiPolygonsFromFormatMap(excludeMultiPolygonMap) : Collections.EMPTY_LIST;
+                ? getMultiPolygonsFromFormatMap(excludeMultiPolygonMap)
+                : Collections.EMPTY_LIST;
 
         if (!includePolygons.isEmpty() || !includeMultiPolygons.isEmpty())
         {

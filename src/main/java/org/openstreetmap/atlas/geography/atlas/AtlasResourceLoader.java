@@ -81,7 +81,8 @@ public class AtlasResourceLoader
     public Atlas load(final Iterable<? extends Resource> input)
     {
         final Predicate<Resource> toggleableAtlasFileFilter = this.filterForAtlasFileExtension
-                ? IS_ATLAS : this.alwaysTrueAtlasFilter;
+                ? IS_ATLAS
+                : this.alwaysTrueAtlasFilter;
 
         final List<Resource> resources = Iterables.stream(input).flatMap(this::resourcesIn)
                 .filter(toggleableAtlasFileFilter).filter(this.resourceFilter).collectToList();

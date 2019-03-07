@@ -116,13 +116,16 @@ public class ProtoAtlasBuilder
         }
 
         final String codeVersion = protoAtlasMetaData.hasCodeVersion()
-                ? protoAtlasMetaData.getCodeVersion() : NULL_SENTINEL;
+                ? protoAtlasMetaData.getCodeVersion()
+                : NULL_SENTINEL;
         final String dataVersion = protoAtlasMetaData.hasDataVersion()
-                ? protoAtlasMetaData.getDataVersion() : NULL_SENTINEL;
+                ? protoAtlasMetaData.getDataVersion()
+                : NULL_SENTINEL;
         final String country = protoAtlasMetaData.hasCountry() ? protoAtlasMetaData.getCountry()
                 : NULL_SENTINEL;
         final String shardName = protoAtlasMetaData.hasShardName()
-                ? protoAtlasMetaData.getShardName() : NULL_SENTINEL;
+                ? protoAtlasMetaData.getShardName()
+                : NULL_SENTINEL;
 
         final Map<String, String> tags = PROTOTAG_LIST_CONVERTER
                 .convert(protoAtlasMetaData.getTagsList());

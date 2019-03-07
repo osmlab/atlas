@@ -171,10 +171,9 @@ public class MultiNode extends Node
                         missingEdgeAtlasNames.add(subAtlas.getName());
                     }
                 }
-                logger.warn(
-                        "Some edge got lost in translation, and is not in the MultiAtlas. "
-                                + "The node below probably has another node at the exact same location!\n\t"
-                                + "Node: {}\n\t" + "Edge connected: {}\n\t" + "From SubAtlas: {}",
+                logger.warn("Some edge got lost in translation, and is not in the MultiAtlas. "
+                        + "The node below probably has another node at the exact same location!\n\t"
+                        + "Node: {}\n\t" + "Edge connected: {}\n\t" + "From SubAtlas: {}",
                         this.identifier, subEdgeIdentifier, missingEdgeAtlasNames);
             }
             else

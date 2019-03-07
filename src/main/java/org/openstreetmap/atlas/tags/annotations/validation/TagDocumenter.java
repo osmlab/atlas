@@ -190,9 +190,11 @@ public class TagDocumenter
             returnValue.tagKey = tagName;
             returnValue.tagClassName = tagClass.getName();
             returnValue.osmWikiLink = results.getTag().osm().length() > 0
-                    ? URI.create(results.getTag().osm()) : null;
+                    ? URI.create(results.getTag().osm())
+                    : null;
             returnValue.tagInfoLink = results.getTag().taginfo().length() > 0
-                    ? URI.create(results.getTag().taginfo()) : null;
+                    ? URI.create(results.getTag().taginfo())
+                    : null;
             returnValue.localized = tagKey.value() == TagKey.KeyType.LOCALIZED;
             returnValue.validationType = results.getTag().value().name();
             returnValue.synthetic = results.getTag().synthetic();

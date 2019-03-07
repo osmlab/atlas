@@ -36,7 +36,21 @@ public class CountCoverageTestCaseRule extends CoreTestRule
                     @Edge(id = "1", coordinates = { @Loc(value = TWO),
                             @Loc(value = THREE) }, tags = { "highway=trunk" })
 
-            }, areas = { @Area(id = "0", coordinates = { @Loc(value = ONE), @Loc(value = TWO), @Loc(value = THREE) }, tags = { "addr:housenumber=25" }), @Area(id = "1", coordinates = { @Loc(value = ONE), @Loc(value = TWO), @Loc(value = THREE) }, tags = { "natural=water", "water=lake" }), @Area(id = "2", coordinates = { @Loc(value = ONE), @Loc(value = TWO), @Loc(value = THREE) }, tags = { "natural=water" }), @Area(id = "3", coordinates = { @Loc(value = ONE), @Loc(value = TWO), @Loc(value = THREE) }, tags = { "amenity=hospital" }), @Area(id = "4", coordinates = { @Loc(value = ONE), @Loc(value = TWO), @Loc(value = THREE) }, tags = { "amenity=unknown", "aeroway=aerodrome" }), @Area(id = "5", coordinates = { @Loc(value = ONE), @Loc(value = TWO), @Loc(value = THREE) }, tags = { "addr:housenumber=30", "addr:street=wardell" })
+            }, areas = {
+                    @Area(id = "0", coordinates = { @Loc(value = ONE), @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "addr:housenumber=25" }),
+                    @Area(id = "1", coordinates = { @Loc(value = ONE), @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "natural=water", "water=lake" }),
+                    @Area(id = "2", coordinates = { @Loc(value = ONE), @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "natural=water" }),
+                    @Area(id = "3", coordinates = { @Loc(value = ONE), @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "amenity=hospital" }),
+                    @Area(id = "4", coordinates = { @Loc(value = ONE), @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "amenity=unknown",
+                                    "aeroway=aerodrome" }),
+                    @Area(id = "5", coordinates = { @Loc(value = ONE), @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "addr:housenumber=30",
+                                    "addr:street=wardell" })
 
             }, lines = {
 
