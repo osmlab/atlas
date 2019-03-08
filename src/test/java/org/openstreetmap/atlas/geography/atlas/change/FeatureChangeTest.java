@@ -113,22 +113,24 @@ public class FeatureChangeTest
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
                 new CompletePoint(123L, Location.COLOSSEUM, null, null));
         Assert.assertEquals(Location.COLOSSEUM,
-                ((LocationItem) featureChange1.merge(featureChange2).getUpdatedView()).getLocation());
+                ((LocationItem) featureChange1.merge(featureChange2).getUpdatedView())
+                        .getLocation());
     }
 
     @Test
     public void testMergeNodes()
     {
-        final CompleteNode beforeNode = new CompleteNode(123L, Location.COLOSSEUM, null,
-                Sets.treeSet(1L, 2L, 3L), Sets.treeSet(10L, 11L, 12L), null);
+        final CompleteNode beforeNode = new CompleteNode(123L, null,
+                Maps.hashMap("a", "1", "b", "2"), Sets.treeSet(1L, 2L, 3L),
+                Sets.treeSet(10L, 11L, 12L), null);
 
-        final FeatureChange featureChange1 = new FeatureChange(
-                ChangeType.ADD, new CompleteNode(123L, Location.COLOSSEUM, null,
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteNode(123L, null, Maps.hashMap("a", "1", "c", "3"),
                         Sets.treeSet(1L, 2L, 3L, 4L), Sets.treeSet(10L, 11L, 12L, 13L), null),
                 beforeNode);
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
-                new CompleteNode(123L, Location.COLOSSEUM, null, Sets.treeSet(1L, 2L, 3L, 5L),
-                        Sets.treeSet(10L, 11L), null),
+                new CompleteNode(123L, null, Maps.hashMap("a", "1", "b", "2", "c", "3"),
+                        Sets.treeSet(1L, 2L, 3L, 5L), Sets.treeSet(10L, 11L), null),
                 beforeNode);
 
         // Testing with a hashset instead of a treeset for ease of typing
@@ -138,6 +140,8 @@ public class FeatureChangeTest
         Assert.assertEquals(Sets.hashSet(10L, 11L, 13L),
                 ((Node) featureChange1.merge(featureChange2).getUpdatedView()).outEdges().stream()
                         .map(edge -> edge.getIdentifier()).collect(Collectors.toSet()));
+        Assert.assertEquals(Maps.hashMap("a", "1", "c", "3"),
+                ((Node) featureChange1.merge(featureChange2).getUpdatedView()).getTags());
     }
 
     @Test
@@ -240,8 +244,9 @@ public class FeatureChangeTest
                 123L, null, Rectangle.TEST_RECTANGLE, members1, null, null, null, null));
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, new CompleteRelation(
                 123L, null, Rectangle.TEST_RECTANGLE, members2, null, null, null, null));
-        Assert.assertEquals(result, ((Relation) featureChange1.merge(featureChange2).getUpdatedView())
-                .members().asBean());
+        Assert.assertEquals(result,
+                ((Relation) featureChange1.merge(featureChange2).getUpdatedView()).members()
+                        .asBean());
     }
 
     @Test
