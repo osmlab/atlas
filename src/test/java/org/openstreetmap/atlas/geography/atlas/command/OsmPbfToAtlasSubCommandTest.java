@@ -62,7 +62,7 @@ public class OsmPbfToAtlasSubCommandTest
             // Test default relation filter
             Assert.assertNotNull(atlas.relation(2693943000000L));
             // Test default way filter
-            Assert.assertNull(atlas.area(167578604000000L));
+            Assert.assertNotNull(atlas.area(167578604000000L));
             // Test default way section filter
             Assert.assertNull(atlas.edge(87186195000018L));
         }

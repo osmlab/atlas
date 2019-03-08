@@ -2,9 +2,9 @@ package org.openstreetmap.atlas.geography.boundary;
 
 import java.util.List;
 
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.index.strtree.STRtree;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.index.strtree.STRtree;
 
 /**
  * This builder builds a spatial index using R-tree based on JTS. Unlike

@@ -301,7 +301,8 @@ public class BigNodeFinder implements Finder<BigNode>
         while (!junctionEdgeIds.isEmpty())
         {
             final Long candidateEdgeId = junctionRouteEdgeIds.isEmpty()
-                    ? junctionEdgeIds.iterator().next() : junctionRouteEdgeIds.iterator().next();
+                    ? junctionEdgeIds.iterator().next()
+                    : junctionRouteEdgeIds.iterator().next();
             final Edge candidate = atlas.edge(candidateEdgeId);
             final Route mergedCandidate = mergeJunctionEdges(Route.forEdge(candidate),
                     junctionEdgeIds);

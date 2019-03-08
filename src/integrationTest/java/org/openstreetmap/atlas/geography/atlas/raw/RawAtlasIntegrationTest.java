@@ -147,18 +147,19 @@ public class RawAtlasIntegrationTest
         Assert.assertEquals(0, rawAtlas.numberOfNodes());
         Assert.assertEquals(0, rawAtlas.numberOfEdges());
         Assert.assertEquals(0, rawAtlas.numberOfAreas());
-        Assert.assertEquals(74311, rawAtlas.numberOfPoints());
-        Assert.assertEquals(7817, rawAtlas.numberOfLines());
-        Assert.assertEquals(11, rawAtlas.numberOfRelations());
+        Assert.assertEquals(74342, rawAtlas.numberOfPoints());
+
+        Assert.assertEquals(7818, rawAtlas.numberOfLines());
+        Assert.assertEquals(17, rawAtlas.numberOfRelations());
 
         final Atlas slicedRawAtlas = sliceRawAtlas(rawAtlas, COUNTRIES);
 
         Assert.assertEquals(0, slicedRawAtlas.numberOfNodes());
         Assert.assertEquals(0, slicedRawAtlas.numberOfEdges());
         Assert.assertEquals(0, slicedRawAtlas.numberOfAreas());
-        Assert.assertEquals(74640, slicedRawAtlas.numberOfPoints());
-        Assert.assertEquals(8082, slicedRawAtlas.numberOfLines());
-        Assert.assertEquals(16, slicedRawAtlas.numberOfRelations());
+        Assert.assertEquals(74850, slicedRawAtlas.numberOfPoints());
+        Assert.assertEquals(8087, slicedRawAtlas.numberOfLines());
+        Assert.assertEquals(23, slicedRawAtlas.numberOfRelations());
 
         // Assert all raw Atlas entities have a country code
         assertAllEntitiesHaveCountryCode(slicedRawAtlas);
@@ -171,9 +172,9 @@ public class RawAtlasIntegrationTest
         Assert.assertEquals(0, ivoryCoast.numberOfNodes());
         Assert.assertEquals(0, ivoryCoast.numberOfEdges());
         Assert.assertEquals(0, ivoryCoast.numberOfAreas());
-        Assert.assertEquals(34784, ivoryCoast.numberOfPoints());
-        Assert.assertEquals(3636, ivoryCoast.numberOfLines());
-        Assert.assertEquals(6, ivoryCoast.numberOfRelations());
+        Assert.assertEquals(34960, ivoryCoast.numberOfPoints());
+        Assert.assertEquals(3637, ivoryCoast.numberOfLines());
+        Assert.assertEquals(12, ivoryCoast.numberOfRelations());
 
         // Assert all raw Atlas entities have a country code
         assertAllEntitiesHaveCountryCode(ivoryCoast);
@@ -184,10 +185,10 @@ public class RawAtlasIntegrationTest
 
         Assert.assertEquals(5011, finalAtlas.numberOfNodes());
         Assert.assertEquals(9764, finalAtlas.numberOfEdges());
-        Assert.assertEquals(5128, finalAtlas.numberOfAreas());
+        Assert.assertEquals(5133, finalAtlas.numberOfAreas());
         Assert.assertEquals(184, finalAtlas.numberOfPoints());
         Assert.assertEquals(326, finalAtlas.numberOfLines());
-        Assert.assertEquals(16, finalAtlas.numberOfRelations());
+        Assert.assertEquals(23, finalAtlas.numberOfRelations());
     }
 
     @Test
@@ -217,18 +218,17 @@ public class RawAtlasIntegrationTest
 
         final Atlas finalAtlas = new WaySectionProcessor(new SlippyTile(122, 122, 8),
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP),
-                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class
-                        .getResource(
-                                "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
+                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class.getResource(
+                        "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
                         .getFile())),
                 rawAtlasFetcher).run();
 
         Assert.assertEquals(5009, finalAtlas.numberOfNodes());
         Assert.assertEquals(9760, finalAtlas.numberOfEdges());
-        Assert.assertEquals(5126, finalAtlas.numberOfAreas());
+        Assert.assertEquals(5128, finalAtlas.numberOfAreas());
         Assert.assertEquals(184, finalAtlas.numberOfPoints());
         Assert.assertEquals(271, finalAtlas.numberOfLines());
-        Assert.assertEquals(16, finalAtlas.numberOfRelations());
+        Assert.assertEquals(23, finalAtlas.numberOfRelations());
     }
 
     @Test
@@ -405,9 +405,8 @@ public class RawAtlasIntegrationTest
     {
         return new WaySectionProcessor(shard,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP),
-                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class
-                        .getResource(
-                                "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
+                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class.getResource(
+                        "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
                         .getFile())),
                 rawAtlasFetcher).run();
     }

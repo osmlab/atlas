@@ -19,7 +19,9 @@ import org.openstreetmap.atlas.utilities.random.RandomTagsSupplier;
  * Tests for {@link BinaryChangeSetDeserializer}.
  *
  * @author mkalender
+ * @deprecated - see new API under org.openstreetmap.atlas.geography.atlas.change package.
  */
+@Deprecated
 public class BinaryChangeSetSerializerTest
 {
     private static final Random RANDOM_GENERATOR = new Random();

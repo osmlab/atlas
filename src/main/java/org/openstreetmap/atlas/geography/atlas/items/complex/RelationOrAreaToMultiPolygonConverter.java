@@ -17,6 +17,7 @@ import org.openstreetmap.atlas.utilities.maps.MultiMap;
  * if any.
  *
  * @author matthieun
+ * @author bbreithaupt
  */
 public class RelationOrAreaToMultiPolygonConverter implements Converter<AtlasEntity, MultiPolygon>
 {
@@ -49,7 +50,7 @@ public class RelationOrAreaToMultiPolygonConverter implements Converter<AtlasEnt
                     boolean added = false;
                     for (final Polygon outer : outerToInners.keySet())
                     {
-                        if (outer.overlaps(inner))
+                        if (outer.overlaps(inner) && !inner.fullyGeometricallyEncloses(outer))
                         {
                             outerToInners.add(outer, inner);
                             added = true;

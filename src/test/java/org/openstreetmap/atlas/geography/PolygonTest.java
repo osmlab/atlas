@@ -81,8 +81,30 @@ public class PolygonTest
     @Test
     public void testClockwise()
     {
-        Assert.assertTrue(this.quadrant.isClockwise());
-        Assert.assertFalse(this.quadrant.reversed().isClockwise());
+        String polygonWkt = "POLYGON ((-70.0020146 12.5265405, -70.0019978 12.5265112, -70.0019564 12.526534, -70.0019733 12.5265633, -70.0020146 12.5265405))";
+        Polygon polygon = Polygon.wkt(polygonWkt);
+        Assert.assertFalse(polygon.isClockwise());
+        Assert.assertTrue(polygon.reversed().isClockwise());
+
+        polygonWkt = "POLYGON((70.5233941 -49.2953329,70.5234584 -49.2955148,70.5235872 -49.2963964,70.5230722 -49.2963964,70.5229649 -49.2962145,70.5227718 -49.2961585,70.5225143 -49.2960186,70.5224285 -49.2958507,70.5226216 -49.2955568,70.5223426 -49.2955288,70.5225358 -49.295095,70.5233941 -49.2953329))";
+        polygon = Polygon.wkt(polygonWkt);
+        Assert.assertTrue(polygon.isClockwise());
+        Assert.assertFalse(polygon.reversed().isClockwise());
+
+        polygonWkt = "POLYGON((69.5530556 -49.2504684,69.5530878 -49.2504019,69.5530985 -49.2503494,69.5531736 -49.2504089,69.5533614 -49.2504054,69.553415 -49.2504439,69.553356 -49.250584,69.5531629 -49.2505455,69.5530556 -49.2504684))";
+        polygon = Polygon.wkt(polygonWkt);
+        Assert.assertTrue(polygon.isClockwise());
+        Assert.assertFalse(polygon.reversed().isClockwise());
+
+        polygonWkt = "POLYGON((-58.7546961 -51.5537665,-58.754588 -51.5537003,-58.754411 -51.553737,-58.7543466 -51.5538204,-58.7543573 -51.5539338,-58.7544324 -51.5539838,-58.7545995 -51.5539833,-58.754706 -51.5539371,-58.7547543 -51.5538638,-58.7547597 -51.5538004,-58.7553229 -51.5538738,-58.7546961 -51.5537665))";
+        polygon = Polygon.wkt(polygonWkt);
+        Assert.assertTrue(polygon.isClockwise());
+        Assert.assertFalse(polygon.reversed().isClockwise());
+
+        polygonWkt = "POLYGON((72.3694563 -7.2629912,72.3701314 -7.2625735,72.3702161 -7.2625939,72.370768 -7.2634826,72.3707654 -7.263559,72.37008 -7.2640046,72.3700107 -7.2639715,72.369428 -7.2630548,72.3694563 -7.2629912))";
+        polygon = Polygon.wkt(polygonWkt);
+        Assert.assertTrue(polygon.isClockwise());
+        Assert.assertFalse(polygon.reversed().isClockwise());
     }
 
     @Test
@@ -239,8 +261,8 @@ public class PolygonTest
     {
         // Shape represents a square with an additional smaller square on each corner, formed by 4
         // self intersections
-        final Polygon polygon = Polygon
-                .wkt("POLYGON ((-0.0380885 0.0238053, -0.0381783 0.0334173, -0.0255121 0.0337766, -0.0247036 -0.0263206, "
+        final Polygon polygon = Polygon.wkt(
+                "POLYGON ((-0.0380885 0.0238053, -0.0381783 0.0334173, -0.0255121 0.0337766, -0.0247036 -0.0263206, "
                         + "-0.0368309 -0.0268596, -0.03728 -0.0141933, 0.0270392 -0.0132052, 0.0273986 -0.0246138,"
                         + " 0.0171578 -0.0248833, 0.0153611 0.0342258, 0.0253324 0.0344953, 0.0257816 0.0256918, "
                         + "-0.0380885 0.0238053))");
@@ -673,8 +695,8 @@ public class PolygonTest
     public void testSelfIntersectingPolygon()
     {
         // shape is a figure 8, self intersecting in the middle
-        final Polygon polygon = Polygon
-                .wkt("POLYGON ((-0.0256918 0.0054797, -0.0220985 0.0120374, -0.0119475 0.0121272, -0.0054797 0.006917,"
+        final Polygon polygon = Polygon.wkt(
+                "POLYGON ((-0.0256918 0.0054797, -0.0220985 0.0120374, -0.0119475 0.0121272, -0.0054797 0.006917,"
                         + " -0.007995 -0.0128459, -0.0007186 -0.0194934, 0.0103306 -0.0186849, 0.0125764 -0.0098814, "
                         + "0.0026051 -0.0048509, -0.013834 -0.0050305, -0.0242545 -0.0008983, -0.0256918 0.0054797))");
         final Location area1 = Location.forString("0.0034136, -0.016529");

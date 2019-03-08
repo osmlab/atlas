@@ -1,5 +1,5 @@
 jacoco {
-    toolVersion = "0.8.1"
+    toolVersion = versions.jacoco
 }
 
 sourceSets
@@ -29,7 +29,7 @@ test
 }
 
 task integrationTest(type: Test) {
-    testClassesDir = sourceSets.integrationTest.output.classesDir
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
     testLogging
     {
@@ -64,7 +64,7 @@ spotless {
             include '**/*.java'
             exclude 'src/generated/**/*.java'
         }
-        importOrder(['static java', 'static javax', 'static org', 'static com', 'static scala', 'java', 'javax', 'org', 'com', 'scala'])
+        importOrder 'static java', 'static javax', 'static org', 'static com', 'static scala', 'java', 'javax', 'org', 'com', 'scala'
         removeUnusedImports()
         eclipse().configFile 'config/format/code_format.xml'
     }

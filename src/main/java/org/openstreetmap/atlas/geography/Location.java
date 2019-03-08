@@ -12,8 +12,8 @@ import org.openstreetmap.atlas.geography.converters.WkbLocationConverter;
 import org.openstreetmap.atlas.geography.converters.WktLocationConverter;
 import org.openstreetmap.atlas.geography.coordinates.EarthCenteredEarthFixedCoordinate;
 import org.openstreetmap.atlas.geography.coordinates.GeodeticCoordinate;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonGeometry;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.StringList;
@@ -27,7 +27,8 @@ import com.google.gson.JsonObject;
  * @author matthieun
  * @author mgostintsev
  */
-public class Location implements Located, Iterable<Location>, Serializable, GeometryPrintable
+public class Location
+        implements Located, Iterable<Location>, Serializable, GeometryPrintable, GeoJsonGeometry
 {
     private static final long serialVersionUID = 3770424147251047128L;
 
@@ -165,15 +166,16 @@ public class Location implements Located, Iterable<Location>, Serializable, Geom
         return result;
     }
 
-    public GeoJsonObject asGeoJson()
+    @Override
+    public boolean within(final GeometricSurface surface)
     {
-        return new GeoJsonBuilder().create(this);
+        return surface.fullyGeometricallyEncloses(this);
     }
 
     @Override
     public JsonObject asGeoJsonGeometry()
     {
-        return GeoJsonUtils.geometry(GeoJsonUtils.POINT, GeoJsonUtils.coordinate(this));
+        return GeoJsonUtils.geometry(GeoJsonType.POINT, GeoJsonUtils.coordinate(this));
     }
 
     @Override
@@ -249,6 +251,12 @@ public class Location implements Located, Iterable<Location>, Serializable, Geom
         final double yAxis = lat2 - lat1;
 
         return Distance.AVERAGE_EARTH_RADIUS.scaleBy(Math.sqrt(xAxis * xAxis + yAxis * yAxis));
+    }
+
+    @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.POINT;
     }
 
     /**

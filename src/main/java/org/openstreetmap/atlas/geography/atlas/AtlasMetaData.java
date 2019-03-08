@@ -7,11 +7,14 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonProperties;
 import org.openstreetmap.atlas.proto.ProtoSerializable;
 import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
 import org.openstreetmap.atlas.proto.adapters.ProtoAtlasMetaDataAdapter;
 import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.utilities.collections.Maps;
+
+import com.google.gson.JsonObject;
 
 /**
  * Meta data for an {@link Atlas}
@@ -19,7 +22,8 @@ import org.openstreetmap.atlas.utilities.collections.Maps;
  * @author matthieun
  * @author lcram
  */
-public final class AtlasMetaData implements Serializable, Taggable, ProtoSerializable
+public final class AtlasMetaData
+        implements Serializable, Taggable, ProtoSerializable, GeoJsonProperties
 {
     private static final long serialVersionUID = -285346019736489425L;
 
@@ -138,6 +142,30 @@ public final class AtlasMetaData implements Serializable, Taggable, ProtoSeriali
     public Optional<String> getDataVersion()
     {
         return Optional.ofNullable(this.dataVersion);
+    }
+
+    @Override
+    public JsonObject getGeoJsonProperties()
+    {
+        final JsonObject properties = new JsonObject();
+        properties.add("size", this.getSize().getGeoJsonProperties());
+        properties.addProperty("original", this.isOriginal());
+        this.getCodeVersion()
+                .ifPresent(versionString -> properties.addProperty("Code Version", versionString));
+        this.getDataVersion()
+                .ifPresent(versionString -> properties.addProperty("Data Version", versionString));
+        this.getCountry()
+                .ifPresent(countryString -> properties.addProperty("Country", countryString));
+        this.getShardName()
+                .ifPresent(theShardName -> properties.addProperty("Shard Name", theShardName));
+        this.getTags().forEach((key, value) ->
+        {
+            if (!properties.has(key))
+            {
+                properties.addProperty(key, value);
+            }
+        });
+        return properties;
     }
 
     @Override

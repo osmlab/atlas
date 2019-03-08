@@ -6,9 +6,9 @@ plugins {
 	id 'signing'
 	id 'checkstyle'
 	id 'jacoco'
-	id "com.diffplug.gradle.spotless" version "3.4.0"
+	id "com.diffplug.gradle.spotless" version "3.18.0"
 	id 'org.sonarqube' version '2.6.2'
-	id 'com.google.protobuf' version '0.8.1'
+	id 'com.google.protobuf' version '0.8.8'
 	// id "io.codearte.nexus-staging" version "0.12.0"
 }
 
@@ -58,9 +58,11 @@ dependencies
     compile packages.jsonassert
     compile packages.jackson.core
     compile packages.jackson.databind
+    compile packages.jackson.dataformat
     compile packages.protobuf_java
     compile packages.protoc
     compile packages.artifact
+    compile packages.groovy
 
     shaded project.configurations.getByName('compile')
     shaded packages.slf4j.log4j12

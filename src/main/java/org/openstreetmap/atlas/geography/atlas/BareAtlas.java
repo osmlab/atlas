@@ -13,11 +13,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -38,8 +39,8 @@ import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.geography.atlas.items.SnappedEdge;
 import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.geography.atlas.sub.SubAtlasCreator;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonFeatureCollection;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.proto.builder.ProtoAtlasBuilder;
 import org.openstreetmap.atlas.streaming.Streams;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
@@ -62,7 +63,6 @@ public abstract class BareAtlas implements Atlas
     private static final long serialVersionUID = 4733707438968864018L;
     public static final int MAXIMUM_RELATION_DEPTH = 500;
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
-    private static final AtomicInteger ATLAS_IDENTIFIER_FACTORY = new AtomicInteger();
 
     static
     {
@@ -71,14 +71,11 @@ public abstract class BareAtlas implements Atlas
 
     // Transient name
     private transient String name;
-
-    private final transient int identifier;
-    private final transient SubAtlasCreator subAtlas;
+    private final UUID identifier;
 
     protected BareAtlas()
     {
-        this.identifier = ATLAS_IDENTIFIER_FACTORY.getAndIncrement();
-        this.subAtlas = new SubAtlasCreator(this);
+        this.identifier = UUID.randomUUID();
     }
 
     @Override
@@ -88,16 +85,30 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public GeoJsonObject asGeoJson()
+    public JsonObject asGeoJson()
     {
-        return asGeoJson(entity -> true);
+        return GeoJsonUtils.featureCollection(this);
     }
 
     @Override
-    public GeoJsonObject asGeoJson(final Predicate<AtlasEntity> matcher)
+    public JsonObject asGeoJson(final Predicate<AtlasEntity> matcher)
     {
-        return new GeoJsonBuilder().create(Iterables.filterTranslate(entities(),
-                atlasEntity -> atlasEntity.toGeoJsonBuildingBlock(), matcher));
+        return GeoJsonUtils.featureCollection(new GeoJsonFeatureCollection<AtlasEntity>()
+        {
+            @Override
+            public Iterable<AtlasEntity> getGeoJsonObjects()
+            {
+                return entities(matcher);
+            }
+
+            @Override
+            public JsonObject getGeoJsonProperties()
+            {
+                final JsonObject properties = BareAtlas.this.getGeoJsonProperties();
+                properties.addProperty("Entity filter used", true);
+                return properties;
+            }
+        });
     }
 
     @Override
@@ -148,17 +159,17 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public Iterable<AtlasEntity> entitiesIntersecting(final Polygon polygon)
+    public Iterable<AtlasEntity> entitiesIntersecting(final GeometricSurface surface)
     {
-        return new MultiIterable<>(itemsIntersecting(polygon),
-                relationsWithEntitiesIntersecting(polygon));
+        return new MultiIterable<>(itemsIntersecting(surface),
+                relationsWithEntitiesIntersecting(surface));
     }
 
     @Override
-    public Iterable<AtlasEntity> entitiesIntersecting(final Polygon polygon,
+    public Iterable<AtlasEntity> entitiesIntersecting(final GeometricSurface surface,
             final Predicate<AtlasEntity> matcher)
     {
-        return Iterables.filter(entitiesIntersecting(polygon), matcher);
+        return Iterables.filter(entitiesIntersecting(surface), matcher);
     }
 
     @Override
@@ -249,7 +260,21 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public int getIdentifier()
+    public Iterable<AtlasEntity> getGeoJsonObjects()
+    {
+        return entities();
+    }
+
+    @Override
+    public JsonObject getGeoJsonProperties()
+    {
+        final JsonObject properties = this.metaData().getGeoJsonProperties();
+        properties.addProperty("name", this.getName());
+        return properties;
+    }
+
+    @Override
+    public UUID getIdentifier()
     {
         return this.identifier;
     }
@@ -301,24 +326,24 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public Iterable<AtlasItem> itemsIntersecting(final Polygon polygon)
+    public Iterable<AtlasItem> itemsIntersecting(final GeometricSurface surface)
     {
-        return new MultiIterable<>(edgesIntersecting(polygon), nodesWithin(polygon),
-                areasIntersecting(polygon), linesIntersecting(polygon), pointsWithin(polygon));
+        return new MultiIterable<>(edgesIntersecting(surface), nodesWithin(surface),
+                areasIntersecting(surface), linesIntersecting(surface), pointsWithin(surface));
     }
 
     @Override
-    public Iterable<AtlasItem> itemsIntersecting(final Polygon polygon,
+    public Iterable<AtlasItem> itemsIntersecting(final GeometricSurface surface,
             final Predicate<AtlasItem> matcher)
     {
-        return Iterables.filter(itemsIntersecting(polygon), matcher);
+        return Iterables.filter(itemsIntersecting(surface), matcher);
     }
 
     @Override
-    public Iterable<AtlasItem> itemsWithin(final Polygon polygon)
+    public Iterable<AtlasItem> itemsWithin(final GeometricSurface surface)
     {
-        return new MultiIterable<>(locationItemsWithin(polygon), lineItemsWithin(polygon),
-                areasWithin(polygon));
+        return new MultiIterable<>(locationItemsWithin(surface), lineItemsWithin(surface),
+                areasWithin(surface));
     }
 
     @Override
@@ -354,22 +379,22 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public Iterable<LineItem> lineItemsIntersecting(final Polygon polygon)
+    public Iterable<LineItem> lineItemsIntersecting(final GeometricSurface surface)
     {
-        return new MultiIterable<>(edgesIntersecting(polygon), linesIntersecting(polygon));
+        return new MultiIterable<>(edgesIntersecting(surface), linesIntersecting(surface));
     }
 
     @Override
-    public Iterable<LineItem> lineItemsIntersecting(final Polygon polygon,
+    public Iterable<LineItem> lineItemsIntersecting(final GeometricSurface surface,
             final Predicate<LineItem> matcher)
     {
-        return Iterables.filter(lineItemsIntersecting(polygon), matcher);
+        return Iterables.filter(lineItemsIntersecting(surface), matcher);
     }
 
     @Override
-    public Iterable<LineItem> lineItemsWithin(final Polygon polygon)
+    public Iterable<LineItem> lineItemsWithin(final GeometricSurface surface)
     {
-        return new MultiIterable<>(edgesWithin(polygon), linesWithin(polygon));
+        return new MultiIterable<>(edgesWithin(surface), linesWithin(surface));
     }
 
     @Override
@@ -391,16 +416,16 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public Iterable<LocationItem> locationItemsWithin(final Polygon polygon)
+    public Iterable<LocationItem> locationItemsWithin(final GeometricSurface surface)
     {
-        return new MultiIterable<>(nodesWithin(polygon), pointsWithin(polygon));
+        return new MultiIterable<>(nodesWithin(surface), pointsWithin(surface));
     }
 
     @Override
-    public Iterable<LocationItem> locationItemsWithin(final Polygon polygon,
+    public Iterable<LocationItem> locationItemsWithin(final GeometricSurface surface,
             final Predicate<LocationItem> matcher)
     {
-        return Iterables.filter(locationItemsWithin(polygon), matcher);
+        return Iterables.filter(locationItemsWithin(surface), matcher);
     }
 
     @Override
@@ -490,7 +515,7 @@ public abstract class BareAtlas implements Atlas
     {
         try (JsonWriter writer = new JsonWriter(resource))
         {
-            writer.write(this.asGeoJson(matcher).jsonObject());
+            writer.write(this.asGeoJson(matcher));
         }
     }
 
@@ -510,7 +535,7 @@ public abstract class BareAtlas implements Atlas
         {
             entities(matcher).forEach(entity ->
             {
-                final JsonObject feature = entity.asGeoJsonGeometry();
+                final JsonObject feature = entity.asGeoJson();
                 jsonMutator.accept(entity, feature);
                 writer.writeLine(feature);
             });
@@ -574,16 +599,18 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public Optional<Atlas> subAtlas(final Polygon boundary, final AtlasCutType cutType)
+    public Optional<Atlas> subAtlas(final GeometricSurface boundary, final AtlasCutType cutType)
     {
         switch (cutType)
         {
+            case SILK_CUT:
+                return SubAtlasCreator.silkCut(this, boundary);
             case SOFT_CUT:
-                return this.subAtlas.softCut(boundary, false);
+                return SubAtlasCreator.softCut(this, boundary, false);
             case HARD_CUT_ALL:
-                return this.subAtlas.hardCutAllEntities(boundary);
+                return SubAtlasCreator.hardCutAllEntities(this, boundary);
             case HARD_CUT_RELATIONS_ONLY:
-                return this.subAtlas.softCut(boundary, true);
+                return SubAtlasCreator.softCut(this, boundary, true);
             default:
                 throw new CoreException("Unsupported Atlas cut type: {}", cutType);
         }
@@ -595,12 +622,14 @@ public abstract class BareAtlas implements Atlas
     {
         switch (cutType)
         {
+            case SILK_CUT:
+                return SubAtlasCreator.silkCut(this, matcher);
             case SOFT_CUT:
-                return this.subAtlas.softCut(matcher);
+                return SubAtlasCreator.softCut(this, matcher);
             case HARD_CUT_ALL:
-                return this.subAtlas.hardCutAllEntities(matcher);
+                return SubAtlasCreator.hardCutAllEntities(this, matcher);
             case HARD_CUT_RELATIONS_ONLY:
-                return this.subAtlas.hardCutRelationsOnly(matcher);
+                return SubAtlasCreator.hardCutRelationsOnly(this, matcher);
             default:
                 throw new CoreException("Unsupported Atlas cut type: {}", cutType);
         }

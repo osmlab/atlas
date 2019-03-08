@@ -29,7 +29,9 @@ import org.slf4j.LoggerFactory;
  * </p>
  *
  * @author Yiqing Jin
+ * @deprecated - see new API under org.openstreetmap.atlas.geography.atlas.change package.
  */
+@Deprecated
 public class ChangeSetAtlasBuilder
 {
     private static final Logger logger = LoggerFactory.getLogger(ChangeSetAtlasBuilder.class);

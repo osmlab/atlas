@@ -4,6 +4,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.locationtech.jts.geom.Envelope;
 import org.opengis.geometry.BoundingBox;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -14,7 +15,6 @@ import org.openstreetmap.atlas.utilities.scalars.Surface;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
-import com.vividsolutions.jts.geom.Envelope;
 
 /**
  * A rectangle on the surface of earth. It cannot span the date change line (longitude -180)

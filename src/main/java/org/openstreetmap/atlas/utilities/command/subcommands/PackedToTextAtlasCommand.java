@@ -2,13 +2,8 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 
-import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
-import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
-import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
+import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
@@ -16,14 +11,14 @@ import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasSh
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
-import org.openstreetmap.atlas.utilities.command.subcommands.templates.VariadicAtlasLoaderCommand;
+import org.openstreetmap.atlas.utilities.command.subcommands.templates.AtlasLoaderCommand;
 
 /**
  * @author lcram
  */
-public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
+public class PackedToTextAtlasCommand extends AtlasLoaderCommand
 {
-    private static final String SAVED_TO = "Saved to ";
+    private static final String SAVED_TO = "saved to ";
 
     private static final String GEOJSON_OPTION_LONG = "geojson";
     private static final Character GEOJSON_OPTION_SHORT = 'g';
@@ -32,10 +27,6 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     private static final String LDGEOJSON_OPTION_LONG = "ldgeojson";
     private static final Character LDGEOJSON_OPTION_SHORT = 'l';
     private static final String LDGEOJSON_OPTION_DESCRIPTION = "Save atlas as line-delimited GeoJSON.";
-
-    private static final String PARALLEL_OPTION_LONG = "parallel";
-    private static final Character PARALLEL_OPTION_SHORT = 'p';
-    private static final String PARALLEL_OPTION_DESCRIPTION = "Process the atlases in parallel.";
 
     private static final Integer GEOJSON_CONTEXT = 4;
     private static final Integer LDGEOJSON_CONTEXT = 5;
@@ -53,52 +44,6 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
         super();
         this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
-    }
-
-    @Override
-    public int execute()
-    {
-        final List<File> atlasResourceList = this.getInputAtlasResources();
-        if (atlasResourceList.isEmpty())
-        {
-            this.outputDelegate.printlnErrorMessage("no input atlases");
-            return 1;
-        }
-        final Stream<File> atlasResourceStream = atlasResourceList.stream();
-
-        final Optional<Path> outputParentPath = this.getOutputPath();
-        if (!outputParentPath.isPresent())
-        {
-            this.outputDelegate.printlnErrorMessage("invalid output path");
-            return 1;
-        }
-
-        if (this.optionAndArgumentDelegate.hasOption(PARALLEL_OPTION_LONG))
-        {
-            atlasResourceStream.parallel();
-        }
-
-        atlasResourceStream.forEach(resource ->
-        {
-            if (this.optionAndArgumentDelegate.hasVerboseOption())
-            {
-                this.outputDelegate.printlnStdout(
-                        "Converting " + resource.getFile().getAbsolutePath() + "...");
-            }
-            final PackedAtlas outputAtlas = new PackedAtlasCloner()
-                    .cloneFrom(new AtlasResourceLoader().load(resource));
-            try
-            {
-                writeOutput(resource, outputParentPath, outputAtlas);
-            }
-            catch (final Exception exception)
-            {
-                this.outputDelegate.printlnErrorMessage("failed to save text file for "
-                        + resource.getFile().getName() + ": " + exception.getMessage());
-            }
-        });
-
-        return 0;
     }
 
     @Override
@@ -126,27 +71,39 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
     @Override
     public void registerOptionsAndArguments()
     {
+        registerEmptyContext(AbstractAtlasShellToolsCommand.DEFAULT_CONTEXT);
         registerOption(GEOJSON_OPTION_LONG, GEOJSON_OPTION_SHORT, GEOJSON_OPTION_DESCRIPTION,
                 OptionOptionality.REQUIRED, GEOJSON_CONTEXT);
         registerOption(LDGEOJSON_OPTION_LONG, LDGEOJSON_OPTION_SHORT, LDGEOJSON_OPTION_DESCRIPTION,
                 OptionOptionality.REQUIRED, LDGEOJSON_CONTEXT);
-        registerOption(PARALLEL_OPTION_LONG, PARALLEL_OPTION_SHORT, PARALLEL_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, AbstractAtlasShellToolsCommand.DEFAULT_CONTEXT,
-                GEOJSON_CONTEXT, LDGEOJSON_CONTEXT);
         super.registerOptionsAndArguments();
     }
 
-    private void writeOutput(final File resource, final Optional<Path> outputParentPath,
-            final PackedAtlas outputAtlas)
+    @Override
+    protected void processAtlas(final Atlas atlas, final String atlasFileName,
+            final File atlasResource)
     {
-        if (!outputParentPath.isPresent())
+        if (this.optionAndArgumentDelegate.hasVerboseOption())
         {
-            return;
+            this.outputDelegate
+                    .printlnCommandMessage("converting " + atlasResource.getPath() + "...");
         }
+        try
+        {
+            writeOutput(atlasFileName, atlas);
+        }
+        catch (final Exception exception)
+        {
+            this.outputDelegate.printlnErrorMessage("failed to save text file for "
+                    + atlasResource.getPath() + ": " + exception.getMessage());
+        }
+    }
 
-        final String filePath = this.getFileNameNoSuffix(resource);
-        final Path concatenatedPath = Paths.get(outputParentPath.get().toAbsolutePath().toString(),
-                filePath);
+    private void writeOutput(final String atlasFileName, final Atlas outputAtlas)
+    {
+        final String fileName = AtlasLoaderCommand.removeSuffixFromFileName(atlasFileName);
+        final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
+                fileName);
         File outputFile = null;
 
         if (this.optionAndArgumentDelegate
@@ -178,7 +135,8 @@ public class PackedToTextAtlasCommand extends VariadicAtlasLoaderCommand
 
         if (this.optionAndArgumentDelegate.hasVerboseOption())
         {
-            this.outputDelegate.printlnStdout(SAVED_TO + outputFile.getFile().getAbsolutePath());
+            this.outputDelegate
+                    .printlnCommandMessage(SAVED_TO + outputFile.getFile().getAbsolutePath());
         }
     }
 }

@@ -19,7 +19,6 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.MultiPolygon;
-import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.WktPrintable;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -29,6 +28,8 @@ import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonFeatureCollection;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
@@ -47,7 +48,8 @@ import com.google.gson.JsonObject;
  * @author Sid
  * @author hallahan
  */
-public abstract class Relation extends AtlasEntity implements Iterable<RelationMember>
+public abstract class Relation extends AtlasEntity
+        implements Iterable<RelationMember>, GeoJsonFeatureCollection<RelationMember>
 {
     /**
      * The ring type of a {@link MultiPolygon} member.
@@ -85,10 +87,14 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     public abstract List<Relation> allRelationsWithSameOsmIdentifier();
 
     @Override
+    public JsonObject asGeoJson()
+    {
+        return GeoJsonUtils.feature(this);
+    }
+
+    @Override
     public JsonObject asGeoJsonGeometry()
     {
-        final JsonObject properties = geoJsonProperties();
-
         // Can't be final due to catch block may reassign.
         JsonObject geometry;
 
@@ -96,7 +102,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         // We want multipolygons, but not boundaries, as we can render boundaries' ways by
         // themselves fine.
         // The isMultiPolygon() method also includes boundaries, which we do not want.
-        if (Validators.isOfType(this, RelationTypeTag.class, RelationTypeTag.MULTIPOLYGON))
+        if (this.isMultiPolygon())
         {
             try
             {
@@ -111,8 +117,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
             {
                 final String message = String.format("%s - %s",
                         exception.getClass().getSimpleName(), exception.getMessage());
-                properties.addProperty("exception", message);
-                logger.warn("Unable to recreate multipolygon for relation {}.", getIdentifier(),
+                logger.error("Unable to recreate multipolygon for relation {}. {}", getIdentifier(),
                         message);
                 geometry = GeoJsonUtils.boundsToPolygonGeometry(bounds());
             }
@@ -123,10 +128,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
         {
             geometry = GeoJsonUtils.boundsToPolygonGeometry(bounds());
         }
-
-        addMembersToProperties(properties);
-
-        return GeoJsonUtils.feature(geometry, properties);
+        return geometry;
     }
 
     @Override
@@ -166,10 +168,10 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
      */
     public Set<AtlasObject> flatten()
     {
-        final Set<AtlasObject> relationMembers = new HashSet<>();
         final Deque<AtlasObject> toProcess = new LinkedList<>();
         final Set<Long> relationsSeen = new HashSet<>();
         AtlasObject polledMember;
+        final Set<AtlasObject> relationMembers = new HashSet<>();
 
         toProcess.add(this);
         while (!toProcess.isEmpty())
@@ -194,6 +196,35 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
     }
 
     /**
+     * "Flattens" the relation by returning the set of child Relation members, recursively.
+     *
+     * @return a Set of IDs for all sub Relations.
+     */
+    public Set<Long> flattenRelations()
+    {
+        final Deque<AtlasObject> toProcess = new LinkedList<>();
+        final Set<Long> subrelations = new HashSet<>();
+        AtlasObject polledMember;
+
+        toProcess.add(this);
+        while (!toProcess.isEmpty())
+        {
+            polledMember = toProcess.poll();
+            if (polledMember instanceof Relation)
+            {
+                if (subrelations.contains(polledMember.getIdentifier()))
+                {
+                    continue;
+                }
+                ((Relation) polledMember).members()
+                        .forEach(member -> toProcess.add(member.getEntity()));
+                subrelations.add(polledMember.getIdentifier());
+            }
+        }
+        return subrelations;
+    }
+
+    /**
      * @return the {@link RelationBean} representation of the Relation
      */
     public RelationBean getBean()
@@ -205,6 +236,31 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
             bean.addItem(entity.getIdentifier(), member.getRole(), entity.getType());
         }
         return bean;
+    }
+
+    @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.FEATURE;
+    }
+
+    @Override
+    public JsonObject getGeoJsonProperties()
+    {
+        final JsonObject properties = super.getGeoJsonProperties();
+        addMembersToProperties(properties);
+        return properties;
+    }
+
+    public JsonObject getGeoJsonPropertiesWithoutMembers()
+    {
+        return super.getGeoJsonProperties();
+    }
+
+    @Override
+    public Iterable<RelationMember> getGeoJsonObjects()
+    {
+        return this;
     }
 
     @Override
@@ -348,15 +404,17 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
 
     /**
      * Return {@code true} if this Relation has all members fully within the supplied
-     * {@link Polygon}.
+     * {@link GeometricSurface}.
      *
-     * @param polygon
-     *            The {@link Polygon} to check for
-     * @return {@code true} if the relation has all members within the given {@link Polygon}
+     * @param surface
+     *            The {@link GeometricSurface} to check for
+     * @return {@code true} if the relation has all members within the given
+     *         {@link GeometricSurface}
      */
-    public boolean within(final Polygon polygon)
+    @Override
+    public boolean within(final GeometricSurface surface)
     {
-        return withinInternal(polygon, new LinkedHashSet<>());
+        return withinInternal(surface, new LinkedHashSet<>());
     }
 
     /**
@@ -454,13 +512,14 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
      * {@link PackedAtlas} but could happen when two {@link Atlas} are combined into a
      * {@link MultiAtlas}.
      *
-     * @param polygon
-     *            The {@link Polygon} to check for
+     * @param surface
+     *            The {@link GeometricSurface} to check for
      * @param parentRelationIdentifiers
      *            The identifiers of the parent relations that have already been visited.
-     * @return {@code true} if the relation has all members within the given {@link Polygon}
+     * @return {@code true} if the relation has all members within the given
+     *         {@link GeometricSurface}
      */
-    protected boolean withinInternal(final Polygon polygon,
+    protected boolean withinInternal(final GeometricSurface surface,
             final Set<Long> parentRelationIdentifiers)
     {
         for (final RelationMember member : this)
@@ -476,24 +535,13 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
                 else
                 {
                     parentRelationIdentifiers.add(identifier);
-                    if (!((Relation) entity).withinInternal(polygon, parentRelationIdentifiers))
+                    if (!((Relation) entity).withinInternal(surface, parentRelationIdentifiers))
                     {
                         return false;
                     }
                 }
             }
-            else if (entity instanceof LineItem
-                    && !polygon.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine()))
-            {
-                return false;
-            }
-            else if (entity instanceof LocationItem
-                    && !polygon.fullyGeometricallyEncloses(((LocationItem) entity).getLocation()))
-            {
-                return false;
-            }
-            else if (entity instanceof Area
-                    && !polygon.fullyGeometricallyEncloses(((Area) entity).asPolygon()))
+            else if (isUnenclosedNonRelationEntity(surface, entity))
             {
                 return false;
             }
@@ -503,7 +551,7 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
 
     /**
      * We explicitly want to add member metadata to the properties of Relations, but only when we
-     * are serializing relation entities. Overriding geoJsonProperties() would not work properly,
+     * are serializing relation entities. Overriding getGeoJsonProperties() would not work properly,
      * because that gets called when you are listing metadata about relations a non-relation entity
      * may be in. Calling this method, only in this class, avoids a recursive call that would list
      * members of relations in relation metadata for non-relation entities.
@@ -542,6 +590,44 @@ public abstract class Relation extends AtlasEntity implements Iterable<RelationM
                 // And sometimes the role is "", but we should keep it that way...
                 memberObject.addProperty("role", role);
             }
+        }
+    }
+
+    private boolean isUnenclosedArea(final AtlasEntity entity, final GeometricSurface surface)
+    {
+        return entity instanceof Area
+                && !surface.fullyGeometricallyEncloses(((Area) entity).asPolygon());
+    }
+
+    private boolean isUnenclosedLineItem(final AtlasEntity entity, final GeometricSurface surface)
+    {
+        return entity instanceof LineItem
+                && !surface.fullyGeometricallyEncloses(((LineItem) entity).asPolyLine());
+    }
+
+    private boolean isUnenclosedLocationItem(final AtlasEntity entity,
+            final GeometricSurface surface)
+    {
+        return entity instanceof LocationItem
+                && !surface.fullyGeometricallyEncloses(((LocationItem) entity).getLocation());
+    }
+
+    private boolean isUnenclosedNonRelationEntity(final GeometricSurface surface,
+            final AtlasEntity entity)
+    {
+        switch (entity.getType())
+        {
+            case NODE:
+            case POINT:
+                return isUnenclosedLocationItem(entity, surface);
+            case EDGE:
+            case LINE:
+                return isUnenclosedLineItem(entity, surface);
+            case AREA:
+                return isUnenclosedArea(entity, surface);
+            case RELATION:
+            default:
+                throw new CoreException("Relations not supported in this method");
         }
     }
 

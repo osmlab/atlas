@@ -90,7 +90,7 @@ public abstract class EnumSetCollector<T extends Enum<T>>
     @Override
     public Function<Set<String>, EnumSet<T>> finisher()
     {
-        return (working) ->
+        return working ->
         {
             if (working.contains("ALL"))
             {

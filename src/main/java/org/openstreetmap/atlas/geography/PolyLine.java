@@ -23,7 +23,9 @@ import org.openstreetmap.atlas.geography.converters.WktLocationConverter;
 import org.openstreetmap.atlas.geography.converters.WktPolyLineConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonGeometry;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.geography.matching.PolyLineMatch;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
@@ -47,7 +49,8 @@ import com.google.gson.JsonObject;
  * @author mgostintsev
  * @author Sid
  */
-public class PolyLine implements Collection<Location>, Located, Serializable, GeometryPrintable
+public class PolyLine
+        implements Collection<Location>, Located, Serializable, GeometryPrintable, GeoJsonGeometry
 {
     private static final long serialVersionUID = -3291779878869865427L;
     protected static final int SIMPLE_STRING_LENGTH = 200;
@@ -245,17 +248,16 @@ public class PolyLine implements Collection<Location>, Located, Serializable, Ge
         }
     }
 
-    public GeoJsonObject asGeoJson()
+    @Override
+    public boolean within(final GeometricSurface surface)
     {
-        final List<Iterable<Location>> geometries = new ArrayList<>();
-        geometries.add(this);
-        return asGeoJson(geometries);
+        return surface.fullyGeometricallyEncloses(this);
     }
 
     @Override
     public JsonObject asGeoJsonGeometry()
     {
-        return GeoJsonUtils.geometry(GeoJsonUtils.LINESTRING,
+        return GeoJsonUtils.geometry(GeoJsonType.LINESTRING,
                 GeoJsonUtils.locationsToCoordinates(this.points));
     }
 
@@ -510,6 +512,12 @@ public class PolyLine implements Collection<Location>, Located, Serializable, Ge
                     + ", which is not between 0 and " + size());
         }
         return this.points.get(index);
+    }
+
+    @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.LINESTRING;
     }
 
     @Override

@@ -47,9 +47,9 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     private transient Long numberOfPoints;
     private transient Long numberOfRelations;
 
-    public ChangeAtlas(final Atlas source, final Change change)
+    public ChangeAtlas(final Atlas source, final Change... changes)
     {
-        if (change == null)
+        if (changes == null || changes.length < 1)
         {
             throw new CoreException("Change cannot be null in a ChangeAtlas.");
         }
@@ -57,7 +57,7 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
         {
             throw new CoreException("Source Atlas cannot be null in a ChangeAtlas.");
         }
-        this.change = change;
+        this.change = Change.merge(changes);
         this.source = source;
         new AtlasValidator(this).validate();
     }

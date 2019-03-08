@@ -11,7 +11,6 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 
 import com.google.gson.JsonObject;
@@ -33,7 +32,7 @@ public abstract class Area extends AtlasItem
     @Override
     public JsonObject asGeoJsonGeometry()
     {
-        return GeoJsonUtils.feature(asPolygon().asGeoJsonGeometry(), geoJsonProperties());
+        return asPolygon().asGeoJsonGeometry();
     }
 
     /**
@@ -76,6 +75,12 @@ public abstract class Area extends AtlasItem
     public boolean intersects(final GeometricSurface surface)
     {
         return surface.overlaps(asPolygon());
+    }
+
+    @Override
+    public boolean within(final GeometricSurface surface)
+    {
+        return this.asPolygon().within(surface);
     }
 
     @Override

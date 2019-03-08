@@ -234,6 +234,78 @@ public class RelationSlicingTestRule extends CoreTestRule
                     @Member(id = "4", role = "member", type = "relation") }) })
     private Atlas relationWithOnlyRelationsAsMembers;
 
+    @TestAtlas(points = { @Point(id = "214775000000", coordinates = @Loc(value = LOCATION_31)),
+            @Point(id = "214774000000", coordinates = @Loc(value = LOCATION_32)),
+            @Point(id = "214768000000", coordinates = @Loc(value = LOCATION_38)) },
+
+            lines = { @Line(id = "214778000000", coordinates = { @Loc(value = LOCATION_38),
+                    @Loc(value = LOCATION_31),
+                    @Loc(value = LOCATION_32) }, tags = { "highway=residential" }) },
+
+            relations = {
+
+                    @Relation(id = "214805000000", tags = { "type=multipolygon",
+                            "natural=water" }, members = {
+                                    @Member(id = "214778000000", role = "outer", type = "line") }) })
+    private Atlas singleOuterWaterSpanningTwoAtlases1;
+
+    @TestAtlas(points = { @Point(id = "214776000000", coordinates = @Loc(value = LOCATION_30)),
+
+            @Point(id = "214774000000", coordinates = @Loc(value = LOCATION_32)),
+
+            @Point(id = "214772000000", coordinates = @Loc(value = LOCATION_34)),
+            @Point(id = "214771000000", coordinates = @Loc(value = LOCATION_35)),
+            @Point(id = "214769000000", coordinates = @Loc(value = LOCATION_37)),
+            @Point(id = "214768000000", coordinates = @Loc(value = LOCATION_38)) },
+
+            lines = { @Line(id = "214777000000", coordinates = { @Loc(value = LOCATION_38),
+                    @Loc(value = LOCATION_37), @Loc(value = LOCATION_30), @Loc(value = LOCATION_34),
+                    @Loc(value = LOCATION_35),
+                    @Loc(value = LOCATION_32) }, tags = { "highway=primary" }) },
+
+            relations = {
+
+                    @Relation(id = "214805000000", tags = { "type=multipolygon",
+                            "natural=water" }, members = {
+                                    @Member(id = "214777000000", role = "outer", type = "line") }) })
+    private Atlas singleOuterWaterSpanningTwoAtlases2;
+
+    @TestAtlas(points = { @Point(id = "214775000000", coordinates = @Loc(value = LOCATION_31)),
+            @Point(id = "214774000000", coordinates = @Loc(value = LOCATION_32)),
+            @Point(id = "214768000000", coordinates = @Loc(value = LOCATION_38)) },
+
+            lines = { @Line(id = "214778000000", coordinates = { @Loc(value = LOCATION_38),
+                    @Loc(value = LOCATION_31),
+                    @Loc(value = LOCATION_32) }, tags = { "highway=residential" }) },
+
+            relations = {
+
+                    @Relation(id = "214805000000", tags = { "type=multipolygon",
+                            "building=yes" }, members = {
+                                    @Member(id = "214778000000", role = "outer", type = "line") }) })
+    private Atlas singleOuterNonWaterSpanningTwoAtlases1;
+
+    @TestAtlas(points = { @Point(id = "214776000000", coordinates = @Loc(value = LOCATION_30)),
+
+            @Point(id = "214774000000", coordinates = @Loc(value = LOCATION_32)),
+
+            @Point(id = "214772000000", coordinates = @Loc(value = LOCATION_34)),
+            @Point(id = "214771000000", coordinates = @Loc(value = LOCATION_35)),
+            @Point(id = "214769000000", coordinates = @Loc(value = LOCATION_37)),
+            @Point(id = "214768000000", coordinates = @Loc(value = LOCATION_38)) },
+
+            lines = { @Line(id = "214777000000", coordinates = { @Loc(value = LOCATION_38),
+                    @Loc(value = LOCATION_37), @Loc(value = LOCATION_30), @Loc(value = LOCATION_34),
+                    @Loc(value = LOCATION_35),
+                    @Loc(value = LOCATION_32) }, tags = { "highway=primary" }) },
+
+            relations = {
+
+                    @Relation(id = "214805000000", tags = { "type=multipolygon",
+                            "building=yes" }, members = {
+                                    @Member(id = "214777000000", role = "outer", type = "line") }) })
+    private Atlas singleOuterNonWaterSpanningTwoAtlases2;
+
     public Atlas getComplexMultiPolygonWithHoleUsingClosedLinesAtlas()
     {
         return this.complexMuliPolygonWithHoleUsingClosedLines;
@@ -262,5 +334,25 @@ public class RelationSlicingTestRule extends CoreTestRule
     public Atlas getSingleOuterMadeOfOpenLinesSpanningTwoCountriesAtlas()
     {
         return this.singleOuterMadeOfOpenLinesSpanningTwoCountries;
+    }
+
+    public Atlas getSingleOuterNonWaterSpanningTwoAtlases1()
+    {
+        return this.singleOuterNonWaterSpanningTwoAtlases1;
+    }
+
+    public Atlas getSingleOuterNonWaterSpanningTwoAtlases2()
+    {
+        return this.singleOuterNonWaterSpanningTwoAtlases2;
+    }
+
+    public Atlas getSingleOuterWaterSpanningTwoAtlases1()
+    {
+        return this.singleOuterWaterSpanningTwoAtlases1;
+    }
+
+    public Atlas getSingleOuterWaterSpanningTwoAtlases2()
+    {
+        return this.singleOuterWaterSpanningTwoAtlases2;
     }
 }

@@ -1,5 +1,5 @@
 Concatenate all atlas files on your desktop and write them to
 an output atlas in your home directory:
-#$ fatlas ~/Desktop/*.atlas --output ~/output.atlas
+#$ fatlas ~/Desktop/*.atlas --output ~
 Concatenate two atlases, but fail fast if either cannot be found:
 #$ fatlas --strict ~/file1.atlas ~/file2.atlas

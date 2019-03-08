@@ -10,7 +10,9 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
  * A simple implementation of {@link ChangeItemMember} interface.
  *
  * @author Yiqing Jin
+ * @deprecated - see new API under org.openstreetmap.atlas.geography.atlas.change package.
  */
+@Deprecated
 public class SimpleChangeItemMember implements ChangeItemMember, Serializable
 {
     private static final long serialVersionUID = 3261727439156010800L;

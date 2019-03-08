@@ -11,6 +11,7 @@ import java.util.stream.StreamSupport;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.locationtech.jts.io.WKBWriter;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -26,13 +27,15 @@ import org.openstreetmap.atlas.geography.converters.PolygonStringConverter;
 import org.openstreetmap.atlas.geography.converters.WkbMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.WkbPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.WktMultiPolygonConverter;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonFeature;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.configuration.StandardConfiguration;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.testing.FreezeDryFunction;
 
-import com.vividsolutions.jts.io.WKBWriter;
+import com.google.gson.JsonObject;
 
 /**
  * Tests for {@link AtlasEntityPolygonsFilter}
@@ -227,10 +230,22 @@ public class AtlasEntityPolygonsFilterTest
                 this.constructConfiguredFilter(atlasConfigurationStringFormat,
                         new PolygonStringConverter().backwardConvert(includeBoundary)),
                 2, 2, 2, 0);
-        this.assertCounts(this.setup.getTestForm(),
-                this.constructConfiguredFilter(geojsonConfigurationStringFormat,
-                        includeBoundary.asGeoJson().toString().replaceAll("\"", "\\\\\"")),
-                2, 2, 2, 0);
+        this.assertCounts(this.setup.getTestForm(), this.constructConfiguredFilter(
+                geojsonConfigurationStringFormat,
+                GeoJsonUtils.featureCollection(Collections.singletonList(new GeoJsonFeature()
+                {
+                    @Override
+                    public JsonObject asGeoJsonGeometry()
+                    {
+                        return includeBoundary.asGeoJson();
+                    }
+
+                    @Override
+                    public JsonObject getGeoJsonProperties()
+                    {
+                        return new JsonObject();
+                    }
+                }), new JsonObject()).toString().replaceAll("\"", "\\\\\"")), 2, 2, 2, 0);
     }
 
     /**

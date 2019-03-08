@@ -66,7 +66,8 @@ class AtlasEntity(geometry.Boundable):
         Determine if this AtlasEntity is NOT equal to another. Inverse of the
         comparison made by the __eq__() method.
         """
-        return not self.__eq__(other)
+        return not (self.get_identifier() == other.get_identifier()
+                    and self.get_type() == other.get_type())
 
     def __hash__(self):
         """

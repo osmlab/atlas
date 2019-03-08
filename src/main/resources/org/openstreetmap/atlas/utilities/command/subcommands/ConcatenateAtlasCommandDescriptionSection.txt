@@ -1,6 +1,6 @@
 The fatlas command provides an easy way to concatenate atlas files together
 using the MultiAtlas class. The command takes an arbitrary number of input
-atlas files, reads them into a MultiAtlas. and then saves that MultiAtlas to
+atlas files, reads them into a MultiAtlas, and then saves that MultiAtlas to
 a file called 'output.atlas' in the current working directory. The '--output'
 option can be used to change this directory. See the ATLAS LOADER section
 for more info.
