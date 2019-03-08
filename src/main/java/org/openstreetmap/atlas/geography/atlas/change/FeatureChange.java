@@ -40,8 +40,6 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.Taggable;
-import org.openstreetmap.atlas.utilities.collections.Maps;
-import org.openstreetmap.atlas.utilities.collections.Sets;
 
 /**
  * Single feature change, does not include any consistency checks.
@@ -62,14 +60,6 @@ import org.openstreetmap.atlas.utilities.collections.Sets;
 public class FeatureChange implements Located, Serializable
 {
     private static final long serialVersionUID = 9172045162819925515L;
-    private static final BinaryOperator<Map<String, String>> tagMerger = Maps::withMaps;
-    private static final BinaryOperator<Set<Long>> directReferenceMerger = Sets::withSets;
-    private static final BinaryOperator<SortedSet<Long>> directReferenceMergerSorted = Sets::withSortedSets;
-    private static final BinaryOperator<SortedSet<Long>> directReferenceMergerLooseSorted = (left,
-            right) -> Sets.withSortedSets(false, left, right);
-    private static final BinaryOperator<Set<Long>> directReferenceMergerLoose = (left,
-            right) -> Sets.withSets(false, left, right);
-    private static final BinaryOperator<RelationBean> relationBeanMerger = RelationBean::merge;
 
     private final ChangeType changeType;
     private final AtlasEntity updatedView;
@@ -223,14 +213,15 @@ public class FeatureChange implements Located, Serializable
             {
                 final AtlasEntity thisReference = this.getUpdatedView();
                 final AtlasEntity thatReference = other.getUpdatedView();
-                final Map<String, String> mergedTags = mergedMember("tags", thisReference,
-                        thatReference, Taggable::getTags, Optional.of(tagMerger));
-                final Set<Long> mergedParentRelations = mergedMember("parentRelations",
-                        thisReference, thatReference,
+                final Map<String, String> mergedTags = mergeMemberWithBasicStrategy("tags",
+                        thisReference, thatReference, Taggable::getTags,
+                        FeatureChangeMergers.tagMerger);
+                final Set<Long> mergedParentRelations = mergeMemberWithBasicStrategy(
+                        "parentRelations", thisReference, thatReference,
                         atlasEntity -> atlasEntity.relations() == null ? null
                                 : atlasEntity.relations().stream().map(Relation::getIdentifier)
                                         .collect(Collectors.toSet()),
-                        Optional.of(directReferenceMergerLoose));
+                        FeatureChangeMergers.directReferenceMergerLoose);
                 if (thisReference instanceof LocationItem)
                 {
                     return mergeLocationItems(other, mergedTags, mergedParentRelations);
@@ -306,8 +297,8 @@ public class FeatureChange implements Located, Serializable
     {
         final AtlasEntity thisReference = this.getUpdatedView();
         final AtlasEntity thatReference = other.getUpdatedView();
-        final Polygon mergedPolygon = mergedMember("polygon", thisReference, thatReference,
-                atlasEntity -> ((Area) atlasEntity).asPolygon(), Optional.empty());
+        final Polygon mergedPolygon = mergeMemberWithBasicStrategy("polygon", thisReference,
+                thatReference, atlasEntity -> ((Area) atlasEntity).asPolygon(), null);
 
         CompleteArea result = new CompleteArea(getIdentifier(), mergedPolygon, mergedTags,
                 mergedParentRelations);
@@ -325,73 +316,23 @@ public class FeatureChange implements Located, Serializable
         return FeatureChange.add(result);
     }
 
-    private <M> M mergedMember(final String memberName, final AtlasEntity left,
-            final AtlasEntity right, final Function<AtlasEntity, M> memberExtractor,
-            final Optional<BinaryOperator<M>> memberMergerOption)
-    {
-        final M result;
-        final M leftMember = memberExtractor.apply(left);
-        final M rightMember = memberExtractor.apply(right);
-        if (leftMember != null && rightMember != null)
-        {
-            // Both are not null, merge evaluated
-            if (leftMember.equals(rightMember))
-            {
-                // They are equal, arbitrarily pick one.
-                result = leftMember;
-            }
-            else if (memberMergerOption.isPresent())
-            {
-                // They are unequal, but we can attempt a merge
-                try
-                {
-                    result = memberMergerOption.get().apply(leftMember, rightMember);
-                }
-                catch (final CoreException e)
-                {
-                    throw new CoreException("Attempted merge failed for {}: {} and {}", memberName,
-                            leftMember, rightMember, e);
-                }
-            }
-            else
-            {
-                // They are unequal and we do not have a tool to merge them.
-                throw new CoreException("Conflicting members, no merge option for {}: {} and {}",
-                        memberName, leftMember, rightMember);
-            }
-        }
-        else
-        {
-            // One is not null, or both are.
-            if (leftMember != null)
-            {
-                result = leftMember;
-            }
-            else
-            {
-                result = rightMember;
-            }
-        }
-        return result;
-    }
-
     private FeatureChange mergeLineItems(final FeatureChange other, // NOSONAR
             final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
     {
         final AtlasEntity thisReference = this.getUpdatedView();
         final AtlasEntity thatReference = other.getUpdatedView();
-        final PolyLine mergedPolyLine = mergedMember("polyLine", thisReference, thatReference,
-                atlasEntity -> ((LineItem) atlasEntity).asPolyLine(), Optional.empty());
+        final PolyLine mergedPolyLine = mergeMemberWithBasicStrategy("polyLine", thisReference,
+                thatReference, atlasEntity -> ((LineItem) atlasEntity).asPolyLine(), null);
         if (thisReference instanceof Edge)
         {
-            final Long mergedStartNodeIdentifier = mergedMember("startNode", thisReference,
-                    thatReference, edge -> ((Edge) edge).start() == null ? null
+            final Long mergedStartNodeIdentifier = mergeMemberWithBasicStrategy("startNode",
+                    thisReference, thatReference, edge -> ((Edge) edge).start() == null ? null
                             : ((Edge) edge).start().getIdentifier(),
-                    Optional.empty());
-            final Long mergedEndNodeIdentifier = mergedMember("endNode", thisReference,
-                    thatReference, edge -> ((Edge) edge).end() == null ? null
+                    null);
+            final Long mergedEndNodeIdentifier = mergeMemberWithBasicStrategy("endNode",
+                    thisReference, thatReference, edge -> ((Edge) edge).end() == null ? null
                             : ((Edge) edge).end().getIdentifier(),
-                    Optional.empty());
+                    null);
             CompleteEdge result = new CompleteEdge(getIdentifier(), mergedPolyLine, mergedTags,
                     mergedStartNodeIdentifier, mergedEndNodeIdentifier, mergedParentRelations);
             if (result.bounds() == null)
@@ -432,22 +373,22 @@ public class FeatureChange implements Located, Serializable
     {
         final AtlasEntity thisReference = this.getUpdatedView();
         final AtlasEntity thatReference = other.getUpdatedView();
-        final Location mergedLocation = mergedMember("location", thisReference, thatReference,
-                atlasEntity -> ((LocationItem) atlasEntity).getLocation(), Optional.empty());
+        final Location mergedLocation = mergeMemberWithBasicStrategy("location", thisReference,
+                thatReference, atlasEntity -> ((LocationItem) atlasEntity).getLocation(), null);
         if (thisReference instanceof Node)
         {
-            final SortedSet<Long> mergedInEdgeIdentifiers = mergedMember("inEdgeIdentifiers",
-                    thisReference, thatReference,
+            final SortedSet<Long> mergedInEdgeIdentifiers = mergeMemberWithBasicStrategy(
+                    "inEdgeIdentifiers", thisReference, thatReference,
                     atlasEntity -> ((Node) atlasEntity).inEdges() == null ? null
                             : ((Node) atlasEntity).inEdges().stream().map(Edge::getIdentifier)
                                     .collect(Collectors.toCollection(TreeSet::new)),
-                    Optional.of(directReferenceMergerSorted));
-            final SortedSet<Long> mergedOutEdgeIdentifiers = mergedMember("outEdgeIdentifiers",
-                    thisReference, thatReference,
+                    FeatureChangeMergers.directReferenceMergerSorted);
+            final SortedSet<Long> mergedOutEdgeIdentifiers = mergeMemberWithBasicStrategy(
+                    "outEdgeIdentifiers", thisReference, thatReference,
                     atlasEntity -> ((Node) atlasEntity).outEdges() == null ? null
                             : ((Node) atlasEntity).outEdges().stream().map(Edge::getIdentifier)
                                     .collect(Collectors.toCollection(TreeSet::new)),
-                    Optional.of(directReferenceMergerSorted));
+                    FeatureChangeMergers.directReferenceMergerSorted);
             CompleteNode result = new CompleteNode(getIdentifier(), mergedLocation, mergedTags,
                     mergedInEdgeIdentifiers, mergedOutEdgeIdentifiers, mergedParentRelations);
             if (result.bounds() == null)
@@ -483,35 +424,94 @@ public class FeatureChange implements Located, Serializable
         }
     }
 
+    private <M> M mergeMemberWithBasicStrategy(final String memberName, final AtlasEntity left,
+            final AtlasEntity right, final Function<AtlasEntity, M> memberExtractor,
+            final BinaryOperator<M> memberMerger)
+    {
+        final M result;
+        final M leftMember = memberExtractor.apply(left);
+        final M rightMember = memberExtractor.apply(right);
+        if (leftMember != null && rightMember != null)
+        {
+            // Both are not null, merge evaluated
+            if (leftMember.equals(rightMember))
+            {
+                // They are equal, arbitrarily pick one.
+                result = leftMember;
+            }
+            else if (memberMerger != null)
+            {
+                // They are unequal, but we can attempt a merge
+                try
+                {
+                    result = memberMerger.apply(leftMember, rightMember);
+                }
+                catch (final CoreException e)
+                {
+                    throw new CoreException("Attempted merge failed for {}: {} and {}", memberName,
+                            leftMember, rightMember, e);
+                }
+            }
+            else
+            {
+                // They are unequal and we do not have a tool to merge them.
+                throw new CoreException("Conflicting members, no merge option for {}: {} and {}",
+                        memberName, leftMember, rightMember);
+            }
+        }
+        else
+        {
+            // One is not null, or both are.
+            if (leftMember != null)
+            {
+                result = leftMember;
+            }
+            else
+            {
+                result = rightMember;
+            }
+        }
+        return result;
+    }
+
+    private <M> M mergeMemberWithDiffStrategy(final String memberName, final AtlasEntity beforeLeft,
+            final AtlasEntity beforeRight, final AtlasEntity afterLeft,
+            final AtlasEntity afterRight, final Function<AtlasEntity, M> memberExtractor,
+            final BinaryOperator<M> memberMerger)
+    {
+        return null;
+    }
+
     private FeatureChange mergeRelations(final FeatureChange other,
             final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
     {
         final AtlasEntity thisReference = this.getUpdatedView();
         final AtlasEntity thatReference = other.getUpdatedView();
 
-        final RelationBean mergedMembers = mergedMember("relationMembers", thisReference,
-                thatReference, entity -> ((Relation) entity).members() == null ? null
+        final RelationBean mergedMembers = mergeMemberWithBasicStrategy("relationMembers",
+                thisReference, thatReference,
+                entity -> ((Relation) entity).members() == null ? null
                         : ((Relation) entity).members().asBean(),
-                Optional.of(relationBeanMerger));
+                FeatureChangeMergers.relationBeanMerger);
         final Rectangle mergedBounds = Rectangle.forLocated(thisReference, thatReference);
-        final Long mergedOsmRelationIdentifier = mergedMember("osmRelationIdentifier",
-                thisReference, thatReference, entity -> ((Relation) entity).getOsmIdentifier(),
-                Optional.empty());
-        final Set<Long> mergedAllRelationsWithSameOsmIdentifierSet = mergedMember(
+        final Long mergedOsmRelationIdentifier = mergeMemberWithBasicStrategy(
+                "osmRelationIdentifier", thisReference, thatReference,
+                entity -> ((Relation) entity).getOsmIdentifier(), null);
+        final Set<Long> mergedAllRelationsWithSameOsmIdentifierSet = mergeMemberWithBasicStrategy(
                 "allRelationsWithSameOsmIdentifier", thisReference, thatReference,
                 atlasEntity -> ((Relation) atlasEntity).allRelationsWithSameOsmIdentifier() == null
                         ? null
                         : ((Relation) atlasEntity).allRelationsWithSameOsmIdentifier().stream()
                                 .map(Relation::getIdentifier).collect(Collectors.toSet()),
-                Optional.of(directReferenceMerger));
+                FeatureChangeMergers.directReferenceMerger);
         final List<Long> mergedAllRelationsWithSameOsmIdentifier = mergedAllRelationsWithSameOsmIdentifierSet == null
                 ? null
                 : mergedAllRelationsWithSameOsmIdentifierSet.stream().collect(Collectors.toList());
-        final RelationBean mergedAllKnownMembers = mergedMember("allKnownOsmMembers", thisReference,
-                thatReference,
+        final RelationBean mergedAllKnownMembers = mergeMemberWithBasicStrategy(
+                "allKnownOsmMembers", thisReference, thatReference,
                 entity -> ((Relation) entity).allKnownOsmMembers() == null ? null
                         : ((Relation) entity).allKnownOsmMembers().asBean(),
-                Optional.of(relationBeanMerger));
+                FeatureChangeMergers.relationBeanMerger);
 
         return FeatureChange.add(new CompleteRelation(getIdentifier(), mergedTags, mergedBounds,
                 mergedMembers, mergedAllRelationsWithSameOsmIdentifier, mergedAllKnownMembers,
