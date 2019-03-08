@@ -335,7 +335,7 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
             {
                 // Create the ChangeItem from the change object (the override). The source item
                 // might be null (In case of an ADD which is a create and not a modify)
-                return entityConstructorFromSource.apply(sourceItem, itemChange.getReference());
+                return entityConstructorFromSource.apply(sourceItem, itemChange.getUpdatedView());
             }
         }
         else

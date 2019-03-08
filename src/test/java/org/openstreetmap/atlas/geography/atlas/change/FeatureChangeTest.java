@@ -113,7 +113,7 @@ public class FeatureChangeTest
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
                 new CompletePoint(123L, Location.COLOSSEUM, null, null));
         Assert.assertEquals(Location.COLOSSEUM,
-                ((LocationItem) featureChange1.merge(featureChange2).getReference()).getLocation());
+                ((LocationItem) featureChange1.merge(featureChange2).getUpdatedView()).getLocation());
     }
 
     @Test
@@ -133,10 +133,10 @@ public class FeatureChangeTest
 
         // Testing with a hashset instead of a treeset for ease of typing
         Assert.assertEquals(Sets.hashSet(1L, 2L, 3L, 4L, 5L),
-                ((Node) featureChange1.merge(featureChange2).getReference()).inEdges().stream()
+                ((Node) featureChange1.merge(featureChange2).getUpdatedView()).inEdges().stream()
                         .map(edge -> edge.getIdentifier()).collect(Collectors.toSet()));
         Assert.assertEquals(Sets.hashSet(10L, 11L, 13L),
-                ((Node) featureChange1.merge(featureChange2).getReference()).outEdges().stream()
+                ((Node) featureChange1.merge(featureChange2).getUpdatedView()).outEdges().stream()
                         .map(edge -> edge.getIdentifier()).collect(Collectors.toSet()));
     }
 
@@ -150,7 +150,7 @@ public class FeatureChangeTest
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
                 new CompleteArea(123L, result, null, null));
         Assert.assertEquals(result,
-                ((Area) featureChange1.merge(featureChange2).getReference()).asPolygon());
+                ((Area) featureChange1.merge(featureChange2).getUpdatedView()).asPolygon());
     }
 
     @Test
@@ -179,7 +179,7 @@ public class FeatureChangeTest
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
                 new CompleteLine(123L, result, null, null));
         Assert.assertEquals(result,
-                ((LineItem) featureChange1.merge(featureChange2).getReference()).asPolyLine());
+                ((LineItem) featureChange1.merge(featureChange2).getUpdatedView()).asPolyLine());
     }
 
     @Test
@@ -205,7 +205,7 @@ public class FeatureChangeTest
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, new CompleteRelation(
                 123L, null, Rectangle.TEST_RECTANGLE, members, null, null, null, null));
         Assert.assertEquals(members,
-                ((Relation) featureChange1.merge(featureChange2).getReference()).members()
+                ((Relation) featureChange1.merge(featureChange2).getUpdatedView()).members()
                         .asBean());
     }
 
@@ -220,7 +220,7 @@ public class FeatureChangeTest
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, new CompleteRelation(
                 123L, null, Rectangle.TEST_RECTANGLE, members2, null, null, null, null));
         Assert.assertEquals(members1,
-                ((Relation) featureChange1.merge(featureChange2).getReference()).members()
+                ((Relation) featureChange1.merge(featureChange2).getUpdatedView()).members()
                         .asBean());
     }
 
@@ -240,7 +240,7 @@ public class FeatureChangeTest
                 123L, null, Rectangle.TEST_RECTANGLE, members1, null, null, null, null));
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, new CompleteRelation(
                 123L, null, Rectangle.TEST_RECTANGLE, members2, null, null, null, null));
-        Assert.assertEquals(result, ((Relation) featureChange1.merge(featureChange2).getReference())
+        Assert.assertEquals(result, ((Relation) featureChange1.merge(featureChange2).getUpdatedView())
                 .members().asBean());
     }
 
@@ -252,7 +252,7 @@ public class FeatureChangeTest
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
                 new CompleteArea(123L, null, null, Sets.hashSet(567L)));
         Assert.assertEquals(Sets.hashSet(456L, 567L),
-                Iterables.stream(featureChange1.merge(featureChange2).getReference().relations())
+                Iterables.stream(featureChange1.merge(featureChange2).getUpdatedView().relations())
                         .map(Relation::getIdentifier).collectToSet());
     }
 
@@ -264,7 +264,7 @@ public class FeatureChangeTest
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
                 new CompleteArea(123L, null, null, Sets.hashSet(456L)));
         Assert.assertEquals(Sets.hashSet(456L),
-                Iterables.stream(featureChange1.merge(featureChange2).getReference().relations())
+                Iterables.stream(featureChange1.merge(featureChange2).getUpdatedView().relations())
                         .map(Relation::getIdentifier).collectToSet());
     }
 
@@ -276,7 +276,7 @@ public class FeatureChangeTest
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
                 new CompleteArea(123L, null, Maps.hashMap("key2", "value2"), null));
         Assert.assertEquals(Maps.hashMap("key1", "value1", "key2", "value2"),
-                featureChange1.merge(featureChange2).getReference().getTags());
+                featureChange1.merge(featureChange2).getUpdatedView().getTags());
     }
 
     @Test
