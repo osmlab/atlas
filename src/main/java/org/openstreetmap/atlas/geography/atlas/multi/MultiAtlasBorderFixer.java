@@ -732,7 +732,8 @@ public class MultiAtlasBorderFixer implements Serializable
             {
                 final long nodeIdentifier = node.getIdentifier();
                 final int count = nodeIdentifierToOccurenceMap.containsKey(nodeIdentifier)
-                        ? nodeIdentifierToOccurenceMap.get(nodeIdentifier) + 1 : 1;
+                        ? nodeIdentifierToOccurenceMap.get(nodeIdentifier) + 1
+                        : 1;
                 nodeIdentifierToOccurenceMap.put(nodeIdentifier, count);
                 nodeIdentifierToTimesSeenSoFar.putIfAbsent(nodeIdentifier, 0);
             }

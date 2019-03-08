@@ -78,7 +78,8 @@ public final class ComplexAreaOfInterest extends ComplexEntity
             }
             return ((source instanceof Relation || source instanceof Area)
                     && (hasAOITag(source) || aoiFilter.test(source)))
-                            ? Optional.of(new ComplexAreaOfInterest(source)) : Optional.empty();
+                            ? Optional.of(new ComplexAreaOfInterest(source))
+                            : Optional.empty();
         }
         catch (final Exception exception)
         {

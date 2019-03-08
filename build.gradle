@@ -6,9 +6,9 @@ plugins {
 	id 'signing'
 	id 'checkstyle'
 	id 'jacoco'
-	id "com.diffplug.gradle.spotless" version "3.4.0"
+	id "com.diffplug.gradle.spotless" version "3.18.0"
 	id 'org.sonarqube' version '2.6.2'
-	id 'com.google.protobuf' version '0.8.1'
+	id 'com.google.protobuf' version '0.8.8'
 	// id "io.codearte.nexus-staging" version "0.12.0"
 }
 

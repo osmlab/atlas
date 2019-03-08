@@ -132,7 +132,8 @@ public final class Archiver extends AbstractArchiverOrExtractor<Archiver>
                     if (Archiver.this.storageDelegate != null)
                     {
                         final int level = Archiver.this.storageDelegate.shouldCompress(file)
-                                ? ZipArchiveEntry.DEFLATED : ZipArchiveEntry.STORED;
+                                ? ZipArchiveEntry.DEFLATED
+                                : ZipArchiveEntry.STORED;
                         entry.setMethod(level);
                     }
                     Archiver.this.archiveOutputStream.putArchiveEntry(entry);

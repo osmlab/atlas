@@ -44,7 +44,8 @@ public class ProtoLongToLongMultiMapAdapter implements ProtoAdapter
         }
 
         final int size = protoLongToLongMultiMap.getKeys().getElementsCount() <= DEFAULT_MAX_SIZE
-                ? DEFAULT_MAX_SIZE : protoLongToLongMultiMap.getKeys().getElementsCount();
+                ? DEFAULT_MAX_SIZE
+                : protoLongToLongMultiMap.getKeys().getElementsCount();
         final LongToLongMultiMap longToLongMultiMap = new LongToLongMultiMap(deserializedName, size,
                 size, size, size, size, size);
 
