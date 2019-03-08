@@ -21,9 +21,9 @@ import org.openstreetmap.atlas.utilities.function.QuaternaryOperator;
 public final class FeatureChangeMergers
 {
     /**
-     * Bean class to store the merged before and after members. This is useful as a return type for
-     * the member merger, which needs to correctly merge the before and after entity view of each
-     * {@link FeatureChange}.
+     * A bean class to store the merged before and after members. This is useful as a return type
+     * for the member merger, which needs to correctly merge the before and after entity view of
+     * each {@link FeatureChange}.
      *
      * @author lcram
      * @param <M>
@@ -65,6 +65,20 @@ public final class FeatureChangeMergers
 
     static final BinaryOperator<RelationBean> relationBeanMerger = RelationBean::merge;
 
+    /**
+     * TODO fill in this doc comment.
+     *
+     * @param memberName
+     * @param beforeEntityLeft
+     * @param afterEntityLeft
+     * @param beforeEntityRight
+     * @param afterEntityRight
+     * @param memberExtractor
+     * @param simpleMergeStrategy
+     * @param diffBasedMergeStrategy
+     * @return a {@link MergedMemberBean} containing the merged beforeMember view and the merged
+     *         afterMember view.
+     */
     static <M> MergedMemberBean<M> mergeMember(final String memberName,
             final AtlasEntity beforeEntityLeft, final AtlasEntity afterEntityLeft,
             final AtlasEntity beforeEntityRight, final AtlasEntity afterEntityRight,
@@ -88,7 +102,9 @@ public final class FeatureChangeMergers
         /*
          * TODO it is theoretically possible to allow for conflicting beforeMember views, and simply
          * fall back on the simpleMergeStrategy in this case. Is this something we want? I think it
-         * makes more sense to just fail.
+         * makes more sense to just fail. It seems to me that the only time we would have
+         * conflicting beforeMember views is when two corrections which are operating on the same
+         * level should actually be on separate levels.
          */
         if (beforeMemberLeft != null && beforeMemberRight != null
                 && !beforeMemberLeft.equals(beforeMemberRight))
@@ -154,7 +170,7 @@ public final class FeatureChangeMergers
                         catch (final Exception exception)
                         {
                             throw new CoreException(
-                                    "Attempted merge failed for {} with before view {}: after view {} vs {}",
+                                    "Attempted merge failed for {} with beforeView: {}; afterView: {} vs {}",
                                     memberName, beforeMemberLeft, afterMemberLeft, afterMemberRight,
                                     exception);
                         }

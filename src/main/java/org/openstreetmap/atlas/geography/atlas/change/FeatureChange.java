@@ -287,11 +287,171 @@ public class FeatureChange implements Located, Serializable
      */
     public FeatureChange withAtlasContext(final Atlas atlas)
     {
+        // TODO before view for REMOVE type?
         if (this.changeType == ChangeType.ADD)
         {
-            setBeforeViewUsingAtlasContext(atlas);
+            computeBeforeViewUsingAtlasContext(atlas);
         }
         return this;
+    }
+
+    /**
+     * Compute the beforeView using a given afterView and Atlas context. The beforeView is a
+     * CompleteEntity, and will contain only those fields which have been updated in the afterView.
+     * E.g. Suppose the afterView is a CompleteNode with ID 1, and the only updated field is the tag
+     * Map. Then the beforeView will be a CompleteNode with ID 1, where the only populated field is
+     * the tag Map. However, the afterView's tag Map will be fetched from the Atlas context. Having
+     * a beforeView for each {@link FeatureChange} allows for more robust merging strategies.
+     *
+     * @param atlas
+     *            the atlas context
+     */
+    private void computeBeforeViewUsingAtlasContext(final Atlas atlas) // NOSONAR
+    {
+        if (atlas == null)
+        {
+            throw new CoreException("Atlas context cannot be null");
+        }
+
+        AtlasEntity beforeViewUpdatesOnly;
+        final AtlasEntity beforeViewFromAtlas = atlas.entity(this.updatedView.getIdentifier(),
+                this.updatedView.getType());
+        if (beforeViewFromAtlas == null)
+        {
+            throw new CoreException("Could not find {} with ID {} in atlas context",
+                    this.updatedView.getType(), this.updatedView.getIdentifier());
+        }
+
+        /*
+         * Make type specific updates first.
+         */
+        switch (this.updatedView.getType())
+        {
+            /*
+             * Area specific updates. The only Area-specific field is the polygon.
+             */
+            case AREA:
+                final Area updatedAreaView = (Area) this.updatedView;
+                final Area beforeAreaView = (Area) beforeViewFromAtlas;
+                beforeViewUpdatesOnly = CompleteArea.shallowFrom(beforeAreaView);
+                if (updatedAreaView.asPolygon() != null)
+                {
+                    ((CompleteArea) beforeViewUpdatesOnly).withPolygon(beforeAreaView.asPolygon());
+                }
+                break;
+            /*
+             * Edge specific updates. The Edge-specific fields are the polyline and the start/end
+             * nodes.
+             */
+            case EDGE:
+                final Edge updatedEdgeView = (Edge) this.updatedView;
+                final Edge beforeEdgeView = (Edge) beforeViewFromAtlas;
+                beforeViewUpdatesOnly = CompleteEdge.shallowFrom(updatedEdgeView);
+                if (updatedEdgeView.asPolyLine() != null)
+                {
+                    ((CompleteEdge) beforeViewUpdatesOnly)
+                            .withPolyLine(beforeEdgeView.asPolyLine());
+                }
+                if (updatedEdgeView.start() != null)
+                {
+                    ((CompleteEdge) beforeViewUpdatesOnly)
+                            .withStartNodeIdentifier(beforeEdgeView.start().getIdentifier());
+                }
+                if (updatedEdgeView.end() != null)
+                {
+                    ((CompleteEdge) beforeViewUpdatesOnly)
+                            .withEndNodeIdentifier(beforeEdgeView.end().getIdentifier());
+                }
+                break;
+            /*
+             * Line specific updates. The only Line-specific field is the polyline.
+             */
+            case LINE:
+                final Line updatedLineView = (Line) this.updatedView;
+                final Line beforeLineView = (Line) beforeViewFromAtlas;
+                beforeViewUpdatesOnly = CompleteLine.shallowFrom(updatedLineView);
+                if (updatedLineView.asPolyLine() != null)
+                {
+                    ((CompleteLine) beforeViewUpdatesOnly)
+                            .withPolyLine(beforeLineView.asPolyLine());
+                }
+                break;
+            /*
+             * Node specific updates. The Node-specific fields are the location and the in/out edge
+             * sets.
+             */
+            case NODE:
+                final Node updatedNodeView = (Node) this.updatedView;
+                final Node beforeNodeView = (Node) beforeViewFromAtlas;
+                beforeViewUpdatesOnly = CompleteNode.shallowFrom(updatedNodeView);
+                if (updatedNodeView.getLocation() != null)
+                {
+                    ((CompleteNode) beforeViewUpdatesOnly)
+                            .withLocation(beforeNodeView.getLocation());
+                }
+                if (updatedNodeView.inEdges() != null)
+                {
+                    ((CompleteNode) beforeViewUpdatesOnly).withInEdges(beforeNodeView.inEdges());
+                }
+                if (updatedNodeView.outEdges() != null)
+                {
+                    ((CompleteNode) beforeViewUpdatesOnly).withOutEdges(beforeNodeView.outEdges());
+                }
+                break;
+            /*
+             * Point specific updates. The only Point-specific field is the location.
+             */
+            case POINT:
+                final Point updatedPointView = (Point) this.updatedView;
+                final Point beforePointView = (Point) beforeViewFromAtlas;
+                beforeViewUpdatesOnly = CompletePoint.shallowFrom(updatedPointView);
+                if (updatedPointView.getLocation() != null)
+                {
+                    ((CompletePoint) beforeViewUpdatesOnly)
+                            .withLocation(beforePointView.getLocation());
+                }
+                break;
+            /*
+             * Relation specific updates. The only Relation-specific field is the member list.
+             */
+            /*
+             * TODO do we need to handle the allKnownOsmMembers case? I am not convinced we even
+             * need this field in Relation. I don't see it called anywhere in the codebase (except
+             * in a few tests).
+             */
+            case RELATION:
+                final Relation updatedRelationView = (Relation) this.updatedView;
+                final Relation beforeRelationView = (Relation) beforeViewFromAtlas;
+                beforeViewUpdatesOnly = CompleteRelation.shallowFrom(updatedRelationView);
+                if (updatedRelationView.members() != null)
+                {
+                    ((CompleteRelation) beforeViewUpdatesOnly)
+                            .withMembers(beforeRelationView.members());
+                }
+                break;
+            default:
+                throw new CoreException("Unknown entity type {}", this.updatedView.getType());
+        }
+
+        /*
+         * Add before view of the tags if the updatedView updated the tags.
+         */
+        final Map<String, String> updatedViewTags = this.updatedView.getTags();
+        if (updatedViewTags != null)
+        {
+            ((CompleteEntity) beforeViewUpdatesOnly).withTags(beforeViewFromAtlas.getTags());
+        }
+
+        /*
+         * Add before view of relations if updatedView updated relations.
+         */
+        final Set<Relation> updatedViewRelations = this.updatedView.relations();
+        if (updatedViewRelations != null)
+        {
+            ((CompleteEntity) beforeViewUpdatesOnly).withRelations(beforeViewFromAtlas.relations());
+        }
+
+        this.beforeView = beforeViewUpdatesOnly;
     }
 
     private FeatureChange mergeAreas(final FeatureChange other,
@@ -471,154 +631,6 @@ public class FeatureChange implements Located, Serializable
         return FeatureChange.add(new CompleteRelation(getIdentifier(), mergedTags, mergedBounds,
                 mergedMembers, mergedAllRelationsWithSameOsmIdentifier, mergedAllKnownMembers,
                 mergedOsmRelationIdentifier, mergedParentRelations));
-    }
-
-    private void setBeforeViewUsingAtlasContext(final Atlas atlas) // NOSONAR
-    {
-        if (atlas == null)
-        {
-            throw new CoreException("Atlas context cannot be null");
-        }
-
-        AtlasEntity beforeViewUpdatesOnly;
-        final AtlasEntity beforeViewFromAtlas = atlas.entity(this.updatedView.getIdentifier(),
-                this.updatedView.getType());
-        if (beforeViewFromAtlas == null)
-        {
-            throw new CoreException("Could not find {} with ID {} in atlas context",
-                    this.updatedView.getType(), this.updatedView.getIdentifier());
-        }
-
-        /*
-         * Make type specific updates first.
-         */
-        switch (this.updatedView.getType())
-        {
-            /*
-             * Area specific updates. The only Area-specific field is the polygon.
-             */
-            case AREA:
-                final Area updatedAreaView = (Area) this.updatedView;
-                final Area beforeAreaView = (Area) beforeViewFromAtlas;
-                beforeViewUpdatesOnly = CompleteArea.shallowFrom(beforeAreaView);
-                if (updatedAreaView.asPolygon() != null)
-                {
-                    ((CompleteArea) beforeViewUpdatesOnly).withPolygon(beforeAreaView.asPolygon());
-                }
-                break;
-            /*
-             * Edge specific updates. The Edge-specific fields are the polyline and the start/end
-             * nodes.
-             */
-            case EDGE:
-                final Edge updatedEdgeView = (Edge) this.updatedView;
-                final Edge beforeEdgeView = (Edge) beforeViewFromAtlas;
-                beforeViewUpdatesOnly = CompleteEdge.shallowFrom(updatedEdgeView);
-                if (updatedEdgeView.asPolyLine() != null)
-                {
-                    ((CompleteEdge) beforeViewUpdatesOnly)
-                            .withPolyLine(beforeEdgeView.asPolyLine());
-                }
-                if (updatedEdgeView.start() != null)
-                {
-                    ((CompleteEdge) beforeViewUpdatesOnly)
-                            .withStartNodeIdentifier(beforeEdgeView.start().getIdentifier());
-                }
-                if (updatedEdgeView.end() != null)
-                {
-                    ((CompleteEdge) beforeViewUpdatesOnly)
-                            .withEndNodeIdentifier(beforeEdgeView.end().getIdentifier());
-                }
-                break;
-            /*
-             * Line specific updates. The only Line-specific field is the polyline.
-             */
-            case LINE:
-                final Line updatedLineView = (Line) this.updatedView;
-                final Line beforeLineView = (Line) beforeViewFromAtlas;
-                beforeViewUpdatesOnly = CompleteLine.shallowFrom(updatedLineView);
-                if (updatedLineView.asPolyLine() != null)
-                {
-                    ((CompleteLine) beforeViewUpdatesOnly)
-                            .withPolyLine(beforeLineView.asPolyLine());
-                }
-                break;
-            /*
-             * Node specific updates. The Node-specific fields are the location and the in/out edge
-             * sets.
-             */
-            case NODE:
-                final Node updatedNodeView = (Node) this.updatedView;
-                final Node beforeNodeView = (Node) beforeViewFromAtlas;
-                beforeViewUpdatesOnly = CompleteNode.shallowFrom(updatedNodeView);
-                if (updatedNodeView.getLocation() != null)
-                {
-                    ((CompleteNode) beforeViewUpdatesOnly)
-                            .withLocation(beforeNodeView.getLocation());
-                }
-                if (updatedNodeView.inEdges() != null)
-                {
-                    ((CompleteNode) beforeViewUpdatesOnly).withInEdges(beforeNodeView.inEdges());
-                }
-                if (updatedNodeView.outEdges() != null)
-                {
-                    ((CompleteNode) beforeViewUpdatesOnly).withOutEdges(beforeNodeView.outEdges());
-                }
-                break;
-            /*
-             * Point specific updates. The only Point-specific field is the location.
-             */
-            case POINT:
-                final Point updatedPointView = (Point) this.updatedView;
-                final Point beforePointView = (Point) beforeViewFromAtlas;
-                beforeViewUpdatesOnly = CompletePoint.shallowFrom(updatedPointView);
-                if (updatedPointView.getLocation() != null)
-                {
-                    ((CompletePoint) beforeViewUpdatesOnly)
-                            .withLocation(beforePointView.getLocation());
-                }
-                break;
-            /*
-             * Relation specific updates. The only Relation-specific field is the member list.
-             */
-            /*
-             * TODO do we need to handle the allKnownOsmMembers case? I am not convinced we even
-             * need this field in Relation. I don't see it called anywhere in the codebase (except
-             * in a few tests).
-             */
-            case RELATION:
-                final Relation updatedRelationView = (Relation) this.updatedView;
-                final Relation beforeRelationView = (Relation) beforeViewFromAtlas;
-                beforeViewUpdatesOnly = CompleteRelation.shallowFrom(updatedRelationView);
-                if (updatedRelationView.members() != null)
-                {
-                    ((CompleteRelation) beforeViewUpdatesOnly)
-                            .withMembers(beforeRelationView.members());
-                }
-                break;
-            default:
-                throw new CoreException("Unknown entity type {}", this.updatedView.getType());
-        }
-
-        /*
-         * Add before view of the tags if the updatedView updated the tags.
-         */
-        final Map<String, String> updatedViewTags = this.updatedView.getTags();
-        if (updatedViewTags != null)
-        {
-            ((CompleteEntity) beforeViewUpdatesOnly).withTags(beforeViewFromAtlas.getTags());
-        }
-
-        /*
-         * Add before view of relations if updatedView updated relations.
-         */
-        final Set<Relation> updatedViewRelations = this.updatedView.relations();
-        if (updatedViewRelations != null)
-        {
-            ((CompleteEntity) beforeViewUpdatesOnly).withRelations(beforeViewFromAtlas.relations());
-        }
-
-        this.beforeView = beforeViewUpdatesOnly;
     }
 
     private void validateUsefulFeatureChange()
