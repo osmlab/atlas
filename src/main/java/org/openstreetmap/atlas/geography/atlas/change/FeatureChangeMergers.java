@@ -254,12 +254,11 @@ public final class FeatureChangeMergers
             afterMemberResult = afterMemberRight;
         }
         /*
-         * If neither afterMember is present, something is terribly wrong.
+         * If neither afterMember is present, then just move on.
          */
         else
         {
-            throw new CoreException("Attempted merge failed for {}: both afterMembers were null",
-                    memberName);
+            afterMemberResult = null;
         }
 
         return new MergedMemberBean<>(beforeMemberResult, afterMemberResult);

@@ -626,7 +626,7 @@ public class FeatureChange implements Located, Serializable
                     .mergeMember("outEdgeIdentifiers", beforeEntityLeft, afterEntityLeft,
                             beforeEntityRight, afterEntityRight,
                             atlasEntity -> ((Node) atlasEntity).outEdges() == null ? null
-                                    : ((Node) atlasEntity).inEdges().stream()
+                                    : ((Node) atlasEntity).outEdges().stream()
                                             .map(Edge::getIdentifier)
                                             .collect(Collectors.toCollection(TreeSet::new)),
                             FeatureChangeMergers.directReferenceMergerSorted,
@@ -646,7 +646,7 @@ public class FeatureChange implements Located, Serializable
                     result = result.withAggregateBoundsExtendedUsing(other.bounds());
                 }
             }
-            final CompleteNode beforeNode = CompleteNode.shallowFrom((Node) afterEntityLeft)
+            final CompleteNode beforeNode = new CompleteNode(afterEntityLeft.getIdentifier())
                     .withLocation(mergedLocationBean.getMergedBeforeMember())
                     .withInEdgeIdentifiers(mergedInEdgeIdentifiersBean.getMergedBeforeMember())
                     .withOutEdgeIdentifiers(mergedOutEdgeIdentifiersBean.getMergedBeforeMember());
@@ -668,7 +668,7 @@ public class FeatureChange implements Located, Serializable
                     result = result.withAggregateBoundsExtendedUsing(other.bounds());
                 }
             }
-            final CompletePoint beforePoint = CompletePoint.shallowFrom((Point) afterEntityLeft)
+            final CompletePoint beforePoint = new CompletePoint(afterEntityLeft.getIdentifier())
                     .withLocation(mergedLocationBean.getMergedBeforeMember());
             return new FeatureChange(ChangeType.ADD, result, beforePoint);
         }

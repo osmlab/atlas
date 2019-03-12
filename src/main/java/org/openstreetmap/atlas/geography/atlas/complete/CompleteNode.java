@@ -75,7 +75,7 @@ public class CompleteNode extends Node implements CompleteLocationItem
                 .withInitialBounds(node.getLocation().bounds());
     }
 
-    CompleteNode(final long identifier)
+    public CompleteNode(final long identifier)
     {
         this(identifier, null, null, null, null, null);
     }
@@ -149,9 +149,8 @@ public class CompleteNode extends Node implements CompleteLocationItem
     @Override
     public SortedSet<Edge> inEdges()
     {
-        return this.inEdgeIdentifiers == null ? null
-                : this.inEdgeIdentifiers.stream().map(CompleteEdge::new)
-                        .collect(Collectors.toCollection(TreeSet::new));
+        return this.inEdgeIdentifiers == null ? null : this.inEdgeIdentifiers.stream()
+                .map(CompleteEdge::new).collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
@@ -165,17 +164,15 @@ public class CompleteNode extends Node implements CompleteLocationItem
     @Override
     public SortedSet<Edge> outEdges()
     {
-        return this.outEdgeIdentifiers == null ? null
-                : this.outEdgeIdentifiers.stream().map(CompleteEdge::new)
-                        .collect(Collectors.toCollection(TreeSet::new));
+        return this.outEdgeIdentifiers == null ? null : this.outEdgeIdentifiers.stream()
+                .map(CompleteEdge::new).collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(CompleteRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(CompleteRelation::new).collect(Collectors.toSet());
     }
 
     @Override
@@ -242,14 +239,19 @@ public class CompleteNode extends Node implements CompleteLocationItem
         return this;
     }
 
+    @Override
     public CompleteNode withLocation(final Location location)
     {
-        this.location = location;
-        if (this.originalBounds == null)
+        // TODO does this make sense? If not then we have fixing to do elsewhere.
+        if (location != null)
         {
-            this.originalBounds = location.bounds();
+            this.location = location;
+            if (this.originalBounds == null)
+            {
+                this.originalBounds = location.bounds();
+            }
+            this.aggregateBounds = Rectangle.forLocated(this.originalBounds, location.bounds());
         }
-        this.aggregateBounds = Rectangle.forLocated(this.originalBounds, location.bounds());
         return this;
     }
 

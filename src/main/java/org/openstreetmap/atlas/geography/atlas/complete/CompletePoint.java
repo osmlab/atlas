@@ -51,7 +51,7 @@ public class CompletePoint extends Point implements CompleteLocationItem
                 .withInitialBounds(point.getLocation().bounds());
     }
 
-    CompletePoint(final long identifier)
+    public CompletePoint(final long identifier)
     {
         this(identifier, null, null, null);
     }
@@ -126,9 +126,8 @@ public class CompletePoint extends Point implements CompleteLocationItem
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(CompleteRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(CompleteRelation::new).collect(Collectors.toSet());
     }
 
     @Override
@@ -165,12 +164,16 @@ public class CompletePoint extends Point implements CompleteLocationItem
     @Override
     public CompletePoint withLocation(final Location location)
     {
-        this.location = location;
-        if (this.originalBounds == null)
+        // TODO does this make sense? If not then we have fixing to do elsewhere.
+        if (location != null)
         {
-            this.originalBounds = location.bounds();
+            this.location = location;
+            if (this.originalBounds == null)
+            {
+                this.originalBounds = location.bounds();
+            }
+            this.aggregateBounds = Rectangle.forLocated(this.originalBounds, location.bounds());
         }
-        this.aggregateBounds = Rectangle.forLocated(this.originalBounds, location.bounds());
         return this;
     }
 
