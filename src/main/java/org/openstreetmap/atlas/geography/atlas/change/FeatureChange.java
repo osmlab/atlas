@@ -18,6 +18,7 @@ import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.change.FeatureChangeMergers.MergedMemberBean;
 import org.openstreetmap.atlas.geography.atlas.change.serializer.FeatureChangeGeoJsonSerializer;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
@@ -66,6 +67,11 @@ public class FeatureChange implements Located, Serializable
     public static FeatureChange add(final AtlasEntity updatedView)
     {
         return new FeatureChange(ChangeType.ADD, updatedView);
+    }
+
+    public static FeatureChange add(final AtlasEntity updatedView, final Atlas atlasContext)
+    {
+        return new FeatureChange(ChangeType.ADD, updatedView).withAtlasContext(atlasContext);
     }
 
     public static FeatureChange remove(final AtlasEntity reference)
@@ -226,7 +232,7 @@ public class FeatureChange implements Located, Serializable
 
                 if (thisReference instanceof LocationItem)
                 {
-                    return mergeLocationItems(other, mergedTags, mergedParentRelations);
+                    return mergeLocationItems2(other, mergedTags, mergedParentRelations);
                 }
                 else if (thisReference instanceof LineItem)
                 {
@@ -590,6 +596,81 @@ public class FeatureChange implements Located, Serializable
                 }
             }
             return FeatureChange.add(result);
+        }
+    }
+
+    private FeatureChange mergeLocationItems2(final FeatureChange other, // NOSONAR
+            final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
+    {
+        final AtlasEntity beforeEntityLeft = this.getBeforeView();
+        final AtlasEntity afterEntityLeft = this.getUpdatedView();
+        final AtlasEntity beforeEntityRight = other.getBeforeView();
+        final AtlasEntity afterEntityRight = other.getUpdatedView();
+
+        final MergedMemberBean<Location> mergedLocationBean = FeatureChangeMergers.mergeMember(
+                "location", beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
+                atlasEntity -> ((LocationItem) atlasEntity).getLocation(), null, null);
+
+        if (afterEntityLeft instanceof Node)
+        {
+            final MergedMemberBean<SortedSet<Long>> mergedInEdgeIdentifiersBean = FeatureChangeMergers
+                    .mergeMember("inEdgeIdentifiers", beforeEntityLeft, afterEntityLeft,
+                            beforeEntityRight, afterEntityRight,
+                            atlasEntity -> ((Node) atlasEntity).inEdges() == null ? null
+                                    : ((Node) atlasEntity).inEdges().stream()
+                                            .map(Edge::getIdentifier)
+                                            .collect(Collectors.toCollection(TreeSet::new)),
+                            FeatureChangeMergers.directReferenceMergerSorted,
+                            FeatureChangeMergers.diffBasedIntegerSortedSetMerger);
+            final MergedMemberBean<SortedSet<Long>> mergedOutEdgeIdentifiersBean = FeatureChangeMergers
+                    .mergeMember("outEdgeIdentifiers", beforeEntityLeft, afterEntityLeft,
+                            beforeEntityRight, afterEntityRight,
+                            atlasEntity -> ((Node) atlasEntity).outEdges() == null ? null
+                                    : ((Node) atlasEntity).inEdges().stream()
+                                            .map(Edge::getIdentifier)
+                                            .collect(Collectors.toCollection(TreeSet::new)),
+                            FeatureChangeMergers.directReferenceMergerSorted,
+                            FeatureChangeMergers.diffBasedIntegerSortedSetMerger);
+            CompleteNode result = new CompleteNode(getIdentifier(),
+                    mergedLocationBean.getMergedAfterMember(), mergedTags,
+                    mergedInEdgeIdentifiersBean.getMergedAfterMember(),
+                    mergedOutEdgeIdentifiersBean.getMergedAfterMember(), mergedParentRelations);
+            if (result.bounds() == null)
+            {
+                if (bounds() != null)
+                {
+                    result = result.withAggregateBoundsExtendedUsing(bounds());
+                }
+                else if (other.bounds() != null)
+                {
+                    result = result.withAggregateBoundsExtendedUsing(other.bounds());
+                }
+            }
+            final CompleteNode beforeNode = CompleteNode.shallowFrom((Node) afterEntityLeft)
+                    .withLocation(mergedLocationBean.getMergedBeforeMember())
+                    .withInEdgeIdentifiers(mergedInEdgeIdentifiersBean.getMergedBeforeMember())
+                    .withOutEdgeIdentifiers(mergedOutEdgeIdentifiersBean.getMergedBeforeMember());
+            return new FeatureChange(ChangeType.ADD, result, beforeNode);
+        }
+        else
+        {
+            // Point
+            CompletePoint result = new CompletePoint(getIdentifier(),
+                    mergedLocationBean.getMergedAfterMember(), mergedTags, mergedParentRelations);
+            if (result.bounds() == null)
+            {
+                if (bounds() != null)
+                {
+                    result = result.withAggregateBoundsExtendedUsing(bounds());
+                }
+                else if (other.bounds() != null)
+                {
+                    result = result.withAggregateBoundsExtendedUsing(other.bounds());
+                }
+            }
+            final CompletePoint beforePoint = CompletePoint.shallowFrom((Point) afterEntityLeft)
+                    .withLocation(mergedLocationBean.getMergedBeforeMember());
+            return new FeatureChange(ChangeType.ADD, result, beforePoint);
         }
     }
 

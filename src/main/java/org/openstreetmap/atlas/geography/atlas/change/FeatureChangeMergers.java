@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.change;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
@@ -11,7 +12,7 @@ import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
-import org.openstreetmap.atlas.utilities.function.QuaternaryOperator;
+import org.openstreetmap.atlas.utilities.function.TernaryOperator;
 
 /**
  * A utility class to store the various merger operations utilized by {@link FeatureChange}.
@@ -65,6 +66,44 @@ public final class FeatureChangeMergers
 
     static final BinaryOperator<RelationBean> relationBeanMerger = RelationBean::merge;
 
+    static final TernaryOperator<SortedSet<Long>> diffBasedIntegerSortedSetMerger = (before,
+            afterLeft, afterRight) ->
+    {
+        final Set<Long> removedFromLeftView = com.google.common.collect.Sets.difference(before,
+                afterLeft);
+        final Set<Long> removedFromRightView = com.google.common.collect.Sets.difference(before,
+                afterRight);
+        final Set<Long> addedToLeftView = com.google.common.collect.Sets.difference(afterLeft,
+                before);
+        final Set<Long> addedToRightView = com.google.common.collect.Sets.difference(afterRight,
+                before);
+
+        final Set<Long> removedMerged = Sets.withSets(false, removedFromLeftView,
+                removedFromRightView);
+        final Set<Long> addedMerged = Sets.withSets(false, addedToLeftView, addedToRightView);
+
+        final Set<Long> collision = com.google.common.collect.Sets.intersection(removedMerged,
+                addedMerged);
+        if (!collision.isEmpty())
+        {
+            throw new CoreException(
+                    "diffBasedIntegerSortedSetMerger failed due to ADD/REMOVE collision: {}",
+                    collision);
+        }
+
+        final SortedSet<Long> result = new TreeSet<Long>(before);
+        for (final Long toRemove : removedMerged)
+        {
+            result.remove(toRemove);
+        }
+        for (final Long toAdd : addedMerged)
+        {
+            result.add(toAdd);
+        }
+
+        return result;
+    };
+
     /**
      * TODO fill in this doc comment.
      *
@@ -84,7 +123,7 @@ public final class FeatureChangeMergers
             final AtlasEntity beforeEntityRight, final AtlasEntity afterEntityRight,
             final Function<AtlasEntity, M> memberExtractor,
             final BinaryOperator<M> simpleMergeStrategy,
-            final QuaternaryOperator<M> diffBasedMergeStrategy)
+            final TernaryOperator<M> diffBasedMergeStrategy)
     {
         final M beforeMemberResult;
         final M afterMemberResult;
@@ -155,36 +194,29 @@ public final class FeatureChangeMergers
             else
             {
                 /*
-                 * If both beforeMembers are present (and we have already asserted their
-                 * equivalence), we use the diffBased strategy.
+                 * If both beforeMembers are present (we have already asserted their equivalence so
+                 * we just arbitrarily use beforeMemberLeft), we use the diffBased strategy if
+                 * present.
                  */
-                if (beforeMemberLeft != null && beforeMemberRight != null)
+                if (beforeMemberLeft != null && beforeMemberRight != null
+                        && diffBasedMergeStrategy != null)
                 {
-                    if (diffBasedMergeStrategy != null)
+                    try
                     {
-                        try
-                        {
-                            afterMemberResult = diffBasedMergeStrategy.apply(beforeMemberLeft,
-                                    afterMemberLeft, beforeMemberRight, afterMemberRight);
-                        }
-                        catch (final Exception exception)
-                        {
-                            throw new CoreException(
-                                    "Attempted merge failed for {} with beforeView: {}; afterView: {} vs {}",
-                                    memberName, beforeMemberLeft, afterMemberLeft, afterMemberRight,
-                                    exception);
-                        }
+                        afterMemberResult = diffBasedMergeStrategy.apply(beforeMemberLeft,
+                                afterMemberLeft, afterMemberRight);
                     }
-                    else
+                    catch (final Exception exception)
                     {
                         throw new CoreException(
-                                "Conflicting members and no diffBased merge strategy for {}; beforeView: {}; afterView: {} vs {}",
-                                memberName, beforeMemberLeft, afterMemberLeft, afterMemberRight);
+                                "Attempted merge failed for {} with beforeView: {}; afterView: {} vs {}",
+                                memberName, beforeMemberLeft, afterMemberLeft, afterMemberRight,
+                                exception);
                     }
                 }
                 /*
-                 * If either beforeMember is not present or both are missing, we try the simple
-                 * strategy.
+                 * If either/both beforeMember is not present, or we don't have a diffBased
+                 * strategy, we try the simple strategy.
                  */
                 else
                 {

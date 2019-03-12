@@ -13,14 +13,12 @@ import java.util.function.Function;
  *            the type of the second argument to the function
  * @param <U>
  *            the type of the third argument to the function
- * @param <V>
- *            the type of the fourth argument to the function
  * @param <R>
  *            the type of the result of the function
  * @author lcram
  */
 @FunctionalInterface
-public interface QuadFunction<S, T, U, V, R>
+public interface TernaryFunction<S, T, U, R>
 {
     /**
      * Returns a composed function that first applies this function to its input, and then applies
@@ -36,10 +34,10 @@ public interface QuadFunction<S, T, U, V, R>
      * @throws NullPointerException
      *             if after is null
      */
-    default <W> QuadFunction<S, T, U, V, W> andThen(final Function<? super R, ? extends W> after)
+    default <W> TernaryFunction<S, T, U, W> andThen(final Function<? super R, ? extends W> after)
     {
         Objects.requireNonNull(after);
-        return (final S s, final T t, final U u, final V v) -> after.apply(apply(s, t, u, v));
+        return (final S s, final T t, final U u) -> after.apply(apply(s, t, u));
     }
 
     /**
@@ -55,5 +53,5 @@ public interface QuadFunction<S, T, U, V, R>
      *            the fourth function argument
      * @return the function result
      */
-    R apply(S s, T t, U u, V v);
+    R apply(S s, T t, U u);
 }
