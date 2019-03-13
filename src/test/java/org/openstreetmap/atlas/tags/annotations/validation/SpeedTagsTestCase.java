@@ -38,6 +38,8 @@ public class SpeedTagsTestCase extends BaseTagTestCase
         Assert.assertTrue(validators().getValidatorFor(MaxSpeedTag.KEY).isValid("60 knots"));
         Assert.assertTrue(validators().getValidatorFor(MaxSpeedTag.KEY).isValid("60mph"));
         Assert.assertTrue(validators().getValidatorFor(MaxSpeedTag.KEY).isValid("60 mph"));
+        Assert.assertTrue(validators().getValidatorFor(MaxSpeedTag.KEY).isValid("none"));
+        Assert.assertTrue(validators().getValidatorFor(MaxSpeedTag.KEY).isValid("RO:urban"));
         Assert.assertTrue(validators().canValidate(MinSpeedTag.KEY));
         Assert.assertTrue(validators().getValidatorFor(MinSpeedTag.KEY).isValid("60"));
         Assert.assertTrue(validators().getValidatorFor(MinSpeedTag.KEY).isValid("60 kph"));
@@ -45,6 +47,8 @@ public class SpeedTagsTestCase extends BaseTagTestCase
         Assert.assertTrue(validators().getValidatorFor(MinSpeedTag.KEY).isValid("60 knots"));
         Assert.assertTrue(validators().getValidatorFor(MinSpeedTag.KEY).isValid("60mph"));
         Assert.assertTrue(validators().getValidatorFor(MinSpeedTag.KEY).isValid("60 mph"));
+        Assert.assertTrue(validators().getValidatorFor(MinSpeedTag.KEY).isValid("none"));
+        Assert.assertTrue(validators().getValidatorFor(MinSpeedTag.KEY).isValid("RO:urban"));
         Assert.assertTrue(validators().canValidate(MaxSpeedBackwardTag.KEY));
         Assert.assertTrue(validators().canValidate(MaxSpeedForwardTag.KEY));
     }
