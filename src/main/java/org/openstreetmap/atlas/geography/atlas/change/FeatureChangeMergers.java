@@ -104,6 +104,13 @@ public final class FeatureChangeMergers
         return result;
     };
 
+    static final TernaryOperator<Map<String, String>> diffBasedTagMerger = (before, afterLeft,
+            afterRight) ->
+    {
+
+        return null;
+    };
+
     /**
      * TODO fill in this doc comment.
      *
