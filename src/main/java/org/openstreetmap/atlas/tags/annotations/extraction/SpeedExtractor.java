@@ -36,7 +36,8 @@ public final class SpeedExtractor
             try
             {
                 final String valueOrImplicit = IMPLICIT_SPEED_MAP.has(value.toLowerCase())
-                        ? IMPLICIT_SPEED_MAP.get(value.toLowerCase()).getAsString() : value;
+                        ? IMPLICIT_SPEED_MAP.get(value.toLowerCase()).getAsString()
+                        : value;
                 if (valueOrImplicit.endsWith(Speed.MILES_PER_HOUR))
                 {
                     return Optional.of(Speed.milesPerHour(Double.valueOf(
