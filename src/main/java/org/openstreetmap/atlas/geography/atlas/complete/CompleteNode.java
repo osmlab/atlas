@@ -23,20 +23,7 @@ public class CompleteNode extends Node implements CompleteLocationItem
 {
     private static final long serialVersionUID = -8229589987121555419L;
 
-    /*
-     * We need to store the original entity bounds at creation-time. This is so multiple consecutive
-     * with(Located) calls can update the aggregate bounds without including the bounds from the
-     * overwritten change.
-     */
-    private Rectangle originalBounds;
-
-    /*
-     * This is the aggregate feature bounds. It is a super-bound of the original bounds and the
-     * changed bounds, if present. Each time with(Located) is called on this entity, it is
-     * recomputed from the original bounds and the new Located bounds.
-     */
-    private Rectangle aggregateBounds;
-
+    private Rectangle bounds;
     private long identifier;
     private Location location;
     private Map<String, String> tags;
@@ -75,7 +62,7 @@ public class CompleteNode extends Node implements CompleteLocationItem
                 .withInitialBounds(node.getLocation().bounds());
     }
 
-    public CompleteNode(final long identifier)
+    CompleteNode(final long identifier)
     {
         this(identifier, null, null, null, null, null);
     }
@@ -91,8 +78,7 @@ public class CompleteNode extends Node implements CompleteLocationItem
             throw new CoreException("Identifier can never be null.");
         }
 
-        this.originalBounds = location != null ? location.bounds() : null;
-        this.aggregateBounds = this.originalBounds;
+        this.bounds = location != null ? location.bounds() : null;
 
         this.identifier = identifier;
         this.location = location;
@@ -105,7 +91,7 @@ public class CompleteNode extends Node implements CompleteLocationItem
     @Override
     public Rectangle bounds()
     {
-        return this.aggregateBounds;
+        return this.bounds;
     }
 
     @Override
@@ -190,16 +176,6 @@ public class CompleteNode extends Node implements CompleteLocationItem
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
-    public CompleteNode withAggregateBoundsExtendedUsing(final Rectangle bounds)
-    {
-        if (this.aggregateBounds == null)
-        {
-            this.aggregateBounds = bounds;
-        }
-        this.aggregateBounds = Rectangle.forLocated(this.aggregateBounds, bounds);
-        return this;
-    }
-
     @Override
     public CompleteNode withIdentifier(final long identifier)
     {
@@ -242,16 +218,8 @@ public class CompleteNode extends Node implements CompleteLocationItem
     @Override
     public CompleteNode withLocation(final Location location)
     {
-        // TODO does this make sense? If not then we have fixing to do elsewhere.
-        if (location != null)
-        {
-            this.location = location;
-            if (this.originalBounds == null)
-            {
-                this.originalBounds = location.bounds();
-            }
-            this.aggregateBounds = Rectangle.forLocated(this.originalBounds, location.bounds());
-        }
+        this.location = location;
+        this.bounds = location.bounds();
         return this;
     }
 
@@ -324,8 +292,7 @@ public class CompleteNode extends Node implements CompleteLocationItem
 
     private CompleteNode withInitialBounds(final Rectangle bounds)
     {
-        this.originalBounds = bounds;
-        this.aggregateBounds = bounds;
+        this.bounds = bounds;
         return this;
     }
 }

@@ -21,20 +21,7 @@ public class CompleteEdge extends Edge implements CompleteLineItem
 {
     private static final long serialVersionUID = 309534717673911086L;
 
-    /*
-     * We need to store the original entity bounds at creation-time. This is so multiple consecutive
-     * with(Located) calls can update the aggregate bounds without including the bounds from the
-     * overwritten change.
-     */
-    private Rectangle originalBounds;
-
-    /*
-     * This is the aggregate feature bounds. It is a super-bound of the original bounds and the
-     * changed bounds, if present. Each time with(Located) is called on this entity, it is
-     * recomputed from the original bounds and the new Located bounds.
-     */
-    private Rectangle aggregateBounds;
-
+    private Rectangle bounds;
     private long identifier;
     private PolyLine polyLine;
     private Map<String, String> tags;
@@ -70,8 +57,7 @@ public class CompleteEdge extends Edge implements CompleteLineItem
             throw new CoreException("Identifier can never be null.");
         }
 
-        this.originalBounds = polyLine != null ? polyLine.bounds() : null;
-        this.aggregateBounds = this.originalBounds;
+        this.bounds = polyLine != null ? polyLine.bounds() : null;
 
         this.identifier = identifier;
         this.polyLine = polyLine;
@@ -90,7 +76,7 @@ public class CompleteEdge extends Edge implements CompleteLineItem
     @Override
     public Rectangle bounds()
     {
-        return this.aggregateBounds;
+        return this.bounds;
     }
 
     @Override
@@ -142,9 +128,8 @@ public class CompleteEdge extends Edge implements CompleteLineItem
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(CompleteRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(CompleteRelation::new).collect(Collectors.toSet());
     }
 
     @Override
@@ -168,17 +153,6 @@ public class CompleteEdge extends Edge implements CompleteLineItem
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
-    @Override
-    public CompleteEdge withAggregateBoundsExtendedUsing(final Rectangle bounds)
-    {
-        if (this.aggregateBounds == null)
-        {
-            this.aggregateBounds = bounds;
-        }
-        this.aggregateBounds = Rectangle.forLocated(this.aggregateBounds, bounds);
-        return this;
-    }
-
     public CompleteEdge withEndNodeIdentifier(final Long endNodeIdentifier)
     {
         this.endNodeIdentifier = endNodeIdentifier;
@@ -196,11 +170,7 @@ public class CompleteEdge extends Edge implements CompleteLineItem
     public CompleteEdge withPolyLine(final PolyLine polyLine)
     {
         this.polyLine = polyLine;
-        if (this.originalBounds == null)
-        {
-            this.originalBounds = polyLine.bounds();
-        }
-        this.aggregateBounds = Rectangle.forLocated(this.originalBounds, polyLine.bounds());
+        this.bounds = polyLine.bounds();
         return this;
     }
 
@@ -247,8 +217,7 @@ public class CompleteEdge extends Edge implements CompleteLineItem
 
     private CompleteEdge withInitialBounds(final Rectangle bounds)
     {
-        this.originalBounds = bounds;
-        this.aggregateBounds = bounds;
+        this.bounds = bounds;
         return this;
     }
 }

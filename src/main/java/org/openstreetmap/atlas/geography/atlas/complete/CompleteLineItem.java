@@ -1,7 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
 import org.openstreetmap.atlas.geography.PolyLine;
-import org.openstreetmap.atlas.geography.Rectangle;
 
 /**
  * Similar to a {@link org.openstreetmap.atlas.geography.atlas.items.LineItem} but for
@@ -12,6 +11,4 @@ import org.openstreetmap.atlas.geography.Rectangle;
 public interface CompleteLineItem extends CompleteEntity
 {
     CompleteLineItem withPolyLine(PolyLine polyLine);
-
-    CompleteLineItem withAggregateBoundsExtendedUsing(Rectangle bounds);
 }

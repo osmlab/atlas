@@ -20,20 +20,7 @@ public class CompleteArea extends Area implements CompleteEntity
 {
     private static final long serialVersionUID = 309534717673911086L;
 
-    /*
-     * We need to store the original entity bounds at creation-time. This is so multiple consecutive
-     * with(Located) calls can update the aggregate bounds without including the bounds from the
-     * overwritten change.
-     */
-    private Rectangle originalBounds;
-
-    /*
-     * This is the aggregate feature bounds. It is a super-bound of the original bounds and the
-     * changed bounds, if present. Each time with(Located) is called on this entity, it is
-     * recomputed from the original bounds and the new Located bounds.
-     */
-    private Rectangle aggregateBounds;
-
+    private Rectangle bounds;
     private long identifier;
     private Polygon polygon;
     private Map<String, String> tags;
@@ -65,8 +52,7 @@ public class CompleteArea extends Area implements CompleteEntity
             throw new CoreException("Identifier can never be null.");
         }
 
-        this.originalBounds = polygon != null ? polygon.bounds() : null;
-        this.aggregateBounds = this.originalBounds;
+        this.bounds = polygon != null ? polygon.bounds() : null;
 
         this.identifier = identifier;
         this.polygon = polygon;
@@ -83,7 +69,7 @@ public class CompleteArea extends Area implements CompleteEntity
     @Override
     public Rectangle bounds()
     {
-        return this.aggregateBounds;
+        return this.bounds;
     }
 
     @Override
@@ -125,9 +111,8 @@ public class CompleteArea extends Area implements CompleteEntity
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(CompleteRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(CompleteRelation::new).collect(Collectors.toSet());
     }
 
     @Override
@@ -144,16 +129,6 @@ public class CompleteArea extends Area implements CompleteEntity
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
-    public CompleteArea withAggregateBoundsExtendedUsing(final Rectangle bounds)
-    {
-        if (this.aggregateBounds == null)
-        {
-            this.aggregateBounds = bounds;
-        }
-        this.aggregateBounds = Rectangle.forLocated(this.aggregateBounds, bounds);
-        return this;
-    }
-
     @Override
     public CompleteArea withIdentifier(final long identifier)
     {
@@ -164,11 +139,7 @@ public class CompleteArea extends Area implements CompleteEntity
     public CompleteArea withPolygon(final Polygon polygon)
     {
         this.polygon = polygon;
-        if (this.originalBounds == null)
-        {
-            this.originalBounds = polygon.bounds();
-        }
-        this.aggregateBounds = Rectangle.forLocated(this.originalBounds, polygon.bounds());
+        this.bounds = polygon.bounds();
         return this;
     }
 
@@ -209,8 +180,7 @@ public class CompleteArea extends Area implements CompleteEntity
 
     private CompleteArea withInitialBounds(final Rectangle bounds)
     {
-        this.originalBounds = bounds;
-        this.aggregateBounds = bounds;
+        this.bounds = bounds;
         return this;
     }
 }

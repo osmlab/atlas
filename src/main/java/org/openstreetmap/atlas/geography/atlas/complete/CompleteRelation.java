@@ -27,20 +27,7 @@ public class CompleteRelation extends Relation implements CompleteEntity
 {
     private static final long serialVersionUID = -8295865049110084558L;
 
-    /*
-     * We need to store the original entity bounds at creation-time. This is so multiple consecutive
-     * with(Located) calls can update the aggregate bounds without including the bounds from the
-     * overwritten change.
-     */
-    private Rectangle originalBounds;
-
-    /*
-     * This is the aggregate feature bounds. It is a super-bound of the original bounds and the
-     * changed bounds, if present. Each time with(Located) is called on this entity, it is
-     * recomputed from the original bounds and the new Located bounds.
-     */
-    private Rectangle aggregateBounds;
-
+    private Rectangle bounds;
     private long identifier;
     private Map<String, String> tags;
     private RelationBean members;
@@ -83,8 +70,7 @@ public class CompleteRelation extends Relation implements CompleteEntity
             throw new CoreException("Identifier can never be null.");
         }
 
-        this.originalBounds = bounds != null ? bounds : null;
-        this.aggregateBounds = this.originalBounds;
+        this.bounds = bounds != null ? bounds : null;
 
         this.identifier = identifier;
         this.tags = tags;
@@ -117,7 +103,7 @@ public class CompleteRelation extends Relation implements CompleteEntity
     @Override
     public Rectangle bounds()
     {
-        return this.aggregateBounds;
+        return this.bounds;
     }
 
     @Override
@@ -179,9 +165,8 @@ public class CompleteRelation extends Relation implements CompleteEntity
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(CompleteRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(CompleteRelation::new).collect(Collectors.toSet());
     }
 
     @Override
@@ -196,16 +181,6 @@ public class CompleteRelation extends Relation implements CompleteEntity
     public CompleteRelation withAddedTag(final String key, final String value)
     {
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
-    }
-
-    public CompleteRelation withAggregateBoundsExtendedUsing(final Rectangle bounds)
-    {
-        if (this.aggregateBounds == null)
-        {
-            this.aggregateBounds = bounds;
-        }
-        this.aggregateBounds = Rectangle.forLocated(this.aggregateBounds, bounds);
-        return this;
     }
 
     public CompleteRelation withAllKnownOsmMembers(final RelationBean allKnownOsmMembers)
@@ -406,17 +381,12 @@ public class CompleteRelation extends Relation implements CompleteEntity
 
     private void updateBounds(final Rectangle bounds)
     {
-        if (this.originalBounds == null)
-        {
-            this.originalBounds = bounds;
-        }
-        this.aggregateBounds = Rectangle.forLocated(this.originalBounds, bounds);
+        this.bounds = bounds;
     }
 
     private CompleteRelation withInitialBounds(final Rectangle bounds)
     {
-        this.originalBounds = bounds;
-        this.aggregateBounds = bounds;
+        this.bounds = bounds;
         return this;
     }
 }
