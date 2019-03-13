@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.tags.annotations.extraction;
 import java.io.InputStreamReader;
 import java.util.Optional;
 
+import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.tags.annotations.validation.SpeedValidator;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Speed;
@@ -24,9 +25,8 @@ public final class SpeedExtractor
     private static final String SINGLE_SPACE = " ";
     private static final Logger logger = LoggerFactory.getLogger(SpeedExtractor.class);
     private static final JsonObject IMPLICIT_SPEED_MAP = new Gson().fromJson(
-            new JsonReader(
-                    new InputStreamReader(SpeedExtractor.class.getClassLoader().getResourceAsStream(
-                            "org/openstreetmap/atlas/tags/annotations/implicit-speed-values.json"))),
+            new JsonReader(new InputStreamReader(
+                    Tag.class.getResourceAsStream("implicit-speed-values.json"))),
             JsonObject.class);
 
     public static Optional<Speed> validateAndExtract(final String value)

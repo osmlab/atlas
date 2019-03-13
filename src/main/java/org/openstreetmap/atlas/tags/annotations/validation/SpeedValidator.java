@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.tags.annotations.validation;
 
 import java.io.InputStreamReader;
 
+import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.utilities.scalars.Speed;
 
 import com.google.gson.Gson;
@@ -22,9 +23,8 @@ public class SpeedValidator implements TagValidator
 {
     private static final DoubleValidator DOUBLE_VALIDATOR;
     private static final JsonObject IMPLICIT_SPEED_MAP = new Gson().fromJson(
-            new JsonReader(
-                    new InputStreamReader(SpeedValidator.class.getClassLoader().getResourceAsStream(
-                            "org/openstreetmap/atlas/tags/annotations/implicit-speed-values.json"))),
+            new JsonReader(new InputStreamReader(
+                    Tag.class.getResourceAsStream("implicit-speed-values.json"))),
             JsonObject.class);
 
     static
