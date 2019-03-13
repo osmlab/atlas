@@ -58,13 +58,12 @@ public class CompleteNode extends Node implements CompleteLocationItem
      */
     public static CompleteNode shallowFrom(final Node node)
     {
-        return new CompleteNode(node.getIdentifier())
-                .withInitialBounds(node.getLocation().bounds());
+        return new CompleteNode(node.getIdentifier(), node.getLocation());
     }
 
-    CompleteNode(final long identifier)
+    CompleteNode(final long identifier, final Location location)
     {
-        this(identifier, null, null, null, null, null);
+        this(identifier, location, null, null, null, null);
     }
 
     public CompleteNode(final Long identifier, final Location location,
@@ -78,7 +77,12 @@ public class CompleteNode extends Node implements CompleteLocationItem
             throw new CoreException("Identifier can never be null.");
         }
 
-        this.bounds = location != null ? location.bounds() : null;
+        if (location == null)
+        {
+            throw new CoreException("Location can never be null.");
+        }
+
+        this.bounds = location.bounds();
 
         this.identifier = identifier;
         this.location = location;
@@ -287,12 +291,6 @@ public class CompleteNode extends Node implements CompleteLocationItem
     public CompleteNode withTags(final Map<String, String> tags)
     {
         this.tags = tags;
-        return this;
-    }
-
-    private CompleteNode withInitialBounds(final Rectangle bounds)
-    {
-        this.bounds = bounds;
         return this;
     }
 }

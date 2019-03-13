@@ -219,10 +219,10 @@ public class FeatureChange implements Located, Serializable
                 final AtlasEntity thisReference = this.getUpdatedView();
                 final AtlasEntity thatReference = other.getUpdatedView();
                 final Map<String, String> mergedTags = FeatureChangeMergers
-                        .mergeMemberWithBasicStrategy("tags", thisReference, thatReference,
+                        .mergeMember_OldStrategy("tags", thisReference, thatReference,
                                 Taggable::getTags, FeatureChangeMergers.tagMerger);
                 final Set<Long> mergedParentRelations = FeatureChangeMergers
-                        .mergeMemberWithBasicStrategy("parentRelations", thisReference,
+                        .mergeMember_OldStrategy("parentRelations", thisReference,
                                 thatReference,
                                 atlasEntity -> atlasEntity.relations() == null ? null
                                         : atlasEntity.relations().stream()
@@ -232,7 +232,7 @@ public class FeatureChange implements Located, Serializable
 
                 if (thisReference instanceof LocationItem)
                 {
-                    return mergeLocationItems2(other, mergedTags, mergedParentRelations);
+                    return mergeLocationItems_NewlyProposed(other, mergedTags, mergedParentRelations);
                 }
                 else if (thisReference instanceof LineItem)
                 {
@@ -465,22 +465,15 @@ public class FeatureChange implements Located, Serializable
     {
         final AtlasEntity thisReference = this.getUpdatedView();
         final AtlasEntity thatReference = other.getUpdatedView();
-        final Polygon mergedPolygon = FeatureChangeMergers.mergeMemberWithBasicStrategy("polygon",
+        final Polygon mergedPolygon = FeatureChangeMergers.mergeMember_OldStrategy("polygon",
                 thisReference, thatReference, atlasEntity -> ((Area) atlasEntity).asPolygon(),
                 null);
 
-        CompleteArea result = new CompleteArea(getIdentifier(), mergedPolygon, mergedTags,
+        final CompleteArea result = new CompleteArea(getIdentifier(), mergedPolygon, mergedTags,
                 mergedParentRelations);
         if (result.bounds() == null)
         {
-            if (bounds() != null)
-            {
-                result = result.withAggregateBoundsExtendedUsing(bounds());
-            }
-            else if (other.bounds() != null)
-            {
-                result = result.withAggregateBoundsExtendedUsing(other.bounds());
-            }
+            throw new CoreException("TODO CompleteArea result bounds null, investigate");
         }
         return FeatureChange.add(result);
     }
@@ -490,50 +483,37 @@ public class FeatureChange implements Located, Serializable
     {
         final AtlasEntity thisReference = this.getUpdatedView();
         final AtlasEntity thatReference = other.getUpdatedView();
-        final PolyLine mergedPolyLine = FeatureChangeMergers.mergeMemberWithBasicStrategy(
+        final PolyLine mergedPolyLine = FeatureChangeMergers.mergeMember_OldStrategy(
                 "polyLine", thisReference, thatReference,
                 atlasEntity -> ((LineItem) atlasEntity).asPolyLine(), null);
         if (thisReference instanceof Edge)
         {
             final Long mergedStartNodeIdentifier = FeatureChangeMergers
-                    .mergeMemberWithBasicStrategy("startNode", thisReference, thatReference,
+                    .mergeMember_OldStrategy("startNode", thisReference, thatReference,
                             edge -> ((Edge) edge).start() == null ? null
                                     : ((Edge) edge).start().getIdentifier(),
                             null);
-            final Long mergedEndNodeIdentifier = FeatureChangeMergers.mergeMemberWithBasicStrategy(
+            final Long mergedEndNodeIdentifier = FeatureChangeMergers.mergeMember_OldStrategy(
                     "endNode", thisReference, thatReference, edge -> ((Edge) edge).end() == null
                             ? null : ((Edge) edge).end().getIdentifier(),
                     null);
-            CompleteEdge result = new CompleteEdge(getIdentifier(), mergedPolyLine, mergedTags,
-                    mergedStartNodeIdentifier, mergedEndNodeIdentifier, mergedParentRelations);
+            final CompleteEdge result = new CompleteEdge(getIdentifier(), mergedPolyLine,
+                    mergedTags, mergedStartNodeIdentifier, mergedEndNodeIdentifier,
+                    mergedParentRelations);
             if (result.bounds() == null)
             {
-                if (bounds() != null)
-                {
-                    result = result.withAggregateBoundsExtendedUsing(bounds());
-                }
-                else if (other.bounds() != null)
-                {
-                    result = result.withAggregateBoundsExtendedUsing(other.bounds());
-                }
+                throw new CoreException("TODO CompleteEdge result bounds null, investigate");
             }
             return FeatureChange.add(result);
         }
         else
         {
             // Line
-            CompleteLine result = new CompleteLine(getIdentifier(), mergedPolyLine, mergedTags,
-                    mergedParentRelations);
+            final CompleteLine result = new CompleteLine(getIdentifier(), mergedPolyLine,
+                    mergedTags, mergedParentRelations);
             if (result.bounds() == null)
             {
-                if (bounds() != null)
-                {
-                    result = result.withAggregateBoundsExtendedUsing(bounds());
-                }
-                else if (other.bounds() != null)
-                {
-                    result = result.withAggregateBoundsExtendedUsing(other.bounds());
-                }
+                throw new CoreException("TODO CompleteLine result bounds null, investigate");
             }
             return FeatureChange.add(result);
         }
@@ -544,62 +524,49 @@ public class FeatureChange implements Located, Serializable
     {
         final AtlasEntity thisReference = this.getUpdatedView();
         final AtlasEntity thatReference = other.getUpdatedView();
-        final Location mergedLocation = FeatureChangeMergers.mergeMemberWithBasicStrategy(
+        final Location mergedLocation = FeatureChangeMergers.mergeMember_OldStrategy(
                 "location", thisReference, thatReference,
                 atlasEntity -> ((LocationItem) atlasEntity).getLocation(), null);
         if (thisReference instanceof Node)
         {
             final SortedSet<Long> mergedInEdgeIdentifiers = FeatureChangeMergers
-                    .mergeMemberWithBasicStrategy("inEdgeIdentifiers", thisReference, thatReference,
+                    .mergeMember_OldStrategy("inEdgeIdentifiers", thisReference, thatReference,
                             atlasEntity -> ((Node) atlasEntity).inEdges() == null ? null
                                     : ((Node) atlasEntity).inEdges().stream()
                                             .map(Edge::getIdentifier)
                                             .collect(Collectors.toCollection(TreeSet::new)),
                             FeatureChangeMergers.directReferenceMergerSorted);
             final SortedSet<Long> mergedOutEdgeIdentifiers = FeatureChangeMergers
-                    .mergeMemberWithBasicStrategy("outEdgeIdentifiers", thisReference,
+                    .mergeMember_OldStrategy("outEdgeIdentifiers", thisReference,
                             thatReference,
                             atlasEntity -> ((Node) atlasEntity).outEdges() == null ? null
                                     : ((Node) atlasEntity).outEdges().stream()
                                             .map(Edge::getIdentifier)
                                             .collect(Collectors.toCollection(TreeSet::new)),
                             FeatureChangeMergers.directReferenceMergerSorted);
-            CompleteNode result = new CompleteNode(getIdentifier(), mergedLocation, mergedTags,
-                    mergedInEdgeIdentifiers, mergedOutEdgeIdentifiers, mergedParentRelations);
+            final CompleteNode result = new CompleteNode(getIdentifier(), mergedLocation,
+                    mergedTags, mergedInEdgeIdentifiers, mergedOutEdgeIdentifiers,
+                    mergedParentRelations);
             if (result.bounds() == null)
             {
-                if (bounds() != null)
-                {
-                    result = result.withAggregateBoundsExtendedUsing(bounds());
-                }
-                else if (other.bounds() != null)
-                {
-                    result = result.withAggregateBoundsExtendedUsing(other.bounds());
-                }
+                throw new CoreException("TODO CompleteNode result bounds null, investigate");
             }
             return FeatureChange.add(result);
         }
         else
         {
             // Point
-            CompletePoint result = new CompletePoint(getIdentifier(), mergedLocation, mergedTags,
-                    mergedParentRelations);
+            final CompletePoint result = new CompletePoint(getIdentifier(), mergedLocation,
+                    mergedTags, mergedParentRelations);
             if (result.bounds() == null)
             {
-                if (bounds() != null)
-                {
-                    result = result.withAggregateBoundsExtendedUsing(bounds());
-                }
-                else if (other.bounds() != null)
-                {
-                    result = result.withAggregateBoundsExtendedUsing(other.bounds());
-                }
+                throw new CoreException("TODO CompletePoint result bounds null, investigate");
             }
             return FeatureChange.add(result);
         }
     }
 
-    private FeatureChange mergeLocationItems2(final FeatureChange other, // NOSONAR
+    private FeatureChange mergeLocationItems_NewlyProposed(final FeatureChange other, // NOSONAR
             final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
     {
         final AtlasEntity beforeEntityLeft = this.getBeforeView();
@@ -631,22 +598,15 @@ public class FeatureChange implements Located, Serializable
                                             .collect(Collectors.toCollection(TreeSet::new)),
                             FeatureChangeMergers.directReferenceMergerSorted,
                             FeatureChangeMergers.diffBasedIntegerSortedSetMerger);
-            CompleteNode result = new CompleteNode(getIdentifier(),
+            final CompleteNode result = new CompleteNode(getIdentifier(),
                     mergedLocationBean.getMergedAfterMember(), mergedTags,
                     mergedInEdgeIdentifiersBean.getMergedAfterMember(),
                     mergedOutEdgeIdentifiersBean.getMergedAfterMember(), mergedParentRelations);
             if (result.bounds() == null)
             {
-                if (bounds() != null)
-                {
-                    result = result.withAggregateBoundsExtendedUsing(bounds());
-                }
-                else if (other.bounds() != null)
-                {
-                    result = result.withAggregateBoundsExtendedUsing(other.bounds());
-                }
+                throw new CoreException("TODO CompleteNode result bounds null, investigate");
             }
-            final CompleteNode beforeNode = new CompleteNode(afterEntityLeft.getIdentifier())
+            final CompleteNode beforeNode = CompleteNode.shallowFrom((Node) afterEntityLeft)
                     .withLocation(mergedLocationBean.getMergedBeforeMember())
                     .withInEdgeIdentifiers(mergedInEdgeIdentifiersBean.getMergedBeforeMember())
                     .withOutEdgeIdentifiers(mergedOutEdgeIdentifiersBean.getMergedBeforeMember());
@@ -655,20 +615,13 @@ public class FeatureChange implements Located, Serializable
         else
         {
             // Point
-            CompletePoint result = new CompletePoint(getIdentifier(),
+            final CompletePoint result = new CompletePoint(getIdentifier(),
                     mergedLocationBean.getMergedAfterMember(), mergedTags, mergedParentRelations);
             if (result.bounds() == null)
             {
-                if (bounds() != null)
-                {
-                    result = result.withAggregateBoundsExtendedUsing(bounds());
-                }
-                else if (other.bounds() != null)
-                {
-                    result = result.withAggregateBoundsExtendedUsing(other.bounds());
-                }
+                throw new CoreException("TODO CompletePoint result bounds null, investigate");
             }
-            final CompletePoint beforePoint = new CompletePoint(afterEntityLeft.getIdentifier())
+            final CompletePoint beforePoint = CompletePoint.shallowFrom((Point) afterEntityLeft)
                     .withLocation(mergedLocationBean.getMergedBeforeMember());
             return new FeatureChange(ChangeType.ADD, result, beforePoint);
         }
@@ -680,17 +633,17 @@ public class FeatureChange implements Located, Serializable
         final AtlasEntity thisReference = this.getUpdatedView();
         final AtlasEntity thatReference = other.getUpdatedView();
 
-        final RelationBean mergedMembers = FeatureChangeMergers.mergeMemberWithBasicStrategy(
+        final RelationBean mergedMembers = FeatureChangeMergers.mergeMember_OldStrategy(
                 "relationMembers", thisReference, thatReference,
                 entity -> ((Relation) entity).members() == null ? null
                         : ((Relation) entity).members().asBean(),
                 FeatureChangeMergers.relationBeanMerger);
         final Rectangle mergedBounds = Rectangle.forLocated(thisReference, thatReference);
-        final Long mergedOsmRelationIdentifier = FeatureChangeMergers.mergeMemberWithBasicStrategy(
+        final Long mergedOsmRelationIdentifier = FeatureChangeMergers.mergeMember_OldStrategy(
                 "osmRelationIdentifier", thisReference, thatReference,
                 entity -> ((Relation) entity).getOsmIdentifier(), null);
         final Set<Long> mergedAllRelationsWithSameOsmIdentifierSet = FeatureChangeMergers
-                .mergeMemberWithBasicStrategy("allRelationsWithSameOsmIdentifier", thisReference,
+                .mergeMember_OldStrategy("allRelationsWithSameOsmIdentifier", thisReference,
                         thatReference,
                         atlasEntity -> ((Relation) atlasEntity)
                                 .allRelationsWithSameOsmIdentifier() == null
@@ -704,7 +657,7 @@ public class FeatureChange implements Located, Serializable
                 ? null
                 : mergedAllRelationsWithSameOsmIdentifierSet.stream().collect(Collectors.toList());
         final RelationBean mergedAllKnownMembers = FeatureChangeMergers
-                .mergeMemberWithBasicStrategy("allKnownOsmMembers", thisReference, thatReference,
+                .mergeMember_OldStrategy("allKnownOsmMembers", thisReference, thatReference,
                         entity -> ((Relation) entity).allKnownOsmMembers() == null ? null
                                 : ((Relation) entity).allKnownOsmMembers().asBean(),
                         FeatureChangeMergers.relationBeanMerger);

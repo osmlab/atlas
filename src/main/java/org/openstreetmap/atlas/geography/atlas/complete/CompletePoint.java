@@ -32,15 +32,22 @@ public class CompletePoint extends Point implements CompleteLocationItem
                 .relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
+    /**
+     * Create a shallow copy of a given point. All fields (except the identifier and the geometry)
+     * are left null until updated by a with() call.
+     *
+     * @param point
+     *            the {@link Point} to copy
+     * @return the new {@link CompletePoint}
+     */
     public static CompletePoint shallowFrom(final Point point)
     {
-        return new CompletePoint(point.getIdentifier())
-                .withInitialBounds(point.getLocation().bounds());
+        return new CompletePoint(point.getIdentifier(), point.getLocation());
     }
 
-    CompletePoint(final long identifier)
+    CompletePoint(final long identifier, final Location location)
     {
-        this(identifier, null, null, null);
+        this(identifier, location, null, null);
     }
 
     public CompletePoint(final Long identifier, final Location location,
@@ -53,7 +60,12 @@ public class CompletePoint extends Point implements CompleteLocationItem
             throw new CoreException("Identifier can never be null.");
         }
 
-        this.bounds = location != null ? location.bounds() : null;
+        if (location == null)
+        {
+            throw new CoreException("Location can never be null.");
+        }
+
+        this.bounds = location.bounds();
 
         this.identifier = identifier;
         this.location = location;
@@ -177,12 +189,6 @@ public class CompletePoint extends Point implements CompleteLocationItem
     public CompletePoint withTags(final Map<String, String> tags)
     {
         this.tags = tags;
-        return this;
-    }
-
-    private CompletePoint withInitialBounds(final Rectangle bounds)
-    {
-        this.bounds = bounds;
         return this;
     }
 }

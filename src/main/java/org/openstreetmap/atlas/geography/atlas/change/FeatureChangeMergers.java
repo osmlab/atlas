@@ -91,7 +91,7 @@ public final class FeatureChangeMergers
                     collision);
         }
 
-        final SortedSet<Long> result = new TreeSet<Long>(before);
+        final SortedSet<Long> result = new TreeSet<>(before);
         for (final Long toRemove : removedMerged)
         {
             result.remove(toRemove);
@@ -264,9 +264,9 @@ public final class FeatureChangeMergers
         return new MergedMemberBean<>(beforeMemberResult, afterMemberResult);
     }
 
-    static <M> M mergeMemberWithBasicStrategy(final String memberName,
-            final AtlasEntity afterEntityLeft, final AtlasEntity afterEntityRight,
-            final Function<AtlasEntity, M> memberExtractor, final BinaryOperator<M> memberMerger)
+    static <M> M mergeMember_OldStrategy(final String memberName, final AtlasEntity afterEntityLeft,
+            final AtlasEntity afterEntityRight, final Function<AtlasEntity, M> memberExtractor,
+            final BinaryOperator<M> memberMerger)
     {
         final M result;
         final M afterMemberLeft = memberExtractor.apply(afterEntityLeft);

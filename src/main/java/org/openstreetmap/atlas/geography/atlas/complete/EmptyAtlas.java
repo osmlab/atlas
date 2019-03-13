@@ -7,7 +7,6 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
-import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
@@ -193,23 +192,7 @@ public class EmptyAtlas implements Atlas
     @Override
     public AtlasEntity entity(final long identifier, final ItemType type)
     {
-        switch (type)
-        {
-            case NODE:
-                return new CompleteNode(identifier);
-            case EDGE:
-                return new CompleteEdge(identifier);
-            case AREA:
-                return new CompleteArea(identifier);
-            case LINE:
-                return new CompleteLine(identifier);
-            case POINT:
-                return new CompletePoint(identifier);
-            case RELATION:
-                return new CompleteRelation(identifier);
-            default:
-                throw new CoreException("Unknown ItemType {}", type);
-        }
+        throw new UnsupportedOperationException();
     }
 
     @Override

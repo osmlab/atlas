@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -82,7 +83,11 @@ public class CompleteEdge extends Edge implements CompleteLineItem
     @Override
     public Node end()
     {
-        return this.endNodeIdentifier == null ? null : new CompleteNode(this.endNodeIdentifier);
+        /*
+         * TODO does this make sense, using Location.CENTER as a dummy location?
+         */
+        return this.endNodeIdentifier == null ? null
+                : new CompleteNode(this.endNodeIdentifier, Location.CENTER);
     }
 
     @Override
@@ -135,7 +140,11 @@ public class CompleteEdge extends Edge implements CompleteLineItem
     @Override
     public Node start()
     {
-        return this.startNodeIdentifier == null ? null : new CompleteNode(this.startNodeIdentifier);
+        /*
+         * TODO does this make sense, using Location.CENTER as a dummy location?
+         */
+        return this.startNodeIdentifier == null ? null
+                : new CompleteNode(this.startNodeIdentifier, Location.CENTER);
     }
 
     @Override

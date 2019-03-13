@@ -120,16 +120,16 @@ public class FeatureChangeTest
     @Test
     public void testMergeNodes()
     {
-        final CompleteNode beforeNode = new CompleteNode(123L, null,
+        final CompleteNode beforeNode = new CompleteNode(123L, Location.COLOSSEUM,
                 Maps.hashMap("a", "1", "b", "2"), Sets.treeSet(1L, 2L, 3L),
                 Sets.treeSet(10L, 11L, 12L), null);
 
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteNode(123L, null, Maps.hashMap("a", "1", "b", "2"),
+                new CompleteNode(123L, Location.COLOSSEUM, Maps.hashMap("a", "1", "b", "2"),
                         Sets.treeSet(1L, 2L, 3L, 4L), Sets.treeSet(10L, 11L, 12L, 13L), null),
                 beforeNode);
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
-                new CompleteNode(123L, null, Maps.hashMap("a", "1", "b", "2"),
+                new CompleteNode(123L, Location.COLOSSEUM, Maps.hashMap("a", "1", "b", "2"),
                         Sets.treeSet(1L, 2L, 3L, 5L), Sets.treeSet(10L, 11L), null),
                 beforeNode);
 
