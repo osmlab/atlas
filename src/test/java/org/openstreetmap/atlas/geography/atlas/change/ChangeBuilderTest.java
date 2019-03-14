@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.geography.atlas.change.feature.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;

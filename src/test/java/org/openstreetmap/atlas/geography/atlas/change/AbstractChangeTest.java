@@ -4,6 +4,7 @@ import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
+import org.openstreetmap.atlas.geography.atlas.change.feature.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
 import org.openstreetmap.atlas.utilities.collections.Maps;

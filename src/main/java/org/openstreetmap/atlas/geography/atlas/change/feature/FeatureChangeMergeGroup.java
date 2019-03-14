@@ -1,8 +1,7 @@
-package org.openstreetmap.atlas.geography.atlas.change.merge;
+package org.openstreetmap.atlas.geography.atlas.change.feature;
 
 import org.openstreetmap.atlas.geography.atlas.change.Change;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
-import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 
 /**
@@ -11,13 +10,19 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
  *
  * @author Yazad Khambata
  */
-class FeatureChangeMergeGroup
+public class FeatureChangeMergeGroup
 {
     private final ItemType itemType;
     private final Long identifier;
     private final ChangeType changeType;
 
-    FeatureChangeMergeGroup(final ItemType itemType, final Long identifier,
+    public static FeatureChangeMergeGroup from(final FeatureChange featureChange)
+    {
+        return new FeatureChangeMergeGroup(featureChange.getItemType(),
+                featureChange.getIdentifier(), featureChange.getChangeType());
+    }
+
+    public FeatureChangeMergeGroup(final ItemType itemType, final Long identifier,
             final ChangeType changeType)
     {
         super();
@@ -26,24 +31,18 @@ class FeatureChangeMergeGroup
         this.changeType = changeType;
     }
 
-    static FeatureChangeMergeGroup from(final FeatureChange featureChange)
+    public ChangeType getChangeType()
     {
-        return new FeatureChangeMergeGroup(featureChange.getItemType(),
-                featureChange.getIdentifier(), featureChange.getChangeType());
-    }
-
-    public ItemType getItemType()
-    {
-        return itemType;
+        return this.changeType;
     }
 
     public Long getIdentifier()
     {
-        return identifier;
+        return this.identifier;
     }
 
-    public ChangeType getChangeType()
+    public ItemType getItemType()
     {
-        return changeType;
+        return this.itemType;
     }
 }

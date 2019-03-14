@@ -4,6 +4,7 @@ import java.util.stream.IntStream;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.geography.atlas.change.feature.FeatureChange;
 
 /**
  * Test the merge feature of Change class.

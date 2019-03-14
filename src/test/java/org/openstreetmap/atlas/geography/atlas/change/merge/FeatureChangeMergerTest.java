@@ -9,7 +9,7 @@ import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
-import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.change.feature.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.utilities.collections.Maps;

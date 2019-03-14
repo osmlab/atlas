@@ -1,22 +1,16 @@
-package org.openstreetmap.atlas.geography.atlas.change;
+package org.openstreetmap.atlas.geography.atlas.change.feature;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Located;
-import org.openstreetmap.atlas.geography.PolyLine;
-import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
-import org.openstreetmap.atlas.geography.atlas.change.merge.FeatureChangeMergeHelpers;
-import org.openstreetmap.atlas.geography.atlas.change.merge.MemberMergeStrategies;
+import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.change.serializer.FeatureChangeGeoJsonSerializer;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
@@ -30,7 +24,6 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
-import org.openstreetmap.atlas.geography.atlas.items.LineItem;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -76,19 +69,6 @@ public class FeatureChange implements Located, Serializable
     }
 
     /**
-     * Create a new {@link FeatureChange} with a given type and after view.
-     *
-     * @param changeType
-     *            the type, either ADD or REMOVE.
-     * @param afterView
-     *            the after view of the changed entity
-     */
-    public FeatureChange(final ChangeType changeType, final AtlasEntity afterView)
-    {
-        this(changeType, afterView, null);
-    }
-
-    /**
      * Create a new {@link FeatureChange} with a given type, after view, and before view. This
      * constructor is provided for exact control over the before view of a change. However, most
      * users who wish to specify a before view should generally prefer to use the following pattern
@@ -109,7 +89,7 @@ public class FeatureChange implements Located, Serializable
      * @param beforeView
      *            the before entity
      */
-    public FeatureChange(final ChangeType changeType, final AtlasEntity afterView,
+    FeatureChange(final ChangeType changeType, final AtlasEntity afterView,
             final AtlasEntity beforeView)
     {
         if (afterView == null)
@@ -136,6 +116,19 @@ public class FeatureChange implements Located, Serializable
         this.afterView = afterView;
         this.beforeView = beforeView;
         this.validateUsefulFeatureChange();
+    }
+
+    /**
+     * Create a new {@link FeatureChange} with a given type and after view.
+     *
+     * @param changeType
+     *            the type, either ADD or REMOVE.
+     * @param afterView
+     *            the after view of the changed entity
+     */
+    public FeatureChange(final ChangeType changeType, final AtlasEntity afterView)
+    {
+        this(changeType, afterView, null);
     }
 
     @Override
@@ -451,104 +444,6 @@ public class FeatureChange implements Located, Serializable
         }
 
         this.beforeView = beforeViewUpdatesOnly;
-    }
-
-    private FeatureChange mergeAreas(final FeatureChange other,
-            final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
-    {
-        final AtlasEntity thisReference = this.getAfterView();
-        final AtlasEntity thatReference = other.getAfterView();
-        final Polygon mergedPolygon = MemberMergeStrategies.mergeMember_OldStrategy("polygon",
-                thisReference, thatReference, atlasEntity -> ((Area) atlasEntity).asPolygon(),
-                null);
-
-        final CompleteArea result = new CompleteArea(getIdentifier(), mergedPolygon, mergedTags,
-                mergedParentRelations);
-        if (result.bounds() == null)
-        {
-            throw new CoreException("TODO CompleteArea result bounds null, investigate");
-        }
-        return FeatureChange.add(result);
-    }
-
-    private FeatureChange mergeLineItems(final FeatureChange other,
-            final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
-    {
-        final AtlasEntity thisReference = this.getAfterView();
-        final AtlasEntity thatReference = other.getAfterView();
-        final PolyLine mergedPolyLine = MemberMergeStrategies.mergeMember_OldStrategy("polyLine",
-                thisReference, thatReference, atlasEntity -> ((LineItem) atlasEntity).asPolyLine(),
-                null);
-        if (thisReference instanceof Edge)
-        {
-            final Long mergedStartNodeIdentifier = MemberMergeStrategies.mergeMember_OldStrategy(
-                    "startNode", thisReference, thatReference, edge -> ((Edge) edge).start() == null
-                            ? null : ((Edge) edge).start().getIdentifier(),
-                    null);
-            final Long mergedEndNodeIdentifier = MemberMergeStrategies.mergeMember_OldStrategy(
-                    "endNode", thisReference, thatReference, edge -> ((Edge) edge).end() == null
-                            ? null : ((Edge) edge).end().getIdentifier(),
-                    null);
-            final CompleteEdge result = new CompleteEdge(getIdentifier(), mergedPolyLine,
-                    mergedTags, mergedStartNodeIdentifier, mergedEndNodeIdentifier,
-                    mergedParentRelations);
-            if (result.bounds() == null)
-            {
-                throw new CoreException("TODO CompleteEdge result bounds null, investigate");
-            }
-            return FeatureChange.add(result);
-        }
-        else
-        {
-            // Line
-            final CompleteLine result = new CompleteLine(getIdentifier(), mergedPolyLine,
-                    mergedTags, mergedParentRelations);
-            if (result.bounds() == null)
-            {
-                throw new CoreException("TODO CompleteLine result bounds null, investigate");
-            }
-            return FeatureChange.add(result);
-        }
-    }
-
-    private FeatureChange mergeRelations(final FeatureChange other,
-            final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
-    {
-        final AtlasEntity thisReference = this.getAfterView();
-        final AtlasEntity thatReference = other.getAfterView();
-
-        final RelationBean mergedMembers = MemberMergeStrategies.mergeMember_OldStrategy(
-                "relationMembers", thisReference, thatReference,
-                entity -> ((Relation) entity).members() == null ? null
-                        : ((Relation) entity).members().asBean(),
-                MemberMergeStrategies.relationBeanMerger);
-        final Rectangle mergedBounds = Rectangle.forLocated(thisReference, thatReference);
-        final Long mergedOsmRelationIdentifier = MemberMergeStrategies.mergeMember_OldStrategy(
-                "osmRelationIdentifier", thisReference, thatReference,
-                entity -> ((Relation) entity).getOsmIdentifier(), null);
-        final Set<Long> mergedAllRelationsWithSameOsmIdentifierSet = MemberMergeStrategies
-                .mergeMember_OldStrategy("allRelationsWithSameOsmIdentifier", thisReference,
-                        thatReference,
-                        atlasEntity -> ((Relation) atlasEntity)
-                                .allRelationsWithSameOsmIdentifier() == null
-                                        ? null
-                                        : ((Relation) atlasEntity)
-                                                .allRelationsWithSameOsmIdentifier().stream()
-                                                .map(Relation::getIdentifier)
-                                                .collect(Collectors.toSet()),
-                        MemberMergeStrategies.directReferenceMerger);
-        final List<Long> mergedAllRelationsWithSameOsmIdentifier = mergedAllRelationsWithSameOsmIdentifierSet == null
-                ? null
-                : mergedAllRelationsWithSameOsmIdentifierSet.stream().collect(Collectors.toList());
-        final RelationBean mergedAllKnownMembers = MemberMergeStrategies.mergeMember_OldStrategy(
-                "allKnownOsmMembers", thisReference, thatReference,
-                entity -> ((Relation) entity).allKnownOsmMembers() == null ? null
-                        : ((Relation) entity).allKnownOsmMembers().asBean(),
-                MemberMergeStrategies.relationBeanMerger);
-
-        return FeatureChange.add(new CompleteRelation(getIdentifier(), mergedTags, mergedBounds,
-                mergedMembers, mergedAllRelationsWithSameOsmIdentifier, mergedAllKnownMembers,
-                mergedOsmRelationIdentifier, mergedParentRelations));
     }
 
     private void validateUsefulFeatureChange()

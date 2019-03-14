@@ -1,6 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.change.merge;
-
-import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
+package org.openstreetmap.atlas.geography.atlas.change.feature;
 
 /**
  * A bean class to store the merged before and after members. This is useful as a return type for

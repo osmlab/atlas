@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.change.merge;
+package org.openstreetmap.atlas.geography.atlas.change.feature;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
-import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 import org.openstreetmap.atlas.utilities.function.TernaryOperator;

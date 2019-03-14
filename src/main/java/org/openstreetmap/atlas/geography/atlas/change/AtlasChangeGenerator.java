@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.change.feature.FeatureChange;
 import org.openstreetmap.atlas.utilities.conversion.Converter;
 
 /**

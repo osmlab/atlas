@@ -11,7 +11,7 @@ import org.openstreetmap.atlas.geography.atlas.change.Change;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeAtlas;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeBuilder;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
-import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.change.feature.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;

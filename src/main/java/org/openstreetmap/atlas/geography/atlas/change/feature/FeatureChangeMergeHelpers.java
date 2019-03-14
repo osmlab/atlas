@@ -1,5 +1,6 @@
-package org.openstreetmap.atlas.geography.atlas.change.merge;
+package org.openstreetmap.atlas.geography.atlas.change.feature;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -10,10 +11,17 @@ import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.PolyLine;
+import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
-import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -264,22 +272,75 @@ public final class FeatureChangeMergeHelpers
         }
         else if (afterEntityLeft instanceof LineItem)
         {
-            return mergeLineItems(other, mergedTagsBean.getMergedAfterMember(),
+            return mergeLineItems(left, right, mergedTagsBean.getMergedAfterMember(),
                     mergedParentRelations);
         }
         else if (afterEntityLeft instanceof Area)
         {
-            return mergeAreas(other, mergedTagsBean.getMergedAfterMember(), mergedParentRelations);
+            return mergeAreas(left, right, mergedTagsBean.getMergedAfterMember(),
+                    mergedParentRelations);
         }
         else if (afterEntityLeft instanceof Relation)
         {
-            return mergeRelations(other, mergedTagsBean.getMergedAfterMember(),
+            return mergeRelations(left, right, mergedTagsBean.getMergedAfterMember(),
                     mergedParentRelations);
         }
         else
         {
             throw new CoreException("Unknown AtlasEntity subtype {}",
                     afterEntityLeft.getClass().getName());
+        }
+    }
+
+    private static FeatureChange mergeAreas(final FeatureChange left, final FeatureChange right,
+            final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
+    {
+        final AtlasEntity thisReference = left.getAfterView();
+        final AtlasEntity thatReference = right.getAfterView();
+        final Polygon mergedPolygon = mergeMember_OldStrategy("polygon", thisReference,
+                thatReference, atlasEntity -> ((Area) atlasEntity).asPolygon(), null);
+
+        final CompleteArea result = new CompleteArea(left.getIdentifier(), mergedPolygon,
+                mergedTags, mergedParentRelations);
+        return FeatureChange.add(result);
+    }
+
+    private static FeatureChange mergeLineItems(final FeatureChange left, final FeatureChange right,
+            final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
+    {
+        final AtlasEntity thisReference = left.getAfterView();
+        final AtlasEntity thatReference = right.getAfterView();
+        final PolyLine mergedPolyLine = mergeMember_OldStrategy("polyLine", thisReference,
+                thatReference, atlasEntity -> ((LineItem) atlasEntity).asPolyLine(), null);
+        if (thisReference instanceof Edge)
+        {
+            final Long mergedStartNodeIdentifier = mergeMember_OldStrategy("startNode",
+                    thisReference, thatReference, edge -> ((Edge) edge).start() == null ? null
+                            : ((Edge) edge).start().getIdentifier(),
+                    null);
+            final Long mergedEndNodeIdentifier = mergeMember_OldStrategy("endNode", thisReference,
+                    thatReference, edge -> ((Edge) edge).end() == null ? null
+                            : ((Edge) edge).end().getIdentifier(),
+                    null);
+            final CompleteEdge result = new CompleteEdge(left.getIdentifier(), mergedPolyLine,
+                    mergedTags, mergedStartNodeIdentifier, mergedEndNodeIdentifier,
+                    mergedParentRelations);
+            if (result.bounds() == null)
+            {
+                throw new CoreException("TODO CompleteEdge result bounds null, investigate");
+            }
+            return FeatureChange.add(result);
+        }
+        else
+        {
+            // Line
+            final CompleteLine result = new CompleteLine(left.getIdentifier(), mergedPolyLine,
+                    mergedTags, mergedParentRelations);
+            if (result.bounds() == null)
+            {
+                throw new CoreException("TODO CompleteLine result bounds null, investigate");
+            }
+            return FeatureChange.add(result);
         }
     }
 
@@ -350,6 +411,42 @@ public final class FeatureChangeMergeHelpers
             throw new CoreException("Unknown LocationItem subtype {}",
                     afterEntityLeft.getClass().getName());
         }
+    }
+
+    private static FeatureChange mergeRelations(final FeatureChange left, final FeatureChange right,
+            final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
+    {
+        final AtlasEntity thisReference = left.getAfterView();
+        final AtlasEntity thatReference = right.getAfterView();
+
+        final RelationBean mergedMembers = mergeMember_OldStrategy("relationMembers", thisReference,
+                thatReference,
+                entity -> ((Relation) entity).members() == null ? null
+                        : ((Relation) entity).members().asBean(),
+                MemberMergeStrategies.relationBeanMerger);
+        final Rectangle mergedBounds = Rectangle.forLocated(thisReference, thatReference);
+        final Long mergedOsmRelationIdentifier = mergeMember_OldStrategy("osmRelationIdentifier",
+                thisReference, thatReference, entity -> ((Relation) entity).getOsmIdentifier(),
+                null);
+        final Set<Long> mergedAllRelationsWithSameOsmIdentifierSet = mergeMember_OldStrategy(
+                "allRelationsWithSameOsmIdentifier", thisReference, thatReference,
+                atlasEntity -> ((Relation) atlasEntity).allRelationsWithSameOsmIdentifier() == null
+                        ? null
+                        : ((Relation) atlasEntity).allRelationsWithSameOsmIdentifier().stream()
+                                .map(Relation::getIdentifier).collect(Collectors.toSet()),
+                MemberMergeStrategies.directReferenceMerger);
+        final List<Long> mergedAllRelationsWithSameOsmIdentifier = mergedAllRelationsWithSameOsmIdentifierSet == null
+                ? null
+                : mergedAllRelationsWithSameOsmIdentifierSet.stream().collect(Collectors.toList());
+        final RelationBean mergedAllKnownMembers = mergeMember_OldStrategy("allKnownOsmMembers",
+                thisReference, thatReference,
+                entity -> ((Relation) entity).allKnownOsmMembers() == null ? null
+                        : ((Relation) entity).allKnownOsmMembers().asBean(),
+                MemberMergeStrategies.relationBeanMerger);
+
+        return FeatureChange.add(new CompleteRelation(left.getIdentifier(), mergedTags,
+                mergedBounds, mergedMembers, mergedAllRelationsWithSameOsmIdentifier,
+                mergedAllKnownMembers, mergedOsmRelationIdentifier, mergedParentRelations));
     }
 
     private FeatureChangeMergeHelpers()

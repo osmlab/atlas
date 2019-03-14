@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
-import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.change.feature.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
