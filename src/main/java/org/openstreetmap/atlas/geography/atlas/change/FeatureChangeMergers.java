@@ -87,19 +87,13 @@ public final class FeatureChangeMergers
         if (!collision.isEmpty())
         {
             throw new CoreException(
-                    "diffBasedIntegerSortedSetMerger failed due to ADD/REMOVE collision: {}",
+                    "diffBasedIntegerSortedSetMerger failed due to ADD/REMOVE collision(s) on: {}",
                     collision);
         }
 
         final SortedSet<Long> result = new TreeSet<>(before);
-        for (final Long toRemove : removedMerged)
-        {
-            result.remove(toRemove);
-        }
-        for (final Long toAdd : addedMerged)
-        {
-            result.add(toAdd);
-        }
+        result.removeAll(removedMerged);
+        result.addAll(addedMerged);
 
         return result;
     };
