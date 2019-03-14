@@ -1,11 +1,14 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
@@ -13,6 +16,8 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 import org.openstreetmap.atlas.utilities.function.TernaryOperator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A utility class to store the various merger operations utilized by {@link FeatureChange}.
@@ -51,6 +56,8 @@ public final class FeatureChangeMergers
             return this.beforeMemberMerged;
         }
     }
+
+    private static final Logger logger = LoggerFactory.getLogger(FeatureChangeMergers.class);
 
     static final BinaryOperator<Map<String, String>> tagMerger = Maps::withMaps;
 
@@ -101,8 +108,68 @@ public final class FeatureChangeMergers
     static final TernaryOperator<Map<String, String>> diffBasedTagMerger = (before, afterLeft,
             afterRight) ->
     {
+        final Set<String> keysRemovedFromLeftView = com.google.common.collect.Sets
+                .difference(before.keySet(), afterLeft.keySet());
+        final Set<String> keysRemovedFromRightView = com.google.common.collect.Sets
+                .difference(before.keySet(), afterRight.keySet());
 
-        return null;
+        /*
+         * Here, we effectively group key ADDs and MODIFYs together, since we operate on the entire
+         * key->value pair. In light of this fact, ADDs and MODIFYs are effectively the same
+         * operation.
+         */
+        final Map<String, String> addedToLeftView = com.google.common.collect.Sets
+                .difference(afterLeft.entrySet(), before.entrySet()).stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        final Map<String, String> addedToRightView = com.google.common.collect.Sets
+                .difference(afterRight.entrySet(), before.entrySet()).stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        /*
+         * Check to see if any of the shared ADD keys generate an ADD collision. An ADD collision is
+         * when the same key maps to two different values.
+         */
+        final Set<String> sharedKeys = com.google.common.collect.Sets
+                .intersection(addedToLeftView.keySet(), addedToRightView.keySet());
+        for (final String sharedKey : sharedKeys)
+        {
+            final String leftValue = addedToLeftView.get(sharedKey);
+            final String rightValue = addedToRightView.get(sharedKey);
+            if (!Objects.equals(leftValue, rightValue))
+            {
+                throw new CoreException(
+                        "diffBasedTagMergerFailed due to key ADD collision: [{} -> {}] vs [{} -> {}]",
+                        sharedKey, leftValue, sharedKey, rightValue);
+            }
+        }
+
+        /*
+         * Now, check for any ADD/REMOVE collisions.
+         */
+        final Set<String> keysRemovedMerged = Sets.withSets(false, keysRemovedFromLeftView,
+                keysRemovedFromRightView);
+        final Set<String> keysAddedMerged = Sets.withSets(false, addedToLeftView.keySet(),
+                addedToRightView.keySet());
+        final Set<String> collision = com.google.common.collect.Sets.intersection(keysRemovedMerged,
+                keysAddedMerged);
+        if (!collision.isEmpty())
+        {
+            throw new CoreException(
+                    "diffBasedTagMerger failed due to ADD/REMOVE collision(s) on key(s): {}",
+                    collision);
+        }
+
+        /*
+         * Now construct the merged map. Take the beforeView and remove all keys that were in the
+         * removedMerged set. Then, add all keys in the addMerged set. To get the values for those
+         * keys, we arbitrarily use the leftView, since we already asserted that there are no ADD
+         * collisions between left and right.
+         */
+        final Map<String, String> result = new HashMap<>(before);
+        keysRemovedMerged.forEach(result::remove);
+        keysAddedMerged.forEach(key -> result.put(key, addedToLeftView.get(key)));
+
+        return result;
     };
 
     /**

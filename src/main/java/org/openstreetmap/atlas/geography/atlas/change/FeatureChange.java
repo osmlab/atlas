@@ -221,36 +221,43 @@ public class FeatureChange implements Located, Serializable
             }
             if (this.getChangeType() == ChangeType.ADD)
             {
-                final AtlasEntity thisReference = this.getAfterView();
-                final AtlasEntity thatReference = other.getAfterView();
-                final Map<String, String> mergedTags = FeatureChangeMergers.mergeMember_OldStrategy(
-                        "tags", thisReference, thatReference, Taggable::getTags,
-                        FeatureChangeMergers.tagMerger);
+                final AtlasEntity beforeEntityLeft = this.getBeforeView();
+                final AtlasEntity afterEntityLeft = this.getAfterView();
+                final AtlasEntity beforeEntityRight = other.getBeforeView();
+                final AtlasEntity afterEntityRight = other.getAfterView();
+                final MergedMemberBean<Map<String, String>> mergedTagsBean = FeatureChangeMergers
+                        .mergeMember("tags", beforeEntityLeft, afterEntityLeft, beforeEntityRight,
+                                afterEntityRight, Taggable::getTags, FeatureChangeMergers.tagMerger,
+                                FeatureChangeMergers.diffBasedTagMerger);
                 final Set<Long> mergedParentRelations = FeatureChangeMergers
-                        .mergeMember_OldStrategy("parentRelations", thisReference, thatReference,
+                        .mergeMember_OldStrategy("parentRelations", afterEntityLeft,
+                                afterEntityRight,
                                 atlasEntity -> atlasEntity.relations() == null ? null
                                         : atlasEntity.relations().stream()
                                                 .map(Relation::getIdentifier)
                                                 .collect(Collectors.toSet()),
                                 FeatureChangeMergers.directReferenceMergerLoose);
 
-                if (thisReference instanceof LocationItem)
+                if (afterEntityLeft instanceof LocationItem)
                 {
-                    return mergeLocationItems_NewlyProposed(other, mergedTags,
+                    return mergeLocationItems_NewlyProposed(other, mergedTagsBean,
                             mergedParentRelations);
                 }
-                else if (thisReference instanceof LineItem)
+                else if (afterEntityLeft instanceof LineItem)
                 {
-                    return mergeLineItems(other, mergedTags, mergedParentRelations);
+                    return mergeLineItems(other, mergedTagsBean.getMergedAfterMember(),
+                            mergedParentRelations);
                 }
-                else if (thisReference instanceof Area)
+                else if (afterEntityLeft instanceof Area)
                 {
-                    return mergeAreas(other, mergedTags, mergedParentRelations);
+                    return mergeAreas(other, mergedTagsBean.getMergedAfterMember(),
+                            mergedParentRelations);
                 }
                 else
                 {
                     // Relation
-                    return mergeRelations(other, mergedTags, mergedParentRelations);
+                    return mergeRelations(other, mergedTagsBean.getMergedAfterMember(),
+                            mergedParentRelations);
                 }
 
             }
@@ -570,7 +577,8 @@ public class FeatureChange implements Located, Serializable
     }
 
     private FeatureChange mergeLocationItems_NewlyProposed(final FeatureChange other, // NOSONAR
-            final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
+            final MergedMemberBean<Map<String, String>> mergedTagsBean,
+            final Set<Long> mergedParentRelations)
     {
         final AtlasEntity beforeEntityLeft = this.getBeforeView();
         final AtlasEntity afterEntityLeft = this.getAfterView();
@@ -602,7 +610,8 @@ public class FeatureChange implements Located, Serializable
                             FeatureChangeMergers.directReferenceMergerSorted,
                             FeatureChangeMergers.diffBasedIntegerSortedSetMerger);
             final CompleteNode result = new CompleteNode(getIdentifier(),
-                    mergedLocationBean.getMergedAfterMember(), mergedTags,
+                    mergedLocationBean.getMergedAfterMember(),
+                    mergedTagsBean.getMergedAfterMember(),
                     mergedInEdgeIdentifiersBean.getMergedAfterMember(),
                     mergedOutEdgeIdentifiersBean.getMergedAfterMember(), mergedParentRelations);
             if (result.bounds() == null)
@@ -612,20 +621,23 @@ public class FeatureChange implements Located, Serializable
             final CompleteNode beforeNode = CompleteNode.shallowFrom((Node) afterEntityLeft)
                     .withLocation(mergedLocationBean.getMergedBeforeMember())
                     .withInEdgeIdentifiers(mergedInEdgeIdentifiersBean.getMergedBeforeMember())
-                    .withOutEdgeIdentifiers(mergedOutEdgeIdentifiersBean.getMergedBeforeMember());
+                    .withOutEdgeIdentifiers(mergedOutEdgeIdentifiersBean.getMergedBeforeMember())
+                    .withTags(mergedTagsBean.getMergedBeforeMember());
             return new FeatureChange(ChangeType.ADD, result, beforeNode);
         }
         else
         {
             // Point
             final CompletePoint result = new CompletePoint(getIdentifier(),
-                    mergedLocationBean.getMergedAfterMember(), mergedTags, mergedParentRelations);
+                    mergedLocationBean.getMergedAfterMember(),
+                    mergedTagsBean.getMergedAfterMember(), mergedParentRelations);
             if (result.bounds() == null)
             {
                 throw new CoreException("TODO CompletePoint result bounds null, investigate");
             }
             final CompletePoint beforePoint = CompletePoint.shallowFrom((Point) afterEntityLeft)
-                    .withLocation(mergedLocationBean.getMergedBeforeMember());
+                    .withLocation(mergedLocationBean.getMergedBeforeMember())
+                    .withTags(mergedTagsBean.getMergedBeforeMember());
             return new FeatureChange(ChangeType.ADD, result, beforePoint);
         }
     }

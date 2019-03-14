@@ -10,5 +10,4 @@ package org.openstreetmap.atlas.utilities.function;
 @FunctionalInterface
 public interface TernaryOperator<T> extends TernaryFunction<T, T, T, T>
 {
-
 }
