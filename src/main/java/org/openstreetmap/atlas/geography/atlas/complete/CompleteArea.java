@@ -34,12 +34,12 @@ public class CompleteArea extends Area implements CompleteEntity
 
     public static CompleteArea shallowFrom(final Area area)
     {
-        return new CompleteArea(area.getIdentifier()).withInitialBounds(area.asPolygon().bounds());
+        return new CompleteArea(area.getIdentifier(), area.asPolygon());
     }
 
-    CompleteArea(final long identifier)
+    CompleteArea(final long identifier, final Polygon polygon)
     {
-        this(identifier, null, null, null);
+        this(identifier, polygon, null, null);
     }
 
     public CompleteArea(final Long identifier, final Polygon polygon,
@@ -52,7 +52,12 @@ public class CompleteArea extends Area implements CompleteEntity
             throw new CoreException("Identifier can never be null.");
         }
 
-        this.bounds = polygon != null ? polygon.bounds() : null;
+        if (polygon == null)
+        {
+            throw new CoreException("Polygon can never be null.");
+        }
+
+        this.bounds = polygon.bounds();
 
         this.identifier = identifier;
         this.polygon = polygon;
@@ -175,12 +180,6 @@ public class CompleteArea extends Area implements CompleteEntity
     public CompleteArea withTags(final Map<String, String> tags)
     {
         this.tags = tags;
-        return this;
-    }
-
-    private CompleteArea withInitialBounds(final Rectangle bounds)
-    {
-        this.bounds = bounds;
         return this;
     }
 }

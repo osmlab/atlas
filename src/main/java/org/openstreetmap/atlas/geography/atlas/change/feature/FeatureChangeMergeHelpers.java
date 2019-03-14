@@ -32,6 +32,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.utilities.function.TernaryOperator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A utility class for the various {@link FeatureChange} merge helper functions.
@@ -40,6 +42,8 @@ import org.openstreetmap.atlas.utilities.function.TernaryOperator;
  */
 public final class FeatureChangeMergeHelpers
 {
+    private static final Logger logger = LoggerFactory.getLogger(FeatureChangeMergeHelpers.class);
+
     /**
      * TODO fill in this doc comment.
      *
@@ -277,8 +281,7 @@ public final class FeatureChangeMergeHelpers
         }
         else if (afterEntityLeft instanceof Area)
         {
-            return mergeAreas(left, right, mergedTagsBean.getMergedAfterMember(),
-                    mergedParentRelations);
+            return mergeAreas(left, right, mergedTagsBean, mergedParentRelations);
         }
         else if (afterEntityLeft instanceof Relation)
         {
@@ -293,16 +296,34 @@ public final class FeatureChangeMergeHelpers
     }
 
     private static FeatureChange mergeAreas(final FeatureChange left, final FeatureChange right,
-            final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
+            final MergedMemberBean<Map<String, String>> mergedTagsBean,
+            final Set<Long> mergedParentRelations)
     {
-        final AtlasEntity thisReference = left.getAfterView();
-        final AtlasEntity thatReference = right.getAfterView();
-        final Polygon mergedPolygon = mergeMember_OldStrategy("polygon", thisReference,
-                thatReference, atlasEntity -> ((Area) atlasEntity).asPolygon(), null);
+        final AtlasEntity beforeEntityLeft = left.getBeforeView();
+        final AtlasEntity afterEntityLeft = left.getAfterView();
+        final AtlasEntity beforeEntityRight = right.getBeforeView();
+        final AtlasEntity afterEntityRight = right.getAfterView();
 
-        final CompleteArea result = new CompleteArea(left.getIdentifier(), mergedPolygon,
-                mergedTags, mergedParentRelations);
-        return FeatureChange.add(result);
+        /*
+         * The polygon merger will not do a strategy merge. Rather, it will just ensure that the
+         * afterEntity polygons match. There is currently no reason to merge unequal polygons.
+         * Notice that the memberExtractor does not need to handle the null case. This is because we
+         * force all CompleteEntities to contain geometry.
+         */
+        final MergedMemberBean<Polygon> mergedPolygonBean = mergeMember("polygon", beforeEntityLeft,
+                afterEntityLeft, beforeEntityRight, afterEntityRight,
+                atlasEntity -> ((Area) atlasEntity).asPolygon(), null, null);
+
+        final CompleteArea mergedAfterArea = new CompleteArea(left.getIdentifier(),
+                mergedPolygonBean.getMergedAfterMember(), mergedTagsBean.getMergedAfterMember(),
+                mergedParentRelations);
+
+        final CompleteArea mergedBeforeArea = CompleteArea.shallowFrom((Area) beforeEntityLeft)
+                .withTags(mergedTagsBean.getMergedBeforeMember());
+
+        logger.warn("BEFORE AREA: {}", mergedBeforeArea);
+
+        return new FeatureChange(ChangeType.ADD, mergedAfterArea, mergedBeforeArea);
     }
 
     private static FeatureChange mergeLineItems(final FeatureChange left, final FeatureChange right,
@@ -354,8 +375,10 @@ public final class FeatureChangeMergeHelpers
         final AtlasEntity afterEntityRight = right.getAfterView();
 
         /*
-         * This merger will never do a proper merge. Rather, it will just ensure that the
-         * afterEntities match. There is currently no reason to merge unequal locations.
+         * The location merger will not do a strategy merge. Rather, it will just ensure that the
+         * afterEntity locations match. There is currently no reason to merge unequal locations.
+         * Notice that the memberExtractor does not need to handle the null case. This is because we
+         * force all CompleteEntities to contain geometry.
          */
         final MergedMemberBean<Location> mergedLocationBean = mergeMember("location",
                 beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
@@ -387,7 +410,7 @@ public final class FeatureChangeMergeHelpers
                     mergedInEdgeIdentifiersBean.getMergedAfterMember(),
                     mergedOutEdgeIdentifiersBean.getMergedAfterMember(), mergedParentRelations);
 
-            final CompleteNode mergedBeforeNode = CompleteNode.shallowFrom((Node) afterEntityLeft)
+            final CompleteNode mergedBeforeNode = CompleteNode.shallowFrom((Node) beforeEntityLeft)
                     .withInEdgeIdentifiers(mergedInEdgeIdentifiersBean.getMergedBeforeMember())
                     .withOutEdgeIdentifiers(mergedOutEdgeIdentifiersBean.getMergedBeforeMember())
                     .withTags(mergedTagsBean.getMergedBeforeMember());
@@ -401,7 +424,7 @@ public final class FeatureChangeMergeHelpers
                     mergedTagsBean.getMergedAfterMember(), mergedParentRelations);
 
             final CompletePoint mergedBeforePoint = CompletePoint
-                    .shallowFrom((Point) afterEntityLeft)
+                    .shallowFrom((Point) beforeEntityLeft)
                     .withTags(mergedTagsBean.getMergedBeforeMember());
 
             return new FeatureChange(ChangeType.ADD, mergedAfterPoint, mergedBeforePoint);

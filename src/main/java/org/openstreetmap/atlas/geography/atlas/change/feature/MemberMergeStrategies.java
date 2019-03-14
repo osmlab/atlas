@@ -130,12 +130,20 @@ public final class MemberMergeStrategies
         /*
          * Now construct the merged map. Take the beforeView and remove all keys that were in the
          * removedMerged set. Then, add all keys in the addMerged set. To get the values for those
-         * keys, we arbitrarily use the leftView, since we already asserted that there are no ADD
-         * collisions between left and right.
+         * keys, we whichever view (left or right) gives us a non-null mapping. This correctly
+         * handles the case where one of the FeatureChanges is adding a brand new key value pair.
          */
         final Map<String, String> result = new HashMap<>(before);
         keysRemovedMerged.forEach(result::remove);
-        keysAddedMerged.forEach(key -> result.put(key, addedToLeftView.get(key)));
+        keysAddedMerged.forEach(key ->
+        {
+            String value = addedToLeftView.get(key);
+            if (value == null)
+            {
+                value = addedToRightView.get(key);
+            }
+            result.put(key, value);
+        });
 
         return result;
     };
