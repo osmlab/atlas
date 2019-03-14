@@ -261,14 +261,14 @@ public final class FeatureChangeMergeHelpers
         final AtlasEntity afterEntityRight = right.getAfterView();
         final MergedMemberBean<Map<String, String>> mergedTagsBean = mergeMember("tags",
                 beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
-                Taggable::getTags, MemberMergeStrategies.tagMerger,
+                Taggable::getTags, MemberMergeStrategies.simpleTagMerger,
                 MemberMergeStrategies.diffBasedTagMerger);
         final Set<Long> mergedParentRelations = mergeMember_OldStrategy("parentRelations",
                 afterEntityLeft, afterEntityRight,
                 atlasEntity -> atlasEntity.relations() == null ? null
                         : atlasEntity.relations().stream().map(Relation::getIdentifier)
                                 .collect(Collectors.toSet()),
-                MemberMergeStrategies.directReferenceMergerLoose);
+                MemberMergeStrategies.simpleLongSetAllowCollisionsMerger);
 
         if (afterEntityLeft instanceof LocationItem)
         {
@@ -307,8 +307,6 @@ public final class FeatureChangeMergeHelpers
         /*
          * The polygon merger will not do a strategy merge. Rather, it will just ensure that the
          * afterEntity polygons match. There is currently no reason to merge unequal polygons.
-         * Notice that the memberExtractor does not need to handle the null case. This is because we
-         * force all CompleteEntities to contain geometry.
          */
         final MergedMemberBean<Polygon> mergedPolygonBean = mergeMember("polygon", beforeEntityLeft,
                 afterEntityLeft, beforeEntityRight, afterEntityRight,
@@ -320,8 +318,6 @@ public final class FeatureChangeMergeHelpers
 
         final CompleteArea mergedBeforeArea = CompleteArea.shallowFrom((Area) beforeEntityLeft)
                 .withTags(mergedTagsBean.getMergedBeforeMember());
-
-        logger.warn("BEFORE AREA: {}", mergedBeforeArea);
 
         return new FeatureChange(ChangeType.ADD, mergedAfterArea, mergedBeforeArea);
     }
@@ -377,8 +373,6 @@ public final class FeatureChangeMergeHelpers
         /*
          * The location merger will not do a strategy merge. Rather, it will just ensure that the
          * afterEntity locations match. There is currently no reason to merge unequal locations.
-         * Notice that the memberExtractor does not need to handle the null case. This is because we
-         * force all CompleteEntities to contain geometry.
          */
         final MergedMemberBean<Location> mergedLocationBean = mergeMember("location",
                 beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
@@ -392,8 +386,8 @@ public final class FeatureChangeMergeHelpers
                     atlasEntity -> ((Node) atlasEntity).inEdges() == null ? null
                             : ((Node) atlasEntity).inEdges().stream().map(Edge::getIdentifier)
                                     .collect(Collectors.toCollection(TreeSet::new)),
-                    MemberMergeStrategies.directReferenceMergerSorted,
-                    MemberMergeStrategies.diffBasedIntegerSortedSetMerger);
+                    MemberMergeStrategies.simpleLongSortedSetMerger,
+                    MemberMergeStrategies.diffBasedLongSortedSetMerger);
 
             final MergedMemberBean<SortedSet<Long>> mergedOutEdgeIdentifiersBean = mergeMember(
                     "outEdgeIdentifiers", beforeEntityLeft, afterEntityLeft, beforeEntityRight,
@@ -401,8 +395,8 @@ public final class FeatureChangeMergeHelpers
                     atlasEntity -> ((Node) atlasEntity).outEdges() == null ? null
                             : ((Node) atlasEntity).outEdges().stream().map(Edge::getIdentifier)
                                     .collect(Collectors.toCollection(TreeSet::new)),
-                    MemberMergeStrategies.directReferenceMergerSorted,
-                    MemberMergeStrategies.diffBasedIntegerSortedSetMerger);
+                    MemberMergeStrategies.simpleLongSortedSetMerger,
+                    MemberMergeStrategies.diffBasedLongSortedSetMerger);
 
             final CompleteNode mergedAfterNode = new CompleteNode(left.getIdentifier(),
                     mergedLocationBean.getMergedAfterMember(),
@@ -446,7 +440,7 @@ public final class FeatureChangeMergeHelpers
                 thatReference,
                 entity -> ((Relation) entity).members() == null ? null
                         : ((Relation) entity).members().asBean(),
-                MemberMergeStrategies.relationBeanMerger);
+                MemberMergeStrategies.simeplRelationBeanMerger);
         final Rectangle mergedBounds = Rectangle.forLocated(thisReference, thatReference);
         final Long mergedOsmRelationIdentifier = mergeMember_OldStrategy("osmRelationIdentifier",
                 thisReference, thatReference, entity -> ((Relation) entity).getOsmIdentifier(),
@@ -457,7 +451,7 @@ public final class FeatureChangeMergeHelpers
                         ? null
                         : ((Relation) atlasEntity).allRelationsWithSameOsmIdentifier().stream()
                                 .map(Relation::getIdentifier).collect(Collectors.toSet()),
-                MemberMergeStrategies.directReferenceMerger);
+                MemberMergeStrategies.simpleLongSetMerger);
         final List<Long> mergedAllRelationsWithSameOsmIdentifier = mergedAllRelationsWithSameOsmIdentifierSet == null
                 ? null
                 : mergedAllRelationsWithSameOsmIdentifierSet.stream().collect(Collectors.toList());
@@ -465,7 +459,7 @@ public final class FeatureChangeMergeHelpers
                 thisReference, thatReference,
                 entity -> ((Relation) entity).allKnownOsmMembers() == null ? null
                         : ((Relation) entity).allKnownOsmMembers().asBean(),
-                MemberMergeStrategies.relationBeanMerger);
+                MemberMergeStrategies.simeplRelationBeanMerger);
 
         return FeatureChange.add(new CompleteRelation(left.getIdentifier(), mergedTags,
                 mergedBounds, mergedMembers, mergedAllRelationsWithSameOsmIdentifier,
