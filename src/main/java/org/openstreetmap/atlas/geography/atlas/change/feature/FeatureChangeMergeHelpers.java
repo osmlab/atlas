@@ -361,6 +361,18 @@ public final class FeatureChangeMergeHelpers
         }
     }
 
+    private static FeatureChange mergeLineItems2(final FeatureChange left,
+            final FeatureChange right, final Map<String, String> mergedTags,
+            final Set<Long> mergedParentRelations)
+    {
+        final AtlasEntity beforeEntityLeft = left.getBeforeView();
+        final AtlasEntity afterEntityLeft = left.getAfterView();
+        final AtlasEntity beforeEntityRight = right.getBeforeView();
+        final AtlasEntity afterEntityRight = right.getAfterView();
+
+        return null;
+    }
+
     private static FeatureChange mergeLocationItems(final FeatureChange left,
             final FeatureChange right, final MergedMemberBean<Map<String, String>> mergedTagsBean,
             final Set<Long> mergedParentRelations)
@@ -440,7 +452,7 @@ public final class FeatureChangeMergeHelpers
                 thatReference,
                 entity -> ((Relation) entity).members() == null ? null
                         : ((Relation) entity).members().asBean(),
-                MemberMergeStrategies.simeplRelationBeanMerger);
+                MemberMergeStrategies.simpleRelationBeanMerger);
         final Rectangle mergedBounds = Rectangle.forLocated(thisReference, thatReference);
         final Long mergedOsmRelationIdentifier = mergeMember_OldStrategy("osmRelationIdentifier",
                 thisReference, thatReference, entity -> ((Relation) entity).getOsmIdentifier(),
@@ -459,7 +471,7 @@ public final class FeatureChangeMergeHelpers
                 thisReference, thatReference,
                 entity -> ((Relation) entity).allKnownOsmMembers() == null ? null
                         : ((Relation) entity).allKnownOsmMembers().asBean(),
-                MemberMergeStrategies.simeplRelationBeanMerger);
+                MemberMergeStrategies.simpleRelationBeanMerger);
 
         return FeatureChange.add(new CompleteRelation(left.getIdentifier(), mergedTags,
                 mergedBounds, mergedMembers, mergedAllRelationsWithSameOsmIdentifier,

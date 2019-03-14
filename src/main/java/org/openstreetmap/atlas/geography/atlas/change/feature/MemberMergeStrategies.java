@@ -39,7 +39,7 @@ public final class MemberMergeStrategies
     static final BinaryOperator<SortedSet<Long>> simpleLongSortedSetAllowCollisionsMerger = (left,
             right) -> Sets.withSortedSets(false, left, right);
 
-    static final BinaryOperator<RelationBean> simeplRelationBeanMerger = RelationBean::merge;
+    static final BinaryOperator<RelationBean> simpleRelationBeanMerger = RelationBean::merge;
 
     /*
      * Merge two differing Long SortedSets created using ADDs and REMOVEs on a common ancestor. For
