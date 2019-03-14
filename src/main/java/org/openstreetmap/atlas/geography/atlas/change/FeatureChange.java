@@ -61,17 +61,17 @@ public class FeatureChange implements Located, Serializable
     private static final long serialVersionUID = 9172045162819925515L;
 
     private final ChangeType changeType;
-    private final AtlasEntity updatedView;
     private AtlasEntity beforeView;
+    private final AtlasEntity afterView;
 
-    public static FeatureChange add(final AtlasEntity updatedView)
+    public static FeatureChange add(final AtlasEntity afterView)
     {
-        return new FeatureChange(ChangeType.ADD, updatedView);
+        return new FeatureChange(ChangeType.ADD, afterView);
     }
 
-    public static FeatureChange add(final AtlasEntity updatedView, final Atlas atlasContext)
+    public static FeatureChange add(final AtlasEntity afterView, final Atlas atlasContext)
     {
-        return new FeatureChange(ChangeType.ADD, updatedView).withAtlasContext(atlasContext);
+        return new FeatureChange(ChangeType.ADD, afterView).withAtlasContext(atlasContext);
     }
 
     public static FeatureChange remove(final AtlasEntity reference)
@@ -86,43 +86,43 @@ public class FeatureChange implements Located, Serializable
      *
      * @param changeType
      *            the change type
-     * @param updatedView
+     * @param afterView
      *            the updated entity
      * @param beforeView
      *            the before entity
      */
-    FeatureChange(final ChangeType changeType, final AtlasEntity updatedView,
+    FeatureChange(final ChangeType changeType, final AtlasEntity afterView,
             final AtlasEntity beforeView)
     {
-        if (updatedView == null)
+        if (afterView == null)
         {
             throw new CoreException("reference cannot be null.");
         }
-        if (!(updatedView instanceof CompleteEntity))
+        if (!(afterView instanceof CompleteEntity))
         {
             throw new CoreException(
                     "FeatureChange requires CompleteEntity, found reference of type {}",
-                    updatedView.getClass().getName());
+                    afterView.getClass().getName());
         }
         if (changeType == null)
         {
             throw new CoreException("changeType cannot be null.");
         }
         this.changeType = changeType;
-        this.updatedView = updatedView;
+        this.afterView = afterView;
         this.beforeView = beforeView;
         this.validateUsefulFeatureChange();
     }
 
-    public FeatureChange(final ChangeType changeType, final AtlasEntity updatedView)
+    public FeatureChange(final ChangeType changeType, final AtlasEntity afterView)
     {
-        this(changeType, updatedView, null);
+        this(changeType, afterView, null);
     }
 
     @Override
     public Rectangle bounds()
     {
-        final Rectangle updatedBounds = this.updatedView.bounds();
+        final Rectangle updatedBounds = this.afterView.bounds();
         if (this.beforeView == null)
         {
             return updatedBounds;
@@ -137,9 +137,14 @@ public class FeatureChange implements Located, Serializable
         {
             final FeatureChange that = (FeatureChange) other;
             return this.getChangeType() == that.getChangeType()
-                    && this.getUpdatedView().equals(that.getUpdatedView());
+                    && this.getAfterView().equals(that.getAfterView());
         }
         return false;
+    }
+
+    public AtlasEntity getAfterView()
+    {
+        return this.afterView;
     }
 
     public AtlasEntity getBeforeView()
@@ -154,12 +159,12 @@ public class FeatureChange implements Located, Serializable
 
     public long getIdentifier()
     {
-        return getUpdatedView().getIdentifier();
+        return getAfterView().getIdentifier();
     }
 
     public ItemType getItemType()
     {
-        return ItemType.forEntity(getUpdatedView());
+        return ItemType.forEntity(getAfterView());
     }
 
     /**
@@ -171,7 +176,7 @@ public class FeatureChange implements Located, Serializable
      */
     public Optional<String> getTag(final String key)
     {
-        return this.getUpdatedView().getTag(key);
+        return this.getAfterView().getTag(key);
     }
 
     /**
@@ -181,18 +186,13 @@ public class FeatureChange implements Located, Serializable
      */
     public Map<String, String> getTags()
     {
-        return this.getUpdatedView().getTags();
-    }
-
-    public AtlasEntity getUpdatedView()
-    {
-        return this.updatedView;
+        return this.getAfterView().getTags();
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(this.changeType, this.updatedView);
+        return Objects.hash(this.changeType, this.afterView);
     }
 
     /**
@@ -221,8 +221,8 @@ public class FeatureChange implements Located, Serializable
             }
             if (this.getChangeType() == ChangeType.ADD)
             {
-                final AtlasEntity thisReference = this.getUpdatedView();
-                final AtlasEntity thatReference = other.getUpdatedView();
+                final AtlasEntity thisReference = this.getAfterView();
+                final AtlasEntity thatReference = other.getAfterView();
                 final Map<String, String> mergedTags = FeatureChangeMergers.mergeMember_OldStrategy(
                         "tags", thisReference, thatReference, Taggable::getTags,
                         FeatureChangeMergers.tagMerger);
@@ -283,7 +283,7 @@ public class FeatureChange implements Located, Serializable
     public String toString()
     {
         return "FeatureChange [changeType=" + this.changeType + ", reference={"
-                + this.updatedView.getType() + "," + this.updatedView.getIdentifier() + "}, tags="
+                + this.afterView.getType() + "," + this.afterView.getIdentifier() + "}, tags="
                 + getTags() + ", bounds=" + bounds() + "]";
     }
 
@@ -325,24 +325,24 @@ public class FeatureChange implements Located, Serializable
         }
 
         AtlasEntity beforeViewUpdatesOnly;
-        final AtlasEntity beforeViewFromAtlas = atlas.entity(this.updatedView.getIdentifier(),
-                this.updatedView.getType());
+        final AtlasEntity beforeViewFromAtlas = atlas.entity(this.afterView.getIdentifier(),
+                this.afterView.getType());
         if (beforeViewFromAtlas == null)
         {
             throw new CoreException("Could not find {} with ID {} in atlas context",
-                    this.updatedView.getType(), this.updatedView.getIdentifier());
+                    this.afterView.getType(), this.afterView.getIdentifier());
         }
 
         /*
          * Make type specific updates first.
          */
-        switch (this.updatedView.getType())
+        switch (this.afterView.getType())
         {
             /*
              * Area specific updates. The only Area-specific field is the polygon.
              */
             case AREA:
-                final Area updatedAreaView = (Area) this.updatedView;
+                final Area updatedAreaView = (Area) this.afterView;
                 final Area beforeAreaView = (Area) beforeViewFromAtlas;
                 beforeViewUpdatesOnly = CompleteArea.shallowFrom(beforeAreaView);
                 if (updatedAreaView.asPolygon() != null)
@@ -355,7 +355,7 @@ public class FeatureChange implements Located, Serializable
              * nodes.
              */
             case EDGE:
-                final Edge updatedEdgeView = (Edge) this.updatedView;
+                final Edge updatedEdgeView = (Edge) this.afterView;
                 final Edge beforeEdgeView = (Edge) beforeViewFromAtlas;
                 beforeViewUpdatesOnly = CompleteEdge.shallowFrom(updatedEdgeView);
                 if (updatedEdgeView.asPolyLine() != null)
@@ -378,7 +378,7 @@ public class FeatureChange implements Located, Serializable
              * Line specific updates. The only Line-specific field is the polyline.
              */
             case LINE:
-                final Line updatedLineView = (Line) this.updatedView;
+                final Line updatedLineView = (Line) this.afterView;
                 final Line beforeLineView = (Line) beforeViewFromAtlas;
                 beforeViewUpdatesOnly = CompleteLine.shallowFrom(updatedLineView);
                 if (updatedLineView.asPolyLine() != null)
@@ -392,7 +392,7 @@ public class FeatureChange implements Located, Serializable
              * sets.
              */
             case NODE:
-                final Node updatedNodeView = (Node) this.updatedView;
+                final Node updatedNodeView = (Node) this.afterView;
                 final Node beforeNodeView = (Node) beforeViewFromAtlas;
                 beforeViewUpdatesOnly = CompleteNode.shallowFrom(updatedNodeView);
                 if (updatedNodeView.getLocation() != null)
@@ -413,7 +413,7 @@ public class FeatureChange implements Located, Serializable
              * Point specific updates. The only Point-specific field is the location.
              */
             case POINT:
-                final Point updatedPointView = (Point) this.updatedView;
+                final Point updatedPointView = (Point) this.afterView;
                 final Point beforePointView = (Point) beforeViewFromAtlas;
                 beforeViewUpdatesOnly = CompletePoint.shallowFrom(updatedPointView);
                 if (updatedPointView.getLocation() != null)
@@ -431,7 +431,7 @@ public class FeatureChange implements Located, Serializable
              * in a few tests).
              */
             case RELATION:
-                final Relation updatedRelationView = (Relation) this.updatedView;
+                final Relation updatedRelationView = (Relation) this.afterView;
                 final Relation beforeRelationView = (Relation) beforeViewFromAtlas;
                 beforeViewUpdatesOnly = CompleteRelation.shallowFrom(updatedRelationView);
                 if (updatedRelationView.members() != null)
@@ -441,13 +441,13 @@ public class FeatureChange implements Located, Serializable
                 }
                 break;
             default:
-                throw new CoreException("Unknown entity type {}", this.updatedView.getType());
+                throw new CoreException("Unknown entity type {}", this.afterView.getType());
         }
 
         /*
          * Add before view of the tags if the updatedView updated the tags.
          */
-        final Map<String, String> updatedViewTags = this.updatedView.getTags();
+        final Map<String, String> updatedViewTags = this.afterView.getTags();
         if (updatedViewTags != null)
         {
             ((CompleteEntity) beforeViewUpdatesOnly).withTags(beforeViewFromAtlas.getTags());
@@ -456,7 +456,7 @@ public class FeatureChange implements Located, Serializable
         /*
          * Add before view of relations if updatedView updated relations.
          */
-        final Set<Relation> updatedViewRelations = this.updatedView.relations();
+        final Set<Relation> updatedViewRelations = this.afterView.relations();
         if (updatedViewRelations != null)
         {
             ((CompleteEntity) beforeViewUpdatesOnly).withRelations(beforeViewFromAtlas.relations());
@@ -468,8 +468,8 @@ public class FeatureChange implements Located, Serializable
     private FeatureChange mergeAreas(final FeatureChange other,
             final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
     {
-        final AtlasEntity thisReference = this.getUpdatedView();
-        final AtlasEntity thatReference = other.getUpdatedView();
+        final AtlasEntity thisReference = this.getAfterView();
+        final AtlasEntity thatReference = other.getAfterView();
         final Polygon mergedPolygon = FeatureChangeMergers.mergeMember_OldStrategy("polygon",
                 thisReference, thatReference, atlasEntity -> ((Area) atlasEntity).asPolygon(),
                 null);
@@ -486,8 +486,8 @@ public class FeatureChange implements Located, Serializable
     private FeatureChange mergeLineItems(final FeatureChange other, // NOSONAR
             final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
     {
-        final AtlasEntity thisReference = this.getUpdatedView();
-        final AtlasEntity thatReference = other.getUpdatedView();
+        final AtlasEntity thisReference = this.getAfterView();
+        final AtlasEntity thatReference = other.getAfterView();
         final PolyLine mergedPolyLine = FeatureChangeMergers.mergeMember_OldStrategy("polyLine",
                 thisReference, thatReference, atlasEntity -> ((LineItem) atlasEntity).asPolyLine(),
                 null);
@@ -526,8 +526,8 @@ public class FeatureChange implements Located, Serializable
     private FeatureChange mergeLocationItems(final FeatureChange other, // NOSONAR
             final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
     {
-        final AtlasEntity thisReference = this.getUpdatedView();
-        final AtlasEntity thatReference = other.getUpdatedView();
+        final AtlasEntity thisReference = this.getAfterView();
+        final AtlasEntity thatReference = other.getAfterView();
         final Location mergedLocation = FeatureChangeMergers.mergeMember_OldStrategy("location",
                 thisReference, thatReference,
                 atlasEntity -> ((LocationItem) atlasEntity).getLocation(), null);
@@ -573,9 +573,9 @@ public class FeatureChange implements Located, Serializable
             final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
     {
         final AtlasEntity beforeEntityLeft = this.getBeforeView();
-        final AtlasEntity afterEntityLeft = this.getUpdatedView();
+        final AtlasEntity afterEntityLeft = this.getAfterView();
         final AtlasEntity beforeEntityRight = other.getBeforeView();
-        final AtlasEntity afterEntityRight = other.getUpdatedView();
+        final AtlasEntity afterEntityRight = other.getAfterView();
 
         final MergedMemberBean<Location> mergedLocationBean = FeatureChangeMergers.mergeMember(
                 "location", beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
@@ -633,8 +633,8 @@ public class FeatureChange implements Located, Serializable
     private FeatureChange mergeRelations(final FeatureChange other,
             final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
     {
-        final AtlasEntity thisReference = this.getUpdatedView();
-        final AtlasEntity thatReference = other.getUpdatedView();
+        final AtlasEntity thisReference = this.getAfterView();
+        final AtlasEntity thatReference = other.getAfterView();
 
         final RelationBean mergedMembers = FeatureChangeMergers.mergeMember_OldStrategy(
                 "relationMembers", thisReference, thatReference,
@@ -672,8 +672,8 @@ public class FeatureChange implements Located, Serializable
 
     private void validateUsefulFeatureChange()
     {
-        if (this.changeType == ChangeType.ADD && this.updatedView instanceof CompleteEntity
-                && ((CompleteEntity) this.updatedView).isSuperShallow())
+        if (this.changeType == ChangeType.ADD && this.afterView instanceof CompleteEntity
+                && ((CompleteEntity) this.afterView).isSuperShallow())
         {
             throw new CoreException("{} does not contain anything useful.", this);
         }

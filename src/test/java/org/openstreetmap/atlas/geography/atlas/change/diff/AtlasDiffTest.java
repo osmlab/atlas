@@ -102,7 +102,7 @@ public class AtlasDiffTest
                 .orElseThrow(() -> new CoreException(
                         "This Change should never be empty. The unit test may be broken."));
         changeBeforeToAfter.changes()
-                .forEach(change -> logger.trace("{}: {}", change, change.getUpdatedView()));
+                .forEach(change -> logger.trace("{}: {}", change, change.getAfterView()));
         Assert.assertEquals(expectedNumberOfChanges, changeBeforeToAfter.changeCount());
         final ChangeAtlas changeAfterAtlas = new ChangeAtlas(beforeAtlas, changeBeforeToAfter);
 

@@ -44,7 +44,7 @@ public class ChangeTest extends AbstractChangeTest
     {
         final Change result = newChangeWith2Areas();
         final FeatureChange merged = result.changeFor(ItemType.AREA, TEST_IDENTIFIER).get();
-        final Area area = (Area) merged.getUpdatedView();
+        final Area area = (Area) merged.getAfterView();
         Assert.assertEquals(Polygon.TEST_BUILDING, area.asPolygon());
         Assert.assertEquals(Maps.hashMap("key", "value"), area.getTags());
     }

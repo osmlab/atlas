@@ -64,12 +64,12 @@ public class FeatureChangeGeoJsonSerializer
             result.add("bbox", bounds.asGeoJsonBbox());
 
             final GeometryPrintable geometryPrintable = new AtlasEntityGeometryPrintableConverter()
-                    .convert(source.getUpdatedView());
+                    .convert(source.getAfterView());
             addGeometryGeojson(result, geometryPrintable);
 
             final JsonObject properties = new JsonObject();
             properties.addProperty("featureChangeType", source.getChangeType().toString());
-            new AtlasEntityPropertiesConverter().convert(source.getUpdatedView()).entrySet()
+            new AtlasEntityPropertiesConverter().convert(source.getAfterView()).entrySet()
                     .forEach(entry -> properties.add(entry.getKey(), entry.getValue()));
             addGeometryWkt(properties, geometryPrintable);
             properties.addProperty("bboxWKT", source.bounds().toWkt());
