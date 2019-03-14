@@ -490,7 +490,7 @@ public class FeatureChange implements Located, Serializable
         return FeatureChange.add(result);
     }
 
-    private FeatureChange mergeLineItems(final FeatureChange other, // NOSONAR
+    private FeatureChange mergeLineItems(final FeatureChange other,
             final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
     {
         final AtlasEntity thisReference = this.getAfterView();
