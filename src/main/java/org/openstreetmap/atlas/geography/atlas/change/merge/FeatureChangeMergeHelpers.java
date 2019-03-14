@@ -1,8 +1,6 @@
-package org.openstreetmap.atlas.geography.atlas.change;
+package org.openstreetmap.atlas.geography.atlas.change.merge;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -11,167 +9,29 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
+import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
+import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
+import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
-import org.openstreetmap.atlas.utilities.collections.Maps;
-import org.openstreetmap.atlas.utilities.collections.Sets;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.LineItem;
+import org.openstreetmap.atlas.geography.atlas.items.LocationItem;
+import org.openstreetmap.atlas.geography.atlas.items.Node;
+import org.openstreetmap.atlas.geography.atlas.items.Point;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.utilities.function.TernaryOperator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * A utility class to store the various merger operations utilized by {@link FeatureChange}.
+ * A utility class for the various {@link FeatureChange} merge helper functions.
  *
  * @author lcram
  */
-public final class FeatureChangeMergers
+public final class FeatureChangeMergeHelpers
 {
-    /**
-     * A bean class to store the merged before and after members. This is useful as a return type
-     * for the member merger, which needs to correctly merge the before and after entity view of
-     * each {@link FeatureChange}.
-     *
-     * @author lcram
-     * @param <M>
-     *            the member type
-     */
-    public static class MergedMemberBean<M>
-    {
-        private final M beforeMemberMerged;
-        private final M afterMemberMerged;
-
-        public MergedMemberBean(final M before, final M after)
-        {
-            this.beforeMemberMerged = before;
-            this.afterMemberMerged = after;
-        }
-
-        public M getMergedAfterMember()
-        {
-            return this.afterMemberMerged;
-        }
-
-        public M getMergedBeforeMember()
-        {
-            return this.beforeMemberMerged;
-        }
-    }
-
-    private static final Logger logger = LoggerFactory.getLogger(FeatureChangeMergers.class);
-
-    static final BinaryOperator<Map<String, String>> tagMerger = Maps::withMaps;
-
-    static final BinaryOperator<Set<Long>> directReferenceMerger = Sets::withSets;
-
-    static final BinaryOperator<SortedSet<Long>> directReferenceMergerSorted = Sets::withSortedSets;
-
-    static final BinaryOperator<SortedSet<Long>> directReferenceMergerLooseSorted = (left,
-            right) -> Sets.withSortedSets(false, left, right);
-
-    static final BinaryOperator<Set<Long>> directReferenceMergerLoose = (left, right) -> Sets
-            .withSets(false, left, right);
-
-    static final BinaryOperator<RelationBean> relationBeanMerger = RelationBean::merge;
-
-    static final TernaryOperator<SortedSet<Long>> diffBasedIntegerSortedSetMerger = (before,
-            afterLeft, afterRight) ->
-    {
-        final Set<Long> removedFromLeftView = com.google.common.collect.Sets.difference(before,
-                afterLeft);
-        final Set<Long> removedFromRightView = com.google.common.collect.Sets.difference(before,
-                afterRight);
-        final Set<Long> addedToLeftView = com.google.common.collect.Sets.difference(afterLeft,
-                before);
-        final Set<Long> addedToRightView = com.google.common.collect.Sets.difference(afterRight,
-                before);
-
-        final Set<Long> removedMerged = Sets.withSets(false, removedFromLeftView,
-                removedFromRightView);
-        final Set<Long> addedMerged = Sets.withSets(false, addedToLeftView, addedToRightView);
-
-        final Set<Long> collision = com.google.common.collect.Sets.intersection(removedMerged,
-                addedMerged);
-        if (!collision.isEmpty())
-        {
-            throw new CoreException(
-                    "diffBasedIntegerSortedSetMerger failed due to ADD/REMOVE collision(s) on: {}",
-                    collision);
-        }
-
-        final SortedSet<Long> result = new TreeSet<>(before);
-        result.removeAll(removedMerged);
-        result.addAll(addedMerged);
-
-        return result;
-    };
-
-    static final TernaryOperator<Map<String, String>> diffBasedTagMerger = (before, afterLeft,
-            afterRight) ->
-    {
-        final Set<String> keysRemovedFromLeftView = com.google.common.collect.Sets
-                .difference(before.keySet(), afterLeft.keySet());
-        final Set<String> keysRemovedFromRightView = com.google.common.collect.Sets
-                .difference(before.keySet(), afterRight.keySet());
-
-        /*
-         * Here, we effectively group key ADDs and MODIFYs together, since we operate on the entire
-         * key->value pair. In light of this fact, ADDs and MODIFYs are effectively the same
-         * operation.
-         */
-        final Map<String, String> addedToLeftView = com.google.common.collect.Sets
-                .difference(afterLeft.entrySet(), before.entrySet()).stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        final Map<String, String> addedToRightView = com.google.common.collect.Sets
-                .difference(afterRight.entrySet(), before.entrySet()).stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        /*
-         * Check to see if any of the shared ADD keys generate an ADD collision. An ADD collision is
-         * when the same key maps to two different values.
-         */
-        final Set<String> sharedKeys = com.google.common.collect.Sets
-                .intersection(addedToLeftView.keySet(), addedToRightView.keySet());
-        for (final String sharedKey : sharedKeys)
-        {
-            final String leftValue = addedToLeftView.get(sharedKey);
-            final String rightValue = addedToRightView.get(sharedKey);
-            if (!Objects.equals(leftValue, rightValue))
-            {
-                throw new CoreException(
-                        "diffBasedTagMergerFailed due to key ADD collision: [{} -> {}] vs [{} -> {}]",
-                        sharedKey, leftValue, sharedKey, rightValue);
-            }
-        }
-
-        /*
-         * Now, check for any ADD/REMOVE collisions.
-         */
-        final Set<String> keysRemovedMerged = Sets.withSets(false, keysRemovedFromLeftView,
-                keysRemovedFromRightView);
-        final Set<String> keysAddedMerged = Sets.withSets(false, addedToLeftView.keySet(),
-                addedToRightView.keySet());
-        final Set<String> collision = com.google.common.collect.Sets.intersection(keysRemovedMerged,
-                keysAddedMerged);
-        if (!collision.isEmpty())
-        {
-            throw new CoreException(
-                    "diffBasedTagMerger failed due to ADD/REMOVE collision(s) on key(s): {}",
-                    collision);
-        }
-
-        /*
-         * Now construct the merged map. Take the beforeView and remove all keys that were in the
-         * removedMerged set. Then, add all keys in the addMerged set. To get the values for those
-         * keys, we arbitrarily use the leftView, since we already asserted that there are no ADD
-         * collisions between left and right.
-         */
-        final Map<String, String> result = new HashMap<>(before);
-        keysRemovedMerged.forEach(result::remove);
-        keysAddedMerged.forEach(key -> result.put(key, addedToLeftView.get(key)));
-
-        return result;
-    };
-
     /**
      * TODO fill in this doc comment.
      *
@@ -209,9 +69,7 @@ public final class FeatureChangeMergers
         /*
          * TODO it is theoretically possible to allow for conflicting beforeMember views, and simply
          * fall back on the simpleMergeStrategy in this case. Is this something we want? I think it
-         * makes more sense to just fail. It seems to me that the only time we would have
-         * conflicting beforeMember views is when two corrections which are operating on the same
-         * level should actually be on separate levels.
+         * makes more sense to just fail.
          */
         if (beforeMemberLeft != null && beforeMemberRight != null
                 && !beforeMemberLeft.equals(beforeMemberRight))
@@ -382,8 +240,119 @@ public final class FeatureChangeMergers
         return result;
     }
 
-    private FeatureChangeMergers()
+    public static FeatureChange mergeTwoADDFeatureChanges(final FeatureChange left,
+            final FeatureChange right)
     {
+        final AtlasEntity beforeEntityLeft = left.getBeforeView();
+        final AtlasEntity afterEntityLeft = left.getAfterView();
+        final AtlasEntity beforeEntityRight = right.getBeforeView();
+        final AtlasEntity afterEntityRight = right.getAfterView();
+        final MergedMemberBean<Map<String, String>> mergedTagsBean = mergeMember("tags",
+                beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
+                Taggable::getTags, MemberMergeStrategies.tagMerger,
+                MemberMergeStrategies.diffBasedTagMerger);
+        final Set<Long> mergedParentRelations = mergeMember_OldStrategy("parentRelations",
+                afterEntityLeft, afterEntityRight,
+                atlasEntity -> atlasEntity.relations() == null ? null
+                        : atlasEntity.relations().stream().map(Relation::getIdentifier)
+                                .collect(Collectors.toSet()),
+                MemberMergeStrategies.directReferenceMergerLoose);
 
+        if (afterEntityLeft instanceof LocationItem)
+        {
+            return mergeLocationItems(left, right, mergedTagsBean, mergedParentRelations);
+        }
+        else if (afterEntityLeft instanceof LineItem)
+        {
+            return mergeLineItems(other, mergedTagsBean.getMergedAfterMember(),
+                    mergedParentRelations);
+        }
+        else if (afterEntityLeft instanceof Area)
+        {
+            return mergeAreas(other, mergedTagsBean.getMergedAfterMember(), mergedParentRelations);
+        }
+        else if (afterEntityLeft instanceof Relation)
+        {
+            return mergeRelations(other, mergedTagsBean.getMergedAfterMember(),
+                    mergedParentRelations);
+        }
+        else
+        {
+            throw new CoreException("Unknown AtlasEntity subtype {}",
+                    afterEntityLeft.getClass().getName());
+        }
+    }
+
+    private static FeatureChange mergeLocationItems(final FeatureChange left,
+            final FeatureChange right, final MergedMemberBean<Map<String, String>> mergedTagsBean,
+            final Set<Long> mergedParentRelations)
+    {
+        final AtlasEntity beforeEntityLeft = left.getBeforeView();
+        final AtlasEntity afterEntityLeft = left.getAfterView();
+        final AtlasEntity beforeEntityRight = right.getBeforeView();
+        final AtlasEntity afterEntityRight = right.getAfterView();
+
+        /*
+         * This merger will never do a proper merge. Rather, it will just ensure that the
+         * afterEntities match. There is currently no reason to merge unequal locations.
+         */
+        final MergedMemberBean<Location> mergedLocationBean = mergeMember("location",
+                beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
+                atlasEntity -> ((LocationItem) atlasEntity).getLocation(), null, null);
+
+        if (afterEntityLeft instanceof Node)
+        {
+            final MergedMemberBean<SortedSet<Long>> mergedInEdgeIdentifiersBean = mergeMember(
+                    "inEdgeIdentifiers", beforeEntityLeft, afterEntityLeft, beforeEntityRight,
+                    afterEntityRight,
+                    atlasEntity -> ((Node) atlasEntity).inEdges() == null ? null
+                            : ((Node) atlasEntity).inEdges().stream().map(Edge::getIdentifier)
+                                    .collect(Collectors.toCollection(TreeSet::new)),
+                    MemberMergeStrategies.directReferenceMergerSorted,
+                    MemberMergeStrategies.diffBasedIntegerSortedSetMerger);
+
+            final MergedMemberBean<SortedSet<Long>> mergedOutEdgeIdentifiersBean = mergeMember(
+                    "outEdgeIdentifiers", beforeEntityLeft, afterEntityLeft, beforeEntityRight,
+                    afterEntityRight,
+                    atlasEntity -> ((Node) atlasEntity).outEdges() == null ? null
+                            : ((Node) atlasEntity).outEdges().stream().map(Edge::getIdentifier)
+                                    .collect(Collectors.toCollection(TreeSet::new)),
+                    MemberMergeStrategies.directReferenceMergerSorted,
+                    MemberMergeStrategies.diffBasedIntegerSortedSetMerger);
+
+            final CompleteNode mergedAfterNode = new CompleteNode(left.getIdentifier(),
+                    mergedLocationBean.getMergedAfterMember(),
+                    mergedTagsBean.getMergedAfterMember(),
+                    mergedInEdgeIdentifiersBean.getMergedAfterMember(),
+                    mergedOutEdgeIdentifiersBean.getMergedAfterMember(), mergedParentRelations);
+
+            final CompleteNode mergedBeforeNode = CompleteNode.shallowFrom((Node) afterEntityLeft)
+                    .withInEdgeIdentifiers(mergedInEdgeIdentifiersBean.getMergedBeforeMember())
+                    .withOutEdgeIdentifiers(mergedOutEdgeIdentifiersBean.getMergedBeforeMember())
+                    .withTags(mergedTagsBean.getMergedBeforeMember());
+
+            return new FeatureChange(ChangeType.ADD, mergedAfterNode, mergedBeforeNode);
+        }
+        else if (afterEntityLeft instanceof Point)
+        {
+            final CompletePoint mergedAfterPoint = new CompletePoint(left.getIdentifier(),
+                    mergedLocationBean.getMergedAfterMember(),
+                    mergedTagsBean.getMergedAfterMember(), mergedParentRelations);
+
+            final CompletePoint mergedBeforePoint = CompletePoint
+                    .shallowFrom((Point) afterEntityLeft)
+                    .withTags(mergedTagsBean.getMergedBeforeMember());
+
+            return new FeatureChange(ChangeType.ADD, mergedAfterPoint, mergedBeforePoint);
+        }
+        else
+        {
+            throw new CoreException("Unknown LocationItem subtype {}",
+                    afterEntityLeft.getClass().getName());
+        }
+    }
+
+    private FeatureChangeMergeHelpers()
+    {
     }
 }

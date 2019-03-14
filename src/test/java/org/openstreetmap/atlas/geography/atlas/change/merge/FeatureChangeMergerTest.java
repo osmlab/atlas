@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.change;
+package org.openstreetmap.atlas.geography.atlas.change.merge;
 
 import java.util.stream.Collectors;
 
@@ -8,6 +8,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
+import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.utilities.collections.Maps;
@@ -64,14 +66,41 @@ public class FeatureChangeMergerTest
                         Sets.treeSet(10L, 11L), null),
                 beforeNode1);
 
-        // Testing with a hashset instead of a treeset for ease of typing
-        Assert.assertEquals(Sets.hashSet(1L, 2L, 3L, 4L, 5L),
-                ((Node) featureChange1.merge(featureChange2).getAfterView()).inEdges().stream()
-                        .map(edge -> edge.getIdentifier()).collect(Collectors.toSet()));
-        Assert.assertEquals(Sets.hashSet(10L, 11L, 13L),
-                ((Node) featureChange1.merge(featureChange2).getAfterView()).outEdges().stream()
-                        .map(edge -> edge.getIdentifier()).collect(Collectors.toSet()));
+        final FeatureChange merged = featureChange1.merge(featureChange2);
         Assert.assertEquals(Maps.hashMap("a", "1", "c", "3"),
-                ((Node) featureChange1.merge(featureChange2).getAfterView()).getTags());
+                ((Node) merged.getAfterView()).getTags());
+        Assert.assertEquals(Sets.hashSet(1L, 2L, 3L, 4L, 5L), ((Node) merged.getAfterView())
+                .inEdges().stream().map(edge -> edge.getIdentifier()).collect(Collectors.toSet()));
+        Assert.assertEquals(Sets.hashSet(10L, 11L, 13L), ((Node) merged.getAfterView()).outEdges()
+                .stream().map(edge -> edge.getIdentifier()).collect(Collectors.toSet()));
+    }
+
+    @Test
+    public void testMergeNodesUnrelated()
+    {
+        final CompleteNode beforeNode1 = new CompleteNode(123L, Location.COLOSSEUM,
+                Maps.hashMap("a", "1", "b", "2"), null, null, null);
+        final CompleteNode beforeNode2 = new CompleteNode(123L, Location.COLOSSEUM, null,
+                Sets.treeSet(1L, 2L, 3L), null, null);
+
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteNode(123L, Location.COLOSSEUM, Maps.hashMap("a", "1", "b", "12"), null,
+                        null, null),
+                beforeNode1);
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
+                new CompleteNode(123L, Location.COLOSSEUM, null, Sets.treeSet(1L, 2L, 3L, 4L), null,
+                        null),
+                beforeNode2);
+
+        final FeatureChange merged = featureChange1.merge(featureChange2);
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "12"),
+                ((Node) merged.getAfterView()).getTags());
+        Assert.assertEquals(Sets.hashSet(1L, 2L, 3L, 4L), ((Node) merged.getAfterView()).inEdges()
+                .stream().map(edge -> edge.getIdentifier()).collect(Collectors.toSet()));
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "2"),
+                ((Node) merged.getBeforeView()).getTags());
+        // Test that the beforeView was merged properly
+        Assert.assertEquals(Sets.treeSet(1L, 2L, 3L), ((Node) merged.getBeforeView()).inEdges()
+                .stream().map(edge -> edge.getIdentifier()).collect(Collectors.toSet()));
     }
 }

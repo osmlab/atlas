@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.change.merge.FeatureChangeMergeGroup;
 import org.openstreetmap.atlas.geography.atlas.change.serializer.ChangeGeoJsonSerializer;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
