@@ -233,7 +233,7 @@ public class FeatureChange implements Located, Serializable
             }
             if (this.getChangeType() == ChangeType.ADD)
             {
-                return FeatureChangeMergeHelpers.mergeTwoADDFeatureChanges(this, other);
+                return FeatureChangeMergingHelpers.mergeTwoADDFeatureChanges(this, other);
             }
             throw new CoreException("Unable to merge {} and {}", this, other);
         }

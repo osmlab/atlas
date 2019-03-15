@@ -40,9 +40,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author lcram
  */
-public final class FeatureChangeMergeHelpers
+public final class FeatureChangeMergingHelpers
 {
-    private static final Logger logger = LoggerFactory.getLogger(FeatureChangeMergeHelpers.class);
+    private static final Logger logger = LoggerFactory.getLogger(FeatureChangeMergingHelpers.class);
 
     /**
      * TODO fill in this doc comment.
@@ -478,7 +478,7 @@ public final class FeatureChangeMergeHelpers
                 mergedAllKnownMembers, mergedOsmRelationIdentifier, mergedParentRelations));
     }
 
-    private FeatureChangeMergeHelpers()
+    private FeatureChangeMergingHelpers()
     {
     }
 }
