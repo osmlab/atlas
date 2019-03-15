@@ -61,23 +61,11 @@ public final class MemberMergeStrategies
 
         /*
          * Easy key-merge of left and right ADD/REMOVES. We can safely ignore duplicate keys, since
-         * it is feasable that two feature changes made the same ADD or REMOVE.
+         * it is feasible that two FeatureChanges made the same ADD or REMOVE.
          */
         final Set<Long> removedMerged = Sets.withSets(false, removedFromLeftView,
                 removedFromRightView);
         final Set<Long> addedMerged = Sets.withSets(false, addedToLeftView, addedToRightView);
-
-        /*
-         * Since this is a key-only merge, ADD/REMOVE is the only possible type of collision.
-         */
-        final Set<Long> collision = com.google.common.collect.Sets.intersection(removedMerged,
-                addedMerged);
-        if (!collision.isEmpty())
-        {
-            throw new CoreException(
-                    "diffBasedIntegerSortedSetMerger failed due to ADD/REMOVE collision(s) on: {}",
-                    collision);
-        }
 
         /*
          * Build the result set by performing the REMOVEs on the beforeView, then performing the
@@ -134,7 +122,7 @@ public final class MemberMergeStrategies
             if (!Objects.equals(leftValue, rightValue))
             {
                 throw new CoreException(
-                        "diffBasedTagMergerFailed due to key ADD collision: [{} -> {}] vs [{} -> {}]",
+                        "diffBasedTagMerger failed due to ADD/ADD collision(s) on keys(s): [{} -> {}] vs [{} -> {}]",
                         sharedKey, leftValue, sharedKey, rightValue);
             }
         }

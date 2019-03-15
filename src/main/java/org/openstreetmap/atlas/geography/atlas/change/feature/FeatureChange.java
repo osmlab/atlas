@@ -102,7 +102,7 @@ public class FeatureChange implements Located, Serializable
                     "FeatureChange afterView requires CompleteEntity, found reference of type {}",
                     afterView.getClass().getName());
         }
-        if (!(beforeView instanceof CompleteEntity))
+        if (beforeView != null && !(beforeView instanceof CompleteEntity))
         {
             throw new CoreException(
                     "FeatureChange beforeView requires CompleteEntity, found reference of type {}",

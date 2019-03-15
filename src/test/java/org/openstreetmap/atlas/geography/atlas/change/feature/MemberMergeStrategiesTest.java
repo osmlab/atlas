@@ -1,16 +1,82 @@
 package org.openstreetmap.atlas.geography.atlas.change.feature;
 
 import java.util.Map;
+import java.util.SortedSet;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.collections.Maps;
+import org.openstreetmap.atlas.utilities.collections.Sets;
 
 /**
  * @author lcram
  */
 public class MemberMergeStrategiesTest
 {
+    @Rule
+    public final ExpectedException expectedException = ExpectedException.none();
+
+    @Test
+    public void testDiffBasedLongSortedSetMergeSuccess()
+    {
+        final SortedSet<Long> before1 = Sets.treeSet(1L, 2L, 3L, 4L);
+        final SortedSet<Long> after1A = Sets.treeSet(2L, 3L, 4L);
+        final SortedSet<Long> after1B = Sets.treeSet(1L, 2L, 3L, 4L, 5L);
+        Assert.assertEquals(Sets.treeSet(2L, 3L, 4L, 5L),
+                MemberMergeStrategies.diffBasedLongSortedSetMerger.apply(before1, after1A,
+                        after1B));
+        Assert.assertEquals(Sets.treeSet(2L, 3L, 4L, 5L),
+                MemberMergeStrategies.diffBasedLongSortedSetMerger.apply(before1, after1B,
+                        after1A));
+
+        final SortedSet<Long> before2 = Sets.treeSet(1L, 2L, 3L, 4L);
+        final SortedSet<Long> after2A = Sets.treeSet(1L, 2L, 3L, 4L, 5L);
+        final SortedSet<Long> after2B = Sets.treeSet(1L, 2L, 3L, 4L, 6L);
+        Assert.assertEquals(Sets.treeSet(1L, 2L, 3L, 4L, 5L, 6L),
+                MemberMergeStrategies.diffBasedLongSortedSetMerger.apply(before2, after2A,
+                        after2B));
+        Assert.assertEquals(Sets.treeSet(1L, 2L, 3L, 4L, 5L, 6L),
+                MemberMergeStrategies.diffBasedLongSortedSetMerger.apply(before2, after2B,
+                        after2A));
+
+        final SortedSet<Long> before3 = Sets.treeSet(1L, 2L, 3L);
+        final SortedSet<Long> after3A = Sets.treeSet();
+        final SortedSet<Long> after3B = Sets.treeSet(1L, 2L, 3L);
+        Assert.assertEquals(Sets.treeSet(), MemberMergeStrategies.diffBasedLongSortedSetMerger
+                .apply(before3, after3A, after3B));
+        Assert.assertEquals(Sets.treeSet(), MemberMergeStrategies.diffBasedLongSortedSetMerger
+                .apply(before3, after3B, after3A));
+    }
+
+    @Test
+    public void testDiffBasedTagMergeADDADDCollisionFail()
+    {
+        final Map<String, String> before1 = Maps.hashMap("a", "1", "b", "2");
+        final Map<String, String> after1A = Maps.hashMap("a", "10", "b", "2");
+        final Map<String, String> after1B = Maps.hashMap("a", "12", "b", "2");
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException
+                .expectMessage("diffBasedTagMerger failed due to ADD/ADD collision(s) on keys(s)");
+        MemberMergeStrategies.diffBasedTagMerger.apply(before1, after1A, after1B);
+    }
+
+    @Test
+    public void testDiffBasedTagMergeADDREMOVECollisionFail()
+    {
+        final Map<String, String> before1 = Maps.hashMap("a", "1", "b", "2");
+        final Map<String, String> after1A = Maps.hashMap("a", "10", "b", "2");
+        final Map<String, String> after1B = Maps.hashMap("b", "2");
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage(
+                "diffBasedTagMerger failed due to ADD/REMOVE collision(s) on key(s): [a]");
+        MemberMergeStrategies.diffBasedTagMerger.apply(before1, after1A, after1B);
+    }
+
     @Test
     public void testDiffBasedTagMergeSuccess()
     {
@@ -24,11 +90,11 @@ public class MemberMergeStrategiesTest
                 MemberMergeStrategies.diffBasedTagMerger.apply(before1, after1B, after1A));
 
         final Map<String, String> before2 = Maps.hashMap("water", "lake");
-        final Map<String, String> after2A = Maps.hashMap("water", "lake", "seaonsal", "yes");
+        final Map<String, String> after2A = Maps.hashMap("water", "lake", "seasonal", "yes");
         final Map<String, String> after2B = Maps.hashMap("water", "lake", "salt", "yes");
-        Assert.assertEquals(Maps.hashMap("water", "lake", "seaonsal", "yes", "salt", "yes"),
+        Assert.assertEquals(Maps.hashMap("water", "lake", "seasonal", "yes", "salt", "yes"),
                 MemberMergeStrategies.diffBasedTagMerger.apply(before2, after2A, after2B));
-        Assert.assertEquals(Maps.hashMap("water", "lake", "seaonsal", "yes", "salt", "yes"),
+        Assert.assertEquals(Maps.hashMap("water", "lake", "seasonal", "yes", "salt", "yes"),
                 MemberMergeStrategies.diffBasedTagMerger.apply(before2, after2B, after2A));
 
         final Map<String, String> before3 = Maps.hashMap("a", "1", "b", "2", "c", "3", "d", "4");
@@ -54,7 +120,5 @@ public class MemberMergeStrategiesTest
                 MemberMergeStrategies.diffBasedTagMerger.apply(before5, after5A, after5B));
         Assert.assertEquals(Maps.hashMap("a", "1"),
                 MemberMergeStrategies.diffBasedTagMerger.apply(before5, after5B, after5A));
-        Assert.assertEquals(Maps.hashMap("a", "1"),
-                MemberMergeStrategies.simpleTagMerger.apply(after5B, after5A));
     }
 }
