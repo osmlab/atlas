@@ -36,7 +36,7 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
         securityCustomizer.setStarImportsWhitelist(Arrays.asList("java.lang", "groovy.lang",
                 "java.util.function", "org.openstreetmap.atlas.geography.atlas.items",
                 "org.openstreetmap.atlas.tags.annotations.validation",
-                "org.openstreetmap.atlas.tags"));
+                "org.openstreetmap.atlas.tags", "org.openstreetmap.atlas.geography"));
         securityCustomizer.setPackageAllowed(false);
         securityCustomizer.setMethodDefinitionAllowed(false);
         securityCustomizer.setIndirectImportCheckEnabled(true);
@@ -45,7 +45,7 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
         importCustomizer.addStarImports("java.util.function",
                 "org.openstreetmap.atlas.geography.atlas.items", "java.lang",
                 "org.openstreetmap.atlas.tags.annotations.validation",
-                "org.openstreetmap.atlas.tags");
+                "org.openstreetmap.atlas.tags", "org.openstreetmap.atlas.geography");
 
         final CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
         compilerConfiguration.addCompilationCustomizers(securityCustomizer);
