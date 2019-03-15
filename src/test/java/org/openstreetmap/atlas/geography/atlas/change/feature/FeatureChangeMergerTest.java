@@ -8,11 +8,14 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
@@ -97,6 +100,90 @@ public class FeatureChangeMergerTest
         Assert.assertEquals(Polygon.SILICON_VALLEY, ((Area) merged.getBeforeView()).asPolygon());
         Assert.assertEquals(Maps.hashMap("a", "1", "b", "2"),
                 ((Area) merged.getBeforeView()).getTags());
+    }
+
+    @Test
+    public void testMergeEdgesFail()
+    {
+        final CompleteEdge beforeEdge1 = new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, 1L,
+                null, null);
+
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, 2L, null, null), beforeEdge1);
+
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
+                new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, 3L, null, null), beforeEdge1);
+
+        /*
+         * This merge will fail, because the FeatureChanges have different start node identifiers.
+         */
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("Cannot merge two feature changes");
+        featureChange1.merge(featureChange2);
+    }
+
+    @Test
+    public void testMergeEdgesSuccess()
+    {
+        final CompleteEdge beforeEdge1 = new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, 1L,
+                null, null);
+
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteEdge(123L, PolyLine.TEST_POLYLINE_2, null, 2L, null, null),
+                beforeEdge1);
+
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
+                new CompleteEdge(123L, PolyLine.TEST_POLYLINE_2, null, null, null, null),
+                beforeEdge1);
+
+        final FeatureChange merged = featureChange1.merge(featureChange2);
+
+        Assert.assertEquals(PolyLine.TEST_POLYLINE_2, ((Edge) merged.getAfterView()).asPolyLine());
+
+        Assert.assertEquals(2L, ((Edge) merged.getAfterView()).start().getIdentifier());
+    }
+
+    @Test
+    public void testMergeEdgesUnrelated()
+    {
+        final CompleteEdge beforeEdge1 = new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, 1L,
+                null, null);
+
+        final CompleteEdge beforeEdge2 = new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, null,
+                2L, null);
+
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, 3L, null, null), beforeEdge1);
+
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
+                new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, null, 4L, null), beforeEdge2);
+
+        final FeatureChange merged = featureChange1.merge(featureChange2);
+
+        Assert.assertEquals(3L, ((Edge) merged.getAfterView()).start().getIdentifier());
+        Assert.assertEquals(4L, ((Edge) merged.getAfterView()).end().getIdentifier());
+
+        // Test that the beforeView was merged properly
+        Assert.assertEquals(1L, ((Edge) merged.getBeforeView()).start().getIdentifier());
+        Assert.assertEquals(2L, ((Edge) merged.getBeforeView()).end().getIdentifier());
+    }
+
+    @Test
+    public void testMergeLinesFail()
+    {
+
+    }
+
+    @Test
+    public void testMergeLinesSuccess()
+    {
+
+    }
+
+    @Test
+    public void testMergeLinesUnrelated()
+    {
+
     }
 
     @Test
@@ -189,5 +276,23 @@ public class FeatureChangeMergerTest
                 ((Node) merged.getBeforeView()).getTags());
         Assert.assertEquals(Sets.treeSet(1L, 2L, 3L), ((Node) merged.getBeforeView()).inEdges()
                 .stream().map(edge -> edge.getIdentifier()).collect(Collectors.toSet()));
+    }
+
+    @Test
+    public void testMergePointsFail()
+    {
+
+    }
+
+    @Test
+    public void testMergePointsSuccess()
+    {
+
+    }
+
+    @Test
+    public void testMergePointsUnrelated()
+    {
+
     }
 }

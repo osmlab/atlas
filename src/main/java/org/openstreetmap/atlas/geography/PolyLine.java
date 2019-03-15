@@ -59,6 +59,8 @@ public class PolyLine
 
     public static final PolyLine TEST_POLYLINE = new PolyLine(Location.TEST_3, Location.TEST_7,
             Location.TEST_4, Location.TEST_1, Location.TEST_5);
+    public static final PolyLine TEST_POLYLINE_2 = new PolyLine(Location.TEST_1, Location.TEST_5,
+            Location.TEST_4, Location.TEST_3, Location.TEST_7);
 
     public static final String SEPARATOR = ":";
 
@@ -246,12 +248,6 @@ public class PolyLine
                     "Cannot append {} to {} - the end and start points do not match.",
                     other.toWkt(), this.toWkt());
         }
-    }
-
-    @Override
-    public boolean within(final GeometricSurface surface)
-    {
-        return surface.fullyGeometricallyEncloses(this);
     }
 
     @Override
@@ -1201,6 +1197,12 @@ public class PolyLine
         }
 
         return Iterables.stream(this).truncate(indexFromStart, indexFromEnd);
+    }
+
+    @Override
+    public boolean within(final GeometricSurface surface)
+    {
+        return surface.fullyGeometricallyEncloses(this);
     }
 
     /**

@@ -25,6 +25,7 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.LineItem;
 import org.openstreetmap.atlas.geography.atlas.items.LocationItem;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
@@ -276,8 +277,7 @@ public final class FeatureChangeMergingHelpers
         }
         else if (afterEntityLeft instanceof LineItem)
         {
-            return mergeLineItems(left, right, mergedTagsBean.getMergedAfterMember(),
-                    mergedParentRelations);
+            return mergeLineItems(left, right, mergedTagsBean, mergedParentRelations);
         }
         else if (afterEntityLeft instanceof Area)
         {
@@ -323,7 +323,69 @@ public final class FeatureChangeMergingHelpers
     }
 
     private static FeatureChange mergeLineItems(final FeatureChange left, final FeatureChange right,
-            final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
+            final MergedMemberBean<Map<String, String>> mergedTagsBean,
+            final Set<Long> mergedParentRelations)
+    {
+        final AtlasEntity beforeEntityLeft = left.getBeforeView();
+        final AtlasEntity afterEntityLeft = left.getAfterView();
+        final AtlasEntity beforeEntityRight = right.getBeforeView();
+        final AtlasEntity afterEntityRight = right.getAfterView();
+
+        /*
+         * The polyline merger will not do a strategy merge. Rather, it will just ensure that the
+         * afterEntity polylines match. There is currently no reason to merge unequal polylines.
+         */
+        final MergedMemberBean<PolyLine> mergedPolyLineBean = mergeMember("polyLine",
+                beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
+                atlasEntity -> ((LineItem) atlasEntity).asPolyLine(), null, null);
+
+        if (afterEntityLeft instanceof Edge)
+        {
+            final MergedMemberBean<Long> mergedStartNodeIdentifierBean = mergeMember("startNode",
+                    beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
+                    edge -> ((Edge) edge).start() == null ? null
+                            : ((Edge) edge).start().getIdentifier(),
+                    null, null);
+            final MergedMemberBean<Long> mergedEndNodeIdentifierBean = mergeMember("endNode",
+                    beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
+                    edge -> ((Edge) edge).end() == null ? null
+                            : ((Edge) edge).end().getIdentifier(),
+                    null, null);
+
+            final CompleteEdge mergedAfterEdge = new CompleteEdge(left.getIdentifier(),
+                    mergedPolyLineBean.getMergedAfterMember(),
+                    mergedTagsBean.getMergedAfterMember(),
+                    mergedStartNodeIdentifierBean.getMergedAfterMember(),
+                    mergedEndNodeIdentifierBean.getMergedAfterMember(), mergedParentRelations);
+
+            final CompleteEdge mergedBeforeEdge = CompleteEdge.shallowFrom((Edge) beforeEntityLeft)
+                    .withStartNodeIdentifier(mergedStartNodeIdentifierBean.getMergedBeforeMember())
+                    .withEndNodeIdentifier(mergedEndNodeIdentifierBean.getMergedBeforeMember())
+                    .withTags(mergedTagsBean.getMergedBeforeMember());
+
+            return new FeatureChange(ChangeType.ADD, mergedAfterEdge, mergedBeforeEdge);
+        }
+        else if (afterEntityLeft instanceof Line)
+        {
+            final CompleteLine mergedAfterLine = new CompleteLine(left.getIdentifier(),
+                    mergedPolyLineBean.getMergedAfterMember(),
+                    mergedTagsBean.getMergedAfterMember(), mergedParentRelations);
+
+            final CompleteLine mergedBeforeLine = CompleteLine.shallowFrom((Line) beforeEntityLeft)
+                    .withTags(mergedTagsBean.getMergedBeforeMember());
+
+            return new FeatureChange(ChangeType.ADD, mergedAfterLine, mergedBeforeLine);
+        }
+        else
+        {
+            throw new CoreException("Unknown AtlasEntity subtype {}",
+                    afterEntityLeft.getClass().getName());
+        }
+    }
+
+    private static FeatureChange mergeLineItems_Old(final FeatureChange left,
+            final FeatureChange right, final Map<String, String> mergedTags,
+            final Set<Long> mergedParentRelations)
     {
         final AtlasEntity thisReference = left.getAfterView();
         final AtlasEntity thatReference = right.getAfterView();
@@ -359,18 +421,6 @@ public final class FeatureChangeMergingHelpers
             }
             return FeatureChange.add(result);
         }
-    }
-
-    private static FeatureChange mergeLineItems2(final FeatureChange left,
-            final FeatureChange right, final Map<String, String> mergedTags,
-            final Set<Long> mergedParentRelations)
-    {
-        final AtlasEntity beforeEntityLeft = left.getBeforeView();
-        final AtlasEntity afterEntityLeft = left.getAfterView();
-        final AtlasEntity beforeEntityRight = right.getBeforeView();
-        final AtlasEntity afterEntityRight = right.getAfterView();
-
-        return null;
     }
 
     private static FeatureChange mergeLocationItems(final FeatureChange left,
