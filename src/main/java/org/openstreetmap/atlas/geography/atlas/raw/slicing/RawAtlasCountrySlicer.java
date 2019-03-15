@@ -19,7 +19,7 @@ import org.openstreetmap.atlas.geography.atlas.dynamic.DynamicAtlas;
 import org.openstreetmap.atlas.geography.atlas.dynamic.policy.DynamicAtlasPolicy;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
-import org.openstreetmap.atlas.geography.atlas.items.Point;
+import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
@@ -56,18 +56,13 @@ public class RawAtlasCountrySlicer
     // The default dynamically expanded Relation tags
     private static List<TaggableFilter> defaultTaggableFilter = computeDefaultFilter();
 
-    // Bring in all points -- this is important for proper sectioning later downstream, otherwise we
-    // will bring in geometry definitions with no underlying points
-    private static final Predicate<AtlasEntity> pointPredicate = entity -> entity instanceof Point;
-
     // Bring in all Relations that are tagged as Water or Coastline
     private static final Predicate<AtlasEntity> relationPredicate = entity -> entity.getType()
             .equals(ItemType.RELATION)
             && defaultTaggableFilter.stream().allMatch(filter -> filter.test(entity));
 
     // Dynamic expansion filter will be a combination of the water Relations and Points
-    private static final Predicate<AtlasEntity> dynamicAtlasExpansionFilter = entity -> pointPredicate
-            .test(entity) || relationPredicate.test(entity);
+    private static final Predicate<AtlasEntity> dynamicAtlasExpansionFilter = relationPredicate::test;
 
     private final Sharding sharding;
 
@@ -265,11 +260,27 @@ public class RawAtlasCountrySlicer
     {
         final Time time = Time.now();
         final Atlas partiallySlicedExpandedAtlas = buildExpandedAtlas(initialShard);
-        final String shardName = getShardOrAtlasName(partiallySlicedExpandedAtlas);
+        final Set<Long> relationsForInitialShard = new HashSet<>();
+        this.atlasFetcher.apply(initialShard).get().relations()
+                .forEach(relation -> relationsForInitialShard.add(relation.getIdentifier()));
+
+        final Predicate<AtlasEntity> filter = entity ->
+        {
+            if (entity.getType().equals(ItemType.RELATION))
+            {
+                return relationsForInitialShard.contains(entity.getIdentifier());
+            }
+            return true;
+        };
+
+        final Atlas partiallySlicedExpandedAtlasWithExtraRelationsRemoved = partiallySlicedExpandedAtlas
+                .subAtlas(filter, AtlasCutType.SILK_CUT).get();
+        final String shardName = getShardOrAtlasName(
+                partiallySlicedExpandedAtlasWithExtraRelationsRemoved);
         logger.info(STARTED_TASK_MESSAGE, RELATION_SLICING_TASK, shardName);
 
         final RawAtlasSlicer relationSlicer = new RawAtlasRelationSlicer(
-                partiallySlicedExpandedAtlas, initialShard, this.countries,
+                partiallySlicedExpandedAtlasWithExtraRelationsRemoved, initialShard, this.countries,
                 this.countryBoundaryMap);
         logger.info(COMPLETED_TASK_MESSAGE, RELATION_SLICING_TASK, shardName, time.elapsedSince());
         return relationSlicer.slice();
