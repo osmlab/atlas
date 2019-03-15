@@ -40,8 +40,8 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
     public Predicate<T> convert(final String string)
     {
         final SecureASTCustomizer securityCustomizer = new SecureASTCustomizer();
-        final List<String> importsWhitelist = Arrays.asList("java.lang", "groovy.lang",
-                "java.util.function");
+        final List<String> importsWhitelist = new ArrayList<>(
+                Arrays.asList("java.lang", "groovy.lang", "java.util.function"));
         importsWhitelist.addAll(this.additionalWhitelistPackages);
 
         securityCustomizer.setStarImportsWhitelist(importsWhitelist);
