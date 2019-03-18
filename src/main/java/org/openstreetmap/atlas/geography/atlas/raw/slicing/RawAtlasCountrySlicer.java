@@ -261,8 +261,18 @@ public class RawAtlasCountrySlicer
         final Time time = Time.now();
         final Atlas partiallySlicedExpandedAtlas = buildExpandedAtlas(initialShard);
         final Set<Long> relationsForInitialShard = new HashSet<>();
-        this.atlasFetcher.apply(initialShard).get().relations()
-                .forEach(relation -> relationsForInitialShard.add(relation.getIdentifier()));
+        final Optional<Atlas> initialShardOptional = this.atlasFetcher.apply(initialShard);
+        if (initialShardOptional.isPresent())
+        {
+            initialShardOptional.get().relations()
+                    .forEach(relation -> relationsForInitialShard.add(relation.getIdentifier()));
+        }
+        else
+        {
+            throw new CoreException(
+                    "Could not get data for initial shard {} during relation slicing!",
+                    initialShard.getName());
+        }
 
         final Predicate<AtlasEntity> filter = entity ->
         {
@@ -272,18 +282,28 @@ public class RawAtlasCountrySlicer
             }
             return true;
         };
+        final Optional<Atlas> subAtlasOptional = partiallySlicedExpandedAtlas.subAtlas(filter,
+                AtlasCutType.SILK_CUT);
+        if (subAtlasOptional.isPresent())
+        {
+            final Atlas partiallySlicedExpandedAtlasWithExtraRelationsRemoved = subAtlasOptional
+                    .get();
+            final String shardName = getShardOrAtlasName(
+                    partiallySlicedExpandedAtlasWithExtraRelationsRemoved);
+            logger.info(STARTED_TASK_MESSAGE, RELATION_SLICING_TASK, shardName);
 
-        final Atlas partiallySlicedExpandedAtlasWithExtraRelationsRemoved = partiallySlicedExpandedAtlas
-                .subAtlas(filter, AtlasCutType.SILK_CUT).get();
-        final String shardName = getShardOrAtlasName(
-                partiallySlicedExpandedAtlasWithExtraRelationsRemoved);
-        logger.info(STARTED_TASK_MESSAGE, RELATION_SLICING_TASK, shardName);
-
-        final RawAtlasSlicer relationSlicer = new RawAtlasRelationSlicer(
-                partiallySlicedExpandedAtlasWithExtraRelationsRemoved, initialShard, this.countries,
-                this.countryBoundaryMap);
-        logger.info(COMPLETED_TASK_MESSAGE, RELATION_SLICING_TASK, shardName, time.elapsedSince());
-        return relationSlicer.slice();
+            final RawAtlasSlicer relationSlicer = new RawAtlasRelationSlicer(
+                    partiallySlicedExpandedAtlasWithExtraRelationsRemoved, initialShard,
+                    this.countries, this.countryBoundaryMap);
+            logger.info(COMPLETED_TASK_MESSAGE, RELATION_SLICING_TASK, shardName,
+                    time.elapsedSince());
+            return relationSlicer.slice();
+        }
+        else
+        {
+            throw new CoreException("Error while preparing subatlas for relation slicing shard {}!",
+                    partiallySlicedExpandedAtlas.getName());
+        }
     }
 
     /**
