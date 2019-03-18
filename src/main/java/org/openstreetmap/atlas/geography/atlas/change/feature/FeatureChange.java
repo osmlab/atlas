@@ -217,7 +217,7 @@ public class FeatureChange implements Located, Serializable
      */
     public FeatureChange merge(final FeatureChange other)
     {
-        // TODO we need to handle merging the before view properly in all cases
+        // TODO we need to make sure we handle merging the before view properly in all cases
         try
         {
             if (this.getIdentifier() != other.getIdentifier()
@@ -225,7 +225,18 @@ public class FeatureChange implements Located, Serializable
                     || this.getChangeType() != other.getChangeType())
             {
                 throw new CoreException(
-                        "Cannot merge two feature changes that are not of the same type.");
+                        "Cannot merge two FeatureChanges that are not of the same type.");
+            }
+            /*
+             * If one of the FeatureChanges has a beforeView, the other must as well. Otherwise we
+             * cannot merge. It is the responsibility of the caller to ensure that either both
+             * FeatureChanges have a beforeView, or both do not.
+             */
+            if (this.getBeforeView() == null && other.getBeforeView() != null
+                    || this.getBeforeView() != null && other.getBeforeView() == null)
+            {
+                throw new CoreException("One of the FeatureChanges was missing a beforeView - "
+                        + "cannot merge two FeatureChanges unless both either explicitly provide or explicitly exclude a beforeView");
             }
             if (this.getChangeType() == ChangeType.REMOVE)
             {

@@ -92,11 +92,6 @@ public final class FeatureChangeMergingHelpers
          * continuing. It does not make sense to merge two FeatureChanges with conflicting
          * beforeMember views.
          */
-        /*
-         * TODO it is theoretically possible to allow for conflicting beforeMember views, and simply
-         * fall back on the simpleMergeStrategy in this case. Is this something we want? I think it
-         * makes more sense to just fail.
-         */
         if (beforeMemberLeft != null && beforeMemberRight != null
                 && !beforeMemberLeft.equals(beforeMemberRight))
         {
@@ -273,6 +268,7 @@ public final class FeatureChangeMergingHelpers
         final AtlasEntity afterEntityLeft = left.getAfterView();
         final AtlasEntity beforeEntityRight = right.getBeforeView();
         final AtlasEntity afterEntityRight = right.getAfterView();
+
         final MergedMemberBean<Map<String, String>> mergedTagsBean = mergeMember("tags",
                 beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
                 Taggable::getTags, MemberMergeStrategies.simpleTagMerger,
@@ -321,6 +317,8 @@ public final class FeatureChangeMergingHelpers
         /*
          * The polygon merger will not do a strategy merge. Rather, it will just ensure that the
          * afterEntity polygons match. There is currently no reason to merge unequal polygons.
+         * Additionally, this step also ensures that the beforeViews, if present, had equivalent
+         * geometry.
          */
         final MergedMemberBean<Polygon> mergedPolygonBean = mergeMember("polygon", beforeEntityLeft,
                 afterEntityLeft, beforeEntityRight, afterEntityRight,
@@ -331,6 +329,13 @@ public final class FeatureChangeMergingHelpers
                 mergedParentRelationsBean.getMergedAfterMember());
 
         final CompleteArea mergedBeforeArea;
+        /*
+         * Here we just arbitrarily use the left side entity. We have already asserted that both
+         * left and right explicitly provided or explicitly excluded a beforeView. At this point, we
+         * have also ensured that both beforeViews, if present, were consistent (i.e. they contained
+         * the same initial geometry). Therefore it is safe to arbitrarily choose one from which to
+         * "shallowFrom" clone a new CompleteEntity.
+         */
         if (beforeEntityLeft != null)
         {
             mergedBeforeArea = CompleteArea.shallowFrom((Area) beforeEntityLeft)
@@ -356,6 +361,8 @@ public final class FeatureChangeMergingHelpers
         /*
          * The polyline merger will not do a strategy merge. Rather, it will just ensure that the
          * afterEntity polylines match. There is currently no reason to merge unequal polylines.
+         * Additionally, this step also ensures that the beforeViews, if present, had equivalent
+         * geometry.
          */
         final MergedMemberBean<PolyLine> mergedPolyLineBean = mergeMember("polyLine",
                 beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
@@ -382,6 +389,13 @@ public final class FeatureChangeMergingHelpers
                     mergedParentRelationsBean.getMergedAfterMember());
 
             final CompleteEdge mergedBeforeEdge;
+            /*
+             * Here we just arbitrarily use the left side entity. We have already asserted that both
+             * left and right explicitly provided or explicitly excluded a beforeView. At this
+             * point, we have also ensured that both beforeViews, if present, were consistent (i.e.
+             * they contained the same initial geometry). Therefore it is safe to arbitrarily choose
+             * one from which to "shallowFrom" clone a new CompleteEntity.
+             */
             if (beforeEntityLeft != null)
             {
                 mergedBeforeEdge = CompleteEdge.shallowFrom((Edge) beforeEntityLeft)
@@ -405,6 +419,13 @@ public final class FeatureChangeMergingHelpers
                     mergedParentRelationsBean.getMergedAfterMember());
 
             final CompleteLine mergedBeforeLine;
+            /*
+             * Here we just arbitrarily use the left side entity. We have already asserted that both
+             * left and right explicitly provided or explicitly excluded a beforeView. At this
+             * point, we have also ensured that both beforeViews, if present, were consistent (i.e.
+             * they contained the same initial geometry). Therefore it is safe to arbitrarily choose
+             * one from which to "shallowFrom" clone a new CompleteEntity.
+             */
             if (beforeEntityLeft != null)
             {
                 mergedBeforeLine = CompleteLine.shallowFrom((Line) beforeEntityLeft)
@@ -436,6 +457,8 @@ public final class FeatureChangeMergingHelpers
         /*
          * The location merger will not do a strategy merge. Rather, it will just ensure that the
          * afterEntity locations match. There is currently no reason to merge unequal locations.
+         * Additionally, this step also ensures that the beforeViews, if present, had equivalent
+         * geometry.
          */
         final MergedMemberBean<Location> mergedLocationBean = mergeMember("location",
                 beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
@@ -469,6 +492,13 @@ public final class FeatureChangeMergingHelpers
                     mergedParentRelationsBean.getMergedAfterMember());
 
             final CompleteNode mergedBeforeNode;
+            /*
+             * Here we just arbitrarily use the left side entity. We have already asserted that both
+             * left and right explicitly provided or explicitly excluded a beforeView. At this
+             * point, we have also ensured that both beforeViews, if present, were consistent (i.e.
+             * they contained the same initial geometry). Therefore it is safe to arbitrarily choose
+             * one from which to "shallowFrom" clone a new CompleteEntity.
+             */
             if (beforeEntityLeft != null)
             {
                 mergedBeforeNode = CompleteNode.shallowFrom((Node) beforeEntityLeft)
@@ -493,6 +523,13 @@ public final class FeatureChangeMergingHelpers
                     mergedParentRelationsBean.getMergedAfterMember());
 
             final CompletePoint mergedBeforePoint;
+            /*
+             * Here we just arbitrarily use the left side entity. We have already asserted that both
+             * left and right explicitly provided or explicitly excluded a beforeView. At this
+             * point, we have also ensured that both beforeViews, if present, were consistent (i.e.
+             * they contained the same initial geometry). Therefore it is safe to arbitrarily choose
+             * one from which to "shallowFrom" clone a new CompleteEntity.
+             */
             if (beforeEntityLeft != null)
             {
                 mergedBeforePoint = CompletePoint.shallowFrom((Point) beforeEntityLeft)
