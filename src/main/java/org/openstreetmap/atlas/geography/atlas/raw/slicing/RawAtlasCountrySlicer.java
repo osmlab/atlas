@@ -301,7 +301,8 @@ public class RawAtlasCountrySlicer
         }
         else
         {
-            throw new CoreException("Error while preparing subatlas for relation slicing shard {}!",
+            throw new CoreException(
+                    "No data after sub-atlasing to remove new relations from partially expanded Atlas {}!",
                     partiallySlicedExpandedAtlas.getName());
         }
     }
