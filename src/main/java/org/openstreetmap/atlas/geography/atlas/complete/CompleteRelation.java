@@ -49,10 +49,10 @@ public class CompleteRelation extends Relation implements CompleteEntity
 
     public static CompleteRelation shallowFrom(final Relation relation)
     {
-        return new CompleteRelation(relation.getIdentifier()).withInitialBounds(relation.bounds());
+        return new CompleteRelation(relation.getIdentifier(), relation.bounds());
     }
 
-    CompleteRelation(final long identifier)
+    CompleteRelation(final long identifier, final Rectangle boounds)
     {
         this(identifier, null, null, null, null, null, null, null);
     }
@@ -70,7 +70,12 @@ public class CompleteRelation extends Relation implements CompleteEntity
             throw new CoreException("Identifier can never be null.");
         }
 
-        this.bounds = bounds != null ? bounds : null;
+        if (bounds == null)
+        {
+            throw new CoreException("Bounds can never be null.");
+        }
+
+        this.bounds = bounds;
 
         this.identifier = identifier;
         this.tags = tags;
@@ -382,11 +387,5 @@ public class CompleteRelation extends Relation implements CompleteEntity
     private void updateBounds(final Rectangle bounds)
     {
         this.bounds = bounds;
-    }
-
-    private CompleteRelation withInitialBounds(final Rectangle bounds)
-    {
-        this.bounds = bounds;
-        return this;
     }
 }

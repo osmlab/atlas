@@ -39,12 +39,12 @@ public class CompleteEdge extends Edge implements CompleteLineItem
 
     public static CompleteEdge shallowFrom(final Edge edge)
     {
-        return new CompleteEdge(edge.getIdentifier()).withInitialBounds(edge.asPolyLine().bounds());
+        return new CompleteEdge(edge.getIdentifier(), edge.asPolyLine());
     }
 
-    CompleteEdge(final long identifier)
+    CompleteEdge(final long identifier, final PolyLine polyLine)
     {
-        this(identifier, null, null, null, null, null);
+        this(identifier, polyLine, null, null, null, null);
     }
 
     public CompleteEdge(final Long identifier, final PolyLine polyLine,
@@ -58,7 +58,12 @@ public class CompleteEdge extends Edge implements CompleteLineItem
             throw new CoreException("Identifier can never be null.");
         }
 
-        this.bounds = polyLine != null ? polyLine.bounds() : null;
+        if (polyLine == null)
+        {
+            throw new CoreException("PolyLine can never be null");
+        }
+
+        this.bounds = polyLine.bounds();
 
         this.identifier = identifier;
         this.polyLine = polyLine;
@@ -221,12 +226,6 @@ public class CompleteEdge extends Edge implements CompleteLineItem
     public CompleteEdge withTags(final Map<String, String> tags)
     {
         this.tags = tags;
-        return this;
-    }
-
-    private CompleteEdge withInitialBounds(final Rectangle bounds)
-    {
-        this.bounds = bounds;
         return this;
     }
 }

@@ -34,12 +34,12 @@ public class CompleteLine extends Line implements CompleteLineItem
 
     public static CompleteLine shallowFrom(final Line line)
     {
-        return new CompleteLine(line.getIdentifier()).withInitialBounds(line.asPolyLine().bounds());
+        return new CompleteLine(line.getIdentifier(), line.asPolyLine());
     }
 
-    CompleteLine(final long identifier)
+    CompleteLine(final long identifier, final PolyLine polyLine)
     {
-        this(identifier, null, null, null);
+        this(identifier, polyLine, null, null);
     }
 
     public CompleteLine(final Long identifier, final PolyLine polyLine,
@@ -52,7 +52,12 @@ public class CompleteLine extends Line implements CompleteLineItem
             throw new CoreException("Identifier can never be null.");
         }
 
-        this.bounds = polyLine != null ? polyLine.bounds() : null;
+        if (polyLine == null)
+        {
+            throw new CoreException("PolyLine can never be null");
+        }
+
+        this.bounds = polyLine.bounds();
 
         this.identifier = identifier;
         this.polyLine = polyLine;
@@ -176,12 +181,6 @@ public class CompleteLine extends Line implements CompleteLineItem
     public CompleteLine withTags(final Map<String, String> tags)
     {
         this.tags = tags;
-        return this;
-    }
-
-    private CompleteLine withInitialBounds(final Rectangle bounds)
-    {
-        this.bounds = bounds;
         return this;
     }
 }
