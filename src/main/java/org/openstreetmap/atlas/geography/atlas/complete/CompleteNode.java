@@ -161,8 +161,15 @@ public class CompleteNode extends Node implements CompleteLocationItem
     @Override
     public Set<Relation> relations()
     {
-        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
-                .map(CompleteRelation::new).collect(Collectors.toSet());
+        /*
+         * Disregard the relation bounds parameter (Rectangle.MINIMUM) here. We must provide bounds
+         * to the CompleteRelation constructor to satisfy the API contract. However, the bounds
+         * provided here do not reflect the true bounds of the relation with this identifier. We
+         * would need an atlas context to actually compute the proper bounds.
+         */
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream().map(
+                relationIdentifier -> new CompleteRelation(relationIdentifier, Rectangle.MINIMUM))
+                .collect(Collectors.toSet());
     }
 
     @Override
