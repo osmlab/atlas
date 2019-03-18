@@ -233,7 +233,7 @@ public class FeatureChange implements Located, Serializable
             }
             if (this.getChangeType() == ChangeType.ADD)
             {
-                return FeatureChangeMergingHelpers.mergeTwoADDFeatureChanges(this, other);
+                return FeatureChangeMergingHelpers.mergeADDFeatureChangePair(this, other);
             }
             throw new CoreException("Unable to merge {} and {}", this, other);
         }
@@ -298,14 +298,14 @@ public class FeatureChange implements Located, Serializable
      * @param atlas
      *            the atlas context
      */
-    private void computeBeforeViewUsingAtlasContext(final Atlas atlas) // NOSONAR
+    private void computeBeforeViewUsingAtlasContext(final Atlas atlas)
     {
         if (atlas == null)
         {
             throw new CoreException("Atlas context cannot be null");
         }
 
-        AtlasEntity beforeViewUpdatesOnly;
+        final AtlasEntity beforeViewUpdatesOnly;
         final AtlasEntity beforeViewFromAtlas = atlas.entity(this.afterView.getIdentifier(),
                 this.afterView.getType());
         if (beforeViewFromAtlas == null)

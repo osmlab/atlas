@@ -49,8 +49,6 @@ public interface TernaryFunction<S, T, U, R>
      *            the second function argument
      * @param u
      *            the third function argument
-     * @param v
-     *            the fourth function argument
      * @return the function result
      */
     R apply(S s, T t, U u);

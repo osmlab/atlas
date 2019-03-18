@@ -46,16 +46,25 @@ public final class FeatureChangeMergingHelpers
     private static final Logger logger = LoggerFactory.getLogger(FeatureChangeMergingHelpers.class);
 
     /**
-     * TODO fill in this doc comment.
+     * Merge some feature member using a left and right before/after view.
      *
      * @param memberName
+     *            the name of the member for logging purposes
      * @param beforeEntityLeft
+     *            the left side before view of the entity
      * @param afterEntityLeft
+     *            the left side after view of the entity
      * @param beforeEntityRight
+     *            the right side before view of the entity
      * @param afterEntityRight
+     *            the right side after view of the entity
      * @param memberExtractor
+     *            a function that can extract the member from its entity (e.g. for the polyline of
+     *            an Edge, this would be Edge::asPolyLine)
      * @param simpleMergeStrategy
+     *            a simple merge strategy to use if the before views are missing
      * @param diffBasedMergeStrategy
+     *            a merge strategy that relies on the before views to perform a more complex merge
      * @return a {@link MergedMemberBean} containing the merged beforeMember view and the merged
      *         afterMember view.
      */
@@ -253,7 +262,7 @@ public final class FeatureChangeMergingHelpers
         return result;
     }
 
-    public static FeatureChange mergeTwoADDFeatureChanges(final FeatureChange left,
+    public static FeatureChange mergeADDFeatureChangePair(final FeatureChange left,
             final FeatureChange right)
     {
         final AtlasEntity beforeEntityLeft = left.getBeforeView();

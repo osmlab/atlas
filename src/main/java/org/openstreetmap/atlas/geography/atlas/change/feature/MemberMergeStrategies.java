@@ -42,6 +42,12 @@ public final class MemberMergeStrategies
 
     static final BinaryOperator<RelationBean> simpleRelationBeanMerger = RelationBean::merge;
 
+    /*
+     * Merge two differing Long Sets created using ADDs and REMOVEs on a common ancestor. For
+     * example, consider set A: [2, 3, 4] and set B: [1, 2, 3, 5]. Assume these were both based on
+     * initial set P: [1, 2, 3, 4]. Neither A nor B make any changes that conflict with each other,
+     * so we should be able to merge them into set C: [2, 3, 5].
+     */
     static final TernaryOperator<Set<Long>> diffBasedLongSetMerger = (before, afterLeft,
             afterRight) ->
     {
@@ -55,8 +61,11 @@ public final class MemberMergeStrategies
                 before);
 
         /*
-         * Easy key-merge of left and right ADD/REMOVES. We can safely ignore duplicate keys, since
-         * it is feasible that two FeatureChanges made the same ADD or REMOVE.
+         * Easy key-merge of left and right ADDs and REMOVEs. We can safely ignore duplicate keys,
+         * since it is feasible that two FeatureChanges made the same ADD or REMOVE. We also do not
+         * need to rectify the ADD/ADD or ADD/REMOVE conflicts. Since these are keys-only, there is
+         * no possibility of an ADD/ADD conflict. And because we enforce a shared beforeView, there
+         * is no possibility of an ADD/REMOVE conflict.
          */
         final Set<Long> removedMerged = Sets.withSets(false, removedFromLeftView,
                 removedFromRightView);
@@ -74,10 +83,9 @@ public final class MemberMergeStrategies
     };
 
     /*
-     * Merge two differing Long SortedSets created using ADDs and REMOVEs on a common ancestor. For
-     * example, consider set A: [2, 3, 4] and set B: [1, 2, 3, 5]. Assume these were both based on
-     * initial set P: [1, 2, 3, 4]. Niether A nor B make any changes that conflict with each other,
-     * so we should be able to merge them into set C: [2, 3, 5].
+     * This is essentially the same thing as diffBasedLongSetMerger. However, we construct a
+     * SortedSet before returning the result. This is useful for members that require a sorted
+     * property.
      */
     static final TernaryOperator<SortedSet<Long>> diffBasedLongSortedSetMerger = (before, afterLeft,
             afterRight) ->
@@ -88,7 +96,7 @@ public final class MemberMergeStrategies
     /*
      * Merge two differing tag maps creating using ADD/MODIFYs and REMOVEs on a common ancestor. For
      * example, consider map A: [a=1, b=12, c=3] and map B: [a=1, b=2, c=3, d=4, e=5]. Assume these
-     * were both based on initial map P: [a=1, b=2, c=3, d=4]. Niether A nor B make any changes that
+     * were both based on initial map P: [a=1, b=2, c=3, d=4]. Neither A nor B make any changes that
      * conflict with each other, so we should be able to merge them into map C: [a=1, b=12, c=3,
      * e=5].
      */
@@ -117,8 +125,8 @@ public final class MemberMergeStrategies
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         /*
-         * Check to see if any of the shared ADD keys generate an ADD collision. An ADD collision is
-         * when the same key maps to two different values.
+         * Check to see if any of the shared ADD keys generate an ADD/ADD collision. An ADD/ADD
+         * collision is when the same key maps to two different values.
          */
         final Set<String> sharedAddedKeys = com.google.common.collect.Sets
                 .intersection(addedToLeftView.keySet(), addedToRightView.keySet());
@@ -135,7 +143,8 @@ public final class MemberMergeStrategies
         }
 
         /*
-         * Now, check for any ADD/REMOVE collisions.
+         * Now, check for any ADD/REMOVE collisions. An ADD/REMOVE collision is when one view of the
+         * map contains an update to a key, but another view of the map removes the key entirely.
          */
         final Set<String> keysRemovedMerged = Sets.withSets(false, keysRemovedFromLeftView,
                 keysRemovedFromRightView);
@@ -155,7 +164,7 @@ public final class MemberMergeStrategies
          * removedMerged set. Then, ADD all keys in the addMerged set. To get the values for those
          * keys, we select from whichever addedTo view (left or right) gives us a non-null mapping.
          * This correctly handles the case where one of the FeatureChanges is ADDing a brand new key
-         * value pair.
+         * value pair (since the other FeatureChange will not contain a mapping).
          */
         final Map<String, String> result = new HashMap<>(before);
         keysRemovedMerged.forEach(result::remove);
