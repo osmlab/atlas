@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.utilities.conversion;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -28,6 +29,13 @@ public class StringToPredicateConverterTest
                 .convert("e == 3");
         final Predicate<AtlasEntity> predicate4 = new StringToPredicateConverter<AtlasEntity>()
                 .convert("e.getTags().containsKey(\"mat\")");
+        final Predicate<Integer> predicate5 = new StringToPredicateConverter<Integer>()
+                .withAddedStarImportPackages("org.openstreetmap.atlas.utilities.random")
+                .convert("e.intValue() == RandomTagsSupplier.randomTags(5).size()");
+        final Predicate<Integer> predicate6 = new StringToPredicateConverter<Integer>()
+                .withAddedStarImportPackages(
+                        Arrays.asList("org.openstreetmap.atlas.utilities.random"))
+                .convert("e.intValue() == RandomTagsSupplier.randomTags(5).size()");
 
         Assert.assertTrue(predicate1.test("foo"));
         Assert.assertFalse(predicate1.test("bar"));
@@ -40,5 +48,8 @@ public class StringToPredicateConverterTest
 
         Assert.assertTrue(predicate4.test(this.rule.getAtlas().point(3)));
         Assert.assertFalse(predicate4.test(this.rule.getAtlas().point(1)));
+
+        Assert.assertTrue(predicate5.test(5));
+        Assert.assertTrue(predicate6.test(5));
     }
 }

@@ -1,6 +1,8 @@
 package org.openstreetmap.atlas.utilities.conversion;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Predicate;
 
 import org.codehaus.groovy.control.CompilerConfiguration;
@@ -16,12 +18,10 @@ import groovy.lang.GroovyShell;
 import groovy.lang.Script;
 
 /**
- * Convert a boolean expression string to a {@link Predicate}. While the converter can handle
- * generic predicates, it includes some default imports that make it ideal for use as
- * Predicate&lt;AtlasEntity&gt;. The converter uses the Groovy interpreter to create a
- * {@link Predicate} from the boolean input expression. The type T is bound to a variable called
- * 'e', and so the expression string should use 'e'. E.g. "e.getType() == ItemType.POINT" (if T is
- * {@link AtlasEntity}) or 'e.equals("foo")' (if T is {@link String}).
+ * Convert a boolean expression string to a {@link Predicate}. The converter uses the Groovy
+ * interpreter to create a {@link Predicate} from the boolean input expression. The type T is bound
+ * to a variable called 'e', and so the expression string should use 'e'. E.g. "e.getType() ==
+ * ItemType.POINT" (if T is {@link AtlasEntity}) or 'e.equals("foo")' (if T is {@link String}).
  *
  * @author lcram
  * @param <T>
@@ -29,19 +29,28 @@ import groovy.lang.Script;
  */
 public class StringToPredicateConverter<T> implements Converter<String, Predicate<T>>
 {
+    private final List<String> additionalWhitelistPackages;
+
+    public StringToPredicateConverter()
+    {
+        this.additionalWhitelistPackages = new ArrayList<>();
+    }
+
     @Override
     public Predicate<T> convert(final String string)
     {
         final SecureASTCustomizer securityCustomizer = new SecureASTCustomizer();
-        securityCustomizer.setStarImportsWhitelist(Arrays.asList("java.lang", "groovy.lang",
-                "java.util.function", "org.openstreetmap.atlas.geography.atlas.items"));
+        final List<String> importsWhitelist = new ArrayList<>(
+                Arrays.asList("java.lang", "groovy.lang", "java.util.function"));
+        importsWhitelist.addAll(this.additionalWhitelistPackages);
+
+        securityCustomizer.setStarImportsWhitelist(importsWhitelist);
         securityCustomizer.setPackageAllowed(false);
         securityCustomizer.setMethodDefinitionAllowed(false);
         securityCustomizer.setIndirectImportCheckEnabled(true);
 
         final ImportCustomizer importCustomizer = new ImportCustomizer();
-        importCustomizer.addStarImports("java.util.function",
-                "org.openstreetmap.atlas.geography.atlas.items", "java.lang");
+        importCustomizer.addStarImports(importsWhitelist.toArray(new String[0]));
 
         final CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
         compilerConfiguration.addCompilationCustomizers(securityCustomizer);
@@ -75,5 +84,34 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
         {
             return null;
         }
+    }
+
+    /**
+     * Add some imports to execute before the predicate.
+     *
+     * @param whitelist
+     *            the packages to star import.
+     * @return the updated converter
+     */
+    public StringToPredicateConverter<T> withAddedStarImportPackages(final List<String> whitelist)
+    {
+        this.additionalWhitelistPackages.addAll(whitelist);
+        return this;
+    }
+
+    /**
+     * Add some imports to execute before the predicate.
+     *
+     * @param whitelist
+     *            the packages to star import.
+     * @return the updated converter
+     */
+    public StringToPredicateConverter<T> withAddedStarImportPackages(final String... whitelist)
+    {
+        for (final String anImport : whitelist)
+        {
+            this.additionalWhitelistPackages.add(anImport);
+        }
+        return this;
     }
 }
