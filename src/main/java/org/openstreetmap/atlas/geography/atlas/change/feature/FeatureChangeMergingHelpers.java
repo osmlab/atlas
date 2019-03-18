@@ -471,6 +471,18 @@ public final class FeatureChangeMergingHelpers
         }
     }
 
+    private static FeatureChange mergeRelations(final FeatureChange left, final FeatureChange right,
+            final MergedMemberBean<Map<String, String>> mergedTagsBean,
+            final MergedMemberBean<Set<Long>> mergedParentRelationsBean)
+    {
+        final AtlasEntity beforeEntityLeft = left.getBeforeView();
+        final AtlasEntity afterEntityLeft = left.getAfterView();
+        final AtlasEntity beforeEntityRight = right.getBeforeView();
+        final AtlasEntity afterEntityRight = right.getAfterView();
+
+        return null;
+    }
+
     private static FeatureChange mergeRelationsOLD(final FeatureChange left,
             final FeatureChange right, final MergedMemberBean<Map<String, String>> mergedTagsBean,
             final MergedMemberBean<Set<Long>> mergedParentRelationsBean)
