@@ -264,29 +264,31 @@ public final class FeatureChangeMergingHelpers
                 beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
                 Taggable::getTags, MemberMergeStrategies.simpleTagMerger,
                 MemberMergeStrategies.diffBasedTagMerger);
-        final Set<Long> mergedParentRelations = mergeMember_OldStrategy("parentRelations",
-                afterEntityLeft, afterEntityRight,
+
+        final MergedMemberBean<Set<Long>> mergedParentRelationsBean = mergeMember("parentRelations",
+                beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
                 atlasEntity -> atlasEntity.relations() == null ? null
                         : atlasEntity.relations().stream().map(Relation::getIdentifier)
                                 .collect(Collectors.toSet()),
-                MemberMergeStrategies.simpleLongSetAllowCollisionsMerger);
+                MemberMergeStrategies.simpleLongSetAllowCollisionsMerger,
+                MemberMergeStrategies.diffBasedLongSetMerger);
 
         if (afterEntityLeft instanceof LocationItem)
         {
-            return mergeLocationItems(left, right, mergedTagsBean, mergedParentRelations);
+            return mergeLocationItems(left, right, mergedTagsBean, mergedParentRelationsBean);
         }
         else if (afterEntityLeft instanceof LineItem)
         {
-            return mergeLineItems(left, right, mergedTagsBean, mergedParentRelations);
+            return mergeLineItems(left, right, mergedTagsBean, mergedParentRelationsBean);
         }
         else if (afterEntityLeft instanceof Area)
         {
-            return mergeAreas(left, right, mergedTagsBean, mergedParentRelations);
+            return mergeAreas(left, right, mergedTagsBean, mergedParentRelationsBean);
         }
         else if (afterEntityLeft instanceof Relation)
         {
-            return mergeRelations(left, right, mergedTagsBean.getMergedAfterMember(),
-                    mergedParentRelations);
+            return mergeRelations_OLD(left, right, mergedTagsBean.getMergedAfterMember(),
+                    mergedParentRelationsBean);
         }
         else
         {
@@ -297,7 +299,7 @@ public final class FeatureChangeMergingHelpers
 
     private static FeatureChange mergeAreas(final FeatureChange left, final FeatureChange right,
             final MergedMemberBean<Map<String, String>> mergedTagsBean,
-            final Set<Long> mergedParentRelations)
+            final MergedMemberBean<Set<Long>> mergedParentRelationsBean)
     {
         final AtlasEntity beforeEntityLeft = left.getBeforeView();
         final AtlasEntity afterEntityLeft = left.getAfterView();
@@ -314,17 +316,18 @@ public final class FeatureChangeMergingHelpers
 
         final CompleteArea mergedAfterArea = new CompleteArea(left.getIdentifier(),
                 mergedPolygonBean.getMergedAfterMember(), mergedTagsBean.getMergedAfterMember(),
-                mergedParentRelations);
+                mergedParentRelationsBean.getMergedAfterMember());
 
         final CompleteArea mergedBeforeArea = CompleteArea.shallowFrom((Area) beforeEntityLeft)
-                .withTags(mergedTagsBean.getMergedBeforeMember());
+                .withTags(mergedTagsBean.getMergedBeforeMember())
+                .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
 
         return new FeatureChange(ChangeType.ADD, mergedAfterArea, mergedBeforeArea);
     }
 
     private static FeatureChange mergeLineItems(final FeatureChange left, final FeatureChange right,
             final MergedMemberBean<Map<String, String>> mergedTagsBean,
-            final Set<Long> mergedParentRelations)
+            final MergedMemberBean<Set<Long>> mergedParentRelationsBean)
     {
         final AtlasEntity beforeEntityLeft = left.getBeforeView();
         final AtlasEntity afterEntityLeft = left.getAfterView();
@@ -356,12 +359,14 @@ public final class FeatureChangeMergingHelpers
                     mergedPolyLineBean.getMergedAfterMember(),
                     mergedTagsBean.getMergedAfterMember(),
                     mergedStartNodeIdentifierBean.getMergedAfterMember(),
-                    mergedEndNodeIdentifierBean.getMergedAfterMember(), mergedParentRelations);
+                    mergedEndNodeIdentifierBean.getMergedAfterMember(),
+                    mergedParentRelationsBean.getMergedAfterMember());
 
             final CompleteEdge mergedBeforeEdge = CompleteEdge.shallowFrom((Edge) beforeEntityLeft)
                     .withStartNodeIdentifier(mergedStartNodeIdentifierBean.getMergedBeforeMember())
                     .withEndNodeIdentifier(mergedEndNodeIdentifierBean.getMergedBeforeMember())
-                    .withTags(mergedTagsBean.getMergedBeforeMember());
+                    .withTags(mergedTagsBean.getMergedBeforeMember())
+                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
 
             return new FeatureChange(ChangeType.ADD, mergedAfterEdge, mergedBeforeEdge);
         }
@@ -369,10 +374,12 @@ public final class FeatureChangeMergingHelpers
         {
             final CompleteLine mergedAfterLine = new CompleteLine(left.getIdentifier(),
                     mergedPolyLineBean.getMergedAfterMember(),
-                    mergedTagsBean.getMergedAfterMember(), mergedParentRelations);
+                    mergedTagsBean.getMergedAfterMember(),
+                    mergedParentRelationsBean.getMergedAfterMember());
 
             final CompleteLine mergedBeforeLine = CompleteLine.shallowFrom((Line) beforeEntityLeft)
-                    .withTags(mergedTagsBean.getMergedBeforeMember());
+                    .withTags(mergedTagsBean.getMergedBeforeMember())
+                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
 
             return new FeatureChange(ChangeType.ADD, mergedAfterLine, mergedBeforeLine);
         }
@@ -383,49 +390,9 @@ public final class FeatureChangeMergingHelpers
         }
     }
 
-    private static FeatureChange mergeLineItems_Old(final FeatureChange left,
-            final FeatureChange right, final Map<String, String> mergedTags,
-            final Set<Long> mergedParentRelations)
-    {
-        final AtlasEntity thisReference = left.getAfterView();
-        final AtlasEntity thatReference = right.getAfterView();
-        final PolyLine mergedPolyLine = mergeMember_OldStrategy("polyLine", thisReference,
-                thatReference, atlasEntity -> ((LineItem) atlasEntity).asPolyLine(), null);
-        if (thisReference instanceof Edge)
-        {
-            final Long mergedStartNodeIdentifier = mergeMember_OldStrategy("startNode",
-                    thisReference, thatReference, edge -> ((Edge) edge).start() == null ? null
-                            : ((Edge) edge).start().getIdentifier(),
-                    null);
-            final Long mergedEndNodeIdentifier = mergeMember_OldStrategy("endNode", thisReference,
-                    thatReference, edge -> ((Edge) edge).end() == null ? null
-                            : ((Edge) edge).end().getIdentifier(),
-                    null);
-            final CompleteEdge result = new CompleteEdge(left.getIdentifier(), mergedPolyLine,
-                    mergedTags, mergedStartNodeIdentifier, mergedEndNodeIdentifier,
-                    mergedParentRelations);
-            if (result.bounds() == null)
-            {
-                throw new CoreException("TODO CompleteEdge result bounds null, investigate");
-            }
-            return FeatureChange.add(result);
-        }
-        else
-        {
-            // Line
-            final CompleteLine result = new CompleteLine(left.getIdentifier(), mergedPolyLine,
-                    mergedTags, mergedParentRelations);
-            if (result.bounds() == null)
-            {
-                throw new CoreException("TODO CompleteLine result bounds null, investigate");
-            }
-            return FeatureChange.add(result);
-        }
-    }
-
     private static FeatureChange mergeLocationItems(final FeatureChange left,
             final FeatureChange right, final MergedMemberBean<Map<String, String>> mergedTagsBean,
-            final Set<Long> mergedParentRelations)
+            final MergedMemberBean<Set<Long>> mergedParentRelationsBean)
     {
         final AtlasEntity beforeEntityLeft = left.getBeforeView();
         final AtlasEntity afterEntityLeft = left.getAfterView();
@@ -464,12 +431,14 @@ public final class FeatureChangeMergingHelpers
                     mergedLocationBean.getMergedAfterMember(),
                     mergedTagsBean.getMergedAfterMember(),
                     mergedInEdgeIdentifiersBean.getMergedAfterMember(),
-                    mergedOutEdgeIdentifiersBean.getMergedAfterMember(), mergedParentRelations);
+                    mergedOutEdgeIdentifiersBean.getMergedAfterMember(),
+                    mergedParentRelationsBean.getMergedAfterMember());
 
             final CompleteNode mergedBeforeNode = CompleteNode.shallowFrom((Node) beforeEntityLeft)
                     .withInEdgeIdentifiers(mergedInEdgeIdentifiersBean.getMergedBeforeMember())
                     .withOutEdgeIdentifiers(mergedOutEdgeIdentifiersBean.getMergedBeforeMember())
-                    .withTags(mergedTagsBean.getMergedBeforeMember());
+                    .withTags(mergedTagsBean.getMergedBeforeMember())
+                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
 
             return new FeatureChange(ChangeType.ADD, mergedAfterNode, mergedBeforeNode);
         }
@@ -477,11 +446,13 @@ public final class FeatureChangeMergingHelpers
         {
             final CompletePoint mergedAfterPoint = new CompletePoint(left.getIdentifier(),
                     mergedLocationBean.getMergedAfterMember(),
-                    mergedTagsBean.getMergedAfterMember(), mergedParentRelations);
+                    mergedTagsBean.getMergedAfterMember(),
+                    mergedParentRelationsBean.getMergedAfterMember());
 
             final CompletePoint mergedBeforePoint = CompletePoint
                     .shallowFrom((Point) beforeEntityLeft)
-                    .withTags(mergedTagsBean.getMergedBeforeMember());
+                    .withTags(mergedTagsBean.getMergedBeforeMember())
+                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
 
             return new FeatureChange(ChangeType.ADD, mergedAfterPoint, mergedBeforePoint);
         }
@@ -492,8 +463,9 @@ public final class FeatureChangeMergingHelpers
         }
     }
 
-    private static FeatureChange mergeRelations(final FeatureChange left, final FeatureChange right,
-            final Map<String, String> mergedTags, final Set<Long> mergedParentRelations)
+    private static FeatureChange mergeRelations_OLD(final FeatureChange left, final FeatureChange right,
+            final Map<String, String> mergedTags,
+            final MergedMemberBean<Set<Long>> mergedParentRelationsBean)
     {
         final AtlasEntity thisReference = left.getAfterView();
         final AtlasEntity thatReference = right.getAfterView();
@@ -525,7 +497,8 @@ public final class FeatureChangeMergingHelpers
 
         return FeatureChange.add(new CompleteRelation(left.getIdentifier(), mergedTags,
                 mergedBounds, mergedMembers, mergedAllRelationsWithSameOsmIdentifier,
-                mergedAllKnownMembers, mergedOsmRelationIdentifier, mergedParentRelations));
+                mergedAllKnownMembers, mergedOsmRelationIdentifier,
+                mergedParentRelationsBean.getMergedAfterMember()));
     }
 
     private FeatureChangeMergingHelpers()

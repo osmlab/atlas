@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.change.feature;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -41,13 +42,7 @@ public final class MemberMergeStrategies
 
     static final BinaryOperator<RelationBean> simpleRelationBeanMerger = RelationBean::merge;
 
-    /*
-     * Merge two differing Long SortedSets created using ADDs and REMOVEs on a common ancestor. For
-     * example, consider set A: [2, 3, 4] and set B: [1, 2, 3, 5]. Assume these were both based on
-     * initial set P: [1, 2, 3, 4]. Niether A nor B make any changes that conflict with each other,
-     * so we should be able to merge them into set C: [2, 3, 5].
-     */
-    static final TernaryOperator<SortedSet<Long>> diffBasedLongSortedSetMerger = (before, afterLeft,
+    static final TernaryOperator<Set<Long>> diffBasedLongSetMerger = (before, afterLeft,
             afterRight) ->
     {
         final Set<Long> removedFromLeftView = com.google.common.collect.Sets.difference(before,
@@ -71,11 +66,23 @@ public final class MemberMergeStrategies
          * Build the result set by performing the REMOVEs on the beforeView, then performing the
          * ADDs on the beforeView.
          */
-        final SortedSet<Long> result = new TreeSet<>(before);
+        final Set<Long> result = new HashSet<>(before);
         result.removeAll(removedMerged);
         result.addAll(addedMerged);
 
         return result;
+    };
+
+    /*
+     * Merge two differing Long SortedSets created using ADDs and REMOVEs on a common ancestor. For
+     * example, consider set A: [2, 3, 4] and set B: [1, 2, 3, 5]. Assume these were both based on
+     * initial set P: [1, 2, 3, 4]. Niether A nor B make any changes that conflict with each other,
+     * so we should be able to merge them into set C: [2, 3, 5].
+     */
+    static final TernaryOperator<SortedSet<Long>> diffBasedLongSortedSetMerger = (before, afterLeft,
+            afterRight) ->
+    {
+        return new TreeSet<>(diffBasedLongSetMerger.apply(before, afterLeft, afterRight));
     };
 
     /*

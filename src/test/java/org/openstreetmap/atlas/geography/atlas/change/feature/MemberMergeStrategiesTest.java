@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.change.feature;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 
 import org.junit.Assert;
@@ -18,6 +19,34 @@ public class MemberMergeStrategiesTest
 {
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
+
+    @Test
+    public void testDiffBasedLongSetMergeSuccess()
+    {
+        final Set<Long> before1 = Sets.hashSet(1L, 2L, 3L, 4L);
+        final Set<Long> after1A = Sets.hashSet(2L, 3L, 4L);
+        final Set<Long> after1B = Sets.hashSet(1L, 2L, 3L, 4L, 5L);
+        Assert.assertEquals(Sets.hashSet(2L, 3L, 4L, 5L),
+                MemberMergeStrategies.diffBasedLongSetMerger.apply(before1, after1A, after1B));
+        Assert.assertEquals(Sets.hashSet(2L, 3L, 4L, 5L),
+                MemberMergeStrategies.diffBasedLongSetMerger.apply(before1, after1B, after1A));
+
+        final Set<Long> before2 = Sets.hashSet(1L, 2L, 3L, 4L);
+        final Set<Long> after2A = Sets.hashSet(1L, 2L, 3L, 4L, 5L);
+        final Set<Long> after2B = Sets.hashSet(1L, 2L, 3L, 4L, 6L);
+        Assert.assertEquals(Sets.hashSet(1L, 2L, 3L, 4L, 5L, 6L),
+                MemberMergeStrategies.diffBasedLongSetMerger.apply(before2, after2A, after2B));
+        Assert.assertEquals(Sets.hashSet(1L, 2L, 3L, 4L, 5L, 6L),
+                MemberMergeStrategies.diffBasedLongSetMerger.apply(before2, after2B, after2A));
+
+        final Set<Long> before3 = Sets.hashSet(1L, 2L, 3L);
+        final Set<Long> after3A = Sets.hashSet();
+        final Set<Long> after3B = Sets.hashSet(1L, 2L, 3L);
+        Assert.assertEquals(Sets.hashSet(),
+                MemberMergeStrategies.diffBasedLongSetMerger.apply(before3, after3A, after3B));
+        Assert.assertEquals(Sets.hashSet(),
+                MemberMergeStrategies.diffBasedLongSetMerger.apply(before3, after3B, after3A));
+    }
 
     @Test
     public void testDiffBasedLongSortedSetMergeSuccess()
