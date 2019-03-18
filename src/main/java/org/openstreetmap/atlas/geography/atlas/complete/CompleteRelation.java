@@ -52,9 +52,9 @@ public class CompleteRelation extends Relation implements CompleteEntity
         return new CompleteRelation(relation.getIdentifier(), relation.bounds());
     }
 
-    CompleteRelation(final long identifier, final Rectangle boounds)
+    CompleteRelation(final long identifier, final Rectangle bounds)
     {
-        this(identifier, null, null, null, null, null, null, null);
+        this(identifier, null, bounds, null, null, null, null, null);
     }
 
     public CompleteRelation(final Long identifier, final Map<String, String> tags, // NOSONAR
@@ -179,10 +179,11 @@ public class CompleteRelation extends Relation implements CompleteEntity
     public Set<Relation> relations()
     {
         /*
-         * Disregard the relation bounds parameter (Rectangle.MINIMUM) here. We must provide bounds
-         * to the CompleteRelation constructor to satisfy the API contract. However, the bounds
-         * provided here do not reflect the true bounds of the relation with this identifier. We
-         * would need an atlas context to actually compute the proper bounds.
+         * Disregard the CompleteRelation bounds parameter (Rectangle.MINIMUM) here. We must provide
+         * bounds to the CompleteRelation constructor to satisfy the API contract. However, the
+         * bounds provided here do not reflect the true bounds of the relation with this identifier.
+         * We would need an atlas context to actually compute the proper bounds. Effectively, the
+         * CompleteRelations returned by the method are just wrappers around an identifier.
          */
         return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream().map(
                 relationIdentifier -> new CompleteRelation(relationIdentifier, Rectangle.MINIMUM))

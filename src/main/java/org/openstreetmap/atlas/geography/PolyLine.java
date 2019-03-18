@@ -61,6 +61,7 @@ public class PolyLine
             Location.TEST_4, Location.TEST_1, Location.TEST_5);
     public static final PolyLine TEST_POLYLINE_2 = new PolyLine(Location.TEST_1, Location.TEST_5,
             Location.TEST_4, Location.TEST_3, Location.TEST_7);
+    public static final PolyLine CENTER = new PolyLine(Location.CENTER);
 
     public static final String SEPARATOR = ":";
 

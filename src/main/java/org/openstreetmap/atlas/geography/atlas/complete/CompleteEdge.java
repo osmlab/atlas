@@ -89,7 +89,11 @@ public class CompleteEdge extends Edge implements CompleteLineItem
     public Node end()
     {
         /*
-         * TODO does this make sense, using Location.CENTER as a dummy location?
+         * Disregard the CompleteNode geometry parameter (Location.CENTER) here. We must provide
+         * geometry to the CompleteNode constructor to satisfy the API contract. However, the
+         * geometry provided here does not reflect the true geometry of the Node with this
+         * identifier. We would need an atlas context to get the proper geometry. Effectively, the
+         * CompleteNodes returned by the method are just wrappers around an identifier.
          */
         return this.endNodeIdentifier == null ? null
                 : new CompleteNode(this.endNodeIdentifier, Location.CENTER);
@@ -139,10 +143,11 @@ public class CompleteEdge extends Edge implements CompleteLineItem
     public Set<Relation> relations()
     {
         /*
-         * Disregard the relation bounds parameter (Rectangle.MINIMUM) here. We must provide bounds
-         * to the CompleteRelation constructor to satisfy the API contract. However, the bounds
-         * provided here do not reflect the true bounds of the relation with this identifier. We
-         * would need an atlas context to actually compute the proper bounds.
+         * Disregard the CompleteRelation bounds parameter (Rectangle.MINIMUM) here. We must provide
+         * bounds to the CompleteRelation constructor to satisfy the API contract. However, the
+         * bounds provided here do not reflect the true bounds of the relation with this identifier.
+         * We would need an atlas context to actually compute the proper bounds. Effectively, the
+         * CompleteRelations returned by the method are just wrappers around an identifier.
          */
         return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream().map(
                 relationIdentifier -> new CompleteRelation(relationIdentifier, Rectangle.MINIMUM))
@@ -153,7 +158,11 @@ public class CompleteEdge extends Edge implements CompleteLineItem
     public Node start()
     {
         /*
-         * TODO does this make sense, using Location.CENTER as a dummy location?
+         * Disregard the CompleteNode geometry parameter (Location.CENTER) here. We must provide
+         * geometry to the CompleteNode constructor to satisfy the API contract. However, the
+         * geometry provided here does not reflect the true geometry of the Node with this
+         * identifier. We would need an atlas context to get the proper geometry. Effectively, the
+         * CompleteNodes returned by the method are just wrappers around an identifier.
          */
         return this.startNodeIdentifier == null ? null
                 : new CompleteNode(this.startNodeIdentifier, Location.CENTER);

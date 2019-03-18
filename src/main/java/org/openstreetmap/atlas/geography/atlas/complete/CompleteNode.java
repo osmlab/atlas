@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
@@ -139,8 +140,17 @@ public class CompleteNode extends Node implements CompleteLocationItem
     @Override
     public SortedSet<Edge> inEdges()
     {
-        return this.inEdgeIdentifiers == null ? null : this.inEdgeIdentifiers.stream()
-                .map(CompleteEdge::new).collect(Collectors.toCollection(TreeSet::new));
+        /*
+         * Disregard the CompleteEdge geometry parameter (PolyLine.CENTER) here. We must provide
+         * geometry to the CompleteEdge constructor to satisfy the API contract. However, the
+         * geometry provided here does not reflect the actual geometry of the Edge with this
+         * identifier. We would need an atlas context to get the actual geometry. Effectively, the
+         * CompleteEdges returned by the method are just wrappers around an identifier.
+         */
+        return this.inEdgeIdentifiers == null ? null
+                : this.inEdgeIdentifiers.stream().map(
+                        inEdgeIdentifier -> new CompleteEdge(inEdgeIdentifier, PolyLine.CENTER))
+                        .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
@@ -154,18 +164,28 @@ public class CompleteNode extends Node implements CompleteLocationItem
     @Override
     public SortedSet<Edge> outEdges()
     {
-        return this.outEdgeIdentifiers == null ? null : this.outEdgeIdentifiers.stream()
-                .map(CompleteEdge::new).collect(Collectors.toCollection(TreeSet::new));
+        /*
+         * Disregard the CompleteEdge geometry parameter (PolyLine.CENTER) here. We must provide
+         * geometry to the CompleteEdge constructor to satisfy the API contract. However, the
+         * geometry provided here does not reflect the actual geometry of the Edge with this
+         * identifier. We would need an atlas context to get the actual geometry. Effectively, the
+         * CompleteEdges returned by the method are just wrappers around an identifier.
+         */
+        return this.outEdgeIdentifiers == null ? null
+                : this.outEdgeIdentifiers.stream().map(
+                        outEdgeIdentifier -> new CompleteEdge(outEdgeIdentifier, PolyLine.CENTER))
+                        .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public Set<Relation> relations()
     {
         /*
-         * Disregard the relation bounds parameter (Rectangle.MINIMUM) here. We must provide bounds
-         * to the CompleteRelation constructor to satisfy the API contract. However, the bounds
-         * provided here do not reflect the true bounds of the relation with this identifier. We
-         * would need an atlas context to actually compute the proper bounds.
+         * Disregard the CompleteRelation bounds parameter (Rectangle.MINIMUM) here. We must provide
+         * bounds to the CompleteRelation constructor to satisfy the API contract. However, the
+         * bounds provided here do not reflect the true bounds of the relation with this identifier.
+         * We would need an atlas context to actually compute the proper bounds. Effectively, the
+         * CompleteRelations returned by the method are just wrappers around an identifier.
          */
         return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream().map(
                 relationIdentifier -> new CompleteRelation(relationIdentifier, Rectangle.MINIMUM))

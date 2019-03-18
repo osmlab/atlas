@@ -125,10 +125,11 @@ public class CompletePoint extends Point implements CompleteLocationItem
     public Set<Relation> relations()
     {
         /*
-         * Disregard the relation bounds parameter (Rectangle.MINIMUM) here. We must provide bounds
-         * to the CompleteRelation constructor to satisfy the API contract. However, the bounds
-         * provided here do not reflect the true bounds of the relation with this identifier. We
-         * would need an atlas context to actually compute the proper bounds.
+         * Disregard the CompleteRelation bounds parameter (Rectangle.MINIMUM) here. We must provide
+         * bounds to the CompleteRelation constructor to satisfy the API contract. However, the
+         * bounds provided here do not reflect the true bounds of the relation with this identifier.
+         * We would need an atlas context to actually compute the proper bounds. Effectively, the
+         * CompleteRelations returned by the method are just wrappers around an identifier.
          */
         return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream().map(
                 relationIdentifier -> new CompleteRelation(relationIdentifier, Rectangle.MINIMUM))
