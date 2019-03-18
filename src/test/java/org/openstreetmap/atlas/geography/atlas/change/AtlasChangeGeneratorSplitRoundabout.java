@@ -22,6 +22,8 @@ import org.openstreetmap.atlas.utilities.collections.Sets;
  */
 public class AtlasChangeGeneratorSplitRoundabout implements AtlasChangeGenerator
 {
+    private static final long serialVersionUID = -6596053817414805897L;
+
     @Override
     public Set<FeatureChange> generateWithoutValidation(final Atlas atlas)
     {

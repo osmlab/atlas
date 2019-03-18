@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
+import java.io.Serializable;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -12,7 +13,7 @@ import org.openstreetmap.atlas.utilities.conversion.Converter;
  *
  * @author matthieun
  */
-public interface AtlasChangeGenerator extends Converter<Atlas, Set<FeatureChange>>
+public interface AtlasChangeGenerator extends Converter<Atlas, Set<FeatureChange>>, Serializable
 {
     @Override
     default Set<FeatureChange> convert(final Atlas atlas)
