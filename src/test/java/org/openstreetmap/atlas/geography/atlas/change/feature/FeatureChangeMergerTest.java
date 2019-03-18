@@ -13,10 +13,12 @@ import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.utilities.collections.Maps;
@@ -123,7 +125,6 @@ public class FeatureChangeMergerTest
 
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
                 new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, 2L, null, null), beforeEdge1);
-
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
                 new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, 3L, null, null), beforeEdge1);
 
@@ -144,14 +145,13 @@ public class FeatureChangeMergerTest
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
                 new CompleteEdge(123L, PolyLine.TEST_POLYLINE_2, null, 2L, null, null),
                 beforeEdge1);
-
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
                 new CompleteEdge(123L, PolyLine.TEST_POLYLINE_2, null, null, null, null),
                 beforeEdge1);
 
         final FeatureChange merged = featureChange1.merge(featureChange2);
         /*
-         * Check that the polyline change and the start node changed merged properly.
+         * Check that the polyline change and the start node change merged properly.
          */
         Assert.assertEquals(PolyLine.TEST_POLYLINE_2, ((Edge) merged.getAfterView()).asPolyLine());
 
@@ -188,19 +188,84 @@ public class FeatureChangeMergerTest
     @Test
     public void testMergeLinesFail()
     {
+        final CompleteLine beforeLine1 = new CompleteLine(123L, PolyLine.TEST_POLYLINE, null,
+                Sets.hashSet(1L, 2L, 3L));
 
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteLine(123L, PolyLine.TEST_POLYLINE_2, null, Sets.hashSet(4L, 5L, 6L)),
+                beforeLine1);
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
+                new CompleteLine(123L, PolyLine.TEST_POLYLINE, null, Sets.hashSet(1L, 2L)),
+                beforeLine1);
+
+        /*
+         * This merge will fail, because the FeatureChanges have conflicting geometry.
+         */
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("Cannot merge two feature changes");
+        featureChange1.merge(featureChange2);
     }
 
     @Test
     public void testMergeLinesSuccess()
     {
+        final CompleteLine beforeLine1 = new CompleteLine(123L, PolyLine.TEST_POLYLINE,
+                Maps.hashMap("a", "1", "b", "2"), Sets.hashSet(1L, 2L, 3L));
 
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteLine(123L, PolyLine.TEST_POLYLINE_2,
+                        Maps.hashMap("a", "1", "b", "2", "c", "3"), Sets.hashSet(1L, 2L, 3L, 4L)),
+                beforeLine1);
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
+                new CompleteLine(123L, PolyLine.TEST_POLYLINE_2, Maps.hashMap("a", "1", "b", "12"),
+                        Sets.hashSet(2L, 3L)),
+                beforeLine1);
+
+        final FeatureChange merged = featureChange1.merge(featureChange2);
+        /*
+         * Check that the geometry, tag map, and parent relations sets merged properly.
+         */
+        Assert.assertEquals(PolyLine.TEST_POLYLINE_2, ((Line) merged.getAfterView()).asPolyLine());
+
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "12", "c", "3"),
+                ((Line) merged.getAfterView()).getTags());
+
+        Assert.assertEquals(Sets.hashSet(2L, 3L, 4L), ((Line) merged.getAfterView()).relations()
+                .stream().map(relations -> relations.getIdentifier()).collect(Collectors.toSet()));
     }
 
     @Test
     public void testMergeLinesWithNonConflictingChangedFields()
     {
+        final CompleteLine beforeLine1 = new CompleteLine(123L, PolyLine.TEST_POLYLINE,
+                Maps.hashMap("a", "1", "b", "2"), null);
+        final CompleteLine beforeLine2 = new CompleteLine(123L, PolyLine.TEST_POLYLINE, null,
+                Sets.hashSet(1L, 2L, 3L));
 
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteLine(123L, PolyLine.TEST_POLYLINE,
+                        Maps.hashMap("a", "1", "b", "2", "c", "3"), null),
+                beforeLine1);
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
+                new CompleteLine(123L, PolyLine.TEST_POLYLINE, null, Sets.hashSet(1L, 2L, 3L, 4L)),
+                beforeLine2);
+
+        final FeatureChange merged = featureChange1.merge(featureChange2);
+        /*
+         * Check that the tag map and parent relations sets merged properly.
+         */
+
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "2", "c", "3"),
+                ((Line) merged.getAfterView()).getTags());
+
+        Assert.assertEquals(Sets.hashSet(1L, 2L, 3L, 4L), ((Line) merged.getAfterView()).relations()
+                .stream().map(relations -> relations.getIdentifier()).collect(Collectors.toSet()));
+
+        // Test that the beforeView was merged properly
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "2"),
+                ((Line) merged.getBeforeView()).getTags());
+        Assert.assertEquals(Sets.hashSet(1L, 2L, 3L), ((Line) merged.getBeforeView()).relations()
+                .stream().map(relations -> relations.getIdentifier()).collect(Collectors.toSet()));
     }
 
     @Test
