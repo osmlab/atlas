@@ -149,9 +149,11 @@ public class CompleteEdge extends Edge implements CompleteLineItem
          * We would need an atlas context to actually compute the proper bounds. Effectively, the
          * CompleteRelations returned by the method are just wrappers around an identifier.
          */
-        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream().map(
-                relationIdentifier -> new CompleteRelation(relationIdentifier, Rectangle.MINIMUM))
-                .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null
+                : this.relationIdentifiers.stream()
+                        .map(relationIdentifier -> new CompleteRelation(relationIdentifier,
+                                Rectangle.MINIMUM))
+                        .collect(Collectors.toSet());
     }
 
     @Override
