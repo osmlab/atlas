@@ -61,7 +61,7 @@ public class RelationChangeSetHandler extends ChangeSetHandler
         // Log original Atlas statistics
         if (logger.isInfoEnabled())
         {
-            logger.info("Before Slicing Relations: " + atlasStatistics(super.getAtlas()));
+            logger.info("Before Slicing Relations: {}", atlasStatistics(super.getAtlas()));
         }
 
         // Prepare the builder
@@ -84,7 +84,7 @@ public class RelationChangeSetHandler extends ChangeSetHandler
 
         if (logger.isInfoEnabled())
         {
-            logger.info("After Slicing Relations: " + atlasStatistics(atlasWithUpdates));
+            logger.info("After Slicing Relations: {}", atlasStatistics(atlasWithUpdates));
         }
 
         logger.info("Finished Applying Relation Changes for {} in {}", getShardOrAtlasName(),

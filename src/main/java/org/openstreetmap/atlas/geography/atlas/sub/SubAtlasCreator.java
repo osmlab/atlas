@@ -475,7 +475,7 @@ public final class SubAtlasCreator
         for (final Relation relation : atlas.relationsLowerOrderFirst())
         {
             final Long relationId = relation.getIdentifier();
-            if (subrelations.contains(relationId))
+            if (subrelations.contains(relationId) && !hasEntity(relation, builder))
             {
                 builder.addRelation(relationId, relation.getOsmIdentifier(), relation.getBean(),
                         relation.getTags());
