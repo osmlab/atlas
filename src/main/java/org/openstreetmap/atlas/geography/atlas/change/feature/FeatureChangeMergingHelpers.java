@@ -296,8 +296,7 @@ public final class FeatureChangeMergingHelpers
         }
         else if (afterEntityLeft instanceof Relation)
         {
-            return mergeRelationsOLD(left, right, mergedTagsBean.getMergedAfterMember(),
-                    mergedParentRelationsBean);
+            return mergeRelationsOLD(left, right, mergedTagsBean, mergedParentRelationsBean);
         }
         else
         {
@@ -473,7 +472,7 @@ public final class FeatureChangeMergingHelpers
     }
 
     private static FeatureChange mergeRelationsOLD(final FeatureChange left,
-            final FeatureChange right, final Map<String, String> mergedTags,
+            final FeatureChange right, final MergedMemberBean<Map<String, String>> mergedTagsBean,
             final MergedMemberBean<Set<Long>> mergedParentRelationsBean)
     {
         final AtlasEntity thisReference = left.getAfterView();
@@ -504,10 +503,10 @@ public final class FeatureChangeMergingHelpers
                         : ((Relation) entity).allKnownOsmMembers().asBean(),
                 MemberMergeStrategies.simpleRelationBeanMerger);
 
-        return FeatureChange.add(new CompleteRelation(left.getIdentifier(), mergedTags,
-                mergedBounds, mergedMembers, mergedAllRelationsWithSameOsmIdentifier,
-                mergedAllKnownMembers, mergedOsmRelationIdentifier,
-                mergedParentRelationsBean.getMergedAfterMember()));
+        return FeatureChange.add(new CompleteRelation(left.getIdentifier(),
+                mergedTagsBean.getMergedAfterMember(), mergedBounds, mergedMembers,
+                mergedAllRelationsWithSameOsmIdentifier, mergedAllKnownMembers,
+                mergedOsmRelationIdentifier, mergedParentRelationsBean.getMergedAfterMember()));
     }
 
     private FeatureChangeMergingHelpers()
