@@ -48,4 +48,9 @@ public interface AtlasChangeGenerator extends Converter<Atlas, Set<FeatureChange
      * @return The un-validated set of {@link FeatureChange}s
      */
     Set<FeatureChange> generateWithoutValidation(Atlas atlas);
+
+    default String getName()
+    {
+        return this.getClass().getSimpleName();
+    }
 }
