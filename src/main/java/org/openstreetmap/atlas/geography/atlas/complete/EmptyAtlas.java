@@ -7,8 +7,11 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.PolyLine;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
@@ -192,7 +195,29 @@ public class EmptyAtlas implements Atlas
     @Override
     public AtlasEntity entity(final long identifier, final ItemType type)
     {
-        throw new UnsupportedOperationException();
+        /*
+         * Disregard the dummy bounds/geometry parameters (Location.CENTER, Rectangle.MINIMUM, etc.)
+         * here. We must provide bounds/geometry to the CompleteEntity's constructor to satisfy the
+         * API contract. Entities returned from this method should be treated as identifier
+         * containers only.
+         */
+        switch (type)
+        {
+            case NODE:
+                return new CompleteNode(identifier, Location.CENTER);
+            case EDGE:
+                return new CompleteEdge(identifier, PolyLine.CENTER);
+            case AREA:
+                return new CompleteArea(identifier, Polygon.CENTER);
+            case LINE:
+                return new CompleteLine(identifier, PolyLine.CENTER);
+            case POINT:
+                return new CompletePoint(identifier, Location.CENTER);
+            case RELATION:
+                return new CompleteRelation(identifier, Rectangle.MINIMUM);
+            default:
+                throw new CoreException("Unknown type {}", type);
+        }
     }
 
     @Override
