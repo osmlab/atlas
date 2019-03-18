@@ -203,7 +203,7 @@ public final class FeatureChangeMergingHelpers
         return new MergedMemberBean<>(beforeMemberResult, afterMemberResult);
     }
 
-    static <M> M mergeMember_OldStrategy(final String memberName, final AtlasEntity afterEntityLeft,
+    static <M> M mergeMemberOldStrategy(final String memberName, final AtlasEntity afterEntityLeft,
             final AtlasEntity afterEntityRight, final Function<AtlasEntity, M> memberExtractor,
             final BinaryOperator<M> memberMerger)
     {
@@ -287,7 +287,7 @@ public final class FeatureChangeMergingHelpers
         }
         else if (afterEntityLeft instanceof Relation)
         {
-            return mergeRelations_OLD(left, right, mergedTagsBean.getMergedAfterMember(),
+            return mergeRelationsOLD(left, right, mergedTagsBean.getMergedAfterMember(),
                     mergedParentRelationsBean);
         }
         else
@@ -463,23 +463,23 @@ public final class FeatureChangeMergingHelpers
         }
     }
 
-    private static FeatureChange mergeRelations_OLD(final FeatureChange left, final FeatureChange right,
-            final Map<String, String> mergedTags,
+    private static FeatureChange mergeRelationsOLD(final FeatureChange left,
+            final FeatureChange right, final Map<String, String> mergedTags,
             final MergedMemberBean<Set<Long>> mergedParentRelationsBean)
     {
         final AtlasEntity thisReference = left.getAfterView();
         final AtlasEntity thatReference = right.getAfterView();
 
-        final RelationBean mergedMembers = mergeMember_OldStrategy("relationMembers", thisReference,
+        final RelationBean mergedMembers = mergeMemberOldStrategy("relationMembers", thisReference,
                 thatReference,
                 entity -> ((Relation) entity).members() == null ? null
                         : ((Relation) entity).members().asBean(),
                 MemberMergeStrategies.simpleRelationBeanMerger);
         final Rectangle mergedBounds = Rectangle.forLocated(thisReference, thatReference);
-        final Long mergedOsmRelationIdentifier = mergeMember_OldStrategy("osmRelationIdentifier",
+        final Long mergedOsmRelationIdentifier = mergeMemberOldStrategy("osmRelationIdentifier",
                 thisReference, thatReference, entity -> ((Relation) entity).getOsmIdentifier(),
                 null);
-        final Set<Long> mergedAllRelationsWithSameOsmIdentifierSet = mergeMember_OldStrategy(
+        final Set<Long> mergedAllRelationsWithSameOsmIdentifierSet = mergeMemberOldStrategy(
                 "allRelationsWithSameOsmIdentifier", thisReference, thatReference,
                 atlasEntity -> ((Relation) atlasEntity).allRelationsWithSameOsmIdentifier() == null
                         ? null
@@ -489,7 +489,7 @@ public final class FeatureChangeMergingHelpers
         final List<Long> mergedAllRelationsWithSameOsmIdentifier = mergedAllRelationsWithSameOsmIdentifierSet == null
                 ? null
                 : mergedAllRelationsWithSameOsmIdentifierSet.stream().collect(Collectors.toList());
-        final RelationBean mergedAllKnownMembers = mergeMember_OldStrategy("allKnownOsmMembers",
+        final RelationBean mergedAllKnownMembers = mergeMemberOldStrategy("allKnownOsmMembers",
                 thisReference, thatReference,
                 entity -> ((Relation) entity).allKnownOsmMembers() == null ? null
                         : ((Relation) entity).allKnownOsmMembers().asBean(),
