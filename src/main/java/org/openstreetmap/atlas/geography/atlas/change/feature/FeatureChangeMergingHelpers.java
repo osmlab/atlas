@@ -78,10 +78,14 @@ public final class FeatureChangeMergingHelpers
         final M beforeMemberResult;
         final M afterMemberResult;
 
-        final M beforeMemberLeft = memberExtractor.apply(beforeEntityLeft);
-        final M afterMemberLeft = memberExtractor.apply(afterEntityLeft);
-        final M beforeMemberRight = memberExtractor.apply(beforeEntityRight);
-        final M afterMemberRight = memberExtractor.apply(afterEntityRight);
+        final M beforeMemberLeft = beforeEntityLeft == null ? null
+                : memberExtractor.apply(beforeEntityLeft);
+        final M afterMemberLeft = afterEntityLeft == null ? null
+                : memberExtractor.apply(afterEntityLeft);
+        final M beforeMemberRight = beforeEntityRight == null ? null
+                : memberExtractor.apply(beforeEntityRight);
+        final M afterMemberRight = afterEntityRight == null ? null
+                : memberExtractor.apply(afterEntityRight);
 
         /*
          * In the case that both beforeMembers are present, we assert their equivalence before
@@ -326,10 +330,17 @@ public final class FeatureChangeMergingHelpers
                 mergedPolygonBean.getMergedAfterMember(), mergedTagsBean.getMergedAfterMember(),
                 mergedParentRelationsBean.getMergedAfterMember());
 
-        final CompleteArea mergedBeforeArea = CompleteArea.shallowFrom((Area) beforeEntityLeft)
-                .withTags(mergedTagsBean.getMergedBeforeMember())
-                .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
-
+        final CompleteArea mergedBeforeArea;
+        if (beforeEntityLeft != null)
+        {
+            mergedBeforeArea = CompleteArea.shallowFrom((Area) beforeEntityLeft)
+                    .withTags(mergedTagsBean.getMergedBeforeMember())
+                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
+        }
+        else
+        {
+            mergedBeforeArea = null;
+        }
         return new FeatureChange(ChangeType.ADD, mergedAfterArea, mergedBeforeArea);
     }
 
@@ -370,12 +381,20 @@ public final class FeatureChangeMergingHelpers
                     mergedEndNodeIdentifierBean.getMergedAfterMember(),
                     mergedParentRelationsBean.getMergedAfterMember());
 
-            final CompleteEdge mergedBeforeEdge = CompleteEdge.shallowFrom((Edge) beforeEntityLeft)
-                    .withStartNodeIdentifier(mergedStartNodeIdentifierBean.getMergedBeforeMember())
-                    .withEndNodeIdentifier(mergedEndNodeIdentifierBean.getMergedBeforeMember())
-                    .withTags(mergedTagsBean.getMergedBeforeMember())
-                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
-
+            final CompleteEdge mergedBeforeEdge;
+            if (beforeEntityLeft != null)
+            {
+                mergedBeforeEdge = CompleteEdge.shallowFrom((Edge) beforeEntityLeft)
+                        .withStartNodeIdentifier(
+                                mergedStartNodeIdentifierBean.getMergedBeforeMember())
+                        .withEndNodeIdentifier(mergedEndNodeIdentifierBean.getMergedBeforeMember())
+                        .withTags(mergedTagsBean.getMergedBeforeMember())
+                        .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
+            }
+            else
+            {
+                mergedBeforeEdge = null;
+            }
             return new FeatureChange(ChangeType.ADD, mergedAfterEdge, mergedBeforeEdge);
         }
         else if (afterEntityLeft instanceof Line)
@@ -385,10 +404,17 @@ public final class FeatureChangeMergingHelpers
                     mergedTagsBean.getMergedAfterMember(),
                     mergedParentRelationsBean.getMergedAfterMember());
 
-            final CompleteLine mergedBeforeLine = CompleteLine.shallowFrom((Line) beforeEntityLeft)
-                    .withTags(mergedTagsBean.getMergedBeforeMember())
-                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
-
+            final CompleteLine mergedBeforeLine;
+            if (beforeEntityLeft != null)
+            {
+                mergedBeforeLine = CompleteLine.shallowFrom((Line) beforeEntityLeft)
+                        .withTags(mergedTagsBean.getMergedBeforeMember())
+                        .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
+            }
+            else
+            {
+                mergedBeforeLine = null;
+            }
             return new FeatureChange(ChangeType.ADD, mergedAfterLine, mergedBeforeLine);
         }
         else
@@ -442,12 +468,21 @@ public final class FeatureChangeMergingHelpers
                     mergedOutEdgeIdentifiersBean.getMergedAfterMember(),
                     mergedParentRelationsBean.getMergedAfterMember());
 
-            final CompleteNode mergedBeforeNode = CompleteNode.shallowFrom((Node) beforeEntityLeft)
-                    .withInEdgeIdentifiers(mergedInEdgeIdentifiersBean.getMergedBeforeMember())
-                    .withOutEdgeIdentifiers(mergedOutEdgeIdentifiersBean.getMergedBeforeMember())
-                    .withTags(mergedTagsBean.getMergedBeforeMember())
-                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
+            final CompleteNode mergedBeforeNode;
+            if (beforeEntityLeft != null)
+            {
+                mergedBeforeNode = CompleteNode.shallowFrom((Node) beforeEntityLeft)
+                        .withInEdgeIdentifiers(mergedInEdgeIdentifiersBean.getMergedBeforeMember())
+                        .withOutEdgeIdentifiers(
+                                mergedOutEdgeIdentifiersBean.getMergedBeforeMember())
+                        .withTags(mergedTagsBean.getMergedBeforeMember())
+                        .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
 
+            }
+            else
+            {
+                mergedBeforeNode = null;
+            }
             return new FeatureChange(ChangeType.ADD, mergedAfterNode, mergedBeforeNode);
         }
         else if (afterEntityLeft instanceof Point)
@@ -457,11 +492,17 @@ public final class FeatureChangeMergingHelpers
                     mergedTagsBean.getMergedAfterMember(),
                     mergedParentRelationsBean.getMergedAfterMember());
 
-            final CompletePoint mergedBeforePoint = CompletePoint
-                    .shallowFrom((Point) beforeEntityLeft)
-                    .withTags(mergedTagsBean.getMergedBeforeMember())
-                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
-
+            final CompletePoint mergedBeforePoint;
+            if (beforeEntityLeft != null)
+            {
+                mergedBeforePoint = CompletePoint.shallowFrom((Point) beforeEntityLeft)
+                        .withTags(mergedTagsBean.getMergedBeforeMember())
+                        .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
+            }
+            else
+            {
+                mergedBeforePoint = null;
+            }
             return new FeatureChange(ChangeType.ADD, mergedAfterPoint, mergedBeforePoint);
         }
         else
