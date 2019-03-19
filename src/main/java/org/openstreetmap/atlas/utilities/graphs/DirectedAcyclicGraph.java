@@ -150,19 +150,19 @@ public class DirectedAcyclicGraph<V> implements Serializable
         final Set<V> sourcesNotAdded = new HashSet<>(getSources());
         while (!sourcesNotAdded.isEmpty())
         {
-            final Set<V> allCandidates = new HashSet<>();
-            final Set<V> candidates = new HashSet<>();
+            final Set<V> potentialCandidates = new HashSet<>();
             for (final V alreadyAdded : added)
             {
                 for (final V parent : getParents(alreadyAdded))
                 {
                     if (!added.contains(parent))
                     {
-                        allCandidates.add(parent);
+                        potentialCandidates.add(parent);
                     }
                 }
             }
-            for (final V candidate : allCandidates)
+            final Set<V> candidates = new HashSet<>();
+            for (final V candidate : potentialCandidates)
             {
                 if (added.containsAll(getChildren(candidate)))
                 {
