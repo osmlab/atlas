@@ -33,6 +33,19 @@ public class FeatureChangeMergerTest
     public final ExpectedException expectedException = ExpectedException.none();
 
     @Test
+    public void testMergeAllFailMismatch()
+    {
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteArea(123L, Polygon.SILICON_VALLEY, null, null), null);
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.REMOVE,
+                new CompleteArea(123L, Polygon.SILICON_VALLEY, null, null), null);
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("Cannot merge two feature changes");
+        featureChange1.merge(featureChange2);
+    }
+
+    @Test
     public void testMergeAreasFail()
     {
         final CompleteArea beforeArea1 = new CompleteArea(123L, Polygon.SILICON_VALLEY,

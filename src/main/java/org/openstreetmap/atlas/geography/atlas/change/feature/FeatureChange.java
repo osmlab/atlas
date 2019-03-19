@@ -217,7 +217,6 @@ public class FeatureChange implements Located, Serializable
      */
     public FeatureChange merge(final FeatureChange other)
     {
-        // TODO we need to make sure we handle merging the before view properly in all cases
         try
         {
             if (this.getIdentifier() != other.getIdentifier()
@@ -225,7 +224,9 @@ public class FeatureChange implements Located, Serializable
                     || this.getChangeType() != other.getChangeType())
             {
                 throw new CoreException(
-                        "Cannot merge two FeatureChanges that are not of the same type.");
+                        "Cannot merge FeatureChanges with mismatching properties: [{}, {}, {}] vs [{}, {}, {}]",
+                        this.getIdentifier(), this.getItemType(), this.getChangeType(),
+                        other.getIdentifier(), other.getItemType(), other.getChangeType());
             }
             /*
              * If one of the FeatureChanges has a beforeView, the other must as well. Otherwise we
