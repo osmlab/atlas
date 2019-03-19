@@ -261,6 +261,15 @@ public final class FeatureChangeMergingHelpers
         return result;
     }
 
+    /**
+     * Merge two {@link ChangeType#ADD} {@link FeatureChange}s into a single {@link FeatureChange}.
+     *
+     * @param left
+     *            the left {@link FeatureChange}
+     * @param right
+     *            the right {@link FeatureChange}
+     * @return the merged {@link FeatureChange}s
+     */
     public static FeatureChange mergeADDFeatureChangePair(final FeatureChange left,
             final FeatureChange right)
     {

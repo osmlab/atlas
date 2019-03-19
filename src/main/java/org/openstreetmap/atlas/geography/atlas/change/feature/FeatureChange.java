@@ -94,7 +94,7 @@ public class FeatureChange implements Located, Serializable
     {
         if (afterView == null)
         {
-            throw new CoreException("reference cannot be null.");
+            throw new CoreException("After view cannot be null.");
         }
         if (!(afterView instanceof CompleteEntity))
         {
@@ -217,8 +217,42 @@ public class FeatureChange implements Located, Serializable
      */
     public FeatureChange merge(final FeatureChange other)
     {
+        /*
+         * FeatureChanges are mergeable under certain pre-conditions. If those pre-conditions are
+         * satisfied, then two FeatureChange objects can be composed into a single object.
+         */
+        // Pre-conditions:
+        // 1) The left and right FeatureChanges must be operating on the same entity identifier and
+        // ItemType. Additionally, the ChangeType (i.e. ADD or REMOVE) must match. If these
+        // conditions do not hold, there is no logical way to merge the FeatureChanges.
+        //
+        // 2) Either both FeatureChanges must provide a beforeView, or neither should provide one.
+        // Attempting to merge two FeatureChanges where one has a beforeView and one does not
+        // will always fail. We enforce this assumption in order to make the ADD/REMOVE merge logic
+        // simpler.
+        /*
+         * Once mergeability is established, the merge logic proceeds.
+         */
+        // Merging two REMOVE changes:
+        // This case is easy. Since a REMOVE contains no additional information, we can simply
+        // arbitrarily return the left side FeatureChange. The beforeViews are guaranteed to be
+        // properly merged because either:
+        //
+        // 1) Both FeatureChanges had fully populated, equivalent beforeViews (which are computed
+        // automatically when a REMOVE FeatureChange is created)
+        //
+        // OR
+        //
+        // 2) Neither FeatureChange had a beforeView, in which case no merge is required.
+        //
+        // Merging two ADD changes:
+        // In this case, we need to perform additional checks to ensure that the FeatureChanges can
+        // indeed properly merge. We also must ensure that the potentially differing beforeViews can
+        // merge. For more information on this, see
+        // FeatureChangeMergingHelpers#mergeADDFeatureChangePair.
         try
         {
+            // Pre-condition 1)
             if (this.getIdentifier() != other.getIdentifier()
                     || this.getItemType() != other.getItemType()
                     || this.getChangeType() != other.getChangeType())
@@ -228,25 +262,26 @@ public class FeatureChange implements Located, Serializable
                         this.getIdentifier(), this.getItemType(), this.getChangeType(),
                         other.getIdentifier(), other.getItemType(), other.getChangeType());
             }
-            /*
-             * If one of the FeatureChanges has a beforeView, the other must as well. Otherwise we
-             * cannot merge. It is the responsibility of the caller to ensure that either both
-             * FeatureChanges have a beforeView, or both do not.
-             */
+
+            // Pre-condition 2)
             if (this.getBeforeView() == null && other.getBeforeView() != null
                     || this.getBeforeView() != null && other.getBeforeView() == null)
             {
                 throw new CoreException("One of the FeatureChanges was missing a beforeView - "
                         + "cannot merge two FeatureChanges unless both either explicitly provide or explicitly exclude a beforeView");
             }
+
+            // Actually merge the changes
             if (this.getChangeType() == ChangeType.REMOVE)
             {
                 return this;
             }
-            if (this.getChangeType() == ChangeType.ADD)
+            else if (this.getChangeType() == ChangeType.ADD)
             {
                 return FeatureChangeMergingHelpers.mergeADDFeatureChangePair(this, other);
             }
+
+            // If we get here, something very unexpected happened.
             throw new CoreException("Unable to merge {} and {}", this, other);
         }
         catch (final Exception exception)
@@ -291,10 +326,17 @@ public class FeatureChange implements Located, Serializable
      */
     public FeatureChange withAtlasContext(final Atlas atlas)
     {
-        // TODO before view for REMOVE type?
         if (this.changeType == ChangeType.ADD)
         {
             computeBeforeViewUsingAtlasContext(atlas);
+        }
+        else if (this.changeType == ChangeType.REMOVE)
+        {
+            // TODO we need to compute the beforeView here
+        }
+        else
+        {
+            throw new CoreException("Unknown ChangeType {}", this.changeType.getClass().getName());
         }
         return this;
     }
