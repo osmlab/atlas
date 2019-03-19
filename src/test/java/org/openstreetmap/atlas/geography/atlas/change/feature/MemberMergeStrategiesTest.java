@@ -9,6 +9,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 
@@ -81,6 +84,55 @@ public class MemberMergeStrategiesTest
     }
 
     @Test
+    public void testDiffBasedRelationBeanADDADDCollisionFail()
+    {
+
+    }
+
+    @Test
+    public void testDiffBasedRelationBeanMergeSuccess()
+    {
+        final RelationBean beforeBean = new RelationBean();
+        beforeBean.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        beforeBean.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        beforeBean.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        beforeBean.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+
+        /*
+         * ADD an Area with ID 2 and a new role. REMOVE Point with ID 2.
+         */
+        final RelationBean afterBean1 = new RelationBean();
+        afterBean1.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        afterBean1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        afterBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        afterBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+
+        /*
+         * MODIFY role of Point with ID 1.
+         */
+        final RelationBean afterBean2 = new RelationBean();
+        afterBean2.addItem(new RelationBeanItem(1L, "newPointRole1", ItemType.POINT));
+        afterBean2.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        afterBean2.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        afterBean2.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+
+        /*
+         * The expected result of merging afterBean1 and afterBean2.
+         */
+        final RelationBean goldenImage1 = new RelationBean();
+        goldenImage1.addItem(new RelationBeanItem(1L, "newPointRole1", ItemType.POINT));
+        goldenImage1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        goldenImage1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        goldenImage1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+    }
+
+    @Test
+    public void testDiffBasedRelationBeanMODIFYREMOVECollisionFail()
+    {
+
+    }
+
+    @Test
     public void testDiffBasedTagMergeADDADDCollisionFail()
     {
         final Map<String, String> before1 = Maps.hashMap("a", "1", "b", "2");
@@ -89,7 +141,7 @@ public class MemberMergeStrategiesTest
 
         this.expectedException.expect(CoreException.class);
         this.expectedException
-                .expectMessage("diffBasedTagMerger failed due to ADD/ADD collision(s) on keys(s)");
+                .expectMessage("diffBasedTagMerger failed due to ADD/ADD collision(s) on keys");
         MemberMergeStrategies.diffBasedTagMerger.apply(before1, after1A, after1B);
     }
 
