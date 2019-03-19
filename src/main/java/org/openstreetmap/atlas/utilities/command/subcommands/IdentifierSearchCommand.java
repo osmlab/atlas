@@ -165,7 +165,8 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
                 {
                     this.outputDelegate.printlnStdout("Found entity with atlas ID " + atlasId
                             + " in " + atlasResource.getPath() + ":", TTYAttribute.BOLD);
-                    this.outputDelegate.printlnStdout(entity.toString(), TTYAttribute.GREEN);
+                    this.outputDelegate.printlnStdout(entity.toDiffViewFriendlyString(),
+                            TTYAttribute.GREEN);
                     this.outputDelegate.printlnStdout("");
                     this.matchingAtlases.add(atlas);
                 }
@@ -185,7 +186,8 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
                 {
                     this.outputDelegate.printlnStdout("Found entity with OSM ID " + osmId + " in "
                             + atlasResource.getPath() + ":", TTYAttribute.BOLD);
-                    this.outputDelegate.printlnStdout(entity.toString(), TTYAttribute.GREEN);
+                    this.outputDelegate.printlnStdout(entity.toDiffViewFriendlyString(),
+                            TTYAttribute.GREEN);
                     this.outputDelegate.printlnStdout("");
                     this.matchingAtlases.add(atlas);
                 }

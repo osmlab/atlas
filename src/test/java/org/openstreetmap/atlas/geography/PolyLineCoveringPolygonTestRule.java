@@ -43,7 +43,11 @@ public class PolyLineCoveringPolygonTestRule extends CoreTestRule
                     @Node(id = "5", coordinates = @Loc(value = POINT_OUTSIDE_OUTER)),
                     @Node(id = "6", coordinates = @Loc(value = SECOND_POINT_OUTSIDE_OUTER)),
 
-            }, edges = { @Edge(id = "159019301", coordinates = { @Loc(value = POINT_OUTSIDE_OUTER), @Loc(value = SECOND_POINT_OUTSIDE_OUTER) }, tags = { "highway=tertiary" }), @Edge(id = "-159019301", coordinates = { @Loc(value = SECOND_POINT_OUTSIDE_OUTER), @Loc(value = POINT_OUTSIDE_OUTER) }, tags = { "highway=tertiary" })
+            }, edges = { @Edge(id = "159019301", coordinates = { @Loc(value = POINT_OUTSIDE_OUTER),
+                    @Loc(value = SECOND_POINT_OUTSIDE_OUTER) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "-159019301", coordinates = {
+                            @Loc(value = SECOND_POINT_OUTSIDE_OUTER),
+                            @Loc(value = POINT_OUTSIDE_OUTER) }, tags = { "highway=tertiary" })
 
             }, areas = {
 
@@ -64,7 +68,13 @@ public class PolyLineCoveringPolygonTestRule extends CoreTestRule
                     @Node(id = "6", coordinates = @Loc(value = SECOND_POINT_OUTSIDE_OUTER)),
                     @Node(id = "7", coordinates = @Loc(value = THIRD_POINT_OUTSIDE_OUTER)),
 
-            }, edges = { @Edge(id = "159019301", coordinates = { @Loc(value = THIRD_POINT_OUTSIDE_OUTER), @Loc(value = INNER_TOP_LEFT), @Loc(value = SECOND_POINT_OUTSIDE_OUTER) }, tags = { "highway=tertiary" }), @Edge(id = "-159019301", coordinates = { @Loc(value = SECOND_POINT_OUTSIDE_OUTER), @Loc(value = INNER_TOP_LEFT), @Loc(value = THIRD_POINT_OUTSIDE_OUTER) }, tags = { "highway=tertiary" })
+            }, edges = { @Edge(id = "159019301", coordinates = {
+                    @Loc(value = THIRD_POINT_OUTSIDE_OUTER), @Loc(value = INNER_TOP_LEFT),
+                    @Loc(value = SECOND_POINT_OUTSIDE_OUTER) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "-159019301", coordinates = {
+                            @Loc(value = SECOND_POINT_OUTSIDE_OUTER), @Loc(value = INNER_TOP_LEFT),
+                            @Loc(value = THIRD_POINT_OUTSIDE_OUTER) }, tags = {
+                                    "highway=tertiary" })
 
             }, areas = {
 
@@ -83,7 +93,11 @@ public class PolyLineCoveringPolygonTestRule extends CoreTestRule
                     @Node(id = "4", coordinates = @Loc(value = OUTER_BOTTOM_LEFT)),
                     @Node(id = "5", coordinates = @Loc(value = SECOND_POINT_OUTSIDE_OUTER)),
 
-            }, edges = { @Edge(id = "159019301", coordinates = { @Loc(value = OUTER_TOP_LEFT), @Loc(value = SECOND_POINT_OUTSIDE_OUTER) }, tags = { "highway=tertiary" }), @Edge(id = "-159019301", coordinates = { @Loc(value = SECOND_POINT_OUTSIDE_OUTER), @Loc(value = OUTER_TOP_LEFT) }, tags = { "highway=tertiary" })
+            }, edges = { @Edge(id = "159019301", coordinates = { @Loc(value = OUTER_TOP_LEFT),
+                    @Loc(value = SECOND_POINT_OUTSIDE_OUTER) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "-159019301", coordinates = {
+                            @Loc(value = SECOND_POINT_OUTSIDE_OUTER),
+                            @Loc(value = OUTER_TOP_LEFT) }, tags = { "highway=tertiary" })
 
             }, areas = {
 
@@ -103,7 +117,13 @@ public class PolyLineCoveringPolygonTestRule extends CoreTestRule
                     @Node(id = "5", coordinates = @Loc(value = OUTER_ABOVE_BOTTOM_LEFT)),
                     @Node(id = "6", coordinates = @Loc(value = SECOND_POINT_OUTSIDE_OUTER))
 
-            }, edges = { @Edge(id = "159019301", coordinates = { @Loc(value = OUTER_ABOVE_BOTTOM_LEFT), @Loc(value = SECOND_POINT_OUTSIDE_OUTER) }, tags = { "highway=tertiary" }), @Edge(id = "-159019301", coordinates = { @Loc(value = SECOND_POINT_OUTSIDE_OUTER), @Loc(value = OUTER_ABOVE_BOTTOM_LEFT) }, tags = { "highway=tertiary" })
+            }, edges = {
+                    @Edge(id = "159019301", coordinates = { @Loc(value = OUTER_ABOVE_BOTTOM_LEFT),
+                            @Loc(value = SECOND_POINT_OUTSIDE_OUTER) }, tags = {
+                                    "highway=tertiary" }),
+                    @Edge(id = "-159019301", coordinates = {
+                            @Loc(value = SECOND_POINT_OUTSIDE_OUTER),
+                            @Loc(value = OUTER_ABOVE_BOTTOM_LEFT) }, tags = { "highway=tertiary" })
 
             }, areas = {
 
@@ -151,7 +171,13 @@ public class PolyLineCoveringPolygonTestRule extends CoreTestRule
                     @Node(id = "5", coordinates = @Loc(value = INNER_TOP_RIGHT)),
                     @Node(id = "6", coordinates = @Loc(value = SECOND_POINT_OUTSIDE_OUTER))
 
-            }, edges = { @Edge(id = "159019301", coordinates = { @Loc(value = SECOND_POINT_OUTSIDE_OUTER), @Loc(value = INNER_TOP_RIGHT) }, tags = { "highway=tertiary" }), @Edge(id = "-159019301", coordinates = { @Loc(value = INNER_TOP_RIGHT), @Loc(value = SECOND_POINT_OUTSIDE_OUTER) }, tags = { "highway=tertiary" })
+            }, edges = {
+                    @Edge(id = "159019301", coordinates = {
+                            @Loc(value = SECOND_POINT_OUTSIDE_OUTER),
+                            @Loc(value = INNER_TOP_RIGHT) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "-159019301", coordinates = { @Loc(value = INNER_TOP_RIGHT),
+                            @Loc(value = SECOND_POINT_OUTSIDE_OUTER) }, tags = {
+                                    "highway=tertiary" })
 
             }, areas = {
 
@@ -170,7 +196,11 @@ public class PolyLineCoveringPolygonTestRule extends CoreTestRule
                     @Node(id = "4", coordinates = @Loc(value = OUTER_BOTTOM_LEFT)),
                     @Node(id = "5", coordinates = @Loc(value = OUTER_ABOVE_BOTTOM_LEFT))
 
-            }, edges = { @Edge(id = "159019301", coordinates = { @Loc(value = OUTER_TOP_LEFT), @Loc(value = OUTER_ABOVE_BOTTOM_LEFT) }, tags = { "highway=tertiary" }), @Edge(id = "-159019301", coordinates = { @Loc(value = OUTER_ABOVE_BOTTOM_LEFT), @Loc(value = OUTER_TOP_LEFT) }, tags = { "highway=tertiary" })
+            }, edges = {
+                    @Edge(id = "159019301", coordinates = { @Loc(value = OUTER_TOP_LEFT),
+                            @Loc(value = OUTER_ABOVE_BOTTOM_LEFT) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "-159019301", coordinates = { @Loc(value = OUTER_ABOVE_BOTTOM_LEFT),
+                            @Loc(value = OUTER_TOP_LEFT) }, tags = { "highway=tertiary" })
 
             }, areas = {
 
@@ -190,7 +220,15 @@ public class PolyLineCoveringPolygonTestRule extends CoreTestRule
                     @Node(id = "4", coordinates = @Loc(value = OUTER_BOTTOM_LEFT)),
                     @Node(id = "5", coordinates = @Loc(value = OUTER_ABOVE_BOTTOM_LEFT))
 
-            }, edges = { @Edge(id = "159019301", coordinates = { @Loc(value = OUTER_TOP_LEFT), @Loc(value = OUTER_TOP_RIGHT), @Loc(value = OUTER_BOTTOM_RIGHT), @Loc(value = OUTER_BOTTOM_LEFT), @Loc(value = OUTER_ABOVE_BOTTOM_LEFT), @Loc(value = OUTER_TOP_LEFT) }, tags = { "highway=tertiary" }), @Edge(id = "-159019301", coordinates = { @Loc(value = OUTER_TOP_LEFT), @Loc(value = OUTER_ABOVE_BOTTOM_LEFT), @Loc(value = OUTER_BOTTOM_LEFT), @Loc(value = OUTER_BOTTOM_RIGHT), @Loc(value = OUTER_TOP_RIGHT), @Loc(value = OUTER_TOP_LEFT) }, tags = { "highway=tertiary" })
+            }, edges = {
+                    @Edge(id = "159019301", coordinates = { @Loc(value = OUTER_TOP_LEFT),
+                            @Loc(value = OUTER_TOP_RIGHT), @Loc(value = OUTER_BOTTOM_RIGHT),
+                            @Loc(value = OUTER_BOTTOM_LEFT), @Loc(value = OUTER_ABOVE_BOTTOM_LEFT),
+                            @Loc(value = OUTER_TOP_LEFT) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "-159019301", coordinates = { @Loc(value = OUTER_TOP_LEFT),
+                            @Loc(value = OUTER_ABOVE_BOTTOM_LEFT), @Loc(value = OUTER_BOTTOM_LEFT),
+                            @Loc(value = OUTER_BOTTOM_RIGHT), @Loc(value = OUTER_TOP_RIGHT),
+                            @Loc(value = OUTER_TOP_LEFT) }, tags = { "highway=tertiary" })
 
             }, areas = {
 

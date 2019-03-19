@@ -59,7 +59,7 @@ public class OsmWayWalker extends EdgeWalker
     /**
      * Grows the {@link Edge} path by all edges connected to an {@link Edge}
      */
-    private static final Function<Edge, Stream<Edge>> CONNECTED_EDGES = (edge) -> edge
+    private static final Function<Edge, Stream<Edge>> CONNECTED_EDGES = edge -> edge
             .connectedEdges().stream();
 
     /**

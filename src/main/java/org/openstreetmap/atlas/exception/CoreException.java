@@ -69,7 +69,8 @@ public class CoreException extends RuntimeException
     {
         super(MessageFormatter.arrayFormat(message, refineArguments.apply(arguments)).getMessage(),
                 arguments.length != refineArguments.apply(arguments).length
-                        ? (Throwable) arguments[arguments.length - 1] : null);
+                        ? (Throwable) arguments[arguments.length - 1]
+                        : null);
     }
 
     public CoreException(final String message, final Throwable cause)

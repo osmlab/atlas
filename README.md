@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/osmlab/atlas.svg?branch=master)](https://travis-ci.org/osmlab/atlas)
 [![quality gate](https://sonarcloud.io/api/project_badges/measure?project=org.openstreetmap.atlas%3Aatlas&metric=alert_status)](https://sonarcloud.io/dashboard?id=org.openstreetmap.atlas%3Aatlas)
+[![Maven Central](https://img.shields.io/maven-central/v/org.openstreetmap.atlas/atlas.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.openstreetmap.atlas%22%20AND%20a:%22atlas%22)
 
 ---
 

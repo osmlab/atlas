@@ -85,7 +85,8 @@ public class AtlasFeatureCountsSubCommand extends AbstractAtlasSubCommand
                 {
                     out.println(String.format("%s-%s: %d", country, type,
                             this.featureCounts.contains(country, type)
-                                    ? this.featureCounts.get(country, type) : 0));
+                                    ? this.featureCounts.get(country, type)
+                                    : 0));
                 }
 
                 out.println();

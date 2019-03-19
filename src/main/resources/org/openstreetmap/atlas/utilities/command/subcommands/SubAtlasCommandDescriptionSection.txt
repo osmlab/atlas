@@ -1,14 +1,26 @@
-Cut a subatlas using some given parameters. The atlas will be cut to a
-polygon boundary, given by a supplied WKT. The type of cut can be specified
-using the '--cut-type' option, which utilizes the AtlasCutType enum.
+Cut a subatlas using some given parameters. The atlas can be cut to a
+polygon boundary given by a supplied WKT, and/or cut using a predicate.
+In cases where both a predicate and a polygon are supplied, the predicate
+cut will be applied before the polygon cut. This can be changed with the
+'--slice-first' option. For more information about predicates, see the
+PREDICATE section.
 
-The available cut types are:
+In addition to polygons and predicates, the type of cut can be specified using the '--cut-type' option.
+This utilizes the AtlasCutType enum with available cut types:
 
 SOFT_CUT: Perform a cut and keep all entities that match the filter or bound. However, bring
 in additional atlas entities that did not meet the original criteria, in order to satisfy atlas
 integrity. Example: An Atlas Edge is brought in via boundary or filter match, but one of its
 Nodes is not. The Node would be brought in, despite not meeting initial criteria, in order to
 maintain Atlas integrity.
+
+SILK_CUT: Largely the same as a soft-cut, however there is one important difference. During
+soft-cuts, Points are only brought in if they match an Edge. However, this filter is too
+restrictive if the cut is being performed before way-sectioning, as in this case all Lines are
+potential Edge candidates and must have Points associated with their coordinates preserved.
+Silk-cut will perform an extra check so that all Lines being included will have any Points
+associated with their coordinates preserved as well, allowing way-sectioning to run on these
+Atlases. On a country sliced and way sectioned atlas, silk-cut and soft-cut should be equivalent.
 
 HARD_CUT_ALL: Perform a cut, only keep entities that match the bound or filter. If including
 the item in the final Atlas breaks Atlas integrity, exclude that entity. Example: An Edge is

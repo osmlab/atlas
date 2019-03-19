@@ -1,15 +1,15 @@
-#   EventService
+# EventService
 
 The [EventService](EventService.java) is a class build on top of Guava's EventBus with
 static keyword construction. It provides an non-blocking endpoint to
 send events of various types to be processed asynchronously during program execution.
 
 
-#   When to use
+# When to use
 When you want to record activities of events during program execution
 and have those be processed, recorded, or control other threads on the fly.
 
-#   How To Use
+# How To Use
 1.   Get an [EventService](EventService.java) object with
 
 ```java

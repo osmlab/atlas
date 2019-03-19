@@ -35,7 +35,7 @@ import org.openstreetmap.atlas.utilities.collections.MultiIterable;
  */
 public class ComplexWaterEntityFinder implements Finder<ComplexWaterEntity>
 {
-    private static final Predicate<Relation> RELATION_FILTER = (relation) -> Validators.isOfType(
+    private static final Predicate<Relation> RELATION_FILTER = relation -> Validators.isOfType(
             relation, RelationTypeTag.class, RelationTypeTag.MULTIPOLYGON, RelationTypeTag.BOUNDARY,
             RelationTypeTag.WATERWAY);
 
