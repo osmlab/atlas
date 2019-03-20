@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -14,12 +13,9 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
-import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.utilities.collections.Maps;
-import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 import org.openstreetmap.atlas.utilities.function.TernaryOperator;
-import org.openstreetmap.atlas.utilities.tuples.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,199 +43,52 @@ public final class MemberMergeStrategies
 
     static final BinaryOperator<RelationBean> simpleRelationBeanMerger = RelationBean::merge;
 
-    /*
-     *
-     */
     static final TernaryOperator<RelationBean> diffBasedRelationBeanMerger = (beforeBean,
             afterLeftBean, afterRightBean) ->
     {
         /*
-         * In the following merge logic, we treat RelationBeanItems as Key/Value pairs, where the
-         * Key is a conglomerate of the ID/ItemType and the Value is the role. From here on, assume
-         * a Key is an ID/ItemType combo and a Value is a role.
+         * In the following merge logic, we treat RelationBeanItems as tri-keys (ID, ItemType,
+         * Role). We do this because the OSM API technically allows multiple roles for a given
+         * entity.
          */
+        final Set<RelationBeanItem> beforeSet = beforeBean.asSet();
+        final Set<RelationBeanItem> afterLeftSet = afterLeftBean.asSet();
+        final Set<RelationBeanItem> afterRightSet = afterRightBean.asSet();
+
+        final Set<RelationBeanItem> removedFromLeftView = com.google.common.collect.Sets
+                .difference(beforeSet, afterLeftSet);
+        final Set<RelationBeanItem> removedFromRightView = com.google.common.collect.Sets
+                .difference(beforeSet, afterRightSet);
+        final Set<RelationBeanItem> addedToLeftView = com.google.common.collect.Sets
+                .difference(afterLeftSet, beforeSet);
+        final Set<RelationBeanItem> addedToRightView = com.google.common.collect.Sets
+                .difference(afterRightSet, beforeSet);
 
         /*
-         * Compute ADDs and MODIFYs for the left side. An ADD is a RelationBeanItem with a brand new
-         * Key not seen in the beforeView. A MODIFY is a RelationBeanItem whose Key was seen in the
-         * beforeView, but who has an updated Value. The only reason we make a distinction between
-         * ADD and MODIFY is to simplify the MODIFY/REMOVE conflict check logic that occurs in a
-         * later step.
+         * Easy key-merge of left and right ADDs and REMOVEs. We can safely ignore duplicate keys,
+         * since it is feasible that two FeatureChanges made the same ADD or REMOVE. We also do not
+         * need to rectify the ADD/ADD or ADD/REMOVE conflicts. Since these are keys-only, there is
+         * no possibility of an ADD/ADD conflict. And because we enforce a shared beforeView, there
+         * is no possibility of an ADD/REMOVE conflict.
          */
-        final Set<RelationBeanItem> leftAdds = new HashSet<>();
-        final Set<RelationBeanItem> leftModifies = new HashSet<>();
-        for (final RelationBeanItem afterBeanItem : afterLeftBean)
-        {
-            final Optional<RelationBeanItem> beforeBeanItem = beforeBean
-                    .getItemFor(afterBeanItem.getIdentifier(), afterBeanItem.getType());
-
-            // ADD case, a brand new Key was added
-            if (!beforeBeanItem.isPresent())
-            {
-                leftAdds.add(afterBeanItem);
-            }
-            else
-            {
-                // MODIFY case, the Key was found but its Value was changed
-                if (!beforeBeanItem.get().getRole().equals(afterBeanItem.getRole()))
-                {
-                    leftModifies.add(afterBeanItem);
-                }
-                else
-                {
-                    /*
-                     * NO CHANGE case, the Key/Value pair was unchanged between the beforeView and
-                     * afterView
-                     */
-                }
-            }
-        }
+        final Set<RelationBeanItem> removedMerged = Sets.withSets(false, removedFromLeftView,
+                removedFromRightView);
+        final Set<RelationBeanItem> addedMerged = Sets.withSets(false, addedToLeftView,
+                addedToRightView);
 
         /*
-         * Compute ADDs and MODIFYs for the right side. The same rules and logic from the left side
-         * ADD/MODIFY logic apply. See above comment for more details.
+         * Build the result set by performing the REMOVEs on the beforeView, then performing the
+         * ADDs on the beforeView.
          */
-        final Set<RelationBeanItem> rightAdds = new HashSet<>();
-        final Set<RelationBeanItem> rightModifies = new HashSet<>();
-        for (final RelationBeanItem afterBeanItem : afterRightBean)
-        {
-            final Optional<RelationBeanItem> beforeBeanItem = beforeBean
-                    .getItemFor(afterBeanItem.getIdentifier(), afterBeanItem.getType());
-
-            // ADD case, a brand new Key was added
-            if (!beforeBeanItem.isPresent())
-            {
-                rightAdds.add(afterBeanItem);
-            }
-            else
-            {
-                // MODIFY case, the Key was found but its Value was changed
-                if (!beforeBeanItem.get().getRole().equals(afterBeanItem.getRole()))
-                {
-                    rightModifies.add(afterBeanItem);
-                }
-                else
-                {
-                    /*
-                     * NO CHANGE case, the Key/Value pair was unchanged between the beforeView and
-                     * afterView
-                     */
-                }
-            }
-        }
+        final Set<RelationBeanItem> result = new HashSet<>(beforeSet);
+        result.removeAll(removedMerged);
+        result.addAll(addedMerged);
 
         /*
-         * Compute REMOVEs for the left and right sides. A left REMOVE occurs when the beforeView
-         * contains a Key that is not present in the afterLeft view. The same logic applies for
-         * right REMOVEs.
+         * TODO note we currently do not properly merge the explicitlyExcluded sets. The plan is to
+         * remove these sets.
          */
-        final Set<RelationBeanItem> leftRemoves = new HashSet<>();
-        final Set<RelationBeanItem> rightRemoves = new HashSet<>();
-        for (final RelationBeanItem beforeBeanItem : beforeBean)
-        {
-            final Optional<RelationBeanItem> afterBeanLeftItem = afterLeftBean
-                    .getItemFor(beforeBeanItem.getIdentifier(), beforeBeanItem.getType());
-            final Optional<RelationBeanItem> afterBeanRightItem = afterRightBean
-                    .getItemFor(beforeBeanItem.getIdentifier(), beforeBeanItem.getType());
-
-            // REMOVE case for left side
-            if (!afterBeanLeftItem.isPresent())
-            {
-                leftRemoves.add(beforeBeanItem);
-            }
-
-            // REMOVE case for right side
-            if (!afterBeanRightItem.isPresent())
-            {
-                rightRemoves.add(beforeBeanItem);
-            }
-        }
-
-        /*
-         * Merge the left and right MODIFY sets into a single MODIFY set. This handles any duplicate
-         * MODIFYs.
-         */
-        final Set<RelationBeanItem> mergedModifies = Sets.withSets(false, leftModifies,
-                rightModifies);
-
-        /*
-         * Merge the left and right REMOVE sets into a single set. This handles any duplicate
-         * REMOVEs.
-         */
-        final Set<RelationBeanItem> mergedRemoves = Sets.withSets(false, leftRemoves, rightRemoves);
-
-        /*
-         * Compute the set of MODIFY/REMOVE conflicts. This type of conflict occurs when one side
-         * attempted to modify the Value of a Key/Value pair, while the other side attempted to
-         * remove the Key. If the conflict set is non-empty, we must fail. We compute a
-         * keyValueModifies map for use in this computation.
-         */
-        final Map<Tuple<Long, ItemType>, String> keyValueModifies = mergedModifies.stream()
-                .collect(Collectors.toMap(item -> new Tuple<>(item.getIdentifier(), item.getType()),
-                        item -> item.getRole()));
-        for (final RelationBeanItem removedItem : mergedRemoves)
-        {
-            final Tuple<Long, ItemType> deletedKey = new Tuple<>(removedItem.getIdentifier(),
-                    removedItem.getType());
-            if (keyValueModifies.containsKey(deletedKey))
-            {
-                throw new CoreException(
-                        "diffBasedRelationBeanMerger failed due to MODIFY/REMOVE conflict on ID/ItemType key: {}",
-                        deletedKey.toString());
-            }
-        }
-
-        /*
-         * Compute the set of ADD/ADD conflicts. This type of conflict occurs when one side
-         * attempted to add a Key k with Value v, while the other side attempted to add Key k with
-         * Value v'. If the conflict set is non-empty, we must fail.
-         */
-        final Map<Tuple<Long, ItemType>, String> keyValueLeftAdds = leftAdds.stream()
-                .collect(Collectors.toMap(item -> new Tuple<>(item.getIdentifier(), item.getType()),
-                        item -> item.getRole()));
-        final Map<Tuple<Long, ItemType>, String> keyValueRightAdds = rightAdds.stream()
-                .collect(Collectors.toMap(item -> new Tuple<>(item.getIdentifier(), item.getType()),
-                        item -> item.getRole()));
-        for (final Tuple<Long, ItemType> sharedKey : com.google.common.collect.Sets
-                .intersection(keyValueLeftAdds.keySet(), keyValueRightAdds.keySet()))
-        {
-            final String leftValue = keyValueLeftAdds.get(sharedKey);
-            final String rightValue = keyValueRightAdds.get(sharedKey);
-
-            if (!Objects.equals(leftValue, rightValue))
-            {
-                throw new CoreException(
-                        "diffBasedRelationBeanMerger failed due to ADD/ADD conflict on Key {}: {} vs {}",
-                        sharedKey.toString(), leftValue, rightValue);
-            }
-        }
-
-        /*
-         * Now merge the left and right ADD sets into a single set, handling any duplicates.
-         */
-        final Set<RelationBeanItem> mergedAdds = Sets.withSets(false, leftAdds, rightAdds);
-
-        /*
-         * Construct the result RelationBean based on the beforeView RelationBean. First, remove
-         * anything that matches a member of the merged REMOVE set or MODIFY set. Then add anything
-         * present in the merged ADD and MODIFY sets.
-         */
-        final RelationBean result = new RelationBean(beforeBean);
-        for (final RelationBeanItem removedBeanItem : new MultiIterable<>(mergedRemoves,
-                mergedModifies))
-        {
-            result.removeItem(removedBeanItem.getIdentifier(), removedBeanItem.getType());
-        }
-        for (final RelationBeanItem addedBeanItem : new MultiIterable<>(mergedAdds, mergedModifies))
-        {
-            result.addItem(addedBeanItem);
-        }
-
-        /*
-         * TODO we do not handle merging the explcitlyExcluded set. Ideally, this set will be
-         * removed. If it turns out we need it, then we will need to merge it properly here.
-         */
-        return result;
+        return RelationBean.fromSet(result);
     };
 
     /*

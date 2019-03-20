@@ -84,12 +84,6 @@ public class MemberMergeStrategiesTest
     }
 
     @Test
-    public void testDiffBasedRelationBeanADDADDCollisionFail()
-    {
-
-    }
-
-    @Test
     public void testDiffBasedRelationBeanMergeSuccess()
     {
         final RelationBean beforeBean = new RelationBean();
@@ -108,7 +102,8 @@ public class MemberMergeStrategiesTest
         afterBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
 
         /*
-         * MODIFY role of Point with ID 1.
+         * Change role for Point with ID 1. This effectively REMOVEs the original [1, POINT,
+         * pointRole1] and replaces it with [1, POINT, newPointRole1].
          */
         final RelationBean afterBean2 = new RelationBean();
         afterBean2.addItem(new RelationBeanItem(1L, "newPointRole1", ItemType.POINT));
@@ -124,12 +119,9 @@ public class MemberMergeStrategiesTest
         goldenImage1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
         goldenImage1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
         goldenImage1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
-    }
 
-    @Test
-    public void testDiffBasedRelationBeanMODIFYREMOVECollisionFail()
-    {
-
+        Assert.assertEquals(goldenImage1.asSet(), MemberMergeStrategies.diffBasedRelationBeanMerger
+                .apply(beforeBean, afterBean1, afterBean2).asSet());
     }
 
     @Test

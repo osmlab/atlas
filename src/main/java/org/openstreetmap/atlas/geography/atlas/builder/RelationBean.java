@@ -89,6 +89,16 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
 
     private final Set<RelationBeanItem> explicitlyExcluded;
 
+    public static RelationBean fromSet(final Set<RelationBeanItem> set)
+    {
+        final RelationBean bean = new RelationBean();
+        for (final RelationBeanItem item : set)
+        {
+            bean.addItem(item);
+        }
+        return bean;
+    }
+
     public RelationBean()
     {
         this.memberIdentifiers = new ArrayList<>();
@@ -119,6 +129,17 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
     public void addItemExplicitlyExcluded(final RelationBeanItem item)
     {
         this.explicitlyExcluded.add(item);
+    }
+
+    public Set<RelationBeanItem> asSet()
+    {
+        final Set<RelationBeanItem> result = new HashSet<>();
+        for (int index = 0; index < size(); index++)
+        {
+            result.add(new RelationBeanItem(this.memberIdentifiers.get(index),
+                    this.memberRoles.get(index), this.memberTypes.get(index)));
+        }
+        return result;
     }
 
     /**
