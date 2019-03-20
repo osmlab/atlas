@@ -99,7 +99,9 @@ public final class ChangeEntity
         }
         if (result == null)
         {
-            throw new CoreException("Could not retrieve attribute from source nor backup!");
+            throw new CoreException(
+                    "Could not retrieve attribute from source nor backup for {} {}!",
+                    source.getType(), source.getIdentifier());
         }
         return result;
     }
