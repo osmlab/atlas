@@ -13,6 +13,8 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
  */
 public class AtlasChangeGeneratorRemoveReverseEdges implements AtlasChangeGenerator
 {
+    private static final long serialVersionUID = 2378086577050982603L;
+
     @Override
     public Set<FeatureChange> generateWithoutValidation(final Atlas atlas)
     {

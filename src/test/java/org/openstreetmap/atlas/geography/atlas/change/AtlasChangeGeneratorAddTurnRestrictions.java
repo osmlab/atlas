@@ -26,6 +26,8 @@ import com.google.common.collect.Lists;
  */
 public class AtlasChangeGeneratorAddTurnRestrictions implements AtlasChangeGenerator
 {
+    private static final long serialVersionUID = -518515697422424803L;
+
     @Override
     public Set<FeatureChange> generateWithoutValidation(final Atlas atlas)
     {
