@@ -12,6 +12,7 @@ import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.triangulate.ConformingDelaunayTriangulationBuilder;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.converters.WkbPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.WktPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.GeometryStreamer;
 import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
@@ -586,6 +587,15 @@ public class Polygon extends PolyLine implements GeometricSurface
         }
 
         return Surface.forDm7Squared(Math.round(dm7));
+    }
+
+    /**
+     * @return This {@link Polygon} as Well Known Binary
+     */
+    @Override
+    public byte[] toWkb()
+    {
+        return new WkbPolygonConverter().convert(this);
     }
 
     /**
