@@ -31,9 +31,9 @@ public class OsmFileParserCommand extends AbstractAtlasShellToolsCommand
     @Override
     public int execute()
     {
-        final String josmOsmFile = this.optionAndArgumentDelegate.getOptionArgument(JOSM_OSM_FILE)
+        final String josmOsmFile = this.optionAndArgumentDelegate.getUnaryArgument(JOSM_OSM_FILE)
                 .orElseThrow(AtlasShellToolsException::new);
-        final String osmFile = this.optionAndArgumentDelegate.getOptionArgument(JOSM_OSM_FILE)
+        final String osmFile = this.optionAndArgumentDelegate.getUnaryArgument(JOSM_OSM_FILE)
                 .orElseThrow(AtlasShellToolsException::new);
         new OsmFileParser().update(new File(josmOsmFile), new File(osmFile));
         return 0;
