@@ -40,6 +40,17 @@ public class FeatureChangeTest
     public final ExpectedException expectedException = ExpectedException.none();
 
     @Test
+    public void testAfterViewIsFull()
+    {
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteArea(123L, null, Maps.hashMap("key1", "value1"), null));
+        Assert.assertFalse(featureChange1.afterViewIsFull());
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, new CompleteArea(
+                123L, Polygon.SILICON_VALLEY, Maps.hashMap("key1", "value2"), Sets.hashSet(123L)));
+        Assert.assertTrue(featureChange2.afterViewIsFull());
+    }
+
+    @Test
     public void testAreaSuperShallow()
     {
         this.expectedException.expect(CoreException.class);

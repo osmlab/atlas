@@ -31,9 +31,11 @@ import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.LineItem;
 import org.openstreetmap.atlas.geography.atlas.items.LocationItem;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
+import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.Taggable;
@@ -98,6 +100,63 @@ public class FeatureChange implements Located, Serializable
         this.validateUsefulFeatureChange();
     }
 
+    public boolean afterViewIsFull()
+    {
+        if (this.getReference().getTags() == null || this.getReference().relations() == null)
+        {
+            return false;
+        }
+        switch (this.getItemType())
+        {
+            case NODE:
+                final Node reference1 = (Node) this.getReference();
+                if (reference1.inEdges() == null || reference1.outEdges() == null
+                        || reference1.getLocation() == null)
+                {
+                    return false;
+                }
+                break;
+            case EDGE:
+                final Edge reference2 = (Edge) this.getReference();
+                if (reference2.start() == null || reference2.end() == null
+                        || reference2.asPolyLine() == null)
+                {
+                    return false;
+                }
+                break;
+            case AREA:
+                final Area reference3 = (Area) this.getReference();
+                if (reference3.asPolygon() == null)
+                {
+                    return false;
+                }
+                break;
+            case LINE:
+                final Line reference4 = (Line) this.getReference();
+                if (reference4.asPolyLine() == null)
+                {
+                    return false;
+                }
+                break;
+            case POINT:
+                final Point reference5 = (Point) this.getReference();
+                if (reference5.getLocation() == null)
+                {
+                    return false;
+                }
+                break;
+            case RELATION:
+                final Relation reference6 = (Relation) this.getReference();
+                if (reference6.members() == null || reference6.allKnownOsmMembers() == null
+                        || reference6.allRelationsWithSameOsmIdentifier() == null)
+                {
+                    return false;
+                }
+                break;
+        }
+        return true;
+    }
+
     @Override
     public Rectangle bounds()
     {
@@ -137,16 +196,6 @@ public class FeatureChange implements Located, Serializable
     }
 
     /**
-     * Get the changed tags.
-     *
-     * @return Map - the changed tags.
-     */
-    public Map<String, String> getTags()
-    {
-        return this.getReference().getTags();
-    }
-
-    /**
      * Get a tag based on key post changes.
      *
      * @param key
@@ -156,6 +205,16 @@ public class FeatureChange implements Located, Serializable
     public Optional<String> getTag(final String key)
     {
         return this.getReference().getTag(key);
+    }
+
+    /**
+     * Get the changed tags.
+     *
+     * @return Map - the changed tags.
+     */
+    public Map<String, String> getTags()
+    {
+        return this.getReference().getTags();
     }
 
     @Override

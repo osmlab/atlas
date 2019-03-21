@@ -30,6 +30,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.Maps;
+import org.openstreetmap.atlas.utilities.collections.Sets;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
@@ -71,6 +72,30 @@ public class ChangeAtlasTest
         Assert.assertEquals("POLYGON ((-122.2450237 37.5920679, -122.2450237 37.5938873, "
                 + "-122.2412753 37.5938873, -122.2412753 37.5920679, -122.2450237 37.5920679))",
                 changeAtlas.bounds().toWkt());
+    }
+
+    @Test
+    public void testBuildFromScratch()
+    {
+        final ChangeBuilder changeBuilder = new ChangeBuilder();
+        final FeatureChange featureChange1 = FeatureChange.add(new CompleteArea(123L,
+                Polygon.SILICON_VALLEY, Maps.hashMap("k", "v"), Sets.hashSet(123L)));
+        changeBuilder.add(featureChange1);
+        final Change change = changeBuilder.get();
+        final Atlas result = new ChangeAtlas(change);
+        Assert.assertNotNull(result.area(123L));
+        Assert.assertEquals(0, Iterables.size(result.points()));
+    }
+
+    @Test
+    public void testBuildFromScratchError()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("ChangeAtlas needs all ADD featureChanges to be full");
+        final ChangeBuilder changeBuilder = new ChangeBuilder();
+        changeBuilder.add(getFeatureChangeUpdatedEdgePolyLine().getFirst());
+        final Change change = changeBuilder.get();
+        new ChangeAtlas(change);
     }
 
     @Test

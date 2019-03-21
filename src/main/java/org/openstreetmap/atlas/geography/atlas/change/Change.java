@@ -43,18 +43,6 @@ public class Change implements Located, Serializable
     private Rectangle bounds;
     private String name;
 
-    protected Change()
-    {
-        this.featureChanges = new ArrayList<>();
-        this.identifierToIndex = new HashMap<>();
-        this.identifier = CHANGE_IDENTIFIER_FACTORY.getAndIncrement();
-    }
-
-    public static Change newInstance()
-    {
-        return new Change();
-    }
-
     /**
      * Merge {@link FeatureChange}s inside {@link Change} objects and create a
      * {@link Change#newInstance()} with the merged {@link FeatureChange}s. The
@@ -67,6 +55,10 @@ public class Change implements Located, Serializable
      */
     public static Change merge(final Change... changeInstances)
     {
+        if (changeInstances.length == 1)
+        {
+            return changeInstances[0];
+        }
         final FeatureChange[] mergedFeatureChanges = Arrays.stream(changeInstances)
                 .flatMap(Change::changes)
                 .collect(Collectors.groupingBy(FeatureChangeMergeGroup::from, LinkedHashMap::new,
@@ -74,6 +66,18 @@ public class Change implements Located, Serializable
                 .values().stream().map(Optional::get).toArray(FeatureChange[]::new);
 
         return Change.newInstance().withName("Merged Change").addAll(mergedFeatureChanges);
+    }
+
+    public static Change newInstance()
+    {
+        return new Change();
+    }
+
+    protected Change()
+    {
+        this.featureChanges = new ArrayList<>();
+        this.identifierToIndex = new HashMap<>();
+        this.identifier = CHANGE_IDENTIFIER_FACTORY.getAndIncrement();
     }
 
     List<FeatureChange> getFeatureChanges()
@@ -114,6 +118,40 @@ public class Change implements Located, Serializable
                 .map(tuple -> this.featureChanges.get(this.identifierToIndex.get(tuple)));
     }
 
+    /**
+     * An Object{@link #equals(Object)} implementation based on {@link #featureChanges} in the
+     * {@link Change} objects being compared.
+     *
+     * @param other
+     *            - the object to compare.
+     * @return boolean - true if the objects are equal
+     * @see Objects#equals(Object, Object)
+     * @see Object#equals(Object)
+     */
+    @Override
+    public boolean equals(final Object other)
+    {
+        // self check
+        if (this == other)
+        {
+            return true;
+        }
+        // null check
+        if (other == null)
+        {
+            return false;
+        }
+        // type check and cast
+        if (getClass() != other.getClass())
+        {
+            return false;
+        }
+
+        final Change that = (Change) other;
+
+        return Objects.equals(this.featureChanges, that.featureChanges);
+    }
+
     public int getIdentifier()
     {
         return this.identifier;
@@ -129,6 +167,20 @@ public class Change implements Located, Serializable
         {
             return this.name;
         }
+    }
+
+    /**
+     * An Object{@link #hashCode()} implementation based on {@link #featureChanges} in the
+     * {@link Change}.
+     *
+     * @return - the hash code.
+     * @see Objects#hashCode(Object)
+     * @see Object#hashCode()
+     */
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode(this.featureChanges);
     }
 
     /**
@@ -208,53 +260,5 @@ public class Change implements Located, Serializable
     {
         Arrays.stream(featureChanges).forEach(this::add);
         return this;
-    }
-
-    /**
-     * An Object{@link #equals(Object)} implementation based on {@link #featureChanges} in the
-     * {@link Change} objects being compared.
-     *
-     * @param other
-     *            - the object to compare.
-     * @return boolean - true if the objects are equal
-     * @see Objects#equals(Object, Object)
-     * @see Object#equals(Object)
-     */
-    @Override
-    public boolean equals(final Object other)
-    {
-        // self check
-        if (this == other)
-        {
-            return true;
-        }
-        // null check
-        if (other == null)
-        {
-            return false;
-        }
-        // type check and cast
-        if (getClass() != other.getClass())
-        {
-            return false;
-        }
-
-        final Change that = (Change) other;
-
-        return Objects.equals(this.featureChanges, that.featureChanges);
-    }
-
-    /**
-     * An Object{@link #hashCode()} implementation based on {@link #featureChanges} in the
-     * {@link Change}.
-     *
-     * @return - the hash code.
-     * @see Objects#hashCode(Object)
-     * @see Object#hashCode()
-     */
-    @Override
-    public int hashCode()
-    {
-        return Objects.hashCode(this.featureChanges);
     }
 }
