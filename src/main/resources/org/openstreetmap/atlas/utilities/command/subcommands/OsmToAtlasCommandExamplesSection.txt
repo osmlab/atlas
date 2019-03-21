@@ -8,4 +8,3 @@ atlas osm2Atlas zz.osm --josm --name=xx.atlas
     converts to xx.atlas in the current working directory where zz.osm is saved from josm
 atlas osm2Atlas zz.osm --josm --name=xx.atlas -o ~/Documents
     converts to xx.atlas in the Documents folder where zz.osm is saved from josm
-    
