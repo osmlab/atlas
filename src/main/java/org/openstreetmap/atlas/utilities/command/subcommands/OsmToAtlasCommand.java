@@ -58,7 +58,7 @@ public class OsmToAtlasCommand extends MultipleOutputCommand
             }
 
             final Path absoluteOsmPath = this.optionAndArgumentDelegate
-                    .getUnaryArgument(INPUT_OSM_FILE).map(pathString -> Paths.get(pathString))
+                    .getUnaryArgument(INPUT_OSM_FILE).map(Paths::get)
                     .orElseThrow(() -> new CoreException("No osm path found.")).toAbsolutePath();
 
             if (!absoluteOsmPath.toFile().isDirectory())
@@ -81,8 +81,8 @@ public class OsmToAtlasCommand extends MultipleOutputCommand
             this.outputDelegate.printlnErrorMessage("Exception during execution:");
             if (this.optionAndArgumentDelegate.hasVerboseOption())
             {
-                exception.printStackTrace(System.out);
-                System.out.println();
+                exception.printStackTrace(System.out); // NOSONAR
+                System.out.println(); // NOSONAR
             }
             else
             {
