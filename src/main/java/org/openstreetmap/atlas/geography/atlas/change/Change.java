@@ -55,10 +55,6 @@ public class Change implements Located, Serializable
      */
     public static Change merge(final Change... changeInstances)
     {
-        if (changeInstances.length == 1)
-        {
-            return changeInstances[0];
-        }
         final FeatureChange[] mergedFeatureChanges = Arrays.stream(changeInstances)
                 .flatMap(Change::changes)
                 .collect(Collectors.groupingBy(FeatureChangeMergeGroup::from, LinkedHashMap::new,

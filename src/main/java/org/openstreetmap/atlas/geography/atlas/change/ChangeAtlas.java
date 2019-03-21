@@ -41,6 +41,7 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
 
     private final Change change;
     private final Atlas source;
+    private String name;
 
     private transient Rectangle bounds;
     private transient AtlasMetaData metaData;
@@ -51,27 +52,39 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     private transient Long numberOfPoints;
     private transient Long numberOfRelations;
 
-    public ChangeAtlas(final Atlas source, final Change... changes)
+    private static void checkChanges(final Change... changes)
     {
-        if (changes == null || changes.length < 1)
+        if (changes == null)
         {
             throw new CoreException("Change cannot be null in a ChangeAtlas.");
         }
+        if (changes.length < 1)
+        {
+            throw new CoreException("ChangeAtlas has to have at least one Change.");
+        }
+    }
+
+    private static void checkSource(final Atlas source)
+    {
         if (source == null)
         {
             throw new CoreException("Source Atlas cannot be null in a ChangeAtlas.");
         }
+    }
+
+    public ChangeAtlas(final Atlas source, final Change... changes)
+    {
+        checkSource(source);
+        checkChanges(changes);
         this.change = Change.merge(changes);
         this.source = source;
+        this.name = source.getName();
         new AtlasValidator(this).validate();
     }
 
     public ChangeAtlas(final Change... changes)
     {
-        if (changes == null || changes.length < 1)
-        {
-            throw new CoreException("Change cannot be null in a ChangeAtlas.");
-        }
+        checkChanges(changes);
         final Change change = Change.merge(changes);
         boolean valid = false;
         Atlas source = null;
@@ -97,9 +110,12 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
         }
         if (valid)
         {
-            change.add(dummy);
-            this.change = change;
+            final ChangeBuilder changeBuilder = new ChangeBuilder();
+            changeBuilder.addAll(change.changes());
+            changeBuilder.add(dummy);
+            this.change = changeBuilder.get();
             this.source = source;
+            this.name = source.getName();
             new AtlasValidator(this).validate();
         }
         else
@@ -162,6 +178,16 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     public Iterable<Edge> edges()
     {
         return entitiesFor(ItemType.EDGE, this::edge, this.source.edges());
+    }
+
+    @Override
+    public String getName()
+    {
+        if (this.name == null)
+        {
+            return super.getName();
+        }
+        return this.name;
     }
 
     @Override
@@ -311,6 +337,12 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     public Iterable<Relation> relations()
     {
         return entitiesFor(ItemType.RELATION, this::relation, this.source.relations());
+    }
+
+    public ChangeAtlas withName(final String name)
+    {
+        this.name = name;
+        return this;
     }
 
     /**

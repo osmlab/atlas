@@ -109,46 +109,47 @@ public class FeatureChange implements Located, Serializable
         switch (this.getItemType())
         {
             case NODE:
-                final Node reference1 = (Node) this.getReference();
-                if (reference1.inEdges() == null || reference1.outEdges() == null
-                        || reference1.getLocation() == null)
+                final Node nodeReference = (Node) this.getReference();
+                if (nodeReference.inEdges() == null || nodeReference.outEdges() == null
+                        || nodeReference.getLocation() == null)
                 {
                     return false;
                 }
                 break;
             case EDGE:
-                final Edge reference2 = (Edge) this.getReference();
-                if (reference2.start() == null || reference2.end() == null
-                        || reference2.asPolyLine() == null)
+                final Edge edgeReference = (Edge) this.getReference();
+                if (edgeReference.start() == null || edgeReference.end() == null
+                        || edgeReference.asPolyLine() == null)
                 {
                     return false;
                 }
                 break;
             case AREA:
-                final Area reference3 = (Area) this.getReference();
-                if (reference3.asPolygon() == null)
+                final Area areaReference = (Area) this.getReference();
+                if (areaReference.asPolygon() == null)
                 {
                     return false;
                 }
                 break;
             case LINE:
-                final Line reference4 = (Line) this.getReference();
-                if (reference4.asPolyLine() == null)
+                final Line lineReference = (Line) this.getReference();
+                if (lineReference.asPolyLine() == null)
                 {
                     return false;
                 }
                 break;
             case POINT:
-                final Point reference5 = (Point) this.getReference();
-                if (reference5.getLocation() == null)
+                final Point pointReference = (Point) this.getReference();
+                if (pointReference.getLocation() == null)
                 {
                     return false;
                 }
                 break;
             case RELATION:
-                final Relation reference6 = (Relation) this.getReference();
-                if (reference6.members() == null || reference6.allKnownOsmMembers() == null
-                        || reference6.allRelationsWithSameOsmIdentifier() == null)
+                final Relation relationReference = (Relation) this.getReference();
+                if (relationReference.members() == null
+                        || relationReference.allKnownOsmMembers() == null
+                        || relationReference.allRelationsWithSameOsmIdentifier() == null)
                 {
                     return false;
                 }
