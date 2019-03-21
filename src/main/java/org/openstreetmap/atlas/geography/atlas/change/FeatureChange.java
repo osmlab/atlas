@@ -153,6 +153,8 @@ public class FeatureChange implements Located, Serializable
                     return false;
                 }
                 break;
+            default:
+                throw new CoreException("Unknown Item Type {}", this.getItemType());
         }
         return true;
     }
