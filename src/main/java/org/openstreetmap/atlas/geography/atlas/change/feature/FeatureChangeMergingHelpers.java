@@ -305,7 +305,7 @@ public final class FeatureChangeMergingHelpers
         }
         else if (afterEntityLeft instanceof Relation)
         {
-            return mergeRelationsOLD(left, right, mergedTagsBean, mergedParentRelationsBean);
+            return mergeRelations(left, right, mergedTagsBean, mergedParentRelationsBean);
         }
         else
         {
@@ -567,7 +567,70 @@ public final class FeatureChangeMergingHelpers
         final AtlasEntity beforeEntityRight = right.getBeforeView();
         final AtlasEntity afterEntityRight = right.getAfterView();
 
-        return null;
+        final MergedMemberBean<RelationBean> mergedMembersBean = mergeMember("relationMembers",
+                beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
+                entity -> ((Relation) entity).members() == null ? null
+                        : ((Relation) entity).members().asBean(),
+                null, MemberMergeStrategies.diffBasedRelationBeanMerger);
+
+        final MergedMemberBean<Set<Long>> mergedAllRelationsWithSameOsmIdentifierBean = mergeMember(
+                "allRelationsWithSameOsmIdentifier", beforeEntityLeft, afterEntityLeft,
+                beforeEntityRight, afterEntityRight,
+                atlasEntity -> ((Relation) atlasEntity).allRelationsWithSameOsmIdentifier() == null
+                        ? null
+                        : ((Relation) atlasEntity).allRelationsWithSameOsmIdentifier().stream()
+                                .map(Relation::getIdentifier).collect(Collectors.toSet()),
+                MemberMergeStrategies.simpleLongSetMerger,
+                MemberMergeStrategies.diffBasedLongSetMerger);
+
+        final MergedMemberBean<RelationBean> mergedAllKnownMembersBean = mergeMember(
+                "allKnownOsmMembers", beforeEntityLeft, afterEntityLeft, beforeEntityRight,
+                afterEntityRight,
+                entity -> ((Relation) entity).allKnownOsmMembers() == null ? null
+                        : ((Relation) entity).allKnownOsmMembers().asBean(),
+                null, MemberMergeStrategies.diffBasedRelationBeanMerger);
+
+        final MergedMemberBean<Long> mergedOsmRelationIdentifier = mergeMember(
+                "osmRelationIdentifier", beforeEntityLeft, afterEntityLeft, beforeEntityRight,
+                afterEntityRight, entity -> ((Relation) entity).getOsmIdentifier(), null, null);
+
+        final Rectangle mergedBounds = Rectangle.forLocated(afterEntityLeft, afterEntityRight);
+
+        final CompleteRelation mergedAfterRelation = new CompleteRelation(left.getIdentifier(),
+                mergedTagsBean.getMergedAfterMember(), mergedBounds,
+                mergedMembersBean.getMergedAfterMember(),
+                mergedAllRelationsWithSameOsmIdentifierBean.getMergedAfterMember().stream().collect(
+                        Collectors.toList()),
+                mergedAllKnownMembersBean.getMergedAfterMember(),
+                mergedOsmRelationIdentifier.getMergedAfterMember(),
+                mergedParentRelationsBean.getMergedAfterMember());
+
+        final CompleteRelation mergedBeforeRelation;
+        /*
+         * Here we just arbitrarily use the left side entity. We have already asserted that both
+         * left and right explicitly provided or explicitly excluded a beforeView. At this point, we
+         * have also ensured that both beforeViews, if present, were consistent (i.e. they contained
+         * the same initial geometry). Therefore it is safe to arbitrarily choose one from which to
+         * "shallowFrom" clone a new CompleteEntity.
+         */
+        if (beforeEntityLeft != null)
+        {
+            mergedBeforeRelation = CompleteRelation.shallowFrom((Relation) beforeEntityLeft)
+                    .withMembers(mergedMembersBean.getMergedBeforeMember(),
+                            beforeEntityLeft.bounds())
+                    .withAllRelationsWithSameOsmIdentifier(
+                            mergedAllRelationsWithSameOsmIdentifierBean.getMergedBeforeMember()
+                                    .stream().collect(Collectors.toList()))
+                    .withAllKnownOsmMembers(mergedAllKnownMembersBean.getMergedBeforeMember())
+                    .withOsmRelationIdentifier(mergedOsmRelationIdentifier.getMergedBeforeMember())
+                    .withTags(mergedTagsBean.getMergedBeforeMember())
+                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
+        }
+        else
+        {
+            mergedBeforeRelation = null;
+        }
+        return new FeatureChange(ChangeType.ADD, mergedAfterRelation, mergedBeforeRelation);
     }
 
     private static FeatureChange mergeRelationsOLD(final FeatureChange left,

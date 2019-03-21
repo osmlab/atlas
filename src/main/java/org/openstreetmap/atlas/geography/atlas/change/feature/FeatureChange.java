@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Located;
@@ -377,12 +378,13 @@ public class FeatureChange implements Located, Serializable
              * Area specific updates. The only Area-specific field is the polygon.
              */
             case AREA:
-                final Area updatedAreaView = (Area) this.afterView;
-                final Area beforeAreaView = (Area) beforeViewFromAtlas;
-                beforeViewUpdatesOnly = CompleteArea.shallowFrom(beforeAreaView);
-                if (updatedAreaView.asPolygon() != null)
+                final Area afterAreaView = (Area) this.afterView;
+                final Area beforeAreaViewFromAtlas = (Area) beforeViewFromAtlas;
+                beforeViewUpdatesOnly = CompleteArea.shallowFrom(beforeAreaViewFromAtlas);
+                if (afterAreaView.asPolygon() != null)
                 {
-                    ((CompleteArea) beforeViewUpdatesOnly).withPolygon(beforeAreaView.asPolygon());
+                    ((CompleteArea) beforeViewUpdatesOnly)
+                            .withPolygon(beforeAreaViewFromAtlas.asPolygon());
                 }
                 break;
             /*
@@ -390,36 +392,36 @@ public class FeatureChange implements Located, Serializable
              * nodes.
              */
             case EDGE:
-                final Edge updatedEdgeView = (Edge) this.afterView;
-                final Edge beforeEdgeView = (Edge) beforeViewFromAtlas;
-                beforeViewUpdatesOnly = CompleteEdge.shallowFrom(updatedEdgeView);
-                if (updatedEdgeView.asPolyLine() != null)
+                final Edge afterEdgeView = (Edge) this.afterView;
+                final Edge beforeEdgeViewFromAtlas = (Edge) beforeViewFromAtlas;
+                beforeViewUpdatesOnly = CompleteEdge.shallowFrom(afterEdgeView);
+                if (afterEdgeView.asPolyLine() != null)
                 {
                     ((CompleteEdge) beforeViewUpdatesOnly)
-                            .withPolyLine(beforeEdgeView.asPolyLine());
+                            .withPolyLine(beforeEdgeViewFromAtlas.asPolyLine());
                 }
-                if (updatedEdgeView.start() != null)
+                if (afterEdgeView.start() != null)
                 {
-                    ((CompleteEdge) beforeViewUpdatesOnly)
-                            .withStartNodeIdentifier(beforeEdgeView.start().getIdentifier());
+                    ((CompleteEdge) beforeViewUpdatesOnly).withStartNodeIdentifier(
+                            beforeEdgeViewFromAtlas.start().getIdentifier());
                 }
-                if (updatedEdgeView.end() != null)
+                if (afterEdgeView.end() != null)
                 {
                     ((CompleteEdge) beforeViewUpdatesOnly)
-                            .withEndNodeIdentifier(beforeEdgeView.end().getIdentifier());
+                            .withEndNodeIdentifier(beforeEdgeViewFromAtlas.end().getIdentifier());
                 }
                 break;
             /*
              * Line specific updates. The only Line-specific field is the polyline.
              */
             case LINE:
-                final Line updatedLineView = (Line) this.afterView;
-                final Line beforeLineView = (Line) beforeViewFromAtlas;
-                beforeViewUpdatesOnly = CompleteLine.shallowFrom(updatedLineView);
-                if (updatedLineView.asPolyLine() != null)
+                final Line afterLineView = (Line) this.afterView;
+                final Line beforeLineViewFromAtlas = (Line) beforeViewFromAtlas;
+                beforeViewUpdatesOnly = CompleteLine.shallowFrom(afterLineView);
+                if (afterLineView.asPolyLine() != null)
                 {
                     ((CompleteLine) beforeViewUpdatesOnly)
-                            .withPolyLine(beforeLineView.asPolyLine());
+                            .withPolyLine(beforeLineViewFromAtlas.asPolyLine());
                 }
                 break;
             /*
@@ -427,52 +429,67 @@ public class FeatureChange implements Located, Serializable
              * sets.
              */
             case NODE:
-                final Node updatedNodeView = (Node) this.afterView;
-                final Node beforeNodeView = (Node) beforeViewFromAtlas;
-                beforeViewUpdatesOnly = CompleteNode.shallowFrom(updatedNodeView);
-                if (updatedNodeView.getLocation() != null)
+                final Node afterNodeView = (Node) this.afterView;
+                final Node beforeNodeViewFromAtlas = (Node) beforeViewFromAtlas;
+                beforeViewUpdatesOnly = CompleteNode.shallowFrom(afterNodeView);
+                if (afterNodeView.getLocation() != null)
                 {
                     ((CompleteNode) beforeViewUpdatesOnly)
-                            .withLocation(beforeNodeView.getLocation());
+                            .withLocation(beforeNodeViewFromAtlas.getLocation());
                 }
-                if (updatedNodeView.inEdges() != null)
+                if (afterNodeView.inEdges() != null)
                 {
-                    ((CompleteNode) beforeViewUpdatesOnly).withInEdges(beforeNodeView.inEdges());
+                    ((CompleteNode) beforeViewUpdatesOnly)
+                            .withInEdges(beforeNodeViewFromAtlas.inEdges());
                 }
-                if (updatedNodeView.outEdges() != null)
+                if (afterNodeView.outEdges() != null)
                 {
-                    ((CompleteNode) beforeViewUpdatesOnly).withOutEdges(beforeNodeView.outEdges());
+                    ((CompleteNode) beforeViewUpdatesOnly)
+                            .withOutEdges(beforeNodeViewFromAtlas.outEdges());
                 }
                 break;
             /*
              * Point specific updates. The only Point-specific field is the location.
              */
             case POINT:
-                final Point updatedPointView = (Point) this.afterView;
-                final Point beforePointView = (Point) beforeViewFromAtlas;
-                beforeViewUpdatesOnly = CompletePoint.shallowFrom(updatedPointView);
-                if (updatedPointView.getLocation() != null)
+                final Point afterPointView = (Point) this.afterView;
+                final Point beforePointViewFromAtlas = (Point) beforeViewFromAtlas;
+                beforeViewUpdatesOnly = CompletePoint.shallowFrom(afterPointView);
+                if (afterPointView.getLocation() != null)
                 {
                     ((CompletePoint) beforeViewUpdatesOnly)
-                            .withLocation(beforePointView.getLocation());
+                            .withLocation(beforePointViewFromAtlas.getLocation());
                 }
                 break;
             /*
-             * Relation specific updates. The only Relation-specific field is the member list.
-             */
-            /*
-             * TODO do we need to handle the allKnownOsmMembers case? I am not convinced we even
-             * need this field in Relation. I don't see it called anywhere in the codebase (except
-             * in a few tests).
+             * Relation specific updates. There are quite a few Relation specific fields: members,
+             * allRelationsWithSameOsmIdentifier, allKnownOsmMembers, and osmRelationIdentifier.
              */
             case RELATION:
-                final Relation updatedRelationView = (Relation) this.afterView;
-                final Relation beforeRelationView = (Relation) beforeViewFromAtlas;
-                beforeViewUpdatesOnly = CompleteRelation.shallowFrom(updatedRelationView);
-                if (updatedRelationView.members() != null)
+                final Relation afterRelationView = (Relation) this.afterView;
+                final Relation beforeRelationViewFromAtlas = (Relation) beforeViewFromAtlas;
+                beforeViewUpdatesOnly = CompleteRelation.shallowFrom(afterRelationView);
+                if (afterRelationView.members() != null)
                 {
                     ((CompleteRelation) beforeViewUpdatesOnly)
-                            .withMembers(beforeRelationView.members());
+                            .withMembers(beforeRelationViewFromAtlas.members());
+                }
+                if (afterRelationView.allRelationsWithSameOsmIdentifier() != null)
+                {
+                    ((CompleteRelation) beforeViewUpdatesOnly)
+                            .withAllRelationsWithSameOsmIdentifier(beforeRelationViewFromAtlas
+                                    .allRelationsWithSameOsmIdentifier().stream()
+                                    .map(Relation::getIdentifier).collect(Collectors.toList()));
+                }
+                if (afterRelationView.allKnownOsmMembers() != null)
+                {
+                    ((CompleteRelation) beforeViewUpdatesOnly).withAllKnownOsmMembers(
+                            beforeRelationViewFromAtlas.allKnownOsmMembers().asBean());
+                }
+                if (afterRelationView.osmRelationIdentifier() != null)
+                {
+                    ((CompleteRelation) beforeViewUpdatesOnly).withOsmRelationIdentifier(
+                            beforeRelationViewFromAtlas.osmRelationIdentifier());
                 }
                 break;
             default:

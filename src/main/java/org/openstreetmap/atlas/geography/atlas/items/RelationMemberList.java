@@ -31,7 +31,7 @@ public class RelationMemberList extends AbstractCollection<RelationMember> imple
         else
         {
             this.members = new ArrayList<>();
-            members.forEach(member -> this.members.add(member));
+            members.forEach(this.members::add);
         }
         this.explicitlyExcluded = new HashSet<>();
     }
