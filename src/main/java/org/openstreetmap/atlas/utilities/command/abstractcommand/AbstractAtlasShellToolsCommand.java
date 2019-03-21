@@ -68,8 +68,6 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private static final int PAGER_OFFSET = 3;
     private static final int TERMINAL_COLUMN_OFFSET = 2;
 
-    private static final String VERBOSE_OPTION_LONG = "verbose";
-    private static final Character VERBOSE_OPTION_SHORT = 'v';
     private static final String VERBOSE_OPTION_DESCRIPTION = "Show verbose output messages.";
     private static final String HELP_OPTION_LONG = "help";
     private static final Character HELP_OPTION_SHORT = 'h';
@@ -78,9 +76,14 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private static final Character VERSION_OPTION_SHORT = 'V';
     private static final String VERSION_OPTION_DESCRIPTION = "Print the command version and exit.";
 
+    protected static final String VERBOSE_OPTION_LONG = "verbose";
+    protected static final Character VERBOSE_OPTION_SHORT = 'v';
+
     private static final int HELP_OPTION_CONTEXT = 1;
     private static final int VERSION_OPTION_CONTEXT = 2;
     public static final int DEFAULT_CONTEXT = 3;
+    public static final String DESCRIPTION = "DESCRIPTION";
+    public static final String EXAMPLES = "EXAMPLES";
 
     /*
      * Maximum allowed column width. If the user's terminal is very wide, we don't want to display

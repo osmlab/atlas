@@ -22,6 +22,7 @@ public enum FileSuffix
     JSON(".json"),
     NONE(""),
     OSMPBF(".osm.pbf"),
+    OSM(".osm"),
     PBF(".pbf"),
     PROTOATLAS(".patlas"),
     TEMPORARY(".tmp"),

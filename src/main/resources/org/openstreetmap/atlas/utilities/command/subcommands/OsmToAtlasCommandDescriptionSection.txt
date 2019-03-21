@@ -1,0 +1,1 @@
+This command allows you to take .osm files draw in Josm and convert their contents into their Atlas representation which is save out as a serialized PackedAtlas.

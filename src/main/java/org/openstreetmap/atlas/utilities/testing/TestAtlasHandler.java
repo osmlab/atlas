@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.utilities.testing;
 
 import java.lang.reflect.Field;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,6 +28,7 @@ import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
+import org.openstreetmap.atlas.streaming.resource.AbstractResource;
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
 import org.openstreetmap.atlas.streaming.resource.ClassResource;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
@@ -190,7 +192,7 @@ public class TestAtlasHandler implements FieldHandler
      *            The pbf input resource to use
      * @return the resulting Atlas
      */
-    private Atlas buildAtlasFromPbf(final Resource pbfResource)
+    private static Atlas buildAtlasFromPbf(final Resource pbfResource)
     {
         // Create raw Atlas
         final AtlasLoadingOption loadingOption = AtlasLoadingOption.withNoFilter();
@@ -388,35 +390,44 @@ public class TestAtlasHandler implements FieldHandler
     {
         final String packageName = rule.getClass().getPackage().getName().replaceAll("\\.", "/");
         final String completeName = String.format("%s/%s", packageName, resourcePath);
-        final ClassResource resource = new ClassResource(completeName);
-        FileSuffix.suffixFor(completeName).ifPresent(suffix ->
+        try
+        {
+            field.set(rule, getAtlasFromJsomOsmResource(josmFormat, new ClassResource(completeName),
+                    Paths.get(completeName).getFileName().toString()));
+        }
+        catch (IllegalArgumentException | IllegalAccessException e)
+        {
+            throw new CoreException("Error loading from JOSM osm resource {}", resourcePath, e);
+        }
+
+    }
+
+    public static Atlas getAtlasFromJsomOsmResource(final boolean josmFormat,
+            final AbstractResource resource, final String fileName)
+    {
+        System.out.println("About to set decompressor");
+        FileSuffix.suffixFor(fileName).ifPresent(suffix ->
         {
             if (suffix == FileSuffix.GZIP)
             {
                 resource.setDecompressor(Decompressor.GZIP);
             }
         });
-        try
+        System.out.println("About to convert");
+        final ByteArrayResource pbfFile = new ByteArrayResource();
+        if (josmFormat)
         {
-            final ByteArrayResource pbfFile = new ByteArrayResource();
-            if (josmFormat)
-            {
-                // If the XML file is in JOSM format, fix it to look like an OSM file
-                final StringResource osmFile = new StringResource();
-                new OsmFileParser().update(resource, osmFile);
-                new OsmFileToPbf().update(osmFile, pbfFile);
-            }
-            else
-            {
-                new OsmFileToPbf().update(resource, pbfFile);
-            }
-
-            field.set(rule, buildAtlasFromPbf(pbfFile));
+            System.out.println("Josm convert");
+            // If the XML file is in JOSM format, fix it to look like an OSM file
+            final StringResource osmFile = new StringResource();
+            new OsmFileParser().update(resource, osmFile);
+            new OsmFileToPbf().update(osmFile, pbfFile);
         }
-        catch (IllegalArgumentException | IllegalAccessException e)
+        else
         {
-            throw new CoreException("Error loading from JOSM osm resource {}", resourcePath, e);
+            new OsmFileToPbf().update(resource, pbfFile);
         }
+        return buildAtlasFromPbf(pbfFile);
     }
 
     private void loadFromTextResource(final Field field, final CoreTestRule rule,
