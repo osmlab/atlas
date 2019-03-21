@@ -41,9 +41,76 @@ public final class MemberMergeStrategies
     static final BinaryOperator<SortedSet<Long>> simpleLongSortedSetAllowCollisionsMerger = (left,
             right) -> Sets.withSortedSets(false, left, right);
 
+    @Deprecated
     static final BinaryOperator<RelationBean> simpleRelationBeanMerger = RelationBean::merge;
 
     static final TernaryOperator<RelationBean> diffBasedRelationBeanMerger = (beforeBean,
+            afterLeftBean, afterRightBean) ->
+    {
+        final Map<RelationBeanItem, Integer> beforeBeanMap = beforeBean.asMap();
+        final Map<RelationBeanItem, Integer> afterLeftBeanMap = afterLeftBean.asMap();
+        final Map<RelationBeanItem, Integer> afterRightBeanMap = afterRightBean.asMap();
+
+        /*
+         * Compute the difference set between the beforeView and the afterViews (which is equivalent
+         * to the keys removed from the after views). We filter any entries that have a count <= 0,
+         * since this corresponds to unchanged/added keys in the afterView.
+         */
+        final Map<RelationBeanItem, Integer> removedFromLeftView = computeMapDifferenceCounts(
+                beforeBeanMap, afterLeftBeanMap).entrySet().stream()
+                        .filter(entry -> entry.getValue() > 0)
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        final Map<RelationBeanItem, Integer> removedFromRightView = computeMapDifferenceCounts(
+                beforeBeanMap, afterRightBeanMap).entrySet().stream()
+                        .filter(entry -> entry.getValue() > 0)
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        /*
+         * First, we must check for REMOVE/REMOVE conflicts. A REMOVE/REMOVE conflict occurs when
+         * removedFromLeftView and removedFromRightView share a key, but the values differ.
+         */
+        for (final Map.Entry<RelationBeanItem, Integer> removedFromLeftEntry : removedFromLeftView
+                .entrySet())
+        {
+            final RelationBeanItem leftKey = removedFromLeftEntry.getKey();
+            final Integer leftValue = removedFromLeftEntry.getValue();
+            final Integer rightValue = removedFromRightView.get(leftKey);
+            if (rightValue != null && !leftValue.equals(rightValue))
+            {
+                throw new CoreException(
+                        "diffBasedRelationBeanMerger failed due to REMOVE/REMOVE collision on key: {}: beforeValue count was {} and afterValue remove counts conflict [{} vs {}]",
+                        leftKey, beforeBeanMap.get(leftKey), leftValue, rightValue);
+            }
+        }
+
+        // TODO create this view
+        final Map<RelationBeanItem, Integer> removedMergedView;
+
+        /*
+         * Compute the difference set between the afterViews and the beforeView (which is equivalent
+         * to the keys added to the after views). We filter any entries that have a count <= 0,
+         * since this corresponds to unchanged/removed keys in the afterView.
+         */
+        final Map<RelationBeanItem, Integer> addedToLeftView = computeMapDifferenceCounts(
+                afterLeftBeanMap, beforeBeanMap).entrySet().stream()
+                        .filter(entry -> entry.getValue() > 0)
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        final Map<RelationBeanItem, Integer> addedToRightView = computeMapDifferenceCounts(
+                afterRightBeanMap, beforeBeanMap).entrySet().stream()
+                        .filter(entry -> entry.getValue() > 0)
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        /*
+         * TODO We still need to define/compute ADD/REMOVE conflicts as well as ADD/ADD conflicts.
+         */
+
+        /*
+         * TODO We need to construct the final product using our merged REMOVE and ADD views.
+         */
+        return null;
+    };
+
+    static final TernaryOperator<RelationBean> diffBasedRelationBeanMerger2 = (beforeBean,
             afterLeftBean, afterRightBean) ->
     {
         /*
@@ -229,6 +296,40 @@ public final class MemberMergeStrategies
 
         return result;
     };
+
+    /**
+     * Compute the difference counts between two Map<T, Integer>. The difference is computing by
+     * subtracting the after Integer value from the before Integer value. If the before key is not
+     * present in the after map, then we use the before Integer value for that key. Any after keys
+     * not present in the before map are ignored.
+     *
+     * @param before
+     *            the before view of the map
+     * @param after
+     *            the after view of the map
+     * @return the difference map
+     */
+    private static <T> Map<T, Integer> computeMapDifferenceCounts(final Map<T, Integer> before,
+            final Map<T, Integer> after)
+    {
+        final Map<T, Integer> result = new HashMap<>();
+
+        for (final Map.Entry<T, Integer> beforeEntry : before.entrySet())
+        {
+            final T beforeKey = beforeEntry.getKey();
+            final Integer beforeCount = beforeEntry.getValue();
+            final Integer afterCount = after.get(beforeKey);
+            if (afterCount != null)
+            {
+                result.put(beforeKey, beforeCount - afterCount);
+            }
+            else
+            {
+                result.put(beforeKey, beforeCount);
+            }
+        }
+        return result;
+    }
 
     private MemberMergeStrategies()
     {

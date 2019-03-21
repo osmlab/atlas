@@ -3,9 +3,11 @@ package org.openstreetmap.atlas.geography.atlas.builder;
 import java.io.Serializable;
 import java.util.AbstractCollection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -13,9 +15,6 @@ import java.util.Set;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
-import org.openstreetmap.atlas.utilities.collections.Iterables;
-
-import com.google.common.collect.HashMultiset;
 
 /**
  * @author matthieun
@@ -131,14 +130,50 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
         this.explicitlyExcluded.add(item);
     }
 
-    public Set<RelationBeanItem> asSet()
+    /**
+     * Get this {@link RelationBean} as a {@link List} of its {@link RelationBeanItem}s.
+     *
+     * @return the item list representing this bean
+     */
+    public List<RelationBeanItem> asList()
     {
-        final Set<RelationBeanItem> result = new HashSet<>();
+        final List<RelationBeanItem> result = new ArrayList<>();
         for (int index = 0; index < size(); index++)
         {
             result.add(new RelationBeanItem(this.memberIdentifiers.get(index),
                     this.memberRoles.get(index), this.memberTypes.get(index)));
         }
+        return result;
+    }
+
+    /**
+     * Get this {@link RelationBean} as a {@link Map} from its constituent {@link RelationBeanItem}s
+     * to their counts (Here, counts refers to the number of times a given {@link RelationBeanItem}
+     * appears in the bean. While abnormal, duplicate bean items are technically allowed by OSM).
+     * This method is useful for comparing the equality of two {@link RelationBean}s, since the map
+     * representation intrinsically ignores the internal ordering of the constituent
+     * {@link RelationBeanItem}s (this ordering is irrelevant as far as equality is concerned).
+     *
+     * @return the item map representing this bean
+     */
+    public Map<RelationBeanItem, Integer> asMap()
+    {
+        final Map<RelationBeanItem, Integer> result = new HashMap<>();
+
+        for (final RelationBeanItem beanItem : this)
+        {
+            if (result.containsKey(beanItem))
+            {
+                int count = result.get(beanItem);
+                count += 1;
+                result.put(beanItem, count);
+            }
+            else
+            {
+                result.put(beanItem, 1);
+            }
+        }
+
         return result;
     }
 
@@ -155,12 +190,7 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
         if (other instanceof RelationBean)
         {
             final RelationBean that = (RelationBean) other;
-            return Iterables.equals(HashMultiset.create(this.getMemberIdentifiers()),
-                    HashMultiset.create(that.getMemberIdentifiers()))
-                    && Iterables.equals(HashMultiset.create(this.getMemberRoles()),
-                            HashMultiset.create(that.getMemberRoles()))
-                    && Iterables.equals(HashMultiset.create(this.getMemberTypes()),
-                            HashMultiset.create(that.getMemberTypes()));
+            return this.asMap().equals(that.asMap());
         }
         return false;
     }

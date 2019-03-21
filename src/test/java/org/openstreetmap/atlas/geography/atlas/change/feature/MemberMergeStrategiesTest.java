@@ -116,12 +116,12 @@ public class MemberMergeStrategiesTest
          */
         final RelationBean goldenImage1 = new RelationBean();
         goldenImage1.addItem(new RelationBeanItem(1L, "newPointRole1", ItemType.POINT));
-        goldenImage1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
         goldenImage1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
         goldenImage1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        goldenImage1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
 
-        Assert.assertEquals(goldenImage1.asSet(), MemberMergeStrategies.diffBasedRelationBeanMerger
-                .apply(beforeBean, afterBean1, afterBean2).asSet());
+        Assert.assertEquals(goldenImage1, MemberMergeStrategies.diffBasedRelationBeanMerger
+                .apply(beforeBean, afterBean1, afterBean2));
     }
 
     @Test
