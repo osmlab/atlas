@@ -34,9 +34,12 @@ public interface AtlasChangeGenerator extends Converter<Atlas, Set<FeatureChange
                 final CompleteNode originalCompleteNode = (CompleteNode) featureChange
                         .getReference();
                 final Node originalNode = atlas.node(originalNodeIdentifier);
-                for (final Edge originalEdge : originalNode.connectedEdges())
+                if (originalNode != null)
                 {
-                    newBounds = newBounds.combine(originalEdge.bounds());
+                    for (final Edge originalEdge : originalNode.connectedEdges())
+                    {
+                        newBounds = newBounds.combine(originalEdge.bounds());
+                    }
                 }
                 for (final FeatureChange featureChangeInner : featureChanges)
                 {
