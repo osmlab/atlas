@@ -29,6 +29,7 @@ public class OsmToAtlasCommand extends MultipleOutputCommand
 
     private static final String INPUT_OSM_FILE = "input-osm-file";
     private static final String JOSM = "josm";
+    private static final String NAME = "name";
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
@@ -56,24 +57,18 @@ public class OsmToAtlasCommand extends MultipleOutputCommand
                 return code;
             }
 
-            final Path osmPath = this.optionAndArgumentDelegate.getUnaryArgument(INPUT_OSM_FILE)
-                    .map(pathString -> Paths.get(pathString))
-                    .orElseThrow(() -> new CoreException("No osm path found."));
+            final Path absoluteOsmPath = this.optionAndArgumentDelegate
+                    .getUnaryArgument(INPUT_OSM_FILE).map(pathString -> Paths.get(pathString))
+                    .orElseThrow(() -> new CoreException("No osm path found.")).toAbsolutePath();
 
-            if (!osmPath.toFile().isDirectory())
+            if (!absoluteOsmPath.toFile().isDirectory())
             {
                 final Atlas atlas = TestAtlasHandler.getAtlasFromJsomOsmResource(
-                        this.optionAndArgumentDelegate.getOptionArgument(JOSM).isPresent(),
-                        new InputStreamResource(
-                                () -> new File(osmPath.toAbsolutePath().toString()).read()),
-                        osmPath.getFileName().toString());
-                final Path outputDirectory = getOutputPath();
-                final String outputAtlasFilename = osmPath.getFileName().toString()
-                        .replace(FileSuffix.OSM.toString(), StringUtils.EMPTY)
-                        .concat(FileSuffix.ATLAS.toString());
+                        this.optionAndArgumentDelegate.hasOption(JOSM),
+                        new InputStreamResource(() -> new File(absoluteOsmPath.toString()).read()),
+                        absoluteOsmPath.getFileName().toString());
                 final WritableResource outputResource = new OutputStreamWritableResource(
-                        new File(outputDirectory.toAbsolutePath().toString())
-                                .child(outputAtlasFilename).write());
+                        this.getOutputFile(absoluteOsmPath).write());
                 atlas.save(outputResource);
             }
             else
@@ -84,7 +79,7 @@ public class OsmToAtlasCommand extends MultipleOutputCommand
         catch (final Exception exception)
         {
             this.outputDelegate.printlnErrorMessage("Exception during execution:");
-            if (this.optionAndArgumentDelegate.getOptionArgument(VERBOSE_OPTION_LONG).isPresent())
+            if (this.optionAndArgumentDelegate.hasVerboseOption())
             {
                 exception.printStackTrace(System.out);
                 System.out.println();
@@ -104,6 +99,17 @@ public class OsmToAtlasCommand extends MultipleOutputCommand
         return "osm2Atlas";
     }
 
+    public File getOutputFile(final Path osmPath)
+    {
+        final Path outputDirectory = getOutputPath();
+        final String outputFileName = this.optionAndArgumentDelegate.getOptionArgument(NAME).map(
+                nameString -> nameString.replace(FileSuffix.ATLAS.toString(), StringUtils.EMPTY))
+                .orElse(osmPath.getFileName().toString().replace(FileSuffix.OSM.toString(),
+                        StringUtils.EMPTY))
+                .concat(FileSuffix.ATLAS.toString());
+        return new File(outputDirectory.toAbsolutePath().toString()).child(outputFileName);
+    }
+
     @Override
     public String getSimpleDescription()
     {
@@ -117,13 +123,15 @@ public class OsmToAtlasCommand extends MultipleOutputCommand
                 .getResourceAsStream("OsmToAtlasCommandDescriptionSection.txt"));
         addManualPageSection(EXAMPLES, OsmToAtlasCommand.class
                 .getResourceAsStream("OsmToAtlasCommandExamplesSection.txt"));
+        super.registerManualPageSections();
     }
 
     @Override
     public void registerOptionsAndArguments()
     {
-        registerArgument(INPUT_OSM_FILE, ArgumentArity.UNARY, ArgumentOptionality.REQUIRED,
-                DEFAULT_CONTEXT);
+        registerArgument(INPUT_OSM_FILE, ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
+        registerOptionWithRequiredArgument(NAME, "Name of output atlas file",
+                OptionOptionality.OPTIONAL, "output-name");
         registerOption(JOSM, "osm file saved from JOSM layer", OptionOptionality.OPTIONAL);
         super.registerOptionsAndArguments();
     }

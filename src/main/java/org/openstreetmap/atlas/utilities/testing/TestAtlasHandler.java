@@ -405,7 +405,6 @@ public class TestAtlasHandler implements FieldHandler
     public static Atlas getAtlasFromJsomOsmResource(final boolean josmFormat,
             final AbstractResource resource, final String fileName)
     {
-        System.out.println("About to set decompressor");
         FileSuffix.suffixFor(fileName).ifPresent(suffix ->
         {
             if (suffix == FileSuffix.GZIP)
@@ -413,11 +412,9 @@ public class TestAtlasHandler implements FieldHandler
                 resource.setDecompressor(Decompressor.GZIP);
             }
         });
-        System.out.println("About to convert");
         final ByteArrayResource pbfFile = new ByteArrayResource();
         if (josmFormat)
         {
-            System.out.println("Josm convert");
             // If the XML file is in JOSM format, fix it to look like an OSM file
             final StringResource osmFile = new StringResource();
             new OsmFileParser().update(resource, osmFile);
