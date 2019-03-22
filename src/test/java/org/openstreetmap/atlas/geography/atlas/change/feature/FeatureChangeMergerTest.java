@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.change.feature;
 
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
@@ -10,17 +11,23 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 
@@ -31,19 +38,6 @@ public class FeatureChangeMergerTest
 {
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
-
-    @Test
-    public void testMergeAllFailMismatch()
-    {
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L, Polygon.SILICON_VALLEY, null, null), null);
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.REMOVE,
-                new CompleteArea(123L, Polygon.SILICON_VALLEY, null, null), null);
-
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("Cannot merge two feature changes");
-        featureChange1.merge(featureChange2);
-    }
 
     @Test
     public void testMergeAreasFail()
@@ -196,6 +190,45 @@ public class FeatureChangeMergerTest
         Assert.assertEquals(1L, ((Edge) merged.getBeforeView()).start().getIdentifier());
 
         Assert.assertEquals(2L, ((Edge) merged.getBeforeView()).end().getIdentifier());
+    }
+
+    @Test
+    public void testMergeFailMismatchChangeType()
+    {
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteArea(123L, Polygon.SILICON_VALLEY, null, null), null);
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.REMOVE,
+                new CompleteArea(123L, Polygon.SILICON_VALLEY, null, null), null);
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("Cannot merge two feature changes");
+        featureChange1.merge(featureChange2);
+    }
+
+    @Test
+    public void testMergeFailMismatchIdentifier()
+    {
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteArea(123L, Polygon.SILICON_VALLEY, null, null), null);
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
+                new CompleteArea(456L, Polygon.SILICON_VALLEY, null, null), null);
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("Cannot merge two feature changes");
+        featureChange1.merge(featureChange2);
+    }
+
+    @Test
+    public void testMergeFailMismatchItemType()
+    {
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.REMOVE,
+                new CompleteArea(123L, Polygon.SILICON_VALLEY, null, null), null);
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.REMOVE,
+                new CompletePoint(123L, Location.CENTER, null, null), null);
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("Cannot merge two feature changes");
+        featureChange1.merge(featureChange2);
     }
 
     @Test
@@ -460,5 +493,215 @@ public class FeatureChangeMergerTest
 
         Assert.assertEquals(Sets.hashSet(1L, 2L, 3L), ((Point) merged.getBeforeView()).relations()
                 .stream().map(relation -> relation.getIdentifier()).collect(Collectors.toSet()));
+    }
+
+    @Test
+    public void testMergeRelationsFail()
+    {
+        final RelationBean beforeMemberBean = new RelationBean();
+        beforeMemberBean.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        beforeMemberBean.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        beforeMemberBean.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        final CompleteRelation beforeRelation = new CompleteRelation(123L,
+                Maps.hashMap("a", "1", "b", "2"), Rectangle.TEST_RECTANGLE, beforeMemberBean,
+                Arrays.asList(10L, 11L, 12L), null, 123456L, Sets.hashSet(1L, 2L, 3L));
+
+        final RelationBean afterMemberBean1 = new RelationBean();
+        afterMemberBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        afterMemberBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        afterMemberBean1.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        afterMemberBean1.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        afterMemberBean1.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteRelation(123L, Maps.hashMap("a", "1", "b", "2", "c", "3"),
+                        Rectangle.TEST_RECTANGLE, afterMemberBean1,
+                        Arrays.asList(10L, 11L, 12L, 13L), null, 1234567L,
+                        Sets.hashSet(1L, 2L, 3L, 4L)),
+                beforeRelation);
+
+        final RelationBean afterMemberBean2 = new RelationBean();
+        afterMemberBean2.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        afterMemberBean2.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        afterMemberBean2.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        afterMemberBean2.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
+                new CompleteRelation(123L, Maps.hashMap("b", "100"), Rectangle.TEST_RECTANGLE_2,
+                        afterMemberBean2, Arrays.asList(11L, 12L), null, 1234567L,
+                        Sets.hashSet(2L, 3L)),
+                beforeRelation);
+
+        /*
+         * This merge will fail due to an ADD/ADD conflict in the member list bean.
+         */
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("Cannot merge two feature changes");
+        featureChange1.merge(featureChange2);
+    }
+
+    @Test
+    public void testMergeRelationsSuccess()
+    {
+        final RelationBean beforeMemberBean = new RelationBean();
+        beforeMemberBean.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        beforeMemberBean.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        beforeMemberBean.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        beforeMemberBean.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        final RelationBean beforeAllKnownOsmBean = new RelationBean();
+        beforeAllKnownOsmBean.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        beforeAllKnownOsmBean.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        final CompleteRelation beforeRelation = new CompleteRelation(123L,
+                Maps.hashMap("a", "1", "b", "2"), Rectangle.TEST_RECTANGLE, beforeMemberBean,
+                Arrays.asList(10L, 11L, 12L), beforeAllKnownOsmBean, 123456L,
+                Sets.hashSet(1L, 2L, 3L));
+
+        final RelationBean afterMemberBean1 = new RelationBean();
+        afterMemberBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        afterMemberBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        afterMemberBean1.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        final RelationBean afterAllKnownOsmBean1 = new RelationBean();
+        afterAllKnownOsmBean1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        afterAllKnownOsmBean1.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        afterAllKnownOsmBean1.addItem(new RelationBeanItem(3L, "lineRole3", ItemType.LINE));
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteRelation(123L, Maps.hashMap("a", "1", "b", "2", "c", "3"),
+                        Rectangle.TEST_RECTANGLE, afterMemberBean1,
+                        Arrays.asList(10L, 11L, 12L, 13L), afterAllKnownOsmBean1, 1234567L,
+                        Sets.hashSet(1L, 2L, 3L, 4L)),
+                beforeRelation);
+
+        final RelationBean afterMemberBean2 = new RelationBean();
+        afterMemberBean2.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        afterMemberBean2.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        afterMemberBean2.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        afterMemberBean2.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        afterMemberBean2.addItem(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
+        final RelationBean afterAllKnownOsmBean2 = new RelationBean();
+        afterAllKnownOsmBean2.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
+                new CompleteRelation(123L, Maps.hashMap("b", "100"), Rectangle.TEST_RECTANGLE_2,
+                        afterMemberBean2, Arrays.asList(11L, 12L), afterAllKnownOsmBean2, 1234567L,
+                        Sets.hashSet(2L, 3L)),
+                beforeRelation);
+
+        final FeatureChange merged = featureChange1.merge(featureChange2);
+        /*
+         * Check that all the relation fields merged correctly.
+         */
+        Assert.assertEquals(Maps.hashMap("b", "100", "c", "3"),
+                ((Relation) merged.getAfterView()).getTags());
+
+        final RelationBean goldenMergedMemberBean = new RelationBean();
+        goldenMergedMemberBean.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        goldenMergedMemberBean.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        goldenMergedMemberBean.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        goldenMergedMemberBean.addItem(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
+        Assert.assertEquals(goldenMergedMemberBean,
+                ((Relation) merged.getAfterView()).members().asBean());
+
+        Assert.assertEquals(
+                Rectangle.forLocated(Rectangle.TEST_RECTANGLE, Rectangle.TEST_RECTANGLE_2),
+                ((Relation) merged.getAfterView()).bounds());
+
+        final RelationBean goldenMergedOsmBean = new RelationBean();
+        goldenMergedOsmBean.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        goldenMergedOsmBean.addItem(new RelationBeanItem(3L, "lineRole3", ItemType.LINE));
+        Assert.assertEquals(goldenMergedOsmBean,
+                ((Relation) merged.getAfterView()).allKnownOsmMembers().asBean());
+
+        Assert.assertEquals(Sets.hashSet(11L, 12L, 13L),
+                ((Relation) merged.getAfterView()).allRelationsWithSameOsmIdentifier().stream()
+                        .map(Relation::getIdentifier).collect(Collectors.toSet()));
+
+        Assert.assertEquals(new Long(1234567L),
+                ((Relation) merged.getAfterView()).osmRelationIdentifier());
+
+        Assert.assertEquals(Sets.hashSet(2L, 3L, 4L), ((Relation) merged.getAfterView()).relations()
+                .stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
+    }
+
+    @Test
+    public void testMergeRelationsWithNonConflictingChangeFields()
+    {
+        final RelationBean beforeMemberBean1 = new RelationBean();
+        beforeMemberBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        beforeMemberBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        beforeMemberBean1.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        beforeMemberBean1.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        final CompleteRelation beforeRelation1 = new CompleteRelation(123L,
+                Maps.hashMap("a", "1", "b", "2", "c", "3"), Rectangle.TEST_RECTANGLE,
+                beforeMemberBean1, Arrays.asList(10L, 11L, 12L), null, null,
+                Sets.hashSet(1L, 2L, 3L));
+
+        final RelationBean beforeAllKnownOsmBean2 = new RelationBean();
+        beforeAllKnownOsmBean2.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        beforeAllKnownOsmBean2.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        final CompleteRelation beforeRelation2 = new CompleteRelation(123L, null,
+                Rectangle.TEST_RECTANGLE, null, null, beforeAllKnownOsmBean2, 123456L, null);
+
+        final RelationBean afterMemberBean1 = new RelationBean();
+        afterMemberBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        afterMemberBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        afterMemberBean1.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteRelation(123L, Maps.hashMap("a", "1", "b", "2"),
+                        Rectangle.TEST_RECTANGLE, afterMemberBean1,
+                        Arrays.asList(10L, 11L, 12L, 13L), null, null, Sets.hashSet(1L, 2L)),
+                beforeRelation1);
+
+        final RelationBean afterAllKnownOsmBean2 = new RelationBean();
+        afterAllKnownOsmBean2.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
+                new CompleteRelation(123L, null, Rectangle.TEST_RECTANGLE, null, null,
+                        afterAllKnownOsmBean2, 1234567L, null),
+                beforeRelation2);
+
+        final FeatureChange merged = featureChange1.merge(featureChange2);
+        /*
+         * Check that the before and after views merged correctly.
+         */
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "2"),
+                ((Relation) merged.getAfterView()).getTags());
+
+        final RelationBean goldenMergedMemberBean = new RelationBean();
+        goldenMergedMemberBean.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        goldenMergedMemberBean.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        goldenMergedMemberBean.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        Assert.assertEquals(goldenMergedMemberBean,
+                ((Relation) merged.getAfterView()).members().asBean());
+
+        Assert.assertEquals(Sets.hashSet(10L, 11L, 12L, 13L),
+                ((Relation) merged.getAfterView()).allRelationsWithSameOsmIdentifier().stream()
+                        .map(Relation::getIdentifier).collect(Collectors.toSet()));
+
+        final RelationBean goldenMergedOsmBean = new RelationBean();
+        goldenMergedOsmBean.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        Assert.assertEquals(goldenMergedOsmBean,
+                ((Relation) merged.getAfterView()).allKnownOsmMembers().asBean());
+
+        Assert.assertEquals(new Long(1234567L),
+                ((Relation) merged.getAfterView()).osmRelationIdentifier());
+
+        Assert.assertEquals(Sets.hashSet(1L, 2L), ((Relation) merged.getAfterView()).relations()
+                .stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
+
+        // Check merged before view
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "2", "c", "3"),
+                ((Relation) merged.getBeforeView()).getTags());
+
+        Assert.assertEquals(beforeMemberBean1,
+                ((Relation) merged.getBeforeView()).members().asBean());
+
+        Assert.assertEquals(Sets.hashSet(10L, 11L, 12L),
+                ((Relation) merged.getBeforeView()).allRelationsWithSameOsmIdentifier().stream()
+                        .map(Relation::getIdentifier).collect(Collectors.toSet()));
+
+        Assert.assertEquals(beforeAllKnownOsmBean2,
+                ((Relation) merged.getBeforeView()).allKnownOsmMembers().asBean());
+
+        Assert.assertEquals(new Long(123456L),
+                ((Relation) merged.getBeforeView()).osmRelationIdentifier());
+
+        Assert.assertEquals(Sets.hashSet(1L, 2L, 3L), ((Relation) merged.getBeforeView())
+                .relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 }

@@ -591,7 +591,8 @@ public final class FeatureChangeMergingHelpers
 
         final MergedMemberBean<Long> mergedOsmRelationIdentifier = mergeMember(
                 "osmRelationIdentifier", beforeEntityLeft, afterEntityLeft, beforeEntityRight,
-                afterEntityRight, entity -> ((Relation) entity).getOsmIdentifier(), null, null);
+                afterEntityRight, entity -> ((Relation) entity).osmRelationIdentifier(), null,
+                null);
 
         final Rectangle mergedBounds = Rectangle.forLocated(afterEntityLeft, afterEntityRight);
 
