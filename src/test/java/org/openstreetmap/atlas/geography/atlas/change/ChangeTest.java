@@ -32,9 +32,9 @@ public class ChangeTest extends AbstractChangeTest
         this.expectedException.expectMessage("Cannot merge two feature changes");
 
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(TEST_IDENTIFIER, null, Maps.hashMap(), null));
+                new CompleteArea(TEST_IDENTIFIER, Polygon.CENTER, Maps.hashMap(), null));
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.REMOVE,
-                new CompleteArea(TEST_IDENTIFIER, null, null, null));
+                new CompleteArea(TEST_IDENTIFIER, Polygon.CENTER, null, null));
         final ChangeBuilder builder = new ChangeBuilder();
         builder.add(featureChange1);
         builder.add(featureChange2);

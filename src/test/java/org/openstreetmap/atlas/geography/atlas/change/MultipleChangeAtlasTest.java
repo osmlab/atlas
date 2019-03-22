@@ -63,7 +63,7 @@ public class MultipleChangeAtlasTest
             {
                 return CompleteEdge.shallowFrom(edge).withPolyLine(
                         new PolyLine(edge.start().getLocation(), edge.end().getLocation()));
-            }).map(FeatureChange::add).collectToSet();
+            }).map(completeEdge -> FeatureChange.add(completeEdge, atlas)).collectToSet();
         });
         final long straightEdges = Iterables.size(this.changeAtlas.edges(straight));
         final long originalAtlasStraightEdges = Iterables.size(this.atlas.edges(straight));
@@ -80,10 +80,10 @@ public class MultipleChangeAtlasTest
     {
         resetAndChange("allNodesAreTrafficLights", atlas ->
         {
-            return Iterables
-                    .stream(atlas.nodes()).map(node -> CompleteNode.shallowFrom(node)
-                            .withAddedTag("highway", "traffic_signals"))
-                    .map(FeatureChange::add).collectToSet();
+            return Iterables.stream(atlas.nodes())
+                    .map(node -> CompleteNode.shallowFrom(node).withAddedTag("highway",
+                            "traffic_signals"))
+                    .map(completeNode -> FeatureChange.add(completeNode, atlas)).collectToSet();
         });
         final Predicate<Node> trafficSignal = node -> "traffic_signals".equals(node.tag("highway"));
         final long changeAtlasNodesWithTrafficSignals = Iterables

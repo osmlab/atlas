@@ -20,6 +20,7 @@ public class AtlasChangeGeneratorRemoveReverseEdges implements AtlasChangeGenera
         return Iterables.stream(atlas.edges()).filter(Edge::isMasterEdge)
                 .filter(Edge::hasReverseEdge).map(Edge::reversed).filter(Optional::isPresent)
                 .map(Optional::get)
-                .map(edge -> FeatureChange.remove(CompleteEntity.shallowFrom(edge))).collectToSet();
+                .map(edge -> FeatureChange.remove(CompleteEntity.shallowFrom(edge), atlas))
+                .collectToSet();
     }
 }

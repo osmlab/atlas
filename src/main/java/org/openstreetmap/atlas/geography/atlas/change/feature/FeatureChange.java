@@ -69,6 +69,11 @@ public class FeatureChange implements Located, Serializable
         return new FeatureChange(ChangeType.REMOVE, reference);
     }
 
+    public static FeatureChange remove(final AtlasEntity reference, final Atlas atlasContext)
+    {
+        return new FeatureChange(ChangeType.REMOVE, reference).withAtlasContext(atlasContext);
+    }
+
     /**
      * Create a new {@link FeatureChange} with a given type, after view, and before view. This
      * constructor is provided for exact control over the before view of a change. However, most
@@ -327,33 +332,22 @@ public class FeatureChange implements Located, Serializable
      */
     public FeatureChange withAtlasContext(final Atlas atlas)
     {
-        if (this.changeType == ChangeType.ADD)
-        {
-            computeBeforeViewUsingAtlasContext(atlas);
-        }
-        else if (this.changeType == ChangeType.REMOVE)
-        {
-            // TODO we need to compute the beforeView here
-        }
-        else
-        {
-            throw new CoreException("Unknown ChangeType {}", this.changeType.getClass().getName());
-        }
+        computeBeforeViewUsingAtlasContext(atlas, this.changeType);
         return this;
     }
 
     /**
-     * Compute the beforeView using a given afterView and Atlas context. The beforeView is a
-     * CompleteEntity, and will contain only those fields which have been updated in the afterView.
-     * E.g. Suppose the afterView is a CompleteNode with ID 1, and the only updated field is the tag
-     * Map. Then the beforeView will be a CompleteNode with ID 1, where the only populated field is
-     * the tag Map. However, the afterView's tag Map will be fetched from the Atlas context. Having
-     * a beforeView for each {@link FeatureChange} allows for more robust merging strategies.
+     * Compute the beforeView using a given afterView and Atlas context. The beforeView is always a
+     * CompleteEntity. For ChangeType.ADD, the beforeView will only contain references to fields
+     * that were updated in the afterView. For ChangeType.REMOVE, the beforeView will be fully
+     * populated. This will facilitate better debug printouts.
      *
      * @param atlas
      *            the atlas context
+     * @param changeType
+     *            the change type
      */
-    private void computeBeforeViewUsingAtlasContext(final Atlas atlas)
+    private void computeBeforeViewUsingAtlasContext(final Atlas atlas, final ChangeType changeType)
     {
         if (atlas == null)
         {
@@ -368,6 +362,23 @@ public class FeatureChange implements Located, Serializable
             throw new CoreException("Could not find {} with ID {} in atlas context",
                     this.afterView.getType(), this.afterView.getIdentifier());
         }
+
+        /*
+         * For the REMOVE case, we fully populate the beforeView and return.
+         */
+        if (changeType == ChangeType.REMOVE)
+        {
+            this.beforeView = CompleteEntity.from(beforeViewFromAtlas);
+            return;
+        }
+        if (changeType != ChangeType.ADD)
+        {
+            throw new CoreException("Unknown ChangeType {}", changeType);
+        }
+
+        /*
+         * Otherwise, we continue with the ADD case.
+         */
 
         /*
          * Make type specific updates first.
@@ -519,15 +530,57 @@ public class FeatureChange implements Located, Serializable
 
     private void validateUsefulFeatureChange()
     {
-        /*
-         * TODO We changed the definition of superShallow to not check for geometry. This is due to
-         * the fact that all CompleteEntities are now non-null Located. So we must add a check here
-         * that compares the before and after views to see if the geometry changed.
-         */
-        if (this.changeType == ChangeType.ADD && this.afterView instanceof CompleteEntity
+        final String errorMessage = "{} does not contain anything useful.";
+        if (this.changeType == ChangeType.ADD && this.beforeView != null
                 && ((CompleteEntity) this.afterView).isSuperShallow())
         {
-            throw new CoreException("{} does not contain anything useful.", this);
+            switch (this.beforeView.getType())
+            {
+                case AREA:
+                    final Area beforeArea = (Area) this.beforeView;
+                    final Area afterArea = (Area) this.afterView;
+                    if (beforeArea.asPolygon().equals(afterArea.asPolygon()))
+                    {
+                        throw new CoreException(errorMessage, this);
+                    }
+                    break;
+                case EDGE:
+                    final Edge beforeEdge = (Edge) this.beforeView;
+                    final Edge afterEdge = (Edge) this.afterView;
+                    if (beforeEdge.asPolyLine().equals(afterEdge.asPolyLine()))
+                    {
+                        throw new CoreException(errorMessage, this);
+                    }
+                    break;
+                case LINE:
+                    final Line beforeLine = (Line) this.beforeView;
+                    final Line afterLine = (Line) this.afterView;
+                    if (beforeLine.asPolyLine().equals(afterLine.asPolyLine()))
+                    {
+                        throw new CoreException(errorMessage, this);
+                    }
+                    break;
+                case NODE:
+                    final Node beforeNode = (Node) this.beforeView;
+                    final Node afterNode = (Node) this.afterView;
+                    if (beforeNode.getLocation().equals(afterNode.getLocation()))
+                    {
+                        throw new CoreException(errorMessage, this);
+                    }
+                    break;
+                case POINT:
+                    final Point beforePoint = (Point) this.beforeView;
+                    final Point afterPoint = (Point) this.afterView;
+                    if (beforePoint.getLocation().equals(afterPoint.getLocation()))
+                    {
+                        throw new CoreException(errorMessage, this);
+                    }
+                    break;
+                case RELATION:
+                    throw new CoreException(errorMessage, this);
+                default:
+                    throw new CoreException("Unrecognized ItemType {}", this.beforeView.getType());
+            }
         }
     }
 }
