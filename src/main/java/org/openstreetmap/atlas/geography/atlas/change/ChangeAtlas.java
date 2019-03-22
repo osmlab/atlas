@@ -74,15 +74,25 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
 
     public ChangeAtlas(final Atlas source, final Change... changes)
     {
+        this(source, "", changes);
+    }
+
+    public ChangeAtlas(final Atlas source, final String name, final Change... changes)
+    {
         checkSource(source);
         checkChanges(changes);
         this.change = Change.merge(changes);
         this.source = source;
-        this.name = source.getName();
+        this.name = name == null || name.isEmpty() ? source.getName() : name;
         new AtlasValidator(this).validate();
     }
 
     public ChangeAtlas(final Change... changes)
+    {
+        this("", changes);
+    }
+
+    public ChangeAtlas(final String name, final Change... changes)
     {
         checkChanges(changes);
         final Change change = Change.merge(changes);
@@ -115,7 +125,7 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
             changeBuilder.add(dummy);
             this.change = changeBuilder.get();
             this.source = source;
-            this.name = source.getName();
+            this.name = name == null || name.isEmpty() ? source.getName() : name;
             new AtlasValidator(this).validate();
         }
         else
