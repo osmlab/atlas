@@ -28,6 +28,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
+import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.AbstractIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.CountrySlicingIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
@@ -109,15 +110,13 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
      * @param initialShard
      *            The initial shard being sliced-- should be the same as the line sliced Atlas
      *            passed in
-     * @param countries
-     *            The list of countries to slice
-     * @param countryBoundaryMap
-     *            The country boundaries
+     * @param loadingOption
+     *            The {@link AtlasLoadingOption} to use
      */
     public RawAtlasRelationSlicer(final Atlas atlas, final Shard initialShard,
-            final Set<String> countries, final CountryBoundaryMap countryBoundaryMap)
+            final AtlasLoadingOption loadingOption)
     {
-        super(countries, countryBoundaryMap, new CoordinateToNewPointMapping());
+        super(loadingOption, new CoordinateToNewPointMapping());
         this.partiallySlicedRawAtlas = atlas;
         this.initialShard = initialShard;
         this.slicedRelationChanges = new RelationChangeSet();
@@ -368,7 +367,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         {
             throw new CoreException(
                     "Country Slicing exceeded maximum number {} of supported new points at Coordinate {}",
-                    AbstractIdentifierFactory.IDENTIFIER_SCALE, coordinate);
+                    AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT, coordinate);
         }
         else
         {
@@ -972,7 +971,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                         return;
                     }
 
-                    if (borderLines.size() >= AbstractIdentifierFactory.IDENTIFIER_SCALE)
+                    if (borderLines.size() >= AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT)
                     {
                         logger.error("Borderline got cut into more than 999 pieces for relation {}",
                                 relationIdentifier);
