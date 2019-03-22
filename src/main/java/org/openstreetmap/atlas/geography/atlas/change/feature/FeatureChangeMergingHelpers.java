@@ -1,6 +1,5 @@
 package org.openstreetmap.atlas.geography.atlas.change.feature;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -631,44 +630,6 @@ public final class FeatureChangeMergingHelpers
             mergedBeforeRelation = null;
         }
         return new FeatureChange(ChangeType.ADD, mergedAfterRelation, mergedBeforeRelation);
-    }
-
-    private static FeatureChange mergeRelationsOLD(final FeatureChange left,
-            final FeatureChange right, final MergedMemberBean<Map<String, String>> mergedTagsBean,
-            final MergedMemberBean<Set<Long>> mergedParentRelationsBean)
-    {
-        final AtlasEntity thisReference = left.getAfterView();
-        final AtlasEntity thatReference = right.getAfterView();
-
-        final RelationBean mergedMembers = mergeMemberOldStrategy("relationMembers", thisReference,
-                thatReference,
-                entity -> ((Relation) entity).members() == null ? null
-                        : ((Relation) entity).members().asBean(),
-                MemberMergeStrategies.simpleRelationBeanMerger);
-        final Rectangle mergedBounds = Rectangle.forLocated(thisReference, thatReference);
-        final Long mergedOsmRelationIdentifier = mergeMemberOldStrategy("osmRelationIdentifier",
-                thisReference, thatReference, entity -> ((Relation) entity).getOsmIdentifier(),
-                null);
-        final Set<Long> mergedAllRelationsWithSameOsmIdentifierSet = mergeMemberOldStrategy(
-                "allRelationsWithSameOsmIdentifier", thisReference, thatReference,
-                atlasEntity -> ((Relation) atlasEntity).allRelationsWithSameOsmIdentifier() == null
-                        ? null
-                        : ((Relation) atlasEntity).allRelationsWithSameOsmIdentifier().stream()
-                                .map(Relation::getIdentifier).collect(Collectors.toSet()),
-                MemberMergeStrategies.simpleLongSetMerger);
-        final List<Long> mergedAllRelationsWithSameOsmIdentifier = mergedAllRelationsWithSameOsmIdentifierSet == null
-                ? null
-                : mergedAllRelationsWithSameOsmIdentifierSet.stream().collect(Collectors.toList());
-        final RelationBean mergedAllKnownMembers = mergeMemberOldStrategy("allKnownOsmMembers",
-                thisReference, thatReference,
-                entity -> ((Relation) entity).allKnownOsmMembers() == null ? null
-                        : ((Relation) entity).allKnownOsmMembers().asBean(),
-                MemberMergeStrategies.simpleRelationBeanMerger);
-
-        return FeatureChange.add(new CompleteRelation(left.getIdentifier(),
-                mergedTagsBean.getMergedAfterMember(), mergedBounds, mergedMembers,
-                mergedAllRelationsWithSameOsmIdentifier, mergedAllKnownMembers,
-                mergedOsmRelationIdentifier, mergedParentRelationsBean.getMergedAfterMember()));
     }
 
     private FeatureChangeMergingHelpers()
