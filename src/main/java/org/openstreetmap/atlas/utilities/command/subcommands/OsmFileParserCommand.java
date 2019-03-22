@@ -42,7 +42,7 @@ public class OsmFileParserCommand extends AbstractAtlasShellToolsCommand
     @Override
     public String getCommandName()
     {
-        return "josm-to-osm";
+        return "josm2osm";
     }
 
     @Override
@@ -54,15 +54,17 @@ public class OsmFileParserCommand extends AbstractAtlasShellToolsCommand
     @Override
     public void registerManualPageSections()
     {
+        addManualPageSection("DESCRIPTION", OsmFileParserCommand.class
+                .getResourceAsStream("OsmFileParserCommandDescriptionSection.txt"));
+        addManualPageSection("EXAMPLES", OsmFileParserCommand.class
+                .getResourceAsStream("OsmFileParserCommandExamplesSection.txt"));
     }
 
     @Override
     public void registerOptionsAndArguments()
     {
-        registerArgument(JOSM_OSM_FILE, ArgumentArity.UNARY, ArgumentOptionality.REQUIRED,
-                AbstractAtlasShellToolsCommand.DEFAULT_CONTEXT);
-        registerArgument(OSM_FILE, ArgumentArity.UNARY, ArgumentOptionality.REQUIRED,
-                AbstractAtlasShellToolsCommand.DEFAULT_CONTEXT);
+        registerArgument(JOSM_OSM_FILE, ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
+        registerArgument(OSM_FILE, ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
         super.registerOptionsAndArguments();
     }
 }
