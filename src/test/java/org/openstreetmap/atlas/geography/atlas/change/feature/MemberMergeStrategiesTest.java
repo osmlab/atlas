@@ -84,31 +84,164 @@ public class MemberMergeStrategiesTest
     }
 
     @Test
-    public void testDiffBasedRelationBeanMergeSuccess()
+    public void testDiffBasedRelationBeanMergeADDADDConflict()
     {
         final RelationBean beforeBean = new RelationBean();
         beforeBean.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
         beforeBean.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        beforeBean.addItem(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
         beforeBean.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
         beforeBean.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
 
         /*
-         * ADD an Area with ID 2 and a new role. REMOVE Point with ID 2.
+         * Add one instance of [2, AREA, areaRole2].
          */
         final RelationBean afterBean1 = new RelationBean();
         afterBean1.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        afterBean1.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        afterBean1.addItem(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
         afterBean1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
         afterBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
         afterBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
 
         /*
+         * Add two instances of [2, AREA, areaRole2].
+         */
+        final RelationBean afterBean2 = new RelationBean();
+        afterBean2.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        afterBean2.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        afterBean2.addItem(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
+        afterBean2.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        afterBean2.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        afterBean2.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        afterBean2.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+
+        /*
+         * The merge will fail, since the number of added [2, AREA, areaRole2] conflict.
+         */
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage(
+                "diffBasedRelationBeanMerger failed due to ADD/ADD conflict on key: [AREA, 2, areaRole2]: beforeValue absolute count was 0 but addedLeft/Right diff counts conflict [1 vs 2]");
+        MemberMergeStrategies.diffBasedRelationBeanMerger.apply(beforeBean, afterBean1, afterBean2);
+    }
+
+    @Test
+    public void testDiffBasedRelationBeanMergeADDREMOVEConflict()
+    {
+        final RelationBean beforeBean = new RelationBean();
+        beforeBean.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        beforeBean.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        beforeBean.addItem(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
+        beforeBean.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        beforeBean.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+
+        /*
+         * Add an additional instance of [1, LINE, lineRole1].
+         */
+        final RelationBean afterBean1 = new RelationBean();
+        afterBean1.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        afterBean1.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        afterBean1.addItem(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
+        afterBean1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        afterBean1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        afterBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        afterBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+
+        /*
+         * Remove the instance of [1, LINE, lineRole1].
+         */
+        final RelationBean afterBean2 = new RelationBean();
+        afterBean2.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        afterBean2.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        afterBean2.addItem(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
+        afterBean2.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        afterBean2.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+
+        /*
+         * The merge will fail, since one afterView tries to add an additional [1, LINE, lineRole1]
+         * while the other afterView removes it entirely.
+         */
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage(
+                "diffBasedRelationBeanMerger failed due to ADD/REMOVE conflict(s) on key(s): [LINE, 1, lineRole1]");
+        MemberMergeStrategies.diffBasedRelationBeanMerger.apply(beforeBean, afterBean1, afterBean2);
+    }
+
+    @Test
+    public void testDiffBasedRelationBeanMergeREMOVEREMOVEConflict()
+    {
+        final RelationBean beforeBean = new RelationBean();
+        beforeBean.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        beforeBean.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        beforeBean.addItem(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
+        beforeBean.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        beforeBean.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        beforeBean.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+
+        /*
+         * Remove one instance of [1, AREA, areaRole1].
+         */
+        final RelationBean afterBean1 = new RelationBean();
+        afterBean1.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        afterBean1.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        afterBean1.addItem(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
+        afterBean1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        afterBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+
+        /*
+         * Remove both instances of [1, AREA, areaRole1].
+         */
+        final RelationBean afterBean2 = new RelationBean();
+        afterBean2.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        afterBean2.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        afterBean2.addItem(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
+        afterBean2.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+
+        /*
+         * The merge will fail, since the number of removed [1, AREA, areaRole1] conflict.
+         */
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage(
+                "diffBasedRelationBeanMerger failed due to REMOVE/REMOVE conflict on key: [AREA, 1, areaRole1]: beforeValue absolute count was 2 but removedLeft/Right diff counts conflict [1 vs 2]");
+        MemberMergeStrategies.diffBasedRelationBeanMerger.apply(beforeBean, afterBean1, afterBean2);
+    }
+
+    @Test
+    public void testDiffBasedRelationBeanMergeSuccess()
+    {
+        final RelationBean beforeBean = new RelationBean();
+        beforeBean.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        beforeBean.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        beforeBean.addItem(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
+        beforeBean.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        beforeBean.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+
+        /*
+         * ADD two Areas with ID 2. REMOVE Point with ID 2. Add 2 Lines with ID 2 - this ADD is
+         * shared by the other afterBean. REMOVE Point with ID 3 - this REMOVE is shared by the
+         * other afterBean.
+         */
+        final RelationBean afterBean1 = new RelationBean();
+        afterBean1.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        afterBean1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        afterBean1.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        afterBean1.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        afterBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        afterBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        afterBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+
+        /*
          * Change role for Point with ID 1. This effectively REMOVEs the original [1, POINT,
-         * pointRole1] and replaces it with [1, POINT, newPointRole1].
+         * pointRole1] and replaces it with [1, POINT, newPointRole1]. Add 2 Lines with ID 2 - this
+         * ADD is shared by the other afterBean. REMOVE Point with ID 3 - this REMOVE is shared by
+         * the other afterBean.
          */
         final RelationBean afterBean2 = new RelationBean();
         afterBean2.addItem(new RelationBeanItem(1L, "newPointRole1", ItemType.POINT));
         afterBean2.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
         afterBean2.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        afterBean2.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        afterBean2.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
         afterBean2.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
 
         /*
@@ -118,14 +251,17 @@ public class MemberMergeStrategiesTest
         goldenImage1.addItem(new RelationBeanItem(1L, "newPointRole1", ItemType.POINT));
         goldenImage1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
         goldenImage1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        goldenImage1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
         goldenImage1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        goldenImage1.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        goldenImage1.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
 
         Assert.assertEquals(goldenImage1, MemberMergeStrategies.diffBasedRelationBeanMerger
                 .apply(beforeBean, afterBean1, afterBean2));
     }
 
     @Test
-    public void testDiffBasedTagMergeADDADDCollisionFail()
+    public void testDiffBasedTagMergeADDADDConflictFail()
     {
         final Map<String, String> before1 = Maps.hashMap("a", "1", "b", "2");
         final Map<String, String> after1A = Maps.hashMap("a", "10", "b", "2");
@@ -138,7 +274,7 @@ public class MemberMergeStrategiesTest
     }
 
     @Test
-    public void testDiffBasedTagMergeADDREMOVECollisionFail()
+    public void testDiffBasedTagMergeADDREMOVEConflictFail()
     {
         final Map<String, String> before1 = Maps.hashMap("a", "1", "b", "2");
         final Map<String, String> after1A = Maps.hashMap("a", "10", "b", "2");

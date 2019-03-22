@@ -66,27 +66,6 @@ public final class MemberMergeStrategies
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         /*
-         * First, we must check for REMOVE/REMOVE conflicts. A REMOVE/REMOVE conflict occurs when
-         * removedFromLeftView and removedFromRightView share a key, but the values differ.
-         */
-        for (final Map.Entry<RelationBeanItem, Integer> removedFromLeftEntry : removedFromLeftView
-                .entrySet())
-        {
-            final RelationBeanItem leftKey = removedFromLeftEntry.getKey();
-            final Integer leftValue = removedFromLeftEntry.getValue();
-            final Integer rightValue = removedFromRightView.get(leftKey);
-            if (rightValue != null && !leftValue.equals(rightValue))
-            {
-                throw new CoreException(
-                        "diffBasedRelationBeanMerger failed due to REMOVE/REMOVE collision on key: {}: beforeValue count was {} and afterValue remove counts conflict [{} vs {}]",
-                        leftKey, beforeBeanMap.get(leftKey), leftValue, rightValue);
-            }
-        }
-
-        // TODO create this view
-        final Map<RelationBeanItem, Integer> removedMergedView;
-
-        /*
          * Compute the difference set between the afterViews and the beforeView (which is equivalent
          * to the keys added to the after views). We filter any entries that have a count <= 0,
          * since this corresponds to unchanged/removed keys in the afterView.
@@ -101,61 +80,136 @@ public final class MemberMergeStrategies
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         /*
-         * TODO We still need to define/compute ADD/REMOVE conflicts as well as ADD/ADD conflicts.
+         * Check for REMOVE/REMOVE conflicts. A REMOVE/REMOVE conflict occurs when
+         * removedFromLeftView and removedFromRightView share a key, but the values differ.
          */
+        for (final Map.Entry<RelationBeanItem, Integer> removedFromLeftEntry : removedFromLeftView
+                .entrySet())
+        {
+            final RelationBeanItem leftKey = removedFromLeftEntry.getKey();
+            final Integer leftValue = removedFromLeftEntry.getValue();
+            final Integer rightValue = removedFromRightView.get(leftKey);
+            if (rightValue != null && !leftValue.equals(rightValue))
+            {
+                throw new CoreException(
+                        "diffBasedRelationBeanMerger failed due to REMOVE/REMOVE conflict on key: [{}]: beforeValue absolute count was {} but removedLeft/Right diff counts conflict [{} vs {}]",
+                        leftKey, beforeBeanMap.get(leftKey), leftValue, rightValue);
+            }
+        }
 
         /*
-         * TODO We need to construct the final product using our merged REMOVE and ADD views.
+         * Check for ADD/REMOVE conflicts. An ADD/REMOVE conflict occurs when the addedToLeftView
+         * and removedFromRightView maps share a key (or the addedToRightView and
+         * removedFromLeftView share a key).
          */
-        return null;
-    };
-
-    static final TernaryOperator<RelationBean> diffBasedRelationBeanMerger2 = (beforeBean,
-            afterLeftBean, afterRightBean) ->
-    {
-        /*
-         * In the following merge logic, we treat RelationBeanItems as tri-keys (ID, ItemType,
-         * Role). We do this because the OSM API technically allows multiple roles for a given
-         * entity.
-         */
-        final Set<RelationBeanItem> beforeSet = beforeBean.asSet();
-        final Set<RelationBeanItem> afterLeftSet = afterLeftBean.asSet();
-        final Set<RelationBeanItem> afterRightSet = afterRightBean.asSet();
-
-        final Set<RelationBeanItem> removedFromLeftView = com.google.common.collect.Sets
-                .difference(beforeSet, afterLeftSet);
-        final Set<RelationBeanItem> removedFromRightView = com.google.common.collect.Sets
-                .difference(beforeSet, afterRightSet);
-        final Set<RelationBeanItem> addedToLeftView = com.google.common.collect.Sets
-                .difference(afterLeftSet, beforeSet);
-        final Set<RelationBeanItem> addedToRightView = com.google.common.collect.Sets
-                .difference(afterRightSet, beforeSet);
+        final Set<RelationBeanItem> addedLeftRemovedRightConflicts = com.google.common.collect.Sets
+                .intersection(addedToLeftView.keySet(), removedFromRightView.keySet());
+        if (!addedLeftRemovedRightConflicts.isEmpty())
+        {
+            throw new CoreException(
+                    "diffBasedRelationBeanMerger failed due to ADD/REMOVE conflict(s) on key(s): {}",
+                    addedLeftRemovedRightConflicts);
+        }
+        final Set<RelationBeanItem> addedRightRemovedLeftConflicts = com.google.common.collect.Sets
+                .intersection(addedToRightView.keySet(), removedFromLeftView.keySet());
+        if (!addedRightRemovedLeftConflicts.isEmpty())
+        {
+            throw new CoreException(
+                    "diffBasedRelationBeanMerger failed due to ADD/REMOVE conflict(s) on key(s): {}",
+                    addedRightRemovedLeftConflicts);
+        }
 
         /*
-         * Easy key-merge of left and right ADDs and REMOVEs. We can safely ignore duplicate keys,
-         * since it is feasible that two FeatureChanges made the same ADD or REMOVE. We also do not
-         * need to rectify the ADD/ADD or ADD/REMOVE conflicts. Since these are keys-only, there is
-         * no possibility of an ADD/ADD conflict. And because we enforce a shared beforeView, there
-         * is no possibility of an ADD/REMOVE conflict.
+         * Check for ADD/ADD conflicts. A ADD/ADD conflict occurs when addedToLeftView and
+         * addedToRightView share a key, but the values differ.
          */
-        final Set<RelationBeanItem> removedMerged = Sets.withSets(false, removedFromLeftView,
-                removedFromRightView);
-        final Set<RelationBeanItem> addedMerged = Sets.withSets(false, addedToLeftView,
-                addedToRightView);
+        for (final Map.Entry<RelationBeanItem, Integer> addedToLeftEntry : addedToLeftView
+                .entrySet())
+        {
+            final RelationBeanItem leftKey = addedToLeftEntry.getKey();
+            final Integer leftValue = addedToLeftEntry.getValue();
+            final Integer rightValue = addedToRightView.get(leftKey);
+            if (rightValue != null && !leftValue.equals(rightValue))
+            {
+                throw new CoreException(
+                        "diffBasedRelationBeanMerger failed due to ADD/ADD conflict on key: [{}]: beforeValue absolute count was {} but addedLeft/Right diff counts conflict [{} vs {}]",
+                        leftKey,
+                        beforeBeanMap.get(leftKey) != null ? beforeBeanMap.get(leftKey) : 0,
+                        leftValue, rightValue);
+            }
+        }
 
         /*
-         * Build the result set by performing the REMOVEs on the beforeView, then performing the
-         * ADDs on the beforeView.
+         * Since there were no ADD/REMOVE or REMOVE/REMOVE conflicts, we can safely merge the
+         * REMOVED maps.
          */
-        final Set<RelationBeanItem> result = new HashSet<>(beforeSet);
-        result.removeAll(removedMerged);
-        result.addAll(addedMerged);
+        final Map<RelationBeanItem, Integer> removedMergedView = new HashMap<>();
+        removedFromLeftView.entrySet().stream()
+                .forEach(entry -> removedMergedView.put(entry.getKey(), entry.getValue()));
+        removedFromRightView.entrySet().stream()
+                .forEach(entry -> removedMergedView.put(entry.getKey(), entry.getValue()));
 
+        /*
+         * Since there were no ADD/REMOVE or ADD/ADD conflicts. we can safely merge the ADD maps.
+         */
+        final Map<RelationBeanItem, Integer> addedMergedView = new HashMap<>();
+        addedToLeftView.entrySet().stream()
+                .forEach(entry -> addedMergedView.put(entry.getKey(), entry.getValue()));
+        addedToRightView.entrySet().stream()
+                .forEach(entry -> addedMergedView.put(entry.getKey(), entry.getValue()));
+
+        /*
+         * Construct the final product using our merged REMOVE and ADD views. First we created a
+         * resultMap with merged counts. We operate on the beforeView - subtract count for each key
+         * in removedMergedView, add count for each key in addedMergedView. Then, using the
+         * resultMap, we can construct the result bean with the proper key counts.
+         */
+        final Map<RelationBeanItem, Integer> resultMap = new HashMap<>(beforeBeanMap);
+        for (final Map.Entry<RelationBeanItem, Integer> removedEntry : removedMergedView.entrySet())
+        {
+            final RelationBeanItem removedKey = removedEntry.getKey();
+            final Integer removedCount = removedEntry.getValue();
+            final Integer beforeValue = beforeBeanMap.get(removedKey);
+            final Integer newValue = beforeValue - removedCount;
+            resultMap.put(removedKey, newValue);
+        }
+        for (final Map.Entry<RelationBeanItem, Integer> addedEntry : addedMergedView.entrySet())
+        {
+            final RelationBeanItem addedKey = addedEntry.getKey();
+            final Integer addedCount = addedEntry.getValue();
+            final Integer beforeValue = beforeBeanMap.get(addedKey);
+            final Integer newValue;
+
+            /*
+             * The beforeValue will be null if the added key is brand new. In that case, we just
+             * need to set the count. Otherwise, we add the count to the before value.
+             */
+            if (beforeValue == null)
+            {
+                newValue = 0 + addedCount;
+            }
+            else
+            {
+                newValue = beforeValue + addedCount;
+            }
+            resultMap.put(addedKey, newValue);
+        }
+
+        final RelationBean resultBean = new RelationBean();
+        for (final Map.Entry<RelationBeanItem, Integer> resultEntry : resultMap.entrySet())
+        {
+            final RelationBeanItem resultKey = resultEntry.getKey();
+            final Integer resultCount = resultEntry.getValue();
+            for (int count = 0; count < resultCount; count++)
+            {
+                resultBean.addItem(resultKey);
+            }
+        }
         /*
          * TODO note we currently do not properly merge the explicitlyExcluded sets. The plan is to
-         * remove these sets.
+         * remove these sets. If we cannot find a way to do so, then we must merge them here.
          */
-        return RelationBean.fromSet(result);
+        return resultBean;
     };
 
     /*
