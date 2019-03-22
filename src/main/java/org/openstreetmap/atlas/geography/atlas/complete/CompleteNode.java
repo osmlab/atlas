@@ -156,9 +156,8 @@ public class CompleteNode extends Node implements CompleteLocationItem
     @Override
     public boolean isSuperShallow()
     {
-        return this.location == null && this.inEdgeIdentifiers == null
-                && this.outEdgeIdentifiers == null && this.tags == null
-                && this.relationIdentifiers == null;
+        return this.inEdgeIdentifiers == null && this.outEdgeIdentifiers == null
+                && this.tags == null && this.relationIdentifiers == null;
     }
 
     @Override
@@ -207,6 +206,16 @@ public class CompleteNode extends Node implements CompleteLocationItem
     public CompleteNode withAddedTag(final String key, final String value)
     {
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
+    }
+
+    public CompleteNode withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    {
+        if (this.bounds == null)
+        {
+            this.bounds = bounds;
+        }
+        this.bounds = Rectangle.forLocated(this.bounds, bounds);
+        return this;
     }
 
     @Override

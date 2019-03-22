@@ -519,6 +519,11 @@ public class FeatureChange implements Located, Serializable
 
     private void validateUsefulFeatureChange()
     {
+        /*
+         * TODO We changed the definition of superShallow to not check for geometry. This is due to
+         * the fact that all CompleteEntities are now non-null Located. So we must add a check here
+         * that compares the before and after views to see if the geometry changed.
+         */
         if (this.changeType == ChangeType.ADD && this.afterView instanceof CompleteEntity
                 && ((CompleteEntity) this.afterView).isSuperShallow())
         {

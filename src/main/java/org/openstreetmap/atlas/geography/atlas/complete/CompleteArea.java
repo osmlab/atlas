@@ -110,7 +110,7 @@ public class CompleteArea extends Area implements CompleteEntity
     @Override
     public boolean isSuperShallow()
     {
-        return this.polygon == null && this.tags == null && this.relationIdentifiers == null;
+        return this.tags == null && this.relationIdentifiers == null;
     }
 
     @Override
@@ -142,6 +142,16 @@ public class CompleteArea extends Area implements CompleteEntity
     public CompleteArea withAddedTag(final String key, final String value)
     {
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
+    }
+
+    public CompleteArea withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    {
+        if (this.bounds == null)
+        {
+            this.bounds = bounds;
+        }
+        this.bounds = Rectangle.forLocated(this.bounds, bounds);
+        return this;
     }
 
     @Override

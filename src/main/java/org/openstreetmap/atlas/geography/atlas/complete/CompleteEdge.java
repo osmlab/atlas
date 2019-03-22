@@ -135,7 +135,7 @@ public class CompleteEdge extends Edge implements CompleteLineItem
     @Override
     public boolean isSuperShallow()
     {
-        return this.polyLine == null && this.tags == null && this.startNodeIdentifier == null
+        return this.tags == null && this.startNodeIdentifier == null
                 && this.endNodeIdentifier == null && this.relationIdentifiers == null;
     }
 
@@ -183,6 +183,16 @@ public class CompleteEdge extends Edge implements CompleteLineItem
     public CompleteEdge withAddedTag(final String key, final String value)
     {
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
+    }
+
+    public CompleteEdge withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    {
+        if (this.bounds == null)
+        {
+            this.bounds = bounds;
+        }
+        this.bounds = Rectangle.forLocated(this.bounds, bounds);
+        return this;
     }
 
     public CompleteEdge withEndNodeIdentifier(final Long endNodeIdentifier)

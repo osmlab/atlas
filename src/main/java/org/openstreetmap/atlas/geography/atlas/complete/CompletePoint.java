@@ -118,7 +118,7 @@ public class CompletePoint extends Point implements CompleteLocationItem
     @Override
     public boolean isSuperShallow()
     {
-        return this.location == null && this.tags == null && this.relationIdentifiers == null;
+        return this.tags == null && this.relationIdentifiers == null;
     }
 
     @Override
@@ -150,6 +150,16 @@ public class CompletePoint extends Point implements CompleteLocationItem
     public CompletePoint withAddedTag(final String key, final String value)
     {
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
+    }
+
+    public CompletePoint withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    {
+        if (this.bounds == null)
+        {
+            this.bounds = bounds;
+        }
+        this.bounds = Rectangle.forLocated(this.bounds, bounds);
+        return this;
     }
 
     @Override

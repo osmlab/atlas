@@ -206,6 +206,16 @@ public class CompleteRelation extends Relation implements CompleteEntity
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
+    public CompleteRelation withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    {
+        if (this.bounds == null)
+        {
+            this.bounds = bounds;
+        }
+        this.bounds = Rectangle.forLocated(this.bounds, bounds);
+        return this;
+    }
+
     public CompleteRelation withAllKnownOsmMembers(final RelationBean allKnownOsmMembers)
     {
         this.allKnownOsmMembers = allKnownOsmMembers;
