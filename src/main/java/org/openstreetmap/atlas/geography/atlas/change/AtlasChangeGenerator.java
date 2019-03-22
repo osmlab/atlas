@@ -1,10 +1,16 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.utilities.conversion.Converter;
 
 /**
@@ -15,6 +21,53 @@ import org.openstreetmap.atlas.utilities.conversion.Converter;
  */
 public interface AtlasChangeGenerator extends Converter<Atlas, Set<FeatureChange>>, Serializable
 {
+    static Set<FeatureChange> expandNodeBounds(final Atlas atlas,
+            final Set<FeatureChange> featureChanges)
+    {
+        final Set<FeatureChange> result = new HashSet<>();
+        for (final FeatureChange featureChange : featureChanges)
+        {
+            if (featureChange.getItemType() == ItemType.NODE)
+            {
+                Rectangle newBounds = featureChange.bounds();
+                final long originalNodeIdentifier = featureChange.getIdentifier();
+                final CompleteNode originalCompleteNode = (CompleteNode) featureChange
+                        .getReference();
+                final Node originalNode = atlas.node(originalNodeIdentifier);
+                if (originalNode != null)
+                {
+                    for (final Edge originalEdge : originalNode.connectedEdges())
+                    {
+                        newBounds = newBounds.combine(originalEdge.bounds());
+                    }
+                }
+                for (final FeatureChange featureChangeInner : featureChanges)
+                {
+                    if (featureChangeInner.getItemType() == ItemType.EDGE)
+                    {
+                        final Edge changedEdge = (Edge) featureChangeInner.getReference();
+                        if (changedEdge.start() != null
+                                && changedEdge.start().getIdentifier() == originalNodeIdentifier
+                                || changedEdge.end() != null && changedEdge.end()
+                                        .getIdentifier() == originalNodeIdentifier)
+                        {
+                            newBounds = newBounds.combine(changedEdge.bounds());
+                        }
+                    }
+                }
+                final FeatureChange newFeatureChange = new FeatureChange(
+                        featureChange.getChangeType(),
+                        originalCompleteNode.withAggregateBoundsExtendedUsing(newBounds));
+                result.add(newFeatureChange);
+            }
+            else
+            {
+                result.add(featureChange);
+            }
+        }
+        return result;
+    }
+
     @Override
     default Set<FeatureChange> convert(final Atlas atlas)
     {
@@ -30,7 +83,8 @@ public interface AtlasChangeGenerator extends Converter<Atlas, Set<FeatureChange
      */
     default Set<FeatureChange> generate(final Atlas atlas)
     {
-        final Set<FeatureChange> result = generateWithoutValidation(atlas);
+        final Set<FeatureChange> result = expandNodeBounds(atlas, generateWithoutValidation(atlas));
+
         // Validate
         final ChangeBuilder builder = new ChangeBuilder();
         result.forEach(builder::add);

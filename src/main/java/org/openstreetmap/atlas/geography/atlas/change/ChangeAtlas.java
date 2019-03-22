@@ -8,11 +8,13 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.AbstractAtlas;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
+import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -21,8 +23,10 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.validators.AtlasValidator;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 
 /**
@@ -37,6 +41,7 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
 
     private final Change change;
     private final Atlas source;
+    private String name;
 
     private transient Rectangle bounds;
     private transient AtlasMetaData metaData;
@@ -47,19 +52,87 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     private transient Long numberOfPoints;
     private transient Long numberOfRelations;
 
-    public ChangeAtlas(final Atlas source, final Change... changes)
+    private static void checkChanges(final Change... changes)
     {
-        if (changes == null || changes.length < 1)
+        if (changes == null)
         {
             throw new CoreException("Change cannot be null in a ChangeAtlas.");
         }
+        if (changes.length < 1)
+        {
+            throw new CoreException("ChangeAtlas has to have at least one Change.");
+        }
+    }
+
+    private static void checkSource(final Atlas source)
+    {
         if (source == null)
         {
             throw new CoreException("Source Atlas cannot be null in a ChangeAtlas.");
         }
+    }
+
+    public ChangeAtlas(final Atlas source, final Change... changes)
+    {
+        this(source, "", changes);
+    }
+
+    public ChangeAtlas(final Atlas source, final String name, final Change... changes)
+    {
+        checkSource(source);
+        checkChanges(changes);
         this.change = Change.merge(changes);
         this.source = source;
+        this.name = name == null || name.isEmpty() ? source.getName() : name;
         new AtlasValidator(this).validate();
+    }
+
+    public ChangeAtlas(final Change... changes)
+    {
+        this("", changes);
+    }
+
+    public ChangeAtlas(final String name, final Change... changes)
+    {
+        checkChanges(changes);
+        final Change change = Change.merge(changes);
+        boolean valid = false;
+        Atlas source = null;
+        FeatureChange dummy = null;
+        for (final FeatureChange featureChange : change.getFeatureChanges())
+        {
+            if (featureChange.getChangeType() == ChangeType.ADD)
+            {
+                if (!featureChange.afterViewIsFull())
+                {
+                    throw new CoreException(
+                            "ChangeAtlas needs all ADD featureChanges to be full (no partial after view) to exist with no source Atlas.");
+                }
+                if (source == null)
+                {
+                    final PackedAtlasBuilder builder = new PackedAtlasBuilder();
+                    builder.addPoint(-1L, Location.CENTER, Maps.hashMap());
+                    source = builder.get();
+                    dummy = FeatureChange.remove(CompletePoint.shallowFrom(source.point(-1L)));
+                }
+                valid = true;
+            }
+        }
+        if (valid)
+        {
+            final ChangeBuilder changeBuilder = new ChangeBuilder();
+            changeBuilder.addAll(change.changes());
+            changeBuilder.add(dummy);
+            this.change = changeBuilder.get();
+            this.source = source;
+            this.name = name == null || name.isEmpty() ? source.getName() : name;
+            new AtlasValidator(this).validate();
+        }
+        else
+        {
+            throw new CoreException(
+                    "ChangeAtlas needs at least a full ADD featureChange to exist with no source Atlas.");
+        }
     }
 
     @Override
@@ -115,6 +188,16 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     public Iterable<Edge> edges()
     {
         return entitiesFor(ItemType.EDGE, this::edge, this.source.edges());
+    }
+
+    @Override
+    public String getName()
+    {
+        if (this.name == null)
+        {
+            return super.getName();
+        }
+        return this.name;
     }
 
     @Override
@@ -264,6 +347,12 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     public Iterable<Relation> relations()
     {
         return entitiesFor(ItemType.RELATION, this::relation, this.source.relations());
+    }
+
+    public ChangeAtlas withName(final String name)
+    {
+        this.name = name;
+        return this;
     }
 
     /**
