@@ -103,7 +103,7 @@ public class CompleteLine extends Line implements CompleteLineItem
     }
 
     @Override
-    public boolean isSuperShallow()
+    public boolean isCompletelyShallow()
     {
         return this.polyLine == null && this.tags == null && this.relationIdentifiers == null;
     }

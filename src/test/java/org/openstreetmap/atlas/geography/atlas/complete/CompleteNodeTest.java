@@ -107,6 +107,13 @@ public class CompleteNodeTest
     }
 
     @Test
+    public void testIsCompletelyShallow()
+    {
+        final CompleteNode superShallow = new CompleteNode(123L, null, null, null, null, null);
+        Assert.assertTrue(superShallow.isCompletelyShallow());
+    }
+
+    @Test
     public void testShallow()
     {
         final Atlas atlas = this.rule.getAtlas();

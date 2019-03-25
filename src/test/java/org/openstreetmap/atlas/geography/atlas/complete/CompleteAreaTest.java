@@ -70,6 +70,13 @@ public class CompleteAreaTest
     }
 
     @Test
+    public void testIsCompletelyShallow()
+    {
+        final CompleteArea superShallow = new CompleteArea(123L, null, null, null);
+        Assert.assertTrue(superShallow.isCompletelyShallow());
+    }
+
+    @Test
     public void testShallow()
     {
         final Atlas atlas = this.rule.getAtlas();

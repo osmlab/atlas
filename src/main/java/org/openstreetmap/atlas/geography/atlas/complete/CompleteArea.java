@@ -103,7 +103,7 @@ public class CompleteArea extends Area implements CompleteEntity
     }
 
     @Override
-    public boolean isSuperShallow()
+    public boolean isCompletelyShallow()
     {
         return this.polygon == null && this.tags == null && this.relationIdentifiers == null;
     }

@@ -123,7 +123,7 @@ public class CompleteEdge extends Edge implements CompleteLineItem
     }
 
     @Override
-    public boolean isSuperShallow()
+    public boolean isCompletelyShallow()
     {
         return this.polyLine == null && this.startNodeIdentifier == null
                 && this.endNodeIdentifier == null && this.tags == null

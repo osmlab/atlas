@@ -131,7 +131,11 @@ public class FeatureChange implements Located, Serializable
             throw new CoreException("beforeView {} bounds was null", this.beforeView);
         }
 
-        this.validateUsefulFeatureChange();
+        this.validateNotCompletelyShallow();
+        if (this.beforeView != null)
+        {
+            this.validateUsefulnessWithBeforeView();
+        }
     }
 
     /**
@@ -403,6 +407,7 @@ public class FeatureChange implements Located, Serializable
     public FeatureChange withAtlasContext(final Atlas atlas)
     {
         computeBeforeViewUsingAtlasContext(atlas, this.changeType);
+        validateUsefulnessWithBeforeView();
         return this;
     }
 
@@ -614,11 +619,167 @@ public class FeatureChange implements Located, Serializable
         this.beforeView = beforeViewUpdatesOnly;
     }
 
-    private void validateUsefulFeatureChange()
+    /**
+     * Check that this {@link FeatureChange} is not super shallow. A super shallow
+     * {@link FeatureChange} is one whose CompleteEntity only contains an identifier.
+     */
+    private void validateNotCompletelyShallow()
     {
-        if (this.changeType == ChangeType.ADD && ((CompleteEntity) this.afterView).isSuperShallow())
+        if (this.changeType == ChangeType.ADD
+                && ((CompleteEntity) this.afterView).isCompletelyShallow())
         {
-            throw new CoreException("{} does not contain anything useful.", this);
+            throw new CoreException(
+                    "{} was completely shallow (i.e. it contained only an identifier)", this);
         }
+    }
+
+    /**
+     * Validate that this {@link FeatureChange} actually introduces changes. This method will throw
+     * an exception if the afterView is identical to the beforeView (which is computed from a
+     * provided atlas context).
+     */
+    private void validateUsefulnessWithBeforeView()
+    {
+        /*
+         * No need to validate a REMOVE. This will always be useful.
+         */
+        if (this.changeType == ChangeType.REMOVE)
+        {
+            return;
+        }
+
+        /*
+         * beforeView will be null in the case of an ADD that is creating a brand new feature. In
+         * that case, there is no need to validate since a brand new ADD will always be useful.
+         */
+        if (this.beforeView == null)
+        {
+            return;
+        }
+
+        if (this.beforeView.getType() != this.afterView.getType())
+        {
+            throw new CoreException("beforeView type {} did not match afterView type {}",
+                    this.beforeView, this.afterView);
+        }
+
+        if (this.beforeView.getTags() != null && this.afterView.getTags() != null
+                && !this.beforeView.getTags().equals(this.afterView.getTags()))
+        {
+            return;
+        }
+
+        if (this.beforeView.relations() != null && this.afterView.relations() != null
+                && !this.beforeView.relations().equals(this.afterView.relations()))
+        {
+            return;
+        }
+
+        switch (this.afterView.getType())
+        {
+            case AREA:
+                final Area beforeArea = (Area) this.beforeView;
+                final Area afterArea = (Area) this.afterView;
+                if (beforeArea.asPolygon() != null && afterArea.asPolygon() != null
+                        && !beforeArea.asPolygon().equals(afterArea.asPolygon()))
+                {
+                    return;
+                }
+                break;
+            case EDGE:
+                final Edge beforeEdge = (Edge) this.beforeView;
+                final Edge afterEdge = (Edge) this.afterView;
+                if (beforeEdge.asPolyLine() != null && afterEdge.asPolyLine() != null
+                        && !beforeEdge.asPolyLine().equals(afterEdge.asPolyLine()))
+                {
+                    return;
+                }
+                if (beforeEdge.start() != null && afterEdge.start() != null
+                        && !beforeEdge.start().equals(afterEdge.start()))
+                {
+                    return;
+                }
+                if (beforeEdge.end() != null && afterEdge.end() != null
+                        && !beforeEdge.end().equals(afterEdge.end()))
+                {
+                    return;
+                }
+                break;
+            case LINE:
+                final Line beforeLine = (Line) this.beforeView;
+                final Line afterLine = (Line) this.afterView;
+                if (beforeLine.asPolyLine() != null && afterLine.asPolyLine() != null
+                        && !beforeLine.asPolyLine().equals(afterLine.asPolyLine()))
+                {
+                    return;
+                }
+                break;
+            case NODE:
+                final Node beforeNode = (Node) this.beforeView;
+                final Node afterNode = (Node) this.afterView;
+                if (beforeNode.getLocation() != null && afterNode.getLocation() != null
+                        && !beforeNode.getLocation().equals(afterNode.getLocation()))
+                {
+                    return;
+                }
+                if (beforeNode.inEdges() != null && afterNode.inEdges() != null
+                        && !beforeNode.inEdges().equals(afterNode.inEdges()))
+                {
+                    return;
+                }
+                if (beforeNode.outEdges() != null && afterNode.outEdges() != null
+                        && !beforeNode.outEdges().equals(afterNode.outEdges()))
+                {
+                    return;
+                }
+                break;
+            case POINT:
+                final Point beforePoint = (Point) this.beforeView;
+                final Point afterPoint = (Point) this.afterView;
+                if (beforePoint.getLocation() != null && afterPoint.getLocation() != null
+                        && !beforePoint.getLocation().equals(afterPoint.getLocation()))
+                {
+                    return;
+                }
+                break;
+            case RELATION:
+                final Relation beforeRelation = (Relation) this.beforeView;
+                final Relation afterRelation = (Relation) this.afterView;
+                if (beforeRelation.members() != null && afterRelation.members() != null
+                        && !beforeRelation.members().equals(afterRelation.members()))
+                {
+                    return;
+                }
+                if (beforeRelation.allRelationsWithSameOsmIdentifier() != null
+                        && afterRelation.allRelationsWithSameOsmIdentifier() != null
+                        && !beforeRelation.allRelationsWithSameOsmIdentifier()
+                                .equals(afterRelation.allRelationsWithSameOsmIdentifier()))
+                {
+                    return;
+                }
+                if (beforeRelation.allKnownOsmMembers() != null
+                        && afterRelation.allKnownOsmMembers() != null && !beforeRelation
+                                .allKnownOsmMembers().equals(afterRelation.allKnownOsmMembers()))
+                {
+                    return;
+                }
+                if (beforeRelation.osmRelationIdentifier() != null
+                        && afterRelation.osmRelationIdentifier() != null
+                        && !beforeRelation.osmRelationIdentifier()
+                                .equals(afterRelation.osmRelationIdentifier()))
+                {
+                    return;
+                }
+                break;
+            default:
+                throw new CoreException("Unknown ItemType {}", this.afterView.getType());
+        }
+
+        /*
+         * If we made it all the way here, then we know this FeatureChange is not useful.
+         */
+        throw new CoreException(
+                "FeatureChange is not useful: beforeView perfectly matched afterView: {} vs {}",
+                this.beforeView, this.afterView);
     }
 }

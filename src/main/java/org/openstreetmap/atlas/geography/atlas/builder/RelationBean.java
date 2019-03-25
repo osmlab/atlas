@@ -111,6 +111,13 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
         this.explicitlyExcluded = new HashSet<>();
     }
 
+    @Override
+    public boolean add(final RelationBeanItem item)
+    {
+        this.addItem(item);
+        return true;
+    }
+
     public void addItem(final Long identifier, final String role, final ItemType itemType)
     {
         this.memberIdentifiers.add(identifier);

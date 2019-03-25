@@ -148,7 +148,7 @@ public class CompleteRelation extends Relation implements CompleteEntity
     }
 
     @Override
-    public boolean isSuperShallow()
+    public boolean isCompletelyShallow()
     {
         return this.bounds == null && this.members == null
                 && this.allRelationsWithSameOsmIdentifier == null && this.allKnownOsmMembers == null

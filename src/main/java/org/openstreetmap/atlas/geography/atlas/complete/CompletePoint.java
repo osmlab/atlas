@@ -111,7 +111,7 @@ public class CompletePoint extends Point implements CompleteLocationItem
     }
 
     @Override
-    public boolean isSuperShallow()
+    public boolean isCompletelyShallow()
     {
         return this.location == null && this.tags == null && this.relationIdentifiers == null;
     }

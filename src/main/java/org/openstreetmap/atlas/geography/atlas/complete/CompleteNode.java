@@ -144,7 +144,7 @@ public class CompleteNode extends Node implements CompleteLocationItem
     }
 
     @Override
-    public boolean isSuperShallow()
+    public boolean isCompletelyShallow()
     {
         return this.location == null && this.inEdgeIdentifiers == null
                 && this.outEdgeIdentifiers == null && this.tags == null

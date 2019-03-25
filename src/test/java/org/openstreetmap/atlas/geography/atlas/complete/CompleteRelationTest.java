@@ -127,6 +127,14 @@ public class CompleteRelationTest
     }
 
     @Test
+    public void testIsCompletelyShallow()
+    {
+        final CompleteRelation superShallow = new CompleteRelation(123L, null, null, null, null,
+                null, null, null);
+        Assert.assertTrue(superShallow.isCompletelyShallow());
+    }
+
+    @Test
     public void testShallow()
     {
         final Atlas atlas = this.rule.getAtlas();

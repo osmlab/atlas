@@ -129,7 +129,7 @@ public interface CompleteEntity
     /**
      * @return True when that entity contains only its identifier as effective data.
      */
-    boolean isSuperShallow();
+    boolean isCompletelyShallow();
 
     CompleteEntity withAddedTag(String key, String value);
 
