@@ -671,7 +671,7 @@ public final class FeatureChangeMergingHelpers
                             mergedAllRelationsWithSameOsmIdentifierBean
                                     .getMergedAfterMember() != null
                                             ? mergedAllRelationsWithSameOsmIdentifierBean
-                                                    .getMergedAfterMember().stream()
+                                                    .getMergedBeforeMember().stream()
                                                     .collect(Collectors.toList())
                                             : null)
                     .withAllKnownOsmMembers(mergedAllKnownMembersBean.getMergedBeforeMember())
