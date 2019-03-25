@@ -32,7 +32,7 @@ public interface AtlasChangeGenerator extends Converter<Atlas, Set<FeatureChange
                 Rectangle newBounds = featureChange.bounds();
                 final long originalNodeIdentifier = featureChange.getIdentifier();
                 final CompleteNode originalCompleteNode = (CompleteNode) featureChange
-                        .getReference();
+                        .getAfterView();
                 final Node originalNode = atlas.node(originalNodeIdentifier);
                 if (originalNode != null)
                 {
@@ -45,7 +45,7 @@ public interface AtlasChangeGenerator extends Converter<Atlas, Set<FeatureChange
                 {
                     if (featureChangeInner.getItemType() == ItemType.EDGE)
                     {
-                        final Edge changedEdge = (Edge) featureChangeInner.getReference();
+                        final Edge changedEdge = (Edge) featureChangeInner.getAfterView();
                         if (changedEdge.start() != null
                                 && changedEdge.start().getIdentifier() == originalNodeIdentifier
                                 || changedEdge.end() != null && changedEdge.end()
