@@ -17,8 +17,9 @@ import com.google.common.eventbus.EventBus;
  *
  * @author mkalender
  * @author jklamer
+ * @author Yazad Khambata
  */
-public final class EventService
+public final class EventService<T extends Event> implements EventServiceable<T>
 {
     private static final Logger logger = LoggerFactory.getLogger(EventService.class);
 
@@ -29,7 +30,7 @@ public final class EventService
     private final EventBus eventBus;
 
     // Container of processors on the EventService
-    private final Collection<Processor<?>> processors = new HashSet<>();
+    private final Collection<Processor<T>> processors = new HashSet<>();
 
     // Thread-safe complete indicator
     private final AtomicBoolean completed = new AtomicBoolean();
@@ -37,11 +38,13 @@ public final class EventService
     /**
      * @param key
      *            key to retrieve {@link EventService}
+     * @param <T>
+     *            - event type that is going to be posted
      * @return {@link EventService} instance for given key
      */
-    public static EventService get(final String key)
+    public static <T extends Event> EventService get(final String key)
     {
-        serviceMap.putIfAbsent(key, new EventService());
+        serviceMap.putIfAbsent(key, new EventService<T>());
         return serviceMap.get(key);
     }
 
@@ -54,6 +57,7 @@ public final class EventService
     /**
      * Stops event processing {@link Pool} and posts a {@link ShutdownEvent} event
      */
+    @Override
     public void complete()
     {
         if (!this.completed.compareAndSet(false, true))
@@ -69,12 +73,11 @@ public final class EventService
     /**
      * Publishes/posts a new event {@link Object}
      *
-     * @param <T>
-     *            event type that is going to be posted
      * @param event
      *            {@link Object} to post
      */
-    public <T extends Event> void post(final T event)
+    @Override
+    public void post(final T event)
     {
         if (event == null)
         {
@@ -94,12 +97,11 @@ public final class EventService
     /**
      * Registers given {@link Processor} to subscribe for events
      *
-     * @param <T>
-     *            processor event type that is going to be registered
      * @param processor
      *            {@link Processor} to register
      */
-    public <T extends Event> void register(final Processor<T> processor)
+    @Override
+    public void register(final Processor<T> processor)
     {
         this.eventBus.register(processor);
         this.processors.add(processor);
@@ -108,12 +110,11 @@ public final class EventService
     /**
      * Unregisters given {@link Processor}
      *
-     * @param <T>
-     *            processor event type that is going to be registered
      * @param processor
      *            {@link Processor} to unregister
      */
-    public <T extends Event> void unregister(final Processor<T> processor)
+    @Override
+    public void unregister(final Processor<T> processor)
     {
         this.eventBus.unregister(processor);
         this.processors.remove(processor);
