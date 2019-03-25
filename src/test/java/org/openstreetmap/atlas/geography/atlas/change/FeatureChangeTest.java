@@ -7,15 +7,8 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
-import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
-import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
-import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
-import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
-import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 
@@ -31,66 +24,11 @@ public class FeatureChangeTest
     public void testAfterViewIsFull()
     {
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L, null, Maps.hashMap("key1", "value1"), null));
+                new CompleteArea(123L, Polygon.SILICON_VALLEY, null, null));
         Assert.assertFalse(featureChange1.afterViewIsFull());
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, new CompleteArea(
                 123L, Polygon.SILICON_VALLEY, Maps.hashMap("key1", "value2"), Sets.hashSet(123L)));
         Assert.assertTrue(featureChange2.afterViewIsFull());
-    }
-
-    @Test
-    public void testAreaSuperShallow()
-    {
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("does not contain anything useful.");
-
-        new FeatureChange(ChangeType.ADD, new CompleteArea(123L, null, null, null));
-    }
-
-    @Test
-    public void testEdgeSuperShallow()
-    {
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("does not contain anything useful.");
-
-        new FeatureChange(ChangeType.ADD, new CompleteEdge(123L, null, null, null, null, null));
-    }
-
-    @Test
-    public void testLineSuperShallow()
-    {
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("does not contain anything useful.");
-
-        new FeatureChange(ChangeType.ADD, new CompleteLine(123L, PolyLine.CENTER, null, null));
-    }
-
-    @Test
-    public void testNodeSuperShallow()
-    {
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("does not contain anything useful.");
-
-        new FeatureChange(ChangeType.ADD, new CompleteNode(123L, null, null, null, null, null));
-    }
-
-    @Test
-    public void testPointSuperShallow()
-    {
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("does not contain anything useful.");
-
-        new FeatureChange(ChangeType.ADD, new CompletePoint(123L, null, null, null));
-    }
-
-    @Test
-    public void testRelationSuperShallow()
-    {
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("does not contain anything useful.");
-
-        new FeatureChange(ChangeType.ADD,
-                new CompleteRelation(123L, null, null, null, null, null, null, null));
     }
 
     @Test

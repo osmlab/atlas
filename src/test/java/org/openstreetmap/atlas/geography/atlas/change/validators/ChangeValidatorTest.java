@@ -25,9 +25,9 @@ public class ChangeValidatorTest
     {
         final ChangeBuilder builder = new ChangeBuilder();
         builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(123L, null, null, null, 456L, null)));
-        builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(-123L, null, null, 456L, null, null)));
+                new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, null, 456L, null)));
+        builder.add(new FeatureChange(ChangeType.ADD, new CompleteEdge(-123L,
+                PolyLine.TEST_POLYLINE.reversed(), null, 456L, null, null)));
         builder.get();
     }
 
@@ -36,9 +36,9 @@ public class ChangeValidatorTest
     {
         final ChangeBuilder builder = new ChangeBuilder();
         builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(123L, null, null, 654L, 456L, null)));
-        builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(-123L, null, null, 456L, 654L, null)));
+                new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, 654L, 456L, null)));
+        builder.add(new FeatureChange(ChangeType.ADD, new CompleteEdge(-123L,
+                PolyLine.TEST_POLYLINE.reversed(), null, 456L, 654L, null)));
         builder.get();
     }
 
@@ -58,9 +58,9 @@ public class ChangeValidatorTest
     {
         final ChangeBuilder builder = new ChangeBuilder();
         builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(123L, null, null, 456L, null, null)));
-        builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(-123L, null, null, null, 456L, null)));
+                new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, 456L, null, null)));
+        builder.add(new FeatureChange(ChangeType.ADD, new CompleteEdge(-123L,
+                PolyLine.TEST_POLYLINE.reversed(), null, null, 456L, null)));
         builder.get();
     }
 
@@ -68,10 +68,11 @@ public class ChangeValidatorTest
     public void testMatchingEdgeTags()
     {
         final ChangeBuilder builder = new ChangeBuilder();
+        builder.add(new FeatureChange(ChangeType.ADD, new CompleteEdge(123L, PolyLine.TEST_POLYLINE,
+                Maps.hashMap("key1", "value1"), null, null, null)));
         builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(123L, null, Maps.hashMap("key1", "value1"), null, null, null)));
-        builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(-123L, null, Maps.hashMap("key1", "value1"), null, null, null)));
+                new CompleteEdge(-123L, PolyLine.TEST_POLYLINE.reversed(),
+                        Maps.hashMap("key1", "value1"), null, null, null)));
         builder.get();
     }
 
@@ -79,8 +80,8 @@ public class ChangeValidatorTest
     public void testMismatchingEdgeAsymmetricParentRelations()
     {
         final ChangeBuilder builder = new ChangeBuilder();
-        builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(-123L, null, null, null, null, Sets.hashSet(13L))));
+        builder.add(new FeatureChange(ChangeType.ADD, new CompleteEdge(-123L,
+                PolyLine.TEST_POLYLINE.reversed(), null, null, null, Sets.hashSet(13L))));
         builder.get();
     }
 
@@ -92,9 +93,9 @@ public class ChangeValidatorTest
 
         final ChangeBuilder builder = new ChangeBuilder();
         builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(123L, null, null, null, 456L, null)));
-        builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(-123L, null, null, 654L, null, null)));
+                new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, null, 456L, null)));
+        builder.add(new FeatureChange(ChangeType.ADD, new CompleteEdge(-123L,
+                PolyLine.TEST_POLYLINE.reversed(), null, 654L, null, null)));
         builder.get();
     }
 
@@ -106,9 +107,9 @@ public class ChangeValidatorTest
 
         final ChangeBuilder builder = new ChangeBuilder();
         builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(123L, null, Maps.hashMap(), null, 456L, null)));
-        builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(-123L, null, Maps.hashMap(), null, null, null)));
+                new CompleteEdge(123L, PolyLine.TEST_POLYLINE, Maps.hashMap(), null, 456L, null)));
+        builder.add(new FeatureChange(ChangeType.ADD, new CompleteEdge(-123L,
+                PolyLine.TEST_POLYLINE.reversed(), Maps.hashMap(), null, null, null)));
         builder.get();
     }
 
@@ -116,10 +117,10 @@ public class ChangeValidatorTest
     public void testMismatchingEdgeParentRelations()
     {
         final ChangeBuilder builder = new ChangeBuilder();
-        builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(123L, null, null, null, null, Sets.hashSet(12L))));
-        builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(-123L, null, null, null, null, Sets.hashSet(13L))));
+        builder.add(new FeatureChange(ChangeType.ADD, new CompleteEdge(123L, PolyLine.TEST_POLYLINE,
+                null, null, null, Sets.hashSet(12L))));
+        builder.add(new FeatureChange(ChangeType.ADD, new CompleteEdge(-123L,
+                PolyLine.TEST_POLYLINE.reversed(), null, null, null, Sets.hashSet(13L))));
         builder.get();
     }
 
@@ -145,9 +146,9 @@ public class ChangeValidatorTest
 
         final ChangeBuilder builder = new ChangeBuilder();
         builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(123L, null, null, 456L, null, null)));
-        builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(-123L, null, null, null, 654L, null)));
+                new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, 456L, null, null)));
+        builder.add(new FeatureChange(ChangeType.ADD, new CompleteEdge(-123L,
+                PolyLine.TEST_POLYLINE.reversed(), null, null, 654L, null)));
         builder.get();
     }
 
@@ -155,10 +156,11 @@ public class ChangeValidatorTest
     public void testMismatchingEdgeTags()
     {
         final ChangeBuilder builder = new ChangeBuilder();
+        builder.add(new FeatureChange(ChangeType.ADD, new CompleteEdge(123L, PolyLine.TEST_POLYLINE,
+                Maps.hashMap("key1", "value1"), null, null, null)));
         builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(123L, null, Maps.hashMap("key1", "value1"), null, null, null)));
-        builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(-123L, null, Maps.hashMap("key2", "value2"), null, null, null)));
+                new CompleteEdge(-123L, PolyLine.TEST_POLYLINE.reversed(),
+                        Maps.hashMap("key2", "value2"), null, null, null)));
         builder.get();
     }
 
@@ -166,8 +168,8 @@ public class ChangeValidatorTest
     public void testMissingForwardEdge()
     {
         final ChangeBuilder builder = new ChangeBuilder();
-        builder.add(new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(-123L, PolyLine.TEST_POLYLINE, Maps.hashMap(), null, null, null)));
+        builder.add(new FeatureChange(ChangeType.ADD, new CompleteEdge(-123L,
+                PolyLine.TEST_POLYLINE.reversed(), Maps.hashMap(), null, null, null)));
         builder.get();
     }
 }

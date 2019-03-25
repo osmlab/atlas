@@ -53,9 +53,9 @@ public abstract class AbstractChangeTest
     protected Change newChangeWithAreaAndLine(final long identifier1, final long identifier2)
     {
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(identifier1, null, Maps.hashMap(), null));
+                new CompleteArea(identifier1, Polygon.TEST_BUILDING, Maps.hashMap(), null));
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.REMOVE,
-                new CompleteLine(identifier2, null, null, null));
+                new CompleteLine(identifier2, Polygon.TEST_BUILDING, null, null));
         final ChangeBuilder builder = new ChangeBuilder();
         builder.add(featureChange1);
         builder.add(featureChange2);
