@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.change.feature;
+package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.util.HashMap;
 import java.util.HashSet;

@@ -5,7 +5,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.atlas.change.feature.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.change.validators.ChangeValidator;
 
 /**

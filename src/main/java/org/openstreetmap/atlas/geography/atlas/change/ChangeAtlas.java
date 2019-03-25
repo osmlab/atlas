@@ -13,7 +13,6 @@ import org.openstreetmap.atlas.geography.atlas.AbstractAtlas;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
-import org.openstreetmap.atlas.geography.atlas.change.feature.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;

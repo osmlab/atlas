@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.change.feature;
+package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.util.Map;
 import java.util.Set;
@@ -14,7 +14,6 @@ import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
-import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;

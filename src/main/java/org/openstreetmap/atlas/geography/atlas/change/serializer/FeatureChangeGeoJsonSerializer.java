@@ -10,7 +10,7 @@ import java.util.function.Function;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometryPrintable;
 import org.openstreetmap.atlas.geography.Rectangle;
-import org.openstreetmap.atlas.geography.atlas.change.feature.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;

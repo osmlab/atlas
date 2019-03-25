@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.change.feature;
+package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -11,7 +11,6 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.change.serializer.FeatureChangeGeoJsonSerializer;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;

@@ -1,7 +1,5 @@
-package org.openstreetmap.atlas.geography.atlas.change.feature;
+package org.openstreetmap.atlas.geography.atlas.change;
 
-import org.openstreetmap.atlas.geography.atlas.change.Change;
-import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 
 /**
