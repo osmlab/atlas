@@ -37,6 +37,15 @@ public interface CompleteEntity
         return result;
     }
 
+    /**
+     * A simple equality check that only looks at identifiers, tags, and parent relations.
+     *
+     * @param left
+     *            the left entity
+     * @param right
+     *            the right entity
+     * @return if the left and right entities are related through a simple equality
+     */
     static boolean basicEqual(final AtlasEntity left, final AtlasEntity right)
     {
         return left.getIdentifier() == right.getIdentifier()
