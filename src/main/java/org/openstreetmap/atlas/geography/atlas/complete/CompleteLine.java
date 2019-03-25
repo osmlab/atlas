@@ -144,7 +144,7 @@ public class CompleteLine extends Line implements CompleteLineItem
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
-    public CompleteLine withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    public CompleteLine withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)
         {

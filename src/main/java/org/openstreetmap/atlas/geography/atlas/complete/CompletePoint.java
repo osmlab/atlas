@@ -152,7 +152,7 @@ public class CompletePoint extends Point implements CompleteLocationItem
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
-    public CompletePoint withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    public CompletePoint withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)
         {

@@ -123,11 +123,9 @@ public class CompleteArea extends Area implements CompleteEntity
          * We would need an atlas context to actually compute the proper bounds. Effectively, the
          * CompleteRelations returned by the method are just wrappers around an identifier.
          */
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream()
-                        .map(relationIdentifier -> new CompleteRelation(relationIdentifier,
-                                Rectangle.MINIMUM))
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream().map(
+                relationIdentifier -> new CompleteRelation(relationIdentifier, Rectangle.MINIMUM))
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -144,7 +142,7 @@ public class CompleteArea extends Area implements CompleteEntity
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
-    public CompleteArea withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    public CompleteArea withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)
         {

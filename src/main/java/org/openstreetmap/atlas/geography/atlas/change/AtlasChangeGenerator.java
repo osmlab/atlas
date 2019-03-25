@@ -57,7 +57,7 @@ public interface AtlasChangeGenerator extends Converter<Atlas, Set<FeatureChange
                 }
                 final FeatureChange newFeatureChange = new FeatureChange(
                         featureChange.getChangeType(),
-                        originalCompleteNode.withAggregateBoundsExtendedUsing(newBounds));
+                        originalCompleteNode.withBoundsExtendedBy(newBounds));
                 result.add(newFeatureChange);
             }
             else

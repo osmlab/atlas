@@ -186,11 +186,9 @@ public class CompleteNode extends Node implements CompleteLocationItem
          * We would need an atlas context to actually compute the proper bounds. Effectively, the
          * CompleteRelations returned by the method are just wrappers around an identifier.
          */
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream()
-                        .map(relationIdentifier -> new CompleteRelation(relationIdentifier,
-                                Rectangle.MINIMUM))
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream().map(
+                relationIdentifier -> new CompleteRelation(relationIdentifier, Rectangle.MINIMUM))
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -208,7 +206,7 @@ public class CompleteNode extends Node implements CompleteLocationItem
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
-    public CompleteNode withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    public CompleteNode withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)
         {
