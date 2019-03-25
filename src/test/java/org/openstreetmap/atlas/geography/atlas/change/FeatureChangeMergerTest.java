@@ -418,7 +418,7 @@ public class FeatureChangeMergerTest
                 Maps.hashMap("a", "1", "b", "2"), null);
 
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompletePoint(123L, Location.COLOSSEUM, Maps.hashMap("a", "1", "b", "2"), null),
+                new CompletePoint(123L, Location.COLOSSEUM, Maps.hashMap("a", "1"), null),
                 beforePoint1);
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
                 new CompletePoint(123L, Location.EIFFEL_TOWER,
