@@ -34,12 +34,12 @@ public class CompleteArea extends Area implements CompleteEntity
 
     public static CompleteArea shallowFrom(final Area area)
     {
-        return new CompleteArea(area.getIdentifier(), area.asPolygon());
+        return new CompleteArea(area.getIdentifier()).withBoundsExtendedBy(area.bounds());
     }
 
-    CompleteArea(final long identifier, final Polygon polygon)
+    CompleteArea(final long identifier)
     {
-        this(identifier, polygon, null, null);
+        this(identifier, null, null, null);
     }
 
     public CompleteArea(final Long identifier, final Polygon polygon,
@@ -52,12 +52,7 @@ public class CompleteArea extends Area implements CompleteEntity
             throw new CoreException("Identifier can never be null.");
         }
 
-        if (polygon == null)
-        {
-            throw new CoreException("Polygon can never be null.");
-        }
-
-        this.bounds = polygon.bounds();
+        this.bounds = polygon != null ? polygon.bounds() : null;
 
         this.identifier = identifier;
         this.polygon = polygon;
@@ -117,15 +112,12 @@ public class CompleteArea extends Area implements CompleteEntity
     public Set<Relation> relations()
     {
         /*
-         * Disregard the CompleteRelation bounds parameter (Rectangle.MINIMUM) here. We must provide
-         * bounds to the CompleteRelation constructor to satisfy the API contract. However, the
-         * bounds provided here do not reflect the true bounds of the relation with this identifier.
-         * We would need an atlas context to actually compute the proper bounds. Effectively, the
-         * CompleteRelations returned by the method are just wrappers around an identifier.
+         * Note that the Relations returned by this method will technically break the Located
+         * contract, since they have null bounds.
          */
-        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream().map(
-                relationIdentifier -> new CompleteRelation(relationIdentifier, Rectangle.MINIMUM))
-                .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null
+                : this.relationIdentifiers.stream().map(CompleteRelation::new)
+                        .collect(Collectors.toSet());
     }
 
     @Override
@@ -147,6 +139,7 @@ public class CompleteArea extends Area implements CompleteEntity
         if (this.bounds == null)
         {
             this.bounds = bounds;
+            return this;
         }
         this.bounds = Rectangle.forLocated(this.bounds, bounds);
         return this;

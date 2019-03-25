@@ -42,12 +42,12 @@ public class CompletePoint extends Point implements CompleteLocationItem
      */
     public static CompletePoint shallowFrom(final Point point)
     {
-        return new CompletePoint(point.getIdentifier(), point.getLocation());
+        return new CompletePoint(point.getIdentifier()).withBoundsExtendedBy(point.bounds());
     }
 
-    CompletePoint(final long identifier, final Location location)
+    CompletePoint(final long identifier)
     {
-        this(identifier, location, null, null);
+        this(identifier, null, null, null);
     }
 
     public CompletePoint(final Long identifier, final Location location,
@@ -60,12 +60,7 @@ public class CompletePoint extends Point implements CompleteLocationItem
             throw new CoreException("Identifier can never be null.");
         }
 
-        if (location == null)
-        {
-            throw new CoreException("Location can never be null.");
-        }
-
-        this.bounds = location.bounds();
+        this.bounds = location != null ? location.bounds() : null;
 
         this.identifier = identifier;
         this.location = location;
@@ -118,23 +113,18 @@ public class CompletePoint extends Point implements CompleteLocationItem
     @Override
     public boolean isSuperShallow()
     {
-        return this.tags == null && this.relationIdentifiers == null;
+        return this.location != null && this.tags == null && this.relationIdentifiers == null;
     }
 
     @Override
     public Set<Relation> relations()
     {
         /*
-         * Disregard the CompleteRelation bounds parameter (Rectangle.MINIMUM) here. We must provide
-         * bounds to the CompleteRelation constructor to satisfy the API contract. However, the
-         * bounds provided here do not reflect the true bounds of the relation with this identifier.
-         * We would need an atlas context to actually compute the proper bounds. Effectively, the
-         * CompleteRelations returned by the method are just wrappers around an identifier.
+         * Note that the Relations returned by this method will technically break the Located
+         * contract, since they have null bounds.
          */
         return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream()
-                        .map(relationIdentifier -> new CompleteRelation(relationIdentifier,
-                                Rectangle.MINIMUM))
+                : this.relationIdentifiers.stream().map(CompleteRelation::new)
                         .collect(Collectors.toSet());
     }
 
@@ -157,6 +147,7 @@ public class CompletePoint extends Point implements CompleteLocationItem
         if (this.bounds == null)
         {
             this.bounds = bounds;
+            return this;
         }
         this.bounds = Rectangle.forLocated(this.bounds, bounds);
         return this;

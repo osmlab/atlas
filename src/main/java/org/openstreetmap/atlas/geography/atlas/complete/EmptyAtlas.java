@@ -10,8 +10,6 @@ import java.util.function.Predicate;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.PolyLine;
-import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
@@ -196,25 +194,23 @@ public class EmptyAtlas implements Atlas
     public AtlasEntity entity(final long identifier, final ItemType type)
     {
         /*
-         * Disregard the dummy bounds/geometry parameters (Location.CENTER, Rectangle.MINIMUM, etc.)
-         * here. We must provide bounds/geometry to the CompleteEntity's constructor to satisfy the
-         * API contract. Entities returned from this method should be treated as identifier
-         * containers only.
+         * Note that the AtlasEntities returned by this method will technically break the Located
+         * contract, since they have null bounds.
          */
         switch (type)
         {
             case NODE:
-                return new CompleteNode(identifier, Location.CENTER);
+                return new CompleteNode(identifier);
             case EDGE:
-                return new CompleteEdge(identifier, PolyLine.CENTER);
+                return new CompleteEdge(identifier);
             case AREA:
-                return new CompleteArea(identifier, Polygon.CENTER);
+                return new CompleteArea(identifier);
             case LINE:
-                return new CompleteLine(identifier, PolyLine.CENTER);
+                return new CompleteLine(identifier);
             case POINT:
-                return new CompletePoint(identifier, Location.CENTER);
+                return new CompletePoint(identifier);
             case RELATION:
-                return new CompleteRelation(identifier, Rectangle.MINIMUM);
+                return new CompleteRelation(identifier);
             default:
                 throw new CoreException("Unknown type {}", type);
         }

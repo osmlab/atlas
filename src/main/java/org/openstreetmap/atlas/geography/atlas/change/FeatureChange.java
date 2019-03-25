@@ -589,57 +589,9 @@ public class FeatureChange implements Located, Serializable
 
     private void validateUsefulFeatureChange()
     {
-        final String errorMessage = "{} does not contain anything useful.";
-        if (this.changeType == ChangeType.ADD && this.beforeView != null
-                && ((CompleteEntity) this.afterView).isSuperShallow())
+        if (this.changeType == ChangeType.ADD && ((CompleteEntity) this.afterView).isSuperShallow())
         {
-            switch (this.beforeView.getType())
-            {
-                case AREA:
-                    final Area beforeArea = (Area) this.beforeView;
-                    final Area afterArea = (Area) this.afterView;
-                    if (beforeArea.asPolygon().equals(afterArea.asPolygon()))
-                    {
-                        throw new CoreException(errorMessage, this);
-                    }
-                    break;
-                case EDGE:
-                    final Edge beforeEdge = (Edge) this.beforeView;
-                    final Edge afterEdge = (Edge) this.afterView;
-                    if (beforeEdge.asPolyLine().equals(afterEdge.asPolyLine()))
-                    {
-                        throw new CoreException(errorMessage, this);
-                    }
-                    break;
-                case LINE:
-                    final Line beforeLine = (Line) this.beforeView;
-                    final Line afterLine = (Line) this.afterView;
-                    if (beforeLine.asPolyLine().equals(afterLine.asPolyLine()))
-                    {
-                        throw new CoreException(errorMessage, this);
-                    }
-                    break;
-                case NODE:
-                    final Node beforeNode = (Node) this.beforeView;
-                    final Node afterNode = (Node) this.afterView;
-                    if (beforeNode.getLocation().equals(afterNode.getLocation()))
-                    {
-                        throw new CoreException(errorMessage, this);
-                    }
-                    break;
-                case POINT:
-                    final Point beforePoint = (Point) this.beforeView;
-                    final Point afterPoint = (Point) this.afterView;
-                    if (beforePoint.getLocation().equals(afterPoint.getLocation()))
-                    {
-                        throw new CoreException(errorMessage, this);
-                    }
-                    break;
-                case RELATION:
-                    throw new CoreException(errorMessage, this);
-                default:
-                    throw new CoreException("Unrecognized ItemType {}", this.beforeView.getType());
-            }
+            throw new CoreException("{} does not contain anything useful.", this);
         }
     }
 }

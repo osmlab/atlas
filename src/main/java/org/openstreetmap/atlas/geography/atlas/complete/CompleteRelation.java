@@ -49,12 +49,13 @@ public class CompleteRelation extends Relation implements CompleteEntity
 
     public static CompleteRelation shallowFrom(final Relation relation)
     {
-        return new CompleteRelation(relation.getIdentifier(), relation.bounds());
+        return new CompleteRelation(relation.getIdentifier())
+                .withBoundsExtendedBy(relation.bounds());
     }
 
-    CompleteRelation(final long identifier, final Rectangle bounds)
+    CompleteRelation(final long identifier)
     {
-        this(identifier, null, bounds, null, null, null, null, null);
+        this(identifier, null, null, null, null, null, null, null);
     }
 
     public CompleteRelation(final Long identifier, final Map<String, String> tags, // NOSONAR
@@ -70,12 +71,7 @@ public class CompleteRelation extends Relation implements CompleteEntity
             throw new CoreException("Identifier can never be null.");
         }
 
-        if (bounds == null)
-        {
-            throw new CoreException("Bounds can never be null.");
-        }
-
-        this.bounds = bounds;
+        this.bounds = bounds != null ? bounds : null;
 
         this.identifier = identifier;
         this.tags = tags;
@@ -101,15 +97,11 @@ public class CompleteRelation extends Relation implements CompleteEntity
     public List<Relation> allRelationsWithSameOsmIdentifier()
     {
         /*
-         * Disregard the relation bounds parameter (Rectangle.MINIMUM) here. We must provide bounds
-         * to the CompleteRelation constructor to satisfy the API contract. However, the bounds
-         * provided here do not reflect the true bounds of the relation with this identifier. We
-         * would need an atlas context to actually compute the proper bounds.
+         * Note that the Relations returned by this method will technically break the Located
+         * contract, since they have null bounds.
          */
         return this.allRelationsWithSameOsmIdentifier == null ? null
-                : this.allRelationsWithSameOsmIdentifier.stream()
-                        .map(relationIdentifier -> new CompleteRelation(relationIdentifier,
-                                Rectangle.MINIMUM))
+                : this.allRelationsWithSameOsmIdentifier.stream().map(CompleteRelation::new)
                         .collect(Collectors.toList());
     }
 
@@ -158,9 +150,10 @@ public class CompleteRelation extends Relation implements CompleteEntity
     @Override
     public boolean isSuperShallow()
     {
-        return this.members == null && this.allRelationsWithSameOsmIdentifier == null
-                && this.allKnownOsmMembers == null && this.osmRelationIdentifier == null
-                && this.tags == null && this.relationIdentifiers == null;
+        return this.bounds == null && this.members == null
+                && this.allRelationsWithSameOsmIdentifier == null && this.allKnownOsmMembers == null
+                && this.osmRelationIdentifier == null && this.tags == null
+                && this.relationIdentifiers == null;
     }
 
     @Override
@@ -179,16 +172,11 @@ public class CompleteRelation extends Relation implements CompleteEntity
     public Set<Relation> relations()
     {
         /*
-         * Disregard the CompleteRelation bounds parameter (Rectangle.MINIMUM) here. We must provide
-         * bounds to the CompleteRelation constructor to satisfy the API contract. However, the
-         * bounds provided here do not reflect the true bounds of the relation with this identifier.
-         * We would need an atlas context to actually compute the proper bounds. Effectively, the
-         * CompleteRelations returned by the method are just wrappers around an identifier.
+         * Note that the Relations returned by this method will technically break the Located
+         * contract, since they have null bounds.
          */
         return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream()
-                        .map(relationIdentifier -> new CompleteRelation(relationIdentifier,
-                                Rectangle.MINIMUM))
+                : this.relationIdentifiers.stream().map(CompleteRelation::new)
                         .collect(Collectors.toSet());
     }
 
@@ -206,16 +194,6 @@ public class CompleteRelation extends Relation implements CompleteEntity
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
-    public CompleteRelation withBoundsExtendedBy(final Rectangle bounds)
-    {
-        if (this.bounds == null)
-        {
-            this.bounds = bounds;
-        }
-        this.bounds = Rectangle.forLocated(this.bounds, bounds);
-        return this;
-    }
-
     public CompleteRelation withAllKnownOsmMembers(final RelationBean allKnownOsmMembers)
     {
         this.allKnownOsmMembers = allKnownOsmMembers;
@@ -226,6 +204,17 @@ public class CompleteRelation extends Relation implements CompleteEntity
             final List<Long> allRelationsWithSameOsmIdentifier)
     {
         this.allRelationsWithSameOsmIdentifier = allRelationsWithSameOsmIdentifier;
+        return this;
+    }
+
+    public CompleteRelation withBoundsExtendedBy(final Rectangle bounds)
+    {
+        if (this.bounds == null)
+        {
+            this.bounds = bounds;
+            return this;
+        }
+        this.bounds = Rectangle.forLocated(this.bounds, bounds);
         return this;
     }
 

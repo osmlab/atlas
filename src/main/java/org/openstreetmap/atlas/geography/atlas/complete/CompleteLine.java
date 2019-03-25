@@ -34,12 +34,12 @@ public class CompleteLine extends Line implements CompleteLineItem
 
     public static CompleteLine shallowFrom(final Line line)
     {
-        return new CompleteLine(line.getIdentifier(), line.asPolyLine());
+        return new CompleteLine(line.getIdentifier()).withBoundsExtendedBy(line.bounds());
     }
 
-    CompleteLine(final long identifier, final PolyLine polyLine)
+    CompleteLine(final long identifier)
     {
-        this(identifier, polyLine, null, null);
+        this(identifier, null, null, null);
     }
 
     public CompleteLine(final Long identifier, final PolyLine polyLine,
@@ -52,12 +52,7 @@ public class CompleteLine extends Line implements CompleteLineItem
             throw new CoreException("Identifier can never be null.");
         }
 
-        if (polyLine == null)
-        {
-            throw new CoreException("PolyLine can never be null");
-        }
-
-        this.bounds = polyLine.bounds();
+        this.bounds = polyLine != null ? polyLine.bounds() : null;
 
         this.identifier = identifier;
         this.polyLine = polyLine;
@@ -110,23 +105,18 @@ public class CompleteLine extends Line implements CompleteLineItem
     @Override
     public boolean isSuperShallow()
     {
-        return this.tags == null && this.relationIdentifiers == null;
+        return this.polyLine != null && this.tags == null && this.relationIdentifiers == null;
     }
 
     @Override
     public Set<Relation> relations()
     {
         /*
-         * Disregard the CompleteRelation bounds parameter (Rectangle.MINIMUM) here. We must provide
-         * bounds to the CompleteRelation constructor to satisfy the API contract. However, the
-         * bounds provided here do not reflect the true bounds of the relation with this identifier.
-         * We would need an atlas context to actually compute the proper bounds. Effectively, the
-         * CompleteRelations returned by the method are just wrappers around an identifier.
+         * Note that the Relations returned by this method will technically break the Located
+         * contract, since they have null bounds.
          */
         return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream()
-                        .map(relationIdentifier -> new CompleteRelation(relationIdentifier,
-                                Rectangle.MINIMUM))
+                : this.relationIdentifiers.stream().map(CompleteRelation::new)
                         .collect(Collectors.toSet());
     }
 
@@ -149,6 +139,7 @@ public class CompleteLine extends Line implements CompleteLineItem
         if (this.bounds == null)
         {
             this.bounds = bounds;
+            return this;
         }
         this.bounds = Rectangle.forLocated(this.bounds, bounds);
         return this;

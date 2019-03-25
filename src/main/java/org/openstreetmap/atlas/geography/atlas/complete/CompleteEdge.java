@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -39,12 +38,12 @@ public class CompleteEdge extends Edge implements CompleteLineItem
 
     public static CompleteEdge shallowFrom(final Edge edge)
     {
-        return new CompleteEdge(edge.getIdentifier(), edge.asPolyLine());
+        return new CompleteEdge(edge.getIdentifier()).withBoundsExtendedBy(edge.bounds());
     }
 
-    CompleteEdge(final long identifier, final PolyLine polyLine)
+    CompleteEdge(final long identifier)
     {
-        this(identifier, polyLine, null, null, null, null);
+        this(identifier, null, null, null, null, null);
     }
 
     public CompleteEdge(final Long identifier, final PolyLine polyLine,
@@ -58,12 +57,7 @@ public class CompleteEdge extends Edge implements CompleteLineItem
             throw new CoreException("Identifier can never be null.");
         }
 
-        if (polyLine == null)
-        {
-            throw new CoreException("PolyLine can never be null");
-        }
-
-        this.bounds = polyLine.bounds();
+        this.bounds = this.bounds != null ? polyLine.bounds() : null;
 
         this.identifier = identifier;
         this.polyLine = polyLine;
@@ -89,14 +83,10 @@ public class CompleteEdge extends Edge implements CompleteLineItem
     public Node end()
     {
         /*
-         * Disregard the CompleteNode geometry parameter (Location.CENTER) here. We must provide
-         * geometry to the CompleteNode constructor to satisfy the API contract. However, the
-         * geometry provided here does not reflect the true geometry of the Node with this
-         * identifier. We would need an atlas context to get the proper geometry. Effectively, the
-         * CompleteNodes returned by the method are just wrappers around an identifier.
+         * Note that the Node returned by this method will technically break the Located contract,
+         * since it has null bounds.
          */
-        return this.endNodeIdentifier == null ? null
-                : new CompleteNode(this.endNodeIdentifier, Location.CENTER);
+        return this.endNodeIdentifier == null ? null : new CompleteNode(this.endNodeIdentifier);
     }
 
     @Override
@@ -135,37 +125,31 @@ public class CompleteEdge extends Edge implements CompleteLineItem
     @Override
     public boolean isSuperShallow()
     {
-        return this.tags == null && this.startNodeIdentifier == null
-                && this.endNodeIdentifier == null && this.relationIdentifiers == null;
+        return this.polyLine == null && this.startNodeIdentifier == null
+                && this.endNodeIdentifier == null && this.tags == null
+                && this.relationIdentifiers == null;
     }
 
     @Override
     public Set<Relation> relations()
     {
         /*
-         * Disregard the CompleteRelation bounds parameter (Rectangle.MINIMUM) here. We must provide
-         * bounds to the CompleteRelation constructor to satisfy the API contract. However, the
-         * bounds provided here do not reflect the true bounds of the relation with this identifier.
-         * We would need an atlas context to actually compute the proper bounds. Effectively, the
-         * CompleteRelations returned by the method are just wrappers around an identifier.
+         * Note that the Relations returned by this method will technically break the Located
+         * contract, since they have null bounds.
          */
-        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream().map(
-                relationIdentifier -> new CompleteRelation(relationIdentifier, Rectangle.MINIMUM))
-                .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null
+                : this.relationIdentifiers.stream().map(CompleteRelation::new)
+                        .collect(Collectors.toSet());
     }
 
     @Override
     public Node start()
     {
         /*
-         * Disregard the CompleteNode geometry parameter (Location.CENTER) here. We must provide
-         * geometry to the CompleteNode constructor to satisfy the API contract. However, the
-         * geometry provided here does not reflect the true geometry of the Node with this
-         * identifier. We would need an atlas context to get the proper geometry. Effectively, the
-         * CompleteNodes returned by the method are just wrappers around an identifier.
+         * Note that the Node returned by this method will technically break the Located contract,
+         * since it has null bounds.
          */
-        return this.startNodeIdentifier == null ? null
-                : new CompleteNode(this.startNodeIdentifier, Location.CENTER);
+        return this.startNodeIdentifier == null ? null : new CompleteNode(this.startNodeIdentifier);
     }
 
     @Override
@@ -188,6 +172,7 @@ public class CompleteEdge extends Edge implements CompleteLineItem
         if (this.bounds == null)
         {
             this.bounds = bounds;
+            return this;
         }
         this.bounds = Rectangle.forLocated(this.bounds, bounds);
         return this;
