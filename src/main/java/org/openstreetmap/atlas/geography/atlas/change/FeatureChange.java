@@ -136,6 +136,66 @@ public class FeatureChange implements Located, Serializable
         this(changeType, afterView, null);
     }
 
+    public boolean afterViewIsFull()
+    {
+        if (this.getAfterView().getTags() == null || this.getAfterView().relations() == null)
+        {
+            return false;
+        }
+        switch (this.getItemType())
+        {
+            case NODE:
+                final Node nodeReference = (Node) this.getAfterView();
+                if (nodeReference.inEdges() == null || nodeReference.outEdges() == null
+                        || nodeReference.getLocation() == null)
+                {
+                    return false;
+                }
+                break;
+            case EDGE:
+                final Edge edgeReference = (Edge) this.getAfterView();
+                if (edgeReference.start() == null || edgeReference.end() == null
+                        || edgeReference.asPolyLine() == null)
+                {
+                    return false;
+                }
+                break;
+            case AREA:
+                final Area areaReference = (Area) this.getAfterView();
+                if (areaReference.asPolygon() == null)
+                {
+                    return false;
+                }
+                break;
+            case LINE:
+                final Line lineReference = (Line) this.getAfterView();
+                if (lineReference.asPolyLine() == null)
+                {
+                    return false;
+                }
+                break;
+            case POINT:
+                final Point pointReference = (Point) this.getAfterView();
+                if (pointReference.getLocation() == null)
+                {
+                    return false;
+                }
+                break;
+            case RELATION:
+                final Relation relationReference = (Relation) this.getAfterView();
+                if (relationReference.members() == null
+                        || relationReference.allKnownOsmMembers() == null
+                        || relationReference.allRelationsWithSameOsmIdentifier() == null)
+                {
+                    return false;
+                }
+                break;
+            default:
+                throw new CoreException("Unknown Item Type {}", this.getItemType());
+        }
+        return true;
+    }
+
     @Override
     public Rectangle bounds()
     {
