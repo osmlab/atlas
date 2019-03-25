@@ -15,6 +15,8 @@ import com.google.common.eventbus.EventBus;
 /**
  * A simple in-memory publish-subscribe service built on top of {@link EventBus}
  *
+ * @param <T>
+ *            - event type that is going to be posted
  * @author mkalender
  * @author jklamer
  * @author Yazad Khambata
