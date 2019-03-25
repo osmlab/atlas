@@ -12,7 +12,6 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.change.Change;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeBuilder;
-import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
@@ -41,23 +40,23 @@ public class ChangeGeoJsonSerializerTest
     public void testSerialization()
     {
         final CompleteArea area = new CompleteArea(123L, Polygon.TEST_BUILDING, TAGS, RELATIONS);
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, area);
+        final FeatureChange featureChange1 = FeatureChange.add(area);
         final CompleteEdge edge = new CompleteEdge(123L, PolyLine.TEST_POLYLINE, TAGS, 456L, 789L,
                 RELATIONS);
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, edge);
+        final FeatureChange featureChange2 = FeatureChange.add(edge);
         final CompleteLine line = new CompleteLine(123L, PolyLine.TEST_POLYLINE, TAGS, RELATIONS);
-        final FeatureChange featureChange3 = new FeatureChange(ChangeType.ADD, line);
+        final FeatureChange featureChange3 = FeatureChange.add(line);
         final CompleteNode node = new CompleteNode(123L, Location.COLOSSEUM, TAGS,
                 Sets.treeSet(456L, 789L), Sets.treeSet(456L, 789L), RELATIONS);
-        final FeatureChange featureChange4 = new FeatureChange(ChangeType.ADD, node);
+        final FeatureChange featureChange4 = FeatureChange.add(node);
         final CompletePoint point = new CompletePoint(123L, Location.COLOSSEUM, TAGS, RELATIONS);
-        final FeatureChange featureChange5 = new FeatureChange(ChangeType.ADD, point);
+        final FeatureChange featureChange5 = FeatureChange.add(point);
         final RelationBean members = new RelationBean();
         members.addItem(456L, "role1", ItemType.EDGE);
         members.addItem(789L, "role2", ItemType.AREA);
         final CompleteRelation relation = new CompleteRelation(123L, TAGS, Rectangle.TEST_RECTANGLE,
                 members, Lists.newArrayList(123L), members, 123L, RELATIONS);
-        final FeatureChange featureChange6 = new FeatureChange(ChangeType.ADD, relation);
+        final FeatureChange featureChange6 = FeatureChange.add(relation);
 
         final ChangeBuilder changeBuilder = new ChangeBuilder();
         changeBuilder.add(featureChange1);

@@ -36,11 +36,15 @@ import org.openstreetmap.atlas.streaming.resource.WritableResource;
  * to contain all the information related to that new feature.
  * <p>
  * To modify an existing feature: {@link ChangeType} is ADD, and the included reference needs to
- * contain the only the changed information related to that changed feature. You must also include a
- * reference to the before view of the entity.
+ * contain the only the changed information related to that changed feature.
  * <p>
- * To remove an existing feature: {@link ChangeType} is REMOVE. The included reference's only
- * feature that needs to match the existing feature is the identifier.
+ * To remove an existing feature: {@link ChangeType} is REMOVE. The reference entity need only
+ * contain the identifier of the feature to remove.
+ * <p>
+ * For all {@link FeatureChange}s, you may indirectly include a reference to the before view of the
+ * entity using the {@link FeatureChange#add(AtlasEntity, Atlas)} and
+ * {@link FeatureChange#remove(AtlasEntity, Atlas)} methods. Providing the atlas context allows
+ * {@link FeatureChange} to perform more sophisticated merge logic.
  *
  * @author matthieun
  * @author lcram
@@ -53,39 +57,87 @@ public class FeatureChange implements Located, Serializable
     private AtlasEntity beforeView;
     private final AtlasEntity afterView;
 
+    /**
+     * Create a new {@link ChangeType#ADD} {@link FeatureChange} with a given after view. The
+     * afterView should be a {@link CompleteEntity} that specifies how the newly added or modified
+     * feature should look.
+     *
+     * @param afterView
+     *            the after view {@link CompleteEntity}
+     * @return the created {@link FeatureChange}
+     */
     public static FeatureChange add(final AtlasEntity afterView)
     {
         return new FeatureChange(ChangeType.ADD, afterView);
     }
 
+    /**
+     * Create a new {@link ChangeType#ADD} {@link FeatureChange} with a given after view. The
+     * afterView should be a {@link CompleteEntity} that specifies how the newly added or modified
+     * feature should look. The atlasContext parameter creates a richer {@link FeatureChange} that
+     * contains information on how the entity looked before the update. This allows for more
+     * sophisticated merge logic.
+     *
+     * @param afterView
+     *            the after view {@link CompleteEntity}
+     * @param atlasContext
+     *            the atlas context
+     * @return the created {@link FeatureChange}
+     */
     public static FeatureChange add(final AtlasEntity afterView, final Atlas atlasContext)
     {
         return new FeatureChange(ChangeType.ADD, afterView).withAtlasContext(atlasContext);
     }
 
+    /**
+     * Create a new {@link ChangeType#REMOVE} {@link FeatureChange} with a given after view. The
+     * reference should be a {@link CompleteEntity} containing at least the identifier of the
+     * feature to be removed.
+     *
+     * @param reference
+     *            the {@link CompleteEntity} to remove
+     * @return the created {@link FeatureChange}
+     */
     public static FeatureChange remove(final AtlasEntity reference)
     {
         return new FeatureChange(ChangeType.REMOVE, reference);
     }
 
+    /**
+     * Create a new {@link ChangeType#REMOVE} {@link FeatureChange} with a given after view. The
+     * reference should be a {@link CompleteEntity} containing at least the identifier of the
+     * feature to be removed. The atlasContext parameter creates a richer {@link FeatureChange} that
+     * contains information on how the entity looked before the update. This allows for more
+     * sophisticated merge logic.
+     *
+     * @param reference
+     *            the {@link CompleteEntity} to remove
+     * @param atlasContext
+     *            the atlas context
+     * @return the created {@link FeatureChange}
+     */
     public static FeatureChange remove(final AtlasEntity reference, final Atlas atlasContext)
     {
         return new FeatureChange(ChangeType.REMOVE, reference).withAtlasContext(atlasContext);
     }
 
     /**
+     * Create a new {@link FeatureChange} with a given type and after view.
+     *
+     * @param changeType
+     *            the type, either ADD or REMOVE.
+     * @param afterView
+     *            the after view of the changed entity
+     */
+    FeatureChange(final ChangeType changeType, final AtlasEntity afterView)
+    {
+        this(changeType, afterView, null);
+    }
+
+    /**
      * Create a new {@link FeatureChange} with a given type, after view, and before view. This
-     * constructor is provided for exact control over the before view of a change. However, most
-     * users who wish to specify a before view should generally prefer to use the following pattern
-     * instead:<br>
-     * <br>
-     * <code>
-     * new FeatureChange(ChangeType.ADD, updatedCompleteEntity).withAtlasContext(atlas);
-     * </code> <br>
-     * <br>
-     * This is much less error prone, as {@link FeatureChange} will automatically calculate the
-     * properly populated beforeView it needs to perform proper merging. See
-     * {@link FeatureChange#withAtlasContext(Atlas)} for more information.
+     * constructor is provided for exact control over the before view of a change. It is kept
+     * package private, and is used for testing purposes only.
      *
      * @param changeType
      *            the change type
@@ -136,19 +188,6 @@ public class FeatureChange implements Located, Serializable
         {
             this.validateUsefulnessWithBeforeView();
         }
-    }
-
-    /**
-     * Create a new {@link FeatureChange} with a given type and after view.
-     *
-     * @param changeType
-     *            the type, either ADD or REMOVE.
-     * @param afterView
-     *            the after view of the changed entity
-     */
-    public FeatureChange(final ChangeType changeType, final AtlasEntity afterView)
-    {
-        this(changeType, afterView, null);
     }
 
     public boolean afterViewIsFull()
@@ -393,22 +432,6 @@ public class FeatureChange implements Located, Serializable
         return "FeatureChange [changeType=" + this.changeType + ", reference={"
                 + this.afterView.getType() + "," + this.afterView.getIdentifier() + "}, tags="
                 + getTags() + ", bounds=" + bounds() + "]";
-    }
-
-    /**
-     * Specify the Atlas on which this {@link FeatureChange} is based. {@link FeatureChange} objects
-     * with a contextual Atlas are able to calculate their before view, and so are able to leverage
-     * richer and more robust merging mechanics.
-     *
-     * @param atlas
-     *            the contextual atlas
-     * @return the updated {@link FeatureChange}
-     */
-    public FeatureChange withAtlasContext(final Atlas atlas)
-    {
-        computeBeforeViewUsingAtlasContext(atlas, this.changeType);
-        validateUsefulnessWithBeforeView();
-        return this;
     }
 
     /**
@@ -781,5 +804,21 @@ public class FeatureChange implements Located, Serializable
         throw new CoreException(
                 "FeatureChange is not useful: beforeView perfectly matched afterView: {} vs {}",
                 this.beforeView, this.afterView);
+    }
+
+    /**
+     * Specify the Atlas on which this {@link FeatureChange} is based. {@link FeatureChange} objects
+     * with a contextual Atlas are able to calculate their before view, and so are able to leverage
+     * richer and more robust merging mechanics.
+     *
+     * @param atlas
+     *            the contextual atlas
+     * @return the updated {@link FeatureChange}
+     */
+    private FeatureChange withAtlasContext(final Atlas atlas)
+    {
+        computeBeforeViewUsingAtlasContext(atlas, this.changeType);
+        validateUsefulnessWithBeforeView();
+        return this;
     }
 }
