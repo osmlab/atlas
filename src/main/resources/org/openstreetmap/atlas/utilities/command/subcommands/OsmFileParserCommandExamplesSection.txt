@@ -1,0 +1,2 @@
+Translate a file josm file into an osm file:
+#$ josm2osm /path/to/file.josm.osm /path/to/file.osm
