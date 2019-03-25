@@ -19,6 +19,9 @@ import com.fasterxml.jackson.databind.JsonMappingException;
  */
 class ConfigurationDeserializer extends JsonDeserializer<Map<String, Object>>
 {
+    private static final String INVALID_JSON = "Invalid JSON format.";
+    private static final String DOT = ".";
+
     @Override
     public Map<String, Object> deserialize(final JsonParser jacksonParser,
             final DeserializationContext context) throws IOException
@@ -31,7 +34,7 @@ class ConfigurationDeserializer extends JsonDeserializer<Map<String, Object>>
     {
         if (jacksonParser.getCurrentToken() != JsonToken.START_ARRAY)
         {
-            throw new JsonMappingException(jacksonParser, "Invalid JSON format.");
+            throw new JsonMappingException(jacksonParser, INVALID_JSON);
         }
 
         jacksonParser.nextToken();
@@ -52,7 +55,7 @@ class ConfigurationDeserializer extends JsonDeserializer<Map<String, Object>>
     {
         if (jacksonParser.getCurrentToken() != JsonToken.START_OBJECT)
         {
-            throw new JsonMappingException(jacksonParser, "Invalid JSON format.");
+            throw new JsonMappingException(jacksonParser, INVALID_JSON);
         }
 
         final Map<String, Object> map = new LinkedHashMap<>();
@@ -62,7 +65,7 @@ class ConfigurationDeserializer extends JsonDeserializer<Map<String, Object>>
             final Map<String, Object> locatedMap = locateMap(dotKey, map, jacksonParser);
 
             final String key;
-            final int lastDot = dotKey.lastIndexOf(".");
+            final int lastDot = dotKey.lastIndexOf(DOT);
             if (lastDot > 0 && lastDot < dotKey.length())
             {
                 key = dotKey.substring(lastDot + 1);
@@ -110,7 +113,7 @@ class ConfigurationDeserializer extends JsonDeserializer<Map<String, Object>>
     private Map<String, Object> locateMap(final String dotKey, final Map<String, Object> map,
             final JsonParser jacksonParser) throws IOException
     {
-        final int dotIndex = dotKey.indexOf(".");
+        final int dotIndex = dotKey.indexOf(DOT);
         if (dotIndex > 0 && dotIndex < dotKey.length())
         {
             final String part = dotKey.substring(0, dotIndex);
@@ -118,7 +121,7 @@ class ConfigurationDeserializer extends JsonDeserializer<Map<String, Object>>
             final Object nextMap = map.getOrDefault(part, new LinkedHashMap<>());
             if (!(nextMap instanceof Map))
             {
-                throw new JsonMappingException(jacksonParser, "Invalid JSON format.");
+                throw new JsonMappingException(jacksonParser, INVALID_JSON);
             }
             map.put(part, nextMap);
             return locateMap(remaining, (Map<String, Object>) nextMap, jacksonParser);
