@@ -321,6 +321,15 @@ public final class FeatureChangeMergingHelpers
         final AtlasEntity beforeEntityRight = right.getBeforeView();
         final AtlasEntity afterEntityRight = right.getAfterView();
 
+        if (afterEntityLeft == null)
+        {
+            throw new CoreException("afterEntityLeft was null, this should never happen!");
+        }
+        if (afterEntityRight == null)
+        {
+            throw new CoreException("afterEntityRight was null, this should never happen!");
+        }
+
         /*
          * The polygon merger will not do a strategy merge. Rather, it will just ensure that the
          * afterEntity polygons match. There is currently no reason to merge unequal polygons.
@@ -334,6 +343,8 @@ public final class FeatureChangeMergingHelpers
         final CompleteArea mergedAfterArea = new CompleteArea(left.getIdentifier(),
                 mergedPolygonBean.getMergedAfterMember(), mergedTagsBean.getMergedAfterMember(),
                 mergedParentRelationsBean.getMergedAfterMember());
+        mergedAfterArea.withBoundsExtendedBy(afterEntityLeft.bounds());
+        mergedAfterArea.withBoundsExtendedBy(afterEntityRight.bounds());
 
         final CompleteArea mergedBeforeArea;
         /*
@@ -365,6 +376,15 @@ public final class FeatureChangeMergingHelpers
         final AtlasEntity beforeEntityRight = right.getBeforeView();
         final AtlasEntity afterEntityRight = right.getAfterView();
 
+        if (afterEntityLeft == null)
+        {
+            throw new CoreException("afterEntityLeft was null, this should never happen!");
+        }
+        if (afterEntityRight == null)
+        {
+            throw new CoreException("afterEntityRight was null, this should never happen!");
+        }
+
         /*
          * The polyline merger will not do a strategy merge. Rather, it will just ensure that the
          * afterEntity polylines match. There is currently no reason to merge unequal polylines.
@@ -394,6 +414,8 @@ public final class FeatureChangeMergingHelpers
                     mergedStartNodeIdentifierBean.getMergedAfterMember(),
                     mergedEndNodeIdentifierBean.getMergedAfterMember(),
                     mergedParentRelationsBean.getMergedAfterMember());
+            mergedAfterEdge.withBoundsExtendedBy(afterEntityLeft.bounds());
+            mergedAfterEdge.withBoundsExtendedBy(afterEntityRight.bounds());
 
             final CompleteEdge mergedBeforeEdge;
             /*
@@ -424,6 +446,8 @@ public final class FeatureChangeMergingHelpers
                     mergedPolyLineBean.getMergedAfterMember(),
                     mergedTagsBean.getMergedAfterMember(),
                     mergedParentRelationsBean.getMergedAfterMember());
+            mergedAfterLine.withBoundsExtendedBy(afterEntityLeft.bounds());
+            mergedAfterLine.withBoundsExtendedBy(afterEntityRight.bounds());
 
             final CompleteLine mergedBeforeLine;
             /*
@@ -461,6 +485,15 @@ public final class FeatureChangeMergingHelpers
         final AtlasEntity beforeEntityRight = right.getBeforeView();
         final AtlasEntity afterEntityRight = right.getAfterView();
 
+        if (afterEntityLeft == null)
+        {
+            throw new CoreException("afterEntityLeft was null, this should never happen!");
+        }
+        if (afterEntityRight == null)
+        {
+            throw new CoreException("afterEntityRight was null, this should never happen!");
+        }
+
         /*
          * The location merger will not do a strategy merge. Rather, it will just ensure that the
          * afterEntity locations match. There is currently no reason to merge unequal locations.
@@ -497,6 +530,8 @@ public final class FeatureChangeMergingHelpers
                     mergedInEdgeIdentifiersBean.getMergedAfterMember(),
                     mergedOutEdgeIdentifiersBean.getMergedAfterMember(),
                     mergedParentRelationsBean.getMergedAfterMember());
+            mergedAfterNode.withBoundsExtendedBy(afterEntityLeft.bounds());
+            mergedAfterNode.withBoundsExtendedBy(afterEntityRight.bounds());
 
             final CompleteNode mergedBeforeNode;
             /*
@@ -528,6 +563,8 @@ public final class FeatureChangeMergingHelpers
                     mergedLocationBean.getMergedAfterMember(),
                     mergedTagsBean.getMergedAfterMember(),
                     mergedParentRelationsBean.getMergedAfterMember());
+            mergedAfterPoint.withBoundsExtendedBy(afterEntityLeft.bounds());
+            mergedAfterPoint.withBoundsExtendedBy(afterEntityRight.bounds());
 
             final CompletePoint mergedBeforePoint;
             /*
@@ -565,6 +602,15 @@ public final class FeatureChangeMergingHelpers
         final AtlasEntity beforeEntityRight = right.getBeforeView();
         final AtlasEntity afterEntityRight = right.getAfterView();
 
+        if (afterEntityLeft == null)
+        {
+            throw new CoreException("afterEntityLeft was null, this should never happen!");
+        }
+        if (afterEntityRight == null)
+        {
+            throw new CoreException("afterEntityRight was null, this should never happen!");
+        }
+
         final MergedMemberBean<RelationBean> mergedMembersBean = mergeMember("relationMembers",
                 beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
                 entity -> ((Relation) entity).members() == null ? null
@@ -598,11 +644,15 @@ public final class FeatureChangeMergingHelpers
         final CompleteRelation mergedAfterRelation = new CompleteRelation(left.getIdentifier(),
                 mergedTagsBean.getMergedAfterMember(), mergedBounds,
                 mergedMembersBean.getMergedAfterMember(),
-                mergedAllRelationsWithSameOsmIdentifierBean.getMergedAfterMember().stream().collect(
-                        Collectors.toList()),
+                mergedAllRelationsWithSameOsmIdentifierBean.getMergedAfterMember() != null
+                        ? mergedAllRelationsWithSameOsmIdentifierBean.getMergedAfterMember()
+                                .stream().collect(Collectors.toList())
+                        : null,
                 mergedAllKnownMembersBean.getMergedAfterMember(),
                 mergedOsmRelationIdentifier.getMergedAfterMember(),
                 mergedParentRelationsBean.getMergedAfterMember());
+        mergedAfterRelation.withBoundsExtendedBy(afterEntityLeft.bounds());
+        mergedAfterRelation.withBoundsExtendedBy(afterEntityRight.bounds());
 
         final CompleteRelation mergedBeforeRelation;
         /*
@@ -618,8 +668,12 @@ public final class FeatureChangeMergingHelpers
                     .withMembers(mergedMembersBean.getMergedBeforeMember(),
                             beforeEntityLeft.bounds())
                     .withAllRelationsWithSameOsmIdentifier(
-                            mergedAllRelationsWithSameOsmIdentifierBean.getMergedBeforeMember()
-                                    .stream().collect(Collectors.toList()))
+                            mergedAllRelationsWithSameOsmIdentifierBean
+                                    .getMergedAfterMember() != null
+                                            ? mergedAllRelationsWithSameOsmIdentifierBean
+                                                    .getMergedAfterMember().stream()
+                                                    .collect(Collectors.toList())
+                                            : null)
                     .withAllKnownOsmMembers(mergedAllKnownMembersBean.getMergedBeforeMember())
                     .withOsmRelationIdentifier(mergedOsmRelationIdentifier.getMergedBeforeMember())
                     .withTags(mergedTagsBean.getMergedBeforeMember())

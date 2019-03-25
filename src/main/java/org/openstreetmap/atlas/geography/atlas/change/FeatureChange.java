@@ -117,9 +117,20 @@ public class FeatureChange implements Located, Serializable
         {
             throw new CoreException("changeType cannot be null.");
         }
+
         this.changeType = changeType;
         this.afterView = afterView;
         this.beforeView = beforeView;
+
+        if (this.afterView.bounds() == null)
+        {
+            throw new CoreException("afterView {} bounds was null", this.afterView);
+        }
+        if (this.beforeView != null && this.beforeView.bounds() == null)
+        {
+            throw new CoreException("beforeView {} bounds was null", this.beforeView);
+        }
+
         this.validateUsefulFeatureChange();
     }
 
@@ -416,12 +427,18 @@ public class FeatureChange implements Located, Serializable
         final AtlasEntity beforeViewUpdatesOnly;
         final AtlasEntity beforeViewFromAtlas = atlas.entity(this.afterView.getIdentifier(),
                 this.afterView.getType());
-        if (beforeViewFromAtlas == null)
-        {
-            throw new CoreException("Could not find {} with ID {} in atlas context",
-                    this.afterView.getType(), this.afterView.getIdentifier());
-        }
 
+        /*
+         * Check that the beforeViewFromAtlas is non-null. In case of REMOVE, this must be the case.
+         * In case of ADD, it is possible the beforeViewFromAtlas is null when adding a brand new
+         * feature.
+         */
+        if (beforeViewFromAtlas == null && changeType != ChangeType.ADD)
+        {
+            throw new CoreException(
+                    "Could not find {} with ID {} in atlas context, ChangeType was {}",
+                    this.afterView.getType(), this.afterView.getIdentifier(), changeType);
+        }
         /*
          * For the REMOVE case, we fully populate the beforeView and return.
          */
@@ -430,14 +447,24 @@ public class FeatureChange implements Located, Serializable
             this.beforeView = CompleteEntity.from(beforeViewFromAtlas);
             return;
         }
+
+        /*
+         * Otherwise, we continue with the ADD case.
+         */
         if (changeType != ChangeType.ADD)
         {
             throw new CoreException("Unknown ChangeType {}", changeType);
         }
 
         /*
-         * Otherwise, we continue with the ADD case.
+         * If the beforeViewFromAtlas is null, then this is a brand new ADD. We just set the
+         * beforeView to null and return.
          */
+        if (beforeViewFromAtlas == null)
+        {
+            this.beforeView = null;
+            return;
+        }
 
         /*
          * Make type specific updates first.
