@@ -113,7 +113,7 @@ public class CompletePoint extends Point implements CompleteLocationItem
     @Override
     public boolean isSuperShallow()
     {
-        return this.location != null && this.tags == null && this.relationIdentifiers == null;
+        return this.location == null && this.tags == null && this.relationIdentifiers == null;
     }
 
     @Override
@@ -123,9 +123,8 @@ public class CompletePoint extends Point implements CompleteLocationItem
          * Note that the Relations returned by this method will technically break the Located
          * contract, since they have null bounds.
          */
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(CompleteRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(CompleteRelation::new).collect(Collectors.toSet());
     }
 
     @Override

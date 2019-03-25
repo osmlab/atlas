@@ -57,7 +57,7 @@ public class CompleteEdge extends Edge implements CompleteLineItem
             throw new CoreException("Identifier can never be null.");
         }
 
-        this.bounds = this.bounds != null ? polyLine.bounds() : null;
+        this.bounds = polyLine != null ? polyLine.bounds() : null;
 
         this.identifier = identifier;
         this.polyLine = polyLine;
@@ -137,9 +137,8 @@ public class CompleteEdge extends Edge implements CompleteLineItem
          * Note that the Relations returned by this method will technically break the Located
          * contract, since they have null bounds.
          */
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(CompleteRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(CompleteRelation::new).collect(Collectors.toSet());
     }
 
     @Override

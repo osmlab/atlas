@@ -197,7 +197,7 @@ public class FeatureChangeMergerTest
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
                 new CompleteArea(123L, Polygon.SILICON_VALLEY, null, null), null);
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.REMOVE,
-                new CompleteArea(123L, Polygon.SILICON_VALLEY, null, null), null);
+                new CompleteArea(123L, Polygon.CENTER, null, null), null);
 
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("Cannot merge two feature changes");

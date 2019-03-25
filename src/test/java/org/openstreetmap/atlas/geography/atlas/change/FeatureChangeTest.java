@@ -8,10 +8,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
-import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
@@ -19,6 +17,7 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.utilities.collections.Maps;
+import org.openstreetmap.atlas.utilities.collections.Sets;
 
 /**
  * @author matthieun
@@ -45,8 +44,7 @@ public class FeatureChangeTest
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("does not contain anything useful.");
 
-        new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L, Polygon.SILICON_VALLEY, null, null));
+        new FeatureChange(ChangeType.ADD, new CompleteArea(123L, null, null, null));
     }
 
     @Test
@@ -55,8 +53,7 @@ public class FeatureChangeTest
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("does not contain anything useful.");
 
-        new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(123L, PolyLine.CENTER, null, null, null, null));
+        new FeatureChange(ChangeType.ADD, new CompleteEdge(123L, null, null, null, null, null));
     }
 
     @Test
@@ -74,8 +71,7 @@ public class FeatureChangeTest
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("does not contain anything useful.");
 
-        new FeatureChange(ChangeType.ADD,
-                new CompleteNode(123L, Location.CENTER, null, null, null, null));
+        new FeatureChange(ChangeType.ADD, new CompleteNode(123L, null, null, null, null, null));
     }
 
     @Test
@@ -84,7 +80,7 @@ public class FeatureChangeTest
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("does not contain anything useful.");
 
-        new FeatureChange(ChangeType.ADD, new CompletePoint(123L, Location.CENTER, null, null));
+        new FeatureChange(ChangeType.ADD, new CompletePoint(123L, null, null, null));
     }
 
     @Test
@@ -93,8 +89,8 @@ public class FeatureChangeTest
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("does not contain anything useful.");
 
-        new FeatureChange(ChangeType.ADD, new CompleteRelation(123L, null, Rectangle.TEST_RECTANGLE,
-                null, null, null, null, null));
+        new FeatureChange(ChangeType.ADD,
+                new CompleteRelation(123L, null, null, null, null, null, null, null));
     }
 
     @Test

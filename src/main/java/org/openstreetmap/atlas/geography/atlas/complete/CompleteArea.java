@@ -105,7 +105,7 @@ public class CompleteArea extends Area implements CompleteEntity
     @Override
     public boolean isSuperShallow()
     {
-        return this.tags == null && this.relationIdentifiers == null;
+        return this.polygon == null && this.tags == null && this.relationIdentifiers == null;
     }
 
     @Override
@@ -115,9 +115,8 @@ public class CompleteArea extends Area implements CompleteEntity
          * Note that the Relations returned by this method will technically break the Located
          * contract, since they have null bounds.
          */
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(CompleteRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(CompleteRelation::new).collect(Collectors.toSet());
     }
 
     @Override
