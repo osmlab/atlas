@@ -24,6 +24,18 @@ public class MemberMergeStrategiesTest
     public final ExpectedException expectedException = ExpectedException.none();
 
     @Test
+    public void testDiffBasedLocationMergeFail()
+    {
+        throw new CoreException("TODO implement");
+    }
+
+    @Test
+    public void testDiffBasedLocationMergeSuccess()
+    {
+        throw new CoreException("TODO implement");
+    }
+
+    @Test
     public void testDiffBasedLongSetMergeSuccess()
     {
         final Set<Long> before1 = Sets.hashSet(1L, 2L, 3L, 4L);
@@ -81,6 +93,30 @@ public class MemberMergeStrategiesTest
                 .apply(before3, after3A, after3B));
         Assert.assertEquals(Sets.treeSet(), MemberMergeStrategies.diffBasedLongSortedSetMerger
                 .apply(before3, after3B, after3A));
+    }
+
+    @Test
+    public void testDiffBasedPolygonMergeFail()
+    {
+        throw new CoreException("TODO implement");
+    }
+
+    @Test
+    public void testDiffBasedPolygonMergeSuccess()
+    {
+        throw new CoreException("TODO implement");
+    }
+
+    @Test
+    public void testDiffBasedPolyLineMergeFail()
+    {
+        throw new CoreException("TODO implement");
+    }
+
+    @Test
+    public void testDiffBasedPolyLineMergeSuccess()
+    {
+        throw new CoreException("TODO implement");
     }
 
     @Test

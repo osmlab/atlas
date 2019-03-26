@@ -292,14 +292,14 @@ public final class FeatureChangeMergingHelpers
         }
 
         /*
-         * The polygon merger will not do a strategy merge. Rather, it will just ensure that the
-         * afterEntity polygons match. There is currently no reason to merge unequal polygons.
-         * Additionally, this step also ensures that the beforeViews, if present, had equivalent
-         * geometry.
+         * The polygon merger ensure that the afterEntity polygons either: 1) exactly match or 2)
+         * are reconcilable based on the beforeView. Additionally, this step also ensures that the
+         * beforeViews, if present, had equivalent geometry.
          */
         final MergedMemberBean<Polygon> mergedPolygonBean = mergeMember("polygon", beforeEntityLeft,
                 afterEntityLeft, beforeEntityRight, afterEntityRight,
-                atlasEntity -> ((Area) atlasEntity).asPolygon(), null, null);
+                atlasEntity -> ((Area) atlasEntity).asPolygon(), null,
+                MemberMergeStrategies.diffBasedPolygonMerger);
 
         final CompleteArea mergedAfterArea = new CompleteArea(left.getIdentifier(),
                 mergedPolygonBean.getMergedAfterMember(), mergedTagsBean.getMergedAfterMember(),
@@ -407,14 +407,14 @@ public final class FeatureChangeMergingHelpers
         }
 
         /*
-         * The polyline merger will not do a strategy merge. Rather, it will just ensure that the
-         * afterEntity polylines match. There is currently no reason to merge unequal polylines.
-         * Additionally, this step also ensures that the beforeViews, if present, had equivalent
-         * geometry.
+         * The polyline merger ensure that the afterEntity polylines either: 1) exactly match or 2)
+         * are reconcilable based on the beforeView. Additionally, this step also ensures that the
+         * beforeViews, if present, had equivalent geometry.
          */
         final MergedMemberBean<PolyLine> mergedPolyLineBean = mergeMember("polyLine",
                 beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
-                atlasEntity -> ((LineItem) atlasEntity).asPolyLine(), null, null);
+                atlasEntity -> ((LineItem) atlasEntity).asPolyLine(), null,
+                MemberMergeStrategies.diffBasedPolyLineMerger);
 
         if (afterEntityLeft instanceof Edge)
         {
@@ -497,14 +497,14 @@ public final class FeatureChangeMergingHelpers
         }
 
         /*
-         * The location merger will not do a strategy merge. Rather, it will just ensure that the
-         * afterEntity locations match. There is currently no reason to merge unequal locations.
-         * Additionally, this step also ensures that the beforeViews, if present, had equivalent
-         * geometry.
+         * The location merger ensure that the afterEntity locations either: 1) exactly match or 2)
+         * are reconcilable based on the beforeView. Additionally, this step also ensures that the
+         * beforeViews, if present, had equivalent geometry.
          */
         final MergedMemberBean<Location> mergedLocationBean = mergeMember("location",
                 beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
-                atlasEntity -> ((LocationItem) atlasEntity).getLocation(), null, null);
+                atlasEntity -> ((LocationItem) atlasEntity).getLocation(), null,
+                MemberMergeStrategies.diffBasedLocationMerger);
 
         if (afterEntityLeft instanceof Node)
         {
