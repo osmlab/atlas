@@ -65,6 +65,44 @@ public class MemberMergeStrategiesTest
     }
 
     @Test
+    public void testDiffBasedLongMergeADDADDConflictFail()
+    {
+        final Long before = 0L;
+        final Long afterLeft = 1L;
+        final Long afterRight = 2L;
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException
+                .expectMessage("diffBasedMutuallyExclusiveMerger failed due to ADD/ADD conflict");
+        MemberMergeStrategies.diffBasedLongMerger.apply(before, afterLeft, afterRight);
+    }
+
+    @Test
+    public void testDiffBasedLongMergeSuccess()
+    {
+        final Long before1 = 0L;
+        final Long afterLeft1 = 0L;
+        final Long afterRight1 = 1L;
+
+        Assert.assertEquals(new Long(1L),
+                MemberMergeStrategies.diffBasedLongMerger.apply(before1, afterLeft1, afterRight1));
+
+        final Long before2 = 0L;
+        final Long afterLeft2 = 1L;
+        final Long afterRight2 = 0L;
+
+        Assert.assertEquals(new Long(1L),
+                MemberMergeStrategies.diffBasedLongMerger.apply(before2, afterLeft2, afterRight2));
+
+        final Long before3 = 0L;
+        final Long afterLeft3 = 1L;
+        final Long afterRight3 = 1L;
+
+        Assert.assertEquals(new Long(1L),
+                MemberMergeStrategies.diffBasedLongMerger.apply(before3, afterLeft3, afterRight3));
+    }
+
+    @Test
     public void testDiffBasedLongSetMergeSuccess()
     {
         final Set<Long> before1 = Sets.hashSet(1L, 2L, 3L, 4L);

@@ -351,11 +351,11 @@ public final class FeatureChangeMergingHelpers
                 beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
                 edge -> ((Edge) edge).start() == null ? null
                         : ((Edge) edge).start().getIdentifier(),
-                null, null);
+                null, MemberMergeStrategies.diffBasedLongMerger);
         final MergedMemberBean<Long> mergedEndNodeIdentifierBean = mergeMember("endNode",
                 beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
                 edge -> ((Edge) edge).end() == null ? null : ((Edge) edge).end().getIdentifier(),
-                null, null);
+                null, MemberMergeStrategies.diffBasedLongMerger);
 
         final CompleteEdge mergedAfterEdge = new CompleteEdge(left.getIdentifier(),
                 mergedPolyLineBean.getMergedAfterMember(), mergedTagsBean.getMergedAfterMember(),
@@ -683,7 +683,7 @@ public final class FeatureChangeMergingHelpers
         final MergedMemberBean<Long> mergedOsmRelationIdentifier = mergeMember(
                 "osmRelationIdentifier", beforeEntityLeft, afterEntityLeft, beforeEntityRight,
                 afterEntityRight, entity -> ((Relation) entity).osmRelationIdentifier(), null,
-                null);
+                MemberMergeStrategies.diffBasedLongMerger);
 
         final Rectangle mergedBounds = Rectangle.forLocated(afterEntityLeft, afterEntityRight);
 

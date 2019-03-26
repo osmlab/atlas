@@ -52,6 +52,13 @@ public final class MemberMergeStrategies
     @Deprecated
     static final BinaryOperator<RelationBean> simpleRelationBeanMerger = RelationBean::merge;
 
+    static final TernaryOperator<Long> diffBasedLongMerger = (beforeLong, afterLongLeft,
+            afterLongRight) ->
+    {
+        return (Long) getDiffBasedMutuallyExclusiveMerger().apply(beforeLong, afterLongLeft,
+                afterLongRight);
+    };
+
     static final TernaryOperator<Location> diffBasedLocationMerger = (beforeLocation,
             afterLocationLeft, afterLocationRight) ->
     {

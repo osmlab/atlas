@@ -126,16 +126,16 @@ public class FeatureChangeMergerTest
     @Test
     public void testMergeEdgesFail()
     {
-        final CompleteEdge beforeEdge1 = new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, 1L,
-                null, null);
+        final CompleteEdge beforeEdge1 = new CompleteEdge(123L, PolyLine.TEST_POLYLINE,
+                Maps.hashMap("a", "1"), 1L, null, null);
 
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, 2L, null, null), beforeEdge1);
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
-                new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, 3L, null, null), beforeEdge1);
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, new CompleteEdge(
+                123L, PolyLine.TEST_POLYLINE, Maps.hashMap("a", "2"), 2L, null, null), beforeEdge1);
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, new CompleteEdge(
+                123L, PolyLine.TEST_POLYLINE, Maps.hashMap("a", "3"), 1L, null, null), beforeEdge1);
 
         /*
-         * This merge will fail, because the FeatureChanges have different start node identifiers.
+         * This merge will fail, because the FeatureChanges have conflicting tag changes.
          */
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("Cannot merge two feature changes");
@@ -566,7 +566,7 @@ public class FeatureChangeMergerTest
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
                 new CompleteRelation(123L, Maps.hashMap("a", "1", "b", "2", "c", "3"),
                         Rectangle.TEST_RECTANGLE, afterMemberBean1,
-                        Arrays.asList(10L, 11L, 12L, 13L), afterAllKnownOsmBean1, 1234567L,
+                        Arrays.asList(10L, 11L, 12L, 13L), afterAllKnownOsmBean1, 123456L,
                         Sets.hashSet(1L, 2L, 3L, 4L)),
                 beforeRelation);
 
