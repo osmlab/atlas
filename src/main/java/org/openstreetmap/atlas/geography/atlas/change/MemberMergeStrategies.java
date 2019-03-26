@@ -41,6 +41,11 @@ public final class MemberMergeStrategies
     static final BinaryOperator<SortedSet<Long>> simpleLongSortedSetAllowCollisionsMerger = (left,
             right) -> Sets.withSortedSets(false, left, right);
 
+    /*
+     * TODO This is deprecated because it relies on the explicityExcluded sets in RelationBean and
+     * RelationMemberList. Ideally, we will remove this redundant state from
+     * RelationBean/RelationMemberList. This will affect the non-diff-based merge logic.
+     */
     @Deprecated
     static final BinaryOperator<RelationBean> simpleRelationBeanMerger = RelationBean::merge;
 
