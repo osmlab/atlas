@@ -228,6 +228,15 @@ public final class FeatureChangeMergingHelpers
         final AtlasEntity beforeEntityRight = right.getBeforeView();
         final AtlasEntity afterEntityRight = right.getAfterView();
 
+        if (afterEntityLeft == null)
+        {
+            throw new CoreException(AFTER_ENTITY_LEFT_WAS_NULL);
+        }
+        if (afterEntityRight == null)
+        {
+            throw new CoreException(AFTER_ENTITY_RIGHT_WAS_NULL);
+        }
+
         final MergedMemberBean<Map<String, String>> mergedTagsBean = mergeMember("tags",
                 beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
                 Taggable::getTags, MemberMergeStrategies.simpleTagMerger,
@@ -319,6 +328,66 @@ public final class FeatureChangeMergingHelpers
         return new FeatureChange(ChangeType.ADD, mergedAfterArea, mergedBeforeArea);
     }
 
+    private static FeatureChange mergeEdges(final FeatureChange left, final FeatureChange right,
+            final MergedMemberBean<PolyLine> mergedPolyLineBean,
+            final MergedMemberBean<Map<String, String>> mergedTagsBean,
+            final MergedMemberBean<Set<Long>> mergedParentRelationsBean)
+    {
+        final AtlasEntity beforeEntityLeft = left.getBeforeView();
+        final AtlasEntity afterEntityLeft = left.getAfterView();
+        final AtlasEntity beforeEntityRight = right.getBeforeView();
+        final AtlasEntity afterEntityRight = right.getAfterView();
+
+        if (afterEntityLeft == null)
+        {
+            throw new CoreException(AFTER_ENTITY_LEFT_WAS_NULL);
+        }
+        if (afterEntityRight == null)
+        {
+            throw new CoreException(AFTER_ENTITY_RIGHT_WAS_NULL);
+        }
+
+        final MergedMemberBean<Long> mergedStartNodeIdentifierBean = mergeMember("startNode",
+                beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
+                edge -> ((Edge) edge).start() == null ? null
+                        : ((Edge) edge).start().getIdentifier(),
+                null, null);
+        final MergedMemberBean<Long> mergedEndNodeIdentifierBean = mergeMember("endNode",
+                beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
+                edge -> ((Edge) edge).end() == null ? null : ((Edge) edge).end().getIdentifier(),
+                null, null);
+
+        final CompleteEdge mergedAfterEdge = new CompleteEdge(left.getIdentifier(),
+                mergedPolyLineBean.getMergedAfterMember(), mergedTagsBean.getMergedAfterMember(),
+                mergedStartNodeIdentifierBean.getMergedAfterMember(),
+                mergedEndNodeIdentifierBean.getMergedAfterMember(),
+                mergedParentRelationsBean.getMergedAfterMember());
+        mergedAfterEdge.withBoundsExtendedBy(afterEntityLeft.bounds());
+        mergedAfterEdge.withBoundsExtendedBy(afterEntityRight.bounds());
+
+        final CompleteEdge mergedBeforeEdge;
+        /*
+         * Here we just arbitrarily use the left side entity. We have already asserted that both
+         * left and right explicitly provided or explicitly excluded a beforeView. At this point, we
+         * have also ensured that both beforeViews, if present, were consistent (i.e. they contained
+         * the same initial geometry). Therefore it is safe to arbitrarily choose one from which to
+         * "shallowFrom" clone a new CompleteEntity.
+         */
+        if (beforeEntityLeft != null)
+        {
+            mergedBeforeEdge = CompleteEdge.shallowFrom((Edge) beforeEntityLeft)
+                    .withStartNodeIdentifier(mergedStartNodeIdentifierBean.getMergedBeforeMember())
+                    .withEndNodeIdentifier(mergedEndNodeIdentifierBean.getMergedBeforeMember())
+                    .withTags(mergedTagsBean.getMergedBeforeMember())
+                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
+        }
+        else
+        {
+            mergedBeforeEdge = null;
+        }
+        return new FeatureChange(ChangeType.ADD, mergedAfterEdge, mergedBeforeEdge);
+    }
+
     private static FeatureChange mergeLineItems(final FeatureChange left, final FeatureChange right,
             final MergedMemberBean<Map<String, String>> mergedTagsBean,
             final MergedMemberBean<Set<Long>> mergedParentRelationsBean)
@@ -349,83 +418,64 @@ public final class FeatureChangeMergingHelpers
 
         if (afterEntityLeft instanceof Edge)
         {
-            final MergedMemberBean<Long> mergedStartNodeIdentifierBean = mergeMember("startNode",
-                    beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
-                    edge -> ((Edge) edge).start() == null ? null
-                            : ((Edge) edge).start().getIdentifier(),
-                    null, null);
-            final MergedMemberBean<Long> mergedEndNodeIdentifierBean = mergeMember("endNode",
-                    beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
-                    edge -> ((Edge) edge).end() == null ? null
-                            : ((Edge) edge).end().getIdentifier(),
-                    null, null);
-
-            final CompleteEdge mergedAfterEdge = new CompleteEdge(left.getIdentifier(),
-                    mergedPolyLineBean.getMergedAfterMember(),
-                    mergedTagsBean.getMergedAfterMember(),
-                    mergedStartNodeIdentifierBean.getMergedAfterMember(),
-                    mergedEndNodeIdentifierBean.getMergedAfterMember(),
-                    mergedParentRelationsBean.getMergedAfterMember());
-            mergedAfterEdge.withBoundsExtendedBy(afterEntityLeft.bounds());
-            mergedAfterEdge.withBoundsExtendedBy(afterEntityRight.bounds());
-
-            final CompleteEdge mergedBeforeEdge;
-            /*
-             * Here we just arbitrarily use the left side entity. We have already asserted that both
-             * left and right explicitly provided or explicitly excluded a beforeView. At this
-             * point, we have also ensured that both beforeViews, if present, were consistent (i.e.
-             * they contained the same initial geometry). Therefore it is safe to arbitrarily choose
-             * one from which to "shallowFrom" clone a new CompleteEntity.
-             */
-            if (beforeEntityLeft != null)
-            {
-                mergedBeforeEdge = CompleteEdge.shallowFrom((Edge) beforeEntityLeft)
-                        .withStartNodeIdentifier(
-                                mergedStartNodeIdentifierBean.getMergedBeforeMember())
-                        .withEndNodeIdentifier(mergedEndNodeIdentifierBean.getMergedBeforeMember())
-                        .withTags(mergedTagsBean.getMergedBeforeMember())
-                        .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
-            }
-            else
-            {
-                mergedBeforeEdge = null;
-            }
-            return new FeatureChange(ChangeType.ADD, mergedAfterEdge, mergedBeforeEdge);
+            return mergeEdges(left, right, mergedPolyLineBean, mergedTagsBean,
+                    mergedParentRelationsBean);
         }
         else if (afterEntityLeft instanceof Line)
         {
-            final CompleteLine mergedAfterLine = new CompleteLine(left.getIdentifier(),
-                    mergedPolyLineBean.getMergedAfterMember(),
-                    mergedTagsBean.getMergedAfterMember(),
-                    mergedParentRelationsBean.getMergedAfterMember());
-            mergedAfterLine.withBoundsExtendedBy(afterEntityLeft.bounds());
-            mergedAfterLine.withBoundsExtendedBy(afterEntityRight.bounds());
-
-            final CompleteLine mergedBeforeLine;
-            /*
-             * Here we just arbitrarily use the left side entity. We have already asserted that both
-             * left and right explicitly provided or explicitly excluded a beforeView. At this
-             * point, we have also ensured that both beforeViews, if present, were consistent (i.e.
-             * they contained the same initial geometry). Therefore it is safe to arbitrarily choose
-             * one from which to "shallowFrom" clone a new CompleteEntity.
-             */
-            if (beforeEntityLeft != null)
-            {
-                mergedBeforeLine = CompleteLine.shallowFrom((Line) beforeEntityLeft)
-                        .withTags(mergedTagsBean.getMergedBeforeMember())
-                        .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
-            }
-            else
-            {
-                mergedBeforeLine = null;
-            }
-            return new FeatureChange(ChangeType.ADD, mergedAfterLine, mergedBeforeLine);
+            return mergeLines(left, right, mergedPolyLineBean, mergedTagsBean,
+                    mergedParentRelationsBean);
         }
         else
         {
             throw new CoreException("Unknown AtlasEntity subtype {}",
                     afterEntityLeft.getClass().getName());
         }
+    }
+
+    private static FeatureChange mergeLines(final FeatureChange left, final FeatureChange right,
+            final MergedMemberBean<PolyLine> mergedPolyLineBean,
+            final MergedMemberBean<Map<String, String>> mergedTagsBean,
+            final MergedMemberBean<Set<Long>> mergedParentRelationsBean)
+    {
+        final AtlasEntity beforeEntityLeft = left.getBeforeView();
+        final AtlasEntity afterEntityLeft = left.getAfterView();
+        final AtlasEntity afterEntityRight = right.getAfterView();
+
+        if (afterEntityLeft == null)
+        {
+            throw new CoreException(AFTER_ENTITY_LEFT_WAS_NULL);
+        }
+        if (afterEntityRight == null)
+        {
+            throw new CoreException(AFTER_ENTITY_RIGHT_WAS_NULL);
+        }
+
+        final CompleteLine mergedAfterLine = new CompleteLine(left.getIdentifier(),
+                mergedPolyLineBean.getMergedAfterMember(), mergedTagsBean.getMergedAfterMember(),
+                mergedParentRelationsBean.getMergedAfterMember());
+        mergedAfterLine.withBoundsExtendedBy(afterEntityLeft.bounds());
+        mergedAfterLine.withBoundsExtendedBy(afterEntityRight.bounds());
+
+        final CompleteLine mergedBeforeLine;
+        /*
+         * Here we just arbitrarily use the left side entity. We have already asserted that both
+         * left and right explicitly provided or explicitly excluded a beforeView. At this point, we
+         * have also ensured that both beforeViews, if present, were consistent (i.e. they contained
+         * the same initial geometry). Therefore it is safe to arbitrarily choose one from which to
+         * "shallowFrom" clone a new CompleteEntity.
+         */
+        if (beforeEntityLeft != null)
+        {
+            mergedBeforeLine = CompleteLine.shallowFrom((Line) beforeEntityLeft)
+                    .withTags(mergedTagsBean.getMergedBeforeMember())
+                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
+        }
+        else
+        {
+            mergedBeforeLine = null;
+        }
+        return new FeatureChange(ChangeType.ADD, mergedAfterLine, mergedBeforeLine);
     }
 
     private static FeatureChange mergeLocationItems(final FeatureChange left,
@@ -458,91 +508,133 @@ public final class FeatureChangeMergingHelpers
 
         if (afterEntityLeft instanceof Node)
         {
-            final MergedMemberBean<SortedSet<Long>> mergedInEdgeIdentifiersBean = mergeMember(
-                    "inEdgeIdentifiers", beforeEntityLeft, afterEntityLeft, beforeEntityRight,
-                    afterEntityRight,
-                    atlasEntity -> ((Node) atlasEntity).inEdges() == null ? null
-                            : ((Node) atlasEntity).inEdges().stream().map(Edge::getIdentifier)
-                                    .collect(Collectors.toCollection(TreeSet::new)),
-                    MemberMergeStrategies.simpleLongSortedSetMerger,
-                    MemberMergeStrategies.diffBasedLongSortedSetMerger);
-
-            final MergedMemberBean<SortedSet<Long>> mergedOutEdgeIdentifiersBean = mergeMember(
-                    "outEdgeIdentifiers", beforeEntityLeft, afterEntityLeft, beforeEntityRight,
-                    afterEntityRight,
-                    atlasEntity -> ((Node) atlasEntity).outEdges() == null ? null
-                            : ((Node) atlasEntity).outEdges().stream().map(Edge::getIdentifier)
-                                    .collect(Collectors.toCollection(TreeSet::new)),
-                    MemberMergeStrategies.simpleLongSortedSetMerger,
-                    MemberMergeStrategies.diffBasedLongSortedSetMerger);
-
-            final CompleteNode mergedAfterNode = new CompleteNode(left.getIdentifier(),
-                    mergedLocationBean.getMergedAfterMember(),
-                    mergedTagsBean.getMergedAfterMember(),
-                    mergedInEdgeIdentifiersBean.getMergedAfterMember(),
-                    mergedOutEdgeIdentifiersBean.getMergedAfterMember(),
-                    mergedParentRelationsBean.getMergedAfterMember());
-            mergedAfterNode.withBoundsExtendedBy(afterEntityLeft.bounds());
-            mergedAfterNode.withBoundsExtendedBy(afterEntityRight.bounds());
-
-            final CompleteNode mergedBeforeNode;
-            /*
-             * Here we just arbitrarily use the left side entity. We have already asserted that both
-             * left and right explicitly provided or explicitly excluded a beforeView. At this
-             * point, we have also ensured that both beforeViews, if present, were consistent (i.e.
-             * they contained the same initial geometry). Therefore it is safe to arbitrarily choose
-             * one from which to "shallowFrom" clone a new CompleteEntity.
-             */
-            if (beforeEntityLeft != null)
-            {
-                mergedBeforeNode = CompleteNode.shallowFrom((Node) beforeEntityLeft)
-                        .withInEdgeIdentifiers(mergedInEdgeIdentifiersBean.getMergedBeforeMember())
-                        .withOutEdgeIdentifiers(
-                                mergedOutEdgeIdentifiersBean.getMergedBeforeMember())
-                        .withTags(mergedTagsBean.getMergedBeforeMember())
-                        .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
-
-            }
-            else
-            {
-                mergedBeforeNode = null;
-            }
-            return new FeatureChange(ChangeType.ADD, mergedAfterNode, mergedBeforeNode);
+            return mergeNodes(left, right, mergedLocationBean, mergedTagsBean,
+                    mergedParentRelationsBean);
         }
         else if (afterEntityLeft instanceof Point)
         {
-            final CompletePoint mergedAfterPoint = new CompletePoint(left.getIdentifier(),
-                    mergedLocationBean.getMergedAfterMember(),
-                    mergedTagsBean.getMergedAfterMember(),
-                    mergedParentRelationsBean.getMergedAfterMember());
-            mergedAfterPoint.withBoundsExtendedBy(afterEntityLeft.bounds());
-            mergedAfterPoint.withBoundsExtendedBy(afterEntityRight.bounds());
-
-            final CompletePoint mergedBeforePoint;
-            /*
-             * Here we just arbitrarily use the left side entity. We have already asserted that both
-             * left and right explicitly provided or explicitly excluded a beforeView. At this
-             * point, we have also ensured that both beforeViews, if present, were consistent (i.e.
-             * they contained the same initial geometry). Therefore it is safe to arbitrarily choose
-             * one from which to "shallowFrom" clone a new CompleteEntity.
-             */
-            if (beforeEntityLeft != null)
-            {
-                mergedBeforePoint = CompletePoint.shallowFrom((Point) beforeEntityLeft)
-                        .withTags(mergedTagsBean.getMergedBeforeMember())
-                        .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
-            }
-            else
-            {
-                mergedBeforePoint = null;
-            }
-            return new FeatureChange(ChangeType.ADD, mergedAfterPoint, mergedBeforePoint);
+            return mergePoints(left, right, mergedLocationBean, mergedTagsBean,
+                    mergedParentRelationsBean);
         }
         else
         {
             throw new CoreException("Unknown LocationItem subtype {}",
                     afterEntityLeft.getClass().getName());
         }
+    }
+
+    private static FeatureChange mergeNodes(final FeatureChange left, final FeatureChange right,
+            final MergedMemberBean<Location> mergedLocationBean,
+            final MergedMemberBean<Map<String, String>> mergedTagsBean,
+            final MergedMemberBean<Set<Long>> mergedParentRelationsBean)
+    {
+        final AtlasEntity beforeEntityLeft = left.getBeforeView();
+        final AtlasEntity afterEntityLeft = left.getAfterView();
+        final AtlasEntity beforeEntityRight = right.getBeforeView();
+        final AtlasEntity afterEntityRight = right.getAfterView();
+
+        if (afterEntityLeft == null)
+        {
+            throw new CoreException(AFTER_ENTITY_LEFT_WAS_NULL);
+        }
+        if (afterEntityRight == null)
+        {
+            throw new CoreException(AFTER_ENTITY_RIGHT_WAS_NULL);
+        }
+
+        final MergedMemberBean<SortedSet<Long>> mergedInEdgeIdentifiersBean = mergeMember(
+                "inEdgeIdentifiers", beforeEntityLeft, afterEntityLeft, beforeEntityRight,
+                afterEntityRight,
+                atlasEntity -> ((Node) atlasEntity).inEdges() == null ? null
+                        : ((Node) atlasEntity).inEdges().stream().map(Edge::getIdentifier)
+                                .collect(Collectors.toCollection(TreeSet::new)),
+                MemberMergeStrategies.simpleLongSortedSetMerger,
+                MemberMergeStrategies.diffBasedLongSortedSetMerger);
+
+        final MergedMemberBean<SortedSet<Long>> mergedOutEdgeIdentifiersBean = mergeMember(
+                "outEdgeIdentifiers", beforeEntityLeft, afterEntityLeft, beforeEntityRight,
+                afterEntityRight,
+                atlasEntity -> ((Node) atlasEntity).outEdges() == null ? null
+                        : ((Node) atlasEntity).outEdges().stream().map(Edge::getIdentifier)
+                                .collect(Collectors.toCollection(TreeSet::new)),
+                MemberMergeStrategies.simpleLongSortedSetMerger,
+                MemberMergeStrategies.diffBasedLongSortedSetMerger);
+
+        final CompleteNode mergedAfterNode = new CompleteNode(left.getIdentifier(),
+                mergedLocationBean.getMergedAfterMember(), mergedTagsBean.getMergedAfterMember(),
+                mergedInEdgeIdentifiersBean.getMergedAfterMember(),
+                mergedOutEdgeIdentifiersBean.getMergedAfterMember(),
+                mergedParentRelationsBean.getMergedAfterMember());
+        mergedAfterNode.withBoundsExtendedBy(afterEntityLeft.bounds());
+        mergedAfterNode.withBoundsExtendedBy(afterEntityRight.bounds());
+
+        final CompleteNode mergedBeforeNode;
+        /*
+         * Here we just arbitrarily use the left side entity. We have already asserted that both
+         * left and right explicitly provided or explicitly excluded a beforeView. At this point, we
+         * have also ensured that both beforeViews, if present, were consistent (i.e. they contained
+         * the same initial geometry). Therefore it is safe to arbitrarily choose one from which to
+         * "shallowFrom" clone a new CompleteEntity.
+         */
+        if (beforeEntityLeft != null)
+        {
+            mergedBeforeNode = CompleteNode.shallowFrom((Node) beforeEntityLeft)
+                    .withInEdgeIdentifiers(mergedInEdgeIdentifiersBean.getMergedBeforeMember())
+                    .withOutEdgeIdentifiers(mergedOutEdgeIdentifiersBean.getMergedBeforeMember())
+                    .withTags(mergedTagsBean.getMergedBeforeMember())
+                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
+
+        }
+        else
+        {
+            mergedBeforeNode = null;
+        }
+        return new FeatureChange(ChangeType.ADD, mergedAfterNode, mergedBeforeNode);
+    }
+
+    private static FeatureChange mergePoints(final FeatureChange left, final FeatureChange right,
+            final MergedMemberBean<Location> mergedLocationBean,
+            final MergedMemberBean<Map<String, String>> mergedTagsBean,
+            final MergedMemberBean<Set<Long>> mergedParentRelationsBean)
+    {
+        final AtlasEntity beforeEntityLeft = left.getBeforeView();
+        final AtlasEntity afterEntityLeft = left.getAfterView();
+        final AtlasEntity afterEntityRight = right.getAfterView();
+
+        if (afterEntityLeft == null)
+        {
+            throw new CoreException(AFTER_ENTITY_LEFT_WAS_NULL);
+        }
+        if (afterEntityRight == null)
+        {
+            throw new CoreException(AFTER_ENTITY_RIGHT_WAS_NULL);
+        }
+
+        final CompletePoint mergedAfterPoint = new CompletePoint(left.getIdentifier(),
+                mergedLocationBean.getMergedAfterMember(), mergedTagsBean.getMergedAfterMember(),
+                mergedParentRelationsBean.getMergedAfterMember());
+        mergedAfterPoint.withBoundsExtendedBy(afterEntityLeft.bounds());
+        mergedAfterPoint.withBoundsExtendedBy(afterEntityRight.bounds());
+
+        final CompletePoint mergedBeforePoint;
+        /*
+         * Here we just arbitrarily use the left side entity. We have already asserted that both
+         * left and right explicitly provided or explicitly excluded a beforeView. At this point, we
+         * have also ensured that both beforeViews, if present, were consistent (i.e. they contained
+         * the same initial geometry). Therefore it is safe to arbitrarily choose one from which to
+         * "shallowFrom" clone a new CompleteEntity.
+         */
+        if (beforeEntityLeft != null)
+        {
+            mergedBeforePoint = CompletePoint.shallowFrom((Point) beforeEntityLeft)
+                    .withTags(mergedTagsBean.getMergedBeforeMember())
+                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
+        }
+        else
+        {
+            mergedBeforePoint = null;
+        }
+        return new FeatureChange(ChangeType.ADD, mergedAfterPoint, mergedBeforePoint);
     }
 
     private static FeatureChange mergeRelations(final FeatureChange left, final FeatureChange right,
