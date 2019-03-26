@@ -42,13 +42,13 @@ public interface Configuration
      *            property key
      * @param transform
      *            applied to the configured property
-     * @param <Raw>
+     * @param <R>
      *            configured type
-     * @param <Transformed>
+     * @param <T>
      *            transformed type
      * @return a {@link Configurable} wrapper
      */
-    <Raw, Transformed> Configurable get(String key, Function<Raw, Transformed> transform);
+    <R, T> Configurable get(String key, Function<R, T> transform);
 
     /**
      * Returns a {@link Configurable} wrapper around the configured property.
@@ -59,14 +59,13 @@ public interface Configuration
      *            value returned if not found in the configuration
      * @param transform
      *            applied to the configured property
-     * @param <Raw>
+     * @param <R>
      *            configured type
-     * @param <Transformed>
+     * @param <T>
      *            transformed type
      * @return a {@link Configurable} wrapper
      */
-    <Raw, Transformed> Configurable get(String key, Raw defaultValue,
-            Function<Raw, Transformed> transform);
+    <R, T> Configurable get(String key, R defaultValue, Function<R, T> transform);
 
     /**
      * Returns a {@link Configurable} wrapper around the configured property.
@@ -75,9 +74,9 @@ public interface Configuration
      *            property key
      * @param defaultValue
      *            value returned if not found in the configuration
-     * @param <Type>
+     * @param <T>
      *            configured type
      * @return a {@link Configurable} wrapper
      */
-    <Type> Configurable get(String key, Type defaultValue);
+    <T> Configurable get(String key, T defaultValue);
 }
