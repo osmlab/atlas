@@ -29,6 +29,7 @@ import com.google.common.collect.Lists;
 public class AtlasChangeGeneratorAddTurnRestrictions implements AtlasChangeGenerator
 {
     private static final long serialVersionUID = -518515697422424803L;
+    private static final int MINIMUM_NODE_VALENCE = 3;
 
     @Override
     public Set<FeatureChange> generateWithoutValidation(final Atlas atlas)
@@ -38,7 +39,7 @@ public class AtlasChangeGeneratorAddTurnRestrictions implements AtlasChangeGener
         final Long parentRelationIdentifier = identifierGenerator.incrementAndGet();
         final RelationBean parentMembers = new RelationBean();
         Rectangle parentBounds = null;
-        for (final Node node : atlas.nodes(node -> node.valence() > 3))
+        for (final Node node : atlas.nodes(node -> node.valence() > MINIMUM_NODE_VALENCE))
         {
             final SortedSet<Edge> inEdges = node.inEdges();
             final SortedSet<Edge> outEdges = node.outEdges();
