@@ -36,6 +36,15 @@ public class CompleteRelation extends Relation implements CompleteEntity
     private Long osmRelationIdentifier;
     private Set<Long> relationIdentifiers;
 
+    /**
+     * Create a {@link CompleteRelation} from a given {@link Relation} reference. The
+     * {@link CompleteRelation}'s fields will match the fields of the reference. The returned
+     * {@link CompleteRelation} will be full, i.e. all of its associated fields will be non-null.
+     *
+     * @param relation
+     *            the {@link Relation} to copy
+     * @return the full {@link CompleteRelation}
+     */
     public static CompleteRelation from(final Relation relation)
     {
         return new CompleteRelation(relation.getIdentifier(), relation.getTags(), relation.bounds(),
@@ -47,6 +56,16 @@ public class CompleteRelation extends Relation implements CompleteEntity
                         .collect(Collectors.toSet()));
     }
 
+    /**
+     * Create a shallow {@link CompleteRelation} from a given {@link Relation} reference. The
+     * {@link CompleteRelation}'s identifier will match the identifier of the reference
+     * {@link Relation}. The returned {@link CompleteRelation} will be shallow, i.e. all of its
+     * associated fields will be null except for the identifier.
+     *
+     * @param relation
+     *            the {@link Relation} to copy
+     * @return the shallow {@link CompleteRelation}
+     */
     public static CompleteRelation shallowFrom(final Relation relation)
     {
         return new CompleteRelation(relation.getIdentifier())
@@ -148,7 +167,7 @@ public class CompleteRelation extends Relation implements CompleteEntity
     }
 
     @Override
-    public boolean isCompletelyShallow()
+    public boolean isShallow()
     {
         return this.bounds == null && this.members == null
                 && this.allRelationsWithSameOsmIdentifier == null && this.allKnownOsmMembers == null

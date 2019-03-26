@@ -131,7 +131,7 @@ public class CompleteRelationTest
     {
         final CompleteRelation superShallow = new CompleteRelation(123L, null, null, null, null,
                 null, null, null);
-        Assert.assertTrue(superShallow.isCompletelyShallow());
+        Assert.assertTrue(superShallow.isShallow());
     }
 
     @Test

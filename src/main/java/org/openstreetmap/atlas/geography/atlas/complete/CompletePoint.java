@@ -26,6 +26,15 @@ public class CompletePoint extends Point implements CompleteLocationItem
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
 
+    /**
+     * Create a {@link CompletePoint} from a given {@link Point} reference. The
+     * {@link CompletePoint}'s fields will match the fields of the reference. The returned
+     * {@link CompletePoint} will be full, i.e. all of its associated fields will be non-null.
+     *
+     * @param point
+     *            the {@link Point} to copy
+     * @return the full {@link CompletePoint}
+     */
     public static CompletePoint from(final Point point)
     {
         return new CompletePoint(point.getIdentifier(), point.getLocation(), point.getTags(), point
@@ -33,12 +42,14 @@ public class CompletePoint extends Point implements CompleteLocationItem
     }
 
     /**
-     * Create a shallow copy of a given point. All fields (except the identifier and the geometry)
-     * are left null until updated by a with() call.
+     * Create a shallow {@link CompletePoint} from a given {@link Point} reference. The
+     * {@link CompletePoint}'s identifier will match the identifier of the reference {@link Point}.
+     * The returned {@link CompletePoint} will be shallow, i.e. all of its associated fields will be
+     * null except for the identifier.
      *
      * @param point
      *            the {@link Point} to copy
-     * @return the new {@link CompletePoint}
+     * @return the shallow {@link CompletePoint}
      */
     public static CompletePoint shallowFrom(final Point point)
     {
@@ -111,7 +122,7 @@ public class CompletePoint extends Point implements CompleteLocationItem
     }
 
     @Override
-    public boolean isCompletelyShallow()
+    public boolean isShallow()
     {
         return this.location == null && this.tags == null && this.relationIdentifiers == null;
     }

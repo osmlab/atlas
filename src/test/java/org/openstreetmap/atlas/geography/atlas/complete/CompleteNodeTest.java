@@ -110,7 +110,7 @@ public class CompleteNodeTest
     public void testIsCompletelyShallow()
     {
         final CompleteNode superShallow = new CompleteNode(123L, null, null, null, null, null);
-        Assert.assertTrue(superShallow.isCompletelyShallow());
+        Assert.assertTrue(superShallow.isShallow());
     }
 
     @Test

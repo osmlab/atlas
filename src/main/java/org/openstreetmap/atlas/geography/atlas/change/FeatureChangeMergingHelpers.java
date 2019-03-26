@@ -41,6 +41,8 @@ import org.slf4j.LoggerFactory;
  */
 public final class FeatureChangeMergingHelpers
 {
+    private static final String AFTER_ENTITY_RIGHT_WAS_NULL = "afterEntityRight was null, this should never happen!";
+    private static final String AFTER_ENTITY_LEFT_WAS_NULL = "afterEntityLeft was null, this should never happen!";
     private static final Logger logger = LoggerFactory.getLogger(FeatureChangeMergingHelpers.class);
 
     /**
@@ -273,11 +275,11 @@ public final class FeatureChangeMergingHelpers
 
         if (afterEntityLeft == null)
         {
-            throw new CoreException("afterEntityLeft was null, this should never happen!");
+            throw new CoreException(AFTER_ENTITY_LEFT_WAS_NULL);
         }
         if (afterEntityRight == null)
         {
-            throw new CoreException("afterEntityRight was null, this should never happen!");
+            throw new CoreException(AFTER_ENTITY_RIGHT_WAS_NULL);
         }
 
         /*
@@ -328,11 +330,11 @@ public final class FeatureChangeMergingHelpers
 
         if (afterEntityLeft == null)
         {
-            throw new CoreException("afterEntityLeft was null, this should never happen!");
+            throw new CoreException(AFTER_ENTITY_LEFT_WAS_NULL);
         }
         if (afterEntityRight == null)
         {
-            throw new CoreException("afterEntityRight was null, this should never happen!");
+            throw new CoreException(AFTER_ENTITY_RIGHT_WAS_NULL);
         }
 
         /*
@@ -437,11 +439,11 @@ public final class FeatureChangeMergingHelpers
 
         if (afterEntityLeft == null)
         {
-            throw new CoreException("afterEntityLeft was null, this should never happen!");
+            throw new CoreException(AFTER_ENTITY_LEFT_WAS_NULL);
         }
         if (afterEntityRight == null)
         {
-            throw new CoreException("afterEntityRight was null, this should never happen!");
+            throw new CoreException(AFTER_ENTITY_RIGHT_WAS_NULL);
         }
 
         /*
@@ -554,11 +556,11 @@ public final class FeatureChangeMergingHelpers
 
         if (afterEntityLeft == null)
         {
-            throw new CoreException("afterEntityLeft was null, this should never happen!");
+            throw new CoreException(AFTER_ENTITY_LEFT_WAS_NULL);
         }
         if (afterEntityRight == null)
         {
-            throw new CoreException("afterEntityRight was null, this should never happen!");
+            throw new CoreException(AFTER_ENTITY_RIGHT_WAS_NULL);
         }
 
         final MergedMemberBean<RelationBean> mergedMembersBean = mergeMember("relationMembers",

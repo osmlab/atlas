@@ -73,7 +73,7 @@ public class CompletePointTest
     public void testIsCompletelyShallow()
     {
         final CompletePoint superShallow = new CompletePoint(123L, null, null, null);
-        Assert.assertTrue(superShallow.isCompletelyShallow());
+        Assert.assertTrue(superShallow.isShallow());
     }
 
     @Test

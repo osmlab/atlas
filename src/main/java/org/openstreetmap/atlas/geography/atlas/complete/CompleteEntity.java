@@ -69,6 +69,15 @@ public interface CompleteEntity
         }
     }
 
+    /**
+     * Create a {@link CompleteEntity} from a given {@link AtlasEntity} reference. The
+     * {@link CompleteEntity}'s fields will match the fields of the reference. The returned
+     * {@link CompleteEntity} will be full, i.e. all of its associated fields will be non-null.
+     *
+     * @param reference
+     *            the reference to copy
+     * @return the full entity
+     */
     static AtlasEntity from(final AtlasEntity reference)
     {
         final ItemType type = reference.getType();
@@ -102,6 +111,16 @@ public interface CompleteEntity
         return result;
     }
 
+    /**
+     * Create a shallow {@link CompleteEntity} from a given {@link AtlasEntity} reference. The
+     * {@link CompleteEntity}'s identifier will match the identifier of the reference. The returned
+     * {@link CompleteEntity} will be shallow, i.e. all of its associated fields will be null except
+     * for the identifier.
+     *
+     * @param reference
+     *            the reference to copy
+     * @return the shallow entity
+     */
     static AtlasEntity shallowFrom(final AtlasEntity reference)
     {
         final ItemType type = reference.getType();
@@ -127,9 +146,11 @@ public interface CompleteEntity
     long getIdentifier();
 
     /**
-     * @return True when that entity contains only its identifier as effective data.
+     * A shallow {@link CompleteEntity} is one that contains only its identifier as effective data.
+     *
+     * @return if this entity is shallow
      */
-    boolean isCompletelyShallow();
+    boolean isShallow();
 
     CompleteEntity withAddedTag(String key, String value);
 

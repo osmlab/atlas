@@ -32,11 +32,13 @@ public class CompleteNode extends Node implements CompleteLocationItem
     private Set<Long> relationIdentifiers;
 
     /**
-     * Create a full copy of the given node.
+     * Create a {@link CompleteNode} from a given {@link Node} reference. The {@link CompleteNode}'s
+     * fields will match the fields of the reference. The returned {@link CompleteNode} will be
+     * full, i.e. all of its associated fields will be non-null.
      *
      * @param node
-     *            the {@link Node} to deep copy
-     * @return the new {@link CompleteNode}
+     *            the {@link Node} to copy
+     * @return the full {@link CompleteNode}
      */
     public static CompleteNode from(final Node node)
     {
@@ -49,12 +51,14 @@ public class CompleteNode extends Node implements CompleteLocationItem
     }
 
     /**
-     * Create a shallow copy of a given node. All fields (except the identifier and the geometry)
-     * are left null until updated by a with() call.
+     * Create a shallow {@link CompleteNode} from a given {@link Node} reference. The
+     * {@link CompleteNode}'s identifier will match the identifier of the reference {@link Node}.
+     * The returned {@link CompleteNode} will be shallow, i.e. all of its associated fields will be
+     * null except for the identifier.
      *
      * @param node
      *            the {@link Node} to copy
-     * @return the new {@link CompleteNode}
+     * @return the shallow {@link CompleteNode}
      */
     public static CompleteNode shallowFrom(final Node node)
     {
@@ -144,7 +148,7 @@ public class CompleteNode extends Node implements CompleteLocationItem
     }
 
     @Override
-    public boolean isCompletelyShallow()
+    public boolean isShallow()
     {
         return this.location == null && this.inEdgeIdentifiers == null
                 && this.outEdgeIdentifiers == null && this.tags == null

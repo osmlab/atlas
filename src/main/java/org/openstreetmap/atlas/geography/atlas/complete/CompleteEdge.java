@@ -29,6 +29,15 @@ public class CompleteEdge extends Edge implements CompleteLineItem
     private Long endNodeIdentifier;
     private Set<Long> relationIdentifiers;
 
+    /**
+     * Create a {@link CompleteEdge} from a given {@link Edge} reference. The {@link CompleteEdge}'s
+     * fields will match the fields of the reference. The returned {@link CompleteEdge} will be
+     * full, i.e. all of its associated fields will be non-null.
+     *
+     * @param edge
+     *            the {@link Edge} to copy
+     * @return the full {@link CompleteEdge}
+     */
     public static CompleteEdge from(final Edge edge)
     {
         return new CompleteEdge(edge.getIdentifier(), edge.asPolyLine(), edge.getTags(),
@@ -36,6 +45,16 @@ public class CompleteEdge extends Edge implements CompleteLineItem
                 edge.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
+    /**
+     * Create a shallow {@link CompleteEdge} from a given {@link Edge} reference. The
+     * {@link CompleteEdge}'s identifier will match the identifier of the reference {@link Edge}.
+     * The returned {@link CompleteEdge} will be shallow, i.e. all of its associated fields will be
+     * null except for the identifier.
+     *
+     * @param edge
+     *            the {@link Edge} to copy
+     * @return the shallow {@link CompleteEdge}
+     */
     public static CompleteEdge shallowFrom(final Edge edge)
     {
         return new CompleteEdge(edge.getIdentifier()).withBoundsExtendedBy(edge.bounds());
@@ -123,7 +142,7 @@ public class CompleteEdge extends Edge implements CompleteLineItem
     }
 
     @Override
-    public boolean isCompletelyShallow()
+    public boolean isShallow()
     {
         return this.polyLine == null && this.startNodeIdentifier == null
                 && this.endNodeIdentifier == null && this.tags == null

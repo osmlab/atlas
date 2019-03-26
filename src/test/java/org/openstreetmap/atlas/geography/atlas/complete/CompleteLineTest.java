@@ -73,7 +73,7 @@ public class CompleteLineTest
     public void testIsCompletelyShallow()
     {
         final CompleteLine superShallow = new CompleteLine(123L, null, null, null);
-        Assert.assertTrue(superShallow.isCompletelyShallow());
+        Assert.assertTrue(superShallow.isShallow());
     }
 
     @Test

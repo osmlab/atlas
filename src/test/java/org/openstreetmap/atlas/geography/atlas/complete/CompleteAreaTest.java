@@ -73,7 +73,7 @@ public class CompleteAreaTest
     public void testIsCompletelyShallow()
     {
         final CompleteArea superShallow = new CompleteArea(123L, null, null, null);
-        Assert.assertTrue(superShallow.isCompletelyShallow());
+        Assert.assertTrue(superShallow.isShallow());
     }
 
     @Test

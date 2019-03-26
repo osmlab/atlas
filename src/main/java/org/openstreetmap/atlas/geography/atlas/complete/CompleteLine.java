@@ -26,12 +26,31 @@ public class CompleteLine extends Line implements CompleteLineItem
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
 
+    /**
+     * Create a {@link CompleteLine} from a given {@link Line} reference. The {@link CompleteLine}'s
+     * fields will match the fields of the reference. The returned {@link CompleteLine} will be
+     * full, i.e. all of its associated fields will be non-null.
+     *
+     * @param line
+     *            the {@link Line} to copy
+     * @return the full {@link CompleteLine}
+     */
     public static CompleteLine from(final Line line)
     {
         return new CompleteLine(line.getIdentifier(), line.asPolyLine(), line.getTags(),
                 line.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
+    /**
+     * Create a shallow {@link CompleteLine} from a given {@link Line} reference. The
+     * {@link CompleteLine}'s identifier will match the identifier of the reference {@link Line}.
+     * The returned {@link CompleteLine} will be shallow, i.e. all of its associated fields will be
+     * null except for the identifier.
+     *
+     * @param line
+     *            the {@link Line} to copy
+     * @return the shallow {@link CompleteLine}
+     */
     public static CompleteLine shallowFrom(final Line line)
     {
         return new CompleteLine(line.getIdentifier()).withBoundsExtendedBy(line.bounds());
@@ -103,7 +122,7 @@ public class CompleteLine extends Line implements CompleteLineItem
     }
 
     @Override
-    public boolean isCompletelyShallow()
+    public boolean isShallow()
     {
         return this.polyLine == null && this.tags == null && this.relationIdentifiers == null;
     }

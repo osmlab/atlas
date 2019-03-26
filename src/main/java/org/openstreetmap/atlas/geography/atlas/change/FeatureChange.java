@@ -658,8 +658,7 @@ public class FeatureChange implements Located, Serializable
      */
     private void validateNotCompletelyShallow()
     {
-        if (this.changeType == ChangeType.ADD
-                && ((CompleteEntity) this.afterView).isCompletelyShallow())
+        if (this.changeType == ChangeType.ADD && ((CompleteEntity) this.afterView).isShallow())
         {
             throw new CoreException(
                     "{} was completely shallow (i.e. it contained only an identifier)", this);

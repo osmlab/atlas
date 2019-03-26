@@ -26,12 +26,31 @@ public class CompleteArea extends Area implements CompleteEntity
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
 
+    /**
+     * Create a {@link CompleteArea} from a given {@link Area} reference. The {@link CompleteArea}'s
+     * fields will match the fields of the reference. The returned {@link CompleteArea} will be
+     * full, i.e. all of its associated fields will be non-null.
+     *
+     * @param area
+     *            the {@link Area} to copy
+     * @return the full {@link CompleteArea}
+     */
     public static CompleteArea from(final Area area)
     {
         return new CompleteArea(area.getIdentifier(), area.asPolygon(), area.getTags(),
                 area.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
+    /**
+     * Create a shallow {@link CompleteArea} from a given {@link Area} reference. The
+     * {@link CompleteArea}'s identifier will match the identifier of the reference {@link Area}.
+     * The returned {@link CompleteArea} will be shallow, i.e. all of its associated fields will be
+     * null except for the identifier.
+     *
+     * @param area
+     *            the {@link Area} to copy
+     * @return the shallow {@link CompleteArea}
+     */
     public static CompleteArea shallowFrom(final Area area)
     {
         return new CompleteArea(area.getIdentifier()).withBoundsExtendedBy(area.bounds());
@@ -103,7 +122,7 @@ public class CompleteArea extends Area implements CompleteEntity
     }
 
     @Override
-    public boolean isCompletelyShallow()
+    public boolean isShallow()
     {
         return this.polygon == null && this.tags == null && this.relationIdentifiers == null;
     }

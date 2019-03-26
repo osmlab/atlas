@@ -93,7 +93,7 @@ public class CompleteEdgeTest
     public void testIsCompletelyShallow()
     {
         final CompleteEdge superShallow = new CompleteEdge(123L, null, null, null, null, null);
-        Assert.assertTrue(superShallow.isCompletelyShallow());
+        Assert.assertTrue(superShallow.isShallow());
     }
 
     @Test
