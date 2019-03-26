@@ -11,6 +11,9 @@ import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.PolyLine;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.utilities.collections.Maps;
@@ -48,6 +51,27 @@ public final class MemberMergeStrategies
      */
     @Deprecated
     static final BinaryOperator<RelationBean> simpleRelationBeanMerger = RelationBean::merge;
+
+    static final TernaryOperator<Location> diffBasedLocationMerger = (beforeLocation,
+            afterLocationLeft, afterLocationRight) ->
+    {
+        return (Location) getDiffBasedMutuallyExclusiveMerger().apply(beforeLocation,
+                afterLocationLeft, afterLocationRight);
+    };
+
+    static final TernaryOperator<PolyLine> diffBasedPolyLineMerger = (beforePolyLine,
+            afterPolyLineLeft, afterPolyLineRight) ->
+    {
+        return (PolyLine) getDiffBasedMutuallyExclusiveMerger().apply(beforePolyLine,
+                afterPolyLineLeft, afterPolyLineRight);
+    };
+
+    static final TernaryOperator<Polygon> diffBasedPolygonMerger = (beforePolygon, afterPolygonLeft,
+            afterPolygonRight) ->
+    {
+        return (Polygon) getDiffBasedMutuallyExclusiveMerger().apply(beforePolygon,
+                afterPolygonLeft, afterPolygonRight);
+    };
 
     static final TernaryOperator<RelationBean> diffBasedRelationBeanMerger = (beforeBean,
             afterLeftBean, afterRightBean) ->
@@ -300,8 +324,8 @@ public final class MemberMergeStrategies
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         /*
-         * Check to see if any of the shared ADD keys generate an ADD/ADD collision. An ADD/ADD
-         * collision is when the same key maps to two different values.
+         * Check to see if any of the shared ADD keys generate an ADD/ADD conflict. An ADD/ADD
+         * conflict is when the same key maps to two different values.
          */
         final Set<String> sharedAddedKeys = com.google.common.collect.Sets
                 .intersection(addedToLeftView.keySet(), addedToRightView.keySet());
@@ -312,13 +336,13 @@ public final class MemberMergeStrategies
             if (!Objects.equals(leftValue, rightValue))
             {
                 throw new CoreException(
-                        "diffBasedTagMerger failed due to ADD/ADD collision(s) on keys: [{} -> {}] vs [{} -> {}]",
+                        "diffBasedTagMerger failed due to ADD/ADD conflict on keys: [{} -> {}] vs [{} -> {}]",
                         sharedKey, leftValue, sharedKey, rightValue);
             }
         }
 
         /*
-         * Now, check for any ADD/REMOVE collisions. An ADD/REMOVE collision is when one view of the
+         * Now, check for any ADD/REMOVE conflicts. An ADD/REMOVE conflict is when one view of the
          * map contains an update to a key, but another view of the map removes the key entirely.
          */
         final Set<String> keysRemovedMerged = Sets.withSets(false, keysRemovedFromLeftView,
@@ -330,7 +354,7 @@ public final class MemberMergeStrategies
         if (!collision.isEmpty())
         {
             throw new CoreException(
-                    "diffBasedTagMerger failed due to ADD/REMOVE collision(s) on key(s): {}",
+                    "diffBasedTagMerger failed due to ADD/REMOVE conflict(s) on key(s): {}",
                     collision);
         }
 
@@ -388,6 +412,49 @@ public final class MemberMergeStrategies
             }
         }
         return result;
+    }
+
+    /**
+     * Returns a TernaryOperator that acts as a diff based, mutually exclusive chooser. The operator
+     * can successfully merge two afterViews if: 1) both afterViews match OR 2) the afterViews are
+     * mismatched, but one of the afterViews matches the beforeView. In case 2) the merger will
+     * select that afterView that differs from the beforeView. In any other case, the operator will
+     * fail with an ADD/ADD conflict.
+     *
+     * @return the operator
+     */
+    private static <T> TernaryOperator<T> getDiffBasedMutuallyExclusiveMerger()
+    {
+        return (beforeView, afterViewLeft, afterViewRight) ->
+        {
+            /*
+             * If the afterViews are equivalent, arbitrarily return one of them.
+             */
+            if (afterViewLeft.equals(afterViewRight))
+            {
+                return afterViewLeft;
+            }
+
+            /*
+             * afterViewLeft and afterViewRight were not equivalent. If one of them matches the
+             * beforeView, return the opposing one.
+             */
+            if (afterViewLeft.equals(beforeView))
+            {
+                return afterViewRight;
+            }
+            if (afterViewRight.equals(beforeView))
+            {
+                return afterViewLeft;
+            }
+
+            /*
+             * If we get here, we have an ADD/ADD conflict.
+             */
+            throw new CoreException(
+                    "diffBasedMutuallyExclusiveMerger failed due to ADD/ADD conflict: beforeView was {} but afterViews were [{} vs {}]",
+                    beforeView, afterViewLeft, afterViewRight);
+        };
     }
 
     private MemberMergeStrategies()

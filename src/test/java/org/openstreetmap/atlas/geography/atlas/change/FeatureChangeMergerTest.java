@@ -41,7 +41,7 @@ public class FeatureChangeMergerTest
     @Test
     public void testMergeAreasFail()
     {
-        final CompleteArea beforeArea1 = new CompleteArea(123L, Polygon.SILICON_VALLEY,
+        final CompleteArea beforeArea1 = new CompleteArea(123L, Polygon.CENTER,
                 Maps.hashMap("a", "1", "b", "2"), null);
 
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
@@ -51,8 +51,8 @@ public class FeatureChangeMergerTest
                 beforeArea1);
 
         /*
-         * This merge will fail, because the FeatureChanges have conflicting polygons. There is no
-         * way to resolve conflicting geometry during a merge.
+         * This merge will fail, because the FeatureChanges have conflicting changed polygons. There
+         * is no way to resolve conflicting geometry during a merge.
          */
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("Cannot merge two feature changes");
@@ -237,14 +237,16 @@ public class FeatureChangeMergerTest
                 Sets.hashSet(1L, 2L, 3L));
 
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteLine(123L, PolyLine.TEST_POLYLINE_2, null, Sets.hashSet(4L, 5L, 6L)),
+                new CompleteLine(123L, PolyLine.TEST_POLYLINE_2, Maps.hashMap("a", "1"),
+                        Sets.hashSet(4L, 5L, 6L)),
                 beforeLine1);
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
-                new CompleteLine(123L, PolyLine.TEST_POLYLINE, null, Sets.hashSet(1L, 2L)),
+                new CompleteLine(123L, PolyLine.TEST_POLYLINE, Maps.hashMap("a", "2"),
+                        Sets.hashSet(1L, 2L)),
                 beforeLine1);
 
         /*
-         * This merge will fail, because the FeatureChanges have conflicting geometry.
+         * This merge will fail, because the FeatureChanges have conflicting tags.
          */
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("Cannot merge two feature changes");
@@ -414,7 +416,7 @@ public class FeatureChangeMergerTest
     @Test
     public void testMergePointsFail()
     {
-        final CompletePoint beforePoint1 = new CompletePoint(123L, Location.COLOSSEUM,
+        final CompletePoint beforePoint1 = new CompletePoint(123L, Location.CENTER,
                 Maps.hashMap("a", "1", "b", "2"), null);
 
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
@@ -426,7 +428,7 @@ public class FeatureChangeMergerTest
                 beforePoint1);
 
         /*
-         * This merge will fail, because featureChange1 and featureChange2 have conflicting
+         * This merge will fail, because featureChange1 and featureChange2 have conflicting changed
          * locations.
          */
         this.expectedException.expect(CoreException.class);

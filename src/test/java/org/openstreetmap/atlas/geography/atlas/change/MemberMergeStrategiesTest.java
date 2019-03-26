@@ -9,6 +9,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.PolyLine;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
@@ -24,15 +27,41 @@ public class MemberMergeStrategiesTest
     public final ExpectedException expectedException = ExpectedException.none();
 
     @Test
-    public void testDiffBasedLocationMergeFail()
+    public void testDiffBasedLocationMergeADDADDConflictFail()
     {
-        throw new CoreException("TODO implement");
+        final Location before = Location.CENTER;
+        final Location afterLeft = Location.COLOSSEUM;
+        final Location afterRight = Location.EIFFEL_TOWER;
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException
+                .expectMessage("diffBasedMutuallyExclusiveMerger failed due to ADD/ADD conflict");
+        MemberMergeStrategies.diffBasedLocationMerger.apply(before, afterLeft, afterRight);
     }
 
     @Test
     public void testDiffBasedLocationMergeSuccess()
     {
-        throw new CoreException("TODO implement");
+        final Location before1 = Location.COLOSSEUM;
+        final Location afterLeft1 = Location.COLOSSEUM;
+        final Location afterRight1 = Location.EIFFEL_TOWER;
+
+        Assert.assertEquals(Location.EIFFEL_TOWER, MemberMergeStrategies.diffBasedLocationMerger
+                .apply(before1, afterLeft1, afterRight1));
+
+        final Location before2 = Location.EIFFEL_TOWER;
+        final Location afterLeft2 = Location.COLOSSEUM;
+        final Location afterRight2 = Location.EIFFEL_TOWER;
+
+        Assert.assertEquals(Location.COLOSSEUM, MemberMergeStrategies.diffBasedLocationMerger
+                .apply(before2, afterLeft2, afterRight2));
+
+        final Location before3 = Location.EIFFEL_TOWER;
+        final Location afterLeft3 = Location.COLOSSEUM;
+        final Location afterRight3 = Location.COLOSSEUM;
+
+        Assert.assertEquals(Location.COLOSSEUM, MemberMergeStrategies.diffBasedLocationMerger
+                .apply(before3, afterLeft3, afterRight3));
     }
 
     @Test
@@ -96,27 +125,79 @@ public class MemberMergeStrategiesTest
     }
 
     @Test
-    public void testDiffBasedPolygonMergeFail()
+    public void testDiffBasedPolygonMergeADDADDConflictFail()
     {
-        throw new CoreException("TODO implement");
+        final Polygon before = Polygon.CENTER;
+        final Polygon afterLeft = Polygon.SILICON_VALLEY;
+        final Polygon afterRight = Polygon.SILICON_VALLEY_2;
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException
+                .expectMessage("diffBasedMutuallyExclusiveMerger failed due to ADD/ADD conflict");
+        MemberMergeStrategies.diffBasedPolygonMerger.apply(before, afterLeft, afterRight);
     }
 
     @Test
     public void testDiffBasedPolygonMergeSuccess()
     {
-        throw new CoreException("TODO implement");
+        final Polygon before1 = Polygon.CENTER;
+        final Polygon afterLeft1 = Polygon.CENTER;
+        final Polygon afterRight1 = Polygon.SILICON_VALLEY;
+
+        Assert.assertEquals(Polygon.SILICON_VALLEY, MemberMergeStrategies.diffBasedPolygonMerger
+                .apply(before1, afterLeft1, afterRight1));
+
+        final Polygon before2 = Polygon.CENTER;
+        final Polygon afterLeft2 = Polygon.SILICON_VALLEY;
+        final Polygon afterRight2 = Polygon.CENTER;
+
+        Assert.assertEquals(Polygon.SILICON_VALLEY, MemberMergeStrategies.diffBasedPolygonMerger
+                .apply(before2, afterLeft2, afterRight2));
+
+        final Polygon before3 = Polygon.CENTER;
+        final Polygon afterLeft3 = Polygon.SILICON_VALLEY;
+        final Polygon afterRight3 = Polygon.SILICON_VALLEY;
+
+        Assert.assertEquals(Polygon.SILICON_VALLEY, MemberMergeStrategies.diffBasedPolygonMerger
+                .apply(before3, afterLeft3, afterRight3));
     }
 
     @Test
-    public void testDiffBasedPolyLineMergeFail()
+    public void testDiffBasedPolyLineMergeADDADDConflictFail()
     {
-        throw new CoreException("TODO implement");
+        final PolyLine before = PolyLine.TEST_POLYLINE;
+        final PolyLine afterLeft = PolyLine.TEST_POLYLINE_2;
+        final PolyLine afterRight = PolyLine.CENTER;
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException
+                .expectMessage("diffBasedMutuallyExclusiveMerger failed due to ADD/ADD conflict");
+        MemberMergeStrategies.diffBasedPolyLineMerger.apply(before, afterLeft, afterRight);
     }
 
     @Test
     public void testDiffBasedPolyLineMergeSuccess()
     {
-        throw new CoreException("TODO implement");
+        final PolyLine before1 = PolyLine.CENTER;
+        final PolyLine afterLeft1 = PolyLine.CENTER;
+        final PolyLine afterRight1 = PolyLine.TEST_POLYLINE;
+
+        Assert.assertEquals(PolyLine.TEST_POLYLINE, MemberMergeStrategies.diffBasedPolyLineMerger
+                .apply(before1, afterLeft1, afterRight1));
+
+        final PolyLine before2 = PolyLine.CENTER;
+        final PolyLine afterLeft2 = PolyLine.TEST_POLYLINE;
+        final PolyLine afterRight2 = PolyLine.CENTER;
+
+        Assert.assertEquals(PolyLine.TEST_POLYLINE, MemberMergeStrategies.diffBasedPolyLineMerger
+                .apply(before2, afterLeft2, afterRight2));
+
+        final PolyLine before3 = PolyLine.CENTER;
+        final PolyLine afterLeft3 = PolyLine.TEST_POLYLINE;
+        final PolyLine afterRight3 = PolyLine.TEST_POLYLINE;
+
+        Assert.assertEquals(PolyLine.TEST_POLYLINE, MemberMergeStrategies.diffBasedPolyLineMerger
+                .apply(before3, afterLeft3, afterRight3));
     }
 
     @Test
@@ -162,7 +243,7 @@ public class MemberMergeStrategiesTest
     }
 
     @Test
-    public void testDiffBasedRelationBeanMergeADDREMOVEConflict()
+    public void testDiffBasedRelationBeanMergeADDREMOVEConflictFail()
     {
         final RelationBean beforeBean = new RelationBean();
         beforeBean.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
@@ -204,7 +285,7 @@ public class MemberMergeStrategiesTest
     }
 
     @Test
-    public void testDiffBasedRelationBeanMergeREMOVEREMOVEConflict()
+    public void testDiffBasedRelationBeanMergeREMOVEREMOVEConflictFail()
     {
         final RelationBean beforeBean = new RelationBean();
         beforeBean.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
@@ -305,7 +386,7 @@ public class MemberMergeStrategiesTest
 
         this.expectedException.expect(CoreException.class);
         this.expectedException
-                .expectMessage("diffBasedTagMerger failed due to ADD/ADD collision(s) on keys");
+                .expectMessage("diffBasedTagMerger failed due to ADD/ADD conflict on keys");
         MemberMergeStrategies.diffBasedTagMerger.apply(before1, after1A, after1B);
     }
 
@@ -318,7 +399,7 @@ public class MemberMergeStrategiesTest
 
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage(
-                "diffBasedTagMerger failed due to ADD/REMOVE collision(s) on key(s): [a]");
+                "diffBasedTagMerger failed due to ADD/REMOVE conflict(s) on key(s): [a]");
         MemberMergeStrategies.diffBasedTagMerger.apply(before1, after1A, after1B);
     }
 
