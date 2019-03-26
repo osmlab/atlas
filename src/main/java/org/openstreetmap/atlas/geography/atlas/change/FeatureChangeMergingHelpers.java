@@ -659,7 +659,8 @@ public final class FeatureChangeMergingHelpers
                 beforeEntityLeft, afterEntityLeft, beforeEntityRight, afterEntityRight,
                 entity -> ((Relation) entity).members() == null ? null
                         : ((Relation) entity).members().asBean(),
-                null, MemberMergeStrategies.diffBasedRelationBeanMerger);
+                MemberMergeStrategies.simpleRelationBeanMerger,
+                MemberMergeStrategies.diffBasedRelationBeanMerger);
 
         final MergedMemberBean<Set<Long>> mergedAllRelationsWithSameOsmIdentifierBean = mergeMember(
                 "allRelationsWithSameOsmIdentifier", beforeEntityLeft, afterEntityLeft,
@@ -676,7 +677,8 @@ public final class FeatureChangeMergingHelpers
                 afterEntityRight,
                 entity -> ((Relation) entity).allKnownOsmMembers() == null ? null
                         : ((Relation) entity).allKnownOsmMembers().asBean(),
-                null, MemberMergeStrategies.diffBasedRelationBeanMerger);
+                MemberMergeStrategies.simpleRelationBeanMerger,
+                MemberMergeStrategies.diffBasedRelationBeanMerger);
 
         final MergedMemberBean<Long> mergedOsmRelationIdentifier = mergeMember(
                 "osmRelationIdentifier", beforeEntityLeft, afterEntityLeft, beforeEntityRight,
