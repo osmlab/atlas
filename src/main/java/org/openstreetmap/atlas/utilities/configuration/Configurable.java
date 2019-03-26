@@ -10,16 +10,16 @@ import java.util.Optional;
 public interface Configurable
 {
     /**
-     * @param <Type>
+     * @param <V>
      *            property type
      * @return the current value
      */
-    <Type> Type value();
+    <V> V value();
 
     /**
-     * @param <Type>
+     * @param <V>
      *            property type
      * @return Optional of the current value, wrapping {@code null}
      */
-    <Type> Optional<Type> valueOption();
+    <V> Optional<V> valueOption();
 }
