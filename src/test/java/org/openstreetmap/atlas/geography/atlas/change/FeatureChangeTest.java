@@ -169,14 +169,14 @@ public class FeatureChangeTest
     }
 
     @Test
-    public void testSuperShallowValidation()
+    public void testShallowValidation()
     {
         final CompletePoint before = new CompletePoint(123L, Location.CENTER,
                 Maps.hashMap("a", "1", "b", "2"), Sets.hashSet(1L, 2L));
 
         final CompletePoint after = CompletePoint.shallowFrom(before);
         this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("was completely shallow");
+        this.expectedException.expectMessage("was shallow");
         FeatureChange.add(after);
     }
 

@@ -187,7 +187,7 @@ public class FeatureChange implements Located, Serializable
             throw new CoreException("beforeView {} bounds was null", this.beforeView);
         }
 
-        this.validateNotCompletelyShallow();
+        this.validateNotShallow();
         if (this.beforeView != null)
         {
             this.validateUsefulnessWithBeforeView();
@@ -653,15 +653,14 @@ public class FeatureChange implements Located, Serializable
     }
 
     /**
-     * Check that this {@link FeatureChange} is not super shallow. A super shallow
-     * {@link FeatureChange} is one whose CompleteEntity only contains an identifier.
+     * Check that this {@link FeatureChange} is not shallow. A shallow {@link FeatureChange} is one
+     * whose CompleteEntity only contains an identifier.
      */
-    private void validateNotCompletelyShallow()
+    private void validateNotShallow()
     {
         if (this.changeType == ChangeType.ADD && ((CompleteEntity) this.afterView).isShallow())
         {
-            throw new CoreException(
-                    "{} was completely shallow (i.e. it contained only an identifier)", this);
+            throw new CoreException("{} was shallow (i.e. it contained only an identifier)", this);
         }
     }
 
