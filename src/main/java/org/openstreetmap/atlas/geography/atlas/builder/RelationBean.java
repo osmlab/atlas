@@ -15,8 +15,6 @@ import java.util.Set;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author matthieun
@@ -81,8 +79,6 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
             return this.type + ", " + this.identifier + ", " + this.role;
         }
     }
-
-    private static final Logger logger = LoggerFactory.getLogger(RelationBean.class);
 
     private static final long serialVersionUID = 8511830231633569713L;
 

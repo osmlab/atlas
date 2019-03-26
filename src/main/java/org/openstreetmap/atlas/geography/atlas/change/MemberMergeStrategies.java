@@ -19,8 +19,6 @@ import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBean
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 import org.openstreetmap.atlas.utilities.function.TernaryOperator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A utility class to store the various merge strategies utilized by the {@link FeatureChange} merge
@@ -30,8 +28,6 @@ import org.slf4j.LoggerFactory;
  */
 public final class MemberMergeStrategies
 {
-    private static final Logger logger = LoggerFactory.getLogger(MemberMergeStrategies.class);
-
     static final BinaryOperator<Map<String, String>> simpleTagMerger = Maps::withMaps;
 
     static final BinaryOperator<Set<Long>> simpleLongSetMerger = Sets::withSets;
@@ -45,40 +41,29 @@ public final class MemberMergeStrategies
             right) -> Sets.withSortedSets(false, left, right);
 
     /*
-     * TODO This is deprecated because it relies on the explicityExcluded sets in RelationBean and
+     * TODO This should be removed since it relies on the explicityExcluded sets in RelationBean and
      * RelationMemberList. Ideally, we will remove this redundant state from
      * RelationBean/RelationMemberList. This will affect the non-diff-based merge logic.
      */
-    @Deprecated
     static final BinaryOperator<RelationBean> simpleRelationBeanMerger = RelationBean::merge;
 
     static final TernaryOperator<Long> diffBasedLongMerger = (beforeLong, afterLongLeft,
-            afterLongRight) ->
-    {
-        return (Long) getDiffBasedMutuallyExclusiveMerger().apply(beforeLong, afterLongLeft,
-                afterLongRight);
-    };
+            afterLongRight) -> (Long) getDiffBasedMutuallyExclusiveMerger().apply(beforeLong,
+                    afterLongLeft, afterLongRight);
 
     static final TernaryOperator<Location> diffBasedLocationMerger = (beforeLocation,
-            afterLocationLeft, afterLocationRight) ->
-    {
-        return (Location) getDiffBasedMutuallyExclusiveMerger().apply(beforeLocation,
-                afterLocationLeft, afterLocationRight);
-    };
+            afterLocationLeft,
+            afterLocationRight) -> (Location) getDiffBasedMutuallyExclusiveMerger()
+                    .apply(beforeLocation, afterLocationLeft, afterLocationRight);
 
     static final TernaryOperator<PolyLine> diffBasedPolyLineMerger = (beforePolyLine,
-            afterPolyLineLeft, afterPolyLineRight) ->
-    {
-        return (PolyLine) getDiffBasedMutuallyExclusiveMerger().apply(beforePolyLine,
-                afterPolyLineLeft, afterPolyLineRight);
-    };
+            afterPolyLineLeft,
+            afterPolyLineRight) -> (PolyLine) getDiffBasedMutuallyExclusiveMerger()
+                    .apply(beforePolyLine, afterPolyLineLeft, afterPolyLineRight);
 
     static final TernaryOperator<Polygon> diffBasedPolygonMerger = (beforePolygon, afterPolygonLeft,
-            afterPolygonRight) ->
-    {
-        return (Polygon) getDiffBasedMutuallyExclusiveMerger().apply(beforePolygon,
-                afterPolygonLeft, afterPolygonRight);
-    };
+            afterPolygonRight) -> (Polygon) getDiffBasedMutuallyExclusiveMerger()
+                    .apply(beforePolygon, afterPolygonLeft, afterPolygonRight);
 
     static final TernaryOperator<RelationBean> diffBasedRelationBeanMerger = (beforeBean,
             afterLeftBean, afterRightBean) ->
@@ -294,10 +279,8 @@ public final class MemberMergeStrategies
      * property.
      */
     static final TernaryOperator<SortedSet<Long>> diffBasedLongSortedSetMerger = (beforeSet,
-            afterLeftSet, afterRightSet) ->
-    {
-        return new TreeSet<>(diffBasedLongSetMerger.apply(beforeSet, afterLeftSet, afterRightSet));
-    };
+            afterLeftSet, afterRightSet) -> new TreeSet<>(
+                    diffBasedLongSetMerger.apply(beforeSet, afterLeftSet, afterRightSet));
 
     /*
      * Merge two differing Map<String, String> created using ADD/MODIFYs and REMOVEs on a common

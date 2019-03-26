@@ -31,8 +31,6 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.utilities.function.TernaryOperator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A utility class for the various {@link FeatureChange} merge helper functions.
@@ -43,7 +41,6 @@ public final class FeatureChangeMergingHelpers
 {
     private static final String AFTER_ENTITY_RIGHT_WAS_NULL = "afterEntityRight was null, this should never happen!";
     private static final String AFTER_ENTITY_LEFT_WAS_NULL = "afterEntityLeft was null, this should never happen!";
-    private static final Logger logger = LoggerFactory.getLogger(FeatureChangeMergingHelpers.class);
 
     /**
      * Merge some feature member using a left and right before/after view.
