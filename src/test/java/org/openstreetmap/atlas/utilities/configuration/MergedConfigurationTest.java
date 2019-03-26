@@ -1,6 +1,5 @@
 package org.openstreetmap.atlas.utilities.configuration;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Map;
@@ -38,29 +37,7 @@ public class MergedConfigurationTest
     private static final String PARTIAL_CONFIGURATION_JSON = "feature.json";
     private static final String PARTIAL_CONFIGURATION_YAML = "feature.yml";
 
-    /**
-     * Create a Supplier to return an input stream of a named resource.
-     * 
-     * @param name
-     *            the name of the resource local to the class.
-     * @return a Supplier that will get an InputStream of the resource.
-     */
-    private Supplier<InputStream> getResourceInputStreamSupplier(final String name)
-    {
-        return () -> MergedConfigurationTest.class.getResourceAsStream(name);
-    }
-
-    /**
-     * Create a Supplier to return an Input Stream of a string
-     * 
-     * @param value
-     *            the string value
-     * @return a Supplier that will return an InputStream of the string
-     */
-    private Supplier<InputStream> getStringInputStreamsSupplier(final String value)
-    {
-        return () -> new StringInputStream(value);
-    }
+    private static final String CONFIGURATION_FEATURE_RANGE = "feature.%s.range";
 
     @Test
     public void testConfigurationDataKeySetAllJson()
@@ -76,21 +53,8 @@ public class MergedConfigurationTest
                 getResourceInputStreamSupplier(OVERRIDE_CONFIGURATION_YAML));
     }
 
-    private void testConfigurationDataKeySet(final Supplier<InputStream> base,
-            final Supplier<InputStream> override)
-    {
-
-        final Configuration configuration = new MergedConfiguration(new InputStreamResource(base),
-                new InputStreamResource(override));
-
-        final Set<String> compareTo = new HashSet<>();
-        compareTo.add("feature");
-        Assert.assertEquals(configuration.configurationDataKeySet(), compareTo);
-
-    }
-
     @Test
-    public void testDotFormat() throws IOException
+    public void testDotFormat()
     {
         final String expandedSource = "{\"a\":{\"b\":{\"c\":0,\"d\":1}}}";
         final String expandedOverrideSource = "{\"a\":{\"b\":{\"c\":2}}}";
@@ -111,6 +75,13 @@ public class MergedConfigurationTest
     }
 
     @Test
+    public void testLayeredJsonOnYaml()
+    {
+        testLayered(getResourceInputStreamSupplier(BASE_CONFIGURATION_YAML),
+                getResourceInputStreamSupplier(OVERRIDE_CONFIGURATION_JSON));
+    }
+
+    @Test
     public void testLayeredYaml()
     {
         testLayered(getResourceInputStreamSupplier(BASE_CONFIGURATION_YAML),
@@ -125,10 +96,85 @@ public class MergedConfigurationTest
     }
 
     @Test
-    public void testLayeredJsonOnYaml()
+    public void testMergedOverriddenConfigurationsJson()
     {
-        testLayered(getResourceInputStreamSupplier(BASE_CONFIGURATION_YAML),
-                getResourceInputStreamSupplier(OVERRIDE_CONFIGURATION_JSON));
+        testMergedOverriddenConfigurations(
+                getResourceInputStreamSupplier(KEYWORD_OVERRIDDEN_CONFIGURATION_JSON),
+                getResourceInputStreamSupplier(KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_JSON));
+    }
+
+    @Test
+    public void testMergedOverriddenConfigurationsYaml()
+    {
+        testMergedOverriddenConfigurations(
+                getResourceInputStreamSupplier(KEYWORD_OVERRIDDEN_CONFIGURATION_YAML),
+                getResourceInputStreamSupplier(KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_YAML));
+    }
+
+    @Test
+    public void testMergedOverriddenConfigurationsYamlOnJson()
+    {
+        testMergedOverriddenConfigurations(
+                getResourceInputStreamSupplier(KEYWORD_OVERRIDDEN_CONFIGURATION_JSON),
+                getResourceInputStreamSupplier(KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_YAML));
+    }
+
+    @Test
+    public void testPartialJson()
+    {
+        testPartial(getResourceInputStreamSupplier(BASE_CONFIGURATION_JSON),
+                getResourceInputStreamSupplier(PARTIAL_CONFIGURATION_JSON));
+    }
+
+    @Test
+    public void testPartialYaml()
+    {
+        testPartial(getResourceInputStreamSupplier(BASE_CONFIGURATION_YAML),
+                getResourceInputStreamSupplier(PARTIAL_CONFIGURATION_YAML));
+    }
+
+    @Test
+    public void testPartialYamlOnJson()
+    {
+        testPartial(getResourceInputStreamSupplier(BASE_CONFIGURATION_JSON),
+                getResourceInputStreamSupplier(PARTIAL_CONFIGURATION_YAML));
+    }
+
+    /**
+     * Create a Supplier to return an input stream of a named resource.
+     *
+     * @param name
+     *            the name of the resource local to the class.
+     * @return a Supplier that will get an InputStream of the resource.
+     */
+    private Supplier<InputStream> getResourceInputStreamSupplier(final String name)
+    {
+        return () -> MergedConfigurationTest.class.getResourceAsStream(name);
+    }
+
+    /**
+     * Create a Supplier to return an Input Stream of a string
+     *
+     * @param value
+     *            the string value
+     * @return a Supplier that will return an InputStream of the string
+     */
+    private Supplier<InputStream> getStringInputStreamsSupplier(final String value)
+    {
+        return () -> new StringInputStream(value);
+    }
+
+    private void testConfigurationDataKeySet(final Supplier<InputStream> base,
+            final Supplier<InputStream> override)
+    {
+
+        final Configuration configuration = new MergedConfiguration(new InputStreamResource(base),
+                new InputStreamResource(override));
+
+        final Set<String> compareTo = new HashSet<>();
+        compareTo.add("feature");
+        Assert.assertEquals(configuration.configurationDataKeySet(), compareTo);
+
     }
 
     private void testLayered(final Supplier<InputStream> base, final Supplier<InputStream> override)
@@ -138,7 +184,7 @@ public class MergedConfigurationTest
                 new InputStreamResource(override));
 
         final String keyword = "ABC";
-        final String key = String.format("feature.%s.range", keyword);
+        final String key = String.format(CONFIGURATION_FEATURE_RANGE, keyword);
 
         final Optional<Map<String, Double>> rangeOption = configuration.get(key).valueOption();
 
@@ -150,40 +196,16 @@ public class MergedConfigurationTest
         });
 
         final String baseKeyword = "ABC";
-        final String baseKey = String.format("feature.%s.range", baseKeyword);
+        final String baseKey = String.format(CONFIGURATION_FEATURE_RANGE, baseKeyword);
         final Double max = configuration.get(baseKey + ".min", Double.NaN).value();
         Assert.assertNotEquals(Double.NaN, max);
 
         Assert.assertFalse(configuration.get("foo").valueOption().isPresent());
     }
 
-    @Test
-    public void testMergedOverriddenConfigurationsJson() throws IOException
-    {
-        testMergedOverriddenConfigurations(
-                getResourceInputStreamSupplier(KEYWORD_OVERRIDDEN_CONFIGURATION_JSON),
-                getResourceInputStreamSupplier(KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_JSON));
-    }
-
-    @Test
-    public void testMergedOverriddenConfigurationsYaml() throws IOException
-    {
-        testMergedOverriddenConfigurations(
-                getResourceInputStreamSupplier(KEYWORD_OVERRIDDEN_CONFIGURATION_YAML),
-                getResourceInputStreamSupplier(KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_YAML));
-    }
-
-    @Test
-    public void testMergedOverriddenConfigurationsYamlOnJson() throws IOException
-    {
-        testMergedOverriddenConfigurations(
-                getResourceInputStreamSupplier(KEYWORD_OVERRIDDEN_CONFIGURATION_JSON),
-                getResourceInputStreamSupplier(KEYWORD_OVERRIDDEN_DEV_CONFIGURATION_YAML));
-    }
-
     private void testMergedOverriddenConfigurations(
             final Supplier<InputStream> keywordOverriddenBaseConfiguration,
-            final Supplier<InputStream> developmentConfiguration) throws IOException
+            final Supplier<InputStream> developmentConfiguration)
     {
 
         final Configuration configuration = new MergedConfiguration(
@@ -216,34 +238,13 @@ public class MergedConfigurationTest
 
     }
 
-    @Test
-    public void testPartialJson() throws IOException
-    {
-        testPartial(getResourceInputStreamSupplier(BASE_CONFIGURATION_JSON),
-                getResourceInputStreamSupplier(PARTIAL_CONFIGURATION_JSON));
-    }
-
-    @Test
-    public void testPartialYaml() throws IOException
-    {
-        testPartial(getResourceInputStreamSupplier(BASE_CONFIGURATION_YAML),
-                getResourceInputStreamSupplier(PARTIAL_CONFIGURATION_YAML));
-    }
-
-    @Test
-    public void testPartialYamlOnJson() throws IOException
-    {
-        testPartial(getResourceInputStreamSupplier(BASE_CONFIGURATION_JSON),
-                getResourceInputStreamSupplier(PARTIAL_CONFIGURATION_YAML));
-    }
-
     private void testPartial(final Supplier<InputStream> base, final Supplier<InputStream> partial)
     {
         final Configuration configuration = new MergedConfiguration(new InputStreamResource(base),
                 new InputStreamResource(partial));
 
         final String keyword = "XYZ";
-        final String key = String.format("feature.%s.range", keyword);
+        final String key = String.format(CONFIGURATION_FEATURE_RANGE, keyword);
 
         final Optional<Map<String, Double>> rangeOption = configuration.get(key).valueOption();
 
@@ -258,7 +259,7 @@ public class MergedConfigurationTest
     }
 
     private void validateSame(final String leftBase, final String leftOverride,
-            final String rightBase, final String rightOverride) throws IOException
+            final String rightBase, final String rightOverride)
     {
         final Configuration left = new MergedConfiguration(
                 new InputStreamResource(getStringInputStreamsSupplier(leftBase)),
@@ -268,10 +269,12 @@ public class MergedConfigurationTest
                 new InputStreamResource(getStringInputStreamsSupplier(rightBase)),
                 new InputStreamResource(getStringInputStreamsSupplier(rightOverride)));
 
-        Assert.assertEquals(2L, (long) left.get("a.b.c").value());
-        Assert.assertEquals(1L, (long) left.get("a.b.d").value());
-        Assert.assertEquals((long) left.get("a.b.c").value(), (long) right.get("a.b.c").value());
-        Assert.assertEquals((long) left.get("a.b.d").value(), (long) right.get("a.b.d").value());
+        Assert.assertEquals(2L, (long) left.get(StandardConfigurationTest.ABC).value());
+        Assert.assertEquals(1L, (long) left.get(StandardConfigurationTest.ABD).value());
+        Assert.assertEquals((long) left.get(StandardConfigurationTest.ABC).value(),
+                (long) right.get(StandardConfigurationTest.ABC).value());
+        Assert.assertEquals((long) left.get(StandardConfigurationTest.ABD).value(),
+                (long) right.get(StandardConfigurationTest.ABD).value());
 
         final Map<String, Object> leftMap = left.get("a.b").value();
         final Map<String, Object> rightMap = right.get("a.b").value();

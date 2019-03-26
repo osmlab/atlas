@@ -34,15 +34,8 @@ public class StandardConfigurationTest
     public static final String JSON_KEYWORD_OVERRIDDEN_CONFIGURATION = "keywordOverridingApplication.json";
     public static final String YAML_KEYWORD_OVERRIDDEN_CONFIGURATION = "keywordOverridingApplication.yml";
 
-    @Test
-    public void testConfigurationDataKeySetYaml() throws IOException
-    {
-        try (InputStream stream = StandardConfigurationTest.class
-                .getResourceAsStream(YAML_CONFIGURATION))
-        {
-            testConfigurationDataKeySet(stream);
-        }
-    }
+    protected static final String ABC = "a.b.c";
+    protected static final String ABD = "a.b.d";
 
     @Test
     public void testConfigurationDataKeySetJson() throws IOException
@@ -54,14 +47,14 @@ public class StandardConfigurationTest
         }
     }
 
-    private void testConfigurationDataKeySet(final InputStream stream)
+    @Test
+    public void testConfigurationDataKeySetYaml() throws IOException
     {
-        final StandardConfiguration configuration = new StandardConfiguration(
-                new InputStreamResource(stream));
-
-        final Set<String> compareTo = new HashSet<>();
-        compareTo.add("feature");
-        Assert.assertEquals(configuration.configurationDataKeySet(), compareTo);
+        try (InputStream stream = StandardConfigurationTest.class
+                .getResourceAsStream(YAML_CONFIGURATION))
+        {
+            testConfigurationDataKeySet(stream);
+        }
     }
 
     @Test
@@ -70,12 +63,12 @@ public class StandardConfigurationTest
         try (InputStream stream = new ByteArrayInputStream("{}".getBytes(StandardCharsets.UTF_8)))
         {
             final StandardConfiguration configuration = new StandardConfiguration(
-                    new InputStreamResource(stream));
+                    new InputStreamResource(() -> stream));
             final String minKey = "missing.range.min";
             final String maxKey = "missing.range.max";
 
-            Assert.assertEquals(new Double(1.0), configuration.get(minKey, 1.0).value());
-            Assert.assertEquals(new Double(100.0), configuration.get(maxKey, 100.0).value());
+            Assert.assertEquals(Double.valueOf(1.0), configuration.get(minKey, 1.0).value());
+            Assert.assertEquals(Double.valueOf(100.0), configuration.get(maxKey, 100.0).value());
             Assert.assertEquals(Angle.degrees(1.0),
                     configuration.get(minKey, 1.0, Angle::degrees).value());
             Assert.assertEquals(Angle.degrees(100.0),
@@ -92,14 +85,14 @@ public class StandardConfigurationTest
                         "{\"a.b.c\": 0, \"a.b.d\": 1}".getBytes(StandardCharsets.UTF_8)))
         {
             final StandardConfiguration expanded = new StandardConfiguration(
-                    new InputStreamResource(expandedSource));
+                    new InputStreamResource(() -> expandedSource));
             final StandardConfiguration flattened = new StandardConfiguration(
-                    new InputStreamResource(flattenedSource));
+                    new InputStreamResource(() -> flattenedSource));
 
-            Assert.assertEquals((long) expanded.get("a.b.c").value(),
-                    (long) flattened.get("a.b.c").value());
-            Assert.assertEquals((long) expanded.get("a.b.d").value(),
-                    (long) flattened.get("a.b.d").value());
+            Assert.assertEquals((long) expanded.get(ABC).value(),
+                    (long) flattened.get(ABC).value());
+            Assert.assertEquals((long) expanded.get(ABD).value(),
+                    (long) flattened.get(ABD).value());
         }
     }
 
@@ -112,56 +105,16 @@ public class StandardConfigurationTest
                         .getResourceAsStream(YAML_DOT_COMPRESSED))
         {
             final StandardConfiguration expanded = new StandardConfiguration(
-                    new InputStreamResource(expandedSource));
+                    new InputStreamResource(() -> expandedSource));
             final StandardConfiguration flattened = new StandardConfiguration(
-                    new InputStreamResource(flattenedSource));
+                    new InputStreamResource(() -> flattenedSource));
 
-            Assert.assertEquals(0, (long) expanded.get("a.b.c").value());
-            Assert.assertEquals(1, (long) expanded.get("a.b.d").value());
-            Assert.assertEquals((long) expanded.get("a.b.c").value(),
-                    (long) flattened.get("a.b.c").value());
-            Assert.assertEquals((long) expanded.get("a.b.d").value(),
-                    (long) flattened.get("a.b.d").value());
-        }
-    }
-
-    @Test
-    public void testSpecificFormatLoad() throws IOException
-    {
-        try (InputStream expandedSource1 = StandardConfigurationTest.class
-                .getResourceAsStream(YAML_DOT_EXPANDED);
-                InputStream flattenedSource1 = StandardConfigurationTest.class
-                        .getResourceAsStream(YAML_DOT_COMPRESSED);
-                InputStream expandedSource2 = StandardConfigurationTest.class
-                        .getResourceAsStream(YAML_DOT_EXPANDED);
-                InputStream flattenedSource2 = StandardConfigurationTest.class
-                        .getResourceAsStream(YAML_DOT_COMPRESSED))
-        {
-            final StandardConfiguration expanded1 = new StandardConfiguration(
-                    new InputStreamResource(expandedSource1));
-            final StandardConfiguration flattened1 = new StandardConfiguration(
-                    new InputStreamResource(flattenedSource1));
-
-            final StandardConfiguration expanded2 = new StandardConfiguration(
-                    new InputStreamResource(expandedSource2),
-                    StandardConfiguration.ConfigurationFormat.YAML);
-            final StandardConfiguration flattened2 = new StandardConfiguration(
-                    new InputStreamResource(flattenedSource2),
-                    StandardConfiguration.ConfigurationFormat.YAML);
-
-            Assert.assertEquals(0, (long) expanded1.get("a.b.c").value());
-            Assert.assertEquals(1, (long) expanded1.get("a.b.d").value());
-            Assert.assertEquals((long) expanded1.get("a.b.c").value(),
-                    (long) flattened1.get("a.b.c").value());
-            Assert.assertEquals((long) expanded1.get("a.b.d").value(),
-                    (long) flattened1.get("a.b.d").value());
-
-            Assert.assertEquals(0, (long) expanded2.get("a.b.c").value());
-            Assert.assertEquals(1, (long) expanded2.get("a.b.d").value());
-            Assert.assertEquals((long) expanded2.get("a.b.c").value(),
-                    (long) flattened2.get("a.b.c").value());
-            Assert.assertEquals((long) expanded2.get("a.b.d").value(),
-                    (long) flattened2.get("a.b.d").value());
+            Assert.assertEquals(0, (long) expanded.get(ABC).value());
+            Assert.assertEquals(1, (long) expanded.get(ABD).value());
+            Assert.assertEquals((long) expanded.get(ABC).value(),
+                    (long) flattened.get(ABC).value());
+            Assert.assertEquals((long) expanded.get(ABD).value(),
+                    (long) flattened.get(ABD).value());
         }
     }
 
@@ -185,13 +138,120 @@ public class StandardConfigurationTest
         }
     }
 
+    @Test
+    public void testMissing() throws IOException
+    {
+        try (InputStream stream = new ByteArrayInputStream("{}".getBytes(StandardCharsets.UTF_8)))
+        {
+            final StandardConfiguration configuration = new StandardConfiguration(
+                    new InputStreamResource(() -> stream));
+            final String minKey = "missing.range.min";
+            final String maxKey = "missing.range.max";
+
+            Assert.assertNull(configuration.get(minKey).value());
+            Assert.assertNull(configuration.get(maxKey).value());
+            Assert.assertNull(configuration.get(minKey, Angle::degrees).value());
+            Assert.assertNull(configuration.get(maxKey, Angle::degrees).value());
+        }
+    }
+
+    @Test
+    public void testSpecificFormatLoad() throws IOException
+    {
+        try (InputStream expandedSource1 = StandardConfigurationTest.class
+                .getResourceAsStream(YAML_DOT_EXPANDED);
+                InputStream flattenedSource1 = StandardConfigurationTest.class
+                        .getResourceAsStream(YAML_DOT_COMPRESSED);
+                InputStream expandedSource2 = StandardConfigurationTest.class
+                        .getResourceAsStream(YAML_DOT_EXPANDED);
+                InputStream flattenedSource2 = StandardConfigurationTest.class
+                        .getResourceAsStream(YAML_DOT_COMPRESSED))
+        {
+            final StandardConfiguration expanded1 = new StandardConfiguration(
+                    new InputStreamResource(() -> expandedSource1));
+            final StandardConfiguration flattened1 = new StandardConfiguration(
+                    new InputStreamResource(() -> flattenedSource1));
+
+            final StandardConfiguration expanded2 = new StandardConfiguration(
+                    new InputStreamResource(() -> expandedSource2),
+                    StandardConfiguration.ConfigurationFormat.YAML);
+            final StandardConfiguration flattened2 = new StandardConfiguration(
+                    new InputStreamResource(() -> flattenedSource2),
+                    StandardConfiguration.ConfigurationFormat.YAML);
+
+            Assert.assertEquals(0, (long) expanded1.get(ABC).value());
+            Assert.assertEquals(1, (long) expanded1.get(ABD).value());
+            Assert.assertEquals((long) expanded1.get(ABC).value(),
+                    (long) flattened1.get(ABC).value());
+            Assert.assertEquals((long) expanded1.get(ABD).value(),
+                    (long) flattened1.get(ABD).value());
+
+            Assert.assertEquals(0, (long) expanded2.get(ABC).value());
+            Assert.assertEquals(1, (long) expanded2.get(ABD).value());
+            Assert.assertEquals((long) expanded2.get(ABC).value(),
+                    (long) flattened2.get(ABC).value());
+            Assert.assertEquals((long) expanded2.get(ABD).value(),
+                    (long) flattened2.get(ABD).value());
+        }
+    }
+
+    @Test
+    public void testStandardConfigurationJson() throws IOException
+    {
+        try (InputStream stream = StandardConfigurationTest.class
+                .getResourceAsStream(JSON_CONFIGURATION))
+        {
+            testStandardConfiguration(stream);
+        }
+    }
+
+    @Test
+    public void testStandardConfigurationYaml() throws IOException
+    {
+        try (InputStream stream = StandardConfigurationTest.class
+                .getResourceAsStream(YAML_CONFIGURATION))
+        {
+            testStandardConfiguration(stream);
+        }
+    }
+
+    @Test
+    public void testTransformationJson() throws IOException
+    {
+        try (InputStream stream = StandardConfigurationTest.class
+                .getResourceAsStream(JSON_CONFIGURATION))
+        {
+            testTransformation(stream);
+        }
+    }
+
+    @Test
+    public void testTransformationYaml() throws IOException
+    {
+        try (InputStream stream = StandardConfigurationTest.class
+                .getResourceAsStream(YAML_CONFIGURATION))
+        {
+            testTransformation(stream);
+        }
+    }
+
+    private void testConfigurationDataKeySet(final InputStream stream)
+    {
+        final StandardConfiguration configuration = new StandardConfiguration(
+                new InputStreamResource(() -> stream));
+
+        final Set<String> compareTo = new HashSet<>();
+        compareTo.add("feature");
+        Assert.assertEquals(configuration.configurationDataKeySet(), compareTo);
+    }
+
     private void testInFileOverride(final InputStream stream)
     {
         final String keyword1 = "ABC";
         final String keyword2 = "XYZ";
         final String notAnOverRiddenKeyword = "ZZZ";
         final StandardConfiguration configuration = new StandardConfiguration(
-                new InputStreamResource(stream));
+                new InputStreamResource(() -> stream));
         final Configuration overriddenConfiguration1 = configuration
                 .configurationForKeyword(keyword1);
         final Configuration overriddenConfiguration2 = configuration
@@ -219,47 +279,10 @@ public class StandardConfigurationTest
                 overriddenConfiguration2.get(notOverriddenKey, Angle::degrees).value());
     }
 
-    @Test
-    public void testMissing() throws IOException
-    {
-        try (InputStream stream = new ByteArrayInputStream("{}".getBytes(StandardCharsets.UTF_8)))
-        {
-            final StandardConfiguration configuration = new StandardConfiguration(
-                    new InputStreamResource(stream));
-            final String minKey = "missing.range.min";
-            final String maxKey = "missing.range.max";
-
-            Assert.assertNull(configuration.get(minKey).value());
-            Assert.assertNull(configuration.get(maxKey).value());
-            Assert.assertNull(configuration.get(minKey, Angle::degrees).value());
-            Assert.assertNull(configuration.get(maxKey, Angle::degrees).value());
-        }
-    }
-
-    @Test
-    public void testStandardConfigurationJson() throws IOException
-    {
-        try (InputStream stream = StandardConfigurationTest.class
-                .getResourceAsStream(JSON_CONFIGURATION))
-        {
-            testStandardConfiguration(stream);
-        }
-    }
-
-    @Test
-    public void testStandardConfigurationYaml() throws IOException
-    {
-        try (InputStream stream = StandardConfigurationTest.class
-                .getResourceAsStream(YAML_CONFIGURATION))
-        {
-            testStandardConfiguration(stream);
-        }
-    }
-
     private void testStandardConfiguration(final InputStream stream)
     {
         final StandardConfiguration configuration = new StandardConfiguration(
-                new InputStreamResource(stream));
+                new InputStreamResource(() -> stream));
         final String keyword = "ABC";
         final String key = String.format("feature.%s.range", keyword);
 
@@ -274,30 +297,10 @@ public class StandardConfigurationTest
         Assert.assertFalse(configuration.get("foo").valueOption().isPresent());
     }
 
-    @Test
-    public void testTransformationJson() throws IOException
-    {
-        try (InputStream stream = StandardConfigurationTest.class
-                .getResourceAsStream(JSON_CONFIGURATION))
-        {
-            testTransformation(stream);
-        }
-    }
-
-    @Test
-    public void testTransformationYaml() throws IOException
-    {
-        try (InputStream stream = StandardConfigurationTest.class
-                .getResourceAsStream(YAML_CONFIGURATION))
-        {
-            testTransformation(stream);
-        }
-    }
-
     private void testTransformation(final InputStream stream)
     {
         final StandardConfiguration configuration = new StandardConfiguration(
-                new InputStreamResource(stream));
+                new InputStreamResource(() -> stream));
         final String keyword = "ABC";
         final String minKey = String.format("feature.%s.range.min", keyword);
         final String maxKey = String.format("feature.%s.range.max", keyword);
