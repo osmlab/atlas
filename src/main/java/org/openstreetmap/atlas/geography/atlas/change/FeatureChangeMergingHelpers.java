@@ -209,56 +209,6 @@ public final class FeatureChangeMergingHelpers
         return new MergedMemberBean<>(beforeMemberResult, afterMemberResult);
     }
 
-    static <M> M mergeMemberOldStrategy(final String memberName, final AtlasEntity afterEntityLeft,
-            final AtlasEntity afterEntityRight, final Function<AtlasEntity, M> memberExtractor,
-            final BinaryOperator<M> memberMerger)
-    {
-        final M result;
-        final M afterMemberLeft = memberExtractor.apply(afterEntityLeft);
-        final M afterMemberRight = memberExtractor.apply(afterEntityRight);
-        if (afterMemberLeft != null && afterMemberRight != null)
-        {
-            // Both are not null, merge evaluated
-            if (afterMemberLeft.equals(afterMemberRight))
-            {
-                // They are equal, arbitrarily pick one.
-                result = afterMemberLeft;
-            }
-            else if (memberMerger != null)
-            {
-                // They are unequal, but we can attempt a merge
-                try
-                {
-                    result = memberMerger.apply(afterMemberLeft, afterMemberRight);
-                }
-                catch (final CoreException exception)
-                {
-                    throw new CoreException("Attempted merge failed for {}: {} and {}", memberName,
-                            afterMemberLeft, afterMemberRight, exception);
-                }
-            }
-            else
-            {
-                // They are unequal and we do not have a tool to merge them.
-                throw new CoreException("Conflicting members, no merge option for {}: {} and {}",
-                        memberName, afterMemberLeft, afterMemberRight);
-            }
-        }
-        else
-        {
-            // One is not null, or both are.
-            if (afterMemberLeft != null)
-            {
-                result = afterMemberLeft;
-            }
-            else
-            {
-                result = afterMemberRight;
-            }
-        }
-        return result;
-    }
-
     /**
      * Merge two {@link ChangeType#ADD} {@link FeatureChange}s into a single {@link FeatureChange}.
      *

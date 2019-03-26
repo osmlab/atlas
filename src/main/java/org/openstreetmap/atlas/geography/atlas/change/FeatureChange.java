@@ -58,9 +58,11 @@ public class FeatureChange implements Located, Serializable
     private final AtlasEntity afterView;
 
     /**
-     * Create a new {@link ChangeType#ADD} {@link FeatureChange} with a given after view. The
+     * Create a new {@link ChangeType#ADD} {@link FeatureChange} with a given afterView. The
      * afterView should be a {@link CompleteEntity} that specifies how the newly added or modified
-     * feature should look.
+     * feature should look. For the modified case, the afterView {@link CompleteEntity} need only
+     * contain the fields that were modified. For ADDs that are adding a brand new feature, it
+     * should be fully populated.
      *
      * @param afterView
      *            the after view {@link CompleteEntity}
@@ -74,8 +76,10 @@ public class FeatureChange implements Located, Serializable
     /**
      * Create a new {@link ChangeType#ADD} {@link FeatureChange} with a given after view. The
      * afterView should be a {@link CompleteEntity} that specifies how the newly added or modified
-     * feature should look. The atlasContext parameter creates a richer {@link FeatureChange} that
-     * contains information on how the entity looked before the update. This allows for more
+     * feature should look. For the modified case, the afterView {@link CompleteEntity} need only
+     * contain the fields that were modified. For ADDs that are adding a brand new feature, it
+     * should be fully populated. The atlasContext parameter creates a richer {@link FeatureChange}
+     * that contains information on how the entity looked before the update. This allows for more
      * sophisticated merge logic.
      *
      * @param afterView
@@ -90,8 +94,8 @@ public class FeatureChange implements Located, Serializable
     }
 
     /**
-     * Create a new {@link ChangeType#REMOVE} {@link FeatureChange} with a given after view. The
-     * reference should be a {@link CompleteEntity} containing at least the identifier of the
+     * Create a new {@link ChangeType#REMOVE} {@link FeatureChange} using a given reference. The
+     * reference can be a shallow {@link CompleteEntity}, i.e. containing only the identifier of the
      * feature to be removed.
      *
      * @param reference
@@ -104,8 +108,8 @@ public class FeatureChange implements Located, Serializable
     }
 
     /**
-     * Create a new {@link ChangeType#REMOVE} {@link FeatureChange} with a given after view. The
-     * reference should be a {@link CompleteEntity} containing at least the identifier of the
+     * Create a new {@link ChangeType#REMOVE} {@link FeatureChange} using a given reference. The
+     * reference can be a shallow {@link CompleteEntity}, i.e. containing only the identifier of the
      * feature to be removed. The atlasContext parameter creates a richer {@link FeatureChange} that
      * contains information on how the entity looked before the update. This allows for more
      * sophisticated merge logic.
@@ -190,6 +194,12 @@ public class FeatureChange implements Located, Serializable
         }
     }
 
+    /**
+     * Check if this {@link FeatureChange}'s afterView is full. A full afterView is a
+     * {@link CompleteEntity} that has all its fields set to non-null values.
+     *
+     * @return if this {@link FeatureChange} has a full afterView
+     */
     public boolean afterViewIsFull()
     {
         if (this.getAfterView().getTags() == null || this.getAfterView().relations() == null)
@@ -299,7 +309,7 @@ public class FeatureChange implements Located, Serializable
     }
 
     /**
-     * Get a tag based on key post changes.
+     * Get a tag based on a key, taking the changes into account.
      *
      * @param key
      *            - The tag key to look for.
@@ -338,7 +348,7 @@ public class FeatureChange implements Located, Serializable
     {
         /*
          * FeatureChanges are mergeable under certain pre-conditions. If those pre-conditions are
-         * satisfied, then two FeatureChange objects can be composed into a single object.
+         * satisfied, then we can proceed with attempting to merge the FeatureChanges.
          */
         // Pre-conditions:
         // 1) The left and right FeatureChanges must be operating on the same entity identifier and
@@ -350,7 +360,7 @@ public class FeatureChange implements Located, Serializable
         // will always fail. We enforce this assumption in order to make the ADD/REMOVE merge logic
         // simpler.
         /*
-         * Once mergeability is established, the merge logic proceeds.
+         * Once basic mergeability is established, the merge logic proceeds.
          */
         // Merging two REMOVE changes:
         // This case is easy. Since a REMOVE contains no additional information, we can simply
