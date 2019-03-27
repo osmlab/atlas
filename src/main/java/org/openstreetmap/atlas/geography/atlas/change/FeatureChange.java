@@ -180,11 +180,13 @@ public class FeatureChange implements Located, Serializable
 
         if (this.afterView.bounds() == null)
         {
-            throw new CoreException("afterView {} bounds was null", this.afterView);
+            throw new CoreException("afterView {} bounds was null for {}", this.afterView,
+                    this.toString());
         }
         if (this.beforeView != null && this.beforeView.bounds() == null)
         {
-            throw new CoreException("beforeView {} bounds was null", this.beforeView);
+            throw new CoreException("beforeView {} bounds was null for {}", this.beforeView,
+                    this.toString());
         }
 
         this.validateNotShallow();
@@ -397,7 +399,8 @@ public class FeatureChange implements Located, Serializable
                     || this.getBeforeView() != null && other.getBeforeView() == null)
             {
                 throw new CoreException("One of the FeatureChanges was missing a beforeView - "
-                        + "cannot merge two FeatureChanges unless both either explicitly provide or explicitly exclude a beforeView");
+                        + "cannot merge two FeatureChanges unless both either explicitly provide or explicitly exclude a beforeView, {} and {}",
+                        this.toString(), other.toString());
             }
 
             // Actually merge the changes
@@ -459,7 +462,7 @@ public class FeatureChange implements Located, Serializable
     {
         if (atlas == null)
         {
-            throw new CoreException("Atlas context cannot be null");
+            throw new CoreException("Atlas context cannot be null for {}", this.toString());
         }
 
         final AtlasEntity beforeViewUpdatesOnly;
