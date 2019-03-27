@@ -61,8 +61,8 @@ public class DirectedAcyclicGraphTest
     @Test
     public void testDeepestLevel()
     {
-        assertEquals(this.graph.getDeepestLevel(METAL), 1);
-        assertEquals(this.graph.getDeepestLevel(GOLD), 3);
+        assertEquals(1, this.graph.getDeepestLevel(METAL));
+        assertEquals(3, this.graph.getDeepestLevel(GOLD));
     }
 
     @Test
