@@ -4,7 +4,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 /**
- * Represents a function that accepts four arguments and produces a result. This is the four-arity
+ * Represents a function that accepts three arguments and produces a result. This is the three-arity
  * specialization of {@link Function}.
  *
  * @param <S>
