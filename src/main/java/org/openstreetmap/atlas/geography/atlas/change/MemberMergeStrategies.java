@@ -180,7 +180,7 @@ public final class MemberMergeStrategies
                 .forEach(entry -> addedMergedView.put(entry.getKey(), entry.getValue()));
 
         /*
-         * Construct the final product using our merged REMOVE and ADD views. First we created a
+         * Construct the final product using our merged REMOVE and ADD views. First we create a
          * resultMap with merged counts. We operate on the beforeView - subtract count for each key
          * in removedMergedView, add count for each key in addedMergedView. Then, using the
          * resultMap, we can construct the result bean with the proper key counts.

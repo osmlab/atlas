@@ -9,6 +9,7 @@ import java.util.function.Predicate;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
+import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -190,13 +191,19 @@ public class EmptyAtlas implements Atlas
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Note that the {@link AtlasEntity}s returned by this method will technically break the
+     * {@link Located} contract, since they have null bounds.
+     *
+     * @param identifier
+     *            the entity identifier
+     * @param type
+     *            the entity type
+     * @return the matching {@link AtlasEntity}
+     */
     @Override
     public AtlasEntity entity(final long identifier, final ItemType type)
     {
-        /*
-         * Note that the AtlasEntities returned by this method will technically break the Located
-         * contract, since they have null bounds.
-         */
         switch (type)
         {
             case NODE:

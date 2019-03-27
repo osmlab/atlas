@@ -62,6 +62,8 @@ public final class FeatureChangeMergingHelpers
      *            a simple merge strategy to use if the before views are missing
      * @param diffBasedMergeStrategy
      *            a merge strategy that relies on the before views to perform a more complex merge
+     * @param M
+     *            the type of the member being merged
      * @return a {@link MergedMemberBean} containing the merged beforeMember view and the merged
      *         afterMember view.
      */
