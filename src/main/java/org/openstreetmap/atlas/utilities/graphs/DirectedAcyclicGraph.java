@@ -3,12 +3,15 @@ package org.openstreetmap.atlas.utilities.graphs;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.maps.LinkedMultiMap;
@@ -142,12 +145,14 @@ public class DirectedAcyclicGraph<V> implements Serializable
      * @return The ordered groups of vertices that all belong to the same priority level within the
      *         DAG
      */
-    public List<Set<V>> processGroups()
+    // NOSONAR: Cognitive complexity 16 is ok.
+    public List<Set<V>> processGroups() // NOSONAR
     {
-        final Stack<Set<V>> stack = new Stack<>();
+        final Deque<Set<V>> stack = new LinkedList<>();
         stack.push(new HashSet<>(getSinks()));
         final Set<V> added = new HashSet<>(getSinks());
-        final Set<V> sourcesNotAdded = new HashSet<>(getSources());
+        final Set<V> sourcesNotAdded = getSources().stream().filter(value -> !added.contains(value))
+                .collect(Collectors.toSet());
         while (!sourcesNotAdded.isEmpty())
         {
             final Set<V> potentialCandidates = new HashSet<>();
