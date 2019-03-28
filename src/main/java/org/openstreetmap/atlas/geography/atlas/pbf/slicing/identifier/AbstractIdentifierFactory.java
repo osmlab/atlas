@@ -79,4 +79,9 @@ public abstract class AbstractIdentifierFactory
             }
         }
     }
+
+    public long getIdentifierScale()
+    {
+        return this.identifierScale;
+    }
 }

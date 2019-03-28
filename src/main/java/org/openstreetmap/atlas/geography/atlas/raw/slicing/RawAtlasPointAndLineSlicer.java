@@ -26,7 +26,6 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
-import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.AbstractIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.CountrySlicingIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.PointIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.ChangeSetHandler;
@@ -54,9 +53,6 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
 {
     private static final Logger logger = LoggerFactory.getLogger(RawAtlasPointAndLineSlicer.class);
 
-    // The raw Atlas to slice
-    private final Atlas rawAtlas;
-
     // Keeps track of all changes made during slicing
     private final SimpleChangeSet slicedPointAndLineChanges;
 
@@ -65,8 +61,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
 
     public RawAtlasPointAndLineSlicer(final Atlas atlas, final AtlasLoadingOption loadingOption)
     {
-        super(loadingOption, new CoordinateToNewPointMapping());
-        this.rawAtlas = atlas;
+        super(loadingOption, new CoordinateToNewPointMapping(), atlas);
         this.slicedPointAndLineChanges = new SimpleChangeSet();
     }
 
@@ -79,18 +74,18 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
     public Atlas slice()
     {
         final Time time = Time.now();
-        logger.info("Starting Point and Line Slicing for {}", getShardOrAtlasName());
+        logger.info("Starting Point and Line Slicing for Atlas {}", getShardOrAtlasName());
 
         // Slice lines and points
         sliceLines();
         slicePoints();
 
         // Apply changes and rebuild the atlas with the changes before slicing relations
-        final ChangeSetHandler simpleChangeBuilder = new SimpleChangeSetHandler(this.rawAtlas,
+        final ChangeSetHandler simpleChangeBuilder = new SimpleChangeSetHandler(getStartingAtlas(),
                 this.slicedPointAndLineChanges);
         final Atlas atlasWithSlicedWaysAndPoints = simpleChangeBuilder.applyChanges();
 
-        logger.info("Finished Point and Line Slicing for {} in {}", getShardOrAtlasName(),
+        logger.info("Finished Point and Line Slicing for Atlas {} in {}", getShardOrAtlasName(),
                 time.elapsedSince());
         getStatistics().summary();
         return atlasWithSlicedWaysAndPoints;
@@ -164,7 +159,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
 
         if (result == null || result.isEmpty())
         {
-            logger.error("Invalid Geometry for line {}", lineIdentifier);
+            logger.error("Invalid Geometry for line {} for Atlas {}", lineIdentifier,
+                    getShardOrAtlasName());
         }
 
         return result;
@@ -176,19 +172,14 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         while (pointIdentifierFactory.hasMore())
         {
             final long identifier = pointIdentifierFactory.nextIdentifier();
-            if (this.rawAtlas.point(identifier) == null)
+            if (getStartingAtlas().point(identifier) == null)
             {
                 return identifier;
             }
         }
         throw new CoreException(
-                "Slicing line {} exceeded maximum number {} of supported new points",
-                AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT, lineIdentifier);
-    }
-
-    private String getShardOrAtlasName()
-    {
-        return this.rawAtlas.metaData().getShardName().orElse(this.rawAtlas.getName());
+                "Slicing Line {} exceeded maximum number {} of supported new Points for Atlas {}",
+                pointIdentifierFactory.getIdentifierScale(), lineIdentifier, getShardOrAtlasName());
     }
 
     private boolean isOutsideWorkingBound(final Map<String, String> tags)
@@ -276,8 +267,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                 final org.locationtech.jts.geom.Polygon polygonForSlice = (org.locationtech.jts.geom.Polygon) slice;
                 if (polygonForSlice.getNumInteriorRing() > 0)
                 {
-                    logger.error("Warning: Line {} had a multipolygon result for slicing!",
-                            line.getIdentifier());
+                    logger.warn("Line {} had a multipolygon result for slicing for Atlas {}!",
+                            line.getIdentifier(), getShardOrAtlasName());
                 }
             }
         });
@@ -334,7 +325,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         for (final Coordinate coordinate : jtsSliceCoordinates)
         {
             final Location coordinateLocation = JTS_LOCATION_CONVERTER.backwardConvert(coordinate);
-            final Iterable<Point> rawAtlasPointsAtSliceVertex = this.rawAtlas
+            final Iterable<Point> rawAtlasPointsAtSliceVertex = getStartingAtlas()
                     .pointsAt(coordinateLocation);
 
             // If there aren't any points at this precision in the raw Atlas, need to
@@ -352,7 +343,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                 {
                     final Location scaledLocation = JTS_LOCATION_CONVERTER.backwardConvert(
                             getCoordinateToPointMapping().getScaledCoordinate(coordinate));
-                    final Iterable<Point> rawAtlasPointsAtScaledCoordinate = this.rawAtlas
+                    final Iterable<Point> rawAtlasPointsAtScaledCoordinate = getStartingAtlas()
                             .pointsAt(scaledLocation);
 
                     // If the raw Atlas doesn't contain the 6-digit coordinate either,
@@ -405,7 +396,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         for (final Coordinate coordinate : jtsSliceCoordinates)
         {
             final Location location = JTS_LOCATION_CONVERTER.backwardConvert(coordinate);
-            final Iterable<Point> existingRawAtlasPoints = this.rawAtlas.pointsAt(location);
+            final Iterable<Point> existingRawAtlasPoints = getStartingAtlas().pointsAt(location);
             existingRawAtlasPoints
                     .forEach(point -> this.pointsMarkedForRemoval.add(point.getIdentifier()));
         }
@@ -428,7 +419,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         }
         catch (final TopologyException e)
         {
-            logger.error("Topology Exception when slicing Line {}", line.getIdentifier(), e);
+            logger.error("Topology Exception when slicing Line {} for Atlas {}",
+                    line.getIdentifier(), getShardOrAtlasName(), e);
             return Collections.emptyList();
         }
     }
@@ -468,16 +460,16 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                 updateLineShapePoints(line);
             }
         }
-        else if (slices.size() < AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT)
+        else if (slices.size() < CountrySlicingIdentifierFactory.IDENTIFIER_SCALE_DEFAULT)
         {
             processLineSlices(line, slices);
         }
         else
         {
             logger.error(
-                    "Country slicing exceeded maximum line identifier name space of {} for Line {}. "
-                            + "It will be added as is, with two or more country codes.",
-                    AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT, line.getIdentifier());
+                    "Country slicing exceeded maximum line identifier name space of {} for Line {} for Atlas {}. It will be added as is, with two or more country codes.",
+                    CountrySlicingIdentifierFactory.IDENTIFIER_SCALE_DEFAULT, line.getIdentifier(),
+                    getShardOrAtlasName());
             // Update to use all country codes
             updateLineToHaveCountryCodesFromAllSlices(line, slices);
             getStatistics().recordSkippedLine();
@@ -489,7 +481,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      */
     private void sliceLines()
     {
-        StreamSupport.stream(this.rawAtlas.lines().spliterator(), true).forEach(this::sliceLine);
+        StreamSupport.stream(getStartingAtlas().lines().spliterator(), true)
+                .forEach(this::sliceLine);
     }
 
     /**
@@ -499,7 +492,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      */
     private void slicePoints()
     {
-        StreamSupport.stream(this.rawAtlas.points().spliterator(), true).forEach(point ->
+        StreamSupport.stream(getStartingAtlas().points().spliterator(), true).forEach(point ->
         {
             final long pointIdentifier = point.getIdentifier();
 
@@ -550,7 +543,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
     {
         for (final Location location : line.asPolyLine())
         {
-            for (final Point point : this.rawAtlas.pointsAt(location))
+            for (final Point point : getStartingAtlas().pointsAt(location))
             {
                 getStatistics().recordProcessedPoint();
                 this.slicedPointAndLineChanges.updatePointTags(point.getIdentifier(),

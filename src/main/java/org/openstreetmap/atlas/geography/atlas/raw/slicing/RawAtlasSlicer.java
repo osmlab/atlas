@@ -67,6 +67,10 @@ public abstract class RawAtlasSlicer
     // requiring the temporary point as a Line shape point
     private final CoordinateToNewPointMapping newPointCoordinates;
 
+    private final String shardOrAtlasName;
+
+    private final Atlas startingAtlas;
+
     /**
      * Assigns {@link ISOCountryTag} and {@link SyntheticNearestNeighborCountryCodeTag} values for a
      * given {@link Geometry}, which is a {@link Line} since we don't have other non-Point
@@ -145,10 +149,12 @@ public abstract class RawAtlasSlicer
     }
 
     public RawAtlasSlicer(final AtlasLoadingOption loadingOption,
-            final CoordinateToNewPointMapping newPointCoordinates)
+            final CoordinateToNewPointMapping newPointCoordinates, final Atlas startingAtlas)
     {
         this.loadingOption = loadingOption;
         this.newPointCoordinates = newPointCoordinates;
+        this.startingAtlas = startingAtlas;
+        this.shardOrAtlasName = getShardOrAtlasName(startingAtlas);
     }
 
     /**
@@ -275,5 +281,23 @@ public abstract class RawAtlasSlicer
 
         // Assume it's inside the bound
         return false;
+    }
+
+    private String getShardOrAtlasName(final Atlas atlas)
+    {
+        return atlas.metaData().getShardName().orElse(atlas.getName());
+    }
+
+    public String getShardOrAtlasName()
+    {
+        return this.shardOrAtlasName;
+    }
+
+    /**
+     * @return the {@link Atlas} to be sliced
+     */
+    public Atlas getStartingAtlas()
+    {
+        return this.startingAtlas;
     }
 }

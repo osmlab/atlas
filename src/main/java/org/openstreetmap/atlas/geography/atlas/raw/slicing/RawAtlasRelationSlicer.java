@@ -29,7 +29,6 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
-import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.AbstractIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.CountrySlicingIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.ChangeSetHandler;
@@ -68,9 +67,6 @@ import com.google.common.collect.Sets;
 public class RawAtlasRelationSlicer extends RawAtlasSlicer
 {
     private static final Logger logger = LoggerFactory.getLogger(RawAtlasRelationSlicer.class);
-
-    // The raw Atlas to slice
-    private final Atlas partiallySlicedRawAtlas;
 
     // The initial Shard being sliced
     private final Shard initialShard;
@@ -116,8 +112,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
     public RawAtlasRelationSlicer(final Atlas atlas, final Shard initialShard,
             final AtlasLoadingOption loadingOption)
     {
-        super(loadingOption, new CoordinateToNewPointMapping());
-        this.partiallySlicedRawAtlas = atlas;
+        super(loadingOption, new CoordinateToNewPointMapping(), atlas);
         this.initialShard = initialShard;
         this.slicedRelationChanges = new RelationChangeSet();
         this.pointCandidatesForRemoval = new HashSet<>();
@@ -132,7 +127,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
     public Atlas slice()
     {
         final Time time = Time.now();
-        logger.info("Started Relation Slicing for {}", getShardOrAtlasName());
+        logger.info("Started Relation Slicing for Atlas {}", getShardOrAtlasName());
 
         // Slice all relations
         sliceRelations();
@@ -142,10 +137,10 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
 
         // Apply changes from relation slicing and rebuild the fully-sliced atlas
         final ChangeSetHandler relationChangeBuilder = new RelationChangeSetHandler(
-                this.partiallySlicedRawAtlas, this.slicedRelationChanges);
+                getStartingAtlas(), this.slicedRelationChanges);
 
         final Atlas fullySlicedAtlas = relationChangeBuilder.applyChanges();
-        logger.info("Finished Relation Slicing for {} in {}", getShardOrAtlasName(),
+        logger.info("Finished Relation Slicing for Atlas {} in {}", getShardOrAtlasName(),
                 time.elapsedSince());
 
         getStatistics().summary();
@@ -170,11 +165,13 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         for (final RelationMember member : members)
         {
             // We can assume all members are lines since we've already filtered out non-line members
-            final Line line = this.partiallySlicedRawAtlas.line(member.getEntity().getIdentifier());
+            final Line line = getStartingAtlas().line(member.getEntity().getIdentifier());
             if (line == null)
             {
-                throw new CoreException("Relation {} has a member {} that's not in the raw atlas",
-                        relationIdentifier, member.getEntity().getIdentifier());
+                throw new CoreException(
+                        "Relation {} has a member {} that's not in the original Atlas {}",
+                        relationIdentifier, member.getEntity().getIdentifier(),
+                        getShardOrAtlasName());
             }
 
             linePieces.add(line.asPolyLine());
@@ -191,8 +188,8 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
             // Could not form closed rings for some of the members. Keep them in the Atlas.
 
             logger.error(
-                    "One of the members for relation {} is invalid and does not form a closed ring!",
-                    relationIdentifier, e);
+                    "One of the members for relation {} for Atlas {} is invalid and does not form a closed ring!",
+                    relationIdentifier, getShardOrAtlasName(), e);
         }
 
         return results;
@@ -221,8 +218,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
             long identifier = identifiers[seedIndex];
             final CountrySlicingIdentifierFactory identifierFactory = new CountrySlicingIdentifierFactory(
                     identifier);
-            while (this.partiallySlicedRawAtlas.line(identifier) != null
-                    || generatedIds.contains(identifier))
+            while (getStartingAtlas().line(identifier) != null || generatedIds.contains(identifier))
             {
                 identifier = identifierFactory.nextIdentifier();
             }
@@ -273,7 +269,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         for (final Coordinate pointCoordinate : lineCoordinates)
         {
             final Location pointLocation = JTS_LOCATION_CONVERTER.backwardConvert(pointCoordinate);
-            final Iterable<Point> rawAtlasPointsAtCoordinate = this.partiallySlicedRawAtlas
+            final Iterable<Point> rawAtlasPointsAtCoordinate = getStartingAtlas()
                     .pointsAt(pointLocation);
 
             if (Iterables.isEmpty(rawAtlasPointsAtCoordinate))
@@ -288,7 +284,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 {
                     final Location scaledLocation = JTS_LOCATION_CONVERTER.backwardConvert(
                             getCoordinateToPointMapping().getScaledCoordinate(pointCoordinate));
-                    final Iterable<Point> rawAtlasPointsAtScaledCoordinate = this.partiallySlicedRawAtlas
+                    final Iterable<Point> rawAtlasPointsAtScaledCoordinate = getStartingAtlas()
                             .pointsAt(scaledLocation);
                     if (Iterables.isEmpty(rawAtlasPointsAtScaledCoordinate))
                     {
@@ -366,13 +362,13 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         if (!pointIdentifierFactory.hasMore())
         {
             throw new CoreException(
-                    "Country Slicing exceeded maximum number {} of supported new points at Coordinate {}",
-                    AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT, coordinate);
+                    "Country Slicing exceeded maximum number {} of supported new points at Coordinate {} for Atlas {}",
+                    pointIdentifierFactory.getIdentifierScale(), getShardOrAtlasName(), coordinate);
         }
         else
         {
             final long identifier = pointIdentifierFactory.nextIdentifier();
-            return this.partiallySlicedRawAtlas.point(identifier) == null
+            return getStartingAtlas().point(identifier) == null
                     && !this.slicedRelationChanges.getCreatedPoints().containsKey(identifier)
                             ? identifier
                             : createNewPointIdentifier(pointIdentifierFactory, coordinate);
@@ -423,13 +419,13 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 final Atlas countrySubAtlas = atlas.subAtlas(isInCountry, AtlasCutType.SILK_CUT)
                         .orElseThrow(() -> new CoreException(
                                 "Cannot have an empty atlas after relation slicing {}",
-                                this.initialShard.getName()));
+                                getShardOrAtlasName()));
 
                 // then, filter out all remaining entities based on the shard bounds
                 return countrySubAtlas.subAtlas(this.initialShard.bounds(), AtlasCutType.SILK_CUT)
                         .orElseThrow(() -> new CoreException(
                                 "Cannot have an empty atlas after relation slicing {}",
-                                this.initialShard.getName()));
+                                getShardOrAtlasName()));
             }
             else
             {
@@ -474,8 +470,9 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
             if (!foundEnclosingOuter)
             {
                 // Isolated inner ring, invalid multipolygon
-                logger.error("Found isolated inner member for Multipolygon Relation geometry: {}",
-                        inner);
+                logger.error(
+                        "Found isolated inner member for Multipolygon Relation geometry while slicing Atlas {}: {}",
+                        getShardOrAtlasName(), inner);
             }
         }
     }
@@ -537,12 +534,12 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
             // build LineRings and fix the gaps
             return members.stream().filter(member ->
             {
-                final Line line = this.partiallySlicedRawAtlas
-                        .line(member.getEntity().getIdentifier());
+                final Line line = getStartingAtlas().line(member.getEntity().getIdentifier());
                 if (line == null)
                 {
-                    logger.error("Line member {} for Relation {} is not the in raw Atlas.",
-                            member.getEntity().getIdentifier(), relationIdentifier);
+                    logger.error("Line member {} for Relation {} is not the in Atlas {}",
+                            member.getEntity().getIdentifier(), relationIdentifier,
+                            getShardOrAtlasName());
                     return false;
                 }
 
@@ -554,12 +551,6 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         {
             return Collections.emptyList();
         }
-    }
-
-    private String getShardOrAtlasName()
-    {
-        return this.partiallySlicedRawAtlas.metaData().getShardName()
-                .orElse(this.partiallySlicedRawAtlas.getName());
     }
 
     /**
@@ -582,17 +573,17 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
             switch (memberType)
             {
                 case POINT:
-                    entity = this.partiallySlicedRawAtlas.point(memberIdentifier);
+                    entity = getStartingAtlas().point(memberIdentifier);
                     break;
                 case LINE:
-                    entity = this.partiallySlicedRawAtlas.line(memberIdentifier);
+                    entity = getStartingAtlas().line(memberIdentifier);
                     break;
                 case RELATION:
-                    entity = this.partiallySlicedRawAtlas.relation(memberIdentifier);
+                    entity = getStartingAtlas().relation(memberIdentifier);
                     break;
                 default:
-                    throw new CoreException("Unsupported Relation Member of Type {} in Raw Atlas",
-                            member.getType());
+                    throw new CoreException("Unsupported Relation Member of Type {} for Atlas {}",
+                            member.getType(), getShardOrAtlasName());
             }
 
             if (entity != null)
@@ -636,8 +627,8 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                     else
                     {
                         logger.warn(
-                                "{} {} missing country code tag value in both partiallySlicedRawAtlas and the current changeset",
-                                entity.getType(), entity.getIdentifier());
+                                "{} {} missing country code tag value in original Atlas {} and the current changeset",
+                                entity.getType(), entity.getIdentifier(), getShardOrAtlasName());
                     }
                 }
             }
@@ -661,8 +652,8 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                         break;
                     default:
                         throw new CoreException(
-                                "Unsupported Relation Member of Type {} in Raw Atlas",
-                                member.getType());
+                                "Unsupported Relation Member of Type {} in Atlas {}",
+                                member.getType(), getShardOrAtlasName());
                 }
 
                 if (temporaryEntity != null)
@@ -675,8 +666,9 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                     else
                     {
                         // TODO do we need to handle the missing tag case here?
-                        logger.error("Newly added Relation Member {} does not have a country code!",
-                                member.getIdentifier());
+                        logger.error(
+                                "Newly added Relation Member {} does not have a country code for Atlas {}!",
+                                member.getIdentifier(), getShardOrAtlasName());
                     }
                 }
             }
@@ -705,8 +697,8 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         {
             // Delete Line and all of its points
             this.slicedRelationChanges.deleteLine(line.getIdentifier());
-            this.partiallySlicedRawAtlas.line(line.getIdentifier()).asPolyLine()
-                    .forEach(location -> this.partiallySlicedRawAtlas.pointsAt(location).forEach(
+            getStartingAtlas().line(line.getIdentifier()).asPolyLine()
+                    .forEach(location -> getStartingAtlas().pointsAt(location).forEach(
                             point -> this.pointCandidatesForRemoval.add(point.getIdentifier())));
         }
     }
@@ -757,11 +749,11 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 true);
         final List<Line> closedOuterLines = new ArrayList<>();
         closedOuters.forEach(outer -> closedOuterLines
-                .add(this.partiallySlicedRawAtlas.line(outer.getEntity().getIdentifier())));
+                .add(getStartingAtlas().line(outer.getEntity().getIdentifier())));
 
         final List<Line> closedInnerLines = new ArrayList<>();
         closedInners.forEach(inner -> closedInnerLines
-                .add(this.partiallySlicedRawAtlas.line(inner.getEntity().getIdentifier())));
+                .add(getStartingAtlas().line(inner.getEntity().getIdentifier())));
 
         final MultiMap<Integer, Integer> outerToInnerIntersectionMap = findIntersectingMembers(
                 closedOuterLines, closedInnerLines);
@@ -805,8 +797,8 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 catch (final Exception e)
                 {
                     logger.error(
-                            "Error combining intersecting outer {} and inner {} members for relation {}",
-                            outer, inner, relationIdentifier, e);
+                            "Error combining intersecting outer {} and inner {} members for Relation {} for Atlas {}",
+                            outer, inner, relationIdentifier, getShardOrAtlasName(), e);
                 }
             }
 
@@ -853,8 +845,8 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                     {
                         // At this point, all members are sliced and must have a country code
                         throw new CoreException(
-                                "Relation {} contains member {} that is missing a country code",
-                                relationIdentifier, outer);
+                                "Relation {} contains member {} that is missing a country code for Atlas {}",
+                                relationIdentifier, outer, getShardOrAtlasName());
                     }
 
                     CountryBoundaryMap.setGeometryProperty(exteriorRing, ISOCountryTag.KEY,
@@ -943,8 +935,8 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                     // invalid, such as for large boundaries.
                     if (!polygon.isValid())
                     {
-                        logger.error("Polygon created by relation {} is invalid",
-                                relationIdentifier);
+                        logger.error("Polygon created by Relation {} is invalid for Atlas {}",
+                                relationIdentifier, getShardOrAtlasName());
                         return;
                     }
 
@@ -960,8 +952,10 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                     }
                     catch (final Exception e)
                     {
-                        logger.error("Error processing relation {}, message: {}, geometry: {}",
-                                relationIdentifier, e.getMessage(), polygon.toString(), e);
+                        logger.error(
+                                "Error processing Relation {} for Atlas {}, message: {}, geometry: {}",
+                                relationIdentifier, getShardOrAtlasName(), e.getMessage(),
+                                polygon.toString(), e);
                         return;
                     }
 
@@ -971,10 +965,12 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                         return;
                     }
 
-                    if (borderLines.size() >= AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT)
+                    if (borderLines
+                            .size() >= CountrySlicingIdentifierFactory.IDENTIFIER_SCALE_DEFAULT)
                     {
-                        logger.error("Borderline got cut into more than 999 pieces for relation {}",
-                                relationIdentifier);
+                        logger.error(
+                                "Borderline got cut into more than 999 pieces for Relation {} for Atlas {}",
+                                relationIdentifier, getShardOrAtlasName());
                         return;
                     }
 
@@ -1026,9 +1022,9 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
     {
         for (final long identifier : this.pointCandidatesForRemoval)
         {
-            final Location location = this.partiallySlicedRawAtlas.point(identifier).getLocation();
+            final Location location = getStartingAtlas().point(identifier).getLocation();
             final boolean partOfExistingNonDeletedLine = Iterables
-                    .stream(this.partiallySlicedRawAtlas.linesContaining(location))
+                    .stream(getStartingAtlas().linesContaining(location))
                     .anyMatch(line -> !this.slicedRelationChanges.getDeletedLines()
                             .contains(line.getIdentifier()));
 
@@ -1078,7 +1074,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
      */
     private void sliceRelations()
     {
-        this.partiallySlicedRawAtlas.relationsLowerOrderFirst().forEach(this::sliceRelation);
+        getStartingAtlas().relationsLowerOrderFirst().forEach(this::sliceRelation);
     }
 
     /**
@@ -1140,8 +1136,8 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                         break;
                     default:
                         throw new CoreException(
-                                "Unsupported {} Member for Relation {} for a Raw Atlas", memberType,
-                                relation.getIdentifier());
+                                "Unsupported {} Member for Relation {} for Atlas {}", memberType,
+                                relation.getIdentifier(), getShardOrAtlasName());
                 }
             }
         }
