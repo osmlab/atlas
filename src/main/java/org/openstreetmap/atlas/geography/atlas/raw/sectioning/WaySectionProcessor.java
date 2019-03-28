@@ -70,11 +70,8 @@ public class WaySectionProcessor
     // Logging constants
     private static final String STARTED_TASK_MESSAGE = "Started {} for Shard {}";
     private static final String COMPLETED_TASK_MESSAGE = "Finished {} for Shard {} in {}";
-    private static final String SHARD_SPECIFIC_COMPLETED_TASK_MESSAGE = "While processing shard {}, finished {} for shard {} in {}";
     private static final String RELATION_MEMBER_EXCLUSION_MESSAGE = "Excluding {} {} from Relation {} since this member is not in the Atlas";
     private static final String WAY_SECTIONING_TASK = "Way-Sectioning";
-    private static final String ATLAS_FETCHING_TASK = "Atlas-Fetching";
-    private static final String SUB_ATLAS_CUTTING_TASK = "Sub-Atlas Cutting";
     private static final String EDGE_SECTIONING_TASK = "Edge Sectioning";
     private static final String SHAPE_POINT_DETECTION_TASK = "Shape Point Detection";
     private static final String DYNAMIC_ATLAS_CREATION_TASK = "Dynamic Atlas Creation";
@@ -83,27 +80,17 @@ public class WaySectionProcessor
 
     // Expand the initial shard boundary to capture any edges that are crossing the shard boundary
     private static final Distance SHARD_EXPANSION_DISTANCE = Distance.meters(20);
-    private static final boolean USE_SUB_ATLAS = false;
 
     private final Atlas rawAtlas;
     private final AtlasLoadingOption loadingOption;
 
     private final List<Shard> loadedShards = new ArrayList<>();
 
-    // Bring in all points that are part of any line that will become an edge
-    private final Predicate<AtlasEntity> pointPredicate = entity -> entity instanceof Point;
-
-    // TODO - we are pulling in all edges and their contained points in the shard. We can optimize
-    // this further by only considering the edges crossing the shard boundary and their intersecting
-    // edges to reduce the memory overhead on each slave.
-
     // Bring in all lines that will become edges
-    private final Predicate<AtlasEntity> linePredicate = entity -> entity instanceof Line
+    private final Predicate<AtlasEntity> dynamicAtlasExpansionFilter = entity -> entity instanceof Line
             && isAtlasEdge((Line) entity);
 
-    // Dynamic expansion filter will be a combination of points and lines
-    private final Predicate<AtlasEntity> dynamicAtlasExpansionFilter = entity -> this.pointPredicate
-            .test(entity) || this.linePredicate.test(entity);
+    private final Atlas edgeOnlySubAtlas;
 
     /**
      * Default constructor. Will section given raw {@link Atlas} file.
@@ -117,6 +104,17 @@ public class WaySectionProcessor
     {
         this.rawAtlas = rawAtlas;
         this.loadingOption = loadingOption;
+        final Optional<Atlas> edgeOnlySubAtlasOptional = rawAtlas
+                .subAtlas(this.dynamicAtlasExpansionFilter, AtlasCutType.SILK_CUT);
+        if (edgeOnlySubAtlasOptional.isPresent())
+        {
+            logger.info("Cut subatlas for edges-only");
+            this.edgeOnlySubAtlas = edgeOnlySubAtlasOptional.get();
+        }
+        else
+        {
+            this.edgeOnlySubAtlas = rawAtlas;
+        }
     }
 
     /**
@@ -153,6 +151,17 @@ public class WaySectionProcessor
                     "Must supply a valid sharding and fetcher function for sectioning!");
         }
         this.rawAtlas = buildExpandedAtlas(initialShard, sharding, rawAtlasFetcher);
+        final Optional<Atlas> edgeOnlySubAtlasOptional = this.rawAtlas
+                .subAtlas(this.dynamicAtlasExpansionFilter, AtlasCutType.SILK_CUT);
+        if (edgeOnlySubAtlasOptional.isPresent())
+        {
+            logger.info("Cut subatlas for edges-only");
+            this.edgeOnlySubAtlas = edgeOnlySubAtlasOptional.get();
+        }
+        else
+        {
+            this.edgeOnlySubAtlas = this.rawAtlas;
+        }
     }
 
     /**
@@ -213,12 +222,12 @@ public class WaySectionProcessor
      *            The initial {@link Shard} being processed
      * @param sharding
      *            The {@link Sharding} used to identify which shards to fetch
-     * @param rawAtlasFetcher
+     * @param fullySlicedAtlasFetcher
      *            The fetcher policy to retrieve an Atlas file for each shard
      * @return the expanded {@link Atlas}
      */
     private Atlas buildExpandedAtlas(final Shard initialShard, final Sharding sharding,
-            final Function<Shard, Optional<Atlas>> rawAtlasFetcher)
+            final Function<Shard, Optional<Atlas>> fullySlicedAtlasFetcher)
     {
         final Time dynamicAtlasTime = logTaskStartedAsInfo(DYNAMIC_ATLAS_CREATION_TASK,
                 initialShard.getName());
@@ -227,47 +236,7 @@ public class WaySectionProcessor
         // we're processing after all sectioning is completed. Initial shard will always be first!
         this.loadedShards.add(initialShard);
 
-        // Wraps the given fetcher, by always returning the entire atlas for the initial shard
-        final Function<Shard, Optional<Atlas>> shardAwareFetcher = shard ->
-        {
-            if (shard.equals(initialShard))
-            {
-                final Time fetchTime = Time.now();
-                final Optional<Atlas> fetchedAtlas = rawAtlasFetcher.apply(initialShard);
-                logTaskAsTrace(COMPLETED_TASK_MESSAGE, ATLAS_FETCHING_TASK, getShardOrAtlasName(),
-                        fetchTime.elapsedSince());
-                return fetchedAtlas;
-            }
-            else
-            {
-                final Time fetchTime = Time.now();
-                final Optional<Atlas> possibleAtlas = rawAtlasFetcher.apply(shard);
-                logTaskAsInfo(SHARD_SPECIFIC_COMPLETED_TASK_MESSAGE, getShardOrAtlasName(),
-                        ATLAS_FETCHING_TASK, shard.getName(), fetchTime.elapsedSince());
-                if (USE_SUB_ATLAS)
-                {
-                    if (possibleAtlas.isPresent())
-                    {
-                        this.loadedShards.add(shard);
-                        final Atlas atlas = possibleAtlas.get();
-                        final Time subAtlasTime = Time.now();
-                        final Optional<Atlas> subAtlas = atlas
-                                .subAtlas(this.dynamicAtlasExpansionFilter, AtlasCutType.SOFT_CUT);
-                        logTaskAsInfo(SHARD_SPECIFIC_COMPLETED_TASK_MESSAGE, getShardOrAtlasName(),
-                                SUB_ATLAS_CUTTING_TASK, shard.getName(),
-                                subAtlasTime.elapsedSince());
-                        return subAtlas;
-                    }
-                    return Optional.empty();
-                }
-                else
-                {
-                    return possibleAtlas;
-                }
-            }
-        };
-
-        final DynamicAtlasPolicy policy = new DynamicAtlasPolicy(shardAwareFetcher, sharding,
+        final DynamicAtlasPolicy policy = new DynamicAtlasPolicy(fullySlicedAtlasFetcher, sharding,
                 initialShard.bounds().expand(SHARD_EXPANSION_DISTANCE), Rectangle.MAXIMUM)
                         .withDeferredLoading(true).withExtendIndefinitely(false)
                         .withAtlasEntitiesToConsiderForExpansion(
@@ -819,9 +788,9 @@ public class WaySectionProcessor
 
         return Iterables
                 // Find all intersecting edges
-                .stream(this.rawAtlas.linesContaining(location,
+                .stream(this.edgeOnlySubAtlas.linesContaining(location,
                         target -> target.getIdentifier() != line.getIdentifier()
-                                && isAtlasEdge(target) && target.asPolyLine().contains(location)))
+                                && target.asPolyLine().contains(location)))
                 // Check whether that edge has a different layer value as the line we're looking at
                 // and that our point is its start or end node
                 .anyMatch(candidate ->
@@ -855,9 +824,9 @@ public class WaySectionProcessor
 
         return Iterables
                 // Find all intersecting edges
-                .stream(this.rawAtlas.linesContaining(location,
+                .stream(this.edgeOnlySubAtlas.linesContaining(location,
                         target -> target.getIdentifier() != line.getIdentifier()
-                                && isAtlasEdge(target) && target.asPolyLine().contains(location)))
+                                && target.asPolyLine().contains(location)))
                 // Check whether that edge has the same layer value as the line we're looking at
                 .anyMatch(candidate ->
                 {
@@ -869,11 +838,6 @@ public class WaySectionProcessor
     private void logTaskAsInfo(final String message, final Object... arguments)
     {
         logger.info(MessageFormatter.arrayFormat(message, arguments).getMessage());
-    }
-
-    private void logTaskAsTrace(final String message, final Object... arguments)
-    {
-        logger.trace(MessageFormatter.arrayFormat(message, arguments).getMessage());
     }
 
     private Time logTaskStartedAsInfo(final String taskname, final String shardName)
