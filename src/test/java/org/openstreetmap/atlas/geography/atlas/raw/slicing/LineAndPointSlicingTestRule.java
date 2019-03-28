@@ -70,6 +70,19 @@ public class LineAndPointSlicingTestRule extends CoreTestRule
 
     @TestAtlas(
 
+            points = { @Point(id = "1", coordinates = @Loc(value = AREA_CIV_SIDE_1)),
+                    @Point(id = "2", coordinates = @Loc(value = AREA_CIV_SIDE_2)),
+                    @Point(id = "3", coordinates = @Loc(value = AREA_LBR_SIDE_3)),
+                    @Point(id = "4", coordinates = @Loc(value = AREA_LBR_SIDE_4)) },
+
+            lines = { @Line(id = "1", coordinates = { @Loc(value = AREA_CIV_SIDE_1),
+                    @Loc(value = AREA_CIV_SIDE_2), @Loc(value = AREA_LBR_SIDE_3),
+                    @Loc(value = AREA_LBR_SIDE_4),
+                    @Loc(value = AREA_CIV_SIDE_1) }, tags = { "highway=primary" }) })
+    private Atlas closedEdgeSpanningTwoCountries;
+
+    @TestAtlas(
+
             points = { @Point(id = "1", coordinates = @Loc(value = OUTSIDE_ALL_COUNTRIES_1)),
                     @Point(id = "2", coordinates = @Loc(value = OUTSIDE_ALL_COUNTRIES_2)) },
 
@@ -106,7 +119,7 @@ public class LineAndPointSlicingTestRule extends CoreTestRule
             points = { @Point(id = "1", coordinates = @Loc(value = LIBERIA_END)),
                     @Point(id = "2", coordinates = @Loc(value = IVORY_COAST_END)) },
 
-            lines = { @Line(id = "1", coordinates = { @Loc(value = LIBERIA_END),
+            lines = { @Line(id = "1000", coordinates = { @Loc(value = LIBERIA_END),
                     @Loc(value = IVORY_COAST_END) }, tags = { "highway=primary" }) })
     private Atlas roadAcrossTwoCountries;
 
@@ -129,6 +142,11 @@ public class LineAndPointSlicingTestRule extends CoreTestRule
                     @Loc(value = ON_LIBERIA_AND_IVORY_COAST_BORDER),
                     @Loc(value = IVORY_COAST_END) }, tags = { "highway=primary" }) })
     private Atlas roadAcrossTwoCountriesWithPointOnBorder;
+
+    public Atlas getClosedEdgeSpanningTwoCountriesAtlas()
+    {
+        return this.closedEdgeSpanningTwoCountries;
+    }
 
     public Atlas getClosedLineFullyInOneCountryAtlas()
     {

@@ -184,8 +184,8 @@ public class OsmPbfIngestTest
                 new ConfiguredTaggableFilter(new StandardConfiguration(new InputStreamResource(
                         () -> OsmPbfIngestTest.class.getResourceAsStream("edge-filter.json")))));
         Atlas atlas = new RawAtlasGenerator(pbfFile, option, boundary).build();
-        atlas = new RawAtlasCountrySlicer(countryBoundaryMap.getLoadedCountries(),
-                countryBoundaryMap).slice(atlas);
+        option.setAdditionalCountryCodes(countryBoundaryMap.getLoadedCountries());
+        atlas = new RawAtlasCountrySlicer(option).slice(atlas);
         atlas = new WaySectionProcessor(atlas, option).run();
         logger.debug("Atlas: {}", atlas);
 
@@ -208,8 +208,7 @@ public class OsmPbfIngestTest
                     .setAdditionalCountryCodes(COUNTRY_1_NAME);
             Atlas atlas = new RawAtlasGenerator(() -> osmosis, loadingOption, MultiPolygon.MAXIMUM)
                     .build();
-            atlas = new RawAtlasCountrySlicer(COUNTRY_1_NAME, loadingOption.getCountryBoundaryMap())
-                    .slice(atlas);
+            atlas = new RawAtlasCountrySlicer(loadingOption).slice(atlas);
             atlas = new WaySectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
                     .run();
             logger.info("{}", atlas);
@@ -245,8 +244,7 @@ public class OsmPbfIngestTest
                     .setAdditionalCountryCodes(COUNTRY_1_NAME);
             Atlas atlas = new RawAtlasGenerator(() -> osmosis, loadingOption, MultiPolygon.MAXIMUM)
                     .build();
-            atlas = new RawAtlasCountrySlicer(COUNTRY_1_NAME, loadingOption.getCountryBoundaryMap())
-                    .slice(atlas);
+            atlas = new RawAtlasCountrySlicer(loadingOption).slice(atlas);
             atlas = new WaySectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
                     .run();
             logger.info("{}", atlas);

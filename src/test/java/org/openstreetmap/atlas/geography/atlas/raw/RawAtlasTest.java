@@ -48,8 +48,8 @@ public class RawAtlasTest
         final Atlas rawAtlas = generator.build();
         logger.debug("Raw Atlas: {}", rawAtlas);
 
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer("DNK", countryBoundaryMap)
-                .slice(rawAtlas);
+        option.setAdditionalCountryCodes("DNK");
+        final Atlas slicedAtlas = new RawAtlasCountrySlicer(option).slice(rawAtlas);
         logger.debug("Sliced Atlas: {}", slicedAtlas);
 
         // Check the top node 3089123457 has the proper tagging - nearest neighbor and on the
@@ -98,8 +98,8 @@ public class RawAtlasTest
         // 39019000000
         Assert.assertNotNull(rawAtlas.line(39019000000L));
 
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer("DMA", countryBoundaryMap)
-                .slice(rawAtlas);
+        option.setAdditionalCountryCodes("DMA");
+        final Atlas slicedAtlas = new RawAtlasCountrySlicer(option).slice(rawAtlas);
         logger.debug("Sliced Atlas: {}", slicedAtlas);
 
         // Line partially inside, should be included
