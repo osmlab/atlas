@@ -84,44 +84,101 @@ public final class PackedAtlas extends AbstractAtlas
     protected static final String FIELD_LOAD_SERIALIZATION_FORMAT = "loadSerializationFormat";
     protected static final String FIELD_META_DATA = "metaData";
     protected static final String FIELD_DICTIONARY = "dictionary";
+    protected static final Object FIELD_DICTIONARY_LOCK = new Object();
     protected static final String FIELD_EDGE_IDENTIFIERS = "edgeIdentifiers";
+    protected static final Object FIELD_EDGE_IDENTIFIERS_LOCK = new Object();
     protected static final String FIELD_NODE_IDENTIFIERS = "nodeIdentifiers";
+    protected static final Object FIELD_NODE_IDENTIFIERS_LOCK = new Object();
     protected static final String FIELD_AREA_IDENTIFIERS = "areaIdentifiers";
+    protected static final Object FIELD_AREA_IDENTIFIERS_LOCK = new Object();
     protected static final String FIELD_LINE_IDENTIFIERS = "lineIdentifiers";
+    protected static final Object FIELD_LINE_IDENTIFIERS_LOCK = new Object();
     protected static final String FIELD_POINT_IDENTIFIERS = "pointIdentifiers";
+    protected static final Object FIELD_POINT_IDENTIFIERS_LOCK = new Object();
     protected static final String FIELD_RELATION_IDENTIFIERS = "relationIdentifiers";
+    protected static final Object FIELD_RELATION_IDENTIFIERS_LOCK = new Object();
     protected static final String FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX = "edgeIdentifierToEdgeArrayIndex";
+    protected static final Object FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX_LOCK = new Object();
     protected static final String FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX = "nodeIdentifierToNodeArrayIndex";
+    protected static final Object FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX_LOCK = new Object();
     protected static final String FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX = "areaIdentifierToAreaArrayIndex";
+    protected static final Object FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX_LOCK = new Object();
     protected static final String FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX = "lineIdentifierToLineArrayIndex";
+    protected static final Object FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX_LOCK = new Object();
     protected static final String FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX = "pointIdentifierToPointArrayIndex";
+    protected static final Object FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX_LOCK = new Object();
     protected static final String FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX = "relationIdentifierToRelationArrayIndex";
+    protected static final Object FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX_LOCK = new Object();
     protected static final String FIELD_NODE_LOCATIONS = "nodeLocations";
+    protected static final Object FIELD_NODE_LOCATIONS_LOCK = new Object();
     protected static final String FIELD_NODE_IN_EDGES_INDICES = "nodeInEdgesIndices";
+    protected static final Object FIELD_NODE_IN_EDGES_INDICES_LOCK = new Object();
     protected static final String FIELD_NODE_OUT_EDGES_INDICES = "nodeOutEdgesIndices";
+    protected static final Object FIELD_NODE_OUT_EDGES_INDICES_LOCK = new Object();
     protected static final String FIELD_NODE_TAGS = "nodeTags";
+    protected static final Object FIELD_NODE_TAGS_LOCK = new Object();
     protected static final String FIELD_NODE_INDEX_TO_RELATION_INDICES = "nodeIndexToRelationIndices";
+    protected static final Object FIELD_NODE_INDEX_TO_RELATION_INDICES_LOCK = new Object();
     protected static final String FIELD_EDGE_START_NODE_INDEX = "edgeStartNodeIndex";
+    protected static final Object FIELD_EDGE_START_NODE_INDEX_LOCK = new Object();
     protected static final String FIELD_EDGE_END_NODE_INDEX = "edgeEndNodeIndex";
+    protected static final Object FIELD_EDGE_END_NODE_INDEX_LOCK = new Object();
     protected static final String FIELD_EDGE_POLY_LINES = "edgePolyLines";
+    protected static final Object FIELD_EDGE_POLY_LINES_LOCK = new Object();
+
     protected static final String FIELD_EDGE_TAGS = "edgeTags";
+    protected static final Object FIELD_EDGE_TAGS_LOCK = new Object();
+
     protected static final String FIELD_EDGE_INDEX_TO_RELATION_INDICES = "edgeIndexToRelationIndices";
+    protected static final Object FIELD_EDGE_INDEX_TO_RELATION_INDICES_LOCK = new Object();
+
     protected static final String FIELD_AREA_POLYGONS = "areaPolygons";
+    protected static final Object FIELD_AREA_POLYGONS_LOCK = new Object();
+
     protected static final String FIELD_AREA_TAGS = "areaTags";
+    protected static final Object FIELD_AREA_TAGS_LOCK = new Object();
+
     protected static final String FIELD_AREA_INDEX_TO_RELATION_INDICES = "areaIndexToRelationIndices";
+    protected static final Object FIELD_AREA_INDEX_TO_RELATION_INDICES_LOCK = new Object();
+
     protected static final String FIELD_LINE_POLYLINES = "linePolyLines";
+    protected static final Object FIELD_LINE_POLYLINES_LOCK = new Object();
+
     protected static final String FIELD_LINE_TAGS = "lineTags";
+    protected static final Object FIELD_LINE_TAGS_LOCK = new Object();
+
     protected static final String FIELD_LINE_INDEX_TO_RELATION_INDICES = "lineIndexToRelationIndices";
+    protected static final Object FIELD_LINE_INDEX_TO_RELATION_INDICES_LOCK = new Object();
+
     protected static final String FIELD_POINT_LOCATIONS = "pointLocations";
+    protected static final Object FIELD_POINT_LOCATIONS_LOCK = new Object();
+
     protected static final String FIELD_POINT_TAGS = "pointTags";
+    protected static final Object FIELD_POINT_TAGS_LOCK = new Object();
+
     protected static final String FIELD_POINT_INDEX_TO_RELATION_INDICES = "pointIndexToRelationIndices";
+    protected static final Object FIELD_POINT_INDEX_TO_RELATION_INDICES_LOCK = new Object();
+
     protected static final String FIELD_RELATION_MEMBERS_INDICES = "relationMemberIndices";
+    protected static final Object FIELD_RELATION_MEMBERS_INDICES_LOCK = new Object();
+
     protected static final String FIELD_RELATION_MEMBER_TYPES = "relationMemberTypes";
+    protected static final Object FIELD_RELATION_MEMBER_TYPES_LOCK = new Object();
+
     protected static final String FIELD_RELATION_MEMBER_ROLES = "relationMemberRoles";
+    protected static final Object FIELD_RELATION_MEMBER_ROLES_LOCK = new Object();
+
     protected static final String FIELD_RELATION_TAGS = "relationTags";
+    protected static final Object FIELD_RELATION_TAGS_LOCK = new Object();
+
     protected static final String FIELD_RELATION_INDEX_TO_RELATION_INDICES = "relationIndexToRelationIndices";
+    protected static final Object FIELD_RELATION_INDEX_TO_RELATION_INDICES_LOCK = new Object();
+
     protected static final String FIELD_RELATION_OSM_IDENTIFIER_TO_RELATION_IDENTIFIERS = "relationOsmIdentifierToRelationIdentifiers";
+    protected static final Object FIELD_RELATION_OSM_IDENTIFIER_TO_RELATION_IDENTIFIERS_LOCK = new Object();
+
     protected static final String FIELD_RELATION_OSM_IDENTIFIERS = "relationOsmIdentifiers";
+    protected static final Object FIELD_RELATION_OSM_IDENTIFIERS_LOCK = new Object();
 
     // Serializer.
     private transient PackedAtlasSerializer serializer;
@@ -1452,7 +1509,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.areaIdentifiers == null)
         {
-            synchronized (FIELD_AREA_IDENTIFIERS)
+            synchronized (FIELD_AREA_IDENTIFIERS_LOCK)
             {
                 if (this.areaIdentifiers == null)
                 {
@@ -1467,7 +1524,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.areaIdentifierToAreaArrayIndex == null)
         {
-            synchronized (FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX)
+            synchronized (FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX_LOCK)
             {
                 if (this.areaIdentifierToAreaArrayIndex == null)
                 {
@@ -1482,7 +1539,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.areaIndexToRelationIndices == null)
         {
-            synchronized (FIELD_AREA_INDEX_TO_RELATION_INDICES)
+            synchronized (FIELD_AREA_INDEX_TO_RELATION_INDICES_LOCK)
             {
                 if (this.areaIndexToRelationIndices == null)
                 {
@@ -1497,7 +1554,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.areaPolygons == null)
         {
-            synchronized (FIELD_AREA_POLYGONS)
+            synchronized (FIELD_AREA_POLYGONS_LOCK)
             {
                 if (this.areaPolygons == null)
                 {
@@ -1512,7 +1569,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.areaTags == null)
         {
-            synchronized (FIELD_AREA_TAGS)
+            synchronized (FIELD_AREA_TAGS_LOCK)
             {
                 if (this.areaTags == null)
                 {
@@ -1528,7 +1585,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.dictionary == null)
         {
-            synchronized (FIELD_DICTIONARY)
+            synchronized (FIELD_DICTIONARY_LOCK)
             {
                 if (this.dictionary == null)
                 {
@@ -1543,7 +1600,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.edgeEndNodeIndex == null)
         {
-            synchronized (FIELD_EDGE_END_NODE_INDEX)
+            synchronized (FIELD_EDGE_END_NODE_INDEX_LOCK)
             {
                 if (this.edgeEndNodeIndex == null)
                 {
@@ -1558,7 +1615,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.edgeIdentifiers == null)
         {
-            synchronized (FIELD_EDGE_IDENTIFIERS)
+            synchronized (FIELD_EDGE_IDENTIFIERS_LOCK)
             {
                 if (this.edgeIdentifiers == null)
                 {
@@ -1573,7 +1630,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.edgeIdentifierToEdgeArrayIndex == null)
         {
-            synchronized (FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX)
+            synchronized (FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX_LOCK)
             {
                 if (this.edgeIdentifierToEdgeArrayIndex == null)
                 {
@@ -1588,7 +1645,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.edgeIndexToRelationIndices == null)
         {
-            synchronized (FIELD_EDGE_INDEX_TO_RELATION_INDICES)
+            synchronized (FIELD_EDGE_INDEX_TO_RELATION_INDICES_LOCK)
             {
                 if (this.edgeIndexToRelationIndices == null)
                 {
@@ -1603,7 +1660,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.edgePolyLines == null)
         {
-            synchronized (FIELD_EDGE_POLY_LINES)
+            synchronized (FIELD_EDGE_POLY_LINES_LOCK)
             {
                 if (this.edgePolyLines == null)
                 {
@@ -1618,7 +1675,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.edgeStartNodeIndex == null)
         {
-            synchronized (FIELD_EDGE_START_NODE_INDEX)
+            synchronized (FIELD_EDGE_START_NODE_INDEX_LOCK)
             {
                 if (this.edgeStartNodeIndex == null)
                 {
@@ -1633,7 +1690,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.edgeTags == null)
         {
-            synchronized (FIELD_EDGE_TAGS)
+            synchronized (FIELD_EDGE_TAGS_LOCK)
             {
                 if (this.edgeTags == null)
                 {
@@ -1663,7 +1720,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.lineIdentifiers == null)
         {
-            synchronized (FIELD_LINE_IDENTIFIERS)
+            synchronized (FIELD_LINE_IDENTIFIERS_LOCK)
             {
                 if (this.lineIdentifiers == null)
                 {
@@ -1678,7 +1735,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.lineIdentifierToLineArrayIndex == null)
         {
-            synchronized (FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX)
+            synchronized (FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX_LOCK)
             {
                 if (this.lineIdentifierToLineArrayIndex == null)
                 {
@@ -1693,7 +1750,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.lineIndexToRelationIndices == null)
         {
-            synchronized (FIELD_LINE_INDEX_TO_RELATION_INDICES)
+            synchronized (FIELD_LINE_INDEX_TO_RELATION_INDICES_LOCK)
             {
                 if (this.lineIndexToRelationIndices == null)
                 {
@@ -1708,7 +1765,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.linePolyLines == null)
         {
-            synchronized (FIELD_LINE_POLYLINES)
+            synchronized (FIELD_LINE_POLYLINES_LOCK)
             {
                 if (this.linePolyLines == null)
                 {
@@ -1723,7 +1780,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.lineTags == null)
         {
-            synchronized (FIELD_LINE_TAGS)
+            synchronized (FIELD_LINE_TAGS_LOCK)
             {
                 if (this.lineTags == null)
                 {
@@ -1762,7 +1819,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.nodeIdentifiers == null)
         {
-            synchronized (FIELD_NODE_IDENTIFIERS)
+            synchronized (FIELD_NODE_IDENTIFIERS_LOCK)
             {
                 if (this.nodeIdentifiers == null)
                 {
@@ -1777,7 +1834,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.nodeIdentifierToNodeArrayIndex == null)
         {
-            synchronized (FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX)
+            synchronized (FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX_LOCK)
             {
                 if (this.nodeIdentifierToNodeArrayIndex == null)
                 {
@@ -1792,7 +1849,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.nodeIndexToRelationIndices == null)
         {
-            synchronized (FIELD_NODE_INDEX_TO_RELATION_INDICES)
+            synchronized (FIELD_NODE_INDEX_TO_RELATION_INDICES_LOCK)
             {
                 if (this.nodeIndexToRelationIndices == null)
                 {
@@ -1807,7 +1864,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.nodeInEdgesIndices == null)
         {
-            synchronized (FIELD_NODE_IN_EDGES_INDICES)
+            synchronized (FIELD_NODE_IN_EDGES_INDICES_LOCK)
             {
                 if (this.nodeInEdgesIndices == null)
                 {
@@ -1822,7 +1879,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.nodeLocations == null)
         {
-            synchronized (FIELD_NODE_LOCATIONS)
+            synchronized (FIELD_NODE_LOCATIONS_LOCK)
             {
                 if (this.nodeLocations == null)
                 {
@@ -1837,7 +1894,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.nodeOutEdgesIndices == null)
         {
-            synchronized (FIELD_NODE_OUT_EDGES_INDICES)
+            synchronized (FIELD_NODE_OUT_EDGES_INDICES_LOCK)
             {
                 if (this.nodeOutEdgesIndices == null)
                 {
@@ -1852,7 +1909,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.nodeTags == null)
         {
-            synchronized (FIELD_NODE_TAGS)
+            synchronized (FIELD_NODE_TAGS_LOCK)
             {
                 if (this.nodeTags == null)
                 {
@@ -1868,7 +1925,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.pointIdentifiers == null)
         {
-            synchronized (FIELD_POINT_IDENTIFIERS)
+            synchronized (FIELD_POINT_IDENTIFIERS_LOCK)
             {
                 if (this.pointIdentifiers == null)
                 {
@@ -1883,7 +1940,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.pointIdentifierToPointArrayIndex == null)
         {
-            synchronized (FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX)
+            synchronized (FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX_LOCK)
             {
                 if (this.pointIdentifierToPointArrayIndex == null)
                 {
@@ -1899,7 +1956,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.pointIndexToRelationIndices == null)
         {
-            synchronized (FIELD_POINT_INDEX_TO_RELATION_INDICES)
+            synchronized (FIELD_POINT_INDEX_TO_RELATION_INDICES_LOCK)
             {
                 if (this.pointIndexToRelationIndices == null)
                 {
@@ -1914,7 +1971,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.pointLocations == null)
         {
-            synchronized (FIELD_POINT_LOCATIONS)
+            synchronized (FIELD_POINT_LOCATIONS_LOCK)
             {
                 if (this.pointLocations == null)
                 {
@@ -1929,7 +1986,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.pointTags == null)
         {
-            synchronized (FIELD_POINT_TAGS)
+            synchronized (FIELD_POINT_TAGS_LOCK)
             {
                 if (this.pointTags == null)
                 {
@@ -1945,7 +2002,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.relationIdentifiers == null)
         {
-            synchronized (FIELD_RELATION_IDENTIFIERS)
+            synchronized (FIELD_RELATION_IDENTIFIERS_LOCK)
             {
                 if (this.relationIdentifiers == null)
                 {
@@ -1960,7 +2017,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.relationIdentifierToRelationArrayIndex == null)
         {
-            synchronized (FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX)
+            synchronized (FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX_LOCK)
             {
                 if (this.relationIdentifierToRelationArrayIndex == null)
                 {
@@ -1976,7 +2033,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.relationIndexToRelationIndices == null)
         {
-            synchronized (FIELD_RELATION_INDEX_TO_RELATION_INDICES)
+            synchronized (FIELD_RELATION_INDEX_TO_RELATION_INDICES_LOCK)
             {
                 if (this.relationIndexToRelationIndices == null)
                 {
@@ -1991,7 +2048,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.relationMemberIndices == null)
         {
-            synchronized (FIELD_RELATION_MEMBERS_INDICES)
+            synchronized (FIELD_RELATION_MEMBERS_INDICES_LOCK)
             {
                 if (this.relationMemberIndices == null)
                 {
@@ -2006,7 +2063,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.relationMemberRoles == null)
         {
-            synchronized (FIELD_RELATION_MEMBER_ROLES)
+            synchronized (FIELD_RELATION_MEMBER_ROLES_LOCK)
             {
                 if (this.relationMemberRoles == null)
                 {
@@ -2021,7 +2078,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.relationMemberTypes == null)
         {
-            synchronized (FIELD_RELATION_MEMBER_TYPES)
+            synchronized (FIELD_RELATION_MEMBER_TYPES_LOCK)
             {
                 if (this.relationMemberTypes == null)
                 {
@@ -2036,7 +2093,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.relationOsmIdentifiers == null)
         {
-            synchronized (FIELD_RELATION_OSM_IDENTIFIERS)
+            synchronized (FIELD_RELATION_OSM_IDENTIFIERS_LOCK)
             {
                 if (this.relationOsmIdentifiers == null)
                 {
@@ -2051,7 +2108,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.relationOsmIdentifierToRelationIdentifiers == null)
         {
-            synchronized (FIELD_RELATION_OSM_IDENTIFIER_TO_RELATION_IDENTIFIERS)
+            synchronized (FIELD_RELATION_OSM_IDENTIFIER_TO_RELATION_IDENTIFIERS_LOCK)
             {
                 if (this.relationOsmIdentifierToRelationIdentifiers == null)
                 {
@@ -2067,7 +2124,7 @@ public final class PackedAtlas extends AbstractAtlas
     {
         if (this.relationTags == null)
         {
-            synchronized (FIELD_RELATION_TAGS)
+            synchronized (FIELD_RELATION_TAGS_LOCK)
             {
                 if (this.relationTags == null)
                 {
