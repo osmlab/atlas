@@ -57,9 +57,7 @@ public class AtlasIntegrationTest
                 MultiPolygon.forPolygon(polygon)).build();
         if (atlasLoadingOption.isCountrySlicing())
         {
-            atlas = new RawAtlasCountrySlicer(
-                    atlasLoadingOption.getCountryBoundaryMap().getLoadedCountries(),
-                    atlasLoadingOption.getCountryBoundaryMap()).slice(atlas);
+            atlas = new RawAtlasCountrySlicer(atlasLoadingOption).slice(atlas);
         }
         if (atlasLoadingOption.isWaySectioning())
         {
