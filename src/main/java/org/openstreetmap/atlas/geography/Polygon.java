@@ -55,6 +55,7 @@ public class Polygon extends PolyLine implements GeometricSurface
             Location.forString("37.39018121506223,-122.03110367059708"),
             Location.forString("37.39021104996917,-122.0310714840889"),
             Location.forString("37.390234491673446,-122.03111171722412"));
+    public static final Polygon CENTER = new Polygon(Location.CENTER);
 
     private static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
 
