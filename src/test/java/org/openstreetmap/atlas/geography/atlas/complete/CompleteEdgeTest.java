@@ -90,6 +90,13 @@ public class CompleteEdgeTest
     }
 
     @Test
+    public void testIsCompletelyShallow()
+    {
+        final CompleteEdge superShallow = new CompleteEdge(123L, null, null, null, null, null);
+        Assert.assertTrue(superShallow.isShallow());
+    }
+
+    @Test
     public void testShallow()
     {
         final Atlas atlas = this.rule.getAtlas();

@@ -67,7 +67,8 @@ public final class Sets
     }
 
     @SafeVarargs
-    public static <V> SortedSet<V> withSortedSets(final SortedSet<V>... items)
+    public static <V> SortedSet<V> withSortedSets(final boolean rejectCollisions,
+            final SortedSet<V>... items)
     {
         if (items.length == 0)
         {
@@ -82,7 +83,7 @@ public final class Sets
         {
             for (final V entry : item)
             {
-                if (result.contains(entry))
+                if (rejectCollisions && result.contains(entry))
                 {
                     throw new CoreException("Cannot merge sets! Collision on element.");
                 }
@@ -90,6 +91,12 @@ public final class Sets
             }
         }
         return result;
+    }
+
+    @SafeVarargs
+    public static <V> SortedSet<V> withSortedSets(final SortedSet<V>... items)
+    {
+        return withSortedSets(true, items);
     }
 
     private Sets()

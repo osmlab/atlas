@@ -82,7 +82,7 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
         }
         catch (final Exception exception)
         {
-            return null;
+            throw new CoreException("Unable to parse {} into a predicate.", string, exception);
         }
     }
 

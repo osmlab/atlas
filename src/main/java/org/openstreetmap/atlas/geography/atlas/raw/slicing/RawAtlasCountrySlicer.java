@@ -19,8 +19,8 @@ import org.openstreetmap.atlas.geography.atlas.dynamic.DynamicAtlas;
 import org.openstreetmap.atlas.geography.atlas.dynamic.policy.DynamicAtlasPolicy;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
-import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.tags.filters.TaggableFilter;
@@ -68,13 +68,9 @@ public class RawAtlasCountrySlicer
 
     private final Function<Shard, Optional<Atlas>> atlasFetcher;
 
-    // The countries to be sliced with
-    private final CountryBoundaryMap countryBoundaryMap;
-
-    // The boundaries used for slicing
-    private final Set<String> countries = new HashSet<>();
-
     private final List<Shard> loadedShards = new ArrayList<>();
+
+    private final AtlasLoadingOption loadingOption;
 
     private static List<TaggableFilter> computeDefaultFilter()
     {
@@ -97,31 +93,25 @@ public class RawAtlasCountrySlicer
 
     /**
      * The default constructor from before water relations were handled -- this method will slice
-     * without dynamic expansion along water relations. Left in for legacy compatibility.
+     * without dynamic expansion along relations. Left in for legacy compatibility.
      *
-     * @param countries
-     *            the list of countries to slice
-     * @param countryBoundaryMap
-     *            The country boundary map
+     * @param loadingOption
+     *            The {@link AtlasLoadingOption} to use
      */
-    public RawAtlasCountrySlicer(final Set<String> countries,
-            final CountryBoundaryMap countryBoundaryMap)
+    public RawAtlasCountrySlicer(final AtlasLoadingOption loadingOption)
     {
-        this.countries.addAll(countries);
-        this.countryBoundaryMap = countryBoundaryMap;
+        this.loadingOption = loadingOption;
         this.sharding = null;
         this.atlasFetcher = null;
     }
 
     /**
-     * Updated constructor for generating Atlases with water relations-- this method will use the
-     * Atlas fetcher function and sharding tree to dynamically expand on all water relations so they
-     * can be sliced appropriately.
+     * Updated constructor for generating sliced Atlases-- this method will use the Atlas fetcher
+     * function and sharding tree to dynamically expand on certain relations so they can be sliced
+     * appropriately.
      *
-     * @param country
-     *            The list of countries to slice. Should really just be one country?
-     * @param countryBoundaryMap
-     *            The country boundary map
+     * @param loadingOption
+     *            The {@link AtlasLoadingOption} to use
      * @param sharding
      *            The sharding tree
      * @param atlasFetcher
@@ -130,8 +120,7 @@ public class RawAtlasCountrySlicer
      *            the fetcher should MultiAtlas these line sliced country Atlas files together
      *            before returning.
      */
-    public RawAtlasCountrySlicer(final Set<String> country,
-            final CountryBoundaryMap countryBoundaryMap, final Sharding sharding,
+    public RawAtlasCountrySlicer(final AtlasLoadingOption loadingOption, final Sharding sharding,
             final Function<Shard, Optional<Atlas>> atlasFetcher)
     {
         if (sharding == null || atlasFetcher == null)
@@ -139,56 +128,7 @@ public class RawAtlasCountrySlicer
             throw new IllegalArgumentException(
                     "Must supply a valid sharding and fetcher function for slicing!");
         }
-        this.countryBoundaryMap = countryBoundaryMap;
-        this.countries.addAll(country);
-        this.sharding = sharding;
-        this.atlasFetcher = atlasFetcher;
-    }
-
-    /**
-     * The default constructor before water relations were handled -- this method will slice without
-     * dynamic expansion along water relations. Left in for legacy compatibility.
-     *
-     * @param country
-     *            The country to slice
-     * @param countryBoundaryMap
-     *            The country boundary map
-     */
-    public RawAtlasCountrySlicer(final String country, final CountryBoundaryMap countryBoundaryMap)
-    {
-        this.countries.add(country);
-        this.countryBoundaryMap = countryBoundaryMap;
-        this.sharding = null;
-        this.atlasFetcher = null;
-    }
-
-    /**
-     * Updated constructor for generating Atlases that expand and slice water relations-- this
-     * method will use the Atlas fetcher function and sharding tree to dynamically expand on all
-     * water relations so they can be sliced appropriately.
-     *
-     * @param country
-     *            The country to slice.
-     * @param countryBoundaryMap
-     *            The country boundary map
-     * @param sharding
-     *            The sharding tree
-     * @param atlasFetcher
-     *            A function return an atlas for a given shard. NOTE: The function expects line
-     *            sliced Atlases. And since one shard can have multiple country sliced Atlas files,
-     *            the fetcher should MultiAtlas these line sliced country Atlas files together
-     *            before returning.
-     */
-    public RawAtlasCountrySlicer(final String country, final CountryBoundaryMap countryBoundaryMap,
-            final Sharding sharding, final Function<Shard, Optional<Atlas>> atlasFetcher)
-    {
-        if (sharding == null || atlasFetcher == null)
-        {
-            throw new IllegalArgumentException(
-                    "Must supply a valid sharding and fetcher function for slicing!");
-        }
-        this.countryBoundaryMap = countryBoundaryMap;
-        this.countries.add(country);
+        this.loadingOption = loadingOption;
         this.sharding = sharding;
         this.atlasFetcher = atlasFetcher;
     }
@@ -221,8 +161,8 @@ public class RawAtlasCountrySlicer
         final String shardName = getShardOrAtlasName(rawAtlas);
         logger.info(STARTED_TASK_MESSAGE, POINT_AND_LINE_SLICING_TASK, shardName);
 
-        final RawAtlasSlicer pointAndLineSlicer = new RawAtlasPointAndLineSlicer(this.countries,
-                this.countryBoundaryMap, rawAtlas);
+        final RawAtlasSlicer pointAndLineSlicer = new RawAtlasPointAndLineSlicer(rawAtlas,
+                this.loadingOption);
         logger.info(COMPLETED_TASK_MESSAGE, POINT_AND_LINE_SLICING_TASK, shardName,
                 time.elapsedSince());
         return pointAndLineSlicer.slice();
@@ -243,7 +183,7 @@ public class RawAtlasCountrySlicer
         final String shardName = getShardOrAtlasName(partiallySlicedAtlas);
         logger.info(STARTED_TASK_MESSAGE, RELATION_SLICING_TASK, shardName);
         final RawAtlasSlicer relationSlicer = new RawAtlasRelationSlicer(partiallySlicedAtlas, null,
-                this.countries, this.countryBoundaryMap);
+                this.loadingOption);
         logger.info(COMPLETED_TASK_MESSAGE, RELATION_SLICING_TASK, shardName, time.elapsedSince());
         return relationSlicer.slice();
     }
@@ -294,7 +234,7 @@ public class RawAtlasCountrySlicer
 
             final RawAtlasSlicer relationSlicer = new RawAtlasRelationSlicer(
                     partiallySlicedExpandedAtlasWithExtraRelationsRemoved, initialShard,
-                    this.countries, this.countryBoundaryMap);
+                    this.loadingOption);
             logger.info(COMPLETED_TASK_MESSAGE, RELATION_SLICING_TASK, shardName,
                     time.elapsedSince());
             return relationSlicer.slice();
@@ -305,6 +245,7 @@ public class RawAtlasCountrySlicer
                     "No data after sub-atlasing to remove new relations from partially expanded Atlas {}!",
                     partiallySlicedExpandedAtlas.getName());
         }
+
     }
 
     /**
