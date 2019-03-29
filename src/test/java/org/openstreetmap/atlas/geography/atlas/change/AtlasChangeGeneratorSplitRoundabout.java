@@ -63,26 +63,28 @@ public class AtlasChangeGeneratorSplitRoundabout implements AtlasChangeGenerator
                             .withMembersAndSource(newMembers, relation)
                             // With the new relation members
                             .withExtraMember(firstEdge, edge).withExtraMember(secondEdge, edge);
-                }).map(FeatureChange::add).forEach(result::add);
+                }).map(relation -> FeatureChange.add(relation, atlas)).forEach(result::add);
 
                 // Add the two new edges.
-                result.add(FeatureChange.remove(CompleteEdge.shallowFrom(edge)));
-                result.add(FeatureChange.add(firstEdge));
-                result.add(FeatureChange.add(secondEdge));
+                result.add(FeatureChange.remove(CompleteEdge.shallowFrom(edge), atlas));
+                result.add(FeatureChange.add(firstEdge, atlas));
+                result.add(FeatureChange.add(secondEdge, atlas));
 
                 // Middle node is new. Create from scratch
                 result.add(FeatureChange.add(new CompleteNode(middleNodeIdentifier, cut,
                         Maps.hashMap(), Sets.treeSet(newEdgeIdentifier1),
-                        Sets.treeSet(newEdgeIdentifier2), Sets.hashSet())));
+                        Sets.treeSet(newEdgeIdentifier2), Sets.hashSet()), atlas));
 
                 // End node has a replaced start edge identifier
                 result.add(FeatureChange.add(CompleteNode.shallowFrom(edge.end())
-                        .withInEdges(edge.end().inEdges())
-                        .withInEdgeIdentifierReplaced(oldEdgeIdentifier, newEdgeIdentifier2)));
+                        .withInEdges(edge.end().inEdges()).withInEdgeIdentifierReplaced(
+                                oldEdgeIdentifier, newEdgeIdentifier2),
+                        atlas));
                 // Start node has a replaced end edge identifier
                 result.add(FeatureChange.add(CompleteNode.shallowFrom(edge.start())
-                        .withOutEdges(edge.start().outEdges())
-                        .withOutEdgeIdentifierReplaced(oldEdgeIdentifier, newEdgeIdentifier1)));
+                        .withOutEdges(edge.start().outEdges()).withOutEdgeIdentifierReplaced(
+                                oldEdgeIdentifier, newEdgeIdentifier1),
+                        atlas));
             }
         }
         return result;
