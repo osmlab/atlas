@@ -21,7 +21,8 @@ public class CountrySlicingIdentifierFactory extends AbstractIdentifierFactory
     public long nextIdentifier()
     {
         incrementDelta();
-        return (getReferenceIdentifier() / IDENTIFIER_SCALE + getDelta()) * IDENTIFIER_SCALE;
+        return (getReferenceIdentifier() / IDENTIFIER_SCALE_DEFAULT + getDelta())
+                * IDENTIFIER_SCALE_DEFAULT;
     }
 
 }
