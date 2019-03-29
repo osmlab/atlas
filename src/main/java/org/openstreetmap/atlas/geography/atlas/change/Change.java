@@ -155,14 +155,7 @@ public class Change implements Located, Serializable
 
     public String getName()
     {
-        if (this.name == null)
-        {
-            return String.valueOf(this.getIdentifier());
-        }
-        else
-        {
-            return this.name;
-        }
+        return Optional.ofNullable(this.name).orElse(String.valueOf(this.getIdentifier()));
     }
 
     /**
