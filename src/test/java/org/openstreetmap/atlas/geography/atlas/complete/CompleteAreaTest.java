@@ -70,6 +70,13 @@ public class CompleteAreaTest
     }
 
     @Test
+    public void testIsCompletelyShallow()
+    {
+        final CompleteArea superShallow = new CompleteArea(123L, null, null, null);
+        Assert.assertTrue(superShallow.isShallow());
+    }
+
+    @Test
     public void testShallow()
     {
         final Atlas atlas = this.rule.getAtlas();
@@ -78,10 +85,8 @@ public class CompleteAreaTest
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         result.withPolygon(Polygon.TEST_BUILDING);
-        // When we update a polygon, the bounds should expand to include the original polygon as
-        // well as the updated polygon
-        Assert.assertEquals(Rectangle.forLocated(source.bounds(), Polygon.TEST_BUILDING),
-                result.bounds());
+        // When we update a polygon, the bounds should update to the bounds of the new polygon
+        Assert.assertEquals(Rectangle.forLocated(Polygon.TEST_BUILDING), result.bounds());
         final Map<String, String> tags = Maps.hashMap("key", "value");
         result.withTags(tags);
         Assert.assertEquals(tags, result.getTags());
@@ -96,7 +101,6 @@ public class CompleteAreaTest
         result.withPolygon(Polygon.SILICON_VALLEY);
         // When we update the polygon again, the bounds recalculation should "forget" about the
         // first update
-        Assert.assertEquals(Rectangle.forLocated(source.bounds(), Polygon.SILICON_VALLEY),
-                result.bounds());
+        Assert.assertEquals(Rectangle.forLocated(Polygon.SILICON_VALLEY), result.bounds());
     }
 }

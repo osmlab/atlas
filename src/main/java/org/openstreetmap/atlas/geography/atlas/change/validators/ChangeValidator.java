@@ -52,15 +52,15 @@ public class ChangeValidator
     protected void validateReverseEdgesHaveForwardMatchingCounterpart()
     {
         this.change.changesFor(ItemType.EDGE)
-                .filter(featureChange -> !((Edge) featureChange.getReference()).isMasterEdge())
+                .filter(featureChange -> !((Edge) featureChange.getAfterView()).isMasterEdge())
                 .filter(featureChange -> featureChange.getChangeType() != ChangeType.REMOVE)
                 .forEach(backwardFeatureChange ->
                 {
-                    final long backwardEdgeIdentifier = backwardFeatureChange.getReference()
+                    final long backwardEdgeIdentifier = backwardFeatureChange.getAfterView()
                             .getIdentifier();
                     final long forwardEdgeIdentifier = -backwardEdgeIdentifier;
 
-                    final Edge backwardEdge = (Edge) backwardFeatureChange.getReference();
+                    final Edge backwardEdge = (Edge) backwardFeatureChange.getAfterView();
                     final Optional<FeatureChange> forwardFeatureChangeOption = this.change
                             .changeFor(ItemType.EDGE, forwardEdgeIdentifier);
                     if (forwardFeatureChangeOption.isPresent())
@@ -76,7 +76,7 @@ public class ChangeValidator
                         }
                         if (forwardFeatureChange.getChangeType() == ChangeType.ADD)
                         {
-                            final Edge forwardEdge = (Edge) forwardFeatureChange.getReference();
+                            final Edge forwardEdge = (Edge) forwardFeatureChange.getAfterView();
                             validateEdgeConnectedNodesMatch(forwardEdge, backwardEdge);
                             validateEdgePolyLinesMatch(forwardEdge, backwardEdge);
                         }

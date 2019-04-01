@@ -114,8 +114,7 @@ public class AtlasDebugTool extends Command
             atlas = new RawAtlasGenerator(pbf, option, multiPolygon).build();
             if (option.isCountrySlicing())
             {
-                atlas = new RawAtlasCountrySlicer(option.getCountryCodes(),
-                        option.getCountryBoundaryMap()).slice(atlas);
+                atlas = new RawAtlasCountrySlicer(option).slice(atlas);
             }
             atlas = new WaySectionProcessor(atlas, option).run();
             atlas.save(atlasFile);

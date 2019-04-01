@@ -48,7 +48,7 @@ public final class AtlasDiffHelper
             }
             if (featureChangeWouldBeUseful)
             {
-                return Optional.of(new FeatureChange(ChangeType.ADD, completeArea));
+                return Optional.of(FeatureChange.add(completeArea));
             }
         }
         catch (final Exception exception)
@@ -92,7 +92,7 @@ public final class AtlasDiffHelper
                 {
                     completeEdge.withPolyLine(afterEdge.asPolyLine());
                 }
-                return Optional.of(new FeatureChange(ChangeType.ADD, completeEdge));
+                return Optional.of(FeatureChange.add(completeEdge));
             }
         }
         catch (final Exception exception)
@@ -117,7 +117,7 @@ public final class AtlasDiffHelper
             }
             if (featureChangeWouldBeUseful)
             {
-                return Optional.of(new FeatureChange(ChangeType.ADD, completeLine));
+                return Optional.of(FeatureChange.add(completeLine));
             }
         }
         catch (final Exception exception)
@@ -162,7 +162,7 @@ public final class AtlasDiffHelper
             }
             if (featureChangeWouldBeUseful)
             {
-                return Optional.of(new FeatureChange(ChangeType.ADD, completeNode));
+                return Optional.of(FeatureChange.add(completeNode));
             }
         }
         catch (final Exception exception)
@@ -264,7 +264,7 @@ public final class AtlasDiffHelper
                     throw new CoreException("Unknown item type {}", afterEntity.getType());
             }
             // featureChange should never be null
-            return Optional.of(new FeatureChange(ChangeType.ADD, completeEntity));
+            return Optional.of(FeatureChange.add(completeEntity));
         }
         catch (final Exception exception)
         {
@@ -287,7 +287,7 @@ public final class AtlasDiffHelper
             }
             if (featureChangeWouldBeUseful)
             {
-                return Optional.of(new FeatureChange(ChangeType.ADD, completePoint));
+                return Optional.of(FeatureChange.add(completePoint));
             }
         }
         catch (final Exception exception)
@@ -314,7 +314,7 @@ public final class AtlasDiffHelper
             }
             if (featureChangeWouldBeUseful)
             {
-                return Optional.of(new FeatureChange(ChangeType.ADD, completeRelation));
+                return Optional.of(FeatureChange.add(completeRelation));
             }
         }
         catch (final Exception exception)
@@ -389,7 +389,7 @@ public final class AtlasDiffHelper
             default:
                 throw new CoreException("Unknown item type {}", afterEntity.getType());
         }
-        return Optional.of(new FeatureChange(ChangeType.ADD, completeEntity));
+        return Optional.of(FeatureChange.add(completeEntity));
     }
 
     public static FeatureChange simpleCompleteAreaChange(final ChangeType changeType,
@@ -403,11 +403,11 @@ public final class AtlasDiffHelper
             {
                 completeArea = completeArea.withPolygon(((Area) entity).asPolygon());
             }
-            return new FeatureChange(changeType, completeArea);
+            return FeatureChange.remove(completeArea);
         }
         else
         {
-            return new FeatureChange(changeType, CompleteArea.from(atlas.area(entityIdentifier)));
+            return FeatureChange.add(CompleteArea.from(atlas.area(entityIdentifier)));
         }
     }
 
@@ -422,11 +422,11 @@ public final class AtlasDiffHelper
             {
                 completeEdge = completeEdge.withPolyLine(((Edge) entity).asPolyLine());
             }
-            return new FeatureChange(changeType, completeEdge);
+            return FeatureChange.remove(completeEdge);
         }
         else
         {
-            return new FeatureChange(changeType, CompleteEdge.from(atlas.edge(entityIdentifier)));
+            return FeatureChange.add(CompleteEdge.from(atlas.edge(entityIdentifier)));
         }
     }
 
@@ -441,11 +441,11 @@ public final class AtlasDiffHelper
             {
                 completeLine = completeLine.withPolyLine(((Line) entity).asPolyLine());
             }
-            return new FeatureChange(changeType, completeLine);
+            return FeatureChange.remove(completeLine);
         }
         else
         {
-            return new FeatureChange(changeType, CompleteLine.from(atlas.line(entityIdentifier)));
+            return FeatureChange.add(CompleteLine.from(atlas.line(entityIdentifier)));
         }
     }
 
@@ -460,11 +460,11 @@ public final class AtlasDiffHelper
             {
                 completeNode = completeNode.withLocation(((Node) entity).getLocation());
             }
-            return new FeatureChange(changeType, completeNode);
+            return FeatureChange.remove(completeNode);
         }
         else
         {
-            return new FeatureChange(changeType, CompleteNode.from(atlas.node(entityIdentifier)));
+            return FeatureChange.add(CompleteNode.from(atlas.node(entityIdentifier)));
         }
     }
 
@@ -479,11 +479,11 @@ public final class AtlasDiffHelper
             {
                 completePoint = completePoint.withLocation(((Point) entity).getLocation());
             }
-            return new FeatureChange(changeType, completePoint);
+            return FeatureChange.remove(completePoint);
         }
         else
         {
-            return new FeatureChange(changeType, CompletePoint.from(atlas.point(entityIdentifier)));
+            return FeatureChange.add(CompletePoint.from(atlas.point(entityIdentifier)));
         }
     }
 
@@ -495,12 +495,11 @@ public final class AtlasDiffHelper
         {
             final CompleteRelation completeRelation = CompleteRelation
                     .shallowFrom(atlas.relation(entityIdentifier));
-            return new FeatureChange(changeType, completeRelation);
+            return FeatureChange.remove(completeRelation);
         }
         else
         {
-            return new FeatureChange(changeType,
-                    CompleteRelation.from(atlas.relation(entityIdentifier)));
+            return FeatureChange.add(CompleteRelation.from(atlas.relation(entityIdentifier)));
         }
     }
 
