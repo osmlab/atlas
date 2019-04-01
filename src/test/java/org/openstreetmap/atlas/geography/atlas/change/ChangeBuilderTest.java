@@ -52,6 +52,29 @@ public class ChangeBuilderTest
         Assert.assertEquals(verboseChange, fluentChange);
     }
 
+    @Test
+    public void nameAvailable()
+    {
+        final Change change = ChangeBuilder.newInstance().withName(this.getClass().getName())
+                .add(newAreaFeatureChange()).get();
+        Assert.assertEquals(this.getClass().getName(), change.getName());
+    }
+
+    @Test
+    public void nameNull()
+    {
+        final Change change = ChangeBuilder.newInstance().withName(null).add(newAreaFeatureChange())
+                .get();
+        Assert.assertEquals(String.valueOf(change.getIdentifier()), change.getName());
+    }
+
+    @Test
+    public void nameNotAvailable()
+    {
+        final Change change = ChangeBuilder.newInstance().add(newAreaFeatureChange()).get();
+        Assert.assertEquals(String.valueOf(change.getIdentifier()), change.getName());
+    }
+
     private FeatureChange newAreaFeatureChange()
     {
         return new FeatureChange(ChangeType.ADD,
