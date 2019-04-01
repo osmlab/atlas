@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.change;
+package org.openstreetmap.atlas.geography.atlas.change.testing;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.change.AtlasChangeGenerator;
+import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
@@ -37,7 +39,8 @@ public class AtlasChangeGeneratorSplitRoundabout implements AtlasChangeGenerator
                 // Prepare members to fill out: shapes, ids, etc.
                 final Location cut = currentShape.get(currentShape.size() / 2);
                 final PolyLine shape1 = currentShape.between(currentShape.first(), 0, cut, 0);
-                final PolyLine shape2 = currentShape.between(cut, 0, currentShape.last(), 0);
+                final PolyLine shape2 = currentShape.between(cut, 0, currentShape.last(),
+                        currentShape.last().equals(currentShape.first()) ? 1 : 0);
                 final long middleNodeIdentifier = identifierGenerator.incrementAndGet();
                 final long oldEdgeIdentifier = edge.getIdentifier();
                 final long newEdgeIdentifier1 = identifierGenerator.incrementAndGet();
