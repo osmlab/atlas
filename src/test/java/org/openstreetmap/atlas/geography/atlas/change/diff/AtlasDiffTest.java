@@ -18,6 +18,8 @@ public class AtlasDiffTest
 {
     private static final Logger logger = LoggerFactory.getLogger(AtlasDiffTest.class);
 
+    private static final int IGNORE_EXPECTED_NUMBER_CHANGES = -1;
+
     @Rule
     public AtlasDiffTestRule rule = new AtlasDiffTestRule();
 
@@ -32,7 +34,7 @@ public class AtlasDiffTest
 
         atlasX = this.rule.simpleAtlas3();
         atlasY = this.rule.simpleAtlas4();
-        expectedNumberOfChanges = 16;
+        expectedNumberOfChanges = 15;
 
         assertChangeAtlasConsistency(atlasX, atlasY, expectedNumberOfChanges);
     }
@@ -80,7 +82,7 @@ public class AtlasDiffTest
 
         atlasX = this.rule.differentRelations3();
         atlasY = this.rule.differentRelations4();
-        expectedNumberOfChanges = 7;
+        expectedNumberOfChanges = 5;
 
         assertChangeAtlasConsistency(atlasX, atlasY, expectedNumberOfChanges);
     }
@@ -101,9 +103,13 @@ public class AtlasDiffTest
         final Change changeBeforeToAfter = new AtlasDiff(beforeAtlas, afterAtlas).generateChange()
                 .orElseThrow(() -> new CoreException(
                         "This Change should never be empty. The unit test may be broken."));
-        changeBeforeToAfter.changes()
-                .forEach(change -> logger.trace("{}: {}", change, change.getAfterView()));
-        Assert.assertEquals(expectedNumberOfChanges, changeBeforeToAfter.changeCount());
+        changeBeforeToAfter.changes().forEach(change -> logger.trace("{}:\n{} ->\n{}", change,
+                change.getBeforeView(), change.getAfterView()));
+
+        if (expectedNumberOfChanges != IGNORE_EXPECTED_NUMBER_CHANGES)
+        {
+            Assert.assertEquals(expectedNumberOfChanges, changeBeforeToAfter.changeCount());
+        }
         final ChangeAtlas changeAfterAtlas = new ChangeAtlas(beforeAtlas, changeBeforeToAfter);
 
         // test both ways to catch any slip-ups in the code
