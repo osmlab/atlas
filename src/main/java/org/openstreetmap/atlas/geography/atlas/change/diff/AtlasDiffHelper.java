@@ -552,44 +552,6 @@ public final class AtlasDiffHelper
         return false;
     }
 
-    private static boolean entitiesWereDifferentInRelations(final AtlasEntity beforeEntity, // NOSONAR
-            final AtlasEntity afterEntity)
-    {
-        try
-        {
-            final Set<Relation> beforeRelations = beforeEntity.relations();
-            final Set<Relation> afterRelations = afterEntity.relations();
-
-            if (beforeRelations.size() != afterRelations.size())
-            {
-                return true;
-            }
-            for (final Relation beforeRelation : beforeRelations)
-            {
-                Relation afterRelation = null;
-                for (final Relation afterRelationCandidate : afterRelations)
-                {
-                    if (afterRelationCandidate.getIdentifier() == beforeRelation.getIdentifier())
-                    {
-                        afterRelation = afterRelationCandidate;
-                        break;
-                    }
-                }
-                if (afterRelation == null)
-                {
-                    // The two relation sets are different
-                    return true;
-                }
-            }
-            return false;
-        }
-        catch (final Exception exception)
-        {
-            throw new CoreException("Unable to compare relations for {} and {}", beforeEntity,
-                    afterEntity, exception);
-        }
-    }
-
     private AtlasDiffHelper()
     {
 
