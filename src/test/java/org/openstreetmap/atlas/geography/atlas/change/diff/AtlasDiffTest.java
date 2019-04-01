@@ -76,7 +76,7 @@ public class AtlasDiffTest
     {
         Atlas atlasX = this.rule.differentRelations1();
         Atlas atlasY = this.rule.differentRelations2();
-        int expectedNumberOfChanges = 7;
+        int expectedNumberOfChanges = 9;
 
         assertChangeAtlasConsistency(atlasX, atlasY, expectedNumberOfChanges);
 
