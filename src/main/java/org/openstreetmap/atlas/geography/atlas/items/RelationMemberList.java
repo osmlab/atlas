@@ -92,6 +92,26 @@ public class RelationMemberList extends AbstractCollection<RelationMember> imple
         return false;
     }
 
+    /**
+     * Check if the two {@link RelationMemberList}s are the same, without looking at the List order.
+     * Also, ensure that their explicitlyExcluded sets match.
+     *
+     * @param other
+     *            The other object
+     * @return True if the other object satisfies {@link RelationMemberList#equals(Object)} AND has
+     *         a matching explicitlyExcluded set.
+     */
+    public boolean equalsIncludingExplicitlyExcluded(final Object other)
+    {
+        if (other instanceof RelationMemberList)
+        {
+            final boolean basicEquals = this.equals(other);
+            final RelationMemberList otherBean = (RelationMemberList) other;
+            return basicEquals && this.explicitlyExcluded.equals(otherBean.explicitlyExcluded);
+        }
+        return false;
+    }
+
     public RelationMember get(final int index)
     {
         if (index < 0 || index >= size())

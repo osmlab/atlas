@@ -194,9 +194,8 @@ public class CompleteRelation extends Relation implements CompleteEntity
          * Note that the Relations returned by this method will technically break the Located
          * contract, since they have null bounds.
          */
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(CompleteRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(CompleteRelation::new).collect(Collectors.toSet());
     }
 
     @Override
@@ -359,6 +358,12 @@ public class CompleteRelation extends Relation implements CompleteEntity
     public CompleteRelation withMembersAndSource(final RelationMemberList members,
             final Relation source)
     {
+        if (source instanceof CompleteRelation)
+        {
+            throw new CoreException(
+                    "This version of withMembersAndSource must use a source Relation that is tied to an atlas, instead found Relation of type {}",
+                    source.getClass().getName());
+        }
         return withMembersAndSource(members.asBean(), source, members.bounds());
     }
 

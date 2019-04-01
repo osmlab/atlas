@@ -185,7 +185,7 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
     }
 
     /**
-     * Check if the two beans are the same, without looking at the List order.
+     * Check if the two beans are the same, without looking at the bean order.
      *
      * @param other
      *            The other object
@@ -198,6 +198,26 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
         {
             final RelationBean that = (RelationBean) other;
             return this.asMap().equals(that.asMap());
+        }
+        return false;
+    }
+
+    /**
+     * Check if the two beans are the same, without looking at the bean order. Also, ensure that
+     * their explicitlyExcluded sets match.
+     *
+     * @param other
+     *            The other object
+     * @return True if the other object satisfies {@link RelationBean#equals(Object)} AND has a
+     *         matching explicitlyExcluded set.
+     */
+    public boolean equalsIncludingExplicitlyExcluded(final Object other)
+    {
+        if (other instanceof RelationBean)
+        {
+            final boolean basicEquals = this.equals(other);
+            final RelationBean otherBean = (RelationBean) other;
+            return basicEquals && this.explicitlyExcluded.equals(otherBean.explicitlyExcluded);
         }
         return false;
     }
@@ -295,6 +315,13 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
             if (existingLeftItem.isPresent()
                     && existingLeftItem.get().getRole().equals(rightItem.getRole()))
             {
+                /*
+                 * TODO this may be bugged, since we can allow multiple instances of identical bean
+                 * items. How do we reconcile the fact that explicitlyExcluded has no concept of how
+                 * many copies of an identical beanItem we wish to exclude? Think of the case where
+                 * a ChangeAtlas user wants to remove duplicate RelationBeanItems from a relation.
+                 * In that case, this merging code will clobber all instances of the beanItems.
+                 */
                 // Role already exists, continue.
                 continue;
             }
