@@ -222,10 +222,10 @@ public final class MemberMergeStrategies
             }
         }
 
-        final Set<RelationBeanItem> leftSet = afterLeftBean.getExplicitlyExcluded();
-        final Set<RelationBeanItem> rightSet = afterRightBean.getExplicitlyExcluded();
-        final Set<RelationBeanItem> mergedSet = Sets.withSets(false, leftSet, rightSet);
-        mergedSet.stream().forEach(resultBean::addItemExplicitlyExcluded);
+        afterLeftBean.getExplicitlyExcluded().stream()
+                .forEach(resultBean::addItemExplicitlyExcluded);
+        afterRightBean.getExplicitlyExcluded().stream()
+                .forEach(resultBean::addItemExplicitlyExcluded);
 
         return resultBean;
     };
