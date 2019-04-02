@@ -84,6 +84,7 @@ public interface AtlasChangeGenerator extends Converter<Atlas, Set<FeatureChange
     default Set<FeatureChange> generate(final Atlas atlas)
     {
         final Set<FeatureChange> result = expandNodeBounds(atlas, generateWithoutValidation(atlas));
+        result.stream().forEach(featureChange -> featureChange.withAtlasContext(atlas));
 
         // Validate
         final ChangeBuilder builder = new ChangeBuilder();
