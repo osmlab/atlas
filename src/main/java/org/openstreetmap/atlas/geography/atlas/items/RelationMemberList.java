@@ -12,6 +12,8 @@ import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedRelation;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
@@ -20,6 +22,14 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
 public class RelationMemberList extends AbstractCollection<RelationMember> implements Located
 {
     private final List<RelationMember> members;
+
+    /**
+     * This set has no concept of how many {@link RelationBeanItem}s of a given value have been
+     * removed. Technically, OSM allows for duplicate {@link RelationBeanItem}s in a given relation.
+     * However, these duplicates are disallowed by {@link PackedAtlas#relationMembers} and by
+     * extension {@link PackedRelation#members}. As a result, we need not worry about that edge case
+     * here.
+     */
     private final Set<RelationBeanItem> explicitlyExcluded;
 
     public RelationMemberList(final Iterable<RelationMember> members)

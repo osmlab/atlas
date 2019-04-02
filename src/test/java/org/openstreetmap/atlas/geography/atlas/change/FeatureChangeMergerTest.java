@@ -30,21 +30,14 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author lcram
  */
 public class FeatureChangeMergerTest
 {
-    private static final Logger logger = LoggerFactory.getLogger(FeatureChangeMergerTest.class);
-
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
-
-    @Rule
-    public FeatureChangeMergerTestRule rule = new FeatureChangeMergerTestRule();
 
     @Test
     public void testMergeAreasFail()
@@ -502,57 +495,6 @@ public class FeatureChangeMergerTest
 
         Assert.assertEquals(Sets.hashSet(1L, 2L, 3L), ((Point) merged.getBeforeView()).relations()
                 .stream().map(relation -> relation.getIdentifier()).collect(Collectors.toSet()));
-    }
-
-    /*
-     * This test is commented out for now. It seems PackedAtlas disallows duplicate beanItems. This
-     * will affect the RelationBean merge logic we use for FeatureChanges.
-     */
-    @Test
-    public void testMergeRelationsBeanMergeExposeBug()
-    {
-        /*
-         * [2, 'pointRole2', POINT] is duplicated twice.
-         */
-        // final PackedAtlasBuilder builder = new PackedAtlasBuilder();
-        // builder.addNode(5L, Location.forString("15.4852,-61.3816"), Maps.hashMap());
-        // builder.addNode(6L, Location.forString("16.4852,-61.3816"), Maps.hashMap());
-        // final RelationBean bean = new RelationBean();
-        // bean.addItem(new RelationBeanItem(5L, "role1", ItemType.NODE));
-        // bean.addItem(new RelationBeanItem(5L, "role1", ItemType.NODE));
-        // bean.addItem(new RelationBeanItem(5L, "role1", ItemType.NODE));
-        // bean.addItem(new RelationBeanItem(6L, "role2", ItemType.NODE));
-        // builder.addRelation(31L, 31L, bean, Maps.hashMap())
-        // final Atlas atlas = builder.get();
-        // logger.info("{}", atlas.relation(31L));
-        // final Atlas atlas = this.rule.atlas1();
-
-        /*
-         * Remove 1 copy of [2, 'pointRole2', POINT].
-         */
-        // final int[] counter = new int[1];
-        // counter[0] = 2;
-        // final RelationMemberList updatedMembers1 = new RelationMemberList(
-        // atlas.relation(31L).members().stream().filter(member ->
-        // {
-        // if (member.getRole().equals("pointRole2") && counter[0] != 1)
-        // {
-        // counter[0]--;
-        // return false;
-        // }
-        // return true;
-        // }).collect(Collectors.toList()));
-        // logger.info("{}", updatedMembers1);
-        // final CompleteRelation fixDuplicatedBeanItem = CompleteRelation
-        // .shallowFrom(atlas.relation(31L))
-        // .withMembersAndSource(updatedMembers1, atlas.relation(31L));
-        // final FeatureChange featureChange1 = FeatureChange.add(fixDuplicatedBeanItem, atlas);
-        //
-        // final Change change = ChangeBuilder.newInstance().add(featureChange1).get();
-        // final ChangeAtlas changeAtlas = new ChangeAtlas(atlas, change);
-        //
-        // logger.info("{}", changeAtlas.relation(31L));
-        // Assert.assertTrue(changeAtlas.relation(31L).members().size() == 3);
     }
 
     @Test

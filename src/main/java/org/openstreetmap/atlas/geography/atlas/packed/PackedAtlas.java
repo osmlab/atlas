@@ -1387,6 +1387,17 @@ public final class PackedAtlas extends AbstractAtlas
         return this.relationIdentifiers().get(index);
     }
 
+    /**
+     * Fetch the {@link RelationMemberList} for a given index. Note that while OSM technically
+     * allows duplicate {@link RelationMember}s, this method disallows duplicates. So a valid OSM
+     * relation that looks like {[1L, 'role1', POINT], [1L, 'role1', POINT], [45L, 'area', AREA]}
+     * would become {[1L, 'role1', POINT], [45L, 'area', AREA]}.
+     *
+     * @param index
+     *            the {@link Relation} array index
+     * @return a fully constructed {@link RelationMemberList} for the {@link Relation} at the given
+     *         index
+     */
     protected RelationMemberList relationMembers(final long index)
     {
         final Set<RelationMember> result = new TreeSet<>();

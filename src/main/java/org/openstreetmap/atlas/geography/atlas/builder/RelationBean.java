@@ -15,6 +15,8 @@ import java.util.Set;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedRelation;
 
 /**
  * @author matthieun
@@ -86,6 +88,13 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
     private final List<String> memberRoles;
     private final List<ItemType> memberTypes;
 
+    /**
+     * This set has no concept of how many {@link RelationBeanItem}s of a given value have been
+     * removed. Technically, OSM allows for duplicate {@link RelationBeanItem}s in a given relation.
+     * However, these duplicates are disallowed by {@link PackedAtlas#relationMembers} and by
+     * extension {@link PackedRelation#members}. As a result, we need not worry about that edge case
+     * here.
+     */
     private final Set<RelationBeanItem> explicitlyExcluded;
 
     public static RelationBean fromSet(final Set<RelationBeanItem> set)
@@ -315,13 +324,6 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
             if (existingLeftItem.isPresent()
                     && existingLeftItem.get().getRole().equals(rightItem.getRole()))
             {
-                /*
-                 * TODO this may be bugged, since we can allow multiple instances of identical bean
-                 * items. How do we reconcile the fact that explicitlyExcluded has no concept of how
-                 * many copies of an identical beanItem we wish to exclude? Think of the case where
-                 * a ChangeAtlas user wants to remove duplicate RelationBeanItems from a relation.
-                 * In that case, this merging code will clobber all instances of the beanItems.
-                 */
                 // Role already exists, continue.
                 continue;
             }
