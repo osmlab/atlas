@@ -7,6 +7,9 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
 
+/**
+ * @author lcram
+ */
 public class RelationMemberListTest
 {
     @Test

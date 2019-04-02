@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -9,13 +10,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Polygon;
-import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
@@ -122,10 +124,14 @@ public class CompleteRelationTest
         final RelationBean bean = new RelationBean();
         bean.addItem(new RelationBeanItem(1L, "role", ItemType.AREA));
 
+        final RelationMember member = new RelationMember("role",
+                new CompletePoint(1L, Location.CENTER, null, null), 1L);
+        final RelationMemberList list1 = new RelationMemberList(Arrays.asList(member));
+
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage(
                 "This version of withMembersAndSource must use a source Relation that is tied to an atlas");
-        relation.withMembersAndSource(bean, relation, Rectangle.TEST_RECTANGLE);
+        relation.withMembersAndSource(list1, relation);
     }
 
     @Test
