@@ -25,6 +25,14 @@ public class AtlasChangeGeneratorTest
     public final AtlasChangeGeneratorTestRule rule = new AtlasChangeGeneratorTestRule();
 
     @Test
+    public void testEmptyChange()
+    {
+        final AtlasChangeGenerator generator = atlas -> new HashSet<>();
+        final Atlas source = this.rule.getNodeBoundsExpansionAtlas();
+        Assert.assertTrue(generator.apply(source).isEmpty());
+    }
+
+    @Test
     public void testExpandNode()
     {
         final Atlas source = this.rule.getNodeBoundsExpansionAtlas();
