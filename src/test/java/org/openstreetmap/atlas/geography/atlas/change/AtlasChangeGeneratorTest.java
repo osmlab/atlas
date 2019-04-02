@@ -57,4 +57,14 @@ public class AtlasChangeGeneratorTest
             }
         }
     }
+
+    @Test
+    public void testValidBeforeView()
+    {
+        final Atlas source = this.rule.getNodeBoundsExpansionAtlas();
+        final AtlasChangeGenerator generator = atlas -> Sets
+                .hashSet(FeatureChange.add(CompleteNode.shallowFrom(source.node(177628000000L))
+                        .withAddedTag("highway", "traffic_signals")));
+        Assert.assertNotNull(generator.apply(source).iterator().next().getBeforeView());
+    }
 }
