@@ -224,9 +224,8 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
     {
         if (other instanceof RelationBean)
         {
-            final boolean basicEquals = this.equals(other);
-            final RelationBean otherBean = (RelationBean) other;
-            return basicEquals && this.explicitlyExcluded.equals(otherBean.explicitlyExcluded);
+            return (other instanceof RelationBean) && this.equals(other)
+                    && this.explicitlyExcluded.equals(((RelationBean) other).explicitlyExcluded);
         }
         return false;
     }

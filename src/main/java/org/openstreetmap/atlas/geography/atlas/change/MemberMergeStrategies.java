@@ -9,6 +9,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
@@ -222,9 +223,8 @@ public final class MemberMergeStrategies
             }
         }
 
-        afterLeftBean.getExplicitlyExcluded().stream()
-                .forEach(resultBean::addItemExplicitlyExcluded);
-        afterRightBean.getExplicitlyExcluded().stream()
+        Stream.concat(afterLeftBean.getExplicitlyExcluded().stream(),
+                afterRightBean.getExplicitlyExcluded().stream())
                 .forEach(resultBean::addItemExplicitlyExcluded);
 
         return resultBean;
