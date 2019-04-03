@@ -25,6 +25,14 @@ public class AtlasChangeGeneratorTest
     public final AtlasChangeGeneratorTestRule rule = new AtlasChangeGeneratorTestRule();
 
     @Test
+    public void testEmptyChange()
+    {
+        final AtlasChangeGenerator generator = atlas -> new HashSet<>();
+        final Atlas source = this.rule.getNodeBoundsExpansionAtlas();
+        Assert.assertTrue(generator.apply(source).isEmpty());
+    }
+
+    @Test
     public void testExpandNode()
     {
         final Atlas source = this.rule.getNodeBoundsExpansionAtlas();
@@ -56,5 +64,15 @@ public class AtlasChangeGeneratorTest
                         featureChange.bounds().toWkt());
             }
         }
+    }
+
+    @Test
+    public void testValidBeforeView()
+    {
+        final Atlas source = this.rule.getNodeBoundsExpansionAtlas();
+        final AtlasChangeGenerator generator = atlas -> Sets
+                .hashSet(FeatureChange.add(CompleteNode.shallowFrom(source.node(177628000000L))
+                        .withAddedTag("highway", "traffic_signals")));
+        Assert.assertNotNull(generator.apply(source).iterator().next().getBeforeView());
     }
 }
