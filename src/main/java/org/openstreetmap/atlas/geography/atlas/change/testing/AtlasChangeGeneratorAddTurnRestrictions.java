@@ -31,6 +31,18 @@ public class AtlasChangeGeneratorAddTurnRestrictions implements AtlasChangeGener
     private static final long serialVersionUID = -518515697422424803L;
     private static final int MINIMUM_NODE_VALENCE = 3;
 
+    private final int minimumNodeValence;
+
+    public AtlasChangeGeneratorAddTurnRestrictions()
+    {
+        this(MINIMUM_NODE_VALENCE);
+    }
+
+    public AtlasChangeGeneratorAddTurnRestrictions(final int minimumNodeValence)
+    {
+        this.minimumNodeValence = minimumNodeValence;
+    }
+
     @Override
     public Set<FeatureChange> generateWithoutValidation(final Atlas atlas)
     {
@@ -39,7 +51,7 @@ public class AtlasChangeGeneratorAddTurnRestrictions implements AtlasChangeGener
         final Long parentRelationIdentifier = identifierGenerator.incrementAndGet();
         final RelationBean parentMembers = new RelationBean();
         Rectangle parentBounds = null;
-        for (final Node node : atlas.nodes(node -> node.valence() > MINIMUM_NODE_VALENCE))
+        for (final Node node : atlas.nodes(node -> node.valence() > this.minimumNodeValence))
         {
             final SortedSet<Edge> inEdges = node.inEdges();
             final SortedSet<Edge> outEdges = node.outEdges();
