@@ -50,7 +50,7 @@ public class AtlasValidatorTest
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("lists some parent relation that is not present");
 
-        new AtlasValidator(atlas).validateRelationsPresent();
+        new AtlasValidator(atlas).validateRelationsPresentAndLinked();
     }
 
     @Test

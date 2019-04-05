@@ -31,6 +31,10 @@ public class ChangeRelation extends Relation // NOSONAR
     private final Relation source;
     private final Relation override;
 
+    // Computing ChangeRelation members is very expensive, so we cache it here.
+    private transient RelationMemberList membersCache;
+    private transient Object membersCacheLock = new Object();
+
     protected ChangeRelation(final ChangeAtlas atlas, final Relation source,
             final Relation override)
     {
@@ -66,22 +70,36 @@ public class ChangeRelation extends Relation // NOSONAR
     }
 
     @Override
-    public RelationMemberList members()
+    public synchronized RelationMemberList members()
     {
-        final List<RelationMemberList> availableMemberLists = allAvailableAttributes(
-                Relation::members);
-        final RelationBean mergedMembersBean = availableMemberLists.stream()
-                .map(RelationMemberList::asBean).reduce(new RelationBean(), RelationBean::merge);
-        final RelationBean filteredAndMergedMembersBean = new RelationBean();
-        mergedMembersBean.forEach(relationBeanItem ->
+        RelationMemberList localmembers = this.membersCache;
+        if (localmembers == null)
         {
-            if (getChangeAtlas().entity(relationBeanItem.getIdentifier(),
-                    relationBeanItem.getType()) != null)
+            synchronized (this.membersCacheLock)
             {
-                filteredAndMergedMembersBean.addItem(relationBeanItem);
+                localmembers = this.membersCache;
+                if (localmembers == null)
+                {
+                    final List<RelationMemberList> availableMemberLists = allAvailableAttributes(
+                            Relation::members);
+                    final RelationBean mergedMembersBean = availableMemberLists.stream()
+                            .map(RelationMemberList::asBean)
+                            .reduce(new RelationBean(), RelationBean::merge);
+                    final RelationBean filteredAndMergedMembersBean = new RelationBean();
+                    mergedMembersBean.forEach(relationBeanItem ->
+                    {
+                        if (getChangeAtlas().entity(relationBeanItem.getIdentifier(),
+                                relationBeanItem.getType()) != null)
+                        {
+                            filteredAndMergedMembersBean.addItem(relationBeanItem);
+                        }
+                    });
+                    localmembers = membersFor(filteredAndMergedMembersBean);
+                    this.membersCache = localmembers;
+                }
             }
-        });
-        return membersFor(filteredAndMergedMembersBean);
+        }
+        return localmembers;
     }
 
     @Override

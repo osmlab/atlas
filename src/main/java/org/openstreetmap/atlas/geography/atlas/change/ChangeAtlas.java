@@ -1,7 +1,9 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
@@ -38,6 +40,7 @@ import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 public class ChangeAtlas extends AbstractAtlas // NOSONAR
 {
     private static final long serialVersionUID = -5741815439928958165L;
+    private static final ChangeRelation NULL_PLACEHOLDER = new ChangeRelation(null, null, null);
 
     private final Change change;
     private final Atlas source;
@@ -51,6 +54,10 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     private transient Long numberOfLines;
     private transient Long numberOfPoints;
     private transient Long numberOfRelations;
+
+    // Computing relations in ChangeAtlas is very expensive, so we cache them here.
+    private transient Map<Long, ChangeRelation> relationsCache;
+    private transient Object relationsCacheLock = new Object();
 
     private static void checkChanges(final Change... changes)
     {
@@ -321,7 +328,25 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     @Override
     public Relation relation(final long identifier)
     {
-        final Relation relation = entityFor(identifier, ItemType.RELATION,
+        final Long longIdentifier = identifier;
+        Map<Long, ChangeRelation> localRelationCache = this.relationsCache;
+        if (localRelationCache == null)
+        {
+            synchronized (this.relationsCacheLock)
+            {
+                localRelationCache = this.relationsCache;
+                if (localRelationCache == null)
+                {
+                    this.relationsCache = new ConcurrentHashMap<>();
+                }
+            }
+        }
+        if (this.relationsCache.containsKey(longIdentifier))
+        {
+            final ChangeRelation cached = this.relationsCache.get(longIdentifier);
+            return cached == NULL_PLACEHOLDER ? null : cached;
+        }
+        final ChangeRelation relation = entityFor(identifier, ItemType.RELATION,
                 () -> this.source.relation(identifier),
                 (sourceEntity, overrideEntity) -> new ChangeRelation(this, (Relation) sourceEntity,
                         (Relation) overrideEntity));
@@ -334,12 +359,15 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
          */
         if (relation == null)
         {
+            this.relationsCache.put(longIdentifier, NULL_PLACEHOLDER);
             return null;
         }
         if (relation.members().isEmpty())
         {
+            this.relationsCache.put(longIdentifier, NULL_PLACEHOLDER);
             return null;
         }
+        this.relationsCache.put(longIdentifier, relation);
         return relation;
     }
 
