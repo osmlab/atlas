@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -102,6 +103,24 @@ public final class ChangeEntity
             throw new CoreException("Could not retrieve attribute from source nor backup!");
         }
         return result;
+    }
+
+    static <V> V getOrCreateCache(V fieldCache, final Object lock, final Supplier<V> supplier)
+    {
+        V localRelationCache = fieldCache;
+        if (localRelationCache == null)
+        {
+            synchronized (lock) // NOSONAR
+            {
+                localRelationCache = fieldCache; // NOSONAR
+                if (localRelationCache == null) // NOSONAR
+                {
+                    fieldCache = supplier.get();
+                    localRelationCache = fieldCache;
+                }
+            }
+        }
+        return localRelationCache;
     }
 
     private ChangeEntity()

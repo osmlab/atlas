@@ -58,21 +58,9 @@ public class ChangeLine extends Line // NOSONAR
     @Override
     public Set<Relation> relations()
     {
-        Set<Relation> localRelations = this.relationsCache;
-        if (localRelations == null)
-        {
-            synchronized (this.relationsCacheLock)
-            {
-                localRelations = this.relationsCache;
-                if (localRelations == null)
-                {
-                    localRelations = ChangeEntity.filterRelations(attribute(AtlasEntity::relations),
-                            getChangeAtlas());
-                    this.relationsCache = localRelations;
-                }
-            }
-        }
-        return localRelations;
+        return ChangeEntity.getOrCreateCache(this.relationsCache, this.relationsCacheLock,
+                () -> ChangeEntity.filterRelations(attribute(AtlasEntity::relations),
+                        getChangeAtlas()));
     }
 
     private <T extends Object> T attribute(final Function<Line, T> memberExtractor)

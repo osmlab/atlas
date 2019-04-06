@@ -40,7 +40,13 @@ import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 public class ChangeAtlas extends AbstractAtlas // NOSONAR
 {
     private static final long serialVersionUID = -5741815439928958165L;
-    private static final ChangeRelation NULL_PLACEHOLDER = new ChangeRelation(null, null, null);
+    private static final ChangeRelation NULL_PLACEHOLDER_RELATION = new ChangeRelation(null, null,
+            null);
+    private static final ChangeRelation NULL_PLACEHOLDER_NODE = new ChangeNode(null, null, null);
+    private static final ChangeRelation NULL_PLACEHOLDER_EDGE = new ChangeEdge(null, null, null);
+    private static final ChangeRelation NULL_PLACEHOLDER_AREA = new ChangeArea(null, null, null);
+    private static final ChangeRelation NULL_PLACEHOLDER_LINE = new ChangeLine(null, null, null);
+    private static final ChangeRelation NULL_PLACEHOLDER_POINT = new ChangePoint(null, null, null);
 
     private final Change change;
     private final Atlas source;
@@ -58,6 +64,26 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     // Computing relations in ChangeAtlas is very expensive, so we cache them here.
     private transient Map<Long, ChangeRelation> relationsCache;
     private transient Object relationsCacheLock = new Object();
+
+    // Computing relations in ChangeAtlas is very expensive, so we cache them here.
+    private transient Map<Long, ChangeNode> nodesCache;
+    private transient Object nodesCacheLock = new Object();
+
+    // Computing relations in ChangeAtlas is very expensive, so we cache them here.
+    private transient Map<Long, ChangeEdge> edgesCache;
+    private transient Object edgesCacheLock = new Object();
+
+    // Computing relations in ChangeAtlas is very expensive, so we cache them here.
+    private transient Map<Long, ChangeArea> areasCache;
+    private transient Object areasCacheLock = new Object();
+
+    // Computing relations in ChangeAtlas is very expensive, so we cache them here.
+    private transient Map<Long, ChangeLine> linesCache;
+    private transient Object linesCacheLock = new Object();
+
+    // Computing relations in ChangeAtlas is very expensive, so we cache them here.
+    private transient Map<Long, ChangePoint> pointsCache;
+    private transient Object pointsCacheLock = new Object();
 
     private static void checkChanges(final Change... changes)
     {
@@ -102,11 +128,11 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     public ChangeAtlas(final String name, final Change... changes)
     {
         checkChanges(changes);
-        final Change change = Change.merge(changes);
+        final Change changeInternal = Change.merge(changes);
         boolean valid = false;
-        Atlas source = null;
+        Atlas sourceInternal = null;
         FeatureChange dummy = null;
-        for (final FeatureChange featureChange : change.getFeatureChanges())
+        for (final FeatureChange featureChange : changeInternal.getFeatureChanges())
         {
             if (featureChange.getChangeType() == ChangeType.ADD)
             {
@@ -115,12 +141,13 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
                     throw new CoreException(
                             "ChangeAtlas needs all ADD featureChanges to be full (no partial after view) to exist with no source Atlas.");
                 }
-                if (source == null)
+                if (sourceInternal == null)
                 {
                     final PackedAtlasBuilder builder = new PackedAtlasBuilder();
                     builder.addPoint(-1L, Location.CENTER, Maps.hashMap());
-                    source = builder.get();
-                    dummy = FeatureChange.remove(CompletePoint.shallowFrom(source.point(-1L)));
+                    sourceInternal = builder.get();
+                    dummy = FeatureChange
+                            .remove(CompletePoint.shallowFrom(sourceInternal.point(-1L)));
                 }
                 valid = true;
             }
@@ -128,11 +155,11 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
         if (valid)
         {
             final ChangeBuilder changeBuilder = new ChangeBuilder();
-            changeBuilder.addAll(change.changes());
+            changeBuilder.addAll(changeInternal.changes());
             changeBuilder.add(dummy);
             this.change = changeBuilder.get();
-            this.source = source;
-            this.name = name == null || name.isEmpty() ? source.getName() : name;
+            this.source = sourceInternal;
+            this.name = name == null || name.isEmpty() ? sourceInternal.getName() : name;
             new AtlasValidator(this).validate();
         }
         else
@@ -329,27 +356,13 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     public Relation relation(final long identifier)
     {
         final Long longIdentifier = identifier;
-        Map<Long, ChangeRelation> localRelationCache = this.relationsCache;
-        if (localRelationCache == null)
-        {
-            synchronized (this.relationsCacheLock)
-            {
-                localRelationCache = this.relationsCache;
-                if (localRelationCache == null)
-                {
-                    this.relationsCache = new ConcurrentHashMap<>();
-                }
-            }
-        }
-        if (this.relationsCache.containsKey(longIdentifier))
-        {
-            final ChangeRelation cached = this.relationsCache.get(longIdentifier);
-            return cached == NULL_PLACEHOLDER ? null : cached;
-        }
-        final ChangeRelation relation = entityFor(identifier, ItemType.RELATION,
+
+        final Supplier<ChangeRelation> creator = () -> entityFor(identifier, ItemType.RELATION,
                 () -> this.source.relation(identifier),
                 (sourceEntity, overrideEntity) -> new ChangeRelation(this, (Relation) sourceEntity,
                         (Relation) overrideEntity));
+        final ChangeRelation relation = getFromCacheOrCreate(this.relationsCache,
+                this.relationsCacheLock, NULL_PLACEHOLDER_RELATION, identifier, creator);
 
         /*
          * If the relation was not found in this atlas, return null. Additionally, we check to see
@@ -359,12 +372,12 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
          */
         if (relation == null)
         {
-            this.relationsCache.put(longIdentifier, NULL_PLACEHOLDER);
+            this.relationsCache.put(longIdentifier, NULL_PLACEHOLDER_RELATION);
             return null;
         }
         if (relation.members().isEmpty())
         {
-            this.relationsCache.put(longIdentifier, NULL_PLACEHOLDER);
+            this.relationsCache.put(longIdentifier, NULL_PLACEHOLDER_RELATION);
             return null;
         }
         this.relationsCache.put(longIdentifier, relation);
@@ -464,5 +477,22 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
             }
         }
         return null;
+    }
+
+    private <E> E getFromCacheOrCreate(Map<Long, E> cache, final Object lock,
+            final E nullPlaceholder, final Long identifier, final Supplier<E> creator)
+    {
+        cache = ChangeEntity.getOrCreateCache(cache, lock, ConcurrentHashMap::new);
+        final E result;
+        if (cache.containsKey(identifier))
+        {
+            result = cache.get(identifier);
+            result = result == nullPlaceholder ? null : result;
+        }
+        else
+        {
+            result = creator.apply(identifier);
+        }
+        return result;
     }
 }

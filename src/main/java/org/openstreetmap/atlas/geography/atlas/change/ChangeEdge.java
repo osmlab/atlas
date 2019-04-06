@@ -56,6 +56,7 @@ public class ChangeEdge extends Edge // NOSONAR
     @Override
     public Node end()
     {
+        return ChangeEntity.getOrCreateCache(fieldCache, lock, supplier);
         Node localEndNode = this.endNodeCache;
         if (localEndNode == null)
         {
@@ -92,26 +93,15 @@ public class ChangeEdge extends Edge // NOSONAR
     @Override
     public Set<Relation> relations()
     {
-        Set<Relation> localRelations = this.relationsCache;
-        if (localRelations == null)
-        {
-            synchronized (this.relationsCacheLock)
-            {
-                localRelations = this.relationsCache;
-                if (localRelations == null)
-                {
-                    localRelations = ChangeEntity.filterRelations(attribute(AtlasEntity::relations),
-                            getChangeAtlas());
-                    this.relationsCache = localRelations;
-                }
-            }
-        }
-        return localRelations;
+        return ChangeEntity.getOrCreateCache(this.relationsCache, this.relationsCacheLock,
+                () -> ChangeEntity.filterRelations(attribute(AtlasEntity::relations),
+                        getChangeAtlas()));
     }
 
     @Override
     public Node start()
     {
+        return ChangeEntity.getOrCreateCache(fieldCache, lock, supplier);
         Node localStartNode = this.startNodeCache;
         if (localStartNode == null)
         {

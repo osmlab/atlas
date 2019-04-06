@@ -77,6 +77,7 @@ public class ChangeNode extends Node // NOSONAR
     @Override
     public SortedSet<Edge> inEdges()
     {
+        return ChangeEntity.getOrCreateCache(fieldCache, lock, supplier);
         SortedSet<Edge> localInEdges = this.inEdgesCache;
         if (localInEdges == null)
         {
@@ -105,6 +106,7 @@ public class ChangeNode extends Node // NOSONAR
     @Override
     public SortedSet<Edge> outEdges()
     {
+        return ChangeEntity.getOrCreateCache(fieldCache, lock, supplier);
         SortedSet<Edge> localOutEdges = this.outEdgesCache;
         if (localOutEdges == null)
         {
@@ -126,21 +128,9 @@ public class ChangeNode extends Node // NOSONAR
     @Override
     public Set<Relation> relations()
     {
-        Set<Relation> localRelations = this.relationsCache;
-        if (localRelations == null)
-        {
-            synchronized (this.relationsCacheLock)
-            {
-                localRelations = this.relationsCache;
-                if (localRelations == null)
-                {
-                    localRelations = ChangeEntity.filterRelations(attribute(AtlasEntity::relations),
-                            getChangeAtlas());
-                    this.relationsCache = localRelations;
-                }
-            }
-        }
-        return localRelations;
+        return ChangeEntity.getOrCreateCache(this.relationsCache, this.relationsCacheLock,
+                () -> ChangeEntity.filterRelations(attribute(AtlasEntity::relations),
+                        getChangeAtlas()));
     }
 
     private <T extends Object> T attribute(final Function<Node, T> memberExtractor)
