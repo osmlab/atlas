@@ -511,12 +511,13 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
      *            relation with no members.
      * @return
      */
-    private <E> E getFromCacheOrCreate(Map<Long, E> cache, final Consumer<Map<Long, E>> cacheSetter,
-            final Object lock, final E nullPlaceholder, final Long identifier,
-            final Supplier<E> creator, final Optional<Predicate<E>> entityNullable)
+    private <E> E getFromCacheOrCreate(final Map<Long, E> cache,
+            final Consumer<Map<Long, E>> cacheSetter, final Object lock, final E nullPlaceholder,
+            final Long identifier, final Supplier<E> creator,
+            final Optional<Predicate<E>> entityNullable)
     {
         // Get or create the cache (in case it was null)
-        cache = ChangeEntity.getOrCreateCache(cache, cacheSetter, lock, ConcurrentHashMap::new);
+        ChangeEntity.getOrCreateCache(cache, cacheSetter, lock, ConcurrentHashMap::new);
         E result;
         if (cache.containsKey(identifier))
         {
