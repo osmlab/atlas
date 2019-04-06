@@ -28,6 +28,18 @@ public class ChangeEdge extends Edge // NOSONAR
     private final Edge source;
     private final Edge override;
 
+    // Computing Parent Relations is very expensive, so we cache it here.
+    private transient Set<Relation> relationsCache;
+    private transient Object relationsCacheLock = new Object();
+
+    // Computing Start Node is very expensive, so we cache it here.
+    private transient Node startNodeCache;
+    private transient Object startNodeCacheLock = new Object();
+
+    // Computing End Node is very expensive, so we cache it here.
+    private transient Node endNodeCache;
+    private transient Object endNodeCacheLock = new Object();
+
     protected ChangeEdge(final ChangeAtlas atlas, final Edge source, final Edge override)
     {
         super(atlas);
@@ -44,7 +56,20 @@ public class ChangeEdge extends Edge // NOSONAR
     @Override
     public Node end()
     {
-        return getChangeAtlas().node(endNodeIdentifier());
+        Node localEndNode = this.endNodeCache;
+        if (localEndNode == null)
+        {
+            synchronized (this.endNodeCacheLock)
+            {
+                localEndNode = this.endNodeCache;
+                if (localEndNode == null)
+                {
+                    localEndNode = getChangeAtlas().node(endNodeIdentifier());
+                    this.endNodeCache = localEndNode;
+                }
+            }
+        }
+        return localEndNode;
     }
 
     public long endNodeIdentifier()
@@ -67,13 +92,40 @@ public class ChangeEdge extends Edge // NOSONAR
     @Override
     public Set<Relation> relations()
     {
-        return ChangeEntity.filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+        Set<Relation> localRelations = this.relationsCache;
+        if (localRelations == null)
+        {
+            synchronized (this.relationsCacheLock)
+            {
+                localRelations = this.relationsCache;
+                if (localRelations == null)
+                {
+                    localRelations = ChangeEntity.filterRelations(attribute(AtlasEntity::relations),
+                            getChangeAtlas());
+                    this.relationsCache = localRelations;
+                }
+            }
+        }
+        return localRelations;
     }
 
     @Override
     public Node start()
     {
-        return getChangeAtlas().node(startNodeIdentifier());
+        Node localStartNode = this.startNodeCache;
+        if (localStartNode == null)
+        {
+            synchronized (this.startNodeCacheLock)
+            {
+                localStartNode = this.startNodeCache;
+                if (localStartNode == null)
+                {
+                    localStartNode = getChangeAtlas().node(startNodeIdentifier());
+                    this.startNodeCache = localStartNode;
+                }
+            }
+        }
+        return localStartNode;
     }
 
     public long startNodeIdentifier()

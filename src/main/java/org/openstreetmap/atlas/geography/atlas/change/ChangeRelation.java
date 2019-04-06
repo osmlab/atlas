@@ -35,6 +35,10 @@ public class ChangeRelation extends Relation // NOSONAR
     private transient RelationMemberList membersCache;
     private transient Object membersCacheLock = new Object();
 
+    // Computing Parent Relations is very expensive, so we cache it here.
+    private transient Set<Relation> relationsCache;
+    private transient Object relationsCacheLock = new Object();
+
     protected ChangeRelation(final ChangeAtlas atlas, final Relation source,
             final Relation override)
     {
@@ -72,13 +76,13 @@ public class ChangeRelation extends Relation // NOSONAR
     @Override
     public synchronized RelationMemberList members()
     {
-        RelationMemberList localmembers = this.membersCache;
-        if (localmembers == null)
+        RelationMemberList localMembers = this.membersCache;
+        if (localMembers == null)
         {
             synchronized (this.membersCacheLock)
             {
-                localmembers = this.membersCache;
-                if (localmembers == null)
+                localMembers = this.membersCache;
+                if (localMembers == null)
                 {
                     final List<RelationMemberList> availableMemberLists = allAvailableAttributes(
                             Relation::members);
@@ -94,12 +98,12 @@ public class ChangeRelation extends Relation // NOSONAR
                             filteredAndMergedMembersBean.addItem(relationBeanItem);
                         }
                     });
-                    localmembers = membersFor(filteredAndMergedMembersBean);
-                    this.membersCache = localmembers;
+                    localMembers = membersFor(filteredAndMergedMembersBean);
+                    this.membersCache = localMembers;
                 }
             }
         }
-        return localmembers;
+        return localMembers;
     }
 
     @Override
@@ -111,7 +115,21 @@ public class ChangeRelation extends Relation // NOSONAR
     @Override
     public Set<Relation> relations()
     {
-        return ChangeEntity.filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+        Set<Relation> localRelations = this.relationsCache;
+        if (localRelations == null)
+        {
+            synchronized (this.relationsCacheLock)
+            {
+                localRelations = this.relationsCache;
+                if (localRelations == null)
+                {
+                    localRelations = ChangeEntity.filterRelations(attribute(AtlasEntity::relations),
+                            getChangeAtlas());
+                    this.relationsCache = localRelations;
+                }
+            }
+        }
+        return localRelations;
     }
 
     private <T extends Object> List<T> allAvailableAttributes(

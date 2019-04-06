@@ -25,6 +25,10 @@ public class ChangePoint extends Point // NOSONAR
     private final Point source;
     private final Point override;
 
+    // Computing Parent Relations is very expensive, so we cache it here.
+    private transient Set<Relation> relationsCache;
+    private transient Object relationsCacheLock = new Object();
+
     protected ChangePoint(final ChangeAtlas atlas, final Point source, final Point override)
     {
         super(atlas);
@@ -53,7 +57,21 @@ public class ChangePoint extends Point // NOSONAR
     @Override
     public Set<Relation> relations()
     {
-        return ChangeEntity.filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+        Set<Relation> localRelations = this.relationsCache;
+        if (localRelations == null)
+        {
+            synchronized (this.relationsCacheLock)
+            {
+                localRelations = this.relationsCache;
+                if (localRelations == null)
+                {
+                    localRelations = ChangeEntity.filterRelations(attribute(AtlasEntity::relations),
+                            getChangeAtlas());
+                    this.relationsCache = localRelations;
+                }
+            }
+        }
+        return localRelations;
     }
 
     private <T extends Object> T attribute(final Function<Point, T> memberExtractor)

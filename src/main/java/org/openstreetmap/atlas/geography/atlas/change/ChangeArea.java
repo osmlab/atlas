@@ -26,6 +26,10 @@ public class ChangeArea extends Area // NOSONAR
     private final Area source;
     private final Area override;
 
+    // Computing Parent Relations is very expensive, so we cache it here.
+    private transient Set<Relation> relationsCache;
+    private transient Object relationsCacheLock = new Object();
+
     protected ChangeArea(final ChangeAtlas atlas, final Area source, final Area override)
     {
         super(atlas);
@@ -54,7 +58,21 @@ public class ChangeArea extends Area // NOSONAR
     @Override
     public Set<Relation> relations()
     {
-        return ChangeEntity.filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+        Set<Relation> localRelations = this.relationsCache;
+        if (localRelations == null)
+        {
+            synchronized (this.relationsCacheLock)
+            {
+                localRelations = this.relationsCache;
+                if (localRelations == null)
+                {
+                    localRelations = ChangeEntity.filterRelations(attribute(AtlasEntity::relations),
+                            getChangeAtlas());
+                    this.relationsCache = localRelations;
+                }
+            }
+        }
+        return localRelations;
     }
 
     private <T extends Object> T attribute(final Function<Area, T> memberExtractor)

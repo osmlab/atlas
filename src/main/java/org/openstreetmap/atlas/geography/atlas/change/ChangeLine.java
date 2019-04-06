@@ -26,6 +26,10 @@ public class ChangeLine extends Line // NOSONAR
     private final Line source;
     private final Line override;
 
+    // Computing Parent Relations is very expensive, so we cache it here.
+    private transient Set<Relation> relationsCache;
+    private transient Object relationsCacheLock = new Object();
+
     protected ChangeLine(final ChangeAtlas atlas, final Line source, final Line override)
     {
         super(atlas);
@@ -54,7 +58,21 @@ public class ChangeLine extends Line // NOSONAR
     @Override
     public Set<Relation> relations()
     {
-        return ChangeEntity.filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+        Set<Relation> localRelations = this.relationsCache;
+        if (localRelations == null)
+        {
+            synchronized (this.relationsCacheLock)
+            {
+                localRelations = this.relationsCache;
+                if (localRelations == null)
+                {
+                    localRelations = ChangeEntity.filterRelations(attribute(AtlasEntity::relations),
+                            getChangeAtlas());
+                    this.relationsCache = localRelations;
+                }
+            }
+        }
+        return localRelations;
     }
 
     private <T extends Object> T attribute(final Function<Line, T> memberExtractor)
