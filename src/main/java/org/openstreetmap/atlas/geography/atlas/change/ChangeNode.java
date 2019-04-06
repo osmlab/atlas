@@ -82,7 +82,8 @@ public class ChangeNode extends Node // NOSONAR
                 .map(edgeIdentifier -> getChangeAtlas().edge(edgeIdentifier))
                 .collect(Collectors.toCollection(TreeSet::new));
 
-        return ChangeEntity.getOrCreateCache(this.inEdgesCache, this.inEdgesCacheLock, creator);
+        return ChangeEntity.getOrCreateCache(this.inEdgesCache, cache -> this.inEdgesCache = cache,
+                this.inEdgesCacheLock, creator);
     }
 
     public SortedSet<Long> outEdgeIdentifiers()
@@ -99,7 +100,8 @@ public class ChangeNode extends Node // NOSONAR
                 .map(edgeIdentifier -> getChangeAtlas().edge(edgeIdentifier))
                 .collect(Collectors.toCollection(TreeSet::new));
 
-        return ChangeEntity.getOrCreateCache(this.outEdgesCache, this.outEdgesCacheLock, creator);
+        return ChangeEntity.getOrCreateCache(this.outEdgesCache,
+                cache -> this.outEdgesCache = cache, this.outEdgesCacheLock, creator);
     }
 
     @Override
@@ -107,7 +109,8 @@ public class ChangeNode extends Node // NOSONAR
     {
         final Supplier<Set<Relation>> creator = () -> ChangeEntity
                 .filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
-        return ChangeEntity.getOrCreateCache(this.relationsCache, this.relationsCacheLock, creator);
+        return ChangeEntity.getOrCreateCache(this.relationsCache,
+                cache -> this.relationsCache = cache, this.relationsCacheLock, creator);
     }
 
     private <T extends Object> T attribute(final Function<Node, T> memberExtractor)

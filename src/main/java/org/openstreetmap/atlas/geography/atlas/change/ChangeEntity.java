@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -110,13 +111,16 @@ public final class ChangeEntity
      *            The cached value type
      * @param fieldCache
      *            The cache
+     * @param cacheSetter
+     *            A function that will set the cache not null in case it was null.
      * @param lock
      *            The synchronization lock to access the cache
      * @param creator
      *            The original creator of the type if the cache does not contain it.
      * @return Either the cached value or the freshly created one.
      */
-    static <V> V getOrCreateCache(V fieldCache, final Object lock, final Supplier<V> creator)
+    static <V> V getOrCreateCache(final V fieldCache, final Consumer<V> cacheSetter,
+            final Object lock, final Supplier<V> creator)
     {
         V localRelationCache = fieldCache;
         if (localRelationCache == null)
@@ -126,8 +130,8 @@ public final class ChangeEntity
                 localRelationCache = fieldCache; // NOSONAR
                 if (localRelationCache == null) // NOSONAR
                 {
-                    fieldCache = creator.get();
-                    localRelationCache = fieldCache;
+                    localRelationCache = creator.get();
+                    cacheSetter.accept(localRelationCache);
                 }
             }
         }

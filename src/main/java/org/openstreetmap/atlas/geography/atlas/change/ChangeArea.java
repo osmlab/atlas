@@ -61,7 +61,8 @@ public class ChangeArea extends Area // NOSONAR
     {
         final Supplier<Set<Relation>> creator = () -> ChangeEntity
                 .filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
-        return ChangeEntity.getOrCreateCache(this.relationsCache, this.relationsCacheLock, creator);
+        return ChangeEntity.getOrCreateCache(this.relationsCache,
+                cache -> this.relationsCache = cache, this.relationsCacheLock, creator);
     }
 
     private <T extends Object> T attribute(final Function<Area, T> memberExtractor)

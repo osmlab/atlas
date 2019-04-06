@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.LongFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -177,8 +178,8 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
                 () -> this.source.area(identifier),
                 (sourceEntity, overrideEntity) -> new ChangeArea(this, (Area) sourceEntity,
                         (Area) overrideEntity));
-        return getFromCacheOrCreate(this.areasCache, this.areasCacheLock, NULL_PLACEHOLDER_AREA,
-                identifier, creator);
+        return getFromCacheOrCreate(this.areasCache, cache -> this.areasCache = cache,
+                this.areasCacheLock, NULL_PLACEHOLDER_AREA, identifier, creator);
     }
 
     @Override
@@ -215,8 +216,9 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
                 (sourceEntity, overrideEntity) -> new ChangeEdge(this, (Edge) sourceEntity,
                         (Edge) overrideEntity));
 
-        return getFromCacheOrCreate(this.edgesCache, this.edgesCacheLock, NULL_PLACEHOLDER_EDGE,
-                identifier, creator, Optional.of(nullableEdge));
+        return getFromCacheOrCreate(this.edgesCache, cache -> this.edgesCache = cache,
+                this.edgesCacheLock, NULL_PLACEHOLDER_EDGE, identifier, creator,
+                Optional.of(nullableEdge));
     }
 
     @Override
@@ -242,8 +244,8 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
                 () -> this.source.line(identifier),
                 (sourceEntity, overrideEntity) -> new ChangeLine(this, (Line) sourceEntity,
                         (Line) overrideEntity));
-        return getFromCacheOrCreate(this.linesCache, this.linesCacheLock, NULL_PLACEHOLDER_LINE,
-                identifier, creator);
+        return getFromCacheOrCreate(this.linesCache, cache -> this.linesCache = cache,
+                this.linesCacheLock, NULL_PLACEHOLDER_LINE, identifier, creator);
     }
 
     @Override
@@ -275,8 +277,8 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
                 () -> this.source.node(identifier),
                 (sourceEntity, overrideEntity) -> new ChangeNode(this, (Node) sourceEntity,
                         (Node) overrideEntity));
-        return getFromCacheOrCreate(this.nodesCache, this.nodesCacheLock, NULL_PLACEHOLDER_NODE,
-                identifier, creator);
+        return getFromCacheOrCreate(this.nodesCache, cache -> this.nodesCache = cache,
+                this.nodesCacheLock, NULL_PLACEHOLDER_NODE, identifier, creator);
     }
 
     @Override
@@ -352,8 +354,8 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
                 () -> this.source.point(identifier),
                 (sourceEntity, overrideEntity) -> new ChangePoint(this, (Point) sourceEntity,
                         (Point) overrideEntity));
-        return getFromCacheOrCreate(this.pointsCache, this.pointsCacheLock, NULL_PLACEHOLDER_POINT,
-                identifier, creator);
+        return getFromCacheOrCreate(this.pointsCache, cache -> this.pointsCache = cache,
+                this.pointsCacheLock, NULL_PLACEHOLDER_POINT, identifier, creator);
     }
 
     @Override
@@ -379,8 +381,9 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
                 (sourceEntity, overrideEntity) -> new ChangeRelation(this, (Relation) sourceEntity,
                         (Relation) overrideEntity));
 
-        return getFromCacheOrCreate(this.relationsCache, this.relationsCacheLock,
-                NULL_PLACEHOLDER_RELATION, identifier, creator, Optional.of(nullableRelation));
+        return getFromCacheOrCreate(this.relationsCache, cache -> this.relationsCache = cache,
+                this.relationsCacheLock, NULL_PLACEHOLDER_RELATION, identifier, creator,
+                Optional.of(nullableRelation));
     }
 
     @Override
@@ -478,10 +481,11 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
         return null;
     }
 
-    private <E> E getFromCacheOrCreate(final Map<Long, E> cache, final Object lock,
-            final E nullPlaceholder, final Long identifier, final Supplier<E> creator)
+    private <E> E getFromCacheOrCreate(final Map<Long, E> cache,
+            final Consumer<Map<Long, E>> cacheSetter, final Object lock, final E nullPlaceholder,
+            final Long identifier, final Supplier<E> creator)
     {
-        return getFromCacheOrCreate(cache, lock, nullPlaceholder, identifier, creator,
+        return getFromCacheOrCreate(cache, cacheSetter, lock, nullPlaceholder, identifier, creator,
                 Optional.empty());
     }
 
@@ -491,6 +495,8 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
      *            {@link ChangeNode}, etc.
      * @param cache
      *            The cache to use to retrieve the entity
+     * @param cacheSetter
+     *            A function that will set the cache not null in case it was null.
      * @param lock
      *            The synchronization lock used for that specific type
      * @param nullPlaceholder
@@ -505,12 +511,12 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
      *            relation with no members.
      * @return
      */
-    private <E> E getFromCacheOrCreate(Map<Long, E> cache, final Object lock,
-            final E nullPlaceholder, final Long identifier, final Supplier<E> creator,
-            final Optional<Predicate<E>> entityNullable)
+    private <E> E getFromCacheOrCreate(Map<Long, E> cache, final Consumer<Map<Long, E>> cacheSetter,
+            final Object lock, final E nullPlaceholder, final Long identifier,
+            final Supplier<E> creator, final Optional<Predicate<E>> entityNullable)
     {
         // Get or create the cache (in case it was null)
-        cache = ChangeEntity.getOrCreateCache(cache, lock, ConcurrentHashMap::new);
+        cache = ChangeEntity.getOrCreateCache(cache, cacheSetter, lock, ConcurrentHashMap::new);
         E result;
         if (cache.containsKey(identifier))
         {
@@ -526,6 +532,7 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
             {
                 // If the created object is null, or nullable, use the null placeholder
                 cache.put(identifier, nullPlaceholder);
+                result = null;
             }
             else
             {

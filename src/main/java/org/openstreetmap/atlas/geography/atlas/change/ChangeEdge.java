@@ -58,7 +58,8 @@ public class ChangeEdge extends Edge // NOSONAR
     public Node end()
     {
         final Supplier<Node> creator = () -> getChangeAtlas().node(endNodeIdentifier());
-        return ChangeEntity.getOrCreateCache(this.endNodeCache, this.endNodeCacheLock, creator);
+        return ChangeEntity.getOrCreateCache(this.endNodeCache, cache -> this.endNodeCache = cache,
+                this.endNodeCacheLock, creator);
     }
 
     public long endNodeIdentifier()
@@ -83,14 +84,16 @@ public class ChangeEdge extends Edge // NOSONAR
     {
         final Supplier<Set<Relation>> creator = () -> ChangeEntity
                 .filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
-        return ChangeEntity.getOrCreateCache(this.relationsCache, this.relationsCacheLock, creator);
+        return ChangeEntity.getOrCreateCache(this.relationsCache,
+                cache -> this.relationsCache = cache, this.relationsCacheLock, creator);
     }
 
     @Override
     public Node start()
     {
         final Supplier<Node> creator = () -> getChangeAtlas().node(startNodeIdentifier());
-        return ChangeEntity.getOrCreateCache(this.startNodeCache, this.startNodeCacheLock, creator);
+        return ChangeEntity.getOrCreateCache(this.startNodeCache,
+                cache -> this.startNodeCache = cache, this.startNodeCacheLock, creator);
     }
 
     public long startNodeIdentifier()
