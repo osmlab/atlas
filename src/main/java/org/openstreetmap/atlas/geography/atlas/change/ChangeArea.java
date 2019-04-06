@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.change;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
@@ -58,9 +59,9 @@ public class ChangeArea extends Area // NOSONAR
     @Override
     public Set<Relation> relations()
     {
-        return ChangeEntity.getOrCreateCache(this.relationsCache, this.relationsCacheLock,
-                () -> ChangeEntity.filterRelations(attribute(AtlasEntity::relations),
-                        getChangeAtlas()));
+        final Supplier<Set<Relation>> creator = () -> ChangeEntity
+                .filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+        return ChangeEntity.getOrCreateCache(this.relationsCache, this.relationsCacheLock, creator);
     }
 
     private <T extends Object> T attribute(final Function<Area, T> memberExtractor)

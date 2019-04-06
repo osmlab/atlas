@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.change;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -56,21 +57,8 @@ public class ChangeEdge extends Edge // NOSONAR
     @Override
     public Node end()
     {
-        return ChangeEntity.getOrCreateCache(fieldCache, lock, supplier);
-        Node localEndNode = this.endNodeCache;
-        if (localEndNode == null)
-        {
-            synchronized (this.endNodeCacheLock)
-            {
-                localEndNode = this.endNodeCache;
-                if (localEndNode == null)
-                {
-                    localEndNode = getChangeAtlas().node(endNodeIdentifier());
-                    this.endNodeCache = localEndNode;
-                }
-            }
-        }
-        return localEndNode;
+        final Supplier<Node> creator = () -> getChangeAtlas().node(endNodeIdentifier());
+        return ChangeEntity.getOrCreateCache(this.endNodeCache, this.endNodeCacheLock, creator);
     }
 
     public long endNodeIdentifier()
@@ -93,29 +81,16 @@ public class ChangeEdge extends Edge // NOSONAR
     @Override
     public Set<Relation> relations()
     {
-        return ChangeEntity.getOrCreateCache(this.relationsCache, this.relationsCacheLock,
-                () -> ChangeEntity.filterRelations(attribute(AtlasEntity::relations),
-                        getChangeAtlas()));
+        final Supplier<Set<Relation>> creator = () -> ChangeEntity
+                .filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+        return ChangeEntity.getOrCreateCache(this.relationsCache, this.relationsCacheLock, creator);
     }
 
     @Override
     public Node start()
     {
-        return ChangeEntity.getOrCreateCache(fieldCache, lock, supplier);
-        Node localStartNode = this.startNodeCache;
-        if (localStartNode == null)
-        {
-            synchronized (this.startNodeCacheLock)
-            {
-                localStartNode = this.startNodeCache;
-                if (localStartNode == null)
-                {
-                    localStartNode = getChangeAtlas().node(startNodeIdentifier());
-                    this.startNodeCache = localStartNode;
-                }
-            }
-        }
-        return localStartNode;
+        final Supplier<Node> creator = () -> getChangeAtlas().node(startNodeIdentifier());
+        return ChangeEntity.getOrCreateCache(this.startNodeCache, this.startNodeCacheLock, creator);
     }
 
     public long startNodeIdentifier()

@@ -105,7 +105,18 @@ public final class ChangeEntity
         return result;
     }
 
-    static <V> V getOrCreateCache(V fieldCache, final Object lock, final Supplier<V> supplier)
+    /**
+     * @param <V>
+     *            The cached value type
+     * @param fieldCache
+     *            The cache
+     * @param lock
+     *            The synchronization lock to access the cache
+     * @param creator
+     *            The original creator of the type if the cache does not contain it.
+     * @return Either the cached value or the freshly created one.
+     */
+    static <V> V getOrCreateCache(V fieldCache, final Object lock, final Supplier<V> creator)
     {
         V localRelationCache = fieldCache;
         if (localRelationCache == null)
@@ -115,7 +126,7 @@ public final class ChangeEntity
                 localRelationCache = fieldCache; // NOSONAR
                 if (localRelationCache == null) // NOSONAR
                 {
-                    fieldCache = supplier.get();
+                    fieldCache = creator.get();
                     localRelationCache = fieldCache;
                 }
             }

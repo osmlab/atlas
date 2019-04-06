@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
@@ -115,9 +116,9 @@ public class ChangeRelation extends Relation // NOSONAR
     @Override
     public Set<Relation> relations()
     {
-        return ChangeEntity.getOrCreateCache(this.relationsCache, this.relationsCacheLock,
-                () -> ChangeEntity.filterRelations(attribute(AtlasEntity::relations),
-                        getChangeAtlas()));
+        final Supplier<Set<Relation>> creator = () -> ChangeEntity
+                .filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+        return ChangeEntity.getOrCreateCache(this.relationsCache, this.relationsCacheLock, creator);
     }
 
     private <T extends Object> List<T> allAvailableAttributes(

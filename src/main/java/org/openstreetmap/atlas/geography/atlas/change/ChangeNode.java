@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.Location;
@@ -77,23 +78,11 @@ public class ChangeNode extends Node // NOSONAR
     @Override
     public SortedSet<Edge> inEdges()
     {
-        return ChangeEntity.getOrCreateCache(fieldCache, lock, supplier);
-        SortedSet<Edge> localInEdges = this.inEdgesCache;
-        if (localInEdges == null)
-        {
-            synchronized (this.inEdgesCacheLock)
-            {
-                localInEdges = this.inEdgesCache;
-                if (localInEdges == null)
-                {
-                    localInEdges = inEdgeIdentifiers().stream()
-                            .map(edgeIdentifier -> getChangeAtlas().edge(edgeIdentifier))
-                            .collect(Collectors.toCollection(TreeSet::new));
-                    this.inEdgesCache = localInEdges;
-                }
-            }
-        }
-        return localInEdges;
+        final Supplier<SortedSet<Edge>> creator = () -> inEdgeIdentifiers().stream()
+                .map(edgeIdentifier -> getChangeAtlas().edge(edgeIdentifier))
+                .collect(Collectors.toCollection(TreeSet::new));
+
+        return ChangeEntity.getOrCreateCache(this.inEdgesCache, this.inEdgesCacheLock, creator);
     }
 
     public SortedSet<Long> outEdgeIdentifiers()
@@ -106,31 +95,19 @@ public class ChangeNode extends Node // NOSONAR
     @Override
     public SortedSet<Edge> outEdges()
     {
-        return ChangeEntity.getOrCreateCache(fieldCache, lock, supplier);
-        SortedSet<Edge> localOutEdges = this.outEdgesCache;
-        if (localOutEdges == null)
-        {
-            synchronized (this.outEdgesCacheLock)
-            {
-                localOutEdges = this.outEdgesCache;
-                if (localOutEdges == null)
-                {
-                    localOutEdges = outEdgeIdentifiers().stream()
-                            .map(edgeIdentifier -> getChangeAtlas().edge(edgeIdentifier))
-                            .collect(Collectors.toCollection(TreeSet::new));
-                    this.outEdgesCache = localOutEdges;
-                }
-            }
-        }
-        return localOutEdges;
+        final Supplier<SortedSet<Edge>> creator = () -> outEdgeIdentifiers().stream()
+                .map(edgeIdentifier -> getChangeAtlas().edge(edgeIdentifier))
+                .collect(Collectors.toCollection(TreeSet::new));
+
+        return ChangeEntity.getOrCreateCache(this.outEdgesCache, this.outEdgesCacheLock, creator);
     }
 
     @Override
     public Set<Relation> relations()
     {
-        return ChangeEntity.getOrCreateCache(this.relationsCache, this.relationsCacheLock,
-                () -> ChangeEntity.filterRelations(attribute(AtlasEntity::relations),
-                        getChangeAtlas()));
+        final Supplier<Set<Relation>> creator = () -> ChangeEntity
+                .filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+        return ChangeEntity.getOrCreateCache(this.relationsCache, this.relationsCacheLock, creator);
     }
 
     private <T extends Object> T attribute(final Function<Node, T> memberExtractor)

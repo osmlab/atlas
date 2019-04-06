@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.LongFunction;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -42,11 +43,11 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     private static final long serialVersionUID = -5741815439928958165L;
     private static final ChangeRelation NULL_PLACEHOLDER_RELATION = new ChangeRelation(null, null,
             null);
-    private static final ChangeRelation NULL_PLACEHOLDER_NODE = new ChangeNode(null, null, null);
-    private static final ChangeRelation NULL_PLACEHOLDER_EDGE = new ChangeEdge(null, null, null);
-    private static final ChangeRelation NULL_PLACEHOLDER_AREA = new ChangeArea(null, null, null);
-    private static final ChangeRelation NULL_PLACEHOLDER_LINE = new ChangeLine(null, null, null);
-    private static final ChangeRelation NULL_PLACEHOLDER_POINT = new ChangePoint(null, null, null);
+    private static final ChangeNode NULL_PLACEHOLDER_NODE = new ChangeNode(null, null, null);
+    private static final ChangeEdge NULL_PLACEHOLDER_EDGE = new ChangeEdge(null, null, null);
+    private static final ChangeArea NULL_PLACEHOLDER_AREA = new ChangeArea(null, null, null);
+    private static final ChangeLine NULL_PLACEHOLDER_LINE = new ChangeLine(null, null, null);
+    private static final ChangePoint NULL_PLACEHOLDER_POINT = new ChangePoint(null, null, null);
 
     private final Change change;
     private final Atlas source;
@@ -172,9 +173,12 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     @Override
     public Area area(final long identifier)
     {
-        return entityFor(identifier, ItemType.AREA, () -> this.source.area(identifier),
+        final Supplier<ChangeArea> creator = () -> entityFor(identifier, ItemType.AREA,
+                () -> this.source.area(identifier),
                 (sourceEntity, overrideEntity) -> new ChangeArea(this, (Area) sourceEntity,
                         (Area) overrideEntity));
+        return getFromCacheOrCreate(this.areasCache, this.areasCacheLock, NULL_PLACEHOLDER_AREA,
+                identifier, creator);
     }
 
     @Override
@@ -198,24 +202,21 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     @Override
     public Edge edge(final long identifier)
     {
-        final Edge edge = entityFor(identifier, ItemType.EDGE, () -> this.source.edge(identifier),
-                (sourceEntity, overrideEntity) -> new ChangeEdge(this, (Edge) sourceEntity,
-                        (Edge) overrideEntity));
-
         /*
          * If the edge was not found in this atlas, return null. Additionally, we then check to see
          * if this edge is missing a start or end node (which may have been removed by a
          * FeatureChange). In this case, we also want to "remove" the edge by returning null.
          */
-        if (edge == null)
-        {
-            return null;
-        }
-        if (edge.start() == null || edge.end() == null)
-        {
-            return null;
-        }
-        return edge;
+        final Predicate<ChangeEdge> nullableEdge = edge -> edge.start() == null
+                || edge.end() == null;
+
+        final Supplier<ChangeEdge> creator = () -> entityFor(identifier, ItemType.EDGE,
+                () -> this.source.edge(identifier),
+                (sourceEntity, overrideEntity) -> new ChangeEdge(this, (Edge) sourceEntity,
+                        (Edge) overrideEntity));
+
+        return getFromCacheOrCreate(this.edgesCache, this.edgesCacheLock, NULL_PLACEHOLDER_EDGE,
+                identifier, creator, Optional.of(nullableEdge));
     }
 
     @Override
@@ -237,9 +238,12 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     @Override
     public Line line(final long identifier)
     {
-        return entityFor(identifier, ItemType.LINE, () -> this.source.line(identifier),
+        final Supplier<ChangeLine> creator = () -> entityFor(identifier, ItemType.LINE,
+                () -> this.source.line(identifier),
                 (sourceEntity, overrideEntity) -> new ChangeLine(this, (Line) sourceEntity,
                         (Line) overrideEntity));
+        return getFromCacheOrCreate(this.linesCache, this.linesCacheLock, NULL_PLACEHOLDER_LINE,
+                identifier, creator);
     }
 
     @Override
@@ -267,9 +271,12 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     @Override
     public Node node(final long identifier)
     {
-        return entityFor(identifier, ItemType.NODE, () -> this.source.node(identifier),
+        final Supplier<ChangeNode> creator = () -> entityFor(identifier, ItemType.NODE,
+                () -> this.source.node(identifier),
                 (sourceEntity, overrideEntity) -> new ChangeNode(this, (Node) sourceEntity,
                         (Node) overrideEntity));
+        return getFromCacheOrCreate(this.nodesCache, this.nodesCacheLock, NULL_PLACEHOLDER_NODE,
+                identifier, creator);
     }
 
     @Override
@@ -341,9 +348,12 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     @Override
     public Point point(final long identifier)
     {
-        return entityFor(identifier, ItemType.POINT, () -> this.source.point(identifier),
+        final Supplier<ChangePoint> creator = () -> entityFor(identifier, ItemType.POINT,
+                () -> this.source.point(identifier),
                 (sourceEntity, overrideEntity) -> new ChangePoint(this, (Point) sourceEntity,
                         (Point) overrideEntity));
+        return getFromCacheOrCreate(this.pointsCache, this.pointsCacheLock, NULL_PLACEHOLDER_POINT,
+                identifier, creator);
     }
 
     @Override
@@ -355,33 +365,22 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     @Override
     public Relation relation(final long identifier)
     {
-        final Long longIdentifier = identifier;
-
-        final Supplier<ChangeRelation> creator = () -> entityFor(identifier, ItemType.RELATION,
-                () -> this.source.relation(identifier),
-                (sourceEntity, overrideEntity) -> new ChangeRelation(this, (Relation) sourceEntity,
-                        (Relation) overrideEntity));
-        final ChangeRelation relation = getFromCacheOrCreate(this.relationsCache,
-                this.relationsCacheLock, NULL_PLACEHOLDER_RELATION, identifier, creator);
-
         /*
          * If the relation was not found in this atlas, return null. Additionally, we check to see
          * if the relation has no members. If so, it is considered empty and is dropped from the
          * atlas. This logic, combined with the logic in ChangeRelation.membersFor, will
          * automatically handle removing non-empty but shallow relations as well.
          */
-        if (relation == null)
-        {
-            this.relationsCache.put(longIdentifier, NULL_PLACEHOLDER_RELATION);
-            return null;
-        }
-        if (relation.members().isEmpty())
-        {
-            this.relationsCache.put(longIdentifier, NULL_PLACEHOLDER_RELATION);
-            return null;
-        }
-        this.relationsCache.put(longIdentifier, relation);
-        return relation;
+        final Predicate<ChangeRelation> nullableRelation = relationCandidate -> relationCandidate
+                .members().isEmpty();
+
+        final Supplier<ChangeRelation> creator = () -> entityFor(identifier, ItemType.RELATION,
+                () -> this.source.relation(identifier),
+                (sourceEntity, overrideEntity) -> new ChangeRelation(this, (Relation) sourceEntity,
+                        (Relation) overrideEntity));
+
+        return getFromCacheOrCreate(this.relationsCache, this.relationsCacheLock,
+                NULL_PLACEHOLDER_RELATION, identifier, creator, Optional.of(nullableRelation));
     }
 
     @Override
@@ -479,20 +478,61 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
         return null;
     }
 
-    private <E> E getFromCacheOrCreate(Map<Long, E> cache, final Object lock,
+    private <E> E getFromCacheOrCreate(final Map<Long, E> cache, final Object lock,
             final E nullPlaceholder, final Long identifier, final Supplier<E> creator)
     {
+        return getFromCacheOrCreate(cache, lock, nullPlaceholder, identifier, creator,
+                Optional.empty());
+    }
+
+    /**
+     * @param <E>
+     *            The type of the entity returned. Intended to be a {@link ChangeArea},
+     *            {@link ChangeNode}, etc.
+     * @param cache
+     *            The cache to use to retrieve the entity
+     * @param lock
+     *            The synchronization lock used for that specific type
+     * @param nullPlaceholder
+     *            What placeholder in the cache specifies a null object at some identifier
+     * @param identifier
+     *            The identifier to return
+     * @param creator
+     *            A {@link Supplier} that provides the correct object for the specified identifier
+     *            above
+     * @param entityNullable
+     *            A predicate that decides if a non null object should still return null. Example a
+     *            relation with no members.
+     * @return
+     */
+    private <E> E getFromCacheOrCreate(Map<Long, E> cache, final Object lock,
+            final E nullPlaceholder, final Long identifier, final Supplier<E> creator,
+            final Optional<Predicate<E>> entityNullable)
+    {
+        // Get or create the cache (in case it was null)
         cache = ChangeEntity.getOrCreateCache(cache, lock, ConcurrentHashMap::new);
-        final E result;
+        E result;
         if (cache.containsKey(identifier))
         {
+            // Retrieve an existing object
             result = cache.get(identifier);
             result = result == nullPlaceholder ? null : result;
         }
         else
         {
-            result = creator.apply(identifier);
+            // Create a new object
+            result = creator.get();
+            if (result == null || entityNullable.isPresent() && entityNullable.get().test(result))
+            {
+                // If the created object is null, or nullable, use the null placeholder
+                cache.put(identifier, nullPlaceholder);
+            }
+            else
+            {
+                cache.put(identifier, result);
+            }
         }
         return result;
     }
+
 }
