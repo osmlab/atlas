@@ -517,12 +517,13 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
             final Optional<Predicate<E>> entityNullable)
     {
         // Get or create the cache (in case it was null)
-        ChangeEntity.getOrCreateCache(cache, cacheSetter, lock, ConcurrentHashMap::new);
+        final Map<Long, E> cacheIn = ChangeEntity.getOrCreateCache(cache, cacheSetter, lock,
+                ConcurrentHashMap::new);
         E result;
-        if (cache.containsKey(identifier))
+        if (cacheIn.containsKey(identifier))
         {
             // Retrieve an existing object
-            result = cache.get(identifier);
+            result = cacheIn.get(identifier);
             result = result == nullPlaceholder ? null : result;
         }
         else
@@ -532,12 +533,12 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
             if (result == null || entityNullable.isPresent() && entityNullable.get().test(result))
             {
                 // If the created object is null, or nullable, use the null placeholder
-                cache.put(identifier, nullPlaceholder);
+                cacheIn.put(identifier, nullPlaceholder);
                 result = null;
             }
             else
             {
-                cache.put(identifier, result);
+                cacheIn.put(identifier, result);
             }
         }
         return result;
