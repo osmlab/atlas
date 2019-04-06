@@ -9,6 +9,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
@@ -40,11 +41,6 @@ public final class MemberMergeStrategies
     static final BinaryOperator<SortedSet<Long>> simpleLongSortedSetAllowCollisionsMerger = (left,
             right) -> Sets.withSortedSets(false, left, right);
 
-    /*
-     * TODO This should be removed since it relies on the explicityExcluded sets in RelationBean and
-     * RelationMemberList. Ideally, we will remove this redundant state from
-     * RelationBean/RelationMemberList. This will affect the non-diff-based merge logic.
-     */
     static final BinaryOperator<RelationBean> simpleRelationBeanMerger = RelationBean::merge;
 
     static final TernaryOperator<Long> diffBasedLongMerger = (beforeLong, afterLongLeft,
@@ -226,10 +222,11 @@ public final class MemberMergeStrategies
                 resultBean.addItem(resultKey);
             }
         }
-        /*
-         * TODO note we currently do not properly merge the explicitlyExcluded sets. The plan is to
-         * remove these sets. If we cannot find a way to do so, then we must merge them here.
-         */
+
+        Stream.concat(afterLeftBean.getExplicitlyExcluded().stream(),
+                afterRightBean.getExplicitlyExcluded().stream())
+                .forEach(resultBean::addItemExplicitlyExcluded);
+
         return resultBean;
     };
 

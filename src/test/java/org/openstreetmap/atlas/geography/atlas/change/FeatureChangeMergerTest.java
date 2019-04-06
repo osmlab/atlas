@@ -27,6 +27,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 
@@ -494,6 +495,72 @@ public class FeatureChangeMergerTest
 
         Assert.assertEquals(Sets.hashSet(1L, 2L, 3L), ((Point) merged.getBeforeView()).relations()
                 .stream().map(relation -> relation.getIdentifier()).collect(Collectors.toSet()));
+    }
+
+    @Test
+    public void testMergeRelationsExplicitlyExcludedSets()
+    {
+        /*
+         * This test uses the withMembersAndSource API in CompleteRelation to check that the
+         * explicitlyExcluded logic is properly computed and merged.
+         */
+        final RelationBean beforeMemberBean = new RelationBean();
+        beforeMemberBean.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        beforeMemberBean.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        beforeMemberBean.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        beforeMemberBean.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        final CompleteRelation beforeRelation = new CompleteRelation(123L,
+                Maps.hashMap("a", "1", "b", "2"), Rectangle.TEST_RECTANGLE, beforeMemberBean,
+                Arrays.asList(10L, 11L, 12L), null, 123456L, Sets.hashSet(1L, 2L, 3L));
+
+        /*
+         * Explicitly REMOVE [1, 'areaRole1', AREA] and [2, 'areaRole2', AREA].
+         */
+        final RelationMemberList updatedMembers1 = new RelationMemberList(
+                beforeRelation.members().stream()
+                        .filter(member -> !member.getRole().equals("areaRole1")
+                                && !member.getRole().equals("areaRole2"))
+                        .collect(Collectors.toList()));
+        final CompleteRelation afterRelation1 = CompleteRelation.shallowFrom(beforeRelation)
+                .withMembersAndSource(updatedMembers1.asBean(), beforeRelation,
+                        Rectangle.TEST_RECTANGLE);
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, afterRelation1,
+                beforeRelation);
+
+        /*
+         * Explicitly REMOVE [1, 'areaRole1', AREA] and [1, 'pointRole1', POINT].
+         */
+        final RelationMemberList updatedMembers2 = new RelationMemberList(
+                beforeRelation.members().stream()
+                        .filter(member -> !member.getRole().equals("areaRole1")
+                                && !member.getRole().equals("pointRole1"))
+                        .collect(Collectors.toList()));
+        final CompleteRelation afterRelation2 = CompleteRelation.shallowFrom(beforeRelation)
+                .withMembersAndSource(updatedMembers2.asBean(), beforeRelation,
+                        Rectangle.TEST_RECTANGLE);
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, afterRelation2,
+                beforeRelation);
+
+        /*
+         * The golden merged bean should only contain [2, 'pointRole2', POINT]. But its
+         * explicitlyExcluded set should contain [[1, 'areaRole1', AREA], [2, 'areaRole2', AREA],
+         * [1, 'pointRole1', POINT]]
+         */
+        final RelationBean goldenMergedMemberBean = new RelationBean();
+        goldenMergedMemberBean.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        goldenMergedMemberBean
+                .addItemExplicitlyExcluded(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        goldenMergedMemberBean
+                .addItemExplicitlyExcluded(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        goldenMergedMemberBean
+                .addItemExplicitlyExcluded(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+
+        /*
+         * Assert that the golden bean and the afterView bean are equivalent, including
+         */
+        final FeatureChange merged = featureChange1.merge(featureChange2);
+        Assert.assertTrue(goldenMergedMemberBean.equalsIncludingExplicitlyExcluded(
+                ((Relation) merged.getAfterView()).members().asBean()));
     }
 
     @Test
