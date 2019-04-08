@@ -106,11 +106,12 @@ public interface AtlasChangeGenerator extends Converter<Atlas, Set<FeatureChange
             return result;
         }
 
-        // Validate
         final ChangeBuilder builder = new ChangeBuilder();
         result.forEach(builder::add);
         final Change change = builder.get();
-        new ChangeAtlas(atlas, change);
+
+        // Validate
+        validate(atlas, change);
         // Return the already merged changes
         return change.changes().collect(Collectors.toSet());
     }
@@ -127,5 +128,10 @@ public interface AtlasChangeGenerator extends Converter<Atlas, Set<FeatureChange
     default String getName()
     {
         return this.getClass().getSimpleName();
+    }
+
+    default void validate(final Atlas source, final Change change)
+    {
+        new ChangeAtlas(source, change).validate();
     }
 }

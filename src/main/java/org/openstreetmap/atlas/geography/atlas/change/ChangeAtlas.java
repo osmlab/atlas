@@ -53,6 +53,7 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     private final Change change;
     private final Atlas source;
     private String name;
+    private boolean validated = false;
 
     private transient Rectangle bounds;
     private transient AtlasMetaData metaData;
@@ -119,7 +120,7 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
         this.change = Change.merge(changes);
         this.source = source;
         this.name = name == null || name.isEmpty() ? source.getName() : name;
-        new AtlasValidator(this).validate();
+        this.validate();
     }
 
     public ChangeAtlas(final Change... changes)
@@ -390,6 +391,15 @@ public class ChangeAtlas extends AbstractAtlas // NOSONAR
     public Iterable<Relation> relations()
     {
         return entitiesFor(ItemType.RELATION, this::relation, this.source.relations());
+    }
+
+    public void validate()
+    {
+        if (!this.validated)
+        {
+            new AtlasValidator(this).validate();
+            this.validated = true;
+        }
     }
 
     public ChangeAtlas withName(final String name)
