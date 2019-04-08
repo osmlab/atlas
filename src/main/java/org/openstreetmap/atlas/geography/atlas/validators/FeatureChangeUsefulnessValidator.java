@@ -35,11 +35,17 @@ public class FeatureChangeUsefulnessValidator
 
     public void validate()
     {
-        logger.info("Starting validation of FeatureChange {}", this.featureChange);
+        if (logger.isTraceEnabled())
+        {
+            logger.trace("Starting validation of FeatureChange {}", this.featureChange);
+        }
         final Time start = Time.now();
         validateFeatureChange();
-        logger.info("Finished validation of FeatureChange {} in {}", this.featureChange,
-                start.elapsedSince());
+        if (logger.isTraceEnabled())
+        {
+            logger.trace("Finished validation of FeatureChange {} in {}", this.featureChange,
+                    start.elapsedSince());
+        }
     }
 
     private void validateFeatureChange()
