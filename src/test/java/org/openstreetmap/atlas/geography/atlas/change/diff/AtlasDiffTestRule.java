@@ -390,6 +390,9 @@ public class AtlasDiffTestRule extends CoreTestRule
 
             },
 
+            points = {
+                    @Point(id = "5", coordinates = @Loc(value = FIVE), tags = { "tag1=value1" }), },
+
             lines = {
 
                     @Line(id = "12", coordinates = { @Loc(value = ONE), @Loc(value = TWO) })
@@ -400,7 +403,7 @@ public class AtlasDiffTestRule extends CoreTestRule
 
                     @Relation(id = "31", tags = { "type=relation" }, members = {
 
-                            @Member(id = "5", role = "a", type = "node"),
+                            @Member(id = "5", role = "a", type = "point"),
                             @Member(id = "7", role = "a", type = "node")
 
                     }),
