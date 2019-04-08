@@ -359,6 +359,12 @@ public class CompleteRelation extends Relation implements CompleteEntity
     public CompleteRelation withMembersAndSource(final RelationMemberList members,
             final Relation source)
     {
+        if (source instanceof CompleteRelation)
+        {
+            throw new CoreException(
+                    "This version of withMembersAndSource must use a source Relation that is tied to an atlas, instead found Relation of type {}",
+                    source.getClass().getName());
+        }
         return withMembersAndSource(members.asBean(), source, members.bounds());
     }
 
