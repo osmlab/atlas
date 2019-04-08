@@ -75,7 +75,7 @@ public class ChangeRelation extends Relation // NOSONAR
     }
 
     @Override
-    public synchronized RelationMemberList members()
+    public RelationMemberList members()
     {
         RelationMemberList localMembers = this.membersCache;
         if (localMembers == null)
