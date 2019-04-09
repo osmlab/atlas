@@ -77,34 +77,27 @@ public class ChangeRelation extends Relation // NOSONAR
     @Override
     public RelationMemberList members()
     {
-        RelationMemberList localMembers = this.membersCache;
-        if (localMembers == null)
+        final Supplier<RelationMemberList> creator = () ->
         {
-            synchronized (this.membersCacheLock)
+            final List<RelationMemberList> availableMemberLists = allAvailableAttributes(
+                    Relation::members);
+            final RelationBean mergedMembersBean = availableMemberLists.stream()
+                    .map(RelationMemberList::asBean)
+                    .reduce(new RelationBean(), RelationBean::merge);
+            final RelationBean filteredAndMergedMembersBean = new RelationBean();
+            mergedMembersBean.forEach(relationBeanItem ->
             {
-                localMembers = this.membersCache;
-                if (localMembers == null)
+                if (getChangeAtlas().entity(relationBeanItem.getIdentifier(),
+                        relationBeanItem.getType()) != null)
                 {
-                    final List<RelationMemberList> availableMemberLists = allAvailableAttributes(
-                            Relation::members);
-                    final RelationBean mergedMembersBean = availableMemberLists.stream()
-                            .map(RelationMemberList::asBean)
-                            .reduce(new RelationBean(), RelationBean::merge);
-                    final RelationBean filteredAndMergedMembersBean = new RelationBean();
-                    mergedMembersBean.forEach(relationBeanItem ->
-                    {
-                        if (getChangeAtlas().entity(relationBeanItem.getIdentifier(),
-                                relationBeanItem.getType()) != null)
-                        {
-                            filteredAndMergedMembersBean.addItem(relationBeanItem);
-                        }
-                    });
-                    localMembers = membersFor(filteredAndMergedMembersBean);
-                    this.membersCache = localMembers;
+                    filteredAndMergedMembersBean.addItem(relationBeanItem);
                 }
-            }
-        }
-        return localMembers;
+            });
+            return membersFor(filteredAndMergedMembersBean);
+        };
+
+        return ChangeEntity.getOrCreateCache(this.membersCache, cache -> this.membersCache = cache,
+                this.membersCacheLock, creator);
     }
 
     @Override
