@@ -326,7 +326,7 @@ public class FeatureChange implements Located, Serializable
 
     public ItemType getItemType()
     {
-        return ItemType.forEntity(getAfterView());
+        return getAfterView().getType();
     }
 
     /**
