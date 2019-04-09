@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
  * aid in command development, including some builtin options.
  *
  * @author lcram
+ * @author bbreithaupt
  */
 public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsMarkerInterface
 {
