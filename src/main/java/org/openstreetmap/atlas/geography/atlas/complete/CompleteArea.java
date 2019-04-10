@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
@@ -15,8 +17,9 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  * Independent {@link Area} that contains its own data. At scale, use at your own risk.
  *
  * @author matthieun
+ * @author Yazad Khambata
  */
-public class CompleteArea extends Area implements CompleteEntity
+public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
 {
     private static final long serialVersionUID = 309534717673911086L;
 
@@ -25,6 +28,31 @@ public class CompleteArea extends Area implements CompleteEntity
     private Polygon polygon;
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
+
+    private TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
+
+    CompleteArea(final long identifier)
+    {
+        this(identifier, null, null, null);
+    }
+
+    public CompleteArea(final Long identifier, final Polygon polygon,
+            final Map<String, String> tags, final Set<Long> relationIdentifiers)
+    {
+        super(new EmptyAtlas());
+
+        if (identifier == null)
+        {
+            throw new CoreException("Identifier can never be null.");
+        }
+
+        this.bounds = polygon != null ? polygon.bounds() : null;
+
+        this.identifier = identifier;
+        this.polygon = polygon;
+        this.tags = tags;
+        this.relationIdentifiers = relationIdentifiers;
+    }
 
     /**
      * Create a {@link CompleteArea} from a given {@link Area} reference. The {@link CompleteArea}'s
@@ -54,29 +82,6 @@ public class CompleteArea extends Area implements CompleteEntity
     public static CompleteArea shallowFrom(final Area area)
     {
         return new CompleteArea(area.getIdentifier()).withBoundsExtendedBy(area.bounds());
-    }
-
-    CompleteArea(final long identifier)
-    {
-        this(identifier, null, null, null);
-    }
-
-    public CompleteArea(final Long identifier, final Polygon polygon,
-            final Map<String, String> tags, final Set<Long> relationIdentifiers)
-    {
-        super(new EmptyAtlas());
-
-        if (identifier == null)
-        {
-            throw new CoreException("Identifier can never be null.");
-        }
-
-        this.bounds = polygon != null ? polygon.bounds() : null;
-
-        this.identifier = identifier;
-        this.polygon = polygon;
-        this.tags = tags;
-        this.relationIdentifiers = relationIdentifiers;
     }
 
     @Override
@@ -147,12 +152,6 @@ public class CompleteArea extends Area implements CompleteEntity
                 + this.relationIdentifiers + "]";
     }
 
-    @Override
-    public CompleteArea withAddedTag(final String key, final String value)
-    {
-        return withTags(CompleteEntity.addNewTag(getTags(), key, value));
-    }
-
     public CompleteArea withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)
@@ -194,22 +193,26 @@ public class CompleteArea extends Area implements CompleteEntity
     }
 
     @Override
-    public CompleteArea withRemovedTag(final String key)
+    public void addTagChangeListener(final TagChangeListener tagChangeListener)
     {
-        return withTags(CompleteEntity.removeTag(getTags(), key));
+        tagChangeDelegate.addTagChangeListener(tagChangeListener);
     }
 
     @Override
-    public CompleteArea withReplacedTag(final String oldKey, final String newKey,
-            final String newValue)
+    public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
     {
-        return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
+        tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
     }
 
     @Override
-    public CompleteArea withTags(final Map<String, String> tags)
+    public void removeTagChangeListeners()
+    {
+        tagChangeDelegate.removeTagChangeListeners();
+    }
+
+    @Override
+    public void setTags(final Map<String, String> tags)
     {
         this.tags = tags;
-        return this;
     }
 }

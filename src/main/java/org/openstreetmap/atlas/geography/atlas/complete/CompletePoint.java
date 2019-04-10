@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
@@ -15,8 +17,9 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  * Independent {@link Point} that contains its own data. At scale, use at your own risk.
  *
  * @author matthieun
+ * @author Yazad Khambata
  */
-public class CompletePoint extends Point implements CompleteLocationItem
+public class CompletePoint extends Point implements CompleteLocationItem<CompletePoint>
 {
     private static final long serialVersionUID = 309534717673911086L;
 
@@ -25,6 +28,8 @@ public class CompletePoint extends Point implements CompleteLocationItem
     private Location location;
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
+
+    private TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
      * Create a {@link CompletePoint} from a given {@link Point} reference. The
@@ -147,12 +152,6 @@ public class CompletePoint extends Point implements CompleteLocationItem
                 + this.relationIdentifiers + "]";
     }
 
-    @Override
-    public CompletePoint withAddedTag(final String key, final String value)
-    {
-        return withTags(CompleteEntity.addNewTag(getTags(), key, value));
-    }
-
     public CompletePoint withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)
@@ -195,22 +194,26 @@ public class CompletePoint extends Point implements CompleteLocationItem
     }
 
     @Override
-    public CompletePoint withRemovedTag(final String key)
+    public void addTagChangeListener(final TagChangeListener tagChangeListener)
     {
-        return withTags(CompleteEntity.removeTag(getTags(), key));
+        tagChangeDelegate.addTagChangeListener(tagChangeListener);
     }
 
     @Override
-    public CompletePoint withReplacedTag(final String oldKey, final String newKey,
-            final String newValue)
+    public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
     {
-        return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
+        tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
     }
 
     @Override
-    public CompletePoint withTags(final Map<String, String> tags)
+    public void removeTagChangeListeners()
+    {
+        tagChangeDelegate.removeTagChangeListeners();
+    }
+
+    @Override
+    public void setTags(final Map<String, String> tags)
     {
         this.tags = tags;
-        return this;
     }
 }

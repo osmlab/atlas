@@ -8,5 +8,5 @@ package org.openstreetmap.atlas.geography.atlas.change;
 public enum ChangeType
 {
     ADD,
-    REMOVE;
+    REMOVE
 }

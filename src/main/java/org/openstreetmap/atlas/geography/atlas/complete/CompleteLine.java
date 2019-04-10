@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
@@ -15,8 +17,9 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  * Independent {@link Line} that contains its own data. At scale, use at your own risk.
  *
  * @author matthieun
+ * @author Yazad Khambata
  */
-public class CompleteLine extends Line implements CompleteLineItem
+public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
 {
     private static final long serialVersionUID = 309534717673911086L;
 
@@ -25,6 +28,8 @@ public class CompleteLine extends Line implements CompleteLineItem
     private PolyLine polyLine;
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
+
+    private TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
      * Create a {@link CompleteLine} from a given {@link Line} reference. The {@link CompleteLine}'s
@@ -147,12 +152,6 @@ public class CompleteLine extends Line implements CompleteLineItem
                 + this.relationIdentifiers + "]";
     }
 
-    @Override
-    public CompleteLine withAddedTag(final String key, final String value)
-    {
-        return withTags(CompleteEntity.addNewTag(getTags(), key, value));
-    }
-
     public CompleteLine withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)
@@ -195,22 +194,26 @@ public class CompleteLine extends Line implements CompleteLineItem
     }
 
     @Override
-    public CompleteLine withRemovedTag(final String key)
+    public void addTagChangeListener(final TagChangeListener tagChangeListener)
     {
-        return withTags(CompleteEntity.removeTag(getTags(), key));
+        tagChangeDelegate.addTagChangeListener(tagChangeListener);
     }
 
     @Override
-    public CompleteLine withReplacedTag(final String oldKey, final String newKey,
-            final String newValue)
+    public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
     {
-        return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
+        tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
     }
 
     @Override
-    public CompleteLine withTags(final Map<String, String> tags)
+    public void removeTagChangeListeners()
+    {
+        tagChangeDelegate.removeTagChangeListeners();
+    }
+
+    @Override
+    public void setTags(final Map<String, String> tags)
     {
         this.tags = tags;
-        return this;
     }
 }

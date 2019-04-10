@@ -12,6 +12,8 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
@@ -22,8 +24,9 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
  * Independent {@link Relation} that contains its own data. At scale, use at your own risk.
  *
  * @author matthieun
+ * @author Yazad Khambata
  */
-public class CompleteRelation extends Relation implements CompleteEntity
+public class CompleteRelation extends Relation implements CompleteEntity<CompleteRelation>
 {
     private static final long serialVersionUID = -8295865049110084558L;
 
@@ -35,6 +38,8 @@ public class CompleteRelation extends Relation implements CompleteEntity
     private RelationBean allKnownOsmMembers;
     private Long osmRelationIdentifier;
     private Set<Long> relationIdentifiers;
+
+    private TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
      * Create a {@link CompleteRelation} from a given {@link Relation} reference. The
@@ -207,12 +212,6 @@ public class CompleteRelation extends Relation implements CompleteEntity
                 + this.relationIdentifiers + "]";
     }
 
-    @Override
-    public CompleteRelation withAddedTag(final String key, final String value)
-    {
-        return withTags(CompleteEntity.addNewTag(getTags(), key, value));
-    }
-
     public CompleteRelation withAllKnownOsmMembers(final RelationBean allKnownOsmMembers)
     {
         this.allKnownOsmMembers = allKnownOsmMembers;
@@ -383,26 +382,6 @@ public class CompleteRelation extends Relation implements CompleteEntity
         return this;
     }
 
-    @Override
-    public CompleteRelation withRemovedTag(final String key)
-    {
-        return withTags(CompleteEntity.removeTag(getTags(), key));
-    }
-
-    @Override
-    public CompleteRelation withReplacedTag(final String oldKey, final String newKey,
-            final String newValue)
-    {
-        return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
-    }
-
-    @Override
-    public CompleteRelation withTags(final Map<String, String> tags)
-    {
-        this.tags = tags;
-        return this;
-    }
-
     private RelationMemberList membersFor(final RelationBean bean)
     {
         if (bean == null)
@@ -423,5 +402,29 @@ public class CompleteRelation extends Relation implements CompleteEntity
     private void updateBounds(final Rectangle bounds)
     {
         this.bounds = bounds;
+    }
+
+    @Override
+    public void addTagChangeListener(final TagChangeListener tagChangeListener)
+    {
+        tagChangeDelegate.addTagChangeListener(tagChangeListener);
+    }
+
+    @Override
+    public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
+    {
+        tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
+    }
+
+    @Override
+    public void removeTagChangeListeners()
+    {
+        tagChangeDelegate.removeTagChangeListeners();
+    }
+
+    @Override
+    public void setTags(final Map tags)
+    {
+        this.tags = tags;
     }
 }

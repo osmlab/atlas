@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -16,8 +18,9 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  * Independent {@link Edge} that contains its own data. At scale, use at your own risk.
  *
  * @author matthieun
+ * @author Yazad Khambata
  */
-public class CompleteEdge extends Edge implements CompleteLineItem
+public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
 {
     private static final long serialVersionUID = 309534717673911086L;
 
@@ -28,6 +31,8 @@ public class CompleteEdge extends Edge implements CompleteLineItem
     private Long startNodeIdentifier;
     private Long endNodeIdentifier;
     private Set<Long> relationIdentifiers;
+
+    private TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
      * Create a {@link CompleteEdge} from a given {@link Edge} reference. The {@link CompleteEdge}'s
@@ -180,12 +185,6 @@ public class CompleteEdge extends Edge implements CompleteLineItem
                 + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
-    @Override
-    public CompleteEdge withAddedTag(final String key, final String value)
-    {
-        return withTags(CompleteEntity.addNewTag(getTags(), key, value));
-    }
-
     public CompleteEdge withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)
@@ -233,19 +232,6 @@ public class CompleteEdge extends Edge implements CompleteLineItem
         return this;
     }
 
-    @Override
-    public CompleteEdge withRemovedTag(final String key)
-    {
-        return withTags(CompleteEntity.removeTag(getTags(), key));
-    }
-
-    @Override
-    public CompleteEdge withReplacedTag(final String oldKey, final String newKey,
-            final String newValue)
-    {
-        return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
-    }
-
     public CompleteEdge withStartNodeIdentifier(final Long startNodeIdentifier)
     {
         this.startNodeIdentifier = startNodeIdentifier;
@@ -253,9 +239,26 @@ public class CompleteEdge extends Edge implements CompleteLineItem
     }
 
     @Override
-    public CompleteEdge withTags(final Map<String, String> tags)
+    public void addTagChangeListener(final TagChangeListener tagChangeListener)
+    {
+        tagChangeDelegate.addTagChangeListener(tagChangeListener);
+    }
+
+    @Override
+    public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
+    {
+        tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
+    }
+
+    @Override
+    public void removeTagChangeListeners()
+    {
+        tagChangeDelegate.removeTagChangeListeners();
+    }
+
+    @Override
+    public void setTags(final Map<String, String> tags)
     {
         this.tags = tags;
-        return this;
     }
 }

@@ -6,7 +6,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listenable.TagChangeListenable;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -15,15 +19,18 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.tags.Taggable;
 
 /**
  * Simple interface for all the Complete entities. As each one extends its parent class already
  * (Node, Edge, Area, ...) this cannot be an abstract class.
  *
+ * @param <C> - the {@link CompleteEntity} implementation.
+ *
  * @author matthieun
  * @author Yazad Khambata
  */
-public interface CompleteEntity
+public interface CompleteEntity<C extends CompleteEntity> extends TagChangeListenable, Taggable
 {
     static Map<String, String> addNewTag(final Map<String, String> tags, final String key,
             final String value)
@@ -143,6 +150,69 @@ public interface CompleteEntity
         }
     }
 
+    static <C extends CompleteEntity<C>> C withAddedTag(final C completeEntityParam,
+            final String key, final String value, final boolean suppressFiringEvent)
+    {
+        C completeEntity = completeEntityParam;
+        completeEntity = CompleteEntity.withTags(completeEntity,
+                CompleteEntity.addNewTag(completeEntity.getTags(), key, value), true);
+
+        if (!suppressFiringEvent)
+        {
+            completeEntity.fireTagChangeEvent(TagChangeEvent.added(CompleteItemType.AREA,
+                    completeEntity.getIdentifier(), Pair.of(key, value)));
+        }
+
+        return completeEntity;
+    }
+
+    static <C extends CompleteEntity<C>> C withRemovedTag(final C completeEntityParam,
+            final String key, final boolean suppressFiringEvent)
+    {
+        C completeEntity = completeEntityParam;
+        completeEntity = CompleteEntity.withTags(completeEntity,
+                CompleteEntity.removeTag(completeEntity.getTags(), key), true);
+
+        if (!suppressFiringEvent)
+        {
+            completeEntity.fireTagChangeEvent(TagChangeEvent.remove(CompleteItemType.AREA,
+                    completeEntity.getIdentifier(), key));
+        }
+
+        return completeEntity;
+    }
+
+    static <C extends CompleteEntity<C>> C withReplacedTag(final C completeEntityParam,
+            final String oldKey, final String newKey, final String newValue,
+            final boolean suppressFiringEvent)
+    {
+        C completeEntity = completeEntityParam;
+        completeEntity = CompleteEntity.withRemovedTag(completeEntity, oldKey, true);
+        completeEntity = CompleteEntity.withAddedTag(completeEntity, newKey, newValue, true);
+
+        if (!suppressFiringEvent)
+        {
+            completeEntity.fireTagChangeEvent(TagChangeEvent.replaced(CompleteItemType.AREA,
+                    completeEntity.getIdentifier(), Triple.of(oldKey, newKey, newValue)));
+        }
+
+        return completeEntity;
+    }
+
+    static <C extends CompleteEntity<C>> C withTags(C completeEntity,
+            final Map<String, String> tags, final boolean suppressFiringEvent)
+    {
+        completeEntity.setTags(tags);
+
+        if (!suppressFiringEvent)
+        {
+            completeEntity.fireTagChangeEvent(TagChangeEvent.overwrite(CompleteItemType.AREA,
+                    completeEntity.getIdentifier(), tags));
+        }
+
+        return completeEntity;
+    }
+
     long getIdentifier();
 
     /**
@@ -152,17 +222,31 @@ public interface CompleteEntity
      */
     boolean isShallow();
 
-    CompleteEntity withAddedTag(String key, String value);
-
     CompleteEntity withIdentifier(long identifier);
 
     CompleteEntity withRelationIdentifiers(Set<Long> relationIdentifiers);
 
     CompleteEntity withRelations(Set<Relation> relations);
 
-    CompleteEntity withRemovedTag(String key);
+    default C withAddedTag(final String key, final String value)
+    {
+        return (C) CompleteEntity.withAddedTag((C) this, key, value, false);
+    }
 
-    CompleteEntity withReplacedTag(String oldKey, String newKey, String newValue);
+    default C withRemovedTag(final String key)
+    {
+        return (C) CompleteEntity.withRemovedTag((C) this, key, false);
+    }
 
-    CompleteEntity withTags(Map<String, String> tags);
+    default C withReplacedTag(final String oldKey, final String newKey, final String newValue)
+    {
+        return (C) CompleteEntity.withReplacedTag((C) this, oldKey, newKey, newValue, false);
+    }
+
+    default C withTags(final Map<String, String> tags)
+    {
+        return (C) CompleteEntity.withTags((C) this, tags, false);
+    }
+
+    void setTags(Map<String, String> tags);
 }

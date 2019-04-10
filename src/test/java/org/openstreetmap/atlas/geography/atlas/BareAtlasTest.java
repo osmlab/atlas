@@ -14,6 +14,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.changeset.BinaryChangeSetDeserializer;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -26,6 +27,8 @@ import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 import com.google.gson.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author matthieun
@@ -39,6 +42,8 @@ public class BareAtlasTest
     @Rule
     public ExpectedException testGetEntitiesWithWrongTypeSpecifiedException = ExpectedException
             .none();
+
+    private static final Logger log = LoggerFactory.getLogger(BareAtlasTest.class);
 
     @Test
     public void testGetEntitiesWithTypeSpecified()
@@ -113,6 +118,9 @@ public class BareAtlasTest
             };
             atlas.saveAsLineDelimitedGeoJsonFeatures(stringResource, jsonMutator);
             final String text = stringResource.writtenString();
+
+            log.info("{}", correctText);
+            log.info("{}", text);
 
             Assert.assertEquals(correctText, text);
 

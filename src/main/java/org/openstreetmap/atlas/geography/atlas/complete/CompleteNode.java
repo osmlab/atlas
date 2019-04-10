@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -18,8 +20,9 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  * Independent {@link Node} that may contain its own altered data. At scale, use at your own risk.
  *
  * @author matthieun
+ * @author Yazad Khambata
  */
-public class CompleteNode extends Node implements CompleteLocationItem
+public class CompleteNode extends Node implements CompleteLocationItem<CompleteNode>
 {
     private static final long serialVersionUID = -8229589987121555419L;
 
@@ -30,6 +33,8 @@ public class CompleteNode extends Node implements CompleteLocationItem
     private SortedSet<Long> inEdgeIdentifiers;
     private SortedSet<Long> outEdgeIdentifiers;
     private Set<Long> relationIdentifiers;
+
+    private TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
      * Create a {@link CompleteNode} from a given {@link Node} reference. The {@link CompleteNode}'s
@@ -188,12 +193,6 @@ public class CompleteNode extends Node implements CompleteLocationItem
                 + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
-    @Override
-    public CompleteNode withAddedTag(final String key, final String value)
-    {
-        return withTags(CompleteEntity.addNewTag(getTags(), key, value));
-    }
-
     public CompleteNode withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)
@@ -300,22 +299,26 @@ public class CompleteNode extends Node implements CompleteLocationItem
     }
 
     @Override
-    public CompleteNode withRemovedTag(final String key)
+    public void addTagChangeListener(final TagChangeListener tagChangeListener)
     {
-        return withTags(CompleteEntity.removeTag(getTags(), key));
+        tagChangeDelegate.addTagChangeListener(tagChangeListener);
     }
 
     @Override
-    public CompleteNode withReplacedTag(final String oldKey, final String newKey,
-            final String newValue)
+    public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
     {
-        return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
+        tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
     }
 
     @Override
-    public CompleteNode withTags(final Map<String, String> tags)
+    public void removeTagChangeListeners()
+    {
+        tagChangeDelegate.removeTagChangeListeners();
+    }
+
+    @Override
+    public void setTags(final Map<String, String> tags)
     {
         this.tags = tags;
-        return this;
     }
 }
