@@ -39,7 +39,7 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     private Long osmRelationIdentifier;
     private Set<Long> relationIdentifiers;
 
-    private TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
+    //private TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
      * Create a {@link CompleteRelation} from a given {@link Relation} reference. The
@@ -413,19 +413,19 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     @Override
     public void addTagChangeListener(final TagChangeListener tagChangeListener)
     {
-        tagChangeDelegate.addTagChangeListener(tagChangeListener);
+        //tagChangeDelegate.addTagChangeListener(tagChangeListener);
     }
 
     @Override
     public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
     {
-        tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
+        //tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
     }
 
     @Override
     public void removeTagChangeListeners()
     {
-        tagChangeDelegate.removeTagChangeListeners();
+        //tagChangeDelegate.removeTagChangeListeners();
     }
 
     @Override

@@ -101,7 +101,7 @@ public class BareAtlasTest
                         .map(relation -> relation.getIdentifier()).collectToList());
     }
 
-    // @Test
+    @Test
     public void testSaveAsLineDelimitedGeoJsonFeatures() throws IOException
     {
         final InputStream inputStream = BareAtlasTest.class
