@@ -23,20 +23,7 @@ public class CompleteNode extends Node implements CompleteLocationItem
 {
     private static final long serialVersionUID = -8229589987121555419L;
 
-    /*
-     * We need to store the original entity bounds at creation-time. This is so multiple consecutive
-     * with(Located) calls can update the aggregate bounds without including the bounds from the
-     * overwritten change.
-     */
-    private Rectangle originalBounds;
-
-    /*
-     * This is the aggregate feature bounds. It is a super-bound of the original bounds and the
-     * changed bounds, if present. Each time with(Located) is called on this entity, it is
-     * recomputed from the original bounds and the new Located bounds.
-     */
-    private Rectangle aggregateBounds;
-
+    private Rectangle bounds;
     private long identifier;
     private Location location;
     private Map<String, String> tags;
@@ -45,11 +32,13 @@ public class CompleteNode extends Node implements CompleteLocationItem
     private Set<Long> relationIdentifiers;
 
     /**
-     * Create a full copy of the given node.
+     * Create a {@link CompleteNode} from a given {@link Node} reference. The {@link CompleteNode}'s
+     * fields will match the fields of the reference. The returned {@link CompleteNode} will be
+     * full, i.e. all of its associated fields will be non-null.
      *
      * @param node
-     *            the {@link Node} to deep copy
-     * @return the new {@link CompleteNode}
+     *            the {@link Node} to copy
+     * @return the full {@link CompleteNode}
      */
     public static CompleteNode from(final Node node)
     {
@@ -62,17 +51,18 @@ public class CompleteNode extends Node implements CompleteLocationItem
     }
 
     /**
-     * Create a shallow copy of a given node. All fields (except the identifier and the geometry)
-     * are left null until updated by a with() call.
+     * Create a shallow {@link CompleteNode} from a given {@link Node} reference. The
+     * {@link CompleteNode}'s identifier will match the identifier of the reference {@link Node}.
+     * The returned {@link CompleteNode} will be shallow, i.e. all of its associated fields will be
+     * null except for the identifier.
      *
      * @param node
      *            the {@link Node} to copy
-     * @return the new {@link CompleteNode}
+     * @return the shallow {@link CompleteNode}
      */
     public static CompleteNode shallowFrom(final Node node)
     {
-        return new CompleteNode(node.getIdentifier())
-                .withInitialBounds(node.getLocation().bounds());
+        return new CompleteNode(node.getIdentifier()).withBoundsExtendedBy(node.bounds());
     }
 
     CompleteNode(final long identifier)
@@ -91,8 +81,7 @@ public class CompleteNode extends Node implements CompleteLocationItem
             throw new CoreException("Identifier can never be null.");
         }
 
-        this.originalBounds = location != null ? location.bounds() : null;
-        this.aggregateBounds = this.originalBounds;
+        this.bounds = location != null ? location.bounds() : null;
 
         this.identifier = identifier;
         this.location = location;
@@ -105,7 +94,7 @@ public class CompleteNode extends Node implements CompleteLocationItem
     @Override
     public Rectangle bounds()
     {
-        return this.aggregateBounds;
+        return this.bounds;
     }
 
     @Override
@@ -149,13 +138,17 @@ public class CompleteNode extends Node implements CompleteLocationItem
     @Override
     public SortedSet<Edge> inEdges()
     {
+        /*
+         * Note that the Edges returned by this method will technically break the Located contract,
+         * since they have null bounds.
+         */
         return this.inEdgeIdentifiers == null ? null
                 : this.inEdgeIdentifiers.stream().map(CompleteEdge::new)
                         .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
-    public boolean isSuperShallow()
+    public boolean isShallow()
     {
         return this.location == null && this.inEdgeIdentifiers == null
                 && this.outEdgeIdentifiers == null && this.tags == null
@@ -165,6 +158,10 @@ public class CompleteNode extends Node implements CompleteLocationItem
     @Override
     public SortedSet<Edge> outEdges()
     {
+        /*
+         * Note that the Edges returned by this method will technically break the Located contract,
+         * since they have null bounds.
+         */
         return this.outEdgeIdentifiers == null ? null
                 : this.outEdgeIdentifiers.stream().map(CompleteEdge::new)
                         .collect(Collectors.toCollection(TreeSet::new));
@@ -173,6 +170,10 @@ public class CompleteNode extends Node implements CompleteLocationItem
     @Override
     public Set<Relation> relations()
     {
+        /*
+         * Note that the Relations returned by this method will technically break the Located
+         * contract, since they have null bounds.
+         */
         return this.relationIdentifiers == null ? null
                 : this.relationIdentifiers.stream().map(CompleteRelation::new)
                         .collect(Collectors.toSet());
@@ -193,13 +194,14 @@ public class CompleteNode extends Node implements CompleteLocationItem
         return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
-    public CompleteNode withAggregateBoundsExtendedUsing(final Rectangle bounds)
+    public CompleteNode withBoundsExtendedBy(final Rectangle bounds)
     {
-        if (this.aggregateBounds == null)
+        if (this.bounds == null)
         {
-            this.aggregateBounds = bounds;
+            this.bounds = bounds;
+            return this;
         }
-        this.aggregateBounds = Rectangle.forLocated(this.aggregateBounds, bounds);
+        this.bounds = Rectangle.forLocated(this.bounds, bounds);
         return this;
     }
 
@@ -242,14 +244,11 @@ public class CompleteNode extends Node implements CompleteLocationItem
         return this;
     }
 
+    @Override
     public CompleteNode withLocation(final Location location)
     {
         this.location = location;
-        if (this.originalBounds == null)
-        {
-            this.originalBounds = location.bounds();
-        }
-        this.aggregateBounds = Rectangle.forLocated(this.originalBounds, location.bounds());
+        this.bounds = location.bounds();
         return this;
     }
 
@@ -317,13 +316,6 @@ public class CompleteNode extends Node implements CompleteLocationItem
     public CompleteNode withTags(final Map<String, String> tags)
     {
         this.tags = tags;
-        return this;
-    }
-
-    private CompleteNode withInitialBounds(final Rectangle bounds)
-    {
-        this.originalBounds = bounds;
-        this.aggregateBounds = bounds;
         return this;
     }
 }

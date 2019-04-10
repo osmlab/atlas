@@ -25,15 +25,15 @@ public class ChangeTest extends AbstractChangeTest
     }
 
     @Test
-    public void testAddSameIdentifier()
+    public void testAddRemoveSameIdentifier()
     {
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("Cannot merge two feature changes");
 
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(TEST_IDENTIFIER, null, Maps.hashMap(), null));
+                new CompleteArea(TEST_IDENTIFIER, Polygon.CENTER, Maps.hashMap(), null));
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.REMOVE,
-                new CompleteArea(TEST_IDENTIFIER, null, null, null));
+                new CompleteArea(TEST_IDENTIFIER, Polygon.CENTER, null, null));
         final ChangeBuilder builder = new ChangeBuilder();
         builder.add(featureChange1);
         builder.add(featureChange2);
@@ -44,7 +44,7 @@ public class ChangeTest extends AbstractChangeTest
     {
         final Change result = newChangeWith2Areas();
         final FeatureChange merged = result.changeFor(ItemType.AREA, TEST_IDENTIFIER).get();
-        final Area area = (Area) merged.getReference();
+        final Area area = (Area) merged.getAfterView();
         Assert.assertEquals(Polygon.TEST_BUILDING, area.asPolygon());
         Assert.assertEquals(Maps.hashMap("key", "value"), area.getTags());
     }

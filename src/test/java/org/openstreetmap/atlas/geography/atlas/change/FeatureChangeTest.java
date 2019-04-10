@@ -1,8 +1,11 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Set;
+import java.util.SortedSet;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -21,13 +24,7 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
-import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
-import org.openstreetmap.atlas.geography.atlas.items.LineItem;
-import org.openstreetmap.atlas.geography.atlas.items.LocationItem;
-import org.openstreetmap.atlas.geography.atlas.items.Node;
-import org.openstreetmap.atlas.geography.atlas.items.Relation;
-import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 
@@ -40,279 +37,147 @@ public class FeatureChangeTest
     public final ExpectedException expectedException = ExpectedException.none();
 
     @Test
-    public void testAreaSuperShallow()
-    {
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("does not contain anything useful.");
-
-        new FeatureChange(ChangeType.ADD, new CompleteArea(123L, null, null, null));
-    }
-
-    @Test
-    public void testEdgeSuperShallow()
-    {
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("does not contain anything useful.");
-
-        new FeatureChange(ChangeType.ADD, new CompleteEdge(123L, null, null, null, null, null));
-    }
-
-    @Test
-    public void testLineSuperShallow()
-    {
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("does not contain anything useful.");
-
-        new FeatureChange(ChangeType.ADD, new CompleteLine(123L, null, null, null));
-    }
-
-    @Test
-    public void testMergeAddRemove()
-    {
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("Cannot merge two feature changes");
-
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompletePoint(123L, null, Maps.hashMap(), null));
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.REMOVE,
-                new CompletePoint(123L, null, null, null));
-        featureChange1.merge(featureChange2);
-    }
-
-    @Test
-    public void testMergeDifferentType()
-    {
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("Cannot merge two feature changes");
-
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompletePoint(123L, null, Maps.hashMap(), null));
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L, null, Maps.hashMap(), null));
-        featureChange1.merge(featureChange2);
-    }
-
-    @Test
-    public void testMergeLocationCollision()
-    {
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("Cannot merge two feature changes");
-
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompletePoint(123L, Location.COLOSSEUM, null, null));
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
-                new CompletePoint(123L, Location.EIFFEL_TOWER, null, null));
-        featureChange1.merge(featureChange2);
-    }
-
-    @Test
-    public void testMergeLocations()
+    public void testAfterViewIsFull()
     {
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompletePoint(123L, Location.COLOSSEUM, null, null));
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
-                new CompletePoint(123L, Location.COLOSSEUM, null, null));
-        Assert.assertEquals(Location.COLOSSEUM,
-                ((LocationItem) featureChange1.merge(featureChange2).getReference()).getLocation());
+                new CompleteArea(123L, Polygon.SILICON_VALLEY, null, null));
+        Assert.assertFalse(featureChange1.afterViewIsFull());
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, new CompleteArea(
+                123L, Polygon.SILICON_VALLEY, Maps.hashMap("key1", "value2"), Sets.hashSet(123L)));
+        Assert.assertTrue(featureChange2.afterViewIsFull());
     }
 
     @Test
-    public void testMergeNodes()
+    public void testBeforeViewUsefulnessValidationArea()
     {
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteNode(123L, Location.COLOSSEUM, null, Sets.treeSet(1L, 2L, 3L),
-                        Sets.treeSet(10L, 11L, 13L), null));
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
-                new CompleteNode(123L, Location.COLOSSEUM, null, Sets.treeSet(1L, 2L, 3L),
-                        Sets.treeSet(10L, 11L, 13L), null));
+        final Polygon polygon = Polygon.CENTER;
+        final Map<String, String> tags = Maps.hashMap("a", "1", "b", "2");
+        final Set<Long> relations = Sets.hashSet(1L, 2L);
 
-        // Testing with a hashset instead of a treeset for ease of typing
-        Assert.assertEquals(Sets.hashSet(1L, 2L, 3L),
-                ((Node) featureChange1.merge(featureChange2).getReference()).inEdges().stream()
-                        .map(edge -> edge.getIdentifier()).collect(Collectors.toSet()));
-        Assert.assertEquals(Sets.hashSet(10L, 11L, 13L),
-                ((Node) featureChange1.merge(featureChange2).getReference()).outEdges().stream()
-                        .map(edge -> edge.getIdentifier()).collect(Collectors.toSet()));
-    }
+        final CompleteArea before = new CompleteArea(123L, polygon, tags, relations);
 
-    @Test
-    public void testMergePolygons()
-    {
-        final Polygon result = new Polygon(Location.COLOSSEUM, Location.EIFFEL_TOWER,
-                Location.CENTER);
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L, result, null, null));
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L, result, null, null));
-        Assert.assertEquals(result,
-                ((Area) featureChange1.merge(featureChange2).getReference()).asPolygon());
-    }
+        final CompleteArea after = CompleteArea.shallowFrom(before).withPolygon(polygon)
+                .withTags(tags).withRelationIdentifiers(relations);
 
-    @Test
-    public void testMergePolygonsCollision()
-    {
         this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("Cannot merge two feature changes");
-
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L,
-                        new Polygon(Location.COLOSSEUM, Location.EIFFEL_TOWER, Location.CENTER),
-                        null, null));
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L,
-                        new Polygon(Location.EIFFEL_TOWER, Location.COLOSSEUM, Location.CENTER),
-                        null, null));
-        featureChange1.merge(featureChange2);
+        this.expectedException.expectMessage("is not useful");
+        new FeatureChange(ChangeType.ADD, after, before);
     }
 
     @Test
-    public void testMergePolyLines()
+    public void testBeforeViewUsefulnessValidationEdge()
     {
-        final PolyLine result = new PolyLine(Location.COLOSSEUM, Location.EIFFEL_TOWER);
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteLine(123L, result, null, null));
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
-                new CompleteLine(123L, result, null, null));
-        Assert.assertEquals(result,
-                ((LineItem) featureChange1.merge(featureChange2).getReference()).asPolyLine());
-    }
+        final PolyLine line = PolyLine.CENTER;
+        final Map<String, String> tags = Maps.hashMap("a", "1", "b", "2");
+        final Long startNode = 1L;
+        final Long endNode = 2L;
+        final Set<Long> relations = Sets.hashSet(1L, 2L);
 
-    @Test
-    public void testMergePolyLinesCollision()
-    {
+        final CompleteEdge before = new CompleteEdge(123L, line, tags, startNode, endNode,
+                relations);
+
+        final CompleteEdge after = CompleteEdge.shallowFrom(before).withPolyLine(line)
+                .withTags(tags).withStartNodeIdentifier(startNode).withEndNodeIdentifier(endNode)
+                .withRelationIdentifiers(relations);
+
         this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("Cannot merge two feature changes");
-
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, new CompleteLine(
-                123L, new PolyLine(Location.COLOSSEUM, Location.EIFFEL_TOWER), null, null));
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, new CompleteLine(
-                123L, new PolyLine(Location.EIFFEL_TOWER, Location.COLOSSEUM), null, null));
-        featureChange1.merge(featureChange2);
+        this.expectedException.expectMessage("is not useful");
+        new FeatureChange(ChangeType.ADD, after, before);
     }
 
     @Test
-    public void testMergeRelationMembers()
+    public void testBeforeViewUsefulnessValidationLine()
     {
+        final PolyLine line = PolyLine.CENTER;
+        final Map<String, String> tags = Maps.hashMap("a", "1", "b", "2");
+        final Set<Long> relations = Sets.hashSet(1L, 2L);
+
+        final CompleteLine before = new CompleteLine(123L, line, tags, relations);
+
+        final CompleteLine after = CompleteLine.shallowFrom(before).withPolyLine(line)
+                .withTags(tags).withRelationIdentifiers(relations);
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("is not useful");
+        new FeatureChange(ChangeType.ADD, after, before);
+    }
+
+    @Test
+    public void testBeforeViewUsefulnessValidationNode()
+    {
+        final Location location = Location.CENTER;
+        final Map<String, String> tags = Maps.hashMap("a", "1", "b", "2");
+        final SortedSet<Long> inEdges = Sets.treeSet(1L, 2L);
+        final SortedSet<Long> outEdges = Sets.treeSet(3L, 4L);
+        final Set<Long> relations = Sets.hashSet(1L, 2L);
+
+        final CompleteNode before = new CompleteNode(123L, location, tags, inEdges, outEdges,
+                relations);
+
+        final CompleteNode after = CompleteNode.shallowFrom(before).withLocation(location)
+                .withTags(tags).withInEdgeIdentifiers(inEdges).withOutEdgeIdentifiers(outEdges)
+                .withRelationIdentifiers(relations);
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("is not useful");
+        new FeatureChange(ChangeType.ADD, after, before);
+    }
+
+    @Test
+    public void testBeforeViewUsefulnessValidationPoint()
+    {
+        final Location location = Location.CENTER;
+        final Map<String, String> tags = Maps.hashMap("a", "1", "b", "2");
+        final Set<Long> relations = Sets.hashSet(1L, 2L);
+
+        final CompletePoint before = new CompletePoint(123L, location, tags, relations);
+
+        final CompletePoint after = CompletePoint.shallowFrom(before).withLocation(location)
+                .withTags(tags).withRelationIdentifiers(relations);
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("is not useful");
+        new FeatureChange(ChangeType.ADD, after, before);
+    }
+
+    @Test
+    public void testBeforeViewUsefulnessValidationRelation()
+    {
+        final Rectangle bounds = Rectangle.TEST_RECTANGLE;
+        final Map<String, String> tags = Maps.hashMap("a", "1", "b", "2");
         final RelationBean members = new RelationBean();
-        members.addItem(new RelationBeanItem(456L, "myRole", ItemType.AREA));
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, new CompleteRelation(
-                123L, null, Rectangle.TEST_RECTANGLE, members, null, null, null, null));
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, new CompleteRelation(
-                123L, null, Rectangle.TEST_RECTANGLE, members, null, null, null, null));
-        Assert.assertEquals(members,
-                ((Relation) featureChange1.merge(featureChange2).getReference()).members()
-                        .asBean());
-    }
+        members.addItem(new RelationBeanItem(1L, "role", ItemType.POINT));
+        final List<Long> allRelationsWithSameOsmIdentifier = Arrays.asList(1L, 2L);
+        final RelationBean allKnownOsmMembers = new RelationBean();
+        allKnownOsmMembers.addItem(new RelationBeanItem(2L, "role2", ItemType.AREA));
+        final Long osmRelationIdentifier = 456L;
+        final Set<Long> relations = Sets.hashSet(1L, 2L);
 
-    @Test
-    public void testMergeRelationMembersPartial()
-    {
-        final RelationBean members1 = new RelationBean();
-        members1.addItem(new RelationBeanItem(456L, "myRole1", ItemType.AREA));
-        final RelationBean members2 = new RelationBean();
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, new CompleteRelation(
-                123L, null, Rectangle.TEST_RECTANGLE, members1, null, null, null, null));
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, new CompleteRelation(
-                123L, null, Rectangle.TEST_RECTANGLE, members2, null, null, null, null));
-        Assert.assertEquals(members1,
-                ((Relation) featureChange1.merge(featureChange2).getReference()).members()
-                        .asBean());
-    }
+        final CompleteRelation before = new CompleteRelation(123L, tags, bounds, members,
+                allRelationsWithSameOsmIdentifier, allKnownOsmMembers, osmRelationIdentifier,
+                relations);
 
-    @Test
-    public void testMergeRelationMembersRoleCollision()
-    {
-        // OSM allows (but discourages) the same feature to appear multiple times with the same or
-        // different roles.
-        final RelationBean members1 = new RelationBean();
-        members1.addItem(new RelationBeanItem(456L, "myRole1", ItemType.AREA));
-        final RelationBean members2 = new RelationBean();
-        members2.addItem(new RelationBeanItem(456L, "myRole2", ItemType.AREA));
-        final RelationBean result = new RelationBean();
-        result.addItem(new RelationBeanItem(456L, "myRole1", ItemType.AREA));
-        result.addItem(new RelationBeanItem(456L, "myRole2", ItemType.AREA));
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, new CompleteRelation(
-                123L, null, Rectangle.TEST_RECTANGLE, members1, null, null, null, null));
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, new CompleteRelation(
-                123L, null, Rectangle.TEST_RECTANGLE, members2, null, null, null, null));
-        Assert.assertEquals(result, ((Relation) featureChange1.merge(featureChange2).getReference())
-                .members().asBean());
-    }
+        final CompleteRelation after = CompleteRelation.shallowFrom(before).withTags(tags)
+                .withMembers(members, bounds).withRelationIdentifiers(relations)
+                .withAllRelationsWithSameOsmIdentifier(allRelationsWithSameOsmIdentifier)
+                .withAllKnownOsmMembers(allKnownOsmMembers)
+                .withOsmRelationIdentifier(osmRelationIdentifier);
 
-    @Test
-    public void testMergeRelations()
-    {
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L, null, null, Sets.hashSet(456L)));
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L, null, null, Sets.hashSet(567L)));
-        Assert.assertEquals(Sets.hashSet(456L, 567L),
-                Iterables.stream(featureChange1.merge(featureChange2).getReference().relations())
-                        .map(Relation::getIdentifier).collectToSet());
-    }
-
-    @Test
-    public void testMergeRelationsCollision()
-    {
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L, null, null, Sets.hashSet(456L)));
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L, null, null, Sets.hashSet(456L)));
-        Assert.assertEquals(Sets.hashSet(456L),
-                Iterables.stream(featureChange1.merge(featureChange2).getReference().relations())
-                        .map(Relation::getIdentifier).collectToSet());
-    }
-
-    @Test
-    public void testMergeTags()
-    {
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L, null, Maps.hashMap("key1", "value1"), null));
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L, null, Maps.hashMap("key2", "value2"), null));
-        Assert.assertEquals(Maps.hashMap("key1", "value1", "key2", "value2"),
-                featureChange1.merge(featureChange2).getReference().getTags());
-    }
-
-    @Test
-    public void testMergeTagsCollision()
-    {
         this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("Cannot merge two feature changes");
-
-        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L, null, Maps.hashMap("key1", "value1"), null));
-        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L, null, Maps.hashMap("key1", "value2"), null));
-        featureChange1.merge(featureChange2);
+        this.expectedException.expectMessage("is not useful");
+        new FeatureChange(ChangeType.ADD, after, before);
     }
 
     @Test
-    public void testNodeSuperShallow()
+    public void testShallowValidation()
     {
+        final CompletePoint before = new CompletePoint(123L, Location.CENTER,
+                Maps.hashMap("a", "1", "b", "2"), Sets.hashSet(1L, 2L));
+
+        final CompletePoint after = CompletePoint.shallowFrom(before);
         this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("does not contain anything useful.");
-
-        new FeatureChange(ChangeType.ADD, new CompleteNode(123L, null, null, null, null, null));
-    }
-
-    @Test
-    public void testPointSuperShallow()
-    {
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("does not contain anything useful.");
-
-        new FeatureChange(ChangeType.ADD, new CompletePoint(123L, null, null, null));
-    }
-
-    @Test
-    public void testRelationSuperShallow()
-    {
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("does not contain anything useful.");
-
-        new FeatureChange(ChangeType.ADD,
-                new CompleteRelation(123L, null, null, null, null, null, null, null));
+        this.expectedException.expectMessage("was shallow");
+        FeatureChange.add(after);
     }
 
     @Test
@@ -322,7 +187,7 @@ public class FeatureChangeTest
         final String value = "value1";
         final Map<String, String> tags = Maps.hashMap(key, value, "key2", "value2");
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD,
-                new CompleteArea(123L, null, tags, null));
+                new CompleteArea(123L, Polygon.CENTER, tags, null));
         Assert.assertEquals(new HashMap<>(tags), featureChange.getTags());
         Assert.assertEquals(value, featureChange.getTag(key).get());
         Assert.assertTrue(featureChange.toString().contains(tags.toString()));

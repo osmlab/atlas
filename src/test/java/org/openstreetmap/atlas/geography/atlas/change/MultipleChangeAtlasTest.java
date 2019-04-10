@@ -10,6 +10,9 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.change.testing.AtlasChangeGeneratorAddTurnRestrictions;
+import org.openstreetmap.atlas.geography.atlas.change.testing.AtlasChangeGeneratorRemoveReverseEdges;
+import org.openstreetmap.atlas.geography.atlas.change.testing.AtlasChangeGeneratorSplitRoundabout;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -62,7 +65,7 @@ public class MultipleChangeAtlasTest
             {
                 return CompleteEdge.shallowFrom(edge).withPolyLine(
                         new PolyLine(edge.start().getLocation(), edge.end().getLocation()));
-            }).map(FeatureChange::add).collectToSet();
+            }).map(completeEdge -> FeatureChange.add(completeEdge, atlas)).collectToSet();
         });
         final long straightEdges = Iterables.size(this.changeAtlas.edges(straight));
         final long originalAtlasStraightEdges = Iterables.size(this.atlas.edges(straight));
@@ -79,10 +82,10 @@ public class MultipleChangeAtlasTest
     {
         resetAndChange("allNodesAreTrafficLights", atlas ->
         {
-            return Iterables
-                    .stream(atlas.nodes()).map(node -> CompleteNode.shallowFrom(node)
-                            .withAddedTag("highway", "traffic_signals"))
-                    .map(FeatureChange::add).collectToSet();
+            return Iterables.stream(atlas.nodes())
+                    .map(node -> CompleteNode.shallowFrom(node).withAddedTag("highway",
+                            "traffic_signals"))
+                    .map(completeNode -> FeatureChange.add(completeNode, atlas)).collectToSet();
         });
         final Predicate<Node> trafficSignal = node -> "traffic_signals".equals(node.tag("highway"));
         final long changeAtlasNodesWithTrafficSignals = Iterables

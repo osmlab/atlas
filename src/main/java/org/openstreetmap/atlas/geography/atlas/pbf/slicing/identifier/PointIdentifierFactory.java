@@ -7,9 +7,11 @@ package org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier;
  */
 public class PointIdentifierFactory extends AbstractIdentifierFactory
 {
+    private static final long IDENFITIER_SCALE = 1000000;
+
     public PointIdentifierFactory(final long referenceIdentifier)
     {
-        super(referenceIdentifier);
+        super(referenceIdentifier, IDENFITIER_SCALE);
     }
 
     @Override

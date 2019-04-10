@@ -1,17 +1,23 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
@@ -21,6 +27,9 @@ import org.openstreetmap.atlas.utilities.collections.Sets;
  */
 public class CompleteRelationTest
 {
+    @Rule
+    public final ExpectedException expectedException = ExpectedException.none();
+
     @Rule
     public CompleteTestRule rule = new CompleteTestRule();
 
@@ -108,6 +117,24 @@ public class CompleteRelationTest
     }
 
     @Test
+    public void testFailWithMembersAndSource()
+    {
+        final CompleteRelation relation = new CompleteRelation(1L, null, null, null, null, null,
+                null, null);
+        final RelationBean bean = new RelationBean();
+        bean.addItem(new RelationBeanItem(1L, "role", ItemType.AREA));
+
+        final RelationMember member = new RelationMember("role",
+                new CompletePoint(1L, Location.CENTER, null, null), 1L);
+        final RelationMemberList list1 = new RelationMemberList(Arrays.asList(member));
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage(
+                "This version of withMembersAndSource must use a source Relation that is tied to an atlas");
+        relation.withMembersAndSource(list1, relation);
+    }
+
+    @Test
     public void testFull()
     {
         final Atlas atlas = this.rule.getAtlas();
@@ -124,6 +151,14 @@ public class CompleteRelationTest
                         .collect(Collectors.toSet()),
                 result.relations().stream().map(Relation::getIdentifier)
                         .collect(Collectors.toSet()));
+    }
+
+    @Test
+    public void testIsCompletelyShallow()
+    {
+        final CompleteRelation superShallow = new CompleteRelation(123L, null, null, null, null,
+                null, null, null);
+        Assert.assertTrue(superShallow.isShallow());
     }
 
     @Test

@@ -79,7 +79,7 @@ public abstract class Relation extends AtlasEntity
      * @return All the members of this relation's OSM ancestor. If this relation has not been
      *         sliced, then this will return the same as <code>members()</code>. If this relation is
      *         sliced, and is part of a pool of other relations that belong to the same OSM
-     *         ancestor, this method will poll together all the members of all those relations in
+     *         ancestor, this method will pool together all the members of all those relations in
      *         its Atlas.
      */
     public abstract RelationMemberList allKnownOsmMembers();
@@ -239,9 +239,9 @@ public abstract class Relation extends AtlasEntity
     }
 
     @Override
-    public GeoJsonType getGeoJsonType()
+    public Iterable<RelationMember> getGeoJsonObjects()
     {
-        return GeoJsonType.FEATURE;
+        return this;
     }
 
     @Override
@@ -258,9 +258,9 @@ public abstract class Relation extends AtlasEntity
     }
 
     @Override
-    public Iterable<RelationMember> getGeoJsonObjects()
+    public GeoJsonType getGeoJsonType()
     {
-        return this;
+        return GeoJsonType.FEATURE;
     }
 
     @Override

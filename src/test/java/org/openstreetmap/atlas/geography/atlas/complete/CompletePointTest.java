@@ -70,6 +70,13 @@ public class CompletePointTest
     }
 
     @Test
+    public void testIsCompletelyShallow()
+    {
+        final CompletePoint superShallow = new CompletePoint(123L, null, null, null);
+        Assert.assertTrue(superShallow.isShallow());
+    }
+
+    @Test
     public void testShallow()
     {
         final Atlas atlas = this.rule.getAtlas();
@@ -78,10 +85,9 @@ public class CompletePointTest
         Assert.assertEquals(source.getIdentifier(), result.getIdentifier());
         Assert.assertEquals(source.bounds(), result.bounds());
         result.withLocation(Location.CENTER);
-        // When we update a location, the bounds should expand to include the original location as
-        // well as the updated location
-        Assert.assertEquals(Rectangle.forLocated(source.bounds(), Location.CENTER),
-                result.bounds());
+        // When we update a location, the bounds should update to the bounds of the new location.
+        Assert.assertEquals(Rectangle.forLocated(Location.CENTER), result.bounds());
+
         final Map<String, String> tags = Maps.hashMap("key", "value");
         result.withTags(tags);
         Assert.assertEquals(tags, result.getTags());
@@ -96,7 +102,6 @@ public class CompletePointTest
         result.withLocation(Location.COLOSSEUM);
         // When we update the location again, the bounds recalculation should "forget" about the
         // first update
-        Assert.assertEquals(Rectangle.forLocated(source.bounds(), Location.COLOSSEUM),
-                result.bounds());
+        Assert.assertEquals(Rectangle.forLocated(Location.COLOSSEUM), result.bounds());
     }
 }

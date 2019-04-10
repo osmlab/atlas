@@ -12,6 +12,8 @@ import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedRelation;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
@@ -20,6 +22,14 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
 public class RelationMemberList extends AbstractCollection<RelationMember> implements Located
 {
     private final List<RelationMember> members;
+
+    /**
+     * This set has no concept of how many {@link RelationBeanItem}s of a given value have been
+     * removed. Technically, OSM allows for duplicate {@link RelationBeanItem}s in a given relation.
+     * However, these duplicates are disallowed by {@link PackedAtlas#relationMembers} and by
+     * extension {@link PackedRelation#members}. As a result, we need not worry about that edge case
+     * here.
+     */
     private final Set<RelationBeanItem> explicitlyExcluded;
 
     public RelationMemberList(final Iterable<RelationMember> members)
@@ -31,7 +41,7 @@ public class RelationMemberList extends AbstractCollection<RelationMember> imple
         else
         {
             this.members = new ArrayList<>();
-            members.forEach(member -> this.members.add(member));
+            members.forEach(this.members::add);
         }
         this.explicitlyExcluded = new HashSet<>();
     }
@@ -88,6 +98,26 @@ public class RelationMemberList extends AbstractCollection<RelationMember> imple
                 }
             }
             return true;
+        }
+        return false;
+    }
+
+    /**
+     * Check if the two {@link RelationMemberList}s are the same, without looking at the List order.
+     * Also, ensure that their explicitlyExcluded sets match.
+     *
+     * @param other
+     *            The other object
+     * @return True if the other object satisfies {@link RelationMemberList#equals(Object)} AND has
+     *         a matching explicitlyExcluded set.
+     */
+    public boolean equalsIncludingExplicitlyExcluded(final Object other)
+    {
+        if (other instanceof RelationMemberList)
+        {
+            final boolean basicEquals = this.equals(other);
+            final RelationMemberList otherBean = (RelationMemberList) other;
+            return basicEquals && this.explicitlyExcluded.equals(otherBean.explicitlyExcluded);
         }
         return false;
     }

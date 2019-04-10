@@ -36,6 +36,19 @@ public class ChangeBuilder
     }
 
     /**
+     * Assign a name to the change being constructed.
+     *
+     * @param name
+     *            - a name for the change.
+     * @return ChangeBuilder - returns itself to allow fluency in calls.
+     */
+    public ChangeBuilder withName(final String name)
+    {
+        this.change.withName(name);
+        return this;
+    }
+
+    /**
      * @param featureChange
      *            - the {@link FeatureChange} to add to the builder.
      * @return ChangeBuilder - returns itself to allow fluency in calls.
