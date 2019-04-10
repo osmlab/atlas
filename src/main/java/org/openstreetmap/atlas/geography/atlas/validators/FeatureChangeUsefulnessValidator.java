@@ -10,9 +10,6 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-import org.openstreetmap.atlas.utilities.time.Time;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Validate that a {@link FeatureChange} actually introduces changes. This will throw an exception
@@ -23,9 +20,6 @@ import org.slf4j.LoggerFactory;
  */
 public class FeatureChangeUsefulnessValidator
 {
-    private static final Logger logger = LoggerFactory
-            .getLogger(FeatureChangeUsefulnessValidator.class);
-
     private final FeatureChange featureChange;
 
     public FeatureChangeUsefulnessValidator(final FeatureChange featureChange)
@@ -35,11 +29,7 @@ public class FeatureChangeUsefulnessValidator
 
     public void validate()
     {
-        logger.info("Starting validation of FeatureChange {}", this.featureChange);
-        final Time start = Time.now();
         validateFeatureChange();
-        logger.info("Finished validation of FeatureChange {} in {}", this.featureChange,
-                start.elapsedSince());
     }
 
     private void validateFeatureChange()

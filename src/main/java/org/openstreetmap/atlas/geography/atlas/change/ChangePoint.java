@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.change;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -24,6 +25,10 @@ public class ChangePoint extends Point // NOSONAR
 
     private final Point source;
     private final Point override;
+
+    // Computing Parent Relations is very expensive, so we cache it here.
+    private transient Set<Relation> relationsCache;
+    private transient Object relationsCacheLock = new Object();
 
     protected ChangePoint(final ChangeAtlas atlas, final Point source, final Point override)
     {
@@ -53,7 +58,10 @@ public class ChangePoint extends Point // NOSONAR
     @Override
     public Set<Relation> relations()
     {
-        return ChangeEntity.filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+        final Supplier<Set<Relation>> creator = () -> ChangeEntity
+                .filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+        return ChangeEntity.getOrCreateCache(this.relationsCache,
+                cache -> this.relationsCache = cache, this.relationsCacheLock, creator);
     }
 
     private <T extends Object> T attribute(final Function<Point, T> memberExtractor)

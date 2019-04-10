@@ -209,6 +209,22 @@ public class FeatureChange implements Located, Serializable
     }
 
     /**
+     * Specify the Atlas on which this {@link FeatureChange} is based. {@link FeatureChange} objects
+     * with a contextual Atlas are able to calculate their before view, and so are able to leverage
+     * richer and more robust merging mechanics.
+     *
+     * @param atlas
+     *            the contextual atlas
+     * @return the updated {@link FeatureChange}
+     */
+    FeatureChange withAtlasContext(final Atlas atlas)
+    {
+        computeBeforeViewUsingAtlasContext(atlas, this.changeType);
+        new FeatureChangeUsefulnessValidator(this).validate();
+        return this;
+    }
+
+    /**
      * Check if this {@link FeatureChange}'s afterView is full. A full afterView is a
      * {@link CompleteEntity} that has all its fields set to non-null values.
      *
@@ -319,7 +335,7 @@ public class FeatureChange implements Located, Serializable
 
     public ItemType getItemType()
     {
-        return ItemType.forEntity(getAfterView());
+        return getAfterView().getType();
     }
 
     /**
@@ -663,21 +679,5 @@ public class FeatureChange implements Located, Serializable
         {
             throw new CoreException("{} was shallow (i.e. it contained only an identifier)", this);
         }
-    }
-
-    /**
-     * Specify the Atlas on which this {@link FeatureChange} is based. {@link FeatureChange} objects
-     * with a contextual Atlas are able to calculate their before view, and so are able to leverage
-     * richer and more robust merging mechanics.
-     *
-     * @param atlas
-     *            the contextual atlas
-     * @return the updated {@link FeatureChange}
-     */
-    private FeatureChange withAtlasContext(final Atlas atlas)
-    {
-        computeBeforeViewUsingAtlasContext(atlas, this.changeType);
-        new FeatureChangeUsefulnessValidator(this).validate();
-        return this;
     }
 }

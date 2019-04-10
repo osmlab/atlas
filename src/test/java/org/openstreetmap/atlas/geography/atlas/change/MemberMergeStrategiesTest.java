@@ -374,7 +374,8 @@ public class MemberMergeStrategiesTest
         /*
          * ADD two Areas with ID 2. REMOVE Point with ID 2. Add 2 Lines with ID 2 - this ADD is
          * shared by the other afterBean. REMOVE Point with ID 3 - this REMOVE is shared by the
-         * other afterBean.
+         * other afterBean. We ensure that the explicitlyExcluded set is updated with the necessary
+         * REMOVES.
          */
         final RelationBean afterBean1 = new RelationBean();
         afterBean1.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
@@ -384,12 +385,17 @@ public class MemberMergeStrategiesTest
         afterBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
         afterBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
         afterBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        afterBean1
+                .addItemExplicitlyExcluded(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        afterBean1
+                .addItemExplicitlyExcluded(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
 
         /*
          * Change role for Point with ID 1. This effectively REMOVEs the original [1, POINT,
          * pointRole1] and replaces it with [1, POINT, newPointRole1]. Add 2 Lines with ID 2 - this
          * ADD is shared by the other afterBean. REMOVE Point with ID 3 - this REMOVE is shared by
-         * the other afterBean.
+         * the other afterBean. We ensure that the explicitlyExcluded set is updated with the
+         * necessary REMOVES.
          */
         final RelationBean afterBean2 = new RelationBean();
         afterBean2.addItem(new RelationBeanItem(1L, "newPointRole1", ItemType.POINT));
@@ -398,6 +404,10 @@ public class MemberMergeStrategiesTest
         afterBean2.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
         afterBean2.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
         afterBean2.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        afterBean2
+                .addItemExplicitlyExcluded(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        afterBean2
+                .addItemExplicitlyExcluded(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
 
         /*
          * The expected result of merging afterBean1 and afterBean2.
@@ -410,6 +420,12 @@ public class MemberMergeStrategiesTest
         goldenImage1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
         goldenImage1.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
         goldenImage1.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        goldenImage1
+                .addItemExplicitlyExcluded(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        goldenImage1
+                .addItemExplicitlyExcluded(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        goldenImage1
+                .addItemExplicitlyExcluded(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
 
         Assert.assertEquals(goldenImage1, MemberMergeStrategies.diffBasedRelationBeanMerger
                 .apply(beforeBean, afterBean1, afterBean2));
