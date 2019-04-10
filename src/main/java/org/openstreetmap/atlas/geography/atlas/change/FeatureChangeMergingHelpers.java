@@ -14,6 +14,7 @@ import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.change.MemberMerger.MergedMemberBean;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
@@ -208,6 +209,59 @@ public final class FeatureChangeMergingHelpers
         }
 
         return new MergedMemberBean<>(beforeMemberResult, afterMemberResult);
+    }
+
+    /**
+     * Merge some feature member using a left and right before/after view. Additionally, we allow
+     * for mis-matching before views.
+     *
+     * @param memberName
+     *            the name of the member for logging purposes
+     * @param beforeEntityLeft
+     *            the left side before view of the entity
+     * @param afterEntityLeft
+     *            the left side after view of the entity
+     * @param beforeEntityRight
+     *            the right side before view of the entity
+     * @param afterEntityRight
+     *            the right side after view of the entity
+     * @param memberExtractor
+     *            a function that can extract the member from its entity (e.g. for the polyline of
+     *            an Edge, this would be Edge::asPolyLine)
+     * @param simpleMergeStrategy
+     *            a simple merge strategy to use if the before views are missing
+     * @param diffBasedMergeStrategyWithBeforeViewForgiveness
+     *            a merge strategy that relies on the before views to perform a more complex merge,
+     *            but allows for beforeViews to differ
+     * @param beforeViewMergeStrategy
+     *            a merge strategy that merges the beforeViews should they both be present and
+     *            unequal
+     * @param M
+     *            the type of the member being merged
+     * @return a {@link MergedMemberBean} containing the merged beforeMember view and the merged
+     *         afterMember view.
+     */
+    static <M> MergedMemberBean<M> mergeMemberWithBeforeViewForgiveness(final String memberName,
+            final AtlasEntity beforeEntityLeft, final AtlasEntity afterEntityLeft,
+            final AtlasEntity beforeEntityRight, final AtlasEntity afterEntityRight,
+            final Function<AtlasEntity, M> memberExtractor,
+            final BinaryOperator<M> simpleMergeStrategy,
+            final TernaryOperator<M> diffBasedMergeStrategyWithBeforeViewForgiveness,
+            final TernaryOperator<M> beforeViewMergeStrategy)
+    {
+        final M beforeMemberResult;
+        final M afterMemberResult;
+
+        final M beforeMemberLeft = beforeEntityLeft == null ? null
+                : memberExtractor.apply(beforeEntityLeft);
+        final M afterMemberLeft = afterEntityLeft == null ? null
+                : memberExtractor.apply(afterEntityLeft);
+        final M beforeMemberRight = beforeEntityRight == null ? null
+                : memberExtractor.apply(beforeEntityRight);
+        final M afterMemberRight = afterEntityRight == null ? null
+                : memberExtractor.apply(afterEntityRight);
+
+        return null;
     }
 
     /**
