@@ -14,10 +14,10 @@ import org.locationtech.jts.precision.PrecisionReducerCoordinateOperation;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
-import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.AbstractIdentifierFactory;
-import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.CountrySlicingIdentifierFactory;
+import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryPoint;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.converters.MultiplePolyLineToPolygonsConverter;
@@ -57,11 +57,7 @@ public abstract class RawAtlasSlicer
     protected static final PrecisionReducerCoordinateOperation PRECISION_REDUCER = new PrecisionReducerCoordinateOperation(
             PRECISION_MODEL, false);
 
-    // The countries we're interested in slicing against
-    private final Set<String> countries;
-
-    // Contains boundary MultiPolygons
-    private final CountryBoundaryMap countryBoundaryMap;
+    private final AtlasLoadingOption loadingOption;
 
     // Tracks all changes during the slicing process
     private final RawAtlasSlicingStatistic statistics = new RawAtlasSlicingStatistic(logger);
@@ -70,6 +66,10 @@ public abstract class RawAtlasSlicer
     // duplicate points at the same locations and to allow fast lookup to construct new lines
     // requiring the temporary point as a Line shape point
     private final CoordinateToNewPointMapping newPointCoordinates;
+
+    private final String shardOrAtlasName;
+
+    private final Atlas startingAtlas;
 
     /**
      * Assigns {@link ISOCountryTag} and {@link SyntheticNearestNeighborCountryCodeTag} values for a
@@ -104,30 +104,20 @@ public abstract class RawAtlasSlicer
      *
      * @param coordinate
      *            The {@link Coordinate} of the new point
-     * @param pointIdentifierFactory
-     *            The {@link CountrySlicingIdentifierFactory} to calculate new point identifier
+     * @param pointIdentifier
+     *            The identifier to give the new point
      * @param pointTags
      *            The tags for this new point
      * @return the {@link TemporaryPoint}
      */
     protected static TemporaryPoint createNewPoint(final Coordinate coordinate,
-            final AbstractIdentifierFactory pointIdentifierFactory,
-            final Map<String, String> pointTags)
+            final long pointIdentifier, final Map<String, String> pointTags)
     {
-        if (!pointIdentifierFactory.hasMore())
-        {
-            throw new CoreException(
-                    "Country Slicing exceeded maximum number {} of supported new points at Coordinate {}",
-                    AbstractIdentifierFactory.IDENTIFIER_SCALE, coordinate);
-        }
-        else
-        {
-            // Add the synthetic boundary node tags
-            pointTags.put(SyntheticBoundaryNodeTag.KEY, SyntheticBoundaryNodeTag.YES.toString());
+        // Add the synthetic boundary node tags
+        pointTags.put(SyntheticBoundaryNodeTag.KEY, SyntheticBoundaryNodeTag.YES.toString());
 
-            return new TemporaryPoint(pointIdentifierFactory.nextIdentifier(),
-                    JTS_LOCATION_CONVERTER.backwardConvert(coordinate), pointTags);
-        }
+        return new TemporaryPoint(pointIdentifier,
+                JTS_LOCATION_CONVERTER.backwardConvert(coordinate), pointTags);
     }
 
     /**
@@ -158,12 +148,13 @@ public abstract class RawAtlasSlicer
                 one.getIdentifier(), two.getIdentifier());
     }
 
-    public RawAtlasSlicer(final Set<String> countries, final CountryBoundaryMap countryBoundaryMap,
-            final CoordinateToNewPointMapping newPointCoordinates)
+    public RawAtlasSlicer(final AtlasLoadingOption loadingOption,
+            final CoordinateToNewPointMapping newPointCoordinates, final Atlas startingAtlas)
     {
-        this.countries = countries;
-        this.countryBoundaryMap = countryBoundaryMap;
+        this.loadingOption = loadingOption;
         this.newPointCoordinates = newPointCoordinates;
+        this.startingAtlas = startingAtlas;
+        this.shardOrAtlasName = getShardOrAtlasName(startingAtlas);
     }
 
     /**
@@ -242,17 +233,32 @@ public abstract class RawAtlasSlicer
 
     protected Set<String> getCountries()
     {
-        return this.countries;
+        return this.loadingOption.getCountryCodes();
     }
 
     protected CountryBoundaryMap getCountryBoundaryMap()
     {
-        return this.countryBoundaryMap;
+        return this.loadingOption.getCountryBoundaryMap();
     }
 
     protected RawAtlasSlicingStatistic getStatistics()
     {
         return this.statistics;
+    }
+
+    /**
+     * Determines if the given raw atlas {@link Line} qualifies to be an {@link Edge} in the final
+     * atlas. Relies on the underlying {@link AtlasLoadingOption} configuration to make the
+     * decision.
+     *
+     * @param line
+     *            The {@link Line} to check
+     * @return {@code true} if the given raw atlas {@link Line} qualifies to be an {@link Edge} in
+     *         the final atlas.
+     */
+    protected boolean isAtlasEdge(final Line line)
+    {
+        return this.loadingOption.getEdgeFilter().test(line);
     }
 
     /**
@@ -275,5 +281,23 @@ public abstract class RawAtlasSlicer
 
         // Assume it's inside the bound
         return false;
+    }
+
+    private String getShardOrAtlasName(final Atlas atlas)
+    {
+        return atlas.metaData().getShardName().orElse(atlas.getName());
+    }
+
+    public String getShardOrAtlasName()
+    {
+        return this.shardOrAtlasName;
+    }
+
+    /**
+     * @return the {@link Atlas} to be sliced
+     */
+    public Atlas getStartingAtlas()
+    {
+        return this.startingAtlas;
     }
 }

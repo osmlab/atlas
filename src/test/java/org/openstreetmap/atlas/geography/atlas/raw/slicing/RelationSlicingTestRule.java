@@ -176,12 +176,12 @@ public class RelationSlicingTestRule extends CoreTestRule
 
             lines = { @Line(id = "106036000000", coordinates = { @Loc(value = LOCATION_28),
                     @Loc(value = LOCATION_21), @Loc(value = LOCATION_27), @Loc(value = LOCATION_26),
-                    @Loc(value = LOCATION_28) }, tags = { "highway=primary" }),
+                    @Loc(value = LOCATION_28) }, tags = { "water=natural" }),
 
                     @Line(id = "106034000000", coordinates = { @Loc(value = LOCATION_23),
                             @Loc(value = LOCATION_29), @Loc(value = LOCATION_24),
                             @Loc(value = LOCATION_25), @Loc(value = LOCATION_22),
-                            @Loc(value = LOCATION_23) }, tags = { "highway=secondary" }) },
+                            @Loc(value = LOCATION_23) }, tags = { "water=natural" }) },
 
             relations = {
 

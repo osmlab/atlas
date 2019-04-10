@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -26,7 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLParser;
-import com.google.common.base.Joiner;
 
 /**
  * Standard implementation of the Configuration interface supporting dot-notation key-value lookup.
@@ -50,22 +50,22 @@ public class StandardConfiguration implements Configuration
     /**
      * Configurable implementation that pulls from the outer class's data table
      *
-     * @param <Raw>
+     * @param <R>
      *            configured type
-     * @param <Transformed>
+     * @param <T>
      *            transformed type
      * @author cstaylor
      * @author brian_l_davis
      * @author cameron_frenette
      */
-    private final class StandardConfigurable<Raw, Transformed> implements Configurable
+    private final class StandardConfigurable<R, T> implements Configurable
     {
-        private final Transformed defaultValue;
+        private final T defaultValue;
         private final String key;
-        private final Function<Raw, Transformed> transform;
+        private final Function<R, T> transform;
 
-        private StandardConfigurable(final String key, final Raw defaultValue,
-                final Function<Raw, Transformed> transform)
+        private StandardConfigurable(final String key, final R defaultValue,
+                final Function<R, T> transform)
         {
             this.key = key;
             this.transform = transform;
@@ -74,14 +74,12 @@ public class StandardConfiguration implements Configuration
 
         @SuppressWarnings("unchecked")
         @Override
-        public <Type> Type value()
+        public <V> V value()
         {
             try
             {
-                final Raw found = (Raw) resolve(this.key,
-                        StandardConfiguration.this.configurationData);
-                return (Type) Optional.ofNullable(found).map(this.transform)
-                        .orElse(this.defaultValue);
+                final R found = (R) resolve(this.key, StandardConfiguration.this.configurationData);
+                return (V) Optional.ofNullable(found).map(this.transform).orElse(this.defaultValue);
             }
             catch (final ClassCastException e)
             {
@@ -91,7 +89,7 @@ public class StandardConfiguration implements Configuration
         }
 
         @Override
-        public <Type> Optional<Type> valueOption()
+        public <V> Optional<V> valueOption()
         {
             return Optional.ofNullable(value());
         }
@@ -99,17 +97,16 @@ public class StandardConfiguration implements Configuration
 
     // "override" is no longer available to use as a configuration key
     private static final String OVERRIDE_STRING = "override";
+    private static final String DOT = ".";
     private static final Logger logger = LoggerFactory.getLogger(StandardConfiguration.class);
     private Map<String, Object> configurationData;
     private final String name;
 
-    @SuppressWarnings("unchecked")
     public StandardConfiguration(final Resource resource)
     {
         this(resource, ConfigurationFormat.UNKNOWN);
     }
 
-    @SuppressWarnings("unchecked")
     public StandardConfiguration(final Resource resource, final ConfigurationFormat configFormat)
     {
         this.name = resource.getName();
@@ -147,10 +144,10 @@ public class StandardConfiguration implements Configuration
         this.configurationData = configurationData;
     }
 
+    @Override
     public Set<String> configurationDataKeySet()
     {
-        final Set<String> keySet = new HashSet<>(this.configurationData.keySet());
-        return keySet;
+        return new HashSet<>(this.configurationData.keySet());
     }
 
     @Override
@@ -173,8 +170,7 @@ public class StandardConfiguration implements Configuration
     }
 
     @Override
-    public <Raw, Transformed> Configurable get(final String key,
-            final Function<Raw, Transformed> transform)
+    public <R, T> Configurable get(final String key, final Function<R, T> transform)
     {
         return new StandardConfigurable<>(key, null, transform);
     }
@@ -186,8 +182,8 @@ public class StandardConfiguration implements Configuration
     }
 
     @Override
-    public <Raw, Transformed> Configurable get(final String key, final Raw defaultValue,
-            final Function<Raw, Transformed> transform)
+    public <R, T> Configurable get(final String key, final R defaultValue,
+            final Function<R, T> transform)
     {
         return new StandardConfigurable<>(key, defaultValue, transform);
     }
@@ -203,13 +199,14 @@ public class StandardConfiguration implements Configuration
             final Map<String, Object> currentContext)
     {
         final List<String> overrideKeyPrefixList = Arrays.asList(OVERRIDE_STRING, keyword);
-        final String overrideKeyPrefixString = Joiner.on(".").join(overrideKeyPrefixList);
+        final String overrideKeyPrefixString = String.join(DOT, overrideKeyPrefixList);
         final Map<String, Object> overrideData = new HashMap<>();
-        for (final String key : currentContext.keySet())
+        for (final Entry<String, Object> entry : currentContext.entrySet())
         {
+            final String key = entry.getKey();
             if (!key.equals(OVERRIDE_STRING))
             {
-                final String overrideKey = Joiner.on(".").join(overrideKeyPrefixString, key);
+                final String overrideKey = String.join(DOT, overrideKeyPrefixString, key);
                 final Optional<Object> specificOverrideData = Optional
                         .ofNullable(this.resolve(overrideKey, currentContext));
                 if (specificOverrideData.isPresent())
@@ -218,43 +215,17 @@ public class StandardConfiguration implements Configuration
                 }
                 else
                 {
-                    final Object nextContext = currentContext.get(key);
+                    final Object nextContext = entry.getValue();
                     if (nextContext instanceof Map)
                     {
-                        this.getOverrideDataForKeyword(keyword, (Map) nextContext).ifPresent(
-                                moreOverrideData -> overrideData.put(key, moreOverrideData));
+                        this.getOverrideDataForKeyword(keyword, (Map<String, Object>) nextContext)
+                                .ifPresent(moreOverrideData -> overrideData.put(key,
+                                        moreOverrideData));
                     }
                 }
             }
         }
         return Optional.of(overrideData).filter(data -> !data.isEmpty());
-    }
-
-    @SuppressWarnings("unchecked")
-    private Object resolve(final String key, final Map<String, Object> currentContext)
-    {
-        if (StringUtils.isEmpty(key))
-        {
-            return currentContext;
-        }
-        final LinkedList<String> rootParts = new LinkedList<>(Arrays.asList(key.split("\\.")));
-        final LinkedList<String> childParts = new LinkedList<>();
-        while (!rootParts.isEmpty())
-        {
-            final String currentKey = Joiner.on(".").join(rootParts);
-            final Object nextItem = currentContext.get(currentKey);
-            if (nextItem instanceof Map)
-            {
-                final String nextKey = Joiner.on(".").join(childParts);
-                return resolve(nextKey, (Map<String, Object>) nextItem);
-            }
-            if (nextItem != null)
-            {
-                return nextItem;
-            }
-            childParts.addFirst(rootParts.removeLast());
-        }
-        return null;
     }
 
     @SuppressWarnings("unchecked")
@@ -268,7 +239,7 @@ public class StandardConfiguration implements Configuration
             simpleModule.addDeserializer(Map.class, new ConfigurationDeserializer());
             objectMapper.registerModule(simpleModule);
             final JsonParser parser = new JsonFactory().createParser(read);
-            final Map readConfig = objectMapper.readValue(parser, Map.class);
+            final Map<String, Object> readConfig = objectMapper.readValue(parser, Map.class);
             logger.info("Success! Loaded JSON configuration");
             return Optional.of(readConfig);
         }
@@ -291,7 +262,7 @@ public class StandardConfiguration implements Configuration
             simpleModule.addDeserializer(Map.class, new ConfigurationDeserializer());
             objectMapper.registerModule(simpleModule);
             final YAMLParser parser = new YAMLFactory().createParser(read);
-            final Map readConfig = objectMapper.readValue(parser, Map.class);
+            final Map<String, Object> readConfig = objectMapper.readValue(parser, Map.class);
             logger.info("Success! Loaded YAML configuration.");
             return Optional.of(readConfig);
         }
@@ -304,6 +275,33 @@ public class StandardConfiguration implements Configuration
         {
             IOUtils.closeQuietly(read);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Object resolve(final String key, final Map<String, Object> currentContext)
+    {
+        if (StringUtils.isEmpty(key))
+        {
+            return currentContext;
+        }
+        final LinkedList<String> rootParts = new LinkedList<>(Arrays.asList(key.split("\\.")));
+        final LinkedList<String> childParts = new LinkedList<>();
+        while (!rootParts.isEmpty())
+        {
+            final String currentKey = String.join(DOT, rootParts);
+            final Object nextItem = currentContext.get(currentKey);
+            if (nextItem instanceof Map)
+            {
+                final String nextKey = String.join(DOT, childParts);
+                return resolve(nextKey, (Map<String, Object>) nextItem);
+            }
+            if (nextItem != null)
+            {
+                return nextItem;
+            }
+            childParts.addFirst(rootParts.removeLast());
+        }
+        return null;
     }
 
 }

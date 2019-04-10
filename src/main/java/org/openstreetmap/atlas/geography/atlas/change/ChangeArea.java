@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.change;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
@@ -25,6 +26,10 @@ public class ChangeArea extends Area // NOSONAR
     // At most one of those two can be null. Not using Optional here as it is not Serializable.
     private final Area source;
     private final Area override;
+
+    // Computing Parent Relations is very expensive, so we cache it here.
+    private transient Set<Relation> relationsCache;
+    private transient Object relationsCacheLock = new Object();
 
     protected ChangeArea(final ChangeAtlas atlas, final Area source, final Area override)
     {
@@ -54,7 +59,10 @@ public class ChangeArea extends Area // NOSONAR
     @Override
     public Set<Relation> relations()
     {
-        return ChangeEntity.filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+        final Supplier<Set<Relation>> creator = () -> ChangeEntity
+                .filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+        return ChangeEntity.getOrCreateCache(this.relationsCache,
+                cache -> this.relationsCache = cache, this.relationsCacheLock, creator);
     }
 
     private <T extends Object> T attribute(final Function<Area, T> memberExtractor)
