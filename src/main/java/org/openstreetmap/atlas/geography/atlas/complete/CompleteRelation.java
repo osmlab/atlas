@@ -435,7 +435,8 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     }
 
     @Override
-    public CompleteItemType completeItemType() {
+    public CompleteItemType completeItemType()
+    {
         return CompleteItemType.RELATION;
     }
 }

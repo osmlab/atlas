@@ -217,7 +217,8 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     }
 
     @Override
-    public CompleteItemType completeItemType() {
+    public CompleteItemType completeItemType()
+    {
         return CompleteItemType.AREA;
     }
 }

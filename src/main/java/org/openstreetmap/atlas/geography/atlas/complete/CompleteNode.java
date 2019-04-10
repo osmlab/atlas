@@ -323,7 +323,8 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     }
 
     @Override
-    public CompleteItemType completeItemType() {
+    public CompleteItemType completeItemType()
+    {
         return CompleteItemType.NODE;
     }
 }

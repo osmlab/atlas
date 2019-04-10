@@ -218,7 +218,8 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     }
 
     @Override
-    public CompleteItemType completeItemType() {
+    public CompleteItemType completeItemType()
+    {
         return CompleteItemType.LINE;
     }
 }
