@@ -1,24 +1,27 @@
 package org.openstreetmap.atlas.geography.boundary;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.io.WKTWriter;
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jtslab.SnapRoundOverlayFunctions;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.streaming.resource.File;
-import org.openstreetmap.atlas.streaming.resource.LineWriter;
 import org.openstreetmap.atlas.utilities.runtime.Command;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Command that takes a boundary map and adds ocean boundaries.
+ * Command that takes a completed country boundary map and writes a new boundary map that is the
+ * same as the first, but also contains ocean countries.
  *
  * @author james-gage
  */
@@ -29,55 +32,38 @@ public class OceanCountryBoundaryMap extends Command
     private static final Switch<File> OUTPUT = new Switch<>("output",
             "The ocean country boundary file to be output", File::new, Optionality.REQUIRED);
     // start ocean names (e.g. O10) at first double digit number
-    private static final int initialOceanIndex = 10;
+    private static final int INITIAL_OCEAN_INDEX = 10;
+    // ocean boundary slippytile zoom level
+    private static final int OCEAN_BOUNDARY_ZOOM_LEVEL = 3;
 
-    public static void main(final String[] args)
+    private static final Logger logger = LoggerFactory.getLogger(OceanCountryBoundaryMap.class);
+
+    public static Geometry geometryForShard(final Rectangle shardBounds,
+            final CountryBoundaryMap boundaryMap)
     {
-        new OceanCountryBoundaryMap().run(args);
-    }
-
-    public static org.locationtech.jts.geom.Polygon[] toArray(
-            final Set<org.locationtech.jts.geom.Polygon> polygons)
-    {
-        final org.locationtech.jts.geom.Polygon[] polyArray = new org.locationtech.jts.geom.Polygon[polygons
-                .size()];
-        final Iterator<org.locationtech.jts.geom.Polygon> polyIterator = polygons.iterator();
-        for (int i = 0; i < polygons.size(); i++)
-        {
-            polyArray[i] = polyIterator.next();
-        }
-        return polyArray;
-    }
-
-    public static void writeBoundariesForShard(final Rectangle shardBounds,
-            final CountryBoundaryMap boundaryMap, final LineWriter writer, final String countryCode)
-    {
-        final WKTWriter wktWriter = new WKTWriter();
-
         final JtsMultiPolygonConverter multiPolyConverter = new JtsMultiPolygonConverter();
         final JtsPolygonConverter polyConverter = new JtsPolygonConverter();
         final GeometryFactory factory = new GeometryFactory();
-
         final List<CountryBoundary> boundaries = boundaryMap.boundaries(shardBounds);
-
         // jts version of the initial shard bounds
         org.locationtech.jts.geom.Geometry shardPolyJts = polyConverter.convert(shardBounds);
-
+        // remove country boundaries from the ocean tile one by one
         for (final CountryBoundary boundary : boundaries)
         {
             final Set<org.locationtech.jts.geom.Polygon> boundaryPolygons = multiPolyConverter
                     .convert(boundary.getBoundary());
-            final org.locationtech.jts.geom.MultiPolygon countryMP = factory
-                    .createMultiPolygon(toArray(boundaryPolygons));
-            // compute the clip
+            final org.locationtech.jts.geom.MultiPolygon countryMP = factory.createMultiPolygon(
+                    boundaryPolygons.toArray(new Polygon[boundaryPolygons.size()]));
             final org.locationtech.jts.geom.Geometry geom = SnapRoundOverlayFunctions
                     .difference(shardPolyJts, countryMP, .000000000000001);
             shardPolyJts = geom;
         }
-        if (!shardPolyJts.isEmpty())
-        {
-            writer.writeLine(countryCode + "||" + wktWriter.write(shardPolyJts) + "#");
-        }
+        return shardPolyJts;
+    }
+
+    public static void main(final String[] args)
+    {
+        new OceanCountryBoundaryMap().run(args);
     }
 
     @Override
@@ -86,25 +72,53 @@ public class OceanCountryBoundaryMap extends Command
         final File boundaryFile = (File) command.get(BOUNDARY_MAP);
         final CountryBoundaryMap boundaryMap = CountryBoundaryMap.fromPlainText(boundaryFile);
         final File outputFile = (File) command.get(OUTPUT);
-        final LineWriter writer = new LineWriter(outputFile);
-        final Iterable<SlippyTile> allTiles = SlippyTile.allTiles(3);
-        int oceanCountryCount = initialOceanIndex;
+        final Iterable<SlippyTile> allTiles = SlippyTile.allTiles(OCEAN_BOUNDARY_ZOOM_LEVEL);
+        int oceanCountryCount = INITIAL_OCEAN_INDEX;
+        final CountryBoundaryMap finalBoundaryMap = new CountryBoundaryMap();
+
+        // add all ocean boundaries to the new boundary map
+        logger.info("Calculating ocean boundaries");
         for (final SlippyTile tile : allTiles)
         {
             final String countryCode = "O" + oceanCountryCount;
-            writeBoundariesForShard(tile.bounds(), boundaryMap, writer, countryCode);
-            oceanCountryCount++;
+            final Geometry countryMP = geometryForShard(tile.bounds(), boundaryMap);
+            if (!countryMP.isEmpty())
+            {
+                if (countryMP instanceof Polygon)
+                {
+                    finalBoundaryMap.addCountry(countryCode, (Polygon) countryMP);
+                }
+                if (countryMP instanceof MultiPolygon)
+                {
+                    finalBoundaryMap.addCountry(countryCode, (MultiPolygon) countryMP);
+                }
+                oceanCountryCount++;
+            }
         }
-        // after writing all ocean countries, fill in the rest of the bounday map
-        boundaryFile.lines().forEach(line -> writer.writeLine(line));
+
+        // add all countries from the input boundary map to the new boundary map
+        logger.info("Adding country boundaries");
+        final JtsMultiPolygonConverter multiPolyConverter = new JtsMultiPolygonConverter();
+        for (final String country : boundaryMap.allCountryNames())
+        {
+            for (final CountryBoundary countryBoundary : boundaryMap.countryBoundary(country))
+            {
+                final GeometryFactory factory = new GeometryFactory();
+                final Set<org.locationtech.jts.geom.Polygon> boundaryPolygons = multiPolyConverter
+                        .convert(countryBoundary.getBoundary());
+                final org.locationtech.jts.geom.MultiPolygon countryMP = factory.createMultiPolygon(
+                        boundaryPolygons.toArray(new Polygon[boundaryPolygons.size()]));
+                finalBoundaryMap.addCountry(country, countryMP);
+            }
+        }
         try
         {
-            writer.close();
+            finalBoundaryMap.writeToFile(outputFile);
             return 0;
         }
         catch (final IOException e)
         {
-            e.printStackTrace();
+            logger.error("Error while writing the boundary map to file", e);
             return 1;
         }
     }
