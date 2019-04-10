@@ -16,7 +16,6 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
  */
 public class TagChangeListenerTest
 {
-
     @Test
     public void addTag()
     {
