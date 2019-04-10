@@ -29,7 +29,7 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
 
-    private TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
+    private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
      * Create a {@link CompletePoint} from a given {@link Point} reference. The

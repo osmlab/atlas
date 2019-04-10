@@ -29,7 +29,7 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
 
-    private TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
+    private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     CompleteArea(final long identifier)
     {

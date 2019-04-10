@@ -32,7 +32,7 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     private Long endNodeIdentifier;
     private Set<Long> relationIdentifiers;
 
-    private TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
+    private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
      * Create a {@link CompleteEdge} from a given {@link Edge} reference. The {@link CompleteEdge}'s

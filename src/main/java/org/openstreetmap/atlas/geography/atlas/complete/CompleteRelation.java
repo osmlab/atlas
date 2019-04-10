@@ -39,7 +39,7 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     private Long osmRelationIdentifier;
     private Set<Long> relationIdentifiers;
 
-    private TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
+    private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
      * Create a {@link CompleteRelation} from a given {@link Relation} reference. The

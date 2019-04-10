@@ -34,7 +34,7 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     private SortedSet<Long> outEdgeIdentifiers;
     private Set<Long> relationIdentifiers;
 
-    private TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
+    private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
      * Create a {@link CompleteNode} from a given {@link Node} reference. The {@link CompleteNode}'s
