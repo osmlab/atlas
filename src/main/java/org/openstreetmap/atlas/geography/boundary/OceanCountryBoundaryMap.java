@@ -38,44 +38,11 @@ public class OceanCountryBoundaryMap extends Command
 
     private static final Logger logger = LoggerFactory.getLogger(OceanCountryBoundaryMap.class);
 
-    public static Geometry geometryForShard(final Rectangle shardBounds,
-            final CountryBoundaryMap boundaryMap)
+    public static CountryBoundaryMap generateOceanBoundaryMap(final CountryBoundaryMap boundaryMap,
+            final Iterable<SlippyTile> allTiles)
     {
-        final JtsMultiPolygonConverter multiPolyConverter = new JtsMultiPolygonConverter();
-        final JtsPolygonConverter polyConverter = new JtsPolygonConverter();
-        final GeometryFactory factory = new GeometryFactory();
-        final List<CountryBoundary> boundaries = boundaryMap.boundaries(shardBounds);
-        // jts version of the initial shard bounds
-        org.locationtech.jts.geom.Geometry shardPolyJts = polyConverter.convert(shardBounds);
-        // remove country boundaries from the ocean tile one by one
-        for (final CountryBoundary boundary : boundaries)
-        {
-            final Set<org.locationtech.jts.geom.Polygon> boundaryPolygons = multiPolyConverter
-                    .convert(boundary.getBoundary());
-            final org.locationtech.jts.geom.MultiPolygon countryMP = factory.createMultiPolygon(
-                    boundaryPolygons.toArray(new Polygon[boundaryPolygons.size()]));
-            final org.locationtech.jts.geom.Geometry geom = SnapRoundOverlayFunctions
-                    .difference(shardPolyJts, countryMP, .000000000000001);
-            shardPolyJts = geom;
-        }
-        return shardPolyJts;
-    }
-
-    public static void main(final String[] args)
-    {
-        new OceanCountryBoundaryMap().run(args);
-    }
-
-    @Override
-    protected int onRun(final CommandMap command)
-    {
-        final File boundaryFile = (File) command.get(BOUNDARY_MAP);
-        final CountryBoundaryMap boundaryMap = CountryBoundaryMap.fromPlainText(boundaryFile);
-        final File outputFile = (File) command.get(OUTPUT);
-        final Iterable<SlippyTile> allTiles = SlippyTile.allTiles(OCEAN_BOUNDARY_ZOOM_LEVEL);
-        int oceanCountryCount = INITIAL_OCEAN_INDEX;
         final CountryBoundaryMap finalBoundaryMap = new CountryBoundaryMap();
-
+        int oceanCountryCount = INITIAL_OCEAN_INDEX;
         // add all ocean boundaries to the new boundary map
         logger.info("Calculating ocean boundaries");
         for (final SlippyTile tile : allTiles)
@@ -111,6 +78,45 @@ public class OceanCountryBoundaryMap extends Command
                 finalBoundaryMap.addCountry(country, countryMP);
             }
         }
+        return finalBoundaryMap;
+    }
+
+    public static Geometry geometryForShard(final Rectangle shardBounds,
+            final CountryBoundaryMap boundaryMap)
+    {
+        final JtsMultiPolygonConverter multiPolyConverter = new JtsMultiPolygonConverter();
+        final JtsPolygonConverter polyConverter = new JtsPolygonConverter();
+        final GeometryFactory factory = new GeometryFactory();
+        final List<CountryBoundary> boundaries = boundaryMap.boundaries(shardBounds);
+        // jts version of the initial shard bounds
+        org.locationtech.jts.geom.Geometry shardPolyJts = polyConverter.convert(shardBounds);
+        // remove country boundaries from the ocean tile one by one
+        for (final CountryBoundary boundary : boundaries)
+        {
+            final Set<org.locationtech.jts.geom.Polygon> boundaryPolygons = multiPolyConverter
+                    .convert(boundary.getBoundary());
+            final org.locationtech.jts.geom.MultiPolygon countryMP = factory.createMultiPolygon(
+                    boundaryPolygons.toArray(new Polygon[boundaryPolygons.size()]));
+            final org.locationtech.jts.geom.Geometry geom = SnapRoundOverlayFunctions
+                    .difference(shardPolyJts, countryMP, .000000000000001);
+            shardPolyJts = geom;
+        }
+        return shardPolyJts;
+    }
+
+    public static void main(final String[] args)
+    {
+        new OceanCountryBoundaryMap().run(args);
+    }
+
+    @Override
+    protected int onRun(final CommandMap command)
+    {
+        final File boundaryFile = (File) command.get(BOUNDARY_MAP);
+        final CountryBoundaryMap boundaryMap = CountryBoundaryMap.fromPlainText(boundaryFile);
+        final File outputFile = (File) command.get(OUTPUT);
+        final Iterable<SlippyTile> allTiles = SlippyTile.allTiles(OCEAN_BOUNDARY_ZOOM_LEVEL);
+        final CountryBoundaryMap finalBoundaryMap = generateOceanBoundaryMap(boundaryMap, allTiles);
         try
         {
             finalBoundaryMap.writeToFile(outputFile);
