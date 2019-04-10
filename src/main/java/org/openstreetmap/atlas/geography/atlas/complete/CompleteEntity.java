@@ -136,7 +136,7 @@ public interface CompleteEntity<C extends CompleteEntity> extends TagChangeListe
                 CompleteEntity.addNewTag(completeEntity.getTags(), key, value), true);
 
         if (!suppressFiringEvent) {
-            completeEntity.fireTagChangeEvent(TagChangeEvent.added(CompleteItemType.AREA,
+            completeEntity.fireTagChangeEvent(TagChangeEvent.added(completeEntity.completeItemType(),
                     completeEntity.getIdentifier(), Pair.of(key, value)));
         }
 
@@ -150,7 +150,7 @@ public interface CompleteEntity<C extends CompleteEntity> extends TagChangeListe
                 CompleteEntity.removeTag(completeEntity.getTags(), key), true);
 
         if (!suppressFiringEvent) {
-            completeEntity.fireTagChangeEvent(TagChangeEvent.remove(CompleteItemType.AREA,
+            completeEntity.fireTagChangeEvent(TagChangeEvent.remove(completeEntity.completeItemType(),
                     completeEntity.getIdentifier(), key));
         }
 
@@ -166,7 +166,7 @@ public interface CompleteEntity<C extends CompleteEntity> extends TagChangeListe
         completeEntity = CompleteEntity.withAddedTag(completeEntity, newKey, newValue, true);
 
         if (!suppressFiringEvent) {
-            completeEntity.fireTagChangeEvent(TagChangeEvent.replaced(CompleteItemType.AREA,
+            completeEntity.fireTagChangeEvent(TagChangeEvent.replaced(completeEntity.completeItemType(),
                     completeEntity.getIdentifier(), Triple.of(oldKey, newKey, newValue)));
         }
 
@@ -178,7 +178,7 @@ public interface CompleteEntity<C extends CompleteEntity> extends TagChangeListe
         completeEntity.setTags(tags);
 
         if (!suppressFiringEvent) {
-            completeEntity.fireTagChangeEvent(TagChangeEvent.overwrite(CompleteItemType.AREA,
+            completeEntity.fireTagChangeEvent(TagChangeEvent.overwrite(completeEntity.completeItemType(),
                     completeEntity.getIdentifier(), tags));
         }
 
@@ -219,4 +219,6 @@ public interface CompleteEntity<C extends CompleteEntity> extends TagChangeListe
     void setTags(Map<String, String> tags);
 
     Map<String, String> getTags();
+
+    CompleteItemType completeItemType();
 }

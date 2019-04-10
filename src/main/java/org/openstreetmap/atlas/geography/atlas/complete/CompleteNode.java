@@ -321,4 +321,9 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     {
         this.tags = tags;
     }
+
+    @Override
+    public CompleteItemType completeItemType() {
+        return CompleteItemType.NODE;
+    }
 }

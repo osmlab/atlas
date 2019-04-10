@@ -216,4 +216,9 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
     {
         this.tags = tags;
     }
+
+    @Override
+    public CompleteItemType completeItemType() {
+        return CompleteItemType.POINT;
+    }
 }

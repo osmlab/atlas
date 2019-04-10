@@ -215,4 +215,9 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     {
         this.tags = tags;
     }
+
+    @Override
+    public CompleteItemType completeItemType() {
+        return CompleteItemType.AREA;
+    }
 }

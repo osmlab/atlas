@@ -216,4 +216,9 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     {
         this.tags = tags;
     }
+
+    @Override
+    public CompleteItemType completeItemType() {
+        return CompleteItemType.LINE;
+    }
 }

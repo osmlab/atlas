@@ -261,4 +261,9 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     {
         this.tags = tags;
     }
+
+    @Override
+    public CompleteItemType completeItemType() {
+        return CompleteItemType.EDGE;
+    }
 }

@@ -433,4 +433,9 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     {
         this.tags = tags;
     }
+
+    @Override
+    public CompleteItemType completeItemType() {
+        return CompleteItemType.RELATION;
+    }
 }
