@@ -74,7 +74,7 @@ public final class ChangeEntity
         if (result.isEmpty())
         {
             throw new CoreException(
-                    "Could not retrieve attribute {} from override nor source!\noverride: {}\nsource:{}",
+                    "Could not retrieve attribute \"{}\" from override nor source!\noverride: {}\nsource:{}",
                     name, override, source);
         }
         return result;
@@ -109,7 +109,7 @@ public final class ChangeEntity
         if (result == null)
         {
             throw new CoreException(
-                    "Could not retrieve attribute {} from override nor source!\noverride: {}\nsource:{}",
+                    "Could not retrieve attribute \"{}\" from override nor source!\noverride: {}\nsource:{}",
                     name, override, source);
         }
         return result;
