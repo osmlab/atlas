@@ -29,7 +29,7 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
 
-    //private TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
+    private TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
      * Create a {@link CompleteLine} from a given {@link Line} reference. The {@link CompleteLine}'s
@@ -196,19 +196,19 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     @Override
     public void addTagChangeListener(final TagChangeListener tagChangeListener)
     {
-        //tagChangeDelegate.addTagChangeListener(tagChangeListener);
+        tagChangeDelegate.addTagChangeListener(tagChangeListener);
     }
 
     @Override
     public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
     {
-        //tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
+        tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
     }
 
     @Override
     public void removeTagChangeListeners()
     {
-        //tagChangeDelegate.removeTagChangeListeners();
+        tagChangeDelegate.removeTagChangeListeners();
     }
 
     @Override

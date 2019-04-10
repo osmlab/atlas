@@ -32,7 +32,7 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     private Long endNodeIdentifier;
     private Set<Long> relationIdentifiers;
 
-    //private TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
+    private TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
      * Create a {@link CompleteEdge} from a given {@link Edge} reference. The {@link CompleteEdge}'s
@@ -241,19 +241,19 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     @Override
     public void addTagChangeListener(final TagChangeListener tagChangeListener)
     {
-        //tagChangeDelegate.addTagChangeListener(tagChangeListener);
+        tagChangeDelegate.addTagChangeListener(tagChangeListener);
     }
 
     @Override
     public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
     {
-        //tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
+        tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
     }
 
     @Override
     public void removeTagChangeListeners()
     {
-        //tagChangeDelegate.removeTagChangeListeners();
+        tagChangeDelegate.removeTagChangeListeners();
     }
 
     @Override
