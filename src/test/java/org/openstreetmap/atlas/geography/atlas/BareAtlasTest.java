@@ -24,8 +24,6 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 
@@ -41,8 +39,6 @@ public class BareAtlasTest
     @Rule
     public ExpectedException testGetEntitiesWithWrongTypeSpecifiedException = ExpectedException
             .none();
-
-    private static final Logger log = LoggerFactory.getLogger(BareAtlasTest.class);
 
     @Test
     public void testGetEntitiesWithTypeSpecified()
@@ -102,25 +98,29 @@ public class BareAtlasTest
     }
 
     @Test
-    public void testSaveAsLineDelimitedGeoJsonFeatures() throws IOException
+    public void testSaveAsLineDelimitedGeoJsonFeatures()
     {
         final InputStream inputStream = BareAtlasTest.class
                 .getResourceAsStream("line-delimited-geojson.txt");
-
-        final String correctText = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-
-        final Atlas atlas = this.rule.getAtlas();
-        final StringResource stringResource = new StringResource();
-        final BiConsumer<AtlasEntity, JsonObject> jsonMutator = (atlasEntity, feature) ->
+        try
         {
-        };
-        atlas.saveAsLineDelimitedGeoJsonFeatures(stringResource, jsonMutator);
-        final String text = stringResource.writtenString();
+            final String correctText = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
 
-        log.info("{}", correctText);
-        log.info("{}", text);
+            final Atlas atlas = this.rule.getAtlas();
+            final StringResource stringResource = new StringResource();
+            final BiConsumer<AtlasEntity, JsonObject> jsonMutator = (atlasEntity, feature) ->
+            {
+            };
+            atlas.saveAsLineDelimitedGeoJsonFeatures(stringResource, jsonMutator);
+            final String text = stringResource.writtenString();
 
-        Assert.assertEquals(correctText, text);
+            Assert.assertEquals(correctText, text);
 
+        }
+        catch (final IOException exception)
+        {
+            exception.printStackTrace();
+            Assert.fail();
+        }
     }
 }
