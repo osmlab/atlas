@@ -1,11 +1,5 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.openstreetmap.atlas.exception.CoreException;
@@ -19,25 +13,26 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-import org.openstreetmap.atlas.tags.Taggable;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
 
 /**
  * Simple interface for all the Complete entities. As each one extends its parent class already
  * (Node, Edge, Area, ...) this cannot be an abstract class.
  *
  * @param <C> - the {@link CompleteEntity} implementation.
- *
  * @author matthieun
  * @author Yazad Khambata
  */
-public interface CompleteEntity<C extends CompleteEntity> extends TagChangeListenable, Taggable
-{
+public interface CompleteEntity<C extends CompleteEntity> extends TagChangeListenable {
     static Map<String, String> addNewTag(final Map<String, String> tags, final String key,
-            final String value)
-    {
+                                         final String value) {
         Map<String, String> result = tags;
-        if (result == null)
-        {
+        if (result == null) {
             result = new HashMap<>();
         }
         result.put(key, value);
@@ -47,31 +42,22 @@ public interface CompleteEntity<C extends CompleteEntity> extends TagChangeListe
     /**
      * A simple equality check that only looks at identifiers, tags, and parent relations.
      *
-     * @param left
-     *            the left entity
-     * @param right
-     *            the right entity
+     * @param left  the left entity
+     * @param right the right entity
      * @return if the left and right entities are related through a simple equality
      */
-    static boolean basicEqual(final AtlasEntity left, final AtlasEntity right)
-    {
+    static boolean basicEqual(final AtlasEntity left, final AtlasEntity right) {
         return left.getIdentifier() == right.getIdentifier()
                 && Objects.equals(left.getTags(), right.getTags())
                 && Objects.equals(left.relations(), right.relations());
     }
 
-    static <M, T> boolean equalThroughGet(final M left, final M right, final Function<M, T> getter)
-    {
-        if (left == null && right == null)
-        {
+    static <M, T> boolean equalThroughGet(final M left, final M right, final Function<M, T> getter) {
+        if (left == null && right == null) {
             return true;
-        }
-        else if (left == null || right == null)
-        {
+        } else if (left == null || right == null) {
             return false;
-        }
-        else
-        {
+        } else {
             return Objects.equals(getter.apply(left), getter.apply(right));
         }
     }
@@ -81,15 +67,12 @@ public interface CompleteEntity<C extends CompleteEntity> extends TagChangeListe
      * {@link CompleteEntity}'s fields will match the fields of the reference. The returned
      * {@link CompleteEntity} will be full, i.e. all of its associated fields will be non-null.
      *
-     * @param reference
-     *            the reference to copy
+     * @param reference the reference to copy
      * @return the full entity
      */
-    static AtlasEntity from(final AtlasEntity reference)
-    {
+    static AtlasEntity from(final AtlasEntity reference) {
         final ItemType type = reference.getType();
-        switch (type)
-        {
+        switch (type) {
             case NODE:
                 return CompleteNode.from((Node) reference);
             case EDGE:
@@ -107,11 +90,9 @@ public interface CompleteEntity<C extends CompleteEntity> extends TagChangeListe
         }
     }
 
-    static Map<String, String> removeTag(final Map<String, String> tags, final String key)
-    {
+    static Map<String, String> removeTag(final Map<String, String> tags, final String key) {
         Map<String, String> result = tags;
-        if (result == null)
-        {
+        if (result == null) {
             result = new HashMap<>();
         }
         result.remove(key);
@@ -124,15 +105,12 @@ public interface CompleteEntity<C extends CompleteEntity> extends TagChangeListe
      * {@link CompleteEntity} will be shallow, i.e. all of its associated fields will be null except
      * for the identifier.
      *
-     * @param reference
-     *            the reference to copy
+     * @param reference the reference to copy
      * @return the shallow entity
      */
-    static AtlasEntity shallowFrom(final AtlasEntity reference)
-    {
+    static AtlasEntity shallowFrom(final AtlasEntity reference) {
         final ItemType type = reference.getType();
-        switch (type)
-        {
+        switch (type) {
             case NODE:
                 return CompleteNode.shallowFrom((Node) reference);
             case EDGE:
@@ -151,14 +129,13 @@ public interface CompleteEntity<C extends CompleteEntity> extends TagChangeListe
     }
 
     static <C extends CompleteEntity<C>> C withAddedTag(final C completeEntityParam,
-            final String key, final String value, final boolean suppressFiringEvent)
-    {
+                                                        final String key, final String value,
+                                                        final boolean suppressFiringEvent) {
         C completeEntity = completeEntityParam;
         completeEntity = CompleteEntity.withTags(completeEntity,
                 CompleteEntity.addNewTag(completeEntity.getTags(), key, value), true);
 
-        if (!suppressFiringEvent)
-        {
+        if (!suppressFiringEvent) {
             completeEntity.fireTagChangeEvent(TagChangeEvent.added(CompleteItemType.AREA,
                     completeEntity.getIdentifier(), Pair.of(key, value)));
         }
@@ -167,14 +144,12 @@ public interface CompleteEntity<C extends CompleteEntity> extends TagChangeListe
     }
 
     static <C extends CompleteEntity<C>> C withRemovedTag(final C completeEntityParam,
-            final String key, final boolean suppressFiringEvent)
-    {
+                                                          final String key, final boolean suppressFiringEvent) {
         C completeEntity = completeEntityParam;
         completeEntity = CompleteEntity.withTags(completeEntity,
                 CompleteEntity.removeTag(completeEntity.getTags(), key), true);
 
-        if (!suppressFiringEvent)
-        {
+        if (!suppressFiringEvent) {
             completeEntity.fireTagChangeEvent(TagChangeEvent.remove(CompleteItemType.AREA,
                     completeEntity.getIdentifier(), key));
         }
@@ -183,15 +158,14 @@ public interface CompleteEntity<C extends CompleteEntity> extends TagChangeListe
     }
 
     static <C extends CompleteEntity<C>> C withReplacedTag(final C completeEntityParam,
-            final String oldKey, final String newKey, final String newValue,
-            final boolean suppressFiringEvent)
-    {
+                                                           final String oldKey, final String newKey,
+                                                           final String newValue,
+                                                           final boolean suppressFiringEvent) {
         C completeEntity = completeEntityParam;
         completeEntity = CompleteEntity.withRemovedTag(completeEntity, oldKey, true);
         completeEntity = CompleteEntity.withAddedTag(completeEntity, newKey, newValue, true);
 
-        if (!suppressFiringEvent)
-        {
+        if (!suppressFiringEvent) {
             completeEntity.fireTagChangeEvent(TagChangeEvent.replaced(CompleteItemType.AREA,
                     completeEntity.getIdentifier(), Triple.of(oldKey, newKey, newValue)));
         }
@@ -200,12 +174,10 @@ public interface CompleteEntity<C extends CompleteEntity> extends TagChangeListe
     }
 
     static <C extends CompleteEntity<C>> C withTags(C completeEntity,
-            final Map<String, String> tags, final boolean suppressFiringEvent)
-    {
+                                                    final Map<String, String> tags, final boolean suppressFiringEvent) {
         completeEntity.setTags(tags);
 
-        if (!suppressFiringEvent)
-        {
+        if (!suppressFiringEvent) {
             completeEntity.fireTagChangeEvent(TagChangeEvent.overwrite(CompleteItemType.AREA,
                     completeEntity.getIdentifier(), tags));
         }
@@ -228,25 +200,23 @@ public interface CompleteEntity<C extends CompleteEntity> extends TagChangeListe
 
     CompleteEntity withRelations(Set<Relation> relations);
 
-    default C withAddedTag(final String key, final String value)
-    {
+    default C withAddedTag(final String key, final String value) {
         return (C) CompleteEntity.withAddedTag((C) this, key, value, false);
     }
 
-    default C withRemovedTag(final String key)
-    {
+    default C withRemovedTag(final String key) {
         return (C) CompleteEntity.withRemovedTag((C) this, key, false);
     }
 
-    default C withReplacedTag(final String oldKey, final String newKey, final String newValue)
-    {
+    default C withReplacedTag(final String oldKey, final String newKey, final String newValue) {
         return (C) CompleteEntity.withReplacedTag((C) this, oldKey, newKey, newValue, false);
     }
 
-    default C withTags(final Map<String, String> tags)
-    {
+    default C withTags(final Map<String, String> tags) {
         return (C) CompleteEntity.withTags((C) this, tags, false);
     }
 
     void setTags(Map<String, String> tags);
+
+    Map<String, String> getTags();
 }
