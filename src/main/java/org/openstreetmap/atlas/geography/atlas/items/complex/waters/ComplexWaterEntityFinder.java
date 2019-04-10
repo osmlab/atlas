@@ -1,37 +1,39 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex.waters;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasObject;
+import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.complex.Finder;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.CanalHandler;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.CreekHandler;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.DitchHandler;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.HarbourHandler;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.LagoonHandler;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.LakeHandler;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.PondHandler;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.PoolHandler;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.ReservoirHandler;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.RiverHandler;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.SeaHandler;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.WaterHandler;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.handler.WetlandHandler;
+import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
+import org.openstreetmap.atlas.utilities.configuration.Configuration;
+import org.openstreetmap.atlas.utilities.configuration.ConfigurationReader;
+import org.openstreetmap.atlas.utilities.configuration.ConfiguredFilter;
+import org.openstreetmap.atlas.utilities.configuration.StandardConfiguration;
+import org.openstreetmap.atlas.utilities.tuples.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
+ * This class loops over the atlas lines, areas and relations to find water entities and return a
+ * list of @{link ComplexWaterEntity} objects
+ * 
  * @author Sid
+ * @author sbhalekar
  */
 public class ComplexWaterEntityFinder implements Finder<ComplexWaterEntity>
 {
@@ -39,24 +41,47 @@ public class ComplexWaterEntityFinder implements Finder<ComplexWaterEntity>
             relation, RelationTypeTag.class, RelationTypeTag.MULTIPOLYGON, RelationTypeTag.BOUNDARY,
             RelationTypeTag.WATERWAY);
 
-    private final Map<WaterType, WaterHandler> handlers;
+    private final Configuration configuration;
+
+    /**
+     * Default water handler configuration from the resources
+     */
+    public static final String WATER_RESOURCE = "water-handlers.json";
+
+    private static final Logger logger = LoggerFactory.getLogger(ComplexWaterEntityFinder.class);
+
+    private List<Tuple<String, ConfiguredFilter>> waterConfiguredFilters;
+
+    /**
+     * Read in the configuration file and create {@link ConfiguredFilter} object
+     * 
+     * @return List of tuples with {@link WaterType} and {@link ConfiguredFilter}
+     */
+    private List<Tuple<String, ConfiguredFilter>> createWaterConfiguredFilters()
+    {
+        final ConfigurationReader reader = new ConfigurationReader(
+                ConfiguredFilter.CONFIGURATION_ROOT);
+        final Set<String> waterBodyTypes = reader.configurationValue(this.configuration,
+                Map<String, Object>::keySet);
+
+        return waterBodyTypes.stream().map(waterBodyType ->
+        {
+            return new Tuple<String, ConfiguredFilter>(waterBodyType.toLowerCase(),
+                    ConfiguredFilter.from(waterBodyType, this.configuration));
+        }).collect(Collectors.toList());
+    }
 
     public ComplexWaterEntityFinder()
     {
-        this.handlers = new HashMap<>();
+        this.configuration = new StandardConfiguration(new InputStreamResource(
+                () -> ComplexWaterEntityFinder.class.getResourceAsStream(WATER_RESOURCE)));
+        this.waterConfiguredFilters = createWaterConfiguredFilters();
+    }
 
-        this.handlers.put(WaterType.CANAL, new CanalHandler());
-        this.handlers.put(WaterType.CREEK, new CreekHandler());
-        this.handlers.put(WaterType.DITCH, new DitchHandler());
-        this.handlers.put(WaterType.HARBOUR, new HarbourHandler());
-        this.handlers.put(WaterType.LAGOON, new LagoonHandler());
-        this.handlers.put(WaterType.LAKE, new LakeHandler());
-        this.handlers.put(WaterType.POND, new PondHandler());
-        this.handlers.put(WaterType.POOL, new PoolHandler());
-        this.handlers.put(WaterType.RESERVOIR, new ReservoirHandler());
-        this.handlers.put(WaterType.RIVER, new RiverHandler());
-        this.handlers.put(WaterType.SEA, new SeaHandler());
-        this.handlers.put(WaterType.WETLAND, new WetlandHandler());
+    public ComplexWaterEntityFinder(final String resource)
+    {
+        this.configuration = new StandardConfiguration(new File(resource));
+        this.waterConfiguredFilters = createWaterConfiguredFilters();
     }
 
     @Override
@@ -71,22 +96,44 @@ public class ComplexWaterEntityFinder implements Finder<ComplexWaterEntity>
         return new MultiIterable<>(areaEntities, lineEntities, relationEntities);
     }
 
+    /**
+     * Take in an atlas object and run through all the water handlers created from the configuration
+     * file
+     * 
+     * @param object
+     *            Atlas object to work with
+     * @return List of {@link ComplexWaterEntity} created based on the configuration
+     */
     private List<ComplexWaterEntity> processEntity(final AtlasObject object)
     {
         final List<ComplexWaterEntity> complexWaterEntities = new ArrayList<>();
         if (object instanceof AtlasEntity)
         {
             final AtlasEntity entity = (AtlasEntity) object;
-            this.handlers.forEach((waterType, handler) ->
+            this.waterConfiguredFilters.stream().forEach(tuple ->
             {
-                final Optional<ComplexWaterEntity> complexWaterEntity = handler.handle(entity);
-                if (complexWaterEntity.isPresent())
+                if (tuple.getSecond().test(entity))
                 {
-                    complexWaterEntities.add(complexWaterEntity.get());
+                    try
+                    {
+                        if (entity instanceof Relation || entity instanceof Area)
+                        {
+                            complexWaterEntities
+                                    .add(new ComplexWaterbody(entity, tuple.getFirst()));
+                        }
+                        else if (entity instanceof Line)
+                        {
+                            complexWaterEntities.add(new ComplexWaterway(entity, tuple.getFirst()));
+                        }
+                    }
+                    catch (final Exception e)
+                    {
+                        logger.warn("Skipping entity : {}", entity, e);
+                    }
                 }
-                return;
             });
         }
         return complexWaterEntities;
+
     }
 }
