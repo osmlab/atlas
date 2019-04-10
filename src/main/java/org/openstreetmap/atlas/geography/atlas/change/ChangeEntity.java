@@ -39,6 +39,8 @@ public final class ChangeEntity
      * Get all the available attributes asked from the change entity (override), and/or from the
      * backup entity.
      *
+     * @param name
+     *            The name of the extraction operation
      * @param source
      *            The source entity
      * @param override
@@ -48,7 +50,8 @@ public final class ChangeEntity
      * @return The corresponding attribute list. Will not be empty.
      */
     static <T extends Object, M extends AtlasEntity> List<T> getAttributeAndOptionallyBackup(
-            final M source, final M override, final Function<M, T> memberExtractor)
+            final M source, final M override, final Function<M, T> memberExtractor,
+            final String name)
     {
         final List<T> result = new ArrayList<>();
         if (override != null)
@@ -70,7 +73,9 @@ public final class ChangeEntity
         }
         if (result.isEmpty())
         {
-            throw new CoreException("Could not retrieve attribute from source nor backup!");
+            throw new CoreException(
+                    "Could not retrieve attribute {} from override nor source!\noverride: {}\nsource:{}",
+                    name, override, source);
         }
         return result;
     }
@@ -79,6 +84,8 @@ public final class ChangeEntity
      * Get either the attribute asked from the change entity (override), or from the backup entity
      * if unavailable.
      *
+     * @param name
+     *            The name of the extraction operation
      * @param source
      *            The source entity
      * @param override
@@ -88,7 +95,7 @@ public final class ChangeEntity
      * @return The corresponding attribute
      */
     static <T extends Object, M extends AtlasEntity> T getAttributeOrBackup(final M source,
-            final M override, final Function<M, T> memberExtractor)
+            final M override, final Function<M, T> memberExtractor, final String name)
     {
         T result = null;
         if (override != null)
@@ -101,7 +108,9 @@ public final class ChangeEntity
         }
         if (result == null)
         {
-            throw new CoreException("Could not retrieve attribute from source nor backup!");
+            throw new CoreException(
+                    "Could not retrieve attribute {} from override nor source!\noverride: {}\nsource:{}",
+                    name, override, source);
         }
         return result;
     }

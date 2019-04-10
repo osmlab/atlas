@@ -41,33 +41,34 @@ public class ChangeArea extends Area // NOSONAR
     @Override
     public Polygon asPolygon()
     {
-        return attribute(Area::asPolygon);
+        return attribute(Area::asPolygon, "polygon");
     }
 
     @Override
     public long getIdentifier()
     {
-        return attribute(Area::getIdentifier);
+        return attribute(Area::getIdentifier, "identifier");
     }
 
     @Override
     public Map<String, String> getTags()
     {
-        return attribute(Area::getTags);
+        return attribute(Area::getTags, "tags");
     }
 
     @Override
     public Set<Relation> relations()
     {
         final Supplier<Set<Relation>> creator = () -> ChangeEntity
-                .filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+                .filterRelations(attribute(AtlasEntity::relations, "relations"), getChangeAtlas());
         return ChangeEntity.getOrCreateCache(this.relationsCache,
                 cache -> this.relationsCache = cache, this.relationsCacheLock, creator);
     }
 
-    private <T extends Object> T attribute(final Function<Area, T> memberExtractor)
+    private <T extends Object> T attribute(final Function<Area, T> memberExtractor,
+            final String name)
     {
-        return ChangeEntity.getAttributeOrBackup(this.source, this.override, memberExtractor);
+        return ChangeEntity.getAttributeOrBackup(this.source, this.override, memberExtractor, name);
     }
 
     private ChangeAtlas getChangeAtlas()
