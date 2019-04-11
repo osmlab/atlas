@@ -1,9 +1,9 @@
 package org.openstreetmap.atlas.dependency;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.swing.JButton;
+import org.junit.Assert;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,11 +11,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Delegate;
-
-import org.junit.Assert;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Needs annotation processing, For IntelliJ IDEA go to Preferences | Build, Execution, Deployment |
@@ -27,14 +22,10 @@ public class LombokTest
 {
 
     private static final Logger log = LoggerFactory.getLogger(LombokTest.class);
-    private List l = new ArrayList();
-    private JButton b = new JButton();
 
     @Test
     public void sanity()
     {
-        System.out.println("" + l + b);
-
         final String name = "Star Wars";
         // Notice: Builder
         final Movie starWars = Movie.builder().name(name)
