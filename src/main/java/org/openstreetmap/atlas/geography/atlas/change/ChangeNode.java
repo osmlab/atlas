@@ -53,24 +53,24 @@ public class ChangeNode extends Node // NOSONAR
     @Override
     public long getIdentifier()
     {
-        return attribute(Node::getIdentifier);
+        return attribute(Node::getIdentifier, "identifier");
     }
 
     @Override
     public Location getLocation()
     {
-        return attribute(Node::getLocation);
+        return attribute(Node::getLocation, "location");
     }
 
     @Override
     public Map<String, String> getTags()
     {
-        return attribute(Node::getTags);
+        return attribute(Node::getTags, "tags");
     }
 
     public SortedSet<Long> inEdgeIdentifiers()
     {
-        return attribute(Node::inEdges).stream().map(Edge::getIdentifier)
+        return attribute(Node::inEdges, "in edges").stream().map(Edge::getIdentifier)
                 .filter(edgeIdentifier -> getChangeAtlas().edge(edgeIdentifier) != null)
                 .collect(Collectors.toCollection(TreeSet::new));
     }
@@ -88,7 +88,7 @@ public class ChangeNode extends Node // NOSONAR
 
     public SortedSet<Long> outEdgeIdentifiers()
     {
-        return attribute(Node::outEdges).stream().map(Edge::getIdentifier)
+        return attribute(Node::outEdges, "out edges").stream().map(Edge::getIdentifier)
                 .filter(edgeIdentifier -> getChangeAtlas().edge(edgeIdentifier) != null)
                 .collect(Collectors.toCollection(TreeSet::new));
     }
@@ -108,14 +108,15 @@ public class ChangeNode extends Node // NOSONAR
     public Set<Relation> relations()
     {
         final Supplier<Set<Relation>> creator = () -> ChangeEntity
-                .filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+                .filterRelations(attribute(AtlasEntity::relations, "relations"), getChangeAtlas());
         return ChangeEntity.getOrCreateCache(this.relationsCache,
                 cache -> this.relationsCache = cache, this.relationsCacheLock, creator);
     }
 
-    private <T extends Object> T attribute(final Function<Node, T> memberExtractor)
+    private <T extends Object> T attribute(final Function<Node, T> memberExtractor,
+            final String name)
     {
-        return ChangeEntity.getAttributeOrBackup(this.source, this.override, memberExtractor);
+        return ChangeEntity.getAttributeOrBackup(this.source, this.override, memberExtractor, name);
     }
 
     private ChangeAtlas getChangeAtlas()
