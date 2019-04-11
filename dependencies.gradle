@@ -9,6 +9,7 @@ project.ext.versions = [
     math: '3.3',
     http: '4.5.1',
     jts: '1.16.1',
+    jtslab: '1.16.1.1',
     geotools: '20.2',
     osmosis: '0.44.1',
     commons:'1.3.1',
@@ -41,6 +42,7 @@ project.ext.packages = [
     math: "org.apache.commons:commons-math3:${versions.math}",
     http: "org.apache.httpcomponents:httpclient:${versions.http}",
     jts: "org.locationtech.jts:jts-core:${versions.jts}",
+    jtslab: "org.rotstan.jts:jts-lab:${versions.jtslab}",
     geotools: "org.geotools:gt-shapefile:${versions.geotools}",
     osmosis: [
         core: "org.openstreetmap.osmosis:osmosis-core:${versions.osmosis}",

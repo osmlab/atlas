@@ -44,6 +44,7 @@ dependencies
     compile packages.math
     compile packages.http
     compile packages.jts
+    compile packages.jtslab
     compile packages.geotools
     compile packages.osmosis.core
     compile packages.osmosis.pbf
