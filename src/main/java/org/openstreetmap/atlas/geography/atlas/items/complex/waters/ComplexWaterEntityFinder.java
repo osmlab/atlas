@@ -96,6 +96,11 @@ public class ComplexWaterEntityFinder implements Finder<ComplexWaterEntity>
         return new MultiIterable<>(areaEntities, lineEntities, relationEntities);
     }
 
+    public List<Tuple<String, ConfiguredFilter>> getConfiguredFilters()
+    {
+        return this.waterConfiguredFilters;
+    }
+
     /**
      * Take in an atlas object and run through all the water handlers created from the configuration
      * file
