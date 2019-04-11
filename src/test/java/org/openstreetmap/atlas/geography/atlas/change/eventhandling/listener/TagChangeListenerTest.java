@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
@@ -22,12 +24,12 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 /**
  * @author Yazad Khambata
  */
-public class TagChangeListenerTest
+public class TagChangeListenerTest<E extends CompleteEntity<E>>
 {
     @Test
     public void addTag()
     {
-        this.all().stream().forEach(completeEntity ->
+        allForEach(completeEntity ->
         {
             final TestTagChangeListenerImpl tagChangeListener = getTagChangeListener();
             completeEntity.addTagChangeListener(tagChangeListener);
@@ -46,17 +48,10 @@ public class TagChangeListenerTest
         });
     }
 
-    private void validateBasicEventFields(final CompleteEntity completeEntity,
-            final TagChangeEvent lastEvent)
-    {
-        Assert.assertEquals(completeEntity.completeItemType(), lastEvent.getCompleteItemType());
-        Assert.assertEquals(completeEntity.getIdentifier(), lastEvent.getIdentifier());
-    }
-
     @Test
     public void removeTag()
     {
-        this.all().stream().forEach(completeEntity ->
+        allForEach(completeEntity ->
         {
             final TestTagChangeListenerImpl tagChangeListener = getTagChangeListener();
             completeEntity.addTagChangeListener(tagChangeListener);
@@ -77,7 +72,7 @@ public class TagChangeListenerTest
     @Test
     public void replaceTag()
     {
-        this.all().stream().forEach(completeEntity ->
+        allForEach(completeEntity ->
         {
             final TestTagChangeListenerImpl tagChangeListener = getTagChangeListener();
             completeEntity.addTagChangeListener(tagChangeListener);
@@ -100,7 +95,7 @@ public class TagChangeListenerTest
     @Test
     public void overwriteTag()
     {
-        this.all().stream().forEach(completeEntity ->
+        allForEach(completeEntity ->
         {
             final TestTagChangeListenerImpl tagChangeListener = getTagChangeListener();
             completeEntity.addTagChangeListener(tagChangeListener);
@@ -140,15 +135,32 @@ public class TagChangeListenerTest
         return lastEvent;
     }
 
+    private void validateBasicEventFields(final CompleteEntity completeEntity,
+            final TagChangeEvent lastEvent)
+    {
+        Assert.assertEquals(completeEntity.completeItemType(), lastEvent.getCompleteItemType());
+        Assert.assertEquals(completeEntity.getIdentifier(), lastEvent.getIdentifier());
+    }
+
     private TestTagChangeListenerImpl getTagChangeListener()
     {
         return new TestTagChangeListenerImpl();
     }
 
-    private <E extends CompleteEntity<E>> List<E> all()
+    private List<E> all()
     {
         return (List<E>) Arrays.asList(newCompleteNode1(), newCompletePoint1(), newCompleteLine1(),
                 newCompleteEdge1(), newCompleteArea1(), newCompleteRelation1());
+    }
+
+    private void allForEach(final Consumer<E> consumer)
+    {
+        allStream().forEach(consumer);
+    }
+
+    private Stream<E> allStream()
+    {
+        return this.all().stream();
     }
 
     private CompleteNode newCompleteNode1()
