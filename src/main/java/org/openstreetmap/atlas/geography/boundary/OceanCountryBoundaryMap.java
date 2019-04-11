@@ -31,10 +31,9 @@ public class OceanCountryBoundaryMap extends Command
             "The country boundary map", File::new, Optionality.REQUIRED);
     private static final Switch<File> OUTPUT = new Switch<>("output",
             "The ocean country boundary file to be output", File::new, Optionality.REQUIRED);
-    // start ocean names (e.g. O10) at first double digit number
-    private static final int INITIAL_OCEAN_INDEX = 10;
     // ocean boundary slippytile zoom level
     private static final int OCEAN_BOUNDARY_ZOOM_LEVEL = 3;
+    private static final double JTS_SNAP_PRECISION = .000000000000001;
 
     private static final Logger logger = LoggerFactory.getLogger(OceanCountryBoundaryMap.class);
 
@@ -42,12 +41,12 @@ public class OceanCountryBoundaryMap extends Command
             final Iterable<SlippyTile> allTiles)
     {
         final CountryBoundaryMap finalBoundaryMap = new CountryBoundaryMap();
-        int oceanCountryCount = INITIAL_OCEAN_INDEX;
+        int oceanCountryCount = 0;
         // add all ocean boundaries to the new boundary map
         logger.info("Calculating ocean boundaries");
         for (final SlippyTile tile : allTiles)
         {
-            final String countryCode = "O" + oceanCountryCount;
+            final String countryCode = String.format("O%02d", oceanCountryCount);
             final Geometry countryMP = geometryForShard(tile.bounds(), boundaryMap);
             if (!countryMP.isEmpty())
             {
@@ -98,7 +97,7 @@ public class OceanCountryBoundaryMap extends Command
             final org.locationtech.jts.geom.MultiPolygon countryMP = factory.createMultiPolygon(
                     boundaryPolygons.toArray(new Polygon[boundaryPolygons.size()]));
             final org.locationtech.jts.geom.Geometry geom = SnapRoundOverlayFunctions
-                    .difference(shardPolyJts, countryMP, .000000000000001);
+                    .difference(shardPolyJts, countryMP, JTS_SNAP_PRECISION);
             shardPolyJts = geom;
         }
         return shardPolyJts;
