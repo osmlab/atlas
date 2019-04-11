@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.experimental.Delegate;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
@@ -29,6 +30,7 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
 
+    @Delegate
     private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
@@ -191,24 +193,6 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
         return this;
-    }
-
-    @Override
-    public void addTagChangeListener(final TagChangeListener tagChangeListener)
-    {
-        tagChangeDelegate.addTagChangeListener(tagChangeListener);
-    }
-
-    @Override
-    public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
-    {
-        tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
-    }
-
-    @Override
-    public void removeTagChangeListeners()
-    {
-        tagChangeDelegate.removeTagChangeListeners();
     }
 
     @Override

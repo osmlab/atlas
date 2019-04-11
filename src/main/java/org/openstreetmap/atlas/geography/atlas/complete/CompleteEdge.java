@@ -5,11 +5,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.experimental.Delegate;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
-import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
-import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -32,6 +31,7 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     private Long endNodeIdentifier;
     private Set<Long> relationIdentifiers;
 
+    @Delegate
     private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
@@ -236,24 +236,6 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     {
         this.startNodeIdentifier = startNodeIdentifier;
         return this;
-    }
-
-    @Override
-    public void addTagChangeListener(final TagChangeListener tagChangeListener)
-    {
-        tagChangeDelegate.addTagChangeListener(tagChangeListener);
-    }
-
-    @Override
-    public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
-    {
-        tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
-    }
-
-    @Override
-    public void removeTagChangeListeners()
-    {
-        tagChangeDelegate.removeTagChangeListeners();
     }
 
     @Override
