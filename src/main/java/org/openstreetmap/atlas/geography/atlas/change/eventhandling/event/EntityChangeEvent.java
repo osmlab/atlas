@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.change.eventhandling.event;
 
+import java.io.Serializable;
 import java.util.Optional;
 
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteItemType;
@@ -10,8 +11,10 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteItemType;
  *
  * @author Yazad Khambata
  */
-public abstract class EntityChangeEvent
+public abstract class EntityChangeEvent implements Serializable
 {
+    private static final long serialVersionUID = -9159065869173338344L;
+
     private CompleteItemType completeItemType;
     private long identifier;
     private Optional<Object> newValue;

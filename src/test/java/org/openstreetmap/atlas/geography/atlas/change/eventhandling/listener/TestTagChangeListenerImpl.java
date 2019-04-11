@@ -7,9 +7,9 @@ import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagCha
  */
 public class TestTagChangeListenerImpl implements TagChangeListener
 {
+    private static final long serialVersionUID = 6697728278083444095L;
 
     private TagChangeEvent lastEvent;
-
     private int callCount = 0;
 
     @Override

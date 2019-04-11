@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener;
 
+import java.io.Serializable;
+
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.EntityChangeEvent;
 
 /**
@@ -11,7 +13,7 @@ import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.Entity
  * @author Yazad Khambata
  */
 @FunctionalInterface
-public interface EntityChangeListener<E extends EntityChangeEvent>
+public interface EntityChangeListener<E extends EntityChangeEvent> extends Serializable
 {
     void entityChanged(E entityChangeEvent);
 }

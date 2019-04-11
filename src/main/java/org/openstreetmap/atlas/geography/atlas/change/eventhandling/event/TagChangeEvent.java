@@ -16,6 +16,8 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteItemType;
  */
 public class TagChangeEvent extends EntityChangeEvent
 {
+    private static final long serialVersionUID = -3108915161471760840L;
+
     private FieldChangeOperation fieldOperation;
 
     protected TagChangeEvent(final CompleteItemType completeItemType, final long identifier,

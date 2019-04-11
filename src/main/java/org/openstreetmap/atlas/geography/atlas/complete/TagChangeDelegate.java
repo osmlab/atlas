@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,8 +15,10 @@ import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.Tag
  *
  * @author Yazad Khambata
  */
-class TagChangeDelegate implements TagChangeListenable
+class TagChangeDelegate implements TagChangeListenable, Serializable
 {
+    private static final long serialVersionUID = -7015756232511317683L;
+
     private final List<TagChangeListener> tagChangeListeners = new ArrayList<>();
 
     protected TagChangeDelegate()
