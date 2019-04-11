@@ -20,7 +20,6 @@ import lombok.experimental.Delegate;
  */
 public class LombokTest
 {
-
     private static final Logger log = LoggerFactory.getLogger(LombokTest.class);
 
     @Test
