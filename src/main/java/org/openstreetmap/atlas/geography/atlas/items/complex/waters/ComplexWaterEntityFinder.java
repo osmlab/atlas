@@ -104,7 +104,7 @@ public class ComplexWaterEntityFinder implements Finder<ComplexWaterEntity>
      *            Atlas object to work with
      * @return List of {@link ComplexWaterEntity} created based on the configuration
      */
-    private List<ComplexWaterEntity> processEntity(final AtlasObject object)
+    public List<ComplexWaterEntity> processEntity(final AtlasObject object)
     {
         final List<ComplexWaterEntity> complexWaterEntities = new ArrayList<>();
         if (object instanceof AtlasEntity)
@@ -132,6 +132,11 @@ public class ComplexWaterEntityFinder implements Finder<ComplexWaterEntity>
                     }
                 }
             });
+        }
+        if (complexWaterEntities.isEmpty())
+        {
+            logger.debug("Could not create complex water entity from {} with osm id {}",
+                    object.getIdentifier(), object.getOsmIdentifier());
         }
         return complexWaterEntities;
 
