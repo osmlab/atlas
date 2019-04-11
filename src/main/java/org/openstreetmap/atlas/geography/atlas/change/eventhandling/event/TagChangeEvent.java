@@ -21,13 +21,6 @@ public class TagChangeEvent extends EntityChangeEvent
     private FieldChangeOperation fieldOperation;
 
     protected TagChangeEvent(final CompleteItemType completeItemType, final long identifier,
-            final FieldChangeOperation fieldOperation)
-    {
-        super(completeItemType, identifier);
-        this.fieldOperation = fieldOperation;
-    }
-
-    protected TagChangeEvent(final CompleteItemType completeItemType, final long identifier,
             final Optional<Object> newValue, final FieldChangeOperation fieldOperation)
     {
         super(completeItemType, identifier, newValue);
