@@ -14,8 +14,8 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasObject;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.complex.Finder;
-import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -78,9 +78,9 @@ public class ComplexWaterEntityFinder implements Finder<ComplexWaterEntity>
         this.waterConfiguredFilters = createWaterConfiguredFilters();
     }
 
-    public ComplexWaterEntityFinder(final String resource)
+    public ComplexWaterEntityFinder(final Resource resource)
     {
-        this.configuration = new StandardConfiguration(new File(resource));
+        this.configuration = new StandardConfiguration(resource);
         this.waterConfiguredFilters = createWaterConfiguredFilters();
     }
 
