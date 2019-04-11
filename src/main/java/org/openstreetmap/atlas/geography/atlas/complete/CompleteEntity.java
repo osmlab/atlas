@@ -149,11 +149,10 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
         }
     }
 
-    static <C extends CompleteEntity<C>> C withAddedTag(final C completeEntityParam,
-            final String key, final String value, final boolean suppressFiringEvent)
+    static <C extends CompleteEntity<C>> C withAddedTag(final C completeEntity, final String key,
+            final String value, final boolean suppressFiringEvent)
     {
-        C completeEntity = completeEntityParam;
-        completeEntity = CompleteEntity.withTags(completeEntity,
+        CompleteEntity.withTags(completeEntity,
                 CompleteEntity.addNewTag(completeEntity.getTags(), key, value), true);
 
         if (!suppressFiringEvent)
@@ -166,11 +165,10 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
         return completeEntity;
     }
 
-    static <C extends CompleteEntity<C>> C withRemovedTag(final C completeEntityParam,
-            final String key, final boolean suppressFiringEvent)
+    static <C extends CompleteEntity<C>> C withRemovedTag(final C completeEntity, final String key,
+            final boolean suppressFiringEvent)
     {
-        C completeEntity = completeEntityParam;
-        completeEntity = CompleteEntity.withTags(completeEntity,
+        CompleteEntity.withTags(completeEntity,
                 CompleteEntity.removeTag(completeEntity.getTags(), key), true);
 
         if (!suppressFiringEvent)
@@ -182,13 +180,12 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
         return completeEntity;
     }
 
-    static <C extends CompleteEntity<C>> C withReplacedTag(final C completeEntityParam,
+    static <C extends CompleteEntity<C>> C withReplacedTag(final C completeEntity,
             final String oldKey, final String newKey, final String newValue,
             final boolean suppressFiringEvent)
     {
-        C completeEntity = completeEntityParam;
-        completeEntity = CompleteEntity.withRemovedTag(completeEntity, oldKey, true);
-        completeEntity = CompleteEntity.withAddedTag(completeEntity, newKey, newValue, true);
+        CompleteEntity.withRemovedTag(completeEntity, oldKey, true);
+        CompleteEntity.withAddedTag(completeEntity, newKey, newValue, true);
 
         if (!suppressFiringEvent)
         {
@@ -200,7 +197,7 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
         return completeEntity;
     }
 
-    static <C extends CompleteEntity<C>> C withTags(C completeEntity,
+    static <C extends CompleteEntity<C>> C withTags(final C completeEntity,
             final Map<String, String> tags, final boolean suppressFiringEvent)
     {
         completeEntity.setTags(tags);
