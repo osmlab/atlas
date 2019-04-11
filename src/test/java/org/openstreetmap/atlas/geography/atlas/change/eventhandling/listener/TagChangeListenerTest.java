@@ -24,8 +24,8 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 /**
  * Test for {@link TagChangeListener}.
  *
- * @param <E> - the {@link CompleteEntity}.
- *
+ * @param <E>
+ *            - the {@link CompleteEntity}.
  * @author Yazad Khambata
  */
 public class TagChangeListenerTest<E extends CompleteEntity<E>>

@@ -10,7 +10,7 @@ import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listenable.T
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 
 /**
- * Consolidates redundant state and behavior that would have otherwise be repeated acorss all
+ * Consolidates redundant state and behavior that would have otherwise be repeated across all
  * {@link CompleteEntity} implementations.
  *
  * @author Yazad Khambata
