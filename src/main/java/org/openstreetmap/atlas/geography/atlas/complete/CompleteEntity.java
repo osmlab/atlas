@@ -29,7 +29,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  * @author matthieun
  * @author Yazad Khambata
  */
-public interface CompleteEntity<C extends CompleteEntity> extends TagChangeListenable
+public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeListenable
 {
     static Map<String, String> addNewTag(final Map<String, String> tags, final String key,
             final String value)
@@ -231,22 +231,22 @@ public interface CompleteEntity<C extends CompleteEntity> extends TagChangeListe
 
     default C withAddedTag(final String key, final String value)
     {
-        return (C) CompleteEntity.withAddedTag((C) this, key, value, false);
+        return CompleteEntity.withAddedTag((C) this, key, value, false);
     }
 
     default C withRemovedTag(final String key)
     {
-        return (C) CompleteEntity.withRemovedTag((C) this, key, false);
+        return CompleteEntity.withRemovedTag((C) this, key, false);
     }
 
     default C withReplacedTag(final String oldKey, final String newKey, final String newValue)
     {
-        return (C) CompleteEntity.withReplacedTag((C) this, oldKey, newKey, newValue, false);
+        return CompleteEntity.withReplacedTag((C) this, oldKey, newKey, newValue, false);
     }
 
     default C withTags(final Map<String, String> tags)
     {
-        return (C) CompleteEntity.withTags((C) this, tags, false);
+        return CompleteEntity.withTags((C) this, tags, false);
     }
 
     void setTags(Map<String, String> tags);
