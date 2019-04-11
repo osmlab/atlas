@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
@@ -31,6 +32,14 @@ public class ChangeRelation extends Relation // NOSONAR
     private final Relation source;
     private final Relation override;
 
+    // Computing ChangeRelation members is very expensive, so we cache it here.
+    private transient RelationMemberList membersCache;
+    private transient Object membersCacheLock = new Object();
+
+    // Computing Parent Relations is very expensive, so we cache it here.
+    private transient Set<Relation> relationsCache;
+    private transient Object relationsCacheLock = new Object();
+
     protected ChangeRelation(final ChangeAtlas atlas, final Relation source,
             final Relation override)
     {
@@ -42,70 +51,83 @@ public class ChangeRelation extends Relation // NOSONAR
     @Override
     public RelationMemberList allKnownOsmMembers()
     {
-        return membersFor(attribute(Relation::allKnownOsmMembers).asBean());
+        return membersFor(
+                attribute(Relation::allKnownOsmMembers, "all known osm members").asBean());
     }
 
     @Override
     public List<Relation> allRelationsWithSameOsmIdentifier()
     {
-        return attribute(Relation::allRelationsWithSameOsmIdentifier).stream()
-                .map(relation -> getChangeAtlas().relation(relation.getIdentifier()))
-                .collect(Collectors.toList());
+        return attribute(Relation::allRelationsWithSameOsmIdentifier,
+                "all relations with same osm identifier").stream()
+                        .map(relation -> getChangeAtlas().relation(relation.getIdentifier()))
+                        .collect(Collectors.toList());
     }
 
     @Override
     public long getIdentifier()
     {
-        return attribute(Relation::getIdentifier);
+        return attribute(Relation::getIdentifier, "identifier");
     }
 
     @Override
     public Map<String, String> getTags()
     {
-        return attribute(Relation::getTags);
+        return attribute(Relation::getTags, "tags");
     }
 
     @Override
     public RelationMemberList members()
     {
-        final List<RelationMemberList> availableMemberLists = allAvailableAttributes(
-                Relation::members);
-        final RelationBean mergedMembersBean = availableMemberLists.stream()
-                .map(RelationMemberList::asBean).reduce(new RelationBean(), RelationBean::merge);
-        final RelationBean filteredAndMergedMembersBean = new RelationBean();
-        mergedMembersBean.forEach(relationBeanItem ->
+        final Supplier<RelationMemberList> creator = () ->
         {
-            if (getChangeAtlas().entity(relationBeanItem.getIdentifier(),
-                    relationBeanItem.getType()) != null)
+            final List<RelationMemberList> availableMemberLists = allAvailableAttributes(
+                    Relation::members, "members");
+            final RelationBean mergedMembersBean = availableMemberLists.stream()
+                    .map(RelationMemberList::asBean)
+                    .reduce(new RelationBean(), RelationBean::merge);
+            final RelationBean filteredAndMergedMembersBean = new RelationBean();
+            mergedMembersBean.forEach(relationBeanItem ->
             {
-                filteredAndMergedMembersBean.addItem(relationBeanItem);
-            }
-        });
-        return membersFor(filteredAndMergedMembersBean);
+                if (getChangeAtlas().entity(relationBeanItem.getIdentifier(),
+                        relationBeanItem.getType()) != null)
+                {
+                    filteredAndMergedMembersBean.addItem(relationBeanItem);
+                }
+            });
+            return membersFor(filteredAndMergedMembersBean);
+        };
+
+        return ChangeEntity.getOrCreateCache(this.membersCache, cache -> this.membersCache = cache,
+                this.membersCacheLock, creator);
     }
 
     @Override
     public Long osmRelationIdentifier()
     {
-        return attribute(Relation::osmRelationIdentifier);
+        return attribute(Relation::osmRelationIdentifier, "osm relation identifier");
     }
 
     @Override
     public Set<Relation> relations()
     {
-        return ChangeEntity.filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+        final Supplier<Set<Relation>> creator = () -> ChangeEntity
+                .filterRelations(attribute(AtlasEntity::relations, "relations"), getChangeAtlas());
+        return ChangeEntity.getOrCreateCache(this.relationsCache,
+                cache -> this.relationsCache = cache, this.relationsCacheLock, creator);
     }
 
     private <T extends Object> List<T> allAvailableAttributes(
-            final Function<Relation, T> memberExtractor)
+            final Function<Relation, T> memberExtractor, final String name)
     {
         return ChangeEntity.getAttributeAndOptionallyBackup(this.source, this.override,
-                memberExtractor);
+                memberExtractor, name);
     }
 
-    private <T extends Object> T attribute(final Function<Relation, T> memberExtractor)
+    private <T extends Object> T attribute(final Function<Relation, T> memberExtractor,
+            final String name)
     {
-        return ChangeEntity.getAttributeOrBackup(this.source, this.override, memberExtractor);
+        return ChangeEntity.getAttributeOrBackup(this.source, this.override, memberExtractor, name);
     }
 
     private ChangeAtlas getChangeAtlas()

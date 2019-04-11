@@ -31,8 +31,7 @@ public class AtlasValidator
         final Time start = Time.now();
         logger.trace("Starting relation validation of Atlas {}", this.atlas.getName());
         final Time startRelations = Time.now();
-        validateRelationsPresent();
-        validateRelationsLinked();
+        validateRelationsPresentAndLinked();
         logger.trace("Finished relation validation of Atlas {} in {}", this.atlas.getName(),
                 startRelations.elapsedSince());
         logger.trace("Starting tags validation of Atlas {}", this.atlas.getName());
@@ -48,24 +47,7 @@ public class AtlasValidator
                 start.elapsedSince());
     }
 
-    protected void validateRelationsLinked()
-    {
-        for (final AtlasEntity entity : this.atlas.entities())
-        {
-            for (final Relation relation : entity.relations())
-            {
-                if (!relation.members().asBean()
-                        .getItemFor(entity.getIdentifier(), entity.getType()).isPresent())
-                {
-                    throw new CoreException(
-                            "Entity {} {} lists parent relation {} which does not have it as a member.",
-                            entity.getType(), entity.getIdentifier(), relation.getIdentifier());
-                }
-            }
-        }
-    }
-
-    protected void validateRelationsPresent()
+    protected void validateRelationsPresentAndLinked()
     {
         for (final AtlasEntity entity : this.atlas.entities())
         {
@@ -80,6 +62,13 @@ public class AtlasValidator
                                     .map(parent -> parent == null ? "null"
                                             : String.valueOf(parent.getIdentifier()))
                                     .collect(Collectors.toSet()));
+                }
+                if (!relation.members().asBean()
+                        .getItemFor(entity.getIdentifier(), entity.getType()).isPresent())
+                {
+                    throw new CoreException(
+                            "Entity {} {} lists parent relation {} which does not have it as a member.",
+                            entity.getType(), entity.getIdentifier(), relation.getIdentifier());
                 }
             }
         }

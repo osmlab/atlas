@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.change;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -28,6 +29,18 @@ public class ChangeEdge extends Edge // NOSONAR
     private final Edge source;
     private final Edge override;
 
+    // Computing Parent Relations is very expensive, so we cache it here.
+    private transient Set<Relation> relationsCache;
+    private transient Object relationsCacheLock = new Object();
+
+    // Computing Start Node is very expensive, so we cache it here.
+    private transient Node startNodeCache;
+    private transient Object startNodeCacheLock = new Object();
+
+    // Computing End Node is very expensive, so we cache it here.
+    private transient Node endNodeCache;
+    private transient Object endNodeCacheLock = new Object();
+
     protected ChangeEdge(final ChangeAtlas atlas, final Edge source, final Edge override)
     {
         super(atlas);
@@ -38,52 +51,60 @@ public class ChangeEdge extends Edge // NOSONAR
     @Override
     public PolyLine asPolyLine()
     {
-        return attribute(Edge::asPolyLine);
+        return attribute(Edge::asPolyLine, "polyLine");
     }
 
     @Override
     public Node end()
     {
-        return getChangeAtlas().node(endNodeIdentifier());
+        final Supplier<Node> creator = () -> getChangeAtlas().node(endNodeIdentifier());
+        return ChangeEntity.getOrCreateCache(this.endNodeCache, cache -> this.endNodeCache = cache,
+                this.endNodeCacheLock, creator);
     }
 
     public long endNodeIdentifier()
     {
-        return attribute(Edge::end).getIdentifier();
+        return attribute(Edge::end, "end node").getIdentifier();
     }
 
     @Override
     public long getIdentifier()
     {
-        return attribute(Edge::getIdentifier);
+        return attribute(Edge::getIdentifier, "identifier");
     }
 
     @Override
     public Map<String, String> getTags()
     {
-        return attribute(Edge::getTags);
+        return attribute(Edge::getTags, "tags");
     }
 
     @Override
     public Set<Relation> relations()
     {
-        return ChangeEntity.filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+        final Supplier<Set<Relation>> creator = () -> ChangeEntity
+                .filterRelations(attribute(AtlasEntity::relations, "relations"), getChangeAtlas());
+        return ChangeEntity.getOrCreateCache(this.relationsCache,
+                cache -> this.relationsCache = cache, this.relationsCacheLock, creator);
     }
 
     @Override
     public Node start()
     {
-        return getChangeAtlas().node(startNodeIdentifier());
+        final Supplier<Node> creator = () -> getChangeAtlas().node(startNodeIdentifier());
+        return ChangeEntity.getOrCreateCache(this.startNodeCache,
+                cache -> this.startNodeCache = cache, this.startNodeCacheLock, creator);
     }
 
     public long startNodeIdentifier()
     {
-        return attribute(Edge::start).getIdentifier();
+        return attribute(Edge::start, "start node").getIdentifier();
     }
 
-    private <T extends Object> T attribute(final Function<Edge, T> memberExtractor)
+    private <T extends Object> T attribute(final Function<Edge, T> memberExtractor,
+            final String name)
     {
-        return ChangeEntity.getAttributeOrBackup(this.source, this.override, memberExtractor);
+        return ChangeEntity.getAttributeOrBackup(this.source, this.override, memberExtractor, name);
     }
 
     private ChangeAtlas getChangeAtlas()

@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.change;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
@@ -26,6 +27,10 @@ public class ChangeArea extends Area // NOSONAR
     private final Area source;
     private final Area override;
 
+    // Computing Parent Relations is very expensive, so we cache it here.
+    private transient Set<Relation> relationsCache;
+    private transient Object relationsCacheLock = new Object();
+
     protected ChangeArea(final ChangeAtlas atlas, final Area source, final Area override)
     {
         super(atlas);
@@ -36,30 +41,34 @@ public class ChangeArea extends Area // NOSONAR
     @Override
     public Polygon asPolygon()
     {
-        return attribute(Area::asPolygon);
+        return attribute(Area::asPolygon, "polygon");
     }
 
     @Override
     public long getIdentifier()
     {
-        return attribute(Area::getIdentifier);
+        return attribute(Area::getIdentifier, "identifier");
     }
 
     @Override
     public Map<String, String> getTags()
     {
-        return attribute(Area::getTags);
+        return attribute(Area::getTags, "tags");
     }
 
     @Override
     public Set<Relation> relations()
     {
-        return ChangeEntity.filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+        final Supplier<Set<Relation>> creator = () -> ChangeEntity
+                .filterRelations(attribute(AtlasEntity::relations, "relations"), getChangeAtlas());
+        return ChangeEntity.getOrCreateCache(this.relationsCache,
+                cache -> this.relationsCache = cache, this.relationsCacheLock, creator);
     }
 
-    private <T extends Object> T attribute(final Function<Area, T> memberExtractor)
+    private <T extends Object> T attribute(final Function<Area, T> memberExtractor,
+            final String name)
     {
-        return ChangeEntity.getAttributeOrBackup(this.source, this.override, memberExtractor);
+        return ChangeEntity.getAttributeOrBackup(this.source, this.override, memberExtractor, name);
     }
 
     private ChangeAtlas getChangeAtlas()
