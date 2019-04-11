@@ -5,14 +5,13 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.experimental.Delegate;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
-import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
-import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+
+import lombok.experimental.Delegate;
 
 /**
  * Independent {@link Point} that contains its own data. At scale, use at your own risk.

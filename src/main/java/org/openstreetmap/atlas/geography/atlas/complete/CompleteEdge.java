@@ -5,13 +5,14 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.experimental.Delegate;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+
+import lombok.experimental.Delegate;
 
 /**
  * Independent {@link Edge} that contains its own data. At scale, use at your own risk.
