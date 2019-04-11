@@ -51,7 +51,7 @@ public class ChangeEdge extends Edge // NOSONAR
     @Override
     public PolyLine asPolyLine()
     {
-        return attribute(Edge::asPolyLine);
+        return attribute(Edge::asPolyLine, "polyLine");
     }
 
     @Override
@@ -64,26 +64,26 @@ public class ChangeEdge extends Edge // NOSONAR
 
     public long endNodeIdentifier()
     {
-        return attribute(Edge::end).getIdentifier();
+        return attribute(Edge::end, "end node").getIdentifier();
     }
 
     @Override
     public long getIdentifier()
     {
-        return attribute(Edge::getIdentifier);
+        return attribute(Edge::getIdentifier, "identifier");
     }
 
     @Override
     public Map<String, String> getTags()
     {
-        return attribute(Edge::getTags);
+        return attribute(Edge::getTags, "tags");
     }
 
     @Override
     public Set<Relation> relations()
     {
         final Supplier<Set<Relation>> creator = () -> ChangeEntity
-                .filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+                .filterRelations(attribute(AtlasEntity::relations, "relations"), getChangeAtlas());
         return ChangeEntity.getOrCreateCache(this.relationsCache,
                 cache -> this.relationsCache = cache, this.relationsCacheLock, creator);
     }
@@ -98,12 +98,13 @@ public class ChangeEdge extends Edge // NOSONAR
 
     public long startNodeIdentifier()
     {
-        return attribute(Edge::start).getIdentifier();
+        return attribute(Edge::start, "start node").getIdentifier();
     }
 
-    private <T extends Object> T attribute(final Function<Edge, T> memberExtractor)
+    private <T extends Object> T attribute(final Function<Edge, T> memberExtractor,
+            final String name)
     {
-        return ChangeEntity.getAttributeOrBackup(this.source, this.override, memberExtractor);
+        return ChangeEntity.getAttributeOrBackup(this.source, this.override, memberExtractor, name);
     }
 
     private ChangeAtlas getChangeAtlas()
