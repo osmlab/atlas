@@ -175,8 +175,7 @@ public class DynamicAtlas extends BareAtlas // NOSONAR
      */
     public int getNumberOfShardsLoaded()
     {
-        return (int) this.expander.getLoadedShards().entrySet().stream()
-                .filter(entry -> entry.getValue() != null).count();
+        return getShardsLoaded().size();
     }
 
     /**
