@@ -35,32 +35,6 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     private SortedSet<Long> outEdgeIdentifiers;
     private Set<Long> relationIdentifiers;
 
-    CompleteNode(final long identifier)
-    {
-        this(identifier, null, null, null, null, null);
-    }
-
-    public CompleteNode(final Long identifier, final Location location,
-            final Map<String, String> tags, final SortedSet<Long> inEdgeIdentifiers,
-            final SortedSet<Long> outEdgeIdentifiers, final Set<Long> relationIdentifiers)
-    {
-        super(new EmptyAtlas());
-
-        if (identifier == null)
-        {
-            throw new CoreException("Identifier can never be null.");
-        }
-
-        this.bounds = location != null ? location.bounds() : null;
-
-        this.identifier = identifier;
-        this.location = location;
-        this.tags = tags;
-        this.inEdgeIdentifiers = inEdgeIdentifiers;
-        this.outEdgeIdentifiers = outEdgeIdentifiers;
-        this.relationIdentifiers = relationIdentifiers;
-    }
-
     /**
      * Create a {@link CompleteNode} from a given {@link Node} reference. The {@link CompleteNode}'s
      * fields will match the fields of the reference. The returned {@link CompleteNode} will be
@@ -93,6 +67,32 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     public static CompleteNode shallowFrom(final Node node)
     {
         return new CompleteNode(node.getIdentifier()).withBoundsExtendedBy(node.bounds());
+    }
+
+    CompleteNode(final long identifier)
+    {
+        this(identifier, null, null, null, null, null);
+    }
+
+    public CompleteNode(final Long identifier, final Location location,
+            final Map<String, String> tags, final SortedSet<Long> inEdgeIdentifiers,
+            final SortedSet<Long> outEdgeIdentifiers, final Set<Long> relationIdentifiers)
+    {
+        super(new EmptyAtlas());
+
+        if (identifier == null)
+        {
+            throw new CoreException("Identifier can never be null.");
+        }
+
+        this.bounds = location != null ? location.bounds() : null;
+
+        this.identifier = identifier;
+        this.location = location;
+        this.tags = tags;
+        this.inEdgeIdentifiers = inEdgeIdentifiers;
+        this.outEdgeIdentifiers = outEdgeIdentifiers;
+        this.relationIdentifiers = relationIdentifiers;
     }
 
     @Override

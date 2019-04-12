@@ -32,29 +32,6 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     @Delegate
     private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
-    CompleteArea(final long identifier)
-    {
-        this(identifier, null, null, null);
-    }
-
-    public CompleteArea(final Long identifier, final Polygon polygon,
-            final Map<String, String> tags, final Set<Long> relationIdentifiers)
-    {
-        super(new EmptyAtlas());
-
-        if (identifier == null)
-        {
-            throw new CoreException("Identifier can never be null.");
-        }
-
-        this.bounds = polygon != null ? polygon.bounds() : null;
-
-        this.identifier = identifier;
-        this.polygon = polygon;
-        this.tags = tags;
-        this.relationIdentifiers = relationIdentifiers;
-    }
-
     /**
      * Create a {@link CompleteArea} from a given {@link Area} reference. The {@link CompleteArea}'s
      * fields will match the fields of the reference. The returned {@link CompleteArea} will be
@@ -83,6 +60,29 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     public static CompleteArea shallowFrom(final Area area)
     {
         return new CompleteArea(area.getIdentifier()).withBoundsExtendedBy(area.bounds());
+    }
+
+    CompleteArea(final long identifier)
+    {
+        this(identifier, null, null, null);
+    }
+
+    public CompleteArea(final Long identifier, final Polygon polygon,
+            final Map<String, String> tags, final Set<Long> relationIdentifiers)
+    {
+        super(new EmptyAtlas());
+
+        if (identifier == null)
+        {
+            throw new CoreException("Identifier can never be null.");
+        }
+
+        this.bounds = polygon != null ? polygon.bounds() : null;
+
+        this.identifier = identifier;
+        this.polygon = polygon;
+        this.tags = tags;
+        this.relationIdentifiers = relationIdentifiers;
     }
 
     @Override
