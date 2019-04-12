@@ -440,6 +440,16 @@ public class CountryBoundaryMap implements Serializable
         }
     }
 
+    void addCountry(final String country, final Polygon polygon)
+    {
+        this.countryNameToBoundaryMap.add(country, polygon);
+
+        if (this.envelope.intersects(polygon.getEnvelopeInternal()))
+        {
+            this.rawIndex.insert(polygon.getEnvelopeInternal(), polygon);
+        }
+    }
+
     /**
      * @return A {@link Map} from {@link Geometry}s to {@link List} of {@link Envelope} cells that
      *         forms the grid index.
@@ -1412,16 +1422,6 @@ public class CountryBoundaryMap implements Serializable
 
             // Write grid index cells
             this.writeGridIndex(output);
-        }
-    }
-
-    private void addCountry(final String country, final Polygon polygon)
-    {
-        this.countryNameToBoundaryMap.add(country, polygon);
-
-        if (this.envelope.intersects(polygon.getEnvelopeInternal()))
-        {
-            this.rawIndex.insert(polygon.getEnvelopeInternal(), polygon);
         }
     }
 

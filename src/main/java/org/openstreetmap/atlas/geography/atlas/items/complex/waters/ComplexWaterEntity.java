@@ -14,9 +14,9 @@ public abstract class ComplexWaterEntity extends ComplexEntity
 {
     private static final long serialVersionUID = 7835788819725148174L;
 
-    private final WaterType waterType;
+    private final String waterType;
 
-    public ComplexWaterEntity(final AtlasEntity source, final WaterType waterType)
+    public ComplexWaterEntity(final AtlasEntity source, final String waterType)
     {
         super(source);
         this.waterType = waterType;
@@ -43,7 +43,7 @@ public abstract class ComplexWaterEntity extends ComplexEntity
         return returnValue;
     }
 
-    public WaterType getWaterType()
+    public String getWaterType()
     {
         return this.waterType;
     }
