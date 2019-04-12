@@ -1,6 +1,8 @@
 package org.openstreetmap.atlas.geography.atlas.dynamic;
 
 import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -166,6 +168,34 @@ public class DynamicAtlas extends BareAtlas // NOSONAR
     {
         return this.expander.expand(() -> this.current.edgesWithin(surface),
                 this.expander::lineItemCovered, this::newEdge);
+    }
+
+    /**
+     * @return The number of shards loaded by that {@link DynamicAtlas} at any time.
+     */
+    public int getNumberOfShardsLoaded()
+    {
+        return getShardsLoaded().size();
+    }
+
+    /**
+     * @return All the shards explored by this {@link DynamicAtlas} including the ones that yielded
+     *         no Atlas.
+     */
+    public Set<Shard> getShardsExplored()
+    {
+        return this.expander.getLoadedShards().keySet();
+    }
+
+    /**
+     * @return All the shards explored by that {@link DynamicAtlas} which yielded some non null
+     *         Atlas.
+     */
+    public Set<Shard> getShardsLoaded()
+    {
+        return this.expander.getLoadedShards().entrySet().stream()
+                .filter(entry -> entry.getValue() != null).map(Entry::getKey)
+                .collect(Collectors.toSet());
     }
 
     /**
