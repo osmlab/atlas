@@ -40,33 +40,34 @@ public class ChangePoint extends Point // NOSONAR
     @Override
     public long getIdentifier()
     {
-        return attribute(Point::getIdentifier);
+        return attribute(Point::getIdentifier, "identifier");
     }
 
     @Override
     public Location getLocation()
     {
-        return attribute(Point::getLocation);
+        return attribute(Point::getLocation, "location");
     }
 
     @Override
     public Map<String, String> getTags()
     {
-        return attribute(Point::getTags);
+        return attribute(Point::getTags, "tags");
     }
 
     @Override
     public Set<Relation> relations()
     {
         final Supplier<Set<Relation>> creator = () -> ChangeEntity
-                .filterRelations(attribute(AtlasEntity::relations), getChangeAtlas());
+                .filterRelations(attribute(AtlasEntity::relations, "relations"), getChangeAtlas());
         return ChangeEntity.getOrCreateCache(this.relationsCache,
                 cache -> this.relationsCache = cache, this.relationsCacheLock, creator);
     }
 
-    private <T extends Object> T attribute(final Function<Point, T> memberExtractor)
+    private <T extends Object> T attribute(final Function<Point, T> memberExtractor,
+            final String name)
     {
-        return ChangeEntity.getAttributeOrBackup(this.source, this.override, memberExtractor);
+        return ChangeEntity.getAttributeOrBackup(this.source, this.override, memberExtractor, name);
     }
 
     private ChangeAtlas getChangeAtlas()

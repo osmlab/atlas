@@ -22,7 +22,7 @@ public class ComplexWaterway extends ComplexWaterEntity
 
     private PolyLine geometry;
 
-    public ComplexWaterway(final AtlasEntity source, final WaterType type)
+    public ComplexWaterway(final AtlasEntity source, final String type)
     {
         super(source, type);
     }
