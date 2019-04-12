@@ -26,7 +26,7 @@ public class ComplexWaterbody extends ComplexWaterEntity
 
     private MultiPolygon geometry;
 
-    public ComplexWaterbody(final AtlasEntity source, final WaterType type)
+    public ComplexWaterbody(final AtlasEntity source, final String type)
     {
         super(source, type);
     }
