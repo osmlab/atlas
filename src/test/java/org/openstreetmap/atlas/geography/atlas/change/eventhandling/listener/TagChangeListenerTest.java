@@ -35,7 +35,7 @@ public class TagChangeListenerTest<E extends CompleteEntity<E>>
     {
         allForEach(completeEntity ->
         {
-            final TestTagChangeListenerImpl tagChangeListener = getTagChangeListener();
+            final TestTagChangeListenerImplementation tagChangeListener = getTagChangeListener();
             completeEntity.addTagChangeListener(tagChangeListener);
 
             preValidation(tagChangeListener);
@@ -57,7 +57,7 @@ public class TagChangeListenerTest<E extends CompleteEntity<E>>
     {
         allForEach(completeEntity ->
         {
-            final TestTagChangeListenerImpl tagChangeListener = getTagChangeListener();
+            final TestTagChangeListenerImplementation tagChangeListener = getTagChangeListener();
             completeEntity.addTagChangeListener(tagChangeListener);
 
             preValidation(tagChangeListener);
@@ -78,7 +78,7 @@ public class TagChangeListenerTest<E extends CompleteEntity<E>>
     {
         allForEach(completeEntity ->
         {
-            final TestTagChangeListenerImpl tagChangeListener = getTagChangeListener();
+            final TestTagChangeListenerImplementation tagChangeListener = getTagChangeListener();
             completeEntity.addTagChangeListener(tagChangeListener);
 
             preValidation(tagChangeListener);
@@ -101,7 +101,7 @@ public class TagChangeListenerTest<E extends CompleteEntity<E>>
     {
         allForEach(completeEntity ->
         {
-            final TestTagChangeListenerImpl tagChangeListener = getTagChangeListener();
+            final TestTagChangeListenerImplementation tagChangeListener = getTagChangeListener();
             completeEntity.addTagChangeListener(tagChangeListener);
 
             preValidation(tagChangeListener);
@@ -125,13 +125,14 @@ public class TagChangeListenerTest<E extends CompleteEntity<E>>
         });
     }
 
-    private void preValidation(final TestTagChangeListenerImpl tagChangeListener)
+    private void preValidation(final TestTagChangeListenerImplementation tagChangeListener)
     {
         Assert.assertEquals(0, tagChangeListener.getCallCount());
         Assert.assertNull(tagChangeListener.getLastEvent());
     }
 
-    private TagChangeEvent basicPostValidation(final TestTagChangeListenerImpl tagChangeListener)
+    private TagChangeEvent basicPostValidation(
+            final TestTagChangeListenerImplementation tagChangeListener)
     {
         Assert.assertEquals(1, tagChangeListener.getCallCount());
         final TagChangeEvent lastEvent = tagChangeListener.getLastEvent();
@@ -146,9 +147,9 @@ public class TagChangeListenerTest<E extends CompleteEntity<E>>
         Assert.assertEquals(completeEntity.getIdentifier(), lastEvent.getIdentifier());
     }
 
-    private TestTagChangeListenerImpl getTagChangeListener()
+    private TestTagChangeListenerImplementation getTagChangeListener()
     {
-        return new TestTagChangeListenerImpl();
+        return new TestTagChangeListenerImplementation();
     }
 
     private List<E> all()

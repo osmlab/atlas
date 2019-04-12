@@ -5,7 +5,7 @@ import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagCha
 /**
  * @author Yazad Khambata
  */
-public class TestTagChangeListenerImpl implements TagChangeListener
+public class TestTagChangeListenerImplementation implements TagChangeListener
 {
     private static final long serialVersionUID = 6697728278083444095L;
 

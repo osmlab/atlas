@@ -58,7 +58,7 @@ public class FeatureChange implements Located, Serializable
 {
     private static final long serialVersionUID = 9172045162819925515L;
 
-    private final String featureChangeId = UUID.randomUUID().toString();
+    private final String featureChangeIdentifier = UUID.randomUUID().toString();
 
     private final ChangeType changeType;
     private AtlasEntity beforeView;
@@ -203,9 +203,9 @@ public class FeatureChange implements Located, Serializable
         }
     }
 
-    public String getFeatureChangeId()
+    public String getFeatureChangeIdentifier()
     {
-        return featureChangeId;
+        return featureChangeIdentifier;
     }
 
     /**
