@@ -11,12 +11,15 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
+import lombok.experimental.Delegate;
+
 /**
  * Independent {@link Line} that contains its own data. At scale, use at your own risk.
  *
  * @author matthieun
+ * @author Yazad Khambata
  */
-public class CompleteLine extends Line implements CompleteLineItem
+public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
 {
     private static final long serialVersionUID = 309534717673911086L;
 
@@ -25,6 +28,9 @@ public class CompleteLine extends Line implements CompleteLineItem
     private PolyLine polyLine;
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
+
+    @Delegate
+    private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
      * Create a {@link CompleteLine} from a given {@link Line} reference. The {@link CompleteLine}'s
@@ -147,12 +153,6 @@ public class CompleteLine extends Line implements CompleteLineItem
                 + this.relationIdentifiers + "]";
     }
 
-    @Override
-    public CompleteLine withAddedTag(final String key, final String value)
-    {
-        return withTags(CompleteEntity.addNewTag(getTags(), key, value));
-    }
-
     public CompleteLine withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)
@@ -195,22 +195,14 @@ public class CompleteLine extends Line implements CompleteLineItem
     }
 
     @Override
-    public CompleteLine withRemovedTag(final String key)
-    {
-        return withTags(CompleteEntity.removeTag(getTags(), key));
-    }
-
-    @Override
-    public CompleteLine withReplacedTag(final String oldKey, final String newKey,
-            final String newValue)
-    {
-        return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
-    }
-
-    @Override
-    public CompleteLine withTags(final Map<String, String> tags)
+    public void setTags(final Map<String, String> tags)
     {
         this.tags = tags;
-        return this;
+    }
+
+    @Override
+    public CompleteItemType completeItemType()
+    {
+        return CompleteItemType.LINE;
     }
 }

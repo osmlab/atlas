@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -51,10 +52,13 @@ import org.openstreetmap.atlas.streaming.resource.WritableResource;
  *
  * @author matthieun
  * @author lcram
+ * @author Yazad Khambata
  */
 public class FeatureChange implements Located, Serializable
 {
     private static final long serialVersionUID = 9172045162819925515L;
+
+    private final String featureChangeIdentifier = UUID.randomUUID().toString();
 
     private final ChangeType changeType;
     private AtlasEntity beforeView;
@@ -197,6 +201,11 @@ public class FeatureChange implements Located, Serializable
         {
             new FeatureChangeUsefulnessValidator(this).validate();
         }
+    }
+
+    public String getFeatureChangeIdentifier()
+    {
+        return featureChangeIdentifier;
     }
 
     /**

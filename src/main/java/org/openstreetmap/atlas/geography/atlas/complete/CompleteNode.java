@@ -14,15 +14,19 @@ import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
+import lombok.experimental.Delegate;
+
 /**
  * Independent {@link Node} that may contain its own altered data. At scale, use at your own risk.
  *
  * @author matthieun
+ * @author Yazad Khambata
  */
-public class CompleteNode extends Node implements CompleteLocationItem
+public class CompleteNode extends Node implements CompleteLocationItem<CompleteNode>
 {
     private static final long serialVersionUID = -8229589987121555419L;
-
+    @Delegate
+    private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
     private Rectangle bounds;
     private long identifier;
     private Location location;
@@ -130,6 +134,12 @@ public class CompleteNode extends Node implements CompleteLocationItem
     }
 
     @Override
+    public void setTags(final Map<String, String> tags)
+    {
+        this.tags = tags;
+    }
+
+    @Override
     public int hashCode()
     {
         return super.hashCode();
@@ -186,12 +196,6 @@ public class CompleteNode extends Node implements CompleteLocationItem
                 + ", inEdgeIdentifiers=" + this.inEdgeIdentifiers + ", outEdgeIdentifiers="
                 + this.outEdgeIdentifiers + ", location=" + this.location + ", tags=" + this.tags
                 + ", relationIdentifiers=" + this.relationIdentifiers + "]";
-    }
-
-    @Override
-    public CompleteNode withAddedTag(final String key, final String value)
-    {
-        return withTags(CompleteEntity.addNewTag(getTags(), key, value));
     }
 
     public CompleteNode withBoundsExtendedBy(final Rectangle bounds)
@@ -300,22 +304,8 @@ public class CompleteNode extends Node implements CompleteLocationItem
     }
 
     @Override
-    public CompleteNode withRemovedTag(final String key)
+    public CompleteItemType completeItemType()
     {
-        return withTags(CompleteEntity.removeTag(getTags(), key));
-    }
-
-    @Override
-    public CompleteNode withReplacedTag(final String oldKey, final String newKey,
-            final String newValue)
-    {
-        return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
-    }
-
-    @Override
-    public CompleteNode withTags(final Map<String, String> tags)
-    {
-        this.tags = tags;
-        return this;
+        return CompleteItemType.NODE;
     }
 }

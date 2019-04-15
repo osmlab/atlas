@@ -11,12 +11,15 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
+import lombok.experimental.Delegate;
+
 /**
  * Independent {@link Area} that contains its own data. At scale, use at your own risk.
  *
  * @author matthieun
+ * @author Yazad Khambata
  */
-public class CompleteArea extends Area implements CompleteEntity
+public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
 {
     private static final long serialVersionUID = 309534717673911086L;
 
@@ -25,6 +28,9 @@ public class CompleteArea extends Area implements CompleteEntity
     private Polygon polygon;
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
+
+    @Delegate
+    private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
      * Create a {@link CompleteArea} from a given {@link Area} reference. The {@link CompleteArea}'s
@@ -147,12 +153,6 @@ public class CompleteArea extends Area implements CompleteEntity
                 + this.relationIdentifiers + "]";
     }
 
-    @Override
-    public CompleteArea withAddedTag(final String key, final String value)
-    {
-        return withTags(CompleteEntity.addNewTag(getTags(), key, value));
-    }
-
     public CompleteArea withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)
@@ -194,22 +194,14 @@ public class CompleteArea extends Area implements CompleteEntity
     }
 
     @Override
-    public CompleteArea withRemovedTag(final String key)
-    {
-        return withTags(CompleteEntity.removeTag(getTags(), key));
-    }
-
-    @Override
-    public CompleteArea withReplacedTag(final String oldKey, final String newKey,
-            final String newValue)
-    {
-        return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
-    }
-
-    @Override
-    public CompleteArea withTags(final Map<String, String> tags)
+    public void setTags(final Map<String, String> tags)
     {
         this.tags = tags;
-        return this;
+    }
+
+    @Override
+    public CompleteItemType completeItemType()
+    {
+        return CompleteItemType.AREA;
     }
 }
