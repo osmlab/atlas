@@ -174,6 +174,11 @@ class DynamicAtlasExpander
         return result.map(mapper).collect();
     }
 
+    Map<Shard, Atlas> getLoadedShards()
+    {
+        return this.loadedShards;
+    }
+
     /**
      * @return The number of times that {@link DynamicAtlas} has (re-)built its {@link MultiAtlas}
      *         underneath.

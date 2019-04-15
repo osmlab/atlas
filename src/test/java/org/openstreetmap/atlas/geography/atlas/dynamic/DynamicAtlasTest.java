@@ -91,18 +91,21 @@ public class DynamicAtlasTest
         Assert.assertNotNull(this.dynamicAtlas.edge(1000000));
         Assert.assertTrue(this.dynamicAtlas.edge(1000000).hasReverseEdge());
         Assert.assertEquals(4, this.dynamicAtlas.numberOfEdges());
+        Assert.assertEquals(1, this.dynamicAtlas.getNumberOfShardsLoaded());
 
         // Prompts load of 12-1350-1869
         Assert.assertNotNull(this.dynamicAtlas.edge(2000000));
         Assert.assertEquals(6, this.dynamicAtlas.numberOfEdges());
         Assert.assertNotNull(this.dynamicAtlas.edge(3000000));
         Assert.assertEquals(6, this.dynamicAtlas.numberOfEdges());
+        Assert.assertEquals(2, this.dynamicAtlas.getNumberOfShardsLoaded());
 
         // Prompts load of 12-1349-1869
         Assert.assertNotNull(this.dynamicAtlas.edge(4000000));
         Assert.assertEquals(8, this.dynamicAtlas.numberOfEdges());
         Assert.assertNotNull(this.dynamicAtlas.edge(5000000));
         Assert.assertEquals(8, this.dynamicAtlas.numberOfEdges());
+        Assert.assertEquals(3, this.dynamicAtlas.getNumberOfShardsLoaded());
 
         // Prompts load of 12-1349-1870
         // Fixed by {@link MultiAtlasBorderFixer} due to inconsistent relations
@@ -113,6 +116,7 @@ public class DynamicAtlasTest
         Assert.assertEquals(9, this.dynamicAtlas.numberOfEdges());
         Assert.assertNotNull(this.dynamicAtlas.edge(8000000));
         Assert.assertEquals(9, this.dynamicAtlas.numberOfEdges());
+        Assert.assertEquals(4, this.dynamicAtlas.getNumberOfShardsLoaded());
     }
 
     @Test
