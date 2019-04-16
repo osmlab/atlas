@@ -10,6 +10,6 @@ package org.openstreetmap.atlas.utilities.function;
  * @author lcram
  */
 @FunctionalInterface
-public interface QuaternaryOperator<T> extends QuaternaryFunction<T, T, T, T>
+public interface QuaternaryOperator<T> extends QuaternaryFunction<T, T, T, T, T>
 {
 }

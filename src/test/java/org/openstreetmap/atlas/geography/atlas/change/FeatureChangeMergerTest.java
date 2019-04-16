@@ -30,12 +30,16 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author lcram
  */
 public class FeatureChangeMergerTest
 {
+    private static final Logger logger = LoggerFactory.getLogger(FeatureChangeMergerTest.class);
+
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
 
@@ -685,6 +689,72 @@ public class FeatureChangeMergerTest
 
         Assert.assertEquals(Sets.hashSet(2L, 3L, 4L), ((Relation) merged.getAfterView()).relations()
                 .stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
+    }
+
+    @Test
+    public void testMergeRelationsWithConflictingBeforeViews()
+    {
+        final RelationBean beforeMemberBean1 = new RelationBean();
+        beforeMemberBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        beforeMemberBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        beforeMemberBean1.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        beforeMemberBean1.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        final CompleteRelation beforeRelation1 = new CompleteRelation(123L,
+                Maps.hashMap("a", "1", "b", "2", "c", "3"), Rectangle.TEST_RECTANGLE,
+                beforeMemberBean1, Arrays.asList(10L, 11L, 12L), null, null,
+                Sets.hashSet(1L, 2L, 3L));
+
+        final RelationBean beforeMemberBean2 = new RelationBean();
+        beforeMemberBean2.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        beforeMemberBean2.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        beforeMemberBean2.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        beforeMemberBean2.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        beforeMemberBean2.addItem(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
+        final CompleteRelation beforeRelation2 = new CompleteRelation(123L,
+                Maps.hashMap("a", "1", "b", "2", "c", "3"), Rectangle.TEST_RECTANGLE,
+                beforeMemberBean2, Arrays.asList(10L, 11L, 12L), null, null,
+                Sets.hashSet(1L, 2L, 3L));
+
+        final RelationBean afterMemberBean1 = new RelationBean();
+        afterMemberBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        afterMemberBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        afterMemberBean1.addItem(new RelationBeanItem(3L, "areaRole3", ItemType.AREA));
+        afterMemberBean1.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        afterMemberBean1.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteRelation(123L, Maps.hashMap("a", "1", "b", "2"),
+                        Rectangle.TEST_RECTANGLE, afterMemberBean1,
+                        Arrays.asList(10L, 11L, 12L, 13L), null, null, Sets.hashSet(1L, 2L)),
+                beforeRelation1);
+
+        final RelationBean afterMemberBean2 = new RelationBean();
+        afterMemberBean2.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        afterMemberBean2.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        afterMemberBean2.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        afterMemberBean2.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        afterMemberBean2.addItem(new RelationBeanItem(4L, "pointRole4", ItemType.POINT));
+        afterMemberBean2
+                .addItemExplicitlyExcluded(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
+                new CompleteRelation(123L, Maps.hashMap("a", "1", "b", "2"),
+                        Rectangle.TEST_RECTANGLE, afterMemberBean2,
+                        Arrays.asList(10L, 11L, 12L, 13L), null, null, Sets.hashSet(1L, 2L)),
+                beforeRelation2);
+
+        final FeatureChange merged = featureChange1.merge(featureChange2);
+
+        final RelationBean goldenMergedMemberBean = new RelationBean();
+        goldenMergedMemberBean.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        goldenMergedMemberBean.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        goldenMergedMemberBean.addItem(new RelationBeanItem(3L, "areaRole3", ItemType.AREA));
+        goldenMergedMemberBean.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        goldenMergedMemberBean.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        goldenMergedMemberBean.addItem(new RelationBeanItem(4L, "pointRole4", ItemType.POINT));
+        goldenMergedMemberBean
+                .addItemExplicitlyExcluded(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
+
+        Assert.assertTrue(goldenMergedMemberBean.equalsIncludingExplicitlyExcluded(
+                ((Relation) merged.getAfterView()).members().asBean()));
     }
 
     @Test

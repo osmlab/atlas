@@ -403,6 +403,9 @@ public class FeatureChange implements Located, Serializable
         // OR
         //
         // 2) Neither FeatureChange had a beforeView, in which case no merge is required.
+        //// TODO This may no longer hold. If we allow conflicting beforeViews then we need to
+        // rectify them even in the
+        // REMOVE case.
         //
         // Merging two ADD changes:
         // In this case, we need to perform additional checks to ensure that the FeatureChanges can
@@ -434,6 +437,8 @@ public class FeatureChange implements Located, Serializable
             // Actually merge the changes
             if (this.getChangeType() == ChangeType.REMOVE)
             {
+                // TODO if we allow conflicting beforeViews then we need to rectify them even in the
+                // remove case
                 return this;
             }
             else if (this.getChangeType() == ChangeType.ADD)
