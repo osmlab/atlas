@@ -462,6 +462,7 @@ public class MemberMergeStrategiesTest
         afterBean2.addItem(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
         afterBean2.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
         afterBean2.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        afterBean2.addItemExplicitlyExcluded(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
 
         /*
          * The merge will fail, since one afterView tries to add an additional [1, LINE, lineRole1]
@@ -502,6 +503,7 @@ public class MemberMergeStrategiesTest
         afterBean2.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
         afterBean2.addItem(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
         afterBean2.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        afterBean2.addItemExplicitlyExcluded(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
 
         /*
          * The merge will fail, since the number of removed [1, AREA, areaRole1] conflict.

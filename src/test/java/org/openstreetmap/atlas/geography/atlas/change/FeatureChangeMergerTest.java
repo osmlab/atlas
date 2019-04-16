@@ -630,6 +630,8 @@ public class FeatureChangeMergerTest
         afterMemberBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
         afterMemberBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
         afterMemberBean1.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        afterMemberBean1
+                .addItemExplicitlyExcluded(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
         final RelationBean afterAllKnownOsmBean1 = new RelationBean();
         afterAllKnownOsmBean1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
         afterAllKnownOsmBean1.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
@@ -649,6 +651,8 @@ public class FeatureChangeMergerTest
         afterMemberBean2.addItem(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
         final RelationBean afterAllKnownOsmBean2 = new RelationBean();
         afterAllKnownOsmBean2.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        afterAllKnownOsmBean2
+                .addItemExplicitlyExcluded(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
                 new CompleteRelation(123L, Maps.hashMap("b", "100"), Rectangle.TEST_RECTANGLE_2,
                         afterMemberBean2, Arrays.asList(11L, 12L), afterAllKnownOsmBean2, 1234567L,
