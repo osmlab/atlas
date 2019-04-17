@@ -9,8 +9,8 @@ signposts;points;highway->motorway_junction
 signpost_ways;edges;destination->*
 
 # all barrier values included
-barriers;points,lines,edges;barrier->*
-barriers_whitelist;points,lines,edges;barrier->toll_booth,sally_port,cattle_grid,entrance,border_control
+barriers;points;barrier->*
+barriers_whitelist;points;barrier->toll_booth,sally_port,cattle_grid,entrance,border_control
 
 # Stop signs on nodes will be duplicated as a point because it has a tag. Count points only
 stop_signs;points;highway->stop
