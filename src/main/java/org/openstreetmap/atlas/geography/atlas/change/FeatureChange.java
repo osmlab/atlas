@@ -442,6 +442,14 @@ public class FeatureChange implements Located, Serializable
             // Actually merge the changes
             if (this.getChangeType() == ChangeType.REMOVE)
             {
+                /*
+                 * Pre-condition 2 implies that if one beforeView is null, both are null so it is
+                 * safe to arbitrarily pick from the left or right side of the merge.
+                 */
+                if (this.getBeforeView() == null)
+                {
+                    return this;
+                }
                 return FeatureChangeMergingHelpers.mergeREMOVEFeatureChangePair(this, other);
             }
             else if (this.getChangeType() == ChangeType.ADD)

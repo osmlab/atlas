@@ -637,9 +637,8 @@ public final class FeatureChangeMergingHelpers
                 .withMemberName("allKnownOsmMembers").withBeforeEntityLeft(beforeEntityLeft)
                 .withAfterEntityLeft(afterEntityLeft).withBeforeEntityRight(beforeEntityRight)
                 .withAfterEntityRight(afterEntityRight)
-                .withMemberExtractor(
-                        entity -> ((Relation) entity).allKnownOsmMembers() == null ? null
-                                : ((Relation) entity).allKnownOsmMembers().asBean())
+                .withMemberExtractor(entity -> ((Relation) entity).allKnownOsmMembers() == null
+                        ? null : ((Relation) entity).allKnownOsmMembers().asBean())
                 .withAfterViewNoBeforeMerger(MemberMergeStrategies.simpleRelationBeanMerger)
                 .withAfterViewConsistentBeforeMerger(
                         MemberMergeStrategies.diffBasedRelationBeanMerger)
