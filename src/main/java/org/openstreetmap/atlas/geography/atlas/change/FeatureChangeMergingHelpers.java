@@ -109,6 +109,92 @@ public final class FeatureChangeMergingHelpers
         }
     }
 
+    /**
+     * Merge two {@link ChangeType#REMOVE} {@link FeatureChange}s into a single
+     * {@link FeatureChange}. This method only needs to handle merging the beforeViews, since the
+     * afterViews would be null. Additionally, there are only a few beforeView fields that even need
+     * to be merged in the first place, namely {@link RelationBean}s and {@link Node} in/out edge
+     * identifier sets.
+     *
+     * @param left
+     *            the left {@link FeatureChange}
+     * @param right
+     *            the right {@link FeatureChange}
+     * @return the merged {@link FeatureChange}s
+     */
+    public static FeatureChange mergeREMOVEFeatureChangePair(final FeatureChange left,
+            final FeatureChange right)
+    {
+        final AtlasEntity beforeEntityLeft = left.getBeforeView();
+        final AtlasEntity beforeEntityRight = right.getBeforeView();
+
+        /*
+         * For nodes, we need to merge the beforeViews of the in/out edge identifier sets.
+         */
+        if (beforeEntityLeft instanceof Node)
+        {
+            final Node beforeNodeLeft = (Node) beforeEntityLeft;
+            final Node beforeNodeRight = (Node) beforeEntityRight;
+            final CompleteNode mergedBeforeNode = CompleteNode.from(beforeNodeLeft);
+            final SortedSet<Long> leftInEdgeIdentifiers = new TreeSet<>(beforeNodeLeft.inEdges()
+                    .stream().map(Edge::getIdentifier).collect(Collectors.toSet()));
+            final SortedSet<Long> rightInEdgeIdentifiers = new TreeSet<>(beforeNodeRight.inEdges()
+                    .stream().map(Edge::getIdentifier).collect(Collectors.toSet()));
+            final SortedSet<Long> leftOutEdgeIdentifiers = new TreeSet<>(beforeNodeLeft.outEdges()
+                    .stream().map(Edge::getIdentifier).collect(Collectors.toSet()));
+            final SortedSet<Long> rightOutEdgeIdentifiers = new TreeSet<>(beforeNodeRight.outEdges()
+                    .stream().map(Edge::getIdentifier).collect(Collectors.toSet()));
+
+            if (!leftInEdgeIdentifiers.equals(rightInEdgeIdentifiers))
+            {
+                mergedBeforeNode.withInEdgeIdentifiers(
+                        MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger
+                                .apply(leftInEdgeIdentifiers, rightInEdgeIdentifiers));
+            }
+            if (!leftOutEdgeIdentifiers.equals(rightOutEdgeIdentifiers))
+            {
+                mergedBeforeNode.withOutEdgeIdentifiers(
+                        MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger
+                                .apply(leftOutEdgeIdentifiers, rightOutEdgeIdentifiers));
+            }
+            return new FeatureChange(ChangeType.REMOVE, left.getAfterView(), mergedBeforeNode);
+        }
+        /*
+         * For relations, we need to merge the beforeViews of the RelationBean and
+         * allKnownOsmMembersBean.
+         */
+        else if (beforeEntityLeft instanceof Relation)
+        {
+            final Relation beforeRelationLeft = (Relation) beforeEntityLeft;
+            final Relation beforeRelationRight = (Relation) beforeEntityRight;
+            final CompleteRelation mergedBeforeRelation = CompleteRelation.from(beforeRelationLeft);
+            final RelationBean leftMembers = beforeRelationLeft.members().asBean();
+            final RelationBean rightMembers = beforeRelationRight.members().asBean();
+            final RelationBean leftOsmMembers = beforeRelationLeft.allKnownOsmMembers().asBean();
+            final RelationBean rightOsmMembers = beforeRelationRight.allKnownOsmMembers().asBean();
+
+            if (!leftMembers.equalsIncludingExplicitlyExcluded(rightMembers))
+            {
+                mergedBeforeRelation.withMembers(RelationBean.mergeBeans(leftMembers, rightMembers),
+                        Rectangle.forLocated(beforeRelationLeft, beforeRelationRight));
+            }
+            if (!leftOsmMembers.equalsIncludingExplicitlyExcluded(rightOsmMembers))
+            {
+                mergedBeforeRelation.withAllKnownOsmMembers(
+                        RelationBean.mergeBeans(leftOsmMembers, rightOsmMembers));
+            }
+            return new FeatureChange(ChangeType.REMOVE, left.getAfterView(), mergedBeforeRelation);
+        }
+        /*
+         * For any other case, there is no need to merge anything. Just arbitrarily return the left
+         * side.
+         */
+        else
+        {
+            return left;
+        }
+    }
+
     private static FeatureChange mergeAreas(final FeatureChange left, final FeatureChange right,
             final MergedMemberBean<Map<String, String>> mergedTagsBean,
             final MergedMemberBean<Set<Long>> mergedParentRelationsBean)
@@ -150,9 +236,9 @@ public final class FeatureChangeMergingHelpers
         /*
          * Here we just arbitrarily use the left side entity. We have already asserted that both
          * left and right explicitly provided or explicitly excluded a beforeView. At this point, we
-         * have also ensured that both beforeViews, if present, were consistent (i.e. they contained
-         * the same initial geometry). Therefore it is safe to arbitrarily choose one from which to
-         * "shallowFrom" clone a new CompleteEntity.
+         * have also ensured that both beforeViews, if present, were consistent (or we merged them
+         * if necessary). Therefore it is safe to arbitrarily choose one from which to "shallowFrom"
+         * clone a new CompleteEntity.
          */
         if (beforeEntityLeft != null)
         {
@@ -216,9 +302,9 @@ public final class FeatureChangeMergingHelpers
         /*
          * Here we just arbitrarily use the left side entity. We have already asserted that both
          * left and right explicitly provided or explicitly excluded a beforeView. At this point, we
-         * have also ensured that both beforeViews, if present, were consistent (i.e. they contained
-         * the same initial geometry). Therefore it is safe to arbitrarily choose one from which to
-         * "shallowFrom" clone a new CompleteEntity.
+         * have also ensured that both beforeViews, if present, were consistent (or we merged them
+         * if necessary). Therefore it is safe to arbitrarily choose one from which to "shallowFrom"
+         * clone a new CompleteEntity.
          */
         if (beforeEntityLeft != null)
         {
@@ -311,9 +397,9 @@ public final class FeatureChangeMergingHelpers
         /*
          * Here we just arbitrarily use the left side entity. We have already asserted that both
          * left and right explicitly provided or explicitly excluded a beforeView. At this point, we
-         * have also ensured that both beforeViews, if present, were consistent (i.e. they contained
-         * the same initial geometry). Therefore it is safe to arbitrarily choose one from which to
-         * "shallowFrom" clone a new CompleteEntity.
+         * have also ensured that both beforeViews, if present, were consistent (or we merged them
+         * if necessary). Therefore it is safe to arbitrarily choose one from which to "shallowFrom"
+         * clone a new CompleteEntity.
          */
         if (beforeEntityLeft != null)
         {
@@ -395,6 +481,11 @@ public final class FeatureChangeMergingHelpers
             throw new CoreException(AFTER_ENTITY_RIGHT_WAS_NULL);
         }
 
+        /*
+         * TODO for the in/edge identifiers, we need to provide a conflictingBeforeView merge
+         * strategy. See the example in relation merging.
+         */
+
         final MergedMemberBean<SortedSet<Long>> mergedInEdgeIdentifiersBean = new MemberMerger.Builder<SortedSet<Long>>()
                 .withMemberName("inEdgeIdentifiers").withBeforeEntityLeft(beforeEntityLeft)
                 .withAfterEntityLeft(afterEntityLeft).withBeforeEntityRight(beforeEntityRight)
@@ -431,9 +522,9 @@ public final class FeatureChangeMergingHelpers
         /*
          * Here we just arbitrarily use the left side entity. We have already asserted that both
          * left and right explicitly provided or explicitly excluded a beforeView. At this point, we
-         * have also ensured that both beforeViews, if present, were consistent (i.e. they contained
-         * the same initial geometry). Therefore it is safe to arbitrarily choose one from which to
-         * "shallowFrom" clone a new CompleteEntity.
+         * have also ensured that both beforeViews, if present, were consistent (or we merged them
+         * if necessary). Therefore it is safe to arbitrarily choose one from which to "shallowFrom"
+         * clone a new CompleteEntity.
          */
         if (beforeEntityLeft != null)
         {
@@ -479,9 +570,9 @@ public final class FeatureChangeMergingHelpers
         /*
          * Here we just arbitrarily use the left side entity. We have already asserted that both
          * left and right explicitly provided or explicitly excluded a beforeView. At this point, we
-         * have also ensured that both beforeViews, if present, were consistent (i.e. they contained
-         * the same initial geometry). Therefore it is safe to arbitrarily choose one from which to
-         * "shallowFrom" clone a new CompleteEntity.
+         * have also ensured that both beforeViews, if present, were consistent (or we merged them
+         * if necessary). Therefore it is safe to arbitrarily choose one from which to "shallowFrom"
+         * clone a new CompleteEntity.
          */
         if (beforeEntityLeft != null)
         {
@@ -584,9 +675,9 @@ public final class FeatureChangeMergingHelpers
         /*
          * Here we just arbitrarily use the left side entity. We have already asserted that both
          * left and right explicitly provided or explicitly excluded a beforeView. At this point, we
-         * have also ensured that both beforeViews, if present, were consistent (i.e. they contained
-         * the same initial geometry). Therefore it is safe to arbitrarily choose one from which to
-         * "shallowFrom" clone a new CompleteEntity.
+         * have also ensured that both beforeViews, if present, were consistent (or we merged them
+         * if necessary). Therefore it is safe to arbitrarily choose one from which to "shallowFrom"
+         * clone a new CompleteEntity.
          */
         if (beforeEntityLeft != null)
         {

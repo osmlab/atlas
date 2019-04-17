@@ -846,4 +846,84 @@ public class FeatureChangeMergerTest
         Assert.assertEquals(Sets.hashSet(1L, 2L, 3L), ((Relation) merged.getBeforeView())
                 .relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
+
+    @Test
+    public void testRemoveMerge()
+    {
+        /*
+         * Test the basic REMOVE merge case, where no special logic is needed.
+         */
+        final CompletePoint beforePoint = new CompletePoint(123L, Location.CENTER,
+                Maps.hashMap("a", "1", "b", "2"), Sets.hashSet(1L, 2L));
+        final CompletePoint afterPoint = CompletePoint.shallowFrom(beforePoint);
+        final FeatureChange pointChange1 = new FeatureChange(ChangeType.REMOVE, afterPoint,
+                beforePoint);
+        final FeatureChange pointChange2 = new FeatureChange(ChangeType.REMOVE, afterPoint,
+                beforePoint);
+        final FeatureChange pointChangeMerged = pointChange1.merge(pointChange2);
+        Assert.assertEquals(beforePoint, pointChangeMerged.getBeforeView());
+
+        /*
+         * Test REMOVE merge logic for relations.
+         */
+        final RelationBean beforeMemberBean1 = new RelationBean();
+        beforeMemberBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        beforeMemberBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        beforeMemberBean1.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        beforeMemberBean1.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
+        final RelationBean beforeAllKnownOsmBean1 = new RelationBean();
+        beforeAllKnownOsmBean1.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        final CompleteRelation beforeRelation1 = new CompleteRelation(123L,
+                Maps.hashMap("a", "1", "b", "2"), Rectangle.TEST_RECTANGLE, beforeMemberBean1,
+                Arrays.asList(10L, 11L, 12L), beforeAllKnownOsmBean1, 123456L,
+                Sets.hashSet(1L, 2L, 3L));
+        final RelationBean beforeMemberBean2 = new RelationBean();
+        beforeMemberBean2.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        beforeMemberBean2.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        beforeMemberBean2.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        final RelationBean beforeAllKnownOsmBean2 = new RelationBean();
+        beforeAllKnownOsmBean2.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        beforeAllKnownOsmBean2.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        final CompleteRelation beforeRelation2 = new CompleteRelation(123L,
+                Maps.hashMap("a", "1", "b", "2"), Rectangle.TEST_RECTANGLE, beforeMemberBean2,
+                Arrays.asList(10L, 11L, 12L), beforeAllKnownOsmBean2, 123456L,
+                Sets.hashSet(1L, 2L, 3L));
+        final CompleteRelation afterRelation = CompleteRelation.shallowFrom(beforeRelation1);
+        final FeatureChange relationChange1 = new FeatureChange(ChangeType.REMOVE, afterRelation,
+                beforeRelation1);
+        final FeatureChange relationChange2 = new FeatureChange(ChangeType.REMOVE, afterRelation,
+                beforeRelation2);
+        final FeatureChange relationChangeMerged = relationChange1.merge(relationChange2);
+        final Relation relationBeforeView = (Relation) relationChangeMerged.getBeforeView();
+        Assert.assertTrue(beforeMemberBean1
+                .equalsIncludingExplicitlyExcluded(relationBeforeView.members().asBean()));
+        Assert.assertTrue(beforeAllKnownOsmBean2.equalsIncludingExplicitlyExcluded(
+                relationBeforeView.allKnownOsmMembers().asBean()));
+
+        /*
+         * Test REMOVE merge logic for nodes.
+         */
+        final CompleteNode beforeNode1 = new CompleteNode(123L, Location.COLOSSEUM,
+                Maps.hashMap("a", "1", "b", "2"), Sets.treeSet(1L, 2L, 3L), Sets.treeSet(10L, 11L),
+                Sets.hashSet(1L));
+        final CompleteNode beforeNode2 = new CompleteNode(123L, Location.COLOSSEUM,
+                Maps.hashMap("a", "1", "b", "2"), Sets.treeSet(1L, 2L), Sets.treeSet(10L, 11L, 12L),
+                Sets.hashSet(1L));
+        final CompleteNode afterNode = CompleteNode.shallowFrom(beforeNode1);
+        final FeatureChange nodeChange1 = new FeatureChange(ChangeType.REMOVE, afterNode,
+                beforeNode1);
+        final FeatureChange nodeChange2 = new FeatureChange(ChangeType.REMOVE, afterNode,
+                beforeNode2);
+        final FeatureChange nodeChangeMerged = nodeChange1.merge(nodeChange2);
+        final Node nodeBeforeView = (Node) nodeChangeMerged.getBeforeView();
+        Assert.assertEquals(
+                beforeNode1.inEdges().stream().map(Edge::getIdentifier).collect(Collectors.toSet()),
+                nodeBeforeView.inEdges().stream().map(Edge::getIdentifier)
+                        .collect(Collectors.toSet()));
+        Assert.assertEquals(
+                beforeNode2.outEdges().stream().map(Edge::getIdentifier)
+                        .collect(Collectors.toSet()),
+                nodeBeforeView.outEdges().stream().map(Edge::getIdentifier)
+                        .collect(Collectors.toSet()));
+    }
 }
