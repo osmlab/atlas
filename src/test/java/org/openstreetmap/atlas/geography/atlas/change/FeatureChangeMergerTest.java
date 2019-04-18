@@ -872,7 +872,7 @@ public class FeatureChangeMergerTest
         beforeMemberBean1.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
         beforeMemberBean1.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
         final RelationBean beforeAllKnownOsmBean1 = new RelationBean();
-        beforeAllKnownOsmBean1.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        beforeAllKnownOsmBean1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
         final CompleteRelation beforeRelation1 = new CompleteRelation(123L,
                 Maps.hashMap("a", "1", "b", "2"), Rectangle.TEST_RECTANGLE, beforeMemberBean1,
                 Arrays.asList(10L, 11L, 12L), beforeAllKnownOsmBean1, 123456L,
@@ -883,7 +883,6 @@ public class FeatureChangeMergerTest
         beforeMemberBean2.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
         final RelationBean beforeAllKnownOsmBean2 = new RelationBean();
         beforeAllKnownOsmBean2.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
-        beforeAllKnownOsmBean2.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
         final CompleteRelation beforeRelation2 = new CompleteRelation(123L,
                 Maps.hashMap("a", "1", "b", "2"), Rectangle.TEST_RECTANGLE, beforeMemberBean2,
                 Arrays.asList(10L, 11L, 12L), beforeAllKnownOsmBean2, 123456L,
@@ -897,6 +896,8 @@ public class FeatureChangeMergerTest
         final Relation relationBeforeView = (Relation) relationChangeMerged.getBeforeView();
         Assert.assertTrue(beforeMemberBean1
                 .equalsIncludingExplicitlyExcluded(relationBeforeView.members().asBean()));
+        Assert.assertTrue(beforeAllKnownOsmBean1.equalsIncludingExplicitlyExcluded(
+                relationBeforeView.allKnownOsmMembers().asBean()));
         Assert.assertTrue(beforeAllKnownOsmBean2.equalsIncludingExplicitlyExcluded(
                 relationBeforeView.allKnownOsmMembers().asBean()));
 
