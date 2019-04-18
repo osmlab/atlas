@@ -160,8 +160,7 @@ public final class FeatureChangeMergingHelpers
             return new FeatureChange(ChangeType.REMOVE, left.getAfterView(), mergedBeforeNode);
         }
         /*
-         * For relations, we need to merge the beforeViews of the RelationBean and
-         * allKnownOsmMembersBean.
+         * For relations, we need to merge the beforeViews of the members RelationBean.
          */
         else if (beforeEntityLeft instanceof Relation)
         {
@@ -170,18 +169,11 @@ public final class FeatureChangeMergingHelpers
             final CompleteRelation mergedBeforeRelation = CompleteRelation.from(beforeRelationLeft);
             final RelationBean leftMembers = beforeRelationLeft.members().asBean();
             final RelationBean rightMembers = beforeRelationRight.members().asBean();
-            final RelationBean leftOsmMembers = beforeRelationLeft.allKnownOsmMembers().asBean();
-            final RelationBean rightOsmMembers = beforeRelationRight.allKnownOsmMembers().asBean();
 
             if (!leftMembers.equalsIncludingExplicitlyExcluded(rightMembers))
             {
                 mergedBeforeRelation.withMembers(RelationBean.mergeBeans(leftMembers, rightMembers),
                         Rectangle.forLocated(beforeRelationLeft, beforeRelationRight));
-            }
-            if (!leftOsmMembers.equalsIncludingExplicitlyExcluded(rightOsmMembers))
-            {
-                mergedBeforeRelation.withAllKnownOsmMembers(
-                        RelationBean.mergeBeans(leftOsmMembers, rightOsmMembers));
             }
             return new FeatureChange(ChangeType.REMOVE, left.getAfterView(), mergedBeforeRelation);
         }
@@ -643,8 +635,6 @@ public final class FeatureChangeMergingHelpers
                 .withAfterViewNoBeforeMerger(MemberMergeStrategies.simpleRelationBeanMerger)
                 .withAfterViewConsistentBeforeMerger(
                         MemberMergeStrategies.diffBasedRelationBeanMerger)
-                .withAfterViewConflictingBeforeMerger(
-                        MemberMergeStrategies.conflictingBeforeViewRelationBeanMerger)
                 .withBeforeViewMerger(MemberMergeStrategies.beforeViewRelationBeanMerger).build()
                 .mergeMember();
 
