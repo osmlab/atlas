@@ -398,14 +398,15 @@ public final class MemberMerger<M>
         if (this.afterViewConflictingBeforeMerger == null)
         {
             throw new CoreException(
-                    "Conflicting beforeMembers and no afterViewConflictingBeforeMerger for {}; beforeView: {} vs {}",
+                    "Conflicting beforeMembers {} and no afterView merge strategy capable of handling"
+                            + " conflicting beforeViews was provided; beforeView: {} vs {}",
                     this.memberName, beforeMemberLeft, beforeMemberRight);
         }
 
         if (this.beforeViewMerger == null)
         {
             throw new CoreException(
-                    "Conflicting beforeMembers and no beforeViewMerger for {}; beforeView: {} vs {}",
+                    "Conflicting beforeMembers {} and no beforeView merge strategy was provided; beforeView: {} vs {}",
                     this.memberName, beforeMemberLeft, beforeMemberRight);
         }
 
@@ -416,7 +417,7 @@ public final class MemberMerger<M>
         catch (final Exception exception)
         {
             throw new CoreException(
-                    "Attempted beforeView merge failed for {} with beforeView: {} vs {}",
+                    "Attempted beforeView merge strategy failed for {} with beforeView: {} vs {}",
                     this.memberName, beforeMemberLeft, beforeMemberRight, exception);
         }
 
@@ -428,7 +429,8 @@ public final class MemberMerger<M>
         catch (final Exception exception)
         {
             throw new CoreException(
-                    "Attempted afterViewConflictingBeforeMerge merge failed for {} with beforeView: {} vs {}; afterView: {} vs {}",
+                    "Tried merge strategy for handling conflicting beforeViews. but it failed for {}"
+                            + "\nbeforeView: {} vs {};\nafterView: {} vs {}",
                     this.memberName, beforeMemberLeft, beforeMemberRight, afterMemberLeft,
                     afterMemberRight, exception);
         }
