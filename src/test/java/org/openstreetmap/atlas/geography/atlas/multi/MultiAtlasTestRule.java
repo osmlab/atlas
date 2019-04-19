@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.statistics;
+package org.openstreetmap.atlas.geography.atlas.multi;
 
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -14,12 +14,37 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation.Member;
 
 /**
- * Test rule for {@link AtlasStatisticsTest}
- *
- * @author matthieun
+ * @author samg
  */
-public class AtlasStatisticsTestRule extends CoreTestRule
+
+public class MultiAtlasTestRule extends CoreTestRule
 {
+    @TestAtlas(nodes = {
+            @Node(id = "123", coordinates = @Loc(value = Location.TEST_6_COORDINATES), tags = {
+                    "highway=traffic_signal" }),
+            @Node(id = "12345", coordinates = @Loc(value = Location.TEST_2_COORDINATES), tags = {
+                    "highway=traffic_signal" }),
+            @Node(id = "4", coordinates = @Loc(value = Location.TEST_1_COORDINATES), tags = {
+                    "highway=traffic_signal" }), },
+
+            edges = {
+                    @Edge(id = "5", coordinates = { @Loc(value = Location.TEST_6_COORDINATES),
+                            @Loc(value = Location.TEST_1_COORDINATES) }, tags = { "highway=primary",
+                                    "name=edge5", "surface=concrete", "lanes=3" }),
+                    @Edge(id = "6", coordinates = { @Loc(value = Location.TEST_1_COORDINATES),
+                            @Loc(value = Location.TEST_2_COORDINATES) }, tags = {
+                                    "highway=secondary", "name=edge98", "bridge=cantilever",
+                                    "maxspeed=100" }) },
+
+            relations = {
+                    @Relation(id = "1", members = {
+                            @Member(id = "4", role = "notThere", type = "node") }),
+                    @Relation(id = "3", osmId = "2", members = {
+                            @Member(id = "5", role = "in", type = "edge"),
+                            @Member(id = "12345", role = "node", type = "node"),
+                            @Member(id = "6", role = "out", type = "edge") }), })
+    private Atlas atlas1;
+
     @TestAtlas(points = {
             @Point(id = "1", coordinates = @Loc(value = Location.TEST_3_COORDINATES), tags = {
                     "addr:city=Cupertino" }),
@@ -63,7 +88,7 @@ public class AtlasStatisticsTestRule extends CoreTestRule
                                     "name=edge9", "surface=concrete", "lanes=3" }),
                     @Edge(id = "-9", coordinates = { @Loc(value = Location.TEST_5_COORDINATES),
                             @Loc(value = Location.TEST_6_COORDINATES) }, tags = { "highway=primary",
-                                    "name=edge_9", "surface=gravel" }),
+                                    "name=edge_9", "surface=fine_gravel" }),
                     @Edge(id = "98", coordinates = { @Loc(value = Location.TEST_5_COORDINATES),
                             @Loc(value = Location.TEST_2_COORDINATES) }, tags = {
                                     "highway=secondary", "name=edge98", "bridge=movable",
@@ -98,42 +123,16 @@ public class AtlasStatisticsTestRule extends CoreTestRule
                             @Member(id = "5", role = "pt", type = "point"),
                             @Member(id = "1", role = "rel", type = "relation"),
                             @Member(id = "1234", role = "node", type = "node") }, tags = {}) })
-    private Atlas packedAtlas;
+    private Atlas atlas2;
 
-    @TestAtlas(loadFromJosmOsmResource = "addressAtlas.josm.osm")
-    private Atlas addressAtlas;
-
-    @TestAtlas(loadFromJosmOsmResource = "waterAtlas.josm.osm")
-    private Atlas waterAtlas;
-
-    @TestAtlas(loadFromJosmOsmResource = "ferryAtlas.josm.osm")
-    private Atlas ferryAtlas;
-
-    @TestAtlas(loadFromJosmOsmResource = "refsAtlas.josm.osm")
-    private Atlas refsAtlas;
-
-    public Atlas getAddressAtlas()
+    public Atlas getAtlas1()
     {
-        return this.addressAtlas;
+        return this.atlas1;
     }
 
-    public Atlas getFerryAtlas()
+    public Atlas getAtlas2()
     {
-        return this.ferryAtlas;
+        return this.atlas2;
     }
 
-    public Atlas getPackedAtlas()
-    {
-        return this.packedAtlas;
-    }
-
-    public Atlas getRefsAtlas()
-    {
-        return this.refsAtlas;
-    }
-
-    public Atlas getWaterAtlas()
-    {
-        return this.waterAtlas;
-    }
 }

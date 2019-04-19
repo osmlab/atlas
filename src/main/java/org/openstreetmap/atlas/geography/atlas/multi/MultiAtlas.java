@@ -192,12 +192,13 @@ public class MultiAtlas extends AbstractAtlas
         {
             throw new CoreException("Can't create an atlas from zero resources");
         }
-        return new MultiAtlas(
-                Iterables
-                        .translate(resources,
-                                resource -> PackedAtlas.load(resource)
-                                        .subAtlas(filter, AtlasCutType.SOFT_CUT).get()),
-                lotsOfOverlap);
+        final Iterable<Atlas> validAtlases = Iterables
+                .translate(Iterables
+                        .stream(Iterables.translate(resources,
+                                resource -> PackedAtlas.load(resource).subAtlas(filter,
+                                        AtlasCutType.SOFT_CUT)))
+                        .filter(optional -> optional.isPresent()), optional -> optional.get());
+        return new MultiAtlas(validAtlases, lotsOfOverlap);
     }
 
     /**

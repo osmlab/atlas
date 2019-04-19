@@ -32,15 +32,24 @@ public class Location
 {
     private static final long serialVersionUID = 3770424147251047128L;
 
+    public static final String TEST_1_COORDINATES = "37.335310,-122.009566";
+    public static final String TEST_2_COORDINATES = "37.321628,-122.028464";
+    public static final String TEST_3_COORDINATES = "37.317585,-122.052138";
+    public static final String TEST_4_COORDINATES = "37.332451,-122.028932";
+    public static final String TEST_5_COORDINATES = "37.390535,-122.031007";
+    public static final String TEST_6_COORDINATES = "37.325440,-122.033948";
+    public static final String TEST_7_COORDINATES = "37.3314171,-122.0304871";
+    public static final String TEST_8_COORDINATES = "37.3214159,-122.0303831";
+
     // Quick-access locations, mostly used for testing.
-    public static final Location TEST_1 = Location.forString("37.335310,-122.009566");
-    public static final Location TEST_2 = Location.forString("37.321628,-122.028464");
-    public static final Location TEST_3 = Location.forString("37.317585,-122.052138");
-    public static final Location TEST_4 = Location.forString("37.332451,-122.028932");
-    public static final Location TEST_5 = Location.forString("37.390535,-122.031007");
-    public static final Location TEST_6 = Location.forString("37.325440,-122.033948");
-    public static final Location TEST_7 = Location.forString("37.3314171,-122.0304871");
-    public static final Location TEST_8 = Location.forString("37.3214159,-122.0303831");
+    public static final Location TEST_1 = Location.forString(TEST_1_COORDINATES);
+    public static final Location TEST_2 = Location.forString(TEST_2_COORDINATES);
+    public static final Location TEST_3 = Location.forString(TEST_3_COORDINATES);
+    public static final Location TEST_4 = Location.forString(TEST_4_COORDINATES);
+    public static final Location TEST_5 = Location.forString(TEST_5_COORDINATES);
+    public static final Location TEST_6 = Location.forString(TEST_6_COORDINATES);
+    public static final Location TEST_7 = Location.forString(TEST_7_COORDINATES);
+    public static final Location TEST_8 = Location.forString(TEST_8_COORDINATES);
     public static final Location STEVENS_CREEK = Location.forString("37.324233,-122.003467");
     public static final Location CROSSING_85_280 = Location.forString("37.332439,-122.055760");
     public static final Location CROSSING_85_17 = Location.forString("37.255731,-121.955918");
@@ -164,12 +173,6 @@ public class Location
         result <<= INT_SIZE;
         result |= this.longitude.asDm7() & INT_FULL_MASK_AS_LONG;
         return result;
-    }
-
-    @Override
-    public boolean within(final GeometricSurface surface)
-    {
-        return surface.fullyGeometricallyEncloses(this);
     }
 
     @Override
@@ -578,6 +581,12 @@ public class Location
     public String toWkt()
     {
         return new WktLocationConverter().convert(this);
+    }
+
+    @Override
+    public boolean within(final GeometricSurface surface)
+    {
+        return surface.fullyGeometricallyEncloses(this);
     }
 
     protected Point2D asAwtPoint()
