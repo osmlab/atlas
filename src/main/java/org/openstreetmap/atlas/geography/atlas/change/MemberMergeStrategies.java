@@ -17,8 +17,11 @@ import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedRelation;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
+import org.openstreetmap.atlas.utilities.function.QuaternaryOperator;
 import org.openstreetmap.atlas.utilities.function.TernaryOperator;
 
 /**
@@ -67,6 +70,9 @@ public final class MemberMergeStrategies
         final Map<RelationBeanItem, Integer> beforeBeanMap = beforeBean.asMap();
         final Map<RelationBeanItem, Integer> afterLeftBeanMap = afterLeftBean.asMap();
         final Map<RelationBeanItem, Integer> afterRightBeanMap = afterRightBean.asMap();
+
+        verifyExplicitlyExcludedSetsArePopulatedProperly(beforeBean, afterLeftBean, beforeBean,
+                afterRightBean);
 
         /*
          * Compute the difference set between the beforeView and the afterViews (which is equivalent
@@ -336,13 +342,13 @@ public final class MemberMergeStrategies
                 keysRemovedFromRightView);
         final Set<String> keysAddedMerged = Sets.withSets(false, addedToLeftView.keySet(),
                 addedToRightView.keySet());
-        final Set<String> collision = com.google.common.collect.Sets.intersection(keysRemovedMerged,
+        final Set<String> conflicts = com.google.common.collect.Sets.intersection(keysRemovedMerged,
                 keysAddedMerged);
-        if (!collision.isEmpty())
+        if (!conflicts.isEmpty())
         {
             throw new CoreException(
                     "diffBasedTagMerger failed due to ADD/REMOVE conflict(s) on key(s): {}",
-                    collision);
+                    conflicts);
         }
 
         /*
@@ -365,6 +371,79 @@ public final class MemberMergeStrategies
         });
 
         return result;
+    };
+
+    static final BinaryOperator<RelationBean> beforeViewRelationBeanMerger = RelationBean::mergeBeans;
+
+    /**
+     * A merger for cases when two {@link RelationBean}s have conflicting beforeViews. This can
+     * happen occasionally, since different shards may have slightly inconsistent relation views.
+     * <p>
+     * Also note that this lambda does not respect duplicate {@link RelationBeanItem}s of a given
+     * value. Technically, OSM allows for duplicate {@link RelationBeanItem}s in a given relation.
+     * However, these duplicates are disallowed by {@link PackedAtlas#relationMembers} and by
+     * extension {@link PackedRelation#members}. As a result, we need not worry about that edge case
+     * here.
+     */
+    static final QuaternaryOperator<RelationBean> conflictingBeforeViewRelationBeanMerger = (
+            beforeLeftBean, afterLeftBean, beforeRightBean, afterRightBean) ->
+    {
+        verifyExplicitlyExcludedSetsArePopulatedProperly(beforeLeftBean, afterLeftBean,
+                beforeRightBean, afterRightBean);
+
+        /*
+         * Merge the removed sets. This should just work, since we are doing a key-only merge and
+         * have already assumed that there cannot be duplicate RelationBeanItems.
+         */
+        final Set<RelationBeanItem> removedMerged = Sets.withSets(false,
+                afterLeftBean.getExplicitlyExcluded(), afterRightBean.getExplicitlyExcluded());
+
+        /*
+         * Compute the added sets. We do this by comparing the before and after views of the given
+         * RelationBeans on each side of the merge.
+         */
+        final Set<RelationBeanItem> addedToLeft = com.google.common.collect.Sets
+                .difference(afterLeftBean.asSet(), beforeLeftBean.asSet());
+        final Set<RelationBeanItem> addedToRight = com.google.common.collect.Sets
+                .difference(afterRightBean.asSet(), beforeRightBean.asSet());
+
+        /*
+         * Merge the added sets. This should just work, since we are doing a key-only merge and have
+         * already assumed that there cannot be duplicate RelationBeanItems.
+         */
+        final Set<RelationBeanItem> addedMerged = Sets.withSets(false, addedToLeft, addedToRight);
+
+        /*
+         * Check for ADD/REMOVE conflicts. This occurs if one side of the merge adds a member which
+         * was explicitly removed by the other side.
+         */
+        final Set<RelationBeanItem> conflicts = com.google.common.collect.Sets
+                .intersection(removedMerged, addedMerged);
+        if (!conflicts.isEmpty())
+        {
+            throw new CoreException(
+                    "conflictingBeforeViewRelationBeanMerger failed due to ADD/REMOVE conflict(s) on key(s): {}",
+                    conflicts);
+        }
+
+        /*
+         * Now, we need to construct a proper merged beforeView for the left and right sides (this
+         * view will be tolerant of inconsistencies in the left and right sides). Once we have this,
+         * we can apply the changes from our removedMerged and addedMerged sets to get the final
+         * result.
+         */
+        final Set<RelationBeanItem> mergedBeforeView = beforeViewRelationBeanMerger
+                .apply(beforeLeftBean, beforeRightBean).asSet();
+        mergedBeforeView.removeAll(removedMerged);
+        mergedBeforeView.addAll(addedMerged);
+
+        final RelationBean resultBean = new RelationBean();
+        mergedBeforeView.forEach(resultBean::addItem);
+        Stream.concat(afterLeftBean.getExplicitlyExcluded().stream(),
+                afterRightBean.getExplicitlyExcluded().stream())
+                .forEach(resultBean::addItemExplicitlyExcluded);
+
+        return resultBean;
     };
 
     /**
@@ -405,7 +484,7 @@ public final class MemberMergeStrategies
      * Returns a TernaryOperator that acts as a diff based, mutually exclusive chooser. The operator
      * can successfully merge two afterViews if: 1) both afterViews match OR 2) the afterViews are
      * mismatched, but one of the afterViews matches the beforeView. In case 2) the merger will
-     * select that afterView that differs from the beforeView. In any other case, the operator will
+     * select the afterView which differs from the beforeView. In any other case, the operator will
      * fail with an ADD/ADD conflict.
      *
      * @return the operator
@@ -442,6 +521,50 @@ public final class MemberMergeStrategies
                     "diffBasedMutuallyExclusiveMerger failed due to ADD/ADD conflict: beforeView was {} but afterViews were [{} vs {}]",
                     beforeView, afterViewLeft, afterViewRight);
         };
+    }
+
+    private static void verifyExplicitlyExcludedSetsArePopulatedProperly(
+            final RelationBean beforeLeftBean, final RelationBean afterLeftBean,
+            final RelationBean beforeRightBean, final RelationBean afterRightBean)
+    {
+        /*
+         * The explicitly computed removed sets. These come straight from the explicitlyExcluded
+         * sets of RelationBeans on each side of the merge. explicitlyExcluded is populated by
+         * calling CompleteRelation#withMembersAndSource.
+         */
+        final Set<RelationBeanItem> removedFromLeft = afterLeftBean.getExplicitlyExcluded();
+        final Set<RelationBeanItem> removedFromRight = afterRightBean.getExplicitlyExcluded();
+
+        /*
+         * The implicitly computed removed sets. These are computed by comparing the before and
+         * after views of the given RelationBeans on each side of the merge.
+         */
+        final Set<RelationBeanItem> implicitlyRemovedFromLeft = com.google.common.collect.Sets
+                .difference(beforeLeftBean.asSet(), afterLeftBean.asSet());
+        final Set<RelationBeanItem> implicitlyRemovedFromRight = com.google.common.collect.Sets
+                .difference(beforeRightBean.asSet(), afterRightBean.asSet());
+
+        /*
+         * It must be the case that the explicitly and implicitly computed removed sets match for a
+         * given RelationBean from one side of the merge. If they don't, that means the user likely
+         * removed some relation members without using the withMembersAndSource API, which means the
+         * explicitlyExcluded sets are not properly populated. This will lead to corrupt and
+         * unexpected results.
+         */
+        if (!removedFromLeft.equals(implicitlyRemovedFromLeft))
+        {
+            throw new CoreException(
+                    "Explicit removedFromLeft set did not match the implicitly computed removedFromLeft set: {} vs {}\n"
+                            + "This is likely because members were removed without using the withMembersAndSource method",
+                    removedFromLeft, implicitlyRemovedFromLeft);
+        }
+        if (!removedFromRight.equals(implicitlyRemovedFromRight))
+        {
+            throw new CoreException(
+                    "Explicit removedFromRight set did not match the implicitly computed removedFromRight set: {} vs {}\n"
+                            + "This is likely because members were removed without using the withMembersAndSource method",
+                    removedFromRight, implicitlyRemovedFromRight);
+        }
     }
 
     private MemberMergeStrategies()

@@ -85,9 +85,9 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
     private static final long serialVersionUID = 8511830231633569713L;
 
     private final List<Long> memberIdentifiers;
+
     private final List<String> memberRoles;
     private final List<ItemType> memberTypes;
-
     /**
      * This set has no concept of how many {@link RelationBeanItem}s of a given value have been
      * removed. Technically, OSM allows for duplicate {@link RelationBeanItem}s in a given relation.
@@ -105,6 +105,36 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
             bean.addItem(item);
         }
         return bean;
+    }
+
+    public static RelationBean mergeBeans(final RelationBean left, final RelationBean right)
+    {
+        final RelationBean result = new RelationBean();
+        for (final RelationBeanItem leftItem : left)
+        {
+            if (!right.isExplicitlyExcluded(leftItem))
+            {
+                result.addItem(leftItem);
+            }
+        }
+        for (final RelationBeanItem rightItem : right)
+        {
+            final Optional<RelationBeanItem> existingLeftItem = left
+                    .getItemFor(rightItem.getIdentifier(), rightItem.getType());
+            if (existingLeftItem.isPresent()
+                    && existingLeftItem.get().getRole().equals(rightItem.getRole()))
+            {
+                // Role already exists, continue.
+                continue;
+            }
+            if (!left.isExplicitlyExcluded(rightItem))
+            {
+                result.addItem(rightItem);
+            }
+        }
+        left.explicitlyExcluded.forEach(result::addItemExplicitlyExcluded);
+        right.explicitlyExcluded.forEach(result::addItemExplicitlyExcluded);
+        return result;
     }
 
     public RelationBean()
@@ -194,6 +224,18 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
     }
 
     /**
+     * Get this {@link RelationBean} as a {@link Set} from its constituent
+     * {@link RelationBeanItem}s. This will ignore the fact that a {@link RelationBean} can
+     * technically contain duplicate items.
+     *
+     * @return the set representing this bean
+     */
+    public Set<RelationBeanItem> asSet()
+    {
+        return new HashSet<>(this.asMap().keySet());
+    }
+
+    /**
      * Check if the two beans are the same, without looking at the bean order.
      *
      * @param other
@@ -224,7 +266,7 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
     {
         if (other instanceof RelationBean)
         {
-            return (other instanceof RelationBean) && this.equals(other)
+            return other instanceof RelationBean && this.equals(other)
                     && this.explicitlyExcluded.equals(((RelationBean) other).explicitlyExcluded);
         }
         return false;
@@ -308,32 +350,7 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
 
     public RelationBean merge(final RelationBean other)
     {
-        final RelationBean result = new RelationBean();
-        for (final RelationBeanItem leftItem : this)
-        {
-            if (!other.isExplicitlyExcluded(leftItem))
-            {
-                result.addItem(leftItem);
-            }
-        }
-        for (final RelationBeanItem rightItem : other)
-        {
-            final Optional<RelationBeanItem> existingLeftItem = this
-                    .getItemFor(rightItem.getIdentifier(), rightItem.getType());
-            if (existingLeftItem.isPresent()
-                    && existingLeftItem.get().getRole().equals(rightItem.getRole()))
-            {
-                // Role already exists, continue.
-                continue;
-            }
-            if (!this.isExplicitlyExcluded(rightItem))
-            {
-                result.addItem(rightItem);
-            }
-        }
-        this.explicitlyExcluded.forEach(result::addItemExplicitlyExcluded);
-        other.explicitlyExcluded.forEach(result::addItemExplicitlyExcluded);
-        return result;
+        return RelationBean.mergeBeans(this, other);
     }
 
     /**

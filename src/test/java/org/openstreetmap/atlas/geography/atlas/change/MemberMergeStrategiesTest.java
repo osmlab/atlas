@@ -27,6 +27,157 @@ public class MemberMergeStrategiesTest
     public final ExpectedException expectedException = ExpectedException.none();
 
     @Test
+    public void testConflictingBeforeViewRelationBeanMergeADDREMOVEConflictFail()
+    {
+        final RelationBean beforeBean1 = new RelationBean();
+        beforeBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        beforeBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        beforeBean1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+
+        final RelationBean afterBean1 = new RelationBean();
+        afterBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        afterBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        afterBean1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        afterBean1.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+
+        final RelationBean beforeBean2 = new RelationBean();
+        beforeBean2.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        beforeBean2.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        beforeBean2.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        beforeBean2.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+
+        final RelationBean afterBean2 = new RelationBean();
+        afterBean2.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        afterBean2.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        afterBean2.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        afterBean2.addItemExplicitlyExcluded(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+
+        /*
+         * This will fail with an ADD/REMOVE conflict, since afterBean1 explicitly adds Line 2 while
+         * afterBean2 explicitly removes it. This conflict is only possible in cases where we are
+         * merging RelationBeans with conflicting beforeViews.
+         */
+        this.expectedException.expect(CoreException.class);
+        this.expectedException
+                .expectMessage("conflictingBeforeViewRelationBeanMerger failed due to ADD/REMOVE");
+        MemberMergeStrategies.conflictingBeforeViewRelationBeanMerger.apply(beforeBean1, afterBean1,
+                beforeBean2, afterBean2);
+    }
+
+    @Test
+    public void testConflictingBeforeViewRelationBeanMergeInconsistentRemovalFail()
+    {
+        final RelationBean beforeBean1 = new RelationBean();
+        beforeBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        beforeBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        beforeBean1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+
+        final RelationBean afterBean1 = new RelationBean();
+        afterBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        afterBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        afterBean1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        afterBean1.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+
+        final RelationBean beforeBean2 = new RelationBean();
+        beforeBean2.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        beforeBean2.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        beforeBean2.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        beforeBean2.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+
+        final RelationBean afterBean2 = new RelationBean();
+        afterBean2.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        afterBean2.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        afterBean2.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+
+        /*
+         * This will fail because afterBean2 implicitly removes Line 2 without declaring it in the
+         * explicitlyExcluded set. This will corrupt the state of the relation bean and make it
+         * impossible to merge it properly in subsequent operations. Users must always be sure to
+         * use withMembersAndSource when removing members.
+         */
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage(
+                "Explicit removedFromRight set did not match the implicitly computed removedFromRight set");
+        MemberMergeStrategies.conflictingBeforeViewRelationBeanMerger.apply(beforeBean1, afterBean1,
+                beforeBean2, afterBean2);
+    }
+
+    @Test
+    public void testConflictingBeforeViewRelationBeanMergeSuccess()
+    {
+        final RelationBean beforeBean1 = new RelationBean();
+        beforeBean1.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        beforeBean1.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        beforeBean1.addItem(new RelationBeanItem(3L, "lineRole3", ItemType.LINE));
+        beforeBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        beforeBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+
+        /*
+         * ADD an Area with ID 3 (which is already present in the other beforeBean - this will
+         * effectively result in a no-op). REMOVE Line with ID 1 - this REMOVE is shared by the
+         * other afterBean. REMOVE Line with ID 2. Add 1 Point with ID 1 - this ADD is shared by the
+         * other afterBean. We ensure that the explicitlyExcluded set is updated with the necessary
+         * REMOVES.
+         */
+        final RelationBean afterBean1 = new RelationBean();
+        afterBean1.addItem(new RelationBeanItem(3L, "lineRole3", ItemType.LINE));
+        afterBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        afterBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        afterBean1.addItem(new RelationBeanItem(3L, "areaRole3", ItemType.AREA));
+        afterBean1.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        afterBean1.addItemExplicitlyExcluded(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        afterBean1.addItemExplicitlyExcluded(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+
+        final RelationBean beforeBean2 = new RelationBean();
+        beforeBean2.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        beforeBean2.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        beforeBean2.addItem(new RelationBeanItem(3L, "lineRole3", ItemType.LINE));
+        beforeBean2.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        beforeBean2.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        beforeBean2.addItem(new RelationBeanItem(3L, "areaRole3", ItemType.AREA));
+        beforeBean2.addItem(new RelationBeanItem(1L, "edgeRole1", ItemType.EDGE));
+        beforeBean2.addItem(new RelationBeanItem(2L, "edgeRole2", ItemType.EDGE));
+
+        /*
+         * REMOVE Line with ID 1 - this REMOVE is shared by the other afterBean. Add 1 Point with ID
+         * 1 - this ADD is shared by the other afterBean. Remove Edge with ID 1. Add a Node with ID
+         * 1.
+         */
+        final RelationBean afterBean2 = new RelationBean();
+        afterBean2.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        afterBean2.addItem(new RelationBeanItem(3L, "lineRole3", ItemType.LINE));
+        afterBean2.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        afterBean2.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        afterBean2.addItem(new RelationBeanItem(3L, "areaRole3", ItemType.AREA));
+        afterBean2.addItem(new RelationBeanItem(2L, "edgeRole2", ItemType.EDGE));
+        afterBean2.addItem(new RelationBeanItem(1L, "nodeRole1", ItemType.NODE));
+        afterBean2.addItemExplicitlyExcluded(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        afterBean2.addItemExplicitlyExcluded(new RelationBeanItem(1L, "edgeRole1", ItemType.EDGE));
+
+        /*
+         * The expected result of merging afterBean1 and afterBean2.
+         */
+        final RelationBean goldenImage1 = new RelationBean();
+        goldenImage1.addItem(new RelationBeanItem(3L, "lineRole3", ItemType.LINE));
+        goldenImage1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
+        goldenImage1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        goldenImage1.addItem(new RelationBeanItem(3L, "areaRole3", ItemType.AREA));
+        goldenImage1.addItem(new RelationBeanItem(1L, "pointRole1", ItemType.POINT));
+        goldenImage1.addItem(new RelationBeanItem(2L, "edgeRole2", ItemType.EDGE));
+        goldenImage1.addItem(new RelationBeanItem(1L, "nodeRole1", ItemType.NODE));
+        goldenImage1
+                .addItemExplicitlyExcluded(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        goldenImage1
+                .addItemExplicitlyExcluded(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));
+        goldenImage1
+                .addItemExplicitlyExcluded(new RelationBeanItem(1L, "edgeRole1", ItemType.EDGE));
+
+        Assert.assertTrue(goldenImage1.equalsIncludingExplicitlyExcluded(
+                MemberMergeStrategies.conflictingBeforeViewRelationBeanMerger.apply(beforeBean1,
+                        afterBean1, beforeBean2, afterBean2)));
+    }
+
+    @Test
     public void testDiffBasedLocationMergeADDADDConflictFail()
     {
         final Location before = Location.CENTER;
@@ -311,6 +462,7 @@ public class MemberMergeStrategiesTest
         afterBean2.addItem(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
         afterBean2.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
         afterBean2.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
+        afterBean2.addItemExplicitlyExcluded(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
 
         /*
          * The merge will fail, since one afterView tries to add an additional [1, LINE, lineRole1]
@@ -351,6 +503,7 @@ public class MemberMergeStrategiesTest
         afterBean2.addItem(new RelationBeanItem(2L, "pointRole2", ItemType.POINT));
         afterBean2.addItem(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
         afterBean2.addItem(new RelationBeanItem(1L, "lineRole1", ItemType.LINE));
+        afterBean2.addItemExplicitlyExcluded(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
 
         /*
          * The merge will fail, since the number of removed [1, AREA, areaRole1] conflict.
@@ -427,8 +580,9 @@ public class MemberMergeStrategiesTest
         goldenImage1
                 .addItemExplicitlyExcluded(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
 
-        Assert.assertEquals(goldenImage1, MemberMergeStrategies.diffBasedRelationBeanMerger
-                .apply(beforeBean, afterBean1, afterBean2));
+        Assert.assertTrue(goldenImage1
+                .equalsIncludingExplicitlyExcluded(MemberMergeStrategies.diffBasedRelationBeanMerger
+                        .apply(beforeBean, afterBean1, afterBean2)));
     }
 
     @Test

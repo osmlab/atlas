@@ -203,11 +203,6 @@ public class FeatureChange implements Located, Serializable
         }
     }
 
-    public String getFeatureChangeIdentifier()
-    {
-        return featureChangeIdentifier;
-    }
-
     /**
      * Specify the Atlas on which this {@link FeatureChange} is based. {@link FeatureChange} objects
      * with a contextual Atlas are able to calculate their before view, and so are able to leverage
@@ -328,6 +323,11 @@ public class FeatureChange implements Located, Serializable
         return this.changeType;
     }
 
+    public String getFeatureChangeIdentifier()
+    {
+        return this.featureChangeIdentifier;
+    }
+
     public long getIdentifier()
     {
         return getAfterView().getIdentifier();
@@ -390,19 +390,27 @@ public class FeatureChange implements Located, Serializable
         // will always fail. We enforce this assumption in order to make the ADD/REMOVE merge logic
         // simpler.
         /*
-         * Once basic mergeability is established, the merge logic proceeds.
+         * Once basic mergeability is established, the merge logic proceeds:
          */
         // Merging two REMOVE changes:
-        // This case is easy. Since a REMOVE contains no additional information, we can simply
-        // arbitrarily return the left side FeatureChange. The beforeViews are guaranteed to be
-        // properly merged because either:
+        // There is no need to merge the afterViews (since they are shallow), but we must ensure
+        // that the beforeViews are properly merged. There are 3 possibilities,
+        // outlined below.
         //
-        // 1) Both FeatureChanges had fully populated, equivalent beforeViews (which are computed
-        // automatically when a REMOVE FeatureChange is created)
-        //
-        // OR
+        // 1) Both FeatureChanges had fully populated, equivalent beforeViews, which are computed
+        // automatically when a REMOVE FeatureChange is created (except possibly in the case of Node
+        // and Relation, see 3) below)
         //
         // 2) Neither FeatureChange had a beforeView, in which case no merge is required.
+        //
+        // 3) In cases where the REMOVE is acting on a Relation, we first need to check if
+        // there are inconsistencies in the beforeViews of members and allKnownOsmMembers. If the
+        // REMOVE is acting on a Node, we need to check if there are inconsistencies in the
+        // beforeViews of the in/out Edge identifier sets. Any inconsistencies must be merged. We
+        // allow for inconsistencies in these specific cases, since it is possible that
+        // FeatureChanges generated in different shards will have slightly different views of the
+        // same Feature (since RelationMemberLists and in/out edge sets can be inconsistent across
+        // shards).
         //
         // Merging two ADD changes:
         // In this case, we need to perform additional checks to ensure that the FeatureChanges can
@@ -434,7 +442,15 @@ public class FeatureChange implements Located, Serializable
             // Actually merge the changes
             if (this.getChangeType() == ChangeType.REMOVE)
             {
-                return this;
+                /*
+                 * Pre-condition 2 implies that if one beforeView is null, both are null so it is
+                 * safe to arbitrarily pick from the left or right side of the merge.
+                 */
+                if (this.getBeforeView() == null)
+                {
+                    return this;
+                }
+                return FeatureChangeMergingHelpers.mergeREMOVEFeatureChangePair(this, other);
             }
             else if (this.getChangeType() == ChangeType.ADD)
             {
@@ -442,7 +458,7 @@ public class FeatureChange implements Located, Serializable
             }
 
             // If we get here, something very unexpected happened.
-            throw new CoreException("Unable to merge {} and {}", this, other);
+            throw new CoreException("Unexpected merge failure for {} and {}", this, other);
         }
         catch (final Exception exception)
         {
