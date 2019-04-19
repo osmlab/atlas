@@ -97,7 +97,7 @@ public class MemberMergeStrategiesTest
          */
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage(
-                "Explicit removedFromRight set did not match the implicitly computed removedFromRight set");
+                "explicitlyExcludedRight set did not match the implicitly computed removedFromRight set");
         MemberMergeStrategies.conflictingBeforeViewRelationBeanMerger.apply(beforeBean1, afterBean1,
                 beforeBean2, afterBean2);
     }

@@ -22,6 +22,7 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedRelation;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 import org.openstreetmap.atlas.utilities.function.QuaternaryOperator;
+import org.openstreetmap.atlas.utilities.function.SenaryOperator;
 import org.openstreetmap.atlas.utilities.function.TernaryOperator;
 
 /**
@@ -71,8 +72,9 @@ public final class MemberMergeStrategies
         final Map<RelationBeanItem, Integer> afterLeftBeanMap = afterLeftBean.asMap();
         final Map<RelationBeanItem, Integer> afterRightBeanMap = afterRightBean.asMap();
 
-        verifyExplicitlyExcludedSetsArePopulatedProperly(beforeBean, afterLeftBean, beforeBean,
-                afterRightBean);
+        verifyExplicitlyExcludedSets(beforeBean.asSet(), afterLeftBean.asSet(),
+                afterLeftBean.getExplicitlyExcluded(), beforeBean.asSet(), afterRightBean.asSet(),
+                afterRightBean.getExplicitlyExcluded());
 
         /*
          * Compute the difference set between the beforeView and the afterViews (which is equivalent
@@ -376,6 +378,18 @@ public final class MemberMergeStrategies
     static final BinaryOperator<RelationBean> beforeViewRelationBeanMerger = RelationBean::mergeBeans;
 
     /**
+     * A merger for cases when two {@link Set}s have conflicting beforeViews. This can happen
+     * occasionally, since different shards may have slightly inconsistent Node views.
+     */
+    static final SenaryOperator<Set<Long>> conflictingBeforeViewSetMerger = (beforeLeftSet,
+            afterLeftSet, explicitlyExcludedLeftSet, beforeRightSet, afterRightSet,
+            explicitlyExcludedRightSet) ->
+    {
+        // TODO implement
+        return null;
+    };
+
+    /**
      * A merger for cases when two {@link RelationBean}s have conflicting beforeViews. This can
      * happen occasionally, since different shards may have slightly inconsistent relation views.
      * <p>
@@ -388,8 +402,9 @@ public final class MemberMergeStrategies
     static final QuaternaryOperator<RelationBean> conflictingBeforeViewRelationBeanMerger = (
             beforeLeftBean, afterLeftBean, beforeRightBean, afterRightBean) ->
     {
-        verifyExplicitlyExcludedSetsArePopulatedProperly(beforeLeftBean, afterLeftBean,
-                beforeRightBean, afterRightBean);
+        verifyExplicitlyExcludedSets(beforeLeftBean.asSet(), afterLeftBean.asSet(),
+                afterLeftBean.getExplicitlyExcluded(), beforeRightBean.asSet(),
+                afterRightBean.asSet(), afterRightBean.getExplicitlyExcluded());
 
         /*
          * Merge the removed sets. This should just work, since we are doing a key-only merge and
@@ -523,47 +538,39 @@ public final class MemberMergeStrategies
         };
     }
 
-    private static void verifyExplicitlyExcludedSetsArePopulatedProperly(
-            final RelationBean beforeLeftBean, final RelationBean afterLeftBean,
-            final RelationBean beforeRightBean, final RelationBean afterRightBean)
+    private static <T> void verifyExplicitlyExcludedSets(final Set<T> beforeLeft,
+            final Set<T> afterLeft, final Set<T> explicitlyExcludedLeft, final Set<T> beforeRight,
+            final Set<T> afterRight, final Set<T> explicitlyExcludedRight)
     {
         /*
-         * The explicitly computed removed sets. These come straight from the explicitlyExcluded
-         * sets of RelationBeans on each side of the merge. explicitlyExcluded is populated by
-         * calling CompleteRelation#withMembersAndSource.
-         */
-        final Set<RelationBeanItem> removedFromLeft = afterLeftBean.getExplicitlyExcluded();
-        final Set<RelationBeanItem> removedFromRight = afterRightBean.getExplicitlyExcluded();
-
-        /*
          * The implicitly computed removed sets. These are computed by comparing the before and
-         * after views of the given RelationBeans on each side of the merge.
+         * after views of the given set-based entities on each side of the merge.
          */
-        final Set<RelationBeanItem> implicitlyRemovedFromLeft = com.google.common.collect.Sets
-                .difference(beforeLeftBean.asSet(), afterLeftBean.asSet());
-        final Set<RelationBeanItem> implicitlyRemovedFromRight = com.google.common.collect.Sets
-                .difference(beforeRightBean.asSet(), afterRightBean.asSet());
+        final Set<T> implicitlyRemovedFromLeft = com.google.common.collect.Sets
+                .difference(beforeLeft, afterLeft);
+        final Set<T> implicitlyRemovedFromRight = com.google.common.collect.Sets
+                .difference(beforeRight, afterRight);
 
         /*
          * It must be the case that the explicitly and implicitly computed removed sets match for a
-         * given RelationBean from one side of the merge. If they don't, that means the user likely
-         * removed some relation members without using the withMembersAndSource API, which means the
-         * explicitlyExcluded sets are not properly populated. This will lead to corrupt and
-         * unexpected results.
+         * given set-based entity from one side of the merge. If they don't, that means the user
+         * likely removed some elements without using the contextual API (withMembersAndSource for
+         * Relations, withXEdgeIdentifiersAndSource for Edges), which means the explicitlyExcluded
+         * sets are not properly populated. This will lead to corrupt and unexpected results.
          */
-        if (!removedFromLeft.equals(implicitlyRemovedFromLeft))
+        if (!explicitlyExcludedLeft.equals(implicitlyRemovedFromLeft))
         {
             throw new CoreException(
-                    "Explicit removedFromLeft set did not match the implicitly computed removedFromLeft set: {} vs {}\n"
-                            + "This is likely because members were removed without using the withMembersAndSource method",
-                    removedFromLeft, implicitlyRemovedFromLeft);
+                    "explicitlyExcludedLeft set did not match the implicitly computed removedFromLeft set: {} vs {}\n"
+                            + "This is likely because members were removed without using the correct withXAndSource API",
+                    explicitlyExcludedLeft, implicitlyRemovedFromLeft);
         }
-        if (!removedFromRight.equals(implicitlyRemovedFromRight))
+        if (!explicitlyExcludedRight.equals(implicitlyRemovedFromRight))
         {
             throw new CoreException(
-                    "Explicit removedFromRight set did not match the implicitly computed removedFromRight set: {} vs {}\n"
-                            + "This is likely because members were removed without using the withMembersAndSource method",
-                    removedFromRight, implicitlyRemovedFromRight);
+                    "explicitlyExcludedRight set did not match the implicitly computed removedFromRight set: {} vs {}\n"
+                            + "This is likely because members were removed without using the correct withXAndSource API",
+                    explicitlyExcludedRight, implicitlyRemovedFromRight);
         }
     }
 
