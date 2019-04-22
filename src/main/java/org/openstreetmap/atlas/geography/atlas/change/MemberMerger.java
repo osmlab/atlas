@@ -11,6 +11,7 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.utilities.function.QuaternaryOperator;
 import org.openstreetmap.atlas.utilities.function.TernaryOperator;
+import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
 /**
  * This class encapsulates the logic and configuration for {@link CompleteEntity} member merging in
@@ -41,10 +42,11 @@ public final class MemberMerger<M>
         private TernaryOperator<M> afterViewConsistentBeforeViewMerger;
         private QuaternaryOperator<M> afterViewConflictingBeforeViewMerger;
         private BinaryOperator<M> beforeViewMerger;
-        private boolean useHackForMergingConflictingConnectedEdgeSetBeforeViews;
+        private boolean useHackForMergingConflictingConnectedEdgeSetBeforeViews = false;
 
         private Optional<CompleteNode> leftNode;
         private Optional<CompleteNode> rightNode;
+        private Optional<Set<Long>> newExplicitlyExcludedSet;
 
         public MemberMerger<M> build()
         {
@@ -64,16 +66,19 @@ public final class MemberMerger<M>
             merger.useHackForMergingConflictingConnectedEdgeSetBeforeViews = this.useHackForMergingConflictingConnectedEdgeSetBeforeViews;
             merger.leftNode = this.leftNode;
             merger.rightNode = this.rightNode;
+            merger.newExplicitlyExcludedSet = this.newExplicitlyExcludedSet;
 
             return merger;
         }
 
         public Builder<M> useHackForMergingConflictingConnectedEdgeSetBeforeViews(
-                final boolean useHack, final CompleteNode left, final CompleteNode right)
+                final CompleteNode left, final CompleteNode right,
+                final Set<Long> newExplicitlyExcluded)
         {
-            this.useHackForMergingConflictingConnectedEdgeSetBeforeViews = useHack;
+            this.useHackForMergingConflictingConnectedEdgeSetBeforeViews = true;
             this.leftNode = Optional.ofNullable(left);
             this.rightNode = Optional.ofNullable(right);
+            this.newExplicitlyExcludedSet = Optional.ofNullable(newExplicitlyExcluded);
             return this;
         }
 
@@ -210,6 +215,7 @@ public final class MemberMerger<M>
 
     private Optional<CompleteNode> leftNode;
     private Optional<CompleteNode> rightNode;
+    private Optional<Set<Long>> newExplicitlyExcludedSet;
 
     private MemberMerger()
     {
@@ -355,6 +361,13 @@ public final class MemberMerger<M>
                     "Attempted merge failed for {}: tried to use hackForConflictingConnectedEdgeSet but was missing rightNode",
                     this.memberName);
         }
+        if (!this.newExplicitlyExcludedSet.isPresent()
+                || !this.newExplicitlyExcludedSet.get().isEmpty())
+        {
+            throw new CoreException(
+                    "Attempted merge failed for {}: tried to use hackForConflictingConnectedEdgeSet but was missing an empty newExplicitlyExcluded set",
+                    this.memberName);
+        }
 
         if (FeatureChangeMergingHelpers.IN_EDGE_IDENTIFIERS_FIELD.equals(this.memberName))
         {
@@ -398,10 +411,18 @@ public final class MemberMerger<M>
          */
         try
         {
-            afterMemberResult = (M) MemberMergeStrategies.conflictingBeforeViewSetMerger.apply(
-                    (Set<Long>) beforeMemberLeft, (Set<Long>) afterMemberLeft,
-                    explicitlyExcludedLeft, (Set<Long>) beforeMemberRight,
-                    (Set<Long>) afterMemberRight, explicitlyExcludedRight);
+            final Tuple<Set<Long>, Set<Long>> tupleResult = MemberMergeStrategies.conflictingBeforeViewSetMerger
+                    .apply((Set<Long>) beforeMemberLeft, (Set<Long>) afterMemberLeft,
+                            explicitlyExcludedLeft, (Set<Long>) beforeMemberRight,
+                            (Set<Long>) afterMemberRight, explicitlyExcludedRight);
+            afterMemberResult = (M) tupleResult.getFirst();
+
+            /*
+             * Here we add to the set directly as an out-parameter. Since the caller passed this Set
+             * reference in initially, the caller can extract the new elements when this method
+             * returns.
+             */
+            this.newExplicitlyExcludedSet.get().addAll(tupleResult.getSecond());
         }
         catch (final Exception exception)
         {

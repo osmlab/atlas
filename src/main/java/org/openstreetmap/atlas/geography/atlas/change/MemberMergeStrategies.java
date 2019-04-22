@@ -22,8 +22,9 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedRelation;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 import org.openstreetmap.atlas.utilities.function.QuaternaryOperator;
-import org.openstreetmap.atlas.utilities.function.SenaryOperator;
+import org.openstreetmap.atlas.utilities.function.SenaryFunction;
 import org.openstreetmap.atlas.utilities.function.TernaryOperator;
+import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
 /**
  * A utility class to store the various merge strategies utilized by the {@link FeatureChange} merge
@@ -381,12 +382,64 @@ public final class MemberMergeStrategies
      * A merger for cases when two {@link Set}s have conflicting beforeViews. This can happen
      * occasionally, since different shards may have slightly inconsistent Node views.
      */
-    static final SenaryOperator<Set<Long>> conflictingBeforeViewSetMerger = (beforeLeftSet,
-            afterLeftSet, explicitlyExcludedLeftSet, beforeRightSet, afterRightSet,
+    static final SenaryFunction<Set<Long>, Set<Long>, Set<Long>, Set<Long>, Set<Long>, Set<Long>, Tuple<Set<Long>, Set<Long>>> conflictingBeforeViewSetMerger = (
+            beforeLeftSet, afterLeftSet, explicitlyExcludedLeftSet, beforeRightSet, afterRightSet,
             explicitlyExcludedRightSet) ->
     {
-        // TODO implement
-        return null;
+        verifyExplicitlyExcludedSets(beforeLeftSet, afterLeftSet, explicitlyExcludedLeftSet,
+                beforeRightSet, afterRightSet, explicitlyExcludedRightSet);
+
+        /*
+         * Merge the removed sets. This should just work, since we are doing a key-only merge.
+         */
+        final Set<Long> removedMerged = Sets.withSets(false, explicitlyExcludedLeftSet,
+                explicitlyExcludedRightSet);
+
+        /*
+         * Compute the added sets. We do this by comparing the before and after views of the given
+         * identifier sets on each side of the merge.
+         */
+        final Set<Long> addedToLeft = com.google.common.collect.Sets.difference(afterLeftSet,
+                beforeLeftSet);
+        final Set<Long> addedToRight = com.google.common.collect.Sets.difference(afterRightSet,
+                beforeRightSet);
+
+        /*
+         * Merge the added sets. This should just work, since we are doing a key-only merge.
+         */
+        final Set<Long> addedMerged = Sets.withSets(false, addedToLeft, addedToRight);
+
+        /*
+         * Check for ADD/REMOVE conflicts. This occurs if one side of the merge adds an identifier
+         * which was explicitly removed by the other side.
+         */
+        final Set<Long> conflicts = com.google.common.collect.Sets.intersection(removedMerged,
+                addedMerged);
+        if (!conflicts.isEmpty())
+        {
+            throw new CoreException(
+                    "conflictingBeforeViewSetMerger failed due to ADD/REMOVE conflict(s) on key(s): {}",
+                    conflicts);
+        }
+
+        /*
+         * Now, we need to construct a proper merged beforeView for the left and right sides (this
+         * view will be tolerant of inconsistencies in the left and right sides). Once we have this,
+         * we can apply the changes from our removedMerged and addedMerged sets to get the final
+         * result.
+         */
+        final Set<Long> mergedBeforeView = simpleLongSetAllowCollisionsMerger.apply(beforeLeftSet,
+                beforeRightSet);
+        mergedBeforeView.removeAll(removedMerged);
+        mergedBeforeView.addAll(addedMerged);
+
+        final Set<Long> resultSet = new HashSet<>();
+        final Set<Long> explicitlyExcludedResultSet = new HashSet<>();
+        mergedBeforeView.forEach(resultSet::add);
+        Stream.concat(explicitlyExcludedLeftSet.stream(), explicitlyExcludedRightSet.stream())
+                .forEach(explicitlyExcludedResultSet::add);
+
+        return new Tuple<>(resultSet, explicitlyExcludedResultSet);
     };
 
     /**

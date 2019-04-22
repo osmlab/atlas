@@ -36,8 +36,8 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     private Map<String, String> tags;
     private SortedSet<Long> inEdgeIdentifiers;
     private SortedSet<Long> outEdgeIdentifiers;
-    private final Set<Long> explicitlyExcludedInEdgeIdentifiers;
-    private final Set<Long> explicitlyExcludedOutEdgeIdentifiers;
+    private Set<Long> explicitlyExcludedInEdgeIdentifiers;
+    private Set<Long> explicitlyExcludedOutEdgeIdentifiers;
     private Set<Long> relationIdentifiers;
 
     /**
@@ -201,6 +201,16 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
          */
         return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
                 .map(CompleteRelation::new).collect(Collectors.toSet());
+    }
+
+    public void setExplicitlyExcludedInEdgeIdentifiers(final Set<Long> edges)
+    {
+        this.explicitlyExcludedInEdgeIdentifiers = edges;
+    }
+
+    public void setExplicitlyExcludedOutEdgeIdentifiers(final Set<Long> edges)
+    {
+        this.explicitlyExcludedOutEdgeIdentifiers = edges;
     }
 
     @Override

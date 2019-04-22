@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -480,6 +481,7 @@ public final class FeatureChangeMergingHelpers
             throw new CoreException(AFTER_ENTITY_RIGHT_WAS_NULL);
         }
 
+        final Set<Long> explicitlyExcludedInEdges = new HashSet<>();
         final MergedMemberBean<SortedSet<Long>> mergedInEdgeIdentifiersBean = new MemberMerger.Builder<SortedSet<Long>>()
                 .withMemberName(IN_EDGE_IDENTIFIERS_FIELD).withBeforeEntityLeft(beforeEntityLeft)
                 .withAfterEntityLeft(afterEntityLeft).withBeforeEntityRight(beforeEntityRight)
@@ -492,10 +494,12 @@ public final class FeatureChangeMergingHelpers
                         MemberMergeStrategies.diffBasedLongSortedSetMerger)
                 .withBeforeViewMerger(
                         MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger)
-                .useHackForMergingConflictingConnectedEdgeSetBeforeViews(true,
-                        (CompleteNode) afterEntityLeft, (CompleteNode) afterEntityRight)
+                .useHackForMergingConflictingConnectedEdgeSetBeforeViews(
+                        (CompleteNode) afterEntityLeft, (CompleteNode) afterEntityRight,
+                        explicitlyExcludedInEdges)
                 .build().mergeMember();
 
+        final Set<Long> explicitlyExcludedOutEdges = new HashSet<>();
         final MergedMemberBean<SortedSet<Long>> mergedOutEdgeIdentifiersBean = new MemberMerger.Builder<SortedSet<Long>>()
                 .withMemberName(OUT_EDGE_IDENTIFIERS_FIELD).withBeforeEntityLeft(beforeEntityLeft)
                 .withAfterEntityLeft(afterEntityLeft).withBeforeEntityRight(beforeEntityRight)
@@ -508,8 +512,9 @@ public final class FeatureChangeMergingHelpers
                         MemberMergeStrategies.diffBasedLongSortedSetMerger)
                 .withBeforeViewMerger(
                         MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger)
-                .useHackForMergingConflictingConnectedEdgeSetBeforeViews(true,
-                        (CompleteNode) afterEntityLeft, (CompleteNode) afterEntityRight)
+                .useHackForMergingConflictingConnectedEdgeSetBeforeViews(
+                        (CompleteNode) afterEntityLeft, (CompleteNode) afterEntityRight,
+                        explicitlyExcludedOutEdges)
                 .build().mergeMember();
 
         final CompleteNode mergedAfterNode = new CompleteNode(left.getIdentifier(),
@@ -519,6 +524,8 @@ public final class FeatureChangeMergingHelpers
                 mergedParentRelationsBean.getMergedAfterMember());
         mergedAfterNode.withBoundsExtendedBy(afterEntityLeft.bounds());
         mergedAfterNode.withBoundsExtendedBy(afterEntityRight.bounds());
+        mergedAfterNode.setExplicitlyExcludedInEdgeIdentifiers(explicitlyExcludedInEdges);
+        mergedAfterNode.setExplicitlyExcludedOutEdgeIdentifiers(explicitlyExcludedOutEdges);
 
         final CompleteNode mergedBeforeNode;
         /*
@@ -535,7 +542,6 @@ public final class FeatureChangeMergingHelpers
                     .withOutEdgeIdentifiers(mergedOutEdgeIdentifiersBean.getMergedBeforeMember())
                     .withTags(mergedTagsBean.getMergedBeforeMember())
                     .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
-
         }
         else
         {
