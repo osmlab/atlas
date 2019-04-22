@@ -72,13 +72,6 @@ public class ChangeNode extends Node // NOSONAR
 
     public SortedSet<Long> inEdgeIdentifiers()
     {
-        return attribute(Node::inEdges, "in edges").stream().map(Edge::getIdentifier)
-                .filter(edgeIdentifier -> getChangeAtlas().edge(edgeIdentifier) != null)
-                .collect(Collectors.toCollection(TreeSet::new));
-    }
-
-    public SortedSet<Long> inEdgeIdentifiers2()
-    {
         final List<SortedSet<Edge>> inEdgeSetList = allAvailableAttributes(Node::inEdges,
                 "in edges");
         Set<Long> mergedIdentifiers = inEdgeSetList.stream().flatMap(Set::stream)
@@ -118,13 +111,6 @@ public class ChangeNode extends Node // NOSONAR
     }
 
     public SortedSet<Long> outEdgeIdentifiers()
-    {
-        return attribute(Node::outEdges, "out edges").stream().map(Edge::getIdentifier)
-                .filter(edgeIdentifier -> getChangeAtlas().edge(edgeIdentifier) != null)
-                .collect(Collectors.toCollection(TreeSet::new));
-    }
-
-    public SortedSet<Long> outEdgeIdentifiers2()
     {
         final List<SortedSet<Edge>> outEdgeSetList = allAvailableAttributes(Node::outEdges,
                 "out edges");
