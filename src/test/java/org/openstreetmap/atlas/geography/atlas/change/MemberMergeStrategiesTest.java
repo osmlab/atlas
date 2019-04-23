@@ -17,7 +17,6 @@ import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBean
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
-import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
 /**
  * @author lcram
@@ -247,14 +246,12 @@ public class MemberMergeStrategiesTest
         final Set<Long> explicitlyExcludedSet2 = Sets.hashSet(3L, 5L);
 
         final SortedSet<Long> goldenAfterSet = Sets.treeSet(1L, 2L, 4L, 6L);
-        final Set<Long> goldenExplicitlyExcludedSet = Sets.hashSet(3L, 5L);
 
-        final Tuple<SortedSet<Long>, Set<Long>> mergeResult = MemberMergeStrategies.conflictingBeforeViewSetMerger
+        final SortedSet<Long> mergeResult = MemberMergeStrategies.conflictingBeforeViewSetMerger
                 .apply(beforeSet1, afterSet1, explicitlyExcludedSet1, beforeSet2, afterSet2,
                         explicitlyExcludedSet2);
 
-        Assert.assertEquals(goldenAfterSet, mergeResult.getFirst());
-        Assert.assertEquals(goldenExplicitlyExcludedSet, mergeResult.getSecond());
+        Assert.assertEquals(goldenAfterSet, mergeResult);
     }
 
     @Test

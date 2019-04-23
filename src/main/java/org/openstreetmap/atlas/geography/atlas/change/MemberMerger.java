@@ -12,7 +12,6 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.utilities.function.QuaternaryOperator;
 import org.openstreetmap.atlas.utilities.function.TernaryOperator;
-import org.openstreetmap.atlas.utilities.tuples.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +48,6 @@ public final class MemberMerger<M>
 
         private Optional<CompleteNode> leftNode;
         private Optional<CompleteNode> rightNode;
-        private Optional<Set<Long>> newExplicitlyExcludedSet;
 
         public MemberMerger<M> build()
         {
@@ -69,19 +67,16 @@ public final class MemberMerger<M>
             merger.useHackForMergingConflictingConnectedEdgeSetBeforeViews = this.useHackForMergingConflictingConnectedEdgeSetBeforeViews;
             merger.leftNode = this.leftNode;
             merger.rightNode = this.rightNode;
-            merger.newExplicitlyExcludedSet = this.newExplicitlyExcludedSet;
 
             return merger;
         }
 
         public Builder<M> useHackForMergingConflictingConnectedEdgeSetBeforeViews(
-                final CompleteNode left, final CompleteNode right,
-                final Set<Long> newExplicitlyExcluded)
+                final CompleteNode left, final CompleteNode right)
         {
             this.useHackForMergingConflictingConnectedEdgeSetBeforeViews = true;
             this.leftNode = Optional.ofNullable(left);
             this.rightNode = Optional.ofNullable(right);
-            this.newExplicitlyExcludedSet = Optional.ofNullable(newExplicitlyExcluded);
             return this;
         }
 
@@ -219,8 +214,6 @@ public final class MemberMerger<M>
     private boolean useHackForMergingConflictingConnectedEdgeSetBeforeViews;
     private Optional<CompleteNode> leftNode;
     private Optional<CompleteNode> rightNode;
-
-    private Optional<Set<Long>> newExplicitlyExcludedSet;
 
     private MemberMerger()
     {
@@ -366,13 +359,6 @@ public final class MemberMerger<M>
                     "Attempted merge failed for {}: tried to use hackForConflictingConnectedEdgeSet but was missing rightNode",
                     this.memberName);
         }
-        if (!this.newExplicitlyExcludedSet.isPresent()
-                || !this.newExplicitlyExcludedSet.get().isEmpty())
-        {
-            throw new CoreException(
-                    "Attempted merge failed for {}: tried to use hackForConflictingConnectedEdgeSet but was missing an empty newExplicitlyExcluded set",
-                    this.memberName);
-        }
 
         if (FeatureChangeMergingHelpers.IN_EDGE_IDENTIFIERS_FIELD.equals(this.memberName))
         {
@@ -416,18 +402,11 @@ public final class MemberMerger<M>
          */
         try
         {
-            final Tuple<SortedSet<Long>, Set<Long>> tupleResult = MemberMergeStrategies.conflictingBeforeViewSetMerger
+            final SortedSet<Long> mergeResult = MemberMergeStrategies.conflictingBeforeViewSetMerger
                     .apply((SortedSet<Long>) beforeMemberLeft, (SortedSet<Long>) afterMemberLeft,
                             explicitlyExcludedLeft, (SortedSet<Long>) beforeMemberRight,
                             (SortedSet<Long>) afterMemberRight, explicitlyExcludedRight);
-            afterMemberResult = (M) tupleResult.getFirst();
-
-            /*
-             * Here we add to the set directly as an out-parameter. Since the caller passed this Set
-             * reference in initially, the caller can extract the new elements when this method
-             * returns.
-             */
-            this.newExplicitlyExcludedSet.get().addAll(tupleResult.getSecond());
+            afterMemberResult = (M) mergeResult;
         }
         catch (final Exception exception)
         {

@@ -24,7 +24,6 @@ import org.openstreetmap.atlas.utilities.collections.Sets;
 import org.openstreetmap.atlas.utilities.function.QuaternaryOperator;
 import org.openstreetmap.atlas.utilities.function.SenaryFunction;
 import org.openstreetmap.atlas.utilities.function.TernaryOperator;
-import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
 /**
  * A utility class to store the various merge strategies utilized by the {@link FeatureChange} merge
@@ -382,7 +381,7 @@ public final class MemberMergeStrategies
      * A merger for cases when two {@link Set}s have conflicting beforeViews. This can happen
      * occasionally, since different shards may have slightly inconsistent Node views.
      */
-    static final SenaryFunction<SortedSet<Long>, SortedSet<Long>, Set<Long>, SortedSet<Long>, SortedSet<Long>, Set<Long>, Tuple<SortedSet<Long>, Set<Long>>> conflictingBeforeViewSetMerger = (
+    static final SenaryFunction<SortedSet<Long>, SortedSet<Long>, Set<Long>, SortedSet<Long>, SortedSet<Long>, Set<Long>, SortedSet<Long>> conflictingBeforeViewSetMerger = (
             beforeLeftSet, afterLeftSet, explicitlyExcludedLeftSet, beforeRightSet, afterRightSet,
             explicitlyExcludedRightSet) ->
     {
@@ -434,12 +433,9 @@ public final class MemberMergeStrategies
         mergedBeforeView.addAll(addedMerged);
 
         final SortedSet<Long> resultSet = new TreeSet<>();
-        final Set<Long> explicitlyExcludedResultSet = new HashSet<>();
         mergedBeforeView.forEach(resultSet::add);
-        Stream.concat(explicitlyExcludedLeftSet.stream(), explicitlyExcludedRightSet.stream())
-                .forEach(explicitlyExcludedResultSet::add);
 
-        return new Tuple<>(resultSet, explicitlyExcludedResultSet);
+        return resultSet;
     };
 
     /**

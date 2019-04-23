@@ -1,6 +1,5 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -488,7 +487,6 @@ public final class FeatureChangeMergingHelpers
         final CompleteNode afterNodeLeft = (CompleteNode) left.getAfterView();
         final CompleteNode afterNodeRight = (CompleteNode) right.getAfterView();
 
-        final Set<Long> explicitlyExcludedInEdgesOverride = new HashSet<>();
         final MergedMemberBean<SortedSet<Long>> mergedInEdgeIdentifiersBean = new MemberMerger.Builder<SortedSet<Long>>()
                 .withMemberName(IN_EDGE_IDENTIFIERS_FIELD).withBeforeEntityLeft(beforeEntityLeft)
                 .withAfterEntityLeft(afterEntityLeft).withBeforeEntityRight(beforeEntityRight)
@@ -502,11 +500,9 @@ public final class FeatureChangeMergingHelpers
                 .withBeforeViewMerger(
                         MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger)
                 .useHackForMergingConflictingConnectedEdgeSetBeforeViews(
-                        (CompleteNode) afterEntityLeft, (CompleteNode) afterEntityRight,
-                        explicitlyExcludedInEdgesOverride)
+                        (CompleteNode) afterEntityLeft, (CompleteNode) afterEntityRight)
                 .build().mergeMember();
 
-        final Set<Long> explicitlyExcludedOutEdgesOverride = new HashSet<>();
         final MergedMemberBean<SortedSet<Long>> mergedOutEdgeIdentifiersBean = new MemberMerger.Builder<SortedSet<Long>>()
                 .withMemberName(OUT_EDGE_IDENTIFIERS_FIELD).withBeforeEntityLeft(beforeEntityLeft)
                 .withAfterEntityLeft(afterEntityLeft).withBeforeEntityRight(beforeEntityRight)
@@ -520,8 +516,7 @@ public final class FeatureChangeMergingHelpers
                 .withBeforeViewMerger(
                         MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger)
                 .useHackForMergingConflictingConnectedEdgeSetBeforeViews(
-                        (CompleteNode) afterEntityLeft, (CompleteNode) afterEntityRight,
-                        explicitlyExcludedOutEdgesOverride)
+                        (CompleteNode) afterEntityLeft, (CompleteNode) afterEntityRight)
                 .build().mergeMember();
 
         final CompleteNode mergedAfterNode = new CompleteNode(left.getIdentifier(),
@@ -532,35 +527,15 @@ public final class FeatureChangeMergingHelpers
         mergedAfterNode.withBoundsExtendedBy(afterEntityLeft.bounds());
         mergedAfterNode.withBoundsExtendedBy(afterEntityRight.bounds());
 
-        /*
-         * The explicitlyExcludedOverride sets will be populated in the case when the hack
-         * mergeConflict resolution strategy is applied. Otherwise, we need to merge the left and
-         * right side sets from the given CompleteNodes.
-         */
-        if (!explicitlyExcludedInEdgesOverride.isEmpty())
-        {
-            mergedAfterNode
-                    .setExplicitlyExcludedInEdgeIdentifiers(explicitlyExcludedInEdgesOverride);
-        }
-        else
-        {
-            mergedAfterNode.setExplicitlyExcludedInEdgeIdentifiers(
-                    MemberMergeStrategies.simpleLongSetAllowCollisionsMerger.apply(
-                            afterNodeLeft.explicitlyExcludedInEdgeIdentifiers(),
-                            afterNodeRight.explicitlyExcludedInEdgeIdentifiers()));
-        }
-        if (!explicitlyExcludedOutEdgesOverride.isEmpty())
-        {
-            mergedAfterNode
-                    .setExplicitlyExcludedOutEdgeIdentifiers(explicitlyExcludedOutEdgesOverride);
-        }
-        else
-        {
-            mergedAfterNode.setExplicitlyExcludedOutEdgeIdentifiers(
-                    MemberMergeStrategies.simpleLongSetAllowCollisionsMerger.apply(
-                            afterNodeLeft.explicitlyExcludedOutEdgeIdentifiers(),
-                            afterNodeRight.explicitlyExcludedOutEdgeIdentifiers()));
-        }
+        mergedAfterNode.setExplicitlyExcludedInEdgeIdentifiers(
+                MemberMergeStrategies.simpleLongSetAllowCollisionsMerger.apply(
+                        afterNodeLeft.explicitlyExcludedInEdgeIdentifiers(),
+                        afterNodeRight.explicitlyExcludedInEdgeIdentifiers()));
+
+        mergedAfterNode.setExplicitlyExcludedOutEdgeIdentifiers(
+                MemberMergeStrategies.simpleLongSetAllowCollisionsMerger.apply(
+                        afterNodeLeft.explicitlyExcludedOutEdgeIdentifiers(),
+                        afterNodeRight.explicitlyExcludedOutEdgeIdentifiers()));
 
         final CompleteNode mergedBeforeNode;
         /*
