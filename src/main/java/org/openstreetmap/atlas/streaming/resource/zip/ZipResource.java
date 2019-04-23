@@ -104,10 +104,10 @@ public class ZipResource
                             }
 
                             @Override
-                            public int read(final byte[] b, final int off, final int len)
+                            public int read(final byte[] bYte, final int offset, final int length)
                                     throws IOException
                             {
-                                return ZipIterator.this.input.read(b, off, len);
+                                return ZipIterator.this.input.read(bYte, offset, length);
                             }
                         };
                     }
