@@ -397,8 +397,8 @@ public final class MemberMerger<M>
 
         /*
          * Here we hardcode the application of the SenaryOperator node connected edge set merger. We
-         * can cast back and forth between M and Set<Long> here, since we know that M is of type
-         * Set<Long> based on the constraints imposed when calling this function.
+         * can cast back and forth between M and SortedSet<Long> here, since we know that M is of
+         * type SortedSet<Long> based on the constraints imposed when calling this function.
          */
         try
         {

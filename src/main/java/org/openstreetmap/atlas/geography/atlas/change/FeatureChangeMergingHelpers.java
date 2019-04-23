@@ -484,9 +484,6 @@ public final class FeatureChangeMergingHelpers
             throw new CoreException(AFTER_ENTITY_RIGHT_WAS_NULL);
         }
 
-        final CompleteNode afterNodeLeft = (CompleteNode) left.getAfterView();
-        final CompleteNode afterNodeRight = (CompleteNode) right.getAfterView();
-
         final MergedMemberBean<SortedSet<Long>> mergedInEdgeIdentifiersBean = new MemberMerger.Builder<SortedSet<Long>>()
                 .withMemberName(IN_EDGE_IDENTIFIERS_FIELD).withBeforeEntityLeft(beforeEntityLeft)
                 .withAfterEntityLeft(afterEntityLeft).withBeforeEntityRight(beforeEntityRight)
@@ -526,16 +523,19 @@ public final class FeatureChangeMergingHelpers
                 mergedParentRelationsBean.getMergedAfterMember());
         mergedAfterNode.withBoundsExtendedBy(afterEntityLeft.bounds());
         mergedAfterNode.withBoundsExtendedBy(afterEntityRight.bounds());
-
+        /*
+         * We need to merge the explicitlyExcluded sets from the left and right CompleteNodes. This
+         * simple merge will always succeed, since the sets are key only.
+         */
         mergedAfterNode.setExplicitlyExcludedInEdgeIdentifiers(
                 MemberMergeStrategies.simpleLongSetAllowCollisionsMerger.apply(
-                        afterNodeLeft.explicitlyExcludedInEdgeIdentifiers(),
-                        afterNodeRight.explicitlyExcludedInEdgeIdentifiers()));
+                        ((CompleteNode) afterEntityLeft).explicitlyExcludedInEdgeIdentifiers(),
+                        ((CompleteNode) afterEntityRight).explicitlyExcludedInEdgeIdentifiers()));
 
         mergedAfterNode.setExplicitlyExcludedOutEdgeIdentifiers(
                 MemberMergeStrategies.simpleLongSetAllowCollisionsMerger.apply(
-                        afterNodeLeft.explicitlyExcludedOutEdgeIdentifiers(),
-                        afterNodeRight.explicitlyExcludedOutEdgeIdentifiers()));
+                        ((CompleteNode) afterEntityLeft).explicitlyExcludedOutEdgeIdentifiers(),
+                        ((CompleteNode) afterEntityRight).explicitlyExcludedOutEdgeIdentifiers()));
 
         final CompleteNode mergedBeforeNode;
         /*

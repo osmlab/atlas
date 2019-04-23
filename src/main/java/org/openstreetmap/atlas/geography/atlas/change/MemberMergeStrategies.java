@@ -379,7 +379,9 @@ public final class MemberMergeStrategies
 
     /**
      * A merger for cases when two {@link Set}s have conflicting beforeViews. This can happen
-     * occasionally, since different shards may have slightly inconsistent Node views.
+     * occasionally, since different shards may have slightly inconsistent Node views. While this
+     * merger uses explicitlyExcluded state to properly compute the merge, it does not handle
+     * merging the explicitlyExcluded state itself. This responsibility lies with the caller.
      */
     static final SenaryFunction<SortedSet<Long>, SortedSet<Long>, Set<Long>, SortedSet<Long>, SortedSet<Long>, Set<Long>, SortedSet<Long>> conflictingBeforeViewSetMerger = (
             beforeLeftSet, afterLeftSet, explicitlyExcludedLeftSet, beforeRightSet, afterRightSet,
