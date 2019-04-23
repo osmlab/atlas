@@ -5,6 +5,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -101,6 +102,13 @@ public class ZipResource
                             {
                                 return ZipIterator.this.input.read();
                             }
+
+                            @Override
+                            public int read(final byte[] b, final int off, final int len)
+                                    throws IOException
+                            {
+                                return ZipIterator.this.input.read(b, off, len);
+                            }
                         };
                     }
                 };
@@ -109,7 +117,7 @@ public class ZipResource
             }
             else
             {
-                return null;
+                throw new NoSuchElementException();
             }
         }
     }
