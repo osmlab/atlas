@@ -197,7 +197,7 @@ public class MultiAtlas extends AbstractAtlas
                         .stream(Iterables.translate(resources,
                                 resource -> PackedAtlas.load(resource).subAtlas(filter,
                                         AtlasCutType.SOFT_CUT)))
-                        .filter(optional -> optional.isPresent()), optional -> optional.get());
+                        .filter(Optional::isPresent), Optional::get);
         return new MultiAtlas(validAtlases, lotsOfOverlap);
     }
 
