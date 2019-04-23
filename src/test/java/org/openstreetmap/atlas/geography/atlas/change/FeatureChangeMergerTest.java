@@ -401,7 +401,8 @@ public class FeatureChangeMergerTest
         afterNode1.withOutEdgeIdentifierLess(13L);
 
         final CompleteNode afterNode2 = new CompleteNode(123L, Location.COLOSSEUM, null,
-                Sets.treeSet(2L, 3L, 4L), Sets.treeSet(11L), null);
+                Sets.treeSet(2L, 3L), Sets.treeSet(11L), null);
+        afterNode2.withInEdgeIdentifierLess(4L);
         afterNode2.withInEdgeIdentifierExtra(100L);
 
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, afterNode1,
@@ -410,14 +411,20 @@ public class FeatureChangeMergerTest
                 beforeNode2);
 
         final FeatureChange merged = featureChange1.merge(featureChange2);
-        final Set<Long> goldenInEdgeSet = Sets.hashSet(2L, 3L, 4L, 100L);
+        final Set<Long> goldenInEdgeSet = Sets.hashSet(2L, 3L, 100L);
         final Set<Long> goldenOutEdgeSet = Sets.hashSet(10L, 11L);
+        final Set<Long> goldenExplicitlyExcludedInEdgeSet = Sets.hashSet(1L, 4L);
+        final Set<Long> goldenExplicitlyExcludedOutEdgeSet = Sets.hashSet(12L, 13L);
 
-        final Node mergedAfterNode = (Node) merged.getAfterView();
+        final CompleteNode mergedAfterNode = (CompleteNode) merged.getAfterView();
         Assert.assertEquals(goldenInEdgeSet, mergedAfterNode.inEdges().stream()
                 .map(Edge::getIdentifier).collect(Collectors.toSet()));
         Assert.assertEquals(goldenOutEdgeSet, mergedAfterNode.outEdges().stream()
                 .map(Edge::getIdentifier).collect(Collectors.toSet()));
+        Assert.assertEquals(goldenExplicitlyExcludedInEdgeSet,
+                mergedAfterNode.explicitlyExcludedInEdgeIdentifiers());
+        Assert.assertEquals(goldenExplicitlyExcludedOutEdgeSet,
+                mergedAfterNode.explicitlyExcludedOutEdgeIdentifiers());
     }
 
     @Test
