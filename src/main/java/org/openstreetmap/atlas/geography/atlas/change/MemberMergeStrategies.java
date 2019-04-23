@@ -382,7 +382,7 @@ public final class MemberMergeStrategies
      * A merger for cases when two {@link Set}s have conflicting beforeViews. This can happen
      * occasionally, since different shards may have slightly inconsistent Node views.
      */
-    static final SenaryFunction<Set<Long>, Set<Long>, Set<Long>, Set<Long>, Set<Long>, Set<Long>, Tuple<Set<Long>, Set<Long>>> conflictingBeforeViewSetMerger = (
+    static final SenaryFunction<SortedSet<Long>, SortedSet<Long>, Set<Long>, SortedSet<Long>, SortedSet<Long>, Set<Long>, Tuple<SortedSet<Long>, Set<Long>>> conflictingBeforeViewSetMerger = (
             beforeLeftSet, afterLeftSet, explicitlyExcludedLeftSet, beforeRightSet, afterRightSet,
             explicitlyExcludedRightSet) ->
     {
@@ -433,7 +433,7 @@ public final class MemberMergeStrategies
         mergedBeforeView.removeAll(removedMerged);
         mergedBeforeView.addAll(addedMerged);
 
-        final Set<Long> resultSet = new HashSet<>();
+        final SortedSet<Long> resultSet = new TreeSet<>();
         final Set<Long> explicitlyExcludedResultSet = new HashSet<>();
         mergedBeforeView.forEach(resultSet::add);
         Stream.concat(explicitlyExcludedLeftSet.stream(), explicitlyExcludedRightSet.stream())

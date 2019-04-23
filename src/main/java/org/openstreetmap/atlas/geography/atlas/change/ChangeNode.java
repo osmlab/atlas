@@ -15,6 +15,8 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@link Node} that references a {@link ChangeAtlas}. That {@link Node} makes sure that all the
@@ -29,20 +31,21 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 public class ChangeNode extends Node // NOSONAR
 {
     private static final long serialVersionUID = 4353679260691518275L;
+    private static final Logger logger = LoggerFactory.getLogger(ChangeNode.class);
 
     private final Node source;
     private final Node override;
-
     // Computing Parent Relations is very expensive, so we cache it here.
     private transient Set<Relation> relationsCache;
-    private transient Object relationsCacheLock = new Object();
 
+    private transient Object relationsCacheLock = new Object();
     // Computing In Edges is very expensive, so we cache it here.
     private transient SortedSet<Edge> inEdgesCache;
-    private transient Object inEdgesCacheLock = new Object();
 
+    private transient Object inEdgesCacheLock = new Object();
     // Computing Out Edges is very expensive, so we cache it here.
     private transient SortedSet<Edge> outEdgesCache;
+
     private transient Object outEdgesCacheLock = new Object();
 
     protected ChangeNode(final ChangeAtlas atlas, final Node source, final Node override)

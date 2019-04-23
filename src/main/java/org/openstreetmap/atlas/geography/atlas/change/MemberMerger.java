@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
@@ -12,6 +13,8 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.utilities.function.QuaternaryOperator;
 import org.openstreetmap.atlas.utilities.function.TernaryOperator;
 import org.openstreetmap.atlas.utilities.tuples.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class encapsulates the logic and configuration for {@link CompleteEntity} member merging in
@@ -201,6 +204,7 @@ public final class MemberMerger<M>
         }
     }
 
+    private static final Logger logger = LoggerFactory.getLogger(MemberMerger.class);
     private String memberName;
     private AtlasEntity beforeEntityLeft;
     private AtlasEntity afterEntityLeft;
@@ -211,10 +215,11 @@ public final class MemberMerger<M>
     private TernaryOperator<M> afterViewConsistentBeforeViewMerger;
     private QuaternaryOperator<M> afterViewConflictingBeforeViewMerger;
     private BinaryOperator<M> beforeViewMerger;
-    private boolean useHackForMergingConflictingConnectedEdgeSetBeforeViews;
 
+    private boolean useHackForMergingConflictingConnectedEdgeSetBeforeViews;
     private Optional<CompleteNode> leftNode;
     private Optional<CompleteNode> rightNode;
+
     private Optional<Set<Long>> newExplicitlyExcludedSet;
 
     private MemberMerger()
@@ -411,10 +416,10 @@ public final class MemberMerger<M>
          */
         try
         {
-            final Tuple<Set<Long>, Set<Long>> tupleResult = MemberMergeStrategies.conflictingBeforeViewSetMerger
-                    .apply((Set<Long>) beforeMemberLeft, (Set<Long>) afterMemberLeft,
-                            explicitlyExcludedLeft, (Set<Long>) beforeMemberRight,
-                            (Set<Long>) afterMemberRight, explicitlyExcludedRight);
+            final Tuple<SortedSet<Long>, Set<Long>> tupleResult = MemberMergeStrategies.conflictingBeforeViewSetMerger
+                    .apply((SortedSet<Long>) beforeMemberLeft, (SortedSet<Long>) afterMemberLeft,
+                            explicitlyExcludedLeft, (SortedSet<Long>) beforeMemberRight,
+                            (SortedSet<Long>) afterMemberRight, explicitlyExcludedRight);
             afterMemberResult = (M) tupleResult.getFirst();
 
             /*

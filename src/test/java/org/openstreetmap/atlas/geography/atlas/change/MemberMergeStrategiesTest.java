@@ -17,6 +17,7 @@ import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBean
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
+import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
 /**
  * @author lcram
@@ -175,6 +176,85 @@ public class MemberMergeStrategiesTest
         Assert.assertTrue(goldenImage1.equalsIncludingExplicitlyExcluded(
                 MemberMergeStrategies.conflictingBeforeViewRelationBeanMerger.apply(beforeBean1,
                         afterBean1, beforeBean2, afterBean2)));
+    }
+
+    @Test
+    public void testConflictingBeforeViewSetMergerADDREMOVEConflictFail()
+    {
+        final SortedSet<Long> beforeSet1 = Sets.treeSet(1L, 2L, 3L, 4L, 5L);
+        final SortedSet<Long> afterSet1 = Sets.treeSet(1L, 2L, 3L, 4L, 5L, 6L);
+        final Set<Long> explicitlyExcludedSet1 = Sets.hashSet();
+
+        final SortedSet<Long> beforeSet2 = Sets.treeSet(3L, 4L, 5L, 6L);
+        final SortedSet<Long> afterSet2 = Sets.treeSet(3L, 4L, 5L);
+        final Set<Long> explicitlyExcludedSet2 = Sets.hashSet(6L);
+
+        /*
+         * This will fail because the left side added 6L, while the right side explicitly removed
+         * 6L.
+         */
+        this.expectedException.expect(CoreException.class);
+        this.expectedException
+                .expectMessage("conflictingBeforeViewSetMerger failed due to ADD/REMOVE");
+        MemberMergeStrategies.conflictingBeforeViewSetMerger.apply(beforeSet1, afterSet1,
+                explicitlyExcludedSet1, beforeSet2, afterSet2, explicitlyExcludedSet2);
+    }
+
+    @Test
+    public void testConflictingBeforeViewSetMergerInconsistentRemovalFail()
+    {
+        /*
+         * Left side we explicitly remove 5L.
+         */
+        final SortedSet<Long> beforeSet1 = Sets.treeSet(1L, 2L, 3L, 4L, 5L);
+        final SortedSet<Long> afterSet1 = Sets.treeSet(1L, 2L, 3L, 4L);
+        final Set<Long> explicitlyExcludedSet1 = Sets.hashSet(5L);
+
+        /*
+         * Right side we explicitly remove 3L and add 6L. We also implicitly remove 5L, which will
+         * cause problems when we try to merge.
+         */
+        final SortedSet<Long> beforeSet2 = Sets.treeSet(3L, 4L, 5L);
+        final SortedSet<Long> afterSet2 = Sets.treeSet(4L, 6L);
+        final Set<Long> explicitlyExcludedSet2 = Sets.hashSet(3L);
+
+        /*
+         * This will fail because the right side implicitly removes 5L without declaring it in its
+         * explicitlyExcluded elements.
+         */
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage(
+                "explicitlyExcludedRight set did not match the implicitly computed removedFromRight set");
+        MemberMergeStrategies.conflictingBeforeViewSetMerger.apply(beforeSet1, afterSet1,
+                explicitlyExcludedSet1, beforeSet2, afterSet2, explicitlyExcludedSet2);
+    }
+
+    @Test
+    public void testConflictingBeforeViewSetMergerSuccess()
+    {
+        /*
+         * Left side we explicitly remove 5L.
+         */
+        final SortedSet<Long> beforeSet1 = Sets.treeSet(1L, 2L, 3L, 4L, 5L);
+        final SortedSet<Long> afterSet1 = Sets.treeSet(1L, 2L, 3L, 4L);
+        final Set<Long> explicitlyExcludedSet1 = Sets.hashSet(5L);
+
+        /*
+         * Right side we explicitly remove 3L, 5L and add 6L.
+         */
+        final SortedSet<Long> beforeSet2 = Sets.treeSet(3L, 4L, 5L);
+        final SortedSet<Long> afterSet2 = Sets.treeSet(4L, 6L);
+        final Set<Long> explicitlyExcludedSet2 = Sets.hashSet(3L, 5L);
+
+        final SortedSet<Long> goldenAfterSet = Sets.treeSet(1L, 2L, 4L, 6L);
+        final Set<Long> goldenExplicitlyExcludedSet = Sets.hashSet(3L, 5L);
+
+        final Tuple<SortedSet<Long>, Set<Long>> mergeResult = MemberMergeStrategies.conflictingBeforeViewSetMerger
+                .apply(beforeSet1, afterSet1, explicitlyExcludedSet1, beforeSet2, afterSet2,
+                        explicitlyExcludedSet2);
+
+        Assert.assertEquals(goldenAfterSet, mergeResult.getFirst());
+        Assert.assertEquals(goldenExplicitlyExcludedSet, mergeResult.getSecond());
     }
 
     @Test
