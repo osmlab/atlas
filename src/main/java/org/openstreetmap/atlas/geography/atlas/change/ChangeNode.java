@@ -86,7 +86,7 @@ public class ChangeNode extends Node // NOSONAR
              * override. It is possible that the atlas view used to generate a FeatureChange context
              * will differ from the atlas on which the FeatureChange will be applied. In that case,
              * we must distinguish between two kinds of missing edge identifiers: 1) those that are
-             * missing because on shard simply couldn't see them and 2) those that are missing
+             * missing because a shard simply couldn't see them and 2) those that are missing
              * because a FeatureChange explicitly removed them.
              */
             final CompleteNode completeNodeOverride = (CompleteNode) this.override;
@@ -126,7 +126,7 @@ public class ChangeNode extends Node // NOSONAR
              * override. It is possible that the atlas view used to generate a FeatureChange context
              * will differ from the atlas on which the FeatureChange will be applied. In that case,
              * we must distinguish between two kinds of missing edge identifiers: 1) those that are
-             * missing because on shard simply couldn't see them and 2) those that are missing
+             * missing because a shard simply couldn't see them and 2) those that are missing
              * because a FeatureChange explicitly removed them.
              */
             final CompleteNode completeNodeOverride = (CompleteNode) this.override;

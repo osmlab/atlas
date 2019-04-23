@@ -282,6 +282,7 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
                 .collect(Collectors.toSet());
         final Set<Long> excludedBasedOnSource = com.google.common.collect.Sets
                 .difference(sourceIdentifiers, inEdgeIdentifiers);
+        this.inEdgeIdentifiers = inEdgeIdentifiers;
         this.explicitlyExcludedInEdgeIdentifiers.addAll(excludedBasedOnSource);
         return this;
     }
@@ -334,6 +335,7 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
                 .collect(Collectors.toSet());
         final Set<Long> excludedBasedOnSource = com.google.common.collect.Sets
                 .difference(sourceIdentifiers, outEdgeIdentifiers);
+        this.outEdgeIdentifiers = outEdgeIdentifiers;
         this.explicitlyExcludedOutEdgeIdentifiers.addAll(excludedBasedOnSource);
         return this;
     }
