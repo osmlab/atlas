@@ -35,17 +35,17 @@ public class ChangeNode extends Node // NOSONAR
 
     private final Node source;
     private final Node override;
+
     // Computing Parent Relations is very expensive, so we cache it here.
     private transient Set<Relation> relationsCache;
-
     private transient Object relationsCacheLock = new Object();
+
     // Computing In Edges is very expensive, so we cache it here.
     private transient SortedSet<Edge> inEdgesCache;
-
     private transient Object inEdgesCacheLock = new Object();
+
     // Computing Out Edges is very expensive, so we cache it here.
     private transient SortedSet<Edge> outEdgesCache;
-
     private transient Object outEdgesCacheLock = new Object();
 
     protected ChangeNode(final ChangeAtlas atlas, final Node source, final Node override)
