@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -105,6 +106,12 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     }
 
     @Override
+    public CompleteItemType completeItemType()
+    {
+        return CompleteItemType.EDGE;
+    }
+
+    @Override
     public Node end()
     {
         /*
@@ -165,6 +172,19 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
         return this.relationIdentifiers == null ? null
                 : this.relationIdentifiers.stream().map(CompleteRelation::new)
                         .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void setTags(final Map<String, String> tags)
+    {
+        if (tags != null)
+        {
+            this.tags = new HashMap<>(tags);
+        }
+        else
+        {
+            this.tags = new HashMap<>();
+        }
     }
 
     @Override
@@ -237,17 +257,5 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     {
         this.startNodeIdentifier = startNodeIdentifier;
         return this;
-    }
-
-    @Override
-    public void setTags(final Map<String, String> tags)
-    {
-        this.tags = tags;
-    }
-
-    @Override
-    public CompleteItemType completeItemType()
-    {
-        return CompleteItemType.EDGE;
     }
 }

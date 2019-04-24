@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -98,6 +99,12 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     }
 
     @Override
+    public CompleteItemType completeItemType()
+    {
+        return CompleteItemType.AREA;
+    }
+
+    @Override
     public boolean equals(final Object other)
     {
         if (other instanceof CompleteArea)
@@ -146,6 +153,19 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     }
 
     @Override
+    public void setTags(final Map<String, String> tags)
+    {
+        if (tags != null)
+        {
+            this.tags = new HashMap<>(tags);
+        }
+        else
+        {
+            this.tags = new HashMap<>();
+        }
+    }
+
+    @Override
     public String toString()
     {
         return this.getClass().getSimpleName() + " [identifier=" + this.identifier + ", polygon="
@@ -191,17 +211,5 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
         return this;
-    }
-
-    @Override
-    public void setTags(final Map<String, String> tags)
-    {
-        this.tags = tags;
-    }
-
-    @Override
-    public CompleteItemType completeItemType()
-    {
-        return CompleteItemType.AREA;
     }
 }
