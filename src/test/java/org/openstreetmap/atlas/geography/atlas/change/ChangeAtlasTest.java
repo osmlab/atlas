@@ -445,6 +445,25 @@ public class ChangeAtlasTest
     }
 
     @Test
+    public void testStackedChangeAtlasesWithContextFreeTagChanges()
+    {
+        final Atlas atlas = this.rule.getTagAtlas();
+
+        final CompletePoint point1 = CompletePoint.from(atlas.point(1L)).withAddedTag("c", "3");
+        final FeatureChange featureChange1 = FeatureChange.add(point1);
+        final Change change1 = ChangeBuilder.newInstance().add(featureChange1).get();
+        final ChangeAtlas changeAtlas1 = new ChangeAtlas(atlas, change1);
+
+        final CompletePoint point2 = CompletePoint.from(changeAtlas1.point(1L)).withAddedTag("d",
+                "4");
+        final FeatureChange featureChange2 = FeatureChange.add(point2);
+        final Change change2 = ChangeBuilder.newInstance().add(featureChange2).get();
+        final ChangeAtlas changeAtlas2 = new ChangeAtlas(changeAtlas1, change2);
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "2", "c", "3", "d", "4"),
+                changeAtlas2.point(1L).getTags());
+    }
+
+    @Test
     public void testStackedChangeAtlasesWithTagChanges()
     {
         final Atlas atlas = this.rule.getTagAtlas();
