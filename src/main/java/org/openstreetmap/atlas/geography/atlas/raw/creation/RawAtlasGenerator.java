@@ -137,20 +137,7 @@ public class RawAtlasGenerator
      */
     public Atlas build()
     {
-        // First pass -- loop through the PBF file and count the number of Points, Lines and
-        // Relations in the file. The counts are used to initialize the AtlasSize estimate when
-        // building the Raw Atlas. It's much faster to loop through the PBF file and count the
-        // entities rather than re-size the underlying entity arrays on the fly when building.
-        countOsmPbfEntities();
-
-        // Update the metadata to reflect any configuration that was used and use count results to
-        // set the AtlasSize estimate.
-        populateAtlasMetadata();
-        setAtlasSizeEstimate();
-
-        // Update the reader to be aware of any included nodes/ways to avoid repeated calculations
-        this.pbfReader.setIncludedNodes(this.pbfCounter.getIncludedNodeIdentifiers());
-        this.pbfReader.setIncludedWays(this.pbfCounter.getIncludedWayIdentifiers());
+        prepareBuild();
 
         // Second pass -- loop through the PBF file again. This time, read the entities and
         // construct a raw Atlas.
@@ -166,16 +153,7 @@ public class RawAtlasGenerator
      */
     public Atlas buildNoTrim()
     {
-        countOsmPbfEntities();
-
-        // Update the metadata to reflect any configuration that was used and use count results to
-        // set the AtlasSize estimate.
-        populateAtlasMetadata();
-        setAtlasSizeEstimate();
-
-        // Update the reader to be aware of any included nodes/ways to avoid repeated calculations
-        this.pbfReader.setIncludedNodes(this.pbfCounter.getIncludedNodeIdentifiers());
-        this.pbfReader.setIncludedWays(this.pbfCounter.getIncludedWayIdentifiers());
+        prepareBuild();
 
         // Second pass -- loop through the PBF file again. This time, read the entities and
         // construct a raw Atlas.
@@ -239,20 +217,7 @@ public class RawAtlasGenerator
     private Atlas buildRawAtlas()
     {
         final String shardName = this.metaData.getShardName().orElse("unknown");
-        final Time parseTime = Time.now();
-        try (CloseableOsmosisReader reader = connectOsmPbfToPbfConsumer(this.pbfReader))
-        {
-            reader.run();
-        }
-        catch (final Exception e)
-        {
-            throw new CoreException("Atlas creation error for PBF shard {}", shardName, e);
-        }
-        logger.info("Read PBF for {} in {}", shardName, parseTime.elapsedSince());
-
-        final Time buildTime = Time.now();
-        final Atlas atlas = this.builder.get();
-        logger.info("Built Raw Atlas for {} in {}", shardName, buildTime.elapsedSince());
+        final Atlas atlas = buildRawAtlasNoTrim();
 
         if (atlas == null)
         {
@@ -422,6 +387,20 @@ public class RawAtlasGenerator
                 .filter(identifier -> isSimplePoint(atlas, identifier))
                 .filter(identifier -> !isRelationMember(atlas, identifier))
                 .filter(identifier -> !isShapePoint(atlas, identifier)).collect(Collectors.toSet());
+    }
+
+    private void prepareBuild()
+    {
+        countOsmPbfEntities();
+
+        // Update the metadata to reflect any configuration that was used and use count results to
+        // set the AtlasSize estimate.
+        populateAtlasMetadata();
+        setAtlasSizeEstimate();
+
+        // Update the reader to be aware of any included nodes/ways to avoid repeated calculations
+        this.pbfReader.setIncludedNodes(this.pbfCounter.getIncludedNodeIdentifiers());
+        this.pbfReader.setIncludedWays(this.pbfCounter.getIncludedWayIdentifiers());
     }
 
     private Atlas rebuildAtlas(final Atlas atlas, final Set<Long> pointsToRemove,
