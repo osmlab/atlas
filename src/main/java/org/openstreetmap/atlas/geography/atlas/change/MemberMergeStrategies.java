@@ -378,10 +378,11 @@ public final class MemberMergeStrategies
     static final BinaryOperator<RelationBean> beforeViewRelationBeanMerger = RelationBean::mergeBeans;
 
     /**
-     * A merger for cases when two {@link Set}s have conflicting beforeViews. This can happen
-     * occasionally, since different shards may have slightly inconsistent Node views. While this
-     * merger uses explicitlyExcluded state to properly compute the merge, it does not handle
-     * merging the explicitlyExcluded state itself. This responsibility lies with the caller.
+     * A merger for cases when two {@link Set}s have conflicting beforeViews. This is useful for
+     * merging {@link Node} in/out {@link Edge} sets, since different shards may occasionally have
+     * inconsistent views of a {@link Node}'s connected {@link Edge}s. While this merger uses
+     * explicitlyExcluded state to properly compute the merge, it does not handle merging the
+     * explicitlyExcluded state itself. This responsibility lies with the caller.
      */
     static final SenaryFunction<SortedSet<Long>, SortedSet<Long>, Set<Long>, SortedSet<Long>, SortedSet<Long>, Set<Long>, SortedSet<Long>> conflictingBeforeViewSetMerger = (
             beforeLeftSet, afterLeftSet, explicitlyExcludedLeftSet, beforeRightSet, afterRightSet,
