@@ -158,6 +158,31 @@ public class RawAtlasGenerator
     }
 
     /**
+     * Works the same way as build() above, but doesn't trim duplicate and extraneous points from
+     * the atlas. This is used as a faster way to build the atlas when verifying the validity of PBF
+     * files.
+     *
+     * @return the raw {@link Atlas}, can be {@code null} or filled with duplicate points
+     */
+    public Atlas buildNoTrim()
+    {
+        countOsmPbfEntities();
+
+        // Update the metadata to reflect any configuration that was used and use count results to
+        // set the AtlasSize estimate.
+        populateAtlasMetadata();
+        setAtlasSizeEstimate();
+
+        // Update the reader to be aware of any included nodes/ways to avoid repeated calculations
+        this.pbfReader.setIncludedNodes(this.pbfCounter.getIncludedNodeIdentifiers());
+        this.pbfReader.setIncludedWays(this.pbfCounter.getIncludedWayIdentifiers());
+
+        // Second pass -- loop through the PBF file again. This time, read the entities and
+        // construct a raw Atlas.
+        return buildRawAtlasNoTrim();
+    }
+
+    /**
      * Save raw {@link Atlas} as geoJson.
      *
      * @param resource
@@ -246,6 +271,26 @@ public class RawAtlasGenerator
             }
             return trimmedAtlas;
         }
+    }
+
+    private Atlas buildRawAtlasNoTrim()
+    {
+        final String shardName = this.metaData.getShardName().orElse("unknown");
+        final Time parseTime = Time.now();
+        try (CloseableOsmosisReader reader = connectOsmPbfToPbfConsumer(this.pbfReader))
+        {
+            reader.run();
+        }
+        catch (final Exception e)
+        {
+            throw new CoreException("Atlas creation error for PBF shard {}", shardName, e);
+        }
+        logger.info("Read PBF for {} in {}", shardName, parseTime.elapsedSince());
+
+        final Time buildTime = Time.now();
+        final Atlas atlas = this.builder.get();
+        logger.info("Built Raw Atlas for {} in {}", shardName, buildTime.elapsedSince());
+        return atlas;
     }
 
     /**
