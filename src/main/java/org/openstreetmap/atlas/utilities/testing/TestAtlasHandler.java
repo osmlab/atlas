@@ -379,7 +379,10 @@ public class TestAtlasHandler implements FieldHandler
                         Enum.valueOf(ItemType.class, member.type().toUpperCase()));
             }
             final long identifier = relationIDGenerator.nextId(relation.id());
-            builder.addRelation(identifier, identifier, bean, parseTags(relation.tags()));
+            final long osmIdentifier = relation.osmId().equals(TestAtlas.DEFAULT_OSM_ID)
+                    ? identifier
+                    : relationIDGenerator.nextId(relation.osmId());
+            builder.addRelation(identifier, osmIdentifier, bean, parseTags(relation.tags()));
         }
     }
 
