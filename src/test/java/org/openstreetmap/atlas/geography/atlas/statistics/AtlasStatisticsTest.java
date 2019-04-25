@@ -5,7 +5,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasTest;
 import org.openstreetmap.atlas.geography.atlas.statistics.AtlasStatistics.StatisticKey;
 import org.openstreetmap.atlas.geography.atlas.statistics.AtlasStatistics.StatisticValue;
 
@@ -22,7 +21,7 @@ public class AtlasStatisticsTest
     @Test
     public void testCounting()
     {
-        final Atlas atlas = new PackedAtlasTest().getAtlas();
+        final Atlas atlas = this.rule.getPackedAtlas();
         final Counter counter = new Counter();
         final AtlasStatistics statistics = counter.processAtlas(atlas);
         Assert.assertEquals(7.245,

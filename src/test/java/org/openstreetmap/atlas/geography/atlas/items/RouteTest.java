@@ -6,7 +6,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasTest;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Node;
 
 /**
@@ -24,7 +23,7 @@ public class RouteTest
     @Before
     public void init()
     {
-        this.atlas = new PackedAtlasTest().getAtlas();
+        this.atlas = this.rule.getPackedAtlas();
         final Edge edge1 = this.atlas.edge(98);
         final Edge edge2 = this.atlas.edge(987);
 

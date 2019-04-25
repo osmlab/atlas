@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Route;
 import org.openstreetmap.atlas.geography.atlas.routing.AStarRouter;
 import org.openstreetmap.atlas.geography.atlas.routing.Router;
@@ -43,6 +44,42 @@ public class MultiAtlasOverlappingNodesFixerTest extends Command
     public static void main(final String[] args)
     {
         new MultiAtlasOverlappingNodesFixerTest().run(args);
+    }
+
+    @Test
+    public void testOrderOverlappingNode()
+    {
+        final Atlas subAtlas1 = this.setup.overlappingSubAtlas1();
+        final Atlas subAtlas2 = this.setup.overlappingSubAtlas2();
+        final MultiAtlas multiAtlasOrder1 = new MultiAtlas(subAtlas1, subAtlas2);
+        final MultiAtlas multiAtlasOrder2 = new MultiAtlas(subAtlas2, subAtlas1);
+        multiAtlasOrder1.edges().forEach(edge ->
+        {
+            final Edge otherOrderEdge = multiAtlasOrder2.edge(edge.getIdentifier());
+            Assert.assertEquals(edge.start().getIdentifier(),
+                    otherOrderEdge.start().getIdentifier());
+            Assert.assertEquals(edge.end().getIdentifier(), otherOrderEdge.end().getIdentifier());
+            Assert.assertEquals(edge.getTags(), otherOrderEdge.getTags());
+            Assert.assertEquals(edge.asPolyLine(), otherOrderEdge.asPolyLine());
+        });
+    }
+
+    @Test
+    public void testOrderOverlappingNodesCrossingEdges()
+    {
+        final Atlas subAtlas1 = this.setup.overlappingAndCrossingSubAtlas1();
+        final Atlas subAtlas2 = this.setup.overlappingAndCrossingSubAtlas2();
+        final MultiAtlas multiAtlasOrder1 = new MultiAtlas(subAtlas1, subAtlas2);
+        final MultiAtlas multiAtlasOrder2 = new MultiAtlas(subAtlas2, subAtlas1);
+        multiAtlasOrder1.edges().forEach(edge ->
+        {
+            final Edge otherOrderEdge = multiAtlasOrder2.edge(edge.getIdentifier());
+            Assert.assertEquals(edge.start().getIdentifier(),
+                    otherOrderEdge.start().getIdentifier());
+            Assert.assertEquals(edge.end().getIdentifier(), otherOrderEdge.end().getIdentifier());
+            Assert.assertEquals(edge.getTags(), otherOrderEdge.getTags());
+            Assert.assertEquals(edge.asPolyLine(), otherOrderEdge.asPolyLine());
+        });
     }
 
     @Test
