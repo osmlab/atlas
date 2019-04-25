@@ -1,13 +1,19 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
+import java.util.Optional;
+import java.util.Set;
+import java.util.SortedSet;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.utilities.function.QuaternaryOperator;
 import org.openstreetmap.atlas.utilities.function.TernaryOperator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class encapsulates the logic and configuration for {@link CompleteEntity} member merging in
@@ -34,10 +40,14 @@ public final class MemberMerger<M>
         private AtlasEntity beforeEntityRight;
         private AtlasEntity afterEntityRight;
         private Function<AtlasEntity, M> memberExtractor;
-        private BinaryOperator<M> afterViewNoBeforeMerger;
-        private TernaryOperator<M> afterViewConsistentBeforeMerger;
-        private QuaternaryOperator<M> afterViewConflictingBeforeMerger;
+        private BinaryOperator<M> afterViewNoBeforeViewMerger;
+        private TernaryOperator<M> afterViewConsistentBeforeViewMerger;
+        private QuaternaryOperator<M> afterViewConflictingBeforeViewMerger;
         private BinaryOperator<M> beforeViewMerger;
+        private boolean useHackForMergingConflictingConnectedEdgeSetBeforeViews = false;
+
+        private Optional<CompleteNode> leftNode;
+        private Optional<CompleteNode> rightNode;
 
         public MemberMerger<M> build()
         {
@@ -50,12 +60,24 @@ public final class MemberMerger<M>
             merger.beforeEntityRight = this.beforeEntityRight;
             merger.afterEntityRight = this.afterEntityRight;
             merger.memberExtractor = this.memberExtractor;
-            merger.afterViewNoBeforeMerger = this.afterViewNoBeforeMerger;
-            merger.afterViewConsistentBeforeMerger = this.afterViewConsistentBeforeMerger;
-            merger.afterViewConflictingBeforeMerger = this.afterViewConflictingBeforeMerger;
+            merger.afterViewNoBeforeViewMerger = this.afterViewNoBeforeViewMerger;
+            merger.afterViewConsistentBeforeViewMerger = this.afterViewConsistentBeforeViewMerger;
+            merger.afterViewConflictingBeforeViewMerger = this.afterViewConflictingBeforeViewMerger;
             merger.beforeViewMerger = this.beforeViewMerger;
+            merger.useHackForMergingConflictingConnectedEdgeSetBeforeViews = this.useHackForMergingConflictingConnectedEdgeSetBeforeViews;
+            merger.leftNode = this.leftNode;
+            merger.rightNode = this.rightNode;
 
             return merger;
+        }
+
+        public Builder<M> useHackForMergingConflictingConnectedEdgeSetBeforeViews(
+                final CompleteNode left, final CompleteNode right)
+        {
+            this.useHackForMergingConflictingConnectedEdgeSetBeforeViews = true;
+            this.leftNode = Optional.ofNullable(left);
+            this.rightNode = Optional.ofNullable(right);
+            return this;
         }
 
         public Builder<M> withAfterEntityLeft(final AtlasEntity afterEntityLeft)
@@ -70,24 +92,24 @@ public final class MemberMerger<M>
             return this;
         }
 
-        public Builder<M> withAfterViewConflictingBeforeMerger(
-                final QuaternaryOperator<M> afterViewConflictingBeforeMerger)
+        public Builder<M> withAfterViewConflictingBeforeViewMerger(
+                final QuaternaryOperator<M> afterViewConflictingBeforeViewMerger)
         {
-            this.afterViewConflictingBeforeMerger = afterViewConflictingBeforeMerger;
+            this.afterViewConflictingBeforeViewMerger = afterViewConflictingBeforeViewMerger;
             return this;
         }
 
-        public Builder<M> withAfterViewConsistentBeforeMerger(
-                final TernaryOperator<M> afterViewConsistentBeforeMerger)
+        public Builder<M> withAfterViewConsistentBeforeViewMerger(
+                final TernaryOperator<M> afterViewConsistentBeforeViewMerger)
         {
-            this.afterViewConsistentBeforeMerger = afterViewConsistentBeforeMerger;
+            this.afterViewConsistentBeforeViewMerger = afterViewConsistentBeforeViewMerger;
             return this;
         }
 
         public Builder<M> withAfterViewNoBeforeMerger(
                 final BinaryOperator<M> afterViewNoBeforeMerger)
         {
-            this.afterViewNoBeforeMerger = afterViewNoBeforeMerger;
+            this.afterViewNoBeforeViewMerger = afterViewNoBeforeMerger;
             return this;
         }
 
@@ -177,16 +199,21 @@ public final class MemberMerger<M>
         }
     }
 
+    private static final Logger logger = LoggerFactory.getLogger(MemberMerger.class);
     private String memberName;
     private AtlasEntity beforeEntityLeft;
     private AtlasEntity afterEntityLeft;
     private AtlasEntity beforeEntityRight;
     private AtlasEntity afterEntityRight;
     private Function<AtlasEntity, M> memberExtractor;
-    private BinaryOperator<M> afterViewNoBeforeMerger;
-    private TernaryOperator<M> afterViewConsistentBeforeMerger;
-    private QuaternaryOperator<M> afterViewConflictingBeforeMerger;
+    private BinaryOperator<M> afterViewNoBeforeViewMerger;
+    private TernaryOperator<M> afterViewConsistentBeforeViewMerger;
+    private QuaternaryOperator<M> afterViewConflictingBeforeViewMerger;
     private BinaryOperator<M> beforeViewMerger;
+
+    private boolean useHackForMergingConflictingConnectedEdgeSetBeforeViews;
+    private Optional<CompleteNode> leftNode;
+    private Optional<CompleteNode> rightNode;
 
     private MemberMerger()
     {
@@ -221,6 +248,18 @@ public final class MemberMerger<M>
         if (beforeMemberLeft != null && beforeMemberRight != null
                 && !beforeMemberLeft.equals(beforeMemberRight))
         {
+            /*
+             * In the case that we are merging the inEdges or outEdges members of Node, we perform a
+             * different merge logic. The in/outEdge sets have a possibility of beforeView
+             * conflicts, and since we are unable to attach additional explicitlyExcluded state
+             * directly to a set, we cannot use the same logic utilized for merging other members
+             * with conflicting beforeViews.
+             */
+            if (this.useHackForMergingConflictingConnectedEdgeSetBeforeViews)
+            {
+                return mergeMemberHackForConflictingConnectedEdgeSetBeforeViews(beforeMemberLeft,
+                        afterMemberLeft, beforeMemberRight, afterMemberRight);
+            }
             return mergeMemberWithConflictingBeforeViews(beforeMemberLeft, afterMemberLeft,
                     beforeMemberRight, afterMemberRight);
         }
@@ -297,6 +336,90 @@ public final class MemberMerger<M>
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private MergedMemberBean<M> mergeMemberHackForConflictingConnectedEdgeSetBeforeViews(
+            final M beforeMemberLeft, final M afterMemberLeft, final M beforeMemberRight,
+            final M afterMemberRight)
+    {
+        final M beforeMemberResult;
+        final M afterMemberResult;
+
+        final Set<Long> explicitlyExcludedLeft;
+        final Set<Long> explicitlyExcludedRight;
+
+        if (!this.leftNode.isPresent())
+        {
+            throw new CoreException(
+                    "Attempted merge failed for {}: tried to use hackForConflictingConnectedEdgeSet but was missing leftNode",
+                    this.memberName);
+        }
+        if (!this.rightNode.isPresent())
+        {
+            throw new CoreException(
+                    "Attempted merge failed for {}: tried to use hackForConflictingConnectedEdgeSet but was missing rightNode",
+                    this.memberName);
+        }
+
+        if (FeatureChangeMergingHelpers.IN_EDGE_IDENTIFIERS_FIELD.equals(this.memberName))
+        {
+            explicitlyExcludedLeft = this.leftNode.get().explicitlyExcludedInEdgeIdentifiers();
+            explicitlyExcludedRight = this.rightNode.get().explicitlyExcludedInEdgeIdentifiers();
+        }
+        else if (FeatureChangeMergingHelpers.OUT_EDGE_IDENTIFIERS_FIELD.equals(this.memberName))
+        {
+            explicitlyExcludedLeft = this.leftNode.get().explicitlyExcludedOutEdgeIdentifiers();
+            explicitlyExcludedRight = this.rightNode.get().explicitlyExcludedOutEdgeIdentifiers();
+        }
+        else
+        {
+            throw new CoreException(
+                    "Attempted merge failed for {}: hackForConflictingConnectedEdgeSet is not a valid strategy for {}",
+                    this.memberName, this.memberName);
+        }
+
+        if (this.beforeViewMerger == null)
+        {
+            throw new CoreException(
+                    "Conflicting beforeMembers {} and no beforeView merge strategy was provided; beforeView: {} vs {}",
+                    this.memberName, beforeMemberLeft, beforeMemberRight);
+        }
+
+        try
+        {
+            beforeMemberResult = this.beforeViewMerger.apply(beforeMemberLeft, beforeMemberRight);
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException(
+                    "Attempted beforeView merge strategy failed for {} with beforeView: {} vs {}",
+                    this.memberName, beforeMemberLeft, beforeMemberRight, exception);
+        }
+
+        /*
+         * Here we hardcode the application of the SenaryOperator node connected edge set merger. We
+         * can cast back and forth between M and SortedSet<Long> here, since we know that M is of
+         * type SortedSet<Long> based on the constraints imposed when calling this function.
+         */
+        try
+        {
+            final SortedSet<Long> mergeResult = MemberMergeStrategies.conflictingBeforeViewSetMerger
+                    .apply((SortedSet<Long>) beforeMemberLeft, (SortedSet<Long>) afterMemberLeft,
+                            explicitlyExcludedLeft, (SortedSet<Long>) beforeMemberRight,
+                            (SortedSet<Long>) afterMemberRight, explicitlyExcludedRight);
+            afterMemberResult = (M) mergeResult;
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException(
+                    "Tried merge strategy for hackForConflictingConnectedEdgeSet, but it failed for {}"
+                            + "\nbeforeView: {} vs {};\nafterView: {} vs {}",
+                    this.memberName, beforeMemberLeft, beforeMemberRight, afterMemberLeft,
+                    afterMemberRight, exception);
+        }
+
+        return new MergedMemberBean<>(beforeMemberResult, afterMemberResult);
+    }
+
     /**
      * Merge a member that has consistent (possibly null) beforeViews.
      *
@@ -327,12 +450,12 @@ public final class MemberMerger<M>
          * If both beforeMembers are present (we have already asserted their equivalence so we just
          * arbitrarily use beforeMemberLeft), we use the diffBased strategy if present.
          */
-        if (beforeMemberResult != null && this.afterViewConsistentBeforeMerger != null)
+        if (beforeMemberResult != null && this.afterViewConsistentBeforeViewMerger != null)
         {
             try
             {
-                afterMemberResult = this.afterViewConsistentBeforeMerger.apply(beforeMemberResult,
-                        afterMemberLeft, afterMemberRight);
+                afterMemberResult = this.afterViewConsistentBeforeViewMerger
+                        .apply(beforeMemberResult, afterMemberLeft, afterMemberRight);
             }
             catch (final Exception exception)
             {
@@ -346,11 +469,11 @@ public final class MemberMerger<M>
          * If the beforeMember is not present, or we don't have a diffBased strategy, we try the
          * simple strategy.
          */
-        else if (this.afterViewNoBeforeMerger != null)
+        else if (this.afterViewNoBeforeViewMerger != null)
         {
             try
             {
-                afterMemberResult = this.afterViewNoBeforeMerger.apply(afterMemberLeft,
+                afterMemberResult = this.afterViewNoBeforeViewMerger.apply(afterMemberLeft,
                         afterMemberRight);
             }
             catch (final CoreException exception)
@@ -395,7 +518,7 @@ public final class MemberMerger<M>
         final M beforeMemberResult;
         final M afterMemberResult;
 
-        if (this.afterViewConflictingBeforeMerger == null)
+        if (this.afterViewConflictingBeforeViewMerger == null)
         {
             throw new CoreException(
                     "Conflicting beforeMembers {} and no afterView merge strategy capable of handling"
@@ -423,7 +546,7 @@ public final class MemberMerger<M>
 
         try
         {
-            afterMemberResult = this.afterViewConflictingBeforeMerger.apply(beforeMemberLeft,
+            afterMemberResult = this.afterViewConflictingBeforeViewMerger.apply(beforeMemberLeft,
                     afterMemberLeft, beforeMemberRight, afterMemberRight);
         }
         catch (final Exception exception)

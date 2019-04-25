@@ -25,6 +25,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A helper class for {@link AtlasDiff}. Contains lots of static utilities.
@@ -33,6 +35,8 @@ import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
  */
 public final class AtlasDiffHelper
 {
+    private static final Logger logger = LoggerFactory.getLogger(AtlasDiffHelper.class);
+
     public static Optional<FeatureChange> getAreaChangeIfNecessary(final Area beforeArea,
             final Area afterArea, final Atlas beforeViewAtlas)
     {
@@ -141,8 +145,9 @@ public final class AtlasDiffHelper
             }
             if (differentEdgeSet(beforeNode.inEdges(), afterNode.inEdges()))
             {
-                completeNode.withInEdgeIdentifiers(new TreeSet<>(afterNode.inEdges().stream()
-                        .map(Edge::getIdentifier).collect(Collectors.toSet())));
+                completeNode.withInEdgeIdentifiersAndSource(new TreeSet<>(afterNode.inEdges()
+                        .stream().map(Edge::getIdentifier).collect(Collectors.toSet())),
+                        beforeNode);
                 if (saveAllGeometries)
                 {
                     completeNode.withLocation(afterNode.getLocation());
@@ -151,8 +156,9 @@ public final class AtlasDiffHelper
             }
             if (differentEdgeSet(beforeNode.outEdges(), afterNode.outEdges()))
             {
-                completeNode.withOutEdgeIdentifiers(new TreeSet<>(afterNode.outEdges().stream()
-                        .map(Edge::getIdentifier).collect(Collectors.toSet())));
+                completeNode.withOutEdgeIdentifiersAndSource(new TreeSet<>(afterNode.outEdges()
+                        .stream().map(Edge::getIdentifier).collect(Collectors.toSet())),
+                        beforeNode);
                 if (saveAllGeometries)
                 {
                     completeNode.withLocation(afterNode.getLocation());
