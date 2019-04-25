@@ -1,6 +1,8 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
@@ -282,6 +284,37 @@ public class ChangeAtlasTest
         final Point fromRelation = (Point) Iterables.stream(disconnectedFeatures.members())
                 .firstMatching(member -> "tree".equals(member.getRole())).get().getEntity();
         Assert.assertEquals(newLocation, fromRelation.getLocation());
+    }
+
+    @Test
+    public void testNodePropertyMergeFromInconsistentBeforeAtlases()
+    {
+        final Atlas fullSizedAtlas = this.rule.differentNodeAndEdgeProperties1();
+        final Atlas subbedAtlas = this.rule.differentNodeAndEdgeProperties2();
+        final ChangeBuilder changeBuilder = new ChangeBuilder();
+
+        // remove Edge -1
+        changeBuilder.add(FeatureChange.remove(CompleteEdge.shallowFrom(fullSizedAtlas.edge(-1L)),
+                fullSizedAtlas));
+
+        // remove Edge -1 from the referenced out edges of node2
+        final CompleteNode node2FromFullAtlas = CompleteNode.shallowFrom(fullSizedAtlas.node(2L));
+        node2FromFullAtlas
+                .withOutEdgeIdentifiers(fullSizedAtlas.node(2L).outEdges().stream()
+                        .map(Edge::getIdentifier).collect(Collectors.toCollection(TreeSet::new)))
+                .withOutEdgeIdentifierLess(-1L);
+        changeBuilder.add(FeatureChange.add(node2FromFullAtlas, fullSizedAtlas));
+
+        // change a tag in node 2, but use a different atlas context that cannot see edge -1
+        final CompleteNode node2FromSubbedAtlas = CompleteNode.shallowFrom(subbedAtlas.node(2L));
+        node2FromSubbedAtlas.withTags(subbedAtlas.node(2L).getTags()).withAddedTag("new", "tag");
+        changeBuilder.add(FeatureChange.add(node2FromSubbedAtlas, subbedAtlas));
+
+        final Atlas changeAtlas = new ChangeAtlas(fullSizedAtlas, changeBuilder.get());
+
+        final Set<Long> goldenOutEdgeIdentifiers = Sets.hashSet(2L);
+        Assert.assertEquals(goldenOutEdgeIdentifiers, changeAtlas.node(2L).outEdges().stream()
+                .map(Edge::getIdentifier).collect(Collectors.toSet()));
     }
 
     @Test

@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.util.Arrays;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
@@ -380,6 +381,50 @@ public class FeatureChangeMergerTest
                 .stream().map(edge -> edge.getIdentifier()).collect(Collectors.toSet()));
 
         Assert.assertEquals(Location.EIFFEL_TOWER, ((Node) merged.getAfterView()).getLocation());
+    }
+
+    @Test
+    public void testMergeNodesWithConflictingBeforeViews()
+    {
+        final CompleteNode beforeNode1 = new CompleteNode(123L, Location.COLOSSEUM,
+                Maps.hashMap("a", "1", "b", "2"), Sets.treeSet(1L, 2L),
+                Sets.treeSet(10L, 11L, 12L, 13L), Sets.hashSet(1L));
+
+        final CompleteNode beforeNode2 = new CompleteNode(123L, Location.COLOSSEUM,
+                Maps.hashMap("a", "1", "b", "2"), Sets.treeSet(2L, 3L, 4L), Sets.treeSet(11L),
+                Sets.hashSet(1L));
+
+        final CompleteNode afterNode1 = new CompleteNode(123L, Location.COLOSSEUM, null,
+                Sets.treeSet(1L, 2L), Sets.treeSet(10L, 11L, 12L, 13L), null);
+        afterNode1.withInEdgeIdentifierLess(1L);
+        afterNode1.withOutEdgeIdentifierLess(12L);
+        afterNode1.withOutEdgeIdentifierLess(13L);
+
+        final CompleteNode afterNode2 = new CompleteNode(123L, Location.COLOSSEUM, null,
+                Sets.treeSet(2L, 3L), Sets.treeSet(11L), null);
+        afterNode2.withInEdgeIdentifierLess(4L);
+        afterNode2.withInEdgeIdentifierExtra(100L);
+
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, afterNode1,
+                beforeNode1);
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, afterNode2,
+                beforeNode2);
+
+        final FeatureChange merged = featureChange1.merge(featureChange2);
+        final Set<Long> goldenInEdgeSet = Sets.hashSet(2L, 3L, 100L);
+        final Set<Long> goldenOutEdgeSet = Sets.hashSet(10L, 11L);
+        final Set<Long> goldenExplicitlyExcludedInEdgeSet = Sets.hashSet(1L, 4L);
+        final Set<Long> goldenExplicitlyExcludedOutEdgeSet = Sets.hashSet(12L, 13L);
+
+        final CompleteNode mergedAfterNode = (CompleteNode) merged.getAfterView();
+        Assert.assertEquals(goldenInEdgeSet, mergedAfterNode.inEdges().stream()
+                .map(Edge::getIdentifier).collect(Collectors.toSet()));
+        Assert.assertEquals(goldenOutEdgeSet, mergedAfterNode.outEdges().stream()
+                .map(Edge::getIdentifier).collect(Collectors.toSet()));
+        Assert.assertEquals(goldenExplicitlyExcludedInEdgeSet,
+                mergedAfterNode.explicitlyExcludedInEdgeIdentifiers());
+        Assert.assertEquals(goldenExplicitlyExcludedOutEdgeSet,
+                mergedAfterNode.explicitlyExcludedOutEdgeIdentifiers());
     }
 
     @Test

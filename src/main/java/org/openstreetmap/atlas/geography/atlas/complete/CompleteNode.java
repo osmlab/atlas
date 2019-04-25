@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -25,14 +26,18 @@ import lombok.experimental.Delegate;
 public class CompleteNode extends Node implements CompleteLocationItem<CompleteNode>
 {
     private static final long serialVersionUID = -8229589987121555419L;
+
     @Delegate
     private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
+
     private Rectangle bounds;
     private long identifier;
     private Location location;
     private Map<String, String> tags;
     private SortedSet<Long> inEdgeIdentifiers;
     private SortedSet<Long> outEdgeIdentifiers;
+    private Set<Long> explicitlyExcludedInEdgeIdentifiers;
+    private Set<Long> explicitlyExcludedOutEdgeIdentifiers;
     private Set<Long> relationIdentifiers;
 
     /**
@@ -92,6 +97,8 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         this.tags = tags;
         this.inEdgeIdentifiers = inEdgeIdentifiers;
         this.outEdgeIdentifiers = outEdgeIdentifiers;
+        this.explicitlyExcludedInEdgeIdentifiers = new HashSet<>();
+        this.explicitlyExcludedOutEdgeIdentifiers = new HashSet<>();
         this.relationIdentifiers = relationIdentifiers;
     }
 
@@ -99,6 +106,12 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     public Rectangle bounds()
     {
         return this.bounds;
+    }
+
+    @Override
+    public CompleteItemType completeItemType()
+    {
+        return CompleteItemType.NODE;
     }
 
     @Override
@@ -113,6 +126,16 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
                     && Objects.equals(this.outEdges(), that.outEdges());
         }
         return false;
+    }
+
+    public Set<Long> explicitlyExcludedInEdgeIdentifiers()
+    {
+        return this.explicitlyExcludedInEdgeIdentifiers;
+    }
+
+    public Set<Long> explicitlyExcludedOutEdgeIdentifiers()
+    {
+        return this.explicitlyExcludedOutEdgeIdentifiers;
     }
 
     @Override
@@ -131,12 +154,6 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     public Map<String, String> getTags()
     {
         return this.tags;
-    }
-
-    @Override
-    public void setTags(final Map<String, String> tags)
-    {
-        this.tags = tags;
     }
 
     @Override
@@ -189,6 +206,22 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
                         .collect(Collectors.toSet());
     }
 
+    public void setExplicitlyExcludedInEdgeIdentifiers(final Set<Long> edges)
+    {
+        this.explicitlyExcludedInEdgeIdentifiers = edges;
+    }
+
+    public void setExplicitlyExcludedOutEdgeIdentifiers(final Set<Long> edges)
+    {
+        this.explicitlyExcludedOutEdgeIdentifiers = edges;
+    }
+
+    @Override
+    public void setTags(final Map<String, String> tags)
+    {
+        this.tags = tags;
+    }
+
     @Override
     public String toString()
     {
@@ -225,6 +258,7 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     public CompleteNode withInEdgeIdentifierLess(final Long lessInEdgeIdentifier)
     {
         this.inEdgeIdentifiers.remove(lessInEdgeIdentifier);
+        this.explicitlyExcludedInEdgeIdentifiers.add(lessInEdgeIdentifier);
         return this;
     }
 
@@ -238,6 +272,18 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     public CompleteNode withInEdgeIdentifiers(final SortedSet<Long> inEdgeIdentifiers)
     {
         this.inEdgeIdentifiers = inEdgeIdentifiers;
+        return this;
+    }
+
+    public CompleteNode withInEdgeIdentifiersAndSource(final SortedSet<Long> inEdgeIdentifiers,
+            final Node source)
+    {
+        final Set<Long> sourceIdentifiers = source.inEdges().stream().map(Edge::getIdentifier)
+                .collect(Collectors.toSet());
+        final Set<Long> excludedBasedOnSource = com.google.common.collect.Sets
+                .difference(sourceIdentifiers, inEdgeIdentifiers);
+        this.inEdgeIdentifiers = inEdgeIdentifiers;
+        this.explicitlyExcludedInEdgeIdentifiers.addAll(excludedBasedOnSource);
         return this;
     }
 
@@ -265,6 +311,7 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     public CompleteNode withOutEdgeIdentifierLess(final Long lessOutEdgeIdentifier)
     {
         this.outEdgeIdentifiers.remove(lessOutEdgeIdentifier);
+        this.explicitlyExcludedOutEdgeIdentifiers.add(lessOutEdgeIdentifier);
         return this;
     }
 
@@ -278,6 +325,18 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     public CompleteNode withOutEdgeIdentifiers(final SortedSet<Long> outEdgeIdentifiers)
     {
         this.outEdgeIdentifiers = outEdgeIdentifiers;
+        return this;
+    }
+
+    public CompleteNode withOutEdgeIdentifiersAndSource(final SortedSet<Long> outEdgeIdentifiers,
+            final Node source)
+    {
+        final Set<Long> sourceIdentifiers = source.outEdges().stream().map(Edge::getIdentifier)
+                .collect(Collectors.toSet());
+        final Set<Long> excludedBasedOnSource = com.google.common.collect.Sets
+                .difference(sourceIdentifiers, outEdgeIdentifiers);
+        this.outEdgeIdentifiers = outEdgeIdentifiers;
+        this.explicitlyExcludedOutEdgeIdentifiers.addAll(excludedBasedOnSource);
         return this;
     }
 
@@ -301,11 +360,5 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
         return this;
-    }
-
-    @Override
-    public CompleteItemType completeItemType()
-    {
-        return CompleteItemType.NODE;
     }
 }
