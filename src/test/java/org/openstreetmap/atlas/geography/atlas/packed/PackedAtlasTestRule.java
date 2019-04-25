@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.statistics;
+package org.openstreetmap.atlas.geography.atlas.packed;
 
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -14,11 +14,9 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation.Member;
 
 /**
- * Test rule for {@link AtlasStatisticsTest}
- *
- * @author matthieun
+ * @author samg
  */
-public class AtlasStatisticsTestRule extends CoreTestRule
+public class PackedAtlasTestRule extends CoreTestRule
 {
     @TestAtlas(points = {
             @Point(id = "1", coordinates = @Loc(value = Location.TEST_3_COORDINATES), tags = {
@@ -63,7 +61,7 @@ public class AtlasStatisticsTestRule extends CoreTestRule
                                     "name=edge9", "surface=concrete", "lanes=3" }),
                     @Edge(id = "-9", coordinates = { @Loc(value = Location.TEST_5_COORDINATES),
                             @Loc(value = Location.TEST_6_COORDINATES) }, tags = { "highway=primary",
-                                    "name=edge_9", "surface=gravel" }),
+                                    "name=edge_9", "surface=fine_gravel" }),
                     @Edge(id = "98", coordinates = { @Loc(value = Location.TEST_5_COORDINATES),
                             @Loc(value = Location.TEST_2_COORDINATES) }, tags = {
                                     "highway=secondary", "name=edge98", "bridge=movable",
@@ -98,42 +96,10 @@ public class AtlasStatisticsTestRule extends CoreTestRule
                             @Member(id = "5", role = "pt", type = "point"),
                             @Member(id = "1", role = "rel", type = "relation"),
                             @Member(id = "1234", role = "node", type = "node") }, tags = {}) })
-    private Atlas packedAtlas;
+    private Atlas atlas;
 
-    @TestAtlas(loadFromJosmOsmResource = "addressAtlas.josm.osm")
-    private Atlas addressAtlas;
-
-    @TestAtlas(loadFromJosmOsmResource = "waterAtlas.josm.osm")
-    private Atlas waterAtlas;
-
-    @TestAtlas(loadFromJosmOsmResource = "ferryAtlas.josm.osm")
-    private Atlas ferryAtlas;
-
-    @TestAtlas(loadFromJosmOsmResource = "refsAtlas.josm.osm")
-    private Atlas refsAtlas;
-
-    public Atlas getAddressAtlas()
+    public Atlas getAtlas()
     {
-        return this.addressAtlas;
-    }
-
-    public Atlas getFerryAtlas()
-    {
-        return this.ferryAtlas;
-    }
-
-    public Atlas getPackedAtlas()
-    {
-        return this.packedAtlas;
-    }
-
-    public Atlas getRefsAtlas()
-    {
-        return this.refsAtlas;
-    }
-
-    public Atlas getWaterAtlas()
-    {
-        return this.waterAtlas;
+        return this.atlas;
     }
 }

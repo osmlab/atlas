@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Heading;
@@ -12,7 +14,7 @@ import org.openstreetmap.atlas.geography.Segment;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.items.Route;
-import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlasTest;
+import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 
@@ -21,26 +23,38 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
  */
 public class AStarRouterTest
 {
+    @Rule
+    public final AStarRouterTestRule rule = new AStarRouterTestRule();
     private final Distance threshold = Distance.meters(40);
+
+    private Atlas atlas1;
+    private Atlas atlas2;
+
+    private Atlas multiAtlas;
+
+    @Before
+    public void setup()
+    {
+        this.atlas1 = this.rule.getAtlas1();
+        this.atlas2 = this.rule.getAtlas2();
+        this.multiAtlas = new MultiAtlas(this.atlas1, this.atlas2);
+    }
 
     @Test
     public void testAlgorithm()
     {
-        final Atlas atlas = new MultiAtlasTest().getAtlas();
         final Location start = Location.TEST_6.shiftAlongGreatCircle(Heading.NORTH,
                 Distance.ONE_METER);
         final Location end = Location.TEST_2.shiftAlongGreatCircle(Heading.EAST,
                 Distance.ONE_METER);
-        final Route dijkstraRoute = AStarRouter.dijkstra(atlas, this.threshold).route(start, end);
-        System.out.println(dijkstraRoute);
-        Assert.assertEquals(
-                Route.forEdges(atlas.edge(9), atlas.edge(-9), atlas.edge(5), atlas.edge(6)),
-                dijkstraRoute);
-        final Route balancedRoute = AStarRouter.balanced(atlas, this.threshold).route(start, end);
-        System.out.println(balancedRoute);
-        Assert.assertEquals(
-                Route.forEdges(atlas.edge(9), atlas.edge(-9), atlas.edge(5), atlas.edge(6)),
-                balancedRoute);
+        final Route dijkstraRoute = AStarRouter.dijkstra(this.multiAtlas, this.threshold)
+                .route(start, end);
+        Assert.assertEquals(Route.forEdges(this.multiAtlas.edge(9), this.multiAtlas.edge(-9),
+                this.multiAtlas.edge(5), this.multiAtlas.edge(6)), dijkstraRoute);
+        final Route balancedRoute = AStarRouter.balanced(this.multiAtlas, this.threshold)
+                .route(start, end);
+        Assert.assertEquals(Route.forEdges(this.multiAtlas.edge(9), this.multiAtlas.edge(-9),
+                this.multiAtlas.edge(5), this.multiAtlas.edge(6)), balancedRoute);
     }
 
     @Test
@@ -56,19 +70,19 @@ public class AStarRouterTest
         builder.addNode(3, location3, tags);
         builder.addEdge(1, new Segment(location1, location2), tags);
         builder.addEdge(2, new Segment(location2, location3), tags);
-        final Atlas atlas = builder.get();
+        final Atlas routeAtlas = builder.get();
 
-        final AStarRouter router = AStarRouter.dijkstra(atlas, this.threshold);
+        final AStarRouter router = AStarRouter.dijkstra(routeAtlas, this.threshold);
         // Same edge
-        Assert.assertEquals(Route.forEdge(atlas.edge(1)),
-                router.route(atlas.edge(1), atlas.edge(1)));
-        Assert.assertEquals(Route.forEdges(atlas.edge(1), atlas.edge(2)),
-                router.route(atlas.node(1), atlas.node(3)));
-        Assert.assertEquals(Route.forEdges(atlas.edge(1), atlas.edge(2)),
-                router.route(atlas.edge(1), atlas.edge(2)));
+        Assert.assertEquals(Route.forEdge(routeAtlas.edge(1)),
+                router.route(routeAtlas.edge(1), routeAtlas.edge(1)));
+        Assert.assertEquals(Route.forEdges(routeAtlas.edge(1), routeAtlas.edge(2)),
+                router.route(routeAtlas.node(1), routeAtlas.node(3)));
+        Assert.assertEquals(Route.forEdges(routeAtlas.edge(1), routeAtlas.edge(2)),
+                router.route(routeAtlas.edge(1), routeAtlas.edge(2)));
         try
         {
-            router.route(atlas.edge(1), null);
+            router.route(routeAtlas.edge(1), null);
             Assert.fail("Did not throw exception");
         }
         catch (final CoreException e)
@@ -82,6 +96,7 @@ public class AStarRouterTest
 
         final Location start = location1.shiftAlongGreatCircle(Heading.EAST, Distance.ONE_METER);
         final Location end = location3.shiftAlongGreatCircle(Heading.WEST, Distance.ONE_METER);
-        Assert.assertEquals(Route.forEdges(atlas.edge(1), atlas.edge(2)), router.route(start, end));
+        Assert.assertEquals(Route.forEdges(routeAtlas.edge(1), routeAtlas.edge(2)),
+                router.route(start, end));
     }
 }
