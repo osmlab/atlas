@@ -193,14 +193,7 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     @Override
     public void setTags(final Map<String, String> tags)
     {
-        if (tags != null)
-        {
-            this.tags = new HashMap<>(tags);
-        }
-        else
-        {
-            this.tags = new HashMap<>();
-        }
+        this.tags = tags != null ? new HashMap<>(tags) : null;
     }
 
     @Override
