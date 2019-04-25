@@ -3,11 +3,10 @@ package org.openstreetmap.atlas.geography.atlas.change;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.utilities.testing.CoreTestRule;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas;
-import org.openstreetmap.atlas.utilities.testing.TestAtlas.Loc;
-import org.openstreetmap.atlas.utilities.testing.TestAtlas.Point;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Edge;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Loc;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Node;
+import org.openstreetmap.atlas.utilities.testing.TestAtlas.Point;
 
 /**
  * @author matthieun
@@ -18,13 +17,6 @@ public class ChangeAtlasTestRule extends CoreTestRule
     private static final String TWO = "15.429499,-61.332850";
     private static final String THREE = "15.4855,-61.3041";
     private static final String FOUR = "15.4809,-61.3366";
-    private static final String FIVE = "15.4852,-61.3816";
-    private static final String SIX = "15.4781,-61.3949";
-    private static final String SEVEN = "15.4145,-61.3826";
-    private static final String EIGHT = "15.4073,-61.3749";
-    private static final String NINE = "15.4075,-61.3746";
-    private static final String TEN = "15.4081,-61.3741";
-    private static final String ELEVEN = "15.4111,-62.3741";
 
     @TestAtlas(loadFromJosmOsmResource = "ChangeAtlasTest.josm.osm")
     private Atlas atlas;
@@ -90,9 +82,14 @@ public class ChangeAtlasTestRule extends CoreTestRule
     private Atlas differentNodeAndEdgeProperties2;
 
     @TestAtlas(
-    points = {
 
-                    @Point(id = "1", coordinates = @Loc(value = ONE), tags = { "a=1", "b=2" })})
+            points = {
+
+                    @Point(id = "1", coordinates = @Loc(value = ONE), tags = { "a=1", "b=2" })
+
+            }
+
+    )
     private Atlas tagAtlas;
 
     public Atlas differentNodeAndEdgeProperties1()
