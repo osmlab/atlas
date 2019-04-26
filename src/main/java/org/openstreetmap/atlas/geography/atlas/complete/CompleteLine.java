@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -98,6 +99,12 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     }
 
     @Override
+    public CompleteItemType completeItemType()
+    {
+        return CompleteItemType.LINE;
+    }
+
+    @Override
     public boolean equals(final Object other)
     {
         if (other instanceof CompleteLine)
@@ -143,6 +150,12 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
         return this.relationIdentifiers == null ? null
                 : this.relationIdentifiers.stream().map(CompleteRelation::new)
                         .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void setTags(final Map<String, String> tags)
+    {
+        this.tags = tags != null ? new HashMap<>(tags) : null;
     }
 
     @Override
@@ -192,17 +205,5 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
         return this;
-    }
-
-    @Override
-    public void setTags(final Map<String, String> tags)
-    {
-        this.tags = tags;
-    }
-
-    @Override
-    public CompleteItemType completeItemType()
-    {
-        return CompleteItemType.LINE;
     }
 }

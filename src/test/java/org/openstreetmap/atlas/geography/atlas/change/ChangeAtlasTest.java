@@ -477,6 +477,83 @@ public class ChangeAtlasTest
         Assert.assertNotNull(changeAtlas.relation(39010000000L));
     }
 
+    @Test
+    public void testStackedChangeAtlasesWithContextFreeTagChanges()
+    {
+        final Atlas atlas = this.rule.getTagAtlas();
+
+        final CompletePoint point1 = CompletePoint.from(atlas.point(1L)).withAddedTag("c", "3");
+        final FeatureChange featureChange1 = FeatureChange.add(point1);
+        final Change change1 = ChangeBuilder.newInstance().add(featureChange1).get();
+        final ChangeAtlas changeAtlas1 = new ChangeAtlas(atlas, change1);
+
+        final CompletePoint point2 = CompletePoint.from(changeAtlas1.point(1L)).withAddedTag("d",
+                "4");
+        final FeatureChange featureChange2 = FeatureChange.add(point2);
+        final Change change2 = ChangeBuilder.newInstance().add(featureChange2).get();
+        final ChangeAtlas changeAtlas2 = new ChangeAtlas(changeAtlas1, change2);
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "2", "c", "3", "d", "4"),
+                changeAtlas2.point(1L).getTags());
+    }
+
+    @Test
+    public void testStackedChangeAtlasesWithTagChanges()
+    {
+        final Atlas atlas = this.rule.getTagAtlas();
+
+        final CompletePoint point1 = CompletePoint.from(atlas.point(1L)).withAddedTag("c", "3");
+        final FeatureChange featureChange1 = FeatureChange.add(point1, atlas);
+        final Change change1 = ChangeBuilder.newInstance().add(featureChange1).get();
+        final ChangeAtlas changeAtlas1 = new ChangeAtlas(atlas, change1);
+
+        final CompletePoint point2 = CompletePoint.from(changeAtlas1.point(1L)).withAddedTag("d",
+                "4");
+        final FeatureChange featureChange2 = FeatureChange.add(point2, changeAtlas1);
+        final Change change2 = ChangeBuilder.newInstance().add(featureChange2).get();
+        final ChangeAtlas changeAtlas2 = new ChangeAtlas(changeAtlas1, change2);
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "2", "c", "3", "d", "4"),
+                changeAtlas2.point(1L).getTags());
+
+        final CompletePoint point3 = CompletePoint.from(atlas.point(1L)).withRemovedTag("b");
+        final FeatureChange featureChange3 = FeatureChange.add(point3, atlas);
+        final Change change3 = ChangeBuilder.newInstance().add(featureChange3).get();
+        final ChangeAtlas changeAtlas3 = new ChangeAtlas(atlas, change3);
+
+        final CompletePoint point4 = CompletePoint.from(changeAtlas3.point(1L)).withRemovedTag("a");
+        final FeatureChange featureChange4 = FeatureChange.add(point4, changeAtlas3);
+        final Change change4 = ChangeBuilder.newInstance().add(featureChange4).get();
+        final ChangeAtlas changeAtlas4 = new ChangeAtlas(changeAtlas3, change4);
+        Assert.assertEquals(Maps.hashMap(), changeAtlas4.point(1L).getTags());
+
+        final CompletePoint point5 = CompletePoint.from(atlas.point(1L)).withReplacedTag("a",
+                "new_a", "new_1");
+        final FeatureChange featureChange5 = FeatureChange.add(point5, atlas);
+        final Change change5 = ChangeBuilder.newInstance().add(featureChange5).get();
+        final ChangeAtlas changeAtlas5 = new ChangeAtlas(atlas, change5);
+
+        final CompletePoint point6 = CompletePoint.from(changeAtlas5.point(1L)).withReplacedTag("b",
+                "new_b", "new_2");
+        final FeatureChange featureChange6 = FeatureChange.add(point6, changeAtlas5);
+        final Change change6 = ChangeBuilder.newInstance().add(featureChange6).get();
+        final ChangeAtlas changeAtlas6 = new ChangeAtlas(changeAtlas5, change6);
+        Assert.assertEquals(Maps.hashMap("new_a", "new_1", "new_b", "new_2"),
+                changeAtlas6.point(1L).getTags());
+
+        final CompletePoint point7 = CompletePoint.from(atlas.point(1L))
+                .withTags(Maps.hashMap("new_a", "new_1", "new_b", "new_2"));
+        final FeatureChange featureChange7 = FeatureChange.add(point7, atlas);
+        final Change change7 = ChangeBuilder.newInstance().add(featureChange7).get();
+        final ChangeAtlas changeAtlas7 = new ChangeAtlas(atlas, change7);
+
+        final CompletePoint point8 = CompletePoint.from(changeAtlas7.point(1L))
+                .withTags(Maps.hashMap("new_a", "new_1", "new_b", "new_2", "new_c", "new_3"));
+        final FeatureChange featureChange8 = FeatureChange.add(point8, changeAtlas7);
+        final Change change8 = ChangeBuilder.newInstance().add(featureChange8).get();
+        final ChangeAtlas changeAtlas8 = new ChangeAtlas(changeAtlas7, change8);
+        Assert.assertEquals(Maps.hashMap("new_a", "new_1", "new_b", "new_2", "new_c", "new_3"),
+                changeAtlas8.point(1L).getTags());
+    }
+
     /**
      * @return Feature change 2: Update the edge 39001000001L's start node: 38999000000L
      */

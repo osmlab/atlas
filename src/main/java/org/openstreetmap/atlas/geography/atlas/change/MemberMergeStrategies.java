@@ -607,7 +607,7 @@ public final class MemberMergeStrategies
          * It must be the case that the explicitly and implicitly computed removed sets match for a
          * given set-based entity from one side of the merge. If they don't, that means the user
          * likely removed some elements without using the contextual API (withMembersAndSource for
-         * Relations, withXEdgeIdentifiersAndSource for Edges), which means the explicitlyExcluded
+         * Relations, withXEdgeIdentifiersAndSource for Nodes), which means the explicitlyExcluded
          * sets are not properly populated. This will lead to corrupt and unexpected results.
          */
         if (!explicitlyExcludedLeft.equals(implicitlyRemovedFromLeft))

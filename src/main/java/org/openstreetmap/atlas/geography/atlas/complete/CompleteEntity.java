@@ -34,10 +34,10 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
     static Map<String, String> addNewTag(final Map<String, String> tags, final String key,
             final String value)
     {
-        Map<String, String> result = tags;
-        if (result == null)
+        Map<String, String> result = new HashMap<>();
+        if (tags != null)
         {
-            result = new HashMap<>();
+            result = new HashMap<>(tags);
         }
         result.put(key, value);
         return result;
@@ -108,10 +108,10 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
 
     static Map<String, String> removeTag(final Map<String, String> tags, final String key)
     {
-        Map<String, String> result = tags;
-        if (result == null)
+        Map<String, String> result = new HashMap<>();
+        if (tags != null)
         {
-            result = new HashMap<>();
+            result = new HashMap<>(tags);
         }
         result.remove(key);
         return result;
@@ -211,7 +211,11 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
         return completeEntity;
     }
 
+    CompleteItemType completeItemType();
+
     long getIdentifier();
+
+    Map<String, String> getTags();
 
     /**
      * A shallow {@link CompleteEntity} is one that contains only its identifier as effective data.
@@ -220,16 +224,18 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
      */
     boolean isShallow();
 
-    CompleteEntity withIdentifier(long identifier);
-
-    CompleteEntity withRelationIdentifiers(Set<Long> relationIdentifiers);
-
-    CompleteEntity withRelations(Set<Relation> relations);
+    void setTags(Map<String, String> tags);
 
     default C withAddedTag(final String key, final String value)
     {
         return CompleteEntity.withAddedTag((C) this, key, value, false);
     }
+
+    CompleteEntity withIdentifier(long identifier);
+
+    CompleteEntity withRelationIdentifiers(Set<Long> relationIdentifiers);
+
+    CompleteEntity withRelations(Set<Relation> relations);
 
     default C withRemovedTag(final String key)
     {
@@ -245,10 +251,4 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
     {
         return CompleteEntity.withTags((C) this, tags, false);
     }
-
-    void setTags(Map<String, String> tags);
-
-    Map<String, String> getTags();
-
-    CompleteItemType completeItemType();
 }

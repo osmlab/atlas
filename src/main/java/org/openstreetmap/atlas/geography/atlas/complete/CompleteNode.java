@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -219,7 +220,7 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     @Override
     public void setTags(final Map<String, String> tags)
     {
-        this.tags = tags;
+        this.tags = tags != null ? new HashMap<>(tags) : null;
     }
 
     @Override

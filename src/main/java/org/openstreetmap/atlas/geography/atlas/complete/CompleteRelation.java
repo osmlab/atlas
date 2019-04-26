@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -137,6 +138,12 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     }
 
     @Override
+    public CompleteItemType completeItemType()
+    {
+        return CompleteItemType.RELATION;
+    }
+
+    @Override
     public boolean equals(final Object other)
     {
         if (other instanceof CompleteRelation)
@@ -203,6 +210,12 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         return this.relationIdentifiers == null ? null
                 : this.relationIdentifiers.stream().map(CompleteRelation::new)
                         .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void setTags(final Map<String, String> tags)
+    {
+        this.tags = tags != null ? new HashMap<>(tags) : null;
     }
 
     @Override
@@ -409,17 +422,5 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     private void updateBounds(final Rectangle bounds)
     {
         this.bounds = bounds;
-    }
-
-    @Override
-    public void setTags(final Map tags)
-    {
-        this.tags = tags;
-    }
-
-    @Override
-    public CompleteItemType completeItemType()
-    {
-        return CompleteItemType.RELATION;
     }
 }
