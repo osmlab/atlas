@@ -83,7 +83,7 @@ java -cp atlas-5.1.8-SNAPSHOT-shaded.jar org.openstreetmap.atlas.geography.atlas
 #### IntelliJ Setup
 
 IntellJ IDEA works pretty much out of the box. However, you still need to mess with log4j. First, add a 
-`log4j.properties` file to your project or your VM Options. Also see section on Lombok.
+`log4j.properties` file to your project or your VM Options. Also see section on Lombok Setup.
 
 Also, you need to manually add [slf4j-simple.jar](https://mvnrepository.com/artifact/org.slf4j/slf4j-simple/1.7.25) 
 to your Project Module Dependencies:
