@@ -25,6 +25,7 @@ branches:
   - master
   - dev
 language: java
+dist: xenial
 jdk:
   - openjdk11
 before_install:
