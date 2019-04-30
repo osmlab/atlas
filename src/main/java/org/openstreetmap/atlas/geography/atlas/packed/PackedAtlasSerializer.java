@@ -358,7 +358,7 @@ public final class PackedAtlasSerializer
         }
         if (result == null)
         {
-            throw new CoreException("Unable to deserialize resource {} from field {} in {}.",
+            throw new CoreException("Unable to deserialize field {} from resource {} in {}.",
                     fieldName, resource.getName(), this.atlas.getName());
         }
         return result;
