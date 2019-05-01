@@ -25,6 +25,7 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.validators.FeatureChangeUsefulnessValidator;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 
@@ -61,7 +62,8 @@ public class FeatureChangeTest
 
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("is not useful");
-        new FeatureChange(ChangeType.ADD, after, before);
+        new FeatureChangeUsefulnessValidator(new FeatureChange(ChangeType.ADD, after, before))
+                .validate();
     }
 
     @Test
@@ -82,7 +84,8 @@ public class FeatureChangeTest
 
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("is not useful");
-        new FeatureChange(ChangeType.ADD, after, before);
+        new FeatureChangeUsefulnessValidator(new FeatureChange(ChangeType.ADD, after, before))
+                .validate();
     }
 
     @Test
@@ -99,7 +102,8 @@ public class FeatureChangeTest
 
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("is not useful");
-        new FeatureChange(ChangeType.ADD, after, before);
+        new FeatureChangeUsefulnessValidator(new FeatureChange(ChangeType.ADD, after, before))
+                .validate();
     }
 
     @Test
@@ -120,7 +124,8 @@ public class FeatureChangeTest
 
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("is not useful");
-        new FeatureChange(ChangeType.ADD, after, before);
+        new FeatureChangeUsefulnessValidator(new FeatureChange(ChangeType.ADD, after, before))
+                .validate();
     }
 
     @Test
@@ -137,7 +142,8 @@ public class FeatureChangeTest
 
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("is not useful");
-        new FeatureChange(ChangeType.ADD, after, before);
+        new FeatureChangeUsefulnessValidator(new FeatureChange(ChangeType.ADD, after, before))
+                .validate();
     }
 
     @Test
@@ -165,7 +171,8 @@ public class FeatureChangeTest
 
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("is not useful");
-        new FeatureChange(ChangeType.ADD, after, before);
+        new FeatureChangeUsefulnessValidator(new FeatureChange(ChangeType.ADD, after, before))
+                .validate();
     }
 
     @Test
