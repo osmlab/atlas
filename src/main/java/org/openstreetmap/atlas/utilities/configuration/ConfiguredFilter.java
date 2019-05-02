@@ -45,16 +45,30 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     {
         if (DEFAULT.equals(name))
         {
-            return NO_FILTER;
+            return getDefaultFilter(configuration);
         }
-        if (!new ConfigurationReader(CONFIGURATION_ROOT).isPresent(configuration, name))
+        if (!isPresent(name, configuration))
         {
             logger.warn(
                     "Attempted to create ConfiguredFilter called \"{}\" but it was not found. It will be swapped with default passthrough filter.",
                     name);
-            return NO_FILTER;
+            return getDefaultFilter(configuration);
         }
         return new ConfiguredFilter(name, configuration);
+    }
+
+    public static ConfiguredFilter getDefaultFilter(final Configuration configuration)
+    {
+        if (ConfiguredFilter.isPresent(DEFAULT, configuration))
+        {
+            return new ConfiguredFilter(DEFAULT, configuration);
+        }
+        return NO_FILTER;
+    }
+
+    public static boolean isPresent(final String name, final Configuration configuration)
+    {
+        return new ConfigurationReader(CONFIGURATION_ROOT).isPresent(configuration, name);
     }
 
     private ConfiguredFilter()
