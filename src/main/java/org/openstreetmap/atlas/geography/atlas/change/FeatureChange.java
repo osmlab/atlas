@@ -30,7 +30,6 @@ import org.openstreetmap.atlas.geography.atlas.items.LocationItem;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-import org.openstreetmap.atlas.geography.atlas.validators.FeatureChangeUsefulnessValidator;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 
 /**
@@ -197,10 +196,6 @@ public class FeatureChange implements Located, Serializable
         }
 
         this.validateNotShallow();
-        if (this.beforeView != null)
-        {
-            new FeatureChangeUsefulnessValidator(this).validate();
-        }
     }
 
     /**
@@ -215,7 +210,6 @@ public class FeatureChange implements Located, Serializable
     FeatureChange withAtlasContext(final Atlas atlas)
     {
         computeBeforeViewUsingAtlasContext(atlas, this.changeType);
-        new FeatureChangeUsefulnessValidator(this).validate();
         return this;
     }
 
