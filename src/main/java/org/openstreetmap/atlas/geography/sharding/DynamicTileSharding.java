@@ -504,7 +504,7 @@ public class DynamicTileSharding extends Command implements Sharding
      * @param resource
      *            The {@link WritableResource} to serialize the tree definition to.
      */
-    private void save(final WritableResource resource)
+    public void save(final WritableResource resource)
     {
         this.root.save(resource);
     }
