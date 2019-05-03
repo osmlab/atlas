@@ -343,17 +343,25 @@ public final class PackedAtlasSerializer
     private Object deserializeResource(final Resource resource, final String fieldName)
     {
         final AtlasSerializationFormat loadFormat = this.atlas.getLoadSerializationFormat();
-
+        Object result = null;
         switch (loadFormat)
         {
             case JAVA:
-                return deserializeJavaResource(resource);
+                result = deserializeJavaResource(resource);
+                break;
             case PROTOBUF:
-                return deserializeProtoResource(resource, fieldName);
+                result = deserializeProtoResource(resource, fieldName);
+                break;
             default:
                 throw new CoreException("Unsupported serialization format {}",
                         loadFormat.toString());
         }
+        if (result == null)
+        {
+            throw new CoreException("Unable to deserialize field {} from resource {} in {}.",
+                    fieldName, resource.getName(), this.atlas.getName());
+        }
+        return result;
     }
 
     /**
