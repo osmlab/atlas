@@ -11,6 +11,7 @@ import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.OutputStreamWritableResource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
+import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
@@ -59,7 +60,7 @@ public class OsmToAtlasCommand extends MultipleOutputCommand
 
             final Path absoluteOsmPath = this.optionAndArgumentDelegate
                     .getUnaryArgument(INPUT_OSM_FILE).map(Paths::get)
-                    .orElseThrow(() -> new CoreException("No osm path found.")).toAbsolutePath();
+                    .orElseThrow(AtlasShellToolsException::new).toAbsolutePath();
 
             if (!absoluteOsmPath.toFile().isDirectory())
             {
@@ -73,7 +74,7 @@ public class OsmToAtlasCommand extends MultipleOutputCommand
             }
             else
             {
-                throw new CoreException("Osm file path is directory");
+                throw new CoreException("{} is a directory", absoluteOsmPath.toString());
             }
         }
         catch (final Exception exception)
@@ -88,7 +89,7 @@ public class OsmToAtlasCommand extends MultipleOutputCommand
             {
                 this.outputDelegate.printlnErrorMessage(exception.getMessage());
             }
-            return -1;
+            return 1;
         }
         return 0;
     }
@@ -132,7 +133,7 @@ public class OsmToAtlasCommand extends MultipleOutputCommand
         registerArgument(INPUT_OSM_FILE, ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
         registerOptionWithRequiredArgument(NAME, "Name of output atlas file",
                 OptionOptionality.OPTIONAL, "output-name");
-        registerOption(JOSM, "osm file saved from JOSM layer", OptionOptionality.OPTIONAL);
+        registerOption(JOSM, "osm file in JOSM format", OptionOptionality.OPTIONAL);
         super.registerOptionsAndArguments();
     }
 }
