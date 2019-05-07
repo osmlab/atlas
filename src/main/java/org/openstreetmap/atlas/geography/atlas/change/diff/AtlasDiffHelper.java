@@ -24,8 +24,9 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A helper class for {@link AtlasDiff}. Contains lots of static utilities.
@@ -34,8 +35,10 @@ import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
  */
 public final class AtlasDiffHelper
 {
+    private static final Logger logger = LoggerFactory.getLogger(AtlasDiffHelper.class);
+
     public static Optional<FeatureChange> getAreaChangeIfNecessary(final Area beforeArea,
-            final Area afterArea)
+            final Area afterArea, final Atlas beforeViewAtlas)
     {
         try
         {
@@ -48,7 +51,7 @@ public final class AtlasDiffHelper
             }
             if (featureChangeWouldBeUseful)
             {
-                return Optional.of(new FeatureChange(ChangeType.ADD, completeArea));
+                return Optional.of(FeatureChange.add(completeArea, beforeViewAtlas));
             }
         }
         catch (final Exception exception)
@@ -60,7 +63,7 @@ public final class AtlasDiffHelper
     }
 
     public static Optional<FeatureChange> getEdgeChangeIfNecessary(final Edge beforeEdge,
-            final Edge afterEdge, final boolean saveAllGeometries)
+            final Edge afterEdge, final Atlas beforeViewAtlas, final boolean saveAllGeometries)
     {
         try
         {
@@ -92,7 +95,7 @@ public final class AtlasDiffHelper
                 {
                     completeEdge.withPolyLine(afterEdge.asPolyLine());
                 }
-                return Optional.of(new FeatureChange(ChangeType.ADD, completeEdge));
+                return Optional.of(FeatureChange.add(completeEdge, beforeViewAtlas));
             }
         }
         catch (final Exception exception)
@@ -104,7 +107,7 @@ public final class AtlasDiffHelper
     }
 
     public static Optional<FeatureChange> getLineChangeIfNecessary(final Line beforeLine,
-            final Line afterLine)
+            final Line afterLine, final Atlas beforeViewAtlas)
     {
         try
         {
@@ -117,7 +120,7 @@ public final class AtlasDiffHelper
             }
             if (featureChangeWouldBeUseful)
             {
-                return Optional.of(new FeatureChange(ChangeType.ADD, completeLine));
+                return Optional.of(FeatureChange.add(completeLine, beforeViewAtlas));
             }
         }
         catch (final Exception exception)
@@ -129,7 +132,7 @@ public final class AtlasDiffHelper
     }
 
     public static Optional<FeatureChange> getNodeChangeIfNecessary(final Node beforeNode,
-            final Node afterNode, final boolean saveAllGeometries)
+            final Node afterNode, final Atlas beforeViewAtlas, final boolean saveAllGeometries)
     {
         try
         {
@@ -142,8 +145,9 @@ public final class AtlasDiffHelper
             }
             if (differentEdgeSet(beforeNode.inEdges(), afterNode.inEdges()))
             {
-                completeNode.withInEdgeIdentifiers(new TreeSet<>(afterNode.inEdges().stream()
-                        .map(Edge::getIdentifier).collect(Collectors.toSet())));
+                completeNode.withInEdgeIdentifiersAndSource(new TreeSet<>(afterNode.inEdges()
+                        .stream().map(Edge::getIdentifier).collect(Collectors.toSet())),
+                        beforeNode);
                 if (saveAllGeometries)
                 {
                     completeNode.withLocation(afterNode.getLocation());
@@ -152,8 +156,9 @@ public final class AtlasDiffHelper
             }
             if (differentEdgeSet(beforeNode.outEdges(), afterNode.outEdges()))
             {
-                completeNode.withOutEdgeIdentifiers(new TreeSet<>(afterNode.outEdges().stream()
-                        .map(Edge::getIdentifier).collect(Collectors.toSet())));
+                completeNode.withOutEdgeIdentifiersAndSource(new TreeSet<>(afterNode.outEdges()
+                        .stream().map(Edge::getIdentifier).collect(Collectors.toSet())),
+                        beforeNode);
                 if (saveAllGeometries)
                 {
                     completeNode.withLocation(afterNode.getLocation());
@@ -162,7 +167,7 @@ public final class AtlasDiffHelper
             }
             if (featureChangeWouldBeUseful)
             {
-                return Optional.of(new FeatureChange(ChangeType.ADD, completeNode));
+                return Optional.of(FeatureChange.add(completeNode, beforeViewAtlas));
             }
         }
         catch (final Exception exception)
@@ -175,7 +180,7 @@ public final class AtlasDiffHelper
 
     public static Optional<FeatureChange> getParentRelationMembershipChangeIfNecessary(
             final AtlasEntity beforeEntity, final AtlasEntity afterEntity,
-            final boolean saveAllGeometries)
+            final Atlas beforeViewAtlas, final boolean saveAllGeometries)
     {
         try
         {
@@ -194,17 +199,17 @@ public final class AtlasDiffHelper
             }
 
             /*
-             * Now, check to see if the afterEntity was different from the beforeEntity in any
-             * relations in the afterAtlas. If they were not different, there is no feature change.
+             * If the relation identifier sets are equivalent, then there was no parent relation
+             * membership change.
              */
-            if (!entitiesWereDifferentInRelations(beforeEntity, afterEntity))
+            if (beforeRelationIdentifiers.equals(afterRelationIdentifiers))
             {
                 return Optional.empty();
             }
 
             /*
-             * OK! We made it here because we have confirmed that the entities have some
-             * relation-related difference. We create a feature change to reflect this.
+             * OK! We made it here because we have confirmed that the entities have differing
+             * declared parent relation identifiers. We create a feature change to reflect this.
              */
             final AtlasEntity completeEntity;
             switch (afterEntity.getType())
@@ -264,7 +269,7 @@ public final class AtlasDiffHelper
                     throw new CoreException("Unknown item type {}", afterEntity.getType());
             }
             // featureChange should never be null
-            return Optional.of(new FeatureChange(ChangeType.ADD, completeEntity));
+            return Optional.of(FeatureChange.add(completeEntity, beforeViewAtlas));
         }
         catch (final Exception exception)
         {
@@ -274,7 +279,7 @@ public final class AtlasDiffHelper
     }
 
     public static Optional<FeatureChange> getPointChangeIfNecessary(final Point beforePoint,
-            final Point afterPoint)
+            final Point afterPoint, final Atlas beforeViewAtlas)
     {
         try
         {
@@ -287,7 +292,7 @@ public final class AtlasDiffHelper
             }
             if (featureChangeWouldBeUseful)
             {
-                return Optional.of(new FeatureChange(ChangeType.ADD, completePoint));
+                return Optional.of(FeatureChange.add(completePoint, beforeViewAtlas));
             }
         }
         catch (final Exception exception)
@@ -299,7 +304,8 @@ public final class AtlasDiffHelper
     }
 
     public static Optional<FeatureChange> getRelationChangeIfNecessary(
-            final Relation beforeRelation, final Relation afterRelation)
+            final Relation beforeRelation, final Relation afterRelation,
+            final Atlas beforeViewAtlas)
     {
         try
         {
@@ -314,7 +320,7 @@ public final class AtlasDiffHelper
             }
             if (featureChangeWouldBeUseful)
             {
-                return Optional.of(new FeatureChange(ChangeType.ADD, completeRelation));
+                return Optional.of(FeatureChange.add(completeRelation, beforeViewAtlas));
             }
         }
         catch (final Exception exception)
@@ -326,7 +332,8 @@ public final class AtlasDiffHelper
     }
 
     public static Optional<FeatureChange> getTagChangeIfNecessary(final AtlasEntity beforeEntity,
-            final AtlasEntity afterEntity, final boolean saveAllGeometries)
+            final AtlasEntity afterEntity, final Atlas beforeViewAtlas,
+            final boolean saveAllGeometries)
     {
         if (beforeEntity.getTags().equals(afterEntity.getTags()))
         {
@@ -389,118 +396,140 @@ public final class AtlasDiffHelper
             default:
                 throw new CoreException("Unknown item type {}", afterEntity.getType());
         }
-        return Optional.of(new FeatureChange(ChangeType.ADD, completeEntity));
+        return Optional.of(FeatureChange.add(completeEntity, beforeViewAtlas));
     }
 
     public static FeatureChange simpleCompleteAreaChange(final ChangeType changeType,
-            final Atlas atlas, final AtlasEntity entity, final boolean saveAllGeometries)
+            final Atlas atlasContainingTheEntity, final Atlas beforeViewAtlas,
+            final AtlasEntity entity, final boolean saveAllGeometries)
     {
         final Long entityIdentifier = entity.getIdentifier();
         if (changeType == ChangeType.REMOVE)
         {
-            CompleteArea completeArea = CompleteArea.shallowFrom(atlas.area(entityIdentifier));
+            CompleteArea completeArea = CompleteArea
+                    .shallowFrom(atlasContainingTheEntity.area(entityIdentifier));
             if (saveAllGeometries)
             {
                 completeArea = completeArea.withPolygon(((Area) entity).asPolygon());
             }
-            return new FeatureChange(changeType, completeArea);
+            return FeatureChange.remove(completeArea, beforeViewAtlas);
         }
         else
         {
-            return new FeatureChange(changeType, CompleteArea.from(atlas.area(entityIdentifier)));
+            return FeatureChange.add(
+                    CompleteArea.from(atlasContainingTheEntity.area(entityIdentifier)),
+                    beforeViewAtlas);
         }
     }
 
     public static FeatureChange simpleCompleteEdgeChange(final ChangeType changeType,
-            final Atlas atlas, final AtlasEntity entity, final boolean saveAllGeometries)
+            final Atlas atlasContainingTheEntity, final Atlas beforeViewAtlas,
+            final AtlasEntity entity, final boolean saveAllGeometries)
     {
         final Long entityIdentifier = entity.getIdentifier();
         if (changeType == ChangeType.REMOVE)
         {
-            CompleteEdge completeEdge = CompleteEdge.shallowFrom(atlas.edge(entityIdentifier));
+            CompleteEdge completeEdge = CompleteEdge
+                    .shallowFrom(atlasContainingTheEntity.edge(entityIdentifier));
             if (saveAllGeometries)
             {
                 completeEdge = completeEdge.withPolyLine(((Edge) entity).asPolyLine());
             }
-            return new FeatureChange(changeType, completeEdge);
+            return FeatureChange.remove(completeEdge, beforeViewAtlas);
         }
         else
         {
-            return new FeatureChange(changeType, CompleteEdge.from(atlas.edge(entityIdentifier)));
+            return FeatureChange.add(
+                    CompleteEdge.from(atlasContainingTheEntity.edge(entityIdentifier)),
+                    beforeViewAtlas);
         }
     }
 
     public static FeatureChange simpleCompleteLineChange(final ChangeType changeType,
-            final Atlas atlas, final AtlasEntity entity, final boolean saveAllGeometries)
+            final Atlas atlasContainingTheEntity, final Atlas beforeViewAtlas,
+            final AtlasEntity entity, final boolean saveAllGeometries)
     {
         final Long entityIdentifier = entity.getIdentifier();
         if (changeType == ChangeType.REMOVE)
         {
-            CompleteLine completeLine = CompleteLine.shallowFrom(atlas.line(entityIdentifier));
+            CompleteLine completeLine = CompleteLine
+                    .shallowFrom(atlasContainingTheEntity.line(entityIdentifier));
             if (saveAllGeometries)
             {
                 completeLine = completeLine.withPolyLine(((Line) entity).asPolyLine());
             }
-            return new FeatureChange(changeType, completeLine);
+            return FeatureChange.remove(completeLine, beforeViewAtlas);
         }
         else
         {
-            return new FeatureChange(changeType, CompleteLine.from(atlas.line(entityIdentifier)));
+            return FeatureChange.add(
+                    CompleteLine.from(atlasContainingTheEntity.line(entityIdentifier)),
+                    beforeViewAtlas);
         }
     }
 
     public static FeatureChange simpleCompleteNodeChange(final ChangeType changeType,
-            final Atlas atlas, final AtlasEntity entity, final boolean saveAllGeometries)
+            final Atlas atlasContainingTheEntity, final Atlas beforeViewAtlas,
+            final AtlasEntity entity, final boolean saveAllGeometries)
     {
         final Long entityIdentifier = entity.getIdentifier();
         if (changeType == ChangeType.REMOVE)
         {
-            CompleteNode completeNode = CompleteNode.shallowFrom(atlas.node(entityIdentifier));
+            CompleteNode completeNode = CompleteNode
+                    .shallowFrom(atlasContainingTheEntity.node(entityIdentifier));
             if (saveAllGeometries)
             {
                 completeNode = completeNode.withLocation(((Node) entity).getLocation());
             }
-            return new FeatureChange(changeType, completeNode);
+            return FeatureChange.remove(completeNode, beforeViewAtlas);
         }
         else
         {
-            return new FeatureChange(changeType, CompleteNode.from(atlas.node(entityIdentifier)));
+            return FeatureChange.add(
+                    CompleteNode.from(atlasContainingTheEntity.node(entityIdentifier)),
+                    beforeViewAtlas);
         }
     }
 
     public static FeatureChange simpleCompletePointChange(final ChangeType changeType,
-            final Atlas atlas, final AtlasEntity entity, final boolean saveAllGeometries)
+            final Atlas atlasContainingTheEntity, final Atlas beforeViewAtlas,
+            final AtlasEntity entity, final boolean saveAllGeometries)
     {
         final Long entityIdentifier = entity.getIdentifier();
         if (changeType == ChangeType.REMOVE)
         {
-            CompletePoint completePoint = CompletePoint.shallowFrom(atlas.point(entityIdentifier));
+            CompletePoint completePoint = CompletePoint
+                    .shallowFrom(atlasContainingTheEntity.point(entityIdentifier));
             if (saveAllGeometries)
             {
                 completePoint = completePoint.withLocation(((Point) entity).getLocation());
             }
-            return new FeatureChange(changeType, completePoint);
+            return FeatureChange.remove(completePoint, beforeViewAtlas);
         }
         else
         {
-            return new FeatureChange(changeType, CompletePoint.from(atlas.point(entityIdentifier)));
+            return FeatureChange.add(
+                    CompletePoint.from(atlasContainingTheEntity.point(entityIdentifier)),
+                    beforeViewAtlas);
         }
     }
 
     public static FeatureChange simpleCompleteRelationChange(final ChangeType changeType,
-            final Atlas atlas, final AtlasEntity entity)
+            final Atlas atlasContainingTheEntity, final Atlas beforeViewAtlas,
+            final AtlasEntity entity)
     {
         final Long entityIdentifier = entity.getIdentifier();
         if (changeType == ChangeType.REMOVE)
         {
             final CompleteRelation completeRelation = CompleteRelation
-                    .shallowFrom(atlas.relation(entityIdentifier));
-            return new FeatureChange(changeType, completeRelation);
+                    .shallowFrom(atlasContainingTheEntity.relation(entityIdentifier));
+            return FeatureChange.remove(completeRelation, beforeViewAtlas);
         }
         else
         {
-            return new FeatureChange(changeType,
-                    CompleteRelation.from(atlas.relation(entityIdentifier)));
+            return FeatureChange.add(
+                    CompleteRelation.from(atlasContainingTheEntity.relation(entityIdentifier)),
+                    beforeViewAtlas);
         }
     }
 
@@ -527,87 +556,6 @@ public final class AtlasDiffHelper
             }
         }
         return false;
-    }
-
-    private static boolean entitiesWereDifferentInRelations(final AtlasEntity beforeEntity, // NOSONAR
-            final AtlasEntity afterEntity)
-    {
-        try
-        {
-            final Set<Relation> beforeRelations = beforeEntity.relations();
-            final Set<Relation> afterRelations = afterEntity.relations();
-
-            if (beforeRelations.size() != afterRelations.size())
-            {
-                return true;
-            }
-            for (final Relation beforeRelation : beforeRelations)
-            {
-                Relation afterRelation = null;
-                for (final Relation afterRelationCandidate : afterRelations)
-                {
-                    if (afterRelationCandidate.getIdentifier() == beforeRelation.getIdentifier())
-                    {
-                        afterRelation = afterRelationCandidate;
-                        break;
-                    }
-                }
-                if (afterRelation == null)
-                {
-                    // The two relation sets are different
-                    return true;
-                }
-
-                // Index of the member in the Relation's member list
-                int beforeIndex = -1;
-                int afterIndex = -1;
-                final RelationMemberList beforeMembers = beforeRelation.members();
-                final RelationMemberList afterMembers = afterRelation.members();
-                for (int j = 0; j < beforeMembers.size(); j++)
-                {
-                    final RelationMember beforeMember = beforeMembers.get(j);
-                    if (beforeMember.getEntity().getIdentifier() == beforeEntity.getIdentifier())
-                    {
-                        beforeIndex = j;
-                    }
-                }
-                for (int j = 0; j < afterMembers.size(); j++)
-                {
-                    final RelationMember afterMember = afterMembers.get(j);
-                    if (afterMember.getEntity().getIdentifier() == beforeEntity.getIdentifier())
-                    {
-                        afterIndex = j;
-                    }
-                }
-                if (beforeIndex < 0 || afterIndex < 0)
-                {
-                    throw new CoreException("Corrupted Atlas dataset.");
-                }
-                if (beforeIndex != afterIndex)
-                {
-                    // Order changed
-                    return true;
-                }
-                if (!beforeMembers.get(beforeIndex).getRole()
-                        .equals(afterMembers.get(afterIndex).getRole()))
-                {
-                    // Role changed
-                    return true;
-                }
-                if (beforeMembers.get(beforeIndex).getEntity().getType() != afterMembers
-                        .get(afterIndex).getEntity().getType())
-                {
-                    // Type changed
-                    return true;
-                }
-            }
-            return false;
-        }
-        catch (final Exception exception)
-        {
-            throw new CoreException("Unable to compare relations for {} and {}", beforeEntity,
-                    afterEntity, exception);
-        }
     }
 
     private AtlasDiffHelper()

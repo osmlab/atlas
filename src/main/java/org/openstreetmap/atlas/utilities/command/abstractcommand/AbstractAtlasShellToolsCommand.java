@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
  * aid in command development, including some builtin options.
  *
  * @author lcram
+ * @author bbreithaupt
  */
 public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsMarkerInterface
 {
@@ -623,20 +624,13 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     /**
      * Run this subcommand using all the special setup and teardown semantics provided by
      * {@link AbstractAtlasShellToolsCommand}. It automatically registers some default standard
-     * arguments: (help,h) and (verbose,v). An example of how this method should be called to make
-     * the command functional with an external wrapper:
-     *
-     * <pre>
-     * public static void main(final String[] args)
-     * {
-     *     new MySubclassSubcommand().runSubcommandAndExit(args);
-     * }
-     * </pre>
+     * arguments: (help,h) and (verbose,v).
      *
      * @param args
      *            the command arguments
+     * @return an {@code int} that can be used as a system return code
      */
-    protected void runSubcommandAndExit(final String... args)
+    public int runSubcommand(final String... args)
     {
         throwIfInvalidNameOrDescription();
 
@@ -686,17 +680,36 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             {
                 printlnStdout(this.getHelpMenu());
             }
-            System.exit(0);
+            return 0;
         }
 
         if (this.parser.hasOption(VERSION_OPTION_LONG))
         {
             printlnStdout(String.format("%s version %s", getCommandName(), this.version));
-            System.exit(0);
+            return 0;
         }
 
         // run the command
-        System.exit(execute());
+        return execute();
+    }
+
+    /**
+     * Run this subcommand and exit the JVM. An example of how this method should be called to make
+     * the command functional with an external wrapper:
+     *
+     * <pre>
+     * public static void main(final String[] args)
+     * {
+     *     new MySubclassSubcommand().runSubcommandAndExit(args);
+     * }
+     * </pre>
+     *
+     * @param args
+     *            the command arguments
+     */
+    public void runSubcommandAndExit(final String... args)
+    {
+        System.exit(this.runSubcommand(args));
     }
 
     /**

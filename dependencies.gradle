@@ -9,6 +9,7 @@ project.ext.versions = [
     math: '3.3',
     http: '4.5.1',
     jts: '1.16.1',
+    jtslab: '1.16.1.1',
     geotools: '20.2',
     osmosis: '0.44.1',
     commons:'1.3.1',
@@ -19,13 +20,14 @@ project.ext.versions = [
     classgraph: '4.6.32',
     guava: '27.0.1-jre',
     jsonassert:'1.3.0',
-    jackson_core:'2.8.8',
-    jackson_databind:'2.8.8.1',
-    jackson_dataformat_yaml:'2.8.8',
+    jackson_core:'2.9.8',
+    jackson_databind:'2.9.8',
+    jackson_dataformat_yaml:'2.9.8',
     protobuf_java:'2.6.1',
     protoc:'2.6.1',
     artifact:'3.5.4',
-    groovy: '2.5.4'
+    groovy: '2.5.4',
+    lombok: '1.18.4'
 ]
 
 project.ext.packages = [
@@ -41,6 +43,7 @@ project.ext.packages = [
     math: "org.apache.commons:commons-math3:${versions.math}",
     http: "org.apache.httpcomponents:httpclient:${versions.http}",
     jts: "org.locationtech.jts:jts-core:${versions.jts}",
+    jtslab: "org.rotstan.jts:jts-lab:${versions.jtslab}",
     geotools: "org.geotools:gt-shapefile:${versions.geotools}",
     osmosis: [
         core: "org.openstreetmap.osmosis:osmosis-core:${versions.osmosis}",
@@ -66,5 +69,6 @@ project.ext.packages = [
     protobuf_java: "com.google.protobuf:protobuf-java:${versions.protobuf_java}",
     protoc: "com.google.protobuf:protoc:${versions.protoc}",
     artifact: "org.apache.maven:maven-artifact:${versions.artifact}",
-    groovy: "org.codehaus.groovy:groovy:${versions.groovy}"
+    groovy: "org.codehaus.groovy:groovy:${versions.groovy}",
+    lombok: "org.projectlombok:lombok:${versions.lombok}"
 ]

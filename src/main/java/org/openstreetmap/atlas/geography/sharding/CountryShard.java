@@ -1,19 +1,19 @@
 package org.openstreetmap.atlas.geography.sharding;
 
-import java.io.Serializable;
-
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.utilities.collections.StringList;
+
+import com.google.gson.JsonObject;
 
 /**
  * Shard and country pair
  *
  * @author matthieun
  */
-public class CountryShard implements Located, Serializable
+public class CountryShard implements Shard
 {
     private static final long serialVersionUID = -4158215940506552768L;
 
@@ -42,6 +42,12 @@ public class CountryShard implements Located, Serializable
     }
 
     @Override
+    public JsonObject asGeoJson()
+    {
+        return this.shard.asGeoJson();
+    }
+
+    @Override
     public Rectangle bounds()
     {
         return this.shard.bounds();
@@ -64,6 +70,18 @@ public class CountryShard implements Located, Serializable
         return this.country;
     }
 
+    @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return this.shard.getGeoJsonType();
+    }
+
+    @Override
+    public String getName()
+    {
+        return this.country + COUNTRY_SHARD_SEPARATOR + this.shard.getName();
+    }
+
     public Shard getShard()
     {
         return this.shard;
@@ -78,6 +96,18 @@ public class CountryShard implements Located, Serializable
     @Override
     public String toString()
     {
-        return this.country + COUNTRY_SHARD_SEPARATOR + this.shard.getName();
+        return getName();
+    }
+
+    @Override
+    public byte[] toWkb()
+    {
+        return this.shard.toWkb();
+    }
+
+    @Override
+    public String toWkt()
+    {
+        return this.shard.toWkt();
     }
 }

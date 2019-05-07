@@ -64,7 +64,7 @@ spotless {
             include '**/*.java'
             exclude 'src/generated/**/*.java'
         }
-        importOrder 'static java', 'static javax', 'static org', 'static com', 'static scala', 'java', 'javax', 'org', 'com', 'scala'
+        importOrder 'static java', 'static javax', 'static org', 'static com', 'static scala', 'java', 'javax', 'org', 'com', 'scala', 'lombok'
         removeUnusedImports()
         eclipse().configFile 'config/format/code_format.xml'
     }

@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -18,29 +19,19 @@ import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
+import lombok.experimental.Delegate;
+
 /**
  * Independent {@link Relation} that contains its own data. At scale, use at your own risk.
  *
  * @author matthieun
+ * @author Yazad Khambata
  */
-public class CompleteRelation extends Relation implements CompleteEntity
+public class CompleteRelation extends Relation implements CompleteEntity<CompleteRelation>
 {
     private static final long serialVersionUID = -8295865049110084558L;
 
-    /*
-     * We need to store the original entity bounds at creation-time. This is so multiple consecutive
-     * with(Located) calls can update the aggregate bounds without including the bounds from the
-     * overwritten change.
-     */
-    private Rectangle originalBounds;
-
-    /*
-     * This is the aggregate feature bounds. It is a super-bound of the original bounds and the
-     * changed bounds, if present. Each time with(Located) is called on this entity, it is
-     * recomputed from the original bounds and the new Located bounds.
-     */
-    private Rectangle aggregateBounds;
-
+    private Rectangle bounds;
     private long identifier;
     private Map<String, String> tags;
     private RelationBean members;
@@ -49,6 +40,18 @@ public class CompleteRelation extends Relation implements CompleteEntity
     private Long osmRelationIdentifier;
     private Set<Long> relationIdentifiers;
 
+    @Delegate
+    private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
+
+    /**
+     * Create a {@link CompleteRelation} from a given {@link Relation} reference. The
+     * {@link CompleteRelation}'s fields will match the fields of the reference. The returned
+     * {@link CompleteRelation} will be full, i.e. all of its associated fields will be non-null.
+     *
+     * @param relation
+     *            the {@link Relation} to copy
+     * @return the full {@link CompleteRelation}
+     */
     public static CompleteRelation from(final Relation relation)
     {
         return new CompleteRelation(relation.getIdentifier(), relation.getTags(), relation.bounds(),
@@ -60,9 +63,20 @@ public class CompleteRelation extends Relation implements CompleteEntity
                         .collect(Collectors.toSet()));
     }
 
+    /**
+     * Create a shallow {@link CompleteRelation} from a given {@link Relation} reference. The
+     * {@link CompleteRelation}'s identifier will match the identifier of the reference
+     * {@link Relation}. The returned {@link CompleteRelation} will be shallow, i.e. all of its
+     * associated fields will be null except for the identifier.
+     *
+     * @param relation
+     *            the {@link Relation} to copy
+     * @return the shallow {@link CompleteRelation}
+     */
     public static CompleteRelation shallowFrom(final Relation relation)
     {
-        return new CompleteRelation(relation.getIdentifier()).withInitialBounds(relation.bounds());
+        return new CompleteRelation(relation.getIdentifier())
+                .withBoundsExtendedBy(relation.bounds());
     }
 
     CompleteRelation(final long identifier)
@@ -83,8 +97,7 @@ public class CompleteRelation extends Relation implements CompleteEntity
             throw new CoreException("Identifier can never be null.");
         }
 
-        this.originalBounds = bounds != null ? bounds : null;
-        this.aggregateBounds = this.originalBounds;
+        this.bounds = bounds != null ? bounds : null;
 
         this.identifier = identifier;
         this.tags = tags;
@@ -109,6 +122,10 @@ public class CompleteRelation extends Relation implements CompleteEntity
     @Override
     public List<Relation> allRelationsWithSameOsmIdentifier()
     {
+        /*
+         * Note that the Relations returned by this method will technically break the Located
+         * contract, since they have null bounds.
+         */
         return this.allRelationsWithSameOsmIdentifier == null ? null
                 : this.allRelationsWithSameOsmIdentifier.stream().map(CompleteRelation::new)
                         .collect(Collectors.toList());
@@ -117,7 +134,13 @@ public class CompleteRelation extends Relation implements CompleteEntity
     @Override
     public Rectangle bounds()
     {
-        return this.aggregateBounds;
+        return this.bounds;
+    }
+
+    @Override
+    public CompleteItemType completeItemType()
+    {
+        return CompleteItemType.RELATION;
     }
 
     @Override
@@ -157,11 +180,12 @@ public class CompleteRelation extends Relation implements CompleteEntity
     }
 
     @Override
-    public boolean isSuperShallow()
+    public boolean isShallow()
     {
-        return this.members == null && this.allRelationsWithSameOsmIdentifier == null
-                && this.allKnownOsmMembers == null && this.osmRelationIdentifier == null
-                && this.tags == null && this.relationIdentifiers == null;
+        return this.bounds == null && this.members == null
+                && this.allRelationsWithSameOsmIdentifier == null && this.allKnownOsmMembers == null
+                && this.osmRelationIdentifier == null && this.tags == null
+                && this.relationIdentifiers == null;
     }
 
     @Override
@@ -179,9 +203,19 @@ public class CompleteRelation extends Relation implements CompleteEntity
     @Override
     public Set<Relation> relations()
     {
+        /*
+         * Note that the Relations returned by this method will technically break the Located
+         * contract, since they have null bounds.
+         */
         return this.relationIdentifiers == null ? null
                 : this.relationIdentifiers.stream().map(CompleteRelation::new)
                         .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void setTags(final Map<String, String> tags)
+    {
+        this.tags = tags != null ? new HashMap<>(tags) : null;
     }
 
     @Override
@@ -190,22 +224,6 @@ public class CompleteRelation extends Relation implements CompleteEntity
         return this.getClass().getSimpleName() + " [identifier=" + this.identifier + ", tags="
                 + this.tags + ", members=" + this.members + ", relationIdentifiers="
                 + this.relationIdentifiers + "]";
-    }
-
-    @Override
-    public CompleteRelation withAddedTag(final String key, final String value)
-    {
-        return withTags(CompleteEntity.addNewTag(getTags(), key, value));
-    }
-
-    public CompleteRelation withAggregateBoundsExtendedUsing(final Rectangle bounds)
-    {
-        if (this.aggregateBounds == null)
-        {
-            this.aggregateBounds = bounds;
-        }
-        this.aggregateBounds = Rectangle.forLocated(this.aggregateBounds, bounds);
-        return this;
     }
 
     public CompleteRelation withAllKnownOsmMembers(final RelationBean allKnownOsmMembers)
@@ -218,6 +236,17 @@ public class CompleteRelation extends Relation implements CompleteEntity
             final List<Long> allRelationsWithSameOsmIdentifier)
     {
         this.allRelationsWithSameOsmIdentifier = allRelationsWithSameOsmIdentifier;
+        return this;
+    }
+
+    public CompleteRelation withBoundsExtendedBy(final Rectangle bounds)
+    {
+        if (this.bounds == null)
+        {
+            this.bounds = bounds;
+            return this;
+        }
+        this.bounds = Rectangle.forLocated(this.bounds, bounds);
         return this;
     }
 
@@ -343,6 +372,12 @@ public class CompleteRelation extends Relation implements CompleteEntity
     public CompleteRelation withMembersAndSource(final RelationMemberList members,
             final Relation source)
     {
+        if (source instanceof CompleteRelation)
+        {
+            throw new CoreException(
+                    "This version of withMembersAndSource must use a source Relation that is tied to an atlas, instead found Relation of type {}",
+                    source.getClass().getName());
+        }
         return withMembersAndSource(members.asBean(), source, members.bounds());
     }
 
@@ -367,26 +402,6 @@ public class CompleteRelation extends Relation implements CompleteEntity
         return this;
     }
 
-    @Override
-    public CompleteRelation withRemovedTag(final String key)
-    {
-        return withTags(CompleteEntity.removeTag(getTags(), key));
-    }
-
-    @Override
-    public CompleteRelation withReplacedTag(final String oldKey, final String newKey,
-            final String newValue)
-    {
-        return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
-    }
-
-    @Override
-    public CompleteRelation withTags(final Map<String, String> tags)
-    {
-        this.tags = tags;
-        return this;
-    }
-
     private RelationMemberList membersFor(final RelationBean bean)
     {
         if (bean == null)
@@ -406,17 +421,6 @@ public class CompleteRelation extends Relation implements CompleteEntity
 
     private void updateBounds(final Rectangle bounds)
     {
-        if (this.originalBounds == null)
-        {
-            this.originalBounds = bounds;
-        }
-        this.aggregateBounds = Rectangle.forLocated(this.originalBounds, bounds);
-    }
-
-    private CompleteRelation withInitialBounds(final Rectangle bounds)
-    {
-        this.originalBounds = bounds;
-        this.aggregateBounds = bounds;
-        return this;
+        this.bounds = bounds;
     }
 }

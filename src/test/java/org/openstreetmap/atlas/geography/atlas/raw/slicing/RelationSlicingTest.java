@@ -1,10 +1,8 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -15,6 +13,7 @@ import org.openstreetmap.atlas.geography.atlas.items.complex.Finder;
 import org.openstreetmap.atlas.geography.atlas.items.complex.buildings.ComplexBuildingFinder;
 import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWaterEntity;
 import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWaterEntityFinder;
+import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
@@ -35,23 +34,19 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
  */
 public class RelationSlicingTest
 {
-    private static RawAtlasCountrySlicer RAW_ATLAS_SLICER;
-    private static CountryBoundaryMap COUNTRY_BOUNDARY_MAP;
-    private static Set<String> COUNTRIES;
+    private static RawAtlasCountrySlicer rawAtlasSlicer;
+
+    private static AtlasLoadingOption loadingOption;
 
     static
     {
-        COUNTRIES = new HashSet<>();
-        COUNTRIES.add("CIV");
-        COUNTRIES.add("GIN");
-        COUNTRIES.add("LBR");
-
-        COUNTRY_BOUNDARY_MAP = CountryBoundaryMap
+        loadingOption = AtlasLoadingOption.createOptionWithAllEnabled(CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> LineAndPointSlicingTest.class
                         .getResourceAsStream("CIV_GIN_LBR_osm_boundaries_with_grid_index.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP));
+                                .withDecompressor(Decompressor.GZIP)));
+        loadingOption.setAdditionalCountryCodes("CIV", "GIN", "LBR");
+        rawAtlasSlicer = new RawAtlasCountrySlicer(loadingOption);
 
-        RAW_ATLAS_SLICER = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP);
     }
 
     @Rule
@@ -65,12 +60,12 @@ public class RelationSlicingTest
         final Map<Shard, Atlas> store;
         store = new HashMap<>();
         store.put(new SlippyTile(15624, 15756, 15),
-                RAW_ATLAS_SLICER.sliceLines(this.setup.getSingleOuterWaterSpanningTwoAtlases1()));
+                rawAtlasSlicer.sliceLines(this.setup.getSingleOuterWaterSpanningTwoAtlases1()));
         store.put(new SlippyTile(15625, 15756, 15),
-                RAW_ATLAS_SLICER.sliceLines(this.setup.getSingleOuterWaterSpanningTwoAtlases2()));
+                rawAtlasSlicer.sliceLines(this.setup.getSingleOuterWaterSpanningTwoAtlases2()));
 
-        final RawAtlasCountrySlicer dynamicSlicer = new RawAtlasCountrySlicer(COUNTRIES,
-                COUNTRY_BOUNDARY_MAP, new SlippyTileSharding(15), shard ->
+        final RawAtlasCountrySlicer dynamicSlicer = new RawAtlasCountrySlicer(loadingOption,
+                new SlippyTileSharding(15), shard ->
                 {
                     if (store.containsKey(shard))
                     {
@@ -108,13 +103,13 @@ public class RelationSlicingTest
     {
         final Map<Shard, Atlas> store;
         store = new HashMap<>();
-        store.put(new SlippyTile(15624, 15756, 15), RAW_ATLAS_SLICER
-                .sliceLines(this.setup.getSingleOuterNonWaterSpanningTwoAtlases1()));
-        store.put(new SlippyTile(15625, 15756, 15), RAW_ATLAS_SLICER
-                .sliceLines(this.setup.getSingleOuterNonWaterSpanningTwoAtlases2()));
+        store.put(new SlippyTile(15624, 15756, 15),
+                rawAtlasSlicer.sliceLines(this.setup.getSingleOuterNonWaterSpanningTwoAtlases1()));
+        store.put(new SlippyTile(15625, 15756, 15),
+                rawAtlasSlicer.sliceLines(this.setup.getSingleOuterNonWaterSpanningTwoAtlases2()));
 
-        final RawAtlasCountrySlicer dynamicSlicer = new RawAtlasCountrySlicer(COUNTRIES,
-                COUNTRY_BOUNDARY_MAP, new SlippyTileSharding(15), shard ->
+        final RawAtlasCountrySlicer dynamicSlicer = new RawAtlasCountrySlicer(loadingOption,
+                new SlippyTileSharding(15), shard ->
                 {
                     if (store.containsKey(shard))
                     {
@@ -159,7 +154,7 @@ public class RelationSlicingTest
         Assert.assertEquals(12, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
+        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
 
         Assert.assertEquals(27, slicedAtlas.numberOfPoints());
         Assert.assertEquals(5, slicedAtlas.numberOfLines());
@@ -178,8 +173,8 @@ public class RelationSlicingTest
         Assert.assertEquals(9, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
-
+        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
+        slicedAtlas.lines().forEach(System.out::println);
         Assert.assertEquals(3, slicedAtlas.numberOfLines());
         Assert.assertEquals(14, slicedAtlas.numberOfPoints());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());
@@ -203,7 +198,7 @@ public class RelationSlicingTest
         Assert.assertEquals(9, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
+        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
 
         Assert.assertEquals(8, slicedAtlas.numberOfLines());
         Assert.assertEquals(14, slicedAtlas.numberOfPoints());
@@ -227,7 +222,7 @@ public class RelationSlicingTest
         Assert.assertEquals(8, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
+        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
         new ComplexBuildingFinder().find(slicedAtlas).forEach(System.out::println);
 
         Assert.assertEquals(25, slicedAtlas.numberOfPoints());
@@ -245,7 +240,7 @@ public class RelationSlicingTest
         Assert.assertEquals(9, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
+        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
 
         Assert.assertEquals(16, slicedAtlas.numberOfPoints());
         Assert.assertEquals(6, slicedAtlas.numberOfLines());
@@ -260,7 +255,7 @@ public class RelationSlicingTest
         Assert.assertEquals(2, rawAtlas.numberOfPoints());
         Assert.assertEquals(3, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = RAW_ATLAS_SLICER.slice(rawAtlas);
+        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
         for (final Relation relation : slicedAtlas.relations())
         {
             final Map<String, String> tags = relation.getTags();

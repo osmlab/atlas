@@ -150,9 +150,7 @@ public class TagChangeTest
                         .startsWith("Cannot merge two feature changes FeatureChange"));
                 Assert.assertEquals(e.getCause().getClass(), CoreException.class);
                 Assert.assertTrue(e.getCause().getMessage()
-                        .equals("Attempted merge failed for tags: {added=this, "
-                                + "change=me, hello=world, delete=me} and {added=that, change=me, hello=world, "
-                                + "delete=me}"));
+                        .contains("Attempted afterViewNoBeforeMerge failed for tags; afterView:"));
                 return;
             }
             Assert.fail("The test didn't fail - but was expected to fail. completeItemType: "

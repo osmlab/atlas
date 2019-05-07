@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -11,43 +12,55 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
+import lombok.experimental.Delegate;
+
 /**
  * Independent {@link Line} that contains its own data. At scale, use at your own risk.
  *
  * @author matthieun
+ * @author Yazad Khambata
  */
-public class CompleteLine extends Line implements CompleteLineItem
+public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
 {
     private static final long serialVersionUID = 309534717673911086L;
 
-    /*
-     * We need to store the original entity bounds at creation-time. This is so multiple consecutive
-     * with(Located) calls can update the aggregate bounds without including the bounds from the
-     * overwritten change.
-     */
-    private Rectangle originalBounds;
-
-    /*
-     * This is the aggregate feature bounds. It is a super-bound of the original bounds and the
-     * changed bounds, if present. Each time with(Located) is called on this entity, it is
-     * recomputed from the original bounds and the new Located bounds.
-     */
-    private Rectangle aggregateBounds;
-
+    private Rectangle bounds;
     private long identifier;
     private PolyLine polyLine;
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
 
+    @Delegate
+    private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
+
+    /**
+     * Create a {@link CompleteLine} from a given {@link Line} reference. The {@link CompleteLine}'s
+     * fields will match the fields of the reference. The returned {@link CompleteLine} will be
+     * full, i.e. all of its associated fields will be non-null.
+     *
+     * @param line
+     *            the {@link Line} to copy
+     * @return the full {@link CompleteLine}
+     */
     public static CompleteLine from(final Line line)
     {
         return new CompleteLine(line.getIdentifier(), line.asPolyLine(), line.getTags(),
                 line.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
+    /**
+     * Create a shallow {@link CompleteLine} from a given {@link Line} reference. The
+     * {@link CompleteLine}'s identifier will match the identifier of the reference {@link Line}.
+     * The returned {@link CompleteLine} will be shallow, i.e. all of its associated fields will be
+     * null except for the identifier.
+     *
+     * @param line
+     *            the {@link Line} to copy
+     * @return the shallow {@link CompleteLine}
+     */
     public static CompleteLine shallowFrom(final Line line)
     {
-        return new CompleteLine(line.getIdentifier()).withInitialBounds(line.asPolyLine().bounds());
+        return new CompleteLine(line.getIdentifier()).withBoundsExtendedBy(line.bounds());
     }
 
     CompleteLine(final long identifier)
@@ -65,8 +78,7 @@ public class CompleteLine extends Line implements CompleteLineItem
             throw new CoreException("Identifier can never be null.");
         }
 
-        this.originalBounds = polyLine != null ? polyLine.bounds() : null;
-        this.aggregateBounds = this.originalBounds;
+        this.bounds = polyLine != null ? polyLine.bounds() : null;
 
         this.identifier = identifier;
         this.polyLine = polyLine;
@@ -83,7 +95,13 @@ public class CompleteLine extends Line implements CompleteLineItem
     @Override
     public Rectangle bounds()
     {
-        return this.aggregateBounds;
+        return this.bounds;
+    }
+
+    @Override
+    public CompleteItemType completeItemType()
+    {
+        return CompleteItemType.LINE;
     }
 
     @Override
@@ -117,7 +135,7 @@ public class CompleteLine extends Line implements CompleteLineItem
     }
 
     @Override
-    public boolean isSuperShallow()
+    public boolean isShallow()
     {
         return this.polyLine == null && this.tags == null && this.relationIdentifiers == null;
     }
@@ -125,9 +143,19 @@ public class CompleteLine extends Line implements CompleteLineItem
     @Override
     public Set<Relation> relations()
     {
+        /*
+         * Note that the Relations returned by this method will technically break the Located
+         * contract, since they have null bounds.
+         */
         return this.relationIdentifiers == null ? null
                 : this.relationIdentifiers.stream().map(CompleteRelation::new)
                         .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void setTags(final Map<String, String> tags)
+    {
+        this.tags = tags != null ? new HashMap<>(tags) : null;
     }
 
     @Override
@@ -138,20 +166,14 @@ public class CompleteLine extends Line implements CompleteLineItem
                 + this.relationIdentifiers + "]";
     }
 
-    @Override
-    public CompleteLine withAddedTag(final String key, final String value)
+    public CompleteLine withBoundsExtendedBy(final Rectangle bounds)
     {
-        return withTags(CompleteEntity.addNewTag(getTags(), key, value));
-    }
-
-    @Override
-    public CompleteLine withAggregateBoundsExtendedUsing(final Rectangle bounds)
-    {
-        if (this.aggregateBounds == null)
+        if (this.bounds == null)
         {
-            this.aggregateBounds = bounds;
+            this.bounds = bounds;
+            return this;
         }
-        this.aggregateBounds = Rectangle.forLocated(this.aggregateBounds, bounds);
+        this.bounds = Rectangle.forLocated(this.bounds, bounds);
         return this;
     }
 
@@ -166,11 +188,7 @@ public class CompleteLine extends Line implements CompleteLineItem
     public CompleteLine withPolyLine(final PolyLine polyLine)
     {
         this.polyLine = polyLine;
-        if (this.originalBounds == null)
-        {
-            this.originalBounds = polyLine.bounds();
-        }
-        this.aggregateBounds = Rectangle.forLocated(this.originalBounds, polyLine.bounds());
+        this.bounds = polyLine.bounds();
         return this;
     }
 
@@ -186,33 +204,6 @@ public class CompleteLine extends Line implements CompleteLineItem
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
-        return this;
-    }
-
-    @Override
-    public CompleteLine withRemovedTag(final String key)
-    {
-        return withTags(CompleteEntity.removeTag(getTags(), key));
-    }
-
-    @Override
-    public CompleteLine withReplacedTag(final String oldKey, final String newKey,
-            final String newValue)
-    {
-        return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
-    }
-
-    @Override
-    public CompleteLine withTags(final Map<String, String> tags)
-    {
-        this.tags = tags;
-        return this;
-    }
-
-    private CompleteLine withInitialBounds(final Rectangle bounds)
-    {
-        this.originalBounds = bounds;
-        this.aggregateBounds = bounds;
         return this;
     }
 }

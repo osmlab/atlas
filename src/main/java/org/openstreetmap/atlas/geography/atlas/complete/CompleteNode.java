@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -14,42 +16,39 @@ import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
+import lombok.experimental.Delegate;
+
 /**
  * Independent {@link Node} that may contain its own altered data. At scale, use at your own risk.
  *
  * @author matthieun
+ * @author Yazad Khambata
  */
-public class CompleteNode extends Node implements CompleteLocationItem
+public class CompleteNode extends Node implements CompleteLocationItem<CompleteNode>
 {
     private static final long serialVersionUID = -8229589987121555419L;
 
-    /*
-     * We need to store the original entity bounds at creation-time. This is so multiple consecutive
-     * with(Located) calls can update the aggregate bounds without including the bounds from the
-     * overwritten change.
-     */
-    private Rectangle originalBounds;
+    @Delegate
+    private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
-    /*
-     * This is the aggregate feature bounds. It is a super-bound of the original bounds and the
-     * changed bounds, if present. Each time with(Located) is called on this entity, it is
-     * recomputed from the original bounds and the new Located bounds.
-     */
-    private Rectangle aggregateBounds;
-
+    private Rectangle bounds;
     private long identifier;
     private Location location;
     private Map<String, String> tags;
     private SortedSet<Long> inEdgeIdentifiers;
     private SortedSet<Long> outEdgeIdentifiers;
+    private Set<Long> explicitlyExcludedInEdgeIdentifiers;
+    private Set<Long> explicitlyExcludedOutEdgeIdentifiers;
     private Set<Long> relationIdentifiers;
 
     /**
-     * Create a full copy of the given node.
+     * Create a {@link CompleteNode} from a given {@link Node} reference. The {@link CompleteNode}'s
+     * fields will match the fields of the reference. The returned {@link CompleteNode} will be
+     * full, i.e. all of its associated fields will be non-null.
      *
      * @param node
-     *            the {@link Node} to deep copy
-     * @return the new {@link CompleteNode}
+     *            the {@link Node} to copy
+     * @return the full {@link CompleteNode}
      */
     public static CompleteNode from(final Node node)
     {
@@ -62,17 +61,18 @@ public class CompleteNode extends Node implements CompleteLocationItem
     }
 
     /**
-     * Create a shallow copy of a given node. All fields (except the identifier and the geometry)
-     * are left null until updated by a with() call.
+     * Create a shallow {@link CompleteNode} from a given {@link Node} reference. The
+     * {@link CompleteNode}'s identifier will match the identifier of the reference {@link Node}.
+     * The returned {@link CompleteNode} will be shallow, i.e. all of its associated fields will be
+     * null except for the identifier.
      *
      * @param node
      *            the {@link Node} to copy
-     * @return the new {@link CompleteNode}
+     * @return the shallow {@link CompleteNode}
      */
     public static CompleteNode shallowFrom(final Node node)
     {
-        return new CompleteNode(node.getIdentifier())
-                .withInitialBounds(node.getLocation().bounds());
+        return new CompleteNode(node.getIdentifier()).withBoundsExtendedBy(node.bounds());
     }
 
     CompleteNode(final long identifier)
@@ -91,21 +91,28 @@ public class CompleteNode extends Node implements CompleteLocationItem
             throw new CoreException("Identifier can never be null.");
         }
 
-        this.originalBounds = location != null ? location.bounds() : null;
-        this.aggregateBounds = this.originalBounds;
+        this.bounds = location != null ? location.bounds() : null;
 
         this.identifier = identifier;
         this.location = location;
         this.tags = tags;
         this.inEdgeIdentifiers = inEdgeIdentifiers;
         this.outEdgeIdentifiers = outEdgeIdentifiers;
+        this.explicitlyExcludedInEdgeIdentifiers = new HashSet<>();
+        this.explicitlyExcludedOutEdgeIdentifiers = new HashSet<>();
         this.relationIdentifiers = relationIdentifiers;
     }
 
     @Override
     public Rectangle bounds()
     {
-        return this.aggregateBounds;
+        return this.bounds;
+    }
+
+    @Override
+    public CompleteItemType completeItemType()
+    {
+        return CompleteItemType.NODE;
     }
 
     @Override
@@ -120,6 +127,16 @@ public class CompleteNode extends Node implements CompleteLocationItem
                     && Objects.equals(this.outEdges(), that.outEdges());
         }
         return false;
+    }
+
+    public Set<Long> explicitlyExcludedInEdgeIdentifiers()
+    {
+        return this.explicitlyExcludedInEdgeIdentifiers;
+    }
+
+    public Set<Long> explicitlyExcludedOutEdgeIdentifiers()
+    {
+        return this.explicitlyExcludedOutEdgeIdentifiers;
     }
 
     @Override
@@ -149,13 +166,17 @@ public class CompleteNode extends Node implements CompleteLocationItem
     @Override
     public SortedSet<Edge> inEdges()
     {
+        /*
+         * Note that the Edges returned by this method will technically break the Located contract,
+         * since they have null bounds.
+         */
         return this.inEdgeIdentifiers == null ? null
                 : this.inEdgeIdentifiers.stream().map(CompleteEdge::new)
                         .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
-    public boolean isSuperShallow()
+    public boolean isShallow()
     {
         return this.location == null && this.inEdgeIdentifiers == null
                 && this.outEdgeIdentifiers == null && this.tags == null
@@ -165,6 +186,10 @@ public class CompleteNode extends Node implements CompleteLocationItem
     @Override
     public SortedSet<Edge> outEdges()
     {
+        /*
+         * Note that the Edges returned by this method will technically break the Located contract,
+         * since they have null bounds.
+         */
         return this.outEdgeIdentifiers == null ? null
                 : this.outEdgeIdentifiers.stream().map(CompleteEdge::new)
                         .collect(Collectors.toCollection(TreeSet::new));
@@ -173,9 +198,29 @@ public class CompleteNode extends Node implements CompleteLocationItem
     @Override
     public Set<Relation> relations()
     {
+        /*
+         * Note that the Relations returned by this method will technically break the Located
+         * contract, since they have null bounds.
+         */
         return this.relationIdentifiers == null ? null
                 : this.relationIdentifiers.stream().map(CompleteRelation::new)
                         .collect(Collectors.toSet());
+    }
+
+    public void setExplicitlyExcludedInEdgeIdentifiers(final Set<Long> edges)
+    {
+        this.explicitlyExcludedInEdgeIdentifiers = edges;
+    }
+
+    public void setExplicitlyExcludedOutEdgeIdentifiers(final Set<Long> edges)
+    {
+        this.explicitlyExcludedOutEdgeIdentifiers = edges;
+    }
+
+    @Override
+    public void setTags(final Map<String, String> tags)
+    {
+        this.tags = tags != null ? new HashMap<>(tags) : null;
     }
 
     @Override
@@ -187,19 +232,14 @@ public class CompleteNode extends Node implements CompleteLocationItem
                 + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
-    @Override
-    public CompleteNode withAddedTag(final String key, final String value)
+    public CompleteNode withBoundsExtendedBy(final Rectangle bounds)
     {
-        return withTags(CompleteEntity.addNewTag(getTags(), key, value));
-    }
-
-    public CompleteNode withAggregateBoundsExtendedUsing(final Rectangle bounds)
-    {
-        if (this.aggregateBounds == null)
+        if (this.bounds == null)
         {
-            this.aggregateBounds = bounds;
+            this.bounds = bounds;
+            return this;
         }
-        this.aggregateBounds = Rectangle.forLocated(this.aggregateBounds, bounds);
+        this.bounds = Rectangle.forLocated(this.bounds, bounds);
         return this;
     }
 
@@ -219,6 +259,7 @@ public class CompleteNode extends Node implements CompleteLocationItem
     public CompleteNode withInEdgeIdentifierLess(final Long lessInEdgeIdentifier)
     {
         this.inEdgeIdentifiers.remove(lessInEdgeIdentifier);
+        this.explicitlyExcludedInEdgeIdentifiers.add(lessInEdgeIdentifier);
         return this;
     }
 
@@ -235,6 +276,18 @@ public class CompleteNode extends Node implements CompleteLocationItem
         return this;
     }
 
+    public CompleteNode withInEdgeIdentifiersAndSource(final SortedSet<Long> inEdgeIdentifiers,
+            final Node source)
+    {
+        final Set<Long> sourceIdentifiers = source.inEdges().stream().map(Edge::getIdentifier)
+                .collect(Collectors.toSet());
+        final Set<Long> excludedBasedOnSource = com.google.common.collect.Sets
+                .difference(sourceIdentifiers, inEdgeIdentifiers);
+        this.inEdgeIdentifiers = inEdgeIdentifiers;
+        this.explicitlyExcludedInEdgeIdentifiers.addAll(excludedBasedOnSource);
+        return this;
+    }
+
     public CompleteNode withInEdges(final Set<Edge> inEdges)
     {
         this.inEdgeIdentifiers = inEdges.stream().map(Edge::getIdentifier)
@@ -242,14 +295,11 @@ public class CompleteNode extends Node implements CompleteLocationItem
         return this;
     }
 
+    @Override
     public CompleteNode withLocation(final Location location)
     {
         this.location = location;
-        if (this.originalBounds == null)
-        {
-            this.originalBounds = location.bounds();
-        }
-        this.aggregateBounds = Rectangle.forLocated(this.originalBounds, location.bounds());
+        this.bounds = location.bounds();
         return this;
     }
 
@@ -262,6 +312,7 @@ public class CompleteNode extends Node implements CompleteLocationItem
     public CompleteNode withOutEdgeIdentifierLess(final Long lessOutEdgeIdentifier)
     {
         this.outEdgeIdentifiers.remove(lessOutEdgeIdentifier);
+        this.explicitlyExcludedOutEdgeIdentifiers.add(lessOutEdgeIdentifier);
         return this;
     }
 
@@ -275,6 +326,18 @@ public class CompleteNode extends Node implements CompleteLocationItem
     public CompleteNode withOutEdgeIdentifiers(final SortedSet<Long> outEdgeIdentifiers)
     {
         this.outEdgeIdentifiers = outEdgeIdentifiers;
+        return this;
+    }
+
+    public CompleteNode withOutEdgeIdentifiersAndSource(final SortedSet<Long> outEdgeIdentifiers,
+            final Node source)
+    {
+        final Set<Long> sourceIdentifiers = source.outEdges().stream().map(Edge::getIdentifier)
+                .collect(Collectors.toSet());
+        final Set<Long> excludedBasedOnSource = com.google.common.collect.Sets
+                .difference(sourceIdentifiers, outEdgeIdentifiers);
+        this.outEdgeIdentifiers = outEdgeIdentifiers;
+        this.explicitlyExcludedOutEdgeIdentifiers.addAll(excludedBasedOnSource);
         return this;
     }
 
@@ -297,33 +360,6 @@ public class CompleteNode extends Node implements CompleteLocationItem
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
-        return this;
-    }
-
-    @Override
-    public CompleteNode withRemovedTag(final String key)
-    {
-        return withTags(CompleteEntity.removeTag(getTags(), key));
-    }
-
-    @Override
-    public CompleteNode withReplacedTag(final String oldKey, final String newKey,
-            final String newValue)
-    {
-        return withRemovedTag(oldKey).withAddedTag(newKey, newValue);
-    }
-
-    @Override
-    public CompleteNode withTags(final Map<String, String> tags)
-    {
-        this.tags = tags;
-        return this;
-    }
-
-    private CompleteNode withInitialBounds(final Rectangle bounds)
-    {
-        this.originalBounds = bounds;
-        this.aggregateBounds = bounds;
         return this;
     }
 }

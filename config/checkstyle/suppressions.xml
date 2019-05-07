@@ -10,6 +10,12 @@
     <suppress checks="MultipleStringLiterals" files="src/integrationTest/*" />
     <suppress checks="InnerAssignment" files="src/test/*" />
     <suppress checks="InnerAssignment" files="src/integrationTest/*" />
-    <suppress checks="AvoidEscapedUnicodeCharacters" files="src/main/java/org/openstreetmap/atlas/utilities/command/terminal/TTYAttribute.java"/>
+    <suppress checks="AvoidEscapedUnicodeCharacters" files="src/main/java/org/openstreetmap/atlas/utilities/command/terminal/TTYAttribute.java" />
+    <suppress checks="ParameterName" files="src/main/java/org/openstreetmap/atlas/utilities/function/TernaryFunction.java" />
+    <suppress checks="ParameterName" files="src/main/java/org/openstreetmap/atlas/utilities/function/TernaryOperator.java" />
+    <suppress checks="ParameterName" files="src/main/java/org/openstreetmap/atlas/utilities/function/QuaternaryFunction.java" />
+    <suppress checks="ParameterName" files="src/main/java/org/openstreetmap/atlas/utilities/function/QuaternaryOperator.java" />
+    <suppress checks="ParameterName" files="src/main/java/org/openstreetmap/atlas/utilities/function/SenaryFunction.java" />
+    <suppress checks="ParameterName" files="src/main/java/org/openstreetmap/atlas/utilities/function/SenaryOperator.java" />
     <suppress checks="." files="src/generated/*" />
 </suppressions>

@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -37,6 +39,8 @@ public final class ChangeEntity
      * Get all the available attributes asked from the change entity (override), and/or from the
      * backup entity.
      *
+     * @param name
+     *            The name of the extraction operation
      * @param source
      *            The source entity
      * @param override
@@ -46,7 +50,8 @@ public final class ChangeEntity
      * @return The corresponding attribute list. Will not be empty.
      */
     static <T extends Object, M extends AtlasEntity> List<T> getAttributeAndOptionallyBackup(
-            final M source, final M override, final Function<M, T> memberExtractor)
+            final M source, final M override, final Function<M, T> memberExtractor,
+            final String name)
     {
         final List<T> result = new ArrayList<>();
         if (override != null)
@@ -68,7 +73,9 @@ public final class ChangeEntity
         }
         if (result.isEmpty())
         {
-            throw new CoreException("Could not retrieve attribute from source nor backup!");
+            throw new CoreException(
+                    "Could not retrieve attribute \"{}\" from override nor source!\noverride: {}\nsource:{}",
+                    name, override, source);
         }
         return result;
     }
@@ -77,6 +84,8 @@ public final class ChangeEntity
      * Get either the attribute asked from the change entity (override), or from the backup entity
      * if unavailable.
      *
+     * @param name
+     *            The name of the extraction operation
      * @param source
      *            The source entity
      * @param override
@@ -86,7 +95,7 @@ public final class ChangeEntity
      * @return The corresponding attribute
      */
     static <T extends Object, M extends AtlasEntity> T getAttributeOrBackup(final M source,
-            final M override, final Function<M, T> memberExtractor)
+            final M override, final Function<M, T> memberExtractor, final String name)
     {
         T result = null;
         if (override != null)
@@ -99,9 +108,43 @@ public final class ChangeEntity
         }
         if (result == null)
         {
-            throw new CoreException("Could not retrieve attribute from source nor backup!");
+            throw new CoreException(
+                    "Could not retrieve attribute \"{}\" from override nor source!\noverride: {}\nsource:{}",
+                    name, override, source);
         }
         return result;
+    }
+
+    /**
+     * @param <V>
+     *            The cached value type
+     * @param fieldCache
+     *            The cache
+     * @param cacheSetter
+     *            A function that will set the cache not null in case it was null.
+     * @param lock
+     *            The synchronization lock to access the cache
+     * @param creator
+     *            The original creator of the type if the cache does not contain it.
+     * @return Either the cached value or the freshly created one.
+     */
+    static <V> V getOrCreateCache(final V fieldCache, final Consumer<V> cacheSetter,
+            final Object lock, final Supplier<V> creator)
+    {
+        V localRelationCache = fieldCache;
+        if (localRelationCache == null)
+        {
+            synchronized (lock) // NOSONAR
+            {
+                localRelationCache = fieldCache; // NOSONAR
+                if (localRelationCache == null) // NOSONAR
+                {
+                    localRelationCache = creator.get();
+                    cacheSetter.accept(localRelationCache);
+                }
+            }
+        }
+        return localRelationCache;
     }
 
     private ChangeEntity()

@@ -3,9 +3,11 @@ package org.openstreetmap.atlas.geography.atlas.builder;
 import java.io.Serializable;
 import java.util.AbstractCollection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -13,9 +15,8 @@ import java.util.Set;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
-import org.openstreetmap.atlas.utilities.collections.Iterables;
-
-import com.google.common.collect.HashMultiset;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedRelation;
 
 /**
  * @author matthieun
@@ -46,7 +47,7 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
             if (other instanceof RelationBeanItem)
             {
                 final RelationBeanItem that = (RelationBeanItem) other;
-                return this.getIdentifier() == that.getIdentifier()
+                return this.getIdentifier().equals(that.getIdentifier())
                         && this.getRole().equals(that.getRole())
                         && this.getType() == that.getType();
             }
@@ -84,10 +85,57 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
     private static final long serialVersionUID = 8511830231633569713L;
 
     private final List<Long> memberIdentifiers;
+
     private final List<String> memberRoles;
     private final List<ItemType> memberTypes;
-
+    /**
+     * This set has no concept of how many {@link RelationBeanItem}s of a given value have been
+     * removed. Technically, OSM allows for duplicate {@link RelationBeanItem}s in a given relation.
+     * However, these duplicates are disallowed by {@link PackedAtlas#relationMembers} and by
+     * extension {@link PackedRelation#members}. As a result, we need not worry about that edge case
+     * here.
+     */
     private final Set<RelationBeanItem> explicitlyExcluded;
+
+    public static RelationBean fromSet(final Set<RelationBeanItem> set)
+    {
+        final RelationBean bean = new RelationBean();
+        for (final RelationBeanItem item : set)
+        {
+            bean.addItem(item);
+        }
+        return bean;
+    }
+
+    public static RelationBean mergeBeans(final RelationBean left, final RelationBean right)
+    {
+        final RelationBean result = new RelationBean();
+        for (final RelationBeanItem leftItem : left)
+        {
+            if (!right.isExplicitlyExcluded(leftItem))
+            {
+                result.addItem(leftItem);
+            }
+        }
+        for (final RelationBeanItem rightItem : right)
+        {
+            final Optional<RelationBeanItem> existingLeftItem = left
+                    .getItemFor(rightItem.getIdentifier(), rightItem.getType());
+            if (existingLeftItem.isPresent()
+                    && existingLeftItem.get().getRole().equals(rightItem.getRole()))
+            {
+                // Role already exists, continue.
+                continue;
+            }
+            if (!left.isExplicitlyExcluded(rightItem))
+            {
+                result.addItem(rightItem);
+            }
+        }
+        left.explicitlyExcluded.forEach(result::addItemExplicitlyExcluded);
+        right.explicitlyExcluded.forEach(result::addItemExplicitlyExcluded);
+        return result;
+    }
 
     public RelationBean()
     {
@@ -96,6 +144,13 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
         this.memberTypes = new ArrayList<>();
 
         this.explicitlyExcluded = new HashSet<>();
+    }
+
+    @Override
+    public boolean add(final RelationBeanItem item)
+    {
+        this.addItem(item);
+        return true;
     }
 
     public void addItem(final Long identifier, final String role, final ItemType itemType)
@@ -122,7 +177,66 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
     }
 
     /**
-     * Check if the two beans are the same, without looking at the List order.
+     * Get this {@link RelationBean} as a {@link List} of its {@link RelationBeanItem}s.
+     *
+     * @return the item list representing this bean
+     */
+    public List<RelationBeanItem> asList()
+    {
+        final List<RelationBeanItem> result = new ArrayList<>();
+        for (int index = 0; index < size(); index++)
+        {
+            result.add(new RelationBeanItem(this.memberIdentifiers.get(index),
+                    this.memberRoles.get(index), this.memberTypes.get(index)));
+        }
+        return result;
+    }
+
+    /**
+     * Get this {@link RelationBean} as a {@link Map} from its constituent {@link RelationBeanItem}s
+     * to their counts (Here, counts refers to the number of times a given {@link RelationBeanItem}
+     * appears in the bean. While abnormal, duplicate bean items are technically allowed by OSM).
+     * This method is useful for comparing the equality of two {@link RelationBean}s, since the map
+     * representation intrinsically ignores the internal ordering of the constituent
+     * {@link RelationBeanItem}s (this ordering is irrelevant as far as equality is concerned).
+     *
+     * @return the item map representing this bean
+     */
+    public Map<RelationBeanItem, Integer> asMap()
+    {
+        final Map<RelationBeanItem, Integer> result = new HashMap<>();
+
+        for (final RelationBeanItem beanItem : this)
+        {
+            if (result.containsKey(beanItem))
+            {
+                int count = result.get(beanItem);
+                count += 1;
+                result.put(beanItem, count);
+            }
+            else
+            {
+                result.put(beanItem, 1);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Get this {@link RelationBean} as a {@link Set} from its constituent
+     * {@link RelationBeanItem}s. This will ignore the fact that a {@link RelationBean} can
+     * technically contain duplicate items.
+     *
+     * @return the set representing this bean
+     */
+    public Set<RelationBeanItem> asSet()
+    {
+        return new HashSet<>(this.asMap().keySet());
+    }
+
+    /**
+     * Check if the two beans are the same, without looking at the bean order.
      *
      * @param other
      *            The other object
@@ -134,12 +248,26 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
         if (other instanceof RelationBean)
         {
             final RelationBean that = (RelationBean) other;
-            return Iterables.equals(HashMultiset.create(this.getMemberIdentifiers()),
-                    HashMultiset.create(that.getMemberIdentifiers()))
-                    && Iterables.equals(HashMultiset.create(this.getMemberRoles()),
-                            HashMultiset.create(that.getMemberRoles()))
-                    && Iterables.equals(HashMultiset.create(this.getMemberTypes()),
-                            HashMultiset.create(that.getMemberTypes()));
+            return this.asMap().equals(that.asMap());
+        }
+        return false;
+    }
+
+    /**
+     * Check if the two beans are the same, without looking at the bean order. Also, ensure that
+     * their explicitlyExcluded sets match.
+     *
+     * @param other
+     *            The other object
+     * @return True if the other object satisfies {@link RelationBean#equals(Object)} AND has a
+     *         matching explicitlyExcluded set.
+     */
+    public boolean equalsIncludingExplicitlyExcluded(final Object other)
+    {
+        if (other instanceof RelationBean)
+        {
+            return other instanceof RelationBean && this.equals(other)
+                    && this.explicitlyExcluded.equals(((RelationBean) other).explicitlyExcluded);
         }
         return false;
     }
@@ -222,32 +350,7 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
 
     public RelationBean merge(final RelationBean other)
     {
-        final RelationBean result = new RelationBean();
-        for (final RelationBeanItem leftItem : this)
-        {
-            if (!other.isExplicitlyExcluded(leftItem))
-            {
-                result.addItem(leftItem);
-            }
-        }
-        for (final RelationBeanItem rightItem : other)
-        {
-            final Optional<RelationBeanItem> existingLeftItem = this
-                    .getItemFor(rightItem.getIdentifier(), rightItem.getType());
-            if (existingLeftItem.isPresent()
-                    && existingLeftItem.get().getRole().equals(rightItem.getRole()))
-            {
-                // Role already exists, continue.
-                continue;
-            }
-            if (!this.isExplicitlyExcluded(rightItem))
-            {
-                result.addItem(rightItem);
-            }
-        }
-        this.explicitlyExcluded.forEach(result::addItemExplicitlyExcluded);
-        other.explicitlyExcluded.forEach(result::addItemExplicitlyExcluded);
-        return result;
+        return RelationBean.mergeBeans(this, other);
     }
 
     /**
