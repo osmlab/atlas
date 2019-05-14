@@ -27,7 +27,7 @@ public class CascadeDeleteTest
     @Rule
     public final CascadeDeleteTestRule rule = new CascadeDeleteTestRule();
 
-    private static <E extends AtlasEntity> long count(Iterable<E> entities)
+    private static <E extends AtlasEntity> long count(final Iterable<E> entities)
     {
         return StreamSupport.stream(entities.spliterator(), false).count();
     }
@@ -47,14 +47,14 @@ public class CascadeDeleteTest
     @Test
     public void testDeleteForwardEdgeToRelationMemberCascadeButNotReverseEdge()
     {
-        long edgeIdentifier = CascadeDeleteTestRule.EDGE_IDENTIFIER;
+        final long edgeIdentifier = CascadeDeleteTestRule.EDGE_IDENTIFIER;
         deleteEdgeBytNotReverse(edgeIdentifier, CascadeDeleteTestRule.EDGE_RELATION_IDENTIFIER);
     }
 
     @Test
     public void testDeleteReverseEdgeToRelationMemberCascadeButNotForwardEdge()
     {
-        long edgeIdentifier = -(CascadeDeleteTestRule.EDGE_IDENTIFIER);
+        final long edgeIdentifier = -(CascadeDeleteTestRule.EDGE_IDENTIFIER);
         deleteEdgeBytNotReverse(edgeIdentifier, CascadeDeleteTestRule.EDGE_RELATION_IDENTIFIER);
     }
 
