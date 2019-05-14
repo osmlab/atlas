@@ -52,14 +52,12 @@ public enum CompleteItemType
     public <C extends CompleteEntity> C completeEntityFrom(final AtlasEntity reference)
     {
         validate(reference);
-
         return (C) CompleteEntity.from(reference);
     }
 
     public <C extends CompleteEntity> C completeEntityShallowFrom(final AtlasEntity reference)
     {
         validate(reference);
-
         return (C) CompleteEntity.shallowFrom(reference);
     }
 
