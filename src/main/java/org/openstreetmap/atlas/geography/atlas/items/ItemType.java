@@ -216,5 +216,5 @@ public enum ItemType
         }
     }
 
-    public abstract long numberOfEntities(final Atlas atlas);
+    public abstract long numberOfEntities(Atlas atlas);
 }
