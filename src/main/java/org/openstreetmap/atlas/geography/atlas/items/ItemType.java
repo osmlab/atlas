@@ -7,6 +7,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
  * Type of item in an {@link Atlas}
  *
  * @author matthieun
+ * @author Yazad Khambata
  */
 public enum ItemType
 {
@@ -17,6 +18,12 @@ public enum ItemType
         {
             return atlas.nodes(identifiers);
         }
+
+        @Override
+        public long numberOfEntities(final Atlas atlas)
+        {
+            return atlas.numberOfNodes();
+        }
     },
     EDGE(1)
     {
@@ -24,6 +31,12 @@ public enum ItemType
         public Iterable<Edge> entitiesForIdentifiers(final Atlas atlas, final Long... identifiers)
         {
             return atlas.edges(identifiers);
+        }
+
+        @Override
+        public long numberOfEntities(final Atlas atlas)
+        {
+            return atlas.numberOfEdges();
         }
     },
     AREA(2)
@@ -33,6 +46,12 @@ public enum ItemType
         {
             return atlas.areas(identifiers);
         }
+
+        @Override
+        public long numberOfEntities(final Atlas atlas)
+        {
+            return atlas.numberOfAreas();
+        }
     },
     LINE(3)
     {
@@ -40,6 +59,12 @@ public enum ItemType
         public Iterable<Line> entitiesForIdentifiers(final Atlas atlas, final Long... identifiers)
         {
             return atlas.lines(identifiers);
+        }
+
+        @Override
+        public long numberOfEntities(final Atlas atlas)
+        {
+            return atlas.numberOfLines();
         }
     },
     POINT(4)
@@ -49,6 +74,12 @@ public enum ItemType
         {
             return atlas.points(identifiers);
         }
+
+        @Override
+        public long numberOfEntities(final Atlas atlas)
+        {
+            return atlas.numberOfPoints();
+        }
     },
     RELATION(5)
     {
@@ -57,6 +88,12 @@ public enum ItemType
                 final Long... identifiers)
         {
             return atlas.relations(identifiers);
+        }
+
+        @Override
+        public long numberOfEntities(final Atlas atlas)
+        {
+            return atlas.numberOfRelations();
         }
     };
 
@@ -178,4 +215,6 @@ public enum ItemType
                 throw new CoreException("Invalid type {}", this);
         }
     }
+
+    public abstract long numberOfEntities(final Atlas atlas);
 }
