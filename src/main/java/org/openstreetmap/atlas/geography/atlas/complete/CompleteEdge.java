@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -169,9 +170,8 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
          * Note that the Relations returned by this method will technically break the Located
          * contract, since they have null bounds.
          */
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(CompleteRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(CompleteRelation::new).collect(Collectors.toSet());
     }
 
     @Override
@@ -214,6 +214,12 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     {
         this.endNodeIdentifier = endNodeIdentifier;
         return this;
+    }
+
+    @Override
+    public CompleteEntity withGeometry(final Iterable<Location> locations)
+    {
+        return this.withPolyLine(new PolyLine(locations));
     }
 
     @Override

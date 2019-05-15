@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
@@ -207,9 +208,8 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
          * Note that the Relations returned by this method will technically break the Located
          * contract, since they have null bounds.
          */
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(CompleteRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(CompleteRelation::new).collect(Collectors.toSet());
     }
 
     @Override
@@ -236,6 +236,12 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
             final List<Long> allRelationsWithSameOsmIdentifier)
     {
         this.allRelationsWithSameOsmIdentifier = allRelationsWithSameOsmIdentifier;
+        return this;
+    }
+
+    public CompleteRelation withBounds(final Rectangle bounds)
+    {
+        this.bounds = bounds;
         return this;
     }
 
@@ -277,6 +283,13 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
                 new RelationBeanItem(newMember.getIdentifier(), role, newMember.getType()));
         this.updateBounds(newMember.bounds());
         return this;
+    }
+
+    @Override
+    public CompleteEntity withGeometry(final Iterable<Location> locations)
+    {
+        throw new UnsupportedOperationException(
+                "Please instead use withBounds or withBoundsExtendedBy");
     }
 
     @Override

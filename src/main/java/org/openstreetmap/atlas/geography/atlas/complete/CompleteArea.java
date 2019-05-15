@@ -7,10 +7,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+
+import com.google.gson.JsonObject;
 
 import lombok.experimental.Delegate;
 
@@ -87,6 +90,13 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     }
 
     @Override
+    public JsonObject asGeoJson()
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
     public Polygon asPolygon()
     {
         return this.polygon;
@@ -147,9 +157,8 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
          * Note that the Relations returned by this method will technically break the Located
          * contract, since they have null bounds.
          */
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(CompleteRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(CompleteRelation::new).collect(Collectors.toSet());
     }
 
     @Override
@@ -175,6 +184,12 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
         }
         this.bounds = Rectangle.forLocated(this.bounds, bounds);
         return this;
+    }
+
+    @Override
+    public CompleteEntity withGeometry(final Iterable<Location> locations)
+    {
+        return this.withPolygon(new Polygon(locations));
     }
 
     @Override
