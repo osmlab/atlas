@@ -12,8 +12,6 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
-import com.google.gson.JsonObject;
-
 import lombok.experimental.Delegate;
 
 /**
@@ -89,13 +87,6 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
     }
 
     @Override
-    public JsonObject asGeoJson()
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public Rectangle bounds()
     {
         return this.bounds;
@@ -156,8 +147,9 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
          * Note that the Relations returned by this method will technically break the Located
          * contract, since they have null bounds.
          */
-        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
-                .map(CompleteRelation::new).collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null
+                : this.relationIdentifiers.stream().map(CompleteRelation::new)
+                        .collect(Collectors.toSet());
     }
 
     @Override

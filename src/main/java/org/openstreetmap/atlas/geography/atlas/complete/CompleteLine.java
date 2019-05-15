@@ -13,8 +13,6 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
-import com.google.gson.JsonObject;
-
 import lombok.experimental.Delegate;
 
 /**
@@ -90,13 +88,6 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     }
 
     @Override
-    public JsonObject asGeoJson()
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public PolyLine asPolyLine()
     {
         return this.polyLine;
@@ -157,8 +148,9 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
          * Note that the Relations returned by this method will technically break the Located
          * contract, since they have null bounds.
          */
-        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
-                .map(CompleteRelation::new).collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null
+                : this.relationIdentifiers.stream().map(CompleteRelation::new)
+                        .collect(Collectors.toSet());
     }
 
     @Override
