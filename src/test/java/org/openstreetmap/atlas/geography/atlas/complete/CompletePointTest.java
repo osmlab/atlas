@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -103,5 +104,13 @@ public class CompletePointTest
         // When we update the location again, the bounds recalculation should "forget" about the
         // first update
         Assert.assertEquals(Rectangle.forLocated(Location.COLOSSEUM), result.bounds());
+    }
+
+    @Test
+    public void testWithGeometry()
+    {
+        final CompletePoint point = new CompletePoint(1L);
+        point.withGeometry(Arrays.asList(Location.COLOSSEUM));
+        Assert.assertEquals(Location.COLOSSEUM, point.getLocation());
     }
 }

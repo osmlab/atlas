@@ -289,8 +289,8 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     @Override
     public CompleteEntity withGeometry(final Iterable<Location> locations)
     {
-        throw new UnsupportedOperationException(
-                "Please instead use withBounds or withBoundsExtendedBy");
+        throw new UnsupportedOperationException("Relations cannot have an explicit geometry."
+                + " Please instead use withBounds or withBoundsExtendedBy to adjust the bounds.");
     }
 
     @Override
