@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -47,6 +48,7 @@ import com.google.gson.JsonObject;
  * @author matthieun
  * @author Sid
  * @author hallahan
+ * @author Yazad Khambata
  */
 public abstract class Relation extends AtlasEntity
         implements Iterable<RelationMember>, GeoJsonFeatureCollection<RelationMember>
@@ -319,6 +321,30 @@ public abstract class Relation extends AtlasEntity
      * @return All the members of this specific (potentially sliced) relation.
      */
     public abstract RelationMemberList members();
+
+    /**
+     * Get a subset of {@link #members()} matching a certain {@link ItemType}.
+     *
+     * @param itemType
+     *            - the type of members to filter.
+     * @return - {@link #members()} of type itemType.
+     */
+    public RelationMemberList membersOfType(final ItemType itemType)
+    {
+        return membersMatching(member -> member.getEntity().getType() == itemType);
+    }
+
+    /**
+     * Get a subset of {@link #members()} matching the predicate.
+     *
+     * @param predicate
+     *            - the predicate to filter on.
+     * @return - {@link #members()} matching the predicate.
+     */
+    public RelationMemberList membersMatching(final Predicate<RelationMember> predicate)
+    {
+        return members().stream().filter(predicate).collect(RelationMemberList.collect());
+    }
 
     /**
      * In case a {@link Relation} is spanning multiple {@link Atlas}, keep track of the parent OSM
