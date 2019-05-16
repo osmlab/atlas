@@ -21,9 +21,7 @@ public class CascadeDeleteTest
         final Atlas atlas = helper.getAtlas();
         final long nodeIdToDelete = CascadeDeleteTestRule.NON_EDGE_NODE_IDENTIFIER;
         final long nodeRelationId = CascadeDeleteTestRule.NON_EDGE_NODE_RELATION_IDENTIFIER;
-
         final Atlas changeAtlas = helper.deleteNode(atlas, nodeIdToDelete, nodeRelationId);
-
         helper.verifyCounts(changeAtlas, helper.override(ItemType.NODE, -1));
     }
 
@@ -33,9 +31,7 @@ public class CascadeDeleteTest
         final Atlas atlas = helper.getAtlas();
         final long nodeIdToDelete = CascadeDeleteTestRule.START_END_EDGE_NODE;
         final long nodeRelationId = CascadeDeleteTestRule.NON_EDGE_NODE_RELATION_IDENTIFIER;
-
         final Atlas changeAtlas = helper.deleteNode(atlas, nodeIdToDelete, nodeRelationId);
-
         helper.verifyCounts(changeAtlas, helper.override(ItemType.NODE, -1),
                 helper.override(ItemType.EDGE, -2));
     }
@@ -92,7 +88,6 @@ public class CascadeDeleteTest
         final long entityIdentifier = CascadeDeleteTestRule.TOP_LEVEL_RELATION_IDENTIFIER;
         final Atlas atlas = helper.getAtlas();
         final Atlas changeAtlas = helper.deleteSimpleRelation(entityIdentifier, atlas);
-
         helper.verifyCounts(changeAtlas, helper.override(ItemType.RELATION, -1));
     }
 
@@ -102,7 +97,6 @@ public class CascadeDeleteTest
         final ItemType itemType = ItemType.RELATION;
         final long entityIdentifier = CascadeDeleteTestRule.SUB_RELATION_IDENTIFIER;
         final long entityRelationIdentifier = CascadeDeleteTestRule.PARENT_RELATION_IDENTIFIER;
-
         helper.testDeleteSimple(itemType, entityIdentifier, entityRelationIdentifier);
     }
 
@@ -112,7 +106,6 @@ public class CascadeDeleteTest
         final ItemType itemType = ItemType.POINT;
         final long entityIdentifier = CascadeDeleteTestRule.THE_ONLY_RELATION_MEMBER_POINT_IDENTIFIER;
         final long entityRelationIdentifier = CascadeDeleteTestRule.ONE_MEMBER_RELATION_IDENTIFIER;
-
         helper.testDeleteSimple(itemType, entityIdentifier, entityRelationIdentifier, true);
     }
 }
