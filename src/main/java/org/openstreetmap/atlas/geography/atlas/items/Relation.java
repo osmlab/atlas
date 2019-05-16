@@ -13,7 +13,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -326,23 +325,25 @@ public abstract class Relation extends AtlasEntity
     /**
      * Get a subset of {@link #members()} matching a certain {@link ItemType}.
      *
-     * @param itemType - the type of members to filter.
+     * @param itemType
+     *            - the type of members to filter.
      * @return - {@link #members()} of type itemType.
      */
-    public RelationMemberList membersOfType(final ItemType itemType) {
+    public RelationMemberList membersOfType(final ItemType itemType)
+    {
         return membersMatching(member -> member.getEntity().getType() == itemType);
     }
 
     /**
      * Get a subset of {@link #members()} matching the predicate.
      *
-     * @param predicate - the predicate to filter on.
+     * @param predicate
+     *            - the predicate to filter on.
      * @return - {@link #members()} matching the predicate.
      */
-    public RelationMemberList membersMatching(final Predicate<RelationMember> predicate) {
-        return members().stream()
-                .filter(predicate)
-                .collect(RelationMemberList.collect());
+    public RelationMemberList membersMatching(final Predicate<RelationMember> predicate)
+    {
+        return members().stream().filter(predicate).collect(RelationMemberList.collect());
     }
 
     /**

@@ -56,79 +56,72 @@ public class CascadeDeleteTestRule extends CoreTestRule
         }
     };
 
-    @TestAtlas(
-            nodes = {
-                    @TestAtlas.Node(id = "1", coordinates = @TestAtlas.Loc(value = ONE)),
-                    @TestAtlas.Node(id = "2", coordinates = @TestAtlas.Loc(value = TWO)),
-                    @TestAtlas.Node(id = "3", coordinates = @TestAtlas.Loc(value = THREE)),
-                    @TestAtlas.Node(id = "4", coordinates = @TestAtlas.Loc(value = FOUR)),
-                    @TestAtlas.Node(id = "5", coordinates = @TestAtlas.Loc(value = FIVE)),
-                    @TestAtlas.Node(id = "6", coordinates = @TestAtlas.Loc(value = SIX))
-            },
+    @TestAtlas(nodes = { @TestAtlas.Node(id = "1", coordinates = @TestAtlas.Loc(value = ONE)),
+            @TestAtlas.Node(id = "2", coordinates = @TestAtlas.Loc(value = TWO)),
+            @TestAtlas.Node(id = "3", coordinates = @TestAtlas.Loc(value = THREE)),
+            @TestAtlas.Node(id = "4", coordinates = @TestAtlas.Loc(value = FOUR)),
+            @TestAtlas.Node(id = "5", coordinates = @TestAtlas.Loc(value = FIVE)),
+            @TestAtlas.Node(id = "6", coordinates = @TestAtlas.Loc(value = SIX)) },
 
             edges = {
-                    @TestAtlas.Edge(id = "0", coordinates = { @TestAtlas.Loc(value = ONE), @TestAtlas.Loc(value = TWO) }),
-                    @TestAtlas.Edge(id = "1", coordinates = { @TestAtlas.Loc(value = TWO), @TestAtlas.Loc(value = THREE) }),
-                    @TestAtlas.Edge(id = "-1", coordinates = { @TestAtlas.Loc(value = THREE), @TestAtlas.Loc(value = TWO) }),
-                    @TestAtlas.Edge(id = "2", coordinates = { @TestAtlas.Loc(value = TWO), @TestAtlas.Loc(value = SIX) })
-            },
+                    @TestAtlas.Edge(id = "0", coordinates = { @TestAtlas.Loc(value = ONE),
+                            @TestAtlas.Loc(value = TWO) }),
+                    @TestAtlas.Edge(id = "1", coordinates = { @TestAtlas.Loc(value = TWO),
+                            @TestAtlas.Loc(value = THREE) }),
+                    @TestAtlas.Edge(id = "-1", coordinates = { @TestAtlas.Loc(value = THREE),
+                            @TestAtlas.Loc(value = TWO) }),
+                    @TestAtlas.Edge(id = "2", coordinates = { @TestAtlas.Loc(value = TWO),
+                            @TestAtlas.Loc(value = SIX) }) },
 
             areas = {
-                    @TestAtlas.Area(id = "0", coordinates = { @TestAtlas.Loc(value = ONE), @TestAtlas.Loc(value = TWO), @TestAtlas.Loc(value = THREE) }),
-                    @TestAtlas.Area(id = "1", coordinates = { @TestAtlas.Loc(value = TWO), @TestAtlas.Loc(value = THREE), @TestAtlas.Loc(value = FOUR) })
-            },
+                    @TestAtlas.Area(id = "0", coordinates = { @TestAtlas.Loc(value = ONE),
+                            @TestAtlas.Loc(value = TWO), @TestAtlas.Loc(value = THREE) }),
+                    @TestAtlas.Area(id = "1", coordinates = { @TestAtlas.Loc(value = TWO),
+                            @TestAtlas.Loc(value = THREE), @TestAtlas.Loc(value = FOUR) }) },
 
             lines = {
-                    @TestAtlas.Line(id = "0", coordinates = { @TestAtlas.Loc(value = ONE), @TestAtlas.Loc(value = TWO) }),
-                    @TestAtlas.Line(id = "1", coordinates = { @TestAtlas.Loc(value = TWO), @TestAtlas.Loc(value = FOUR) })
-            },
+                    @TestAtlas.Line(id = "0", coordinates = { @TestAtlas.Loc(value = ONE),
+                            @TestAtlas.Loc(value = TWO) }),
+                    @TestAtlas.Line(id = "1", coordinates = { @TestAtlas.Loc(value = TWO),
+                            @TestAtlas.Loc(value = FOUR) }) },
 
-            points = {
-                    @TestAtlas.Point(id = "0", coordinates = @TestAtlas.Loc(value = ONE)),
+            points = { @TestAtlas.Point(id = "0", coordinates = @TestAtlas.Loc(value = ONE)),
                     @TestAtlas.Point(id = "1", coordinates = @TestAtlas.Loc(value = TWO)),
                     @TestAtlas.Point(id = "2", coordinates = @TestAtlas.Loc(value = THREE)),
-                    @TestAtlas.Point(id = "3", coordinates = @TestAtlas.Loc(value = FOUR))
-            },
+                    @TestAtlas.Point(id = "3", coordinates = @TestAtlas.Loc(value = FOUR)) },
 
             relations = {
                     @TestAtlas.Relation(id = "1", members = {
                             @TestAtlas.Relation.Member(id = "0", role = "from", type = "edge"),
                             @TestAtlas.Relation.Member(id = "2", role = "via", type = "node"),
                             @TestAtlas.Relation.Member(id = "1", role = "to", type = "edge"),
-                            @TestAtlas.Relation.Member(id = "-1", role = "to", type = "edge")
-                    }),
+                            @TestAtlas.Relation.Member(id = "-1", role = "to", type = "edge") }),
 
                     @TestAtlas.Relation(id = "2", members = {
                             @TestAtlas.Relation.Member(id = "0", role = "inside", type = "area"),
-                            @TestAtlas.Relation.Member(id = "1", role = "outside", type = "line")
-                    }),
+                            @TestAtlas.Relation.Member(id = "1", role = "outside", type = "line") }),
 
                     @TestAtlas.Relation(id = "3", tags = { "type=outside" }, members = {
                             @TestAtlas.Relation.Member(id = "1", role = "outside", type = "area"),
                             @TestAtlas.Relation.Member(id = "1", role = "outside", type = "line"),
-                            @TestAtlas.Relation.Member(id = "1", role = "outside", type = "point")
-                    }),
+                            @TestAtlas.Relation.Member(id = "1", role = "outside", type = "point") }),
 
                     @TestAtlas.Relation(id = "5", members = {
                             @TestAtlas.Relation.Member(id = "1", role = "a", type = "relation"),
-                            @TestAtlas.Relation.Member(id = "1", role = "b", type = "line")
-                    }),
+                            @TestAtlas.Relation.Member(id = "1", role = "b", type = "line") }),
 
                     @TestAtlas.Relation(id = "4", members = {
                             @TestAtlas.Relation.Member(id = "5", role = "a", type = "relation"),
-                            @TestAtlas.Relation.Member(id = "2", role = "b", type = "node")
-                    }),
+                            @TestAtlas.Relation.Member(id = "2", role = "b", type = "node") }),
 
                     @TestAtlas.Relation(id = "6", members = {
                             @TestAtlas.Relation.Member(id = "5", role = "a", type = "node"),
                             @TestAtlas.Relation.Member(id = "3", role = "b", type = "node"),
                             @TestAtlas.Relation.Member(id = "1", role = "c", type = "edge"),
-                            @TestAtlas.Relation.Member(id = "-1", role = "d", type = "edge")
-                    }),
+                            @TestAtlas.Relation.Member(id = "-1", role = "d", type = "edge") }),
 
                     @TestAtlas.Relation(id = "7", members = {
-                            @TestAtlas.Relation.Member(id = "0", role = "a", type = "point"),
-                    }),
+                            @TestAtlas.Relation.Member(id = "0", role = "a", type = "point"), }),
 
             })
     private Atlas atlas;

@@ -73,7 +73,8 @@ public abstract class Node extends LocationItem
     /**
      * Get the appropriate set {@link Edge}s of {@link ConnectedEdgeType}.
      *
-     * @param connectedEdgeType - The type of {@link Edge}-{@link Node} connection.
+     * @param connectedEdgeType
+     *            - The type of {@link Edge}-{@link Node} connection.
      * @return - A set of {@link Edge}s connected to the {@link Node} of {@link ConnectedEdgeType}.
      */
     public SortedSet<Edge> connectedEdges(final ConnectedEdgeType connectedEdgeType)

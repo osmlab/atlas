@@ -219,14 +219,13 @@ public class RelationMemberList extends AbstractCollection<RelationMember> imple
     }
 
     /**
-     * A {@link Collectors#collectingAndThen(Collector, Function)} wrapper for {@link RelationMember}s.
+     * A {@link Collectors#collectingAndThen(Collector, Function)} wrapper for
+     * {@link RelationMember}s.
      *
      * @return - the collector.
      */
-    public static Collector<RelationMember, ? extends Object, RelationMemberList> collect() {
-        return Collectors.collectingAndThen(
-                Collectors.toList(),
-                RelationMemberList::new
-        );
+    public static Collector<RelationMember, ? extends Object, RelationMemberList> collect()
+    {
+        return Collectors.collectingAndThen(Collectors.toList(), RelationMemberList::new);
     }
 }

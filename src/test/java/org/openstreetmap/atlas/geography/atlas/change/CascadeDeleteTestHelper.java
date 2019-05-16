@@ -1,5 +1,12 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -15,42 +22,40 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
 /**
  * @author Yazad Khambata
  */
-class CascadeDeleteTestHelper {
+class CascadeDeleteTestHelper
+{
 
     private CascadeDeleteTestRule rule;
 
-    CascadeDeleteTestHelper(final CascadeDeleteTestRule rule) {
+    CascadeDeleteTestHelper(final CascadeDeleteTestRule rule)
+    {
         this.rule = rule;
     }
 
-    protected static <E extends AtlasEntity> long count(final Iterable<E> entities) {
+    protected static <E extends AtlasEntity> long count(final Iterable<E> entities)
+    {
         return StreamSupport.stream(entities.spliterator(), false).count();
     }
 
     protected boolean isEntityPresentInRelation(final Atlas atlas, final ItemType itemType,
-                                              final long entityRelationIdentifier, final long entityIdentifier) {
+            final long entityRelationIdentifier, final long entityIdentifier)
+    {
         final Relation relation = atlas.relation(entityRelationIdentifier);
 
         Assert.assertNotNull(relation);
 
         return relation.members().stream()
                 .filter(relationMember -> relationMember.getEntity().getType() == itemType)
-                .filter(relationMember -> relationMember.getEntity().getIdentifier() == entityIdentifier)
-                .findFirst()
-                .isPresent();
+                .filter(relationMember -> relationMember.getEntity()
+                        .getIdentifier() == entityIdentifier)
+                .findFirst().isPresent();
     }
 
-    protected Atlas deleteNode(final Atlas atlas, final long nodeIdToDelete, final long relationId) {
+    protected Atlas deleteNode(final Atlas atlas, final long nodeIdToDelete, final long relationId)
+    {
         verifyCounts(atlas);
         final Node node = atlas.node(nodeIdToDelete);
         Assert.assertNotNull(node);
@@ -69,16 +74,17 @@ class CascadeDeleteTestHelper {
         return changeAtlas;
     }
 
-    protected boolean isNodeMemberPresent(final Atlas atlas, final long nodeIdToDelete, final long relationId) {
-        final Predicate<RelationMember> relationMemberPredicate =
-                member -> member.getEntity().getType() == ItemType.NODE && member.getEntity().getIdentifier() == nodeIdToDelete;
+    protected boolean isNodeMemberPresent(final Atlas atlas, final long nodeIdToDelete,
+            final long relationId)
+    {
+        final Predicate<RelationMember> relationMemberPredicate = member -> member.getEntity()
+                .getType() == ItemType.NODE && member.getEntity().getIdentifier() == nodeIdToDelete;
 
-        return !atlas.relation(relationId)
-                .membersMatching(relationMemberPredicate)
-                .isEmpty();
+        return !atlas.relation(relationId).membersMatching(relationMemberPredicate).isEmpty();
     }
 
-    protected void deleteEdgeButNotReverse(final long edgeIdentifier, final long relationIdentifier) {
+    protected void deleteEdgeButNotReverse(final long edgeIdentifier, final long relationIdentifier)
+    {
         final long reverseIdentifier = -edgeIdentifier;
 
         final Atlas atlas = getAtlas();
@@ -140,38 +146,41 @@ class CascadeDeleteTestHelper {
         Assert.assertFalse(edgeIdentifiersAfterDelete.contains(edgeIdentifier));
         Assert.assertTrue(edgeIdentifiersAfterDelete.contains(reverseIdentifier));
 
-        Assert.assertFalse(isEdgeRelatedToNode(changedAtlas, startForward.getIdentifier(), edgeIdentifier,
-                ConnectedEdgeType.OUT));
-        Assert.assertFalse(isEdgeRelatedToNode(changedAtlas, endForward.getIdentifier(), edgeIdentifier,
-                ConnectedEdgeType.IN));
-        Assert.assertFalse(isEdgeRelatedToNode(changedAtlas, endReverse.getIdentifier(), edgeIdentifier,
-                ConnectedEdgeType.OUT));
-        Assert.assertFalse(isEdgeRelatedToNode(changedAtlas, startReverse.getIdentifier(), edgeIdentifier,
-                ConnectedEdgeType.IN));
+        Assert.assertFalse(isEdgeRelatedToNode(changedAtlas, startForward.getIdentifier(),
+                edgeIdentifier, ConnectedEdgeType.OUT));
+        Assert.assertFalse(isEdgeRelatedToNode(changedAtlas, endForward.getIdentifier(),
+                edgeIdentifier, ConnectedEdgeType.IN));
+        Assert.assertFalse(isEdgeRelatedToNode(changedAtlas, endReverse.getIdentifier(),
+                edgeIdentifier, ConnectedEdgeType.OUT));
+        Assert.assertFalse(isEdgeRelatedToNode(changedAtlas, startReverse.getIdentifier(),
+                edgeIdentifier, ConnectedEdgeType.IN));
 
         verifyCounts(changedAtlas, Pair.of(ItemType.EDGE, CascadeDeleteTestRule.EDGE_COUNT - 1));
     }
 
     protected boolean isEdgeRelatedToNode(final Atlas atlas, final long nodeId, final long edgeId,
-                                        final ConnectedEdgeType connectedEdgeType) {
+            final ConnectedEdgeType connectedEdgeType)
+    {
         final Node node = atlas.node(nodeId);
         Assert.assertNotNull(node);
         return isEdgeRelatedToNode(node, edgeId, connectedEdgeType);
     }
 
-    protected boolean isEdgeRelatedToNode(final Node node, final long edgeId, final ConnectedEdgeType connectedEdgeType) {
+    protected boolean isEdgeRelatedToNode(final Node node, final long edgeId,
+            final ConnectedEdgeType connectedEdgeType)
+    {
         return node.connectedEdges(connectedEdgeType).stream()
-                .filter(edge -> edge.getIdentifier() == edgeId)
-                .findFirst()
-                .isPresent();
+                .filter(edge -> edge.getIdentifier() == edgeId).findFirst().isPresent();
     }
 
-    protected Atlas getAtlas() {
+    protected Atlas getAtlas()
+    {
         return rule.getAtlas();
     }
 
     protected Set<Long> getMatchingEdgesInRelation(final Atlas atlas, final long relationIdentifier,
-                                                 final long edgeIdentifier) {
+            final long edgeIdentifier)
+    {
         return atlas.relation(relationIdentifier).members().stream()
                 .filter(relationMember -> relationMember.getEntity().getType() == ItemType.EDGE)
                 .filter(relationMember -> Math.abs(
@@ -180,16 +189,18 @@ class CascadeDeleteTestHelper {
                 .collect(Collectors.toSet());
     }
 
-
     protected void testDeleteSimple(final ItemType itemType, final long entityIdentifier,
-                                  final long entityRelationIdentifier) {
+            final long entityRelationIdentifier)
+    {
         final boolean relationEmptiesAndAutoDeletes = false;
 
-        testDeleteSimple(itemType, entityIdentifier, entityRelationIdentifier, relationEmptiesAndAutoDeletes);
+        testDeleteSimple(itemType, entityIdentifier, entityRelationIdentifier,
+                relationEmptiesAndAutoDeletes);
     }
 
     protected void testDeleteSimple(final ItemType itemType, final long entityIdentifier,
-                                  final long entityRelationIdentifier, final boolean relationEmptiesAndAutoDeletes) {
+            final long entityRelationIdentifier, final boolean relationEmptiesAndAutoDeletes)
+    {
         final Atlas atlas = getAtlas();
 
         final AtlasEntity atlasEntity = itemType.entityForIdentifier(atlas, entityIdentifier);
@@ -211,21 +222,27 @@ class CascadeDeleteTestHelper {
 
         Assert.assertNull(itemType.entityForIdentifier(changeAtlas, entityIdentifier));
 
-        if (!relationEmptiesAndAutoDeletes) {
+        if (!relationEmptiesAndAutoDeletes)
+        {
             Assert.assertNotNull(changeAtlas.relation(entityRelationIdentifier));
-            Assert.assertFalse(isEntityPresentInRelation(changeAtlas, itemType, entityRelationIdentifier, entityIdentifier));
+            Assert.assertFalse(isEntityPresentInRelation(changeAtlas, itemType,
+                    entityRelationIdentifier, entityIdentifier));
             verifyCounts(changeAtlas, override(itemType, -1));
-        } else {
+        }
+        else
+        {
             Assert.assertNull(changeAtlas.relation(entityRelationIdentifier));
             verifyCounts(changeAtlas, override(itemType, -1), override(ItemType.RELATION, -1));
         }
     }
 
-    protected Pair<ItemType, Long> override(final ItemType itemType, final int override) {
+    protected Pair<ItemType, Long> override(final ItemType itemType, final int override)
+    {
         return Pair.of(itemType, rule.getCountExpectationMapping().get(itemType) + override);
     }
 
-    protected void verifyCounts(final Atlas atlas, final Pair<ItemType, Long>... overrides) {
+    protected void verifyCounts(final Atlas atlas, final Pair<ItemType, Long>... overrides)
+    {
         final Map<ItemType, Long> countExpectationMapping = rule.getCountExpectationMapping();
 
         final Map<ItemType, Long> overrideMapping = Arrays.stream(overrides)
@@ -235,18 +252,21 @@ class CascadeDeleteTestHelper {
 
         Assert.assertEquals(ItemType.values().length, countExpectationMapping.size());
 
-        for (final Map.Entry<ItemType, Long> entry : countExpectationMapping.entrySet()) {
+        for (final Map.Entry<ItemType, Long> entry : countExpectationMapping.entrySet())
+        {
             Assert.assertEquals("entry failed: " + entry, (long) entry.getValue(),
                     entry.getKey().numberOfEntities(atlas));
         }
     }
 
-    protected Atlas deleteSimpleRelation(final long entityIdentifier, final Atlas atlas) {
+    protected Atlas deleteSimpleRelation(final long entityIdentifier, final Atlas atlas)
+    {
         verifyCounts(atlas);
 
         final Relation relation = atlas.relation(entityIdentifier);
 
-        final FeatureChange featureChange = FeatureChange.remove(CompleteRelation.shallowFrom(relation), atlas);
+        final FeatureChange featureChange = FeatureChange
+                .remove(CompleteRelation.shallowFrom(relation), atlas);
 
         final Change change = ChangeBuilder.newInstance().add(featureChange).get();
 
