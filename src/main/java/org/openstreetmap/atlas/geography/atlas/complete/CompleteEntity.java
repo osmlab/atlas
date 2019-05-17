@@ -9,6 +9,7 @@ import java.util.function.Function;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listenable.TagChangeListenable;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
@@ -230,6 +231,8 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
     {
         return CompleteEntity.withAddedTag((C) this, key, value, false);
     }
+
+    CompleteEntity withGeometry(Iterable<Location> locations);
 
     CompleteEntity withIdentifier(long identifier);
 
