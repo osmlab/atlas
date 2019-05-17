@@ -570,6 +570,7 @@ public class WaySectionProcessor
 
         StreamSupport.stream(this.rawAtlas.lines().spliterator(), true).forEach(line ->
         {
+            boolean kept = false;
             if (isAtlasEdge(line))
             {
                 final NodeOccurrenceCounter nodesForEdge = new NodeOccurrenceCounter();
@@ -640,17 +641,20 @@ public class WaySectionProcessor
 
                 // Record the edge and all its nodes
                 changeSet.createEdgeToNodeMapping(line.getIdentifier(), nodesForEdge);
+                kept = true;
             }
-            else if (isAtlasArea(line))
+            if (isAtlasArea(line))
             {
                 changeSet.recordArea(line);
+                kept = true;
             }
-            else if (isAtlasLine(line))
+            if (isAtlasLine(line))
             {
+                kept = true;
                 // No-op. Unless a line becomes an area, edge or is excluded from the Atlas, it will
                 // stay a line. It's easier to track of exclusions than lines that stay as lines
             }
-            else
+            if (!kept)
             {
                 changeSet.recordExcludedLine(line);
                 logger.debug(
