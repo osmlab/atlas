@@ -108,9 +108,7 @@ public class DynamicAtlasTest
         Assert.assertEquals(3, this.dynamicAtlas.getNumberOfShardsLoaded());
 
         // Prompts load of 12-1349-1870
-        // Fixed by {@link MultiAtlasBorderFixer} due to inconsistent relations
-        Assert.assertNull(this.dynamicAtlas.edge(6000000));
-        Assert.assertNotNull(this.dynamicAtlas.edge(6000001));
+        Assert.assertNotNull(this.dynamicAtlas.edge(6000000));
         Assert.assertEquals(9, this.dynamicAtlas.numberOfEdges());
         Assert.assertNotNull(this.dynamicAtlas.edge(7000000));
         Assert.assertEquals(9, this.dynamicAtlas.numberOfEdges());

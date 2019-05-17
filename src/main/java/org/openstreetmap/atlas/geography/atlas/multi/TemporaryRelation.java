@@ -7,7 +7,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 
 /**
- * Class to handle relation collection in {@link MultiAtlasBorderFixer}.
+ * Class to handle relation collection in {@link MultiAtlasRelationAggregator}.
  *
  * @author mkalender
  */

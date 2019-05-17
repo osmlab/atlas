@@ -11,13 +11,9 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
@@ -28,23 +24,26 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
+import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
-import org.openstreetmap.atlas.utilities.scalars.Ratio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Fix issues in a {@link MultiAtlas} that are related to way sectioning at {@link Atlas} border
- * stitching.
+ * Fix {@link Relation} inconsistencies in a {@link MultiAtlas}. The inconsistencies are a result of
+ * each underlying {@link Atlas} only having a portion of the entire {@link Relation}. All other
+ * inconsistencies - geometry or identifier are treated as errors in the way-sectioning process.
  *
  * @author matthieun
  * @author mkalender
+ * @author mgostintsev
  */
-public class MultiAtlasBorderFixer implements Serializable
+public class MultiAtlasRelationAggregator implements Serializable
 {
     private static final long serialVersionUID = -3774372864489402091L;
-    private static final Logger logger = LoggerFactory.getLogger(MultiAtlasBorderFixer.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(MultiAtlasRelationAggregator.class);
 
     private static final String MISSING_FIX_ATLAS = "Fix Atlas is not present.";
 
@@ -52,8 +51,7 @@ public class MultiAtlasBorderFixer implements Serializable
     private boolean isCompleted;
 
     // Below are all the maps and Atlas responsible for storing references to the edges (and
-    // referencing nodes and relations) that were messed up with regards to way sectioning at
-    // sub-atlas borders.
+    // referencing nodes and relations) that were affected by the relation aggregation
     private final MultiMapWithSet<Long, Long> nodeIdentifiersToRemovedInEdges;
     private final MultiMapWithSet<Long, Long> nodeIdentifiersToRemovedOutEdges;
     private final MultiMapWithSet<Long, Long> relationIdentifiersToRemovedEdgeMembers;
@@ -62,10 +60,9 @@ public class MultiAtlasBorderFixer implements Serializable
     private final Set<Long> fixedCountryOsmIdentifiers;
     private transient Optional<Atlas> fixAtlas;
     private final List<Atlas> subAtlases;
-    private final HashSet<Long> countryOsmIdentifierWithReverseEdges;
     private final MultiMap<Long, Long> countryOsmIdentifierToEdgeIdentifiers;
 
-    protected MultiAtlasBorderFixer(final List<Atlas> subAtlases,
+    protected MultiAtlasRelationAggregator(final List<Atlas> subAtlases,
             final Iterable<Long> edgeIdentifiers)
     {
         // Set fix atlas and initialize maps
@@ -81,10 +78,8 @@ public class MultiAtlasBorderFixer implements Serializable
         // Assign sub atlases
         this.subAtlases = subAtlases;
 
-        // Build helpers country OSM idetifier to list of edge-identifier map
-        // And also a set of country OSM identifiers with reverse edges
+        // Build helpers country OSM identifier to list of edge-identifier map
         this.countryOsmIdentifierToEdgeIdentifiers = new MultiMap<>();
-        this.countryOsmIdentifierWithReverseEdges = new HashSet<>();
         edgeIdentifiers.forEach(edgeIdentifier ->
         {
             final long countryOsmIdentifier = getCountryOsmIdentifier(edgeIdentifier);
@@ -93,18 +88,32 @@ public class MultiAtlasBorderFixer implements Serializable
                 this.countryOsmIdentifierToEdgeIdentifiers.add(countryOsmIdentifier,
                         edgeIdentifier);
             }
-            else
-            {
-                this.countryOsmIdentifierWithReverseEdges.add(countryOsmIdentifier);
-            }
         });
     }
 
+    protected Edge fixEdge(final long identifier)
+    {
+        return this.fixAtlas.orElseThrow(() -> new CoreException(MISSING_FIX_ATLAS))
+                .edge(identifier);
+    }
+
+    protected Node fixNode(final long identifier)
+    {
+        return this.fixAtlas.orElseThrow(() -> new CoreException(MISSING_FIX_ATLAS))
+                .node(identifier);
+    }
+
+    protected Relation fixRelation(final Long identifier)
+    {
+        return this.fixAtlas.orElseThrow(() -> new CoreException(MISSING_FIX_ATLAS))
+                .relation(identifier);
+    }
+
     /**
-     * Make sure that the edges that are at the sharding borders are not different with regards to
-     * way sectioning.
+     * Make sure that relations spanning {@link Shard} boundaries are returning a consistent
+     * representation of their members and vice versa.
      */
-    protected void fixBorderIssues()
+    protected void fixRelationInconsistencies()
     {
         // Start the process
         this.isCompleted = false;
@@ -115,7 +124,7 @@ public class MultiAtlasBorderFixer implements Serializable
 
         // A list to keep new nodes, new edges and a map to hold relations for new edges
         final Map<Long, Node> nodeIdentifiersToNewNodes = new HashMap<>();
-        final List<TemporaryEdge> newEdgeList = new ArrayList<>();
+        final List<TemporaryEdge> edgesToUpdate = new ArrayList<>();
         final Set<TemporaryRelation> relationsToUpdate = new HashSet<>();
         final MultiMapWithSet<Long, TemporaryRelationMember> relationMembersToUpdate = new MultiMapWithSet<>();
 
@@ -138,20 +147,24 @@ public class MultiAtlasBorderFixer implements Serializable
             final MultiMap<Long, Edge> identifierToEdgeList = createIdentifierToEdgeMultiMap(
                     edgeIdentifiers);
 
-            // If there are no inconsistent identifiers AND there are no inconsistent edges,
-            // mark the edge identifier as "processed" and continue to the next one
-            if (!hasInconsistentIdentifier(countryOsmIdentifier, identifierToEdgeList)
-                    && !hasInconsistentEdges(identifierToEdgeList)
-                    && !hasInconsistentRelations(identifierToEdgeList))
+            // We're operating under the assumption that way-sectioning produces consistent
+            // identifiers and geometry. If this isn't the case, the multiAtlas won't build until
+            // the way-sectioning is fixed.
+            if (hasInconsistentIdentifier(countryOsmIdentifier, identifierToEdgeList)
+                    || hasInconsistentEdges(identifierToEdgeList))
+            {
+                throw new CoreException(
+                        "Inconsistent edges for {} - way-sectioning issue detected! Edges: {}",
+                        countryOsmIdentifier, identifierToEdgeList);
+            }
+
+            // If there are no inconsistent relations, mark the edge identifier as "processed" and
+            // continue to the next one
+            if (!hasInconsistentRelations(identifierToEdgeList))
             {
                 processedCountryOsmIdentifiers.add(countryOsmIdentifier);
                 continue;
             }
-
-            // We are going to fix this road
-            // Find out if it has reverse edges
-            final boolean hasReverseEdges = this.countryOsmIdentifierWithReverseEdges
-                    .contains(countryOsmIdentifier);
 
             // Create a temporary road per sub atlas
             final List<Edge> edges = identifierToEdgeList.allValues();
@@ -159,125 +172,78 @@ public class MultiAtlasBorderFixer implements Serializable
 
             try
             {
-                // Check for road consistency
-                if (!areRoadsConsistent(roads))
-                {
-                    logger.warn(
-                            "Roads {} generated for OSM way {} were not consistent. Skipping fix!",
-                            roads, countryOsmIdentifier);
-                    continue;
-                }
-
-                // Collect tags and road polyline from roads
-                final Map<String, String> tags = collectTags(roads);
-                final PolyLine line = createPolyLineFromRoads(roads);
-
                 // Create temporary relations and collect roles per edge
                 final Set<TemporaryRelation> candidateRelations = collectRelations(edges);
                 final MultiMapWithSet<Long, String> candidateRoles = collectRoles(
                         candidateRelations, osmIdentifier);
                 final MultiMapWithSet<Long, TemporaryRelationMember> candidateRelationMembers = new MultiMapWithSet<>();
 
-                // Create a list of nodes processing roads per sub atlas
-                final SortedSet<TemporaryOrderedNode> nodes = createTemporaryOrderedNodeList(roads);
-
-                // Temporary data structures to hold new nodes, edges and relations
-                final Map<Long, Node> candidateNodeIdentifiersToNewNodes = new HashMap<>();
-                final List<TemporaryEdge> candidateEdgeList = new ArrayList<>();
-
-                // Add these nodes to the list of new nodes
-                nodes.forEach(temporaryNode -> candidateNodeIdentifiersToNewNodes
-                        .put(temporaryNode.getNodeIdentifier(), temporaryNode.getNode()));
-
-                // Let's have an identifier reference for new edges
-                long newEdgeIdentifier = getStartIdentifier(countryOsmIdentifier);
-
-                // Process nodes one by one
-                TemporaryOrderedNode previousNodePointer = null;
-                for (final TemporaryOrderedNode currNodePointer : nodes)
+                // Add edges as relation members to the corresponding relation
+                candidateRoles.forEach((relationIdentifier, roles) ->
                 {
-                    if (previousNodePointer != null)
+                    if (roles != null && !roles.isEmpty())
                     {
-                        // Previous node
-                        final Node previousNode = previousNodePointer.getNode();
-                        final Location previousLocation = previousNode.getLocation();
-                        final long previousIdentifier = previousNode.getIdentifier();
-                        final int previousOccurrenceIndex = previousNodePointer
-                                .getOccurrenceIndex();
-
-                        // Current node
-                        final Node currentNode = currNodePointer.getNode();
-                        final Location currentLocation = currentNode.getLocation();
-                        final long currentIdentifier = currentNode.getIdentifier();
-                        final int currentOccurrenceIndex = currNodePointer.getOccurrenceIndex();
-
-                        // Create a line from previous node to current node
-                        final PolyLine polyLine = line.between(previousLocation,
-                                previousOccurrenceIndex, currentLocation, currentOccurrenceIndex);
-
-                        // Increment new edge reference since we are creating a new edge
-                        newEdgeIdentifier++;
-
-                        // Create a new edge
-                        final TemporaryEdge newEdge = new TemporaryEdge(newEdgeIdentifier, polyLine,
-                                previousIdentifier, currentIdentifier, tags);
-                        candidateEdgeList.add(newEdge);
-
-                        // Create a reverse edge if needed
-                        if (hasReverseEdges)
+                        for (final String role : roles)
                         {
-                            final TemporaryEdge newReverseEdge = new TemporaryEdge(
-                                    newEdge.getReversedIdentifier(), polyLine.reversed(),
-                                    currentIdentifier, previousIdentifier, tags);
-                            candidateEdgeList.add(newReverseEdge);
-                        }
-
-                        // Add edges as relation members to the corresponding relation
-                        candidateRoles.forEach((relationIdentifier, roles) ->
-                        {
-                            if (roles != null && !roles.isEmpty())
+                            for (final Edge edge : edges)
                             {
-                                for (final String role : roles)
+                                candidateRelationMembers.add(relationIdentifier,
+                                        new TemporaryRelationMember(edge.getIdentifier(), role,
+                                                ItemType.EDGE));
+
+                                if (edge.hasReverseEdge())
                                 {
                                     candidateRelationMembers.add(relationIdentifier,
-                                            new TemporaryRelationMember(newEdge.getIdentifier(),
-                                                    role, ItemType.EDGE));
-
-                                    if (hasReverseEdges)
-                                    {
-                                        candidateRelationMembers.add(relationIdentifier,
-                                                new TemporaryRelationMember(
-                                                        newEdge.getReversedIdentifier(), role,
-                                                        ItemType.EDGE));
-                                    }
+                                            new TemporaryRelationMember(
+                                                    edge.reversed().get().getIdentifier(), role,
+                                                    ItemType.EDGE));
                                 }
                             }
-                            else
-                            {
-                                logger.error("Edge {} is missing roles {} in relation {}.",
-                                        osmIdentifier, roles, relationIdentifier);
-                            }
-                        });
+                        }
+                    }
+                    else
+                    {
+                        logger.error("Edge {} is missing roles {} in relation {}.", osmIdentifier,
+                                roles, relationIdentifier);
+                    }
+                });
+
+                // Because relations were updated, we need to create an "updated" version of the
+                // affected Edge and Nodes.
+                if (!candidateRelationMembers.isEmpty())
+                {
+                    // Create a temporary edge that's a single unified representation of all the
+                    // consistent edges from the underlying sub atlases - we can do this because
+                    // it's already been verified that all edges with this identifier are
+                    // consistent.
+                    final Edge firstEdge = edges.get(0);
+                    final TemporaryEdge unifiedEdge = new TemporaryEdge(firstEdge.getIdentifier(),
+                            firstEdge.asPolyLine(), firstEdge.getTags());
+                    edgesToUpdate.add(unifiedEdge);
+
+                    if (firstEdge.reversed().isPresent())
+                    {
+                        final TemporaryEdge reversedUnifiedEdge = new TemporaryEdge(
+                                firstEdge.reversed().get().getIdentifier(),
+                                firstEdge.asPolyLine().reversed(), firstEdge.getTags());
+                        edgesToUpdate.add(reversedUnifiedEdge);
                     }
 
-                    previousNodePointer = currNodePointer;
+                    // Update the start and end nodes for this edge
+                    final Node startNode = firstEdge.start();
+                    final Node endNode = firstEdge.end();
+                    nodeIdentifiersToNewNodes.put(startNode.getIdentifier(), startNode);
+                    nodeIdentifiersToNewNodes.put(endNode.getIdentifier(), endNode);
                 }
-
-                // Persist candidate nodes, edges
-                nodeIdentifiersToNewNodes.putAll(candidateNodeIdentifiersToNewNodes);
-                newEdgeList.addAll(candidateEdgeList);
 
                 // Persist relations
                 relationsToUpdate.addAll(candidateRelations);
 
-                // perform a set union instead of wiping out the set that is already mapped at the
+                // Perform a set union instead of wiping out the set that is already mapped at the
                 // current identifier
                 candidateRelationMembers.forEach(
                         (identifier, temporaryRelationMember) -> temporaryRelationMember.forEach(
                                 member -> relationMembersToUpdate.add(identifier, member)));
-
-                // Mark old edge nodes/relations to be ignored
-                markItemsToBeIgnored(roads, hasReverseEdges);
 
                 // Mark this OSM way fixed
                 this.fixedCountryOsmIdentifiers.add(countryOsmIdentifier);
@@ -313,7 +279,7 @@ public class MultiAtlasBorderFixer implements Serializable
             }
 
             // Take all the fixes and apply them
-            this.fixAtlas = applyFixesToAtlas(nodeIdentifiersToNewNodes, newEdgeList,
+            this.fixAtlas = applyFixesToAtlas(nodeIdentifiersToNewNodes, edgesToUpdate,
                     relationsToUpdate);
 
             // Complete the process
@@ -323,24 +289,6 @@ public class MultiAtlasBorderFixer implements Serializable
         {
             logger.error("Border fix process has failed.", e);
         }
-    }
-
-    protected Edge fixEdge(final long identifier)
-    {
-        return this.fixAtlas.orElseThrow(() -> new CoreException(MISSING_FIX_ATLAS))
-                .edge(identifier);
-    }
-
-    protected Node fixNode(final long identifier)
-    {
-        return this.fixAtlas.orElseThrow(() -> new CoreException(MISSING_FIX_ATLAS))
-                .node(identifier);
-    }
-
-    protected Relation fixRelation(final Long identifier)
-    {
-        return this.fixAtlas.orElseThrow(() -> new CoreException(MISSING_FIX_ATLAS))
-                .relation(identifier);
     }
 
     protected Atlas getFixAtlas()
@@ -474,33 +422,6 @@ public class MultiAtlasBorderFixer implements Serializable
     }
 
     /**
-     * Finds out whether there is a road inconsistency or not. These roads correspond to same OSM
-     * way, but they come from different sub atlases. If their shape is different in any way (start
-     * location, end location, length etc), that implies a inconsistency.
-     *
-     * @param roads
-     *            Roads to check for consistency
-     * @return Indicator whether given roads are consistent or not
-     */
-    private boolean areRoadsConsistent(final List<TemporaryRoad> roads)
-    {
-        // Use first road as reference
-        final PolyLine referencePolyLine = createPolyLineFromRoad(roads.get(0));
-
-        // Go through the roads and make sure their shape is same
-        // Polyline equality check will go through location by location
-        for (int i = 1; i < roads.size(); i++)
-        {
-            final PolyLine otherPolyLine = createPolyLineFromRoad(roads.get(i));
-            if (!referencePolyLine.equalsShape(otherPolyLine))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
      * Collects relations from given edges
      *
      * @param edges
@@ -552,21 +473,6 @@ public class MultiAtlasBorderFixer implements Serializable
     }
 
     /**
-     * Collects tags from given roads' edges. Theoretically edges correspond to same OSM way, so
-     * they should have the same tags.
-     *
-     * @param roads
-     *            Roads to use for tag extraction
-     * @return Tags
-     */
-    private Map<String, String> collectTags(final List<TemporaryRoad> roads)
-    {
-        final Map<String, String> tags = new HashMap<>();
-        roads.forEach(road -> road.getMembers().forEach(edge -> tags.putAll(edge.getTags())));
-        return tags;
-    }
-
-    /**
      * Creates a mapping from edge identifiers to edges themselves. This map will be useful to check
      * if two edges with the same identifier are geometrically equal or not.
      *
@@ -594,32 +500,6 @@ public class MultiAtlasBorderFixer implements Serializable
         }
 
         return edgeIdToEdges;
-    }
-
-    private PolyLine createPolyLineFromRoad(final TemporaryRoad road)
-    {
-        // A set of locations to collect from the road
-        final SortedSet<TemporaryOrderedLocation> temporaryNodeSet = createTemporaryOrderedLocations(
-                road);
-
-        return new PolyLine(temporaryNodeSet.stream().map(TemporaryOrderedLocation::getLocation)
-                .collect(Collectors.toList()));
-    }
-
-    private PolyLine createPolyLineFromRoads(final List<TemporaryRoad> roads)
-    {
-        // A set of locations to collect from roads
-        final SortedSet<TemporaryOrderedLocation> temporaryNodeSet = new TreeSet<>();
-
-        // Go through the roads one by one
-        for (final TemporaryRoad road : roads)
-        {
-            temporaryNodeSet.addAll(createTemporaryOrderedLocations(road));
-        }
-
-        // return a polyline from collected locations
-        return new PolyLine(temporaryNodeSet.stream().map(TemporaryOrderedLocation::getLocation)
-                .collect(Collectors.toList()));
     }
 
     /**
@@ -652,120 +532,6 @@ public class MultiAtlasBorderFixer implements Serializable
 
         // Return the rest
         return new ArrayList<>(edgesPerSubAtlas.values());
-    }
-
-    private SortedSet<TemporaryOrderedLocation> createTemporaryOrderedLocations(
-            final TemporaryRoad road)
-    {
-        // A set of locations to collect from roads
-        final SortedSet<TemporaryOrderedLocation> temporaryNodeSet = new TreeSet<>();
-
-        // Map containing the number of times a location has been seen, to know what occurence index
-        // it is at. A location that is present twice will be seen 0, then one, then two times.
-        final Map<String, Integer> locationToTimesSeenSoFar = new HashMap<>();
-        final PolyLine line = new PolyLine(road.locations());
-
-        // Loop through shape points (locations) and calculate number of occurrences
-        for (final Location location : road.locations())
-        {
-            final String locationIdentifier = location.toString();
-            // Initialize the number of times a location has been seen to 0
-            locationToTimesSeenSoFar.putIfAbsent(locationIdentifier, 0);
-        }
-
-        // Loop through shape points (locations), and calculate how many times each has been seen
-        // and the offset from the start of the polyLine.
-        for (final Location location : road.locations())
-        {
-            final String locationIdentifier = location.toString();
-            // Increment the number of times this location has been seen
-            locationToTimesSeenSoFar.put(locationIdentifier,
-                    locationToTimesSeenSoFar.get(locationIdentifier) + 1);
-            // The number of times it has been seen. The first time, it will be 1.
-            final int locationTimesSeenSoFar = locationToTimesSeenSoFar.get(locationIdentifier);
-            // The index at which this location occured.
-            final int occurrenceIndex = locationTimesSeenSoFar - 1;
-            final Ratio offset = line.offsetFromStart(location, occurrenceIndex);
-
-            // Create new ordered location and add it to the set
-            final TemporaryOrderedLocation newTemporaryNode = new TemporaryOrderedLocation(location,
-                    offset, occurrenceIndex);
-            if (!temporaryNodeSet.contains(newTemporaryNode))
-            {
-                temporaryNodeSet.add(newTemporaryNode);
-            }
-        }
-
-        return temporaryNodeSet;
-    }
-
-    /**
-     * Creates a sorted set of {@link TemporaryOrderedNode}s from road list. These roads are same
-     * roads coming from different sub atlases. However, they have different segments. Here we are
-     * trying to merge roads and come up with an ordered node list.
-     *
-     * @param roads
-     *            Roads to extract nodes
-     * @return Sorted set of {@link TemporaryOrderedNode}s
-     */
-    private SortedSet<TemporaryOrderedNode> createTemporaryOrderedNodeList(
-            final List<TemporaryRoad> roads)
-    {
-        // A set of nodes to collect from roads
-        // A node id could have more than one nodes, if that is the case, that means road is self
-        // intersecting
-        final SortedSet<TemporaryOrderedNode> temporaryNodeSet = new TreeSet<>();
-
-        // Go through the roads one by one
-        for (final TemporaryRoad road : roads)
-        {
-            // Turn road into a polyline through it's route
-            final PolyLine line = road.getRoute().asPolyLine();
-
-            // Create node identifier to an occurrence/time seen so far mappings
-            // These two maps will be used to calculate occurrence index
-            final Map<Long, Integer> nodeIdentifierToOccurenceMap = new HashMap<>();
-            final Map<Long, Integer> nodeIdentifierToTimesSeenSoFar = new HashMap<>();
-
-            // Process nodes and calculate number of occurrences
-            for (final Node node : road.getRoute().nodes())
-            {
-                final long nodeIdentifier = node.getIdentifier();
-                final int count = nodeIdentifierToOccurenceMap.containsKey(nodeIdentifier)
-                        ? nodeIdentifierToOccurenceMap.get(nodeIdentifier) + 1
-                        : 1;
-                nodeIdentifierToOccurenceMap.put(nodeIdentifier, count);
-                nodeIdentifierToTimesSeenSoFar.putIfAbsent(nodeIdentifier, 0);
-            }
-
-            // Process nodes, calculate occurrence index, their offset from start
-            for (final Node node : road.getRoute().nodes())
-            {
-                final long nodeIdentifier = node.getIdentifier();
-                nodeIdentifierToTimesSeenSoFar.put(nodeIdentifier,
-                        nodeIdentifierToTimesSeenSoFar.get(nodeIdentifier) + 1);
-                final int occurrenceIndex = nodeIdentifierToOccurenceMap.get(nodeIdentifier)
-                        - nodeIdentifierToTimesSeenSoFar.get(nodeIdentifier);
-                final Ratio offset = line.offsetFromStart(node.getLocation(), occurrenceIndex);
-
-                // Create new node and add it to the set
-                final TemporaryOrderedNode newTemporaryNode = new TemporaryOrderedNode(node, offset,
-                        occurrenceIndex);
-                if (!temporaryNodeSet.contains(newTemporaryNode))
-                {
-                    temporaryNodeSet.add(newTemporaryNode);
-                }
-                else if (nodeIdentifier != newTemporaryNode.getNodeIdentifier())
-                {
-                    logger.warn(
-                            "Node {} (vs a node with id {}) is appearing in different subatlases"
-                                    + " at the same location.",
-                            newTemporaryNode, nodeIdentifier);
-                }
-            }
-        }
-
-        return temporaryNodeSet;
     }
 
     private long getCountryOsmIdentifier(final long edgeIdentifier)
@@ -879,45 +645,4 @@ public class MultiAtlasBorderFixer implements Serializable
         return false;
     }
 
-    /**
-     * Marks node-to-edge connections, relations (that edges in given roads are part of) to be
-     * ignored after the fix. MultiAtlas will act like these relations never existed.
-     *
-     * @param roads
-     *            Roads to get edges
-     * @param hasReverseEdges
-     *            Indicator whether given roads has reverse edges as well
-     */
-    private void markItemsToBeIgnored(final List<TemporaryRoad> roads,
-            final boolean hasReverseEdges)
-    {
-        for (final TemporaryRoad road : roads)
-        {
-            for (final Edge edge : road.getRoute())
-            {
-                final Long edgeIdentifier = edge.getIdentifier();
-
-                // Populate the identifiers to remove
-                this.nodeIdentifiersToRemovedInEdges.add(edge.end().getIdentifier(),
-                        edgeIdentifier);
-                this.nodeIdentifiersToRemovedOutEdges.add(edge.start().getIdentifier(),
-                        edgeIdentifier);
-                edge.relations().forEach(relation -> this.relationIdentifiersToRemovedEdgeMembers
-                        .add(relation.getIdentifier(), edgeIdentifier));
-
-                // Do again for reversed edges
-                if (hasReverseEdges)
-                {
-                    final Long reversedEdgeIdentifier = -edge.getIdentifier();
-                    this.nodeIdentifiersToRemovedInEdges.add(edge.start().getIdentifier(),
-                            reversedEdgeIdentifier);
-                    this.nodeIdentifiersToRemovedOutEdges.add(edge.end().getIdentifier(),
-                            reversedEdgeIdentifier);
-                    edge.relations()
-                            .forEach(relation -> this.relationIdentifiersToRemovedEdgeMembers
-                                    .add(relation.getIdentifier(), reversedEdgeIdentifier));
-                }
-            }
-        }
-    }
 }

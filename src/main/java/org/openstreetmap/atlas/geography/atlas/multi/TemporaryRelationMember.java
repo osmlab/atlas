@@ -4,7 +4,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 
 /**
- * Class to handle relation member collection in {@link MultiAtlasBorderFixer}.
+ * Class to handle relation member collection in {@link MultiAtlasRelationAggregator}.
  *
  * @author matthieun
  * @author mkalender

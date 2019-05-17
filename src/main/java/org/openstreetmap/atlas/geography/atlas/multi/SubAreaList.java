@@ -22,18 +22,13 @@ public class SubAreaList implements Iterable<Area>, Serializable
 
     private final List<Area> subAreas;
 
-    public SubAreaList(final List<Area> subAreas)
+    SubAreaList(final List<Area> subAreas)
     {
         if (subAreas == null)
         {
             throw new CoreException("Cannot have a null list of sub areas.");
         }
         this.subAreas = subAreas;
-    }
-
-    public List<Area> getSubAreas()
-    {
-        return this.subAreas;
     }
 
     @Override
@@ -45,5 +40,10 @@ public class SubAreaList implements Iterable<Area>, Serializable
     public int size()
     {
         return this.subAreas.size();
+    }
+
+    List<Area> getSubAreas()
+    {
+        return this.subAreas;
     }
 }
