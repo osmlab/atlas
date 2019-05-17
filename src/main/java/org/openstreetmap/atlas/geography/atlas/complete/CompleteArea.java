@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
@@ -175,6 +176,12 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
         }
         this.bounds = Rectangle.forLocated(this.bounds, bounds);
         return this;
+    }
+
+    @Override
+    public CompleteEntity withGeometry(final Iterable<Location> locations)
+    {
+        return this.withPolygon(new Polygon(locations));
     }
 
     @Override

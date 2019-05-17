@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -147,5 +148,13 @@ public class CompleteNodeTest
         // When we update the location again, the bounds recalculation should "forget" about the
         // first update
         Assert.assertEquals(Rectangle.forLocated(Location.COLOSSEUM), result.bounds());
+    }
+
+    @Test
+    public void testWithGeometry()
+    {
+        final CompleteNode node = new CompleteNode(1L);
+        node.withGeometry(Arrays.asList(Location.COLOSSEUM));
+        Assert.assertEquals(Location.COLOSSEUM, node.getLocation());
     }
 }

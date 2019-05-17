@@ -149,6 +149,22 @@ public class Location
     }
 
     /**
+     * Copy constructor for {@link Location}
+     *
+     * @param other
+     *            the {@link Location} from which to copy
+     */
+    public Location(final Location other)
+    {
+        if (other == null)
+        {
+            throw new CoreException("Other Location was null");
+        }
+        this.latitude = other.latitude;
+        this.longitude = other.longitude;
+    }
+
+    /**
      * Create a location from a dm7 latitude and dm7 longitude concatenated in a long
      *
      * @param concatenation

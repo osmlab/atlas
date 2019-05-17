@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
@@ -239,6 +240,12 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         return this;
     }
 
+    public CompleteRelation withBounds(final Rectangle bounds)
+    {
+        this.bounds = bounds;
+        return this;
+    }
+
     public CompleteRelation withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)
@@ -277,6 +284,13 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
                 new RelationBeanItem(newMember.getIdentifier(), role, newMember.getType()));
         this.updateBounds(newMember.bounds());
         return this;
+    }
+
+    @Override
+    public CompleteEntity withGeometry(final Iterable<Location> locations)
+    {
+        throw new UnsupportedOperationException("Relations cannot have an explicit geometry."
+                + " Please instead use withBounds or withBoundsExtendedBy to adjust the bounds.");
     }
 
     @Override
