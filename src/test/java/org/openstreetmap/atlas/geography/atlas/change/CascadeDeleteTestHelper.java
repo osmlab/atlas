@@ -27,7 +27,6 @@ import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
  */
 class CascadeDeleteTestHelper
 {
-
     private CascadeDeleteTestRule rule;
 
     CascadeDeleteTestHelper(final CascadeDeleteTestRule rule)

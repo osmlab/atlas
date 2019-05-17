@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.items;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashSet;
@@ -325,13 +326,26 @@ public abstract class Relation extends AtlasEntity
     /**
      * Get a subset of {@link #members()} matching a certain {@link ItemType}.
      *
-     * @param itemType
-     *            - the type of members to filter.
+     * @param itemTypes
+     *            - the types of members to filter.
      * @return - {@link #members()} of type itemType.
      */
-    public RelationMemberList membersOfType(final ItemType itemType)
+    public RelationMemberList membersOfType(final ItemType... itemTypes)
     {
-        return membersMatching(member -> member.getEntity().getType() == itemType);
+        final List<Predicate<RelationMember>> itemTypePredicates = Arrays.stream(itemTypes)
+                .map(itemType ->
+                {
+                    final Predicate<RelationMember> relationMemberPredicate = member -> member
+                            .getEntity().getType() == itemType;
+
+                    return relationMemberPredicate;
+                }).collect(Collectors.toList());
+
+        final RelationMemberList relationMemberList = itemTypePredicates.stream()
+                .map(this::membersMatching).flatMap(RelationMemberList::stream)
+                .collect(RelationMemberList.collect());
+
+        return relationMemberList;
     }
 
     /**
