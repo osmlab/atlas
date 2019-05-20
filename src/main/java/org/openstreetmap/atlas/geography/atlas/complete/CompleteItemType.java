@@ -61,6 +61,14 @@ public enum CompleteItemType
         return (C) CompleteEntity.shallowFrom(reference);
     }
 
+    public static <C extends CompleteEntity> C shallowFrom(final AtlasEntity reference)
+    {
+        final ItemType itemType = reference.getType();
+        final CompleteItemType completeItemType = CompleteItemType.from(itemType);
+        final C c = completeItemType.completeEntityShallowFrom(reference);
+        return c;
+    }
+
     private void validate(final AtlasEntity reference)
     {
         Validate.isTrue(getItemType().getMemberClass().isAssignableFrom(reference.getClass()),
