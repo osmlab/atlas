@@ -65,8 +65,8 @@ public enum CompleteItemType
     {
         final ItemType itemType = reference.getType();
         final CompleteItemType completeItemType = CompleteItemType.from(itemType);
-        final C c = completeItemType.completeEntityShallowFrom(reference);
-        return c;
+        final C completeEntity = completeItemType.completeEntityShallowFrom(reference);
+        return completeEntity;
     }
 
     private void validate(final AtlasEntity reference)
