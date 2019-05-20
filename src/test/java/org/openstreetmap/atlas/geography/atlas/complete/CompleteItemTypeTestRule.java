@@ -20,33 +20,20 @@ public class CompleteItemTypeTestRule extends CoreTestRule
     public static final String ONE = "35.3,-128.03";
     public static final String TWO = "37.4,-127.02";
 
-    @TestAtlas(
-            nodes = {
-                    @Node(id = "1", coordinates = @Loc(value = ONE)),
-                    @Node(id = "2", coordinates = @Loc(value = TWO))
-            },
+    @TestAtlas(nodes = { @Node(id = "1", coordinates = @Loc(value = ONE)),
+            @Node(id = "2", coordinates = @Loc(value = TWO)) },
 
-            edges = {
-                    @Edge(id = "1", coordinates = { @Loc(value = ONE), @Loc(value = TWO) })
-            },
+            edges = { @Edge(id = "1", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }) },
 
-            areas = {
-                    @Area(id = "1", coordinates = { @Loc(value = ONE), @Loc(value = TWO) })
-            },
+            areas = { @Area(id = "1", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }) },
 
-            lines = {
-                    @Line(id = "1", coordinates = { @Loc(value = ONE), @Loc(value = TWO) })
-            },
+            lines = { @Line(id = "1", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }) },
 
-            points = {
-                    @Point(id = "1", coordinates = @Loc(value = ONE))
-            },
+            points = { @Point(id = "1", coordinates = @Loc(value = ONE)) },
 
             relations = { @Relation(id = "1", members = {
                     @Member(id = "1", type = "node", role = "node-role"),
-                    @Member(id = "1", type = "edge", role = "edge-role")
-            })}
-    )
+                    @Member(id = "1", type = "edge", role = "edge-role") }) })
     private Atlas atlas;
 
     public Atlas getAtlas()
