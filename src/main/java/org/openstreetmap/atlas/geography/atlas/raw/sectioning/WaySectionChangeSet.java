@@ -80,6 +80,11 @@ public class WaySectionChangeSet
         return this.linesExcludedFromAtlas;
     }
 
+    public MultiMap<Long, TemporaryEdge> getLineToCreatedEdgesMapping()
+    {
+        return this.lineToEdgeMapping;
+    }
+
     public Set<Long> getLinesThatBecomeAreas()
     {
         return this.linesToBecomeAreas;
@@ -88,11 +93,6 @@ public class WaySectionChangeSet
     public Set<Long> getLinesThatBecomeEdges()
     {
         return this.edgeToNodeMapping.keySet();
-    }
-
-    public MultiMap<Long, TemporaryEdge> getLineToCreatedEdgesMapping()
-    {
-        return this.lineToEdgeMapping;
     }
 
     public NodeOccurrenceCounter getNodesForEdge(final Line line)

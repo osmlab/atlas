@@ -21,31 +21,14 @@ public class SubNodeList implements Iterable<Node>, Serializable
     private static final long serialVersionUID = -1413359659676228024L;
 
     private final List<Node> subNodes;
-    private final Node fixNode;
 
-    public SubNodeList(final List<Node> subNodes, final Node fixNode)
+    SubNodeList(final List<Node> subNodes)
     {
         if (subNodes == null)
         {
             throw new CoreException("Cannot have a null list of sub nodes.");
         }
         this.subNodes = subNodes;
-        this.fixNode = fixNode;
-    }
-
-    public Node getFixNode()
-    {
-        return this.fixNode;
-    }
-
-    public List<Node> getSubNodes()
-    {
-        return this.subNodes;
-    }
-
-    public boolean hasFixNode()
-    {
-        return this.fixNode != null;
     }
 
     @Override
@@ -56,6 +39,11 @@ public class SubNodeList implements Iterable<Node>, Serializable
 
     public int size()
     {
-        return this.subNodes.size() + (hasFixNode() ? 1 : 0);
+        return this.subNodes.size();
+    }
+
+    List<Node> getSubNodes()
+    {
+        return this.subNodes;
     }
 }
