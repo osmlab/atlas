@@ -284,4 +284,6 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
     {
         return CompleteEntity.withTags((C) this, tags, false);
     }
+
+    ItemType getType();
 }
