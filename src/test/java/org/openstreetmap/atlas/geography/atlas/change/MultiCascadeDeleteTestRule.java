@@ -27,18 +27,16 @@ public class MultiCascadeDeleteTestRule extends CoreTestRule
     public static final Long edgeA = Long.valueOf(strEdgeA);
     public static final Long edgeB = Long.valueOf(strEdgeB);
 
-    @TestAtlas(
-            nodes = {
-                    @TestAtlas.Node(id = strNodeA, coordinates = @TestAtlas.Loc(value = LOC_A)),
-                    @TestAtlas.Node(id = strNodeB, coordinates = @TestAtlas.Loc(value = LOC_B)),
-                    @TestAtlas.Node(id = strNodeC, coordinates = @TestAtlas.Loc(value = LOC_C)),
-            },
+    @TestAtlas(nodes = {
+            @TestAtlas.Node(id = strNodeA, coordinates = @TestAtlas.Loc(value = LOC_A)),
+            @TestAtlas.Node(id = strNodeB, coordinates = @TestAtlas.Loc(value = LOC_B)),
+            @TestAtlas.Node(id = strNodeC, coordinates = @TestAtlas.Loc(value = LOC_C)), },
 
             edges = {
-                    @TestAtlas.Edge(id = strEdgeA, coordinates = { @TestAtlas.Loc(value = LOC_A), @TestAtlas.Loc(value = LOC_B) }),
-                    @TestAtlas.Edge(id = strEdgeB, coordinates = { @TestAtlas.Loc(value = LOC_B), @TestAtlas.Loc(value = LOC_C) })
-            }
-        )
+                    @TestAtlas.Edge(id = strEdgeA, coordinates = { @TestAtlas.Loc(value = LOC_A),
+                            @TestAtlas.Loc(value = LOC_B) }),
+                    @TestAtlas.Edge(id = strEdgeB, coordinates = { @TestAtlas.Loc(value = LOC_B),
+                            @TestAtlas.Loc(value = LOC_C) }) })
     private Atlas atlas;
 
     public Atlas getAtlas()
