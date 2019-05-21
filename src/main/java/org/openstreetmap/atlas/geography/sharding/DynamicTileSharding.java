@@ -3,13 +3,18 @@ package org.openstreetmap.atlas.geography.sharding;
 import java.io.BufferedWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Queue;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -115,6 +120,57 @@ public class DynamicTileSharding extends Command implements Sharding
             return false;
         }
 
+        /**
+         * Does a deep equals with the other node
+         * 
+         * @param other
+         *            other Node
+         * @return true if entire structure is equal, false if not
+         */
+        private boolean deepEquals(final Node other)
+        {
+            final Comparator<Node> nodeCompare = Comparator.comparing(Node::getTile);
+            // BFS through both trees to get equality
+            final Queue<Node> queue = new LinkedList<>();
+            queue.offer(this);
+            queue.offer(other);
+            while (!queue.isEmpty())
+            {
+                final Optional<Node> node1 = Optional.ofNullable(queue.poll());
+                final Optional<Node> node2 = Optional.ofNullable(queue.poll());
+                if (!node2.isPresent())
+                {
+                    return false;
+                }
+                else
+                {
+                    if (node1.get().equals(node2.get())
+                            && node1.get().getChildren().size() == node2.get().getChildren().size())
+                    {
+                        final List<Node> children1 = node1.get().getChildren();
+                        final List<Node> children2 = node2.get().getChildren();
+                        children1.sort(nodeCompare);
+                        children2.sort(nodeCompare);
+                        for (int itr = 0; itr < children1.size(); itr++)
+                        {
+                            queue.offer(children1.get(itr));
+                            queue.offer(children2.get(itr));
+                        }
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        private List<Node> getChildren()
+        {
+            return this.children;
+        }
+
         public SlippyTile getTile()
         {
             return this.tile;
@@ -196,9 +252,9 @@ public class DynamicTileSharding extends Command implements Sharding
             return new GeoJsonBuilder.LocationIterableProperties(bounds(), tags);
         }
 
-        protected void build(final Function<SlippyTile, Boolean> shouldSplit)
+        protected void build(final Predicate<SlippyTile> shouldSplit)
         {
-            if (this.zoom() < SlippyTile.MAX_ZOOM && shouldSplit.apply(this.tile))
+            if (this.zoom() < SlippyTile.MAX_ZOOM && shouldSplit.test(this.tile))
             {
                 this.split();
                 for (final Node child : this.children)
@@ -330,6 +386,29 @@ public class DynamicTileSharding extends Command implements Sharding
     private DynamicTileSharding()
     {
         this.root = new Node();
+    }
+
+    @Override
+    public boolean equals(final Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+
+        if (obj == null || getClass() != obj.getClass())
+        {
+            return false;
+        }
+
+        final DynamicTileSharding that = (DynamicTileSharding) obj;
+        return root.deepEquals(that.root);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(this.root);
     }
 
     @Override
