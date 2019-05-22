@@ -11,7 +11,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -136,31 +135,23 @@ public class DynamicTileSharding extends Command implements Sharding
             queue.offer(other);
             while (!queue.isEmpty())
             {
-                final Optional<Node> node1 = Optional.ofNullable(queue.poll());
-                final Optional<Node> node2 = Optional.ofNullable(queue.poll());
-                if (!node2.isPresent())
+                final Node node1 = queue.poll();
+                final Node node2 = queue.poll();
+                if (node1.equals(node2) && node1.getChildren().size() == node2.getChildren().size())
                 {
-                    return false;
+                    final List<Node> children1 = node1.getChildren();
+                    final List<Node> children2 = node2.getChildren();
+                    children1.sort(nodeCompare);
+                    children2.sort(nodeCompare);
+                    for (int itr = 0; itr < children1.size(); itr++)
+                    {
+                        queue.offer(children1.get(itr));
+                        queue.offer(children2.get(itr));
+                    }
                 }
                 else
                 {
-                    if (node1.get().equals(node2.get())
-                            && node1.get().getChildren().size() == node2.get().getChildren().size())
-                    {
-                        final List<Node> children1 = node1.get().getChildren();
-                        final List<Node> children2 = node2.get().getChildren();
-                        children1.sort(nodeCompare);
-                        children2.sort(nodeCompare);
-                        for (int itr = 0; itr < children1.size(); itr++)
-                        {
-                            queue.offer(children1.get(itr));
-                            queue.offer(children2.get(itr));
-                        }
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
             return true;
