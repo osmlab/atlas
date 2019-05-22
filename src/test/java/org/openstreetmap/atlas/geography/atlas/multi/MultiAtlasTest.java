@@ -56,13 +56,13 @@ public class MultiAtlasTest
     {
         if (this.multi == null)
         {
-            setup();
+            setupTest();
         }
         return this.multi;
     }
 
     @Before
-    public void setup()
+    public void setupTest()
     {
         this.other = this.setup.getAtlas1();
         this.base = this.setup.getAtlas2();
@@ -95,16 +95,13 @@ public class MultiAtlasTest
         otherBase.save(otherResource);
 
         // filter out all resources from one atlas, make sure load still works
-        final Atlas multiFiltered = MultiAtlas
-                .loadFromPackedAtlas(Iterables.from(baseResource, otherResource), false, entity ->
-                {
-                    final boolean test = entity.getIdentifier() != 123L
-                            && entity.getIdentifier() != 12345L && entity.getIdentifier() != 4L
-                            && entity.getIdentifier() != 5L && entity.getIdentifier() != 6L
-                            && entity.getIdentifier() != 1L && entity.getIdentifier() != 3L;
-                    return test;
-                });
-
+        final Atlas multiFiltered = MultiAtlas.loadFromPackedAtlas(
+                Iterables.from(baseResource, otherResource), false,
+                entity -> entity.getIdentifier() != 123L && entity.getIdentifier() != 12345L
+                        && entity.getIdentifier() != 4L && entity.getIdentifier() != 5L
+                        && entity.getIdentifier() != 6L && entity.getIdentifier() != 1L
+                        && entity.getIdentifier() != 3L);
+        logger.info("{}", multiFiltered.numberOfEdges());
     }
 
     @Test
@@ -115,7 +112,7 @@ public class MultiAtlasTest
         Assert.assertEquals(4, members.size());
         for (int i = 0; i < members.size(); i++)
         {
-            Assert.assertTrue(members.get(i) != null);
+            Assert.assertNotNull(members.get(i));
         }
         // Members are ordered by entity type and ascending member identifier
         Assert.assertEquals(4, members.get(0).getEntity().getIdentifier());
@@ -142,8 +139,6 @@ public class MultiAtlasTest
             edges.next();
         }
         Assert.assertEquals(6, numberEdges);
-        // Assert.assertEquals(6, Iterables.size(this.multi.edges()));
-        // Assert.assertEquals(4, Iterables.size(this.multi.nodes()));
         Assert.assertEquals(6, Iterables.size(this.multi.edges()));
         Assert.assertEquals(4, Iterables.size(this.multi.nodes()));
         Assert.assertEquals(3, Iterables.size(this.multi.relations()));

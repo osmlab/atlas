@@ -54,7 +54,7 @@ public class MultiAtlasIntegrationTest extends AtlasIntegrationTest
         final File atlasFile = new File(
                 System.getProperty("user.home") + "/projects/data/unitTest/multiatlas.atlas");
         final MultiAtlas large;
-        Time start = Time.now();
+        Time start;
         final Rectangle queryBounds = Location.TEST_5.boxAround(Distance.miles(1));
         if (!overWrite && atlasFile.getFile().exists())
         {
@@ -106,9 +106,7 @@ public class MultiAtlasIntegrationTest extends AtlasIntegrationTest
         final Rectangle noOverlapBound = new Location(Latitude.degrees(24.3973491),
                 Longitude.degrees(-77.8862342)).boxAround(Distance.miles(1));
         final Atlas atlas3 = loadBahamas(noOverlapBound);
-
         this.multi = new MultiAtlas(atlas1, atlas2, atlas3);
-
         final Polygon polygon = this.multi.area(24601488000000L).asPolygon();
 
         Assert.assertEquals(40, Iterables.size(this.multi.edgesIntersecting(polygon)));

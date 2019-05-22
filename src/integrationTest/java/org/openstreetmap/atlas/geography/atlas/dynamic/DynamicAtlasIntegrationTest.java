@@ -31,35 +31,35 @@ public class DynamicAtlasIntegrationTest
     public void testAreas()
     {
         final Atlas atlas = new DynamicAtlas(POLICY);
-        Assert.assertEquals(31042, Iterables.size(atlas.areas()));
+        Assert.assertEquals(39672, Iterables.size(atlas.areas()));
     }
 
     @Test
     public void testEdges()
     {
         final Atlas atlas = new DynamicAtlas(POLICY);
-        Assert.assertEquals(17710, Iterables.size(atlas.edges()));
+        Assert.assertEquals(18936, Iterables.size(atlas.edges()));
     }
 
     @Test
     public void testLines()
     {
         final Atlas atlas = new DynamicAtlas(POLICY);
-        Assert.assertEquals(1309, Iterables.size(atlas.lines()));
+        Assert.assertEquals(1572, Iterables.size(atlas.lines()));
     }
 
     @Test
     public void testNodes()
     {
         final Atlas atlas = new DynamicAtlas(POLICY);
-        Assert.assertEquals(8032, Iterables.size(atlas.nodes()));
+        Assert.assertEquals(8615, Iterables.size(atlas.nodes()));
     }
 
     @Test
     public void testPoints()
     {
         final Atlas atlas = new DynamicAtlas(POLICY);
-        Assert.assertEquals(1437, Iterables.size(atlas.points()));
+        Assert.assertEquals(348, Iterables.size(atlas.points()));
     }
 
     @Test

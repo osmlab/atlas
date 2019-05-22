@@ -1,11 +1,13 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -96,5 +98,14 @@ public class CompleteLineTest
                         .collect(Collectors.toSet()),
                 result.relations().stream().map(Relation::getIdentifier)
                         .collect(Collectors.toSet()));
+    }
+
+    @Test
+    public void testWithGeometry()
+    {
+        final CompleteLine line = new CompleteLine(1L);
+        line.withGeometry(Arrays.asList(Location.COLOSSEUM, Location.CENTER));
+        Assert.assertEquals(new PolyLine(Arrays.asList(Location.COLOSSEUM, Location.CENTER)),
+                line.asPolyLine());
     }
 }

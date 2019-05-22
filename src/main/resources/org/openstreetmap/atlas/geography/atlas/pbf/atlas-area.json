@@ -1,6 +1,6 @@
 {
     "filters": [
-        "highway->!|highway->platform,bus_stop,rest_area",
+        "highway->platform,bus_stop,rest_area|highway->pedestrian&area->yes|highway->!",
         "railway->!|railway->platform,traverser,station",
         "route->!ferry",
         "man_made->!pier"

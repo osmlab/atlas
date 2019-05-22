@@ -6,6 +6,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Located;
@@ -18,6 +21,7 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * @author matthieun
+ * @author Yazad Khambata
  */
 public class RelationMemberList extends AbstractCollection<RelationMember> implements Located
 {
@@ -212,5 +216,16 @@ public class RelationMemberList extends AbstractCollection<RelationMember> imple
     private List<RelationMember> getMemberList()
     {
         return this.members;
+    }
+
+    /**
+     * A {@link Collectors#collectingAndThen(Collector, Function)} wrapper for
+     * {@link RelationMember}s.
+     *
+     * @return - the collector.
+     */
+    public static Collector<RelationMember, ? extends Object, RelationMemberList> collect()
+    {
+        return Collectors.collectingAndThen(Collectors.toList(), RelationMemberList::new);
     }
 }

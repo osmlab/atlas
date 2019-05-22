@@ -59,9 +59,8 @@ public class DynamicTileSharding extends Command implements Sharding
      */
     private static class Node implements Located, Serializable
     {
-        private static final long serialVersionUID = -7789058745501080439L;
         private static final int MAXIMUM_CHILDREN = 4;
-
+        private static final long serialVersionUID = -7789058745501080439L;
         private final List<Node> children;
         private final SlippyTile tile;
 
@@ -332,27 +331,25 @@ public class DynamicTileSharding extends Command implements Sharding
         }
     }
 
-    private static final long serialVersionUID = 229952569300405488L;
-    private static final Logger logger = LoggerFactory.getLogger(DynamicTileSharding.class);
-    private static final int READER_REPORT_FREQUENCY = 10_000_000;
-    private static final int MINIMUM_TO_SPLIT = 1_000;
-
     public static final Switch<Resource> DEFINITION = new Switch<>("definition",
             "Resource containing the maxZoom - 1 tile to feature count mapping.", File::new,
             Optionality.REQUIRED);
-    public static final Switch<WritableResource> OUTPUT = new Switch<>("output",
-            "The resource where to save the serialized tree.", File::new, Optionality.REQUIRED);
-    public static final Switch<Integer> MINIMUM_ZOOM = new Switch<>("minZoom", "The minimum zoom",
-            value -> Integer.valueOf(value), Optionality.OPTIONAL, "5");
-    public static final Switch<Integer> MAXIMUM_ZOOM = new Switch<>("maxZoom", "The maximum zoom",
-            value -> Integer.valueOf(value), Optionality.OPTIONAL, "10");
-    public static final Switch<Integer> MAXIMUM_COUNT = new Switch<>("maxCount",
-            "The maximum feature count. Any cell with a larger feature count will be split, up to maxZoom",
-            value -> Integer.valueOf(value), Optionality.OPTIONAL, "200000");
     public static final Switch<WritableResource> GEOJSON = new Switch<>("geoJson",
             "The resource where to save the geojson tree for debugging", File::new,
             Optionality.OPTIONAL);
-
+    public static final Switch<Integer> MAXIMUM_COUNT = new Switch<>("maxCount",
+            "The maximum feature count. Any cell with a larger feature count will be split, up to maxZoom",
+            value -> Integer.valueOf(value), Optionality.OPTIONAL, "200000");
+    public static final Switch<Integer> MAXIMUM_ZOOM = new Switch<>("maxZoom", "The maximum zoom",
+            value -> Integer.valueOf(value), Optionality.OPTIONAL, "10");
+    public static final Switch<Integer> MINIMUM_ZOOM = new Switch<>("minZoom", "The minimum zoom",
+            value -> Integer.valueOf(value), Optionality.OPTIONAL, "5");
+    public static final Switch<WritableResource> OUTPUT = new Switch<>("output",
+            "The resource where to save the serialized tree.", File::new, Optionality.REQUIRED);
+    private static final int MINIMUM_TO_SPLIT = 1_000;
+    private static final int READER_REPORT_FREQUENCY = 10_000_000;
+    private static final Logger logger = LoggerFactory.getLogger(DynamicTileSharding.class);
+    private static final long serialVersionUID = 229952569300405488L;
     // The root of the tree for this dynamic sharding
     private final Node root;
 
@@ -408,6 +405,17 @@ public class DynamicTileSharding extends Command implements Sharding
     {
         return this.root.neighbors(SlippyTile.forName(shard.getName())).stream().map(Node::getTile)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Save the tree to a {@link WritableResource}
+     *
+     * @param resource
+     *            The {@link WritableResource} to serialize the tree definition to.
+     */
+    public void save(final WritableResource resource)
+    {
+        this.root.save(resource);
     }
 
     public void saveAsGeoJson(final WritableResource resource)
@@ -567,16 +575,5 @@ public class DynamicTileSharding extends Command implements Sharding
     {
         return new SwitchList().with(DEFINITION, OUTPUT, MINIMUM_ZOOM, MAXIMUM_ZOOM, MAXIMUM_COUNT,
                 GEOJSON);
-    }
-
-    /**
-     * Save the tree to a {@link WritableResource}
-     *
-     * @param resource
-     *            The {@link WritableResource} to serialize the tree definition to.
-     */
-    private void save(final WritableResource resource)
-    {
-        this.root.save(resource);
     }
 }
