@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteItemType;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
 /**
  * There are 2 edges AB and BC. Node B is common between the 2 edges.
@@ -37,6 +38,10 @@ public class MultiCascadeDeleteTest
         Assert.assertFalse(changeAtlas.node(MultiCascadeDeleteTestRule.nodeB).outEdges().isEmpty());
         Assert.assertFalse(changeAtlas.node(MultiCascadeDeleteTestRule.nodeC).inEdges().isEmpty());
         Assert.assertTrue(changeAtlas.node(MultiCascadeDeleteTestRule.nodeC).outEdges().isEmpty());
+        final Relation relation = changeAtlas.relation(MultiCascadeDeleteTestRule.relationX);
+        Assert.assertNotNull(relation);
+        Assert.assertEquals(1, relation.membersOfType(ItemType.EDGE).size());
+        Assert.assertEquals(1, relation.membersOfType(ItemType.NODE).size());
     }
 
     @Test
@@ -58,6 +63,10 @@ public class MultiCascadeDeleteTest
         Assert.assertFalse(changeAtlas.node(MultiCascadeDeleteTestRule.nodeB).outEdges().isEmpty());
         Assert.assertFalse(changeAtlas.node(MultiCascadeDeleteTestRule.nodeC).inEdges().isEmpty());
         Assert.assertTrue(changeAtlas.node(MultiCascadeDeleteTestRule.nodeC).outEdges().isEmpty());
+        final Relation relation = changeAtlas.relation(MultiCascadeDeleteTestRule.relationX);
+        Assert.assertNotNull(relation);
+        Assert.assertEquals(1, relation.membersOfType(ItemType.EDGE).size());
+        Assert.assertEquals(1, relation.membersOfType(ItemType.NODE).size());
     }
 
     @Test
@@ -79,6 +88,8 @@ public class MultiCascadeDeleteTest
         Assert.assertTrue(changeAtlas.node(MultiCascadeDeleteTestRule.nodeA).outEdges().isEmpty());
         Assert.assertTrue(changeAtlas.node(MultiCascadeDeleteTestRule.nodeC).inEdges().isEmpty());
         Assert.assertTrue(changeAtlas.node(MultiCascadeDeleteTestRule.nodeC).outEdges().isEmpty());
+        final Relation relation = changeAtlas.relation(MultiCascadeDeleteTestRule.relationX);
+        Assert.assertNull(relation);
     }
 
     private Atlas changeAtlasDeletingFeature(final Atlas atlas, final ItemType itemType,
@@ -111,6 +122,7 @@ public class MultiCascadeDeleteTest
         final Atlas atlas = rule.getAtlas();
         Assert.assertEquals(3, atlas.numberOfNodes());
         Assert.assertEquals(2, atlas.numberOfEdges());
+        Assert.assertEquals(1, atlas.numberOfRelations());
         return atlas;
     }
 }
