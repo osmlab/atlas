@@ -62,8 +62,7 @@ public class DynamicTileShardingTest
     /**
      * Diff generated between two different trees
      * <p>
-     * < 9-165-184+ < 10-330-368 < 10-330-369 < 10-331-368 <
-     * 10-331-369 --- > 9-165-184
+     * < 9-165-184+ < 10-330-368 < 10-330-369 < 10-331-368 < 10-331-369 --- > 9-165-184
      * </p>
      * 1. changed children ordering 2. removed children at deepest level
      */
