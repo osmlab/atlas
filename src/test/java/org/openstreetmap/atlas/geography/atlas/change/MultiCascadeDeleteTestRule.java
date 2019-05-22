@@ -16,10 +16,8 @@ public class MultiCascadeDeleteTestRule extends CoreTestRule
     public static final String strNodeA = "1";
     public static final String strNodeB = "2";
     public static final String strNodeC = "3";
-
     public static final String strEdgeA = "1";
     public static final String strEdgeB = "2";
-
     public static final String strRelationX = "1";
 
     public static final Long nodeA = Long.valueOf(strNodeA);
