@@ -135,6 +135,7 @@ public class DynamicTileSharding extends Command implements Sharding
             queue.offer(other);
             while (!queue.isEmpty())
             {
+                // We always offer two at a time, so we can poll two at a time.
                 final Node node1 = queue.poll();
                 final Node node2 = queue.poll();
                 if (node1.equals(node2) && node1.getChildren().size() == node2.getChildren().size())
