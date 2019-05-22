@@ -143,10 +143,10 @@ public class DynamicTileSharding extends Command implements Sharding
                     final List<Node> children2 = node2.getChildren();
                     children1.sort(nodeCompare);
                     children2.sort(nodeCompare);
-                    for (int itr = 0; itr < children1.size(); itr++)
+                    for (int index = 0; index < children1.size(); index++)
                     {
-                        queue.offer(children1.get(itr));
-                        queue.offer(children2.get(itr));
+                        queue.offer(children1.get(index));
+                        queue.offer(children2.get(index));
                     }
                 }
                 else
@@ -378,19 +378,19 @@ public class DynamicTileSharding extends Command implements Sharding
     }
 
     @Override
-    public boolean equals(final Object obj)
+    public boolean equals(final Object other)
     {
-        if (this == obj)
+        if (this == other)
         {
             return true;
         }
 
-        if (obj == null || getClass() != obj.getClass())
+        if (other == null || getClass() != other.getClass())
         {
             return false;
         }
 
-        final DynamicTileSharding that = (DynamicTileSharding) obj;
+        final DynamicTileSharding that = (DynamicTileSharding) other;
         return root.deepEquals(that.root);
     }
 

@@ -69,7 +69,6 @@ public class DynamicTileShardingTest
     @Test
     public void testEquals()
     {
-
         final DynamicTileSharding shardingTreeOriginal = new DynamicTileSharding(
                 new InputStreamResource(() -> DynamicTileShardingTest.class
                         .getResourceAsStream("testDynamicSharding.txt")));
