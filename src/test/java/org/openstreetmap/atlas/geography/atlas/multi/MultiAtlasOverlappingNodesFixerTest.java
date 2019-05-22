@@ -65,24 +65,6 @@ public class MultiAtlasOverlappingNodesFixerTest extends Command
     }
 
     @Test
-    public void testOrderOverlappingNodesCrossingEdges()
-    {
-        final Atlas subAtlas1 = this.setup.overlappingAndCrossingSubAtlas1();
-        final Atlas subAtlas2 = this.setup.overlappingAndCrossingSubAtlas2();
-        final MultiAtlas multiAtlasOrder1 = new MultiAtlas(subAtlas1, subAtlas2);
-        final MultiAtlas multiAtlasOrder2 = new MultiAtlas(subAtlas2, subAtlas1);
-        multiAtlasOrder1.edges().forEach(edge ->
-        {
-            final Edge otherOrderEdge = multiAtlasOrder2.edge(edge.getIdentifier());
-            Assert.assertEquals(edge.start().getIdentifier(),
-                    otherOrderEdge.start().getIdentifier());
-            Assert.assertEquals(edge.end().getIdentifier(), otherOrderEdge.end().getIdentifier());
-            Assert.assertEquals(edge.getTags(), otherOrderEdge.getTags());
-            Assert.assertEquals(edge.asPolyLine(), otherOrderEdge.asPolyLine());
-        });
-    }
-
-    @Test
     public void testOverlappingAtAntimeridian()
     {
         final Atlas subAtlas1 = this.setup.subAtlasOnAntimeridianEast();
@@ -108,25 +90,6 @@ public class MultiAtlasOverlappingNodesFixerTest extends Command
                 Location.forString(MultiAtlasOverlappingNodesFixerTestRule.POINT_5_LOCATION),
                 Location.forString(MultiAtlasOverlappingNodesFixerTestRule.POINT_8_LOCATION));
         Assert.assertEquals(2, route.size());
-    }
-
-    @Test
-    public void testOverlappingNodesCrossingEdges()
-    {
-        final Atlas subAtlas1 = this.setup.overlappingAndCrossingSubAtlas1();
-        final Atlas subAtlas2 = this.setup.overlappingAndCrossingSubAtlas2();
-        final MultiAtlas multiAtlas = new MultiAtlas(subAtlas1, subAtlas2);
-
-        final Router router = AStarRouter.dijkstra(multiAtlas, Distance.meters(40));
-        final Route route1 = router.route(
-                Location.forString(MultiAtlasOverlappingNodesFixerTestRule.POINT_5_LOCATION),
-                Location.forString(MultiAtlasOverlappingNodesFixerTestRule.POINT_8_LOCATION));
-        Assert.assertEquals(2, route1.size());
-
-        final Route route2 = router.route(
-                Location.forString(MultiAtlasOverlappingNodesFixerTestRule.POINT_5_LOCATION),
-                Location.forString(MultiAtlasOverlappingNodesFixerTestRule.POINT_9_LOCATION));
-        Assert.assertEquals(2, route2.size());
     }
 
     @Override

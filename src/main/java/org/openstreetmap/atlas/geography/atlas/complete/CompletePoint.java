@@ -178,6 +178,16 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
     }
 
     @Override
+    public CompleteEntity withGeometry(final Iterable<Location> locations)
+    {
+        if (!locations.iterator().hasNext())
+        {
+            throw new CoreException("Cannot interpret empty Iterable as a Location");
+        }
+        return this.withLocation(locations.iterator().next());
+    }
+
+    @Override
     public CompletePoint withIdentifier(final long identifier)
     {
         this.identifier = identifier;

@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.multi;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -8,6 +9,8 @@ import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+
+import com.google.common.collect.Sets;
 
 /**
  * {@link Edge} made from a {@link MultiAtlas}.
@@ -21,7 +24,7 @@ public class MultiEdge extends Edge
     // Not index!
     private final long identifier;
 
-    private Edge subEdge;
+    private SubEdgeList subEdgeList;
 
     protected MultiEdge(final MultiAtlas atlas, final long identifier)
     {
@@ -32,14 +35,14 @@ public class MultiEdge extends Edge
     @Override
     public PolyLine asPolyLine()
     {
-        return this.getSubEdge().asPolyLine();
+        return this.getRepresentativeSubEdge().asPolyLine();
     }
 
     @Override
     public Node end()
     {
         return new MultiNode(multiAtlas(),
-                masteriseNodeIdentifier(this.getSubEdge().end().getIdentifier()));
+                masteriseNodeIdentifier(this.getRepresentativeSubEdge().end().getIdentifier()));
     }
 
     @Override
@@ -51,29 +54,42 @@ public class MultiEdge extends Edge
     @Override
     public Map<String, String> getTags()
     {
-        return this.getSubEdge().getTags();
+        return this.getRepresentativeSubEdge().getTags();
     }
 
     @Override
     public Set<Relation> relations()
     {
-        return multiAtlas().multifyRelations(getSubEdge());
+        Set<Relation> unionOfAllParentRelations = new HashSet<>();
+        for (final Edge subEdge : getSubEdges().getSubEdges())
+        {
+            final Set<Relation> currentSubEdgeParentRelations = multiAtlas()
+                    .multifyRelations(subEdge);
+            unionOfAllParentRelations = Sets.union(unionOfAllParentRelations,
+                    currentSubEdgeParentRelations);
+        }
+        return unionOfAllParentRelations;
     }
 
     @Override
     public Node start()
     {
         return new MultiNode(multiAtlas(),
-                masteriseNodeIdentifier(this.getSubEdge().start().getIdentifier()));
+                masteriseNodeIdentifier(this.getRepresentativeSubEdge().start().getIdentifier()));
     }
 
-    private Edge getSubEdge()
+    private Edge getRepresentativeSubEdge()
     {
-        if (this.subEdge == null)
+        return getSubEdges().getSubEdges().get(0);
+    }
+
+    private SubEdgeList getSubEdges()
+    {
+        if (this.subEdgeList == null)
         {
-            this.subEdge = this.multiAtlas().subEdge(this.identifier);
+            this.subEdgeList = this.multiAtlas().subEdge(this.identifier);
         }
-        return this.subEdge;
+        return this.subEdgeList;
     }
 
     /**
@@ -81,7 +97,7 @@ public class MultiEdge extends Edge
      * the other one
      *
      * @param identifier
-     *            The node odentifier
+     *            The node identifier
      * @return The master node identifier if any, or identity
      */
     private Long masteriseNodeIdentifier(final long identifier)

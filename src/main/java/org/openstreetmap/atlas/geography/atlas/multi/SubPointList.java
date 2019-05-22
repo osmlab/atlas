@@ -22,18 +22,13 @@ public class SubPointList implements Iterable<Point>, Serializable
 
     private final List<Point> subPoints;
 
-    public SubPointList(final List<Point> subPoints)
+    SubPointList(final List<Point> subPoints)
     {
         if (subPoints == null)
         {
             throw new CoreException("Cannot have a null list of sub points.");
         }
         this.subPoints = subPoints;
-    }
-
-    public List<Point> getSubPoints()
-    {
-        return this.subPoints;
     }
 
     @Override
@@ -45,5 +40,10 @@ public class SubPointList implements Iterable<Point>, Serializable
     public int size()
     {
         return this.subPoints.size();
+    }
+
+    List<Point> getSubPoints()
+    {
+        return this.subPoints;
     }
 }

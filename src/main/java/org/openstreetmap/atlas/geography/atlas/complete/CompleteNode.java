@@ -244,6 +244,16 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     }
 
     @Override
+    public CompleteEntity withGeometry(final Iterable<Location> locations)
+    {
+        if (!locations.iterator().hasNext())
+        {
+            throw new CoreException("Cannot interpret empty Iterable as a Location");
+        }
+        return this.withLocation(locations.iterator().next());
+    }
+
+    @Override
     public CompleteNode withIdentifier(final long identifier)
     {
         this.identifier = identifier;
