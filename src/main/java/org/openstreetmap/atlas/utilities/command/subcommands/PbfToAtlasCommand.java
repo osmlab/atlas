@@ -148,7 +148,7 @@ public final class PbfToAtlasCommand extends MultipleOutputCommand
         {
             final String wktFileName = boundsFilePathOption.get();
             final File wktFile = new File(wktFileName);
-            if (wktFileName.endsWith(FileSuffix.ZIP.toString()))
+            if (wktFileName.endsWith(FileSuffix.GZIP.toString()))
             {
                 wktFile.setDecompressor(Decompressor.GZIP);
             }
