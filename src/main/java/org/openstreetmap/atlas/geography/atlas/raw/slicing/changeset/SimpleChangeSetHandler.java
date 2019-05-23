@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.PolyLine;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
@@ -90,8 +92,23 @@ public class SimpleChangeSetHandler extends ChangeSetHandler
      */
     private void addNewLines()
     {
-        this.changeSet.getCreatedLines().forEach(line -> this.getBuilder()
-                .addLine(line.getIdentifier(), reconstructGeometryForLine(line), line.getTags()));
+        this.changeSet.getCreatedLines().forEach(line ->
+        {
+            PolyLine initial = reconstructGeometryForLine(line);
+            if (this.changeSet.getClockwiseMapping().containsKey(line.getIdentifier()))
+            {
+                final boolean clockwise = this.changeSet.getClockwiseMapping()
+                        .get(line.getIdentifier());
+                if (new Polygon(initial.truncate(0, 1)).isClockwise() != clockwise)
+                {
+                    initial = initial.reversed();
+                    logger.info("Reversed line {} to preserve original winding from parent line",
+                            line.getIdentifier());
+                }
+
+            }
+            this.getBuilder().addLine(line.getIdentifier(), initial, line.getTags());
+        });
     }
 
     /**
