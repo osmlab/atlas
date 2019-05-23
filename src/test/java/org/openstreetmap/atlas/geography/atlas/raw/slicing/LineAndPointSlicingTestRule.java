@@ -63,8 +63,8 @@ public class LineAndPointSlicingTestRule extends CoreTestRule
                     @Point(id = "4", coordinates = @Loc(value = AREA_LBR_SIDE_4)) },
 
             lines = { @Line(id = "1", coordinates = { @Loc(value = AREA_CIV_SIDE_1),
-                    @Loc(value = AREA_CIV_SIDE_2), @Loc(value = AREA_LBR_SIDE_3),
-                    @Loc(value = AREA_LBR_SIDE_4),
+                    @Loc(value = AREA_LBR_SIDE_4), @Loc(value = AREA_LBR_SIDE_3),
+                    @Loc(value = AREA_CIV_SIDE_2),
                     @Loc(value = AREA_CIV_SIDE_1) }, tags = { "building=yes" }) })
     private Atlas closedLineSpanningTwoCountries;
 

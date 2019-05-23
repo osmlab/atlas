@@ -14,13 +14,13 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
-
-import lombok.experimental.Delegate;
 
 /**
  * Independent {@link Relation} that contains its own data. At scale, use at your own risk.
@@ -41,7 +41,6 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     private Long osmRelationIdentifier;
     private Set<Long> relationIdentifiers;
 
-    @Delegate
     private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
@@ -436,5 +435,20 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     private void updateBounds(final Rectangle bounds)
     {
         this.bounds = bounds;
+    }
+
+    public void addTagChangeListener(final TagChangeListener tagChangeListener)
+    {
+        this.tagChangeDelegate.addTagChangeListener(tagChangeListener);
+    }
+
+    public void removeTagChangeListeners()
+    {
+        this.tagChangeDelegate.removeTagChangeListeners();
+    }
+
+    public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
+    {
+        this.tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
     }
 }

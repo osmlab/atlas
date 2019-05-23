@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
@@ -133,6 +134,8 @@ public class LineAndPointSlicingTest
         // Check Line correctness
         Assert.assertEquals("A single line exists in the raw Atlas", 1, rawAtlas.numberOfLines());
         rawAtlas.lines().forEach(line -> Assert.assertTrue("The line is closed", line.isClosed()));
+        rawAtlas.lines().forEach(line -> Assert.assertFalse("The line is counter clockwise:",
+                new Polygon(line.asPolyLine().truncate(0, 1)).isClockwise()));
         Assert.assertEquals("The line was cut into 2 segments", 2, slicedAtlas.numberOfLines());
         slicedAtlas.lines()
                 .forEach(line -> Assert.assertTrue("Both segments are closed", line.isClosed()));
@@ -178,6 +181,13 @@ public class LineAndPointSlicingTest
                         point.getTag(SyntheticBoundaryNodeTag.KEY).get());
             }
         }
+
+        slicedAtlas.lines().forEach(line ->
+        {
+            Assert.assertFalse("The sliced lines remain counter clockwise: ",
+                    new Polygon(line.asPolyLine().truncate(0, 1)).isClockwise());
+        });
+
     }
 
     @Test
