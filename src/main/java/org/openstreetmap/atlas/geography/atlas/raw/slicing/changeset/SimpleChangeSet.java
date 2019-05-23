@@ -38,6 +38,8 @@ public class SimpleChangeSet
     // replacing them with the created sliced segments.
     private final Map<Long, Set<Long>> deletedToCreatedLineMapping;
 
+    private final Map<Long, Boolean> createdLinesToClockwiseMapping;
+
     public SimpleChangeSet()
     {
         this.createdPoints = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -46,6 +48,7 @@ public class SimpleChangeSet
         this.createdLines = Collections.newSetFromMap(new ConcurrentHashMap<>());
         this.updatedLineTags = new ConcurrentHashMap<>();
         this.deletedToCreatedLineMapping = new ConcurrentHashMap<>();
+        this.createdLinesToClockwiseMapping = new ConcurrentHashMap<>();
     }
 
     public void createDeletedToCreatedMapping(final long deletedIdentifier,
@@ -59,6 +62,12 @@ public class SimpleChangeSet
         this.createdLines.add(line);
     }
 
+    public void createLine(final TemporaryLine line, final boolean clockwise)
+    {
+        this.createdLines.add(line);
+        this.createdLinesToClockwiseMapping.put(line.getIdentifier(), clockwise);
+    }
+
     public void createPoint(final TemporaryPoint point)
     {
         this.createdPoints.add(point);
@@ -67,6 +76,11 @@ public class SimpleChangeSet
     public void deletePoint(final long identifier)
     {
         this.deletedPoints.add(identifier);
+    }
+
+    public Map<Long, Boolean> getClockwiseMapping()
+    {
+        return this.createdLinesToClockwiseMapping;
     }
 
     public Set<TemporaryLine> getCreatedLines()
