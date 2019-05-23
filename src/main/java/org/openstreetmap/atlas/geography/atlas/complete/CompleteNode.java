@@ -12,11 +12,11 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-
-import lombok.experimental.Delegate;
 
 /**
  * Independent {@link Node} that may contain its own altered data. At scale, use at your own risk.
@@ -28,7 +28,6 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
 {
     private static final long serialVersionUID = -8229589987121555419L;
 
-    @Delegate
     private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     private Rectangle bounds;
@@ -371,5 +370,20 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
         return this;
+    }
+
+    public void addTagChangeListener(TagChangeListener tagChangeListener)
+    {
+        this.tagChangeDelegate.addTagChangeListener(tagChangeListener);
+    }
+
+    public void removeTagChangeListeners()
+    {
+        this.tagChangeDelegate.removeTagChangeListeners();
+    }
+
+    public void fireTagChangeEvent(TagChangeEvent tagChangeEvent)
+    {
+        this.tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
     }
 }

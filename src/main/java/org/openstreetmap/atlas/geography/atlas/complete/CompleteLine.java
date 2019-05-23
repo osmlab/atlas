@@ -10,10 +10,10 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-
-import lombok.experimental.Delegate;
 
 /**
  * Independent {@link Line} that contains its own data. At scale, use at your own risk.
@@ -31,7 +31,6 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
 
-    @Delegate
     private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
@@ -212,5 +211,20 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
         return this;
+    }
+
+    public void addTagChangeListener(TagChangeListener tagChangeListener)
+    {
+        this.tagChangeDelegate.addTagChangeListener(tagChangeListener);
+    }
+
+    public void removeTagChangeListeners()
+    {
+        this.tagChangeDelegate.removeTagChangeListeners();
+    }
+
+    public void fireTagChangeEvent(TagChangeEvent tagChangeEvent)
+    {
+        this.tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
     }
 }

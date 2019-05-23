@@ -3,17 +3,12 @@ package org.openstreetmap.atlas.geography.atlas.items;
 import java.util.SortedSet;
 import java.util.function.Function;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 /**
  * {@link Node}s have in and out edges, this enum enables generalizing logic around this node and
  * edge connection.
  *
  * @author Yazad Khambata
  */
-@AllArgsConstructor
-@Getter
 public enum ConnectedEdgeType
 {
     IN("inEdges", Node::inEdges),
@@ -23,4 +18,20 @@ public enum ConnectedEdgeType
     private String propertyName;
 
     private Function<Node, SortedSet<Edge>> accessFunction;
+
+    ConnectedEdgeType(String propertyName, Function<Node, SortedSet<Edge>> accessFunction)
+    {
+        this.propertyName = propertyName;
+        this.accessFunction = accessFunction;
+    }
+
+    public String getPropertyName()
+    {
+        return this.propertyName;
+    }
+
+    public Function<Node, SortedSet<Edge>> getAccessFunction()
+    {
+        return this.accessFunction;
+    }
 }
