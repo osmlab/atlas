@@ -1,0 +1,8 @@
+Convert a PBF to an Atlas:
+#$ pbf2atlas 6-42-24.pbf --countryName KAZ
+Convert a PBF to an Atlas with a custom output directory:
+#$ pbf2atlas 6-42-24.pbf --countryName KAZ --output=atlas
+Convert a directory of PBFs to Atlases in a custom output directory:
+#$ pbf2atlas pbf/* --countryName KAZ --output=atlas
+Convert a PBF to an Atlas with a custom boundary:
+#$ pbf2atlas 6-42-24.pbf --countryName KAZ --bounds=bounds.txt
