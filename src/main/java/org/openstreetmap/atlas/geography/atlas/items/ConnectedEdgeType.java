@@ -19,7 +19,8 @@ public enum ConnectedEdgeType
 
     private Function<Node, SortedSet<Edge>> accessFunction;
 
-    ConnectedEdgeType(final String propertyName, final Function<Node, SortedSet<Edge>> accessFunction)
+    ConnectedEdgeType(final String propertyName,
+            final Function<Node, SortedSet<Edge>> accessFunction)
     {
         this.propertyName = propertyName;
         this.accessFunction = accessFunction;
