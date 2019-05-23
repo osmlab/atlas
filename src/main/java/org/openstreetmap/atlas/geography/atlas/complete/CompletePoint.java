@@ -9,10 +9,10 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-
-import lombok.experimental.Delegate;
 
 /**
  * Independent {@link Point} that contains its own data. At scale, use at your own risk.
@@ -30,7 +30,6 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
 
-    @Delegate
     private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
@@ -215,5 +214,20 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
         return this;
+    }
+
+    public void addTagChangeListener(final TagChangeListener tagChangeListener)
+    {
+        this.tagChangeDelegate.addTagChangeListener(tagChangeListener);
+    }
+
+    public void removeTagChangeListeners()
+    {
+        this.tagChangeDelegate.removeTagChangeListeners();
+    }
+
+    public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
+    {
+        this.tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
     }
 }
