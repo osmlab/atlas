@@ -437,7 +437,7 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         this.bounds = bounds;
     }
 
-    public void addTagChangeListener(TagChangeListener tagChangeListener)
+    public void addTagChangeListener(final TagChangeListener tagChangeListener)
     {
         this.tagChangeDelegate.addTagChangeListener(tagChangeListener);
     }
@@ -447,7 +447,7 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         this.tagChangeDelegate.removeTagChangeListeners();
     }
 
-    public void fireTagChangeEvent(TagChangeEvent tagChangeEvent)
+    public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
     {
         this.tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
     }

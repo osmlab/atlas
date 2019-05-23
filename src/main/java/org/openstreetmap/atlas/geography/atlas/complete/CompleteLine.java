@@ -213,7 +213,7 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
         return this;
     }
 
-    public void addTagChangeListener(TagChangeListener tagChangeListener)
+    public void addTagChangeListener(final TagChangeListener tagChangeListener)
     {
         this.tagChangeDelegate.addTagChangeListener(tagChangeListener);
     }
@@ -223,7 +223,7 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
         this.tagChangeDelegate.removeTagChangeListeners();
     }
 
-    public void fireTagChangeEvent(TagChangeEvent tagChangeEvent)
+    public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
     {
         this.tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
     }

@@ -372,7 +372,7 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         return this;
     }
 
-    public void addTagChangeListener(TagChangeListener tagChangeListener)
+    public void addTagChangeListener(final TagChangeListener tagChangeListener)
     {
         this.tagChangeDelegate.addTagChangeListener(tagChangeListener);
     }
@@ -382,7 +382,7 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         this.tagChangeDelegate.removeTagChangeListeners();
     }
 
-    public void fireTagChangeEvent(TagChangeEvent tagChangeEvent)
+    public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
     {
         this.tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
     }

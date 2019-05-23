@@ -258,7 +258,7 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
         return this;
     }
 
-    public void addTagChangeListener(TagChangeListener tagChangeListener)
+    public void addTagChangeListener(final TagChangeListener tagChangeListener)
     {
         this.tagChangeDelegate.addTagChangeListener(tagChangeListener);
     }
@@ -268,7 +268,7 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
         this.tagChangeDelegate.removeTagChangeListeners();
     }
 
-    public void fireTagChangeEvent(TagChangeEvent tagChangeEvent)
+    public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
     {
         this.tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
     }
