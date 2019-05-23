@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
 
 /**
@@ -56,5 +57,37 @@ public class DynamicTileShardingTest
                 countsAtZoom2);
         final long zoom0 = allCounts.get(new SlippyTile(0, 0, 0));
         Assert.assertEquals("The summed counts and the total", zoom0, total);
+    }
+
+    /**
+     * Diff generated between two different trees
+     * <p>
+     * < 9-165-184+ < 10-330-368 < 10-330-369 < 10-331-368 < 10-331-369 --- > 9-165-184
+     * </p>
+     * 1. changed children ordering 2. removed children at deepest level
+     */
+    @Test
+    public void testEquals()
+    {
+        final DynamicTileSharding shardingTreeOriginal = new DynamicTileSharding(
+                new InputStreamResource(() -> DynamicTileShardingTest.class
+                        .getResourceAsStream("testDynamicSharding.txt")));
+        final DynamicTileSharding shardingTreeOriginalCopy = new DynamicTileSharding(
+                new InputStreamResource(() -> DynamicTileShardingTest.class
+                        .getResourceAsStream("testDynamicSharding.txt")));
+        final DynamicTileSharding missingChildren = new DynamicTileSharding(
+                new InputStreamResource(() -> DynamicTileShardingTest.class
+                        .getResourceAsStream("testDynamicShardingMissingChildren.txt")));
+        final DynamicTileSharding differentChildOrdering = new DynamicTileSharding(
+                new InputStreamResource(() -> DynamicTileShardingTest.class
+                        .getResourceAsStream("testDynamicShardingChildOrdering.txt")));
+        // identity
+        Assert.assertEquals(shardingTreeOriginal, shardingTreeOriginal);
+        // copy
+        Assert.assertEquals(shardingTreeOriginal, shardingTreeOriginalCopy);
+        // missing children
+        Assert.assertNotEquals(shardingTreeOriginal, missingChildren);
+        // child order ignore
+        Assert.assertEquals(shardingTreeOriginal, differentChildOrdering);
     }
 }
