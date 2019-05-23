@@ -301,7 +301,18 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             }
         });
         // Update the change with the added and removed lines
-        createdLines.forEach(this.slicedPointAndLineChanges::createLine);
+        if (line.isClosed())
+        {
+            final boolean clockwise = new Polygon(line.asPolyLine().truncate(0, 1)).isClockwise();
+            createdLines.forEach(createdLine ->
+            {
+                this.slicedPointAndLineChanges.createLine(createdLine, clockwise);
+            });
+        }
+        else
+        {
+            createdLines.forEach(this.slicedPointAndLineChanges::createLine);
+        }
         this.slicedPointAndLineChanges.createDeletedToCreatedMapping(line.getIdentifier(),
                 createdLines.stream().map(TemporaryLine::getIdentifier)
                         .collect(Collectors.toSet()));
