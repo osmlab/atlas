@@ -37,9 +37,6 @@ configurations
 
 dependencies
 {
-    annotationProcessor packages.lombok
-
-    compileOnly packages.lombok
     compile packages.slf4j.api
     compile packages.junit
     compile packages.opencsv
@@ -67,10 +64,7 @@ dependencies
     compile packages.protoc
     compile packages.artifact
     compile packages.groovy
-
-    testAnnotationProcessor packages.lombok
-    testCompileOnly packages.lombok
-
+    
     shaded project.configurations.getByName('compile')
     shaded packages.slf4j.log4j12
     shaded packages.log4j

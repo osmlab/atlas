@@ -26,8 +26,7 @@ project.ext.versions = [
     protobuf_java:'2.6.1',
     protoc:'2.6.1',
     artifact:'3.5.4',
-    groovy: '2.5.4',
-    lombok: '1.18.4'
+    groovy: '2.5.4'
 ]
 
 project.ext.packages = [
@@ -70,5 +69,4 @@ project.ext.packages = [
     protoc: "com.google.protobuf:protoc:${versions.protoc}",
     artifact: "org.apache.maven:maven-artifact:${versions.artifact}",
     groovy: "org.codehaus.groovy:groovy:${versions.groovy}",
-    lombok: "org.projectlombok:lombok:${versions.lombok}"
 ]
