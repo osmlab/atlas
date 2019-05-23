@@ -6,8 +6,6 @@ import org.locationtech.jts.io.WKTReader;
 import org.locationtech.jts.io.WKTWriter;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolygon;
-import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
-import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
 /**
@@ -15,44 +13,33 @@ import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
  *
  * @author matthieun
  */
-public class WktMultiPolygonConverter implements TwoWayConverter<MultiPolygon, String>
+public class WktMultiPolygonConverter extends WkMultiPolygonConverter<String>
 {
-    private static final JtsPolygonToMultiPolygonConverter POLYGON_TO_MULTI_POLYGON_CONVERTER = new JtsPolygonToMultiPolygonConverter();
-    private static final JtsMultiPolygonToMultiPolygonConverter MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
-
-    @Override
-    public MultiPolygon backwardConvert(final String wkt)
+    private static final TwoWayConverter<String, Geometry> CONVERTER = new TwoWayConverter<String, Geometry>()
     {
-        final WKTReader myReader = new WKTReader();
-        try
+        @Override
+        public String backwardConvert(final Geometry geometry)
         {
-            final Geometry result = myReader.read(wkt);
-            if (result instanceof org.locationtech.jts.geom.Polygon)
+            return new WKTWriter().write(geometry);
+        }
+
+        @Override
+        public Geometry convert(final String wkt)
+        {
+            try
             {
-                final org.locationtech.jts.geom.Polygon jtsPolygon = (org.locationtech.jts.geom.Polygon) result;
-                return POLYGON_TO_MULTI_POLYGON_CONVERTER.convert(jtsPolygon);
+                return new WKTReader().read(wkt);
             }
-            else if (result instanceof org.locationtech.jts.geom.MultiPolygon)
+            catch (final ParseException e)
             {
-                return MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER
-                        .convert((org.locationtech.jts.geom.MultiPolygon) result);
-            }
-            else
-            {
-                throw new CoreException("Unknown type: {}", result.getClass().getCanonicalName());
+                throw new CoreException("Unable to parse WKT");
             }
         }
-        catch (final ParseException | ClassCastException e)
-        {
-            throw new CoreException("Cannot parse wkt : {}", wkt, e);
-        }
-    }
+    };
 
     @Override
-    public String convert(final MultiPolygon multiPolygon)
+    TwoWayConverter<String, Geometry> getGeometryConverter()
     {
-        final org.locationtech.jts.geom.MultiPolygon geometry = MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER
-                .backwardConvert(multiPolygon);
-        return new WKTWriter().write(geometry);
+        return CONVERTER;
     }
 }
