@@ -39,8 +39,12 @@ public final class PbfToAtlasCommand extends MultipleOutputCommand
     // The file containing the WKT polygon to constrain the loading
     private static final String BOUNDS = "bounds";
 
+    // Whether or not to stop at the raw atlas
+    private static final String RAW = "raw";
+
     private static final String COUNTRY_NAME_DESCRIPTION = "The country for the shard to build";
     private static final String BOUNDS_DESCRIPTION = "The file containing WKT bounds to restrain the loading.";
+    private static final String RAW_DESCRIPTION = "Whether or not to stop at the raw atlas. If this is enabled, way-sectioning will not happen";
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
@@ -74,14 +78,17 @@ public final class PbfToAtlasCommand extends MultipleOutputCommand
                 .orElseThrow(AtlasShellToolsException::new);
         this.pbfs.forEach(pbf ->
         {
-            final PackedAtlas rawAtlas = (PackedAtlas) new RawAtlasGenerator(pbf,
+            PackedAtlas atlas = (PackedAtlas) new RawAtlasGenerator(pbf,
                     AtlasLoadingOption.createOptionWithOnlySectioning(), getBounds()).build();
             final String pbfName = pbf.getName().replace(FileSuffix.PBF.toString(), "");
             final String rawAtlasFilename = String.format("%s%s%s%s", countryName,
                     CountryShard.COUNTRY_SHARD_SEPARATOR, pbfName, FileSuffix.ATLAS);
-            final WaySectionProcessor waySectionProcessor = new WaySectionProcessor(rawAtlas,
-                    AtlasLoadingOption.createOptionWithNoSlicing());
-            final PackedAtlas atlas = (PackedAtlas) waySectionProcessor.run();
+            if (!stopAtRaw())
+            {
+                final WaySectionProcessor waySectionProcessor = new WaySectionProcessor(atlas,
+                        AtlasLoadingOption.createOptionWithNoSlicing());
+                atlas = (PackedAtlas) waySectionProcessor.run();
+            }
             atlas.setSaveSerializationFormat(AtlasSerializationFormat.PROTOBUF);
             final Path concatenatedPath;
             if (this.optionAndArgumentDelegate
@@ -136,7 +143,8 @@ public final class PbfToAtlasCommand extends MultipleOutputCommand
         this.registerOptionWithRequiredArgument(COUNTRY_NAME, COUNTRY_NAME_DESCRIPTION,
                 OptionOptionality.REQUIRED, COUNTRY_NAME);
         this.registerOptionWithRequiredArgument(BOUNDS, BOUNDS_DESCRIPTION,
-                OptionOptionality.OPTIONAL, COUNTRY_NAME);
+                OptionOptionality.OPTIONAL, BOUNDS);
+        this.registerOption(RAW, RAW_DESCRIPTION, OptionOptionality.OPTIONAL);
         super.registerOptionsAndArguments();
     }
 
@@ -199,5 +207,10 @@ public final class PbfToAtlasCommand extends MultipleOutputCommand
                 this.pbfs.add(file);
             }
         });
+    }
+
+    private boolean stopAtRaw()
+    {
+        return this.optionAndArgumentDelegate.hasOption(RAW);
     }
 }
