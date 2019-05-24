@@ -4,9 +4,17 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.change.diff.AtlasDiff;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteItemType;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * There are 2 edges AB and BC. Node B is common between the 2 edges.
@@ -15,6 +23,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  */
 public class MultiCascadeDeleteTest
 {
+    private static final Logger log = LoggerFactory.getLogger(MultiCascadeDeleteTest.class);
+
     @Rule
     public final MultiCascadeDeleteTestRule rule = new MultiCascadeDeleteTestRule();
 
@@ -25,7 +35,7 @@ public class MultiCascadeDeleteTest
 
         // Step-1: Delete edgeAB
         final ItemType itemType = ItemType.EDGE;
-        final Long entityIdToDelete = MultiCascadeDeleteTestRule.edgeA;
+        final Long entityIdToDelete = MultiCascadeDeleteTestRule.edgeAB;
         final int expectedNodes = 3;
         final int expectedEdges = 1;
 
@@ -42,6 +52,18 @@ public class MultiCascadeDeleteTest
         Assert.assertNotNull(relation);
         Assert.assertEquals(1, relation.membersOfType(ItemType.EDGE).size());
         Assert.assertEquals(1, relation.membersOfType(ItemType.NODE).size());
+
+        //Step-3 Verify AtlasDiff
+        final Map<AtlasEntityKey, Boolean> expectedChangedAndDeleted = new HashMap<AtlasEntityKey, Boolean>() {
+            {
+                put(AtlasEntityKey.from(ItemType.NODE, MultiCascadeDeleteTestRule.nodeA), false);
+                put(AtlasEntityKey.from(ItemType.NODE, MultiCascadeDeleteTestRule.nodeB), false);
+                put(AtlasEntityKey.from(ItemType.EDGE, MultiCascadeDeleteTestRule.edgeAB), true);
+                put(AtlasEntityKey.from(ItemType.RELATION, MultiCascadeDeleteTestRule.relationX), false);
+            }
+        };
+
+        verifyAtlasDiff(atlas, changeAtlas, expectedChangedAndDeleted);
     }
 
     @Test
@@ -67,6 +89,18 @@ public class MultiCascadeDeleteTest
         Assert.assertNotNull(relation);
         Assert.assertEquals(1, relation.membersOfType(ItemType.EDGE).size());
         Assert.assertEquals(1, relation.membersOfType(ItemType.NODE).size());
+
+        //Step-3 Verify AtlasDiff
+        final Map<AtlasEntityKey, Boolean> expectedChangedAndDeleted = new HashMap<AtlasEntityKey, Boolean>() {
+            {
+                put(AtlasEntityKey.from(ItemType.NODE, MultiCascadeDeleteTestRule.nodeA), true);
+                put(AtlasEntityKey.from(ItemType.NODE, MultiCascadeDeleteTestRule.nodeB), false);
+                put(AtlasEntityKey.from(ItemType.EDGE, MultiCascadeDeleteTestRule.edgeAB), true);
+                put(AtlasEntityKey.from(ItemType.RELATION, MultiCascadeDeleteTestRule.relationX), false);
+            }
+        };
+
+        verifyAtlasDiff(atlas, changeAtlas, expectedChangedAndDeleted);
     }
 
     @Test
@@ -90,6 +124,20 @@ public class MultiCascadeDeleteTest
         Assert.assertTrue(changeAtlas.node(MultiCascadeDeleteTestRule.nodeC).outEdges().isEmpty());
         final Relation relation = changeAtlas.relation(MultiCascadeDeleteTestRule.relationX);
         Assert.assertNull(relation);
+
+        //Step-3 Verify AtlasDiff
+        final Map<AtlasEntityKey, Boolean> expectedChangedAndDeleted = new HashMap<AtlasEntityKey, Boolean>() {
+            {
+                put(AtlasEntityKey.from(ItemType.NODE, MultiCascadeDeleteTestRule.nodeA), false);
+                put(AtlasEntityKey.from(ItemType.NODE, MultiCascadeDeleteTestRule.nodeB), true);
+                put(AtlasEntityKey.from(ItemType.NODE, MultiCascadeDeleteTestRule.nodeC), false);
+                put(AtlasEntityKey.from(ItemType.EDGE, MultiCascadeDeleteTestRule.edgeAB), true);
+                put(AtlasEntityKey.from(ItemType.EDGE, MultiCascadeDeleteTestRule.edgeBC), true);
+                put(AtlasEntityKey.from(ItemType.RELATION, MultiCascadeDeleteTestRule.relationX), true);
+            }
+        };
+
+        verifyAtlasDiff(atlas, changeAtlas, expectedChangedAndDeleted);
     }
 
     private Atlas changeAtlasDeletingFeature(final Atlas atlas, final ItemType itemType,
@@ -124,5 +172,27 @@ public class MultiCascadeDeleteTest
         Assert.assertEquals(2, atlas.numberOfEdges());
         Assert.assertEquals(1, atlas.numberOfRelations());
         return atlas;
+    }
+
+    private void verifyAtlasDiff(final Atlas originalAtlas, final Atlas changeAtlas, final Map<AtlasEntityKey, Boolean> expectedChangedAndDeleted) {
+        final AtlasDiff atlasDiff = new AtlasDiff(originalAtlas, changeAtlas);
+        final Optional<Change> optionalChangeFromDiff = atlasDiff.generateChange();
+        Assert.assertTrue(optionalChangeFromDiff.isPresent());
+        final Change changeFromDiff = optionalChangeFromDiff.get();
+
+        final Map<AtlasEntityKey, FeatureChange> atlasEntityKeyFeatureChangeMap = changeFromDiff.allChangesMappedByAtlasEntityKey();
+
+        atlasEntityKeyFeatureChangeMap.entrySet().stream().forEach(entry -> {
+            log.info("{} : {}", entry.getKey(), entry.getValue());
+        });
+
+        Assert.assertEquals(expectedChangedAndDeleted.size(), atlasEntityKeyFeatureChangeMap.size());
+
+        expectedChangedAndDeleted.entrySet().stream().forEach(expectedEntry -> {
+            Assert.assertNotNull(atlasEntityKeyFeatureChangeMap.get(expectedEntry.getKey()));
+
+            final AtlasEntity changedAtlasEntity = expectedEntry.getKey().getAtlasEntity(changeAtlas);
+            Assert.assertTrue((changedAtlasEntity == null) == expectedEntry.getValue());
+        });
     }
 }
