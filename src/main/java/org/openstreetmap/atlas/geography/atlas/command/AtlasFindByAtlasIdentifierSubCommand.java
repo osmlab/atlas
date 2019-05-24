@@ -52,9 +52,9 @@ public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubComman
     @Override
     public void usage(final PrintStream writer)
     {
-        writer.printf(AtlasCommandConstants.INPUT_PARAMETER_DESCRIPTION);
-        writer.printf("-id=1000000,2000000 : comma separated Atlas identifiers to search for\n");
-        writer.printf("-joinedOutput=path/to/joined.atlas : the path to the output Atlas file\n");
+        writer.print(AtlasCommandConstants.INPUT_PARAMETER_DESCRIPTION);
+        writer.print("-id=1000000,2000000 : comma separated Atlas identifiers to search for%n");
+        writer.print("-joinedOutput=path/to/joined.atlas : the path to the output Atlas file%n");
     }
 
     @Override
@@ -71,7 +71,7 @@ public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubComman
         atlas.entities(identifierCheck()).forEach(item ->
         {
             // Print atlas and item information
-            System.out.printf(formatAtlasObject(item));
+            System.out.print(formatAtlasObject(item));
             // Record shard name
             this.shardNames.add(atlas.getName());
         });
@@ -84,7 +84,7 @@ public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubComman
         // If joining is requested and there are shards to join...
         if (output.isPresent() && !this.shardNames.isEmpty())
         {
-            System.out.printf("Stitching shards and saving to output %s\n", output.get());
+            System.out.printf("Stitching shards and saving to output %s%n", output.get());
             // Use AtlasJoinerSubCommand to join found atlases
             AtlasReader.main("join",
                     String.format("-input=%s", command.get(super.switches().get(0))),
@@ -117,7 +117,7 @@ public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubComman
     private String formatAtlasObject(final AtlasEntity entity)
     {
         final String shardName = entity.getAtlas().metaData().getShardName().orElse("UNKNOWN");
-        return String.format("[%s] [%d] [%d] --> [%s:%s] Tags: [%s]\n", entity.getType(),
+        return String.format("[%s] [%d] [%d] --> [%s:%s] Tags: [%s]%n", entity.getType(),
                 entity.getOsmIdentifier(), entity.getIdentifier(), shardName,
                 entity.getAtlas().getName(), entity.getTags());
     }
