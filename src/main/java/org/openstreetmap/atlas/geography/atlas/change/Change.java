@@ -115,9 +115,11 @@ public class Change implements Located, Serializable
                 .map(tuple -> this.featureChanges.get(this.identifierToIndex.get(tuple)));
     }
 
-    public Map<AtlasEntityKey, FeatureChange> allChangesMappedByAtlasEntityKey() {
+    public Map<AtlasEntityKey, FeatureChange> allChangesMappedByAtlasEntityKey()
+    {
         return changes()
-                .map(featureChange -> Tuple.createTuple(AtlasEntityKey.from(featureChange), featureChange))
+                .map(featureChange -> Tuple.createTuple(AtlasEntityKey.from(featureChange),
+                        featureChange))
                 .collect(Collectors.toMap(Tuple::getFirst, Tuple::getSecond));
     }
 
@@ -221,7 +223,8 @@ public class Change implements Located, Serializable
     protected Change add(final FeatureChange featureChange)
     {
         final int currentIndex = this.featureChanges.size();
-        final AtlasEntityKey key = AtlasEntityKey.from(featureChange.getItemType(), featureChange.getIdentifier());
+        final AtlasEntityKey key = AtlasEntityKey.from(featureChange.getItemType(),
+                featureChange.getIdentifier());
 
         FeatureChange chosen = featureChange;
         if (!this.identifierToIndex.containsKey(key))
