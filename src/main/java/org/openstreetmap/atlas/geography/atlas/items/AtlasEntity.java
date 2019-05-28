@@ -66,16 +66,6 @@ public abstract class AtlasEntity
     }
 
     /**
-     * The value in the "name" attribute.
-     *
-     * @return an optional string representing the value of the name tag.
-     */
-    public Optional<String> getName()
-    {
-        return this.getTag(NameTag.KEY);
-    }
-
-    /**
      * Utility function to test if an entity's tags start with some given tag keys.
      *
      * @param matches
@@ -120,6 +110,12 @@ public abstract class AtlasEntity
         return false;
     }
 
+    @Override
+    public Atlas getAtlas()
+    {
+        return this.atlas;
+    }
+
     /**
      * A method that creates properties for a GeoJSON Feature from the tags.
      *
@@ -150,15 +146,19 @@ public abstract class AtlasEntity
     }
 
     @Override
-    public Atlas getAtlas()
-    {
-        return this.atlas;
-    }
-
-    @Override
     public GeoJsonType getGeoJsonType()
     {
         return GeoJsonType.FEATURE;
+    }
+
+    /**
+     * The value in the "name" attribute.
+     *
+     * @return an optional string representing the value of the name tag.
+     */
+    public Optional<String> getName()
+    {
+        return this.getTag(NameTag.KEY);
     }
 
     @Override
