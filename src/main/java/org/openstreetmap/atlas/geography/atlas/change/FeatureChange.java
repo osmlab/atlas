@@ -489,7 +489,11 @@ public class FeatureChange implements Located, Serializable
         builder.append(this.getClass().getSimpleName() + " ");
         builder.append("[");
         builder.append(separator);
-        builder.append("type=" + this.getChangeType() + ", ");
+        builder.append("changeType=" + this.getChangeType() + ", ");
+        builder.append(separator);
+        builder.append("itemType=" + this.getItemType() + ", ");
+        builder.append(separator);
+        builder.append("identifier=" + this.getIdentifier() + ", ");
         builder.append(separator);
         builder.append("bounds=" + this.bounds() + ", ");
         builder.append(separator);
