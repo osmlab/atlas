@@ -1,6 +1,0 @@
-Convert a PBF to a raw Atlas:
-#$ pbf2raw 6-42-24.pbf --countryName KAZ
-Convert a PBF to a raw Atlas with a custom output directory:
-#$ pbf2raw 6-42-24.pbf --countryName KAZ --output=rawAtlas
-Convert a directory of PBFs to raw Atlases in a custom output directory:
-#$ pbf2raw pbf/* --countryName KAZ --output=rawAtlas

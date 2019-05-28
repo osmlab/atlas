@@ -4,11 +4,16 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas.AtlasSerializationFormat;
+import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
 import org.openstreetmap.atlas.geography.sharding.CountryShard;
+import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
@@ -21,8 +26,9 @@ import org.openstreetmap.atlas.utilities.command.subcommands.templates.MultipleO
 
 /**
  * @author samgass
+ * @author matthieun
  */
-public class PbfToRawAtlasCommand extends MultipleOutputCommand
+public final class PbfToAtlasCommand extends MultipleOutputCommand
 {
     // The hint for the input path for the PBF file(s) to convert
     private static final String PBF_PATH_HINT = "pbf";
@@ -30,7 +36,15 @@ public class PbfToRawAtlasCommand extends MultipleOutputCommand
     // The country name for the country shards Atlas file(s) to output
     private static final String COUNTRY_NAME = "countryName";
 
+    // The file containing the WKT polygon to constrain the loading
+    private static final String BOUNDS = "bounds";
+
+    // Whether or not to stop at the raw atlas
+    private static final String RAW = "raw";
+
     private static final String COUNTRY_NAME_DESCRIPTION = "The country for the shard to build";
+    private static final String BOUNDS_DESCRIPTION = "The file containing WKT bounds to restrain the loading.";
+    private static final String RAW_DESCRIPTION = "Whether or not to stop at the raw atlas. If this is enabled, way-sectioning will not happen";
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
@@ -39,10 +53,10 @@ public class PbfToRawAtlasCommand extends MultipleOutputCommand
 
     public static void main(final String[] args)
     {
-        new PbfToRawAtlasCommand().runSubcommandAndExit(args);
+        new PbfToAtlasCommand().runSubcommandAndExit(args);
     }
 
-    public PbfToRawAtlasCommand()
+    private PbfToAtlasCommand()
     {
         super();
         this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
@@ -64,11 +78,18 @@ public class PbfToRawAtlasCommand extends MultipleOutputCommand
                 .orElseThrow(AtlasShellToolsException::new);
         this.pbfs.forEach(pbf ->
         {
-            final PackedAtlas rawAtlas = (PackedAtlas) new RawAtlasGenerator(pbf).build();
+            PackedAtlas atlas = (PackedAtlas) new RawAtlasGenerator(pbf,
+                    AtlasLoadingOption.createOptionWithOnlySectioning(), getBounds()).build();
             final String pbfName = pbf.getName().replace(FileSuffix.PBF.toString(), "");
             final String rawAtlasFilename = String.format("%s%s%s%s", countryName,
                     CountryShard.COUNTRY_SHARD_SEPARATOR, pbfName, FileSuffix.ATLAS);
-            rawAtlas.setSaveSerializationFormat(AtlasSerializationFormat.PROTOBUF);
+            if (!stopAtRaw())
+            {
+                final WaySectionProcessor waySectionProcessor = new WaySectionProcessor(atlas,
+                        AtlasLoadingOption.createOptionWithNoSlicing());
+                atlas = (PackedAtlas) waySectionProcessor.run();
+            }
+            atlas.setSaveSerializationFormat(AtlasSerializationFormat.PROTOBUF);
             final Path concatenatedPath;
             if (this.optionAndArgumentDelegate
                     .hasOption(MultipleOutputCommand.OUTPUT_DIRECTORY_OPTION_LONG))
@@ -86,7 +107,7 @@ public class PbfToRawAtlasCommand extends MultipleOutputCommand
             }
             this.outputDelegate.printlnStdout(concatenatedPath.toAbsolutePath().toString());
             final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
-            rawAtlas.save(outputFile);
+            atlas.save(outputFile);
         });
         return 0;
     }
@@ -94,22 +115,22 @@ public class PbfToRawAtlasCommand extends MultipleOutputCommand
     @Override
     public String getCommandName()
     {
-        return "pbf2raw";
+        return "pbf2atlas";
     }
 
     @Override
     public String getSimpleDescription()
     {
-        return "generate raw Atlas file(s) from the given PBF shard(s)";
+        return "Generate way-sectioned Atlas file(s) from the given PBF shard(s)";
     }
 
     @Override
     public void registerManualPageSections()
     {
-        addManualPageSection("DESCRIPTION", PbfToRawAtlasCommand.class
-                .getResourceAsStream("PbfToRawAtlasDescriptionSection.txt"));
-        addManualPageSection("EXAMPLES", PbfToRawAtlasCommand.class
-                .getResourceAsStream("PbfToRawAtlasCommandExamplesSection.txt"));
+        addManualPageSection("DESCRIPTION",
+                PbfToAtlasCommand.class.getResourceAsStream("PbfToAtlasDescriptionSection.txt"));
+        addManualPageSection("EXAMPLES", PbfToAtlasCommand.class
+                .getResourceAsStream("PbfToAtlasCommandExamplesSection.txt"));
     }
 
     @Override
@@ -121,15 +142,37 @@ public class PbfToRawAtlasCommand extends MultipleOutputCommand
                 contexts);
         this.registerOptionWithRequiredArgument(COUNTRY_NAME, COUNTRY_NAME_DESCRIPTION,
                 OptionOptionality.REQUIRED, COUNTRY_NAME);
+        this.registerOptionWithRequiredArgument(BOUNDS, BOUNDS_DESCRIPTION,
+                OptionOptionality.OPTIONAL, BOUNDS);
+        this.registerOption(RAW, RAW_DESCRIPTION, OptionOptionality.OPTIONAL);
         super.registerOptionsAndArguments();
+    }
+
+    private MultiPolygon getBounds()
+    {
+        final Optional<String> boundsFilePathOption = this.optionAndArgumentDelegate
+                .getOptionArgument(BOUNDS);
+        if (boundsFilePathOption.isPresent())
+        {
+            final String wktFileName = boundsFilePathOption.get();
+            final File wktFile = new File(wktFileName);
+            if (wktFileName.endsWith(FileSuffix.GZIP.toString()))
+            {
+                wktFile.setDecompressor(Decompressor.GZIP);
+            }
+            final String wkt = wktFile.firstLine();
+            return MultiPolygon.wkt(wkt);
+        }
+        else
+        {
+            return MultiPolygon.MAXIMUM;
+        }
     }
 
     /**
      * Get a list of input PBF resources from the input switch
-     *
-     * @return A list of PBF files
      */
-    private List<File> getInputPBFs()
+    private void getInputPBFs()
     {
         if (this.pbfs == null)
         {
@@ -137,13 +180,13 @@ public class PbfToRawAtlasCommand extends MultipleOutputCommand
         }
         else
         {
-            return this.pbfs;
+            return;
         }
 
         final List<String> inputPbfPaths = this.optionAndArgumentDelegate
                 .getVariadicArgument(PBF_PATH_HINT);
 
-        inputPbfPaths.stream().forEach(path ->
+        inputPbfPaths.forEach(path ->
         {
             final File file = new File(path, false);
             if (!file.exists())
@@ -164,7 +207,10 @@ public class PbfToRawAtlasCommand extends MultipleOutputCommand
                 this.pbfs.add(file);
             }
         });
+    }
 
-        return this.pbfs;
+    private boolean stopAtRaw()
+    {
+        return this.optionAndArgumentDelegate.hasOption(RAW);
     }
 }
