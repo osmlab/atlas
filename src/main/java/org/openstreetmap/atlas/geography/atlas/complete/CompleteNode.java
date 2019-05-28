@@ -181,8 +181,9 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
          * Note that the Edges returned by this method will technically break the Located contract,
          * since they have null bounds.
          */
-        return this.inEdgeIdentifiers == null ? null : this.inEdgeIdentifiers.stream()
-                .map(CompleteEdge::new).collect(Collectors.toCollection(TreeSet::new));
+        return this.inEdgeIdentifiers == null ? null
+                : this.inEdgeIdentifiers.stream().map(CompleteEdge::new)
+                        .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
@@ -200,8 +201,9 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
          * Note that the Edges returned by this method will technically break the Located contract,
          * since they have null bounds.
          */
-        return this.outEdgeIdentifiers == null ? null : this.outEdgeIdentifiers.stream()
-                .map(CompleteEdge::new).collect(Collectors.toCollection(TreeSet::new));
+        return this.outEdgeIdentifiers == null ? null
+                : this.outEdgeIdentifiers.stream().map(CompleteEdge::new)
+                        .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
@@ -274,8 +276,9 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
          * Note that the Relations returned by this method will technically break the Located
          * contract, since they have null bounds.
          */
-        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
-                .map(CompleteRelation::new).collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null
+                : this.relationIdentifiers.stream().map(CompleteRelation::new)
+                        .collect(Collectors.toSet());
     }
 
     @Override
