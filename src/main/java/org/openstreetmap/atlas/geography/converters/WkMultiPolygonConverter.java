@@ -8,6 +8,9 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonToMultiPolygon
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
 /**
+ * Abstract converter that underpins {@link WktMultiPolygonConverter} and
+ * {@link WkbMultiPolygonConverter} to reduce code duplication.
+ *
  * @author matthieun
  * @param <T>
  *            The type to convert to: {@link String} or byte[]
