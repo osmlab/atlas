@@ -9,6 +9,7 @@ import java.util.function.Function;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listenable.TagChangeListenable;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
@@ -149,6 +150,36 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
         }
     }
 
+    /**
+     * Create a shallow {@link CompleteEntity} from a given {@link ItemType} and identifier.
+     *
+     * @param type
+     *            the {@link ItemType}
+     * @param identifier
+     *            the identifier
+     * @return a shallow {@link CompleteEntity} that matches the requested parameters
+     */
+    static AtlasEntity shallowFrom(final ItemType type, final Long identifier)
+    {
+        switch (type)
+        {
+            case NODE:
+                return new CompleteNode(identifier);
+            case EDGE:
+                return new CompleteEdge(identifier);
+            case AREA:
+                return new CompleteArea(identifier);
+            case LINE:
+                return new CompleteLine(identifier);
+            case POINT:
+                return new CompletePoint(identifier);
+            case RELATION:
+                return new CompleteRelation(identifier);
+            default:
+                throw new CoreException("Unknown ItemType {}", type);
+        }
+    }
+
     static <C extends CompleteEntity<C>> C withAddedTag(final C completeEntity, final String key,
             final String value, final boolean suppressFiringEvent)
     {
@@ -217,6 +248,8 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
 
     Map<String, String> getTags();
 
+    ItemType getType();
+
     /**
      * A shallow {@link CompleteEntity} is one that contains only its identifier as effective data.
      *
@@ -224,12 +257,24 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
      */
     boolean isShallow();
 
+    /**
+     * Transform this {@link CompleteEntity} into a pretty string. The pretty string for a
+     * {@link CompleteEntity} can be customized using different available formats.
+     *
+     * @param format
+     *            the format type for the pretty string
+     * @return the pretty string
+     */
+    String prettify(PrettifyStringFormat format);
+
     void setTags(Map<String, String> tags);
 
     default C withAddedTag(final String key, final String value)
     {
         return CompleteEntity.withAddedTag((C) this, key, value, false);
     }
+
+    CompleteEntity withGeometry(Iterable<Location> locations);
 
     CompleteEntity withIdentifier(long identifier);
 

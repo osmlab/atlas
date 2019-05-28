@@ -7,12 +7,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-
-import lombok.experimental.Delegate;
 
 /**
  * Independent {@link Line} that contains its own data. At scale, use at your own risk.
@@ -30,7 +31,6 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
 
-    @Delegate
     private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
@@ -87,6 +87,12 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     }
 
     @Override
+    public void addTagChangeListener(final TagChangeListener tagChangeListener)
+    {
+        this.tagChangeDelegate.addTagChangeListener(tagChangeListener);
+    }
+
+    @Override
     public PolyLine asPolyLine()
     {
         return this.polyLine;
@@ -117,6 +123,12 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     }
 
     @Override
+    public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
+    {
+        this.tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
+    }
+
+    @Override
     public long getIdentifier()
     {
         return this.identifier;
@@ -141,6 +153,45 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     }
 
     @Override
+    public String prettify(final PrettifyStringFormat format)
+    {
+        String separator = "";
+        if (format == PrettifyStringFormat.MINIMAL_SINGLE_LINE)
+        {
+            separator = "";
+        }
+        else if (format == PrettifyStringFormat.MINIMAL_MULTI_LINE)
+        {
+            separator = "\n";
+        }
+        final StringBuilder builder = new StringBuilder();
+
+        builder.append(this.getClass().getSimpleName() + " ");
+        builder.append("[");
+        builder.append(separator);
+        builder.append("identifier=" + this.identifier + ", ");
+        builder.append(separator);
+        if (this.polyLine != null)
+        {
+            builder.append("polyLine=" + this.polyLine + ", ");
+            builder.append(separator);
+        }
+        if (this.tags != null)
+        {
+            builder.append("tags=" + this.tags + ", ");
+            builder.append(separator);
+        }
+        if (this.relationIdentifiers != null)
+        {
+            builder.append("parentRelations=" + this.relationIdentifiers + ", ");
+            builder.append(separator);
+        }
+        builder.append("]");
+
+        return builder.toString();
+    }
+
+    @Override
     public Set<Relation> relations()
     {
         /*
@@ -150,6 +201,12 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
         return this.relationIdentifiers == null ? null
                 : this.relationIdentifiers.stream().map(CompleteRelation::new)
                         .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void removeTagChangeListeners()
+    {
+        this.tagChangeDelegate.removeTagChangeListeners();
     }
 
     @Override
@@ -175,6 +232,12 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
         }
         this.bounds = Rectangle.forLocated(this.bounds, bounds);
         return this;
+    }
+
+    @Override
+    public CompleteEntity withGeometry(final Iterable<Location> locations)
+    {
+        return this.withPolyLine(new PolyLine(locations));
     }
 
     @Override

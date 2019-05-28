@@ -17,7 +17,6 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
-import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
 
 import com.google.common.collect.Sets;
 
@@ -78,49 +77,37 @@ public class MultiRelation extends Relation
         // Use a TreeSet to make sure all the members are always in a deterministic order.
         // RelationMember(s) are always ordered by member identifier.
         final Set<RelationMember> members = new TreeSet<>();
-        final SubRelationList subRelations = getSubRelations();
-        final boolean hasFixEdges = subRelations.hasFixRelation();
-        final MultiMapWithSet<Long, Long> relationIdentifiersToRemovedEdgeMembers = multiAtlas()
-                .getRelationIdentifiersToRemovedEdgeMembers();
-        for (final Relation subRelation : subRelations.getSubRelations())
+        for (final Relation subRelation : getSubRelations().getSubRelations())
         {
             final RelationMemberList subMembers = subRelation.members();
             for (final RelationMember subMember : subMembers)
             {
                 final AtlasEntity nonMulti = subMember.getEntity();
-                final long identifier = nonMulti.getIdentifier();
+                final long nonMultiIdentifier = nonMulti.getIdentifier();
                 AtlasEntity multiEntity = null;
                 if (nonMulti instanceof Node)
                 {
-                    multiEntity = multiAtlas().node(identifier);
+                    multiEntity = multiAtlas().node(nonMultiIdentifier);
                 }
                 else if (nonMulti instanceof Edge)
                 {
-                    if (!hasFixEdges
-                            || relationIdentifiersToRemovedEdgeMembers.get(getIdentifier()) == null
-                            || !relationIdentifiersToRemovedEdgeMembers.get(getIdentifier())
-                                    .contains(nonMulti.getIdentifier()))
-                    {
-                        // Add this member edge only if the relation is not touched by fixed edges,
-                        // or if the specific edge is not one of the fixed edges of this relation.
-                        multiEntity = multiAtlas().edge(identifier);
-                    }
+                    multiEntity = multiAtlas().edge(nonMultiIdentifier);
                 }
                 else if (nonMulti instanceof Area)
                 {
-                    multiEntity = multiAtlas().area(identifier);
+                    multiEntity = multiAtlas().area(nonMultiIdentifier);
                 }
                 else if (nonMulti instanceof Line)
                 {
-                    multiEntity = multiAtlas().line(identifier);
+                    multiEntity = multiAtlas().line(nonMultiIdentifier);
                 }
                 else if (nonMulti instanceof Point)
                 {
-                    multiEntity = multiAtlas().point(identifier);
+                    multiEntity = multiAtlas().point(nonMultiIdentifier);
                 }
                 else if (nonMulti instanceof Relation)
                 {
-                    multiEntity = multiAtlas().relation(identifier);
+                    multiEntity = multiAtlas().relation(nonMultiIdentifier);
                 }
                 else
                 {
@@ -133,32 +120,11 @@ public class MultiRelation extends Relation
                 }
             }
         }
-        if (hasFixEdges)
-        {
-            // Add the edges left out if they have been fixed, and take the list from the fix node.
-            // Even if the same fix edge is multiple sub relations, the edge can be
-            // added multiple times to the set here, as the RelationMembers are compared
-            // on the member identifier and not the member object.
-            final Relation fixRelation = subRelations.getFixRelation();
-            final RelationMemberList subMembers = fixRelation.members();
-            for (final RelationMember subMember : subMembers)
-            {
-                final AtlasEntity nonMulti = subMember.getEntity();
-                final long identifier = nonMulti.getIdentifier();
-                AtlasEntity multiEntity = null;
-                if (nonMulti instanceof Edge)
-                {
-                    multiEntity = multiAtlas().edge(identifier);
-                }
-                members.add(new RelationMember(subMember.getRole(), multiEntity,
-                        subMember.getRelationIdentifier()));
-            }
-        }
         if (members.isEmpty())
         {
             throw new CoreException(
                     "This should not happen: MultiRelation {} has no members. Its sub relations are {}.",
-                    getIdentifier(), subRelations);
+                    getIdentifier(), getSubRelations());
         }
         return new RelationMemberList(members);
     }

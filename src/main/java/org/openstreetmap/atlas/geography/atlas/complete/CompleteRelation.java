@@ -9,17 +9,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
+import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
-
-import lombok.experimental.Delegate;
 
 /**
  * Independent {@link Relation} that contains its own data. At scale, use at your own risk.
@@ -40,7 +41,6 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     private Long osmRelationIdentifier;
     private Set<Long> relationIdentifiers;
 
-    @Delegate
     private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
@@ -114,6 +114,12 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     }
 
     @Override
+    public void addTagChangeListener(final TagChangeListener tagChangeListener)
+    {
+        this.tagChangeDelegate.addTagChangeListener(tagChangeListener);
+    }
+
+    @Override
     public RelationMemberList allKnownOsmMembers()
     {
         return membersFor(this.allKnownOsmMembers);
@@ -162,6 +168,12 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     }
 
     @Override
+    public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
+    {
+        this.tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
+    }
+
+    @Override
     public long getIdentifier()
     {
         return this.identifier;
@@ -201,6 +213,50 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     }
 
     @Override
+    public String prettify(final PrettifyStringFormat format)
+    {
+        String separator = "";
+        if (format == PrettifyStringFormat.MINIMAL_SINGLE_LINE)
+        {
+            separator = "";
+        }
+        else if (format == PrettifyStringFormat.MINIMAL_MULTI_LINE)
+        {
+            separator = "\n";
+        }
+        final StringBuilder builder = new StringBuilder();
+
+        builder.append(this.getClass().getSimpleName() + " ");
+        builder.append("[");
+        builder.append(separator);
+        builder.append("identifier=" + this.identifier + ", ");
+        builder.append(separator);
+        if (this.bounds != null)
+        {
+            builder.append("bounds=" + this.bounds + ", ");
+            builder.append(separator);
+        }
+        if (this.members != null && !this.members.isEmpty())
+        {
+            builder.append("members=" + this.members + ", ");
+            builder.append(separator);
+        }
+        if (this.tags != null)
+        {
+            builder.append("tags=" + this.tags + ", ");
+            builder.append(separator);
+        }
+        if (this.relationIdentifiers != null)
+        {
+            builder.append("parentRelations=" + this.relationIdentifiers + ", ");
+            builder.append(separator);
+        }
+        builder.append("]");
+
+        return builder.toString();
+    }
+
+    @Override
     public Set<Relation> relations()
     {
         /*
@@ -210,6 +266,12 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         return this.relationIdentifiers == null ? null
                 : this.relationIdentifiers.stream().map(CompleteRelation::new)
                         .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void removeTagChangeListeners()
+    {
+        this.tagChangeDelegate.removeTagChangeListeners();
     }
 
     @Override
@@ -236,6 +298,12 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
             final List<Long> allRelationsWithSameOsmIdentifier)
     {
         this.allRelationsWithSameOsmIdentifier = allRelationsWithSameOsmIdentifier;
+        return this;
+    }
+
+    public CompleteRelation withBounds(final Rectangle bounds)
+    {
+        this.bounds = bounds;
         return this;
     }
 
@@ -277,6 +345,13 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
                 new RelationBeanItem(newMember.getIdentifier(), role, newMember.getType()));
         this.updateBounds(newMember.bounds());
         return this;
+    }
+
+    @Override
+    public CompleteEntity withGeometry(final Iterable<Location> locations)
+    {
+        throw new UnsupportedOperationException("Relations cannot have an explicit geometry."
+                + " Please instead use withBounds or withBoundsExtendedBy to adjust the bounds.");
     }
 
     @Override

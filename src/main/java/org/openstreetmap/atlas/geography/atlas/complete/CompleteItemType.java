@@ -32,6 +32,13 @@ public enum CompleteItemType
         this.itemType = itemType;
     }
 
+    public static CompleteItemType from(final ItemType itemType)
+    {
+        return Arrays.stream(CompleteItemType.values())
+                .filter(completeItemType -> completeItemType.itemType == itemType).findFirst()
+                .orElseThrow(IllegalArgumentException::new);
+    }
+
     public Class<? extends CompleteEntity> getCompleteEntityClass()
     {
         return completeEntityClass;
@@ -42,19 +49,30 @@ public enum CompleteItemType
         return itemType;
     }
 
-    public static CompleteItemType from(final ItemType itemType)
+    public <C extends CompleteEntity> C completeEntityFrom(final AtlasEntity reference)
     {
-        return Arrays.stream(CompleteItemType.values())
-                .filter(completeItemType -> completeItemType.itemType == itemType).findFirst()
-                .orElseThrow(IllegalArgumentException::new);
+        validate(reference);
+        return (C) CompleteEntity.from(reference);
     }
 
-    public <C extends CompleteEntity> C completeEntityFrom(final AtlasEntity reference)
+    public <C extends CompleteEntity> C completeEntityShallowFrom(final AtlasEntity reference)
+    {
+        validate(reference);
+        return (C) CompleteEntity.shallowFrom(reference);
+    }
+
+    public static <C extends CompleteEntity> C shallowFrom(final AtlasEntity reference)
+    {
+        final ItemType itemType = reference.getType();
+        final CompleteItemType completeItemType = CompleteItemType.from(itemType);
+        final C completeEntity = completeItemType.completeEntityShallowFrom(reference);
+        return completeEntity;
+    }
+
+    private void validate(final AtlasEntity reference)
     {
         Validate.isTrue(getItemType().getMemberClass().isAssignableFrom(reference.getClass()),
                 "reference: " + reference + "; cannot be converted to completed entity " + this
                         + ".");
-
-        return (C) CompleteEntity.from(reference);
     }
 }

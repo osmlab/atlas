@@ -256,6 +256,24 @@ public class WaySectionProcessorTest
     }
 
     @Test
+    public void testPedestrianRing()
+    {
+        // Based on https://www.openstreetmap.org/way/460257372
+        final Atlas slicedRawAtlas = this.setup.getPedestrianRingAtlas();
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
+
+        Assert.assertEquals("Two edges, the ring got sectioned in the middle", 2,
+                finalAtlas.numberOfEdges());
+        Assert.assertEquals("Two nodes", 2, finalAtlas.numberOfNodes());
+        finalAtlas.edges().forEach(
+                edge -> Assert.assertFalse("No edge has a reverse edge", edge.hasReverseEdge()));
+
+        Assert.assertEquals("One area from the same way used for the edges", 1,
+                finalAtlas.numberOfAreas());
+    }
+
+    @Test
     public void testRelationMemberLocationItemInclusion()
     {
         // Based on https://www.openstreetmap.org/relation/578254 - the Node in the Relation gets

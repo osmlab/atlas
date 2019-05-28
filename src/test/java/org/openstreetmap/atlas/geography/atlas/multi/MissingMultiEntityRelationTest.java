@@ -21,9 +21,9 @@ import org.openstreetmap.atlas.utilities.collections.Maps;
  * Expose bugs with the way {@link MultiAtlas} calculates parent relations of its constituent
  * entities. These tests should pass now that all bugs are fixed.
  *
+ * @author lcram
  * @see <a href="https://github.com/osmlab/atlas/pull/126">The PR that demonstrates and corrects
  *      these bugs</a>
- * @author lcram
  */
 public class MissingMultiEntityRelationTest
 {
@@ -55,8 +55,8 @@ public class MissingMultiEntityRelationTest
         final PackedAtlas atlasNoRelation = (PackedAtlas) builderNoRelation.get();
 
         // 1 MiB resources
-        final ByteArrayResource resourceWithRelation = new ByteArrayResource(1024 * 1024 * 1);
-        final ByteArrayResource resourceNoRelation = new ByteArrayResource(1024 * 1024 * 1);
+        final ByteArrayResource resourceWithRelation = new ByteArrayResource(1024 * 1024);
+        final ByteArrayResource resourceNoRelation = new ByteArrayResource(1024 * 1024);
 
         atlasWithRelation.save(resourceWithRelation);
         atlasNoRelation.save(resourceNoRelation);
@@ -67,8 +67,10 @@ public class MissingMultiEntityRelationTest
          */
         final Atlas multiAtlas = new AtlasResourceLoader().load(resourceWithRelation,
                 resourceNoRelation);
-
-        Assert.assertTrue(!multiAtlas.area(1L).relations().isEmpty());
+        Assert.assertFalse(multiAtlas.area(1L).relations().isEmpty());
+        final Atlas multiAtlas2 = new AtlasResourceLoader().load(resourceNoRelation,
+                resourceWithRelation);
+        Assert.assertFalse(multiAtlas2.area(1L).relations().isEmpty());
     }
 
     @Test
@@ -111,8 +113,8 @@ public class MissingMultiEntityRelationTest
         final PackedAtlas atlasNoRelation = (PackedAtlas) builderNoRelation.get();
 
         // 1 MiB resources
-        final ByteArrayResource resourceWithRelation = new ByteArrayResource(1024 * 1024 * 1);
-        final ByteArrayResource resourceNoRelation = new ByteArrayResource(1024 * 1024 * 1);
+        final ByteArrayResource resourceWithRelation = new ByteArrayResource(1024 * 1024);
+        final ByteArrayResource resourceNoRelation = new ByteArrayResource(1024 * 1024);
 
         atlasWithRelation.save(resourceWithRelation);
         atlasNoRelation.save(resourceNoRelation);
@@ -124,8 +126,10 @@ public class MissingMultiEntityRelationTest
          */
         final Atlas multiAtlas = new AtlasResourceLoader().load(resourceWithRelation,
                 resourceNoRelation);
-
-        Assert.assertTrue(!multiAtlas.edge(1L).relations().isEmpty());
+        Assert.assertFalse(multiAtlas.edge(1L).relations().isEmpty());
+        final Atlas multiAtlas2 = new AtlasResourceLoader().load(resourceNoRelation,
+                resourceWithRelation);
+        Assert.assertFalse(multiAtlas2.edge(1L).relations().isEmpty());
     }
 
     @Test
@@ -154,8 +158,8 @@ public class MissingMultiEntityRelationTest
         final PackedAtlas atlasNoRelation = (PackedAtlas) builderNoRelation.get();
 
         // 1 MiB resources
-        final ByteArrayResource resourceWithRelation = new ByteArrayResource(1024 * 1024 * 1);
-        final ByteArrayResource resourceNoRelation = new ByteArrayResource(1024 * 1024 * 1);
+        final ByteArrayResource resourceWithRelation = new ByteArrayResource(1024 * 1024);
+        final ByteArrayResource resourceNoRelation = new ByteArrayResource(1024 * 1024);
 
         atlasWithRelation.save(resourceWithRelation);
         atlasNoRelation.save(resourceNoRelation);
@@ -166,8 +170,10 @@ public class MissingMultiEntityRelationTest
          */
         final Atlas multiAtlas = new AtlasResourceLoader().load(resourceWithRelation,
                 resourceNoRelation);
-
-        Assert.assertTrue(!multiAtlas.line(1L).relations().isEmpty());
+        Assert.assertFalse(multiAtlas.line(1L).relations().isEmpty());
+        final Atlas multiAtlas2 = new AtlasResourceLoader().load(resourceNoRelation,
+                resourceWithRelation);
+        Assert.assertFalse(multiAtlas2.line(1L).relations().isEmpty());
     }
 
     @Test
@@ -190,8 +196,8 @@ public class MissingMultiEntityRelationTest
         final PackedAtlas atlasNoRelation = (PackedAtlas) builderNoRelation.get();
 
         // 1 MiB resources
-        final ByteArrayResource resourceWithRelation = new ByteArrayResource(1024 * 1024 * 1);
-        final ByteArrayResource resourceNoRelation = new ByteArrayResource(1024 * 1024 * 1);
+        final ByteArrayResource resourceWithRelation = new ByteArrayResource(1024 * 1024);
+        final ByteArrayResource resourceNoRelation = new ByteArrayResource(1024 * 1024);
 
         atlasWithRelation.save(resourceWithRelation);
         atlasNoRelation.save(resourceNoRelation);
@@ -204,8 +210,10 @@ public class MissingMultiEntityRelationTest
          */
         final Atlas multiAtlas = new AtlasResourceLoader().load(resourceNoRelation,
                 resourceWithRelation);
-
-        Assert.assertTrue(!multiAtlas.node(1L).relations().isEmpty());
+        Assert.assertFalse(multiAtlas.node(1L).relations().isEmpty());
+        final Atlas multiAtlas2 = new AtlasResourceLoader().load(resourceWithRelation,
+                resourceNoRelation);
+        Assert.assertFalse(multiAtlas2.node(1L).relations().isEmpty());
     }
 
     @Test
@@ -228,8 +236,8 @@ public class MissingMultiEntityRelationTest
         final PackedAtlas atlasNoRelation = (PackedAtlas) builderNoRelation.get();
 
         // 1 MiB resources
-        final ByteArrayResource resourceWithRelation = new ByteArrayResource(1024 * 1024 * 1);
-        final ByteArrayResource resourceNoRelation = new ByteArrayResource(1024 * 1024 * 1);
+        final ByteArrayResource resourceWithRelation = new ByteArrayResource(1024 * 1024);
+        final ByteArrayResource resourceNoRelation = new ByteArrayResource(1024 * 1024);
 
         atlasWithRelation.save(resourceWithRelation);
         atlasNoRelation.save(resourceNoRelation);
@@ -240,8 +248,10 @@ public class MissingMultiEntityRelationTest
          */
         final Atlas multiAtlas = new AtlasResourceLoader().load(resourceWithRelation,
                 resourceNoRelation);
-
-        Assert.assertTrue(!multiAtlas.point(1L).relations().isEmpty());
+        Assert.assertFalse(multiAtlas.point(1L).relations().isEmpty());
+        final Atlas multiAtlas2 = new AtlasResourceLoader().load(resourceNoRelation,
+                resourceWithRelation);
+        Assert.assertFalse(multiAtlas2.point(1L).relations().isEmpty());
     }
 
     @Test
@@ -268,8 +278,8 @@ public class MissingMultiEntityRelationTest
         final PackedAtlas atlasNoRelation = (PackedAtlas) builderNoRelation.get();
 
         // 1 MiB resources
-        final ByteArrayResource resourceWithRelation = new ByteArrayResource(1024 * 1024 * 1);
-        final ByteArrayResource resourceNoRelation = new ByteArrayResource(1024 * 1024 * 1);
+        final ByteArrayResource resourceWithRelation = new ByteArrayResource(1024 * 1024);
+        final ByteArrayResource resourceNoRelation = new ByteArrayResource(1024 * 1024);
 
         atlasWithRelation.save(resourceWithRelation);
         atlasNoRelation.save(resourceNoRelation);
@@ -282,7 +292,9 @@ public class MissingMultiEntityRelationTest
          */
         final Atlas multiAtlas = new AtlasResourceLoader().load(resourceNoRelation,
                 resourceWithRelation);
-
-        Assert.assertTrue(!multiAtlas.relation(1L).relations().isEmpty());
+        Assert.assertFalse(multiAtlas.relation(1L).relations().isEmpty());
+        final Atlas multiAtlas2 = new AtlasResourceLoader().load(resourceWithRelation,
+                resourceNoRelation);
+        Assert.assertFalse(multiAtlas2.relation(1L).relations().isEmpty());
     }
 }

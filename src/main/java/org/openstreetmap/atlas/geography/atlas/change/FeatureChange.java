@@ -20,6 +20,7 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteLineItem;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteLocationItem;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
+import org.openstreetmap.atlas.geography.atlas.complete.PrettifyStringFormat;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -459,6 +460,55 @@ public class FeatureChange implements Located, Serializable
             throw new CoreException("Cannot merge two feature changes {} and {}.", this, other,
                     exception);
         }
+    }
+
+    /**
+     * Transform this {@link FeatureChange} into a pretty string. This will use the pretty strings
+     * for {@link CompleteEntity} classes.
+     *
+     * @param format
+     *            the format type for the this {@link FeatureChange}
+     * @param completeEntityFormat
+     *            the format type for the constituent {@link CompleteEntity}s
+     * @return the pretty string
+     */
+    public String prettify(final PrettifyStringFormat format,
+            final PrettifyStringFormat completeEntityFormat)
+    {
+        String separator = "";
+        if (format == PrettifyStringFormat.MINIMAL_SINGLE_LINE)
+        {
+            separator = "";
+        }
+        else if (format == PrettifyStringFormat.MINIMAL_MULTI_LINE)
+        {
+            separator = "\n";
+        }
+        final StringBuilder builder = new StringBuilder();
+
+        builder.append(this.getClass().getSimpleName() + " ");
+        builder.append("[");
+        builder.append(separator);
+        builder.append("changeType=" + this.getChangeType() + ", ");
+        builder.append(separator);
+        builder.append("itemType=" + this.getItemType() + ", ");
+        builder.append(separator);
+        builder.append("identifier=" + this.getIdentifier() + ", ");
+        builder.append(separator);
+        builder.append("bounds=" + this.bounds() + ", ");
+        builder.append(separator);
+        builder.append("afterView="
+                + ((CompleteEntity<?>) this.afterView).prettify(completeEntityFormat) + ", ");
+        builder.append(separator);
+        if (this.beforeView != null)
+        {
+            builder.append("beforeView="
+                    + ((CompleteEntity<?>) this.beforeView).prettify(completeEntityFormat) + ", ");
+            builder.append(separator);
+        }
+        builder.append("]");
+
+        return builder.toString();
     }
 
     /**

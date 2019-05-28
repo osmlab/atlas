@@ -3,13 +3,17 @@ package org.openstreetmap.atlas.geography.sharding;
 import java.io.BufferedWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Queue;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -55,9 +59,8 @@ public class DynamicTileSharding extends Command implements Sharding
      */
     private static class Node implements Located, Serializable
     {
-        private static final long serialVersionUID = -7789058745501080439L;
         private static final int MAXIMUM_CHILDREN = 4;
-
+        private static final long serialVersionUID = -7789058745501080439L;
         private final List<Node> children;
         private final SlippyTile tile;
 
@@ -113,6 +116,50 @@ public class DynamicTileSharding extends Command implements Sharding
                 return ((Node) other).getTile().equals(this.tile);
             }
             return false;
+        }
+
+        /**
+         * Does a deep equals with the other node
+         * 
+         * @param other
+         *            other Node
+         * @return true if entire structure is equal, false if not
+         */
+        private boolean deepEquals(final Node other)
+        {
+            final Comparator<Node> nodeCompare = Comparator.comparing(Node::getTile);
+            // BFS through both trees to get equality
+            final Queue<Node> queue = new LinkedList<>();
+            queue.offer(this);
+            queue.offer(other);
+            while (!queue.isEmpty())
+            {
+                // We always offer two at a time, so we can poll two at a time.
+                final Node node1 = queue.poll();
+                final Node node2 = queue.poll();
+                if (node1.equals(node2) && node1.getChildren().size() == node2.getChildren().size())
+                {
+                    final List<Node> children1 = node1.getChildren();
+                    final List<Node> children2 = node2.getChildren();
+                    children1.sort(nodeCompare);
+                    children2.sort(nodeCompare);
+                    for (int index = 0; index < children1.size(); index++)
+                    {
+                        queue.offer(children1.get(index));
+                        queue.offer(children2.get(index));
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private List<Node> getChildren()
+        {
+            return this.children;
         }
 
         public SlippyTile getTile()
@@ -196,9 +243,9 @@ public class DynamicTileSharding extends Command implements Sharding
             return new GeoJsonBuilder.LocationIterableProperties(bounds(), tags);
         }
 
-        protected void build(final Function<SlippyTile, Boolean> shouldSplit)
+        protected void build(final Predicate<SlippyTile> shouldSplit)
         {
-            if (this.zoom() < SlippyTile.MAX_ZOOM && shouldSplit.apply(this.tile))
+            if (this.zoom() < SlippyTile.MAX_ZOOM && shouldSplit.test(this.tile))
             {
                 this.split();
                 for (final Node child : this.children)
@@ -284,27 +331,25 @@ public class DynamicTileSharding extends Command implements Sharding
         }
     }
 
-    private static final long serialVersionUID = 229952569300405488L;
-    private static final Logger logger = LoggerFactory.getLogger(DynamicTileSharding.class);
-    private static final int READER_REPORT_FREQUENCY = 10_000_000;
-    private static final int MINIMUM_TO_SPLIT = 1_000;
-
     public static final Switch<Resource> DEFINITION = new Switch<>("definition",
             "Resource containing the maxZoom - 1 tile to feature count mapping.", File::new,
             Optionality.REQUIRED);
-    public static final Switch<WritableResource> OUTPUT = new Switch<>("output",
-            "The resource where to save the serialized tree.", File::new, Optionality.REQUIRED);
-    public static final Switch<Integer> MINIMUM_ZOOM = new Switch<>("minZoom", "The minimum zoom",
-            value -> Integer.valueOf(value), Optionality.OPTIONAL, "5");
-    public static final Switch<Integer> MAXIMUM_ZOOM = new Switch<>("maxZoom", "The maximum zoom",
-            value -> Integer.valueOf(value), Optionality.OPTIONAL, "10");
-    public static final Switch<Integer> MAXIMUM_COUNT = new Switch<>("maxCount",
-            "The maximum feature count. Any cell with a larger feature count will be split, up to maxZoom",
-            value -> Integer.valueOf(value), Optionality.OPTIONAL, "200000");
     public static final Switch<WritableResource> GEOJSON = new Switch<>("geoJson",
             "The resource where to save the geojson tree for debugging", File::new,
             Optionality.OPTIONAL);
-
+    public static final Switch<Integer> MAXIMUM_COUNT = new Switch<>("maxCount",
+            "The maximum feature count. Any cell with a larger feature count will be split, up to maxZoom",
+            value -> Integer.valueOf(value), Optionality.OPTIONAL, "200000");
+    public static final Switch<Integer> MAXIMUM_ZOOM = new Switch<>("maxZoom", "The maximum zoom",
+            value -> Integer.valueOf(value), Optionality.OPTIONAL, "10");
+    public static final Switch<Integer> MINIMUM_ZOOM = new Switch<>("minZoom", "The minimum zoom",
+            value -> Integer.valueOf(value), Optionality.OPTIONAL, "5");
+    public static final Switch<WritableResource> OUTPUT = new Switch<>("output",
+            "The resource where to save the serialized tree.", File::new, Optionality.REQUIRED);
+    private static final int MINIMUM_TO_SPLIT = 1_000;
+    private static final int READER_REPORT_FREQUENCY = 10_000_000;
+    private static final Logger logger = LoggerFactory.getLogger(DynamicTileSharding.class);
+    private static final long serialVersionUID = 229952569300405488L;
     // The root of the tree for this dynamic sharding
     private final Node root;
 
@@ -333,10 +378,44 @@ public class DynamicTileSharding extends Command implements Sharding
     }
 
     @Override
+    public boolean equals(final Object other)
+    {
+        if (this == other)
+        {
+            return true;
+        }
+
+        if (other == null || getClass() != other.getClass())
+        {
+            return false;
+        }
+
+        final DynamicTileSharding that = (DynamicTileSharding) other;
+        return root.deepEquals(that.root);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(this.root);
+    }
+
+    @Override
     public Iterable<Shard> neighbors(final Shard shard)
     {
         return this.root.neighbors(SlippyTile.forName(shard.getName())).stream().map(Node::getTile)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Save the tree to a {@link WritableResource}
+     *
+     * @param resource
+     *            The {@link WritableResource} to serialize the tree definition to.
+     */
+    public void save(final WritableResource resource)
+    {
+        this.root.save(resource);
     }
 
     public void saveAsGeoJson(final WritableResource resource)
@@ -496,16 +575,5 @@ public class DynamicTileSharding extends Command implements Sharding
     {
         return new SwitchList().with(DEFINITION, OUTPUT, MINIMUM_ZOOM, MAXIMUM_ZOOM, MAXIMUM_COUNT,
                 GEOJSON);
-    }
-
-    /**
-     * Save the tree to a {@link WritableResource}
-     *
-     * @param resource
-     *            The {@link WritableResource} to serialize the tree definition to.
-     */
-    private void save(final WritableResource resource)
-    {
-        this.root.save(resource);
     }
 }

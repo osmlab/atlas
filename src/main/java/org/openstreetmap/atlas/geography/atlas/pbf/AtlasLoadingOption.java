@@ -26,6 +26,11 @@ public final class AtlasLoadingOption implements Serializable
     private static final ConfiguredTaggableFilter DEFAULT_AREA_FILTER = new ConfiguredTaggableFilter(
             new StandardConfiguration(new InputStreamResource(
                     () -> AtlasLoadingOption.class.getResourceAsStream("atlas-area.json"))));
+
+    private static final ConfiguredTaggableFilter DEFAULT_SLICING_FILTER = new ConfiguredTaggableFilter(
+            new StandardConfiguration(new InputStreamResource(
+                    () -> AtlasLoadingOption.class.getResourceAsStream("atlas-slicing.json"))));
+
     private static final ConfiguredTaggableFilter DEFAULT_WAY_SECTION_FILTER = new ConfiguredTaggableFilter(
             new StandardConfiguration(new InputStreamResource(
                     () -> AtlasLoadingOption.class.getResourceAsStream("atlas-way-section.json"))));
@@ -50,6 +55,7 @@ public final class AtlasLoadingOption implements Serializable
     private ConfiguredTaggableFilter osmPbfWayFilter = DEFAULT_OSM_PBF_WAY_FILTER;
     private ConfiguredTaggableFilter osmPbfNodeFilter = DEFAULT_OSM_PBF_NODE_FILTER;
     private ConfiguredTaggableFilter osmPbfRelationFilter = DEFAULT_OSM_PBF_RELATION_FILTER;
+    private ConfiguredTaggableFilter slicingFilter = DEFAULT_SLICING_FILTER;
     private boolean loadAtlasRelation;
     private boolean loadOsmBound;
     private boolean countrySlicing;
@@ -167,6 +173,11 @@ public final class AtlasLoadingOption implements Serializable
     public ConfiguredTaggableFilter getOsmPbfWayFilter()
     {
         return this.osmPbfWayFilter;
+    }
+
+    public ConfiguredTaggableFilter getSlicingFilter()
+    {
+        return this.slicingFilter;
     }
 
     public ConfiguredTaggableFilter getWaySectionFilter()
@@ -333,6 +344,11 @@ public final class AtlasLoadingOption implements Serializable
     public void setOsmPbfWayFilter(final ConfiguredTaggableFilter osmPbfWayFilter)
     {
         this.osmPbfWayFilter = osmPbfWayFilter;
+    }
+
+    public void setSlicingFilter(final ConfiguredTaggableFilter slicingFilter)
+    {
+        this.slicingFilter = slicingFilter;
     }
 
     public void setWaySectionFilter(final ConfiguredTaggableFilter waySectionFilter)

@@ -1,17 +1,11 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
-import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
-import org.apache.commons.lang3.StringUtils;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -23,14 +17,9 @@ import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
-import org.openstreetmap.atlas.tags.filters.TaggableFilter;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 
 /**
  * Main entry point to initiate raw {@link Atlas} country-slicing.
@@ -50,46 +39,14 @@ public class RawAtlasCountrySlicer
 
     private static final Logger logger = LoggerFactory.getLogger(RawAtlasCountrySlicer.class);
 
-    // Resource defining the filter for Relations that will be expanded on
-    private static final String DYNAMIC_RELATION_TAG_FILTER_RESOURCE = "dynamic-relation-tag-filter.json";
-
-    // The default dynamically expanded Relation tags
-    private static List<TaggableFilter> defaultTaggableFilter = computeDefaultFilter();
-
     // Bring in all Relations that are tagged as Water or Coastline
-    private static final Predicate<AtlasEntity> relationPredicate = entity -> entity.getType()
-            .equals(ItemType.RELATION)
-            && defaultTaggableFilter.stream().allMatch(filter -> filter.test(entity));
-
-    // Dynamic expansion filter will be a combination of the water Relations and Points
-    private static final Predicate<AtlasEntity> dynamicAtlasExpansionFilter = relationPredicate::test;
+    private final Predicate<AtlasEntity> relationPredicate;
 
     private final Sharding sharding;
 
     private final Function<Shard, Optional<Atlas>> atlasFetcher;
 
-    private final List<Shard> loadedShards = new ArrayList<>();
-
     private final AtlasLoadingOption loadingOption;
-
-    private static List<TaggableFilter> computeDefaultFilter()
-    {
-        try (InputStreamReader reader = new InputStreamReader(RawAtlasCountrySlicer.class
-                .getResourceAsStream(DYNAMIC_RELATION_TAG_FILTER_RESOURCE)))
-        {
-            final JsonElement element = new JsonParser().parse(reader);
-            final JsonArray filters = element.getAsJsonObject().get("filters").getAsJsonArray();
-            return StreamSupport.stream(filters.spliterator(), false)
-                    .map(jsonElement -> TaggableFilter.forDefinition(jsonElement.getAsString()))
-                    .collect(Collectors.toList());
-        }
-        catch (final Exception exception)
-        {
-            throw new CoreException(
-                    "There was a problem parsing {}. Check if the JSON file has valid structure.",
-                    DYNAMIC_RELATION_TAG_FILTER_RESOURCE, exception);
-        }
-    }
 
     /**
      * The default constructor from before water relations were handled -- this method will slice
@@ -101,6 +58,8 @@ public class RawAtlasCountrySlicer
     public RawAtlasCountrySlicer(final AtlasLoadingOption loadingOption)
     {
         this.loadingOption = loadingOption;
+        this.relationPredicate = entity -> entity.getType().equals(ItemType.RELATION)
+                && loadingOption.getSlicingFilter().test(entity);
         this.sharding = null;
         this.atlasFetcher = null;
     }
@@ -129,6 +88,8 @@ public class RawAtlasCountrySlicer
                     "Must supply a valid sharding and fetcher function for slicing!");
         }
         this.loadingOption = loadingOption;
+        this.relationPredicate = entity -> entity.getType().equals(ItemType.RELATION)
+                && loadingOption.getSlicingFilter().test(entity);
         this.sharding = sharding;
         this.atlasFetcher = atlasFetcher;
     }
@@ -266,34 +227,17 @@ public class RawAtlasCountrySlicer
         final Time dynamicAtlasTime = Time.now();
         logger.info(DYNAMIC_ATLAS_CREATION_TASK, initialShard.getName());
 
-        // Keep track of all loaded shards. This will be used to cut the sub-atlas for the shard
-        // we're processing after all slicing is completed. Initial shard will always be first!
-        this.loadedShards.add(initialShard);
-
         final DynamicAtlasPolicy policy = new DynamicAtlasPolicy(this.atlasFetcher, this.sharding,
                 initialShard, Rectangle.MAXIMUM).withDeferredLoading(true)
                         .withExtendIndefinitely(false).withAggressivelyExploreRelations(true)
-                        .withAtlasEntitiesToConsiderForExpansion(dynamicAtlasExpansionFilter);
+                        .withAtlasEntitiesToConsiderForExpansion(this.relationPredicate);
 
         final DynamicAtlas atlas = new DynamicAtlas(policy);
         atlas.preemptiveLoad();
 
-        logger.info(COMPLETED_TASK_MESSAGE, DYNAMIC_ATLAS_CREATION_TASK, getShardOrAtlasName(),
+        logger.info(COMPLETED_TASK_MESSAGE, DYNAMIC_ATLAS_CREATION_TASK, initialShard.getName(),
                 dynamicAtlasTime.elapsedSince());
         return atlas;
-    }
-
-    private String getShardOrAtlasName()
-    {
-        // Default to getting the Shard name, if available, otherwise fall back to atlas name
-        if (!this.loadedShards.isEmpty())
-        {
-            return this.loadedShards.get(0).getName();
-        }
-        else
-        {
-            return StringUtils.EMPTY;
-        }
     }
 
     private String getShardOrAtlasName(final Atlas atlas)

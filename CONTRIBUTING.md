@@ -83,7 +83,7 @@ java -cp atlas-5.1.8-SNAPSHOT-shaded.jar org.openstreetmap.atlas.geography.atlas
 #### IntelliJ Setup
 
 IntellJ IDEA works pretty much out of the box. However, you still need to mess with log4j. First, add a 
-`log4j.properties` file to your project or your VM Options. Also see section on [Lombok Setup](#lombok-setup).
+`log4j.properties` file to your project or your VM Options.
 
 Also, you need to manually add [slf4j-simple.jar](https://mvnrepository.com/artifact/org.slf4j/slf4j-simple/1.7.25) 
 to your Project Module Dependencies:
@@ -93,17 +93,6 @@ to your Project Module Dependencies:
 In `atlas_main` add the the JAR that you downloaded.
 
 ![slf4j in Intellij](images/slf4j.png)
-
-#### Lombok Setup
-
-The project uses ![Lombok](https://projectlombok.org/). For IntelliJ you need to `Enable annotation processing` available under `Preferences | Build, Execution, Deployment | Compiler | Annotation Processors`, and then install the Lombok plugin. For Eclipse you just need to install the Lombok plugin.
-
-Follow the links below for steps to install the plugin,
-
-1. ![Eclipse plugin](https://projectlombok.org/setup/eclipse)
-2. ![IntelliJ plugin](https://projectlombok.org/setup/intellij)
-3. ![Unofficial blog](https://www.baeldung.com/lombok-ide) with screenshots to install plugin in IntelliJ and Eclipse
- 
 
 ### Code formatting
 

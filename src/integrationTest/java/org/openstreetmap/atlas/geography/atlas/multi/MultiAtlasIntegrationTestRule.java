@@ -7,7 +7,7 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas;
 /**
  * @author matthieun
  */
-public class MultiAtlasBorderFixerIntegrationTestRule extends CoreTestRule
+public class MultiAtlasIntegrationTestRule extends CoreTestRule
 {
     @TestAtlas(loadFromTextResource = "DEU_11-1084-708.atlas.txt.gz")
     private Atlas atlas1;
