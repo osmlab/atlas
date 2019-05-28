@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-103386' action='modify' visible='true' lat='41.29311806411' lon='9.27041177599' />
+  <node id='-103389' action='modify' visible='true' lat='41.29321251761' lon='9.27099556612' />
+  <node id='-103393' action='modify' visible='true' lat='41.29274969112' lon='9.27112821451' />
+  <node id='-103395' action='modify' visible='true' lat='41.29265523695' lon='9.27054442438' />
+  <node id='-103406' action='modify' visible='true' lat='41.29369173381' lon='9.26865886483' />
+  <node id='-103407' action='modify' visible='true' lat='41.29388319076' lon='9.26945164474' />
+  <node id='-103409' action='modify' visible='true' lat='41.29361727818' lon='9.26991174022' />
+  <node id='-103411' action='modify' visible='true' lat='41.29381405359' lon='9.27076822565' />
+  <node id='-103413' action='modify' visible='true' lat='41.29353218592' lon='9.271171694' />
+  <node id='-103421' action='modify' visible='true' lat='41.29254298032' lon='9.26856684573' />
+  <node id='-103422' action='modify' visible='true' lat='41.29248447844' lon='9.26906233317' />
+  <node id='-103424' action='modify' visible='true' lat='41.29254298032' lon='9.26970646685' />
+  <node id='-103426' action='modify' visible='true' lat='41.29228238065' lon='9.27050632515' />
+  <node id='-103434' action='modify' visible='true' lat='41.29288867215' lon='9.26909064674' />
+  <node id='-103436' action='modify' visible='true' lat='41.29208560061' lon='9.2692180578' />
+  <node id='-103497' action='modify' visible='true' lat='41.29331413651' lon='9.2696639965'>
+    <tag k='natural' v='tree' />
+  </node>
+  <way id='-103390' action='modify' visible='true'>
+    <nd ref='-103386' />
+    <nd ref='-103389' />
+    <nd ref='-103393' />
+    <nd ref='-103395' />
+    <nd ref='-103386' />
+    <tag k='building' v='yes' />
+  </way>
+  <way id='-103408' action='modify' visible='true'>
+    <nd ref='-103406' />
+    <nd ref='-103407' />
+    <nd ref='-103409' />
+    <nd ref='-103411' />
+    <nd ref='-103413' />
+    <tag k='waterway' v='river' />
+  </way>
+  <way id='-103423' action='modify' visible='true'>
+    <nd ref='-103421' />
+    <nd ref='-103422' />
+    <nd ref='-103424' />
+    <nd ref='-103426' />
+    <tag k='highway' v='motorway' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='-103435' action='modify' visible='true'>
+    <nd ref='-103434' />
+    <nd ref='-103422' />
+    <nd ref='-103436' />
+    <tag k='highway' v='primary' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <relation id='-103508' action='modify' visible='true'>
+    <member type='way' ref='-103408' role='river' />
+    <member type='node' ref='-103497' role='tree' />
+    <tag k='type' v='natural' />
+  </relation>
+</osm>

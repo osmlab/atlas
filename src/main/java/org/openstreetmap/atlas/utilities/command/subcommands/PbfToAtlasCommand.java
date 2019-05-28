@@ -56,7 +56,7 @@ public final class PbfToAtlasCommand extends MultipleOutputCommand
         new PbfToAtlasCommand().runSubcommandAndExit(args);
     }
 
-    private PbfToAtlasCommand()
+    public PbfToAtlasCommand()
     {
         super();
         this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
