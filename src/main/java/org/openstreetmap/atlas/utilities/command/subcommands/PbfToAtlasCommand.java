@@ -28,7 +28,7 @@ import org.openstreetmap.atlas.utilities.command.subcommands.templates.MultipleO
  * @author samgass
  * @author matthieun
  */
-public final class PbfToAtlasCommand extends MultipleOutputCommand
+public class PbfToAtlasCommand extends MultipleOutputCommand
 {
     // The hint for the input path for the PBF file(s) to convert
     private static final String PBF_PATH_HINT = "pbf";
@@ -56,7 +56,7 @@ public final class PbfToAtlasCommand extends MultipleOutputCommand
         new PbfToAtlasCommand().runSubcommandAndExit(args);
     }
 
-    private PbfToAtlasCommand()
+    public PbfToAtlasCommand()
     {
         super();
         this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
