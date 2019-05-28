@@ -103,6 +103,12 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     }
 
     @Override
+    public void addTagChangeListener(final TagChangeListener tagChangeListener)
+    {
+        this.tagChangeDelegate.addTagChangeListener(tagChangeListener);
+    }
+
+    @Override
     public Rectangle bounds()
     {
         return this.bounds;
@@ -139,6 +145,12 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     }
 
     @Override
+    public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
+    {
+        this.tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
+    }
+
+    @Override
     public long getIdentifier()
     {
         return this.identifier;
@@ -169,9 +181,8 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
          * Note that the Edges returned by this method will technically break the Located contract,
          * since they have null bounds.
          */
-        return this.inEdgeIdentifiers == null ? null
-                : this.inEdgeIdentifiers.stream().map(CompleteEdge::new)
-                        .collect(Collectors.toCollection(TreeSet::new));
+        return this.inEdgeIdentifiers == null ? null : this.inEdgeIdentifiers.stream()
+                .map(CompleteEdge::new).collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
@@ -189,9 +200,71 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
          * Note that the Edges returned by this method will technically break the Located contract,
          * since they have null bounds.
          */
-        return this.outEdgeIdentifiers == null ? null
-                : this.outEdgeIdentifiers.stream().map(CompleteEdge::new)
-                        .collect(Collectors.toCollection(TreeSet::new));
+        return this.outEdgeIdentifiers == null ? null : this.outEdgeIdentifiers.stream()
+                .map(CompleteEdge::new).collect(Collectors.toCollection(TreeSet::new));
+    }
+
+    @Override
+    public String prettify(final PrettifyStringFormat format)
+    {
+        String separator = "";
+        if (format == PrettifyStringFormat.MINIMAL_SINGLE_LINE)
+        {
+            separator = "";
+        }
+        else if (format == PrettifyStringFormat.MINIMAL_MULTI_LINE)
+        {
+            separator = "\n";
+        }
+        final StringBuilder builder = new StringBuilder();
+
+        builder.append(this.getClass().getSimpleName() + " ");
+        builder.append("[");
+        builder.append(separator);
+        builder.append("identifier=" + this.identifier + ", ");
+        builder.append(separator);
+        if (this.location != null)
+        {
+            builder.append("location=" + this.location + ", ");
+            builder.append(separator);
+        }
+        if (this.inEdgeIdentifiers != null)
+        {
+            builder.append("inEdges=" + this.inEdgeIdentifiers + ", ");
+            builder.append(separator);
+        }
+        if (this.explicitlyExcludedInEdgeIdentifiers != null
+                && !this.explicitlyExcludedInEdgeIdentifiers.isEmpty())
+        {
+            builder.append(
+                    "explicitlyExcludedInEdges=" + this.explicitlyExcludedInEdgeIdentifiers + ", ");
+            builder.append(separator);
+        }
+        if (this.outEdgeIdentifiers != null)
+        {
+            builder.append("outEdges=" + this.outEdgeIdentifiers + ", ");
+            builder.append(separator);
+        }
+        if (this.explicitlyExcludedOutEdgeIdentifiers != null
+                && !this.explicitlyExcludedOutEdgeIdentifiers.isEmpty())
+        {
+            builder.append("explicitlyExcludedOutEdges=" + this.explicitlyExcludedOutEdgeIdentifiers
+                    + ", ");
+            builder.append(separator);
+        }
+        if (this.tags != null)
+        {
+            builder.append("tags=" + this.tags + ", ");
+            builder.append(separator);
+        }
+        if (this.relationIdentifiers != null)
+        {
+            builder.append("parentRelations=" + this.relationIdentifiers + ", ");
+            builder.append(separator);
+        }
+        builder.append("]");
+
+        return builder.toString();
     }
 
     @Override
@@ -201,9 +274,14 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
          * Note that the Relations returned by this method will technically break the Located
          * contract, since they have null bounds.
          */
-        return this.relationIdentifiers == null ? null
-                : this.relationIdentifiers.stream().map(CompleteRelation::new)
-                        .collect(Collectors.toSet());
+        return this.relationIdentifiers == null ? null : this.relationIdentifiers.stream()
+                .map(CompleteRelation::new).collect(Collectors.toSet());
+    }
+
+    @Override
+    public void removeTagChangeListeners()
+    {
+        this.tagChangeDelegate.removeTagChangeListeners();
     }
 
     public void setExplicitlyExcludedInEdgeIdentifiers(final Set<Long> edges)
@@ -370,20 +448,5 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
         return this;
-    }
-
-    public void addTagChangeListener(final TagChangeListener tagChangeListener)
-    {
-        this.tagChangeDelegate.addTagChangeListener(tagChangeListener);
-    }
-
-    public void removeTagChangeListeners()
-    {
-        this.tagChangeDelegate.removeTagChangeListeners();
-    }
-
-    public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
-    {
-        this.tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
     }
 }

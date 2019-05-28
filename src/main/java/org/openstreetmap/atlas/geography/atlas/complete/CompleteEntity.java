@@ -248,12 +248,24 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
 
     Map<String, String> getTags();
 
+    ItemType getType();
+
     /**
      * A shallow {@link CompleteEntity} is one that contains only its identifier as effective data.
      *
      * @return if this entity is shallow
      */
     boolean isShallow();
+
+    /**
+     * Transform this {@link CompleteEntity} into a pretty string. The pretty string for a
+     * {@link CompleteEntity} can be customized using different available formats.
+     *
+     * @param format
+     *            the format type for the pretty string
+     * @return the pretty string
+     */
+    String prettify(PrettifyStringFormat format);
 
     void setTags(Map<String, String> tags);
 
@@ -284,6 +296,4 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
     {
         return CompleteEntity.withTags((C) this, tags, false);
     }
-
-    ItemType getType();
 }
