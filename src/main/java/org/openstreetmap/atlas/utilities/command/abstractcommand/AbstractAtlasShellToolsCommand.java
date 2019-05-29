@@ -82,6 +82,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private static final int HELP_OPTION_CONTEXT = 1;
     private static final int VERSION_OPTION_CONTEXT = 2;
     public static final int DEFAULT_CONTEXT = 3;
+    public static final String DESCRIPTION = "DESCRIPTION";
+    public static final String EXAMPLES = "EXAMPLES";
 
     /*
      * Maximum allowed column width. If the user's terminal is very wide, we don't want to display
