@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
  * It contains a collection of {@link FeatureChange} objects, which describe the changes.
  *
  * @author matthieun
+ * @author Yazad Khambata
  */
 public class Change implements Located, Serializable
 {
@@ -38,7 +39,7 @@ public class Change implements Located, Serializable
     private static final AtomicInteger CHANGE_IDENTIFIER_FACTORY = new AtomicInteger();
 
     private final List<FeatureChange> featureChanges;
-    private final Map<Tuple<ItemType, Long>, Integer> identifierToIndex;
+    private final Map<AtlasEntityKey, Integer> identifierToIndex;
     private final int identifier;
     private Rectangle bounds;
     private String name;
@@ -94,7 +95,7 @@ public class Change implements Located, Serializable
 
     public Optional<FeatureChange> changeFor(final ItemType itemType, final Long identifier)
     {
-        final Tuple<ItemType, Long> key = new Tuple<>(itemType, identifier);
+        final AtlasEntityKey key = AtlasEntityKey.from(itemType, identifier);
         if (!this.identifierToIndex.containsKey(key))
         {
             return Optional.empty();
@@ -112,6 +113,14 @@ public class Change implements Located, Serializable
         return this.identifierToIndex.keySet().stream()
                 .filter(tuple -> tuple.getFirst() == itemType)
                 .map(tuple -> this.featureChanges.get(this.identifierToIndex.get(tuple)));
+    }
+
+    public Map<AtlasEntityKey, FeatureChange> allChangesMappedByAtlasEntityKey()
+    {
+        return changes()
+                .map(featureChange -> Tuple.createTuple(AtlasEntityKey.from(featureChange),
+                        featureChange))
+                .collect(Collectors.toMap(Tuple::getFirst, Tuple::getSecond));
     }
 
     /**
@@ -214,8 +223,9 @@ public class Change implements Located, Serializable
     protected Change add(final FeatureChange featureChange)
     {
         final int currentIndex = this.featureChanges.size();
-        final Tuple<ItemType, Long> key = new Tuple<>(featureChange.getItemType(),
+        final AtlasEntityKey key = AtlasEntityKey.from(featureChange.getItemType(),
                 featureChange.getIdentifier());
+
         FeatureChange chosen = featureChange;
         if (!this.identifierToIndex.containsKey(key))
         {
