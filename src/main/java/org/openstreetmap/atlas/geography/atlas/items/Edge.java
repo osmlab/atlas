@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.commons.lang3.Validate;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
@@ -97,6 +98,13 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
         return result;
     }
 
+    public Node connectedNode(final ConnectedNodeType connectedNodeType)
+    {
+        Validate.notNull(connectedNodeType);
+        final Node connectedNode = connectedNodeType.getAccessFunction().apply(this);
+        return connectedNode;
+    }
+
     /**
      * @return The same {@link Edge} but with the tags interpreted with this {@link Edge}'s
      *         direction. For example, if this {@link Edge} is backwards from its OSM way, and the
@@ -118,8 +126,8 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
     {
         final JsonObject properties = super.getGeoJsonProperties();
 
-        properties.addProperty("startNode", start().getIdentifier());
-        properties.addProperty("endNode", end().getIdentifier());
+        properties.addProperty(ConnectedNodeType.START.getPropertyName(), start().getIdentifier());
+        properties.addProperty(ConnectedNodeType.END.getPropertyName(), end().getIdentifier());
 
         return properties;
     }
