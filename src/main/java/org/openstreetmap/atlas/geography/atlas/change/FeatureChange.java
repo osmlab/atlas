@@ -519,12 +519,17 @@ public class FeatureChange implements Located, Serializable
      */
     public void save(final WritableResource resource)
     {
-        new FeatureChangeGeoJsonSerializer().accept(this, resource);
+        new FeatureChangeGeoJsonSerializer(true).accept(this, resource);
     }
 
     public String toGeoJson()
     {
-        return new FeatureChangeGeoJsonSerializer().convert(this);
+        return new FeatureChangeGeoJsonSerializer(false).convert(this);
+    }
+    
+    public String toPrettyGeoJson()
+    {
+        return new FeatureChangeGeoJsonSerializer(true).convert(this);
     }
 
     @Override
