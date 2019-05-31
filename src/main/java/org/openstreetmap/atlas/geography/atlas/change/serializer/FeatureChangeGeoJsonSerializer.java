@@ -177,16 +177,7 @@ public class FeatureChangeGeoJsonSerializer
     }
 
     private static final String NULL = "null";
-    private static final Gson jsonSerializer;
-    static
-    {
-        final GsonBuilder gsonBuilder = new GsonBuilder();
-        gsonBuilder.setPrettyPrinting();
-        gsonBuilder.disableHtmlEscaping();
-        gsonBuilder.registerTypeHierarchyAdapter(FeatureChange.class,
-                new FeatureChangeTypeHierarchyAdapter());
-        jsonSerializer = gsonBuilder.create();
-    }
+    private final Gson jsonSerializer;
 
     private static <T> void add(final JsonObject result, final String name, final T property,
             final Function<T, JsonElement> writer)
@@ -207,12 +198,25 @@ public class FeatureChangeGeoJsonSerializer
         result.addProperty(name, property == null ? NULL : writer.apply(property).toString());
     }
 
+    public FeatureChangeGeoJsonSerializer(final boolean prettyPrint)
+    {
+        final GsonBuilder gsonBuilder = new GsonBuilder();
+        if (prettyPrint)
+        {
+            gsonBuilder.setPrettyPrinting();
+        }
+        gsonBuilder.disableHtmlEscaping();
+        gsonBuilder.registerTypeHierarchyAdapter(FeatureChange.class,
+                new FeatureChangeTypeHierarchyAdapter());
+        this.jsonSerializer = gsonBuilder.create();
+    }
+
     @Override
     public void accept(final FeatureChange featureChange, final WritableResource resource)
     {
         try (Writer writer = resource.writer())
         {
-            jsonSerializer.toJson(featureChange, writer);
+            this.jsonSerializer.toJson(featureChange, writer);
         }
         catch (final IOException e)
         {
@@ -224,6 +228,6 @@ public class FeatureChangeGeoJsonSerializer
     @Override
     public String convert(final FeatureChange featureChange)
     {
-        return jsonSerializer.toJson(featureChange);
+        return this.jsonSerializer.toJson(featureChange);
     }
 }
