@@ -24,6 +24,13 @@ public class CaptureOutputStream extends PrintStream
         return super.printf(format, args);
     }
 
+    @Override
+    public void print(final String string)
+    {
+        this.log = this.log.concat(string);
+        super.print(string);
+    }
+
     public String getLog()
     {
         return this.log;
