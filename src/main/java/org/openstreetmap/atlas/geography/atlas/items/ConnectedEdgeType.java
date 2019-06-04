@@ -9,7 +9,7 @@ import java.util.function.Function;
  *
  * @author Yazad Khambata
  */
-public enum ConnectedEdgeType
+public enum ConnectedEdgeType implements ConnectedEntityType<Node, SortedSet<Edge>>
 {
     IN("inEdges", Node::inEdges),
 
@@ -26,11 +26,13 @@ public enum ConnectedEdgeType
         this.accessFunction = accessFunction;
     }
 
+    @Override
     public String getPropertyName()
     {
         return this.propertyName;
     }
 
+    @Override
     public Function<Node, SortedSet<Edge>> getAccessFunction()
     {
         return this.accessFunction;
