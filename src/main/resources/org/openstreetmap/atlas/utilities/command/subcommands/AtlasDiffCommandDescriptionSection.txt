@@ -2,4 +2,5 @@ Compute a diff between two atlases using the ChangeAtlas API. The command
 will write a pretty print string serialization of the diff to a file
 in the current working directory. The output file name is constructed by
 appending the two input file names together using a "-" character and adding
-a ".diff" extension.
+a ".diff" extension. The pretty print options include readable plaintext,
+as well as different types of GeoJSON serialization.

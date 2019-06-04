@@ -17,6 +17,7 @@ import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.change.serializer.ChangeGeoJsonSerializer;
+import org.openstreetmap.atlas.geography.atlas.change.serializer.FeatureChangeGeoJsonSerializer;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
 import org.openstreetmap.atlas.geography.atlas.complete.PrettifyStringFormat;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
@@ -225,6 +226,18 @@ public class Change implements Located, Serializable
     public String toJson()
     {
         return new ChangeGeoJsonSerializer().convert(this);
+    }
+
+    public String toLineDelimitedFeatureChanges()
+    {
+        final StringBuilder builder = new StringBuilder();
+        final FeatureChangeGeoJsonSerializer serializer = new FeatureChangeGeoJsonSerializer(false);
+
+        for (final FeatureChange featureChange : this.featureChanges)
+        {
+            builder.append(serializer.apply(featureChange) + "\n");
+        }
+        return builder.toString();
     }
 
     @Override

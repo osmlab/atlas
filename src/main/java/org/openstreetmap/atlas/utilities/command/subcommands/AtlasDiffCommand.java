@@ -9,6 +9,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.geography.atlas.change.Change;
 import org.openstreetmap.atlas.geography.atlas.change.diff.AtlasDiff;
+import org.openstreetmap.atlas.geography.atlas.change.serializer.ChangeGeoJsonSerializer;
 import org.openstreetmap.atlas.geography.atlas.complete.PrettifyStringFormat;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.collections.StringList;
@@ -45,6 +46,11 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
             + new StringList(FORMAT_TYPE_STRINGS).join(", ") + ". Defaults to "
             + DEFAULT_PRETTY_COMPLETE_ENTITY_FORMAT.toString() + ".";
 
+    private static final String LDGEOJSON_OPTION_LONG = "ldgeojson";
+    private static final String LDGEOJSON_OPTION_DESCRIPTION = "Use the line-delimited geoJSON format for output.";
+    private static final String GEOJSON_OPTION_LONG = "geojson";
+    private static final String GEOJSON_OPTION_DESCRIPTION = "Use the pretty geoJSON format for output.";
+
     private static final String EXTENSION = ".diff";
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
@@ -77,6 +83,26 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
                 .orElse(DEFAULT_PRETTY_COMPLETE_ENTITY_FORMAT);
         final File beforeAtlasFile = new File(beforeAtlasPath);
         final File afterAtlasFile = new File(afterAtlasPath);
+        boolean useGeoJson = false;
+        boolean useLdGeoJson = false;
+
+        if (this.optionAndArgumentDelegate.hasOption(GEOJSON_OPTION_LONG)
+                && this.optionAndArgumentDelegate.hasOption(LDGEOJSON_OPTION_LONG))
+        {
+            this.outputDelegate.printlnErrorMessage("options \'" + GEOJSON_OPTION_LONG + "\' and \'"
+                    + LDGEOJSON_OPTION_LONG + "\' are mutually exclusive");
+            return 1;
+        }
+
+        if (this.optionAndArgumentDelegate.hasOption(GEOJSON_OPTION_LONG))
+        {
+            useGeoJson = true;
+        }
+
+        if (this.optionAndArgumentDelegate.hasOption(LDGEOJSON_OPTION_LONG))
+        {
+            useLdGeoJson = true;
+        }
 
         if (!beforeAtlasFile.exists())
         {
@@ -92,13 +118,25 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
         final Atlas beforeAtlas = new AtlasResourceLoader().load(beforeAtlasFile);
         final Atlas afterAtlas = new AtlasResourceLoader().load(afterAtlasFile);
 
-        final AtlasDiff diff = new AtlasDiff(beforeAtlas, afterAtlas);
+        final AtlasDiff diff = new AtlasDiff(beforeAtlas, afterAtlas).saveAllGeometries(false);
         final Optional<Change> changeOptional = diff.generateChange();
 
         if (changeOptional.isPresent())
         {
-            final String serializedString = changeOptional.get().prettify(featureChangeFormat,
-                    completeEntityFormat) + "\n";
+            final String serializedString;
+            if (useGeoJson)
+            {
+                serializedString = new ChangeGeoJsonSerializer().convert(changeOptional.get());
+            }
+            else if (useLdGeoJson)
+            {
+                serializedString = changeOptional.get().toLineDelimitedFeatureChanges();
+            }
+            else
+            {
+                serializedString = changeOptional.get().prettify(featureChangeFormat,
+                        completeEntityFormat) + "\n";
+            }
             final String outputFile = beforeAtlasFile.getFile().getName() + "-"
                     + afterAtlasFile.getFile().getName() + EXTENSION;
             final File output = new File(outputFile);
@@ -142,6 +180,9 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
         registerOptionWithRequiredArgument(COMPLETE_ENTITY_FORMAT_OPTION_LONG,
                 COMPLETE_ENTITY_FORMAT_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
                 COMPLETE_ENTITY_FORMAT_OPTION_HINT);
+        registerOption(LDGEOJSON_OPTION_LONG, LDGEOJSON_OPTION_DESCRIPTION,
+                OptionOptionality.OPTIONAL);
+        registerOption(GEOJSON_OPTION_LONG, GEOJSON_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL);
         registerArgument(BEFORE_ATLAS_ARGUMENT, ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
         registerArgument(AFTER_ATLAS_ARGUMENT, ArgumentArity.UNARY, ArgumentOptionality.REQUIRED);
         super.registerOptionsAndArguments();

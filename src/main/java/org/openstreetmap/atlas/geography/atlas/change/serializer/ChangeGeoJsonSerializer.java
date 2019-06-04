@@ -55,14 +55,23 @@ public class ChangeGeoJsonSerializer
         }
     }
 
-    private static final Gson jsonSerializer;
-    static
+    private final Gson jsonSerializer;
+
+    public ChangeGeoJsonSerializer()
+    {
+        this(true);
+    }
+
+    public ChangeGeoJsonSerializer(final boolean prettyPrint)
     {
         final GsonBuilder gsonBuilder = new GsonBuilder();
-        gsonBuilder.setPrettyPrinting();
+        if (prettyPrint)
+        {
+            gsonBuilder.setPrettyPrinting();
+        }
         gsonBuilder.disableHtmlEscaping();
         gsonBuilder.registerTypeHierarchyAdapter(Change.class, new ChangeTypeHierarchyAdapter());
-        jsonSerializer = gsonBuilder.create();
+        this.jsonSerializer = gsonBuilder.create();
     }
 
     @Override
@@ -70,7 +79,7 @@ public class ChangeGeoJsonSerializer
     {
         try (Writer writer = resource.writer())
         {
-            jsonSerializer.toJson(change, writer);
+            this.jsonSerializer.toJson(change, writer);
         }
         catch (final IOException e)
         {
@@ -82,6 +91,6 @@ public class ChangeGeoJsonSerializer
     @Override
     public String convert(final Change change)
     {
-        return jsonSerializer.toJson(change);
+        return this.jsonSerializer.toJson(change);
     }
 }

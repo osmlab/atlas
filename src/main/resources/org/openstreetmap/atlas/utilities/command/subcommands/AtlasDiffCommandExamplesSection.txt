@@ -1,2 +1,4 @@
 Compute a diff between two atlases:
 #$ atlas-diff folder/before-atlas.atlas after-atlas.atlas
+Set output to use line delimited GeoJSON:
+#$ atlas-diff before-atlas.atlas after-atlas.atlas --ldgeojson
