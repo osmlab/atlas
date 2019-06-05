@@ -200,6 +200,21 @@ public class FeatureChange implements Located, Serializable
     }
 
     /**
+     * Specify the Atlas on which this {@link FeatureChange} is based. {@link FeatureChange} objects
+     * with a contextual Atlas are able to calculate their before view, and so are able to leverage
+     * richer and more robust merging mechanics.
+     *
+     * @param atlas
+     *            the contextual atlas
+     * @return the updated {@link FeatureChange}
+     */
+    FeatureChange withAtlasContext(final Atlas atlas)
+    {
+        computeBeforeViewUsingAtlasContext(atlas, this.changeType);
+        return this;
+    }
+
+    /**
      * Check if this {@link FeatureChange}'s afterView is full. A full afterView is a
      * {@link CompleteEntity} that has all its fields set to non-null values.
      *
@@ -482,12 +497,12 @@ public class FeatureChange implements Located, Serializable
         builder.append(separator);
         builder.append("bounds=" + this.bounds() + ", ");
         builder.append(separator);
-        builder.append("afterView="
+        builder.append("afView="
                 + ((CompleteEntity<?>) this.afterView).prettify(completeEntityFormat) + ", ");
         builder.append(separator);
         if (this.beforeView != null)
         {
-            builder.append("beforeView="
+            builder.append("bfView="
                     + ((CompleteEntity<?>) this.beforeView).prettify(completeEntityFormat) + ", ");
             builder.append(separator);
         }
@@ -523,21 +538,6 @@ public class FeatureChange implements Located, Serializable
         return "FeatureChange [changeType=" + this.changeType + ", reference={"
                 + this.afterView.getType() + "," + this.afterView.getIdentifier() + "}, tags="
                 + getTags() + ", bounds=" + bounds() + "]";
-    }
-
-    /**
-     * Specify the Atlas on which this {@link FeatureChange} is based. {@link FeatureChange} objects
-     * with a contextual Atlas are able to calculate their before view, and so are able to leverage
-     * richer and more robust merging mechanics.
-     *
-     * @param atlas
-     *            the contextual atlas
-     * @return the updated {@link FeatureChange}
-     */
-    FeatureChange withAtlasContext(final Atlas atlas)
-    {
-        computeBeforeViewUsingAtlasContext(atlas, this.changeType);
-        return this;
     }
 
     /**
