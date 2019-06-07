@@ -64,7 +64,7 @@ public class FeatureChangeGeoJsonSerializer
             result.add("bbox", bounds.asGeoJsonBbox());
 
             final GeometryPrintable geometryPrintable = new AtlasEntityGeometryPrintableConverter()
-                    .convert(source.getAfterView());
+                    .convert(source);
             addGeometryGeojson(result, geometryPrintable);
 
             final JsonObject properties = new JsonObject();
@@ -90,23 +90,36 @@ public class FeatureChangeGeoJsonSerializer
      * @author matthieun
      */
     private static class AtlasEntityGeometryPrintableConverter
-            implements Converter<AtlasEntity, GeometryPrintable>
+            implements Converter<FeatureChange, GeometryPrintable>
     {
         @Override
-        public GeometryPrintable convert(final AtlasEntity source)
+        public GeometryPrintable convert(final FeatureChange featureChange)
         {
-            GeometryPrintable result = null;
+            final AtlasEntity source = featureChange.getAfterView();
+            GeometryPrintable result;
             if (source instanceof Area)
             {
                 result = ((Area) source).asPolygon();
+                if (result == null && featureChange.getBeforeView() != null)
+                {
+                    result = ((Area) featureChange.getBeforeView()).asPolygon();
+                }
             }
             else if (source instanceof LineItem)
             {
                 result = ((LineItem) source).asPolyLine();
+                if (result == null && featureChange.getBeforeView() != null)
+                {
+                    result = ((LineItem) featureChange.getBeforeView()).asPolyLine();
+                }
             }
             else if (source instanceof LocationItem)
             {
                 result = ((LocationItem) source).getLocation();
+                if (result == null && featureChange.getBeforeView() != null)
+                {
+                    result = ((LocationItem) featureChange.getBeforeView()).getLocation();
+                }
             }
             else
             {
