@@ -425,7 +425,7 @@ public class Validators
      * @return true if the tag exists in firstTaggable AND secondTaggable, AND the value of
      *         firstTaggable is equal to the value of secondTaggable.
      */
-    public static <T extends Enum<T>> boolean isOfSameType(final Taggable firstTaggable,
+    public static <T> boolean isOfSameType(final Taggable firstTaggable,
             final Taggable secondTaggable, final Class<T> type)
     {
         final String key = findTagNameIn(type);
