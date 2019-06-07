@@ -5,6 +5,7 @@ import java.util.function.Predicate;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.tags.HighwayTag;
+import org.openstreetmap.atlas.tags.LastEditTimeTag;
 import org.openstreetmap.atlas.tags.NaturalTag;
 import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.tags.WaterTag;
@@ -133,5 +134,26 @@ public class ValidatorsHasValuesForTestCase
     {
         Assert.assertFalse(Validators.isOfSameType(new TestTaggable(WaterwayTag.CANAL),
                 new TestTaggable(WaterwayTag.CANAL), WaterTag.class));
+    }
+
+    @Test
+    public void twoNonEnumeratedTagsSameKeySameValue()
+    {
+        Assert.assertTrue(Validators.isOfSameType(new TestTaggable(LastEditTimeTag.KEY, "06June19"),
+                new TestTaggable(LastEditTimeTag.KEY, "06June19"), LastEditTimeTag.class));
+    }
+
+    @Test
+    public void twoNonEnumeratedTagsSameKeyDifferentValues()
+    {
+        Assert.assertFalse(Validators.isOfSameType(new TestTaggable(LastEditTimeTag.KEY, "01Apr19"),
+                new TestTaggable(LastEditTimeTag.KEY, "06June19"), LastEditTimeTag.class));
+    }
+
+    @Test
+    public void oneEnumeratedTagOneNonEnumeratedTag()
+    {
+        Assert.assertFalse(Validators.isOfSameType(new TestTaggable(WaterwayTag.CANAL),
+                new TestTaggable(LastEditTimeTag.KEY, "invalid"), WaterTag.class));
     }
 }
