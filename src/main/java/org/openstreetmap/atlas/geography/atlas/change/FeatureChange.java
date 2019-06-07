@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -63,6 +64,7 @@ public class FeatureChange implements Located, Serializable
     private final ChangeType changeType;
     private AtlasEntity beforeView;
     private final AtlasEntity afterView;
+    private final Map<String, String> metaData;
 
     /**
      * Create a new {@link ChangeType#ADD} {@link FeatureChange} with a given afterView. The
@@ -197,21 +199,7 @@ public class FeatureChange implements Located, Serializable
         }
 
         this.validateNotShallow();
-    }
-
-    /**
-     * Specify the Atlas on which this {@link FeatureChange} is based. {@link FeatureChange} objects
-     * with a contextual Atlas are able to calculate their before view, and so are able to leverage
-     * richer and more robust merging mechanics.
-     *
-     * @param atlas
-     *            the contextual atlas
-     * @return the updated {@link FeatureChange}
-     */
-    FeatureChange withAtlasContext(final Atlas atlas)
-    {
-        computeBeforeViewUsingAtlasContext(atlas, this.changeType);
-        return this;
+        this.metaData = new HashMap<>();
     }
 
     /**
@@ -333,6 +321,11 @@ public class FeatureChange implements Located, Serializable
         return getAfterView().getType();
     }
 
+    public Map<String, String> getMetaData()
+    {
+        return new HashMap<>(this.metaData);
+    }
+
     /**
      * Get a tag based on a key, taking the changes into account.
      *
@@ -412,6 +405,7 @@ public class FeatureChange implements Located, Serializable
         // indeed properly merge. We also must ensure that the potentially differing beforeViews can
         // merge. For more information on this, see
         // FeatureChangeMergingHelpers#mergeADDFeatureChangePair.
+        FeatureChange result = this;
         try
         {
             // Pre-condition 1)
@@ -441,25 +435,28 @@ public class FeatureChange implements Located, Serializable
                  * Pre-condition 2 implies that if one beforeView is null, both are null so it is
                  * safe to arbitrarily pick from the left or right side of the merge.
                  */
-                if (this.getBeforeView() == null)
+                if (this.getBeforeView() != null)
                 {
-                    return this;
+                    result = FeatureChangeMergingHelpers.mergeREMOVEFeatureChangePair(this, other);
                 }
-                return FeatureChangeMergingHelpers.mergeREMOVEFeatureChangePair(this, other);
             }
             else if (this.getChangeType() == ChangeType.ADD)
             {
-                return FeatureChangeMergingHelpers.mergeADDFeatureChangePair(this, other);
+                result = FeatureChangeMergingHelpers.mergeADDFeatureChangePair(this, other);
             }
-
-            // If we get here, something very unexpected happened.
-            throw new CoreException("Unexpected merge failure for {} and {}", this, other);
+            else
+            {
+                // If we get here, something very unexpected happened.
+                throw new CoreException("Unexpected merge failure for {} and {}", this, other);
+            }
         }
         catch (final Exception exception)
         {
             throw new CoreException("Cannot merge two feature changes {} and {}.", this, other,
                     exception);
         }
+        FeatureChangeMergingHelpers.mergedMetaData(this, other).forEach(result::setMetaData);
+        return result;
     }
 
     /**
@@ -522,6 +519,19 @@ public class FeatureChange implements Located, Serializable
         new FeatureChangeGeoJsonSerializer(true).accept(this, resource);
     }
 
+    /**
+     * Add a new key value pair to this FeatureChange's meta-data
+     * 
+     * @param key
+     *            The key
+     * @param value
+     *            The value
+     */
+    public void setMetaData(final String key, final String value)
+    {
+        this.metaData.put(key, value);
+    }
+
     public String toGeoJson()
     {
         return new FeatureChangeGeoJsonSerializer(false).convert(this);
@@ -538,6 +548,21 @@ public class FeatureChange implements Located, Serializable
         return "FeatureChange [changeType=" + this.changeType + ", reference={"
                 + this.afterView.getType() + "," + this.afterView.getIdentifier() + "}, tags="
                 + getTags() + ", bounds=" + bounds() + "]";
+    }
+
+    /**
+     * Specify the Atlas on which this {@link FeatureChange} is based. {@link FeatureChange} objects
+     * with a contextual Atlas are able to calculate their before view, and so are able to leverage
+     * richer and more robust merging mechanics.
+     *
+     * @param atlas
+     *            the contextual atlas
+     * @return the updated {@link FeatureChange}
+     */
+    FeatureChange withAtlasContext(final Atlas atlas)
+    {
+        computeBeforeViewUsingAtlasContext(atlas, this.changeType);
+        return this;
     }
 
     /**

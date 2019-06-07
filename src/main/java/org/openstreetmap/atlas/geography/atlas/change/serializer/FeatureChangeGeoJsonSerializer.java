@@ -69,6 +69,7 @@ public class FeatureChangeGeoJsonSerializer
 
             final JsonObject properties = new JsonObject();
             properties.addProperty("featureChangeType", source.getChangeType().toString());
+            add(properties, "meta-data", source.getMetaData(), tagPrinter);
             new AtlasEntityPropertiesConverter().convert(source.getAfterView()).entrySet()
                     .forEach(entry -> properties.add(entry.getKey(), entry.getValue()));
             addGeometryWkt(properties, geometryPrintable);
@@ -126,21 +127,6 @@ public class FeatureChangeGeoJsonSerializer
     private static class AtlasEntityPropertiesConverter
             implements Converter<AtlasEntity, JsonObject>
     {
-        private static final Function<Map<String, String>, JsonElement> tagPrinter = map ->
-        {
-            final JsonObject result = new JsonObject();
-            map.forEach(result::addProperty);
-            return result;
-        };
-
-        private static final Function<Iterable<? extends AtlasEntity>, JsonElement> identifierMapper = entity ->
-        {
-            final JsonArray result = new JsonArray();
-            Iterables.stream(entity).map(AtlasEntity::getIdentifier).collectToSortedSet()
-                    .forEach(number -> result.add(new JsonPrimitive(number)));
-            return result;
-        };
-
         @Override
         public JsonObject convert(final AtlasEntity source)
         {
@@ -175,6 +161,21 @@ public class FeatureChangeGeoJsonSerializer
             return properties;
         }
     }
+
+    private static final Function<Iterable<? extends AtlasEntity>, JsonElement> identifierMapper = entity ->
+    {
+        final JsonArray result = new JsonArray();
+        Iterables.stream(entity).map(AtlasEntity::getIdentifier).collectToSortedSet()
+                .forEach(number -> result.add(new JsonPrimitive(number)));
+        return result;
+    };
+
+    private static final Function<Map<String, String>, JsonElement> tagPrinter = map ->
+    {
+        final JsonObject result = new JsonObject();
+        map.forEach(result::addProperty);
+        return result;
+    };
 
     private static final String NULL = "null";
     private final Gson jsonSerializer;

@@ -31,6 +31,9 @@
   },
   "properties": {
     "featureChangeType": "REMOVE",
+    "meta-data": {
+      "key": "value"
+    },
     "entityType": "POINT",
     "class": "org.openstreetmap.atlas.geography.atlas.complete.CompletePoint",
     "identifier": 123,
