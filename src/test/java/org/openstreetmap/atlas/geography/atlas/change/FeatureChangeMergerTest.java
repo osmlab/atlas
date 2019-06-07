@@ -334,6 +334,7 @@ public class FeatureChangeMergerTest
                 beforeNode1);
         featureChange1.setMetaData("key1", "value1");
         featureChange1.setMetaData("key", "value1");
+        featureChange1.setMetaData("same", "value");
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
                 new CompleteNode(123L, Location.EIFFEL_TOWER,
                         Maps.hashMap("a", "1", "b", "2", "c", "3"), Sets.treeSet(1L, 2L, 3L, 5L),
@@ -341,16 +342,19 @@ public class FeatureChangeMergerTest
                 beforeNode1);
         featureChange2.setMetaData("key2", "value2");
         featureChange2.setMetaData("key", "value2");
+        featureChange2.setMetaData("same", "value");
 
         FeatureChange merged = featureChange1.merge(featureChange2);
         Assert.assertEquals("value1", merged.getMetaData().get("key1"));
         Assert.assertEquals("value2", merged.getMetaData().get("key2"));
         Assert.assertEquals("value1,value2", merged.getMetaData().get("key"));
+        Assert.assertEquals("value", merged.getMetaData().get("same"));
 
         merged = featureChange2.merge(featureChange1);
         Assert.assertEquals("value1", merged.getMetaData().get("key1"));
         Assert.assertEquals("value2", merged.getMetaData().get("key2"));
         Assert.assertEquals("value1,value2", merged.getMetaData().get("key"));
+        Assert.assertEquals("value", merged.getMetaData().get("same"));
     }
 
     @Test
