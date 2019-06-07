@@ -529,6 +529,14 @@ public class FeatureChange implements Located, Serializable
      */
     public void setMetaData(final String key, final String value)
     {
+        if (key == null)
+        {
+            throw new CoreException("Meta-Data key (value={}) cannot be null!", value);
+        }
+        if (value == null)
+        {
+            throw new CoreException("Meta-Data value (key={}) cannot be null!", key);
+        }
         this.metaData.put(key, value);
     }
 

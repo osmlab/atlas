@@ -214,10 +214,21 @@ public final class FeatureChangeMergingHelpers
         {
             if (rightMap.containsKey(leftEntry.getKey()))
             {
-                final Set<String> values = new TreeSet<>();
-                values.add(leftEntry.getValue());
-                values.add(rightMap.get(leftEntry.getKey()));
-                result.put(leftEntry.getKey(), new StringList(values).join(","));
+                final String leftValue = leftEntry.getValue();
+                final String rightValue = rightMap.get(leftEntry.getKey());
+                final String mergedValue;
+                if (leftValue.equals(rightValue))
+                {
+                    mergedValue = leftValue;
+                }
+                else
+                {
+                    final Set<String> values = new TreeSet<>();
+                    values.add(leftValue);
+                    values.add(rightValue);
+                    mergedValue = new StringList(values).join(",");
+                }
+                result.put(leftEntry.getKey(), mergedValue);
             }
             else
             {
