@@ -3,7 +3,7 @@ package org.openstreetmap.atlas.geography;
 import org.openstreetmap.atlas.utilities.scalars.Angle;
 
 /**
- * A Longitude between -180 degrees and 180 degrees included.
+ * A Longitude between -180 degrees and +180 degrees, inclusive.
  *
  * @author matthieun
  * @author tony
