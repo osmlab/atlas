@@ -131,7 +131,7 @@ public class Longitude extends Angle
     {
         if (dm7 < MINIMUM_DM7 || dm7 > MAXIMUM_DM7)
         {
-            throw new IllegalArgumentException("Angle dm7 value " + dm7 + " is invalid.");
+            throw new IllegalArgumentException("Longitude dm7 value " + dm7 + " is invalid.");
         }
         return dm7;
     }
