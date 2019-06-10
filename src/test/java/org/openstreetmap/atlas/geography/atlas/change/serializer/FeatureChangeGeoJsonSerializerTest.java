@@ -39,7 +39,7 @@ public class FeatureChangeGeoJsonSerializerTest
     {
         final CompleteArea item = new CompleteArea(123L, Polygon.TEST_BUILDING, TAGS, RELATIONS);
         final FeatureChange featureChange = FeatureChange.add(item);
-        featureChange.setMetaData("key", "value");
+        featureChange.addMetaData("key", "value");
         assertEquals(featureChange, "serializedAreaFull.json");
     }
 
@@ -49,7 +49,7 @@ public class FeatureChangeGeoJsonSerializerTest
         final CompleteEdge item = new CompleteEdge(123L, PolyLine.TEST_POLYLINE, TAGS, 456L, 789L,
                 RELATIONS);
         final FeatureChange featureChange = FeatureChange.add(item);
-        featureChange.setMetaData("key", "value");
+        featureChange.addMetaData("key", "value");
         assertEquals(featureChange, "serializedEdgeFull.json");
     }
 
@@ -58,7 +58,7 @@ public class FeatureChangeGeoJsonSerializerTest
     {
         final CompleteLine item = new CompleteLine(123L, PolyLine.TEST_POLYLINE, TAGS, RELATIONS);
         final FeatureChange featureChange = FeatureChange.add(item);
-        featureChange.setMetaData("key", "value");
+        featureChange.addMetaData("key", "value");
         assertEquals(featureChange, "serializedLineFull.json");
     }
 
@@ -68,7 +68,7 @@ public class FeatureChangeGeoJsonSerializerTest
         final CompleteNode item = new CompleteNode(123L, Location.COLOSSEUM, TAGS,
                 Sets.treeSet(456L, 789L), Sets.treeSet(456L, 789L), RELATIONS);
         final FeatureChange featureChange = FeatureChange.add(item);
-        featureChange.setMetaData("key", "value");
+        featureChange.addMetaData("key", "value");
         assertEquals(featureChange, "serializedNodeFull.json");
     }
 
@@ -77,7 +77,7 @@ public class FeatureChangeGeoJsonSerializerTest
     {
         final CompletePoint item = new CompletePoint(123L, Location.COLOSSEUM, TAGS, RELATIONS);
         final FeatureChange featureChange = FeatureChange.add(item);
-        featureChange.setMetaData("key", "value");
+        featureChange.addMetaData("key", "value");
         assertEquals(featureChange, "serializedPointFull.json");
     }
 
@@ -90,7 +90,7 @@ public class FeatureChangeGeoJsonSerializerTest
         final CompleteRelation item = new CompleteRelation(123L, TAGS, Rectangle.TEST_RECTANGLE,
                 members, Lists.newArrayList(123L), members, 123L, RELATIONS);
         final FeatureChange featureChange = FeatureChange.add(item);
-        featureChange.setMetaData("key", "value");
+        featureChange.addMetaData("key", "value");
         assertEquals(featureChange, "serializedRelationFull.json");
     }
 
@@ -99,7 +99,7 @@ public class FeatureChangeGeoJsonSerializerTest
     {
         final CompleteArea item = new CompleteArea(123L, Polygon.TEST_BUILDING, null, null);
         final FeatureChange featureChange = FeatureChange.add(item);
-        featureChange.setMetaData("key", "value");
+        featureChange.addMetaData("key", "value");
         assertEquals(featureChange, "serializedAreaNull.json");
     }
 
@@ -109,7 +109,7 @@ public class FeatureChangeGeoJsonSerializerTest
         final CompleteEdge item = new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, null, null,
                 null);
         final FeatureChange featureChange = FeatureChange.add(item);
-        featureChange.setMetaData("key", "value");
+        featureChange.addMetaData("key", "value");
         assertEquals(featureChange, "serializedEdgeNull.json");
     }
 
@@ -118,7 +118,7 @@ public class FeatureChangeGeoJsonSerializerTest
     {
         final CompleteLine item = new CompleteLine(123L, PolyLine.TEST_POLYLINE, null, null);
         final FeatureChange featureChange = FeatureChange.add(item);
-        featureChange.setMetaData("key", "value");
+        featureChange.addMetaData("key", "value");
         assertEquals(featureChange, "serializedLineNull.json");
     }
 
@@ -128,7 +128,7 @@ public class FeatureChangeGeoJsonSerializerTest
         final CompleteNode item = new CompleteNode(123L, Location.COLOSSEUM, null, null, null,
                 null);
         final FeatureChange featureChange = FeatureChange.add(item);
-        featureChange.setMetaData("key", "value");
+        featureChange.addMetaData("key", "value");
         assertEquals(featureChange, "serializedNodeNull.json");
     }
 
@@ -137,7 +137,7 @@ public class FeatureChangeGeoJsonSerializerTest
     {
         final CompletePoint item = new CompletePoint(123L, Location.COLOSSEUM, null, null);
         final FeatureChange featureChange = FeatureChange.add(item);
-        featureChange.setMetaData("key", "value");
+        featureChange.addMetaData("key", "value");
         assertEquals(featureChange, "serializedPointNull.json");
     }
 
@@ -150,7 +150,7 @@ public class FeatureChangeGeoJsonSerializerTest
         final CompleteRelation item = new CompleteRelation(123L, null, Rectangle.TEST_RECTANGLE,
                 members, null, null, null, null);
         final FeatureChange featureChange = FeatureChange.add(item);
-        featureChange.setMetaData("key", "value");
+        featureChange.addMetaData("key", "value");
         assertEquals(featureChange, "serializedRelationNull.json");
     }
 
@@ -160,7 +160,7 @@ public class FeatureChangeGeoJsonSerializerTest
         final CompleteArea item = CompleteArea
                 .shallowFrom(new CompleteArea(123L, Polygon.TEST_BUILDING, null, null));
         final FeatureChange featureChange = FeatureChange.remove(item);
-        featureChange.setMetaData("key", "value");
+        featureChange.addMetaData("key", "value");
         assertEquals(featureChange, "serializedAreaRemove.json");
     }
 
@@ -170,7 +170,7 @@ public class FeatureChangeGeoJsonSerializerTest
         final CompleteEdge item = CompleteEdge.shallowFrom(
                 new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, null, null, null));
         final FeatureChange featureChange = FeatureChange.remove(item);
-        featureChange.setMetaData("key", "value");
+        featureChange.addMetaData("key", "value");
         assertEquals(featureChange, "serializedEdgeRemove.json");
     }
 
@@ -180,7 +180,7 @@ public class FeatureChangeGeoJsonSerializerTest
         final CompleteLine item = CompleteLine
                 .shallowFrom(new CompleteLine(123L, PolyLine.TEST_POLYLINE, null, null));
         final FeatureChange featureChange = FeatureChange.remove(item);
-        featureChange.setMetaData("key", "value");
+        featureChange.addMetaData("key", "value");
         assertEquals(featureChange, "serializedLineRemove.json");
     }
 
@@ -190,7 +190,7 @@ public class FeatureChangeGeoJsonSerializerTest
         final CompleteNode item = CompleteNode
                 .shallowFrom(new CompleteNode(123L, Location.COLOSSEUM, null, null, null, null));
         final FeatureChange featureChange = FeatureChange.remove(item);
-        featureChange.setMetaData("key", "value");
+        featureChange.addMetaData("key", "value");
         assertEquals(featureChange, "serializedNodeRemove.json");
     }
 
@@ -200,7 +200,7 @@ public class FeatureChangeGeoJsonSerializerTest
         final CompletePoint item = CompletePoint
                 .shallowFrom(new CompletePoint(123L, Location.COLOSSEUM, null, null));
         final FeatureChange featureChange = FeatureChange.remove(item);
-        featureChange.setMetaData("key", "value");
+        featureChange.addMetaData("key", "value");
         assertEquals(featureChange, "serializedPointRemove.json");
     }
 
@@ -214,7 +214,7 @@ public class FeatureChangeGeoJsonSerializerTest
                 Rectangle.TEST_RECTANGLE, members, null, null, null, null);
         final CompleteRelation item = CompleteRelation.shallowFrom(temporary);
         final FeatureChange featureChange = FeatureChange.remove(item);
-        featureChange.setMetaData("key", "value");
+        featureChange.addMetaData("key", "value");
         assertEquals(featureChange, "serializedRelationRemove.json");
     }
 

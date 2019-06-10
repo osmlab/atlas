@@ -203,6 +203,27 @@ public class FeatureChange implements Located, Serializable
     }
 
     /**
+     * Add a new key value pair to this FeatureChange's meta-data
+     *
+     * @param key
+     *            The key
+     * @param value
+     *            The value
+     */
+    public void addMetaData(final String key, final String value)
+    {
+        if (key == null)
+        {
+            throw new CoreException("Meta-Data key (value={}) cannot be null!", value);
+        }
+        if (value == null)
+        {
+            throw new CoreException("Meta-Data value (key={}) cannot be null!", key);
+        }
+        this.metaData.put(key, value);
+    }
+
+    /**
      * Check if this {@link FeatureChange}'s afterView is full. A full afterView is a
      * {@link CompleteEntity} that has all its fields set to non-null values.
      *
@@ -455,7 +476,7 @@ public class FeatureChange implements Located, Serializable
             throw new CoreException("Cannot merge two feature changes {} and {}.", this, other,
                     exception);
         }
-        FeatureChangeMergingHelpers.mergedMetaData(this, other).forEach(result::setMetaData);
+        FeatureChangeMergingHelpers.mergedMetaData(this, other).forEach(result::addMetaData);
         return result;
     }
 
@@ -517,27 +538,6 @@ public class FeatureChange implements Located, Serializable
     public void save(final WritableResource resource)
     {
         new FeatureChangeGeoJsonSerializer(true).accept(this, resource);
-    }
-
-    /**
-     * Add a new key value pair to this FeatureChange's meta-data
-     * 
-     * @param key
-     *            The key
-     * @param value
-     *            The value
-     */
-    public void setMetaData(final String key, final String value)
-    {
-        if (key == null)
-        {
-            throw new CoreException("Meta-Data key (value={}) cannot be null!", value);
-        }
-        if (value == null)
-        {
-            throw new CoreException("Meta-Data value (key={}) cannot be null!", key);
-        }
-        this.metaData.put(key, value);
     }
 
     public String toGeoJson()

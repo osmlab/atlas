@@ -332,17 +332,17 @@ public class FeatureChangeMergerTest
                 new CompleteNode(123L, Location.EIFFEL_TOWER, Maps.hashMap("a", "1", "c", "3"),
                         Sets.treeSet(1L, 2L, 3L, 4L), Sets.treeSet(10L, 11L, 12L, 13L), null),
                 beforeNode1);
-        featureChange1.setMetaData("key1", "value1");
-        featureChange1.setMetaData("key", "value1");
-        featureChange1.setMetaData("same", "value");
+        featureChange1.addMetaData("key1", "value1");
+        featureChange1.addMetaData("key", "value1");
+        featureChange1.addMetaData("same", "value");
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
                 new CompleteNode(123L, Location.EIFFEL_TOWER,
                         Maps.hashMap("a", "1", "b", "2", "c", "3"), Sets.treeSet(1L, 2L, 3L, 5L),
                         Sets.treeSet(10L, 11L), null),
                 beforeNode1);
-        featureChange2.setMetaData("key2", "value2");
-        featureChange2.setMetaData("key", "value2");
-        featureChange2.setMetaData("same", "value");
+        featureChange2.addMetaData("key2", "value2");
+        featureChange2.addMetaData("key", "value2");
+        featureChange2.addMetaData("same", "value");
 
         FeatureChange merged = featureChange1.merge(featureChange2);
         Assert.assertEquals("value1", merged.getMetaData().get("key1"));
