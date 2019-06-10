@@ -35,6 +35,9 @@
   },
   "properties": {
     "featureChangeType": "REMOVE",
+    "meta-data": {
+      "key": "value"
+    },
     "entityType": "LINE",
     "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteLine",
     "identifier": 123,

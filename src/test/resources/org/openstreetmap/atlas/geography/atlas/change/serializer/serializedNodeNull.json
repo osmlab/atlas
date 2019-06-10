@@ -15,6 +15,9 @@
   },
   "properties": {
     "featureChangeType": "ADD",
+    "meta-data": {
+      "key": "value"
+    },
     "entityType": "NODE",
     "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteNode",
     "identifier": 123,

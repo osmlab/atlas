@@ -35,6 +35,9 @@
   },
   "properties": {
     "featureChangeType": "REMOVE",
+    "meta-data": {
+      "key": "value"
+    },
     "entityType": "AREA",
     "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteArea",
     "identifier": 123,

@@ -35,6 +35,9 @@
   },
   "properties": {
     "featureChangeType": "REMOVE",
+    "meta-data": {
+      "key": "value"
+    },
     "entityType": "EDGE",
     "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge",
     "identifier": 123,

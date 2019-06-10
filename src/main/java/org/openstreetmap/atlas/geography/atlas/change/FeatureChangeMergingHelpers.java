@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -29,6 +30,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.tags.Taggable;
+import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,12 +41,10 @@ import org.slf4j.LoggerFactory;
  */
 public final class FeatureChangeMergingHelpers
 {
-    private static final String AFTER_ENTITY_RIGHT_WAS_NULL = "afterEntityRight was null, this should never happen!";
-    private static final String AFTER_ENTITY_LEFT_WAS_NULL = "afterEntityLeft was null, this should never happen!";
-
     static final String IN_EDGE_IDENTIFIERS_FIELD = "inEdgeIdentifiers";
     static final String OUT_EDGE_IDENTIFIERS_FIELD = "outEdgeIdentifiers";
-
+    private static final String AFTER_ENTITY_RIGHT_WAS_NULL = "afterEntityRight was null, this should never happen!";
+    private static final String AFTER_ENTITY_LEFT_WAS_NULL = "afterEntityLeft was null, this should never happen!";
     private static final Logger logger = LoggerFactory.getLogger(FeatureChangeMergingHelpers.class);
 
     /**
@@ -193,6 +193,56 @@ public final class FeatureChangeMergingHelpers
         {
             return left;
         }
+    }
+
+    /**
+     * Merge the meta-data of two {@link FeatureChange}s
+     * 
+     * @param left
+     *            The left {@link FeatureChange}
+     * @param right
+     *            The right {@link FeatureChange}
+     * @return The concatenated meta-data map
+     */
+    public static Map<String, String> mergedMetaData(final FeatureChange left,
+            final FeatureChange right)
+    {
+        final Map<String, String> result = new HashMap<>();
+        final Map<String, String> leftMap = left.getMetaData();
+        final Map<String, String> rightMap = right.getMetaData();
+        for (final Map.Entry<String, String> leftEntry : leftMap.entrySet())
+        {
+            if (rightMap.containsKey(leftEntry.getKey()))
+            {
+                final String leftValue = leftEntry.getValue();
+                final String rightValue = rightMap.get(leftEntry.getKey());
+                final String mergedValue;
+                if (leftValue.equals(rightValue))
+                {
+                    mergedValue = leftValue;
+                }
+                else
+                {
+                    final Set<String> values = new TreeSet<>();
+                    values.add(leftValue);
+                    values.add(rightValue);
+                    mergedValue = new StringList(values).join(",");
+                }
+                result.put(leftEntry.getKey(), mergedValue);
+            }
+            else
+            {
+                result.put(leftEntry.getKey(), leftEntry.getValue());
+            }
+        }
+        for (final Map.Entry<String, String> rightEntry : rightMap.entrySet())
+        {
+            if (!result.containsKey(rightEntry.getKey()))
+            {
+                result.put(rightEntry.getKey(), rightEntry.getValue());
+            }
+        }
+        return result;
     }
 
     private static FeatureChange mergeAreas(final FeatureChange left, final FeatureChange right,
