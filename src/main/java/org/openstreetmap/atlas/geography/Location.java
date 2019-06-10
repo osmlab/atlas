@@ -492,8 +492,13 @@ public class Location
 
         // Normalize to -180/180
         lambda = (lambda + FACTOR_OF_3 * Math.PI) % (2 * Math.PI) - Math.PI;
-
+        if (this.getLongitude().equals(Longitude.MAXIMUM)
+                && that.getLongitude().equals(Longitude.MAXIMUM))
+        {
+            lambda *= -1;
+        }
         return new Location(Latitude.radians(pheta), Longitude.radians(lambda));
+
     }
 
     /**

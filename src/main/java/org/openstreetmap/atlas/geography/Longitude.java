@@ -3,8 +3,7 @@ package org.openstreetmap.atlas.geography;
 import org.openstreetmap.atlas.utilities.scalars.Angle;
 
 /**
- * A Longitude between -180 degrees included and 180 degrees excluded. A Longitude of 180 degrees is
- * still accepted, but it would create the -180 degrees object.
+ * A Longitude between -180 degrees and 180 degrees included.
  *
  * @author matthieun
  * @author tony
@@ -15,12 +14,10 @@ public class Longitude extends Angle
 
     public static final Longitude MINIMUM = Longitude.dm7(MINIMUM_DM7);
     public static final Longitude ZERO = Longitude.dm7(0L);
-    public static final Longitude MAXIMUM = Longitude.dm7(MAXIMUM_DM7 - 1);
+    public static final Longitude MAXIMUM = Longitude.dm7(MAXIMUM_DM7);
     public static final Longitude ANTIMERIDIAN_WEST = Longitude.MINIMUM;
-    public static final Longitude ANTIMERIDIAN_EAST = Longitude.dm7(MAXIMUM_DM7);
+    public static final Longitude ANTIMERIDIAN_EAST = Longitude.MAXIMUM;
 
-    // This will be true when the Longitude is created with +180 degrees. The underlying angle is
-    // still -180, but any representation will return +180.
     private boolean isMaximumDm7 = false;
 
     /**
@@ -40,8 +37,6 @@ public class Longitude extends Angle
      */
     public static Longitude dm7(final long dm7)
     {
-        // Here we allow dm7 = MAXIMUM_DM7, even though Longitude stops short of that number. The
-        // value in that case will be picked up by the "assertDm7" function
         if (dm7 < MINIMUM_DM7 || dm7 > MAXIMUM_DM7)
         {
             throw new IllegalArgumentException("Cannot have a longitude of " + dm7 / DM7_PER_DEGREE
@@ -134,11 +129,10 @@ public class Longitude extends Angle
     @Override
     protected int assertDm7(final int dm7)
     {
-        if (dm7 == MAXIMUM_DM7)
+        if (dm7 < MINIMUM_DM7 || dm7 > MAXIMUM_DM7)
         {
-            // Make one exception for the antimeridian, and make it the proper allowed value.
-            return MINIMUM_DM7;
+            throw new IllegalArgumentException("Angle dm7 value " + dm7 + " is invalid.");
         }
-        return super.assertDm7(dm7);
+        return dm7;
     }
 }
