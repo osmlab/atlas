@@ -153,7 +153,6 @@ public class MultiAtlasOverlappingNodesFixer implements Serializable
         for (final Rectangle bound : bounds)
         {
             others.addAll(Iterables.asSet(this.parent.nodesWithin(bound)));
-
         }
         if (others.isEmpty())
         {

@@ -498,7 +498,6 @@ public class Location
             lambda *= -1;
         }
         return new Location(Latitude.radians(pheta), Longitude.radians(lambda));
-
     }
 
     /**
