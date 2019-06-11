@@ -515,15 +515,15 @@ public class FeatureChange implements Located, Serializable
         builder.append(separator);
         builder.append("bounds=" + this.bounds() + ", ");
         builder.append(separator);
-        builder.append("afView="
-                + ((CompleteEntity<?>) this.afterView).prettify(completeEntityFormat) + ", ");
-        builder.append(separator);
         if (this.beforeView != null)
         {
             builder.append("bfView="
                     + ((CompleteEntity<?>) this.beforeView).prettify(completeEntityFormat) + ", ");
             builder.append(separator);
         }
+        builder.append("afView="
+                + ((CompleteEntity<?>) this.afterView).prettify(completeEntityFormat) + ", ");
+        builder.append(separator);
         builder.append("]");
 
         return builder.toString();
