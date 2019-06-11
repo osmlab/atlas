@@ -118,6 +118,56 @@ public final class FeatureChangeMergingHelpers
     }
 
     /**
+     * Merge the meta-data of two {@link FeatureChange}s
+     *
+     * @param left
+     *            The left {@link FeatureChange}
+     * @param right
+     *            The right {@link FeatureChange}
+     * @return The concatenated meta-data map
+     */
+    public static Map<String, String> mergedMetaData(final FeatureChange left,
+            final FeatureChange right)
+    {
+        final Map<String, String> result = new HashMap<>();
+        final Map<String, String> leftMap = left.getMetaData();
+        final Map<String, String> rightMap = right.getMetaData();
+        for (final Map.Entry<String, String> leftEntry : leftMap.entrySet())
+        {
+            if (rightMap.containsKey(leftEntry.getKey()))
+            {
+                final String leftValue = leftEntry.getValue();
+                final String rightValue = rightMap.get(leftEntry.getKey());
+                final String mergedValue;
+                if (leftValue.equals(rightValue))
+                {
+                    mergedValue = leftValue;
+                }
+                else
+                {
+                    final Set<String> values = new TreeSet<>();
+                    values.add(leftValue);
+                    values.add(rightValue);
+                    mergedValue = new StringList(values).join(",");
+                }
+                result.put(leftEntry.getKey(), mergedValue);
+            }
+            else
+            {
+                result.put(leftEntry.getKey(), leftEntry.getValue());
+            }
+        }
+        for (final Map.Entry<String, String> rightEntry : rightMap.entrySet())
+        {
+            if (!result.containsKey(rightEntry.getKey()))
+            {
+                result.put(rightEntry.getKey(), rightEntry.getValue());
+            }
+        }
+        return result;
+    }
+
+    /**
      * Merge two {@link ChangeType#REMOVE} {@link FeatureChange}s into a single
      * {@link FeatureChange}. This method only needs to handle merging the beforeViews, since the
      * afterViews would be null. Additionally, there are only a few beforeView fields that even need
@@ -193,56 +243,6 @@ public final class FeatureChangeMergingHelpers
         {
             return left;
         }
-    }
-
-    /**
-     * Merge the meta-data of two {@link FeatureChange}s
-     * 
-     * @param left
-     *            The left {@link FeatureChange}
-     * @param right
-     *            The right {@link FeatureChange}
-     * @return The concatenated meta-data map
-     */
-    public static Map<String, String> mergedMetaData(final FeatureChange left,
-            final FeatureChange right)
-    {
-        final Map<String, String> result = new HashMap<>();
-        final Map<String, String> leftMap = left.getMetaData();
-        final Map<String, String> rightMap = right.getMetaData();
-        for (final Map.Entry<String, String> leftEntry : leftMap.entrySet())
-        {
-            if (rightMap.containsKey(leftEntry.getKey()))
-            {
-                final String leftValue = leftEntry.getValue();
-                final String rightValue = rightMap.get(leftEntry.getKey());
-                final String mergedValue;
-                if (leftValue.equals(rightValue))
-                {
-                    mergedValue = leftValue;
-                }
-                else
-                {
-                    final Set<String> values = new TreeSet<>();
-                    values.add(leftValue);
-                    values.add(rightValue);
-                    mergedValue = new StringList(values).join(",");
-                }
-                result.put(leftEntry.getKey(), mergedValue);
-            }
-            else
-            {
-                result.put(leftEntry.getKey(), leftEntry.getValue());
-            }
-        }
-        for (final Map.Entry<String, String> rightEntry : rightMap.entrySet())
-        {
-            if (!result.containsKey(rightEntry.getKey()))
-            {
-                result.put(rightEntry.getKey(), rightEntry.getValue());
-            }
-        }
-        return result;
     }
 
     private static FeatureChange mergeAreas(final FeatureChange left, final FeatureChange right,
@@ -541,7 +541,8 @@ public final class FeatureChangeMergingHelpers
                 .withMemberExtractor(atlasEntity -> ((Node) atlasEntity).inEdges() == null ? null
                         : ((Node) atlasEntity).inEdges().stream().map(Edge::getIdentifier)
                                 .collect(Collectors.toCollection(TreeSet::new)))
-                .withAfterViewNoBeforeMerger(MemberMergeStrategies.simpleLongSortedSetMerger)
+                .withAfterViewNoBeforeMerger(
+                        MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger)
                 .withAfterViewConsistentBeforeViewMerger(
                         MemberMergeStrategies.diffBasedLongSortedSetMerger)
                 .withBeforeViewMerger(
@@ -557,7 +558,8 @@ public final class FeatureChangeMergingHelpers
                 .withMemberExtractor(atlasEntity -> ((Node) atlasEntity).outEdges() == null ? null
                         : ((Node) atlasEntity).outEdges().stream().map(Edge::getIdentifier)
                                 .collect(Collectors.toCollection(TreeSet::new)))
-                .withAfterViewNoBeforeMerger(MemberMergeStrategies.simpleLongSortedSetMerger)
+                .withAfterViewNoBeforeMerger(
+                        MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger)
                 .withAfterViewConsistentBeforeViewMerger(
                         MemberMergeStrategies.diffBasedLongSortedSetMerger)
                 .withBeforeViewMerger(
@@ -697,7 +699,8 @@ public final class FeatureChangeMergingHelpers
                                 : ((Relation) atlasEntity).allRelationsWithSameOsmIdentifier()
                                         .stream().map(Relation::getIdentifier)
                                         .collect(Collectors.toSet()))
-                .withAfterViewNoBeforeMerger(MemberMergeStrategies.simpleLongSetMerger)
+                .withAfterViewNoBeforeMerger(
+                        MemberMergeStrategies.simpleLongSetAllowCollisionsMerger)
                 .withAfterViewConsistentBeforeViewMerger(
                         MemberMergeStrategies.diffBasedLongSetMerger)
                 .build().mergeMember();
