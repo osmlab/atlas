@@ -126,7 +126,7 @@ public final class FeatureChangeMergingHelpers
      *            The right {@link FeatureChange}
      * @return The concatenated meta-data map
      */
-    public static Map<String, String> mergedMetaData(final FeatureChange left,
+    public static Map<String, String> mergeMetaData(final FeatureChange left,
             final FeatureChange right)
     {
         final Map<String, String> result = new HashMap<>();
@@ -709,9 +709,8 @@ public final class FeatureChangeMergingHelpers
                 .withMemberName("allKnownOsmMembers").withBeforeEntityLeft(beforeEntityLeft)
                 .withAfterEntityLeft(afterEntityLeft).withBeforeEntityRight(beforeEntityRight)
                 .withAfterEntityRight(afterEntityRight)
-                .withMemberExtractor(
-                        entity -> ((Relation) entity).allKnownOsmMembers() == null ? null
-                                : ((Relation) entity).allKnownOsmMembers().asBean())
+                .withMemberExtractor(entity -> ((Relation) entity).allKnownOsmMembers() == null
+                        ? null : ((Relation) entity).allKnownOsmMembers().asBean())
                 .withAfterViewNoBeforeMerger(MemberMergeStrategies.simpleRelationBeanMerger)
                 .withAfterViewConsistentBeforeViewMerger(
                         MemberMergeStrategies.diffBasedRelationBeanMerger)
