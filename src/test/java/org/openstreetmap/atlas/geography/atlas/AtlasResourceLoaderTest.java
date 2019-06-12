@@ -45,6 +45,21 @@ public class AtlasResourceLoaderTest
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
+    private static Object deserialize(final byte[] bytes) throws IOException, ClassNotFoundException
+    {
+        final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+        final ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
+        return objectInputStream.readObject();
+    }
+
+    private static byte[] serialize(final Object obj) throws IOException
+    {
+        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        final ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+        objectOutputStream.writeObject(obj);
+        return byteArrayOutputStream.toByteArray();
+    }
+
     @Test
     public void missingDirectory()
     {
@@ -112,6 +127,32 @@ public class AtlasResourceLoaderTest
         Assert.assertNull(new AtlasResourceLoader().load(atlasResource));
         Assert.assertNotNull(new AtlasResourceLoader().withAtlasFileExtensionFilterSetTo(false)
                 .load(atlasResource));
+    }
+
+    @Test
+    public void testAtlasSerialization() throws IOException, ClassNotFoundException
+    {
+        final String atlasFileName = "ECU_6-16-31.atlas";
+
+        final PackedAtlas atlas = (PackedAtlas) new AtlasResourceLoader()
+                .load(new InputStreamResource(
+                        () -> AtlasResourceLoaderTest.class.getResourceAsStream(atlasFileName))
+                                .withName("ECU_6-16-31.atlas"));
+        final UUID identifier = atlas.getIdentifier();
+        final long numOfEdges = atlas.numberOfEdges();
+        final long numOfNodes = atlas.numberOfNodes();
+
+        // plain simple serialization and deserialization
+        final byte[] serialized = serialize(atlas);
+        final PackedAtlas deserialized = (PackedAtlas) deserialize(serialized);
+
+        final UUID deserializedIdentifier = deserialized.getIdentifier();
+        final long deserializedNumOfEdges = deserialized.numberOfEdges();
+        final long deserializedNumOfNodes = deserialized.numberOfNodes();
+
+        assert identifier.equals(deserializedIdentifier);
+        assert numOfEdges == deserializedNumOfEdges;
+        assert numOfNodes == deserializedNumOfNodes;
     }
 
     @Test
@@ -189,46 +230,5 @@ public class AtlasResourceLoaderTest
                 .load(new InputStreamResource(() -> AtlasResourceLoaderTest.class
                         .getResourceAsStream("ECU_6-16-31.atlas")).withName("ECU_6-16-31.atlas"));
         Assert.assertEquals(null, atlasWithEdgesTertiaryOrGreater);
-    }
-
-    @Test
-    public void testAtlasSerialization() throws IOException, ClassNotFoundException
-    {
-        final String atlasFileName = "ECU_6-16-31.atlas";
-
-        final PackedAtlas atlas = (PackedAtlas) new AtlasResourceLoader()
-                .load(new InputStreamResource(
-                        () -> AtlasResourceLoaderTest.class.getResourceAsStream(atlasFileName))
-                                .withName("ECU_6-16-31.atlas"));
-        final UUID identifier = atlas.getIdentifier();
-        final long numOfEdges = atlas.numberOfEdges();
-        final long numOfNodes = atlas.numberOfNodes();
-
-        // plain simple serialization and deserialization
-        final byte[] serialized = serialize(atlas);
-        final PackedAtlas deserialized = (PackedAtlas) deserialize(serialized);
-
-        final UUID deserializedIdentifier = deserialized.getIdentifier();
-        final long deserializedNumOfEdges = deserialized.numberOfEdges();
-        final long deserializedNumOfNodes = deserialized.numberOfNodes();
-
-        assert identifier.equals(deserializedIdentifier);
-        assert numOfEdges == deserializedNumOfEdges;
-        assert numOfNodes == deserializedNumOfNodes;
-    }
-
-    private static byte[] serialize(final Object obj) throws IOException
-    {
-        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        final ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-        objectOutputStream.writeObject(obj);
-        return byteArrayOutputStream.toByteArray();
-    }
-
-    private static Object deserialize(final byte[] bytes) throws IOException, ClassNotFoundException
-    {
-        final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
-        final ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
-        return objectInputStream.readObject();
     }
 }

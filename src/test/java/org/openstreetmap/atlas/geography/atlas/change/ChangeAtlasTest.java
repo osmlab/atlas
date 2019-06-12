@@ -11,7 +11,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Heading;
+import org.openstreetmap.atlas.geography.Latitude;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.Longitude;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -48,6 +50,34 @@ public class ChangeAtlasTest
 
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
+
+    @Test
+    public void testAntimeridian()
+    {
+        final ChangeBuilder changeBuilder = new ChangeBuilder();
+
+        final PolyLine antimeridianWest = new PolyLine(
+                new Location(Latitude.degrees(40), Longitude.ANTIMERIDIAN_WEST),
+                new Location(Latitude.degrees(41), Longitude.ANTIMERIDIAN_WEST));
+        final PolyLine antimeridianEast = new PolyLine(
+                new Location(Latitude.degrees(40), Longitude.ANTIMERIDIAN_EAST),
+                new Location(Latitude.degrees(41), Longitude.ANTIMERIDIAN_EAST));
+
+        final FeatureChange featureChangeWest = FeatureChange.add(new CompleteLine(123L,
+                antimeridianWest, Maps.hashMap("k", "v"), Sets.hashSet(123L)));
+        final FeatureChange featureChangeEast = FeatureChange.add(new CompleteLine(124L,
+                antimeridianEast, Maps.hashMap("k", "v"), Sets.hashSet(124L)));
+        changeBuilder.add(featureChangeWest);
+        changeBuilder.add(featureChangeEast);
+
+        final Change change = changeBuilder.get();
+        final Atlas result = new ChangeAtlas(change);
+        Assert.assertNotNull(result.line(123L));
+        Assert.assertNotNull(result.line(124L));
+        Assert.assertEquals(0, Iterables.size(result.points()));
+        Assert.assertFalse(
+                result.line(123L).asPolyLine().intersects(result.line(124L).asPolyLine()));
+    }
 
     @Test
     public void testBounds()

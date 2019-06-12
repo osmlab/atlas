@@ -13,7 +13,6 @@ import java.util.TreeSet;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.Longitude;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
@@ -41,7 +40,6 @@ import org.openstreetmap.atlas.utilities.arrays.LongArrayOfArrays;
 import org.openstreetmap.atlas.utilities.arrays.PolyLineArray;
 import org.openstreetmap.atlas.utilities.arrays.PolygonArray;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
-import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.compression.IntegerDictionary;
 import org.openstreetmap.atlas.utilities.maps.LongToLongMap;
 import org.openstreetmap.atlas.utilities.maps.LongToLongMultiMap;
@@ -1274,24 +1272,7 @@ public final class PackedAtlas extends AbstractAtlas
 
         final Iterator<Node> nodes;
         final Rectangle bounds = location.bounds();
-
-        // Handle the anti-meridian case. +180 and -180 are identical in the Atlas, if this happens
-        // to be the Longitude of the passed in Location, make sure to also check the equivalent
-        // Location across the anti-meridian.
-        if (location.getLongitude().equals(Longitude.ANTIMERIDIAN_EAST)
-                || location.getLongitude().equals(Longitude.ANTIMERIDIAN_WEST))
-        {
-            final Location locationAcrossAntiMeridian = new Location(location.getLatitude(),
-                    Longitude.dm7(-location.getLongitude().asDm7()));
-            final Rectangle boundsAcrossAntiMeridian = locationAcrossAntiMeridian.bounds();
-
-            nodes = new MultiIterable<>(this.getNodeSpatialIndex().get(bounds),
-                    this.getNodeSpatialIndex().get(boundsAcrossAntiMeridian)).iterator();
-        }
-        else
-        {
-            nodes = this.getNodeSpatialIndex().get(bounds).iterator();
-        }
+        nodes = this.getNodeSpatialIndex().get(bounds).iterator();
 
         if (nodes.hasNext())
         {

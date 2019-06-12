@@ -45,6 +45,20 @@ public class LocationTest extends Command
     }
 
     @Test
+    public void testAntiMeridianMidPoint()
+    {
+        final Location location1 = Location.forWkt("POINT(-180 25)");
+        final Location location2 = Location.forWkt("POINT(-180 -25)");
+        Assert.assertEquals(Location.forWkt("POINT(-180 0)"), location1.midPoint(location2));
+        Assert.assertEquals(Location.forWkt("POINT(-180 0)"), location2.midPoint(location1));
+
+        final Location location3 = Location.forWkt("POINT(180 25)");
+        final Location location4 = Location.forWkt("POINT(180 -25)");
+        Assert.assertEquals(Location.forWkt("POINT(180 0)"), location3.midPoint(location4));
+        Assert.assertEquals(Location.forWkt("POINT(180 0)"), location4.midPoint(location3));
+    }
+
+    @Test
     public void testCrossingAntimeridian()
     {
         final Location one = new Location(Latitude.degrees(37), Longitude.degrees(179.998));
@@ -151,20 +165,6 @@ public class LocationTest extends Command
         final Location calculatedLoxodromicMidPoint = location1.loxodromicMidPoint(location2);
         System.out.println("Calculated Loxodromic Duration: " + beginning3.elapsedSince());
         System.out.println(calculatedLoxodromicMidPoint.toString() + "\n");
-    }
-
-    @Test
-    public void testAntiMeridianMidPoint()
-    {
-        final Location location1 = Location.forWkt("POINT(-180 25)");
-        final Location location2 = Location.forWkt("POINT(-180 -25)");
-        Assert.assertEquals(Location.forWkt("POINT(-180 0)"), location1.midPoint(location2));
-        Assert.assertEquals(Location.forWkt("POINT(-180 0)"), location2.midPoint(location1));
-
-        final Location location3 = Location.forWkt("POINT(180 25)");
-        final Location location4 = Location.forWkt("POINT(180 -25)");
-        Assert.assertEquals(Location.forWkt("POINT(180 0)"), location3.midPoint(location4));
-        Assert.assertEquals(Location.forWkt("POINT(180 0)"), location4.midPoint(location3));
     }
 
     @Override

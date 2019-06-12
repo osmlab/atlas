@@ -23,6 +23,21 @@ public class PolyLineTest
     private static final Logger logger = LoggerFactory.getLogger(PolyLineTest.class);
 
     @Test
+    public void testAntimeridianHandling()
+    {
+        final PolyLine antimeridianWest = new PolyLine(
+                new Location(Latitude.degrees(40), Longitude.ANTIMERIDIAN_WEST),
+                new Location(Latitude.degrees(41), Longitude.ANTIMERIDIAN_WEST));
+        final PolyLine antimeridianEast = new PolyLine(
+                new Location(Latitude.degrees(40), Longitude.ANTIMERIDIAN_EAST),
+                new Location(Latitude.degrees(41), Longitude.ANTIMERIDIAN_EAST));
+
+        Assert.assertTrue(antimeridianWest.intersections(antimeridianEast).isEmpty());
+        Assert.assertTrue(antimeridianEast.length().equals(antimeridianWest.length()));
+        Assert.assertTrue(antimeridianEast.length().isLessThan(Distance.miles(100)));
+    }
+
+    @Test
     public void testAppend()
     {
         final PolyLine line = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
@@ -30,6 +45,16 @@ public class PolyLineTest
         final PolyLine appended = line.append(line2);
         Assert.assertTrue(appended.equalsShape(
                 new PolyLine(Location.CROSSING_85_280, Location.TEST_1, Location.TEST_7)));
+    }
+
+    @Test
+    public void testAsGeoJsonGeometry()
+    {
+        final PolyLine polyLine = PolyLine.wkt(
+                "LINESTRING (-75.616330 40.194570, -75.616330 40.194570, -75.616330 40.194570, -75.616340 40.194580, -75.616340 40.194590)");
+        final String geoJson = "{\"type\":\"LineString\",\"coordinates\":[[-75.61633,40.19457],[-75.61633,40.19457],[-75.61633,40.19457],[-75.61634,40.19458],[-75.61634,40.19459]]}";
+        final JsonObject geometry = polyLine.asGeoJsonGeometry();
+        Assert.assertEquals(geoJson, geometry.toString());
     }
 
     @Test
@@ -311,16 +336,6 @@ public class PolyLineTest
                 polyLine3.withoutDuplicateConsecutiveShapePoints().toWkt());
         Assert.assertEquals(polyLine5.toWkt(),
                 polyLine4.withoutDuplicateConsecutiveShapePoints().toWkt());
-    }
-
-    @Test
-    public void testAsGeoJsonGeometry()
-    {
-        final PolyLine polyLine = PolyLine.wkt(
-                "LINESTRING (-75.616330 40.194570, -75.616330 40.194570, -75.616330 40.194570, -75.616340 40.194580, -75.616340 40.194590)");
-        final String geoJson = "{\"type\":\"LineString\",\"coordinates\":[[-75.61633,40.19457],[-75.61633,40.19457],[-75.61633,40.19457],[-75.61634,40.19458],[-75.61634,40.19459]]}";
-        final JsonObject geometry = polyLine.asGeoJsonGeometry();
-        Assert.assertEquals(geoJson, geometry.toString());
     }
 
 }
