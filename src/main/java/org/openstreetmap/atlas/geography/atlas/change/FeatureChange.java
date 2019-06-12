@@ -476,7 +476,7 @@ public class FeatureChange implements Located, Serializable
             throw new CoreException("Cannot merge two feature changes {} and {}.", this, other,
                     exception);
         }
-        FeatureChangeMergingHelpers.mergedMetaData(this, other).forEach(result::addMetaData);
+        FeatureChangeMergingHelpers.mergeMetaData(this, other).forEach(result::addMetaData);
         return result;
     }
 
