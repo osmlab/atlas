@@ -58,8 +58,9 @@ public class CountryToShardListing extends Command
         try (SafeBufferedWriter writer = output.writer())
         {
             CountryShardListing.countryToShardList(countries, boundaries, sharding)
-                    .forEach((country, shardSet) -> shardSet.forEach(shard -> writer
-                            .writeLine(new CountryShard(country, shard).toString())));
+                    .forEach((country, shardSet) -> shardSet.forEach(
+                            shard -> writer.writeLine(new CountryShard(country, shard).toString()
+                                    + " " + new CountryShard(country, shard).bounds())));
         }
         catch (final Exception e)
         {

@@ -46,12 +46,15 @@ public abstract class ChangeSetHandler
     protected String atlasStatistics(final Atlas atlas)
     {
         final StringBuilder builder = new StringBuilder();
-        builder.append("Points: ");
-        builder.append(atlas.numberOfPoints());
-        builder.append(" Lines: ");
-        builder.append(atlas.numberOfLines());
-        builder.append(" Relations: ");
-        builder.append(atlas.numberOfRelations());
+        if (atlas != null)
+        {
+            builder.append("Points: ");
+            builder.append(atlas.numberOfPoints());
+            builder.append(" Lines: ");
+            builder.append(atlas.numberOfLines());
+            builder.append(" Relations: ");
+            builder.append(atlas.numberOfRelations());
+        }
         return builder.toString();
     }
 
