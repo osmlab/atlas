@@ -47,7 +47,7 @@ public class OsmPbfIngestIntegrationTest extends AtlasIntegrationTest
                 .boxAround(Distance.meters(300));
         final Atlas atlas = loadBahamas(bound);
 
-        Assert.assertEquals(24, atlas.numberOfAreas());
+        Assert.assertEquals(25, atlas.numberOfAreas());
         Assert.assertEquals(11, atlas.numberOfLines());
 
         final Area smallArea = atlas.area(522592143000000L);
@@ -78,7 +78,7 @@ public class OsmPbfIngestIntegrationTest extends AtlasIntegrationTest
         final Rectangle bound = Location.forString("25.0693383, -77.3160218")
                 .boxAround(Distance.feet(1));
         final Atlas atlas = loadBahamas(bound);
-        Assert.assertEquals(6, atlas.numberOfEdges());
+        Assert.assertEquals(80, atlas.numberOfEdges());
 
         final Edge edgeForward = atlas.edge(63423376000000L);
         Assert.assertEquals(63423376000000L, edgeForward.getIdentifier());
@@ -132,8 +132,8 @@ public class OsmPbfIngestIntegrationTest extends AtlasIntegrationTest
         final Rectangle bound = Location.forString("25.0735519,-77.3073068")
                 .boxAround(Distance.inches(1));
         final Atlas atlas = loadBahamas(bound);
-        Assert.assertEquals(1, atlas.numberOfPoints());
-        final Point point = atlas.points().iterator().next();
+        Assert.assertEquals(39, atlas.numberOfPoints());
+        final Point point = atlas.point(5665510971000000L);
 
         Assert.assertEquals(5665510971000000L, point.getIdentifier());
         Assert.assertEquals("POINT (-77.3073068 25.0735519)", point.getLocation().toString());
@@ -155,8 +155,8 @@ public class OsmPbfIngestIntegrationTest extends AtlasIntegrationTest
         final Atlas smallAtlas = loadBahamas(polygon);
 
         Assert.assertTrue(bigAtlas.numberOfEdges() > smallAtlas.numberOfEdges());
-        Assert.assertEquals(40, smallAtlas.numberOfEdges());
-        Assert.assertEquals(7, smallAtlas.numberOfAreas());
+        Assert.assertEquals(126, smallAtlas.numberOfEdges());
+        Assert.assertEquals(10, smallAtlas.numberOfAreas());
     }
 
     @Test
@@ -168,7 +168,7 @@ public class OsmPbfIngestIntegrationTest extends AtlasIntegrationTest
 
         final Map<Long, Relation> relations = new HashMap<>();
         atlas.relations().forEach(relation -> relations.put(relation.getIdentifier(), relation));
-        Assert.assertEquals(3, relations.size());
+        Assert.assertEquals(6, relations.size());
 
         final Relation relation1 = relations.get(4309052000000L);
         Assert.assertEquals("restriction", relation1.getTags().get("type"));

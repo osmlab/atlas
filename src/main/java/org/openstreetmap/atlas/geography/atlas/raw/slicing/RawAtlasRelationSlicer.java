@@ -416,16 +416,26 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
 
                 // filter out all AtlasEntities that are not in the list of countries being sliced
                 // for this shard
-                final Atlas countrySubAtlas = atlas.subAtlas(isInCountry, AtlasCutType.SILK_CUT)
-                        .orElseThrow(() -> new CoreException(
-                                "Cannot have an empty atlas after relation slicing {}",
-                                getShardOrAtlasName()));
-
-                // then, filter out all remaining entities based on the shard bounds
-                return countrySubAtlas.subAtlas(this.initialShard.bounds(), AtlasCutType.SILK_CUT)
-                        .orElseThrow(() -> new CoreException(
-                                "Cannot have an empty atlas after relation slicing {}",
-                                getShardOrAtlasName()));
+                final Optional<Atlas> countrySubAtlas = atlas.subAtlas(isInCountry,
+                        AtlasCutType.SILK_CUT);
+                if (countrySubAtlas.isPresent())
+                {
+                    // then, filter out all remaining entities based on the shard bounds
+                    final Optional<Atlas> finalSubAtlas = countrySubAtlas.get()
+                            .subAtlas(this.initialShard.bounds(), AtlasCutType.SILK_CUT);
+                    if (finalSubAtlas.isPresent())
+                    {
+                        return finalSubAtlas.get();
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    return null;
+                }
             }
             else
             {

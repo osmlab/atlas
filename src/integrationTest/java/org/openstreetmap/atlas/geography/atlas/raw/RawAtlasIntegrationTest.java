@@ -215,7 +215,7 @@ public class RawAtlasIntegrationTest
         Assert.assertEquals(0, ivoryCoast.numberOfNodes());
         Assert.assertEquals(0, ivoryCoast.numberOfEdges());
         Assert.assertEquals(0, ivoryCoast.numberOfAreas());
-        Assert.assertEquals(34960, ivoryCoast.numberOfPoints());
+        Assert.assertEquals(37911, ivoryCoast.numberOfPoints());
         Assert.assertEquals(3637, ivoryCoast.numberOfLines());
         Assert.assertEquals(12, ivoryCoast.numberOfRelations());
 

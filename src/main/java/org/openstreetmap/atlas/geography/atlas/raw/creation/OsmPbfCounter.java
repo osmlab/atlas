@@ -12,6 +12,7 @@ import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Latitude;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Longitude;
+import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
@@ -68,6 +69,10 @@ public class OsmPbfCounter implements Sink
     private final Set<Long> nodeIdentifiersBroughtInByWaysOrRelations = new HashSet<>();
     private final Set<Long> wayIdentifiersToInclude = new HashSet<>();
     private final Set<Long> relationIdentifiersToInclude = new HashSet<>();
+
+    // Keep track of included nodes so that they can be used in calculating if a way intersects the
+    // given shard
+    private final Map<Long, Location> nodeIdToLocation = new HashMap<>();
 
     // Keep track of excluded ways to see if we need to add them later
     private final Map<Long, Way> waysToExclude = new HashMap<>();
@@ -140,6 +145,14 @@ public class OsmPbfCounter implements Sink
 
         if (OsmPbfReader.shouldProcessEntity(this.loadingOption, rawEntity))
         {
+            // store all node locations for calculating way geometry
+            if (rawEntity instanceof Node)
+            {
+                final Node node = (Node) rawEntity;
+                final String nodeLatLon = node.getLatitude() + "," + node.getLongitude();
+                final Location nodeLocation = Location.forString(nodeLatLon);
+                this.nodeIdToLocation.put(rawEntity.getId(), nodeLocation);
+            }
             if (shouldLoadOsmNode(rawEntity))
             {
                 // This node is within the boundary, bring it in
@@ -149,7 +162,7 @@ public class OsmPbfCounter implements Sink
             {
                 final Way way = (Way) rawEntity;
 
-                if (wayContainsNodeWithinBoundary(way))
+                if (wayIntersectsBoundary(way))
                 {
                     // This way contains at least one shape-point within the given bounding box.
                     // Bring it and all of its nodes in to the atlas.
@@ -385,15 +398,41 @@ public class OsmPbfCounter implements Sink
         return this.loadingOption.isLoadOsmWay() && entity instanceof Way;
     }
 
-    private boolean wayContainsNodeWithinBoundary(final Way way)
+    private boolean wayIntersectsBoundary(final Way way)
     {
+        // CASE 1: Line crosses (or is enclosed by) the shard bounds and has at least one shapepoint
+        // within the shard bounds
+        final ArrayList<Location> wayNodesLocations = new ArrayList<>();
         for (final WayNode node : way.getWayNodes())
         {
+            // nodes are processed first so allNodes will contain all node locations
+            wayNodesLocations.add(this.nodeIdToLocation.get(node.getNodeId()));
             if (this.nodeIdentifiersToInclude.contains(node.getNodeId()))
             {
                 this.wayIdentifiersToInclude.add(way.getId());
                 return true;
             }
+        }
+
+        // CASE 2: Line crossed the shard but has no shapepoints within it, so we must check for
+        // intersections
+        wayNodesLocations.stream().filter(node -> node != null);
+        if (wayNodesLocations.isEmpty())
+        {
+            return false;
+        }
+        final PolyLine wayGeometry = new PolyLine(wayNodesLocations);
+        if (wayGeometry.isPoint() || wayGeometry.isEmpty() || wayGeometry.bounds() == null)
+        {
+            return false;
+        }
+        // Checking the bounds of the polyline instead of the actual geometry may include some
+        // extraneous lines, but is much more performant. The extra lines will be filtered out after
+        // the slicing process
+        if (this.boundingBox.bounds().overlaps(wayGeometry.bounds()))
+        {
+            this.wayIdentifiersToInclude.add(way.getId());
+            return true;
         }
 
         // If we reach here, the way doesn't have a node anywhere inside (or on) the given boundary

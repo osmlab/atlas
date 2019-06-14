@@ -163,8 +163,8 @@ public class RawAtlasGeneratorTest
 
         // Verify Atlas Entities
         assertBasicRawAtlasPrinciples(atlas);
-        Assert.assertEquals(3346, atlas.numberOfPoints());
-        Assert.assertEquals(29, atlas.numberOfLines());
+        Assert.assertEquals(3851, atlas.numberOfPoints());
+        Assert.assertEquals(36, atlas.numberOfLines());
         Assert.assertEquals(1, atlas.numberOfRelations());
     }
 
