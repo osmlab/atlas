@@ -73,7 +73,7 @@ public class OsmPbfCounter implements Sink
 
     // Keep track of included nodes so that they can be used in calculating if a way intersects the
     // given shard
-    private final Map<Long, Location> nodeIdToLocation = new HashMap<>();
+    private final Map<Long, Location> nodeIdentifierToLocation = new HashMap<>();
 
     // Keep track of excluded ways to see if we need to add them later
     private final Map<Long, Way> waysToExclude = new HashMap<>();
@@ -150,9 +150,9 @@ public class OsmPbfCounter implements Sink
             if (rawEntity instanceof Node)
             {
                 final Node node = (Node) rawEntity;
-                final String nodeLatLon = node.getLatitude() + "," + node.getLongitude();
-                final Location nodeLocation = Location.forString(nodeLatLon);
-                this.nodeIdToLocation.put(rawEntity.getId(), nodeLocation);
+                final Location nodeLocation = new Location(Latitude.degrees(node.getLatitude()),
+                        Longitude.degrees(node.getLongitude()));
+                this.nodeIdentifierToLocation.put(rawEntity.getId(), nodeLocation);
             }
             if (shouldLoadOsmNode(rawEntity))
             {
@@ -407,7 +407,7 @@ public class OsmPbfCounter implements Sink
         for (final WayNode node : way.getWayNodes())
         {
             // nodes are processed first so allNodes will contain all node locations
-            wayNodesLocations.add(this.nodeIdToLocation.get(node.getNodeId()));
+            wayNodesLocations.add(this.nodeIdentifierToLocation.get(node.getNodeId()));
             if (this.nodeIdentifiersToInclude.contains(node.getNodeId()))
             {
                 this.wayIdentifiersToInclude.add(way.getId());
