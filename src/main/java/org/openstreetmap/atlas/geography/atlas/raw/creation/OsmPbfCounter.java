@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Latitude;
@@ -402,7 +403,7 @@ public class OsmPbfCounter implements Sink
     {
         // CASE 1: Line crosses (or is enclosed by) the shard bounds and has at least one shapepoint
         // within the shard bounds
-        final ArrayList<Location> wayNodesLocations = new ArrayList<>();
+        ArrayList<Location> wayNodesLocations = new ArrayList<>();
         for (final WayNode node : way.getWayNodes())
         {
             // nodes are processed first so allNodes will contain all node locations
@@ -416,7 +417,8 @@ public class OsmPbfCounter implements Sink
 
         // CASE 2: Line crossed the shard but has no shapepoints within it, so we must check for
         // intersections
-        wayNodesLocations.stream().filter(node -> node != null);
+        wayNodesLocations = wayNodesLocations.stream().filter(node -> node != null)
+                .collect(Collectors.toCollection(ArrayList::new));
         if (wayNodesLocations.isEmpty())
         {
             return false;
