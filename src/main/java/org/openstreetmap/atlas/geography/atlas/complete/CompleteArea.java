@@ -63,11 +63,6 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
         return new CompleteArea(area.getIdentifier()).withBoundsExtendedBy(area.bounds());
     }
 
-    CompleteArea(final long identifier)
-    {
-        this(identifier, null, null, null);
-    }
-
     public CompleteArea(final Long identifier, final Polygon polygon,
             final Map<String, String> tags, final Set<Long> relationIdentifiers)
     {
@@ -84,6 +79,11 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
         this.polygon = polygon;
         this.tags = tags;
         this.relationIdentifiers = relationIdentifiers;
+    }
+
+    CompleteArea(final long identifier)
+    {
+        this(identifier, null, null, null);
     }
 
     @Override
@@ -169,21 +169,21 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
         builder.append(this.getClass().getSimpleName() + " ");
         builder.append("[");
         builder.append(separator);
-        builder.append("identifier=" + this.identifier + ", ");
+        builder.append("identifier: " + this.identifier + ", ");
         builder.append(separator);
         if (this.polygon != null)
         {
-            builder.append("polygon=" + this.polygon + ", ");
+            builder.append("polygon: " + this.polygon + ", ");
             builder.append(separator);
         }
         if (this.tags != null)
         {
-            builder.append("tags=" + this.tags + ", ");
+            builder.append("tags: " + this.tags + ", ");
             builder.append(separator);
         }
         if (this.relationIdentifiers != null)
         {
-            builder.append("parentRelations=" + this.relationIdentifiers + ", ");
+            builder.append("parentRelations: " + this.relationIdentifiers + ", ");
             builder.append(separator);
         }
         builder.append("]");

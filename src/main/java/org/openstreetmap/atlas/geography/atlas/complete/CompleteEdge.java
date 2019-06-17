@@ -67,11 +67,6 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
         return new CompleteEdge(edge.getIdentifier()).withBoundsExtendedBy(edge.bounds());
     }
 
-    CompleteEdge(final long identifier)
-    {
-        this(identifier, null, null, null, null, null);
-    }
-
     public CompleteEdge(final Long identifier, final PolyLine polyLine,
             final Map<String, String> tags, final Long startNodeIdentifier,
             final Long endNodeIdentifier, final Set<Long> relationIdentifiers)
@@ -91,6 +86,11 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
         this.startNodeIdentifier = startNodeIdentifier;
         this.endNodeIdentifier = endNodeIdentifier;
         this.relationIdentifiers = relationIdentifiers;
+    }
+
+    CompleteEdge(final long identifier)
+    {
+        this(identifier, null, null, null, null, null);
     }
 
     @Override
@@ -191,31 +191,31 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
         builder.append(this.getClass().getSimpleName() + " ");
         builder.append("[");
         builder.append(separator);
-        builder.append("identifier=" + this.identifier + ", ");
+        builder.append("identifier: " + this.identifier + ", ");
         builder.append(separator);
         if (this.polyLine != null)
         {
-            builder.append("polyLine=" + this.polyLine + ", ");
+            builder.append("polyLine: " + this.polyLine + ", ");
             builder.append(separator);
         }
         if (this.startNodeIdentifier != null)
         {
-            builder.append("startNode=" + this.startNodeIdentifier + ", ");
+            builder.append("startNode: " + this.startNodeIdentifier + ", ");
             builder.append(separator);
         }
         if (this.endNodeIdentifier != null)
         {
-            builder.append("endNode=" + this.endNodeIdentifier + ", ");
+            builder.append("endNode: " + this.endNodeIdentifier + ", ");
             builder.append(separator);
         }
         if (this.tags != null)
         {
-            builder.append("tags=" + this.tags + ", ");
+            builder.append("tags: " + this.tags + ", ");
             builder.append(separator);
         }
         if (this.relationIdentifiers != null)
         {
-            builder.append("parentRelations=" + this.relationIdentifiers + ", ");
+            builder.append("parentRelations: " + this.relationIdentifiers + ", ");
             builder.append(separator);
         }
         builder.append("]");

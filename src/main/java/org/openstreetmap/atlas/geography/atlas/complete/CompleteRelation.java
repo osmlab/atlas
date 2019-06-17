@@ -79,11 +79,6 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
                 .withBoundsExtendedBy(relation.bounds());
     }
 
-    CompleteRelation(final long identifier)
-    {
-        this(identifier, null, null, null, null, null, null, null);
-    }
-
     public CompleteRelation(final Long identifier, final Map<String, String> tags, // NOSONAR
             final Rectangle bounds, final RelationBean members,
             final List<Long> allRelationsWithSameOsmIdentifier,
@@ -111,6 +106,11 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     protected CompleteRelation(final Atlas atlas)
     {
         super(atlas);
+    }
+
+    CompleteRelation(final long identifier)
+    {
+        this(identifier, null, null, null, null, null, null, null);
     }
 
     @Override
@@ -229,26 +229,26 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         builder.append(this.getClass().getSimpleName() + " ");
         builder.append("[");
         builder.append(separator);
-        builder.append("identifier=" + this.identifier + ", ");
+        builder.append("identifier: " + this.identifier + ", ");
         builder.append(separator);
         if (this.bounds != null)
         {
-            builder.append("bounds=" + this.bounds + ", ");
+            builder.append("bounds: " + this.bounds + ", ");
             builder.append(separator);
         }
         if (this.members != null && !this.members.isEmpty())
         {
-            builder.append("members=" + this.members + ", ");
+            builder.append("members: " + this.members + ", ");
             builder.append(separator);
         }
         if (this.tags != null)
         {
-            builder.append("tags=" + this.tags + ", ");
+            builder.append("tags: " + this.tags + ", ");
             builder.append(separator);
         }
         if (this.relationIdentifiers != null)
         {
-            builder.append("parentRelations=" + this.relationIdentifiers + ", ");
+            builder.append("parentRelations: " + this.relationIdentifiers + ", ");
             builder.append(separator);
         }
         builder.append("]");

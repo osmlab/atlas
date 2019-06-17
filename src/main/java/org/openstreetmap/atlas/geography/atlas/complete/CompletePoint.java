@@ -62,11 +62,6 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
         return new CompletePoint(point.getIdentifier()).withBoundsExtendedBy(point.bounds());
     }
 
-    CompletePoint(final long identifier)
-    {
-        this(identifier, null, null, null);
-    }
-
     public CompletePoint(final Long identifier, final Location location,
             final Map<String, String> tags, final Set<Long> relationIdentifiers)
     {
@@ -83,6 +78,11 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
         this.location = location;
         this.tags = tags;
         this.relationIdentifiers = relationIdentifiers;
+    }
+
+    CompletePoint(final long identifier)
+    {
+        this(identifier, null, null, null);
     }
 
     @Override
@@ -168,21 +168,21 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
         builder.append(this.getClass().getSimpleName() + " ");
         builder.append("[");
         builder.append(separator);
-        builder.append("identifier=" + this.identifier + ", ");
+        builder.append("identifier: " + this.identifier + ", ");
         builder.append(separator);
         if (this.location != null)
         {
-            builder.append("location=" + this.location + ", ");
+            builder.append("location: " + this.location + ", ");
             builder.append(separator);
         }
         if (this.tags != null)
         {
-            builder.append("tags=" + this.tags + ", ");
+            builder.append("tags: " + this.tags + ", ");
             builder.append(separator);
         }
         if (this.relationIdentifiers != null)
         {
-            builder.append("parentRelations=" + this.relationIdentifiers + ", ");
+            builder.append("parentRelations: " + this.relationIdentifiers + ", ");
             builder.append(separator);
         }
         builder.append("]");

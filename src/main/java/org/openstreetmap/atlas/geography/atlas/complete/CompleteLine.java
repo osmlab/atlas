@@ -63,11 +63,6 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
         return new CompleteLine(line.getIdentifier()).withBoundsExtendedBy(line.bounds());
     }
 
-    CompleteLine(final long identifier)
-    {
-        this(identifier, null, null, null);
-    }
-
     public CompleteLine(final Long identifier, final PolyLine polyLine,
             final Map<String, String> tags, final Set<Long> relationIdentifiers)
     {
@@ -84,6 +79,11 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
         this.polyLine = polyLine;
         this.tags = tags;
         this.relationIdentifiers = relationIdentifiers;
+    }
+
+    CompleteLine(final long identifier)
+    {
+        this(identifier, null, null, null);
     }
 
     @Override
@@ -169,21 +169,21 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
         builder.append(this.getClass().getSimpleName() + " ");
         builder.append("[");
         builder.append(separator);
-        builder.append("identifier=" + this.identifier + ", ");
+        builder.append("identifier: " + this.identifier + ", ");
         builder.append(separator);
         if (this.polyLine != null)
         {
-            builder.append("polyLine=" + this.polyLine + ", ");
+            builder.append("polyLine: " + this.polyLine + ", ");
             builder.append(separator);
         }
         if (this.tags != null)
         {
-            builder.append("tags=" + this.tags + ", ");
+            builder.append("tags: " + this.tags + ", ");
             builder.append(separator);
         }
         if (this.relationIdentifiers != null)
         {
-            builder.append("parentRelations=" + this.relationIdentifiers + ", ");
+            builder.append("parentRelations: " + this.relationIdentifiers + ", ");
             builder.append(separator);
         }
         builder.append("]");
