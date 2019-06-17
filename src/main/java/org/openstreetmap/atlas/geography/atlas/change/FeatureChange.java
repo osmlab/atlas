@@ -473,8 +473,8 @@ public class FeatureChange implements Located, Serializable
         }
         catch (final Exception exception)
         {
-            throw new CoreException("Cannot merge two feature changes {} and {}.", this, other,
-                    exception);
+            throw new CoreException("Cannot merge two feature changes:\n{}\nAND\n{}",
+                    this.prettify(), other.prettify(), exception);
         }
         FeatureChangeMergingHelpers.mergeMetaData(this, other).forEach(result::addMetaData);
         return result;
@@ -482,7 +482,24 @@ public class FeatureChange implements Located, Serializable
 
     /**
      * Transform this {@link FeatureChange} into a pretty string. This will use the pretty strings
-     * for {@link CompleteEntity} classes.
+     * for {@link CompleteEntity} classes. By default, this method will use
+     * {@link PrettifyStringFormat#MINIMAL_MULTI_LINE} for the {@link FeatureChange} itself, but
+     * will use {@link PrettifyStringFormat#MINIMAL_SINGLE_LINE} for the constituent
+     * {@link CompleteEntity}s.
+     *
+     * @return the pretty string
+     */
+    public String prettify()
+    {
+        return this.prettify(PrettifyStringFormat.MINIMAL_MULTI_LINE,
+                PrettifyStringFormat.MINIMAL_SINGLE_LINE);
+    }
+
+    /**
+     * Transform this {@link FeatureChange} into a pretty string. This will use the pretty strings
+     * for {@link CompleteEntity} classes. If you are unsure about which
+     * {@link PrettifyStringFormat}s to use, try {@link FeatureChange#prettify()} which has some
+     * sane defaults.
      *
      * @param format
      *            the format type for the this {@link FeatureChange}
@@ -507,21 +524,21 @@ public class FeatureChange implements Located, Serializable
         builder.append(this.getClass().getSimpleName() + " ");
         builder.append("[");
         builder.append(separator);
-        builder.append("changeType=" + this.getChangeType() + ", ");
+        builder.append("changeType: " + this.getChangeType() + ", ");
         builder.append(separator);
-        builder.append("itemType=" + this.getItemType() + ", ");
+        builder.append("itemType: " + this.getItemType() + ", ");
         builder.append(separator);
-        builder.append("identifier=" + this.getIdentifier() + ", ");
+        builder.append("identifier: " + this.getIdentifier() + ", ");
         builder.append(separator);
-        builder.append("bounds=" + this.bounds() + ", ");
+        builder.append("bounds: " + this.bounds() + ", ");
         builder.append(separator);
         if (this.beforeView != null)
         {
-            builder.append("bfView="
+            builder.append("bfView: "
                     + ((CompleteEntity<?>) this.beforeView).prettify(completeEntityFormat) + ", ");
             builder.append(separator);
         }
-        builder.append("afView="
+        builder.append("afView: "
                 + ((CompleteEntity<?>) this.afterView).prettify(completeEntityFormat) + ", ");
         builder.append(separator);
         builder.append("]");

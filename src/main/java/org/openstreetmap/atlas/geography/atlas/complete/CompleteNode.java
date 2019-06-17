@@ -74,11 +74,6 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         return new CompleteNode(node.getIdentifier()).withBoundsExtendedBy(node.bounds());
     }
 
-    CompleteNode(final long identifier)
-    {
-        this(identifier, null, null, null, null, null);
-    }
-
     public CompleteNode(final Long identifier, final Location location,
             final Map<String, String> tags, final SortedSet<Long> inEdgeIdentifiers,
             final SortedSet<Long> outEdgeIdentifiers, final Set<Long> relationIdentifiers)
@@ -100,6 +95,11 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         this.explicitlyExcludedInEdgeIdentifiers = new HashSet<>();
         this.explicitlyExcludedOutEdgeIdentifiers = new HashSet<>();
         this.relationIdentifiers = relationIdentifiers;
+    }
+
+    CompleteNode(final long identifier)
+    {
+        this(identifier, null, null, null, null, null);
     }
 
     @Override
@@ -223,35 +223,35 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         builder.append(this.getClass().getSimpleName() + " ");
         builder.append("[");
         builder.append(separator);
-        builder.append("identifier=" + this.identifier + ", ");
+        builder.append("identifier: " + this.identifier + ", ");
         builder.append(separator);
         if (this.location != null)
         {
-            builder.append("location=" + this.location + ", ");
+            builder.append("location: " + this.location + ", ");
             builder.append(separator);
         }
         if (this.inEdgeIdentifiers != null)
         {
-            builder.append("inEdges=" + this.inEdgeIdentifiers + ", ");
+            builder.append("inEdges: " + this.inEdgeIdentifiers + ", ");
             builder.append(separator);
         }
         if (this.explicitlyExcludedInEdgeIdentifiers != null
                 && !this.explicitlyExcludedInEdgeIdentifiers.isEmpty())
         {
-            builder.append(
-                    "explicitlyExcludedInEdges=" + this.explicitlyExcludedInEdgeIdentifiers + ", ");
+            builder.append("explicitlyExcludedInEdges: " + this.explicitlyExcludedInEdgeIdentifiers
+                    + ", ");
             builder.append(separator);
         }
         if (this.outEdgeIdentifiers != null)
         {
-            builder.append("outEdges=" + this.outEdgeIdentifiers + ", ");
+            builder.append("outEdges: " + this.outEdgeIdentifiers + ", ");
             builder.append(separator);
         }
         if (this.explicitlyExcludedOutEdgeIdentifiers != null
                 && !this.explicitlyExcludedOutEdgeIdentifiers.isEmpty())
         {
-            builder.append("explicitlyExcludedOutEdges=" + this.explicitlyExcludedOutEdgeIdentifiers
-                    + ", ");
+            builder.append("explicitlyExcludedOutEdges: "
+                    + this.explicitlyExcludedOutEdgeIdentifiers + ", ");
             builder.append(separator);
         }
         if (this.tags != null)

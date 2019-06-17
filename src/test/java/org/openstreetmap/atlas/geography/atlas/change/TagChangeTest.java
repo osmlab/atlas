@@ -146,8 +146,7 @@ public class TagChangeTest
             }
             catch (final CoreException e)
             {
-                Assert.assertTrue(e.getMessage()
-                        .startsWith("Cannot merge two feature changes FeatureChange"));
+                Assert.assertTrue(e.getMessage().startsWith("Cannot merge two feature changes"));
                 Assert.assertEquals(e.getCause().getClass(), CoreException.class);
                 Assert.assertTrue(e.getCause().getMessage()
                         .contains("Attempted afterViewNoBeforeMerge failed for tags; afterView:"));
