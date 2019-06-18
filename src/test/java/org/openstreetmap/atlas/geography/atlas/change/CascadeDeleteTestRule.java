@@ -47,7 +47,7 @@ public class CascadeDeleteTestRule extends CoreTestRule
     private final Map<ItemType, Long> countExpectationMapping = new HashMap()
     {
         private static final long serialVersionUID = 6255547290912151165L;
-    
+
         {
             put(ItemType.NODE, NODE_COUNT);
             put(ItemType.POINT, POINT_COUNT);

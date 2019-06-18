@@ -154,8 +154,9 @@ public class AtlasDeltaGenerator extends Command
             // You need to have the before dir be a dir of shards too for this to work.
             if (!Files.isDirectory(before))
             {
-                this.logger.error("Your -before parameter must point to a directory of atlas shards if "
-                        + "you want to compare shard by shard with an -after directory also of shards!");
+                this.logger.error(
+                        "Your -before parameter must point to a directory of atlas shards if "
+                                + "you want to compare shard by shard with an -after directory also of shards!");
                 System.exit(COMMAND_LINE_USAGE_ERROR_EXIT);
             }
 
@@ -187,7 +188,7 @@ public class AtlasDeltaGenerator extends Command
             final Atlas afterAtlas = load(after);
             compare(beforeAtlas, afterAtlas, outputDirectory);
         }
-    
+
         this.logger.info("AtlasDeltaGenerator complete. Total time: {}.", time.elapsedSince());
     }
 }

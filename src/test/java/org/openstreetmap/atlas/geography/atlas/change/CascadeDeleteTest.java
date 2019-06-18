@@ -60,7 +60,7 @@ public class CascadeDeleteTest
         final ItemType itemType = ItemType.AREA;
         final long entityIdentifier = CascadeDeleteTestRule.AREA_IDENTIFIER;
         final long entityRelationIdentifier = CascadeDeleteTestRule.AREA_RELATION_IDENTIFIER;
-    
+
         this.helper.testDeleteSimple(itemType, entityIdentifier, entityRelationIdentifier);
     }
 
@@ -78,7 +78,7 @@ public class CascadeDeleteTest
         final ItemType itemType = ItemType.LINE;
         final long entityIdentifier = CascadeDeleteTestRule.LINE_IDENTIFIER;
         final long entityRelationIdentifier = CascadeDeleteTestRule.LINE_RELATION_IDENTIFIER;
-    
+
         this.helper.testDeleteSimple(itemType, entityIdentifier, entityRelationIdentifier);
     }
 
@@ -88,7 +88,7 @@ public class CascadeDeleteTest
         final ItemType itemType = ItemType.POINT;
         final long entityIdentifier = CascadeDeleteTestRule.POINT_IDENTIFIER;
         final long entityRelationIdentifier = CascadeDeleteTestRule.POINT_RELATION_IDENTIFIER;
-    
+
         this.helper.testDeleteSimple(itemType, entityIdentifier, entityRelationIdentifier);
     }
 

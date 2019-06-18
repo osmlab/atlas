@@ -92,8 +92,7 @@ public enum PolygonStringFormat
             case UNSUPPORTED:
             default:
                 logger.warn("No converter set up for {} format. Supported formats are {}",
-                        this.format,
-                        Arrays.copyOf(values(), values().length - 1));
+                        this.format, Arrays.copyOf(values(), values().length - 1));
                 return string -> Optional.empty();
         }
     }
@@ -134,8 +133,7 @@ public enum PolygonStringFormat
             case UNSUPPORTED:
             default:
                 logger.warn("No converter set up for {} format. Supported formats are {}",
-                        this.format,
-                        Arrays.copyOf(values(), values().length - 1));
+                        this.format, Arrays.copyOf(values(), values().length - 1));
                 return string -> Optional.empty();
         }
     }

@@ -57,7 +57,7 @@ public class MultiCascadeDeleteTest
         final Map<AtlasEntityKey, Boolean> expectedChangedAndDeleted = new HashMap<AtlasEntityKey, Boolean>()
         {
             private static final long serialVersionUID = 454060048188157314L;
-    
+
             {
                 put(AtlasEntityKey.from(ItemType.NODE, MultiCascadeDeleteTestRule.nodeA), false);
                 put(AtlasEntityKey.from(ItemType.NODE, MultiCascadeDeleteTestRule.nodeB), false);
@@ -98,7 +98,7 @@ public class MultiCascadeDeleteTest
         final Map<AtlasEntityKey, Boolean> expectedChangedAndDeleted = new HashMap<AtlasEntityKey, Boolean>()
         {
             private static final long serialVersionUID = 3346327267408295085L;
-    
+
             {
                 put(AtlasEntityKey.from(ItemType.NODE, MultiCascadeDeleteTestRule.nodeA), true);
                 put(AtlasEntityKey.from(ItemType.NODE, MultiCascadeDeleteTestRule.nodeB), false);
@@ -137,7 +137,7 @@ public class MultiCascadeDeleteTest
         final Map<AtlasEntityKey, Boolean> expectedChangedAndDeleted = new HashMap<AtlasEntityKey, Boolean>()
         {
             private static final long serialVersionUID = -8963613354545135623L;
-    
+
             {
                 put(AtlasEntityKey.from(ItemType.NODE, MultiCascadeDeleteTestRule.nodeA), false);
                 put(AtlasEntityKey.from(ItemType.NODE, MultiCascadeDeleteTestRule.nodeB), true);
