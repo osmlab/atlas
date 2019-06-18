@@ -64,6 +64,29 @@ public class SimpleOptionAndArgumentParserTest
         }
     }
 
+    @Test(expected = UnparsableContextException.class)
+    public void testMultipleParseContextUnparsable() throws UnparsableContextException
+    {
+        final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
+        parser.registerOption("opt1", 'a', "an option", OptionOptionality.OPTIONAL, 1);
+        parser.registerOption("opt2", 'b', "an option", OptionOptionality.OPTIONAL, 1);
+        parser.registerOption("opt3", 'c', "an option", OptionOptionality.OPTIONAL, 2);
+        parser.registerArgument("single1", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED, 2);
+        parser.registerOptionWithRequiredArgument("opt4", 'd', "an option",
+                OptionOptionality.OPTIONAL, "hint", 3);
+        parser.registerArgument("single2", ArgumentArity.UNARY, ArgumentOptionality.OPTIONAL, 3);
+
+        final List<String> arguments = Arrays.asList("--opt2", "--opt3");
+        try
+        {
+            parser.parse(arguments);
+        }
+        catch (AmbiguousAbbreviationException | UnknownOptionException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+    }
+
     @Test
     public void testMultipleParseContexts()
     {
@@ -127,29 +150,6 @@ public class SimpleOptionAndArgumentParserTest
         Assert.assertEquals("optarg", parser.getOptionArgument("opt4").get());
         Assert.assertFalse(parser.getUnaryArgument("single1").isPresent());
         Assert.assertFalse(parser.getUnaryArgument("single2").isPresent());
-    }
-
-    @Test(expected = UnparsableContextException.class)
-    public void testMultipleParseContextUnparsable() throws UnparsableContextException
-    {
-        final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
-        parser.registerOption("opt1", 'a', "an option", OptionOptionality.OPTIONAL, 1);
-        parser.registerOption("opt2", 'b', "an option", OptionOptionality.OPTIONAL, 1);
-        parser.registerOption("opt3", 'c', "an option", OptionOptionality.OPTIONAL, 2);
-        parser.registerArgument("single1", ArgumentArity.UNARY, ArgumentOptionality.REQUIRED, 2);
-        parser.registerOptionWithRequiredArgument("opt4", 'd', "an option",
-                OptionOptionality.OPTIONAL, "hint", 3);
-        parser.registerArgument("single2", ArgumentArity.UNARY, ArgumentOptionality.OPTIONAL, 3);
-
-        final List<String> arguments = Arrays.asList("--opt2", "--opt3");
-        try
-        {
-            parser.parse(arguments);
-        }
-        catch (AmbiguousAbbreviationException | UnknownOptionException e)
-        {
-            Assert.fail(e.getMessage());
-        }
     }
 
     @Test
@@ -359,6 +359,23 @@ public class SimpleOptionAndArgumentParserTest
 
         Assert.assertEquals("newArg", parser.getOptionArgument("opt1").get());
         Assert.assertFalse(parser.getOptionArgument("opt2").isPresent());
+    }
+
+    @Test
+    public void testOptionMap()
+    {
+        final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
+        parser.registerOption("opt1", 'a', "the 1st option", OptionOptionality.OPTIONAL, 1);
+        parser.registerOptionWithRequiredArgument("opt2", 'b', "the 2nd option",
+                OptionOptionality.OPTIONAL, "ARG", 1);
+        parser.registerOption("opt3", 'c', "the 3rd option", OptionOptionality.OPTIONAL, 1);
+
+        Assert.assertEquals("the 1st option",
+                parser.getOptionNameToRegisteredOption().get("opt1").getDescription());
+        Assert.assertEquals("the 2nd option",
+                parser.getOptionNameToRegisteredOption().get("opt2").getDescription());
+        Assert.assertEquals("the 3rd option",
+                parser.getOptionNameToRegisteredOption().get("opt3").getDescription());
     }
 
     @Test
