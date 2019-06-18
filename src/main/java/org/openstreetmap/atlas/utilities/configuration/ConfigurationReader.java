@@ -48,7 +48,7 @@ public class ConfigurationReader
     public <R, T> T configurationValue(final Configuration configuration,
             final Function<R, T> defaultValue)
     {
-        return configuration.get(root, defaultValue).value();
+        return configuration.get(this.root, defaultValue).value();
     }
 
     public List<String> configurationValues(final Configuration configuration, final String key)

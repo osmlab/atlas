@@ -21,23 +21,13 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
  */
 public class AtlasTest
 {
-
     @Rule
     public final AtlasTestRule rule = new AtlasTestRule();
 
     @Test
-    public void nodesByIds()
-    {
-        final Atlas atlas = rule.getAtlas();
-        final Iterable<Node> nodes = atlas.nodes(0L, 1L);
-        final long count = StreamSupport.stream(nodes.spliterator(), false).count();
-        Assert.assertEquals(2, count);
-    }
-
-    @Test
     public void entitiesByIds()
     {
-        final Atlas atlas = rule.getAtlas();
+        final Atlas atlas = this.rule.getAtlas();
         final Map<ItemType, ? extends Iterable<? extends AtlasEntity>> itemTypeToEntities = Arrays
                 .stream(ItemType.values())
                 .map(itemType -> Pair.of(itemType, itemType.entitiesForIdentifiers(atlas, 0L, 1L)))
@@ -59,7 +49,15 @@ public class AtlasTest
                                 + "; atlasEntityClass: " + atlasEntityClass,
                         memberClass.isAssignableFrom(atlasEntityClass));
             });
-
         });
+    }
+
+    @Test
+    public void nodesByIds()
+    {
+        final Atlas atlas = this.rule.getAtlas();
+        final Iterable<Node> nodes = atlas.nodes(0L, 1L);
+        final long count = StreamSupport.stream(nodes.spliterator(), false).count();
+        Assert.assertEquals(2, count);
     }
 }

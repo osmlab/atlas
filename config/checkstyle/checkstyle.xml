@@ -111,6 +111,7 @@
 		<module name="ParameterAssignment"/>
 		<module name="RequireThis">
     		<property name="checkMethods" value="false"/>
+			<property name="validateOnlyOverlapping" value="false"/>
 		</module>
 		<module name="SimplifyBooleanExpression" />
 		<module name="SimplifyBooleanReturn" />

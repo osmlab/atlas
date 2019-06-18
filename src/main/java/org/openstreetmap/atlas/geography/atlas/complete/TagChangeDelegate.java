@@ -21,14 +21,14 @@ class TagChangeDelegate implements TagChangeListenable, Serializable
 
     private final List<TagChangeListener> tagChangeListeners = new ArrayList<>();
 
-    protected TagChangeDelegate()
-    {
-        super();
-    }
-
     static TagChangeDelegate newTagChangeDelegate()
     {
         return new TagChangeDelegate();
+    }
+
+    protected TagChangeDelegate()
+    {
+        super();
     }
 
     @Override
@@ -37,7 +37,7 @@ class TagChangeDelegate implements TagChangeListenable, Serializable
         Validate.notNull(tagChangeListener, "tagChangeListener is NULL.");
         synchronized (this.tagChangeListeners)
         {
-            tagChangeListeners.add(tagChangeListener);
+            this.tagChangeListeners.add(tagChangeListener);
         }
     }
 
@@ -45,11 +45,11 @@ class TagChangeDelegate implements TagChangeListenable, Serializable
     public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
     {
         Validate.notNull(tagChangeEvent, "tagChangeEvent is EMPTY!");
-        if (!tagChangeListeners.isEmpty())
+        if (!this.tagChangeListeners.isEmpty())
         {
             synchronized (this.tagChangeListeners)
             {
-                tagChangeListeners.stream().forEach(
+                this.tagChangeListeners.stream().forEach(
                         tagChangeListener -> tagChangeListener.entityChanged(tagChangeEvent));
             }
         }
@@ -60,7 +60,7 @@ class TagChangeDelegate implements TagChangeListenable, Serializable
     {
         synchronized (this.tagChangeListeners)
         {
-            tagChangeListeners.removeIf(tagChangeListener -> true);
+            this.tagChangeListeners.removeIf(tagChangeListener -> true);
         }
     }
 }

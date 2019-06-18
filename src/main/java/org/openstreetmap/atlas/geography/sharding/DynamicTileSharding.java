@@ -118,50 +118,6 @@ public class DynamicTileSharding extends Command implements Sharding
             return false;
         }
 
-        /**
-         * Does a deep equals with the other node
-         * 
-         * @param other
-         *            other Node
-         * @return true if entire structure is equal, false if not
-         */
-        private boolean deepEquals(final Node other)
-        {
-            final Comparator<Node> nodeCompare = Comparator.comparing(Node::getTile);
-            // BFS through both trees to get equality
-            final Queue<Node> queue = new LinkedList<>();
-            queue.offer(this);
-            queue.offer(other);
-            while (!queue.isEmpty())
-            {
-                // We always offer two at a time, so we can poll two at a time.
-                final Node node1 = queue.poll();
-                final Node node2 = queue.poll();
-                if (node1.equals(node2) && node1.getChildren().size() == node2.getChildren().size())
-                {
-                    final List<Node> children1 = node1.getChildren();
-                    final List<Node> children2 = node2.getChildren();
-                    children1.sort(nodeCompare);
-                    children2.sort(nodeCompare);
-                    for (int index = 0; index < children1.size(); index++)
-                    {
-                        queue.offer(children1.get(index));
-                        queue.offer(children2.get(index));
-                    }
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        private List<Node> getChildren()
-        {
-            return this.children;
-        }
-
         public SlippyTile getTile()
         {
             return this.tile;
@@ -309,6 +265,50 @@ public class DynamicTileSharding extends Command implements Sharding
             return this.tile.getZoom();
         }
 
+        /**
+         * Does a deep equals with the other node
+         *
+         * @param other
+         *            other Node
+         * @return true if entire structure is equal, false if not
+         */
+        private boolean deepEquals(final Node other)
+        {
+            final Comparator<Node> nodeCompare = Comparator.comparing(Node::getTile);
+            // BFS through both trees to get equality
+            final Queue<Node> queue = new LinkedList<>();
+            queue.offer(this);
+            queue.offer(other);
+            while (!queue.isEmpty())
+            {
+                // We always offer two at a time, so we can poll two at a time.
+                final Node node1 = queue.poll();
+                final Node node2 = queue.poll();
+                if (node1.equals(node2) && node1.getChildren().size() == node2.getChildren().size())
+                {
+                    final List<Node> children1 = node1.getChildren();
+                    final List<Node> children2 = node2.getChildren();
+                    children1.sort(nodeCompare);
+                    children2.sort(nodeCompare);
+                    for (int index = 0; index < children1.size(); index++)
+                    {
+                        queue.offer(children1.get(index));
+                        queue.offer(children2.get(index));
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private List<Node> getChildren()
+        {
+            return this.children;
+        }
+
         private void save(final BufferedWriter writer)
         {
             try
@@ -391,7 +391,7 @@ public class DynamicTileSharding extends Command implements Sharding
         }
 
         final DynamicTileSharding that = (DynamicTileSharding) other;
-        return root.deepEquals(that.root);
+        return this.root.deepEquals(that.root);
     }
 
     @Override
