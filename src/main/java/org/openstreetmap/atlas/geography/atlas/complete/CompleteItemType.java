@@ -23,14 +23,7 @@ public enum CompleteItemType
 
     private final Class<? extends CompleteEntity> completeEntityClass;
 
-    private ItemType itemType;
-
-    CompleteItemType(final Class<? extends CompleteEntity> completeEntityClass,
-            final ItemType itemType)
-    {
-        this.completeEntityClass = completeEntityClass;
-        this.itemType = itemType;
-    }
+    private final ItemType itemType;
 
     public static CompleteItemType from(final ItemType itemType)
     {
@@ -39,14 +32,19 @@ public enum CompleteItemType
                 .orElseThrow(IllegalArgumentException::new);
     }
 
-    public Class<? extends CompleteEntity> getCompleteEntityClass()
+    public static <C extends CompleteEntity> C shallowFrom(final AtlasEntity reference)
     {
-        return completeEntityClass;
+        final ItemType itemType = reference.getType();
+        final CompleteItemType completeItemType = CompleteItemType.from(itemType);
+        final C completeEntity = completeItemType.completeEntityShallowFrom(reference);
+        return completeEntity;
     }
 
-    public ItemType getItemType()
+    CompleteItemType(final Class<? extends CompleteEntity> completeEntityClass,
+            final ItemType itemType)
     {
-        return itemType;
+        this.completeEntityClass = completeEntityClass;
+        this.itemType = itemType;
     }
 
     public <C extends CompleteEntity> C completeEntityFrom(final AtlasEntity reference)
@@ -61,12 +59,14 @@ public enum CompleteItemType
         return (C) CompleteEntity.shallowFrom(reference);
     }
 
-    public static <C extends CompleteEntity> C shallowFrom(final AtlasEntity reference)
+    public Class<? extends CompleteEntity> getCompleteEntityClass()
     {
-        final ItemType itemType = reference.getType();
-        final CompleteItemType completeItemType = CompleteItemType.from(itemType);
-        final C completeEntity = completeItemType.completeEntityShallowFrom(reference);
-        return completeEntity;
+        return this.completeEntityClass;
+    }
+
+    public ItemType getItemType()
+    {
+        return this.itemType;
     }
 
     private void validate(final AtlasEntity reference)

@@ -31,7 +31,7 @@ public enum PolygonStringFormat
     UNSUPPORTED("UNSUPPORTED");
 
     private static final Logger logger = LoggerFactory.getLogger(PolygonStringFormat.class);
-    private String format;
+    private final String format;
 
     public static PolygonStringFormat getEnumForFormat(final String format)
     {
@@ -91,8 +91,8 @@ public enum PolygonStringFormat
                         .singletonList(new WktMultiPolygonConverter().backwardConvert(string)));
             case UNSUPPORTED:
             default:
-                logger.warn("No converter set up for {} format. Supported formats are {}", format,
-                        Arrays.copyOf(values(), values().length - 1));
+                logger.warn("No converter set up for {} format. Supported formats are {}",
+                        this.format, Arrays.copyOf(values(), values().length - 1));
                 return string -> Optional.empty();
         }
     }
@@ -132,8 +132,8 @@ public enum PolygonStringFormat
                         new WkbPolygonConverter().backwardConvert(WKBReader.hexToBytes(string))));
             case UNSUPPORTED:
             default:
-                logger.warn("No converter set up for {} format. Supported formats are {}", format,
-                        Arrays.copyOf(values(), values().length - 1));
+                logger.warn("No converter set up for {} format. Supported formats are {}",
+                        this.format, Arrays.copyOf(values(), values().length - 1));
                 return string -> Optional.empty();
         }
     }

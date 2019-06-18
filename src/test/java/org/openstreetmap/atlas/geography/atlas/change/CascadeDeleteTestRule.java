@@ -44,8 +44,10 @@ public class CascadeDeleteTestRule extends CoreTestRule
     private static final String FIVE = "38, -123";
     private static final String SIX = "39, -124";
 
-    private Map<ItemType, Long> countExpectationMapping = new HashMap()
+    private final Map<ItemType, Long> countExpectationMapping = new HashMap()
     {
+        private static final long serialVersionUID = 6255547290912151165L;
+
         {
             put(ItemType.NODE, NODE_COUNT);
             put(ItemType.POINT, POINT_COUNT);
@@ -133,6 +135,6 @@ public class CascadeDeleteTestRule extends CoreTestRule
 
     public Map<ItemType, Long> getCountExpectationMapping()
     {
-        return new HashMap<>(countExpectationMapping);
+        return new HashMap<>(this.countExpectationMapping);
     }
 }
