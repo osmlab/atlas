@@ -15,9 +15,7 @@ public class EmptyChangeExceptionTest
         final String message = new EmptyChangeException().getMessage();
 
         Assert.assertTrue(message.startsWith(CoreException.TOKEN));
-
-        System.out.println(message);
-
+        
         Assert.assertEquals(new EmptyChangeException().getMessage(),
                 new EmptyChangeException(new RuntimeException()).getMessage());
     }
