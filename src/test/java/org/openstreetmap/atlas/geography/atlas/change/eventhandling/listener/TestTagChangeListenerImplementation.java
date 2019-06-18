@@ -16,16 +16,16 @@ public class TestTagChangeListenerImplementation implements TagChangeListener
     public void entityChanged(final TagChangeEvent entityChangeEvent)
     {
         this.lastEvent = entityChangeEvent;
-        callCount++;
-    }
-
-    public TagChangeEvent getLastEvent()
-    {
-        return lastEvent;
+        this.callCount++;
     }
 
     public int getCallCount()
     {
-        return callCount;
+        return this.callCount;
+    }
+
+    public TagChangeEvent getLastEvent()
+    {
+        return this.lastEvent;
     }
 }

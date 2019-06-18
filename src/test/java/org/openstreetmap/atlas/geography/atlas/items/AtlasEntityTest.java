@@ -9,14 +9,13 @@ import org.junit.Test;
  */
 public class AtlasEntityTest
 {
-
     @Rule
     public final AreaEntityTestRule rule = new AreaEntityTestRule();
 
     @Test
     public void getName()
     {
-        Assert.assertEquals("abc", rule.getAtlas().node(1).getName().get());
-        Assert.assertFalse(rule.getAtlas().node(2).getName().isPresent());
+        Assert.assertEquals("abc", this.rule.getAtlas().node(1).getName().get());
+        Assert.assertFalse(this.rule.getAtlas().node(2).getName().isPresent());
     }
 }

@@ -103,10 +103,10 @@ public class TagChangeTestRule extends CoreTestRule
                             @TestAtlas.Relation.Member(id = ID_STR_2, role = "some role 5", type = "area"),
                             @TestAtlas.Relation.Member(id = ID_STR_1, role = "some role 6", type = "relation"), }, tags = {
                                     MARS_ROVER, SINGLETON_EMPTY }) })
-    private Atlas atlas = null;
+    private final Atlas atlas = null;
 
     public Atlas getAtlas()
     {
-        return atlas;
+        return this.atlas;
     }
 }

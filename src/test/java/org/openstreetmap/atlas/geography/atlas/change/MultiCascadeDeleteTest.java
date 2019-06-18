@@ -56,6 +56,8 @@ public class MultiCascadeDeleteTest
         // Step-3 Verify AtlasDiff
         final Map<AtlasEntityKey, Boolean> expectedChangedAndDeleted = new HashMap<AtlasEntityKey, Boolean>()
         {
+            private static final long serialVersionUID = 454060048188157314L;
+    
             {
                 put(AtlasEntityKey.from(ItemType.NODE, MultiCascadeDeleteTestRule.nodeA), false);
                 put(AtlasEntityKey.from(ItemType.NODE, MultiCascadeDeleteTestRule.nodeB), false);
@@ -95,6 +97,8 @@ public class MultiCascadeDeleteTest
         // Step-3 Verify AtlasDiff
         final Map<AtlasEntityKey, Boolean> expectedChangedAndDeleted = new HashMap<AtlasEntityKey, Boolean>()
         {
+            private static final long serialVersionUID = 3346327267408295085L;
+    
             {
                 put(AtlasEntityKey.from(ItemType.NODE, MultiCascadeDeleteTestRule.nodeA), true);
                 put(AtlasEntityKey.from(ItemType.NODE, MultiCascadeDeleteTestRule.nodeB), false);
@@ -132,6 +136,8 @@ public class MultiCascadeDeleteTest
         // Step-3 Verify AtlasDiff
         final Map<AtlasEntityKey, Boolean> expectedChangedAndDeleted = new HashMap<AtlasEntityKey, Boolean>()
         {
+            private static final long serialVersionUID = -8963613354545135623L;
+    
             {
                 put(AtlasEntityKey.from(ItemType.NODE, MultiCascadeDeleteTestRule.nodeA), false);
                 put(AtlasEntityKey.from(ItemType.NODE, MultiCascadeDeleteTestRule.nodeB), true);
@@ -154,13 +160,6 @@ public class MultiCascadeDeleteTest
         return changedAtlas(atlas, featureChange, expectedNodes, expectedEdges);
     }
 
-    private FeatureChange createDeleteFeatureChange(final Atlas atlas, final ItemType itemType,
-            final Long entityIdToDelete)
-    {
-        return FeatureChange.remove(CompleteItemType
-                .shallowFrom(itemType.entityForIdentifier(atlas, entityIdToDelete)));
-    }
-
     private Atlas changedAtlas(final Atlas atlas, final FeatureChange featureChange,
             final long expectedNodes, final long expectedEdges)
     {
@@ -171,9 +170,16 @@ public class MultiCascadeDeleteTest
         return changeAtlas;
     }
 
+    private FeatureChange createDeleteFeatureChange(final Atlas atlas, final ItemType itemType,
+            final Long entityIdToDelete)
+    {
+        return FeatureChange.remove(CompleteItemType
+                .shallowFrom(itemType.entityForIdentifier(atlas, entityIdToDelete)));
+    }
+
     private Atlas originalAtlas()
     {
-        final Atlas atlas = rule.getAtlas();
+        final Atlas atlas = this.rule.getAtlas();
         Assert.assertEquals(3, atlas.numberOfNodes());
         Assert.assertEquals(2, atlas.numberOfEdges());
         Assert.assertEquals(1, atlas.numberOfRelations());

@@ -32,11 +32,35 @@ public enum MinimumZoom
 
     private String[] keys;
     private int[] defaults;
-    private List<Map<String, Integer>> valuesList = new ArrayList<>();
+    private final List<Map<String, Integer>> valuesList = new ArrayList<>();
 
     MinimumZoom()
     {
         processConfig(parseConfig());
+    }
+
+    public int get(final Map<String, String> tags)
+    {
+        for (int index = 0; index < this.keys.length; ++index)
+        {
+            final String key = this.keys[index];
+            final String value = tags.get(key);
+            if (value == null)
+            {
+                continue;
+            }
+            final Map<String, Integer> valuesMap = this.valuesList.get(index);
+            final Integer valueMinimumZoom = valuesMap.get(value);
+            if (valueMinimumZoom != null)
+            {
+                return valueMinimumZoom;
+            }
+            else
+            {
+                return this.defaults[index];
+            }
+        }
+        return DEFAULT_ZOOM;
     }
 
     private JsonArray parseConfig()
@@ -60,18 +84,18 @@ public enum MinimumZoom
     private void processConfig(final JsonArray config)
     {
         final int length = config.size();
-        keys = new String[length];
-        defaults = new int[length];
+        this.keys = new String[length];
+        this.defaults = new int[length];
         for (int index = 0; index < length; ++index)
         {
             try
             {
                 final JsonObject object = config.get(index).getAsJsonObject();
-                keys[index] = object.get("key").getAsString();
-                defaults[index] = object.get("default").getAsInt();
+                this.keys[index] = object.get("key").getAsString();
+                this.defaults[index] = object.get("default").getAsInt();
 
                 final Map<String, Integer> valuesMap = new HashMap<>();
-                valuesList.add(index, valuesMap);
+                this.valuesList.add(index, valuesMap);
 
                 // values is optional
                 final JsonElement valuesElement = object.get("values");
@@ -88,29 +112,5 @@ public enum MinimumZoom
                         exception);
             }
         }
-    }
-
-    public int get(final Map<String, String> tags)
-    {
-        for (int index = 0; index < keys.length; ++index)
-        {
-            final String key = keys[index];
-            final String value = tags.get(key);
-            if (value == null)
-            {
-                continue;
-            }
-            final Map<String, Integer> valuesMap = valuesList.get(index);
-            final Integer valueMinimumZoom = valuesMap.get(value);
-            if (valueMinimumZoom != null)
-            {
-                return valueMinimumZoom;
-            }
-            else
-            {
-                return defaults[index];
-            }
-        }
-        return DEFAULT_ZOOM;
     }
 }

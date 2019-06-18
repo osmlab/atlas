@@ -48,11 +48,8 @@ public class AtlasDeltaGenerator extends Command
     private static final Switch<Integer> THREADS_SWITCH = new Switch<>("threads",
             "The number of threads to work on processing atlas shards.", Integer::valueOf,
             Optionality.OPTIONAL, String.valueOf(DEFAULT_THREADS));
-
-    private final Logger logger;
-
     private static final AtlasResourceLoader ATLAS_RESOURCE_LOADER = new AtlasResourceLoader();
-
+    private final Logger logger;
     /**
      * The size of the thread pool for shard-by-shard parallel processing.
      */
@@ -61,6 +58,12 @@ public class AtlasDeltaGenerator extends Command
     public static void main(final String[] args)
     {
         new AtlasDeltaGenerator(LoggerFactory.getLogger(AtlasDeltaGenerator.class)).run(args);
+    }
+
+    private static List<File> fetchAtlasFilesInDirectory(final Path directory)
+    {
+        return new File(directory.toFile()).listFilesRecursively().stream().filter(IS_ATLAS)
+                .collect(Collectors.toList());
     }
 
     public AtlasDeltaGenerator(final Logger logger)
@@ -74,7 +77,7 @@ public class AtlasDeltaGenerator extends Command
         final Path before = (Path) command.get("before");
         final Path after = (Path) command.get("after");
         final Path outputDirectory = (Path) command.get("outputDirectory");
-        threads = (Integer) command.get("threads");
+        this.threads = (Integer) command.get("threads");
         run(before, after, outputDirectory);
         return 0;
     }
@@ -84,80 +87,6 @@ public class AtlasDeltaGenerator extends Command
     {
         return new SwitchList().with(BEFORE_SWITCH, AFTER_SWITCH, OUTPUT_DIRECTORY_SWITCH,
                 THREADS_SWITCH);
-    }
-
-    private void run(final Path before, final Path after, final Path outputDirectory)
-    {
-        final Time time = Time.now();
-
-        this.logger.info("Comparing {} and {}", before, after);
-
-        // If the after is a directory, we want to diff the individual shards in parallel.
-        if (Files.isDirectory(after))
-        {
-            // You need to have the before dir be a dir of shards too for this to work.
-            if (!Files.isDirectory(before))
-            {
-                logger.error("Your -before parameter must point to a directory of atlas shards if "
-                        + "you want to compare shard by shard with an -after directory also of shards!");
-                System.exit(COMMAND_LINE_USAGE_ERROR_EXIT);
-            }
-
-            // Execute in a pool of threads so we limit how many atlases get loaded in parallel.
-            final ForkJoinPool pool = new ForkJoinPool(threads);
-            try
-            {
-                pool.submit(() -> this.compareShardByShard(before, after, outputDirectory)).get();
-            }
-            catch (final InterruptedException interrupt)
-            {
-                logger.error("The shard diff workers were interrupted.", interrupt);
-            }
-            catch (final ExecutionException execution)
-            {
-                logger.error("There was an execution exception on the shard diff workers.",
-                        execution);
-            }
-            finally
-            {
-                pool.shutdown();
-            }
-        }
-        // Otherwise, we can do a normal compare where we look at 2 atlases or input shards with a
-        // single output.
-        else
-        {
-            final Atlas beforeAtlas = load(before);
-            final Atlas afterAtlas = load(after);
-            compare(beforeAtlas, afterAtlas, outputDirectory);
-        }
-
-        logger.info("AtlasDeltaGenerator complete. Total time: {}.", time.elapsedSince());
-    }
-
-    /**
-     * Load a multi atlas if directory, otherwise load single atlas.
-     *
-     * @param path
-     *            An atlas shard directory or a single atlas.
-     * @return An atlas object.
-     */
-    private Atlas load(final Path path)
-    {
-        return ATLAS_RESOURCE_LOADER.load(new File(path.toFile()));
-    }
-
-    private void compareShardByShard(final Path before, final Path after,
-            final Path outputDirectory)
-    {
-        final List<File> afterShardFiles = fetchAtlasFilesInDirectory(after);
-        afterShardFiles.parallelStream().forEach(afterShardFile ->
-        {
-            final Path beforeShardPath = before.resolve(afterShardFile.getName());
-            final Atlas beforeAtlas = load(beforeShardPath);
-            final Atlas afterAtlas = ATLAS_RESOURCE_LOADER.load(afterShardFile);
-            compare(beforeAtlas, afterAtlas, outputDirectory);
-        });
     }
 
     private void compare(final Atlas beforeAtlas, final Atlas afterAtlas,
@@ -188,9 +117,77 @@ public class AtlasDeltaGenerator extends Command
         this.logger.info("Saved Relations GeoJSON file {}", relationsGeoJsonFile);
     }
 
-    private static List<File> fetchAtlasFilesInDirectory(final Path directory)
+    private void compareShardByShard(final Path before, final Path after,
+            final Path outputDirectory)
     {
-        return new File(directory.toFile()).listFilesRecursively().stream().filter(IS_ATLAS)
-                .collect(Collectors.toList());
+        final List<File> afterShardFiles = fetchAtlasFilesInDirectory(after);
+        afterShardFiles.parallelStream().forEach(afterShardFile ->
+        {
+            final Path beforeShardPath = before.resolve(afterShardFile.getName());
+            final Atlas beforeAtlas = load(beforeShardPath);
+            final Atlas afterAtlas = ATLAS_RESOURCE_LOADER.load(afterShardFile);
+            compare(beforeAtlas, afterAtlas, outputDirectory);
+        });
+    }
+
+    /**
+     * Load a multi atlas if directory, otherwise load single atlas.
+     *
+     * @param path
+     *            An atlas shard directory or a single atlas.
+     * @return An atlas object.
+     */
+    private Atlas load(final Path path)
+    {
+        return ATLAS_RESOURCE_LOADER.load(new File(path.toFile()));
+    }
+
+    private void run(final Path before, final Path after, final Path outputDirectory)
+    {
+        final Time time = Time.now();
+
+        this.logger.info("Comparing {} and {}", before, after);
+
+        // If the after is a directory, we want to diff the individual shards in parallel.
+        if (Files.isDirectory(after))
+        {
+            // You need to have the before dir be a dir of shards too for this to work.
+            if (!Files.isDirectory(before))
+            {
+                this.logger.error("Your -before parameter must point to a directory of atlas shards if "
+                        + "you want to compare shard by shard with an -after directory also of shards!");
+                System.exit(COMMAND_LINE_USAGE_ERROR_EXIT);
+            }
+
+            // Execute in a pool of threads so we limit how many atlases get loaded in parallel.
+            final ForkJoinPool pool = new ForkJoinPool(this.threads);
+            try
+            {
+                pool.submit(() -> this.compareShardByShard(before, after, outputDirectory)).get();
+            }
+            catch (final InterruptedException interrupt)
+            {
+                this.logger.error("The shard diff workers were interrupted.", interrupt);
+            }
+            catch (final ExecutionException execution)
+            {
+                this.logger.error("There was an execution exception on the shard diff workers.",
+                        execution);
+            }
+            finally
+            {
+                pool.shutdown();
+            }
+        }
+        // Otherwise, we can do a normal compare where we look at 2 atlases or input shards with a
+        // single output.
+        else
+        {
+            final Atlas beforeAtlas = load(before);
+            final Atlas afterAtlas = load(after);
+            compare(beforeAtlas, afterAtlas, outputDirectory);
+        }
+    
+        this.logger.info("AtlasDeltaGenerator complete. Total time: {}.", time.elapsedSince());
     }
 }

@@ -22,7 +22,7 @@ public class RelationOrAreaToMultiPolygonConverterTest
     public void innerOuterMultiPolygonTest()
     {
         final MultiPolygon multiPolygon = CONVERTER
-                .convert(setup.innerOuterMultiPolygonAtlas().relation(1447306000000L));
+                .convert(this.setup.innerOuterMultiPolygonAtlas().relation(1447306000000L));
         Assert.assertEquals(2, multiPolygon.outers().size());
         // Both inner rings should be mapped to one of the outer rings
         Assert.assertTrue(

@@ -18,20 +18,20 @@ public class TagChangeEvent extends EntityChangeEvent
 {
     private static final long serialVersionUID = -3108915161471760840L;
 
-    private FieldChangeOperation fieldOperation;
-
-    protected TagChangeEvent(final CompleteItemType completeItemType, final long identifier,
-            final Optional<Object> newValue, final FieldChangeOperation fieldOperation)
-    {
-        super(completeItemType, identifier, newValue);
-        this.fieldOperation = fieldOperation;
-    }
+    private final FieldChangeOperation fieldOperation;
 
     public static TagChangeEvent added(final CompleteItemType completeItemType,
             final long identifier, final Pair<String, String> addedTagPair)
     {
         return new TagChangeEvent(completeItemType, identifier, Optional.of(addedTagPair),
                 FieldChangeOperation.ADD);
+    }
+
+    public static TagChangeEvent overwrite(final CompleteItemType completeItemType,
+            final long identifier, final Map<String, String> newTags)
+    {
+        return new TagChangeEvent(completeItemType, identifier, Optional.ofNullable(newTags),
+                FieldChangeOperation.OVERWRITE);
     }
 
     public static TagChangeEvent remove(final CompleteItemType completeItemType,
@@ -48,15 +48,15 @@ public class TagChangeEvent extends EntityChangeEvent
                 FieldChangeOperation.REPLACE);
     }
 
-    public static TagChangeEvent overwrite(final CompleteItemType completeItemType,
-            final long identifier, final Map<String, String> newTags)
+    protected TagChangeEvent(final CompleteItemType completeItemType, final long identifier,
+            final Optional<Object> newValue, final FieldChangeOperation fieldOperation)
     {
-        return new TagChangeEvent(completeItemType, identifier, Optional.ofNullable(newTags),
-                FieldChangeOperation.OVERWRITE);
+        super(completeItemType, identifier, newValue);
+        this.fieldOperation = fieldOperation;
     }
 
     public FieldChangeOperation getFieldOperation()
     {
-        return fieldOperation;
+        return this.fieldOperation;
     }
 }

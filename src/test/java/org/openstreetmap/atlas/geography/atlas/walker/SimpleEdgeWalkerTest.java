@@ -13,16 +13,15 @@ import org.openstreetmap.atlas.tags.annotations.validation.Validators;
  */
 public class SimpleEdgeWalkerTest
 {
+    private static final long FIRST_EDGE_IDENTIFIER = 1000000001L;
     @Rule
     public SimpleEdgeWalkerTestRule setup = new SimpleEdgeWalkerTestRule();
-    private static final long FIRST_EDGE_IDENTIFIER = 1000000001L;
 
     @Test
     public void collectAllTest()
     {
         Assert.assertEquals(3,
-                new SimpleEdgeWalker(
-                        setup.motorwayPrimaryTriangleAtlas().edge(FIRST_EDGE_IDENTIFIER),
+                new SimpleEdgeWalker(this.setup.motorwayPrimaryTriangleAtlas().edge(FIRST_EDGE_IDENTIFIER),
                         edge -> edge.outEdges().stream()).collectEdges().size());
     }
 
@@ -30,8 +29,7 @@ public class SimpleEdgeWalkerTest
     public void collectPrimaryQueueAllTest()
     {
         Assert.assertEquals(2,
-                new SimpleEdgeWalker(
-                        setup.motorwayPrimaryTriangleAtlas().edge(FIRST_EDGE_IDENTIFIER),
+                new SimpleEdgeWalker(this.setup.motorwayPrimaryTriangleAtlas().edge(FIRST_EDGE_IDENTIFIER),
                         connectedEdge -> Validators.isOfType(connectedEdge, HighwayTag.class,
                                 HighwayTag.PRIMARY),
                         edge -> edge.outEdges().stream()).collectEdges().size());
