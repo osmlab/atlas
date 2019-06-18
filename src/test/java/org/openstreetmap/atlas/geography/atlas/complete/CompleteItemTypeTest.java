@@ -22,7 +22,7 @@ public class CompleteItemTypeTest
     @Test
     public void shallowFrom()
     {
-        final Atlas atlas = rule.getAtlas();
+        final Atlas atlas = this.rule.getAtlas();
         final List<CompleteEntity> completeEntities = toCompleteEntities(atlas);
         validate(completeEntities);
     }

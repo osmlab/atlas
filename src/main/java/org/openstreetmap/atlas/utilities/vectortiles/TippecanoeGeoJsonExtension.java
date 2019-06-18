@@ -22,17 +22,17 @@ public class TippecanoeGeoJsonExtension
 
     public TippecanoeGeoJsonExtension addTo(final JsonObject feature)
     {
-        feature.add("tippecanoe", json);
+        feature.add("tippecanoe", this.json);
         return this;
     }
 
     public void layer(final String layer)
     {
-        json.addProperty("layer", layer);
+        this.json.addProperty("layer", layer);
     }
 
     public void minimumZoom(final int minimumZoom)
     {
-        json.addProperty("minzoom", minimumZoom);
+        this.json.addProperty("minzoom", minimumZoom);
     }
 }

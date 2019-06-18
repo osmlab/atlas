@@ -23,40 +23,6 @@ public class AtlasDeltaGeoJsonIntegrationTest
     private Atlas after;
     private AtlasDelta delta;
 
-    @Before
-    public void readAtlases()
-    {
-        before = new TextAtlasBuilder()
-                .read(new InputStreamResource(() -> AtlasDeltaIntegrationTest.class
-                        .getResourceAsStream("DMA_9-168-233-base.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP)
-                                .withName("DMA_9-168-233-base.txt.gz"));
-        after = new TextAtlasBuilder()
-                .read(new InputStreamResource(() -> AtlasDeltaIntegrationTest.class
-                        .getResourceAsStream("DMA_9-168-233-alter.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP)
-                                .withName("DMA_9-168-233-alter.txt.gz"));
-        delta = new AtlasDelta(before, after, false).generate();
-    }
-
-    /**
-     * This is a basic test that should start failing if you change what the delta GeoJSON looks
-     * like.
-     */
-    @Test
-    public void testGeoJson()
-    {
-        final String geoJson = delta.toGeoJson();
-        Assert.assertEquals(22424431, geoJson.length());
-    }
-
-    @Test
-    public void testRelationsGeoJson()
-    {
-        final String relationsGeoJson = delta.toRelationsGeoJson();
-        Assert.assertEquals(454484, relationsGeoJson.length());
-    }
-
     /**
      * Tries parsing the GeoJSON string. We then check a few things about it, such as if it has the
      * applicable diff properties. Also, we count the number of features.
@@ -64,7 +30,7 @@ public class AtlasDeltaGeoJsonIntegrationTest
     @Test
     public void parseGeoJson()
     {
-        final String geoJsonStr = delta.toGeoJson();
+        final String geoJsonStr = this.delta.toGeoJson();
 
         final JsonObject geoJson = new JsonParser().parse(geoJsonStr).getAsJsonObject();
         final JsonArray features = geoJson.getAsJsonArray("features");
@@ -92,5 +58,39 @@ public class AtlasDeltaGeoJsonIntegrationTest
         }
 
         Assert.assertEquals(47646, idx);
+    }
+
+    @Before
+    public void readAtlases()
+    {
+        this.before = new TextAtlasBuilder()
+                .read(new InputStreamResource(() -> AtlasDeltaIntegrationTest.class
+                        .getResourceAsStream("DMA_9-168-233-base.txt.gz"))
+                                .withDecompressor(Decompressor.GZIP)
+                                .withName("DMA_9-168-233-base.txt.gz"));
+        this.after = new TextAtlasBuilder()
+                .read(new InputStreamResource(() -> AtlasDeltaIntegrationTest.class
+                        .getResourceAsStream("DMA_9-168-233-alter.txt.gz"))
+                                .withDecompressor(Decompressor.GZIP)
+                                .withName("DMA_9-168-233-alter.txt.gz"));
+        this.delta = new AtlasDelta(this.before, this.after, false).generate();
+    }
+
+    /**
+     * This is a basic test that should start failing if you change what the delta GeoJSON looks
+     * like.
+     */
+    @Test
+    public void testGeoJson()
+    {
+        final String geoJson = this.delta.toGeoJson();
+        Assert.assertEquals(22424431, geoJson.length());
+    }
+
+    @Test
+    public void testRelationsGeoJson()
+    {
+        final String relationsGeoJson = this.delta.toRelationsGeoJson();
+        Assert.assertEquals(454484, relationsGeoJson.length());
     }
 }

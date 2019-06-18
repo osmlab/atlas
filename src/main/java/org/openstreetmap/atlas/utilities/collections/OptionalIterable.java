@@ -32,7 +32,7 @@ public class OptionalIterable<T> implements Iterable<T>
             @Override
             public boolean hasNext()
             {
-                if (previousElement.isPresent())
+                if (this.previousElement.isPresent())
                 {
                     return true;
                 }

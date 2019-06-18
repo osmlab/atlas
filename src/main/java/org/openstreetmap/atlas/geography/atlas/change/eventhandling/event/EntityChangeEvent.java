@@ -15,9 +15,9 @@ public abstract class EntityChangeEvent implements Serializable
 {
     private static final long serialVersionUID = -9159065869173338344L;
 
-    private CompleteItemType completeItemType;
-    private long identifier;
-    private Optional<Object> newValue;
+    private final CompleteItemType completeItemType;
+    private final long identifier;
+    private final Optional<Object> newValue;
 
     public EntityChangeEvent(final CompleteItemType completeItemType, final long identifier)
     {
@@ -35,16 +35,16 @@ public abstract class EntityChangeEvent implements Serializable
 
     public CompleteItemType getCompleteItemType()
     {
-        return completeItemType;
+        return this.completeItemType;
     }
 
     public long getIdentifier()
     {
-        return identifier;
+        return this.identifier;
     }
 
     public Optional<Object> getNewValue()
     {
-        return newValue;
+        return this.newValue;
     }
 }
