@@ -206,20 +206,19 @@ public class SimpleOptionAndArgumentParser
         }
     }
 
-    private static final String MUST_REGISTER_AT_LEAST_ONE_CONTEXT = "Must register at least one context.";
-
-    private static final String PROVIDED_OPTION_LONG_FORM_WAS_AMBIGUOUS = "provided option long form {} was ambiguous";
-    private static final String CANNOT_GET_OPTIONS_BEFORE_PARSING = "Cannot get options before parsing!";
-
-    private static final Logger logger = LoggerFactory
-            .getLogger(SimpleOptionAndArgumentParser.class);
-
     public static final String LONG_FORM_PREFIX = "--";
     public static final String SHORT_FORM_PREFIX = "-";
     public static final String OPTION_ARGUMENT_DELIMITER = "=";
     public static final String END_OPTIONS_OPERATOR = "--";
 
     public static final int NO_CONTEXT = 0;
+
+    private static final String MUST_REGISTER_AT_LEAST_ONE_CONTEXT = "Must register at least one context.";
+    private static final String PROVIDED_OPTION_LONG_FORM_WAS_AMBIGUOUS = "provided option long form {} was ambiguous";
+    private static final String CANNOT_GET_OPTIONS_BEFORE_PARSING = "Cannot get options before parsing!";
+
+    private static final Logger logger = LoggerFactory
+            .getLogger(SimpleOptionAndArgumentParser.class);
 
     private final Map<Integer, Set<SimpleOption>> contextToRegisteredOptions;
     private final Map<Integer, Map<String, ArgumentArity>> contextToArgumentHintToArity;
@@ -352,6 +351,24 @@ public class SimpleOptionAndArgumentParser
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * Get a mapping from option names to {@link SimpleOption}s.
+     *
+     * @return the mapping
+     */
+    public Map<String, SimpleOption> getOptionNameToRegisteredOption()
+    {
+        final Set<SimpleOption> allOptions = getRegisteredOptions();
+        final Map<String, SimpleOption> map = new HashMap<>();
+
+        for (final SimpleOption option : allOptions)
+        {
+            map.put(option.getLongForm(), option);
+        }
+
+        return map;
     }
 
     /**
@@ -1377,18 +1394,6 @@ public class SimpleOptionAndArgumentParser
         this.registeredContexts.add(context);
     }
 
-    private Optional<SimpleOption> registeredOptionForLongForm(final int context,
-            final String longForm) throws AmbiguousAbbreviationException
-    {
-        return checkForLongOption(longForm, this.contextToRegisteredOptions.get(context), true);
-    }
-
-    private Optional<SimpleOption> registeredOptionForShortForm(final int context,
-            final Character shortForm)
-    {
-        return checkForShortOption(shortForm, this.contextToRegisteredOptions.get(context));
-    }
-
     private void registerOptionHelper(final int context, final String longForm,
             final Character shortForm, final String description,
             final OptionOptionality optionality, final OptionArgumentType type,
@@ -1406,6 +1411,18 @@ public class SimpleOptionAndArgumentParser
         this.contextToRegisteredOptions.put(context, registeredOptionsForContext);
 
         this.registeredContexts.add(context);
+    }
+
+    private Optional<SimpleOption> registeredOptionForLongForm(final int context,
+            final String longForm) throws AmbiguousAbbreviationException
+    {
+        return checkForLongOption(longForm, this.contextToRegisteredOptions.get(context), true);
+    }
+
+    private Optional<SimpleOption> registeredOptionForShortForm(final int context,
+            final Character shortForm)
+    {
+        return checkForShortOption(shortForm, this.contextToRegisteredOptions.get(context));
     }
 
     private void throwIfArgumentHintSeen(final String hint)
