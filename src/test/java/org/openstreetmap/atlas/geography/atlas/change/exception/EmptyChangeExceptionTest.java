@@ -9,7 +9,6 @@ import org.openstreetmap.atlas.exception.CoreException;
  */
 public class EmptyChangeExceptionTest
 {
-
     @Test
     public void testMessage()
     {
