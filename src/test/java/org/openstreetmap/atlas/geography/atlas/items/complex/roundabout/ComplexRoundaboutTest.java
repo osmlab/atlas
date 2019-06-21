@@ -34,7 +34,7 @@ public class ComplexRoundaboutTest
                 this.setup.clockwiseRoundaboutRightDrivingAtlas().edge(1234));
         Assert.assertFalse(complexRoundabout.isValid());
         Assert.assertEquals(1, complexRoundabout.getInvalidationReasons().size());
-        Assert.assertEquals(ComplexRoundabout.WRONG_WAY_INSTRUCTIONS,
+        Assert.assertEquals(ComplexRoundabout.WRONG_WAY_INVALIDATION,
                 complexRoundabout.getInvalidationReasons().get(0));
     }
 
@@ -55,7 +55,7 @@ public class ComplexRoundaboutTest
                 this.setup.counterClockwiseRoundaboutLeftDrivingAtlas().edge(1234));
         Assert.assertFalse(complexRoundabout.isValid());
         Assert.assertEquals(1, complexRoundabout.getInvalidationReasons().size());
-        Assert.assertEquals(ComplexRoundabout.WRONG_WAY_INSTRUCTIONS,
+        Assert.assertEquals(ComplexRoundabout.WRONG_WAY_INVALIDATION,
                 complexRoundabout.getInvalidationReasons().get(0));
     }
 
@@ -75,7 +75,7 @@ public class ComplexRoundaboutTest
                 this.setup.multiDirectionalRoundaboutAtlas().edge(1234));
         Assert.assertFalse(complexRoundabout.isValid());
         Assert.assertEquals(1, complexRoundabout.getInvalidationReasons().size());
-        Assert.assertEquals(ComplexRoundabout.INCOMPLETE_ROUTE_INSTRUCTIONS,
+        Assert.assertEquals(ComplexRoundabout.INCOMPLETE_ROUTE_INVALIDATION,
                 complexRoundabout.getInvalidationReasons().get(0));
     }
 
@@ -86,7 +86,7 @@ public class ComplexRoundaboutTest
                 this.setup.clockwiseRoundaboutLeftDrivingMissingTagAtlas().edge(1234));
         Assert.assertFalse(complexRoundabout.isValid());
         Assert.assertEquals(1, complexRoundabout.getInvalidationReasons().size());
-        Assert.assertEquals(ComplexRoundabout.INCOMPLETE_ROUTE_INSTRUCTIONS,
+        Assert.assertEquals(ComplexRoundabout.INCOMPLETE_ROUTE_INVALIDATION,
                 complexRoundabout.getInvalidationReasons().get(0));
     }
 
@@ -97,7 +97,7 @@ public class ComplexRoundaboutTest
                 this.setup.counterClockwiseConnectedDoubleRoundaboutRightDrivingAtlas().edge(1234));
         Assert.assertFalse(complexRoundabout.isValid());
         Assert.assertEquals(1, complexRoundabout.getInvalidationReasons().size());
-        Assert.assertEquals(ComplexRoundabout.INCOMPLETE_ROUTE_INSTRUCTIONS,
+        Assert.assertEquals(ComplexRoundabout.INCOMPLETE_ROUTE_INVALIDATION,
                 complexRoundabout.getInvalidationReasons().get(0));
     }
 
@@ -117,7 +117,7 @@ public class ComplexRoundaboutTest
                 this.setup.counterClockwiseRoundaboutRightDrivingOneWayNoAtlas().edge(1234));
         Assert.assertFalse(complexRoundabout.isValid());
         Assert.assertEquals(1, complexRoundabout.getInvalidationReasons().size());
-        Assert.assertEquals(ComplexRoundabout.INCOMPLETE_ROUTE_INSTRUCTIONS,
+        Assert.assertEquals(ComplexRoundabout.INCOMPLETE_ROUTE_INVALIDATION,
                 complexRoundabout.getInvalidationReasons().get(0));
     }
 
@@ -128,7 +128,7 @@ public class ComplexRoundaboutTest
                 this.setup.counterClockwiseRoundaboutRightDrivingNonCarNavigableAtlas().edge(1234));
         Assert.assertFalse(complexRoundabout.isValid());
         Assert.assertEquals(1, complexRoundabout.getInvalidationReasons().size());
-        Assert.assertEquals(ComplexRoundabout.INCOMPLETE_ROUTE_INSTRUCTIONS,
+        Assert.assertEquals(ComplexRoundabout.INCOMPLETE_ROUTE_INVALIDATION,
                 complexRoundabout.getInvalidationReasons().get(0));
     }
 

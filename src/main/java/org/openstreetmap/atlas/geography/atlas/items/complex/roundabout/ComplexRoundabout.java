@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -29,8 +30,16 @@ import org.openstreetmap.atlas.tags.JunctionTag;
  */
 public class ComplexRoundabout extends ComplexEntity
 {
-    protected static final String WRONG_WAY_INSTRUCTIONS = "This roundabout is going the wrong direction, or has been improperly tagged as a roundabout.";
-    protected static final String INCOMPLETE_ROUTE_INSTRUCTIONS = "This roundabout does not form a single, one-way, complete, car navigable route.";
+    protected static final String WRONG_WAY_INVALIDATION = "This roundabout is going the wrong direction, or has been improperly tagged as a roundabout.";
+    protected static final String INCOMPLETE_ROUTE_INVALIDATION = "This roundabout does not form a single, one-way, complete, car navigable route.";
+    private static final List<String> LEFT_DRIVING_COUNTRIES_DEFAULT = Arrays.asList("AIA", "ATG",
+            "AUS", "BGD", "BHS", "BMU", "BRB", "BRN", "BTN", "BWA", "CCK", "COK", "CXR", "CYM",
+            "CYP", "DMA", "FJI", "FLK", "GBR", "GGY", "GRD", "GUY", "HKG", "IDN", "IMN", "IND",
+            "IRL", "JAM", "JEY", "JPN", "KEN", "KIR", "KNA", "LCA", "LKA", "LSO", "MAC", "MDV",
+            "MLT", "MOZ", "MSR", "MUS", "MWI", "MYS", "NAM", "NFK", "NIU", "NPL", "NRU", "NZL",
+            "PAK", "PCN", "PNG", "SGP", "SGS", "SHN", "SLB", "SUR", "SWZ", "SYC", "TCA", "THA",
+            "TKL", "TLS", "TON", "TTO", "TUV", "TZA", "UGA", "VCT", "VGB", "VIR", "WSM", "ZAF",
+            "ZMB", "ZWE");
 
     private final List<String> invalidationReasons = new ArrayList<>();
     private Set<Edge> roundaboutEdgeSet;
@@ -151,13 +160,7 @@ public class ComplexRoundabout extends ComplexEntity
 
     public ComplexRoundabout(final Edge source)
     {
-        this(source, Arrays.asList("AIA", "ATG", "AUS", "BGD", "BHS", "BMU", "BRB", "BRN", "BTN",
-                "BWA", "CCK", "COK", "CXR", "CYM", "CYP", "DMA", "FJI", "FLK", "GBR", "GGY", "GRD",
-                "GUY", "HKG", "IDN", "IMN", "IND", "IRL", "JAM", "JEY", "JPN", "KEN", "KIR", "KNA",
-                "LCA", "LKA", "LSO", "MAC", "MDV", "MLT", "MOZ", "MSR", "MUS", "MWI", "MYS", "NAM",
-                "NFK", "NIU", "NPL", "NRU", "NZL", "PAK", "PCN", "PNG", "SGP", "SGS", "SHN", "SLB",
-                "SUR", "SWZ", "SYC", "TCA", "THA", "TKL", "TLS", "TON", "TTO", "TUV", "TZA", "UGA",
-                "VCT", "VGB", "VIR", "WSM", "ZAF", "ZMB", "ZWE"));
+        this(source, LEFT_DRIVING_COUNTRIES_DEFAULT);
     }
 
     public ComplexRoundabout(final Edge source, final List leftDrivingCountries)
@@ -173,7 +176,8 @@ public class ComplexRoundabout extends ComplexEntity
                     // Make sure that we are looking at a master edge
                     && (source.isMasterEdge())))
             {
-                throw new CoreException("Invalid source edge for a roundabout.");
+                throw new CoreException("Invalid source Edge ({}) for a roundabout.",
+                        source.getIdentifier());
             }
             final String isoCountryCode = source.tag(ISOCountryTag.KEY).toUpperCase();
 
@@ -186,21 +190,25 @@ public class ComplexRoundabout extends ComplexEntity
             {
                 this.roundaboutRoute = Route.fromNonArrangedEdgeSet(this.roundaboutEdgeSet, false);
             }
-            // If a Route cannot be formed, flag the edges as an incomplete roundabout.
+            // If a Route cannot be formed, invalidate the roundabout.
             catch (final CoreException badRoundabout)
             {
-                this.invalidationReasons.add(INCOMPLETE_ROUTE_INSTRUCTIONS);
-                throw new CoreException(INCOMPLETE_ROUTE_INSTRUCTIONS);
+                this.invalidationReasons.add(INCOMPLETE_ROUTE_INVALIDATION);
+                throw new CoreException(
+                        "Exception thrown building Route for Edges {}: {}", this.roundaboutEdgeSet
+                                .stream().map(Edge::getIdentifier).collect(Collectors.toSet()),
+                        INCOMPLETE_ROUTE_INVALIDATION);
             }
 
-            // Flag if any of the edges are not car navigable or master Edges, or the route does not
+            // Invalidate the roundabout if any of the edges are not car navigable or master Edges,
+            // or the route does not
             // form a closed loop.
             if (this.roundaboutEdgeSet.stream()
                     .anyMatch(roundaboutEdge -> !HighwayTag.isCarNavigableHighway(roundaboutEdge)
                             || !roundaboutEdge.isMasterEdge())
                     || !this.roundaboutRoute.start().inEdges().contains(this.roundaboutRoute.end()))
             {
-                this.invalidationReasons.add(INCOMPLETE_ROUTE_INSTRUCTIONS);
+                this.invalidationReasons.add(INCOMPLETE_ROUTE_INVALIDATION);
             }
 
             // Get the direction of the roundabout
@@ -214,11 +222,14 @@ public class ComplexRoundabout extends ComplexEntity
             if (direction.equals(RoundaboutDirection.CLOCKWISE) && !isLeftDriving
                     || direction.equals(RoundaboutDirection.COUNTERCLOCKWISE) && isLeftDriving)
             {
-                this.invalidationReasons.add(WRONG_WAY_INSTRUCTIONS);
+                this.invalidationReasons.add(WRONG_WAY_INVALIDATION);
             }
+
+            // If there is an invalidation logged, invalidate the roundabout
             if (!this.invalidationReasons.isEmpty())
             {
-                throw new CoreException(this.invalidationReasons.get(0));
+                throw new CoreException("Error building ComplexRoundabout for Edge {}: {}",
+                        source.getIdentifier(), this.invalidationReasons.get(0));
             }
         }
         catch (final Exception exception)
