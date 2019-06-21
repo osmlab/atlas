@@ -15,6 +15,7 @@ import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.Tag
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.converters.WktPolyLineConverter;
 
 /**
  * Independent {@link Edge} that contains its own data. At scale, use at your own risk.
@@ -158,6 +159,17 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     public Map<String, String> getTags()
     {
         return this.tags;
+    }
+
+    @Override
+    public String getWKT()
+    {
+        if (this.polyLine == null)
+        {
+            return null;
+        }
+        final WktPolyLineConverter converter = new WktPolyLineConverter();
+        return converter.convert(this.polyLine);
     }
 
     @Override

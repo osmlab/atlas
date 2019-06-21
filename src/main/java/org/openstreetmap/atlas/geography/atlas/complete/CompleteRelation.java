@@ -20,6 +20,7 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
+import org.openstreetmap.atlas.geography.converters.WktPolygonConverter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
@@ -183,6 +184,17 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     public Map<String, String> getTags()
     {
         return this.tags;
+    }
+
+    @Override
+    public String getWKT()
+    {
+        if (this.bounds == null)
+        {
+            return null;
+        }
+        final WktPolygonConverter converter = new WktPolygonConverter();
+        return converter.convert(this.bounds);
     }
 
     @Override

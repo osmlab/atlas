@@ -14,6 +14,7 @@ import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagCha
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.converters.WktPolyLineConverter;
 
 /**
  * Independent {@link Line} that contains its own data. At scale, use at your own risk.
@@ -138,6 +139,17 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     public Map<String, String> getTags()
     {
         return this.tags;
+    }
+
+    @Override
+    public String getWKT()
+    {
+        if (this.polyLine == null)
+        {
+            return null;
+        }
+        final WktPolyLineConverter converter = new WktPolyLineConverter();
+        return converter.convert(this.polyLine);
     }
 
     @Override

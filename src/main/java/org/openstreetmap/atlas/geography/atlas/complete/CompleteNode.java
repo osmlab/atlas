@@ -17,6 +17,7 @@ import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.Tag
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.converters.WktLocationConverter;
 
 /**
  * Independent {@link Node} that may contain its own altered data. At scale, use at your own risk.
@@ -166,6 +167,17 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     public Map<String, String> getTags()
     {
         return this.tags;
+    }
+
+    @Override
+    public String getWKT()
+    {
+        if (this.location == null)
+        {
+            return null;
+        }
+        final WktLocationConverter converter = new WktLocationConverter();
+        return converter.convert(this.location);
     }
 
     @Override
