@@ -1,10 +1,17 @@
 package org.openstreetmap.atlas.utilities.checkstyle;
 
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.streaming.resource.Resource;
+import org.openstreetmap.atlas.utilities.collections.StringList;
 
 import com.puppycrawl.tools.checkstyle.api.AbstractCheck;
 import com.puppycrawl.tools.checkstyle.api.DetailAST;
@@ -23,7 +30,23 @@ public class ArrangementCheck extends AbstractCheck
         PUBLIC,
         PROTECTED,
         PACKAGE_PRIVATE,
-        PRIVATE
+        PRIVATE;
+
+        public static Visibility forName(final String name)
+        {
+            for (final Visibility visibility : Visibility.values())
+            {
+                if (visibility.name().equalsIgnoreCase(name))
+                {
+                    return visibility;
+                }
+            }
+            if (name.isEmpty())
+            {
+                return Visibility.PACKAGE_PRIVATE;
+            }
+            throw new CoreException("Invalid name \"{}\"", name);
+        }
     }
 
     /**
@@ -41,6 +64,18 @@ public class ArrangementCheck extends AbstractCheck
         CONSTRUCTOR(TokenTypes.CTOR_DEF);
 
         private final int tokenType;
+
+        public static Type forName(final String name)
+        {
+            for (final Type type : Type.values())
+            {
+                if (type.name().equalsIgnoreCase(name))
+                {
+                    return type;
+                }
+            }
+            throw new CoreException("Invalid name {}", name);
+        }
 
         public static Type forType(final int tokenType)
         {
@@ -63,70 +98,33 @@ public class ArrangementCheck extends AbstractCheck
     /**
      * @author matthieun
      */
-    private static class ObjectType implements Comparable<ObjectType>
+    private static class ObjectRawType
     {
-        private static final ObjectTypeComparator OBJECT_TYPE_COMPARATOR = new ObjectTypeComparator();
-
         private final Visibility visibility;
         private final Type type;
         private final boolean isStatic;
-        private final String name;
 
-        ObjectType(final DetailAST object)
+        ObjectRawType(final Visibility visibility, final Type type, final boolean isStatic)
         {
-            this.type = Type.forType(object.getType());
-            final Optional<DetailAST> ident = findFirstToken(object, TokenTypes.IDENT);
-            this.name = ident.isPresent() ? ident.get().getText() : "";
-            final Optional<DetailAST> modifiers = findFirstToken(object, TokenTypes.MODIFIERS);
-            if (modifiers.isPresent())
-            {
-                if (findFirstToken(modifiers.get(), TokenTypes.LITERAL_PRIVATE).isPresent())
-                {
-                    this.visibility = Visibility.PRIVATE;
-                }
-                else if (findFirstToken(modifiers.get(), TokenTypes.LITERAL_PROTECTED).isPresent())
-                {
-                    this.visibility = Visibility.PROTECTED;
-                }
-                else if (findFirstToken(modifiers.get(), TokenTypes.LITERAL_PUBLIC).isPresent())
-                {
-                    this.visibility = Visibility.PUBLIC;
-                }
-                else
-                {
-                    this.visibility = Visibility.PACKAGE_PRIVATE;
-                }
-                this.isStatic = findFirstToken(modifiers.get(), TokenTypes.LITERAL_STATIC)
-                        .isPresent();
-            }
-            else
-            {
-                this.visibility = Visibility.PACKAGE_PRIVATE;
-                this.isStatic = false;
-            }
-        }
-
-        @Override
-        public int compareTo(final ObjectType that)
-        {
-            return OBJECT_TYPE_COMPARATOR.compare(this, that);
+            this.visibility = visibility;
+            this.type = type;
+            this.isStatic = isStatic;
         }
 
         @Override
         public boolean equals(final Object other)
         {
             if (this == other)
+            {
                 return true;
+            }
             if (other == null || getClass() != other.getClass())
+            {
                 return false;
-            final ObjectType that = (ObjectType) other;
+            }
+            final ObjectRawType that = (ObjectRawType) other;
             return isStatic() == that.isStatic() && getVisibility() == that.getVisibility()
-                    && getType() == that.getType() && getName().equals(that.getName());
-        }
-
-        public String getName()
-        {
-            return this.name;
+                    && getType() == that.getType();
         }
 
         public Type getType()
@@ -142,19 +140,128 @@ public class ArrangementCheck extends AbstractCheck
         @Override
         public int hashCode()
         {
-            return Objects.hash(getVisibility(), getType(), isStatic(), getName());
+            return Objects.hash(getVisibility(), getType(), isStatic());
         }
 
         public boolean isStatic()
         {
             return this.isStatic;
         }
+    }
+
+    /**
+     * @author matthieun
+     */
+    private static class ObjectType implements Comparable<ObjectType>
+    {
+        private final ObjectRawType objectRawType;
+        private final String name;
+
+        ObjectType(final DetailAST object)
+        {
+            final Type type = Type.forType(object.getType());
+            final Visibility visibility;
+            final boolean isStatic;
+            final Optional<DetailAST> ident = findFirstToken(object, TokenTypes.IDENT);
+            if (ident.isPresent())
+            {
+                this.name = ident.get().getText();
+            }
+            else if (Type.INITIALIZER_BLOCK == type || Type.STATIC_INITIALIZER_BLOCK == type)
+            {
+                this.name = type.name().toLowerCase();
+            }
+            else
+            {
+                this.name = "";
+            }
+            final Optional<DetailAST> modifiers = findFirstToken(object, TokenTypes.MODIFIERS);
+            if (modifiers.isPresent())
+            {
+                if (findFirstToken(modifiers.get(), TokenTypes.LITERAL_PRIVATE).isPresent())
+                {
+                    visibility = Visibility.PRIVATE;
+                }
+                else if (findFirstToken(modifiers.get(), TokenTypes.LITERAL_PROTECTED).isPresent())
+                {
+                    visibility = Visibility.PROTECTED;
+                }
+                else if (findFirstToken(modifiers.get(), TokenTypes.LITERAL_PUBLIC).isPresent())
+                {
+                    visibility = Visibility.PUBLIC;
+                }
+                else
+                {
+                    visibility = Visibility.PACKAGE_PRIVATE;
+                }
+                isStatic = findFirstToken(modifiers.get(), TokenTypes.LITERAL_STATIC).isPresent();
+            }
+            else
+            {
+                visibility = Visibility.PACKAGE_PRIVATE;
+                isStatic = false;
+            }
+            this.objectRawType = new ObjectRawType(visibility, type, isStatic);
+        }
+
+        @Override
+        public int compareTo(final ObjectType that)
+        {
+            return OBJECT_TYPE_COMPARATOR.compare(this, that);
+        }
+
+        @Override
+        public boolean equals(final Object other)
+        {
+            if (this == other)
+            {
+                return true;
+            }
+            if (other == null || getClass() != other.getClass())
+            {
+                return false;
+            }
+            final ObjectType that = (ObjectType) other;
+            return getObjectRawType().equals(that.getObjectRawType())
+                    && getName().equals(that.getName());
+        }
+
+        public String getName()
+        {
+            return this.name;
+        }
+
+        public ObjectRawType getObjectRawType()
+        {
+            return this.objectRawType;
+        }
+
+        public Type getType()
+        {
+            return this.objectRawType.getType();
+        }
+
+        public Visibility getVisibility()
+        {
+            return this.objectRawType.getVisibility();
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return Objects.hash(getVisibility(), getType(), isStatic(), getName());
+        }
+
+        public boolean isStatic()
+        {
+            return this.objectRawType.isStatic();
+        }
 
         @Override
         public String toString()
         {
-            return "ObjectType{" + "visibility=" + this.visibility + ", type=" + this.type + ", isStatic="
-                    + this.isStatic + ", name='" + this.name + '\'' + '}';
+            return "ObjectType{" + "visibility=" + this.getVisibility() + ", type=" + this.getType()
+                    + ", isStatic=" + this.isStatic() + ", name='" + this.name + '\'' + '}';
         }
     }
 
@@ -163,16 +270,71 @@ public class ArrangementCheck extends AbstractCheck
      */
     private static class ObjectTypeComparator implements Comparator<ObjectType>
     {
+        private static final int ARRANGEMENT_LINE_SIZE = 3;
+        private static final String FILE_NAME = "arrangement.txt";
+        private final Map<ObjectRawType, Integer> rawTypeToOrderIndex;
+
         ObjectTypeComparator()
         {
+            int index = 0;
+            try
+            {
+                final Resource ordering = new InputStreamResource(
+                        () -> ArrangementCheck.class.getResourceAsStream(FILE_NAME));
+                this.rawTypeToOrderIndex = new HashMap<>();
+                for (final String line : ordering.lines())
+                {
+                    final StringList split = StringList.split(line, ",");
+                    if (line.isEmpty() || line.startsWith("#"))
+                    {
+                        index++;
+                        continue;
+                    }
+                    if (split.size() != ARRANGEMENT_LINE_SIZE)
+                    {
+                        throw new CoreException("Malformed line: \"{}\"", line);
+                    }
+                    final Type type = Type.forName(split.get(0));
+                    final Visibility visibility = Visibility.forName(split.get(1));
+                    final boolean isStatic = "static".equalsIgnoreCase(split.get(2));
+                    this.rawTypeToOrderIndex.put(new ObjectRawType(visibility, type, isStatic),
+                            index);
+                    index++;
+                }
+            }
+            catch (final Exception e)
+            {
+                throw new CoreException(
+                        "Unable to parse file defining arrangement (was at line {}): {}", index + 1,
+                        ArrangementCheck.class.getResource(FILE_NAME).getPath(), e);
+            }
         }
 
         @Override
         public int compare(final ObjectType left, final ObjectType right)
         {
-            return -1;
+            final int difference = this.rawTypeToOrderIndex.get(left.getObjectRawType())
+                    - this.rawTypeToOrderIndex.get(right.getObjectRawType());
+            if (difference == 0)
+            {
+                final String leftName = left.getName();
+                final String rightName = right.getName();
+                final int result = leftName.compareTo(rightName);
+                return result;
+            }
+            else
+            {
+                return difference;
+            }
+        }
+
+        public boolean isComparable(final ObjectType object)
+        {
+            return this.rawTypeToOrderIndex.containsKey(object.getObjectRawType());
         }
     }
+
+    private static final ObjectTypeComparator OBJECT_TYPE_COMPARATOR = new ObjectTypeComparator();
 
     public static Optional<DetailAST> findFirstToken(final DetailAST source, final int tokenType)
     {
@@ -189,7 +351,8 @@ public class ArrangementCheck extends AbstractCheck
     public int[] getDefaultTokens()
     {
         return new int[] { TokenTypes.CLASS_DEF, TokenTypes.ENUM_DEF, TokenTypes.METHOD_DEF,
-                TokenTypes.VARIABLE_DEF, TokenTypes.CTOR_DEF, TokenTypes.INTERFACE_DEF };
+                TokenTypes.VARIABLE_DEF, TokenTypes.CTOR_DEF, TokenTypes.INTERFACE_DEF,
+                TokenTypes.STATIC_INIT, TokenTypes.INSTANCE_INIT };
     }
 
     @Override
@@ -201,13 +364,46 @@ public class ArrangementCheck extends AbstractCheck
     @Override
     public void visitToken(final DetailAST object)
     {
-        final DetailAST nextSibling = object.getNextSibling();
         final ObjectType left = new ObjectType(object);
-        final ObjectType right = new ObjectType(nextSibling);
-
-        if (left.compareTo(right) < 0)
+        if (!acceptedTokens().contains(object.getType())
+                || !OBJECT_TYPE_COMPARATOR.isComparable(left))
         {
-            log(nextSibling.getLineNo(), "Invalid method order.");
+            return;
         }
+        Optional<DetailAST> nextSibling = Optional.ofNullable(object.getNextSibling());
+        while (nextSibling.isPresent() && (!acceptedTokens().contains(nextSibling.get().getType())
+                || !OBJECT_TYPE_COMPARATOR.isComparable(new ObjectType(nextSibling.get()))))
+        {
+            nextSibling = Optional.ofNullable(nextSibling.get().getNextSibling());
+        }
+        if (nextSibling.isPresent())
+        {
+            final DetailAST nextSiblingGet = nextSibling.get();
+            final ObjectType right = new ObjectType(nextSiblingGet);
+
+            if (left.compareTo(right) > 0)
+            {
+                String moreInfo = "";
+                if (!left.getName().isEmpty())
+                {
+                    moreInfo = moreInfo + ", " + left.getName();
+                }
+                if (!right.getName().isEmpty())
+                {
+                    moreInfo = moreInfo + ", " + right.getName();
+                }
+                log(nextSiblingGet.getLineNo(), "Invalid order" + moreInfo);
+            }
+        }
+    }
+
+    private Set<Integer> acceptedTokens()
+    {
+        final HashSet<Integer> result = new HashSet<>();
+        for (final int value : getAcceptableTokens())
+        {
+            result.add(value);
+        }
+        return result;
     }
 }
