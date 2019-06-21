@@ -1,6 +1,18 @@
 package org.openstreetmap.atlas.utilities.identifiers;
 
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.utilities.collections.StringList;
 
 /**
  * Generate unique 64 bit (Java long) identifiers for {@link CompleteEntity}s. The identifiers are
@@ -12,38 +24,124 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
  */
 public class EntityIdentifierGenerator
 {
-    public long generate(final CompleteEntity entity)
+    private static final long HIGHEST_ATLAS_ID = 900000000999999L;
+    private static final long LOWEST_ATLAS_ID = -900000000999999L;
+
+    /**
+     * Generate a 64 bit hash for a given {@link CompleteEntity}. The entity must contain enough
+     * information for it to be created from scratch.
+     * 
+     * @param entity
+     *            the entity
+     * @return the hash
+     */
+    public long generate(final CompleteEntity<?> entity)
     {
-        // TODO implement
-        return 0L;
+        final String entityString = getPropertyString(entity)
+                + getTypeSpecificPropertyString(entity);
+        UUID entityHash = UUID.nameUUIDFromBytes(entityString.getBytes());
+
+        long shortHash = entityHash.getMostSignificantBits();
+        while (!isHashSafeToUse(shortHash))
+        {
+            entityHash = UUID.nameUUIDFromBytes(entityHash.toString().getBytes());
+            shortHash = entityHash.getMostSignificantBits();
+        }
+
+        return shortHash;
     }
 
     /**
      * Given some {@link CompleteEntity}, compute a string made up of the concatenated basic entity
      * properties (i.e. the geometry WKT and the tags).
-     * 
+     *
      * @param entity
      *            the {@link CompleteEntity} to string-ify
      * @return the property string
      */
-    private String getPropertyString(final CompleteEntity entity)
+    String getPropertyString(final CompleteEntity<?> entity)
     {
-        // TODO implement
-        return null;
+        final String wkt = entity.getWKT();
+        if (wkt == null)
+        {
+            throw new CoreException("Geometry must be set for entity {}", entity.prettify());
+        }
+
+        final Map<String, String> tags = entity.getTags();
+        if (tags == null)
+        {
+            throw new CoreException("Tags must be set for entity {}", entity.prettify());
+        }
+        final SortedSet<String> sortedTags = tags.entrySet().stream()
+                .map(entry -> entry.getKey() + "=" + entry.getValue())
+                .collect(Collectors.toCollection(TreeSet::new));
+        final String tagString = new StringList(sortedTags).join(",");
+
+        return wkt + ";" + tagString;
     }
 
     /**
      * Given some {@link CompleteEntity}, compute a string made up of concatenated type specific
      * entity properties (e.g. for a {@link CompleteNode} this would be the in/out {@link Edge}
      * identifiers).
-     * 
+     *
      * @param entity
      *            the {@link CompleteEntity} to string-ify
      * @return the property string
      */
-    private String getTypeSpecificPropertyString(final CompleteEntity entity)
+    String getTypeSpecificPropertyString(final CompleteEntity<?> entity)
     {
-        // TODO implement
-        return null;
+        final StringBuilder builder = new StringBuilder();
+        builder.append(";");
+        switch (entity.getType())
+        {
+            case EDGE:
+                final CompleteEdge edge = (CompleteEdge) entity;
+                if (edge.start() != null)
+                {
+                    builder.append(edge.start().getIdentifier());
+                }
+                builder.append(";");
+                if (edge.end() != null)
+                {
+                    builder.append(edge.end().getIdentifier());
+                }
+                return builder.toString();
+            case NODE:
+                final CompleteNode node = (CompleteNode) entity;
+                if (node.inEdges() != null)
+                {
+                    node.inEdges().stream().map(Edge::getIdentifier)
+                            .forEach(identifier -> builder.append(identifier + ","));
+                }
+                builder.append(";");
+                if (node.outEdges() != null)
+                {
+                    node.outEdges().stream().map(Edge::getIdentifier)
+                            .forEach(identifier -> builder.append(identifier + ","));
+                }
+                return builder.toString();
+            case RELATION:
+                final CompleteRelation relation = (CompleteRelation) entity;
+                if (relation.members() != null)
+                {
+                    builder.append(relation.members().asBean().toString());
+                }
+                return builder.toString();
+            default:
+                return "";
+        }
+    }
+
+    /**
+     * Check if the hash falls outside of the unsafe range of possible OSM identifiers.
+     * 
+     * @param hash
+     *            the hash to check
+     * @return if the hash is in range
+     */
+    boolean isHashSafeToUse(final long hash)
+    {
+        return !(hash < HIGHEST_ATLAS_ID && hash >= LOWEST_ATLAS_ID);
     }
 }

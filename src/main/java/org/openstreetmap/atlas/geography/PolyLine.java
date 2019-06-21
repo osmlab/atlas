@@ -52,19 +52,21 @@ import com.google.gson.JsonObject;
 public class PolyLine
         implements Collection<Location>, Located, Serializable, GeometryPrintable, GeoJsonGeometry
 {
-    private static final long serialVersionUID = -3291779878869865427L;
-    protected static final int SIMPLE_STRING_LENGTH = 200;
-    private static final Logger logger = LoggerFactory.getLogger(PolyLine.class);
-    private static final String IMMUTABLE_POLYLINE = "A polyline is immutable";
-
     public static final PolyLine TEST_POLYLINE = new PolyLine(Location.TEST_3, Location.TEST_7,
             Location.TEST_4, Location.TEST_1, Location.TEST_5);
     public static final PolyLine TEST_POLYLINE_2 = new PolyLine(Location.TEST_1, Location.TEST_5,
             Location.TEST_4, Location.TEST_3, Location.TEST_7);
     public static final PolyLine CENTER = new PolyLine(Location.CENTER);
+    public static final PolyLine SIMPLE_POLYLINE = new PolyLine(Location.forString("1,1"),
+            Location.forString("2,2"));
 
     public static final String SEPARATOR = ":";
 
+    protected static final int SIMPLE_STRING_LENGTH = 200;
+
+    private static final long serialVersionUID = -3291779878869865427L;
+    private static final Logger logger = LoggerFactory.getLogger(PolyLine.class);
+    private static final String IMMUTABLE_POLYLINE = "A polyline is immutable";
     private final List<Location> points;
 
     public static GeoJsonObject asGeoJson(final Iterable<? extends Iterable<Location>> geometries)
