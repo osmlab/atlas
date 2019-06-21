@@ -18,9 +18,22 @@ field,protected,static
 field,package_private,static
 field,private,static
 
+initializer_block,,static
+
 method,public,static
 method,protected,static
 method,package_private,static
 method,private,static
 
-constructor
+initializer_block,,
+
+constructor,public,
+constructor,protected,
+constructor,package_private,
+constructor,private,
+
+method,public,
+method,protected,
+method,package_private,
+method,private,
+

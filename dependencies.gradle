@@ -70,4 +70,5 @@ project.ext.packages = [
     artifact: "org.apache.maven:maven-artifact:${versions.artifact}",
     groovy: "org.codehaus.groovy:groovy:${versions.groovy}",
     checkstyle: "com.puppycrawl.tools:checkstyle:${versions.checkstyle}",
+    checkstyle_tests: "com.puppycrawl.tools:checkstyle:${versions.checkstyle}:tests",
 ]
