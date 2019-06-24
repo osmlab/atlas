@@ -1,5 +1,8 @@
 package org.openstreetmap.atlas.utilities.scalars;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -39,5 +42,24 @@ public class DurationTest
         Assert.assertEquals(highest, lowest.highest(highest));
         Assert.assertEquals(highest, highest.highest(lowest));
         Assert.assertEquals(lowest, lowest.highest(null));
+    }
+
+    @Test
+    public void testSort()
+    {
+        final Duration duration1 = Duration.hours(2.9999999);
+        final Duration duration2 = Duration.hours(3);
+        final Duration duration3 = Duration.ONE_DAY;
+
+        final List<Duration> durationSorted = Arrays.asList(duration1, duration2, duration3);
+        final List<Duration> durationUnsorted = Arrays.asList(duration1, duration3, duration2);
+
+        // get max min
+        Assert.assertEquals(duration3, durationUnsorted.stream().max(Duration::compareTo).get());
+        Assert.assertEquals(duration1, durationUnsorted.stream().min(Duration::compareTo).get());
+
+        // sort and test
+        durationUnsorted.sort(Duration::compareTo);
+        Assert.assertEquals(durationSorted, durationUnsorted);
     }
 }

@@ -9,7 +9,7 @@ import org.openstreetmap.atlas.exception.CoreException;
  *
  * @author matthieun
  */
-public final class Duration implements Serializable
+public final class Duration implements Serializable, Comparable<Duration>
 {
     private static final long serialVersionUID = 8306012362496627267L;
 
@@ -78,6 +78,23 @@ public final class Duration implements Serializable
     public double asSeconds()
     {
         return (double) this.asMilliseconds() / MILLISECONDS_PER_SECOND;
+    }
+
+    @Override
+    public int compareTo(final Duration other)
+    {
+        if (this.milliseconds > other.milliseconds)
+        {
+            return 1;
+        }
+        else if (this.milliseconds == other.milliseconds)
+        {
+            return 0;
+        }
+        else
+        {
+            return -1;
+        }
     }
 
     public Duration difference(final Duration that)
