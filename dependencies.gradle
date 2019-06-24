@@ -70,4 +70,5 @@ project.ext.packages = [
     protoc: "com.google.protobuf:protoc:${versions.protoc}",
     artifact: "org.apache.maven:maven-artifact:${versions.artifact}",
     groovy: "org.codehaus.groovy:groovy:${versions.groovy}",
+    atlas_checkstyle: "org.openstreetmap.atlas:atlas:${versions.atlas_checkstyle}",
 ]
