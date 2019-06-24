@@ -33,9 +33,9 @@ public class ComplexRoundaboutTest
         final ComplexRoundabout complexRoundabout = new ComplexRoundabout(
                 this.setup.clockwiseRoundaboutRightDrivingAtlas().edge(1234));
         Assert.assertFalse(complexRoundabout.isValid());
-        Assert.assertEquals(1, complexRoundabout.getInvalidationReasons().size());
+        Assert.assertEquals(1, complexRoundabout.getAllInvalidations().size());
         Assert.assertEquals(ComplexRoundabout.WRONG_WAY_INVALIDATION,
-                complexRoundabout.getInvalidationReasons().get(0));
+                complexRoundabout.getAllInvalidations().get(0).getReason());
     }
 
     @Test
@@ -54,9 +54,9 @@ public class ComplexRoundaboutTest
         final ComplexRoundabout complexRoundabout = new ComplexRoundabout(
                 this.setup.counterClockwiseRoundaboutLeftDrivingAtlas().edge(1234));
         Assert.assertFalse(complexRoundabout.isValid());
-        Assert.assertEquals(1, complexRoundabout.getInvalidationReasons().size());
+        Assert.assertEquals(1, complexRoundabout.getAllInvalidations().size());
         Assert.assertEquals(ComplexRoundabout.WRONG_WAY_INVALIDATION,
-                complexRoundabout.getInvalidationReasons().get(0));
+                complexRoundabout.getAllInvalidations().get(0).getReason());
     }
 
     @Test
@@ -74,9 +74,9 @@ public class ComplexRoundaboutTest
         final ComplexRoundabout complexRoundabout = new ComplexRoundabout(
                 this.setup.multiDirectionalRoundaboutAtlas().edge(1234));
         Assert.assertFalse(complexRoundabout.isValid());
-        Assert.assertEquals(1, complexRoundabout.getInvalidationReasons().size());
+        Assert.assertEquals(1, complexRoundabout.getAllInvalidations().size());
         Assert.assertEquals(ComplexRoundabout.INCOMPLETE_ROUTE_INVALIDATION,
-                complexRoundabout.getInvalidationReasons().get(0));
+                complexRoundabout.getAllInvalidations().get(0).getReason());
     }
 
     @Test
@@ -85,9 +85,9 @@ public class ComplexRoundaboutTest
         final ComplexRoundabout complexRoundabout = new ComplexRoundabout(
                 this.setup.clockwiseRoundaboutLeftDrivingMissingTagAtlas().edge(1234));
         Assert.assertFalse(complexRoundabout.isValid());
-        Assert.assertEquals(1, complexRoundabout.getInvalidationReasons().size());
+        Assert.assertEquals(1, complexRoundabout.getAllInvalidations().size());
         Assert.assertEquals(ComplexRoundabout.INCOMPLETE_ROUTE_INVALIDATION,
-                complexRoundabout.getInvalidationReasons().get(0));
+                complexRoundabout.getAllInvalidations().get(0).getReason());
     }
 
     @Test
@@ -96,9 +96,9 @@ public class ComplexRoundaboutTest
         final ComplexRoundabout complexRoundabout = new ComplexRoundabout(
                 this.setup.counterClockwiseConnectedDoubleRoundaboutRightDrivingAtlas().edge(1234));
         Assert.assertFalse(complexRoundabout.isValid());
-        Assert.assertEquals(1, complexRoundabout.getInvalidationReasons().size());
+        Assert.assertEquals(1, complexRoundabout.getAllInvalidations().size());
         Assert.assertEquals(ComplexRoundabout.INCOMPLETE_ROUTE_INVALIDATION,
-                complexRoundabout.getInvalidationReasons().get(0));
+                complexRoundabout.getAllInvalidations().get(0).getReason());
     }
 
     @Test
@@ -116,9 +116,9 @@ public class ComplexRoundaboutTest
         final ComplexRoundabout complexRoundabout = new ComplexRoundabout(
                 this.setup.counterClockwiseRoundaboutRightDrivingOneWayNoAtlas().edge(1234));
         Assert.assertFalse(complexRoundabout.isValid());
-        Assert.assertEquals(1, complexRoundabout.getInvalidationReasons().size());
+        Assert.assertEquals(1, complexRoundabout.getAllInvalidations().size());
         Assert.assertEquals(ComplexRoundabout.INCOMPLETE_ROUTE_INVALIDATION,
-                complexRoundabout.getInvalidationReasons().get(0));
+                complexRoundabout.getAllInvalidations().get(0).getReason());
     }
 
     @Test
@@ -127,9 +127,9 @@ public class ComplexRoundaboutTest
         final ComplexRoundabout complexRoundabout = new ComplexRoundabout(
                 this.setup.counterClockwiseRoundaboutRightDrivingNonCarNavigableAtlas().edge(1234));
         Assert.assertFalse(complexRoundabout.isValid());
-        Assert.assertEquals(1, complexRoundabout.getInvalidationReasons().size());
+        Assert.assertEquals(1, complexRoundabout.getAllInvalidations().size());
         Assert.assertEquals(ComplexRoundabout.INCOMPLETE_ROUTE_INVALIDATION,
-                complexRoundabout.getInvalidationReasons().get(0));
+                complexRoundabout.getAllInvalidations().get(0).getReason());
     }
 
     @Test
@@ -138,7 +138,7 @@ public class ComplexRoundaboutTest
         final ComplexRoundabout complexRoundabout = new ComplexRoundabout(
                 this.setup.clockwiseRoundaboutRightDrivingIncompleteAtlas().edge(1234));
         Assert.assertFalse(complexRoundabout.isValid());
-        Assert.assertEquals(2, complexRoundabout.getInvalidationReasons().size());
+        Assert.assertEquals(2, complexRoundabout.getAllInvalidations().size());
     }
 
     @Test
@@ -147,7 +147,9 @@ public class ComplexRoundaboutTest
         final ComplexRoundabout complexRoundabout = new ComplexRoundabout(
                 this.setup.clockwiseRoundaboutLeftDrivingMissingTagAtlas().edge(1238));
         Assert.assertFalse(complexRoundabout.isValid());
-        Assert.assertEquals(0, complexRoundabout.getInvalidationReasons().size());
+        Assert.assertEquals(1, complexRoundabout.getAllInvalidations().size());
+        Assert.assertTrue(complexRoundabout.getAllInvalidations().get(0).getReason()
+                .contains("Invalid source Edge"));
     }
 
     @Test
@@ -156,7 +158,9 @@ public class ComplexRoundaboutTest
         final ComplexRoundabout complexRoundabout = new ComplexRoundabout(
                 this.setup.counterClockwiseRoundaboutRightDrivingOneWayNoAtlas().edge(-1234));
         Assert.assertFalse(complexRoundabout.isValid());
-        Assert.assertEquals(0, complexRoundabout.getInvalidationReasons().size());
+        Assert.assertEquals(1, complexRoundabout.getAllInvalidations().size());
+        Assert.assertTrue(complexRoundabout.getAllInvalidations().get(0).getReason()
+                .contains("Invalid source Edge"));
     }
 
     @Test
