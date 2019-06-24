@@ -145,6 +145,7 @@
  		</module>
 		<module name="TodoComment" />
 		<module name="UpperEll" />
+		<module name="org.openstreetmap.atlas.utilities.checkstyle.ArrangementCheck" />
 	</module>
 
 	<module name="SuppressionFilter">
