@@ -14,7 +14,6 @@ import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagCha
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-import org.openstreetmap.atlas.geography.converters.WktPolygonConverter;
 
 /**
  * Independent {@link Area} that contains its own data. At scale, use at your own risk.
@@ -142,17 +141,6 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     }
 
     @Override
-    public String getWKT()
-    {
-        if (this.polygon == null)
-        {
-            return null;
-        }
-        final WktPolygonConverter converter = new WktPolygonConverter();
-        return converter.convert(this.polygon);
-    }
-
-    @Override
     public int hashCode()
     {
         return super.hashCode();
@@ -233,6 +221,16 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
         return this.getClass().getSimpleName() + " [identifier=" + this.identifier + ", polygon="
                 + this.polygon + ", tags=" + this.tags + ", relationIdentifiers="
                 + this.relationIdentifiers + "]";
+    }
+
+    @Override
+    public String toWkt()
+    {
+        if (this.polygon == null)
+        {
+            return null;
+        }
+        return this.polygon.toWkt();
     }
 
     public CompleteArea withBoundsExtendedBy(final Rectangle bounds)

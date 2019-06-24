@@ -187,17 +187,6 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     }
 
     @Override
-    public String getWKT()
-    {
-        if (this.bounds == null)
-        {
-            return null;
-        }
-        final WktPolygonConverter converter = new WktPolygonConverter();
-        return converter.convert(this.bounds);
-    }
-
-    @Override
     public int hashCode()
     {
         return super.hashCode();
@@ -298,6 +287,17 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         return this.getClass().getSimpleName() + " [identifier=" + this.identifier + ", tags="
                 + this.tags + ", members=" + this.members + ", relationIdentifiers="
                 + this.relationIdentifiers + "]";
+    }
+
+    @Override
+    public String toWkt()
+    {
+        if (this.bounds == null)
+        {
+            return null;
+        }
+        final WktPolygonConverter converter = new WktPolygonConverter();
+        return converter.convert(this.bounds);
     }
 
     public CompleteRelation withAllKnownOsmMembers(final RelationBean allKnownOsmMembers)

@@ -28,27 +28,35 @@ public class EntityIdentifierGenerator
     private static final long LOWEST_ATLAS_ID = -900000000999999L;
 
     /**
-     * Generate a 64 bit hash for a given {@link CompleteEntity}. The entity must contain enough
-     * information for it to be created from scratch.
+     * Generate a 64 bit hash for a given non-{@link Edge} {@link CompleteEntity}. The entity must
+     * contain enough information for it to be created from scratch.
      * 
      * @param entity
      *            the entity
      * @return the hash
      */
-    public long generate(final CompleteEntity<?> entity)
+    public long generateIdentifier(final CompleteEntity<?> entity)
     {
-        final String entityString = getPropertyString(entity)
-                + getTypeSpecificPropertyString(entity);
-        UUID entityHash = UUID.nameUUIDFromBytes(entityString.getBytes());
-
-        long shortHash = entityHash.getMostSignificantBits();
-        while (!isHashSafeToUse(shortHash))
+        if (entity instanceof CompleteEdge)
         {
-            entityHash = UUID.nameUUIDFromBytes(entityHash.toString().getBytes());
-            shortHash = entityHash.getMostSignificantBits();
+            throw new IllegalArgumentException(
+                    "For CompleteEdge, please use generatePositiveIdentifierForEdge");
         }
+        return generate(entity, true);
+    }
 
-        return shortHash;
+    /**
+     * Generate a 64 bit hash for a given {@link CompleteEdge}. The edge must contain enough
+     * information for it to be created from scratch. The ID generated from this method will always
+     * be positive.
+     *
+     * @param edge
+     *            the edge
+     * @return the hash
+     */
+    public long generatePositiveIdentifierForEdge(final CompleteEdge edge)
+    {
+        return generate(edge, false);
     }
 
     /**
@@ -59,9 +67,9 @@ public class EntityIdentifierGenerator
      *            the {@link CompleteEntity} to string-ify
      * @return the property string
      */
-    String getPropertyString(final CompleteEntity<?> entity)
+    String getBasicPropertyString(final CompleteEntity<?> entity)
     {
-        final String wkt = entity.getWKT();
+        final String wkt = entity.toWkt();
         if (wkt == null)
         {
             throw new CoreException("Geometry must be set for entity {}", entity.prettify());
@@ -134,13 +142,51 @@ public class EntityIdentifierGenerator
     }
 
     /**
-     * Check if the hash falls outside of the unsafe range of possible OSM identifiers.
+     * A helper method that generates a deterministic 64 bit identifier for a given
+     * {@link CompleteEntity}. Additionally, this method can be tweaked to prevent negative
+     * identifiers.
      * 
+     * @param entity
+     *            the entity
+     * @param allowNegativeIdentifiers
+     *            if we want to allow the algorithm to generate negative identifiers
+     * @return the identifier
+     */
+    private long generate(final CompleteEntity<?> entity, final boolean allowNegativeIdentifiers)
+    {
+        int iterations = 0;
+        final int maximumIterations = 1000;
+
+        final String entityString = getBasicPropertyString(entity)
+                + getTypeSpecificPropertyString(entity);
+        UUID entityHash = UUID.nameUUIDFromBytes(entityString.getBytes());
+
+        long shortHash = entityHash.getMostSignificantBits();
+        while (!isHashSafeToUse(shortHash) || (shortHash < 0 && !allowNegativeIdentifiers))
+        {
+            entityHash = UUID.nameUUIDFromBytes(entityHash.toString().getBytes());
+            shortHash = entityHash.getMostSignificantBits();
+
+            if (iterations > maximumIterations)
+            {
+                throw new CoreException(
+                        "Exceeded maximum iterations ({}) when attempting to generate hash",
+                        maximumIterations);
+            }
+            iterations++;
+        }
+
+        return shortHash;
+    }
+
+    /**
+     * Check if the hash falls outside of the unsafe range of possible OSM identifiers.
+     *
      * @param hash
      *            the hash to check
      * @return if the hash is in range
      */
-    boolean isHashSafeToUse(final long hash)
+    private boolean isHashSafeToUse(final long hash)
     {
         return !(hash < HIGHEST_ATLAS_ID && hash >= LOWEST_ATLAS_ID);
     }

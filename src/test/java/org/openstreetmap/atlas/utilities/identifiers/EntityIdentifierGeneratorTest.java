@@ -28,7 +28,7 @@ public class EntityIdentifierGeneratorTest
         final String goldenPropertyString = "LINESTRING (1 1, 2 2);a=b,c=d;2;3";
 
         Assert.assertEquals(goldenPropertyString,
-                new EntityIdentifierGenerator().getPropertyString(edge)
+                new EntityIdentifierGenerator().getBasicPropertyString(edge)
                         + new EntityIdentifierGenerator().getTypeSpecificPropertyString(edge));
     }
 
@@ -40,7 +40,7 @@ public class EntityIdentifierGeneratorTest
 
         final String goldenPropertyString = "POINT (0 0);a=b,c=d";
         Assert.assertEquals(goldenPropertyString,
-                new EntityIdentifierGenerator().getPropertyString(point));
+                new EntityIdentifierGenerator().getBasicPropertyString(point));
     }
 
     @Test
@@ -88,6 +88,7 @@ public class EntityIdentifierGeneratorTest
                 Maps.hashMap("a", "b", "c", "d"), 2L, 3L, Sets.hashSet());
 
         final long goldenHash = 5515319119996140692L;
-        Assert.assertEquals(5515319119996140692L, new EntityIdentifierGenerator().generate(edge));
+        Assert.assertEquals(5515319119996140692L,
+                new EntityIdentifierGenerator().generatePositiveIdentifierForEdge(edge));
     }
 }

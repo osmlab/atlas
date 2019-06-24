@@ -251,13 +251,6 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
     ItemType getType();
 
     /**
-     * Get the WKT for this entity's geometry.
-     *
-     * @return the WKT of this entity's geometry, null if the geometry is null
-     */
-    String getWKT();
-
-    /**
      * A shallow {@link CompleteEntity} is one that contains only its identifier as effective data.
      *
      * @return if this entity is shallow
@@ -286,6 +279,13 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
     }
 
     void setTags(Map<String, String> tags);
+
+    /**
+     * Get the WKT for this entity's geometry.
+     *
+     * @return the WKT of this entity's geometry, null if the geometry is null
+     */
+    String toWkt();
 
     default C withAddedTag(final String key, final String value)
     {

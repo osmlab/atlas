@@ -13,7 +13,6 @@ import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagCha
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-import org.openstreetmap.atlas.geography.converters.WktLocationConverter;
 
 /**
  * Independent {@link Point} that contains its own data. At scale, use at your own risk.
@@ -141,17 +140,6 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
     }
 
     @Override
-    public String getWKT()
-    {
-        if (this.location == null)
-        {
-            return null;
-        }
-        final WktLocationConverter converter = new WktLocationConverter();
-        return converter.convert(this.location);
-    }
-
-    @Override
     public int hashCode()
     {
         return super.hashCode();
@@ -232,6 +220,16 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
         return this.getClass().getSimpleName() + " [identifier=" + this.identifier + ", location="
                 + this.location + ", tags=" + this.tags + ", relationIdentifiers="
                 + this.relationIdentifiers + "]";
+    }
+
+    @Override
+    public String toWkt()
+    {
+        if (this.location == null)
+        {
+            return null;
+        }
+        return this.location.toWkt();
     }
 
     public CompletePoint withBoundsExtendedBy(final Rectangle bounds)
