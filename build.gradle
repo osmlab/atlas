@@ -64,6 +64,8 @@ dependencies
     compile packages.protoc
     compile packages.artifact
     compile packages.groovy
+
+    checkstyle packages.atlas_checkstyle
     
     shaded project.configurations.getByName('compile')
     shaded packages.slf4j.log4j12
