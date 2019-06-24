@@ -107,6 +107,18 @@ public class CompleteAreaTest
     }
 
     @Test
+    public void testToWkt()
+    {
+        final CompleteArea area1 = new CompleteArea(123L);
+        area1.withPolygon(
+                Rectangle.forCorners(Location.forString("0,0"), Location.forString("1,1")));
+        Assert.assertEquals("POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))", area1.toWkt());
+
+        final CompleteArea area2 = new CompleteArea(123L);
+        Assert.assertNull(area2.toWkt());
+    }
+
+    @Test
     public void testWithGeometry()
     {
         final CompleteArea area = new CompleteArea(1L);
