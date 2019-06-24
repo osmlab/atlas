@@ -65,6 +65,7 @@ dependencies
     compile packages.artifact
     compile packages.groovy
 
+    checkstyle packages.checkstyle
     checkstyle packages.atlas_checkstyle
     
     shaded project.configurations.getByName('compile')
