@@ -32,6 +32,8 @@ public class ComplexRoundabout extends ComplexEntity
     protected static final String WRONG_WAY_INVALIDATION = "This roundabout is going the wrong direction, or has been improperly tagged as a roundabout.";
     protected static final String INCOMPLETE_ROUTE_INVALIDATION = "This roundabout does not form a single, one-way, complete, car navigable route.";
     private static final String EXCEPTION_MESSAGE = "Exception thrown while trying to build a ComplexRoundabout";
+    // Country default source:
+    // https://en.wikipedia.org/wiki/List_of_countries_with_left-hand_traffic
     private static final List<String> LEFT_DRIVING_COUNTRIES_DEFAULT = Arrays.asList("AIA", "ATG",
             "AUS", "BGD", "BHS", "BMU", "BRB", "BRN", "BTN", "BWA", "CCK", "COK", "CXR", "CYM",
             "CYP", "DMA", "FJI", "FLK", "GBR", "GGY", "GRD", "GUY", "HKG", "IDN", "IMN", "IND",
