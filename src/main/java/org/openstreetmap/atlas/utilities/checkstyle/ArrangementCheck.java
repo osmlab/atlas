@@ -315,7 +315,7 @@ public class ArrangementCheck extends AbstractCheck
         {
             final int difference = this.rawTypeToOrderIndex.get(left.getObjectRawType())
                     - this.rawTypeToOrderIndex.get(right.getObjectRawType());
-            if (difference == 0)
+            if (difference == 0 && Type.FIELD != left.getObjectRawType().getType())
             {
                 final String leftName = left.getName();
                 final String rightName = right.getName();
@@ -330,7 +330,8 @@ public class ArrangementCheck extends AbstractCheck
 
         public boolean isComparable(final ObjectType object)
         {
-            return this.rawTypeToOrderIndex.containsKey(object.getObjectRawType());
+            return this.rawTypeToOrderIndex.containsKey(object.getObjectRawType())
+                    && !"serialVersionUID".equals(object.getName());
         }
     }
 
