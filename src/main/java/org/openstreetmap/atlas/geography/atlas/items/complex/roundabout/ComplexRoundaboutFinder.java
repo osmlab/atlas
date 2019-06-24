@@ -29,8 +29,11 @@ public class ComplexRoundaboutFinder implements Finder<ComplexRoundabout>
             if (!this.checkedIds.contains(edge.getIdentifier()))
             {
                 final ComplexRoundabout complexRoundabout = new ComplexRoundabout(edge);
-                this.checkedIds.addAll(complexRoundabout.getRoundaboutEdgeSet().stream()
-                        .map(Edge::getIdentifier).collect(Collectors.toSet()));
+                if (complexRoundabout.getRoundaboutEdgeSet() != null)
+                {
+                    this.checkedIds.addAll(complexRoundabout.getRoundaboutEdgeSet().stream()
+                            .map(Edge::getIdentifier).collect(Collectors.toSet()));
+                }
                 if (complexRoundabout.isValid())
                 {
                     complexRoundabouts.add(complexRoundabout);

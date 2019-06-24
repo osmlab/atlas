@@ -137,7 +137,7 @@ public class ComplexRoundabout extends ComplexEntity
      *            An Edge entity in the roundabout adjacent to edge1
      * @return A double corresponding to the cross product between two edges
      */
-    private static Double getCrossProduct(final Edge edge1, final Edge edge2)
+    private static double getCrossProduct(final Edge edge1, final Edge edge2)
     {
         // Get the nodes' latitudes and longitudes to use in deriving the vectors
         final double node1Y = edge1.start().getLocation().getLatitude().asDegrees();
