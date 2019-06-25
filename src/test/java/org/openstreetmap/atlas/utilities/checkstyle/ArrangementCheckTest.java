@@ -88,7 +88,9 @@ public class ArrangementCheckTest extends AbstractModuleTestSupport
     private DefaultConfiguration configuration()
     {
         final DefaultConfiguration result = createModuleConfig(ArrangementCheck.class);
-        // result.addAttribute("arrangementDefinition", "${config_loc}/arrangement.txt");
+        // Make sure to test with the configurable path!
+        result.addAttribute("arrangementDefinition",
+                ArrangementCheck.class.getResource("arrangement.txt").getPath());
         return result;
     }
 }
