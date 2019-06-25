@@ -13,6 +13,8 @@ class,protected,non_static
 class,package_private,non_static
 class,private,non_static
 
+# Here do not force order on static variables
+# as they might have dependencies on each other
 # field,public,static
 # field,protected,static
 # field,package_private,static

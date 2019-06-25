@@ -68,6 +68,7 @@ public final class PackedAtlas extends AbstractAtlas
         PROTOBUF,
         JAVA
     }
+
     // Keep track of the field names for reflection code in the Serializer.
     protected static final String FIELD_PREFIX = "FIELD_";
     protected static final String FIELD_BOUNDS = "bounds";

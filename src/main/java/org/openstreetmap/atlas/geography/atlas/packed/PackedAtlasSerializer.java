@@ -65,6 +65,7 @@ public final class PackedAtlasSerializer
             super(message, cause);
         }
     }
+
     public static final String META_DATA_ERROR_MESSAGE = "MetaData not here!";
     private static final Logger logger = LoggerFactory.getLogger(PackedAtlasSerializer.class);
     // The fields not serialized.

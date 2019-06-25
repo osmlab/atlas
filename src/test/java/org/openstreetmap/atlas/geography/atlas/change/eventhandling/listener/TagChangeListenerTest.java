@@ -65,7 +65,7 @@ public class TagChangeListenerTest<E extends CompleteEntity<E>>
             final Map<String, String> tags = new HashMap<String, String>()
             {
                 private static final long serialVersionUID = -4353511172908766690L;
-    
+
                 {
                     put("aaa1", "bbb1");
                     put("aaa2", "bbb2");

@@ -68,7 +68,7 @@ dependencies
 
     testCompile packages.checkstyle_tests
 
-	checkstyle packages.checkstyle
+    checkstyle packages.checkstyle
     checkstyle packages.atlas_checkstyle
 
     shaded project.configurations.getByName('compile')

@@ -64,6 +64,7 @@ public abstract class Relation extends AtlasEntity
         OUTER,
         INNER
     }
+
     public static final Comparator<Relation> RELATION_ID_COMPARATOR = Comparator
             .comparingLong(AtlasObject::getIdentifier);
     private static final Logger logger = LoggerFactory.getLogger(Relation.class);

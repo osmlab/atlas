@@ -17,7 +17,7 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
 public class AtlasEntityKey extends Tuple<ItemType, Long>
 {
     private static final long serialVersionUID = -3670403373644942819L;
-    
+
     public static AtlasEntityKey from(final ItemType itemType, final Long identifier)
     {
         return new AtlasEntityKey(itemType, identifier);
