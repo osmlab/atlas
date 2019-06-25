@@ -4,7 +4,7 @@ This is a Checkstyle plugin that checks for member ordering in Java source files
 
 ## Setup
 
-The default setup takes the [default ordering definition](src/main/resources/org/openstreetmap/atlas/utilities/checkstyle/arrangement.txt).
+The default setup takes the [default ordering definition](/../../src/main/resources/org/openstreetmap/atlas/utilities/checkstyle/arrangement.txt).
 
 ```xml
 <module name="org.openstreetmap.atlas.utilities.checkstyle.ArrangementCheck"/>
@@ -43,7 +43,7 @@ By default all types that are comparable according to the ordering file will als
 
 ## Examples
 
-The following examples are based on the [default ordering definition](src/main/resources/org/openstreetmap/atlas/utilities/checkstyle/arrangement.txt).
+The following examples are based on the [default ordering definition](/../../src/main/resources/org/openstreetmap/atlas/utilities/checkstyle/arrangement.txt).
 
 ### Error: Field vs. Method
 
