@@ -21,7 +21,11 @@ or with a specified ordering definition:
 To use this with gradle, the project needs this dependency:
 
 ```groovy
-
+dependencies
+{
+    checkstyle "com.puppycrawl.tools:checkstyle:<checkstyle_version>"
+    checkstyle "org.openstreetmap.atlas:atlas:<atlas_version>"
+}
 ```
 
 ## Ordering definition
